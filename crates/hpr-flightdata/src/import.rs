@@ -268,7 +268,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         return Err(LogError::Archive {
             message: "the file is a zip archive, which holds files rather than a log, or a format \
                       built on one, such as a spreadsheet's `.xlsx`: an archive's files are read \
-                      one by one once unpacked (`archive::unpack`)"
+                      one by one once unpacked (`archive::unpack`), a workbook's sheets one by \
+                      one (`workbook::read`)"
                 .to_owned(),
         });
     }

@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c14 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c15 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,14 +22,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c14 | 4 | 0 | 4 unrecognized |
+| binary | M7.1c15 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c14 | 32 | 2 | 1 syntax, 29 unrecognized |
+| csv | M7.1c15 | 32 | 2 | 1 syntax, 29 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -37,9 +37,10 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c14 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c15 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
+| flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
@@ -64,17 +65,37 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
 | table-csv | M7.1c13 | 31 | 31 | none |
-| telemetry-rtf | M7.1c14 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c14 | 22 | 0 | 22 unrecognized |
+| telemetry-rtf | M7.1c15 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c15 | 22 | 0 | 22 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c14 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c14 | 23 | 0 | 23 archive |
-| xml | M7.1c14 | 2 | 0 | 2 unrecognized |
+| workbook-xlsx | M7.1c14 | 16 | 16 | none |
+| xls | M7.1c15 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c15 | 4 | 0 | 4 archive |
+| xml | M7.1c15 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 978 | |
+| **All** | | 1122 | 994 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `02cf95e874f824f7 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `084653fe77f2ca50 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `229efb1695f3277f xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `2d2455b75cfe7672 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `3e56a501d1b71a8a xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `44a479aaaf2812ce xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `8855863e76ea3fbc xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `9ee24565e8232902 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `acc19f3b1096cb74 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `b27cc498f8d15caa xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `c34428a0bff32b60 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `c3e5272b33d0ecdb xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `d21437764a14c64b xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `e3ff82bb5d72ff52 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `ef7b7dbbf32a8e67 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `f7b6e0a3273d6b79 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
+- `331cacde5f5bbc07 xlsx -> flight-summary-xlsx`: a flyer's summary of flights in a spreadsheet, a few rows of names, dates and figures by flight or by launch, and no samples; not a log
+- `9e277f9ff863b66e xlsx -> flight-summary-xlsx`: a flyer's summary of flights in a spreadsheet, a few rows of names, dates and figures by flight or by launch, and no samples; not a log
+- `e972c010b8861aca xlsx -> flight-summary-xlsx`: a flyer's summary of flights in a spreadsheet, a few rows of names, dates and figures by flight or by launch, and no samples; not a log
 - `ccf8bcecd91d5b91 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
 - `061c084cf2d6155c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
 - `065306f8cf7fc60c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
@@ -325,6 +346,27 @@ The 31 tables read by their headers (M7.1c13): each column but the clock read in
 | `ec3a7fcc83121635` | 2401 | 4 | `s` | 3 | 0 | 0 | 0 | 0 | – |
 | `fd61caa7235b81b6` | 13655 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
 | `ff3ad892e63f060d` | 36700 | 99 | `s` | 13 | 85 | 0 | 0 | 0 | – |
+
+The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
+
+| File | Sheets | Outcomes |
+|---|---:|---|
+| `02cf95e874f824f7` | 1 | 1 a table read by its header |
+| `084653fe77f2ca50` | 1 | 1 a table read by its header |
+| `229efb1695f3277f` | 3 | 1 Eggtimer CSV, 1 no-data, 1 syntax |
+| `2d2455b75cfe7672` | 1 | 1 a table read by its header |
+| `3e56a501d1b71a8a` | 3 | 1 a table read by its header, 1 no-data, 1 unrecognized |
+| `44a479aaaf2812ce` | 3 | 1 a table read by its header, 2 unrecognized |
+| `8855863e76ea3fbc` | 1 | 1 a table read by its header |
+| `9ee24565e8232902` | 1 | 1 Featherweight GPS CSV |
+| `acc19f3b1096cb74` | 1 | 1 Featherweight GPS CSV |
+| `b27cc498f8d15caa` | 3 | 2 Blue Raven CSV, 1 Featherweight summary CSV |
+| `c34428a0bff32b60` | 1 | 1 a table read by its header |
+| `c3e5272b33d0ecdb` | 1 | 1 a table read by its header |
+| `d21437764a14c64b` | 1 | 1 a table read by its header |
+| `e3ff82bb5d72ff52` | 3 | 2 Blue Raven CSV, 1 Featherweight summary CSV |
+| `ef7b7dbbf32a8e67` | 3 | 2 Blue Raven CSV, 1 no-data |
+| `f7b6e0a3273d6b79` | 1 | 1 a table read by its header |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -643,12 +685,12 @@ The files read, by the logger each names:
 | AltOS TeleMetrum-v2.0 | 6 |
 | AltOS TeleMetrum-v4.0 | 1 |
 | Big Red Bee BeeLine | 2 |
-| Eggtimer | 43 |
+| Eggtimer | 44 |
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
-| Featherweight Blue Raven | 128 |
-| Featherweight GPS ground station | 12 |
+| Featherweight Blue Raven | 136 |
+| Featherweight GPS ground station | 14 |
 | Featherweight GPS tracker | 40 |
 | Featherweight Raven | 137 |
 | GPS Visualizer | 1 |
@@ -668,4 +710,4 @@ The files read, by the logger each names:
 | SillyGooseV2 | 1 |
 | fw2kml | 15 |
 | phone app | 27 |
-| unknown | 31 |
+| unknown | 41 |

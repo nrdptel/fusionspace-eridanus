@@ -450,6 +450,7 @@ crates that use them named by folder (`hpr-core` is the package `fusionspace-hpr
 | `numpy` | BSD-2-Clause | `hpr-py` | hands a flight's recording and a motor's thrust curve to Python as NumPy arrays (ADR-114) |
 | `pyo3` | MIT OR Apache-2.0 | `hpr-py` | the Python bindings: the `fusionspace-hpr` package's classes, functions and exception, built as one abi3 extension module per operating system (ADR-114) |
 | `pulldown-cmark` | MIT | `xtask` | reads the documentation site's Markdown, with the parser mdBook itself uses, to check its links and labels (ADR-016) |
+| `quick-xml` | MIT | `hpr-flightdata` | reads the sheets and shared strings of `.xlsx` workbooks as a stream, no default features, expanding no entity but XML's own (ADR-269) |
 | `rand_core` | MIT OR Apache-2.0 | `hpr-core` (tests only) | the generator traits `rand_xoshiro` implements |
 | `rand_xoshiro` | MIT OR Apache-2.0 | `hpr-core` (tests only) | an independent xoshiro256++ and SplitMix64 that `hpr_core::random` is checked against, bit for bit |
 | `rayon` | MIT OR Apache-2.0 | `hpr-analysis` (its `parallel` feature) | Monte Carlo samples on a work-stealing thread pool; `collect` keeps them in order, so a run is the same on any number of threads (ADR-134) |
@@ -639,6 +640,17 @@ installed with `--no-deps` from that file (M3.1d2, ADR-059). Nothing in it is co
 | `rocketserializer` at `66d8ca8` (after release 0.2.0) | MIT | run, source read | a second reader of `.ork` files: its extractors are called one by one on each design, and `cargo xtask ork` holds HPR Sim's key geometry to theirs. Its declared dependency `orhelper` (GPL-2.0) is not installed |
 | `JPype1` 1.7.1 | Apache-2.0 | run-only | starts the JVM for OpenRocket, as in the oracle environment |
 | `numpy`, `beautifulsoup4`, `soupsieve`, `typing-extensions`, `lxml`, `packaging` | as each package states | run-only | what the extractors and JPype import |
+
+## The workbook reader's oracle (`validation/oracles/xlsx/requirements.txt`)
+
+`validation/oracles/xlsx/cells.py` runs in an environment of its own, `refs/venv-xlsx`,
+installed from that file (M7.1c14, ADR-269). Nothing in it is committed or bundled; the script
+prints counts and cell positions, never a value of the private workbooks it reads.
+
+| package | license | mode | notes |
+|---|---|---|---|
+| `openpyxl` 3.1.5 | MIT | run-only | a second reader of `.xlsx` workbooks: every cell of the sample workbooks is read by it and compared with `hpr_flightdata::workbook`'s text |
+| `et-xmlfile` 2.0.0 | MIT | run-only | what openpyxl imports |
 
 ## Research caches (`refs/research/`, outside the lock file)
 

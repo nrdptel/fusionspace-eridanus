@@ -1,0 +1,6 @@
+# The environment `cells.py` runs in, every package pinned. Install it with
+#
+#   uv venv -p 3.11 refs/venv-xlsx
+#   uv pip install -p refs/venv-xlsx -r validation/oracles/xlsx/requirements.txt
+openpyxl==3.1.5
+et-xmlfile==2.0.0

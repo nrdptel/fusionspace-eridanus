@@ -51,8 +51,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > units, each unit held to the column's name and values; no maker stands behind those units, and
 > a header that states a wrong one is read in it
 > ([tables read by their headers](#tables-read-by-their-headers)).
+> An Excel workbook, read since [M7.1c14](../decisions-and-roadmap.md#m7-1c14), is read sheet by
+> sheet, each cell as the workbook stores it, every cell of the samples matching an independent
+> reader's ([Excel workbooks](#excel-workbooks)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c14](../decisions-and-roadmap.md#m7-1c14), the other loggers' formats.
+> [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -149,6 +152,7 @@ decided.
 | RTx `.rtx` | Missile Works' RTx GPS tracker, its fixes as mDACS (Missile Works' program) saves a download | a .NET serialization header (MS-NRBF, version 1.0), then the class record of a list of 32-bit integers | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
+| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -160,13 +164,14 @@ figures with no samples ([below](#featherweights-summaries)).
 
 Some files among the sample logs aren't flight logs, and are counted apart as such: Debrief's
 made-up sample flights, which say so in their first row; a team's checklists for preparing a
-flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; the events files a
+flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; a flyer's summaries of
+flights in spreadsheets; the events files a
 flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
 such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
-them spreadsheets and a radio telemetry stream
+them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c14](../decisions-and-roadmap.md#m7-1c14), and the [survey's report](#how-it-was-checked)
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -218,6 +223,66 @@ isn't known, so they aren't read as a Blue Raven's; since
 [M7.1c13](../decisions-and-roadmap.md#m7-1c13) they are read as
 [tables by their headers](#tables-read-by-their-headers), their altitude in the feet the header
 states and the rest of their columns as written.
+
+### Excel workbooks
+
+Some flyers keep a flight's log in an Excel workbook (`.xlsx`): the Blue Raven app's files pasted
+side by side as sheets, or a table whose header names its units. A workbook is a zip archive of
+XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so `hpr_flightdata::import::read` refuses
+one, as it does any archive. Instead, `hpr_flightdata::workbook::read` writes each worksheet's
+cells out as comma-separated text, one line a row, and reads each sheet as the file it came from:
+a Blue Raven's CSV, an Eggtimer's, a Featherweight tracker's, or a
+[table read by its header](#tables-read-by-their-headers). One workbook can give several logs.
+
+```rust,ignore
+let bytes = std::fs::read("flight.xlsx")?;
+for sheet in hpr_flightdata::workbook::read(&bytes)? {
+    match &sheet.log {
+        Ok(log) => println!("{}: {}", sheet.name, log.format.name()),
+        Err(error) => println!("{}: not read, {error}", sheet.name),
+    }
+}
+```
+
+**What a cell becomes.** A cell is written as the workbook stores it, never as a spreadsheet
+displays it, so no digit is lost or invented: a number as its stored digits (`0.10000000000000001`
+stays so, though Excel shows `0.1`), a string as its text, a formula as the value saved with it,
+`TRUE` or `FALSE` for a truth value. An error such as `#DIV/0!`, or a formula with no value saved,
+is a gap, counted in a note. A line break inside a cell, as in a header wrapped onto two lines,
+becomes a space. Every row is written as wide as the sheet's widest, so short rows get empty
+cells; a row with no value is left out.
+
+**Dates.** A spreadsheet stores a date as a count of days, a *serial number*, and shows it as a
+date only through the cell's number format. A number under a format that shows a date is written
+as one: serial 45,000.75 under `m/d/yy h:mm` is `2023-03-15 18:00:00` (45,000 days after
+1899-12-30, then three quarters of a day). A time of day is written `18:00:00`, an elapsed time
+such as `[h]:mm:ss` counts its hours past 24 (`36:00:00`), and seconds are rounded to the
+millisecond. A workbook that counts from 1904, as old Mac workbooks may, is read from 1904. A
+date before 1900-03-01, where Excel's calendar has a 29 February 1900 that never was, is kept as
+the number stored, with a note. Every other number is kept as stored, so a clock a logger wrote
+in seconds stays a number.
+
+**Bounds.** A workbook comes from someone else. Its parts come out within the
+[archive bound](#zip-archives), and at most 256 MiB of text is written from one workbook, counted
+as each cell is read, so a small file of one long string repeated in every cell is refused, not
+written out. The sheets are read as a stream: the largest sample sheet is 60 MB of XML. A
+workbook is refused, with its reason, when a part it names is missing or isn't well-formed XML, a
+part declares a document type or names an entity of its own, cells or rows come out of order or
+past Excel's last cell, `XFD1048576`, a cell holds what its type says it can't (a number that
+isn't one, a string that isn't in the list), or two sheets share one part. The crate's tests
+check each refusal and the bound, and a property test writes random cells and reads them back.
+
+**How it was checked.** The 16 sample workbooks of flights' logs hold 28 sheets: 21 read (6 as a
+Blue Raven's CSV, 2 as its app's summaries, 2 as a Featherweight tracker's CSV, 1 as an Eggtimer's,
+10 as tables read by their headers), 3 hold no value (charts), and 4 are refused, among them an
+Eggtimer table a person added a column with no name to. Every cell of the 16 was read again by
+openpyxl 3.1.5, an independent Python reader (`validation/oracles/xlsx/cells.py`), and all
+5,743,747 cells that hold a value agree, 147,958 of them dates and times; shifting the reader's
+calendar by one day makes 27,103 disagree. Not read yet, with
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15): four workbooks (a PerfectFlite export with a
+person's notes beside it, a state estimator's output whose clock names no unit, and two tables
+with no header row) and an older `.xls` file. Three more workbooks are flyers' summaries of
+flights, not logs. Only the Rust library reads workbooks so far.
 
 ### R-DAS raw text
 
@@ -436,8 +501,9 @@ so far.
 
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
 above the pad isn't stated. Most of the 30 files filed as generic CSV that are still refused have
-a clock with no unit or no header row; they wait for a mapping, and spreadsheets for a reader,
-with [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
+a clock with no unit or no header row; they wait for a mapping, with
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15). A table saved in an Excel workbook is read the
+same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ## The record
 
@@ -878,7 +944,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
+  [M7.1c15](../decisions-and-roadmap.md#m7-1c15).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -1029,8 +1095,8 @@ apogee runs up to 3% below its low-rate file's highest altitude
 ([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
-against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
+against the files of samples in the same archive ([zip archives](#zip-archives)); the two inside
+Excel workbooks are read by the same rules, unchecked ([Excel workbooks](#excel-workbooks)).
 
 ## GPS logs
 
@@ -1834,10 +1900,11 @@ table read by its header had its columns decided, as counts ([above](#tables-rea
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 978 are read, the 8 archives
-counted as read when they unpack. The report labels 89 files for
-[M7.1c14](../decisions-and-roadmap.md#m7-1c14), the rest of the importers; 87 of them, of
-layouts no reader knows yet, are unread.
+([zip archives](#zip-archives)), and each Excel workbook's sheets by the layout each reads as
+([Excel workbooks](#excel-workbooks)). Of the 1,122 files it holds today, 994 are read, the 8
+archives counted as read when they unpack and the 16 workbooks when a sheet of each reads. The
+report labels 70 files for [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the rest of the
+importers; 68 of them, of layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -1849,7 +1916,8 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c14](../decisions-and-roadmap.md#m7-1c14). Five files filed as generic CSV or text are
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15). Sixteen spreadsheets are workbooks of flights'
+logs, held to the workbook reader. Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
@@ -1862,8 +1930,9 @@ SillyGoose flight, its columns in another order under no header.
 
 Some files aren't flight logs, and are counted apart as not logs, as pictures and maps are. By
 id: four spreadsheets of a team's checklist for preparing a flight, its steps and no measurement,
-and nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
-outputs. By family: Debrief's six made-up sample flights, whose first row says each isn't a
+nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
+outputs, and three spreadsheets of a flyer's summary of flights, a few rows of figures by flight
+or by launch and no samples. By family: Debrief's six made-up sample flights, whose first row says each isn't a
 recording of anything, and twelve text files a flyer's own program wrote from a Blue Raven's
 low-rate file, titled as that file's events. By id, since
 [M7.1c7](../decisions-and-roadmap.md#m7-1c7): two more of those events files, and three

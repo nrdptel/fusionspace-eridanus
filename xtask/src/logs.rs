@@ -1,4 +1,4 @@
-//! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
+//! `cargo xtask logs [--check] [--sheets DIR]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
 //! and `.md` (M7.1a, M7.1b, M7.1c1 and M7.1c2, ADR-251, ADR-253, ADR-254 and ADR-255).
 //!
@@ -32,12 +32,14 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-pub const USAGE: &str =
-    "  logs [--check]          reads every flight-log sample under refs/ (the collection's
+pub const USAGE: &str = "  logs [--check] [--sheets DIR]
+                           reads every flight-log sample under refs/ (the collection's
                            catalog, Debrief's fixtures, AerospaceNU's logs) and writes
                            validation/reports/log-import.json and .md; --check writes nothing
                            and fails unless they reproduce and every file of a family
-                           with a reader is read";
+                           with a reader is read; --sheets writes each sample workbook to
+                           DIR/<id>.xlsx and its sheets' text to DIR/<id>/<n>.csv, for
+                           validation/oracles/xlsx/cells.py (DIR under refs/: it's private)";
 
 const REPORT_JSON: &str = "validation/reports/log-import.json";
 const REPORT_MD: &str = "validation/reports/log-import.md";
@@ -50,8 +52,8 @@ const DEBRIEF_DIRS: [&str; 2] = [
 const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
-/// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c14's.
+/// wrote its reader: every file of these must import, and in that format. The workbooks are read
+/// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
 pub const READ: [(&str, LogFormat, &str); 35] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
@@ -120,11 +122,21 @@ const ARCHIVE_FAMILY: &str = "zip";
 /// The increment that unpacks [`ARCHIVE_FAMILY`]'s files.
 const ARCHIVE_INCREMENT: &str = "M7.1c7";
 
+/// The family of Excel workbooks of a flight's log, read when a sheet of each reads
+/// ([`WORKBOOK_INCREMENT`]): its sheets are written out as text and each read as a file.
+const WORKBOOK_FAMILY: &str = "workbook-xlsx";
+
+/// The increment that reads [`WORKBOOK_FAMILY`]'s sheets.
+const WORKBOOK_INCREMENT: &str = "M7.1c14";
+
+/// The increment the families with no reader yet are left to.
+const LEFT_TO: &str = "M7.1c15";
+
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
-/// a log or its description of a rocket, a team flight computer's saved state, a simulation's
-/// export, a wind profile, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 14] = [
+/// a log or its description of a rocket, a flyer's summary of flights, a team flight computer's
+/// saved state, a simulation's export, a wind profile, and Debrief's made-up flights, which say so in their first line.
+const NOT_LOGS: [&str; 15] = [
     "blueraven-events-txt",
     "blueraven-settings-csv",
     "blueraven-settings-xlsx",
@@ -132,6 +144,7 @@ const NOT_LOGS: [&str; 14] = [
     "debrief-synthetic-csv",
     "empty",
     "flight-computer-params-csv",
+    "flight-summary-xlsx",
     "jpeg",
     "kml-map",
     "openrocket-simulation-csv",
@@ -245,6 +258,13 @@ const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…`
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
 
+/// Why a spreadsheet is a workbook of logs, its sheets each read as a file of its own.
+const WORKBOOK: &str = "an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a \
+    table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate \
+    and low-rate files side by side or a table naming its units; filed as a spreadsheet";
+/// Why a spreadsheet is a flyer's summary of flights, not a log.
+const FLIGHT_SUMMARY_XLSX: &str = "a flyer's summary of flights in a spreadsheet, a few rows of \
+    names, dates and figures by flight or by launch, and no samples; not a log";
 /// Why a spreadsheet is a team's checklist, not a log.
 const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
     cells and no measurement; not a log";
@@ -255,7 +275,41 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 141] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 160] = [
+    ("02cf95e874f824f7", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("084653fe77f2ca50", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("229efb1695f3277f", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("2d2455b75cfe7672", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("3e56a501d1b71a8a", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("44a479aaaf2812ce", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("8855863e76ea3fbc", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("9ee24565e8232902", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("acc19f3b1096cb74", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("b27cc498f8d15caa", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("c34428a0bff32b60", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("c3e5272b33d0ecdb", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("d21437764a14c64b", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("e3ff82bb5d72ff52", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("ef7b7dbbf32a8e67", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("f7b6e0a3273d6b79", "xlsx", "workbook-xlsx", WORKBOOK),
+    (
+        "331cacde5f5bbc07",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
+    (
+        "9e277f9ff863b66e",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
+    (
+        "e972c010b8861aca",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
     ("ccf8bcecd91d5b91", "csv", "table-csv", TABLE_CSV),
     ("061c084cf2d6155c", "csv", "table-csv", TABLE_CSV),
     ("065306f8cf7fc60c", "csv", "table-csv", TABLE_CSV),
@@ -655,6 +709,8 @@ struct Report {
     /// The tables read by their headers, each column's decision counted.
     #[serde(default)]
     table_checks: Vec<TableFile>,
+    /// The Excel workbooks, each sheet's outcome counted.
+    workbook_checks: Vec<WorkbookFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -2144,7 +2200,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c12`), `M7.1c14` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c14`), `M7.1c15` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -2476,6 +2532,40 @@ struct TableFile {
 }
 
 /// Each table read by its header, as [`TableFile`] counts it.
+/// One Excel workbook's sheets: how many, and each sheet's outcome, the format it read as or the
+/// kind of its refusal (`no-data` for a sheet with no value, such as one holding only a chart).
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct WorkbookFile {
+    id: String,
+    sheets: usize,
+    outcomes: BTreeMap<String, usize>,
+}
+
+/// The workbooks' sheets, by outcome.
+fn workbook_checks(samples: &[Sample]) -> Vec<WorkbookFile> {
+    let mut out = Vec::new();
+    for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
+        let Ok(sheets) = hpr_flightdata::workbook::read(&sample.bytes) else {
+            continue;
+        };
+        let mut outcomes = BTreeMap::new();
+        for sheet in &sheets {
+            let outcome = match &sheet.log {
+                Ok(log) => log.format.name().to_owned(),
+                Err(error) => refusal(error).to_owned(),
+            };
+            *outcomes.entry(outcome).or_default() += 1;
+        }
+        out.push(WorkbookFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            sheets: sheets.len(),
+            outcomes,
+        });
+    }
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    out
+}
+
 fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
     use hpr_flightdata::generic;
     use hpr_flightdata::log::Quantity;
@@ -2922,14 +3012,26 @@ struct Sample {
 
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
-    for arg in args {
+    let mut sheets_dir = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--sheets" => {
+                sheets_dir = Some(
+                    args.next()
+                        .ok_or(format!("--sheets needs a folder\n\n{USAGE}"))?
+                        .clone(),
+                );
+            }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
     let root = crate::designs::root()?;
     let (samples, sources) = samples(&root)?;
+    if let Some(dir) = sheets_dir {
+        return write_sheets(&samples, Path::new(&dir));
+    }
     let (report, unread) = survey(&samples, sources);
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     let markdown = markdown(&report);
@@ -2966,6 +3068,32 @@ pub fn run(args: &[String]) -> Result<(), String> {
              read"
         );
     }
+    Ok(())
+}
+
+/// Each workbook sample as `<id>.xlsx` in `dir`, and its sheets' text as `<id>/<n>.csv`, `n`
+/// from 0 in the workbook's order, for an outside reader to check the text against.
+fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
+    let mut books = 0;
+    for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let sheets = hpr_flightdata::workbook::sheets(&sample.bytes)
+            .map_err(|error| format!("{id}: {error}"))?;
+        let folder = dir.join(&id);
+        fs::create_dir_all(&folder).map_err(|error| format!("{}: {error}", folder.display()))?;
+        let book = dir.join(format!("{id}.xlsx"));
+        fs::write(&book, &sample.bytes).map_err(|error| format!("{}: {error}", book.display()))?;
+        for (n, sheet) in sheets.iter().enumerate() {
+            let path = folder.join(format!("{n}.csv"));
+            fs::write(&path, &sheet.text)
+                .map_err(|error| format!("{}: {error}", path.display()))?;
+        }
+        books += 1;
+    }
+    println!(
+        "logs: wrote {books} workbooks and their sheets to {}",
+        dir.display()
+    );
     Ok(())
 }
 
@@ -3205,12 +3333,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             increment
         } else if sample.family == ARCHIVE_FAMILY {
             ARCHIVE_INCREMENT
+        } else if sample.family == WORKBOOK_FAMILY {
+            WORKBOOK_INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c14"
+            LEFT_TO
         };
         let row = families
             .entry(sample.family.clone())
@@ -3245,6 +3375,47 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         sample.family
                     ));
                     (format!("refused:{kind}"), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
+        if sample.family == WORKBOOK_FAMILY {
+            // A workbook is read when a sheet of it reads; its record is each sheet's, in order.
+            let (outcome, record) = match hpr_flightdata::workbook::read(&sample.bytes) {
+                Ok(sheets) if sheets.iter().any(|sheet| sheet.log.is_ok()) => {
+                    row.read += 1;
+                    let mut records = Vec::new();
+                    for sheet in &sheets {
+                        records.push(match &sheet.log {
+                            Ok(log) => {
+                                *loggers.entry(log.logger.clone()).or_default() += 1;
+                                let json = serde_json::to_vec(log).unwrap_or_default();
+                                format!("{:?}:{}", log.format, &hex(&Sha256::digest(&json))[..16])
+                            }
+                            Err(error) => refusal(error).to_owned(),
+                        });
+                    }
+                    (
+                        format!("Workbook:{}", sheets.len()),
+                        hex(&Sha256::digest(records.join(",").as_bytes()))[..16].to_owned(),
+                    )
+                }
+                outcome => {
+                    let error = match outcome {
+                        Err(error) => error.to_string(),
+                        Ok(_) => "no sheet of it reads".to_owned(),
+                    };
+                    *row.refused.entry("workbook".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:workbook".to_owned(), "-".to_owned())
                 }
             };
             files.push(format!(
@@ -3336,6 +3507,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         arts2_checks: arts2_checks(samples),
         rtx_checks: rtx_checks(samples),
         table_checks: table_checks(samples),
+        workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -3499,6 +3671,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::Unit { .. } => "unit",
         LogError::Binary { .. } => "binary",
         LogError::Archive { .. } => "archive",
+        LogError::Workbook { .. } => "workbook",
         _ => "other",
     }
 }
@@ -4055,6 +4228,41 @@ fn markdown(report: &Report) -> String {
             sum(|t| t.kept_by_header),
             sum(|t| t.contradicted),
             sum(|t| t.text),
+        );
+    }
+    if !report.workbook_checks.is_empty() {
+        let books = &report.workbook_checks;
+        let mut totals: BTreeMap<&str, usize> = BTreeMap::new();
+        let mut rows = String::new();
+        for book in books {
+            let outcomes: Vec<String> = book
+                .outcomes
+                .iter()
+                .map(|(outcome, n)| {
+                    *totals.entry(outcome).or_default() += n;
+                    format!("{n} {outcome}")
+                })
+                .collect();
+            rows += &format!(
+                "| `{}` | {} | {} |\n",
+                book.id,
+                book.sheets,
+                outcomes.join(", ")
+            );
+        }
+        let totals: Vec<String> = totals
+            .iter()
+            .map(|(outcome, n)| format!("{n} {outcome}"))
+            .collect();
+        out += &format!(
+            "\nThe {} Excel workbooks (M7.1c14): each sheet's cells written out as text, as the \
+             workbook stores them, and read as a file of its own; a sheet's outcome is the layout \
+             it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one \
+             holding only a chart). In all, {} sheets: {}.\n\n\
+             | File | Sheets | Outcomes |\n|---|---:|---|\n{rows}",
+            books.len(),
+            books.iter().map(|book| book.sheets).sum::<usize>(),
+            totals.join(", ")
         );
     }
     if !report.unit_decisions.is_empty() {

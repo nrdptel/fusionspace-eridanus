@@ -311,6 +311,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c11 ARTS2 raw data ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c12 Missile Works' RTx ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c13 Tables read by their headers ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c14 Excel workbooks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1609,6 +1610,11 @@ One line per milestone or increment, in the order it was archived within its pha
       measure its quantity is refused (tests); the survey's report counts each table's columns
       by decision, naming none; and the docs say what is read, what is left out and how far to
       trust it.
+    - [x] **M7.1c14 Excel workbooks** (ADR-269): `.xlsx` sheets written out, each read as a file.
+      *Done when:* every `workbook-xlsx` file in refs reads (`xtask logs --check`); cells as
+      stored, dates by one format rule, both date systems (tests); disorder, a DTD or entity, or
+      text past the bound refused (tests); every sample cell agrees with openpyxl
+      (`validation/oracles/xlsx/cells.py`); the report counts sheets by outcome; docs.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
