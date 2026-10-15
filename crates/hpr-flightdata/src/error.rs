@@ -54,6 +54,13 @@ pub enum LogError {
         /// What is wrong.
         message: String,
     },
+    /// An `.xlsx` workbook's parts can't be read as one, or its sheets pass the bounds
+    /// ([`workbook`](crate::workbook)).
+    #[error("Excel workbook: {message}")]
+    Workbook {
+        /// What is wrong.
+        message: String,
+    },
     /// The file states its values in a unit the reader doesn't know, such as a PerfectFlite file
     /// whose stated apogee carries no foot mark.
     #[error("{format} line {line}: {message}")]

@@ -82,6 +82,10 @@ pulldown-cmark = { version = "0.13.4", default-features = false }
 # xtask only: the documentation site's equations, LaTeX to MathML Core when the site builds (MIT;
 # the converter rustdoc's own math support is built on). Pure Rust, no script engine.
 math-core = "=0.8.2"
+# A streaming XML reader for the parts of an `.xlsx` workbook that grow with the data, its sheets
+# and shared strings (M7.1c14): a 60 MB sheet is read without holding a tree of it. No default
+# features, so no `encoding_rs` or `serde`; it expands no entity but XML's predefined ones.
+quick-xml = { version = "0.42.0", default-features = false }
 # Tests only: an independent xoshiro256++ and SplitMix64 to check `hpr_core::random` against.
 rand_core = "0.10"
 rand_xoshiro = "0.8.1"
