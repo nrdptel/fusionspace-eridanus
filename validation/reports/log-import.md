@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c11 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c12 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -21,8 +21,8 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-eeprom | M7.1c10 | 14 | 14 | none |
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c11 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c11 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c11 | 3 | 3 | none |
+| binary | M7.1c12 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
@@ -30,7 +30,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c11 | 67 | 2 | 1 syntax, 64 unrecognized |
+| csv | M7.1c12 | 67 | 2 | 1 syntax, 64 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -38,7 +38,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c11 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c12 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
@@ -46,9 +46,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c11 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c12 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c11 | 3 | 0 | 3 unrecognized |
+| odf | M7.1c11 | 3 | 3 | none |
 | openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 15 | 15 | none |
@@ -62,14 +62,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c11 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c11 | 26 | 0 | 26 unrecognized |
+| telemetry-rtf | M7.1c12 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c12 | 26 | 0 | 26 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c11 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c11 | 23 | 0 | 23 archive |
-| xml | M7.1c11 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c12 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c12 | 23 | 0 | 23 archive |
+| xml | M7.1c12 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 927 | |
+| **All** | | 1122 | 933 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -112,9 +112,9 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `9559781b880bbec8 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
 - `e5f252c299d9dbe5 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
 - `f3e56b3adb3d1581 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
-- `b4f7a3949e33ca0d csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
-- `c392977fab8558c2 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
-- `eda453d88e88e9c5 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
+- `b4f7a3949e33ca0d csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration
+- `c392977fab8558c2 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration
+- `eda453d88e88e9c5 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration
 - `1a5db9dc7064aff9 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
 - `1b9914f2b095a2ca csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
 - `292cd2cbeeb151d1 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
@@ -226,6 +226,16 @@ AltOS's raw downloads, `.eeprom`, each file's records as its record counts them,
 | f44c03b81cb9cf81 | JSON | 14 | 3435 | 3435, 0 failing | 5 | 0 | 0 | no | 1.00 Pa | – | 3429, 0.0000 Pa | 3429, 0.050 K | – | – | 3497, 0 without | – |
 
 An export of the same flight is an AltosUI CSV in the file's folder whose `serial` and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS CSV reader. The two line up by tick, the export's `time` counting from the flight record's tick, or, where it equals its `clock` at every row, from the tick itself. At each of the file's samples the export's last row at that hundredth must agree within half the export's print step (each cell above: the values compared and the worst difference): the pressure, the temperature where an MS5607 gives it, the acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose acceleration differs from the file's by one constant, the zero AltosUI may set at the +1 g calibration instead of the flight record's ground reading, within half a step, is counted apart. The other way, every row of the export must fall at a tick where the file holds a sample of some channel. The telemetry is the board's `.telem` of the same serial number, its clock lined up by whole turns from the two `boost` events; every pressure at a tick a sensor packet holds must equal it. The pressure step is the smallest difference between two of the file's pressures. The climb ratio is the reader's climb check on a board with an accelerometer: the climb over the first second after boost by the pressure in the standard atmosphere over the climb by the acceleration integrated twice from rest, which the reader holds from 0.6 to 5/3, keeping the acceleration's counts as written outside it, and a TeleMetrum v1's pressure's too; inside it, over 11 files, it lies from 0.859 to 1.400; outside: b122d4bddf7a8a89 (1.988). A log format from the product is format 1 for a TeleMetrum v1 whose configuration states none. Of 14 files, 9 have an export beside them and 9 agree with it; zeroed at the +1 g calibration: 219767cba01f7d9d; 2 have telemetry beside them and 2 agree with it; differing: none.
+
+ARTS2's `.odf` files, each against the files of its flight beside it: its raw CSV, word for word; DataAnalyzer's interpreted export, `Acc` in the accelerometer's counts on every record after the first, and `pAlt` against the pressure one record earlier, as DataAnalyzer takes it, by order only (each pressure meeting one `pAlt`, zero at the pad's pressure and above and rising as the pressure falls below it, and no `pAlt` a gap), its difference from the standard atmosphere's reported only, as one export takes its altitude otherwise; and the pad's and the least pressure less an AltOS board's flown with it, kPa, reported only:
+
+| File | Records | Climb ratio | Raw CSV | Rows compared | Worst `Acc`, counts | First row zero | Rows after | `pAlt` gaps | Clashes | Inversions | `pAlt` from the standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |
+|---|---:|---:|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|
+| 206193a3811c8bc0 | 16384 | 0.754 | same | 16383 | 0.076 | yes | 1, zero | 0 | 0 | 0 | 151.2 | -1.08 | -0.48 |
+| 2074af0d10ad080f | 16115 | 1.032 | same | 16114 | 0.080 | yes | 0, zero | 0 | 0 | 0 | 3.1 | -0.42 | +0.02 |
+| a34c382592dfd50d | 16115 | 1.145 | same | 16114 | 0.076 | yes | 0, zero | 0 | 0 | 0 | 3.3 | -0.44 | +0.11 |
+
+Differing: none.
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -364,6 +374,8 @@ Units no header states, as each file's reader decided them, or kept the column a
 | arts2-csv | `iAlt` read in meters, from `Vel` | 1 |
 | arts2-csv | `pAlt` read in feet, from its step and `Vel` | 3 |
 | arts2-csv | `pAlt` read in meters, from its step and `Vel` | 1 |
+| arts2-raw-csv | `Acc(HI)` and `Baro(HI)` kept as written | 3 |
+| arts2-raw-csv | `Acc/Baro(LO)` and `State` kept as written | 3 |
 | blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 40 |
 | blueraven-csv | `Current` kept as written, in a unit no source states | 40 |
 | blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 40 |
@@ -458,6 +470,9 @@ Units no header states, as each file's reader decided them, or kept the column a
 | kml-map | `coordinates` kept as written, in a track whose altitude mode tells a viewer to ignore its altitude | 1 |
 | nmea | `GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order | 12 |
 | nmea | `RMC date` read in UTC days, from status-`A` sentences only | 12 |
+| odf | `Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out | 3 |
+| odf | `Acc/Baro(LO)` and `State` kept as written | 3 |
+| odf | `Baro(HI)` read in pascals, by the MPX4100A's nominal transfer function | 3 |
 | pfa | `Data` read in feet, 0.1 s apart, from the manual | 25 |
 | phone-launch-csv | `AltitudeMSLGPS` and `AltitudeMSLMaxGPS` kept as written, in a unit no second check settles | 27 |
 | phone-launch-csv | `AltitudeRelativeBarometer` kept as written, holding no reading | 19 |
@@ -542,7 +557,7 @@ The files read, by the logger each names:
 | Missile Works RRC3 | 57 |
 | Missile Works RTx | 12 |
 | NMEA 0183 receiver (talker GP) | 12 |
-| Ozark Aerospace ARTS2 | 4 |
+| Ozark Aerospace ARTS2 | 10 |
 | PerfectFlite | 21 |
 | PerfectFlite Alt15K/WD | 25 |
 | PerfectFlite Pnut | 39 |

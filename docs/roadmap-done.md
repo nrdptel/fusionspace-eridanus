@@ -308,6 +308,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c8 The R-DAS's raw text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c9 AltOS telemetry ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c10 AltOS raw downloads ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c11 ARTS2 raw data ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1567,6 +1568,19 @@ One line per milestone or increment, in the order it was archived within its pha
       export of the same flight lies beside a file, every pressure equals the export's at the
       same tick within its print step (the survey's report; a differing file fails `--check`);
       and the docs say what was learned from the files, what is left out and how far to trust it.
+    - [x] **M7.1c11 ARTS2 raw data** (ADR-266): the `.odf` file ARTS2's software saves and its raw
+      CSV export, decoded from the files and the exports beside them.
+      *Done when:* every ARTS2 `.odf` and raw CSV in refs reads (`cargo xtask logs --check` fails
+      on one that doesn't); an `.odf` with a layout fault, a first record that isn't its
+      baselines, a calibration or pad pressure its sensors' data sheets don't bear out, or a
+      climb check that fails or can't be measured is refused, each by its own message (tests); the
+      `.odf`'s acceleration and pressure are read in SI from its calibration and the sensor's
+      transfer function, and the raw CSV's counts kept as written (tests); each `.odf` with a raw
+      CSV beside it holds the same records word for word, and with an interpreted export beside
+      it agrees in `Acc` within half a count on every record after the first and orders `pAlt`
+      as its pressure one record earlier (the survey's report; a differing file fails
+      `--check`); and the docs say what was learned from the files, what is left out and how far
+      to trust it.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

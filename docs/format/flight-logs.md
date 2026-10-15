@@ -37,9 +37,13 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > [M7.1c10](../decisions-and-roadmap.md#m7-1c10), follow a layout worked out from the files; each
 > unit converted rests on a data sheet and a second check, and all 9 sample files with an AltosUI
 > export beside them match it on every value converted to SI, one export's acceleration, zeroed
-> at +1 g, counted apart ([AltOS's `.eeprom`](#altoss-eeprom)). Other layouts are refused,
-> not guessed at; they come with [M7.1c11](../decisions-and-roadmap.md#m7-1c11), the other
-> loggers' formats.
+> at +1 g, counted apart ([AltOS's `.eeprom`](#altoss-eeprom)). An ARTS2's raw data, the `.odf`
+> file and its raw CSV export read since [M7.1c11](../decisions-and-roadmap.md#m7-1c11), also
+> follows a layout worked out from the files; the `.odf`'s units rest on its own calibration and
+> the sensors' data sheets, held to a climb check, and all 3 sample `.odf` files agree with the
+> raw CSV and the interpreted export beside them ([the ARTS2's raw data](#the-arts2s-raw-data)).
+> Other layouts are refused, not guessed at; they come with
+> [M7.1c12](../decisions-and-roadmap.md#m7-1c12), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -91,6 +95,8 @@ decided, and [M7.1c9](../decisions-and-roadmap.md#m7-1c9) (AltOS's radio telemet
 [ADR-263](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0263-altos-telemetry-before-the-rest.md)
 decided, and [M7.1c10](../decisions-and-roadmap.md#m7-1c10) (AltOS's `.eeprom` downloads), as
 [ADR-265](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md)
+decided, and [M7.1c11](../decisions-and-roadmap.md#m7-1c11) (the ARTS2's `.odf` and raw CSV), as
+[ADR-266](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -115,6 +121,8 @@ decided.
 | SillyGoose text | AerospaceNU's SillyGoose flight computer: its own log, tab- or space-separated, with or without a `CONFIG` settings line | a first line, or the one after `CONFIG`, starting `timestampMs` and naming `pressurePa` and `altitudeM` | `hpr_flightdata::sillygoose` ([below](#units-the-file-decides)) |
 | Silicdyne Fluctus CSV | Silicdyne Fluctus, as its Fluctus Control Center exports a flight | a `sep=` line (such as `sep=;`) within the first 16 lines, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` | `hpr_flightdata::fluctus` ([below](#units-the-file-decides)) |
 | ARTS2 CSV | Ozark Aerospace ARTS2, its interpreted data as its software exports a flight | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case | `hpr_flightdata::arts2` ([below](#units-the-file-decides)) |
+| ARTS2 `.odf` | Ozark Aerospace ARTS2, a flight as its software, DataAnalyzer, saves it: the board's settings and calibration, then the sensors' counts | its bytes open with the length 9, then `Ozark.odf` | `hpr_flightdata::arts2_raw` ([below](#the-arts2s-raw-data)) |
+| ARTS2 raw CSV | the same, the sensors' counts as DataAnalyzer exports them, with no calibration | a first line that isn't blank reading `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State`, the names as written | `hpr_flightdata::arts2_raw` ([below](#the-arts2s-raw-data)) |
 | AerospaceNU board CSV | AerospaceNU's flight computer board (FCB), its binary log as the club's tools turn it into a CSV | a first line whose first name is empty (the club's row number) and which names `packetType`, `timestamp_ms` or `timestamp_s` | `hpr_flightdata::aerospacenu_fcb` ([below](#units-the-file-decides)) |
 | AerospaceNU ground station text | the same board's radio downlink, one packet a line, as the club's ground station logged it | a first line that isn't blank starting `RUN START` | `hpr_flightdata::aerospacenu_gs` ([below](#units-the-file-decides)) |
 | Phone app `launch` CSV | an app, named in none of its files, that logs a phone's own sensors in flight | a first line that isn't blank starting `Seconds,Timestamp,AltitudeMSLGPS`, the only mark the files carry: any file whose header opens so is read as this app's, as the app's name is unknown | `hpr_flightdata::phone_launch` ([below](#units-the-file-decides)) |
@@ -140,9 +148,9 @@ flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; the eve
 flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
 such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
-them an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
+them spreadsheets and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c11](../decisions-and-roadmap.md#m7-1c11), and the [survey's report](#how-it-was-checked)
+[M7.1c12](../decisions-and-roadmap.md#m7-1c12), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -191,7 +199,7 @@ Two CSV files in one archive name other altimeters' formats in their file names 
 Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
 altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
 isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
-[M7.1c11](../decisions-and-roadmap.md#m7-1c11).
+[M7.1c12](../decisions-and-roadmap.md#m7-1c12).
 
 ### R-DAS raw text
 
@@ -614,7 +622,8 @@ sample logs:
   altitude, above the pad reading the logger took on entering flight mode (p17); the file starts
   at launch. The velocity and inertial altitude are the logger's integrals of its accelerometer,
   and drift by the end of the descent, so the record keeps them as channels, not as its vertical
-  speed.
+  speed. The same flight's `.odf` file holds the sensors' counts with the calibration
+  ([the ARTS2's raw data](#the-arts2s-raw-data)).
 - **AerospaceNU's flight computer board, each unit by two checks.** The flight computer board
   (FCB) of AerospaceNU, Northeastern University's rocketry club, logs a binary file, which the
   club's tools turn into a CSV; the club publishes both (AerospaceNU, *rocket-flight-data*,
@@ -774,7 +783,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c11](../decisions-and-roadmap.md#m7-1c11).
+  [M7.1c12](../decisions-and-roadmap.md#m7-1c12).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -926,7 +935,7 @@ apogee runs up to 3% below its low-rate file's highest altitude
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
 against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c11](../decisions-and-roadmap.md#m7-1c11).
+spreadsheets wait for [M7.1c12](../decisions-and-roadmap.md#m7-1c12).
 
 ## GPS logs
 
@@ -1091,12 +1100,14 @@ every line is a step of 0.1 s, so one left out would move every time after it.
 ## Raw downloads
 
 A raw download is an altimeter's memory as its maker's program copies it to a computer, before
-that program turns it into an export with columns and units. HPR Sim reads three: the
-Featherweight Raven's `.FIPa` and Missile Works' RRC3 `.rff`, described first, and AltOS's
-`.eeprom`, which has [its own section](#altoss-eeprom) below. Each holds the sensors' readings as
-whole numbers, *counts*. None of the three holds an altitude. The Raven's and the RRC3's counts
-are turned into SI by the maker's own arithmetic; AltOS's by the sensors' data sheets, and a count
-with no source stays as written.
+that program turns it into an export with columns and units. HPR Sim reads four: the
+Featherweight Raven's `.FIPa` and Missile Works' RRC3 `.rff`, described first, then AltOS's
+`.eeprom` and the ARTS2's `.odf`, each in its own section below
+([AltOS's `.eeprom`](#altoss-eeprom), [the ARTS2's raw data](#the-arts2s-raw-data)). Each holds
+the sensors' readings as whole numbers, *counts*. None of the four holds an altitude. The Raven's
+and the RRC3's counts are turned into SI by the maker's own arithmetic; AltOS's and the ARTS2's
+by the sensors' data sheets and the calibration the file carries, and a count with no source
+stays as written.
 
 > **How far to trust it.** The logger's own readings, decoded from layouts no maker publishes, and
 > checked sample by sample against the makers' exports of the same flights.
@@ -1112,9 +1123,14 @@ with no source stays as written.
 >   radio telemetry, which agrees; the other 4 have nothing beside them. The TeleMetrum v1's
 >   pressure assumes its converter's reference is the sensor's supply, which no document states;
 >   the TeleMega v4's IMU isn't read. [Its section](#altoss-eeprom) has the details.
+> - **ARTS2 `.odf`:** all 3 sample files have the raw CSV and DataAnalyzer's interpreted export of
+>   the same flight beside them. The raw CSVs hold the same 48,614 records word for word, and the
+>   exports' acceleration agrees within 0.080 of a count on every record after the first. The
+>   rate rests on DataAnalyzer's exports and a climb check, not on the file.
+>   [Its section](#the-arts2s-raw-data) has the details.
 >
-> Not compared: the exports' altitudes, flags and the velocities they work out, which are their
-> programs' conversions, not the altimeter's words. Where a number matters, set it beside the
+> Not compared: the exports' altitudes (but the order of the ARTS2's), flags and the velocities
+> they work out, which are their programs' conversions, not the altimeter's words. Where a number matters, set it beside the
 > maker's program's export of the same flight.
 
 ### The Raven's `.FIPa`
@@ -1414,6 +1430,181 @@ count and each climb ratio.
 Left out: the TeleMega v4's IMU and the fields kept as written, until a source or a second check
 bears their units out; and any log format not listed above, which no sample holds.
 
+### The ARTS2's raw data
+
+HPR Sim reads an Ozark Aerospace ARTS2's flight in two more files: the `.odf` file DataAnalyzer,
+the board's PC software, saves a downloaded flight to, and the sensors' counts as DataAnalyzer
+exports them to CSV. Only the Rust library reads them so far. The *ARTS2 User Manual* (V1.0.0,
+Ozark Aerospace, 2007) describes neither file, so the layout was worked out from the 3 sample
+flights that hold both, each with DataAnalyzer's interpreted export of the same flight beside it
+([an ARTS2's unit system](#units-the-file-decides)), without any other program's source code. The
+`.odf` carries the board's calibration, so its acceleration and pressure are read in SI; the raw
+CSV carries none, so its counts are kept as written.
+
+> **How far to trust it.** The board's own readings, decoded from a layout the maker doesn't
+> publish, and checked against the files of the same flight beside each.
+>
+> - **Checked:** all 3 sample `.odf` files. Their raw CSVs hold the same 48,614 records word for
+>   word, 0.02 s apart. Against DataAnalyzer's interpreted exports, the acceleration agrees within
+>   0.080 of a count on all 48,611 records after the first, and each export's barometric altitude
+>   follows the pressure in order. The climb check, the climb over the first 2 s by the pressure
+>   over the climb by the acceleration, gives ratios of 0.754, 1.032 and 1.145, where the reader
+>   accepts 0.6 to 5/3.
+> - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files. Where the
+>   file keeps it isn't known: the reader refuses a file whose likeliest word for it isn't the
+>   sample files' 2, and on the sample files the climb check is sure to catch only a time step
+>   below 0.67 or above 1.38 times the true one. The pressure is the sensor's nominal conversion, with an error band of
+>   ±1.5 kPa; an AltOS board flown with each flight reads a pad pressure 0.42 to 1.08 kPa above
+>   the ARTS2's.
+> - **Not read:** the meaning of most of the flags byte, the board's state codes and the
+>   deployment settings.
+
+The ARTS2 reads an Analog Devices ADXL78 accelerometer, set for ±50 g, and a Motorola MPXA4100A
+pressure sensor with its processor's 10-bit converter, so each count runs from 0 to 1,023 (the
+manual, Appendix A, p. 16). The `.odf` is little-endian throughout, and its length must be
+exactly its parts':
+
+| Offset | Bytes | What |
+|---:|---:|---|
+| 0 | 4 + 9 | the length 9, then `Ozark.odf` |
+| 13 | 20 | five 32-bit words, the same in every sample file; not read |
+| 33 | 256 | the board's settings and calibration (below) |
+| 289 | 4 | the number of records, `n` |
+| 293 | 12 | three 32-bit words, each the memory's size in records; equal, and at least `n` |
+| 305 | 8 `n` | the records |
+| 305 + 8 `n` | 124 | DataAnalyzer's own settings; not read |
+
+Of the settings block, the reader takes four things, each a 16-bit little-endian word. At its
+offset 8 is a word that is 2 in every sample file, the likeliest place for the recording rate,
+which the owner sets (pp. 6–7); a file where it is anything else is refused, as its clock would
+be unknown. At 10 is the barometer's count
+on the pad, the "Zero Altitude baseline" the board averages on entering flight mode (p. 17). At 12
+is eight times the accelerometer's count on the pad, its "Zero G baseline" (p. 16), so it keeps an
+eighth of a count. At 20, 22 and 24 are three sums of 64 accelerometer readings, taken when the
+board was calibrated "at +1g, −1g, and 0" (p. 16): in every sample file the middle one is the
+reading on its side, midway between the two ends.
+
+Each record is four 16-bit words, in the order of the raw CSV's columns: the accelerometer's count
+(`Acc(HI)`), a byte of flags (`Acc/Baro(LO)`), the barometer's count (`Baro(HI)`) and the board's
+state (`State`). The first record is the two baselines, not a sample: the pad's barometer count,
+and the accelerometer's cut to a whole count. A file whose first record isn't so is refused, as
+its bytes would be laid out otherwise than the sample files'. DataAnalyzer exports that record as
+the flight's first row, at time 0, and so does the reader.
+
+What the reader does with the records:
+
+- **The clock.** The records are 0.02 s apart, 50 a second, from the first: the rate DataAnalyzer
+  gives every sample file in both its exports. Where the file keeps the rate isn't known: the
+  sample files are all at one rate, so no byte can be shown to change with it. The reader refuses
+  a file whose settings word at 8 isn't 2, and the climb check below bounds the clock otherwise.
+- **Acceleration**, along the board's axis, toward its forward end, from the file's own
+  calibration. The two end sums are 2 g apart, so a g is a 128th of their difference, in counts:
+  64 readings in each sum, over 2 g. The pad's reading is taken out, as DataAnalyzer's export
+  takes it out, so the rocket at rest on the pad reads zero, gravity with it. With $c$ the count,
+  $c_{\mathrm{pad}}$ the pad's baseline and $k$ the counts a g,
+
+  $$
+  a = \pm\frac{c - c_{\mathrm{pad}}}{k}\, g_0,
+  $$
+
+  the sign set by the pad: standing nose up, the board reads +1 g along its axis, so the pad's
+  reading lies near one end sum, and a count moving further toward that end is an acceleration
+  forward, positive. The
+  ADXL78's data sheet must bear the calibration out (*ADXL78*, Rev. B, Analog Devices, 2010, p. 3,
+  for ±50 g): a g from 36.1 to 39.9 mV, 7.39 to 8.17 counts on the board's 5 V supply; the side's
+  reading within 150 mV, 30.72 counts, of half the supply and between the two ends; and the pad's
+  reading nearer an end than the side's. Otherwise the file is refused.
+- **Pressure**, by the MPX4100A's nominal transfer function, the first line below, with $V$ the
+  sensor's output, $V_S$ its supply and $P$ in kPa (*MPX4100A*, Rev 9, Freescale, 2009, p. 5).
+  The converter reads the output against the supply as its full scale, so $V/V_S$ is $c/1024$,
+  which gives the second:
+
+  $$
+  \begin{aligned}
+  V &= V_S\,(0.010\,59\,P - 0.1518) \\
+  P &= \frac{c/1024 + 0.1518}{0.010\,59}
+  \end{aligned}
+  $$
+
+  One count is 92.2 Pa, about 7.7 m (25 ft) of height near sea level. The pad's pressure must lie
+  in the sensor's rated 20 to 105 kPa (p. 3), or the file is refused. The sensor's error band is
+  ±1.5 kPa over that range from 0 to 85 °C (p. 6).
+- **The climb check** holds the clock and both units to each other, as for
+  [AltOS's `.eeprom`](#altoss-eeprom). Over the first 2 s from the first record, the climb by the
+  pressure, its pressure altitude in the U.S. Standard Atmosphere, 1976, must agree with the climb
+  by the acceleration, integrated twice from rest: their ratio must lie from 0.6 to 5/3. The
+  window is twice AltOS's 1 s because this barometer is coarse: over 1 s, one sample flight
+  climbs less than two counts. The check bounds the clock only loosely: the climb by the
+  acceleration goes as the square of the time step, so with a flight's ratio $r$ on its true
+  clock, a step $k$ times the true one passes for $k$ from $\sqrt{r/(5/3)}$ to $\sqrt{r/0.6}$,
+  0.67 to 1.12 for the sample file of the least ratio and 0.83 to 1.38 for the greatest's.
+- **A file that fails the climb check is refused.** AltOS's reader keeps such a file's counts as
+  written; this one can't, because a count kept as written still needs a clock, and nothing else
+  in the file bears one out.
+- **Kept as written:** the flags byte and the state. Bits 3 and 2 of the flags byte are the
+  barometer count's low two bits in every record of every sample file, and a record whose aren't
+  is refused, a check that the words are where the reader takes them. The other bits follow the
+  flight, but no document names them. The state steps through 0, 1, 2, 3, 5, 6 and 7 in each
+  flight, in order; no document names those either, so no event is taken from it.
+
+The file holds no altitude: the record's [primary track](#the-record) is empty, as for the other
+[raw downloads](#raw-downloads), and every word is a channel. The record's stated figures hold the
+two baselines and the three calibration sums.
+
+**A worked example**, from the invented file the crate's test `tests/arts2_raw.rs` reads. Its
+settings block holds a pad barometer count of 800, an accelerometer word of 4,100 (512.5 counts),
+and calibration sums of 31,744 (64 × 496), 32,250 and 32,768 (64 × 512). The ends differ by 1,024,
+so a g is 1,024 / 128 = 8 counts, inside the data sheet's 7.39 to 8.17; the side's reading,
+32,250 / 64 = 503.9, lies between the ends and within 30.72 of 512; and the pad's 512.5 lies near
+the 512 end, so the acceleration is positive as the count rises. A count of 576 in the boost is
+(576 − 512.5) / 8 = 7.94 g, 77.84 m/s² above rest. The pad's barometer count reads
+(800 / 1,024 + 0.1518) / 0.010 59 = 88.107 kPa, inside the sensor's 20 to 105 kPa.
+
+**The raw CSV** is DataAnalyzer's raw export of the same records: a
+`MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then a row for each record, its time and its four
+words as whole numbers:
+
+```text
+MET,Acc(HI),Acc/Baro(LO),Baro(HI),State
+0.000,512,0,800,64
+0.020,576,0,800,0
+```
+
+It holds no calibration, only the first record's whole-count baselines, so no column is
+converted: the two counts and the flags byte are kept as written, the state as a number, and
+`MET`, DataAnalyzer's clock, as the time. Every row must hold five numbers, its four words whole
+and in range, a time after the row before's, and a flags byte holding the barometer's low bits,
+or the file is refused, naming the line. For values in units, read the flight's `.odf`.
+
+**Checked.** `cargo xtask logs` pairs each `.odf` with the files of its flight in its folder. A
+raw CSV must hold its records word for word, 0.02 s apart. DataAnalyzer's interpreted export must
+agree in `Acc` within half a count on every record after the first, and read zero in `Acc` and
+`pAlt` at its first row and at any row after the records. Its `pAlt` is compared by order only:
+zero at the pad's pressure and above, it must rise as the pressure one record earlier falls below
+it, each pressure meeting one value, and no row's `pAlt` may be missing.
+`cargo xtask logs --check` fails on a file that differs. Of the 3 `.odf` files:
+
+| Compared | Files | Values | Result |
+|---|---:|---:|---|
+| Records, against the raw CSV | 3 | 48,614 | every word equal |
+| `Acc`, against the interpreted export | 3 | 48,611 | within 0.080 of a count |
+| `pAlt`'s order, against the pressure | 3 | 48,611 | no pressure meeting two values; none out of order; no gap |
+| The climb check | 3 | | ratios 0.754, 1.032 and 1.145 |
+
+Reported, not checked: two exports' `pAlt` lies within 3.3 m (11 ft) of the standard
+atmosphere's pressure altitude from the `.odf`'s pressure, and the third's departs by up to
+151 m (496 ft), worked by some other formula. An AltOS board flew beside the ARTS2 on each
+flight: the ARTS2's pad pressure reads 0.42 to 1.08 kPa below it, and its least pressure from
+0.48 kPa below to 0.11 kPa above, inside the MPX4100A's ±1.5 kPa error band. The
+[survey's report](#how-it-was-checked) prints each file's counts and climb ratio under an
+anonymized id, and
+[ADR-266, the ARTS2's raw data](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
+gives the evidence for the layout.
+
+Left out: the flags byte's bits beyond the barometer's two, the state codes' meanings, the
+deployment settings and the rest of the settings block; and where the file keeps its rate, which
+the climb check stands in for.
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -1428,12 +1619,15 @@ maker's export ([above](#checked-against-the-makers-exports)); how each Featherw
 compares with the files of samples beside it ([above](#checked-against-the-files-beside)); how
 AltOS's telemetry compares with AltosUI's export beside it, and its board's estimates with each
 other ([above](#altos-telemetry)); how each AltOS `.eeprom` file compares with the export and the
-telemetry beside it ([above](#altoss-eeprom)); and
+telemetry beside it ([above](#altoss-eeprom)); how each ARTS2 `.odf` compares with the raw CSV
+and the interpreted export beside it ([above](#the-arts2s-raw-data)); and
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 927 are read, the 8 archives
-counted as read when they unpack.
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 933 are read, the 8 archives
+counted as read when they unpack. The report labels 133 files for
+[M7.1c12](../decisions-and-roadmap.md#m7-1c12), the rest of the importers; 131 of them, of
+layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -1445,13 +1639,13 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c11](../decisions-and-roadmap.md#m7-1c11). Five files filed as generic CSV or text are
+[M7.1c12](../decisions-and-roadmap.md#m7-1c12). Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
-app doesn't write), is refused, counted as damaged. Four more are moved to layouts not read yet: three
-of an ARTS2's raw sensor counts, which carry no calibration, and a ground station's conversion
-of a SillyGoose flight, its columns in another order under no header.
+app doesn't write), is refused, counted as damaged. Three more are an ARTS2's raw CSV, held to
+its reader. One more is moved to a layout not read yet: a ground station's conversion of a
+SillyGoose flight, its columns in another order under no header.
 
 Some files aren't flight logs, and are counted apart as not logs, as pictures and maps are. By
 id: four spreadsheets of a team's checklist for preparing a flight, its steps and no measurement,
