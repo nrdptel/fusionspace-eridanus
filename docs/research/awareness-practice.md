@@ -165,12 +165,12 @@ Licenses: Motor Finder is MIT (port with a note); the WHO resource is CC BY-NC-S
 only); Tripoli's code is all rights reserved and NAR's states no terms (link only). The calendar's
 dates and names are facts, restated in our own words.
 
-## Open questions for the maintainer
+## The maintainer's calls (2026-10-15)
 
-- Transgender Day of Visibility (March 31) and of Remembrance (November 20), dates U: consistent
-  with including Pride, but whether they get a banner is a values call.
-- Remembrance Day and Veterans Day (November 11): one shared line, two, or footer only.
-- Which heavy topics get a banner at all: sexual assault, domestic violence, overdose, cancer.
+Recorded in [ADR-270](../decisions/0270-the-2026-10-14-awareness-and-care.md) §8:
+- Transgender Day of Visibility and of Remembrance take the banner, Remembrance as a solemn day.
+- November 11 takes one shared, solemn line naming each region's day.
+- Sexual assault and domestic violence: help page only. Overdose and cancer days: footer on the day.
 
 [mf]: https://github.com/nrdptel/Hobby-Rocket-Motor-Finder
 [usc126]: https://www.law.cornell.edu/uscode/text/36/126

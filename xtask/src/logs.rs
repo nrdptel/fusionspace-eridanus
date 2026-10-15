@@ -1,4 +1,4 @@
-//! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
+//! `cargo xtask logs [--check] [--sheets DIR]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
 //! and `.md` (M7.1a, M7.1b, M7.1c1 and M7.1c2, ADR-251, ADR-253, ADR-254 and ADR-255).
 //!
@@ -32,12 +32,14 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-pub const USAGE: &str =
-    "  logs [--check]          reads every flight-log sample under refs/ (the collection's
+pub const USAGE: &str = "  logs [--check] [--sheets DIR]
+                           reads every flight-log sample under refs/ (the collection's
                            catalog, Debrief's fixtures, AerospaceNU's logs) and writes
                            validation/reports/log-import.json and .md; --check writes nothing
                            and fails unless they reproduce and every file of a family
-                           with a reader is read";
+                           with a reader is read; --sheets writes each sample workbook to
+                           DIR/<id>.xlsx and its sheets' text to DIR/<id>/<n>.csv, for
+                           validation/oracles/xlsx/cells.py (DIR under refs/: it's private)";
 
 const REPORT_JSON: &str = "validation/reports/log-import.json";
 const REPORT_MD: &str = "validation/reports/log-import.md";
@@ -50,9 +52,9 @@ const DEBRIEF_DIRS: [&str; 2] = [
 const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
-/// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c12's.
-pub const READ: [(&str, LogFormat, &str); 31] = [
+/// wrote its reader: every file of these must import, and in that format. The workbooks are read
+/// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
+pub const READ: [(&str, LogFormat, &str); 35] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -107,6 +109,10 @@ pub const READ: [(&str, LogFormat, &str); 31] = [
     ("altos-eeprom", LogFormat::AltosEeprom, "M7.1c10"),
     ("arts2-raw-csv", LogFormat::Arts2RawCsv, "M7.1c11"),
     ("odf", LogFormat::Arts2Odf, "M7.1c11"),
+    ("missileworks-rtx", LogFormat::RtxRaw, "M7.1c12"),
+    ("rtx-csv", LogFormat::RtxCsv, "M7.1c12"),
+    ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
+    ("table-csv", LogFormat::GenericTable, "M7.1c13"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -116,11 +122,21 @@ const ARCHIVE_FAMILY: &str = "zip";
 /// The increment that unpacks [`ARCHIVE_FAMILY`]'s files.
 const ARCHIVE_INCREMENT: &str = "M7.1c7";
 
+/// The family of Excel workbooks of a flight's log, read when a sheet of each reads
+/// ([`WORKBOOK_INCREMENT`]): its sheets are written out as text and each read as a file.
+const WORKBOOK_FAMILY: &str = "workbook-xlsx";
+
+/// The increment that reads [`WORKBOOK_FAMILY`]'s sheets.
+const WORKBOOK_INCREMENT: &str = "M7.1c14";
+
+/// The increment the families with no reader yet are left to.
+const LEFT_TO: &str = "M7.1c15";
+
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
-/// a log or its description of a rocket, a team flight computer's saved state, a simulation's
-/// export, a wind profile, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 14] = [
+/// a log or its description of a rocket, a flyer's summary of flights, a team flight computer's
+/// saved state, a simulation's export, a wind profile, and Debrief's made-up flights, which say so in their first line.
+const NOT_LOGS: [&str; 15] = [
     "blueraven-events-txt",
     "blueraven-settings-csv",
     "blueraven-settings-xlsx",
@@ -128,6 +144,7 @@ const NOT_LOGS: [&str; 14] = [
     "debrief-synthetic-csv",
     "empty",
     "flight-computer-params-csv",
+    "flight-summary-xlsx",
     "jpeg",
     "kml-map",
     "openrocket-simulation-csv",
@@ -223,6 +240,16 @@ const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Ba
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is an RTx's CSV export.
+const RTX_CSV: &str = "Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a \
+    `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by \
+    its extension";
+/// Why a file the catalog files as generic CSV is read as a table by its header.
+const TABLE_CSV: &str = "a table no other reader takes, a header row naming its clock with a \
+    unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as text is an RTx's text export.
+const RTX_TXT: &str = "Missile Works mDACS's text export of an RTx GPS tracker's fixes, a \
+    tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension";
 /// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c7.
 const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
     maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
@@ -231,6 +258,13 @@ const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…`
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
 
+/// Why a spreadsheet is a workbook of logs, its sheets each read as a file of its own.
+const WORKBOOK: &str = "an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a \
+    table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate \
+    and low-rate files side by side or a table naming its units; filed as a spreadsheet";
+/// Why a spreadsheet is a flyer's summary of flights, not a log.
+const FLIGHT_SUMMARY_XLSX: &str = "a flyer's summary of flights in a spreadsheet, a few rows of \
+    names, dates and figures by flight or by launch, and no samples; not a log";
 /// Why a spreadsheet is a team's checklist, not a log.
 const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
     cells and no measurement; not a log";
@@ -241,7 +275,80 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 102] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 160] = [
+    ("02cf95e874f824f7", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("084653fe77f2ca50", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("229efb1695f3277f", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("2d2455b75cfe7672", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("3e56a501d1b71a8a", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("44a479aaaf2812ce", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("8855863e76ea3fbc", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("9ee24565e8232902", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("acc19f3b1096cb74", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("b27cc498f8d15caa", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("c34428a0bff32b60", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("c3e5272b33d0ecdb", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("d21437764a14c64b", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("e3ff82bb5d72ff52", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("ef7b7dbbf32a8e67", "xlsx", "workbook-xlsx", WORKBOOK),
+    ("f7b6e0a3273d6b79", "xlsx", "workbook-xlsx", WORKBOOK),
+    (
+        "331cacde5f5bbc07",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
+    (
+        "9e277f9ff863b66e",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
+    (
+        "e972c010b8861aca",
+        "xlsx",
+        "flight-summary-xlsx",
+        FLIGHT_SUMMARY_XLSX,
+    ),
+    ("ccf8bcecd91d5b91", "csv", "table-csv", TABLE_CSV),
+    ("061c084cf2d6155c", "csv", "table-csv", TABLE_CSV),
+    ("065306f8cf7fc60c", "csv", "table-csv", TABLE_CSV),
+    ("0e2537156abd776a", "csv", "table-csv", TABLE_CSV),
+    ("111209c05b9be47d", "csv", "table-csv", TABLE_CSV),
+    ("32deb5cb173b5983", "csv", "table-csv", TABLE_CSV),
+    ("4243bc06d5f49f2a", "csv", "table-csv", TABLE_CSV),
+    ("469c003f029e47b4", "csv", "table-csv", TABLE_CSV),
+    ("4eef930c2b534a42", "csv", "table-csv", TABLE_CSV),
+    ("5428e790bc55cec5", "csv", "table-csv", TABLE_CSV),
+    ("5cb271496c8e5623", "csv", "table-csv", TABLE_CSV),
+    ("67fe4200832a39ad", "csv", "table-csv", TABLE_CSV),
+    ("6821b3c5c90eeaf3", "csv", "table-csv", TABLE_CSV),
+    ("6bc2c4836a5a3504", "csv", "table-csv", TABLE_CSV),
+    ("76dad6a7c38d259b", "csv", "table-csv", TABLE_CSV),
+    ("7e7df671ac0ab9ad", "csv", "table-csv", TABLE_CSV),
+    ("82ebfd0a31998e39", "csv", "table-csv", TABLE_CSV),
+    ("89e3cfd45c66aa71", "csv", "table-csv", TABLE_CSV),
+    ("956ff350f72097d1", "csv", "table-csv", TABLE_CSV),
+    ("9c6ffdeffee7488a", "csv", "table-csv", TABLE_CSV),
+    ("b348b373dbe7073f", "csv", "table-csv", TABLE_CSV),
+    ("bdd32fb1d19bf31e", "csv", "table-csv", TABLE_CSV),
+    ("cf949df321940506", "csv", "table-csv", TABLE_CSV),
+    ("cface22527bb390b", "csv", "table-csv", TABLE_CSV),
+    ("dab6728a9ab22228", "csv", "table-csv", TABLE_CSV),
+    ("e79347ccfd0bd43b", "csv", "table-csv", TABLE_CSV),
+    ("eafaeb9b290d7529", "csv", "table-csv", TABLE_CSV),
+    ("ebd3b757555b564c", "csv", "table-csv", TABLE_CSV),
+    ("ec3a7fcc83121635", "csv", "table-csv", TABLE_CSV),
+    ("fd61caa7235b81b6", "csv", "table-csv", TABLE_CSV),
+    ("096375243584d110", "csv", "rtx-csv", RTX_CSV),
+    ("1d34c9a2ea3264f0", "csv", "rtx-csv", RTX_CSV),
+    ("2920bddb383455de", "csv", "rtx-csv", RTX_CSV),
+    ("3d1d6c4ef87ce0da", "csv", "rtx-csv", RTX_CSV),
+    ("fc937944649779db", "csv", "rtx-csv", RTX_CSV),
+    ("0cfb74a4c988654b", "txt", "rtx-txt", RTX_TXT),
+    ("74201deabc8b669a", "txt", "rtx-txt", RTX_TXT),
+    ("8b482eb6ae9af583", "txt", "rtx-txt", RTX_TXT),
+    ("a65103199f08052b", "txt", "rtx-txt", RTX_TXT),
     (
         "d306250ba73ea7f4",
         "txt",
@@ -499,9 +606,10 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 102] = [
     (
         "ff3ad892e63f060d",
         "csv",
-        "blueraven-csv-damaged",
+        "table-csv",
         "a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a \
-         column with no name, and two columns named in words the app doesn't write",
+         column with no name, and two columns named in words the app doesn't write; its names \
+         state their units, so it reads as a table by its header",
     ),
     (
         "12fd94ba690475b8",
@@ -594,6 +702,15 @@ struct Report {
     /// the same flight.
     #[serde(default)]
     arts2_checks: Arts2Checks,
+    /// Missile Works RTx's `.rtx` files against the reader's record and the exports of the same
+    /// flight beside them.
+    #[serde(default)]
+    rtx_checks: RtxChecks,
+    /// The tables read by their headers, each column's decision counted.
+    #[serde(default)]
+    table_checks: Vec<TableFile>,
+    /// The Excel workbooks, each sheet's outcome counted.
+    workbook_checks: Vec<WorkbookFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -2083,7 +2200,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c11`), `M7.1c12` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c14`), `M7.1c15` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -2381,6 +2498,510 @@ fn arts2_against_export(
     result
 }
 
+/// Missile Works RTx's `.rtx` files against the files of the same flight beside them, in their
+/// folder, a file each ([`RtxFile`]), and the files that differ from the reader's record or an
+/// export beside them, by id.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxChecks {
+    per_file: Vec<RtxFile>,
+    differing: Vec<String>,
+}
+
+/// A table read by its header ([`hpr_flightdata::generic`]): its id, rows and columns, the
+/// clock's unit, and its other columns counted by what the reader made of them: read in the unit
+/// its name states; kept as written by the header (no unit the reader knows, a name that says
+/// another quantity, an error or a difference, or a length, a time or a unit that may stand for
+/// another under a name that doesn't say what it measures); kept as written
+/// because a value contradicts the unit; and text, no channel (`events` counts the events taken
+/// from it). Where two channels measure the same quantity under the same name in two units, such
+/// as `alt(ft)` and `alt(m)`, `two_units_differ` is the largest difference between them, in SI,
+/// over the rows where both have a value. Counts only: the public report names no column a
+/// private file writes.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct TableFile {
+    id: String,
+    rows: usize,
+    columns: usize,
+    clock_unit: String,
+    read: usize,
+    kept_by_header: usize,
+    contradicted: usize,
+    text: usize,
+    events: usize,
+    two_units_differ: Option<f64>,
+}
+
+/// One Excel workbook's sheets: how many, and each sheet's outcome, the format it read as or the
+/// kind of its refusal (`no-data` for a sheet with no value, such as one holding only a chart).
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct WorkbookFile {
+    id: String,
+    sheets: usize,
+    outcomes: BTreeMap<String, usize>,
+}
+
+/// The workbooks' sheets, by outcome.
+fn workbook_checks(samples: &[Sample]) -> Vec<WorkbookFile> {
+    let mut out = Vec::new();
+    for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
+        let Ok(sheets) = hpr_flightdata::workbook::read(&sample.bytes) else {
+            continue;
+        };
+        let mut outcomes = BTreeMap::new();
+        for sheet in &sheets {
+            let outcome = match &sheet.log {
+                Ok(log) => log.format.name().to_owned(),
+                Err(error) => refusal(error).to_owned(),
+            };
+            *outcomes.entry(outcome).or_default() += 1;
+        }
+        out.push(WorkbookFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            sheets: sheets.len(),
+            outcomes,
+        });
+    }
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    out
+}
+
+/// Each table read by its header, as [`TableFile`] counts it.
+fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
+    use hpr_flightdata::generic;
+    use hpr_flightdata::log::Quantity;
+    let mut files = Vec::new();
+    for sample in samples {
+        let Ok(log) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        if log.format != LogFormat::GenericTable {
+            continue;
+        }
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let Ok(mapping) = generic::mapping(&text) else {
+            continue;
+        };
+        let mut file = TableFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            rows: log.channels.first().map_or(0, |c| c.values.len()),
+            columns: mapping.columns.len(),
+            clock_unit: mapping
+                .columns
+                .get(mapping.clock)
+                .and_then(|c| c.unit.clone())
+                .unwrap_or_default(),
+            events: log.events.len(),
+            ..TableFile::default()
+        };
+        // The channels follow the columns in order, the clock and the text columns left out.
+        let mut channels = log.channels.iter().peekable();
+        for (index, column) in mapping.columns.iter().enumerate() {
+            if index == mapping.clock {
+                continue;
+            }
+            match channels.peek() {
+                Some(channel) if channel.column == column.name => {
+                    match (column.unit.is_some(), channel.quantity) {
+                        (true, Quantity::Unrecognized) => file.contradicted += 1,
+                        (true, _) => file.read += 1,
+                        (false, _) => file.kept_by_header += 1,
+                    }
+                    channels.next();
+                }
+                _ => file.text += 1,
+            }
+        }
+        let base = |name: &str| {
+            name.split(['(', '['])
+                .next()
+                .unwrap_or_default()
+                .trim()
+                .to_lowercase()
+        };
+        for (i, a) in log.channels.iter().enumerate() {
+            for b in &log.channels[i + 1..] {
+                if a.quantity != b.quantity
+                    || a.quantity == Quantity::Unrecognized
+                    || a.column == b.column
+                    || base(&a.column) != base(&b.column)
+                {
+                    continue;
+                }
+                let largest = a
+                    .values
+                    .iter()
+                    .zip(&b.values)
+                    .filter(|(x, y)| x.is_finite() && y.is_finite())
+                    .map(|(x, y)| (x - y).abs())
+                    .fold(0.0_f64, f64::max);
+                file.two_units_differ = Some(file.two_units_differ.unwrap_or(0.0).max(largest));
+            }
+        }
+        files.push(file);
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
+}
+
+/// One `.rtx`: its id; its records, decoded here from the bytes apart from the reader; whether the
+/// reader's record holds the same fields, record for record; each CSV or text export beside it
+/// ([`RtxExport`]); the KML beside it, if any ([`RtxExport`], its feet unchecked); and, reported
+/// only, `SOG` over the speed between the fixes a second either side of it, and how far `COG` lies
+/// from the bearing between them, the medians over the fixes where `SOG` is at least 15, and the
+/// climb from the lowest of the 120 fixes before the highest to the highest over the highest
+/// altitude of a PerfectFlite log beside it: ratios and differences only, as the figures themselves would give
+/// a private flight's site and apogee.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxFile {
+    id: String,
+    records: usize,
+    reader_matches: bool,
+    exports: Vec<RtxExport>,
+    kml: Option<RtxExport>,
+    sog_over_speed: Option<f64>,
+    cog_off_bearing_deg: Option<f64>,
+    climb_over_barometric: Option<f64>,
+}
+
+/// An export against its `.rtx`: its format's name; its rows; whether they are every record but
+/// the last, in order, each row's time and numbers the record's and its position the record's or,
+/// written in degrees, the record's cut toward zero at the sixth decimal, short of it by less than
+/// 10⁻⁶°; the largest difference in a position, degrees; and whether every row's altitude is the
+/// record's meters × 3.280 84 rounded down to a foot (for the KML, its meters as written).
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxExport {
+    format: String,
+    rows: usize,
+    every_record_but_the_last: bool,
+    worst_position_deg: f64,
+    altitude_as_written: bool,
+}
+
+/// Whether an `.rtx` differs from the reader's record of it or a file beside it.
+fn rtx_differs(file: &RtxFile) -> bool {
+    !file.reader_matches
+        || file
+            .exports
+            .iter()
+            .chain(&file.kml)
+            .any(|e| !e.every_record_but_the_last || !e.altitude_as_written)
+}
+
+/// The `.rtx`'s records' 16 words, decoded from its bytes as the reader's module docs lay them
+/// out: `_size` at byte 186, the slots from byte 204, each slot times 513,180,409 modulo 10⁹.
+fn rtx_records(bytes: &[u8]) -> Vec<[u64; 16]> {
+    let int =
+        |at: usize| i32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+    let size = usize::try_from(int(186)).unwrap_or(0);
+    (0..size / 16)
+        .map(|r| {
+            let mut words = [0u64; 16];
+            for (w, word) in words.iter_mut().enumerate() {
+                let slot = u64::try_from(int(204 + 4 * (16 * r + w))).unwrap_or(u64::MAX);
+                *word = slot.wrapping_mul(513_180_409) % 1_000_000_000;
+            }
+            words
+        })
+        .collect()
+}
+
+/// A record's fields as the RTx's software exports them, in the export's units: the time of day,
+/// s, `NaN` if it isn't one; the latitude and longitude, degrees; then the altitude, m, `Velocity`, `VDOP`, `NavStatus`,
+/// `Sats`, `SOG` and `COG`.
+fn rtx_fields(words: &[u64; 16]) -> [f64; 10] {
+    let hhmmss = words[1] * 65_536 + words[0];
+    // A time that isn't a time of day, as a garbled record's, is a gap.
+    let (hours, minutes, seconds) = (hhmmss / 10_000, hhmmss / 100 % 100, hhmmss % 100);
+    let of_day = if hours < 24 && minutes < 60 && seconds <= 60 {
+        (hours * 3_600 + minutes * 60 + seconds) as f64
+    } else {
+        f64::NAN
+    };
+    let degrees = |dm: u64, lo: u64, hi: u64, negative: bool| {
+        // The decimals' leading 1 taken off before they are scaled, as the reader does.
+        let minutes = (dm % 100) as f64 + (hi * 65_536 + lo).wrapping_sub(100_000) as f64 / 1e5;
+        let value = (dm / 100) as f64 + minutes / 60.0;
+        if negative { -value } else { value }
+    };
+    [
+        of_day,
+        degrees(
+            words[2],
+            words[3],
+            words[4],
+            words[11] & 0xff == u64::from(b'S'),
+        ),
+        degrees(
+            words[5],
+            words[6],
+            words[7],
+            words[11] >> 8 == u64::from(b'W'),
+        ),
+        words[8] as f64,
+        words[9] as f64,
+        words[10] as f64,
+        (words[12] & 0xff) as f64,
+        (words[12] >> 8) as f64,
+        words[13] as f64,
+        words[14] as f64,
+    ]
+}
+
+/// [`RtxChecks`] over the samples.
+fn rtx_checks(samples: &[Sample]) -> RtxChecks {
+    let mut checks = RtxChecks::default();
+    for sample in samples.iter().filter(|s| s.family == "missileworks-rtx") {
+        // Only a file read as an `.rtx` has the layout its bytes are decoded by here.
+        let Ok(log) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        if log.format != LogFormat::RtxRaw {
+            continue;
+        }
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let records: Vec<[f64; 10]> = rtx_records(&sample.bytes).iter().map(rtx_fields).collect();
+        let beside = |formats: &[LogFormat]| -> Vec<FlightLog> {
+            samples
+                .iter()
+                .filter(|other| other.path.parent() == sample.path.parent())
+                .filter(|other| {
+                    hpr_flightdata::import::detect(&other.bytes)
+                        .is_some_and(|format| formats.contains(&format))
+                })
+                .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+                .collect()
+        };
+        // The log's clock counts from the first record's time of day.
+        let zero = records
+            .iter()
+            .map(|r| r[0])
+            .find(|t| !t.is_nan())
+            .unwrap_or(f64::NAN);
+        let reader_matches = rtx_matches(&log, &records, zero, records.len(), false).is_some();
+        // An export beside it that is read as the RTx's but fails to read differs.
+        let unread_exports = samples
+            .iter()
+            .filter(|other| other.path.parent() == sample.path.parent())
+            .filter(|other| {
+                hpr_flightdata::import::detect(&other.bytes)
+                    .is_some_and(|f| matches!(f, LogFormat::RtxCsv | LogFormat::RtxText))
+            })
+            .filter(|other| hpr_flightdata::import::read(&other.bytes).is_err())
+            .map(|other| RtxExport {
+                format: hpr_flightdata::import::detect(&other.bytes)
+                    .map_or("", |f| f.name())
+                    .to_owned(),
+                worst_position_deg: f64::NAN,
+                ..RtxExport::default()
+            });
+        let exports = beside(&[LogFormat::RtxCsv, LogFormat::RtxText])
+            .iter()
+            .map(|export| {
+                let worst = rtx_matches(
+                    export,
+                    &records,
+                    zero,
+                    records.len().saturating_sub(1),
+                    true,
+                );
+                RtxExport {
+                    format: export.format.name().to_owned(),
+                    rows: export.stated.samples.unwrap_or(0),
+                    every_record_but_the_last: worst.is_some(),
+                    worst_position_deg: worst.unwrap_or(f64::NAN),
+                    altitude_as_written: rtx_feet(export, &records),
+                }
+            })
+            .chain(unread_exports)
+            .collect();
+        let kml = beside(&[LogFormat::Kml])
+            .iter()
+            .find(|kml| kml.logger == "Missile Works RTx")
+            .map(|kml| rtx_against_kml(kml, &records));
+        let (sog_over_speed, cog_off_bearing_deg) = rtx_motion(&records);
+        let barometric = beside(&[LogFormat::PerfectFlitePf2])
+            .iter()
+            .flat_map(|pf2| pf2.altitude_m.clone())
+            .fold(f64::NAN, f64::max);
+        let climb_over_barometric = (barometric > 0.0).then(|| {
+            let (peak_at, peak) = records
+                .iter()
+                .enumerate()
+                .map(|(k, r)| (k, r[3]))
+                .fold((0, f64::NEG_INFINITY), |a, b| if b.1 > a.1 { b } else { a });
+            let pad = records[peak_at.saturating_sub(120)..=peak_at]
+                .iter()
+                .map(|r| r[3])
+                .fold(f64::INFINITY, f64::min);
+            (peak - pad) / barometric
+        });
+        checks.per_file.push(RtxFile {
+            id,
+            records: records.len(),
+            reader_matches,
+            exports,
+            kml,
+            sog_over_speed,
+            cog_off_bearing_deg,
+            climb_over_barometric,
+        });
+    }
+    checks.differing = checks
+        .per_file
+        .iter()
+        .filter(|file| rtx_differs(file))
+        .map(|file| file.id.clone())
+        .collect();
+    checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
+    for file in &mut checks.per_file {
+        file.exports.sort_by(|a, b| a.format.cmp(&b.format));
+    }
+    checks.differing.sort();
+    checks
+}
+
+/// The largest difference in a position, degrees, if a record holds the first `n` of the `.rtx`'s
+/// records and no more, each field as decoded here: the time from `zero`, a gap where the
+/// record's is, the numbers exactly, and the altitude and the positions exactly; or, for an
+/// `export`, the altitude unchecked ([`rtx_feet`] checks its feet) and a position the record's
+/// or the record's cut toward zero at the sixth decimal ([`rtx_cut`]). A time of day after
+/// midnight isn't in the sample files and isn't checked here.
+fn rtx_matches(
+    log: &FlightLog,
+    records: &[[f64; 10]],
+    zero: f64,
+    n: usize,
+    export: bool,
+) -> Option<f64> {
+    use hpr_flightdata::log::Quantity;
+    let by_quantity = |quantity: Quantity, k: usize| log.channels_of(quantity).nth(k);
+    // Each field's channel, by the order the readers write them in.
+    let fields = [
+        (by_quantity(Quantity::Latitude, 0), 1),
+        (by_quantity(Quantity::Longitude, 0), 2),
+        (by_quantity(Quantity::Unrecognized, 0), 4),
+        (by_quantity(Quantity::Number, 0), 5),
+        (by_quantity(Quantity::Number, 1), 6),
+        (by_quantity(Quantity::Number, 2), 7),
+        (by_quantity(Quantity::Unrecognized, 1), 8),
+        (by_quantity(Quantity::Angle, 0), 9),
+    ];
+    let altitude = by_quantity(Quantity::GnssAltitude, 0);
+    let time = altitude.map(|c| &c.time_s)?;
+    if time.len() != n || records.len() < n {
+        return None;
+    }
+    let mut worst: f64 = 0.0;
+    let close = |a: f64, b: f64, k: usize, worst: &mut f64| {
+        if k == 1 || k == 2 {
+            *worst = worst.max((a - b).abs());
+            a == b || (export && rtx_cut(a, b))
+        } else {
+            (a - b).abs() <= 1e-9
+        }
+    };
+    let matches = (0..n).all(|r| {
+        let record = &records[r];
+        let t = record[0] - zero;
+        (time[r] == t || (time[r] - t).abs() < 1e-9 || (time[r].is_nan() && t.is_nan()))
+            && (export || altitude.is_some_and(|c| c.values[r] == record[3]))
+            && fields.iter().all(|(channel, k)| {
+                channel.is_some_and(|c| {
+                    c.values.len() == n && close(c.values[r], record[*k], *k, &mut worst)
+                })
+            })
+    });
+    matches.then_some(worst)
+}
+
+/// Whether a position written in degrees is the true one cut toward zero at the sixth decimal:
+/// short of it, away from zero's side, by less than 10⁻⁶°, within 10⁻⁹° for the reading's
+/// rounding.
+fn rtx_cut(written: f64, truth: f64) -> bool {
+    let short = truth.abs() - written.abs();
+    written.signum() == truth.signum() && (-1e-9..1e-6 + 1e-9).contains(&short)
+}
+
+/// Whether every row of an export writes its record's altitude as its meters × 3.280 84 rounded
+/// down to a foot.
+fn rtx_feet(export: &FlightLog, records: &[[f64; 10]]) -> bool {
+    use hpr_flightdata::log::Quantity;
+    export
+        .channels_of(Quantity::GnssAltitude)
+        .next()
+        .is_some_and(|c| {
+            c.values
+                .iter()
+                .zip(records)
+                .all(|(m, record)| (m / 0.3048 - (record[3] * 3.280_84).floor()).abs() < 1e-6)
+        })
+}
+
+/// The RTx's KML against its `.rtx`: its points every record but the last, its positions the
+/// record's cut toward zero at the sixth decimal ([`rtx_cut`]), and its altitude the record's
+/// meters as written.
+fn rtx_against_kml(kml: &FlightLog, records: &[[f64; 10]]) -> RtxExport {
+    use hpr_flightdata::log::Quantity;
+    let column = |quantity: Quantity| kml.channels_of(quantity).next().map(|c| c.values.clone());
+    let (latitude, longitude, altitude) = (
+        column(Quantity::Latitude).unwrap_or_default(),
+        column(Quantity::Longitude).unwrap_or_default(),
+        column(Quantity::GnssAltitude).unwrap_or_default(),
+    );
+    let rows = latitude.len();
+    let n = records.len().saturating_sub(1);
+    let worst_position_deg = (0..n.min(rows).min(longitude.len()))
+        .map(|r| {
+            (latitude[r] - records[r][1])
+                .abs()
+                .max((longitude[r] - records[r][2]).abs())
+        })
+        .fold(0.0, f64::max);
+    RtxExport {
+        format: LogFormat::Kml.name().to_owned(),
+        rows,
+        every_record_but_the_last: rows == n
+            && longitude.len() == n
+            && (0..n).all(|r| {
+                rtx_cut(latitude[r], records[r][1]) && rtx_cut(longitude[r], records[r][2])
+            }),
+        worst_position_deg,
+        altitude_as_written: altitude.len() == n && (0..n).all(|r| altitude[r] == records[r][3]),
+    }
+}
+
+/// `SOG` over the speed between the fixes either side of it, m/s, and how far `COG` lies from the
+/// bearing between them, degrees, either way: the medians over the fixes where `SOG` is at least
+/// 15 and the fixes either side are times of day 2 s apart, on a sphere of 6,371 km; `None` with
+/// none.
+fn rtx_motion(records: &[[f64; 10]]) -> (Option<f64>, Option<f64>) {
+    let (mut ratios, mut offsets) = (Vec::new(), Vec::new());
+    for k in 1..records.len().saturating_sub(1) {
+        let (before, here, after) = (&records[k - 1], &records[k], &records[k + 1]);
+        // A gap's `NaN` time is no time of day: the fixes around it are skipped.
+        if here[8] < 15.0
+            || !(before[0].is_finite() && after[0].is_finite())
+            || (after[0] - before[0] - 2.0).abs() > 1e-9
+        {
+            continue;
+        }
+        let meters_per_degree = 6_371_000.0 * std::f64::consts::PI / 180.0;
+        let north = (after[1] - before[1]) * meters_per_degree;
+        let east = (after[2] - before[2]) * meters_per_degree * before[1].to_radians().cos();
+        let speed = north.hypot(east) / 2.0;
+        if speed > 0.0 {
+            ratios.push(here[8] / speed);
+            let bearing = east.atan2(north).to_degrees().rem_euclid(360.0);
+            offsets.push(((here[9] - bearing + 180.0).rem_euclid(360.0) - 180.0).abs());
+        }
+    }
+    let median = |mut values: Vec<f64>| {
+        values.sort_by(f64::total_cmp);
+        (!values.is_empty()).then(|| values[values.len() / 2])
+    };
+    (median(ratios), median(offsets))
+}
+
 /// One distinct file.
 struct Sample {
     path: PathBuf,
@@ -2391,14 +3012,26 @@ struct Sample {
 
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
-    for arg in args {
+    let mut sheets_dir = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--sheets" => {
+                sheets_dir = Some(
+                    args.next()
+                        .ok_or(format!("--sheets needs a folder\n\n{USAGE}"))?
+                        .clone(),
+                );
+            }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
     let root = crate::designs::root()?;
     let (samples, sources) = samples(&root)?;
+    if let Some(dir) = sheets_dir {
+        return write_sheets(&samples, Path::new(&dir));
+    }
     let (report, unread) = survey(&samples, sources);
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     let markdown = markdown(&report);
@@ -2435,6 +3068,46 @@ pub fn run(args: &[String]) -> Result<(), String> {
              read"
         );
     }
+    Ok(())
+}
+
+/// Each workbook sample as `<id>.xlsx` in `dir`, and its sheets' text as `<id>/<n>.csv`, `n`
+/// from 0 in the workbook's order, for an outside reader to check the text against.
+fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
+    // The sheets are other people's data: only under the repository's `refs/`, which git
+    // ignores, the folder taken from the repository's root and never climbing out of it.
+    let refs = crate::designs::root()?.join("refs");
+    let dir = &refs.join(dir.strip_prefix("refs").unwrap_or(dir));
+    if !dir.starts_with(&refs)
+        || dir
+            .components()
+            .any(|part| matches!(part, std::path::Component::ParentDir))
+    {
+        return Err(format!(
+            "--sheets writes private data: give a folder under refs/, not {}",
+            dir.display()
+        ));
+    }
+    let mut books = 0;
+    for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let sheets = hpr_flightdata::workbook::sheets(&sample.bytes)
+            .map_err(|error| format!("{id}: {error}"))?;
+        let folder = dir.join(&id);
+        fs::create_dir_all(&folder).map_err(|error| format!("{}: {error}", folder.display()))?;
+        let book = dir.join(format!("{id}.xlsx"));
+        fs::write(&book, &sample.bytes).map_err(|error| format!("{}: {error}", book.display()))?;
+        for (n, sheet) in sheets.iter().enumerate() {
+            let path = folder.join(format!("{n}.csv"));
+            fs::write(&path, &sheet.text)
+                .map_err(|error| format!("{}: {error}", path.display()))?;
+        }
+        books += 1;
+    }
+    println!(
+        "logs: wrote {books} workbooks and their sheets to {}",
+        dir.display()
+    );
     Ok(())
 }
 
@@ -2674,12 +3347,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             increment
         } else if sample.family == ARCHIVE_FAMILY {
             ARCHIVE_INCREMENT
+        } else if sample.family == WORKBOOK_FAMILY {
+            WORKBOOK_INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c12"
+            LEFT_TO
         };
         let row = families
             .entry(sample.family.clone())
@@ -2722,10 +3397,58 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             ));
             continue;
         }
+        if sample.family == WORKBOOK_FAMILY {
+            // A workbook is read when a sheet of it reads; its record is each sheet's, in order.
+            let (outcome, record) = match hpr_flightdata::workbook::read(&sample.bytes) {
+                Ok(sheets) if sheets.iter().any(|sheet| sheet.log.is_ok()) => {
+                    row.read += 1;
+                    let mut records = Vec::new();
+                    for sheet in &sheets {
+                        records.push(match &sheet.log {
+                            Ok(log) => {
+                                *loggers.entry(log.logger.clone()).or_default() += 1;
+                                let json = serde_json::to_vec(log).unwrap_or_default();
+                                format!("{:?}:{}", log.format, &hex(&Sha256::digest(&json))[..16])
+                            }
+                            Err(error) => refusal(error).to_owned(),
+                        });
+                    }
+                    (
+                        format!("Workbook:{}", sheets.len()),
+                        hex(&Sha256::digest(records.join(",").as_bytes()))[..16].to_owned(),
+                    )
+                }
+                outcome => {
+                    let error = match outcome {
+                        Err(error) => error.to_string(),
+                        Ok(_) => "no sheet of it reads".to_owned(),
+                    };
+                    *row.refused.entry("workbook".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:workbook".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
-                if expected.is_some_and(|format| format != log.format) || increment == "damaged" {
+                // The table reader is tried last and takes any table naming a clock: a file it
+                // reads whose family isn't listed as one, a not-a-log file among them, is flagged.
+                let stray_table = log.format == LogFormat::GenericTable
+                    && expected != Some(LogFormat::GenericTable);
+                if expected.is_some_and(|format| format != log.format)
+                    || increment == "damaged"
+                    || stray_table
+                {
                     unread.push(format!(
                         "  {} ({}, {id}): read as {}, where its family {}",
                         sample.path.display(),
@@ -2733,7 +3456,10 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         log.format.name(),
                         match expected {
                             Some(format) => format!("reads as {}", format.name()),
-                            None => "is listed as damaged, so the list is stale".to_owned(),
+                            None if increment == "damaged" => {
+                                "is listed as damaged, so the list is stale".to_owned()
+                            }
+                            None => format!("is listed as {increment}, not as a table"),
                         }
                     ));
                 }
@@ -2793,6 +3519,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         telemetry_checks: telemetry_checks(samples),
         eeprom_checks: eeprom_checks(samples),
         arts2_checks: arts2_checks(samples),
+        rtx_checks: rtx_checks(samples),
+        table_checks: table_checks(samples),
+        workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -2841,6 +3570,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     for id in &report.arts2_checks.differing {
         unread.push(format!(
             "  {id} (odf): differs from the raw CSV or the interpreted export of its flight beside it"
+        ));
+    }
+    // An `.rtx` that differs from its reader's record or the exports of its flight is as unread
+    // as a refusal.
+    for id in &report.rtx_checks.differing {
+        unread.push(format!(
+            "  {id} (missileworks-rtx): differs from its record, or from an export of its flight \
+             beside it"
         ));
     }
     // A summary whose lengths agree with the file beside it only as meters contradicts the feet
@@ -2948,6 +3685,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::Unit { .. } => "unit",
         LogError::Binary { .. } => "binary",
         LogError::Archive { .. } => "archive",
+        LogError::Workbook { .. } => "workbook",
         _ => "other",
     }
 }
@@ -3393,6 +4131,152 @@ fn markdown(report: &Report) -> String {
             } else {
                 arts2.differing.join(", ")
             }
+        );
+    }
+    let rtx = &report.rtx_checks;
+    if !rtx.per_file.is_empty() {
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |value| format!("{value:.digits$}"))
+        };
+        let yes = |value: bool| if value { "yes" } else { "no" };
+        let rows: String = rtx
+            .per_file
+            .iter()
+            .map(|file| {
+                let exports: Vec<String> = file
+                    .exports
+                    .iter()
+                    .chain(&file.kml)
+                    .map(|e| {
+                        format!(
+                            "{}: {} rows, {}, {:.2} × 10⁻⁶°, altitude {}",
+                            e.format,
+                            e.rows,
+                            if e.every_record_but_the_last {
+                                "every record but the last"
+                            } else {
+                                "differs"
+                            },
+                            e.worst_position_deg * 1e6,
+                            if e.altitude_as_written {
+                                "as written"
+                            } else {
+                                "differs"
+                            }
+                        )
+                    })
+                    .collect();
+                format!(
+                    "| {} | {} | {} | {} | {} | {} | {} |\n",
+                    file.id,
+                    file.records,
+                    yes(file.reader_matches),
+                    if exports.is_empty() {
+                        "–".to_owned()
+                    } else {
+                        exports.join("; ")
+                    },
+                    figure(file.sog_over_speed, 2),
+                    figure(file.cog_off_bearing_deg, 1),
+                    figure(file.climb_over_barometric, 3)
+                )
+            })
+            .collect();
+        out += &format!(
+            "\nMissile Works RTx's `.rtx` files, each decoded here from its bytes apart from the \
+             reader and held to the reader's record, field for field, and to the exports of its \
+             flight beside it: the CSV and text exports' rows and the KML's points every record \
+             but the last, their times and numbers equal, their positions equal or, written in \
+             degrees, cut toward zero at the sixth decimal (the largest difference given), their \
+             altitude the record's meters × 3.280 84 rounded down to a foot (the KML's, its \
+             meters as written). Reported only, the medians over the fixes where `SOG` is at \
+             least 15 of `SOG` over the speed between the fixes either side, m/s, and of how far \
+             `COG` lies from the bearing between them, degrees, either way; and the climb from the lowest of the 120 \
+             fixes before the highest to the highest, over the highest altitude of a PerfectFlite \
+             log flown beside the tracker:\n\n\
+             | File | Records | Reader's record | Exports beside it | `SOG` over speed | `COG` \
+             off bearing, ° | Climb over barometric |\n\
+             |---|---:|---|---|---:|---:|---:|\n{rows}\nDiffering: {}.\n",
+            if rtx.differing.is_empty() {
+                "none".to_owned()
+            } else {
+                rtx.differing.join(", ")
+            }
+        );
+    }
+    if !report.table_checks.is_empty() {
+        let tables = &report.table_checks;
+        let sum = |field: fn(&TableFile) -> usize| tables.iter().map(field).sum::<usize>();
+        let mut rows = String::new();
+        for table in tables {
+            rows += &format!(
+                "| `{}` | {} | {} | `{}` | {} | {} | {} | {} | {} | {} |\n",
+                table.id,
+                table.rows,
+                table.columns,
+                table.clock_unit,
+                table.read,
+                table.kept_by_header,
+                table.contradicted,
+                table.text,
+                table.events,
+                table
+                    .two_units_differ
+                    .map_or_else(|| "–".to_owned(), |d| format!("{d:.2e}"))
+            );
+        }
+        out += &format!(
+            "\nThe {} tables read by their headers (M7.1c13): each column but the clock read in the \
+             unit its name states, kept as written by its header (no unit the reader knows, a name \
+             that says another quantity, an error or a difference, or a length, a time or a unit \
+             that may stand for another under a name that doesn't say what it measures), kept as \
+             written because a value contradicts its unit, or text; *Two units* is \
+             the largest difference, in SI, between two channels of one quantity under one name in \
+             two units. In all, {} columns read in a stated unit, {} kept by their headers, {} by \
+             their values, {} of text.\n\n\
+             | File | Rows | Columns | Clock | Read | Kept by header | Contradicted | Text | \
+             Events | Two units |\n\
+             |---|---:|---:|---|---:|---:|---:|---:|---:|---:|\n{rows}",
+            tables.len(),
+            sum(|t| t.read),
+            sum(|t| t.kept_by_header),
+            sum(|t| t.contradicted),
+            sum(|t| t.text),
+        );
+    }
+    if !report.workbook_checks.is_empty() {
+        let books = &report.workbook_checks;
+        let mut totals: BTreeMap<&str, usize> = BTreeMap::new();
+        let mut rows = String::new();
+        for book in books {
+            let outcomes: Vec<String> = book
+                .outcomes
+                .iter()
+                .map(|(outcome, n)| {
+                    *totals.entry(outcome).or_default() += n;
+                    format!("{n} {outcome}")
+                })
+                .collect();
+            rows += &format!(
+                "| `{}` | {} | {} |\n",
+                book.id,
+                book.sheets,
+                outcomes.join(", ")
+            );
+        }
+        let totals: Vec<String> = totals
+            .iter()
+            .map(|(outcome, n)| format!("{n} {outcome}"))
+            .collect();
+        out += &format!(
+            "\nThe {} Excel workbooks (M7.1c14): each sheet's cells written out as text, as the \
+             workbook stores them, and read as a file of its own; a sheet's outcome is the layout \
+             it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one \
+             holding only a chart). In all, {} sheets: {}.\n\n\
+             | File | Sheets | Outcomes |\n|---|---:|---|\n{rows}",
+            books.len(),
+            books.iter().map(|book| book.sheets).sum::<usize>(),
+            totals.join(", ")
         );
     }
     if !report.unit_decisions.is_empty() {
@@ -4834,5 +5718,117 @@ mod tests {
         );
         assert_eq!(report.arts2_checks.differing, std::slice::from_ref(&id));
         assert!(unread.iter().any(|line| line.contains(&id)), "{unread:?}");
+    }
+
+    /// The invented `.rtx` and its exports.
+    fn rtx_samples(csv: &str) -> Vec<Sample> {
+        let sample = |name: &str, family: &str, bytes: &[u8]| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes: bytes.to_vec(),
+        };
+        vec![
+            sample(
+                "flight.rtx",
+                "missileworks-rtx",
+                include_bytes!("../../crates/hpr-flightdata/tests/samples/rtx.rtx"),
+            ),
+            sample("export.csv", "rtx-csv", csv.as_bytes()),
+            sample(
+                "export.txt",
+                "rtx-txt",
+                include_bytes!("../../crates/hpr-flightdata/tests/samples/rtx.txt"),
+            ),
+        ]
+    }
+
+    const RTX_CSV: &str = include_str!("../../crates/hpr-flightdata/tests/samples/rtx.csv");
+
+    /// The invented `.rtx` agrees with its record and both exports: every fix but the last, the
+    /// CSV's positions exactly, the text file's cut at the sixth decimal, the feet rounded down.
+    #[test]
+    fn an_rtx_agrees_with_the_exports_beside_it() {
+        let (report, unread) = survey(&rtx_samples(RTX_CSV), Vec::new());
+        let checks = &report.rtx_checks;
+        assert!(checks.differing.is_empty(), "{checks:?}");
+        assert!(unread.is_empty(), "{unread:?}");
+        let file = &checks.per_file[0];
+        assert_eq!(file.records, 30);
+        assert!(file.reader_matches);
+        let formats: Vec<(&str, usize, bool, bool)> = file
+            .exports
+            .iter()
+            .map(|e| {
+                (
+                    e.format.as_str(),
+                    e.rows,
+                    e.every_record_but_the_last,
+                    e.altitude_as_written,
+                )
+            })
+            .collect();
+        assert_eq!(
+            formats,
+            [("RTx CSV", 29, true, true), ("RTx text", 29, true, true)]
+        );
+        assert_eq!(file.exports[0].worst_position_deg, 0.0);
+        assert!(file.exports[1].worst_position_deg > 0.0);
+        assert!(file.exports[1].worst_position_deg < 1e-6);
+        assert_eq!(file.kml, None);
+        assert_eq!(file.climb_over_barometric, None);
+    }
+
+    /// An export that differs from its `.rtx`, in a number, a foot or a row too many, leaves the
+    /// `.rtx` unread.
+    #[test]
+    fn an_rtx_differing_from_an_export_is_unread() {
+        let lines: Vec<&str> = RTX_CSV.split("\r\n").collect();
+        let id = hex(&Sha256::digest(include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/rtx.rtx"
+        )))[..16]
+            .to_owned();
+        let edit = |row: usize, cell: usize, value: &str| {
+            let mut lines = lines.clone();
+            let mut cells: Vec<String> = lines[row].split(',').map(str::to_owned).collect();
+            cells[cell] = value.to_owned();
+            let edited = cells.join(",");
+            lines[row] = &edited;
+            lines.join("\r\n")
+        };
+        // A course one degree off, a foot rounded up rather than down, the last fix written, and
+        // a course that isn't a number, so the export fails to read.
+        let mut with_last = RTX_CSV.to_owned();
+        with_last += "180027,3259.01321N,10658.54263W,4593,0,2,148,0,16,127\r\n";
+        for (csv, every, feet) in [
+            (edit(5, 9, "53"), false, true),
+            (edit(1, 3, "4594"), true, false),
+            (with_last, false, true),
+            (edit(5, 9, "east"), false, false),
+        ] {
+            let (report, unread) = survey(&rtx_samples(&csv), Vec::new());
+            let export = &report.rtx_checks.per_file[0].exports[0];
+            assert_eq!(
+                (export.every_record_but_the_last, export.altitude_as_written),
+                (every, feet),
+                "{csv}"
+            );
+            assert_eq!(report.rtx_checks.differing, std::slice::from_ref(&id));
+            assert!(unread.iter().any(|line| line.contains(&id)), "{unread:?}");
+        }
+    }
+
+    /// A position cut toward zero passes; rounded away from it, short by a whole digit, or on the
+    /// other side of zero, it doesn't.
+    #[test]
+    fn an_rtx_position_must_be_cut_toward_zero() {
+        let truth = -106.975_720_166_666_7;
+        assert!(rtx_cut(-106.975_720, truth));
+        assert!(rtx_cut(truth, truth));
+        assert!(!rtx_cut(-106.975_721, truth));
+        assert!(!rtx_cut(-106.975_719, truth));
+        assert!(!rtx_cut(106.975_720, truth));
+        assert!(rtx_cut(32.983_539, 32.983_539_000_000_1));
+        assert!(!rtx_cut(32.983_540, 32.983_539_4));
     }
 }

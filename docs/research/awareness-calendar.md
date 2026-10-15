@@ -51,7 +51,7 @@ consortium sites, not US proclamations, which change with each administration.
 | Goddard's first liquid-fuel rocket | Mar 16 (1926) | INTL heritage | d | [AIAA centennial](https://aiaa.org/events/robert-goddard-first-launch-centennial) | S | "Mar 16, 1926: Robert Goddard flew the first liquid-fuel rocket, in Auburn, Massachusetts." → AIAA or NASA |
 | World Down Syndrome Day | Mar 21 | INTL | b | [UN list][un] | P | Footer only |
 | International Day of Forests; World Water Day | Mar 21; Mar 22 | INTL | f | [UN list][un] | P | Footer only |
-| Transgender Day of Visibility | Mar 31 | not checked | a | none read | U | Open question (practice note) |
+| Transgender Day of Visibility | Mar 31 | INTL | a | none read yet | U | "March 31 is Transgender Day of Visibility. Everyone is welcome here." (read the organizer's page first) |
 
 ## April
 
@@ -59,7 +59,7 @@ consortium sites, not US proclamations, which change with each administration.
 |---|---|---|---|---|---|---|
 | Autism Acceptance Month (ASAN marked its 10th in 2021) | April | US-led, used worldwide | c | [autisticadvocacy.org](https://autisticadvocacy.org/) | P | "April is Autism Acceptance Month. Clear, predictable docs help everyone." |
 | Global Astronomy Month | April | INTL | d | [Astronomers Without Borders](https://astronomerswithoutborders.org/programs/global-astronomy-month) | P | Footer only |
-| Sexual Assault Awareness Month (25th in 2026) | April | US | b | [nsvrc.org](https://nsvrc.org/saam) | P | Footer only, to a help page, or left out: open question |
+| Sexual Assault Awareness Month (25th in 2026) | April | US | b | [nsvrc.org](https://nsvrc.org/saam) | P | Left out; the help page's directory reaches its services |
 | Spring fire danger | April onward, varies | INTL | e | [NAR codes][nar] | n/a | "Spring launches: clear dry grass around the pad, and check local fire danger first." → NAR code |
 | World Autism Awareness Day | Apr 2 | INTL | c | [UN list][un] | P | Footer: see Autism Acceptance Month |
 | World Health Day | Apr 7 | INTL (WHO) | b | [UN list][un] | P | Footer only |
@@ -157,9 +157,9 @@ rule gives the banner to suicide prevention and moves the Moon line to September
 | Movember (founded in Australia) | November | INTL | b | [movember.com](https://movember.com/) | P | "Movember: men's health, from mental health to prostate and testicular cancer." |
 | UK Disability History Month | Mid-November to mid-December, varies (2024: Nov 14 to Dec 20) | UK | c | [ukdhm.org](https://ukdhm.org/) (page not updated) | P | Footer only |
 | World Science Day for Peace and Development | Nov 10 | INTL (UNESCO) | d | [UN list][un] | P | Footer only |
-| Remembrance Day; Veterans Day | Nov 11; the UK also holds Remembrance Sunday (P) | UK, CA, AU (U); US | a, solemn | [5 U.S.C. 6103][usc6103]; [britishlegion.org.uk](https://www.britishlegion.org.uk/) | P US; U elsewhere | "Nov 11: Remembrance Day and, in the US, Veterans Day. We remember." → RBL page; open question |
+| Remembrance Day; Veterans Day | Nov 11; the UK also holds Remembrance Sunday (P) | UK, CA, AU (U); US | a, solemn | [5 U.S.C. 6103][usc6103]; [britishlegion.org.uk](https://www.britishlegion.org.uk/) | P US; U elsewhere | "Nov 11: Remembrance Day, Armistice Day and, in the US, Veterans Day. We remember." → official pages |
 | World Diabetes Day | Nov 14 | INTL | b | [UN list][un] | P | Footer only |
-| Transgender Day of Remembrance | Nov 20 | not checked | a | none read | U | Open question (practice note) |
+| Transgender Day of Remembrance | Nov 20 | INTL | a, solemn | none read yet | U | "Nov 20 is Transgender Day of Remembrance. We remember." → help page (read the organizer's page first) |
 | American Rocketry Challenge sign-ups | Registration closes 2026-12-06 | US | d | [rocketrychallenge.org](https://www.rocketrychallenge.org/) | P | "Students in grades 6–12: American Rocketry Challenge sign-ups close Dec 6." |
 
 ## December

@@ -1,0 +1,6 @@
+﻿sep=;
+Time [s];Altitude (m ASL);Temp [K];"Speed; up (m/s)";Lat (deg);Remark
+0,0;1500,0;22,5;0,0;32,99;"on the pad"
+0,5;1512,5;22,4;48,0;32,99;
+1,0;1545,0;22,4;81,5;32,99;"motor out; coasting"
+1,5;1590,0;22,3;60,0;32,99;

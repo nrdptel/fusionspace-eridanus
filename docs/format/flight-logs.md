@@ -8,8 +8,9 @@ GNSS receiver's position. Each maker writes its own layout. HPR Sim reads each l
 record, the same for every logger, so that what comes after (the readings, and later the
 comparison with a simulation) doesn't depend on which altimeter flew.
 
-> **How far to trust it.** Every sample log the project holds of the layouts below is read but
-> one AltOS export whose header line is damaged, which is refused
+> **How far to trust it.** Every sample log the project holds of the layouts below is read,
+> except one AltOS export whose header line is damaged and 4 sheets inside the sample Excel
+> workbooks ([Excel workbooks](#excel-workbooks))
 > ([how it was checked](#how-it-was-checked)). No maker publishes a specification of these
 > layouts, so each reader follows what the files show, the makers' manuals and the notes of
 > Debrief, the project owner's earlier flight-log analyzer, with each unit checked where the
@@ -42,8 +43,21 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > follows a layout worked out from the files; the `.odf`'s units rest on its own calibration and
 > the sensors' data sheets, held to a climb check, and all 3 sample `.odf` files agree with the
 > raw CSV and the interpreted export beside them ([the ARTS2's raw data](#the-arts2s-raw-data)).
+> Missile Works' RTx `.rtx`, read since [M7.1c12](../decisions-and-roadmap.md#m7-1c12), follows a
+> layout worked out from the files, and all 5 sample files agree with mDACS's exports beside them
+> on every fix the exports hold; its velocity and speed over ground are kept as written
+> ([Missile Works' RTx](#missile-works-rtx)).
+> A table from a logger no other reader knows, read since
+> [M7.1c13](../decisions-and-roadmap.md#m7-1c13), is read only as far as its header states its
+> units, each unit held to the column's name and values; no maker stands behind those units, and
+> a header that states a wrong one is read in it
+> ([tables read by their headers](#tables-read-by-their-headers)).
+> An Excel workbook, read since [M7.1c14](../decisions-and-roadmap.md#m7-1c14), is read sheet by
+> sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks matches an
+> independent reader's, and 4 of their 28 sheets are refused
+> ([Excel workbooks](#excel-workbooks)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c12](../decisions-and-roadmap.md#m7-1c12), the other loggers' formats.
+> [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -97,6 +111,10 @@ decided, and [M7.1c10](../decisions-and-roadmap.md#m7-1c10) (AltOS's `.eeprom` d
 [ADR-265](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md)
 decided, and [M7.1c11](../decisions-and-roadmap.md#m7-1c11) (the ARTS2's `.odf` and raw CSV), as
 [ADR-266](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
+decided, and [M7.1c12](../decisions-and-roadmap.md#m7-1c12) (Missile Works' RTx), as
+[ADR-267](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)
+decided, and [M7.1c13](../decisions-and-roadmap.md#m7-1c13) (tables read by their headers), as
+[ADR-268](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -133,6 +151,10 @@ decided.
 | R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank reading `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | AltOS telemetry | Altus Metrum's TeleMetrum v2 and newer, the packets a TeleDongle receiver hears, as AltosUI saves them to a `.telem` file | a first line that isn't blank reading `TELEM`, a space and an even number of hexadecimal digits | `hpr_flightdata::altos_telem` ([below](#altos-telemetry)) |
 | AltOS `.eeprom` | Altus Metrum's TeleMetrum, TeleMega, EasyMega and EasyMini, the board's own log as AltosUI downloads it | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line | `hpr_flightdata::altos_eeprom` ([below](#altoss-eeprom)) |
+| RTx `.rtx` | Missile Works' RTx GPS tracker, its fixes as mDACS (Missile Works' program) saves a download | a .NET serialization header (MS-NRBF, version 1.0), then the class record of a list of 32-bit integers | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
+| RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
+| Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
+| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -144,13 +166,14 @@ figures with no samples ([below](#featherweights-summaries)).
 
 Some files among the sample logs aren't flight logs, and are counted apart as such: Debrief's
 made-up sample flights, which say so in their first row; a team's checklists for preparing a
-flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; the events files a
+flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; a flyer's summaries of
+flights in spreadsheets; the events files a
 flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
 such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
-them spreadsheets and a radio telemetry stream
+them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c12](../decisions-and-roadmap.md#m7-1c12), and the [survey's report](#how-it-was-checked)
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -198,8 +221,94 @@ are ([checked against the files beside](#checked-against-the-files-beside)), and
 Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
 Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
 altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
-isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
-[M7.1c12](../decisions-and-roadmap.md#m7-1c12).
+isn't known, so they aren't read as a Blue Raven's; since
+[M7.1c13](../decisions-and-roadmap.md#m7-1c13) they are read as
+[tables by their headers](#tables-read-by-their-headers), their altitude in the feet the header
+states and the rest of their columns as written.
+
+### Excel workbooks
+
+Some flyers keep a flight's log in an Excel workbook (`.xlsx`): the Blue Raven app's files pasted
+side by side as sheets, or a table whose header names its units. Only the Rust library reads
+workbooks so far; `hpr analyze` and the Python package don't open them. A workbook is a zip
+archive of XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so
+`hpr_flightdata::import::read` refuses one, as it does any archive. Instead,
+`hpr_flightdata::workbook::read` writes each worksheet's cells out as comma-separated text, one
+line a row, and reads each sheet as the file it came from: a Blue Raven's CSV or its app's
+summary, an Eggtimer's CSV, a Featherweight tracker's, or a
+[table read by its header](#tables-read-by-their-headers). One workbook can give several logs.
+A sheet that doesn't read is reported with its reason, and the other sheets are still read.
+
+```rust,ignore
+let bytes = std::fs::read("flight.xlsx")?;
+for sheet in hpr_flightdata::workbook::read(&bytes)? {
+    match &sheet.log {
+        Ok(log) => println!("{}: {}", sheet.name, log.format.name()),
+        Err(error) => println!("{}: not read, {error}", sheet.name),
+    }
+}
+```
+
+**What a cell becomes.** A cell is written as the workbook stores it, never as a spreadsheet
+displays it, so no digit is lost or invented: a number as its stored digits (`0.10000000000000001`
+stays so, though Excel shows `0.1`), a string as its text, a formula as the value saved with it,
+`TRUE` or `FALSE` for a truth value. An error such as `#DIV/0!`, or a formula with no value saved,
+is left empty, and the log's notes count them. A line break inside a cell, as in a header wrapped
+onto two lines, becomes a space. Every row is written as wide as the sheet's widest, so short rows
+get empty cells; a row with no value is left out.
+
+**Dates.** A spreadsheet stores a date as a count of days, a *serial number*, and shows it as a
+date only through the cell's *number format*, the display pattern attached to it, such as
+`m/d/yy h:mm`. A number under a format that shows a date is written as one: serial 45,000.75
+under `m/d/yy h:mm` is `2023-03-15 18:00:00`, 45,000 days after 1899-12-30 and then three
+quarters of a day. Under a format that shows only a time, a number under 1 is written as a time of
+day, `18:00:00`; one that also holds a day is written as a date and a time. An elapsed time, such
+as `[h]:mm:ss`, counts its hours past 24 (`36:00:00`). Seconds are rounded to the millisecond. A
+workbook that counts from 1904, as old Mac workbooks may, is read from 1904; no sample workbook
+does, so that path is checked by the crate's tests alone. A date before 1900-03-01, where Excel's
+calendar holds a 29 February 1900 that never was, or after 9999-12-31, is kept as the number
+stored, and the notes count it. Every other number is kept as stored, so a clock a logger wrote in
+seconds stays a number.
+
+**Bounds.** A workbook comes from someone else. Its parts come out within the
+[archive bound](#zip-archives), and at most 256 MiB of text is kept from one workbook, its list of
+shared strings (the text cells share, stored once) and the text written, each byte counted before
+it is kept. So a small file of one long string repeated in every cell is refused, not written
+out. The sheets are read as a stream: the largest sample sheet is 60 MB of XML. A workbook is
+refused, with its reason, when:
+
+- a part it names is missing or isn't well-formed XML;
+- a part declares a document type or names an entity of its own (a way to make a small file
+  expand);
+- cells or rows come out of order, past Excel's last cell, `XFD1048576`, or a cell holds two
+  values;
+- a cell holds what its type says it can't, such as a number that isn't one;
+- two sheets share one part.
+
+The crate's tests check each refusal and the bound, and a property test writes random cells and
+reads them back.
+
+**How it was checked.** The 16 sample workbooks of flights' logs hold 28 sheets:
+
+| Outcome | Sheets |
+|---|---:|
+| read as a Blue Raven's CSV | 6 |
+| read as the Featherweight app's summary of a Blue Raven's flight | 2 |
+| read as a Featherweight tracker's CSV | 2 |
+| read as an Eggtimer's CSV | 1 |
+| read as a table by its header | 10 |
+| no value, only a chart | 3 |
+| refused: an Eggtimer table a person added a column with no name to, and three layouts no reader knows yet (a sheet of the flight's peak figures, an OpenRocket simulation's export, a simulation set beside the flight) | 4 |
+
+The workbook reader's text was checked against openpyxl 3.1.5, an independent Python reader of
+workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells of the 16 that
+hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
+each sheet's columns and units are only as right as the reader it goes to. A probe run when the
+check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
+disagreed. Not read yet, with [M7.1c15](../decisions-and-roadmap.md#m7-1c15): four workbooks (a
+PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
+no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
+Three more workbooks are flyers' summaries of flights, not logs.
 
 ### R-DAS raw text
 
@@ -343,6 +452,84 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 Left out: the eleven packet types no sample holds; and the GPS fields nothing checks. The
 board's own log, which the document doesn't describe, is read from AltosUI's `.eeprom` files
 ([AltOS's `.eeprom`](#altoss-eeprom)).
+
+### Tables read by their headers
+
+Teams' own flight computers, logging scripts and spreadsheets saved as CSV write tables no maker
+documents: a header row naming the columns, then one row a sample. `hpr_flightdata::generic`
+reads such a table by what its header states and no more, after every other layout has passed
+on it
+([ADR-268, tables read by their headers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)).
+
+> **How far to trust it.** All 31 such sample tables are read: besides the clocks, 224 columns
+> in a unit the header states, 364 kept as written by their headers, 5 kept as written by their
+> values and 11 of text. No maker stands behind these units: a wrong unit whose values stay
+> inside the bounds below is read in it, and milliseconds headed as seconds pass the clock's
+> check above about 17 rows a second. The table that writes its altitude and speed in both feet
+> and meters agrees with itself to 4.5 × 10⁻¹³ m. No readings are taken from these records until
+> [M7.2](../decisions-and-roadmap.md#m7-2).
+
+**The header** is the first line within 64 that isn't blank, a `#` comment or `sep=`, split at
+`,`, `;`, a tab or `|`, whichever gives the most cells. One column must be the clock: a time word
+such as `time` or `t` with a unit of time. A unit is read from brackets at a name's end,
+`Alt AGL (ft)`, or from an underscored ending, `acc_y__m_s2`; the
+[API reference](../api/hpr_flightdata/generic/index.html) lists every spelling. A decimal comma
+is read only where the separator isn't a comma, no number has a point, and some comma stands
+before other than three digits (`0,05`); a cell in the other mark, as `1,250` among points, is a
+gap, never a number a thousand times too small.
+
+**What a column is.** A column is kept as written, with a note saying why, when its name says
+another quantity than its unit does (`vz_filtered_ms`: a speed's name, a time's unit), an error or
+a difference (`Alt error (m)`, `Diff press (Pa)`), or nothing at all over a length, a time or a
+unit that may stand for another (`g` is also grams and gauss; single letters): `z (m)` may be a
+height or a distance. A length is a GNSS, barometric
+([AGL](../glossary.md#agl-above-ground-level) or [MSL](../glossary.md#height-above-sea-level-msl))
+or inertial altitude where the name says which, and otherwise an *altitude* of unstated sensor and
+zero. A column of words whose name says a state, phase, status, event or mode gives an
+[event](#the-record) at each change.
+
+**The values' check.** A column is also kept as written if any value, converted, lies outside
+what a flight logger can read:
+
+| Quantity | Allowed | Why |
+|---|---|---|
+| pressure | 0 to 110 kPa | a little over the highest sea-level pressure on record, 108.38 kPa (Agata, 1968, WMO's archive of weather extremes) |
+| temperature | −100 °C to 150 °C | past −40 °C to 125 °C, the automotive grade 1 range (AEC-Q100) |
+| length | within 150 km (93 mi) | above any hobby rocket's flight |
+| speed | within 3,000 m/s (9,843 ft/s) | more than twice Mach 3.5, the simulator's limit |
+| acceleration | within 1,000 g | a generous bound, no source |
+| rate of turn | within 50,000 °/s | a generous bound, no source |
+| voltage, current | within 100 V, 100 A | a generous bound, no source |
+| latitude, longitude | within 90°, 180° | the globe's |
+
+Five sample columns failed it: two headed in pascals read above 110 kPa on the pad, and three
+headed in amperes above 100 A, milliamperes by their size. The clock's median step must lie from
+0.1 ms to 60 s, and it must step forward, or the file is refused.
+
+**A worked example.** An invented table:
+
+```text
+Time (s),Alt AGL (ft),Pressure (hPa),Velocity,Phase
+0.00,0,1001.2,0,PAD
+0.05,12,1000.8,45,BOOST
+```
+
+`Time (s)` is the clock. `Alt AGL (ft)` is an *altitude* (above ground, but no sensor named):
+12 ft is $12 \times 0.3048 = 3.6576$ m. 1000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
+states no unit, so its 45 stays as written. `Phase` gives two events, `PAD` at 0 s and `BOOST` at
+0.05 s.
+
+**A column mapping.** `generic::mapping` returns the header's reading as a `Mapping`, which
+serializes to JSON; `generic::read_with` reads a file by one, with the same checks, so a person
+can state a unit the header leaves out or name the columns of a file with no header row. A unit
+that doesn't measure its column's quantity is refused. Only the Rust library reads these tables
+so far.
+
+**What is left out.** No [primary track](#the-record): which column is a barometric altitude
+above the pad isn't stated. Most of the 30 files filed as generic CSV that are still refused have
+a clock with no unit or no header row; they wait for a mapping, with
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15). A table saved in an Excel workbook is read the
+same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ## The record
 
@@ -783,7 +970,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c12](../decisions-and-roadmap.md#m7-1c12).
+  [M7.1c15](../decisions-and-roadmap.md#m7-1c15).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -934,8 +1121,8 @@ apogee runs up to 3% below its low-rate file's highest altitude
 ([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
-against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c12](../decisions-and-roadmap.md#m7-1c12).
+against the files of samples in the same archive ([zip archives](#zip-archives)); the two inside
+Excel workbooks are read by the same rules, unchecked ([Excel workbooks](#excel-workbooks)).
 
 ## GPS logs
 
@@ -951,9 +1138,10 @@ on it until [M7.2](../decisions-and-roadmap.md#m7-2), the milestone that reads o
 > pad. The clocks are the files' own, and some don't state their time zone. Heights from KML
 > files are the least sure: one writer's are feet written as meters, kept as written, and two
 > files rise less than half as high as the barometer on the same flight did
-> ([units no source states](#units-no-source-states)).
+> ([units no source states](#units-no-source-states)). The RTx's altitudes can't go below 0, so
+> near sea level many read exactly 0 ([Missile Works' RTx](#missile-works-rtx)).
 
-Three layouts are read. Each point's time is the one the file gives it; where it gives none, the
+Four layouts are read. Each point's time is the one the file gives it; where it gives none, the
 point keeps its place with its time a gap.
 
 - **Featherweight's GPS CSV**, from Featherweight's GPS tracker.
@@ -999,6 +1187,9 @@ point keeps its place with its time a gap.
   - *Clock and units.* The time of day is UTC; the date comes only from an `RMC` with a valid
     fix, because before its fix the receiver writes a placeholder date. A speed in knots is read
     as 1852/3600 m/s a knot.
+- **Missile Works' RTx**, a GPS tracker: the `.rtx` file its maker's program saves, and the CSV
+  and text files it exports, read since [M7.1c12](../decisions-and-roadmap.md#m7-1c12)
+  ([below](#missile-works-rtx)).
 
 For example, take a `GGA` sentence's position and an `RMC` sentence's speed, invented after the
 textbook example public descriptions of NMEA 0183 give; a test in the crate reads these two lines
@@ -1014,6 +1205,115 @@ longitude `01131.0000,E` is 11 degrees and 31 minutes east, 11.5167°. The altit
 (1,789 ft) above mean sea level, in the unit the sentence names (`M`). The speed of 22.4 knots
 reads as $22.4 \times 1852/3600 = 11.52$ m/s (37.8 ft/s), and the course is 84.4° from true north. The
 record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
+
+### Missile Works' RTx
+
+Missile Works' RTx/GPS is a GPS tracker built around a u-blox 7 receiver. It keeps its fixes once
+a second, up to "~68 minutes per flight", and radios them to a base station (*RTx/GPS User
+Manual*, firmware 1.31, Missile Works, 2016-11-26, pp2, 14). Missile Works' mDACS program saves a
+download as an `.rtx` file and exports it to CSV, text and KML (*mDACS User Manual*, revision
+1.71, May 2024, p16). The KML is read as [above](#gps-logs); the `.rtx` and the CSV and text
+exports by `hpr_flightdata::rtx`. Neither manual describes the files: what follows was worked out
+from the 5 `.rtx` files among the sample logs and the 13 exports beside them (8 CSV and text, 5
+KML), with no other program's source read
+([ADR-267, reading the RTx before the other layouts](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)).
+Like every GPS log here, an RTx file feeds no reading yet: the readings wait for a barometer's
+track (see [GPS logs](#gps-logs)).
+
+> **How far to trust it.** In 4 of the 5 sample `.rtx` files every field the reader converts
+> agrees with mDACS's own exports on every fix they hold (all but the last), positions written
+> in degrees to their sixth decimal; the fifth has only a KML beside it, which holds no times,
+> so there only the positions and altitudes are compared. In 4 flights the tracker's climb is
+> 0.98 to 1.15 times the highest altitude of the barometric altimeter flown beside it, a figure
+> [the survey](#how-it-was-checked) reports but doesn't check. The velocity and the speed over
+> ground stay in the file's own numbers, since no document gives their units. The fixes are the
+> receiver's; HPR Sim claims no accuracy for them.
+
+- *The `.rtx`.* A stream written by .NET's built-in object serializer, `BinaryFormatter`,
+  holding one list of 65,536 32-bit integers, in the layout Microsoft publishes as MS-NRBF: 4,096 records of 16 *slots*, 68.3 minutes at one a
+  second, the manual's flight. The list's size counts the slots in use; the rest are 0.
+- *The slots.* Each holds a 16-bit number, a *word*, but not as written: the word times
+  387,420,489 ($3^{18}$), keeping only the remainder after dividing by $10^9$. Multiplying a slot
+  by 513,180,409 and keeping the same remainder gives the word back, because
+  $387\,420\,489 \times 513\,180\,409$ leaves a remainder of 1. The files show it three ways: the
+  slot holding the time steps by exactly 387,420,489, less any whole $10^9$, from one fix to the
+  next a second later; every one of the 264,336 slots in use in the sample files reads back as a
+  word below 65,536, which a slot drawn at random from 0 to $10^9 - 1$ would do about once in
+  15,000; and the words equal the exports' figures, field by field.
+- *The words.* Each record is one fix:
+
+  | Words | Field | Read as |
+  |---:|---|---|
+  | 0, 1 | the time, `HHMMSS` | word 1 × 65,536 + word 0 |
+  | 2 | the latitude's degrees and whole minutes, `DDMM` | |
+  | 3, 4 | the minutes' five decimals, after a leading 1 | word 4 × 65,536 + word 3 − 100,000 |
+  | 5, 6, 7 | the longitude, as the latitude | |
+  | 8 | the altitude, m | |
+  | 9 | `Velocity` | as written |
+  | 10 | `VDOP`, the vertical dilution of precision | as written |
+  | 11 | the hemispheres: `N` or `S` in its low byte, `E` or `W` in its high | |
+  | 12 | `NavStatus`, the receiver's fix status, in its low byte; `Sats` (satellites used) in its high | as written |
+  | 13 | `SOG`, the speed over ground | as written |
+  | 14 | `COG`, the course over ground, degrees | |
+  | 15 | a word the exports leave out, 814 to 2,272 in the sample files | as written |
+
+- *The exports.* The CSV and the tab-separated text file hold every fix of their `.rtx` but the
+  last, in the same order: the time as `HHMMSS`; a position as `DDMM.mmmmm` and its hemisphere's
+  letter, or, in 5 of the 9 sample exports, in signed degrees cut toward zero at the sixth
+  decimal and a degree sign; the altitude in whole feet, the meters × 3.280 84 rounded down, which
+  the reader converts back to meters; and the rest as the `.rtx` holds them. The text file's header names two
+  empty columns its rows don't have.
+- *Units.*
+  - *Altitude, meters.* The manual says the GPS altitude "is always expressed as Mean Sea Level"
+    (p13); the KML export beside each sample file writes the word as meters, and the CSV and text
+    exports convert it to feet. All three come from mDACS reading the same word, so the survey
+    adds one more check, reported but not enforced: the climb from the pad to the highest fix
+    agrees with the barometric altimeter flown beside the tracker, as above, where feet would be
+    3.3 times off. The fifth file's list is full and holds a climb of 0.003 times the
+    altimeter's: its memory filled before the flight.
+  - *Altitude at 0.* The file can't hold an altitude below 0, so the receiver's altitude looks
+    clamped there: in 4 of the 5 sample files, from pads near sea level, most fixes read exactly
+    0. A note counts them; each means sea level or below.
+  - *Course, degrees.* It lies 1.7° to 6.9° from the bearing between the fixes either side of
+    it, the median difference either way in each file, over the fixes whose speed over ground
+    reads at least 15 in the file's own numbers.
+  - *Speed over ground and velocity, as written.* The speed over ground runs 3.5 to 4.0 times
+    the speed between fixes in m/s, by file, as km/h would, one of the two speed units the
+    tracker's display offers (p12), but nothing says which unit the file holds, and feet a
+    second would give 3.3. The velocity reads far more than the climb rate in m/s while the
+    rocket climbs, and about the fall rate itself while it falls, a pattern no document
+    explains. Plotted, both show when the tracker moved, but not how fast in any known unit.
+- *The clock.* The GPS's time of day, UTC, in whole seconds, with no date; the log's zero is the
+  first fix's. Each time takes the day that puts it nearest the one before it, so the clock runs
+  on past midnight UTC, and a repeat written across midnight goes back to the day before. In 3 of the 5
+  sample files a pair of fixes repeats the pair before it a second back; every fix is kept in the
+  file's order, with a note. In one file, one fix's time reads 65,282 × 65,536 more than it
+  should, as a garbled radio packet's might: a time that isn't a time of day is a gap, counted in
+  a note.
+- *Gaps and refusals.* A coordinate out of range (minutes past 59, the decimals without their
+  leading 1, a hemisphere byte other than its two letters, beyond 90° or 180°) is a gap, as is a
+  position of exactly (0, 0); no sample file has one. An `.rtx` that isn't the list's shape, or
+  whose size or slots break the rules above, is refused, naming the byte; an export's row of
+  other than ten cells, or a cell that isn't its field's, is refused, naming the line.
+
+For example, the crate's tests read an invented `.rtx` and its exports. The first fix is at
+17:59:50 UTC, `HHMMSS` 175950, more than 16 bits hold, so the record splits it: word 1 is
+$\lfloor 175\,950 / 65\,536 \rfloor = 2$ and word 0 is $175\,950 - 2 \times 65\,536 = 44\,878$.
+The file holds word 0 as the slot 656,705,342, the remainder of $44\,878 \times 387\,420\,489$
+after dividing by $10^9$; the reader multiplies it by 513,180,409 and keeps the last nine digits,
+44,878 again. The latitude's words are 3259, 35,698 and 1: $1 \times 65\,536 + 35\,698 =
+101\,234$, a leading 1 and the decimals `01234`, so the fix is 32° and 59.01234′ north,
+$32 + 59.01234/60 = 32.983\,539$°. Its altitude word is 1,400 m (4,593 ft). The CSV export
+writes the fix as
+
+```text
+175950,3259.01234N,10658.54321W,4593,0,2,122,9,12,40
+```
+
+its altitude $\lfloor 1400 \times 3.280\,84 \rfloor = 4593$ ft, read back as
+$4593 \times 0.3048 = 1399.95$ m. The text export writes the longitude in degrees, `-106.975720°`,
+where the `.rtx` holds $-(106 + 58.54321/60)$, which is $-106.975\,720\,17$°: cut, not
+rounded, at the sixth decimal.
 
 ## PerfectFlite's other files
 
@@ -1620,14 +1920,17 @@ compares with the files of samples beside it ([above](#checked-against-the-files
 AltOS's telemetry compares with AltosUI's export beside it, and its board's estimates with each
 other ([above](#altos-telemetry)); how each AltOS `.eeprom` file compares with the export and the
 telemetry beside it ([above](#altoss-eeprom)); how each ARTS2 `.odf` compares with the raw CSV
-and the interpreted export beside it ([above](#the-arts2s-raw-data)); and
+and the interpreted export beside it ([above](#the-arts2s-raw-data)); how each RTx `.rtx`
+compares with the CSV, text and KML exports beside it ([above](#missile-works-rtx)); how each
+table read by its header had its columns decided, as counts ([above](#tables-read-by-their-headers)); and
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 933 are read, the 8 archives
-counted as read when they unpack. The report labels 133 files for
-[M7.1c12](../decisions-and-roadmap.md#m7-1c12), the rest of the importers; 131 of them, of
-layouts no reader knows yet, are unread.
+([zip archives](#zip-archives)), and each Excel workbook's sheets by the layout each reads as
+([Excel workbooks](#excel-workbooks)). Of the 1,122 files it holds today, 994 are read, the 8
+archives counted as read when they unpack and the 16 workbooks when a sheet of each reads. The
+report labels 70 files for [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the rest of the
+importers; 68 of them, of layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -1639,18 +1942,23 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c12](../decisions-and-roadmap.md#m7-1c12). Five files filed as generic CSV or text are
+[M7.1c15](../decisions-and-roadmap.md#m7-1c15). Sixteen spreadsheets are workbooks of flights'
+logs, held to the workbook reader. Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
-app doesn't write), is refused, counted as damaged. Three more are an ARTS2's raw CSV, held to
-its reader. One more is moved to a layout not read yet: a ground station's conversion of a
+app doesn't write), was counted as damaged until
+[M7.1c13](../decisions-and-roadmap.md#m7-1c13), and is now read as a
+[table by its header](#tables-read-by-their-headers), and 30 other files filed as generic CSV. Three more are an ARTS2's raw CSV, held to
+its reader. Nine are mDACS's exports of an RTx's fixes, five CSV and four text, held to their
+reader. One more is moved to a layout not read yet: a ground station's conversion of a
 SillyGoose flight, its columns in another order under no header.
 
 Some files aren't flight logs, and are counted apart as not logs, as pictures and maps are. By
 id: four spreadsheets of a team's checklist for preparing a flight, its steps and no measurement,
-and nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
-outputs. By family: Debrief's six made-up sample flights, whose first row says each isn't a
+nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
+outputs, and three spreadsheets of a flyer's summary of flights, a few rows of figures by flight
+or by launch and no samples. By family: Debrief's six made-up sample flights, whose first row says each isn't a
 recording of anything, and twelve text files a flyer's own program wrote from a Blue Raven's
 low-rate file, titled as that file's events. By id, since
 [M7.1c7](../decisions-and-roadmap.md#m7-1c7): two more of those events files, and three

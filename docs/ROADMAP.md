@@ -114,13 +114,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-- [ ] **M0.13 Awareness and care on the sites** (ADR-268; Neer, 2026-10-14; VISION V53). A thin
+- [ ] **M0.13 Awareness and care on the sites** (ADR-270; Neer, 2026-10-14; VISION V53). A thin
   banner and a footer line that change through the year (heritage and awareness months, health,
   access, science and space days, rocketry safety), from a dated, sourced table
   ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)).
   - [ ] **M0.13a The banner, the footer line and the help page.** *Done when:* the pattern is in
     the product system first; the docs site and fusionspace.co show at most one banner and one
-    footer line, picked in the reader's browser by ADR-268's rule, with no location lookup and
+    footer line, picked in the reader's browser by ADR-270's rule, with no location lookup and
     nothing with scripts off; a test fails a row with no organizer's page, past its stale-after
     date, an unparsed window or a banner over 90 characters; the page check, on a date in each
     month, fails a clipped, overlapping or unlabeled banner at every width in both themes; a help
@@ -388,10 +388,10 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
-    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266): in twelve.
-    - [ ] **M7.1c12 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
+    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269): in fifteen.
+    - [ ] **M7.1c15 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
       EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
-      ADR-258; RTx, ADR-259).
+      ADR-258).
       *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent

@@ -54,6 +54,13 @@ pub enum LogError {
         /// What is wrong.
         message: String,
     },
+    /// An `.xlsx` workbook's parts can't be read as one, or its sheets pass the bounds
+    /// ([`workbook`](crate::workbook)).
+    #[error("Excel workbook: {message}")]
+    Workbook {
+        /// What is wrong.
+        message: String,
+    },
     /// The file states its values in a unit the reader doesn't know, such as a PerfectFlite file
     /// whose stated apogee carries no foot mark.
     #[error("{format} line {line}: {message}")]
@@ -62,6 +69,15 @@ pub enum LogError {
         format: &'static str,
         /// The 1-based line number.
         line: usize,
+        /// What is wrong.
+        message: String,
+    },
+    /// A column mapping the caller gave can't read the file: it names no column or too many,
+    /// its clock isn't one of its columns or isn't in a unit of time, or a column's unit isn't
+    /// one the reader knows or doesn't measure what its quantity does
+    /// ([`generic::read_with`](crate::generic::read_with)).
+    #[error("column mapping: {message}")]
+    Mapping {
         /// What is wrong.
         message: String,
     },

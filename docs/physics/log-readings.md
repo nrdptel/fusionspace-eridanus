@@ -235,9 +235,10 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
   another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
   *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
   there. A GPS log has no barometric track, and a raw download's barometer records pressures, not
-  altitudes, so every reading withholds on both, and on a Featherweight summary, which holds no
-  samples. Other loggers' files
-  come with [M7.1c12, the rest of the importers](../decisions-and-roadmap.md#m7-1c12).
+  altitudes, so every reading withholds on both, on a table read by its header, whose header
+  doesn't say which column is a barometric altitude above the pad, and on a Featherweight
+  summary, which holds no samples. Other loggers' files
+  come with [M7.1c15, the rest of the importers](../decisions-and-roadmap.md#m7-1c15).
 
 ## Tests and references
 

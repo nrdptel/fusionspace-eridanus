@@ -1,0 +1,159 @@
+{
+  "by_workbook": {
+    "02cf95e874f824f7": {
+      "agree": {
+        "number": 6816,
+        "string": 1295
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "084653fe77f2ca50": {
+      "agree": {
+        "number": 6496,
+        "string": 1235
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "229efb1695f3277f": {
+      "agree": {
+        "number": 51175,
+        "string": 25
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "2d2455b75cfe7672": {
+      "agree": {
+        "number": 12396,
+        "string": 3
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "3e56a501d1b71a8a": {
+      "agree": {
+        "number": 22231,
+        "string": 4957
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "44a479aaaf2812ce": {
+      "agree": {
+        "number": 17558,
+        "string": 2112
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "8855863e76ea3fbc": {
+      "agree": {
+        "number": 18,
+        "string": 3
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "9ee24565e8232902": {
+      "agree": {
+        "date": 38458,
+        "number": 249977,
+        "string": 38475
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "acc19f3b1096cb74": {
+      "agree": {
+        "date": 15740,
+        "number": 118050,
+        "string": 15759
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "b27cc498f8d15caa": {
+      "agree": {
+        "date": 28440,
+        "number": 684861,
+        "string": 12483
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "c34428a0bff32b60": {
+      "agree": {
+        "number": 5120,
+        "string": 977
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "c3e5272b33d0ecdb": {
+      "agree": {
+        "number": 7392,
+        "string": 1403
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "d21437764a14c64b": {
+      "agree": {
+        "number": 181425,
+        "string": 6
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    },
+    "e3ff82bb5d72ff52": {
+      "agree": {
+        "date": 31590,
+        "number": 761042,
+        "string": 13922
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "ef7b7dbbf32a8e67": {
+      "agree": {
+        "date": 33730,
+        "number": 3209269,
+        "string": 163933
+      },
+      "disagree": {},
+      "sheets": 3,
+      "where": []
+    },
+    "f7b6e0a3273d6b79": {
+      "agree": {
+        "number": 4512,
+        "string": 863
+      },
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    }
+  },
+  "cells": {
+    "agree": 5743747,
+    "disagree": 0
+  },
+  "openpyxl": "3.1.5",
+  "workbooks": 16
+}

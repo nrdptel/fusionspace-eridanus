@@ -28,7 +28,7 @@ adds a source.
 
 - **The FusionSpace copy icon** (`docs/images/copy.svg`, the documentation site's copy button):
   `product/icons/copy.svg` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `2495dec` (product system Rev E), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
+  at `1b88597` (product system Rev E), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
   brand files above, it is the project owner's, Neer Patel's, under fusionspace-design's `LICENSE`:
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).
@@ -37,7 +37,7 @@ adds a source.
   site's menu bar, page arrows, search field, code buttons and status chips; `theme/favicon.svg` and
   `theme/favicon.png`, its favicon): `product/icons/` and `kit/web/favicon.svg` and
   `kit/web/favicon-32.png` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `2495dec` (product system Rev E), unchanged, compared with that revision by `cargo xtask site`
+  at `1b88597` (product system Rev E), unchanged, compared with that revision by `cargo xtask site`
   when `refs/fusionspace-design` is checked out (ADR-228). Like the brand files above, they are the
   project owner's, Neer Patel's, under fusionspace-design's `LICENSE`: all rights reserved, and
   **not** covered by this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace
@@ -47,7 +47,7 @@ adds a source.
 - **The FusionSpace lockup and mark** (`theme/logo/fusion-space-horizontal-void.svg` and
   `theme/logo/fusion-space-mark-void.svg`, whose paths the documentation site draws inline, in the
   text's color, in every page's header and title block): `kit/logo/svg/` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec`, unchanged,
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597`, unchanged,
   compared with that revision by `cargo xtask site` when `refs/fusionspace-design` is checked out
   (ADR-229). They are the FusionSpace trademarks, the project owner's, Neer Patel's, under
   fusionspace-design's `LICENSE` and `TRADEMARKS.md`: all rights reserved, and **not** covered by
@@ -57,7 +57,7 @@ adds a source.
 
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec` (product system
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product system
   Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line. Copyright 2026 Neer
   Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the license grants no rights to
   the FusionSpace name or logo. `cargo xtask site` compares it with the pinned revision when
@@ -65,7 +65,7 @@ adds a source.
 
 - **The FusionSpace page check** (`xtask/src/site/fusionspace-check.js`, which the documentation
   site's page check runs, not shipped): `product/web/check/fusionspace-check.js` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec` (product system
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product system
   Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line: the numbers the system's
   web rules set (the type scale, the reading scale, the widths) and the code that measures
   them. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0
@@ -74,22 +74,22 @@ adds a source.
 
 - **The FusionSpace terminal styles** (`crates/hpr-cli/src/fs_style.rs`, compiled into `hpr`):
   `product/cli/fs_style.rs` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `2495dec` (product system Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
+  at `1b88597` (product system Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
   line. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the
   license grants no rights to the FusionSpace name or logo. A test in `crates/hpr-cli/tests/style.rs`
   compares it with the pinned revision when `refs/fusionspace-design` is checked out (ADR-174).
 
 - **Archivo and Cascadia Mono** (`theme/fonts/*.woff2`, served by the documentation site): the
-  product system's WOFF2 subsets from `product/web/fonts/` at `2495dec`, unchanged, under the SIL
+  product system's WOFF2 subsets from `product/web/fonts/` at `1b88597`, unchanged, under the SIL
   Open Font License 1.1, whose texts sit beside them (`OFL-Archivo.txt`: The Archivo Project
   Authors; `OFL-CascadiaMono.txt`: Microsoft Corporation, Reserved Font Name Cascadia Code). The
   `@font-face` rules in `theme/fonts/fonts.css` are the product system's `product/web/fonts.css`
-  at `2495dec` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
+  at `1b88597` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
   beside the fonts.
 
 - **New Computer Modern Math, subset** (`theme/fonts/NewCMMathSubset-Book.woff2`, served by the
   documentation site to draw its equations): the product system's WOFF2 subset from
-  `product/web/fonts/` at `2495dec`, unchanged, of New Computer Modern Math Book 8.1.1 by Antonis
+  `product/web/fonts/` at `1b88597`, unchanged, of New Computer Modern Math Book 8.1.1 by Antonis
   Tsolomitis (CTAN `fonts/newcomputermodern`). It is under the GUST Font License, which is the
   LaTeX Project Public License 1.3c; both texts sit beside it (`GUST-FONT-LICENSE-NewCMMath.txt`,
   `LPPL-1.3c.txt`). The subset keeps fewer characters and maps each prime to its script-size
@@ -450,6 +450,7 @@ crates that use them named by folder (`hpr-core` is the package `fusionspace-hpr
 | `numpy` | BSD-2-Clause | `hpr-py` | hands a flight's recording and a motor's thrust curve to Python as NumPy arrays (ADR-114) |
 | `pyo3` | MIT OR Apache-2.0 | `hpr-py` | the Python bindings: the `fusionspace-hpr` package's classes, functions and exception, built as one abi3 extension module per operating system (ADR-114) |
 | `pulldown-cmark` | MIT | `xtask` | reads the documentation site's Markdown, with the parser mdBook itself uses, to check its links and labels (ADR-016) |
+| `quick-xml` | MIT | `hpr-flightdata` | reads the sheets and shared strings of `.xlsx` workbooks as a stream, no default features, expanding no entity but XML's own (ADR-269) |
 | `rand_core` | MIT OR Apache-2.0 | `hpr-core` (tests only) | the generator traits `rand_xoshiro` implements |
 | `rand_xoshiro` | MIT OR Apache-2.0 | `hpr-core` (tests only) | an independent xoshiro256++ and SplitMix64 that `hpr_core::random` is checked against, bit for bit |
 | `rayon` | MIT OR Apache-2.0 | `hpr-analysis` (its `parallel` feature) | Monte Carlo samples on a work-stealing thread pool; `collect` keeps them in order, so a run is the same on any number of threads (ADR-134) |
@@ -639,6 +640,17 @@ installed with `--no-deps` from that file (M3.1d2, ADR-059). Nothing in it is co
 | `rocketserializer` at `66d8ca8` (after release 0.2.0) | MIT | run, source read | a second reader of `.ork` files: its extractors are called one by one on each design, and `cargo xtask ork` holds HPR Sim's key geometry to theirs. Its declared dependency `orhelper` (GPL-2.0) is not installed |
 | `JPype1` 1.7.1 | Apache-2.0 | run-only | starts the JVM for OpenRocket, as in the oracle environment |
 | `numpy`, `beautifulsoup4`, `soupsieve`, `typing-extensions`, `lxml`, `packaging` | as each package states | run-only | what the extractors and JPype import |
+
+## The workbook reader's oracle (`validation/oracles/xlsx/requirements.txt`)
+
+`validation/oracles/xlsx/cells.py` runs in an environment of its own, `refs/venv-xlsx`,
+installed from that file (M7.1c14, ADR-269). Nothing in it is committed or bundled; the script
+prints counts and cell positions, never a value of the private workbooks it reads.
+
+| package | license | mode | notes |
+|---|---|---|---|
+| `openpyxl` 3.1.5 | MIT | run-only | a second reader of `.xlsx` workbooks: every cell of the sample workbooks is read by it and compared with `hpr_flightdata::workbook`'s text |
+| `et-xmlfile` 2.0.0 | MIT | run-only | what openpyxl imports |
 
 ## Research caches (`refs/research/`, outside the lock file)
 

@@ -30,6 +30,8 @@ hpr-core.workspace = true
 hpr-atmos.workspace = true
 # KML's XML (M7.1c1); it refuses a document type declaration, so no entity can expand.
 roxmltree.workspace = true
+# The sheets and shared strings of `.xlsx` workbooks (M7.1c14), read as a stream.
+quick-xml.workspace = true
 serde.workspace = true
 # The JSON head of AltOS's `.eeprom` downloads (M7.1c10).
 serde_json.workspace = true

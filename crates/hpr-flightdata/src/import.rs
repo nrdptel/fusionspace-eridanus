@@ -10,6 +10,7 @@
 //! | [Raven `.FIPa`](crate::raven_fipa) | its bytes: they open `#Component=Raven`, and a `#den` line within the first 4,096 is followed by a frame's `:`; told before the file is decoded as text |
 //! | [RRC3 `.rff`](crate::rrc3_rff) | its bytes: an MS-NRBF serialization header, version 1.0, and mDACS's `mDACS.AnalysisSupport+FlightRecord` class name within the first 4,096; told before the file is decoded as text |
 //! | [ARTS2 `.odf`](crate::arts2_raw) | its bytes: the length 9, then `Ozark.odf`; told before the file is decoded as text |
+//! | [RTx `.rtx`](crate::rtx) | its bytes: an MS-NRBF serialization header, version 1.0, then the class record of a `List<Int32>`; told before the file is decoded as text |
 //! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
@@ -28,10 +29,12 @@
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
 //! | [ARTS2 raw CSV](crate::arts2_raw::read_csv) | the first line that isn't blank is `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State`, the names as written |
+//! | [RTx CSV and text](crate::rtx::read_export) | the first line that isn't blank is `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or its tab-separated text file's `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG`, the names as written |
 //! | [SillyGoose text](crate::sillygoose) | the first line, or the one after a `CONFIG` line, starts with `timestampMs` and names `pressurePa` and `altitudeM` |
 //! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
 //! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
 //! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
+//! | [A table read by its header](crate::generic) | tried last: a header row within the first 64 lines, past blank lines, `#` comments and a `sep=` line, that names a clock with a unit of time, such as `Time (s)` or `timestamp__ms`, followed by a row with a number in the clock's cell |
 //!
 //! Text is read as UTF-8, or as UTF-16 after its byte-order mark ([`decode`]), with any byte-order
 //! mark dropped; a byte that isn't UTF-8 becomes U+FFFD, as a `.pf2`'s comments may be in another
@@ -53,8 +56,8 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea,
-    perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, sillygoose,
+    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, generic, kml, nmea,
+    perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -62,6 +65,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::RavenFipa,
     LogFormat::Rrc3Rff,
     LogFormat::Arts2Odf,
+    LogFormat::RtxRaw,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
     LogFormat::Kml,
@@ -73,6 +77,8 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::AltosTelemetry,
     LogFormat::Arts2Csv,
     LogFormat::Arts2RawCsv,
+    LogFormat::RtxCsv,
+    LogFormat::RtxText,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
     LogFormat::AltosCsv,
@@ -89,6 +95,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
     LogFormat::PerfectFliteText,
+    LogFormat::GenericTable,
 ];
 
 /// A file's bytes as text: UTF-8, or UTF-16 if the file opens with UTF-16's byte-order mark, as
@@ -134,6 +141,8 @@ fn detect_binary(bytes: &[u8]) -> Option<LogFormat> {
         Some(LogFormat::Rrc3Rff)
     } else if arts2_raw::recognizes_odf(bytes) {
         Some(LogFormat::Arts2Odf)
+    } else if rtx::recognizes_raw(bytes) {
+        Some(LogFormat::RtxRaw)
     } else {
         None
     }
@@ -185,6 +194,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     if arts2_raw::recognizes_csv(text) {
         return Some(LogFormat::Arts2RawCsv);
     }
+    if let Some(format) = rtx::export_format(text) {
+        return Some(format);
+    }
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
         // value a line.
@@ -233,11 +245,15 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     } else if perfectflite::is_headerless_row(first) {
         Some(LogFormat::PerfectFliteText)
     } else {
-        match perfectflite::export_separator(first)? {
-            ',' => Some(LogFormat::PerfectFliteCsv),
-            _ => Some(LogFormat::PerfectFliteText),
+        match perfectflite::export_separator(first) {
+            Some(',') => Some(LogFormat::PerfectFliteCsv),
+            Some(_) => Some(LogFormat::PerfectFliteText),
+            None => None,
         }
     }
+    // A table read by its header is tried after every other layout, so that it never takes a
+    // file another reader knows.
+    .or_else(|| generic::recognizes(text).then_some(LogFormat::GenericTable))
 }
 
 /// Reads a flight log in any format HPR Sim reads.
@@ -252,7 +268,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         return Err(LogError::Archive {
             message: "the file is a zip archive, which holds files rather than a log, or a format \
                       built on one, such as a spreadsheet's `.xlsx`: an archive's files are read \
-                      one by one once unpacked (`archive::unpack`)"
+                      one by one once unpacked (`archive::unpack`), a workbook's sheets one by \
+                      one (`workbook::read`)"
                 .to_owned(),
         });
     }
@@ -291,10 +308,13 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::RavenFipa) => raven_fipa::read(bytes),
         Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
         Some(LogFormat::Arts2Odf) => arts2_raw::read_odf(bytes),
+        Some(LogFormat::RtxRaw) => rtx::read_raw(bytes),
+        Some(LogFormat::RtxCsv | LogFormat::RtxText) => rtx::read_export(&text),
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         Some(LogFormat::RdasText) => rdas::read(&text),
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
         Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
+        Some(LogFormat::GenericTable) => generic::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
@@ -344,6 +364,16 @@ mod tests {
             ("MET,Acc,Baro,State\n", None),
             ("\x09\x00\x00\x00Ozark.odf", Some(LogFormat::Arts2Odf)),
             ("\x09\x00\x00\x00Ozark.od", None),
+            (
+                "UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG\r\n",
+                Some(LogFormat::RtxCsv),
+            ),
+            (
+                "\u{feff}UTC\tLat\t\tLon\t\tAlt\tVel\tVDOP\tNav\tSats\tSOG\tCOG\r\n",
+                Some(LogFormat::RtxText),
+            ),
+            ("UTC\tLat\tLon\tAlt\tVel\tVDOP\tNav\tSats\tSOG\tCOG\n", None),
+            ("UTC Time,Latitude,Longitude,Altitude\n", None),
             (
                 "sep=;\ntime (ms);deltaTime (ms);status;baro-altitude (m)\n",
                 Some(LogFormat::FluctusCsv),

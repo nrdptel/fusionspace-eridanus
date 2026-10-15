@@ -1,0 +1,10 @@
+# An invented flight, 10 rows a second from the pad
+time_ms,alt_baro_agl_ft,baro__kpa,accel_z_g,vz_filtered_ms,batt_v,phase,Velocity_Up
+0,0,98.50,1.00,0,8.1,PAD,0
+100,2,98.49,6.20,1,8.1,PAD,3
+200,9,98.47,6.40,8,8.0,BOOST,14
+300,21,98.43,6.30,15,8.0,BOOST,27
+400,38,98.37,-1.10,21,8.0,COAST,24
+500,52,98.33,-0.90,18,8.0,COAST,nan
+600,61,98.30,-0.80,12,8.0,COAST,11
+700,64,98.29,-0.10,4,8.0,APOGEE,1

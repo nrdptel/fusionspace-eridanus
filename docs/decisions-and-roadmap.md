@@ -295,6 +295,10 @@ until someone rewrites it in plainer words.
 | [ADR-264: Typeset equations, from the product system's Rev E][adr-264] | The site's equations were plain Unicode text, in code blocks and code spans, which reads like a formula typed into a chat. The maintainer asked for equations set as a textbook sets them. Pages now write LaTeX between dollar signs; an mdBook preprocessor in `xtask` turns each formula into MathML when the site builds, with the math-core converter (MIT, pure Rust); the browser draws it in New Computer Modern Math, the face of LaTeX's textbooks, served from the site. No script runs and nothing loads from another server. A formula the converter can't read fails the build, and the page check fails one wider than its box. |  |
 | [ADR-265: M7.1c10 in two: AltOS raw downloads first; the rest to M7.1c11][adr-265] | After [M7.1c9](#m7-1c9), 153 sample logs were left to [M7.1c10](#m7-1c10). Fourteen of them are AltOS's `.eeprom` files, the board's own log as AltosUI downloads it, and nine have AltosUI's export of the same flight beside them. [M7.1c10](#m7-1c10) now reads them, their layout worked out from the files and held to those exports, every unit converted resting on a sensor's data sheet and a second check; the rest goes to [M7.1c11](#m7-1c11). |  |
 | [ADR-266: M7.1c11 in two: ARTS2's raw data first; the rest to M7.1c12][adr-266] | After [M7.1c10](#m7-1c10), 137 sample logs were left to [M7.1c11](#m7-1c11). Six of them are an Ozark Aerospace ARTS2's raw data: three `.odf` files, as its software DataAnalyzer saves a flight, and three raw CSV exports of the same records, each flight with DataAnalyzer's interpreted export and an AltOS board's log beside it. [M7.1c11](#m7-1c11) now reads them, the `.odf` in units from the calibration it carries, held to its sensors' data sheets and to a climb check, and to the files beside it; the rest goes to [M7.1c12](#m7-1c12). |  |
+| [ADR-267: M7.1c12 in two: Missile Works' RTx first; the rest to M7.1c13][adr-267] | After [M7.1c11](#m7-1c11), 131 sample logs were left unread. Fourteen are a Missile Works RTx GPS tracker's: five `.rtx` files, as mDACS saves a download, and nine CSV and text exports, eight of them beside an `.rtx` with the KML export of the same fixes. [M7.1c12](#m7-1c12) now reads them, the `.rtx`'s words decoded from the files and held to every export beside them; the rest goes to [M7.1c13](#m7-1c13). |  |
+| [ADR-268: M7.1c13 in two: tables read by their headers first; the rest to M7.1c14][adr-268] | After [M7.1c12](#m7-1c12), 117 sample logs were left unread, most of them tables from teams' own flight computers and scripts, each in its own words. Thirty-one of them, among them a Blue Raven file a person edited, name their units in their headers; [M7.1c13](#m7-1c13) now reads such a table by what its header states, holds each unit to the column's name and values, and takes a caller's column mapping for the rest; spreadsheets and the other layouts go to [M7.1c14](#m7-1c14). |  |
+| [ADR-269: M7.1c14 in two: Excel workbooks first; the rest to M7.1c15][adr-269] | After [M7.1c13](#m7-1c13), 87 sample logs were left unread. The largest group one change can read is the 23 `.xlsx` workbooks: written out sheet by sheet, each cell as the workbook stores it, 16 of them read through the readers that exist; [M7.1c14](#m7-1c14) now reads them, every cell held to an independent reader, and the rest goes to [M7.1c15](#m7-1c15). |  |
+| [ADR-270: Neer's 2026-10-14 plan: awareness and care on the sites][adr-270] | The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access. |  |
 
 ## The roadmap
 
@@ -440,6 +444,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
 | <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
 | <a id="m0-12"></a>[M0.12][done-0] | Typeset equations | done |
+| <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
+| <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
+| <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -699,8 +706,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c8"></a>[M7.1c8][done-5] | The R-DAS's raw text | done |
 | <a id="m7-1c9"></a>[M7.1c9][done-5] | AltOS telemetry | done |
 | <a id="m7-1c10"></a>[M7.1c10][done-5] | AltOS raw downloads | done |
-| <a id="m7-1c11"></a>[M7.1c11][done-5] | The rest | done |
-| <a id="m7-1c12"></a>[M7.1c12][phase-5] | The rest | not yet done |
+| <a id="m7-1c11"></a>[M7.1c11][done-5] | ARTS2 raw data | done |
+| <a id="m7-1c12"></a>[M7.1c12][done-5] | Missile Works' RTx GPS tracker | done |
+| <a id="m7-1c13"></a>[M7.1c13][done-5] | Tables read by their headers | done |
+| <a id="m7-1c14"></a>[M7.1c14][done-5] | The rest | done |
+| <a id="m7-1c15"></a>[M7.1c15][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1121,6 +1131,10 @@ is the milestone that added or will add that test.
 [adr-264]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0264-typeset-equations.md
 [adr-265]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md
 [adr-266]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md
+[adr-267]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md
+[adr-268]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md
+[adr-269]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0269-excel-workbooks-before-the-rest.md
+[adr-270]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-the-2026-10-14-awareness-and-care.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

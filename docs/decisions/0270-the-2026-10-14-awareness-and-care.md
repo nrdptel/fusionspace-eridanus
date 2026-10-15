@@ -1,4 +1,4 @@
-# ADR-268: Neer's 2026-10-14 plan: awareness and care on the sites (2026-10-14)
+# ADR-270: Neer's 2026-10-14 plan: awareness and care on the sites (2026-10-14)
 
 - **Status:** accepted; adds M0.13, queued after release 0.2 ([M10.2](../ROADMAP.md))
 - **Summary:** The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access.
@@ -70,10 +70,18 @@ bars at the top of each page and lines in the home page's footer, changing with 
    American Rocketry Challenge, the UK Youth Rocketry Challenge, the NAR's junior and scholarship
    programs, Tripoli's mentoring program) and club finders; and an issue template for reporting a
    barrier to access, answered like a bug.
-8. **Open for the maintainer.** Whether Transgender Day of Visibility and Transgender Day of
-   Remembrance, and Remembrance Day and Veterans Day, take the banner, the footer or neither, and
-   which heavy topics take a banner at all. The table ships with each such row marked, off until
-   he decides.
+8. **The values calls** (the maintainer accepted these recommendations on 2026-10-15):
+   - **Transgender Day of Visibility (March 31) and Transgender Day of Remembrance (November 20)
+     take the banner**, as Pride does: Visibility in one plain, welcoming line; Remembrance as a
+     solemn day, alone, linking the help page. Their organizers' pages are read before they ship.
+   - **November 11 takes one shared, solemn line** naming each region's day: Remembrance Day in the
+     Commonwealth, Armistice Day in France, Veterans Day in the US, linking official pages (Veterans
+     Affairs Canada, the US Department of Veterans Affairs, the Royal British Legion).
+   - **Sexual assault and domestic violence take neither banner nor footer**; the help page reaches
+     their services by country through Find A Helpline's directory. **International Overdose
+     Awareness Day (August 31) and World Cancer Day (February 4) take a footer line on the day**,
+     once their organizers' pages are read. **Suicide prevention keeps its banner** (September
+     10), the one heavy topic where WHO's guidance supports showing where help is.
 
 **Consequences.** M0.13 joins the queue after release 0.2. Its first increment changes three
 repositories (the product system, this one and fusionspace.co's), and the table needs a yearly
