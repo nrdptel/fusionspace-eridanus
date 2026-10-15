@@ -71,8 +71,13 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > by the maker's manual; every
 > value in the 2 sample files equals the survey's own decoding, and values the manual doesn't
 > list are kept as written ([the Blue Raven's USB download](#the-blue-ravens-usb-download)).
+> A course's Teensy data logger, read since [M7.1c18](../decisions-and-roadmap.md#m7-1c18), writes
+> one sensor's reading a line; where its file states no unit, the unit read is held to the
+> physics of the flight, and the rest is kept as written
+> ([a course's Teensy data logger](#a-courses-teensy-data-logger)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c18](../decisions-and-roadmap.md#m7-1c18), the other loggers' formats.
+> [M7.1c19](../decisions-and-roadmap.md#m7-1c19) to
+> [M7.1c23](../decisions-and-roadmap.md#m7-1c23), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -158,6 +163,8 @@ decided.
 | Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
 | Blue Raven USB download | Featherweight Blue Raven, its low-rate or high-rate set as its USB port sends it to a serial terminal, one line a sample | a line among the first 1,000 that opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks | `hpr_flightdata::blueraven_usb` ([below](#the-blue-ravens-usb-download)) |
+| Teensy data logger, tab-separated | a university course's own logger, built around a Teensy board, its older layout: one sensor's reading a line | its first line is a tag, a whole-number clock and values, by tabs, and one of its first 100 is an `Alt` line with `P` and `MSL` | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
+| Teensy data logger, named fields | the same course's logger, its newer layout | its first line states a sensor's units, such as `ICM data in us, milli-g, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets; separated by commas, or by semicolons, a European locale's, perhaps ending each line | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names, or the same separated by semicolons, as a European locale's spreadsheet saves it | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
@@ -204,7 +211,8 @@ Raven's summary, and the descriptions of a rocket such programs read; a team fli
 export; and a wind profile. The other layouts in the sample logs, among
 them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c18](../decisions-and-roadmap.md#m7-1c18), and the [survey's report](#how-it-was-checked)
+[M7.1c19](../decisions-and-roadmap.md#m7-1c19) to
+[M7.1c23](../decisions-and-roadmap.md#m7-1c23), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -336,7 +344,8 @@ workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells
 hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
 each sheet's columns and units are only as right as the reader it goes to. A probe run when the
 check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
-disagreed. Not read yet, with [M7.1c18](../decisions-and-roadmap.md#m7-1c18): four workbooks (a
+disagreed. Not read yet, with [M7.1c20](../decisions-and-roadmap.md#m7-1c20) and
+[M7.1c22](../decisions-and-roadmap.md#m7-1c22): four workbooks (a
 PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
 no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
 Three more workbooks are flyers' summaries of flights, not logs.
@@ -559,7 +568,7 @@ so far.
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
 above the pad isn't stated. Most of the 21 files filed as generic CSV that are still refused have
 a clock with no unit or no header row, and no publisher states their mapping; they wait, with
-[M7.1c18](../decisions-and-roadmap.md#m7-1c18). A table saved in an Excel workbook is read the
+[M7.1c21](../decisions-and-roadmap.md#m7-1c21) and [M7.1c22](../decisions-and-roadmap.md#m7-1c22). A table saved in an Excel workbook is read the
 same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ### Mappings a publisher states
@@ -859,6 +868,128 @@ in the files says why, so the reading keeps the values as written, and the
 **What is left out.** No altitude is made from the pressure, and the two sets aren't joined by
 their sync code. `hpr analyze` and the Python package don't read these files yet: the Rust library
 does.
+
+### A course's Teensy data logger
+
+A university course's rocketry students fly a data logger the course builds around a Teensy, a
+small microcontroller board. The course publishes its flights' files on its *Flight Data* page,
+which lists two kinds, "Teensy Data Logger" and "New Teensy Data Logger". Both write one sensor's
+reading a line: the sensor's tag, the logger's clock in microseconds since it started, and the
+values. No document describes either layout. So HPR Sim reads what each file states, and where a
+file states no unit, it reads a unit only if the flight's own physics confirms it
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+which decided it). `import::read` reads both with `hpr_flightdata::teensy`.
+
+> **How far to trust it.** The layouts are taken from the files, as no document describes them.
+> In the 8 sample files, every value equals the survey's own decoding. Each unit read without
+> the file stating it passes a physical check on every file ([below](#how-the-teensy-files-were-checked)).
+> The gyroscope, the magnetometer, the high-g accelerometer of the older layout and the analog
+> inputs are kept as written, because no check settles their units. Those values aren't
+> converted, so they can't be wrong in SI; they simply aren't in SI.
+
+**The older layout** separates its fields by tabs. Seven tags come round in a cycle, each line
+with its own time. These invented lines are from the crate's test file:
+
+```text
+A	2000	0.25	-0.50	9.75
+G	2000	1.50	0.50	-2.00
+M	2000	20.10	-3.40	17.80
+Alt	3100	P	95000	MSL	540.42
+HG	3600	0.4788	-0.9577	10.5337
+ADC Pin-35	3700	0.0120000000
+ADC Pin-36	3800	0.0150000000
+```
+
+A value is named by its tag and its place, `A 1` to `A 3`, or by its tag and the name the line
+gives it, `Alt P` and `Alt MSL`. No line states a unit, so three of the values are read in SI only
+because physical checks confirm them:
+
+| Values | Read as | Why |
+|---|---|---|
+| `A 1` to `A 3` | acceleration, m/s², as written | their magnitude is within 3% of 1 g, 9.806 65 m/s², on the pad and after landing |
+| `Alt P` | pressure, Pa, as written | `Alt MSL` follows from it exactly, below |
+| `Alt MSL` | a pressure altitude, m, as written | it is 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula in the data sheet of the Bosch BMP180 barometer, on every line |
+
+`Alt MSL` is a pressure altitude: the height at which the standard atmosphere's pressure equals
+the one measured, counted from where it would be 101,325 Pa. It isn't a height above the sea. In
+the line above, 95,000 Pa gives 540.4176 m by the formula, written as 540.42.
+
+The rest is kept as written, as a number with no unit:
+
+- the gyroscope `G`;
+- the magnetometer `M`, a quantity HPR Sim doesn't hold;
+- the high-g accelerometer `HG`;
+- the analog inputs.
+
+`HG` moves in steps of 0.4788 if read as m/s², but it doesn't agree with `A`. During the boost,
+while `A` reads from 3 g to 90% of its greatest, `HG` reads 1.4 to 2.4 times `A`'s magnitude,
+depending on the file. So its scale isn't settled.
+
+**The newer layout** opens with a line for each sensor that states its units, the clock's first.
+Each line after them gives a tag, `t`, the clock, and name–value pairs, separated by commas:
+
+```text
+ICM data in us, milli-g, deg/s, milli-T, deg C
+MS5 data in us, deg C, Pa
+ICM, t, 500000500, xa, 12.20, ya, -20.50, za, 998.40, xg, 0.18, yg, -0.12, zg, 0.06, xm, 30.15, ym, 4.20, zm, -18.75, T, 24.50
+MS5, t, 500001000, T, 24.10, P, 95000
+```
+
+The clock's unit must be `us`, microseconds. The other units go to the fields by their names. A
+field's group is its name without a leading `x`, `y` or `z`, so `xa`, `ya` and `za` form one
+group. The units go to the groups in the order the tag's first line names them, or, when only one
+unit is stated, to every field. In the example:
+
+- `xa`, `ya` and `za` are in thousandths of a g, read as m/s².
+- `xg` to `zg` are in degrees per second.
+- `xm` to `zm` are in milli-T, kept as written: a magnetic field, and Earth's is about a
+  thousandth of the values the sample file holds.
+- `T` is in degrees Celsius, read as kelvins.
+
+A value is named by its tag and its name, such as `ICM za`. A tag with no units line, such as the
+sample file's `VOL`, is kept as written, and so is one whose units don't fit its groups; a note
+says which.
+
+**The clock.** Each tag is its own set of channels, on its own clock, as each sensor is read at its
+own rate: in the sample files, about 43 lines a second for each of the older layout's tags, and
+about 1,000 for the newer layout's main accelerometer. Times are seconds from the logger's start.
+The file is refused at a line that isn't a tag, a clock and values; at a tag's line laid out
+unlike its first; or at a clock that doesn't increase from the tag's line before. The count of
+microseconds runs over after 2³² µs, 71.6 minutes, so a longer recording is refused there. A
+file's last line, if it ends with no line end and can't be read, is a line the logger was writing
+when it stopped: it is dropped, with a note.
+
+<a id="how-the-teensy-files-were-checked"></a>**How it was checked.** The sample logs hold 7 files
+in the older layout and 1 in the newer, a 100 s cut from a longer recording. The survey,
+[`cargo xtask logs`](#how-it-was-checked), decodes each file itself and compares each of the
+6,188,639 values with the reader's: none differs. Four physical checks hold the units read; a file
+that failed one would be counted as unread:
+
+- **`Alt MSL` against the BMP180's formula,** worked out from `Alt P` in 64-bit floats. On all
+  305,340 `Alt` lines it differs by at most 0.0054 m. The check allows 0.0103 m: half the
+  hundredth of a meter `MSL` is written to, plus the formula's rounding in 32-bit floats, as a
+  microcontroller works it out, 44,330 × 2⁻²³ m. On 21,540 lines the gap is more than the half
+  step alone, and it is greatest at the same pressure in every file, as such rounding is. The
+  standard atmosphere's own constants would put `MSL` 0.09 to 0.20 m off.
+- **The accelerometer at rest.** Its magnitude on the pad, the median over the 5 s ending 1 s
+  before liftoff, is 0.984 to 0.989 g. After landing, over the last 2 s, it is 0.998 to 1.007 g.
+  The check allows 3% either way; read in another unit, such as g or ft/s², it would be 3 or more
+  times off. Over the first 2 s of the older layout's files, minutes before launch while the
+  logger was handled, two files read 1.04 and 1.05 g, so the pad is taken just before liftoff.
+- **The time to apogee.** From liftoff (the accelerometer's first reading above 3 g in the 30 s
+  before apogee) to apogee (the highest pressure altitude), the time is 0.91 to 1.14 times
+  √(2h/g), where h is the apogee's height above the pad. A coast to apogee takes about that long.
+  The check allows a factor of 2, where a clock misread by a power of ten would be 10 or more times
+  off.
+- **The pad pressure** of the newer layout, the median on the pad, is between 50 and 110 kPa, as
+  any launch site's is.
+
+The newer layout's high-g accelerometer, read in its stated g, is 0.996 times its main one during
+the boost, which agrees with the unit stated.
+
+**What is left out.** There is no [primary track](#the-record), as neither layout writes an
+altitude above the pad. `hpr analyze` and the Python package don't read these files yet: the Rust
+library does.
 
 ## The record
 
@@ -1334,7 +1465,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c18](../decisions-and-roadmap.md#m7-1c18).
+  [M7.1c19](../decisions-and-roadmap.md#m7-1c19).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -2296,11 +2427,14 @@ are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in 
 ([above](#mappings-a-publisher-states)), and the range of the Eggtimer files' filtered-altitude
 multiplier ([above](#units-the-file-decides)), and each file of binary records against its
 team's table ([above](#binary-records-by-a-stated-layout)), and each Blue Raven USB download
-against the survey's own decoding of it ([above](#the-blue-ravens-usb-download)). Of the 1,122
-files it holds today, 1,008 are read, the 8 archives counted as read when they unpack and the 16
-workbooks when a sheet of each reads. The report labels 53 files for
-[M7.1c18](../decisions-and-roadmap.md#m7-1c18), the rest of the importers; 51 of them, of layouts
-no reader knows yet, are unread.
+against the survey's own decoding of it ([above](#the-blue-ravens-usb-download)), and each Teensy
+logger's file against the survey's decoding and its physical checks
+([above](#how-the-teensy-files-were-checked)). Of the 1,122
+files it holds today, 1,016 are read, the 8 archives counted as read when they unpack and the 16
+workbooks when a sheet of each reads. The report labels 45 files for
+[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the first of the five increments left
+([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+plans them all); 43 of them, of layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -2316,11 +2450,12 @@ tables whose publisher states their mapping ([above](#mappings-a-publisher-state
 an RRC3 export counted as damaged ([above](#units-the-file-decides)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c18](../decisions-and-roadmap.md#m7-1c18). Sixteen spreadsheets are workbooks of flights'
+[M7.1c19](../decisions-and-roadmap.md#m7-1c19). Sixteen spreadsheets are workbooks of flights'
 logs, held to the workbook reader. Three files filed as text are console captures and two filed
 as binary are files of records, each read by the layout stated for it
 ([above](#binary-records-by-a-stated-layout)). Two more filed as text are a Blue Raven's USB
-downloads, held to their reader ([above](#the-blue-ravens-usb-download)). Five files filed as
+downloads, held to their reader ([above](#the-blue-ravens-usb-download)), and eight more are a
+course's Teensy logger's, held to theirs ([above](#a-courses-teensy-data-logger)). Five files filed as
 generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,

@@ -1,0 +1,99 @@
+# ADR-274: M7.1c18 in six: a course's Teensy logger first, then the five increments left (2026-10-15)
+
+- **Status:** accepted; narrows M7.1c18 to a first increment and plans every remaining increment, M7.1c19 to M7.1c23, each with its own *done when*, so M7.1's last files are planned once; follows [ADR-272](0272-the-blue-ravens-usb-download-before-the-rest.md)
+- **Summary:** After M7.1c17, 51 sample logs were left unread, in five groups. This record plans all of them at once, in six increments, the easiest to check first. M7.1c18 reads the 8 files of a university course's Teensy data logger, one sensor's reading a line, in two layouts. Where a file states no unit, the unit is held to the physics the files must keep: on every one of 305,340 `Alt` lines, the barometer's altitude follows its pressure by the BMP180's formula to within 5.4 mm; the accelerometer reads 0.984 to 0.989 g on the pad; and the time to apogee is 0.91 to 1.14 times √(2h/g). The other 43 files go to M7.1c19 to M7.1c23.
+
+**Context.** ADR-271 sorted the files left after M7.1c15 into groups. After M7.1c16 and M7.1c17,
+51 remain, which `cargo xtask logs` lists by id. Their groups, from a survey of each file:
+
+| Group | Files | What could check a reading |
+|---|---:|---|
+| a course's Teensy data logger, one sensor's reading a line | 8 | physics: a barometer's altitude against its pressure, 1 g at rest, the time to apogee |
+| one team's radio packets, `255:…:254`, in four forms: the onboard log, the packets a receiver heard, and two exports wrapped in RTF | 4 | the onboard log, packet by packet |
+| headerless Raven FIP workbooks, and an AltiMAX `.xls` written as a bare BIFF8 stream | 3 | the `.FIPa` and FIP CSV of the same flights; the `.xls`'s heights against its pressures |
+| altimeters' other text: MARSA's files, an AltOS telemetry CSV, an AltOS-like table and an AltOS CSV a spreadsheet saved with formula cells | 5 | other loggers' records of the same flights |
+| tables a column mapping settles (20), and files that aren't logs (7) | 27 | physics, by the quantity each column measures |
+| AltiMAX's `.ALS` and an Entacore AIM's `.xtra` files and raw flash dump | 4 | the `.xls` beside the `.ALS`; the `.xtra` and the dump beside each other |
+
+A course's data logger, built around a Teensy board, writes the 8 files of the first group. The
+course publishes its flights' files on its *Flight Data* page. That page lists the files as
+"Teensy Data Logger" and "New Teensy Data Logger", read by the course's own scripts. No document
+describes either layout, and the scripts carry no license this project can read under, so they
+weren't read.
+
+Seven files are the older layout: a tag, the clock and the values, separated by tabs, seven tags in
+a cycle of about 23 ms (`A`, `G`, `M`, `Alt`, `HG` and two analog inputs). No line states a unit. One
+file is the newer layout: four lines state each sensor's units, `ICM data in us, milli-g, deg/s,
+milli-T, deg C`, and then lines of name–value pairs follow, `MS5, t, <µs>, T, <°C>, P, <Pa>`. It
+is a 100 s cut from a longer recording, so its clock starts at 1,330 s.
+
+The older layout's `Alt` lines carry the pressure and an altitude, `MSL`. Computed in 64-bit
+floats, the altitude follows the pressure by the Bosch BMP180 data sheet's formula, 44,330 × (1 −
+(P / 101,325)^(1/5.255)) (BST-BMP180-DS000, §3.6), to within 5.4 mm on every line. The standard
+atmosphere's own constants are 0.09 to 0.20 m off. On 21,540 of the 305,340 lines the gap is more
+than the 5 mm half step the value is written to, and it is greatest at the same pressure in every
+file. That is the formula's rounding in 32-bit floats, where its power near 0.9 is good to about
+2⁻²³: 5.3 mm of the 44,330 m scale. In 32-bit floats with another library's power, the gap is
+6.5 mm.
+
+The high-g accelerometer `HG` steps by 0.4788 m/s² if read in m/s², but it doesn't agree with `A`.
+In the boost, while `A` reads from 3 g to 90 % of its greatest, `HG` is 1.4 to 2.4 times `A`, by
+file. In the newer layout, the high-g `LIS`, read in its stated g, is 0.996 times the `ICM`
+accelerometer over the boost. The newer layout states its magnetometer in milli-T. Earth's field
+is 0.025 to 0.065 mT, and the values are of the order of a thousand times that.
+
+**Decision.**
+
+1. **Six increments, all planned here.** Each is one reader or one kind of decision, with its own
+   check. M7.1c18 keeps M7.1c18's entry for the course's logger. The others, M7.1c19 to M7.1c23,
+   follow in the roadmap with their own *done when*s, and M7.1's *done when* stays the parent's.
+   The plan isn't narrowed again: a group that can't be read as planned is recorded in an
+   amendment to this record, with its measurement, and the gap stays visible in the report.
+
+   | Increment | Files | *Done when* |
+   |---|---:|---|
+   | M7.1c18 A course's Teensy data logger | 8 | all 8 read; every value equals the survey's own decoding; every `Alt` line's `MSL` is the BMP180's formula of its `P` to within 0.0103 m; each accelerometer read is within 3 % of 1 g on the pad and after landing; the time to apogee is within a factor of 2 of √(2h/g) |
+   | M7.1c19 Radio packets, `255:…:254` | 4 | all four forms read; every packet of the received and RTF forms that the onboard log also holds matches it field for field; packets the onboard log doesn't hold are counted by kind (GPS, repeated, broken) |
+   | M7.1c20 Workbooks with a reading beside | 3 | the two headerless Raven FIP sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls` reads from its bare BIFF8 stream, its columns by their stated units, and each height follows its pressure by one barometric formula whose constants the report states |
+   | M7.1c21 Altimeters' other text | 5 | MARSA's two files read, their apogee within 5 % of another logger's in the same flight; the AltOS telemetry CSV reads by its header; the AltOS-like table reads by AltOS's state numbers; the CSV with formula cells reads, each formula kept as text |
+   | M7.1c22 Tables by mapping, and files that aren't logs | 27 | the 20 logs read, each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest, a track's own speed); the 7 others filed as not logs, each with its reason in the report |
+   | M7.1c23 The last binaries, and formats with no sample | 4 | the `.ALS` decodes to the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against each other, or an amendment here records what the bytes show and the gap stays in the report; the guide lists every format the roadmap names that has no sample, such as CATS's and Juno's, as needing samples |
+
+2. **The course's logger, two layouts** (`hpr_flightdata::teensy`). Each line is a tag, a clock in
+   whole microseconds, and values: by place, named `A 1`, or by name, `Alt P` and `ICM xa`. Each tag
+   is a channel set on its own clock, read as seconds from the logger's zero. The record has no
+   barometric track. A line that isn't so, a tag's line laid out unlike its first, or a clock that
+   doesn't increase within a tag refuses the file at its line. A clock past 2³² µs is refused, as
+   the logger's count runs over there. A last line the file ends in with no line end, which can't
+   be read, is dropped with a note. The bounds are 32 tags, 64 values on a line, and names of 32
+   bytes.
+3. **Units the older layout doesn't state are held to physics.**
+   - `A` is read in m/s², as written.
+   - `Alt`'s `P` is read in Pa, and `MSL` as a pressure altitude in m.
+   - The rest is kept as written: the gyroscope's, whose unit no check settles; the
+     magnetometer's, a quantity HPR Sim doesn't hold; `HG`, whose scale disagrees with `A`'s; and
+     the analog inputs.
+4. **The newer layout's units are its own.** Each units line's first unit is the clock's and must
+   be `us`. The other units go to the fields' groups, a name less a leading `x`, `y` or `z`, in the
+   order the tag first names them; a single unit goes to every field. A tag whose units don't fit
+   so, or which has no units line (the file's `VOL`), is kept as written, and a note says so. So
+   is `milli-T`.
+5. **The check.** The survey decodes each file itself and compares every value with the reader's.
+   Four physical checks hold the units:
+   - **`MSL` against the BMP180's formula** of `P`, to within 0.005 m + 44,330 × 2⁻²³ m.
+   - **The accelerometer at rest:** its magnitude on the pad (the 5 s ending 1 s before liftoff)
+     and over the last 2 s (after landing) is within 3 % of 1 g. A unit other than the one read
+     would be 3 or more times off.
+   - **The time to apogee:** from liftoff (the first magnitude above 3 g in the 30 s before
+     apogee) to apogee, within a factor of 2 of √(2h/g). A clock misread by a power of ten would
+     be 10 or more times off.
+   - **The pad pressure,** for the named layout, is between 50 and 110 kPa.
+
+   A file that fails any check is as unread as a refusal.
+
+**Consequences.** The survey reads 1,016 of its 1,122 files. The 8 files' 6,188,639 values equal
+the survey's own decoding. Their worst `MSL` gap is 0.0054 m. Their pad magnitudes run from 0.984
+to 0.989 g, and after landing from 0.998 to 1.007 g. Their times to apogee are 0.91 to 1.14 times
+√(2h/g). The newer layout's pad pressure is in the band. The pad window is the one the rocket stands
+in: over the first 2 s of the recordings, minutes before launch, while the logger was handled, two
+files read 1.04 and 1.05 g. 43 files are left, to M7.1c19 to M7.1c23.

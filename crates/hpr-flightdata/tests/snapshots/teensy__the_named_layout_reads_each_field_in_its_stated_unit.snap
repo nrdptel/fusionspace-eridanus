@@ -1,0 +1,239 @@
+---
+source: crates/hpr-flightdata/tests/teensy.rs
+expression: log
+---
+{
+  "format": "teensy_named",
+  "logger": "Teensy data logger",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "LIS xh",
+      "quantity": "acceleration",
+      "time_s": [
+        500.000121,
+        500.001121
+      ],
+      "values": [
+        -0.980665,
+        -1.1767979999999998
+      ]
+    },
+    {
+      "column": "LIS yh",
+      "quantity": "acceleration",
+      "time_s": [
+        500.000121,
+        500.001121
+      ],
+      "values": [
+        0.4903325,
+        0.6864655000000001
+      ]
+    },
+    {
+      "column": "LIS zh",
+      "quantity": "acceleration",
+      "time_s": [
+        500.000121,
+        500.001121
+      ],
+      "values": [
+        10.002782999999999,
+        9.80665
+      ]
+    },
+    {
+      "column": "ICM xa",
+      "quantity": "acceleration",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        0.11964112999999998,
+        0.116699135
+      ]
+    },
+    {
+      "column": "ICM ya",
+      "quantity": "acceleration",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        -0.201036325,
+        -0.197113665
+      ]
+    },
+    {
+      "column": "ICM za",
+      "quantity": "acceleration",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        9.790959359999999,
+        9.817437315
+      ]
+    },
+    {
+      "column": "ICM xg",
+      "quantity": "angular_rate",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        0.18,
+        0.12
+      ]
+    },
+    {
+      "column": "ICM yg",
+      "quantity": "angular_rate",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        -0.12,
+        -0.18
+      ]
+    },
+    {
+      "column": "ICM zg",
+      "quantity": "angular_rate",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        0.06,
+        0.0
+      ]
+    },
+    {
+      "column": "ICM xm",
+      "quantity": "unrecognized",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        30.15,
+        30.3
+      ]
+    },
+    {
+      "column": "ICM ym",
+      "quantity": "unrecognized",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        4.2,
+        4.05
+      ]
+    },
+    {
+      "column": "ICM zm",
+      "quantity": "unrecognized",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        -18.75,
+        -18.9
+      ]
+    },
+    {
+      "column": "ICM T",
+      "quantity": "temperature",
+      "time_s": [
+        500.0005,
+        500.0015
+      ],
+      "values": [
+        297.65,
+        297.65
+      ]
+    },
+    {
+      "column": "MS5 T",
+      "quantity": "temperature",
+      "time_s": [
+        500.001,
+        500.021
+      ],
+      "values": [
+        297.25,
+        297.25
+      ]
+    },
+    {
+      "column": "MS5 P",
+      "quantity": "pressure",
+      "time_s": [
+        500.001,
+        500.021
+      ],
+      "values": [
+        95000.0,
+        94998.0
+      ]
+    },
+    {
+      "column": "ADC T1",
+      "quantity": "temperature",
+      "time_s": [
+        500.0012
+      ],
+      "values": [
+        294.4
+      ]
+    },
+    {
+      "column": "ADC T2",
+      "quantity": "temperature",
+      "time_s": [
+        500.0012
+      ],
+      "values": [
+        295.15
+      ]
+    },
+    {
+      "column": "VOL V",
+      "quantity": "unrecognized",
+      "time_s": [
+        500.0014
+      ],
+      "values": [
+        4.105
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "each tag's lines on their own clock, the logger's count of microseconds as its units lines state, read as seconds from the logger's zero",
+    "VOL's values kept as written: no units line states its units",
+    "kept as written, in a unit stated that HPR Sim doesn't hold: `ICM xm`, in milli-T, `ICM ym`, in milli-T, `ICM zm`, in milli-T"
+  ]
+}

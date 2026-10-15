@@ -301,6 +301,12 @@ pub enum LogFormat {
     /// terminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC
     /// ([`crate::blueraven_usb`]).
     BlueRavenUsb,
+    /// A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,
+    /// then its values, such as `Alt	49743	P	92082	MSL	799.61` ([`crate::teensy`]).
+    TeensyTabs,
+    /// A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg
+    /// C, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).
+    TeensyNamed,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -422,6 +428,8 @@ impl LogFormat {
     /// its header has no track, and no step: 0; nor do binary records read by a stated layout, or a
     /// console capture's, which are read as such a table. A Blue Raven's USB download has no
     /// track either, and its pressure is written in the CSV's steps, 1/50,000 atm: the CSV's step.
+    /// Nor does a Teensy data logger's file, whose pressure is written in whole pascals: 1 Pa,
+    /// 0.083 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -431,6 +439,7 @@ impl LogFormat {
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
+            Self::TeensyTabs | Self::TeensyNamed => ONE_PASCAL_M,
             Self::BlueRavenCsv | Self::BlueRavenUsb => {
                 BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M
             }
@@ -488,7 +497,9 @@ impl LogFormat {
             | Self::AerospaceNuGroundStationText
             | Self::RdasText
             | Self::RtxText
-            | Self::BlueRavenUsb => ".txt",
+            | Self::BlueRavenUsb
+            | Self::TeensyTabs
+            | Self::TeensyNamed => ".txt",
             Self::EggtimerRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::Rrc3Rff => ".rff",
@@ -543,6 +554,8 @@ impl LogFormat {
             Self::BinaryRecords => "binary records by a stated layout",
             Self::ConsoleCapture => "console capture of base64 records",
             Self::BlueRavenUsb => "Blue Raven USB download",
+            Self::TeensyTabs => "Teensy data logger, tab-separated",
+            Self::TeensyNamed => "Teensy data logger, named fields",
         }
     }
 }

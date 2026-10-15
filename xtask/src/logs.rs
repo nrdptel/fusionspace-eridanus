@@ -54,7 +54,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The workbooks are read
 /// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
-pub const READ: [(&str, LogFormat, &str); 36] = [
+pub const READ: [(&str, LogFormat, &str); 38] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -114,6 +114,8 @@ pub const READ: [(&str, LogFormat, &str); 36] = [
     ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
     ("table-csv", LogFormat::GenericTable, "M7.1c13"),
     ("blueraven-usb-txt", LogFormat::BlueRavenUsb, "M7.1c17"),
+    (TEENSY_TABS_FAMILY, LogFormat::TeensyTabs, "M7.1c18"),
+    (TEENSY_NAMED_FAMILY, LogFormat::TeensyNamed, "M7.1c18"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -149,7 +151,7 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c18";
+const LEFT_TO: &str = "M7.1c19";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
@@ -307,18 +309,26 @@ const FLIGHT_SUMMARY_XLSX: &str = "a flyer's summary of flights in a spreadsheet
 /// Why a spreadsheet is a team's checklist, not a log.
 const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
     cells and no measurement; not a log";
-/// Why a spreadsheet is a Blue Raven's settings, not a log.
+/// Why a file the catalog files as text is a Blue Raven's USB download.
 const BLUERAVEN_USB: &str = "a Blue Raven's flight data as its USB port downloads it to a serial \
     terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual \
     describes";
-
+/// Why a spreadsheet is a Blue Raven's settings, not a log.
 const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a spreadsheet, a \
     `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an \
     altimeter's settings, not a flight's data";
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 177] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 185] = [
+    ("12f752fa1d21c27f", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("2b8cca725a7b5fd6", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("34e2963eda0e95bc", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("3f3c6284f174edfc", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("425b1ac3fbe4f794", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("bfea33e67007ae0e", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("d17b644dac464173", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("0bc1429eeabbbda7", "txt", TEENSY_NAMED_FAMILY, TEENSY_NAMED),
     (
         "455ecee4a48bd98e",
         "txt",
@@ -831,6 +841,10 @@ struct Report {
     /// flight's other files (M7.1c17).
     #[serde(default)]
     usb_checks: Vec<UsbFile>,
+    /// A course's Teensy data logger's files against their own lines and the physics their units
+    /// must keep (M7.1c18).
+    #[serde(default)]
+    teensy_checks: Vec<TeensyFile>,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -3626,6 +3640,411 @@ fn usb_unread(files: &[UsbFile]) -> Vec<String> {
         .collect()
 }
 
+/// The families of a course's Teensy data logger's files (M7.1c18), filed by the catalog as `txt`.
+const TEENSY_TABS_FAMILY: &str = "teensy-tabs-txt";
+const TEENSY_NAMED_FAMILY: &str = "teensy-named-txt";
+
+/// Why a file the catalog files as text is the Teensy data logger's tab-separated layout.
+const TEENSY_TABS: &str = "a course's Teensy data logger, one sensor's reading a line: a tag, \
+    the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an \
+    altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"";
+/// Why a file the catalog files as text is the Teensy data logger's layout with named fields.
+const TEENSY_NAMED: &str = "a course's Teensy data logger, newer layout: lines stating each \
+    sensor's units, then one sensor's reading a line, a tag, `t`, the clock in microseconds and \
+    name–value pairs, by commas; the course's *Flight Data* page lists it as \"New Teensy Data \
+    Logger\"";
+
+/// The most the tab-separated layout's `MSL` may differ from the BMP180's formula worked out
+/// exactly from its `P`, m: its half step, as it is written to the hundredth of a meter, and the
+/// formula's own error in 32-bit floats, as a microcontroller works it out: its power, near 0.9,
+/// rounded to within 2⁻²³ (two of its steps), of the 44,330 m scale, 5.3 mm.
+const TEENSY_MSL_BOUND_M: f64 = 0.005 + 44_330.0 / 8_388_608.0;
+
+/// How near standard gravity an accelerometer's magnitude on the pad and after landing must be, as
+/// a ratio: a sensor's offsets and the pad's tilt move it by a few percent, where a unit other
+/// than the one read (g, thousandths of a g, ft/s²) is 3 or more times off.
+const TEENSY_GRAVITY_BAND: std::ops::RangeInclusive<f64> = 0.97..=1.03;
+
+/// How near √(2h/g) the time from liftoff to apogee must be, as a ratio, for a clock read in
+/// microseconds: a motor's burn adds time and drag takes some away, and the sample flights fall
+/// within 10 %; a clock read wrongly by a power of ten is 10 or more times off.
+const TEENSY_APOGEE_BAND: std::ops::RangeInclusive<f64> = 0.5..=2.0;
+
+/// The pressure on the pad any launch site has, Pa: from about 5,500 m above sea level, the
+/// standard atmosphere's 50 kPa, to below it on the highest days at sea level.
+const TEENSY_PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
+
+/// The pad, s from liftoff: the 5 s ending 1 s before it, when the rocket stands on its rail.
+const TEENSY_PAD_S: std::ops::Range<f64> = -6.0..-1.0;
+
+/// How long at the end of a file the landed magnitude is taken over, s.
+const TEENSY_LANDED_S: f64 = 2.0;
+
+/// A Teensy data logger's file against its own lines, decoded here apart from the reader, and
+/// against the physics its units must keep (M7.1c18).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct TeensyFile {
+    id: String,
+    /// `tab-separated` or `named fields`.
+    layout: String,
+    /// The lines of readings decoded here, by tag.
+    tags: BTreeMap<String, usize>,
+    /// Values decoded here, against the reader's channels.
+    values_compared: usize,
+    /// Of those, the ones that differ.
+    values_differing: usize,
+    /// Whether the reader's channels are the ones decoded here, by name and in order.
+    same_columns: bool,
+    /// The tab-separated layout's `Alt` lines, and the most any `MSL` differs from 44,330 × (1 −
+    /// (P / 101,325)^(1/5.255)), the BMP180's formula worked out in 64-bit floats, m.
+    alt_lines: usize,
+    msl_worst_m: Option<f64>,
+    /// The accelerometer's magnitude, the median on the pad ([`TEENSY_PAD_S`]) and over the last
+    /// [`TEENSY_LANDED_S`], over standard gravity in the unit read: `A` in m/s², `ICM`'s in
+    /// thousandths of a g.
+    pad_over_g: Option<f64>,
+    landed_over_g: Option<f64>,
+    /// The time from liftoff, the accelerometer's first magnitude above 3 g in the 30 s before
+    /// apogee, to apogee, the barometric altitude's highest, over √(2h/g) for the apogee's height
+    /// above the pad's, the median on the pad ([`TEENSY_PAD_S`]).
+    apogee_time_ratio: Option<f64>,
+    /// The named layout's `MS5` pressure on the pad, the median there ([`TEENSY_PAD_S`]), kPa.
+    pad_pressure_kpa: Option<f64>,
+    /// The high-g accelerometer's magnitude over the accelerometer's, in their units read, the
+    /// median over the boost, where the accelerometer reads from 3 g to 90 % of its greatest:
+    /// `HG` over `A` (both in m/s²), or `LIS` over `ICM` (both in g). Not a check: a measure.
+    high_g_over_low: Option<f64>,
+}
+
+/// A line of a Teensy data logger's file as the survey decodes it: the tag, the clock in µs, and
+/// each value's column and value as written.
+fn teensy_line(line: &str, named: bool) -> Option<(String, u64, Vec<(String, f64)>)> {
+    let fields: Vec<&str> = if named {
+        line.split(',').map(str::trim).collect()
+    } else {
+        line.split('\t').collect()
+    };
+    let (tag, clock, rest) = if named {
+        (*fields.first()?, *fields.get(2)?, fields.get(3..)?)
+    } else {
+        (*fields.first()?, *fields.get(1)?, fields.get(2..)?)
+    };
+    let clock: u64 = clock.parse().ok()?;
+    let numbers: Option<Vec<f64>> = rest.iter().map(|f| f.parse::<f64>().ok()).collect();
+    let values = match numbers {
+        Some(numbers) if !named => numbers
+            .into_iter()
+            .enumerate()
+            .map(|(k, v)| (format!("{tag} {}", k + 1), v))
+            .collect(),
+        _ => rest
+            .chunks(2)
+            .map(|pair| Some((format!("{tag} {}", pair[0]), pair.get(1)?.parse().ok()?)))
+            .collect::<Option<Vec<_>>>()?,
+    };
+    Some((tag.to_owned(), clock, values))
+}
+
+/// The SI value the named layout's stated unit gives, written here apart from the reader; `None`
+/// for a unit kept as written.
+fn teensy_unit(unit: &str, value: f64) -> Option<f64> {
+    match unit {
+        "milli-g" => Some(value * 9.806_65 / 1_000.0),
+        "g" => Some(value * 9.806_65),
+        "deg/s" | "Pa" => Some(value),
+        "deg C" => Some(value + 273.15),
+        _ => None,
+    }
+}
+
+/// Each named field's stated unit: its group, the name less a leading `x`, `y` or `z`, takes the
+/// unit in the order the groups come, or every field the one unit stated.
+fn teensy_field_units(names: &[String], units: &[String]) -> Option<Vec<String>> {
+    let group = |name: &str| -> String {
+        match name.strip_prefix(['x', 'y', 'z']) {
+            Some(rest) if !rest.is_empty() => rest.to_owned(),
+            _ => name.to_owned(),
+        }
+    };
+    let mut groups: Vec<String> = Vec::new();
+    for name in names {
+        if !groups.contains(&group(name)) {
+            groups.push(group(name));
+        }
+    }
+    if units.len() == 1 {
+        Some(vec![units[0].clone(); names.len()])
+    } else if units.len() == groups.len() {
+        names
+            .iter()
+            .map(|name| {
+                let at = groups.iter().position(|g| *g == group(name))?;
+                Some(units[at].clone())
+            })
+            .collect()
+    } else {
+        None
+    }
+}
+
+/// The median of some values, `None` if there are none.
+fn teensy_median(mut values: Vec<f64>) -> Option<f64> {
+    values.sort_by(f64::total_cmp);
+    let n = values.len();
+    match n {
+        0 => None,
+        _ if n % 2 == 1 => Some(values[n / 2]),
+        _ => Some((values[n / 2 - 1] + values[n / 2]) / 2.0),
+    }
+}
+
+/// The BMP180's altitude from a pressure, m (Bosch, BST-BMP180-DS000, §3.6).
+fn bmp180_altitude_m(pressure_pa: f64) -> f64 {
+    44_330.0 * (1.0 - (pressure_pa / 101_325.0).powf(1.0 / 5.255))
+}
+
+/// Liftoff and apogee: apogee the barometric altitude's highest, by time, and liftoff the
+/// accelerometer's first magnitude above 3 g in the 30 s before it, `accel` in g by time.
+fn teensy_flight(accel: &[(f64, f64)], altitude: &[(f64, f64)]) -> Option<(f64, f64, f64)> {
+    let &(apogee_s, apogee_m) = altitude.iter().max_by(|a, b| a.1.total_cmp(&b.1))?;
+    let liftoff_s = accel
+        .iter()
+        .find(|(t, g)| (apogee_s - 30.0..apogee_s).contains(t) && *g > 3.0)?
+        .0;
+    Some((liftoff_s, apogee_s, apogee_m))
+}
+
+/// The median of a series over the pad ([`TEENSY_PAD_S`]) before a liftoff.
+fn teensy_pad(series: &[(f64, f64)], liftoff_s: f64) -> Option<f64> {
+    let pad = liftoff_s + TEENSY_PAD_S.start..liftoff_s + TEENSY_PAD_S.end;
+    teensy_median(
+        series
+            .iter()
+            .filter(|(t, _)| pad.contains(t))
+            .map(|(_, v)| *v)
+            .collect(),
+    )
+}
+
+/// The time from liftoff to apogee over √(2h/g), h the apogee's height above the pad's.
+fn teensy_apogee_ratio(altitude: &[(f64, f64)], flight: (f64, f64, f64)) -> Option<f64> {
+    let (liftoff_s, apogee_s, apogee_m) = flight;
+    let height_m = apogee_m - teensy_pad(altitude, liftoff_s)?;
+    (height_m > 0.0).then(|| (apogee_s - liftoff_s) / (2.0 * height_m / 9.806_65).sqrt())
+}
+
+/// The median of a magnitude over the last [`TEENSY_LANDED_S`].
+fn teensy_landed(magnitude: &[(f64, f64)]) -> Option<f64> {
+    let last = magnitude.last()?.0;
+    teensy_median(
+        magnitude
+            .iter()
+            .filter(|(t, _)| *t >= last - TEENSY_LANDED_S)
+            .map(|(_, g)| *g)
+            .collect(),
+    )
+}
+
+/// The median of a high-g accelerometer's magnitude over a low-g one's, both in g by time, over
+/// the boost: each low-g sample from 3 g to 90 % of its greatest, with the high-g sample nearest
+/// in time.
+fn teensy_high_over_low(low: &[(f64, f64)], high: &[(f64, f64)]) -> Option<f64> {
+    let greatest = low.iter().map(|(_, g)| *g).fold(0.0, f64::max);
+    let ratios = low
+        .iter()
+        .filter(|(_, g)| (3.0..0.9 * greatest).contains(g))
+        .filter_map(|&(t, g)| {
+            let at = high.partition_point(|(s, _)| *s < t);
+            let near = [at.checked_sub(1), Some(at)]
+                .into_iter()
+                .flatten()
+                .filter_map(|k| high.get(k))
+                .min_by(|a, b| (a.0 - t).abs().total_cmp(&(b.0 - t).abs()))?;
+            Some(near.1 / g)
+        })
+        .collect();
+    teensy_median(ratios)
+}
+
+/// Every Teensy data logger's file, decoded here apart from the reader and held to its physics.
+fn teensy_checks(samples: &[Sample]) -> Vec<TeensyFile> {
+    let mut files = Vec::new();
+    for sample in samples
+        .iter()
+        .filter(|s| s.family == TEENSY_TABS_FAMILY || s.family == TEENSY_NAMED_FAMILY)
+    {
+        let named = sample.family == TEENSY_NAMED_FAMILY;
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let mut file = TeensyFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            layout: if named {
+                "named fields"
+            } else {
+                "tab-separated"
+            }
+            .to_owned(),
+            ..TeensyFile::default()
+        };
+        let mut units: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut columns: Vec<String> = Vec::new();
+        let mut decoded: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+        let mut msl_worst = None::<f64>;
+        let (mut low, mut high, mut altitude, mut pressure) =
+            (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+        for line in text.lines().map(|l| l.trim_end_matches('\r')) {
+            if line.trim().is_empty() {
+                continue;
+            }
+            if named && let Some((tag, stated)) = line.split_once(" data in ") {
+                // The clock's unit first, then the fields'.
+                let stated: Vec<String> = stated.split(',').map(|u| u.trim().to_owned()).collect();
+                units.insert(tag.to_owned(), stated[1..].to_vec());
+                continue;
+            }
+            let Some((tag, clock_us, values)) = teensy_line(line, named) else {
+                continue;
+            };
+            let t = clock_us as f64 / 1e6;
+            *file.tags.entry(tag.clone()).or_default() += 1;
+            let field_units = named
+                .then(|| {
+                    let names: Vec<String> = values
+                        .iter()
+                        .map(|(c, _)| c[tag.len() + 1..].to_owned())
+                        .collect();
+                    teensy_field_units(&names, units.get(&tag)?)
+                })
+                .flatten();
+            for (k, (column, written)) in values.iter().enumerate() {
+                if !columns.contains(column) {
+                    columns.push(column.clone());
+                }
+                let read = field_units
+                    .as_ref()
+                    .and_then(|u| teensy_unit(&u[k], *written))
+                    .unwrap_or(*written);
+                decoded.entry(column.clone()).or_default().push(read);
+            }
+            let written = |name: &str| {
+                values
+                    .iter()
+                    .find(|(c, _)| c == &format!("{tag} {name}"))
+                    .map(|(_, v)| *v)
+            };
+            let magnitude = |names: [&str; 3]| -> Option<f64> {
+                let mut sum = 0.0;
+                for name in names {
+                    sum += written(name)?.powi(2);
+                }
+                Some(sum.sqrt())
+            };
+            match (named, tag.as_str()) {
+                (false, "A") => low.extend(magnitude(["1", "2", "3"]).map(|a| (t, a / 9.806_65))),
+                (false, "HG") => high.extend(magnitude(["1", "2", "3"]).map(|a| (t, a / 9.806_65))),
+                (false, "Alt") => {
+                    if let (Some(p), Some(msl)) = (written("P"), written("MSL")) {
+                        file.alt_lines += 1;
+                        let off = (msl - bmp180_altitude_m(p)).abs();
+                        msl_worst = Some(msl_worst.map_or(off, |worst| worst.max(off)));
+                        altitude.push((t, msl));
+                    }
+                }
+                (true, "ICM") => {
+                    low.extend(magnitude(["xa", "ya", "za"]).map(|a| (t, a / 1_000.0)))
+                }
+                (true, "LIS") => high.extend(magnitude(["xh", "yh", "zh"]).map(|a| (t, a))),
+                (true, "MS5") => {
+                    if let Some(p) = written("P") {
+                        pressure.push((t, p));
+                        altitude.push((t, bmp180_altitude_m(p)));
+                    }
+                }
+                _ => {}
+            }
+        }
+        file.msl_worst_m = msl_worst;
+        file.landed_over_g = teensy_landed(&low);
+        file.high_g_over_low = teensy_high_over_low(&low, &high);
+        if let Some(flight) = teensy_flight(&low, &altitude) {
+            file.pad_over_g = teensy_pad(&low, flight.0);
+            file.apogee_time_ratio = teensy_apogee_ratio(&altitude, flight);
+            if named {
+                file.pad_pressure_kpa = teensy_pad(&pressure, flight.0).map(|p| p / 1_000.0);
+            }
+        }
+        if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+            let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
+            file.same_columns = names == columns.iter().map(String::as_str).collect::<Vec<_>>();
+            for column in &columns {
+                let ours = &decoded[column];
+                let theirs = log.channels.iter().find(|c| &c.column == column);
+                file.values_compared += ours.len();
+                file.values_differing += match theirs {
+                    Some(channel) => {
+                        ours.iter()
+                            .zip(&channel.values)
+                            .filter(|(a, b)| a != b)
+                            .count()
+                            + ours.len().abs_diff(channel.values.len())
+                    }
+                    None => ours.len(),
+                };
+            }
+        }
+        files.push(file);
+    }
+    files
+}
+
+/// The Teensy files that fail a check, as lines of the unread list: a value differing from this
+/// decoding, channels other than the ones decoded here, an `MSL` off its pressure's, an
+/// accelerometer off 1 g on the pad or after landing, an apogee's time off √(2h/g), or a pressure
+/// on the pad no launch site has.
+fn teensy_unread(files: &[TeensyFile]) -> Vec<String> {
+    let within = |value: Option<f64>, band: &std::ops::RangeInclusive<f64>| {
+        value.is_some_and(|v| band.contains(&v))
+    };
+    files
+        .iter()
+        .filter(|f| {
+            f.values_differing > 0
+                || f.values_compared == 0
+                || !f.same_columns
+                || !within(f.pad_over_g, &TEENSY_GRAVITY_BAND)
+                || !within(f.landed_over_g, &TEENSY_GRAVITY_BAND)
+                || !within(f.apogee_time_ratio, &TEENSY_APOGEE_BAND)
+                || match f.layout.as_str() {
+                    "tab-separated" => {
+                        f.alt_lines == 0 || !f.msl_worst_m.is_some_and(|m| m <= TEENSY_MSL_BOUND_M)
+                    }
+                    "named fields" => !within(
+                        f.pad_pressure_kpa.map(|kpa| kpa * 1_000.0),
+                        &TEENSY_PAD_PRESSURE_PA,
+                    ),
+                    _ => true,
+                }
+        })
+        .map(|f| {
+            format!(
+                "  {} (Teensy, {}): fails its checks: {} of {} values differ, the same columns: \
+                 {}, {} `Alt` lines, MSL off by up to {:?} m, pad and landed over 1 g {:?} and \
+                 {:?}, apogee time over √(2h/g) {:?}, pad pressure {:?} kPa",
+                f.id,
+                f.layout,
+                f.values_differing,
+                f.values_compared,
+                f.same_columns,
+                f.alt_lines,
+                f.msl_worst_m,
+                f.pad_over_g,
+                f.landed_over_g,
+                f.apogee_time_ratio,
+                f.pad_pressure_kpa
+            )
+        })
+        .collect()
+}
+
 /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15): the least-squares factor
 /// through zero, `Σ(filtered × Alt) / Σ Alt²`, over the files read, and the files refused for it.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -4719,6 +5138,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         mapped_checks: mapped_checks(samples),
         layout_checks: layout_checks(samples),
         usb_checks: usb_checks(samples),
+        teensy_checks: teensy_checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -4735,6 +5155,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // A USB download whose reading fails its own CRCs, lengths, the manual or the same flight's
     // other files is as unread as a refusal.
     unread.extend(usb_unread(&report.usb_checks));
+    // A Teensy file whose reading differs from this decoding or fails the physics its units must
+    // keep is as unread as a refusal.
+    unread.extend(teensy_unread(&report.teensy_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -5620,6 +6043,64 @@ fn markdown(report: &Report) -> String {
             } else {
                 flat.join("; ")
             },
+        );
+    }
+    if !report.teensy_checks.is_empty() {
+        let files = &report.teensy_checks;
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |v| format!("{v:.digits$}"))
+        };
+        let mut rows = String::new();
+        for file in files {
+            let tags: Vec<String> = file
+                .tags
+                .iter()
+                .map(|(tag, n)| format!("{tag} {n}"))
+                .collect();
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.layout,
+                tags.join(", "),
+                file.values_compared,
+                file.values_differing,
+                if file.alt_lines == 0 {
+                    "–".to_owned()
+                } else {
+                    file.alt_lines.to_string()
+                },
+                figure(file.msl_worst_m, 4),
+                figure(file.pad_over_g, 3),
+                figure(file.landed_over_g, 3),
+                figure(file.apogee_time_ratio, 2),
+                file.pad_pressure_kpa.map_or("–".to_owned(), |kpa| format!(
+                    "{}",
+                    (kpa / 10.0).round() * 10.0
+                )),
+                figure(file.high_g_over_low, 2),
+            );
+        }
+        out += &format!(
+            "\nThe {} files of a course's Teensy data logger (M7.1c18), each decoded here apart \
+             from the reader: *Lines* counts the lines of readings by tag, and each value, in the \
+             unit read, is compared with the reader's channels. *MSL off* is the most an `Alt` \
+             line's `MSL` differs from 44,330 × (1 − (P / 101,325)^(1/5.255)), the Bosch BMP180's \
+             formula worked out in 64-bit floats, m, which its half step, 0.005 m, and the \
+             formula's error in 32-bit floats, 44,330 × 2⁻²³ = 0.0053 m, bound: {:.4} m; *Pad* \
+             and *Landed* the accelerometer's magnitude over 1 g, the median on the pad, the 5 s \
+             ending 1 s before liftoff, and over the last {TEENSY_LANDED_S} s, `A` taken in m/s² \
+             and `ICM` in thousandths of a g; *Apogee time* the time from liftoff, the first \
+             magnitude above 3 g in the 30 s before apogee, to apogee over √(2h/g), h the apogee's \
+             height above the pad's, the clock read in microseconds; *Pad kPa* the `MS5` \
+             pressure on the pad, to the nearest 10 kPa. *High-g over low* is a measure, not a check: the high-g accelerometer's \
+             magnitude over the other's during the boost, from 3 g to 90 % of its greatest, `HG` \
+             over `A` (both read as m/s²) or `LIS` over `ICM` (both as stated): `HG` is kept as \
+             written for it.\n\n\
+             | File | Layout | Lines | Values compared | Differing | `Alt` lines | MSL off, m | \
+             Pad | Landed | Apogee time | Pad kPa | High-g over low |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n{rows}",
+            files.len(),
+            TEENSY_MSL_BOUND_M,
         );
     }
     if !report.workbook_checks.is_empty() {
@@ -7595,5 +8076,157 @@ mod tests {
         let longest = longest.unwrap();
         assert!((longest - 1.198).abs() < 1e-9, "{longest}");
         assert!((greatest.unwrap() - 5.0).abs() < 1e-9);
+    }
+
+    /// A Teensy file passes inside every band and fails just outside each, on either side; the
+    /// tab-separated layout needs its `Alt` lines, the named one its pad pressure.
+    #[test]
+    fn teensy_files_fail_outside_each_band() {
+        let tabs = TeensyFile {
+            id: "t".to_owned(),
+            layout: "tab-separated".to_owned(),
+            values_compared: 10,
+            same_columns: true,
+            alt_lines: 2,
+            msl_worst_m: Some(0.0054),
+            pad_over_g: Some(0.99),
+            landed_over_g: Some(1.0),
+            apogee_time_ratio: Some(1.0),
+            ..TeensyFile::default()
+        };
+        let named = TeensyFile {
+            layout: "named fields".to_owned(),
+            alt_lines: 0,
+            msl_worst_m: None,
+            pad_pressure_kpa: Some(92.0),
+            ..tabs.clone()
+        };
+        assert!(teensy_unread(&[tabs.clone(), named.clone()]).is_empty());
+        let fails = |file: TeensyFile| teensy_unread(&[file]).len() == 1;
+        assert!((TEENSY_MSL_BOUND_M - 0.010_284_6).abs() < 1e-6);
+        for (low, high) in [(0.969, 1.031)] {
+            for g in [low, high] {
+                assert!(fails(TeensyFile {
+                    pad_over_g: Some(g),
+                    ..tabs.clone()
+                }));
+                assert!(fails(TeensyFile {
+                    landed_over_g: Some(g),
+                    ..named.clone()
+                }));
+            }
+        }
+        for ratio in [0.49, 2.01] {
+            assert!(fails(TeensyFile {
+                apogee_time_ratio: Some(ratio),
+                ..tabs.clone()
+            }));
+        }
+        for kpa in [49.9, 110.1] {
+            assert!(fails(TeensyFile {
+                pad_pressure_kpa: Some(kpa),
+                ..named.clone()
+            }));
+        }
+        for broken in [
+            TeensyFile {
+                msl_worst_m: Some(0.0104),
+                ..tabs.clone()
+            },
+            TeensyFile {
+                msl_worst_m: None,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                alt_lines: 0,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                values_differing: 1,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                values_compared: 0,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                same_columns: false,
+                ..named.clone()
+            },
+            TeensyFile {
+                pad_over_g: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                apogee_time_ratio: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                pad_pressure_kpa: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                layout: "other".to_owned(),
+                ..tabs.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
+    }
+
+    /// The survey's decoding of both layouts' invented files: each line's columns, the named
+    /// layout's units by group, and a flight's liftoff, pad and apogee ratio.
+    #[test]
+    fn teensy_lines_and_flights_are_decoded_here() {
+        let (tag, clock, values) = teensy_line("Alt\t3100\tP\t95000\tMSL\t540.42", false).unwrap();
+        assert_eq!((tag.as_str(), clock), ("Alt", 3100));
+        assert_eq!(
+            values,
+            [
+                ("Alt P".to_owned(), 95_000.0),
+                ("Alt MSL".to_owned(), 540.42)
+            ]
+        );
+        let (_, _, values) = teensy_line("A\t2000\t0.25\t-0.5\t9.75", false).unwrap();
+        assert_eq!(values[2], ("A 3".to_owned(), 9.75));
+        let (_, clock, values) =
+            teensy_line("MS5, t, 500001000, T, 24.10, P, 95000", true).unwrap();
+        assert_eq!(
+            (clock, values[1].clone()),
+            (500_001_000, ("MS5 P".to_owned(), 95_000.0))
+        );
+        let names: Vec<String> = ["xa", "ya", "xg", "T"].map(str::to_owned).to_vec();
+        let units: Vec<String> = ["milli-g", "deg/s", "deg C"].map(str::to_owned).to_vec();
+        assert_eq!(
+            teensy_field_units(&names, &units).unwrap(),
+            ["milli-g", "milli-g", "deg/s", "deg C"]
+        );
+        assert!(teensy_field_units(&names, &units[..2]).is_none());
+        assert!((bmp180_altitude_m(95_000.0) - 540.4176).abs() < 1e-4);
+        // A ballistic flight: 1 g on the pad from 0 to 10 s, 5 g for a moment at 10 s, apogee
+        // 490.3 m up at 20 s, √(2h/g) = 10 s.
+        let accel: Vec<(f64, f64)> = (0..3_000)
+            .map(|k| {
+                let t = f64::from(k) * 0.01;
+                (t, if (10.0..10.05).contains(&t) { 5.0 } else { 1.0 })
+            })
+            .collect();
+        let altitude: Vec<(f64, f64)> = (0..300)
+            .map(|k| {
+                let t = f64::from(k) * 0.1;
+                let up = if t < 10.0 {
+                    0.0
+                } else {
+                    490.332_5 - 4.903_325 * (t - 20.0).powi(2)
+                };
+                (t, 100.0 + up.max(0.0))
+            })
+            .collect();
+        let flight = teensy_flight(&accel, &altitude).unwrap();
+        assert_eq!(flight.0, 10.0);
+        assert_eq!(teensy_pad(&accel, flight.0), Some(1.0));
+        let ratio = teensy_apogee_ratio(&altitude, flight).unwrap();
+        assert!((ratio - 1.0).abs() < 1e-3, "{ratio}");
+        assert_eq!(teensy_landed(&accel), Some(1.0));
     }
 }
