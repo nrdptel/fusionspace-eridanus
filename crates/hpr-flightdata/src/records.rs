@@ -27,9 +27,10 @@
 //! clock no number; with an integer clock, the record's time and values stay in the log, and a
 //! column whose values it pushes past what its unit allows is kept as written.
 //!
-//! **Bounds.** A layout has from 1 to [`MAX_FIELDS`] fields, each named with 1 to
-//! [`MAX_NAME_CHARS`] characters, no two alike, none holding a comma, a quotation mark, a line
-//! break or spaces at its ends. The table is refused once its text would pass [`MAX_TEXT_BYTES`].
+//! **Bounds.** A layout has from 2 to [`MAX_FIELDS`] fields, each named with 1 to
+//! [`MAX_NAME_CHARS`] characters, no two alike, none a number or holding a separator (a comma, a
+//! semicolon or `|`), a quotation mark, a control character or spaces at its ends, and the first
+//! not opening with `#`, `sep=` or a byte order mark. The table is refused once its text would pass [`MAX_TEXT_BYTES`].
 //!
 //! How far to trust it: the reader is exact for the bytes and types the caller states; whether the
 //! layout is the logger's is the caller's statement. The project's sample files are each held,

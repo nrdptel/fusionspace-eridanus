@@ -593,8 +593,15 @@ marks. Such a file can't be recognized, only read by a layout someone states. Th
 by the layout you give, each field's name and type in the record's order
 ([`records::RecordLayout`](../api/hpr_flightdata/records/struct.RecordLayout.html)), and never
 guesses one. A type is an integer of 8, 16, 32 or 64 bits, signed or not, or a 32-bit or 64-bit
-IEEE 754 float (binary32 or binary64, the standard's names for them), little-endian (the least
-significant byte first, as most microcontrollers store numbers) unless you say big. The
+IEEE 754 float (binary32 or binary64, the standard's names for single and double precision),
+little-endian (the least significant byte first, as most microcontrollers store numbers) unless
+the layout's `byte_order` says
+[`ByteOrder::Big`](../api/hpr_flightdata/records/enum.ByteOrder.html). A layout has 2 to 512
+fields, a clock and at least one more, each name of 1 to 256 characters, no two alike, none a
+number, holding a comma, a semicolon, `|`, a quotation mark or a control character (a line break
+or a tab among them), or with spaces at its ends, and the first not opening with `#`, `sep=` or a
+byte order mark; a layout outside these is refused (`LogError::Layout`), naming the field and
+why. The
 records are written out as a table, the names its header and one row a record, and read by the
 [header reader](#tables-read-by-their-headers): name a field with its unit, such as
 `pressure__kpa` or `Time (ms)`, and it is read in that unit if its values bear it out; a field
@@ -616,7 +623,13 @@ let layout = RecordLayout::new(vec![
     Field::new("pressure__kpa", FieldKind::F32),
 ]);
 let log = hpr_flightdata::records::read(&std::fs::read("flight.bin")?, &layout)?;
+// The same records, dumped as base64 in a console capture's block named `data`:
+let text = std::fs::read_to_string("capture.txt")?;
+let log = hpr_flightdata::capture::read(&text, "data", &layout)?;
 ```
+
+The [module's own example](../api/hpr_flightdata/records/index.html) reads two invented records
+and is compiled and run with the library's tests.
 
 A logger saving to flash leaves the memory it never wrote erased, every byte `0xFF`, and a dump of
 its memory may run on into it. Records that are wholly `0xFF` at the end of the file are dropped as
@@ -625,12 +638,15 @@ other bytes past the last whole record are refused, as a sign the layout doesn't
 record with written ones after it isn't dropped, so a logger's fault stays visible: its integers
 read at their largest (−1 if signed) and its floats as gaps. With a float clock that record has
 no time, and the reading is refused, naming the record by its number and where it starts; with
-an integer clock it is read, and a column whose values that record contradicts is kept as written.
+an integer clock it is read: a `u32` clock in milliseconds reads 4,294,967.295 s at that record,
+its floats are gaps, and the records after it read at their own times, so the jump shows where
+the logger skipped.
 
 The same records may come as a **console capture**: what a terminal program saves when a flight
 computer's USB shell is asked to dump its memory, the commands typed at it and then each
 dump as base64 lines (bytes written as text, 3 bytes to 4 characters) between two marker lines the firmware prints,
-`----++++//[[( data start )]]\\++++----` and `----++++//[[( data end )]]\\++++----`.
+`----++++//[[( data start )]]\\++++----` and `----++++//[[( data end )]]\\++++----`, `data` being
+the block's name (the sample captures' blocks are `data` and `params`).
 `import::read` recognizes a capture by a start marker in its first 1,000 lines, and refuses it,
 naming its first blocks, as the capture doesn't state its records' layout.
 [`capture::read`](../api/hpr_flightdata/capture/fn.read.html) reads a named block by the layout
@@ -646,7 +662,10 @@ a marker inside a block or two blocks of one name are refused, naming the line.
 > record's fields itself from the file's bytes, apart from the reader's records, and compares them
 > with the table field by field (a wrong base64 decoding would fail it too): all 931,875 fields of
 > the 45,915 records written agree, and each record read holds the same channels as the team's
-> table read by its header. One capture's last 12,222 records are erased memory, which the team's
+> table read by its header. The types aren't the teams' own statement: no team documents them, so
+> each was found from the bytes and from that same table. The match shows the layout decodes every
+> field exactly as the team did; it doesn't show the layout is the logger's own. The files are
+> private, so the layouts file holds only their types, by file id. One capture's last 12,222 records are erased memory, which the team's
 > table writes as rows of `4294967295` and `nan` and the reader drops; their fields agree with
 > the table too, 1,237,425 fields in all.
 
