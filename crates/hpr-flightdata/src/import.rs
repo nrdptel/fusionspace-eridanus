@@ -25,6 +25,7 @@
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
 //! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
+//! | [Blue Raven USB download](crate::blueraven_usb) | one of the first 1,000 lines opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks |
 //! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
@@ -57,9 +58,9 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, capture, eggtimer, entacore, fluctus, fwgps, fwsummary, generic,
-    kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx,
-    sillygoose,
+    arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus, fwgps,
+    fwsummary, generic, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3,
+    rrc3_rff, rtx, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -70,6 +71,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::RtxRaw,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
+    LogFormat::BlueRavenUsb,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
@@ -164,6 +166,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if aerospacenu_gs::recognizes(text) {
         return Some(LogFormat::AerospaceNuGroundStationText);
+    }
+    // A Blue Raven's USB download is told by a record whose CRC checks.
+    if blueraven_usb::recognizes(text) {
+        return Some(LogFormat::BlueRavenUsb);
     }
     // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
@@ -296,6 +302,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::AltosCsv) => altos::read(&text),
         Some(LogFormat::RavenFipCsv) => raven::read(&text),
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
+        Some(LogFormat::BlueRavenUsb) => blueraven_usb::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),

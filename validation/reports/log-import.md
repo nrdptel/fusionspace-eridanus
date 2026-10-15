@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c17 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c18 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,15 +22,17 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c17 | 2 | 0 | 2 unrecognized |
+| binary | M7.1c18 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
+| blueraven-summary-copy-txt | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
+| blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c17 | 23 | 2 | 1 syntax, 20 unrecognized |
+| csv | M7.1c18 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -39,7 +41,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c17 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c18 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -70,18 +72,21 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
 | table-csv | M7.1c13 | 31 | 31 | none |
-| telemetry-rtf | M7.1c17 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c17 | 19 | 0 | 19 unrecognized |
+| telemetry-rtf | M7.1c18 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c18 | 16 | 0 | 16 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xls | M7.1c17 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c17 | 4 | 0 | 4 archive |
-| xml | M7.1c17 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c18 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c18 | 4 | 0 | 4 archive |
+| xml | M7.1c18 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1006 | |
+| **All** | | 1122 | 1008 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `455ecee4a48bd98e txt -> blueraven-usb-txt`: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes
+- `a106c197fc5f6dec txt -> blueraven-usb-txt`: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes
+- `4ee1c37b025e6a9f txt -> blueraven-summary-copy-txt`: a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as a table of cells between `|`: a copy, as the program's events file beside it is a reading; the CSV reads
 - `5c15ad3db182065c txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
 - `a964e00316c378d9 txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
 - `d304c5e63044e3e3 txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
@@ -388,6 +393,13 @@ The 5 files of binary records (M7.1c16), each read by the record layout stated f
 | `8f291cf155079b3d` | record-dump | a team's flight computer's raw file; the team's table beside it names 23 columns, the first a clock in ms | 92 | 9000 | 0 | 207000 | 9000 | 0 | 207000 | 0 | yes |
 | `a964e00316c378d9` | console-capture | a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms | 100 | 13644 | 0 | 341100 | 13644 | 0 | 341100 | 0 | yes |
 | `d304c5e63044e3e3` | console-capture | a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms | 100 | 12838 | 0 | 320950 | 12838 | 0 | 320950 | 0 | yes |
+
+The 2 Blue Raven USB downloads (M7.1c17), each checked here apart from the reader: *Pieces* counts the parts of its lines that open `@ LOG_`, each up to the next or the line's end; *CRC checks* those whose CRC-16/BUYPASS, worked out here, checks; *Length agrees* those whose stated length is their own, with the line end the logger sends; *Read* the records the reader keeps, which must be those. Each checked record's values, decoded here by the manual's table, are compared with the reader's channels. *Quaternion norm* is the least and greatest norm of a high-rate record's 7th to 10th values, which a unit quaternion × 30,000 cut to whole numbers keeps within 2 of 30,000; *Pad over AltOS* the low-rate pressure on the pad, the median of the first 20, over the AltOS board's in the same rocket; *Liftoff lag* the time from the high-rate file's first acceleration above 3 g to the first low-rate record whose first register has its lowest bit set, the bit the app's files call `Liftoff`. `a106c197fc5f6dec`'s pressure moves by 0.16 % of its pad's over the whole file, where the AltOS board's falls to 0.773 of its pad's.
+
+| File | Kind | Pieces | CRC checks | Length agrees | Read | Values compared | Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |
+|---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|
+| `455ecee4a48bd98e` | high-rate | 17930 | 17930 | 17930 | 17930 | 304810 | 0 | 29998.25 to 30000.00 | – | – |
+| `a106c197fc5f6dec` | low-rate | 1861 | 1706 | 1706 | 1706 | 49474 | 0 | – | 0.9977 | 0.024 |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -731,7 +743,7 @@ The files read, by the logger each names:
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
-| Featherweight Blue Raven | 136 |
+| Featherweight Blue Raven | 138 |
 | Featherweight GPS ground station | 14 |
 | Featherweight GPS tracker | 40 |
 | Featherweight Raven | 137 |

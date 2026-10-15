@@ -54,7 +54,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The workbooks are read
 /// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
-pub const READ: [(&str, LogFormat, &str); 35] = [
+pub const READ: [(&str, LogFormat, &str); 36] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -113,6 +113,7 @@ pub const READ: [(&str, LogFormat, &str); 35] = [
     ("rtx-csv", LogFormat::RtxCsv, "M7.1c12"),
     ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
     ("table-csv", LogFormat::GenericTable, "M7.1c13"),
+    ("blueraven-usb-txt", LogFormat::BlueRavenUsb, "M7.1c17"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -148,16 +149,17 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c17";
+const LEFT_TO: &str = "M7.1c18";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
 /// a log or its description of a rocket, a flyer's summary of flights, a team flight computer's
 /// saved state, a simulation's export, a wind profile, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 15] = [
+const NOT_LOGS: [&str; 16] = [
     "blueraven-events-txt",
     "blueraven-settings-csv",
     "blueraven-settings-xlsx",
+    "blueraven-summary-copy-txt",
     "checklist",
     "debrief-synthetic-csv",
     "empty",
@@ -306,13 +308,37 @@ const FLIGHT_SUMMARY_XLSX: &str = "a flyer's summary of flights in a spreadsheet
 const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
     cells and no measurement; not a log";
 /// Why a spreadsheet is a Blue Raven's settings, not a log.
+const BLUERAVEN_USB: &str = "a Blue Raven's flight data as its USB port downloads it to a serial \
+    terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual \
+    describes";
+
 const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a spreadsheet, a \
     `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an \
     altimeter's settings, not a flight's data";
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 174] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 177] = [
+    (
+        "455ecee4a48bd98e",
+        "txt",
+        BLUERAVEN_USB_FAMILY,
+        BLUERAVEN_USB,
+    ),
+    (
+        "a106c197fc5f6dec",
+        "txt",
+        BLUERAVEN_USB_FAMILY,
+        BLUERAVEN_USB,
+    ),
+    (
+        "4ee1c37b025e6a9f",
+        "txt",
+        "blueraven-summary-copy-txt",
+        "a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as \
+         a table of cells between `|`: a copy, as the program's events file beside it is a \
+         reading; the CSV reads",
+    ),
     (
         "5c15ad3db182065c",
         "txt",
@@ -801,6 +827,10 @@ struct Report {
     /// Files of binary records read by a stated layout, against their teams' tables (M7.1c16).
     #[serde(default)]
     layout_checks: Vec<LayoutFile>,
+    /// The Blue Raven's USB downloads against their CRCs, their lengths, the manual and the same
+    /// flight's other files (M7.1c17).
+    #[serde(default)]
+    usb_checks: Vec<UsbFile>,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -3138,6 +3168,376 @@ fn layout_file(
     Some(file)
 }
 
+/// The family of the Blue Raven's USB downloads (M7.1c17), filed by the catalog as `txt`.
+const BLUERAVEN_USB_FAMILY: &str = "blueraven-usb-txt";
+
+/// The Blue Raven's USB downloads among the sample logs, by flight: the low-rate file, the
+/// high-rate file, and the AltOS board's CSV of the same flight, from the same rocket, by id.
+const BLUERAVEN_USB_FLIGHTS: [(&str, &str, &str); 1] =
+    [("a106c197fc5f6dec", "455ecee4a48bd98e", "e56325370ab76ab8")];
+
+/// How near the AltOS board's the low-rate download's pressure on the pad must be, as a ratio: two
+/// barometers in one rocket agree within a few hundred pascals, under 1 %; the manual's other
+/// scale for the pressure, atm × 10,000 in the live status line (p22), would be 5 times off.
+const USB_PAD_BAND: std::ops::RangeInclusive<f64> = 0.98..=1.02;
+
+/// How long after the high-rate download's first acceleration above 3 g the low-rate download's
+/// first register may first set its lowest bit, the one the app's files call `Liftoff`: five
+/// low-rate records, s.
+const USB_LIFTOFF_LAG_S: f64 = 0.1;
+
+/// A unit quaternion × 30,000, each of its four components cut to a whole number, has a norm
+/// within 2 of 30,000: each component moves by less than 1.
+const QUATERNION_NORM_BAND: std::ops::RangeInclusive<f64> = 29_998.0..=30_002.0;
+
+/// A Blue Raven USB download against what the file itself states, each record decoded here apart
+/// from the reader (M7.1c17).
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct UsbFile {
+    id: String,
+    /// `high-rate` or `low-rate`.
+    kind: String,
+    /// Pieces of the file's lines that open `@ LOG_`, each up to the next or the line's end.
+    pieces: usize,
+    /// Of those, the ones whose CRC-16/BUYPASS, worked out here, checks.
+    crc_checks: usize,
+    /// Of those, the ones whose stated length is their own, with the line end the logger sends.
+    length_agrees: usize,
+    /// The records the reader read.
+    records: usize,
+    /// Values of the checked records, decoded here by the manual's table, against the reader's
+    /// channels, the clock's channels among them.
+    values_compared: usize,
+    /// Of those, the ones that differ.
+    values_differing: usize,
+    /// The least and greatest norm of the high-rate records' quaternion, the 7th to the 10th
+    /// value, as written.
+    quaternion_norm: Option<[f64; 2]>,
+    /// The low-rate download's pressure on the pad over the AltOS board's of the same flight,
+    /// each the median of its first [`PAD_SAMPLES`].
+    pad_pressure_over_altos: Option<f64>,
+    /// How far the low-rate download's pressure moves over the whole file, greatest less least,
+    /// over its pressure on the pad; and how far the AltOS board's falls, its least over its pad's.
+    pressure_span_over_pad: Option<f64>,
+    altos_least_over_pad: Option<f64>,
+    /// The time on the logger's clock from the high-rate download's first acceleration above 3 g
+    /// to the low-rate download's first register's lowest bit first set, s.
+    liftoff_lag_s: Option<f64>,
+}
+
+/// The CRC-16 the Blue Raven's manual calls Buypass, worked out here apart from the reader:
+/// polynomial `0x8005`, starting at 0, no reflection, no final XOR.
+fn buypass(bytes: &[u8]) -> u16 {
+    bytes.iter().fold(0_u16, |crc, &byte| {
+        (0..8).fold(crc ^ (u16::from(byte) << 8), |crc, _| {
+            (crc << 1) ^ if crc & 0x8000 == 0 { 0 } else { 0x8005 }
+        })
+    })
+}
+
+/// The manual's fields of a record's group, each as a divisor and a factor to the reader's unit,
+/// with the reader's name for it, written here apart from the reader (*Blue Raven User's Guide*,
+/// p23–24).
+fn usb_manual(group: &str) -> &'static [(&'static str, f64, f64)] {
+    const G: f64 = 9.806_65;
+    const FT: f64 = 0.3048;
+    match group {
+        "LOG_HIR" => &[
+            ("Gyro X", 100.0, 1.0),
+            ("Gyro Y", 100.0, 1.0),
+            ("Gyro Z", 100.0, 1.0),
+            ("Accel X", 100.0, G),
+            ("Accel Y", 100.0, G),
+            ("Accel Z", 100.0, G),
+            ("Quaternion X", 30_000.0, 1.0),
+            ("Quaternion Y", 30_000.0, 1.0),
+            ("Quaternion Z", 30_000.0, 1.0),
+            ("Quaternion magnitude", 30_000.0, 1.0),
+        ],
+        "Bo:" => &[
+            ("Bo: temperature", 1.0, 1.0),
+            ("Bo: pressure", 50_000.0, 101_325.0),
+        ],
+        "V:" => &[
+            ("V: battery", 1_000.0, 1.0),
+            ("V: Apo", 1_000.0, 1.0),
+            ("V: Main", 1_000.0, 1.0),
+            ("V: 3rd", 1_000.0, 1.0),
+            ("V: 4th", 1_000.0, 1.0),
+            ("V: current", 1_000.0, 1.0),
+        ],
+        "Vel:" => &[
+            ("Vel: up", 1.0, FT),
+            ("Vel: down-range", 1.0, FT),
+            ("Vel: cross-range", 1.0, FT),
+        ],
+        "Pos:" => &[
+            ("Pos: altitude", 1.0, FT),
+            ("Pos: down-range", 1.0, FT),
+            ("Pos: cross-range", 1.0, FT),
+        ],
+        "ang:" => &[
+            ("ang: tilt", 10.0, 1.0),
+            ("ang: roll", 1.0, 1.0),
+            ("ang: future tilt", 10.0, 1.0),
+        ],
+        "FER:" => &[
+            ("FER: rocket", 1.0, 1.0),
+            ("FER: Apo", 1.0, 1.0),
+            ("FER: Main", 1.0, 1.0),
+            ("FER: 3rd", 1.0, 1.0),
+            ("FER: 4th", 1.0, 1.0),
+        ],
+        _ => &[],
+    }
+}
+
+/// A checked record's values decoded here, by name: the clock's channels, then each group's, by
+/// the manual where the group holds at least its count, kept as written otherwise and past it.
+/// `None` if a value isn't a number.
+fn usb_values(tokens: &[&str]) -> Option<Vec<(String, f64)>> {
+    let kind = *tokens.get(1)?;
+    let (h, rest) = tokens.get(6)?.split_once(':')?;
+    let (m, s) = rest.split_once(':')?;
+    let seconds = s.parse::<f64>().ok()?;
+    let time = (h.parse::<f64>().ok()? * 60.0 + m.parse::<f64>().ok()?) * 60.0 + seconds;
+    let mut values: Vec<(String, f64)> = Vec::new();
+    for (name, index) in [("Year", 3), ("Month", 4), ("Day", 5), ("Sync", 7)] {
+        values.push((name.to_owned(), tokens.get(index)?.parse().ok()?));
+    }
+    // The reader works the time of day out in whole milliseconds.
+    values.push(("Time".to_owned(), (time * 1_000.0).round() / 1_000.0));
+    let mut groups: Vec<(String, Vec<&str>)> = Vec::new();
+    if kind == "LOG_HIR" {
+        groups.push(("LOG_HIR".to_owned(), Vec::new()));
+    }
+    for &token in tokens.get(8..)? {
+        if kind == "LOG_LOW" && token.ends_with(':') {
+            groups.push((token.to_owned(), Vec::new()));
+        } else {
+            groups.last_mut()?.1.push(token);
+        }
+    }
+    for (group, tokens) in groups {
+        let counts: Vec<f64> = tokens
+            .iter()
+            .map(|token| {
+                if group == "FER:" {
+                    i64::from_str_radix(token, 16).ok().map(|n| n as f64)
+                } else {
+                    token.parse::<i64>().ok().map(|n| n as f64)
+                }
+            })
+            .collect::<Option<_>>()?;
+        let manual = usb_manual(&group);
+        let read = if counts.len() >= manual.len() {
+            manual.len()
+        } else {
+            0
+        };
+        for (place, count) in counts.iter().enumerate() {
+            values.push(match manual.get(place).filter(|_| place < read) {
+                Some((name, per, unit)) => ((*name).to_owned(), count / per * unit),
+                None => (format!("{group} {}", place + 1), *count),
+            });
+        }
+    }
+    Some(values)
+}
+
+/// Every Blue Raven USB download against its own CRCs, lengths and the manual, and, by flight,
+/// against the other download and the AltOS board's CSV of the same flight.
+fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
+    let by_id: BTreeMap<String, &Sample> = samples
+        .iter()
+        .map(|s| (hex(&Sha256::digest(&s.bytes))[..16].to_owned(), s))
+        .collect();
+    let mut files = Vec::new();
+    let mut logs: BTreeMap<String, FlightLog> = BTreeMap::new();
+    for (id, sample) in by_id
+        .iter()
+        .filter(|(_, s)| s.family == BLUERAVEN_USB_FAMILY)
+    {
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let log = hpr_flightdata::import::read(&sample.bytes).ok();
+        let mut file = UsbFile {
+            id: id.clone(),
+            records: log
+                .as_ref()
+                .and_then(|log| log.channels.iter().find(|c| c.column == "Sync"))
+                .map_or(0, |c| c.values.len()),
+            ..UsbFile::default()
+        };
+        let mut decoded: Vec<Vec<(String, f64)>> = Vec::new();
+        let mut norms: Vec<f64> = Vec::new();
+        for line in text.split(['\r', '\n']) {
+            let starts: Vec<usize> = line.match_indices("@ LOG_").map(|(at, _)| at).collect();
+            for (k, &start) in starts.iter().enumerate() {
+                file.pieces += 1;
+                let end = starts.get(k + 1).copied().unwrap_or(line.len());
+                let piece = line[start..end].trim_end();
+                let Some(at) = piece.rfind(" CRC: ") else {
+                    continue;
+                };
+                let stated = u16::from_str_radix(&piece[at + 6..], 16).ok();
+                if piece.len() != at + 10
+                    || stated != Some(buypass(piece[..at].trim_end().as_bytes()))
+                {
+                    continue;
+                }
+                file.crc_checks += 1;
+                let tokens: Vec<&str> = piece[..at].split_whitespace().collect();
+                if tokens.get(2).and_then(|n| n.parse::<usize>().ok()) == Some(piece.len() + 2) {
+                    file.length_agrees += 1;
+                }
+                file.kind = match tokens.get(1) {
+                    Some(&"LOG_HIR") => "high-rate",
+                    Some(&"LOG_LOW") => "low-rate",
+                    _ => "other",
+                }
+                .to_owned();
+                if file.kind == "high-rate" {
+                    let quaternion: Vec<f64> = tokens
+                        .iter()
+                        .skip(8 + 6)
+                        .take(4)
+                        .filter_map(|token| token.parse::<f64>().ok())
+                        .collect();
+                    if quaternion.len() == 4 {
+                        norms.push(quaternion.iter().map(|q| q * q).sum::<f64>().sqrt());
+                    }
+                }
+                if let Some(values) = usb_values(&tokens) {
+                    decoded.push(values);
+                }
+            }
+        }
+        file.quaternion_norm = norms.iter().fold(None, |range, &norm| {
+            Some(range.map_or([norm, norm], |[least, most]: [f64; 2]| {
+                [least.min(norm), most.max(norm)]
+            }))
+        });
+        if let Some(log) = &log {
+            for (k, record) in decoded.iter().enumerate() {
+                for (name, value) in record {
+                    file.values_compared += 1;
+                    let theirs = log
+                        .channels
+                        .iter()
+                        .find(|c| &c.column == name)
+                        .and_then(|c| c.values.get(k));
+                    if theirs != Some(value) {
+                        file.values_differing += 1;
+                    }
+                }
+            }
+            logs.insert(id.clone(), log.clone());
+        }
+        files.push(file);
+    }
+    let channel = |log: &FlightLog, name: &str| -> Option<Channel> {
+        log.channels.iter().find(|c| c.column == name).cloned()
+    };
+    for (low, high, altos) in BLUERAVEN_USB_FLIGHTS {
+        let (Some(low_log), Some(high_log)) = (logs.get(low), logs.get(high)) else {
+            continue;
+        };
+        let altos_log = by_id
+            .get(altos)
+            .and_then(|s| hpr_flightdata::import::read(&s.bytes).ok());
+        let pressure = channel(low_log, "Bo: pressure");
+        let altos_pressure = altos_log.as_ref().and_then(|log| {
+            log.channels
+                .iter()
+                .find(|c| c.quantity == hpr_flightdata::log::Quantity::Pressure)
+                .cloned()
+        });
+        let file = files.iter_mut().find(|f| f.id == low);
+        let Some(file) = file else { continue };
+        if let (Some(ours), Some(theirs)) = (&pressure, &altos_pressure) {
+            file.pad_pressure_over_altos =
+                ratio(pad_median(&ours.values), pad_median(&theirs.values));
+            let least = ours.values.iter().copied().fold(f64::INFINITY, f64::min);
+            let most = ours
+                .values
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max);
+            file.pressure_span_over_pad = ratio(Some(most - least), pad_median(&ours.values));
+            file.altos_least_over_pad = ratio(
+                Some(theirs.values.iter().copied().fold(f64::INFINITY, f64::min)),
+                pad_median(&theirs.values),
+            );
+        }
+        // The first high-rate record above 3 g, and the first low-rate one whose rocket register
+        // has its lowest bit set, each at its time of day.
+        let time =
+            |log: &FlightLog, k: usize| channel(log, "Time").and_then(|c| c.values.get(k).copied());
+        let axes: Vec<Channel> = ["Accel X", "Accel Y", "Accel Z"]
+            .iter()
+            .filter_map(|name| channel(high_log, name))
+            .collect();
+        let launch = (axes.len() == 3)
+            .then(|| {
+                (0..axes[0].values.len()).find(|&k| {
+                    axes.iter().map(|a| a.values[k].powi(2)).sum::<f64>().sqrt() > 3.0 * 9.806_65
+                })
+            })
+            .flatten()
+            .and_then(|k| time(high_log, k));
+        let liftoff = channel(low_log, "FER: rocket")
+            .and_then(|c| c.values.iter().position(|v| (*v as i64) & 1 == 1))
+            .and_then(|k| time(low_log, k));
+        if let (Some(launch), Some(liftoff)) = (launch, liftoff) {
+            // Rounded to the millisecond the clock states.
+            file.liftoff_lag_s = Some(((liftoff - launch) * 1_000.0).round() / 1_000.0);
+        }
+    }
+    files
+}
+
+/// The USB downloads that fail a check, as lines of the unread list: a record the reader kept
+/// other than the ones whose CRC checks here, a stated length not its own, a value differing from
+/// this decoding, a quaternion's norm off 30,000, or, by flight, a pad pressure off the AltOS
+/// board's or a liftoff bit set before the climb or late.
+fn usb_unread(files: &[UsbFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| {
+            f.records != f.crc_checks
+                || f.length_agrees != f.crc_checks
+                || f.values_differing > 0
+                || f.values_compared == 0
+                || f.quaternion_norm.is_some_and(|[least, most]| {
+                    !QUATERNION_NORM_BAND.contains(&least) || !QUATERNION_NORM_BAND.contains(&most)
+                })
+                || (f.kind == "low-rate"
+                    && (!f
+                        .pad_pressure_over_altos
+                        .is_some_and(|r| USB_PAD_BAND.contains(&r))
+                        || !f
+                            .liftoff_lag_s
+                            .is_some_and(|lag| (0.0..=USB_LIFTOFF_LAG_S).contains(&lag))))
+        })
+        .map(|f| {
+            format!(
+                "  {} ({BLUERAVEN_USB_FAMILY}): fails its checks: {} records read of {} whose CRC \
+                 checks, {} lengths agree, {} of {} values differ, quaternion norm {:?}, pad \
+                 pressure over the AltOS board's {:?}, liftoff lag {:?} s",
+                f.id,
+                f.records,
+                f.crc_checks,
+                f.length_agrees,
+                f.values_differing,
+                f.values_compared,
+                f.quaternion_norm,
+                f.pad_pressure_over_altos,
+                f.liftoff_lag_s
+            )
+        })
+        .collect()
+}
+
 /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15): the least-squares factor
 /// through zero, `Σ(filtered × Alt) / Σ Alt²`, over the files read, and the files refused for it.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -4230,6 +4630,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         table_checks: table_checks(samples),
         mapped_checks: mapped_checks(samples),
         layout_checks: layout_checks(samples),
+        usb_checks: usb_checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -4243,6 +4644,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // A file of records must match its team's table on every field and read into the same
     // channels: a reading that differs from the team's own is as unread as a refusal.
     unread.extend(layout_unread(&report.layout_checks));
+    // A USB download whose reading fails its own CRCs, lengths, the manual or the same flight's
+    // other files is as unread as a refusal.
+    unread.extend(usb_unread(&report.usb_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -5046,6 +5450,69 @@ fn markdown(report: &Report) -> String {
              Table rows | Misshapen | Fields compared | Differing | Same channels |\n\
              |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|\n{rows}",
             files.len(),
+        );
+    }
+    if !report.usb_checks.is_empty() {
+        let files = &report.usb_checks;
+        let range = |range: Option<[f64; 2]>, digits: usize| {
+            range.map_or("–".to_owned(), |[least, most]| {
+                format!("{least:.digits$} to {most:.digits$}")
+            })
+        };
+        let mut rows = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.kind,
+                file.pieces,
+                file.crc_checks,
+                file.length_agrees,
+                file.records,
+                file.values_compared,
+                file.values_differing,
+                range(file.quaternion_norm, 2),
+                file.pad_pressure_over_altos
+                    .map_or("–".to_owned(), |ratio| format!("{ratio:.4}")),
+                file.liftoff_lag_s
+                    .map_or("–".to_owned(), |lag| format!("{lag:.3}")),
+            );
+        }
+        let flat: Vec<String> = files
+            .iter()
+            .filter_map(|file| {
+                Some(format!(
+                    "`{}`'s pressure moves by {:.2} % of its pad's over the whole file, where the \
+                     AltOS board's falls to {:.3} of its pad's",
+                    file.id,
+                    100.0 * file.pressure_span_over_pad?,
+                    file.altos_least_over_pad?
+                ))
+            })
+            .collect();
+        out += &format!(
+            "\nThe {} Blue Raven USB downloads (M7.1c17), each checked here apart from the reader: \
+             *Pieces* counts the parts of its lines that open `@ LOG_`, each up to the next or \
+             the line's end; *CRC checks* those whose CRC-16/BUYPASS, worked out here, checks; \
+             *Length agrees* those whose stated length is their own, with the line end the \
+             logger sends; *Read* the records the reader keeps, which must be those. Each \
+             checked record's values, decoded here by the manual's table, are compared with the \
+             reader's channels. *Quaternion norm* is the least and greatest norm of a high-rate \
+             record's 7th to 10th values, which a unit quaternion × 30,000 cut to whole numbers \
+             keeps within 2 of 30,000; *Pad over AltOS* the low-rate pressure on the pad, the \
+             median of the first {PAD_SAMPLES}, over the AltOS board's in the same rocket; \
+             *Liftoff lag* the time from the high-rate file's first acceleration above 3 g to the \
+             first low-rate record whose first register has its lowest bit set, the bit the app's \
+             files call `Liftoff`. {}.\n\n\
+             | File | Kind | Pieces | CRC checks | Length agrees | Read | Values compared | \
+             Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |\n\
+             |---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|\n{rows}",
+            files.len(),
+            if flat.is_empty() {
+                "No AltOS board's pressure is compared".to_owned()
+            } else {
+                flat.join("; ")
+            },
         );
     }
     if !report.workbook_checks.is_empty() {

@@ -300,6 +300,7 @@ until someone rewrites it in plainer words.
 | [ADR-269: M7.1c14 in two: Excel workbooks first; the rest to M7.1c15][adr-269] | After [M7.1c13](#m7-1c13), 87 sample logs were left unread. The largest group one change can read is the 23 `.xlsx` workbooks: written out sheet by sheet, each cell as the workbook stores it, 16 of them read through the readers that exist; [M7.1c14](#m7-1c14) now reads them, every cell held to an independent reader, and the rest goes to [M7.1c15](#m7-1c15). |  |
 | [ADR-270: M7.1c15 in two: EuRoC exports and mappings a publisher states first; the rest to M7.1c16][adr-270] | After [M7.1c14](#m7-1c14), 68 sample logs were left unread, in 19 layouts, the largest 7 files. Nine of them need little new code: three exports of known loggers saved by a European locale's spreadsheet, and six tables whose publisher, RocketPy, states each column's meaning and unit. [M7.1c15](#m7-1c15) now reads them, refuses an Eggtimer file whose filtered altitude or clock shows its decimal points were lost, and leaves the rest to [M7.1c16](#m7-1c16). |  |
 | [ADR-271: M7.1c16 in two: binary records by a stated layout first; the rest to M7.1c17][adr-271] | After [M7.1c15](#m7-1c15), 59 sample logs were left unread. Five of them are a team's binary records with the table the team decoded from them beside each: three captures of a flight computer's serial shell dumping its flash as base64, and two raw files of records end to end. [M7.1c16](#m7-1c16) reads files like these by a record layout the caller states, the names from that table and the types found from the bytes and that table. All 931,875 fields of the 45,915 records written match the teams' tables. The rest goes to [M7.1c17](#m7-1c17). |  |
+| [ADR-272: M7.1c17 in two: the Blue Raven's USB download first; the rest to M7.1c18][adr-272] | After [M7.1c16](#m7-1c16), 54 sample logs were left unread. Two of them are a Blue Raven's flight data as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. [M7.1c17](#m7-1c17) reads these, keeping only the records whose CRC and stated length check, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to [M7.1c18](#m7-1c18). |  |
 
 ## The roadmap
 
@@ -710,7 +711,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c14"></a>[M7.1c14][done-5] | Excel workbooks | done |
 | <a id="m7-1c15"></a>[M7.1c15][done-5] | EuRoC exports and mappings a publisher states | done |
 | <a id="m7-1c16"></a>[M7.1c16][done-5] | Binary records by a stated layout | done |
-| <a id="m7-1c17"></a>[M7.1c17][phase-5] | The rest | not yet done |
+| <a id="m7-1c17"></a>[M7.1c17][phase-5] | The Blue Raven's USB download | not yet done |
+| <a id="m7-1c18"></a>[M7.1c18][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1136,6 +1138,7 @@ is the milestone that added or will add that test.
 [adr-269]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0269-excel-workbooks-before-the-rest.md
 [adr-270]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md
 [adr-271]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0271-binary-records-by-a-stated-layout-before-the-rest.md
+[adr-272]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0272-the-blue-ravens-usb-download-before-the-rest.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

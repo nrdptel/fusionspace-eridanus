@@ -297,6 +297,10 @@ pub enum LogFormat {
     /// between marker lines such as `----++++//[[( data start )]]\\++++----`, each block's
     /// records read by a layout the caller states ([`crate::capture`]).
     ConsoleCapture,
+    /// The Featherweight Blue Raven's flight data as its USB port downloads it to a serial
+    /// terminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC
+    /// ([`crate::blueraven_usb`]).
+    BlueRavenUsb,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -416,7 +420,8 @@ impl LogFormat {
     /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
     /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A table read by
     /// its header has no track, and no step: 0; nor do binary records read by a stated layout, or a
-    /// console capture's, which are read as such a table.
+    /// console capture's, which are read as such a table. A Blue Raven's USB download has no
+    /// track either, and its pressure is written in the CSV's steps, 1/50,000 atm: the CSV's step.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -426,7 +431,9 @@ impl LogFormat {
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
-            Self::BlueRavenCsv => BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
+            Self::BlueRavenCsv | Self::BlueRavenUsb => {
+                BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M
+            }
             Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
             Self::Kml => 1.0,
             Self::Nmea0183 => 0.1,
@@ -480,7 +487,8 @@ impl LogFormat {
             | Self::SillyGooseText
             | Self::AerospaceNuGroundStationText
             | Self::RdasText
-            | Self::RtxText => ".txt",
+            | Self::RtxText
+            | Self::BlueRavenUsb => ".txt",
             Self::EggtimerRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::Rrc3Rff => ".rff",
@@ -534,6 +542,7 @@ impl LogFormat {
             Self::GenericTable => "a table read by its header",
             Self::BinaryRecords => "binary records by a stated layout",
             Self::ConsoleCapture => "console capture of base64 records",
+            Self::BlueRavenUsb => "Blue Raven USB download",
         }
     }
 }

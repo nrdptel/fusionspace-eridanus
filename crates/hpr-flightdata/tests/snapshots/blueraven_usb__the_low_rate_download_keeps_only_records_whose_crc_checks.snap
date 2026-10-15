@@ -1,0 +1,555 @@
+---
+source: crates/hpr-flightdata/tests/blueraven_usb.rs
+expression: log
+---
+{
+  "format": "blue_raven_usb",
+  "logger": "Featherweight Blue Raven",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Year",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0
+      ]
+    },
+    {
+      "column": "Month",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        5.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0
+      ]
+    },
+    {
+      "column": "Day",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        23.0,
+        23.0,
+        23.0,
+        23.0,
+        23.0
+      ]
+    },
+    {
+      "column": "Time",
+      "quantity": "time_of_day",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        36900.14,
+        36900.16,
+        36900.2,
+        36900.24,
+        36900.26
+      ]
+    },
+    {
+      "column": "Sync",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        40.0,
+        60.0,
+        100.0,
+        140.0,
+        160.0
+      ]
+    },
+    {
+      "column": "Bo: temperature",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        7212.0,
+        7212.0,
+        7212.0,
+        7212.0,
+        7212.0
+      ]
+    },
+    {
+      "column": "Bo: pressure",
+      "quantity": "pressure",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        100625.8575,
+        100619.778,
+        100607.619,
+        100595.46,
+        100589.3805
+      ]
+    },
+    {
+      "column": "V: 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        4105.0,
+        4105.0,
+        4105.0,
+        4105.0,
+        4105.0
+      ]
+    },
+    {
+      "column": "V: 2",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        15.0,
+        15.0,
+        15.0,
+        15.0,
+        15.0
+      ]
+    },
+    {
+      "column": "V: 3",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0
+      ]
+    },
+    {
+      "column": "V: 4",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0
+      ]
+    },
+    {
+      "column": "V: 5",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0
+      ]
+    },
+    {
+      "column": "Vel: up",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.6096,
+        1.8288000000000002,
+        3.048,
+        3.6576000000000004
+      ]
+    },
+    {
+      "column": "Vel: down-range",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Vel: cross-range",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Pos: altitude",
+      "quantity": "inertial_altitude",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Pos: down-range",
+      "quantity": "distance",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Pos: cross-range",
+      "quantity": "distance",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "ang: tilt",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        1.2,
+        1.2,
+        1.2,
+        1.2,
+        1.2
+      ]
+    },
+    {
+      "column": "ang: roll",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        -3.0,
+        -3.0,
+        -3.0,
+        -3.0,
+        -3.0
+      ]
+    },
+    {
+      "column": "ang: future tilt",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "FER: rocket",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        1536.0,
+        1536.0,
+        1537.0,
+        1537.0,
+        1537.0
+      ]
+    },
+    {
+      "column": "FER: Apo",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        2241.0,
+        2241.0,
+        2241.0,
+        2241.0,
+        2241.0
+      ]
+    },
+    {
+      "column": "FER: Main",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        201.0,
+        201.0,
+        201.0,
+        201.0,
+        201.0
+      ]
+    },
+    {
+      "column": "FER: 3rd",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        193.0,
+        193.0,
+        193.0,
+        193.0,
+        193.0
+      ]
+    },
+    {
+      "column": "FER: 4th",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        201.0,
+        201.0,
+        201.0,
+        201.0,
+        201.0
+      ]
+    },
+    {
+      "column": "FER: 6",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "FER: 7",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "FER: 8",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.06,
+        0.1,
+        0.12
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "a low-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.140, whose date the manual says starts from the firmware's build date unless the phone has set it",
+    "`V:` holds 5 values where the manual lists 6: kept as written, as nothing says which is missing",
+    "`FER:` holds 8 values where the manual lists 5: the manual's read in its order, the other 3 kept as written",
+    "`Bo: temperature` kept as written: the manual states no unit for it in the download",
+    "1 piece that opens `@ LOG_` but closes with no CRC, a record the capture cut or ran into the next, dropped",
+    "1 piece whose CRC differs from its text, dropped",
+    "1 line holding text other than a record, skipped"
+  ]
+}
