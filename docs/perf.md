@@ -35,7 +35,9 @@ the command, so a later run can be compared like for like.
   instant afresh): past Mach 1, Valetudo, Valetudo under a drogue and a main that open over time,
   Valetudo on the fixed-step RK4, and a two-stage stack, all in a crosswind. It compares the
   metrics, the summary and every channel recorded at 10 ms bit for bit. Two mutations fail it:
-  taking a canopy's drag area at the step's start, and answering from another time's slot. The
+  taking a canopy's drag area at the step's start on the shared path only (the two paths share
+  one call, so an edit to both changes nothing it compares), and answering from another time's
+  slot. The
   state compared before reusing the integrator's evaluation decides nothing today (that
   evaluation is always the step's end), so removing it passes; the time compared does decide. The
   committed reports reproduce byte for byte (the gate's `validate`, `examples` and `refs` checks).
