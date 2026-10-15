@@ -1,7 +1,7 @@
 # ADR-271: M7.1c16 in two: binary records by a stated layout first; the rest to M7.1c17 (2026-10-15)
 
 - **Status:** accepted; narrows M7.1c16 to a first increment and moves the rest, with M7.1c16's old entry and *done when* (the parent's), to M7.1c17; follows [ADR-270](0270-euroc-exports-and-stated-mappings-before-the-rest.md)
-- **Summary:** After M7.1c15, 59 sample logs were left unread. Five of them are a team's binary records with the table the team decoded from them beside each: three captures of a flight computer's serial shell dumping its flash as base64, and two raw files of records end to end. M7.1c16 reads files like these by a record layout the caller states, the names from that table and the types inferred from the bytes. Every field of all 58,137 records matches the team's table. The rest goes to M7.1c17.
+- **Summary:** After M7.1c15, 59 sample logs were left unread. Five of them are a team's binary records with the table the team decoded from them beside each: three captures of a flight computer's serial shell dumping its flash as base64, and two raw files of records end to end. M7.1c16 reads files like these by a record layout the caller states, the names from that table and the types found from the bytes and that table. All 931,875 fields of the 45,915 records written match the teams' tables. The rest goes to M7.1c17.
 
 **Context.** `cargo xtask logs` on main after M7.1c15 (#553) leaves 59 files unread. A survey of
 them, file by file (not printed by the report, which counts by the catalog's families), sorts
@@ -44,17 +44,20 @@ had counted those rows as matching without noticing that they aren't samples.
    so that a field is read in a unit only where its name states one and its values bear it out, and
    kept as written otherwise. A binary32 is widened to binary64 exactly and written as the shortest
    decimal that reads back to it, so the table's number is the field's value. A float that isn't
-   finite is a gap, counted in a note. A layout of no field or more than 512, a name empty, over 256
-   characters, repeated or holding a comma, a quotation mark, a control character or spaces at its
-   ends, or names stating no clock with a unit of time, is refused (`LogError::Layout`); so is a
-   table past 256 MiB of text. `records::table` gives the text for a caller who would rather read
+   finite is a gap, counted in a note. A layout of fewer than 2 fields or more than 512, a name
+   empty, over 256 characters, repeated, a number, or holding a separator (a comma, a semicolon or
+   `|`), a quotation mark, a control character or spaces at its ends, a first name opening with `#`
+   or `sep=`, or names stating no clock with a unit of time, is refused (`LogError::Layout`); so is
+   a table past 256 MiB of text. `records::table` gives the text for a caller who would rather read
    it by a column mapping.
 3. **Erased flash.** A run of records each wholly `0xFF` at the file's end is memory never written:
    dropped, and a note counts it. So are bytes past the last whole record if all are `0xFF`, as a
    dump in 48-byte lines leaves them. Other bytes past the last record are refused at the first
    (`LogError::Binary`), as a layout that doesn't fit the file. An erased record with a written one
-   after it is read as written, its unsigned integers at their largest, its signed ones −1 and its
-   floats gaps: dropping it would hide the logger's fault.
+   after it isn't dropped, as dropping it would hide the logger's fault: its unsigned integers
+   are at their largest, its signed ones −1 and its floats gaps, so a float clock has no time
+   there and the table's reader refuses the record, named by its number and offset; with an
+   integer clock the record is read, and a column its values contradict is kept as written.
 4. **A console capture.** `capture::blocks` recognizes a capture by a start marker on a line of its
    own within its first 1,000 lines and decodes each block's lines as one strict RFC 4648 base64
    text: a character outside the standard alphabet, padding before the end or over two, bits the
@@ -70,14 +73,16 @@ had counted those rows as matching without noticing that they aren't samples.
 6. **The check.** For each file the survey decodes every record's fields itself from the file's
    bytes (a capture's block as the reader decodes its base64), apart from the reader's records,
    and compares them with the team's table row by row, field by field, a NaN equal only to
-   a NaN; the table must have a row for every whole record. It then reads the team's table by its
+   a NaN; the table must have a row for every whole record, each of as many cells as the layout
+   has fields. It then reads the team's table by its
    header, cut to the records the reader keeps, and the two records must hold the same channels and
    events. A file that fails either check is as unread as a refusal. As the teams decoded the same
    bytes their own way, a wrong base64 decoding would fail the first check too.
 
 **Consequences.** The survey reads 1,006 of its 1,122 files. The 5 files hold 58,137 whole
-records, 12,222 of them erased, and their 1,237,425 fields match the teams' tables, none
-differing. Each record read holds the same channels as its team's table. The new families are
+records, 12,222 of them erased at one capture's end. The 45,915 records written hold 931,875
+fields, the samples read, and every field of every record, 1,237,425 with the erased ones, matches
+the teams' tables, none differing. Each record read holds the same channels as its team's table. The new families are
 `console-capture` (3) and `record-dump` (2); 54 files are left to M7.1c17. The team's own table of
 the capture with erased flash is read by its header with all 13,655 rows (the report's table
 checks), its 12,222 erased ones among them; the binary reading drops them. A user with such a file states the layout once,

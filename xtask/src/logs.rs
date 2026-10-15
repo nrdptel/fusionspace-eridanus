@@ -2986,8 +2986,12 @@ struct LayoutFile {
     records: usize,
     /// Of those, the run at the end that is erased memory, every byte `0xFF`.
     erased: usize,
+    /// The fields of the records not erased: the samples the record read holds, gaps among them.
+    fields_written: usize,
     /// The team's table's rows.
     rows_beside: usize,
+    /// Of those, the rows of a cell count other than the layout's field count.
+    rows_misshapen: usize,
     /// Fields compared with the table's cells, one a record's field and the row's cell.
     cells_compared: usize,
     /// Of those, the ones whose values differ (both NaN counting as equal).
@@ -2998,21 +3002,28 @@ struct LayoutFile {
 }
 
 /// The files of binary records that differ from their teams' tables, as lines of the unread list:
-/// a field differing, a row count other than the records', or other channels.
+/// a field differing, a row count other than the records', a row of another cell count than the
+/// layout's fields, or other channels.
 fn layout_unread(files: &[LayoutFile]) -> Vec<String> {
     files
         .iter()
-        .filter(|f| f.cells_differing > 0 || f.rows_beside != f.records || !f.same_channels)
+        .filter(|f| {
+            f.cells_differing > 0
+                || f.rows_beside != f.records
+                || f.rows_misshapen > 0
+                || !f.same_channels
+        })
         .map(|file| {
             format!(
                 "  {} ({}): differs from its team's table beside it: {} of {} fields differ, {} \
-                 rows for {} records, the same channels: {}",
+                 rows for {} records, {} of another cell count, the same channels: {}",
                 file.id,
                 file.family,
                 file.cells_differing,
                 file.cells_compared,
                 file.rows_beside,
                 file.records,
+                file.rows_misshapen,
                 file.same_channels
             )
         })
@@ -3077,10 +3088,10 @@ fn layout_file(
         .take_while(|record| record.iter().all(|&byte| byte == 0xFF))
         .count();
     let text = hpr_flightdata::import::decode(&table.bytes);
-    let rows: Vec<&str> = lines(&text)
-        .skip(1)
-        .filter(|l| !l.trim().is_empty())
-        .collect();
+    let mut table_lines = lines(&text).filter(|l| !l.trim().is_empty());
+    let header = table_lines.next().unwrap_or_default();
+    let rows: Vec<&str> = table_lines.collect();
+    let kept = records.len() - erased;
     let mut file = LayoutFile {
         id,
         family: sample.family.clone(),
@@ -3088,11 +3099,15 @@ fn layout_file(
         record_bytes: size,
         records: records.len(),
         erased,
+        fields_written: kept * layout.fields.len(),
         rows_beside: rows.len(),
         ..LayoutFile::default()
     };
     for (record, row) in records.iter().zip(&rows) {
         let cells: Vec<&str> = row.split(',').map(str::trim).collect();
+        if cells.len() != layout.fields.len() {
+            file.rows_misshapen += 1;
+        }
         let mut at = 0;
         for (index, field) in layout.fields.iter().enumerate() {
             let width = field.kind.bytes();
@@ -3110,8 +3125,11 @@ fn layout_file(
         }
     }
     // The team's table, its rows cut to the records the reader keeps, read by its header.
-    let kept = records.len() - erased;
-    let mut cut: String = lines(&text).take(1 + kept).collect::<Vec<_>>().join("\n");
+    let mut cut = header.to_owned();
+    for row in rows.iter().take(kept) {
+        cut.push('\n');
+        cut.push_str(row);
+    }
     cut.push('\n');
     file.same_channels = hpr_flightdata::generic::read(&cut).is_ok_and(|theirs| {
         let json = |log: &FlightLog| serde_json::to_string(&(&log.channels, &log.events)).ok();
@@ -4997,14 +5015,16 @@ fn markdown(report: &Report) -> String {
         let mut rows = String::new();
         for file in files {
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
                 file.id,
                 file.family,
                 file.source.replace('|', "\\|"),
                 file.record_bytes,
                 file.records,
                 file.erased,
+                file.fields_written,
                 file.rows_beside,
+                file.rows_misshapen,
                 file.cells_compared,
                 file.cells_differing,
                 if file.same_channels { "yes" } else { "no" },
@@ -5018,10 +5038,13 @@ fn markdown(report: &Report) -> String {
              the reader's records, against that table's row, field for field (both NaN counting as \
              equal), a row a record; and the record read, against the team's table read by its \
              header, cut to the records not erased, channel for channel. *Erased* counts the \
-             records at the end that are erased memory, every byte 0xFF, which the reader drops.\n\n\
-             | File | Family | What it is | Record, bytes | Records | Erased | Table rows | Fields compared | \
-             Differing | Same channels |\n\
-             |---|---|---|---:|---:|---:|---:|---:|---:|---|\n{rows}",
+             records at the end that are erased memory, every byte 0xFF, which the reader drops; \
+             *Fields written* counts the fields of the others, the samples the record read holds \
+             (a float that isn't finite a gap among them); *Misshapen* counts the table's rows \
+             of a cell count other than the layout's fields.\n\n\
+             | File | Family | What it is | Record, bytes | Records | Erased | Fields written | \
+             Table rows | Misshapen | Fields compared | Differing | Same channels |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|\n{rows}",
             files.len(),
         );
     }
@@ -5863,10 +5886,12 @@ mod tests {
             (
                 file.records,
                 file.erased,
+                file.fields_written,
                 file.rows_beside,
+                file.rows_misshapen,
                 file.cells_compared
             ),
-            (4, 1, 4, 8)
+            (4, 1, 6, 4, 0, 8)
         );
         assert_eq!(file.cells_differing, 0);
         assert!(file.same_channels);
@@ -5879,6 +5904,14 @@ mod tests {
             layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
         assert_eq!(file.cells_differing, 1);
         assert!(!file.same_channels);
+
+        // A row of another cell count is counted, though its first cells match.
+        let wider = table.replace("1010, 101.25\n", "1010, 101.25, 7\n");
+        let samples = record_samples(&rows, 1, &wider);
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!((file.rows_misshapen, file.cells_differing), (1, 0));
 
         let [dump, _] = samples;
         let alone = [dump];
@@ -5914,11 +5947,15 @@ mod tests {
                 ..matching.clone()
             },
             LayoutFile {
+                rows_misshapen: 1,
+                ..matching.clone()
+            },
+            LayoutFile {
                 same_channels: false,
                 ..matching.clone()
             },
         ];
-        assert_eq!(layout_unread(&differing).len(), 3);
+        assert_eq!(layout_unread(&differing).len(), 4);
         // A file of the family with no layout stated is unread.
         let (report, unread) = survey(&alone, Vec::new());
         assert_eq!(report.families[0].refused.get("layout"), Some(&1));

@@ -37,6 +37,10 @@
 //!
 //! [adr-271]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0271-binary-records-by-a-stated-layout-before-the-rest.md
 
+use std::collections::BTreeSet;
+
+use serde::{Deserialize, Serialize};
+
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::records::{self, RecordLayout};
@@ -61,7 +65,8 @@ const START: &str = " start )]]\\\\++++----";
 const END: &str = " end )]]\\\\++++----";
 
 /// One block of a capture, decoded.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Block {
     /// The block's name, as its markers write it, such as `data`.
     pub name: String,
@@ -114,87 +119,147 @@ fn sextet(byte: u8) -> Option<u32> {
     }
 }
 
-/// A block's base64, its lines with their numbers, decoded (module docs, *Blocks*).
-fn decode(name: &str, start: usize, lines: &[(usize, &str)]) -> Result<Vec<u8>, LogError> {
-    // The characters, each with its line, padding taken off the end.
-    let mut chars: Vec<(usize, u8)> = Vec::new();
-    for &(number, line) in lines {
-        chars.extend(line.bytes().map(|byte| (number, byte)));
-    }
-    if !chars.len().is_multiple_of(4) {
-        return Err(syntax(
-            lines.last().map_or(start, |&(number, _)| number),
-            format!(
-                "the block `{name}` holds {} base64 characters, not a multiple of 4",
-                chars.len()
-            ),
-        ));
-    }
-    let padding = chars
-        .iter()
-        .rev()
-        .take_while(|(_, byte)| *byte == b'=')
-        .count();
-    if padding > 2 {
-        let (number, _) = chars[chars.len() - padding];
-        return Err(syntax(
-            number,
-            format!("the block `{name}` ends in {padding} `=`, where base64 pads with 2 at most"),
-        ));
-    }
-    let mut bytes = Vec::with_capacity(chars.len() / 4 * 3);
-    for group in chars.as_chunks::<4>().0 {
-        let mut word = 0u32;
-        for &(number, byte) in group {
-            let value = match sextet(byte) {
-                Some(value) => value,
-                // Padding's place is checked below; it counts as zero bits here.
-                None if byte == b'=' => 0,
-                None => {
-                    let what = if byte.is_ascii_graphic() {
-                        format!("`{}`", char::from(byte))
-                    } else {
-                        format!("the byte 0x{byte:02X}")
-                    };
-                    return Err(syntax(
-                        number,
-                        format!("the block `{name}` holds {what}, which isn't base64"),
-                    ));
-                }
-            };
-            word = word << 6 | value;
-        }
-        bytes.extend(&word.to_be_bytes()[1..]);
-    }
-    // The bits past the last byte, in the last character before the padding, must be zero: 4 of
-    // them under two `=`, 2 under one (RFC 4648 §3.5), or the text isn't one encoder's.
-    if padding > 0 {
-        let (number, last) = chars[chars.len() - padding - 1];
-        let spare = if padding == 2 { 0b1111 } else { 0b11 };
-        if sextet(last).is_some_and(|value| value & spare != 0) {
-            return Err(syntax(
-                number,
-                format!("the block `{name}` ends in bits its padding should leave zero"),
-            ));
-        }
-    }
-    // `=` anywhere but the last `padding` characters is a character out of place.
-    if let Some(&(number, _)) = chars[..chars.len() - padding]
-        .iter()
-        .find(|(_, byte)| *byte == b'=')
-    {
-        return Err(syntax(
-            number,
-            format!("the block `{name}` holds `=` before its end, where only padding may"),
-        ));
-    }
-    bytes.truncate(bytes.len() - padding);
-    Ok(bytes)
+/// A block's base64, decoded as its lines come (module docs, *Blocks*): only the bytes are kept,
+/// so the decoder takes no more memory than the block's three quarters of its text.
+struct Base64<'a> {
+    /// The block's name, for errors.
+    name: &'a str,
+    /// The bytes decoded so far.
+    bytes: Vec<u8>,
+    /// The characters of the group of 4 being read, as values, and how many there are.
+    group: [u32; 4],
+    filled: usize,
+    /// Every character read, `=` included.
+    count: usize,
+    /// The `=` read so far, and the line of the first.
+    padding: usize,
+    padding_line: usize,
+    /// The line of the last character read, and that character's value if it isn't `=`.
+    last_line: usize,
+    last_value: u32,
 }
 
-/// The block open while [`blocks`] walks the lines: its name, its marker's line, and its lines so
-/// far, each with its number.
-type Open<'a> = (&'a str, usize, Vec<(usize, &'a str)>);
+impl<'a> Base64<'a> {
+    fn new(name: &'a str) -> Self {
+        Self {
+            name,
+            bytes: Vec::new(),
+            group: [0; 4],
+            filled: 0,
+            count: 0,
+            padding: 0,
+            padding_line: 0,
+            last_line: 0,
+            last_value: 0,
+        }
+    }
+
+    /// The characters of one line, its spaces at the ends taken off.
+    fn line(&mut self, number: usize, line: &str) -> Result<(), LogError> {
+        let name = self.name;
+        for byte in line.bytes() {
+            self.count += 1;
+            self.last_line = number;
+            if byte == b'=' {
+                if self.padding == 0 {
+                    self.padding_line = number;
+                }
+                self.padding += 1;
+                if self.padding > 2 {
+                    return Err(syntax(
+                        number,
+                        format!(
+                            "the block `{name}` ends in 3 `=` or more, where base64 pads with 2 at most"
+                        ),
+                    ));
+                }
+                continue;
+            }
+            let Some(value) = sextet(byte) else {
+                let what = if byte.is_ascii_graphic() {
+                    format!("`{}`", char::from(byte))
+                } else {
+                    format!("the byte 0x{byte:02X}")
+                };
+                return Err(syntax(
+                    number,
+                    format!("the block `{name}` holds {what}, which isn't base64"),
+                ));
+            };
+            if self.padding > 0 {
+                return Err(syntax(
+                    self.padding_line,
+                    format!("the block `{name}` holds `=` before its end, where only padding may"),
+                ));
+            }
+            self.last_value = value;
+            self.group[self.filled] = value;
+            self.filled += 1;
+            if self.filled == 4 {
+                let word = self
+                    .group
+                    .iter()
+                    .fold(0u32, |word, value| word << 6 | value);
+                self.bytes.extend(&word.to_be_bytes()[1..]);
+                self.filled = 0;
+            }
+        }
+        Ok(())
+    }
+
+    /// The bytes, once the block's lines are all read.
+    fn finish(mut self, start: usize) -> Result<Vec<u8>, LogError> {
+        let name = self.name;
+        let line = if self.count == 0 {
+            start
+        } else {
+            self.last_line
+        };
+        if !self.count.is_multiple_of(4) {
+            return Err(syntax(
+                line,
+                format!(
+                    "the block `{name}` holds {} base64 characters, not a multiple of 4",
+                    self.count
+                ),
+            ));
+        }
+        // A multiple of 4 with at most 2 `=` leaves 4 − padding characters in the last group, so
+        // `filled` is 3 under one `=`, 2 under two, and 0 with none.
+        if self.padding > 0 {
+            // The bits past the last byte, in the last character before the padding, must be
+            // zero: 4 of them under two `=`, 2 under one (RFC 4648 §3.5), or the text isn't one
+            // encoder's.
+            let spare = if self.padding == 2 { 0b1111 } else { 0b11 };
+            if self.last_value & spare != 0 {
+                return Err(syntax(
+                    self.padding_line,
+                    format!("the block `{name}` ends in bits its padding should leave zero"),
+                ));
+            }
+            let word = self.group[..self.filled]
+                .iter()
+                .fold(0u32, |word, value| word << 6 | value)
+                << (6 * self.padding);
+            self.bytes
+                .extend(&word.to_be_bytes()[1..1 + (3 - self.padding)]);
+        }
+        Ok(self.bytes)
+    }
+}
+
+/// A block's base64, its lines with their numbers, decoded (module docs, *Blocks*).
+#[cfg(test)]
+fn decode(name: &str, start: usize, lines: &[(usize, &str)]) -> Result<Vec<u8>, LogError> {
+    let mut base64 = Base64::new(name);
+    for &(number, line) in lines {
+        base64.line(number, line)?;
+    }
+    base64.finish(start)
+}
+
+/// The block open while [`blocks`] walks the lines: its name, its marker's line, and its decoder.
+type Open<'a> = (&'a str, usize, Base64<'a>);
 
 /// Each block of a capture, decoded, in the file's order (module docs, *Blocks*).
 ///
@@ -215,21 +280,21 @@ pub fn blocks(text: &str) -> Result<Vec<Block>, LogError> {
         });
     }
     let mut blocks: Vec<Block> = Vec::new();
+    let mut seen: BTreeSet<&str> = BTreeSet::new();
     let mut open: Option<Open<'_>> = None;
     for (number, line) in numbered_lines(text) {
         match (marker(line), open.take()) {
             (Some((name, true)), None) => {
-                if blocks.iter().any(|block| block.name == name) {
+                if !seen.insert(name) {
                     return Err(syntax(number, format!("a second block named `{name}`")));
                 }
-                open = Some((name, number, Vec::new()));
+                open = Some((name, number, Base64::new(name)));
             }
-            (Some((name, false)), Some((open_name, start, lines))) if name == open_name => {
-                let bytes = decode(name, start, &lines)?;
+            (Some((name, false)), Some((open_name, start, base64))) if name == open_name => {
                 blocks.push(Block {
                     name: name.to_owned(),
                     line: start,
-                    bytes,
+                    bytes: base64.finish(start)?,
                 });
             }
             (Some((name, _)), Some((open_name, start, _))) => {
@@ -247,12 +312,9 @@ pub fn blocks(text: &str) -> Result<Vec<Block>, LogError> {
                     format!("the block `{name}` ends here but never started"),
                 ));
             }
-            (None, Some((name, start, mut lines))) => {
-                let line = line.trim();
-                if !line.is_empty() {
-                    lines.push((number, line));
-                }
-                open = Some((name, start, lines));
+            (None, Some((name, start, mut base64))) => {
+                base64.line(number, line.trim())?;
+                open = Some((name, start, base64));
             }
             (None, None) => {}
         }
@@ -266,31 +328,39 @@ pub fn blocks(text: &str) -> Result<Vec<Block>, LogError> {
     Ok(blocks)
 }
 
-/// The names of a capture's blocks, as an error lists them: the first few, the rest counted.
-fn names(blocks: &[Block]) -> String {
-    const MOST: usize = 8;
-    let mut named: Vec<String> = blocks
-        .iter()
-        .take(MOST)
-        .map(|block| format!("`{}`", block.name))
-        .collect();
-    if blocks.len() > MOST {
-        named.push(format!("{} more", blocks.len() - MOST));
+/// The most block names an error lists; the rest are counted.
+const LISTED: usize = 8;
+
+/// Block names as an error lists them: the first [`LISTED`], the rest counted.
+fn listed<'a>(names: impl Iterator<Item = &'a str>) -> String {
+    let mut named = Vec::new();
+    let mut more = 0usize;
+    for name in names {
+        if named.len() < LISTED {
+            named.push(format!("`{name}`"));
+        } else {
+            more += 1;
+        }
+    }
+    if more > 0 {
+        named.push(format!("{more} more"));
     }
     named.join(", ")
 }
 
-/// Why [`crate::import::read`] refuses a capture: it has no layout to read the records by.
+/// Why [`crate::import::read`] refuses a capture: it has no layout to read the records by. The
+/// blocks are named from their start markers, not decoded.
 pub(crate) fn needs_a_layout(text: &str) -> LogError {
-    let listed = match blocks(text) {
-        Ok(blocks) => format!("its blocks {}", names(&blocks)),
-        Err(error) => format!("its blocks unreadable ({error})"),
-    };
+    let names = numbered_lines(text)
+        .filter_map(|(_, line)| marker(line))
+        .filter(|(_, start)| *start)
+        .map(|(name, _)| name);
     LogError::Layout {
         message: format!(
-            "a serial console's capture of binary records as base64, {listed}: the capture \
+            "a serial console's capture of binary records as base64, its blocks {}: the capture \
              doesn't state the records' layout, so read a block by the one the logger writes \
-             (`capture::read`)"
+             (`capture::read`)",
+            listed(names)
         ),
     }
 }
@@ -309,7 +379,7 @@ pub fn read(text: &str, block: &str, layout: &RecordLayout) -> Result<FlightLog,
             message: format!(
                 "the capture holds no block `{}`; its blocks are {}",
                 short(block),
-                names(&blocks)
+                listed(blocks.iter().map(|b| b.name.as_str()))
             ),
         });
     };
@@ -371,7 +441,18 @@ mod tests {
     #[test]
     fn base64_out_of_its_alphabet_or_form_is_refused_at_its_line() {
         type Case<'a> = (&'a [(usize, &'a str)], usize, &'a str);
-        let cases: [Case<'_>; 8] = [
+        let cases: [Case<'_>; 10] = [
+            // A character out of the alphabet is named at its line, whatever the block's length.
+            (
+                &[(3, "Zm-v"), (4, "YmFy"), (5, "YmF")],
+                3,
+                "holds `-`, which isn't base64",
+            ),
+            (
+                &[(2, "Zm9v"), (3, "Zm 9v")],
+                3,
+                "holds the byte 0x20, which isn't base64",
+            ),
             (
                 &[(2, "Zm9v"), (3, "Ym-y")],
                 3,
@@ -583,11 +664,11 @@ mod tests {
             }
             other => panic!("expected a layout refusal, got {other:?}"),
         }
-        // A capture whose blocks don't decode says so, and still asks for a layout.
+        // The blocks are named from their markers, so a block that doesn't decode is named too.
         let broken = capture(&[("data", "Zm9")]);
         match crate::import::read(broken.as_bytes()) {
             Err(LogError::Layout { message }) => {
-                assert!(message.contains("its blocks unreadable"), "{message}");
+                assert!(message.contains("its blocks `data`:"), "{message}");
             }
             other => panic!("expected a layout refusal, got {other:?}"),
         }

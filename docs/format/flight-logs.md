@@ -72,7 +72,10 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
 ([API reference](../api/hpr_flightdata/import/index.html)). It recognizes the layout from the
-file's content, never its name, and reads it or refuses it, naming the layouts it knows:
+file's content, never its name, and reads it or refuses it, naming the layouts it knows. A file
+of binary records has no layout to recognize: read it with `records::read`, or a console capture
+of them with `capture::read`, by the layout you state
+([below](#binary-records-by-a-stated-layout)):
 
 ```rust,ignore
 let bytes = std::fs::read("flight.csv")?;
@@ -174,6 +177,8 @@ decided.
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
+| Binary records | a team's flight computer saving each sample as a fixed run of bytes, with no header | not recognized: read by the record layout you state | `hpr_flightdata::records` ([below](#binary-records-by-a-stated-layout)) |
+| Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
 high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
@@ -586,8 +591,10 @@ Some teams' flight computers save each sample as a fixed run of bytes, such as a
 milliseconds then 24 four-byte floats, and nothing in the file says so: no header, no names, no
 marks. Such a file can't be recognized, only read by a layout someone states. The library reads it
 by the layout you give, each field's name and type in the record's order
-(`records::RecordLayout`), and never guesses one. A type is an integer of 8, 16, 32 or 64 bits,
-signed or not, or a 32-bit or 64-bit IEEE 754 float, little-endian unless you say big. The
+([`records::RecordLayout`](../api/hpr_flightdata/records/struct.RecordLayout.html)), and never
+guesses one. A type is an integer of 8, 16, 32 or 64 bits, signed or not, or a 32-bit or 64-bit
+IEEE 754 float (binary32 or binary64, the standard's names for them), little-endian (the least
+significant byte first, as most microcontrollers store numbers) unless you say big. The
 records are written out as a table, the names its header and one row a record, and read by the
 [header reader](#tables-read-by-their-headers): name a field with its unit, such as
 `pressure__kpa` or `Time (ms)`, and it is read in that unit if its values bear it out; a field
@@ -600,22 +607,34 @@ which decided it).
 A 32-bit float is widened to 64 bits exactly and written as the shortest decimal that reads back
 to it, so a pressure stored as the float nearest 101.3 kPa is read as 101.30000305175781 kPa, the
 value the bytes hold, not as 101.3. A float that isn't a number or is infinite becomes a gap, and a
-note counts them.
+note (one of the record's [notes](#the-record) on what the reader worked around) counts them.
+
+```rust,ignore
+use hpr_flightdata::records::{Field, FieldKind, RecordLayout};
+let layout = RecordLayout::new(vec![
+    Field::new("Time (ms)", FieldKind::U32),
+    Field::new("pressure__kpa", FieldKind::F32),
+]);
+let log = hpr_flightdata::records::read(&std::fs::read("flight.bin")?, &layout)?;
+```
 
 A logger saving to flash leaves the memory it never wrote erased, every byte `0xFF`, and a dump of
 its memory may run on into it. Records that are wholly `0xFF` at the end of the file are dropped as
 that erased memory, as are erased bytes past the last whole record, and a note counts both. Any
 other bytes past the last whole record are refused, as a sign the layout doesn't fit. An erased
-record with written ones after it is read as written: its clock at its largest and its floats as
-gaps, so a logger's fault stays visible.
+record with written ones after it isn't dropped, so a logger's fault stays visible: its integers
+read at their largest (−1 if signed) and its floats as gaps. With a float clock that record has
+no time, and the reading is refused, naming the record by its number and where it starts; with
+an integer clock it is read, and a column whose values that record contradicts is kept as written.
 
 The same records may come as a **console capture**: what a terminal program saves when a flight
 computer's USB shell is asked to dump its memory, the commands typed at it and then each
-dump as base64 lines between two marker lines the firmware prints,
+dump as base64 lines (bytes written as text, 3 bytes to 4 characters) between two marker lines the firmware prints,
 `----++++//[[( data start )]]\\++++----` and `----++++//[[( data end )]]\\++++----`.
 `import::read` recognizes a capture by a start marker in its first 1,000 lines, and refuses it,
-naming its first blocks, as the capture doesn't state its records' layout. `capture::read` reads a named
-block by the layout you give. The base64 is decoded strictly (RFC 4648's standard alphabet); a
+naming its first blocks, as the capture doesn't state its records' layout.
+[`capture::read`](../api/hpr_flightdata/capture/fn.read.html) reads a named block by the layout
+you give, as `records::read` reads a file. The base64 is decoded strictly (RFC 4648's standard alphabet); a
 character outside it, padding out of place or over bits that aren't zero, a block that never ends,
 a marker inside a block or two blocks of one name are refused, naming the line.
 
@@ -625,12 +644,14 @@ a marker inside a block or two blocks of one name are refused, naming the line.
 > table its team decoded from the same records. The survey reads each by the types
 > `validation/log-layouts.json` states for it, its names from that table, then decodes every
 > record's fields itself from the file's bytes, apart from the reader's records, and compares them
-> with the table field by field (a wrong base64 decoding would fail it too): all
-> 1,237,425 fields of the 58,137 records agree, and each record read holds the same channels as
-> the team's table read by its header. One capture's last 12,222 records are erased memory, which
-> the team's table writes as rows of `4294967295` and `nan` and the reader drops.
+> with the table field by field (a wrong base64 decoding would fail it too): all 931,875 fields of
+> the 45,915 records written agree, and each record read holds the same channels as the team's
+> table read by its header. One capture's last 12,222 records are erased memory, which the team's
+> table writes as rows of `4294967295` and `nan` and the reader drops; their fields agree with
+> the table too, 1,237,425 fields in all.
 
-**What is left out.** No [primary track](#the-record), as for any table read by its header. A
+**What is left out.** No [primary track](#the-record), as for any table read by its header.
+`hpr analyze` and the Python package don't read these files yet: the Rust library does. A
 record's layout can't be found from its bytes alone: a file whose layout no one states stays
 unread. A capture's other blocks, such as the saved state a `params` block holds, are decoded but
 not read.

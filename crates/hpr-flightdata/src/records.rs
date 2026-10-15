@@ -23,7 +23,9 @@
 //! note counts it. So are bytes past the last whole record if every one is `0xFF`. Any other bytes
 //! past the last whole record are refused, as a layout that doesn't fit the file. An erased record
 //! with a written one after it is read as written: its unsigned integers at their largest, its
-//! signed ones −1, its floats NaN.
+//! signed ones −1, its floats NaN. So a file with a float clock is refused at such a record, its
+//! clock no number; with an integer clock, the record's time and values stay in the log, and a
+//! column whose values it pushes past what its unit allows is kept as written.
 //!
 //! **Bounds.** A layout has from 1 to [`MAX_FIELDS`] fields, each named with 1 to
 //! [`MAX_NAME_CHARS`] characters, no two alike, none holding a comma, a quotation mark, a line
@@ -71,7 +73,7 @@ pub const MAX_FIELDS: usize = generic::MAX_COLUMNS;
 pub const MAX_NAME_CHARS: usize = 256;
 
 /// The most bytes of text the records may be written out as: a bound on the memory a file can make
-/// the reader take, a few times its own size.
+/// the reader take, whatever its layout (a binary64 can write over 300 characters).
 pub const MAX_TEXT_BYTES: usize = 256 * 1024 * 1024;
 
 /// The format's name, as its errors give it.
@@ -173,13 +175,16 @@ impl RecordLayout {
 }
 
 /// A file's records written out as a table, by [`table`].
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Table {
     /// The table: a header row of the fields' names, then one row a record, comma-separated,
     /// each line ended by LF.
     pub text: String,
     /// The records written.
     pub records: usize,
+    /// A record's size, bytes: record `n`, from 1, starts at byte `(n − 1) × record_bytes`.
+    pub record_bytes: usize,
     /// What the reader noticed: erased memory dropped, values that aren't finite.
     pub notes: Vec<String>,
 }
@@ -191,9 +196,10 @@ fn layout_error(message: String) -> LogError {
 /// Refuses a layout outside the bounds (module docs, *Bounds*).
 fn check(layout: &RecordLayout) -> Result<(), LogError> {
     let count = layout.fields.len();
-    if count == 0 || count > MAX_FIELDS {
+    // A table's header names two columns at least: a clock and something on it.
+    if !(2..=MAX_FIELDS).contains(&count) {
         return Err(layout_error(format!(
-            "a layout has from 1 to {MAX_FIELDS} fields; this one has {count}"
+            "a layout has from 2 to {MAX_FIELDS} fields; this one has {count}"
         )));
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -206,11 +212,24 @@ fn check(layout: &RecordLayout) -> Result<(), LogError> {
             Some(format!(
                 "has a name of more than {MAX_NAME_CHARS} characters"
             ))
-        } else if name.contains([',', '"']) || name.chars().any(char::is_control) {
+        } else if name.contains([',', ';', '|', '"']) || name.chars().any(char::is_control) {
+            // The table reader would take `;` or `|` for the separator.
             Some(format!(
-                "is named {}, holding a comma, a quotation mark or a control character",
+                "is named {}, holding a separator (a comma, a semicolon or `|`), a quotation \
+                 mark or a control character",
                 quoted(name)
             ))
+        } else if index == 0
+            && (name.starts_with('#') || name.to_ascii_lowercase().starts_with("sep="))
+        {
+            // The table reader skips a `#` comment, and takes `sep=` for the separator's line.
+            Some(format!(
+                "is named {}, which a table's first line can't open with",
+                quoted(name)
+            ))
+        } else if name.parse::<f64>().is_ok_and(f64::is_finite) {
+            // A header holds no number, so a table's reader doesn't take a row for its header.
+            Some(format!("is named {}, a number", quoted(name)))
         } else if name.trim() != name {
             Some(format!(
                 "is named {}, with spaces at its ends",
@@ -335,27 +354,34 @@ pub fn table_within(
             tail.len()
         ));
     }
-    let records: Vec<&[u8]> = bytes[..whole * size].chunks_exact(size).collect();
-    let erased = records
-        .iter()
-        .rev()
+    // The records are walked, never collected: a list of them would take 16 bytes a record.
+    let body = &bytes[..whole * size];
+    let erased = body
+        .rchunks_exact(size)
         .take_while(|record| record.iter().all(|&byte| byte == 0xFF))
         .count();
     if erased > 0 {
         notes.push(format!(
-            "the last {erased} of {} records are erased memory, every byte 0xFF: dropped",
-            records.len()
+            "the last {erased} of {whole} records are erased memory, every byte 0xFF: dropped"
         ));
     }
-    let written = &records[..records.len() - erased];
-    if written.is_empty() {
+    let written = whole - erased;
+    if written == 0 {
         return Err(LogError::NoData { format: FORMAT });
+    }
+    // Each record writes a separator a field at least, so a table past the bound is refused
+    // before any of it is written.
+    let fewest = written.saturating_mul(layout.fields.len());
+    if fewest > max_text_bytes {
+        return Err(layout_error(format!(
+            "the records, written out as a table, would pass {max_text_bytes} bytes"
+        )));
     }
     let names: Vec<&str> = layout.fields.iter().map(|f| f.name.as_str()).collect();
     let mut text = names.join(",");
     text.push('\n');
     let mut not_finite = 0usize;
-    for record in written {
+    for record in body.chunks_exact(size).take(written) {
         let mut at = 0;
         for (index, field) in layout.fields.iter().enumerate() {
             if index > 0 {
@@ -386,7 +412,8 @@ pub fn table_within(
     }
     Ok(Table {
         text,
-        records: written.len(),
+        records: written,
+        record_bytes: size,
         notes,
     })
 }
@@ -397,8 +424,9 @@ pub fn table_within(
 /// # Errors
 ///
 /// As [`table`]; [`LogError::Layout`] if the layout's names state no clock with a unit of time,
-/// such as `Time (ms)`; otherwise as [`generic::read`] refuses the table, such as a clock that
-/// never steps forward.
+/// such as `Time (ms)`; [`LogError::Binary`], naming the record and its offset, for a record the
+/// table's reader refuses, such as a clock that isn't a number; otherwise as [`generic::read`]
+/// refuses the table, such as a clock that never steps forward.
 pub fn read(bytes: &[u8], layout: &RecordLayout) -> Result<FlightLog, LogError> {
     let table = table(bytes, layout)?;
     let mut log = read_table(&table)?;
@@ -415,6 +443,12 @@ pub(crate) fn read_table(table: &Table) -> Result<FlightLog, LogError> {
              (`records::table`, then `generic::read_with`)"
                 .to_owned(),
         ),
+        // The table's line `n` is record `n − 1`: name the record, not a line the caller never saw.
+        LogError::Syntax { line, message, .. } if line >= 2 => LogError::Binary {
+            format: FORMAT,
+            offset: (line - 2).saturating_mul(table.record_bytes),
+            message: format!("record {}: {message}", line - 1),
+        },
         other => other,
     })?;
     let mut notes = vec![format!(
@@ -660,27 +694,35 @@ mod tests {
                 .collect(),
         );
         let long = "x".repeat(MAX_NAME_CHARS + 1);
+        // A clock, then a field of the name.
+        let named = |name: &str| layout(&[("t (ms)", FieldKind::U8), (name, FieldKind::U8)]);
+        let first = |name: &str| layout(&[(name, FieldKind::U8), ("t (ms)", FieldKind::U8)]);
         let cases = [
-            (layout(&[]), "from 1 to 512 fields; this one has 0"),
+            (layout(&[]), "from 2 to 512 fields; this one has 0"),
+            (layout(&[("t (ms)", FieldKind::U8)]), "this one has 1"),
             (many, "this one has 513"),
+            (named(""), "field 2 of the layout has no name"),
+            (named(&long), "more than 256 characters"),
             (
-                layout(&[("t (ms)", FieldKind::U8), ("", FieldKind::U8)]),
-                "field 2 of the layout has no name",
+                named("a,b"),
+                "holding a separator (a comma, a semicolon or `|`)",
             ),
+            (named("a;b"), "holding a separator"),
+            (named("a|b"), "holding a separator"),
+            (named("a\"b"), "a quotation mark"),
+            (named("a\nb"), "a control character"),
+            (named("a\tb"), "a control character"),
+            (named(" a"), "spaces at its ends"),
+            (named("12"), "field 2 of the layout is named `12`, a number"),
+            (named("1e3"), "a number"),
             (
-                layout(&[(long.as_str(), FieldKind::U8)]),
-                "more than 256 characters",
+                first("#t (ms)"),
+                "field 1 of the layout is named `#t (ms)`, which a table's first line can't open with",
             ),
-            (layout(&[("a,b", FieldKind::U8)]), "holding a comma"),
+            (first("SEP=x"), "can't open with"),
             (
-                layout(&[("a\"b", FieldKind::U8)]),
-                "holding a comma, a quotation mark",
-            ),
-            (layout(&[("a\nb", FieldKind::U8)]), "a control character"),
-            (layout(&[(" a", FieldKind::U8)]), "spaces at its ends"),
-            (
-                layout(&[("a", FieldKind::U8), ("a", FieldKind::U16)]),
-                "field 2 of the layout is named `a`, as an earlier",
+                named("t (ms)"),
+                "field 2 of the layout is named `t (ms)`, as an earlier",
             ),
         ];
         for (layout, why) in cases {
@@ -691,9 +733,12 @@ mod tests {
                 other => panic!("expected a layout refusal for {why}, got {other:?}"),
             }
         }
-        // A name of exactly the most characters is a name.
+        // A name of exactly the most characters is a name; so is `#` past the first field, and a
+        // word that only parses as a number that isn't finite.
         let most = "t".repeat(MAX_NAME_CHARS);
-        assert!(table(&[0; 4], &layout(&[(most.as_str(), FieldKind::U8)])).is_ok());
+        for layout in [named(&most), named("#2"), named("nan"), named("inf")] {
+            assert!(table(&[0; 4], &layout).is_ok(), "{layout:?}");
+        }
     }
 
     #[test]
@@ -728,6 +773,41 @@ mod tests {
                 );
             }
             other => panic!("expected the bound, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_table_that_cant_fit_is_refused_before_it_is_written() {
+        // Two fields a record write 2 bytes at least: 1,000 records can't fit in 1,999.
+        let bytes = vec![0u8; 2 * 1000];
+        let layout = layout(&[("t (ms)", FieldKind::U8), ("a", FieldKind::U8)]);
+        match table_within(&bytes, &layout, 1999) {
+            Err(LogError::Layout { message }) => assert!(message.contains("would pass 1999 bytes")),
+            other => panic!("expected the bound, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_record_the_tables_reader_refuses_is_named_with_its_offset() {
+        // A float clock: an erased record before written ones writes no clock, which the
+        // table's reader refuses; the error names the record, from 1, and where it starts.
+        let layout = layout(&[("time (s)", FieldKind::F32), ("alt (m)", FieldKind::F32)]);
+        let mut bytes = Vec::new();
+        for (t, alt) in [(0.0_f32, 1.0_f32), (0.1, 2.0)] {
+            bytes.extend(t.to_le_bytes());
+            bytes.extend(alt.to_le_bytes());
+        }
+        bytes.extend([0xFF; 8]);
+        bytes.extend(0.3_f32.to_le_bytes());
+        bytes.extend(3.0_f32.to_le_bytes());
+        match read(&bytes, &layout) {
+            Err(LogError::Binary {
+                offset, message, ..
+            }) => {
+                assert_eq!(offset, 16);
+                assert!(message.starts_with("record 3: "), "{message}");
+            }
+            other => panic!("expected the record named, got {other:?}"),
         }
     }
 

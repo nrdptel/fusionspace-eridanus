@@ -1953,7 +1953,9 @@
       "record_bytes": 100,
       "records": 13655,
       "erased": 12222,
+      "fields_written": 35825,
       "rows_beside": 13655,
+      "rows_misshapen": 0,
       "cells_compared": 341375,
       "cells_differing": 0,
       "same_channels": true
@@ -1965,7 +1967,9 @@
       "record_bytes": 12,
       "records": 9000,
       "erased": 0,
+      "fields_written": 27000,
       "rows_beside": 9000,
+      "rows_misshapen": 0,
       "cells_compared": 27000,
       "cells_differing": 0,
       "same_channels": true
@@ -1977,7 +1981,9 @@
       "record_bytes": 92,
       "records": 9000,
       "erased": 0,
+      "fields_written": 207000,
       "rows_beside": 9000,
+      "rows_misshapen": 0,
       "cells_compared": 207000,
       "cells_differing": 0,
       "same_channels": true
@@ -1989,7 +1995,9 @@
       "record_bytes": 100,
       "records": 13644,
       "erased": 0,
+      "fields_written": 341100,
       "rows_beside": 13644,
+      "rows_misshapen": 0,
       "cells_compared": 341100,
       "cells_differing": 0,
       "same_channels": true
@@ -2001,7 +2009,9 @@
       "record_bytes": 100,
       "records": 12838,
       "erased": 0,
+      "fields_written": 320950,
       "rows_beside": 12838,
+      "rows_misshapen": 0,
       "cells_compared": 320950,
       "cells_differing": 0,
       "same_channels": true
