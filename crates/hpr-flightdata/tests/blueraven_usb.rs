@@ -15,11 +15,8 @@ fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
 }
 
 /// The channel of a column.
-fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
-    log.channels
-        .iter()
-        .find(|c| c.column == column)
-        .unwrap_or_else(|| panic!("no `{column}`"))
+fn channel<'a>(log: &'a FlightLog, column: &str) -> Option<&'a Channel> {
+    log.channels.iter().find(|c| c.column == column)
 }
 
 /// The manual's ten values in its order and units, the two past them kept as written; every
@@ -58,13 +55,16 @@ fn the_high_rate_download_reads_by_the_manual() {
             ("LOG_HIR 12", Quantity::Unrecognized),
         ]
     );
-    let gyro = channel(&log, "Gyro X");
+    let gyro = channel(&log, "Gyro X").unwrap();
     assert_eq!(gyro.time_s, [0.0, 0.002, 0.004, 0.006]);
     // 250 hundredths of a degree a second.
     assert_eq!(gyro.values[2], 2.5);
     // 1,320 hundredths of g.
-    assert_eq!(channel(&log, "Accel Z").values[3], 13.2 * 9.806_65);
-    assert_eq!(channel(&log, "LOG_HIR 11").values, [0.0, 0.0, 3.0, 3.0]);
+    assert_eq!(channel(&log, "Accel Z").unwrap().values[3], 13.2 * 9.806_65);
+    assert_eq!(
+        channel(&log, "LOG_HIR 11").unwrap().values,
+        [0.0, 0.0, 3.0, 3.0]
+    );
     note(
         &log,
         "the high-rate record holds 12 values where the manual lists 10: the manual's read in its \
@@ -85,15 +85,15 @@ fn the_low_rate_download_keeps_only_records_whose_crc_checks() {
     let bytes = include_bytes!("samples/blueraven-usb-low-rate.txt");
     assert_eq!(import::detect(bytes), Some(LogFormat::BlueRavenUsb));
     let log = import::read(bytes).unwrap();
-    let sync = channel(&log, "Sync");
+    let sync = channel(&log, "Sync").unwrap();
     assert_eq!(sync.values, [40.0, 60.0, 100.0, 140.0, 160.0]);
     assert_eq!(sync.time_s, [0.0, 0.02, 0.06, 0.1, 0.12]);
-    let pressure = channel(&log, "Bo: pressure");
+    let pressure = channel(&log, "Bo: pressure").unwrap();
     assert_eq!(pressure.quantity, Quantity::Pressure);
     assert_eq!(pressure.values[0], 49_655.0 / 50_000.0 * 101_325.0);
-    assert_eq!(channel(&log, "V: 1").values[0], 4_105.0);
+    assert_eq!(channel(&log, "V: 1").unwrap().values[0], 4_105.0);
     assert_eq!(
-        channel(&log, "FER: rocket").values,
+        channel(&log, "FER: rocket").unwrap().values,
         [1536.0, 1536.0, 1537.0, 1537.0, 1537.0]
     );
     note(&log, "1 piece that opens `@ LOG_` but closes with no CRC");
