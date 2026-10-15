@@ -19,9 +19,9 @@ the command, so a later run can be compared like for like.
 
   | measurement | before | after |
   |---|---|---|
-  | Valetudo: 10,000 flights on 10 threads | 3.04 / 3.06 s | 2.71 / 2.74 s (−11%) |
-  | Valetudo: a flight on one thread | 1.930 / 1.921 ms | 1.724 / 1.724 ms (−10%) |
-  | K940: 10,000 flights on 10 threads | 9.47 / 9.79 s | 8.30 / 8.52 s (−12%) |
+  | Valetudo: 10,000 flights on 10 threads | 3.04 / 3.06 s | 2.71 / 2.74 s (−10 to −11%) |
+  | Valetudo: a flight on one thread | 1.930 / 1.921 ms | 1.724 / 1.724 ms (−10 to −11%) |
+  | K940: 10,000 flights on 10 threads | 9.47 / 9.79 s | 8.30 / 8.52 s (−12 to −13%) |
   | K940: a flight on one thread | 5.855 / 5.841 ms | 5.069 / 5.082 ms (−13%) |
 
   A new criterion bench carries the observer, which "Valetudo K400C to the ground" doesn't:

@@ -131,22 +131,22 @@ and [competitions](ideas-competitions-and-clubs.md).
   the `accuracy.collection` gap to OpenRocket with a cited cause. *Done when:* M2.3c6's.
 - SOON: the 2027 IREC altitude score. User: an IREC team choosing a motor and a ballast for its
   target apogee. Workflow: `hpr mc` with an IREC preset prints the altitude score's 50% and 90%
-  ranges as the [2027 rules][irec27] score it (p. 25: 350 points times one less the miss over 30%
-  of the target, none past 30%), and the predictions the rules ask for on p. 18 (thrust to weight,
-  rail exit speed, least static margin, peak acceleration and speed, flutter speed, apogee).
+  ranges by the [2027 rules][irec27] (§6.6.1, p. 28: 350 points times one less the miss over 30%
+  of the target, given only within 30%; zero beyond is our reading), and Table 4-1's predicted
+  flight data (p. 21): seven predicted values (liftoff thrust to weight, rail exit speed, least
+  static margin, peak acceleration, peak speed, flutter speed, apogee) beside the declared target.
   Moves: a new steps row, `steps.irec-score`, each tool's by its docs. *Done when:* tests pin the
   score at the target (350), 10% short (233.3) and either side of the 30% edge; the preset cites
-  the rules' date and a stale-after date; the table's eight entries each come from a tested
-  output; the scoreboard shows the row.
-- SOON: an altimeter's apogee corrected for the day's air. User: a flyer whose barometric
-  altimeter reads a cold or hot day's apogee through the standard atmosphere. Workflow: `hpr
-  analyze` with the day's weather prints the altimeter's apogee and the height the day's
-  temperature profile gives, each labeled; the real-flights report scores both. Moves:
-  `accuracy.public` and `bias.public` for HPR Sim, whose logged apogees are barometric (a ground
-  at −9 to 0 °C reads 2 to 9% high, [UND's flights][und]). *Done when:* on synthetic logs 15 K
-  either side of standard, the corrected apogee is within 0.1% of the hypsometric closed form; a
-  log with no confirmed temperature prints the band, not one number; the report gives each public
-  flight's correction and both errors.
+  the rules' date and a stale-after date; each of the seven values comes from a tested output;
+  the scoreboard shows the row.
+- SOON: a measured reference for a tangent ogive's wave drag. User: a flyer of a
+  minimum-diameter rocket past Mach 1, where the nose is most of the pressure drag. Workflow: the
+  aerodynamics validation report scores HPR Sim's nose pressure drag against a published
+  wind-tunnel measurement of ogive-cylinders, the half of [#222][i-222] that the OpenRocket
+  comparison can't settle. Moves: a supersonic drag row in `validation/reports/latest.md` and,
+  through it, `accuracy.supersonic`. *Done when:* the report gives the error and its sign at three
+  or more Mach numbers from 1.3 to 3 on at least two fineness ratios, each cited to its table or
+  figure, and a test pins each case.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -196,4 +196,3 @@ and [competitions](ideas-competitions-and-clubs.md).
 [or-3391]: https://github.com/openrocket/openrocket/issues/3391
 [i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
-[und]: und-flight-configs.md
