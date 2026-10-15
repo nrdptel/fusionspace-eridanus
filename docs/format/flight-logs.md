@@ -8,9 +8,9 @@ GNSS receiver's position. Each maker writes its own layout. HPR Sim reads each l
 record, the same for every logger, so that what comes after (the readings, and later the
 comparison with a simulation) doesn't depend on which altimeter flew.
 
-> **How far to trust it.** Every sample log the project holds of the layouts below is read but
-> one AltOS export whose header line is damaged, which is refused, and 4 sheets inside the sample
-> Excel workbooks ([Excel workbooks](#excel-workbooks))
+> **How far to trust it.** Every sample log the project holds of the layouts below is read,
+> except one AltOS export whose header line is damaged and 4 sheets inside the sample Excel
+> workbooks ([Excel workbooks](#excel-workbooks))
 > ([how it was checked](#how-it-was-checked)). No maker publishes a specification of these
 > layouts, so each reader follows what the files show, the makers' manuals and the notes of
 > Debrief, the project owner's earlier flight-log analyzer, with each unit checked where the
@@ -53,8 +53,8 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > a header that states a wrong one is read in it
 > ([tables read by their headers](#tables-read-by-their-headers)).
 > An Excel workbook, read since [M7.1c14](../decisions-and-roadmap.md#m7-1c14), is read sheet by
-> sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks that read
-> matches an independent reader's, and 4 of their 28 sheets are refused
+> sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks matches an
+> independent reader's, and 4 of their 28 sheets are refused
 > ([Excel workbooks](#excel-workbooks)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the other loggers' formats.
@@ -298,7 +298,7 @@ reads them back.
 | read as an Eggtimer's CSV | 1 |
 | read as a table by its header | 10 |
 | no value, only a chart | 3 |
-| refused: an Eggtimer table a person added a column with no name to, a sheet of the flight's peak figures, an OpenRocket simulation's export, and a simulation set beside the flight | 4 |
+| refused: an Eggtimer table a person added a column with no name to, and three layouts no reader knows yet (a sheet of the flight's peak figures, an OpenRocket simulation's export, a simulation set beside the flight) | 4 |
 
 The workbook reader's text was checked against openpyxl 3.1.5, an independent Python reader of
 workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells of the 16 that

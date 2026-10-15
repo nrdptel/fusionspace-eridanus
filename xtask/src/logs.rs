@@ -3074,8 +3074,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// Each workbook sample as `<id>.xlsx` in `dir`, and its sheets' text as `<id>/<n>.csv`, `n`
 /// from 0 in the workbook's order, for an outside reader to check the text against.
 fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
-    // The sheets are other people's data: only under `refs/`, which git ignores.
-    if !dir.starts_with("refs") && !dir.starts_with(crate::designs::root()?.join("refs")) {
+    // The sheets are other people's data: only under the repository's `refs/`, which git
+    // ignores, the folder taken from the repository's root and never climbing out of it.
+    let refs = crate::designs::root()?.join("refs");
+    let dir = &refs.join(dir.strip_prefix("refs").unwrap_or(dir));
+    if !dir.starts_with(&refs)
+        || dir
+            .components()
+            .any(|part| matches!(part, std::path::Component::ParentDir))
+    {
         return Err(format!(
             "--sheets writes private data: give a folder under refs/, not {}",
             dir.display()

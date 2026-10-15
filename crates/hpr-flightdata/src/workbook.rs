@@ -1155,7 +1155,10 @@ fn read_sheet(
                                 in_is = !empty;
                                 &mut cell.inline
                             };
-                            *slot = Some(String::new());
+                            // An empty `<v/>` holds no value, as no `<v>` doesn't.
+                            if !empty {
+                                *slot = Some(String::new());
+                            }
                         }
                     }
                     "rPh" if !empty => phonetic += 1,
@@ -1695,6 +1698,11 @@ two</t></si>"#,
             r#"<row r="1"><c r="A1"><v>1</v><v>2</v></c></row>"#,
         ));
         assert!(message.contains("two values"), "{message}");
+        // An empty `<v/>` is an empty cell, whatever its type.
+        let text = text_of(&Book::one(
+            r#"<row r="1"><c r="A1" t="s"><v/></c><c r="B1" t="b"><v/></c><c r="C1"><v>3</v></c></row>"#,
+        ));
+        assert_eq!(text, ",,3\n");
         // A `t` outside the inline string, such as in an extension, isn't its text.
         let text = text_of(&Book::one(
             r#"<row r="1"><c r="A1" t="inlineStr"><is><t>a</t></is><extLst><t>b</t></extLst></c></row>"#,
