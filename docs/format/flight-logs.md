@@ -1092,7 +1092,7 @@ track (see [GPS logs](#gps-logs)).
     altimeter's: its memory filled before the flight.
   - *Altitude at 0.* The file can't hold an altitude below 0, so the receiver's altitude looks
     clamped there: in 4 of the 5 sample files, from pads near sea level, most fixes read exactly
-    0. A note counts them; each means 0 m or lower.
+    0. A note counts them; each means sea level or below.
   - *Course, degrees.* It lies 1.7° to 6.9° from the bearing between the fixes either side of
     it, the median difference either way in each file, over the fixes whose speed over ground
     reads at least 15 in the file's own numbers.
