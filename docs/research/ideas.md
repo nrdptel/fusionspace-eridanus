@@ -141,7 +141,7 @@ and [competitions](ideas-competitions-and-clubs.md).
 - SOON: an altimeter's apogee corrected for the day's air. User: a flyer whose barometric
   altimeter reads a cold or hot day's apogee through the standard atmosphere. Workflow: `hpr
   analyze` with the day's weather prints the altimeter's apogee and the height the day's
-  temperature profile gives, each labelled; the real-flights report scores both. Moves:
+  temperature profile gives, each labeled; the real-flights report scores both. Moves:
   `accuracy.public` and `bias.public` for HPR Sim, whose logged apogees are barometric (a ground
   at −9 to 0 °C reads 2 to 9% high, [UND's flights][und]). *Done when:* on synthetic logs 15 K
   either side of standard, the corrected apogee is within 0.1% of the hypsometric closed form; a
