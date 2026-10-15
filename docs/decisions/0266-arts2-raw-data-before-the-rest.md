@@ -76,8 +76,8 @@ source read:
    hold its records word for word, 0.02 s apart; an interpreted export must agree in `Acc` within
    half a count on every record after the first, read zero in `Acc` and `pAlt` at the first row
    and at any row after the records, and order its `pAlt` as the pressure one record earlier,
-   with no pressure meeting two values, none falling as the pressure falls but at the pad's
-   zero, and no `pAlt` missing. A differing file fails `cargo xtask logs --check`. The report prints each file's
+   with no pressure meeting two values, zero at the pad's pressure and above, rising as the
+   pressure falls below it, and no `pAlt` missing. A differing file fails `cargo xtask logs --check`. The report prints each file's
    climb ratio and, reported only, `pAlt`'s largest difference from the standard atmosphere's
    pressure altitude, and the pad's and least pressures less an AltOS board's beside it, as
    differences only.

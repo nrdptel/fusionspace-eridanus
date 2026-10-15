@@ -4737,6 +4737,12 @@ mod tests {
         let against = |export: &FlightLog| {
             arts2_against_export(export, &acceleration, &pressure, 100_000.0, 8.0)
         };
+        // A pressure at the pad's must read zero: a `pAlt` of 1 mm there is out of order, though
+        // it is still the least above zero.
+        let on_pad = (1..rows).find(|k| export.altitude_m[*k] == 0.0).unwrap();
+        let mut lifted = export.clone();
+        lifted.altitude_m[on_pad] = 0.001;
+        assert_eq!(against(&lifted).inversions, 1);
         let mut zeros = export.clone();
         zeros.altitude_m = vec![0.0; rows];
         assert!(against(&zeros).inversions > 0);

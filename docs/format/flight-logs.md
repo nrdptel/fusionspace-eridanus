@@ -1452,8 +1452,8 @@ CSV carries none, so its counts are kept as written.
 >   accepts 0.6 to 5/3.
 > - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files. Where the
 >   file keeps it isn't known: the reader refuses a file whose likeliest word for it isn't the
->   sample files' 2, and the climb check catches a clock off by more than about a third, and
->   only loosely below that. The pressure is the sensor's nominal conversion, with an error band of
+>   sample files' 2, and on the sample files the climb check is sure to catch only a time step
+>   below 0.67 or above 1.38 times the true one. The pressure is the sensor's nominal conversion, with an error band of
 >   ±1.5 kPa; an AltOS board flown with each flight reads a pad pressure 0.42 to 1.08 kPa above
 >   the ARTS2's.
 > - **Not read:** the meaning of most of the flags byte, the board's state codes and the
