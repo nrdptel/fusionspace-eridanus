@@ -93,7 +93,7 @@
 //! high-rate record's 11th and 12th values stay as written.
 //!
 //! The sample logs' survey (`cargo xtask logs`) holds three parts of the reading to the file and
-//! the same flight's other files: every high-rate record's quaternion, read from the 7th to the
+//! the same rocket's other files: every high-rate record's quaternion, read from the 7th to the
 //! 10th value, has a norm within 2 of 30,000, as a unit quaternion cut to whole numbers must; the
 //! first `FER:` value's lowest bit, the one the app's files call `Liftoff`, first sets within 0.1 s
 //! after the three axes' acceleration first passes 3 g; and the pressure on the pad is within 2 %
@@ -509,12 +509,22 @@ fn record(text: &str, line: usize) -> Result<Record, LogError> {
     }
     for &token in &tokens[8..] {
         if token.ends_with(':') && kind == LOW_RATE {
-            if token.len() > MAX_LABEL_BYTES || layout.len() >= MAX_GROUPS {
+            if layout.len() >= MAX_GROUPS {
                 return Err(syntax(
                     line,
                     format!(
-                        "the record's group `{}` is past the {MAX_GROUPS} groups of at most \
-                         {MAX_LABEL_BYTES} bytes a label a record may hold",
+                        "the record's group `{}` is past the {MAX_GROUPS} groups a record may \
+                         hold",
+                        short(token)
+                    ),
+                ));
+            }
+            if token.len() > MAX_LABEL_BYTES {
+                return Err(syntax(
+                    line,
+                    format!(
+                        "the record's label `{}` is longer than the {MAX_LABEL_BYTES} bytes a \
+                         label may be",
                         short(token)
                     ),
                 ));
@@ -1123,10 +1133,18 @@ mod tests {
             "LOG_LOW",
             &format!("2026  5 23 10:15:00.140  40 {long} 1"),
         ));
-        assert!(
-            message.contains("past the 16 groups of at most 16 bytes"),
-            "{message}"
-        );
+        assert!(message.contains("longer than the 16 bytes"), "{message}");
+        // At the caps, the record is read: 16 groups, the last one's label 16 bytes.
+        let labels: String = (1..MAX_GROUPS)
+            .map(|k| format!(" g{k}: 1"))
+            .chain([format!(" {}: 1", "x".repeat(MAX_LABEL_BYTES - 1))])
+            .collect();
+        let log = read(&line(
+            "LOG_LOW",
+            &format!("2026  5 23 10:15:00.140  40{labels}"),
+        ))
+        .unwrap();
+        assert!(log.channels.iter().any(|c| c.column.starts_with("xxxx")));
         let (_, message) = refusal(&line("LOG_LOW", "2026  5 23 10:15:00.140  40 FER: 60g"));
         assert!(message.contains("hexadecimal"), "{message}");
     }

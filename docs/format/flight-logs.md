@@ -823,7 +823,7 @@ makes `FER: rocket` 1,024 and `FER: Apo` 449, and the last three registers are `
 and `FER: 8`.
 
 <a id="how-the-usb-download-was-checked"></a>**How it was checked.** The sample logs hold 2
-downloads, a team's high-rate and low-rate sets from one flight. The survey,
+downloads, a team's high-rate and low-rate sets from one rocket's logs. The survey,
 [`cargo xtask logs`](#how-it-was-checked), works out each piece's CRC and length itself, apart from
 the reader, and decodes each record that checks by its own copy of the manual's table and rule.
 The reader must keep exactly the records that check, and each of their values, the clock's
@@ -852,9 +852,9 @@ The download records no flight. The high-rate file's acceleration stays above 3 
 0.056 s at a time, and its greatest mean over any 1 s is 1.68 g: the bit was set by a short spike,
 not a boost. Over the whole low-rate file the Blue Raven's pressure moves by only 0.16% of its
 pressure on the pad, while the TeleMega's falls to 0.773 of its own. So none of the download's
-channels, the gyroscopes' and accelerometers' included, describes the TeleMega's flight. Nothing in the files says
-why, so the reading keeps the values as written, and the [survey's
-report](#how-it-was-checked) prints these measures.
+channels, the gyroscopes' and accelerometers' included, describes the TeleMega's flight. Nothing
+in the files says why, so the reading keeps the values as written, and the
+[survey's report](#how-it-was-checked) prints these measures.
 
 **What is left out.** No altitude is made from the pressure, and the two sets aren't joined by
 their sync code. `hpr analyze` and the Python package don't read these files yet: the Rust library

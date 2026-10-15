@@ -79,9 +79,10 @@ pad pressure is 0.9977 of the TeleMega's; the liftoff bit sets 0.024 s after the
 first acceleration above 3 g.
 
 The download records no flight. Its acceleration stays above 3 g for at most 0.056 s at a time, and
-its greatest mean over 1 s is 1.68 g, where the TeleMega in the same rocket records a boost. Its pressure moves by 0.16 % of its pad's over the whole file,
-while the TeleMega's falls to 0.773 of its pad's. So the liftoff bit was set by a short spike, not
-a launch, and none of the download's channels, the inertial ones included, describes the
-TeleMega's flight. The files don't say why. The liftoff check holds only that the reader finds the
-bit at the spike the high-rate file records; it is no check of a launch. The reading keeps the
-values as written, and the report prints these measures. 51 files are left to M7.1c18.
+its greatest mean over 1 s is 1.68 g, where the TeleMega in the same rocket records a boost. Its
+pressure moves by 0.16 % of its pad's over the whole file, while the TeleMega's falls to 0.773 of
+its pad's. So the liftoff bit was set by a short spike, not a launch, and none of the download's
+channels, the gyroscopes' and accelerometers' included, describes the TeleMega's flight. The files
+don't say why. The liftoff check holds only that the reader finds the bit at the spike the
+high-rate file records; it is no check of a launch. The reading keeps the values as written, and
+the report prints these measures. 51 files are left to M7.1c18.
