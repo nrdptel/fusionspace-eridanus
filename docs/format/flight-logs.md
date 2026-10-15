@@ -56,9 +56,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks matches an
 > independent reader's, and 4 of their 28 sheets are refused
 > ([Excel workbooks](#excel-workbooks)).
-> A table whose header names its clock with no unit is read only by a column mapping its
-> publisher states, since [M7.1c15](../decisions-and-roadmap.md#m7-1c15): six of RocketPy's
-> tables ([mappings a publisher states](#mappings-a-publisher-states)).
+> A table whose header names its clock with no unit is read only by a column mapping someone
+> states: since [M7.1c15](../decisions-and-roadmap.md#m7-1c15) (European-locale exports and
+> stated mappings), the survey reads six team tables by the mapping RocketPy's example notebooks
+> read them with; `import::read` alone still refuses them
+> ([mappings a publisher states](#mappings-a-publisher-states)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the other loggers' formats.
 
@@ -118,6 +120,11 @@ decided, and [M7.1c12](../decisions-and-roadmap.md#m7-1c12) (Missile Works' RTx)
 [ADR-267](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)
 decided, and [M7.1c13](../decisions-and-roadmap.md#m7-1c13) (tables read by their headers), as
 [ADR-268](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)
+decided, and [M7.1c14](../decisions-and-roadmap.md#m7-1c14) (Excel workbooks), as
+[ADR-269](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0269-excel-workbooks-before-the-rest.md)
+decided, and [M7.1c15](../decisions-and-roadmap.md#m7-1c15) (European-locale exports and
+mappings a publisher states), as
+[ADR-270](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -537,24 +544,31 @@ same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 ### Mappings a publisher states
 
 Some tables name their clock `t`, `ts` or `time` with no unit, and their columns with no unit
-either, so the header reader can't take them. When the people who publish such a file state what
-each column holds and in what unit, the survey of the sample logs reads the file by that
-statement: `validation/log-mappings.json` holds, for each file by its id, the `Mapping` as
-`generic::read_with` takes it and where the publisher states it
+either, so the header reader can't take them, and `import::read` refuses them. When whoever
+publishes such a file states what each column holds and in what unit, the survey of the sample
+logs reads the file by that statement: `validation/log-mappings.json` holds, for each file by its
+id, the `Mapping` as `generic::read_with` takes it and where it is stated. To read such a file
+yourself, write a `Mapping` the same way (`generic::mapping` gives one to start from, for a file
+whose header names its clock's unit) and pass it to `generic::read_with`
 ([ADR-270](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md), which decided it).
 
 Six of the sample logs are teams' flights that RocketPy, the open-source simulator, keeps in its
 repository. RocketPy's example notebook for each flight reads the file with its
 `FlightDataImporter`, naming the columns (`"ts": "time"`, `"filtered_altitude_AGL":
 "altitude"`, `"filtered_acceleration": "az"`) and passing `units=None`, which the importer's own
-documentation defines as every column in SI. So each file's clock is read in seconds, its
-altitude above the ground in meters, a vertical speed in m/s and a vertical acceleration in m/s²;
-a column the notebook doesn't map, such as a latitude, is kept as written. Each unit still goes
-through the values' check above, and none of the six files' columns fails it.
+documentation defines as every column in SI. That is RocketPy's use of the file, the only
+statement of its units there is, not the logging team's own word. So each file's clock is read in
+seconds and its altitude above the ground in meters, as an `altitude` whose sensor isn't stated
+(barometer or GPS), a vertical speed in m/s, and a vertical acceleration in m/s²: the
+acceleration of the rocket's motion, about 0 at rest on the pad and −9.8 m/s² (−32.2 ft/s²) in
+free fall, not an accelerometer's reading. Two of the files write that acceleration as 0 from
+about apogee on, and it is kept as written. A column the notebook doesn't map, such as a
+latitude, is kept as written. Each unit still goes through the values' check above, and none of
+the six files' columns fails it.
 
 The survey refuses a mapping on a file whose header doesn't name the mapping's columns in order,
-on a file a reader takes on its own (a mapping can't overrule a maker's layout), and for a file
-of this family with none stated. A mapping is only as right as its publisher's statement: the
+on a file a reader reads on its own (a mapping can't stand in for a reader that takes the file),
+and for a file of this family with none stated. A mapping is only as right as its publisher's statement: the
 values' check catches a unit far off, a pressure over 110 kPa or a length beyond 150 km (93 mi), not feet
 read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook and is left unread.
 
@@ -675,33 +689,50 @@ sample logs:
   a second. Of the 50 RRC3 exports among the sample logs, 46 are read in feet from the pressure
   and 4 state feet; 36 have speeds in feet per second and 8 in miles per hour, 4 state feet per
   second, and 2, whose records stop early, keep their speeds as written.
+- **An RRC3 export saved by a European locale.** mDACS's export in a European locale's form is
+  semicolon-separated with decimal commas, and may end every line, the header's too, with a
+  semicolon; the reader drops the empty cell after it, on full rows and short ones. The one such
+  sample had its rows sorted by a spreadsheet by their time's text, `10,05` before `2`. Put in
+  order by value, they step 0.05 s with none missing, but the reader keeps a file's order and
+  refuses a time that goes back, naming the line, so it is refused and counted as damaged: to
+  read such a file, sort its rows by time first.
 - **An Eggtimer's clock, worked out from the file.** The Classic and TRS write their time in
   milliseconds, the Quantum and Proton in seconds, under the same `T`. The reader takes
   milliseconds when the median step is above 5: the manuals' rates, 1 to 33 samples a second, put
-  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 45
-  Eggtimer files, 5 are read in milliseconds and 40 in seconds.
+  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 44
+  Eggtimer files read, 4 are read in milliseconds and 40 in seconds.
 - **An Eggtimer's heights and speeds, from the manuals.** The Classic and TRS manuals state feet
   and feet per second. The Quantum and Proton manuals state no unit for the download, but give
   every height in feet, and no Eggtimer manual offers meters; the heights are read in feet for
   every model, and in a terminal download, plain or saved as RTF, only where the coast before
   apogee also slows at about g in feet (below). A speed is read in feet per second only where it matches the altitude's change
   over the step on at least 90% of rows (on the sample logs, 95.9% or more); otherwise it is kept
-  as written. A filtered altitude is read in feet only where it scales to `Alt` as a filter of it
-  can: the factor a least-squares fit through zero gives, from `Alt` to the filtered altitude,
-  must lie from 0.1 to 2. A filter lags the altitude, under it going up and over it coming down,
-  and a lag $\tau$ at a speed $v$ over a height $H$ moves the factor by about $1.5\,v\tau/H$; a
-  decimal place lost writes a value 10 times over. On 44 of the sample files the factor is 0.900
-  to 1.000. On the 45th, a download a spreadsheet saved with its decimal points taken out (`12.34`
-  written `1234`), it is 99.9: its `Filt_Alt` and `FVeloc` are kept as written, as is its
-  `Veloc`, by the speed check, and its `Alt`, whole feet, is read.
+  as written.
+- **An Eggtimer's filtered altitude, held to `Alt`.** The filtered altitude must scale to `Alt`
+  as a filter of it can: the one multiplier that best takes `Alt` to it, with no offset (a
+  least-squares fit through zero), must lie from 0.1 to 2, or the file is refused. A filter lags
+  the altitude, under it going up and over it coming down. On a steady climb at $v$ ft/s to $H$
+  ft, a lag of $\tau$ s lowers the multiplier by about $1.5\,v\tau/H$: 100 ft/s, a lag of 1 s
+  and a climb to 600 ft give 0.75. A decimal place lost writes a value 10 times over, two places
+  100 times. A refused file's numbers can't be trusted, its clock's among them: a seconds clock
+  written without its decimal point reads as milliseconds. The check doesn't catch a column off
+  by less than a factor of 2, such as a filtered altitude in meters (0.3048 times). On the 44
+  sample files read, the multiplier is 0.900 to 1.000 (the [survey's report](#how-it-was-checked)
+  prints the range). A 45th, a download a spreadsheet saved with its decimal points taken out
+  (`12.34` written `1234`), gives 99.9 and is refused, and counted as damaged. In the CSV
+  download, a median step between rows above 1 and below 30 is neither seconds nor milliseconds at
+  the manuals' rates, and the file is refused too: `0.05` s written without its point is `5`.
 - **An Eggtimer download saved by a European locale.** A spreadsheet set to a European locale
   saves the CSV download with semicolons between the cells, and may write its numbers with a
-  decimal comma. The reader splits a header holding a semicolon on semicolons and settles the
-  decimal mark once for the file: a comma only if no number is written with a point and one is
-  written with a comma before other than three digits. A cell in the other mark isn't a number,
-  and the file is refused on its line, so `1.250` is never read as 1.25 thousand or as 1.25. Two
-  of the sample downloads, from the European Rocketry Challenge, are semicolon-separated, both
-  with decimal points.
+  decimal comma, the mark between a number's whole part and its fraction (`0,05` for 0.05). A
+  header that reads as an Eggtimer's only when split on semicolons is split on them. The reader
+  then uses a decimal comma only if no number has a point and some number has a comma before
+  anything but three digits (`0,05`). A cell in the other mark, such as `1,250` in a file of
+  points, is refused on its line, where the table reader takes it as a gap: here a cell the
+  manuals write as a number can't be left out, so a thousands separator is never read as a
+  decimal mark. Two of the sample downloads, from the European Rocketry Challenge (EuRoC), are
+  semicolon-separated: one with decimal points, read; the other with none at all, as a
+  spreadsheet took them out, refused (above). Decimal commas are tested on invented files only.
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
   manual.** The manual gives their units for the logger's USB download: feet per second, feet,
   degrees per second and g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
@@ -1969,8 +2000,9 @@ per file an anonymized id (the start of a hash of the file, which says nothing o
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
 ([zip archives](#zip-archives)), and each Excel workbook's sheets by the layout each reads as
-([Excel workbooks](#excel-workbooks)), and each table read by a mapping its publisher states
-([above](#mappings-a-publisher-states)). Of the 1,122 files it holds today, 1,002 are read, the 8
+([Excel workbooks](#excel-workbooks)), each table read by a mapping its publisher states
+([above](#mappings-a-publisher-states)), and the range of the Eggtimer files' filtered-altitude
+multiplier ([above](#units-the-file-decides)). Of the 1,122 files it holds today, 1,001 are read, the 8
 archives counted as read when they unpack and the 16 workbooks when a sheet of each reads. The
 report labels 61 files for [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the rest of the
 importers; 59 of them, of layouts no reader knows yet, are unread.
@@ -1983,12 +2015,10 @@ a map of a flight made in a map program, its predicted tracks with the pad and l
 pinned, read but counted apart as not a log. And 62 files the catalog files as generic CSV, by
 their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Fluctus's (6), an
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers;
-2 more are Eggtimer downloads saved with semicolons, held to the Eggtimer's reader, and 6 are
-tables whose publisher states their mapping ([above](#mappings-a-publisher-states)). One more is
-an RRC3 export a European locale saved, its lines ending in semicolons, whose rows a spreadsheet
-sorted by their time's text, `10,05` before `2`: put in order they step 0.05 s with none
-missing, but the reader keeps a file's order, so it is refused on the line where its time goes
-back, and counted as damaged.
+2 more are Eggtimer downloads saved with semicolons, one held to the Eggtimer's reader and one,
+its decimal points taken out, counted as damaged ([above](#units-the-file-decides)); 6 are
+tables whose publisher states their mapping ([above](#mappings-a-publisher-states)); and one is
+an RRC3 export counted as damaged ([above](#units-the-file-decides)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
 [M7.1c16](../decisions-and-roadmap.md#m7-1c16). Sixteen spreadsheets are workbooks of flights'

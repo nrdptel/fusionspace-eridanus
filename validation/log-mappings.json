@@ -1,5 +1,5 @@
 {
-  "about": "Column mappings the publishers of some sample tables state, read by `cargo xtask logs` through `hpr_flightdata::generic::read_with` (M7.1c15, ADR-270). Each maps a file, by id (the first 16 hex digits of its SHA-256), whose header names its clock with no unit; a column the publisher doesn't map is kept as written. RocketPy (MIT) reads each of these files in the example notebook for its flight (`docs/examples/`, commit 9bd6ad3) with FlightDataImporter, whose docstring defines units=None as every column in SI (`rocketpy/simulation/flight_data_importer.py`); its altitude is above ground level (`Flight.altitude`), its vz and az the vertical velocity and acceleration in the inertial frame (`Flight.vz`, `Flight.az`).",
+  "about": "Column mappings the publishers of some sample tables state, read by `cargo xtask logs` through `hpr_flightdata::generic::read_with` (M7.1c15, ADR-270). Each maps a file, by id (the first 16 hex digits of its SHA-256), whose header names its clock with no unit; a column the publisher doesn't map is kept as written. RocketPy (MIT) reads each of these files in the example notebook for its flight (`docs/examples/`, commit 9bd6ad3) with FlightDataImporter, whose docstring defines units=None as every column in SI (`rocketpy/simulation/flight_data_importer.py`); its altitude is above ground level (`Flight.altitude`), from a sensor it doesn't state, so it is mapped as `altitude`, not as a barometric height; its vz and az are the vertical velocity and acceleration of the rocket's motion in the inertial frame (`Flight.vz`, `Flight.az`), az about 0 at rest on the pad and about -9.8 m/s^2 in free fall.",
   "mappings": [
     {
       "id": "045f5b9ed473b800",
@@ -12,7 +12,7 @@
         "columns": [
           {
             "name": "alt",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           },
           {
@@ -39,7 +39,7 @@
           },
           {
             "name": "altitude",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           }
         ]
@@ -61,7 +61,7 @@
           },
           {
             "name": "filtered_altitude_AGL",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           },
           {
@@ -88,7 +88,7 @@
           },
           {
             "name": "filtered_altitude_AGL",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           },
           {
@@ -115,7 +115,7 @@
           },
           {
             "name": "alt",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           },
           {
@@ -147,7 +147,7 @@
           },
           {
             "name": "altitude[m]",
-            "quantity": "altitude_above_ground",
+            "quantity": "altitude",
             "unit": "m"
           },
           {

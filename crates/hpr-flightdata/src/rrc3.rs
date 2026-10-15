@@ -472,9 +472,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     build(&columns, &units, rows, header_line, notes)
 }
 
-/// Reads the data rows (module docs, *Short rows*). Under a header that ends with its separator
-/// (`trailing`), a row's last cell is dropped when it is empty and the row has one cell more than
-/// the header names.
+/// Reads the data rows (module docs, *Short rows*). Under a header that ends with a semicolon
+/// (`trailing`), a row that ends with one too, full or short, has its last cell, empty, dropped.
 fn read_rows<'a>(
     lines: impl Iterator<Item = (usize, &'a str)>,
     separator: char,
@@ -501,7 +500,9 @@ fn read_rows<'a>(
     let mut placed: Vec<Option<&str>> = vec![None; width];
     for (number, line) in lines {
         let mut cells: Vec<&str> = line.split(separator).map(str::trim).collect();
-        if trailing && cells.len() == width + 1 && cells.last().is_some_and(|c| c.is_empty()) {
+        // A row ends with the semicolon too, full or short: its last cell, empty, is dropped.
+        if trailing && line.trim_end().ends_with(';') && cells.last().is_some_and(|c| c.is_empty())
+        {
             cells.pop();
         }
         let empty_from = |from: usize| {
@@ -1484,13 +1485,35 @@ mod tests {
 
     #[test]
     fn a_european_export_ending_its_lines_in_semicolons_reads_alike() {
+        // With and without short rows, as most exports end, without their 1 Hz cells.
+        for tail in [0, 3] {
+            let text = flight(300.0, 60.0, FOOT_M, 3.2808, tail);
+            let plain = read(&text).unwrap();
+            let semicolons = read(&european(&text)).unwrap();
+            assert_eq!(semicolons.time_s, plain.time_s, "{tail}");
+            assert_eq!(semicolons.altitude_m, plain.altitude_m);
+            // As JSON, where a gap, `NaN`, is `null` and equal to itself.
+            let json = |log: &FlightLog| serde_json::to_string(log).unwrap();
+            assert_eq!(json(&semicolons), json(&plain), "{tail}");
+        }
         let text = flight(300.0, 60.0, FOOT_M, 3.2808, 0);
         let plain = read(&text).unwrap();
-        let semicolons = read(&european(&text)).unwrap();
-        assert_eq!(semicolons.time_s, plain.time_s);
-        assert_eq!(semicolons.altitude_m, plain.altitude_m);
-        assert_eq!(semicolons.channels, plain.channels);
-        assert_eq!(semicolons.events, plain.events);
+        // A short row padded with empty 1 Hz cells after its own reads as the short row does.
+        let short_text = european(&flight(300.0, 60.0, FOOT_M, 3.2808, 3));
+        let short = read(&short_text).unwrap();
+        let padded = short_text
+            .lines()
+            .map(|line| {
+                if line.matches(';').count() == 5 {
+                    format!("{line};;\n")
+                } else {
+                    format!("{line}\n")
+                }
+            })
+            .collect::<String>();
+        assert_eq!(padded.matches(";;;\n").count(), 3);
+        let json = |log: &FlightLog| serde_json::to_string(&log.channels).unwrap();
+        assert_eq!(json(&read(&padded).unwrap()), json(&short));
         // A row of empty cells at the end, as one sample ends, is skipped as the plain file's is.
         let with_blank = format!("{};;;;;;;\n", european(&text));
         assert_eq!(read(&with_blank).unwrap().time_s, plain.time_s);

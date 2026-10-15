@@ -305,8 +305,10 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 169] = [
     (
         "7a71bfeb7d7b1ee4",
         "csv",
-        "eggtimer-csv",
-        EGGTIMER_SEMICOLON,
+        "eggtimer-csv-damaged",
+        "an Eggtimer's CSV download saved with semicolons by a spreadsheet that took out its \
+         decimal points, `12.34` written `1234`: its filtered altitude is about 100 times `Alt`, \
+         so the reader refuses it, its numbers not to be trusted",
     ),
     (
         "cda3fcdb9d634cd0",
@@ -759,6 +761,9 @@ struct Report {
     /// Tables read by a mapping their publisher states (M7.1c15).
     #[serde(default)]
     mapped_checks: Vec<MappedFile>,
+    /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
+    #[serde(default)]
+    filter_scales: FilterScales,
     /// The Excel workbooks, each sheet's outcome counted.
     workbook_checks: Vec<WorkbookFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
@@ -2615,7 +2620,6 @@ fn workbook_checks(samples: &[Sample]) -> Vec<WorkbookFile> {
     out
 }
 
-/// Each table read by its header, as [`TableFile`] counts it.
 /// A column mapping a table's publisher states, from [`MAPPINGS`].
 #[derive(Debug, Clone, Deserialize)]
 struct StatedMapping {
@@ -2672,7 +2676,7 @@ fn read_by(stated: &StatedMapping, bytes: &[u8]) -> Result<FlightLog, String> {
     let text = hpr_flightdata::import::decode(bytes);
     let mapping = &stated.mapping;
     let header: Option<Vec<&str>> = mapping.header_line.map(|line| {
-        text.lines()
+        lines(&text)
             .nth(line.saturating_sub(1))
             .unwrap_or_default()
             .split(mapping.separator)
@@ -2690,6 +2694,29 @@ fn read_by(stated: &StatedMapping, bytes: &[u8]) -> Result<FlightLog, String> {
         Some(_) => {}
     }
     hpr_flightdata::generic::read_with(&text, mapping).map_err(|e| e.to_string())
+}
+
+/// A text's lines as the readers number them: ended by CR, LF or CR LF.
+fn lines(text: &str) -> impl Iterator<Item = &str> {
+    let mut rest = Some(text);
+    std::iter::from_fn(move || {
+        let current = rest?;
+        match current.find(['\r', '\n']) {
+            Some(end) => {
+                let skip = if current[end..].starts_with("\r\n") {
+                    2
+                } else {
+                    1
+                };
+                rest = Some(&current[end + skip..]);
+                Some(&current[..end])
+            }
+            None => {
+                rest = None;
+                (!current.is_empty()).then_some(current)
+            }
+        }
+    })
 }
 
 /// One table read by a stated mapping, for the report.
@@ -2748,6 +2775,81 @@ fn mapped_checks(samples: &[Sample]) -> Vec<MappedFile> {
     files
 }
 
+/// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15): the least-squares factor
+/// through zero, `Σ(filtered × Alt) / Σ Alt²`, over the files read, and the files refused for it.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct FilterScales {
+    /// Eggtimer CSV files read with a filtered altitude.
+    files: usize,
+    /// The least factor, and its file's id.
+    least: Option<(f64, String)>,
+    /// The greatest factor, and its file's id.
+    greatest: Option<(f64, String)>,
+    /// Files of the damaged family the reader refuses for the factor, by id, with its message.
+    refused: Vec<String>,
+}
+
+/// The filtered altitude's factor on `Alt` in each Eggtimer CSV file read, from its record (both
+/// channels in meters, so the factor is the file's own), and the damaged files refused for it.
+fn filter_scales(samples: &[Sample]) -> FilterScales {
+    let mut scales = FilterScales::default();
+    for sample in samples {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        match (
+            sample.family.as_str(),
+            hpr_flightdata::import::read(&sample.bytes),
+        ) {
+            ("eggtimer-csv", Ok(log)) => {
+                let column = |names: &[&str]| {
+                    log.channels
+                        .iter()
+                        .find(|channel| names.contains(&channel.column.as_str()))
+                };
+                let (Some(altitude), Some(filtered)) =
+                    (column(&["Alt"]), column(&["FAlt", "Filt_Alt", "KAlt"]))
+                else {
+                    continue;
+                };
+                let (mut product, mut square) = (0.0_f64, 0.0_f64);
+                for (&f, &a) in filtered.values.iter().zip(&altitude.values) {
+                    if f.is_finite() && a.is_finite() {
+                        product += f * a;
+                        square += a * a;
+                    }
+                }
+                if square == 0.0 {
+                    continue;
+                }
+                let factor = product / square;
+                scales.files += 1;
+                if scales
+                    .least
+                    .as_ref()
+                    .is_none_or(|(least, _)| factor < *least)
+                {
+                    scales.least = Some((factor, id.clone()));
+                }
+                if scales
+                    .greatest
+                    .as_ref()
+                    .is_none_or(|(most, _)| factor > *most)
+                {
+                    scales.greatest = Some((factor, id));
+                }
+            }
+            ("eggtimer-csv-damaged", Err(error))
+                if error.to_string().contains("isn't a filter of") =>
+            {
+                scales.refused.push(format!("{id}: {error}"));
+            }
+            _ => {}
+        }
+    }
+    scales.refused.sort();
+    scales
+}
+
+/// Each table read by its header, as [`TableFile`] counts it.
 fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
     use hpr_flightdata::generic;
     use hpr_flightdata::log::Quantity;
@@ -3718,7 +3820,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 ADR-251, ADR-253, ADR-254, ADR-255): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, AerospaceNU's logs, and the files inside the zip archives among them; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
-                processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
+                repository under refs/rocketpy, whose data folder holds tables RocketPy \
+                processed, are left out; the teams' logs from it that the collection catalogs \
+                are read like any other. A file's id is the first 16 hex digits of its \
                 SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it."
             .to_owned(),
         sources,
@@ -3733,6 +3837,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         rtx_checks: rtx_checks(samples),
         table_checks: table_checks(samples),
         mapped_checks: mapped_checks(samples),
+        filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
@@ -3910,8 +4015,9 @@ fn markdown(report: &Report) -> String {
          sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
-         the collection catalogs, and RocketPy's processed flight tables, which no logger \
-         wrote. A family is the catalog's name for a layout; *unrecognized* means no reader \
+         the collection catalogs, and RocketPy's repository under `refs/rocketpy`, whose data \
+         folder holds tables RocketPy processed; the teams' logs from it that the collection \
+         catalogs are read like any other. A family is the catalog's name for a layout; *unrecognized* means no reader \
          knows the layout yet, and *damaged* a file of a known layout no reader can make sense \
          of.\n\n\
          | Source | Files | Not met before |\n|---|---:|---:|\n",
@@ -4454,6 +4560,31 @@ fn markdown(report: &Report) -> String {
             sum(|t| t.kept_by_header),
             sum(|t| t.contradicted),
             sum(|t| t.text),
+        );
+    }
+    if let (Some((least, least_id)), Some((most, most_id))) =
+        (&report.filter_scales.least, &report.filter_scales.greatest)
+    {
+        let refused: Vec<String> = report
+            .filter_scales
+            .refused
+            .iter()
+            .map(|line| match line.split_once(": ") {
+                Some((id, message)) => format!("`{id}`, {message}"),
+                None => line.clone(),
+            })
+            .collect();
+        out += &format!(
+            "\nEggtimer filtered altitudes against `Alt` (M7.1c15): over the {} Eggtimer CSV files \
+             read with a filtered altitude, the least-squares factor through zero from `Alt` to \
+             it lies from {least:.4} (`{least_id}`) to {most:.4} (`{most_id}`); the reader \
+             refuses a file outside 0.1 to 2. Refused for it: {}.\n",
+            report.filter_scales.files,
+            if refused.is_empty() {
+                "none".to_owned()
+            } else {
+                refused.join("; ")
+            }
         );
     }
     if !report.mapped_checks.is_empty() {
@@ -5118,6 +5249,44 @@ mod tests {
         );
         assert_eq!(altos.refused.get("unrecognized"), Some(&1));
         assert_eq!(report.families[1].increment, "not a log");
+    }
+
+    /// The filtered altitude's factor on `Alt` is printed over the Eggtimer files read, with the
+    /// damaged files the reader refuses for it.
+    #[test]
+    fn the_filter_scales_span_the_files_read() {
+        let file = |scale: f64| {
+            let mut text = String::from("T,Alt,FAlt,LDA\n");
+            for row in 0..20_u32 {
+                let altitude = f64::from(row * 10);
+                text += &format!(
+                    "{},{altitude},{},0\n",
+                    f64::from(row) * 0.05,
+                    altitude * scale
+                );
+            }
+            text.into_bytes()
+        };
+        let sample = |family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join("e.csv"),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let scales = filter_scales(&[
+            sample("eggtimer-csv", file(0.95)),
+            sample("eggtimer-csv", file(1.0)),
+            sample("eggtimer-csv-damaged", file(100.0)),
+        ]);
+        assert_eq!(scales.files, 2);
+        assert!((scales.least.unwrap().0 - 0.95).abs() < 1e-12);
+        assert!((scales.greatest.unwrap().0 - 1.0).abs() < 1e-12);
+        assert_eq!(scales.refused.len(), 1);
+        assert!(
+            scales.refused[0].contains("it is 100 times `Alt`"),
+            "{:?}",
+            scales.refused
+        );
     }
 
     /// Every stated mapping parses, maps a file the survey files as a mapped table, and every

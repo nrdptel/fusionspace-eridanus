@@ -1,7 +1,7 @@
 # ADR-270: M7.1c15 in two: EuRoC exports and mappings a publisher states first; the rest to M7.1c16 (2026-10-15)
 
 - **Status:** accepted; narrows M7.1c15 to a first increment and moves the rest, with M7.1c15's old entry and *done when* (the parent's), to M7.1c16; follows [ADR-269](0269-excel-workbooks-before-the-rest.md)
-- **Summary:** After M7.1c14, 68 sample logs were left unread, in 19 layouts, the largest 7 files. Nine of them need little new code: three exports of known loggers saved by a European locale's spreadsheet, and six tables whose publisher, RocketPy, states each column's meaning and unit. M7.1c15 now reads them, adds a check that keeps a filtered altitude written in the wrong scale out of the record, and leaves the rest to M7.1c16.
+- **Summary:** After M7.1c14, 68 sample logs were left unread, in 19 layouts, the largest 7 files. Nine of them need little new code: three exports of known loggers saved by a European locale's spreadsheet, and six tables whose publisher, RocketPy, states each column's meaning and unit. M7.1c15 now reads them, refuses an Eggtimer file whose filtered altitude or clock shows its decimal points were lost, and leaves the rest to M7.1c16.
 
 **Context.** `cargo xtask logs` on main after M7.1c14 (#552) leaves 68 files unread. Sorted by
 layout, they fall into 19 groups: the largest are 12 headerless numeric tables from several
@@ -44,46 +44,57 @@ or repeated.
    thousands separator is never read as a decimal mark. The shared rule moves to
    `table::decimal_comma_shown` and `table::number_in_mark`. A terminal download stays
    comma-separated, as the terminal prints it.
-3. **Filtered altitudes checked against `Alt`.** A filtered altitude is read in feet only if the
-   least-squares factor through zero that takes `Alt` to it lies from 0.1 to 2; otherwise it is
-   kept as written, with a note, and so are the filtered speeds when it is the file's first. A
-   first-order lag `τ` at a speed `v` over a climb or descent of height `H` moves the factor by
-   about `1.5 v τ / H` (a ramp lagged by `v τ`; `Σ A / Σ A²` over a ramp from 0 to `H` is
-   `1.5 / H`): down on the way up, by more the less of the climb the file holds, up on the way
-   down by little, the descent being slow. A decimal place lost writes a value 10 times over.
-   Measured over the 44 Eggtimer files with a filtered altitude, the factor lies from 0.900 to
-   1.000; the export with its decimal points taken out gives 99.93.
-4. **An RRC3 export's closing semicolon.** Under a semicolon-separated header that ends with a
-   semicolon, a row's last cell, empty, is dropped. The reader keeps refusing a time that goes
-   back: it doesn't reorder a file. The text-sorted export is filed as damaged
-   (`rrc3-csv-damaged`), recognized and refused on the line where its time goes back.
-5. **Mappings a publisher states.** `validation/log-mappings.json` holds, by file id, the
+3. **Filtered altitudes checked against `Alt`.** An Eggtimer CSV or terminal download whose
+   filtered altitude's least-squares factor through zero on `Alt` lies outside 0.1 to 2 is
+   refused (`LogError::Unit`). A first-order lag `τ` at a speed `v` over a steady climb or
+   descent of height `H` moves the factor by about `1.5 v τ / H` (a ramp lagged by `v τ`;
+   `Σ A / Σ A²` over a ramp from 0 to `H` is `1.5 / H`): down on the way up, by more the less of
+   the climb the file holds, up on the way down by little, the descent being slow. A decimal place
+   lost writes a value 10 times over. Measured over the 44 Eggtimer CSV files read, the factor
+   lies from 0.900 to 1.000 (the survey prints the range); the export with its decimal points
+   taken out gives 99.93. The file is refused, not read in part: a review found that keeping only
+   the filtered columns as written leaves the rest of such a file wrong, a seconds clock written
+   without its point read as milliseconds and a Proton's accelerometer 100 times over.
+4. **A clock step that fits neither unit.** In the CSV download, a median step between rows above
+   1 and below 30 is neither seconds (0.03 to 1 s at the manuals' 1 to 33 samples a second) nor
+   milliseconds (30 to 1,000 ms), and the file is refused: a seconds clock without its decimal
+   points writes 0.05 as 5. Every one of the 44 sample files steps within one unit's range. The
+   terminal download keeps its coast check, which settles its clock on its own.
+5. **An RRC3 export's closing semicolon.** Under a semicolon-separated header that ends with a
+   semicolon, a row that ends with one too, full or short (without its 1 Hz cells), has its last
+   cell, empty, dropped. The reader keeps refusing a time that goes back: it doesn't reorder a
+   file. The text-sorted export is filed as damaged (`rrc3-csv-damaged`), recognized and refused
+   on the line where its time goes back.
+6. **Mappings a publisher states.** `validation/log-mappings.json` holds, by file id, the
    `generic::Mapping` the file's publisher states and where it states it; committed, as the tables
    it maps are public. `cargo xtask logs` reads a file of the `mapped-table-csv` family by its
    mapping through `generic::read_with`, which holds every unit to ADR-268's values check, and
-   refuses it if no mapping is stated, if a reader takes the file on its own, or if its header
+   refuses it if no mapping is stated, if a reader reads the file on its own, or if its header
    doesn't name the mapping's columns in order. A column the publisher doesn't map is kept as
-   written. RocketPy's altitude is above ground level (`Flight.altitude`), its `vz` and `az` the
-   vertical velocity and acceleration (`Flight.vz`, `Flight.az`). A mapping for a private file
-   would need a home outside the public repository; none is needed yet.
+   written. RocketPy's altitude is above ground level (`Flight.altitude`) from a sensor it doesn't
+   state, so it is mapped as `altitude`, not as a barometric height; its `vz` and `az` are the
+   vertical velocity and acceleration of the rocket's motion (`Flight.vz`, `Flight.az`). Only the
+   survey applies these mappings: `import::read` still refuses the files. A mapping for a private
+   file would need a home outside the public repository; none is needed yet.
 
-**Consequences.** The survey reads 1,002 of its 1,122 files: both Eggtimer exports, as Eggtimer
+**Consequences.** The survey reads 1,001 of its 1,122 files: one Eggtimer export, as Eggtimer
 CSV, and the six RocketPy tables, by their stated mappings, with no column's values contradicting
-its unit; 59 files are left to M7.1c16. In the export whose decimal points were taken out, `Alt`
-reads in feet and `Filt_Alt`, `FVeloc` and `Veloc` are kept as written, so its record has no
-vertical speed. The RRC3 export is refused, though a flyer's file sorted this way holds every
-sample: reading it would mean the reader reorders rows, which no other reader does and which
-would hide a clock that truly steps back. A stated mapping is only as right as its publisher's
-statement; the values check catches a unit far off (a pressure over 110 kPa, a length beyond
-150 km), not feet read as meters.
+its unit; 59 files are left to M7.1c16. The export whose decimal points were taken out is refused
+and filed as damaged (`eggtimer-csv-damaged`), as is the text-sorted RRC3 export, though each
+holds a flight a person could recover by hand: reading them would mean the readers repair files,
+reordering rows or guessing which digits were decimals, which no reader does and which would hide
+a clock that truly steps back or a value truly that large. A stated mapping is only as right as
+its publisher's statement; the values check catches a unit far off (a pressure over 110 kPa, a
+length beyond 150 km), not feet read as meters.
 
-**Done when (M7.1c15):** the two semicolon-separated Eggtimer exports in refs read as Eggtimer
-CSV, in either decimal mark settled once a file (tests), and the RRC3 export whose lines end in a
-semicolon is recognized and refused where its time goes back (filed as damaged); a filtered
-altitude whose least-squares factor on `Alt` lies outside 0.1 to 2 is kept as written with its
-filtered speeds (tests at both edges, a mutation probe), so the export whose decimal points were
-taken out reads its `Alt` in feet and keeps `Filt_Alt`, `FVeloc` and `Veloc` as written; the 6
-tables whose publisher, RocketPy, states their column mapping read by it
-(`validation/log-mappings.json`, each citing where), a mapping refused on a header it doesn't name
-or a file a reader takes (tests); `cargo xtask logs --check` fails on a file of these that doesn't
-read; the guide's flight-log page says what is read and how.
+**Done when (M7.1c15):** the two semicolon-separated Eggtimer exports in refs are recognized as
+Eggtimer CSV, in either decimal mark settled once a file (tests): one reads, and the one whose
+decimal points were taken out is refused, as its filtered altitude's least-squares factor on
+`Alt` lies outside 0.1 to 2 (tests at both edges, a mutation probe), and filed as damaged; a CSV
+download whose median clock step fits neither seconds nor milliseconds is refused (tests); the RRC3
+export whose lines end in a semicolon is recognized and refused where its time goes back (filed as
+damaged), and such an export with short rows reads (tests); the 6 tables whose publisher,
+RocketPy, states their column mapping read by it (`validation/log-mappings.json`, each citing
+where), a mapping refused on a header it doesn't name or a file a reader reads (tests); `cargo
+xtask logs --check` fails on a file of these that doesn't read; the survey's report prints the
+filtered-altitude factor's range; the guide's flight-log page says what is read and how.

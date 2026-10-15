@@ -1,6 +1,6 @@
 # Flight-log samples, read
 
-Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file once. Left out: `refs/research/public-flights`, a download cache whose flights' logs the collection catalogs, and RocketPy's processed flight tables, which no logger wrote. A family is the catalog's name for a layout; *unrecognized* means no reader knows the layout yet, and *damaged* a file of a known layout no reader can make sense of.
+Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file once. Left out: `refs/research/public-flights`, a download cache whose flights' logs the collection catalogs, and RocketPy's repository under `refs/rocketpy`, whose data folder holds tables RocketPy processed; the teams' logs from it that the collection catalogs are read like any other. A family is the catalog's name for a layout; *unrecognized* means no reader knows the layout yet, and *damaged* a file of a known layout no reader can make sense of.
 
 | Source | Files | Not met before |
 |---|---:|---:|
@@ -32,7 +32,8 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | csv | M7.1c16 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
-| eggtimer-csv | M7.1b | 45 | 45 | none |
+| eggtimer-csv | M7.1b | 44 | 44 | none |
+| eggtimer-csv-damaged | damaged | 1 | 0 | 1 unit |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
@@ -75,7 +76,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | xlsx | M7.1c16 | 4 | 0 | 4 archive |
 | xml | M7.1c16 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1002 | |
+| **All** | | 1122 | 1001 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -85,7 +86,7 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `d88a7fc53cbd55d1 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
 - `dd5287b375e84be8 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
 - `f912724676eea0ca csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
-- `7a71bfeb7d7b1ee4 csv -> eggtimer-csv`: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension
+- `7a71bfeb7d7b1ee4 csv -> eggtimer-csv-damaged`: an Eggtimer's CSV download saved with semicolons by a spreadsheet that took out its decimal points, `12.34` written `1234`: its filtered altitude is about 100 times `Alt`, so the reader refuses it, its numbers not to be trusted
 - `cda3fcdb9d634cd0 csv -> eggtimer-csv`: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension
 - `bc062b34affee518 csv -> rrc3-csv-damaged`: an RRC3's mDACS export in a European locale's form, semicolons and decimal commas, whose rows a spreadsheet sorted by their time's text, `10,05` before `2`; put in order by value, they step 0.05 s from 0 with none missing, but the reader keeps the file's order and refuses a time that goes back, naming the line
 - `02cf95e874f824f7 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
@@ -358,6 +359,8 @@ The 31 tables read by their headers (M7.1c13): each column but the clock read in
 | `fd61caa7235b81b6` | 13655 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
 | `ff3ad892e63f060d` | 36700 | 99 | `s` | 13 | 85 | 0 | 0 | 0 | – |
 
+Eggtimer filtered altitudes against `Alt` (M7.1c15): over the 44 Eggtimer CSV files read with a filtered altitude, the least-squares factor through zero from `Alt` to it lies from 0.9000 (`e186d325c61f5968`) to 0.9999 (`2add1c81ab430ce7`); the reader refuses a file outside 0.1 to 2. Refused for it: `7a71bfeb7d7b1ee4`, Eggtimer CSV line 1: `Filt_Alt` isn't a filter of `Alt`: it is 99.934 times `Alt` by a least-squares fit, outside the 0.1 to 2 a filter of the altitude can be, so the file's numbers can't be trusted; a file whose decimal points were taken out writes `12.34` as `1234`, 100 times over.
+
 The 6 tables read by the column mapping their publisher states (M7.1c15, `validation/log-mappings.json`, which says where each is stated): each column but the clock read in the unit the mapping states, kept as written where it states none, or kept as written because a value contradicts the unit stated.
 
 | File | Rows | Columns | Clock | Read | Kept | Contradicted | Stated by |
@@ -543,18 +546,15 @@ Units no header states, as each file's reader decided them, or kept the column a
 | e80-imu-txt | `Dig` read in hexadecimal and kept as its number | 54 |
 | e80-imu-txt | `Time` read in seconds | 54 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
-| eggtimer-csv | `Alt` read in feet, from the manual | 45 |
+| eggtimer-csv | `Alt` read in feet, from the manual | 44 |
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
 | eggtimer-csv | `FAccelVel` read in feet per second, from the manual | 4 |
 | eggtimer-csv | `FAlt` read in feet, from the manual | 38 |
-| eggtimer-csv | `FVeloc` kept as written, not read as a speed | 1 |
 | eggtimer-csv | `FVeloc` read in feet per second, from the manual | 44 |
-| eggtimer-csv | `Filt_Alt` kept as written, not read as a height | 1 |
 | eggtimer-csv | `Filt_Alt` read in feet, from the manual | 6 |
-| eggtimer-csv | `T` read in milliseconds, from the step | 5 |
+| eggtimer-csv | `T` read in milliseconds, from the step | 4 |
 | eggtimer-csv | `T` read in seconds, from the step | 40 |
 | eggtimer-csv | `VAccel` read in feet per second, from the manual | 4 |
-| eggtimer-csv | `Veloc` kept as written, not read as a speed | 1 |
 | eggtimer-csv | `Veloc` read in feet per second, from the manual | 41 |
 | eggtimer-rtf | `ASL Alt.` kept as written, with no unit mark the reader knows | 1 |
 | eggtimer-rtf | `Alt` read in feet, from the manual and the coast | 1 |
@@ -710,7 +710,7 @@ The files read, by the logger each names:
 | AltOS TeleMetrum-v2.0 | 6 |
 | AltOS TeleMetrum-v4.0 | 1 |
 | Big Red Bee BeeLine | 2 |
-| Eggtimer | 46 |
+| Eggtimer | 45 |
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
