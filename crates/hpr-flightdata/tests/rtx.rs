@@ -371,6 +371,34 @@ fn the_clock_runs_past_midnight() {
     assert_eq!(log.channels[0].time_s, [0.0, -43_200.0]);
 }
 
+/// A repeated pair of records written across midnight goes back to the day before, then on: each
+/// time takes the day nearest the one before it, in the `.rtx` and in an export.
+#[test]
+fn a_repeat_across_midnight_goes_back_a_day() {
+    let times = [235_959, 0, 235_959, 0, 1];
+    let log = rtx::read_raw(&build(&times.map(fix))).unwrap();
+    assert_eq!(log.channels[0].time_s, [0.0, 1.0, 0.0, 1.0, 2.0]);
+    let notes = log.notes.join("\n");
+    assert!(notes.contains("times go back 1 times"), "{notes}");
+    assert!(
+        notes.contains("1 times, each read as the day before's"),
+        "{notes}"
+    );
+    assert!(
+        notes.contains("2 times, each read as the next day's"),
+        "{notes}"
+    );
+    let mut csv =
+        String::from("UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG\n");
+    for time in times {
+        csv.push_str(&format!(
+            "{time:06},3259.01234N,10658.54321W,4593,0,2,122,9,12,40\n"
+        ));
+    }
+    let log = rtx::read_export(&csv).unwrap();
+    assert_eq!(log.channels[0].time_s, [0.0, 1.0, 0.0, 1.0, 2.0]);
+}
+
 /// A coordinate out of range is a gap, and so are both where both read 0, each counted.
 #[test]
 fn positions_out_of_range_are_gaps() {
@@ -404,6 +432,36 @@ fn positions_out_of_range_are_gaps() {
     ] {
         assert!(notes.contains(expected), "{expected}\n{notes}");
     }
+}
+
+/// An altitude of 0, the least a word holds, is counted as perhaps clamped; an export's
+/// coordinate past a word's 65,535 is a gap, as one out of range is.
+#[test]
+fn altitudes_at_zero_are_counted_and_long_coordinates_are_gaps() {
+    let mut pad = fix(120_000);
+    pad[8] = 0;
+    let log = rtx::read_raw(&build(&[pad, fix(120_001)])).unwrap();
+    assert_eq!(log.channels[2].values[0], 0.0);
+    let notes = log.notes.join("\n");
+    assert!(
+        notes.contains("1 `Altitude` values read exactly 0"),
+        "{notes}"
+    );
+    let log = rtx::read_raw(&build(&[fix(120_000)])).unwrap();
+    assert!(!log.notes.join("\n").contains("read exactly 0"));
+    let header = "UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG\n";
+    let log = rtx::read_export(&format!(
+        "{header}120000,99999.00000N,10658.54321W,0,0,2,122,9,12,40\n\
+         120001,65000.00000N,10658.54321W,4593,0,2,122,9,12,40\n"
+    ))
+    .unwrap();
+    assert!(log.channels[0].values.iter().all(|v| v.is_nan()));
+    let notes = log.notes.join("\n");
+    assert!(notes.contains("2 latitudes are out of range"), "{notes}");
+    assert!(
+        notes.contains("1 `Altitude` values read exactly 0"),
+        "{notes}"
+    );
 }
 
 /// An export's row of other than ten cells, or a cell that isn't its field's, refused by its

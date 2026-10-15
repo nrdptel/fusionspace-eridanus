@@ -2416,10 +2416,10 @@ struct RtxChecks {
 /// One `.rtx`: its id; its records, decoded here from the bytes apart from the reader; whether the
 /// reader's record holds the same fields, record for record; each CSV or text export beside it
 /// ([`RtxExport`]); the KML beside it, if any ([`RtxExport`], its feet unchecked); and, reported
-/// only, `SOG` over the speed between the fixes a second either side of it, and `COG` less the
-/// bearing between them, the medians over the fixes where `SOG` is at least 15, and the climb from
-/// the lowest of the 120 fixes before the highest to the highest over the highest altitude of a
-/// PerfectFlite log beside it: ratios and differences only, as the figures themselves would give
+/// only, `SOG` over the speed between the fixes a second either side of it, and how far `COG` lies
+/// from the bearing between them, the medians over the fixes where `SOG` is at least 15, and the
+/// climb from the lowest of the 120 fixes before the highest to the highest over the highest
+/// altitude of a PerfectFlite log beside it: ratios and differences only, as the figures themselves would give
 /// a private flight's site and apogee.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct RtxFile {
@@ -2429,7 +2429,7 @@ struct RtxFile {
     exports: Vec<RtxExport>,
     kml: Option<RtxExport>,
     sog_over_speed: Option<f64>,
-    cog_less_bearing_deg: Option<f64>,
+    cog_off_bearing_deg: Option<f64>,
     climb_over_barometric: Option<f64>,
 }
 
@@ -2548,6 +2548,22 @@ fn rtx_checks(samples: &[Sample]) -> RtxChecks {
             .find(|t| !t.is_nan())
             .unwrap_or(f64::NAN);
         let reader_matches = rtx_matches(&log, &records, zero, records.len(), false).is_some();
+        // An export beside it that is read as the RTx's but fails to read differs.
+        let unread_exports = samples
+            .iter()
+            .filter(|other| other.path.parent() == sample.path.parent())
+            .filter(|other| {
+                hpr_flightdata::import::detect(&other.bytes)
+                    .is_some_and(|f| matches!(f, LogFormat::RtxCsv | LogFormat::RtxText))
+            })
+            .filter(|other| hpr_flightdata::import::read(&other.bytes).is_err())
+            .map(|other| RtxExport {
+                format: hpr_flightdata::import::detect(&other.bytes)
+                    .map_or("", |f| f.name())
+                    .to_owned(),
+                worst_position_deg: f64::NAN,
+                ..RtxExport::default()
+            });
         let exports = beside(&[LogFormat::RtxCsv, LogFormat::RtxText])
             .iter()
             .map(|export| {
@@ -2566,12 +2582,13 @@ fn rtx_checks(samples: &[Sample]) -> RtxChecks {
                     altitude_as_written: rtx_feet(export, &records),
                 }
             })
+            .chain(unread_exports)
             .collect();
         let kml = beside(&[LogFormat::Kml])
             .iter()
             .find(|kml| kml.logger == "Missile Works RTx")
             .map(|kml| rtx_against_kml(kml, &records));
-        let (sog_over_speed, cog_less_bearing_deg) = rtx_motion(&records);
+        let (sog_over_speed, cog_off_bearing_deg) = rtx_motion(&records);
         let barometric = beside(&[LogFormat::PerfectFlitePf2])
             .iter()
             .flat_map(|pf2| pf2.altitude_m.clone())
@@ -2595,7 +2612,7 @@ fn rtx_checks(samples: &[Sample]) -> RtxChecks {
             exports,
             kml,
             sog_over_speed,
-            cog_less_bearing_deg,
+            cog_off_bearing_deg,
             climb_over_barometric,
         });
     }
@@ -2723,14 +2740,16 @@ fn rtx_against_kml(kml: &FlightLog, records: &[[f64; 10]]) -> RtxExport {
     }
 }
 
-/// `SOG` over the speed between the fixes either side of it, m/s, and `COG` less the bearing
-/// between them, degrees: the medians over the fixes where `SOG` is at least 15 and the fixes
-/// either side are 2 s apart, on a sphere of 6,371 km; `None` with none.
+/// `SOG` over the speed between the fixes either side of it, m/s, and how far `COG` lies from the
+/// bearing between them, degrees, either way: the medians over the fixes where `SOG` is at least
+/// 15 and the fixes either side are times of day 2 s apart, on a sphere of 6,371 km; `None` with
+/// none.
 fn rtx_motion(records: &[[f64; 10]]) -> (Option<f64>, Option<f64>) {
     let (mut ratios, mut offsets) = (Vec::new(), Vec::new());
     for k in 1..records.len().saturating_sub(1) {
         let (before, here, after) = (&records[k - 1], &records[k], &records[k + 1]);
-        if here[8] < 15.0 || (after[0] - before[0] - 2.0).abs() > 1e-9 {
+        // A gap's `NaN` time fails the test, as it must: `!(NaN <= x)`.
+        if here[8] < 15.0 || !((after[0] - before[0] - 2.0).abs() <= 1e-9) {
             continue;
         }
         let meters_per_degree = 6_371_000.0 * std::f64::consts::PI / 180.0;
@@ -2740,7 +2759,7 @@ fn rtx_motion(records: &[[f64; 10]]) -> (Option<f64>, Option<f64>) {
         if speed > 0.0 {
             ratios.push(here[8] / speed);
             let bearing = east.atan2(north).to_degrees().rem_euclid(360.0);
-            offsets.push((here[9] - bearing + 180.0).rem_euclid(360.0) - 180.0);
+            offsets.push(((here[9] - bearing + 180.0).rem_euclid(360.0) - 180.0).abs());
         }
     }
     let median = |mut values: Vec<f64>| {
@@ -3817,7 +3836,7 @@ fn markdown(report: &Report) -> String {
                         exports.join("; ")
                     },
                     figure(file.sog_over_speed, 2),
-                    figure(file.cog_less_bearing_deg, 1),
+                    figure(file.cog_off_bearing_deg, 1),
                     figure(file.climb_over_barometric, 3)
                 )
             })
@@ -3830,12 +3849,12 @@ fn markdown(report: &Report) -> String {
              degrees, cut toward zero at the sixth decimal (the largest difference given), their \
              altitude the record's meters × 3.280 84 rounded down to a foot (the KML's, its \
              meters as written). Reported only, the medians over the fixes where `SOG` is at \
-             least 15 of `SOG` over the speed between the fixes either side, m/s, and of `COG` \
-             less the bearing between them, degrees; and the climb from the lowest of the 120 \
+             least 15 of `SOG` over the speed between the fixes either side, m/s, and of how far \
+             `COG` lies from the bearing between them, degrees, either way; and the climb from the lowest of the 120 \
              fixes before the highest to the highest, over the highest altitude of a PerfectFlite \
              log flown beside the tracker:\n\n\
              | File | Records | Reader's record | Exports beside it | `SOG` over speed | `COG` \
-             less bearing, ° | Climb over barometric |\n\
+             off bearing, ° | Climb over barometric |\n\
              |---|---:|---|---|---:|---:|---:|\n{rows}\nDiffering: {}.\n",
             if rtx.differing.is_empty() {
                 "none".to_owned()
@@ -5361,13 +5380,15 @@ mod tests {
             lines[row] = &edited;
             lines.join("\r\n")
         };
-        // A course one degree off, a foot rounded up rather than down, and the last fix written.
+        // A course one degree off, a foot rounded up rather than down, the last fix written, and
+        // a course that isn't a number, so the export fails to read.
         let mut with_last = RTX_CSV.to_owned();
         with_last += "180027,3259.01321N,10658.54263W,4593,0,2,148,0,16,127\r\n";
         for (csv, every, feet) in [
             (edit(5, 9, "53"), false, true),
             (edit(1, 3, "4594"), true, false),
             (with_last, false, true),
+            (edit(5, 9, "east"), false, false),
         ] {
             let (report, unread) = survey(&rtx_samples(&csv), Vec::new());
             let export = &report.rtx_checks.per_file[0].exports[0];

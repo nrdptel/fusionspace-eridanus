@@ -1277,7 +1277,7 @@
           "altitude_as_written": true
         },
         "sog_over_speed": 4.003171311238384,
-        "cog_less_bearing_deg": -2.2192533872398883,
+        "cog_off_bearing_deg": 3.8198312918284216,
         "climb_over_barometric": 0.9793867642753553
       },
       {
@@ -1308,7 +1308,7 @@
           "altitude_as_written": true
         },
         "sog_over_speed": 3.5366896133156382,
-        "cog_less_bearing_deg": -0.18180615117273646,
+        "cog_off_bearing_deg": 4.287753990039391,
         "climb_over_barometric": 1.0711449816909995
       },
       {
@@ -1339,7 +1339,7 @@
           "altitude_as_written": true
         },
         "sog_over_speed": 3.607285293637395,
-        "cog_less_bearing_deg": 1.446856969328735,
+        "cog_off_bearing_deg": 6.913867415778782,
         "climb_over_barometric": 1.1499540018399264
       },
       {
@@ -1355,7 +1355,7 @@
           "altitude_as_written": true
         },
         "sog_over_speed": 3.483541773741424,
-        "cog_less_bearing_deg": -0.49579000234496107,
+        "cog_off_bearing_deg": 1.6676363133883,
         "climb_over_barometric": 0.003304118914638989
       },
       {
@@ -1386,7 +1386,7 @@
           "altitude_as_written": true
         },
         "sog_over_speed": 3.6622282672114777,
-        "cog_less_bearing_deg": -0.13577308003269195,
+        "cog_off_bearing_deg": 4.688149270010712,
         "climb_over_barometric": 0.9947113800104851
       }
     ],
@@ -1782,7 +1782,7 @@
     "08ef7f041962aad7 pf2 collection PerfectFlitePf2 496eb4b29226965a",
     "0902313a834dc518 debrief-synthetic-csv debrief refused:unrecognized -",
     "091416562386c8ca altos-csv collection AltosCsv 0e3ca637e2009d99",
-    "096375243584d110 rtx-csv collection RtxCsv b135917fd5cc7648",
+    "096375243584d110 rtx-csv collection RtxCsv 1e2f5434286d2c91",
     "09776126b608fcbe kml collection Kml d91f466e1ada9699",
     "09b12ad88fdb5e41 perfectflite-csv collection PerfectFliteCsv f51d96cfc043d395",
     "09b3f7feeffe3d1a nmea collection Nmea0183 249ae8dd7a883a07",
@@ -1804,7 +1804,7 @@
     "0c037a948815bb46 blueraven-summary-csv collection FeatherweightSummaryCsv 180b3910c467be9f",
     "0c7808a84fb39c83 csv collection refused:unrecognized -",
     "0c83c686fdf3fa80 pf2 collection PerfectFlitePf2 c0cff6d1f3849c87",
-    "0cfb74a4c988654b rtx-txt collection RtxText add8aee1c498a6ea",
+    "0cfb74a4c988654b rtx-txt collection RtxText 60de7d7bc1a4fbdb",
     "0d64071eb442ceaf e80-imu-txt collection RdasText e7c33ff9ddf16014",
     "0d9f842f4dd249d3 eggtimer-csv collection EggtimerCsv 182adffc488640d2",
     "0da542e62eb9221a blueraven-csv archives BlueRavenCsv 101dfe5a452a535e",
@@ -1812,7 +1812,7 @@
     "0e1a445135c0a219 rrc3-csv collection Rrc3Csv f3d887aec2875f7f",
     "0e2537156abd776a csv collection refused:unrecognized -",
     "0ed0a85f84b31849 perfectflite-txt collection PerfectFliteText c874a69a4c051edc",
-    "0ef081627f173419 missileworks-rtx collection RtxRaw fdeeaac155be3785",
+    "0ef081627f173419 missileworks-rtx collection RtxRaw 325218e0b7287d2c",
     "0ef41688774d1d2a altos-eeprom collection AltosEeprom 66162509b404baba",
     "0f05eb77c1d852f2 featherweight-summary-csv collection FeatherweightSummaryCsv 54fa62cf6333fa33",
     "0f8b8d9f9775ff98 pf2 collection PerfectFlitePf2 c97acdc854d8abba",
@@ -1877,7 +1877,7 @@
     "1b9914f2b095a2ca phone-launch-csv collection PhoneLaunchCsv 06ac34e68913af9c",
     "1bd061a33dad51bf blueraven-csv archives BlueRavenCsv 0ef46f2b07dcb9df",
     "1c6c2d12fccb3f08 blueraven-summary-csv collection FeatherweightSummaryCsv 7aae621498264da1",
-    "1d34c9a2ea3264f0 rtx-csv collection RtxCsv a253064eb2ce9241",
+    "1d34c9a2ea3264f0 rtx-csv collection RtxCsv 91f382662813c994",
     "1dd8a159039d943b kml collection Kml 73385c440b0da12b",
     "1eac3d58c44943fa altimetercloud-csv collection AltimeterCloudCsv 8cdcffe4064710f4",
     "1ef3cb99e6146737 pf2 collection PerfectFlitePf2 47ad60701d6f0e7c",
@@ -1929,7 +1929,7 @@
     "286a4bf9805bd60a fwgps-csv collection FeatherweightGpsCsv 8b7cb31f4f9df5db",
     "28a11da1eaf93e69 entacore-aim-csv collection EntacoreAimCsv 7c22b99f072ca81a",
     "28b3d3e5809e4b80 e80-imu-txt collection RdasText d7e3151f7b25d98d",
-    "2920bddb383455de rtx-csv collection RtxCsv 2ec067bfc2e8d0f6",
+    "2920bddb383455de rtx-csv collection RtxCsv 88c1d75dec0fe254",
     "292cd2cbeeb151d1 phone-launch-csv collection PhoneLaunchCsv c70e783cccf1c66c",
     "29315c57b633641e rrc3-csv collection Rrc3Csv 036bd360b1b5c583",
     "29907c6e34084720 raven-fipa collection RavenFipa 08e69eb2596082ec",
@@ -1973,7 +1973,7 @@
     "331cb6495d937600 raven-csv collection RavenFipCsv ff9fb98f232cecd4",
     "337085b778a9bf48 e80-imu-txt collection RdasText 39929ac70c6f4e03",
     "337d3c6eca3b279c pf2 collection PerfectFlitePf2 1ae61a3ad41ec012",
-    "338d96e93ea3dc64 missileworks-rtx collection RtxRaw 46c3639779013559",
+    "338d96e93ea3dc64 missileworks-rtx collection RtxRaw 7f1e5ec747cd19c6",
     "33ac0b0732d805b3 eggtimer-csv collection EggtimerCsv 003b77bbe7605dc0",
     "33c6927e3e1c9bf5 pf2 collection PerfectFlitePf2 61e4956be9e7a9bb",
     "34424014d34aaac8 jpeg collection refused:unrecognized -",
@@ -2020,7 +2020,7 @@
     "3c9adc2b02bb76e8 kml collection Kml 0d7fed06a086f909",
     "3ca8accfe63d99ad featherweight-summary-csv collection FeatherweightSummaryCsv 40d5690fd6aaa9f7",
     "3ceefc7b18f1a382 rrc3-rff collection Rrc3Rff e3bded6ed1eb53ec",
-    "3d1d6c4ef87ce0da rtx-csv collection RtxCsv a244226ca8f98b3b",
+    "3d1d6c4ef87ce0da rtx-csv collection RtxCsv b5eb7eef51530142",
     "3d772c7a67bf929b raven-csv collection RavenFipCsv 3f337758c22e8612",
     "3d7dd60246100b36 blueraven-csv collection BlueRavenCsv d7abdbb3b2d01f96",
     "3df87e4a5cb73167 aerospacenu-sillygoose-txt aerospacenu SillyGooseText 446bd312ae37c9e7",
@@ -2039,7 +2039,7 @@
     "4151a819d5ce2ca1 perfectflite-csv collection PerfectFliteCsv 42b3af93841d2de7",
     "419f0ec872abda2d txt collection refused:unrecognized -",
     "420fc7e37e2db417 png collection refused:unrecognized -",
-    "4228b05ebc899f6d missileworks-rtx collection RtxRaw b64f365be7b34563",
+    "4228b05ebc899f6d missileworks-rtx collection RtxRaw df1cecd3399ba50a",
     "4243bc06d5f49f2a csv collection refused:unrecognized -",
     "425b1ac3fbe4f794 txt collection refused:unrecognized -",
     "430e151a84016c4c e80-imu-txt collection RdasText 45b70499751658e2",
@@ -2241,7 +2241,7 @@
     "73115a1066a7294d altos-telem collection AltosTelemetry 75ff59647ab9b720",
     "73304debd898b712 csv collection refused:unrecognized -",
     "73820946d69ed259 blueraven-csv collection BlueRavenCsv 47f7241e0c4fa4c7",
-    "74201deabc8b669a rtx-txt collection RtxText 42a70a43dbbe2994",
+    "74201deabc8b669a rtx-txt collection RtxText ee9de428c753f8d0",
     "74230c89a47a0817 pf2 collection PerfectFlitePf2 456f3d0ee94f0ea8",
     "74484262eb36c1e0 blueraven-csv collection BlueRavenCsv 22ef073714e31848",
     "7484d0055ba6d7be pf2 collection PerfectFlitePf2 65148fda936d09bb",
@@ -2350,7 +2350,7 @@
     "8ab8505ee7c72e01 altos-csv collection AltosCsv 97b0bca8fe7de934",
     "8b0df0301ab3a107 raven-fipa collection RavenFipa f9d20b92950839a0",
     "8b3f6948668a7905 rrc3-csv collection Rrc3Csv 79fcfc6d7791aa58",
-    "8b482eb6ae9af583 rtx-txt collection RtxText e443ed8c8dac3695",
+    "8b482eb6ae9af583 rtx-txt collection RtxText f5d989bda57b020b",
     "8b60e9e70dba4dee pf2 collection PerfectFlitePf2 53b69e1c05a4d36e",
     "8b70dbd8d2f71e7f pf2 collection PerfectFlitePf2 1bf7eef96b9a0f2d",
     "8b919d1c2e195975 raven-fipa collection RavenFipa d862ac6a5e1ecb8c",
@@ -2457,7 +2457,7 @@
     "a5751ffa3e8310c3 altos-csv collection AltosCsv 1edffbf14fbde734",
     "a5b75c6656a7bc50 raven-fipa collection RavenFipa c2bf910bb19092ce",
     "a601fc98238e2546 txt collection refused:unrecognized -",
-    "a65103199f08052b rtx-txt collection RtxText 5cec217f7f752ec4",
+    "a65103199f08052b rtx-txt collection RtxText f5833bb1b5f06cc0",
     "a67bdeaf23283bd7 entacore-aim-csv collection EntacoreAimCsv b6f58ea50c3ed712",
     "a6b833db7b9242a9 altos-csv collection AltosCsv 15eb5681123d8e5d",
     "a75ff1c8e436072c blueraven-csv collection BlueRavenCsv 79039d8188848d19",
@@ -2513,7 +2513,7 @@
     "b122d4bddf7a8a89 altos-eeprom collection AltosEeprom f786da93e56623e0",
     "b1521ade6ff786c5 e80-imu-txt collection RdasText 31e3afbb531f6f0a",
     "b1581a96e0e7340d raven-fipa collection RavenFipa 9f477af0726e3e70",
-    "b1a16428685d2881 missileworks-rtx collection RtxRaw 4917f9f5464c21bd",
+    "b1a16428685d2881 missileworks-rtx collection RtxRaw 91b3bbd3bf1b13a8",
     "b1bc4b3a856d71f1 phone-launch-csv collection PhoneLaunchCsv 1c286567bfecd1aa",
     "b1bff5dfe67d1cc5 raven-fipa collection RavenFipa 5b65236268a1de07",
     "b26cc0ad79d74a7b rocket-parameters collection refused:unrecognized -",
@@ -2846,7 +2846,7 @@
     "fb81b7ff34edca8c blueraven-csv collection BlueRavenCsv 971e93d18d7ed076",
     "fbc9951b98ece4e1 altos-csv collection AltosCsv f21f87ae252f60d3",
     "fbf4235ccdda04c5 altos-csv collection AltosCsv 6b285a43ae9043fa",
-    "fc937944649779db rtx-csv collection RtxCsv 8f02f1839883c242",
+    "fc937944649779db rtx-csv collection RtxCsv b0a4d7394d2e96b6",
     "fd16c06c881aad0a altos-csv collection AltosCsv 16a0cc5b4b1e41fc",
     "fd47e2ca14e7e873 featherweight-summary-csv collection FeatherweightSummaryCsv 25d2d1ded91e1509",
     "fd61caa7235b81b6 csv collection refused:unrecognized -",

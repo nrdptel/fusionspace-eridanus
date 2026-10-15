@@ -277,11 +277,11 @@ out.
   records as the raw CSV and agreeing with DataAnalyzer's export in all 3 samples, the
   acceleration within half a count and the barometric altitude in order only
   ([M7.1c11](decisions-and-roadmap.md#m7-1c11), [the layout](format/flight-logs.md#the-arts2s-raw-data)),
-  Missile Works' RTx GPS tracker's `.rtx` file, its words decoded from the files and agreeing
-  with mDACS's CSV, text and KML exports on every fix but the last, which the exports leave out,
-  in all 5 samples ([M7.1c12](decisions-and-roadmap.md#m7-1c12),
-  [the layout](format/flight-logs.md#missile-works-rtx)), and its exports,
-  and GPS tracks from Featherweight's GPS tracker,
+  Missile Works' RTx GPS tracker's `.rtx` file and its CSV and text exports, the `.rtx`'s words
+  decoded from the files and agreeing with mDACS's exports on every fix but the last, which the
+  exports leave out, in all 5 samples, every field in 4 and positions and altitudes in the fifth
+  ([M7.1c12](decisions-and-roadmap.md#m7-1c12),
+  [the layout](format/flight-logs.md#missile-works-rtx)), and GPS tracks from Featherweight's GPS tracker,
   KML and NMEA files, every column kept on its own clock, and unpacks a zip archive of a flight's files to read each one
   ([M7.1c7](decisions-and-roadmap.md#m7-1c7)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone

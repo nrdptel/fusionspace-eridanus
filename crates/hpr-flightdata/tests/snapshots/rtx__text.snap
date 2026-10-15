@@ -621,7 +621,7 @@ expression: log
     "times go back 1 times from one record to the next, by up to 1 s, and 2 records repeat a time already written: every record is kept, in the file's order",
     "1 records hold a time that isn't a time of day, such as 4278370088: their times are gaps",
     "`Alt` read in feet, from the `.rtx` files beside the sample exports: whole feet, the `.rtx`'s meters × 3.280 84 rounded down, read as 0.3048 m each",
-    "`Vel` and `SOG` kept as written, in units no document states: `SOG` runs about 3.6 times the speed between fixes, as kilometers an hour would, and the velocity about 255 times the climb rate while it climbs",
+    "`Vel` and `SOG` kept as written, in units no document states: `SOG` runs about 3.6 times the speed between fixes, as kilometers an hour would, and the velocity far more than the climb rate while it climbs",
     "`COG` read in degrees, from the positions: the course over ground, within a few degrees of the bearing between the fixes either side while the tracker moves",
     "the software writes every record of its `.rtx` file but the last: the `.rtx` holds one more fix"
   ]

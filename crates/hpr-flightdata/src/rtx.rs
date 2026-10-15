@@ -23,8 +23,8 @@
 //! (3¹⁸), modulo 10⁹. The reader multiplies by 513,180,409, that multiplier's inverse modulo 10⁹,
 //! to read it back. Three things in the files show it: the slot that holds the time of day steps
 //! by exactly 387,420,489, modulo 10⁹, from one record to the next a second later; every one of
-//! the 249,856 slots in use in the 5 files lies from 0 to 10⁹ − 1 and reads back as a value below
-//! 65,536, which a slot of random bits would do about once in 66,000; and the values read back
+//! the 264,336 slots in use in the 5 files lies from 0 to 10⁹ − 1 and reads back as a value below
+//! 65,536, which a slot drawn at random from that range would do about once in 15,000; and the values read back
 //! equal the exports' figures, field by field, on every row (`cargo xtask logs` compares them). A
 //! slot outside 0 to 10⁹ − 1, or one that reads back past 65,535, is refused.
 //!
@@ -50,27 +50,30 @@
 //!
 //! The leading 1 keeps a minute's decimals' leading zeros, as `193418` holds `.93418`.
 //!
-//! **Units and the second checks.** The altitude is in whole meters: the RTx's manual says its
-//! GPS altitude "is always expressed as Mean Sea Level" (p13), the KML export beside each
-//! sample file writes the word itself, as meters, on every point, and the CSV and text exports
-//! write the word × 3.280 84 ft rounded down on every row. A word can't fall below 0: in 4 of the 5 sample files, from pads near sea level, it reads 0
-//! for most of the fixes, as a receiver's altitude clamped at 0 would. Two checks a reader of one file can't make
-//! bear the meters out, and the survey makes them: the exports' feet and meters, and the climb
-//! from the pad to the highest fix against the barometric altimeter flown beside the tracker
-//! (`cargo xtask logs`). `COG` is a course in degrees, as a GPS receiver's course over ground is:
-//! it lies from 0 to 359 in the sample files, and in each the median difference from the bearing
-//! between the fixes a second either side of it, while the tracker moves, is within 2.2°.
-//! `Velocity` and `SOG` are kept as written: `SOG` runs 3.5 to 4.0 times the speed between fixes
-//! in meters a second, the median in each file, as kilometers an hour would, one of the two
-//! speed units the RTx's display offers (p12), but no document says which unit the file holds,
-//! and feet a second would give 3.3; `Velocity` reads, while the rocket climbs, 255 times about
-//! the climb rate in meters a second, and while it falls, about the fall rate itself, a pattern
-//! no document explains. `VDOP`, `NavStatus` and `Sats` are numbers, and word 15, which
-//! runs from 814 to 2,272 in the sample files, is kept as written.
+//! **Units and the second checks.** The altitude is in whole meters: the RTx's manual says its GPS
+//! altitude "is always expressed as Mean Sea Level" (p13), the KML export beside each sample file
+//! writes the word itself, as meters, on every point, and the CSV and text exports write the word ×
+//! 3.280 84 ft rounded down on every row. A word can't fall below 0: in 4 of the 5 sample files,
+//! from pads near sea level, it reads 0 for most of the fixes, as a receiver's altitude clamped at
+//! 0 would, and a note counts those 0s. The survey (`cargo xtask logs`) holds the exports' feet and
+//! meters to the words, and reports, without checking, the climb from the pad to the highest fix
+//! against the barometric altimeter flown beside the tracker: 0.98 to 1.15 times it in 4 flights.
+//! `COG` is a course in degrees, as a GPS receiver's course over ground is: it lies from 0 to 359
+//! in the sample files, and in each the median difference either way from the bearing between the
+//! fixes a second either side of it, while the tracker moves, is 1.7° to 6.9°. `Velocity` and `SOG`
+//! are kept as written: `SOG` runs 3.5 to 4.0 times the speed between fixes in meters a second, the
+//! median in each file, as kilometers an hour would, one of the two speed units the RTx's display
+//! offers (p12), but no document says which unit the file holds, and feet a second would give 3.3;
+//! `Velocity` reads, while the rocket climbs, far more than the climb rate in meters a second, and
+//! while it falls, about the fall rate itself, a pattern no document explains. `VDOP`, `NavStatus`
+//! and `Sats` are numbers, and word 15, which runs from 814 to 2,272 in the sample files, is kept
+//! as written.
 //!
 //! **The clock** is the GPS's time of day, UTC, in whole seconds; the file states no date. The
-//! log's zero is the first record's time; a time more than 12 hours before the one before it is
-//! read as the next day's. Records keep the file's order, so a time may go back: in 3 of the 5
+//! log's zero is the first record's time; each time takes the day that puts it nearest the one
+//! before it, so a time more than 12 hours before the one before is read as the next day's, and
+//! one more than 12 hours after it, as a repeated pair written across midnight would be, as the
+//! day before's. Records keep the file's order, so a time may go back: in 3 of the 5
 //! sample files a pair of records repeats the pair before it a second back, as `t`, `t + 1`, `t`,
 //! `t + 1`. A note counts how often times go back. A time that isn't a time of day, such as the
 //! record in one sample file whose word 1 reads 65,282 where every other reads 2, as a garbled
@@ -165,7 +168,8 @@ const DECIMALS_LEAD: u32 = 100_000;
 /// A day, s.
 const DAY_S: f64 = 86_400.0;
 
-/// A time this far before the one before it is the next day's, s.
+/// A time this far before the one before it is the next day's, and this far after it the day
+/// before's, s.
 const NEXT_DAY_S: f64 = DAY_S / 2.0;
 
 /// A foot, m (international foot).
@@ -190,7 +194,7 @@ const TEXT_HEADER: [&str; 12] = [
     "UTC", "Lat", "", "Lon", "", "Alt", "Vel", "VDOP", "Nav", "Sats", "SOG", "COG",
 ];
 
-/// The step of the `.rtx`'s altitude, m, and of the exports', a foot.
+/// The `.rtx`'s altitude step, m.
 pub const ALTITUDE_STEP_M: f64 = 1.0;
 
 /// The exports' altitude step, m.
@@ -294,6 +298,7 @@ struct Counts {
     bad_longitudes: usize,
     no_fix: usize,
     next_days: usize,
+    days_before: usize,
 }
 
 /// One fix's time and position, before the clock is made.
@@ -304,7 +309,9 @@ struct Fix {
 }
 
 /// The clock: each fix's time from the first that is a time of day, `NaN` for one that isn't; and
-/// the zero's `HHMMSS`. A time more than 12 hours before the one before it is the next day's.
+/// the zero's `HHMMSS`. Each time takes the day that puts it nearest the one before it: a time more
+/// than 12 hours before the one before is the next day's, and one more than 12 hours after it the
+/// day before's, as a repeated pair of records written across midnight is.
 fn clock(fixes: &[Fix], counts: &mut Counts) -> Option<(Vec<f64>, u64)> {
     let mut zero: Option<(f64, u64)> = None;
     let mut day = 0.0;
@@ -320,6 +327,9 @@ fn clock(fixes: &[Fix], counts: &mut Counts) -> Option<(Vec<f64>, u64)> {
         if last.is_some_and(|last| of_day + day < last - NEXT_DAY_S) {
             day += DAY_S;
             counts.next_days += 1;
+        } else if last.is_some_and(|last| of_day + day > last + NEXT_DAY_S) {
+            day -= DAY_S;
+            counts.days_before += 1;
         }
         let at = of_day + day;
         last = Some(at);
@@ -359,6 +369,13 @@ fn clock_notes(time_s: &[f64], zero: u64, counts: &Counts, quoted: &str) -> Vec<
             "times fall more than 12 hours behind the one before {} times, each read as the next \
              day's",
             counts.next_days
+        ));
+    }
+    if counts.days_before > 0 {
+        notes.push(format!(
+            "times run more than 12 hours ahead of the one before {} times, each read as the day \
+             before's",
+            counts.days_before
         ));
     }
     if counts.bad_times > 0 {
@@ -593,7 +610,8 @@ pub fn read_raw(bytes: &[u8]) -> Result<FlightLog, LogError> {
         ),
     ];
     notes.extend(clock_notes(&time_s, zero, &counts, "UTC Time"));
-    notes.extend(units_notes("Altitude", "Velocity", true));
+    let at_zero = records.iter().filter(|r| r[8] == 0).count();
+    notes.extend(units_notes("Altitude", "Velocity", true, at_zero));
     notes.push(
         "`word 15` kept as written, a word the exports leave out: no document names it".to_owned(),
     );
@@ -601,9 +619,10 @@ pub fn read_raw(bytes: &[u8]) -> Result<FlightLog, LogError> {
 }
 
 /// The notes on the fields' units, by the file's column names: the altitude's, the velocity's
-/// and the course's; `raw` for the `.rtx`, whose altitude is in meters, not an export's feet.
-fn units_notes(altitude: &str, velocity: &str, raw: bool) -> Vec<String> {
-    vec![
+/// and the course's; `raw` for the `.rtx`, whose altitude is in meters, not an export's feet; and
+/// the count of altitudes at 0, the least a word holds, each perhaps a lower one clamped.
+fn units_notes(altitude: &str, velocity: &str, raw: bool, at_zero: usize) -> Vec<String> {
+    let mut notes = vec![
         if raw {
             format!(
                 "`{altitude}` read in meters, from the manual and the exports: whole meters, above \
@@ -620,12 +639,19 @@ fn units_notes(altitude: &str, velocity: &str, raw: bool) -> Vec<String> {
         format!(
             "`{velocity}` and `SOG` kept as written, in units no document states: `SOG` runs \
              about 3.6 times the speed between fixes, as kilometers an hour would, and the \
-             velocity about 255 times the climb rate while it climbs"
+             velocity far more than the climb rate while it climbs"
         ),
         "`COG` read in degrees, from the positions: the course over ground, within a few \
          degrees of the bearing between the fixes either side while the tracker moves"
             .to_owned(),
-    ]
+    ];
+    if at_zero > 0 {
+        notes.push(format!(
+            "{at_zero} `{altitude}` values read exactly 0, the least the file can hold: each \
+             stands for 0 m or lower, as an altitude clamped at 0 would"
+        ));
+    }
+    notes
 }
 
 /// The record every RTx file reads into.
@@ -676,7 +702,10 @@ fn coordinate_cell(cell: &str, letters: [u8; 2], most: f64) -> Result<Option<f64
     {
         return Err(());
     }
-    let degrees_minutes: u16 = whole.parse().map_err(|_| ())?;
+    // All digits, so the only failure is a number past a word's 65,535: out of range, a gap.
+    let Ok(degrees_minutes) = whole.parse::<u16>() else {
+        return Ok(None);
+    };
     let decimals: u32 = decimals.parse().map_err(|_| ())?;
     Ok(coordinate(
         degrees_minutes,
@@ -781,7 +810,8 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
     for note in clock_notes(&time_s, zero, &counts, names[0]) {
         notes.push(note);
     }
-    for note in units_notes(names[3], names[4], false) {
+    let at_zero = rows.iter().filter(|r| r[0] == 0.0).count();
+    for note in units_notes(names[3], names[4], false, at_zero) {
         notes.push(note);
     }
     notes.push(

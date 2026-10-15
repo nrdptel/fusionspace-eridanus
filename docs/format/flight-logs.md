@@ -42,6 +42,10 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > follows a layout worked out from the files; the `.odf`'s units rest on its own calibration and
 > the sensors' data sheets, held to a climb check, and all 3 sample `.odf` files agree with the
 > raw CSV and the interpreted export beside them ([the ARTS2's raw data](#the-arts2s-raw-data)).
+> Missile Works' RTx `.rtx`, read since [M7.1c12](../decisions-and-roadmap.md#m7-1c12), follows a
+> layout worked out from the files, and all 5 sample files agree with mDACS's exports beside them
+> on every fix the exports hold; its velocity and speed over ground are kept as written
+> ([Missile Works' RTx](#missile-works-rtx)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c13](../decisions-and-roadmap.md#m7-1c13), the other loggers' formats.
 
@@ -953,7 +957,8 @@ on it until [M7.2](../decisions-and-roadmap.md#m7-2), the milestone that reads o
 > pad. The clocks are the files' own, and some don't state their time zone. Heights from KML
 > files are the least sure: one writer's are feet written as meters, kept as written, and two
 > files rise less than half as high as the barometer on the same flight did
-> ([units no source states](#units-no-source-states)).
+> ([units no source states](#units-no-source-states)). The RTx's altitudes can't go below 0, so
+> near sea level many read exactly 0 ([Missile Works' RTx](#missile-works-rtx)).
 
 Four layouts are read. Each point's time is the one the file gives it; where it gives none, the
 point keeps its place with its time a gap.
@@ -1028,27 +1033,32 @@ Manual*, firmware 1.31, Missile Works, 2016-11-26, pp2, 14). Missile Works' mDAC
 download as an `.rtx` file and exports it to CSV, text and KML (*mDACS User Manual*, revision
 1.71, May 2024, p16). The KML is read as [above](#gps-logs); the `.rtx` and the CSV and text
 exports by `hpr_flightdata::rtx`. Neither manual describes the files: what follows was worked out
-from the 5 `.rtx` files among the sample logs and the 13 exports beside them, with no other
-program's source read
-([ADR-267](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)).
+from the 5 `.rtx` files among the sample logs and the 13 exports beside them (8 CSV and text, 5
+KML), with no other program's source read
+([ADR-267, reading the RTx before the other layouts](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)).
+Like every GPS log here, an RTx file feeds no reading yet: the readings wait for a barometer's
+track (see [GPS logs](#gps-logs)).
 
-> **How far to trust it.** Every field the reader converts agrees with mDACS's own exports on
-> every row of the 5 sample `.rtx` files; in 4 flights the tracker's climb is 0.98 to 1.15 times
-> the highest altitude of the barometric altimeter flown beside it. The velocity and the speed
-> over ground stay in the file's own numbers, since no document gives their units. The fixes are
-> the receiver's; HPR Sim claims no accuracy for them.
+> **How far to trust it.** In 4 of the 5 sample `.rtx` files every field the reader converts
+> agrees with mDACS's own exports on every fix they hold (all but the last), positions written
+> in degrees to their sixth decimal; the fifth has only a KML beside it, which holds no times,
+> so there only the positions and altitudes are compared. In 4 flights the tracker's climb is
+> 0.98 to 1.15 times the highest altitude of the barometric altimeter flown beside it, a figure
+> [the survey](#how-it-was-checked) reports but doesn't check. The velocity and the speed over
+> ground stay in the file's own numbers, since no document gives their units. The fixes are the
+> receiver's; HPR Sim claims no accuracy for them.
 
-- *The `.rtx`.* A .NET `BinaryFormatter` stream of one list of 65,536 32-bit integers, in the
-  layout Microsoft publishes as MS-NRBF: 4,096 records of 16 *slots*, 68.3 minutes at one a
+- *The `.rtx`.* A stream written by .NET's built-in object serializer, `BinaryFormatter`,
+  holding one list of 65,536 32-bit integers, in the layout Microsoft publishes as MS-NRBF: 4,096 records of 16 *slots*, 68.3 minutes at one a
   second, the manual's flight. The list's size counts the slots in use; the rest are 0.
 - *The slots.* Each holds a 16-bit number, a *word*, but not as written: the word times
   387,420,489 ($3^{18}$), keeping only the remainder after dividing by $10^9$. Multiplying a slot
   by 513,180,409 and keeping the same remainder gives the word back, because
   $387\,420\,489 \times 513\,180\,409$ leaves a remainder of 1. The files show it three ways: the
   slot holding the time steps by exactly 387,420,489, less any whole $10^9$, from one fix to the
-  next a second later; every one of the 249,856 slots in use in the sample files reads back as a
-  word below 65,536, which a slot of random bits would do about once in 66,000; and the words
-  equal the exports' figures, field by field.
+  next a second later; every one of the 264,336 slots in use in the sample files reads back as a
+  word below 65,536, which a slot drawn at random from 0 to $10^9 - 1$ would do about once in
+  15,000; and the words equal the exports' figures, field by field.
 - *The words.* Each record is one fix:
 
   | Words | Field | Read as |
@@ -1061,7 +1071,7 @@ program's source read
   | 9 | `Velocity` | as written |
   | 10 | `VDOP`, the vertical dilution of precision | as written |
   | 11 | the hemispheres: `N` or `S` in its low byte, `E` or `W` in its high | |
-  | 12 | `NavStatus` in its low byte, `Sats` (satellites used) in its high | as written |
+  | 12 | `NavStatus`, the receiver's fix status, in its low byte; `Sats` (satellites used) in its high | as written |
   | 13 | `SOG`, the speed over ground | as written |
   | 14 | `COG`, the course over ground, degrees | |
   | 15 | a word the exports leave out, 814 to 2,272 in the sample files | as written |
@@ -1072,21 +1082,28 @@ program's source read
   decimal and a degree sign; the altitude in whole feet, the meters × 3.280 84 rounded down, which
   the reader converts back to meters; and the rest as the `.rtx` holds them. The text file's header names two
   empty columns its rows don't have.
-- *Units.* The altitude is in meters: the manual says the GPS altitude "is always expressed as
-  Mean Sea Level" (p13); the KML export beside each sample file writes the word as meters, and
-  the CSV and text exports convert it to feet; and the climb from the pad to the highest fix
-  agrees with the barometric altimeter flown beside the tracker, as above, where feet would be
-  3.3 times off. In the fifth flight the tracker's memory, all 4,096 fixes, filled about half an
-  hour before the launch, so its file holds no flight. A word can't go below 0: in 4 of the 5
-  sample files, from pads near sea level, most fixes read exactly 0. The course is in degrees: it
-  lies within 2.2° of the bearing between the fixes either side of it, the median in each file.
-  The speed over ground runs 3.5 to 4.0 times the speed between fixes in m/s, by file, as km/h
-  would, one of the two speed units the tracker's display offers (p12), but nothing says which
-  unit the file holds, and feet a second would give 3.3; the velocity reads, while the rocket
-  climbs, 255 times about its climb rate in m/s, and while it falls about the fall rate itself.
-  Both are kept as written.
+- *Units.*
+  - *Altitude, meters.* The manual says the GPS altitude "is always expressed as Mean Sea Level"
+    (p13); the KML export beside each sample file writes the word as meters, and the CSV and text
+    exports convert it to feet. All three come from mDACS reading the same word, so the survey
+    adds one more check, reported but not enforced: the climb from the pad to the highest fix
+    agrees with the barometric altimeter flown beside the tracker, as above, where feet would be
+    3.3 times off. The fifth file's list is full and holds a climb of 0.003 times the
+    altimeter's: its memory filled before the flight.
+  - *Altitude at 0.* The file can't hold an altitude below 0, so the receiver's altitude looks
+    clamped there: in 4 of the 5 sample files, from pads near sea level, most fixes read exactly
+    0. A note counts them; each means 0 m or lower.
+  - *Course, degrees.* It lies 1.7° to 6.9° from the bearing between the fixes either side of
+    it, the median difference either way in each file, while the tracker moves.
+  - *Speed over ground and velocity, as written.* The speed over ground runs 3.5 to 4.0 times
+    the speed between fixes in m/s, by file, as km/h would, one of the two speed units the
+    tracker's display offers (p12), but nothing says which unit the file holds, and feet a
+    second would give 3.3. The velocity reads far more than the climb rate in m/s while the
+    rocket climbs, and about the fall rate itself while it falls, a pattern no document
+    explains. Plotted, both show when the tracker moved, but not how fast in any known unit.
 - *The clock.* The GPS's time of day, UTC, in whole seconds, with no date; the log's zero is the
-  first fix's. A time more than 12 hours before the one before is the next day's. In 3 of the 5
+  first fix's. Each time takes the day that puts it nearest the one before it, so the clock runs
+  on past midnight UTC, and a repeat written across midnight goes back to the day before. In 3 of the 5
   sample files a pair of fixes repeats the pair before it a second back; every fix is kept in the
   file's order, with a note. In one file, one fix's time reads 65,282 × 65,536 more than it
   should, as a garbled radio packet's might: a time that isn't a time of day is a gap, counted in
