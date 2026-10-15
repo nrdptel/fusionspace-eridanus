@@ -9,8 +9,9 @@ record, the same for every logger, so that what comes after (the readings, and l
 comparison with a simulation) doesn't depend on which altimeter flew.
 
 > **How far to trust it.** Every sample log the project holds of the layouts below is read,
-> except one AltOS export whose header line is damaged and 4 sheets inside the sample Excel
-> workbooks ([Excel workbooks](#excel-workbooks))
+> except one AltOS export whose header line is damaged, an Eggtimer download whose decimal points
+> were taken out, an RRC3 export whose rows were sorted out of order, and 4 sheets inside the
+> sample Excel workbooks ([Excel workbooks](#excel-workbooks))
 > ([how it was checked](#how-it-was-checked)). No maker publishes a specification of these
 > layouts, so each reader follows what the files show, the makers' manuals and the notes of
 > Debrief, the project owner's earlier flight-log analyzer, with each unit checked where the
@@ -699,7 +700,8 @@ sample logs:
 - **An Eggtimer's clock, worked out from the file.** The Classic and TRS write their time in
   milliseconds, the Quantum and Proton in seconds, under the same `T`. The reader takes
   milliseconds when the median step is above 5: the manuals' rates, 1 to 33 samples a second, put
-  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 44
+  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. In the CSV
+  download, a step above 1 and below 30 is refused (below). Of the 44
   Eggtimer files read, 4 are read in milliseconds and 40 in seconds.
 - **An Eggtimer's heights and speeds, from the manuals.** The Classic and TRS manuals state feet
   and feet per second. The Quantum and Proton manuals state no unit for the download, but give
@@ -717,7 +719,8 @@ sample logs:
   100 times. A refused file's numbers can't be trusted, its clock's among them: a seconds clock
   written without its decimal point reads as milliseconds. The check doesn't catch a column off
   by less than a factor of 2, such as a filtered altitude in meters (0.3048 times). On the 44
-  sample files read, the multiplier is 0.900 to 1.000 (the [survey's report](#how-it-was-checked)
+  sample files read, the multiplier is 0.900 to 1.000 (the
+  [survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md)
   prints the range). A 45th, a download a spreadsheet saved with its decimal points taken out
   (`12.34` written `1234`), gives 99.9 and is refused, and counted as damaged. In the CSV
   download, a median step between rows above 1 and below 30 is neither seconds nor milliseconds at
@@ -1983,8 +1986,9 @@ the climb check stands in for.
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
 holds: the private collection's catalog of flight logs, the public fixtures and samples of
 Debrief, and AerospaceNU's published flight logs, each distinct file once. It leaves out a cache
-of downloads whose flights' logs the collection already catalogs, and RocketPy's processed flight
-tables, which no logger wrote. It writes what came of each to
+of downloads whose flights' logs the collection already catalogs, and the data folder of
+RocketPy's repository, tables RocketPy processed; the teams' logs from it that the collection
+catalogs are read like any other. It writes what came of each to
 [`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md):
 per layout, how many files were read and how many refused and why; how many files' readers
 decided each unit their headers leave out, and how; how each raw download compares with its

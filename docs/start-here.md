@@ -290,8 +290,9 @@ out.
   ([M7.1c7](decisions-and-roadmap.md#m7-1c7)), and an Excel workbook's sheets, each read as a file,
   every cell of the 16 sample workbooks agreeing with an independent reader's
   ([M7.1c14](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)),
-  Eggtimer and RRC3 exports saved by a European locale's spreadsheet, and six team tables read by
-  the column mapping RocketPy states for them
+  Eggtimer and RRC3 exports saved by a European locale's spreadsheet (decimal commas tested on
+  invented files), and, in the survey, six team tables read by the column mapping RocketPy states
+  for them
   ([M7.1c15](decisions-and-roadmap.md#m7-1c15),
   [the mappings](format/flight-logs.md#mappings-a-publisher-states)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone

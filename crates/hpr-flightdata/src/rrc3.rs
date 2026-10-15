@@ -473,7 +473,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 }
 
 /// Reads the data rows (module docs, *Short rows*). Under a header that ends with a semicolon
-/// (`trailing`), a row that ends with one too, full or short, has its last cell, empty, dropped.
+/// (`trailing`), a row that ends with one too, full or short, has its last cell, empty, dropped;
+/// a row that is full or short as it stands, its last real cell empty, is read as written.
 fn read_rows<'a>(
     lines: impl Iterator<Item = (usize, &'a str)>,
     separator: char,
@@ -500,8 +501,13 @@ fn read_rows<'a>(
     let mut placed: Vec<Option<&str>> = vec![None; width];
     for (number, line) in lines {
         let mut cells: Vec<&str> = line.split(separator).map(str::trim).collect();
-        // A row ends with the semicolon too, full or short: its last cell, empty, is dropped.
-        if trailing && line.trim_end().ends_with(';') && cells.last().is_some_and(|c| c.is_empty())
+        // A row ends with the semicolon too, full or short: its last cell, empty, is dropped,
+        // where that leaves a full or short row; a row of either width as it stands, its last
+        // real cell empty, is read as written.
+        if trailing
+            && line.trim_end().ends_with(';')
+            && cells.last().is_some_and(|c| c.is_empty())
+            && (cells.len() == width + 1 || cells.len() == fast.len() + 1)
         {
             cells.pop();
         }
@@ -1514,6 +1520,19 @@ mod tests {
         assert_eq!(padded.matches(";;;\n").count(), 3);
         let json = |log: &FlightLog| serde_json::to_string(&log.channels).unwrap();
         assert_eq!(json(&read(&padded).unwrap()), json(&short));
+        // Padded to the full width with no closing semicolon, its last 1 Hz cell empty, alike.
+        let unclosed = short_text
+            .lines()
+            .map(|line| {
+                if line.matches(';').count() == 5 {
+                    format!("{line};\n")
+                } else {
+                    format!("{line}\n")
+                }
+            })
+            .collect::<String>();
+        assert_eq!(unclosed.matches(";;\n").count(), 3);
+        assert_eq!(json(&read(&unclosed).unwrap()), json(&short));
         // A row of empty cells at the end, as one sample ends, is skipped as the plain file's is.
         let with_blank = format!("{};;;;;;;\n", european(&text));
         assert_eq!(read(&with_blank).unwrap().time_s, plain.time_s);
