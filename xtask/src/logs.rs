@@ -140,8 +140,15 @@ const MAPPED_INCREMENT: &str = "M7.1c15";
 /// tables they map are public.
 const MAPPINGS: &str = include_str!("../../validation/log-mappings.json");
 
+/// The families of binary records read by a layout stated for each file ([`LAYOUTS`]): a serial
+/// console's captures of base64 blocks, and files of records end to end.
+const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
+
+/// The increment that reads [`LAYOUT_FAMILIES`]' files.
+const LAYOUT_INCREMENT: &str = "M7.1c16";
+
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c16";
+const LEFT_TO: &str = "M7.1c17";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
@@ -278,6 +285,16 @@ const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…`
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
 
+/// Why a file the catalog files as text is a console capture of binary records.
+const CONSOLE_CAPTURE: &str = "a serial console's capture of a team flight computer's shell \
+    dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker \
+    lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text \
+    by its extension";
+/// Why a file the catalog files as binary is a file of records end to end.
+const RECORD_DUMP: &str = "a team flight computer's raw file of fixed-size binary records end \
+    to end, with no header or marks, read by the record layout stated for it \
+    (`validation/log-layouts.json`); filed as binary";
+
 /// Why a spreadsheet is a workbook of logs, its sheets each read as a file of its own.
 const WORKBOOK: &str = "an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a \
     table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate \
@@ -295,7 +312,27 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 169] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 174] = [
+    (
+        "5c15ad3db182065c",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    (
+        "a964e00316c378d9",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    (
+        "d304c5e63044e3e3",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    ("67f97f55050a505f", "binary", "record-dump", RECORD_DUMP),
+    ("8f291cf155079b3d", "binary", "record-dump", RECORD_DUMP),
     ("045f5b9ed473b800", "csv", "mapped-table-csv", MAPPED_TABLE),
     ("0c7808a84fb39c83", "csv", "mapped-table-csv", MAPPED_TABLE),
     ("a9cf47fe2b2e5be0", "csv", "mapped-table-csv", MAPPED_TABLE),
@@ -761,6 +798,10 @@ struct Report {
     /// Tables read by a mapping their publisher states (M7.1c15).
     #[serde(default)]
     mapped_checks: Vec<MappedFile>,
+    /// Files of binary records read by a stated layout, against their teams' tables (M7.1c16).
+    #[serde(default)]
+    layout_checks: Vec<LayoutFile>,
+
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
     filter_scales: FilterScales,
@@ -2775,6 +2816,310 @@ fn mapped_checks(samples: &[Sample]) -> Vec<MappedFile> {
     files
 }
 
+/// The record layouts stated for the sample files of binary records, by file id: committed, as
+/// they hold only types; the fields' names are read from the table beside each file at each run.
+const LAYOUTS: &str = include_str!("../../validation/log-layouts.json");
+
+/// A record layout stated for a file, from [`LAYOUTS`].
+#[derive(Debug, Clone, Deserialize)]
+struct StatedLayout {
+    /// The file's id: the first 16 hex digits of its SHA-256.
+    id: String,
+    /// What the file is, in general words.
+    source: String,
+    /// The console capture's block holding the records; `None` for a file of records.
+    block: Option<String>,
+    /// The table beside the file that its team decoded from the same records: a file name, or
+    /// `*` then a suffix, for the file's own name then the suffix, in any case.
+    beside: String,
+    /// The fields' types, as runs of `(kind, count)`.
+    fields: Vec<(hpr_flightdata::records::FieldKind, usize)>,
+}
+
+impl StatedLayout {
+    /// Each field's type, in order.
+    fn kinds(&self) -> Vec<hpr_flightdata::records::FieldKind> {
+        self.fields
+            .iter()
+            .flat_map(|(kind, count)| std::iter::repeat_n(*kind, *count))
+            .collect()
+    }
+}
+
+/// The file of [`LAYOUTS`].
+#[derive(Debug, Deserialize)]
+struct StatedLayouts {
+    layouts: Vec<StatedLayout>,
+}
+
+/// The stated layouts, refused if the file doesn't parse or names an id twice.
+fn stated_layouts() -> Result<Vec<StatedLayout>, String> {
+    let file: StatedLayouts = serde_json::from_str(LAYOUTS)
+        .map_err(|error| format!("validation/log-layouts.json: {error}"))?;
+    let mut ids = BTreeSet::new();
+    for stated in &file.layouts {
+        if !ids.insert(stated.id.as_str()) {
+            return Err(format!(
+                "validation/log-layouts.json states {} twice",
+                stated.id
+            ));
+        }
+    }
+    Ok(file.layouts)
+}
+
+/// The sample beside `sample`, in its folder, that `beside` names (a [`StatedLayout::beside`]);
+/// refused unless exactly one is.
+fn beside<'a>(sample: &Sample, beside: &str, samples: &'a [Sample]) -> Result<&'a Sample, String> {
+    let name = sample
+        .path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let wanted = match beside.strip_prefix('*') {
+        Some(suffix) => format!("{name}{suffix}"),
+        None => beside.to_owned(),
+    };
+    let found: Vec<&Sample> = samples
+        .iter()
+        .filter(|other| {
+            other.path.parent() == sample.path.parent()
+                && other
+                    .path
+                    .file_name()
+                    .is_some_and(|other| other.to_string_lossy().eq_ignore_ascii_case(&wanted))
+        })
+        .collect();
+    match found.as_slice() {
+        [one] => Ok(one),
+        found => Err(format!(
+            "{} files beside it are its team's table `{beside}`, where one must be",
+            found.len()
+        )),
+    }
+}
+
+/// A file of binary records read by the layout stated for it, with that statement, the layout
+/// (its names from the team's table beside it) and that table. Refused if no layout is stated for
+/// the file, if a reader takes it on its own, if the table beside it isn't one sample, or names
+/// other than one column a field, or as the layout's reading refuses it.
+fn read_layout<'a>(
+    id: &str,
+    sample: &Sample,
+    samples: &'a [Sample],
+) -> Result<
+    (
+        FlightLog,
+        StatedLayout,
+        hpr_flightdata::records::RecordLayout,
+        &'a Sample,
+    ),
+    String,
+> {
+    let stated = stated_layouts()?
+        .into_iter()
+        .find(|stated| stated.id == id)
+        .ok_or("no layout is stated for it in validation/log-layouts.json")?;
+    let (log, layout, table) = read_stated(&stated, sample, samples)?;
+    Ok((log, stated, layout, table))
+}
+
+/// A file of binary records read by a stated layout, refused as [`read_layout`] says: the record,
+/// the layout and the team's table beside the file.
+fn read_stated<'a>(
+    stated: &StatedLayout,
+    sample: &Sample,
+    samples: &'a [Sample],
+) -> Result<(FlightLog, hpr_flightdata::records::RecordLayout, &'a Sample), String> {
+    use hpr_flightdata::records::{Field, RecordLayout};
+    if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+        return Err(format!(
+            "it reads as {} on its own, so a stated layout can't be its reading",
+            log.format.name()
+        ));
+    }
+    let table = beside(sample, &stated.beside, samples)?;
+    let text = hpr_flightdata::import::decode(&table.bytes);
+    let names: Vec<&str> = lines(&text)
+        .next()
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .collect();
+    let kinds = stated.kinds();
+    if names.len() != kinds.len() {
+        return Err(format!(
+            "its team's table names {} columns, where the stated layout has {} fields",
+            names.len(),
+            kinds.len()
+        ));
+    }
+    let layout = RecordLayout::new(
+        names
+            .iter()
+            .zip(&kinds)
+            .map(|(name, kind)| Field::new(*name, *kind))
+            .collect(),
+    );
+    let log = match &stated.block {
+        Some(block) => hpr_flightdata::capture::read(
+            &hpr_flightdata::import::decode(&sample.bytes),
+            block,
+            &layout,
+        ),
+        None => hpr_flightdata::records::read(&sample.bytes, &layout),
+    }
+    .map_err(|error| error.to_string())?;
+    Ok((log, layout, table))
+}
+
+/// One file of binary records against its team's table, for the report.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+struct LayoutFile {
+    id: String,
+    family: String,
+    /// What the file is, in general words, from its stated layout.
+    source: String,
+    /// A record's size, bytes.
+    record_bytes: usize,
+    /// Whole records in the file, or in its block.
+    records: usize,
+    /// Of those, the run at the end that is erased memory, every byte `0xFF`.
+    erased: usize,
+    /// The team's table's rows.
+    rows_beside: usize,
+    /// Fields compared with the table's cells, one a record's field and the row's cell.
+    cells_compared: usize,
+    /// Of those, the ones whose values differ (both NaN counting as equal).
+    cells_differing: usize,
+    /// Whether the record read holds the same channels and events as the team's table read by
+    /// its header, cut to the records not erased.
+    same_channels: bool,
+}
+
+/// The files of binary records that differ from their teams' tables, as lines of the unread list:
+/// a field differing, a row count other than the records', or other channels.
+fn layout_unread(files: &[LayoutFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| f.cells_differing > 0 || f.rows_beside != f.records || !f.same_channels)
+        .map(|file| {
+            format!(
+                "  {} ({}): differs from its team's table beside it: {} of {} fields differ, {} \
+                 rows for {} records, the same channels: {}",
+                file.id,
+                file.family,
+                file.cells_differing,
+                file.cells_compared,
+                file.rows_beside,
+                file.records,
+                file.same_channels
+            )
+        })
+        .collect()
+}
+
+/// A field's value from its bytes, decoded here apart from the reader: the kinds the stated
+/// layouts use, little-endian. `None` for another kind.
+fn field_value(kind: hpr_flightdata::records::FieldKind, bytes: &[u8]) -> Option<f64> {
+    use hpr_flightdata::records::FieldKind;
+    match kind {
+        FieldKind::U32 => Some(f64::from(u32::from_le_bytes(bytes.try_into().ok()?))),
+        FieldKind::F32 => Some(f64::from(f32::from_le_bytes(bytes.try_into().ok()?))),
+        _ => None,
+    }
+}
+
+/// Every file of binary records against the table its team decoded from the same records.
+fn layout_checks(samples: &[Sample]) -> Vec<LayoutFile> {
+    let mut files = Vec::new();
+    for sample in samples
+        .iter()
+        .filter(|s| LAYOUT_FAMILIES.contains(&s.family.as_str()))
+    {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let Ok((log, stated, layout, table)) = read_layout(&id, sample, samples) else {
+            continue;
+        };
+        if let Some(file) = layout_file(id, sample, &stated, &layout, table, &log) {
+            files.push(file);
+        }
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
+}
+
+/// One file of binary records, read by `layout`, against its team's table `table`, as [`LayoutFile`]
+/// counts; `None` if its block isn't in it.
+fn layout_file(
+    id: String,
+    sample: &Sample,
+    stated: &StatedLayout,
+    layout: &hpr_flightdata::records::RecordLayout,
+    table: &Sample,
+    log: &FlightLog,
+) -> Option<LayoutFile> {
+    let bytes = match &stated.block {
+        Some(block) => {
+            hpr_flightdata::capture::blocks(&hpr_flightdata::import::decode(&sample.bytes))
+                .ok()?
+                .into_iter()
+                .find(|b| &b.name == block)?
+                .bytes
+        }
+        None => sample.bytes.clone(),
+    };
+    let size = layout.record_bytes();
+    let records: Vec<&[u8]> = bytes.chunks_exact(size).collect();
+    let erased = records
+        .iter()
+        .rev()
+        .take_while(|record| record.iter().all(|&byte| byte == 0xFF))
+        .count();
+    let text = hpr_flightdata::import::decode(&table.bytes);
+    let rows: Vec<&str> = lines(&text)
+        .skip(1)
+        .filter(|l| !l.trim().is_empty())
+        .collect();
+    let mut file = LayoutFile {
+        id,
+        family: sample.family.clone(),
+        source: stated.source.clone(),
+        record_bytes: size,
+        records: records.len(),
+        erased,
+        rows_beside: rows.len(),
+        ..LayoutFile::default()
+    };
+    for (record, row) in records.iter().zip(&rows) {
+        let cells: Vec<&str> = row.split(',').map(str::trim).collect();
+        let mut at = 0;
+        for (index, field) in layout.fields.iter().enumerate() {
+            let width = field.kind.bytes();
+            let value = field_value(field.kind, &record[at..at + width]);
+            at += width;
+            let cell = cells.get(index).and_then(|cell| cell.parse::<f64>().ok());
+            file.cells_compared += 1;
+            let equal = match (value, cell) {
+                (Some(a), Some(b)) => a == b || (a.is_nan() && b.is_nan()),
+                _ => false,
+            };
+            if !equal {
+                file.cells_differing += 1;
+            }
+        }
+    }
+    // The team's table, its rows cut to the records the reader keeps, read by its header.
+    let kept = records.len() - erased;
+    let mut cut: String = lines(&text).take(1 + kept).collect::<Vec<_>>().join("\n");
+    cut.push('\n');
+    file.same_channels = hpr_flightdata::generic::read(&cut).is_ok_and(|theirs| {
+        let json = |log: &FlightLog| serde_json::to_string(&(&log.channels, &log.events)).ok();
+        json(&theirs).is_some() && json(&theirs) == json(log)
+    });
+    Some(file)
+}
+
 /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15): the least-squares factor
 /// through zero, `Σ(filtered × Alt) / Σ Alt²`, over the files read, and the files refused for it.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -3635,6 +3980,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             WORKBOOK_INCREMENT
         } else if sample.family == MAPPED_FAMILY {
             MAPPED_INCREMENT
+        } else if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
+            LAYOUT_INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
@@ -3751,6 +4098,33 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             ));
             continue;
         }
+        if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
+            let (outcome, record) = match read_layout(&id, sample, samples) {
+                Ok((log, ..)) => {
+                    row.read += 1;
+                    *loggers.entry(log.logger.clone()).or_default() += 1;
+                    let record = match serde_json::to_vec(&log) {
+                        Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                        Err(_) => "unwritable".to_owned(),
+                    };
+                    (format!("{:?}", log.format), record)
+                }
+                Err(error) => {
+                    *row.refused.entry("layout".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:layout".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
@@ -3837,6 +4211,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         rtx_checks: rtx_checks(samples),
         table_checks: table_checks(samples),
         mapped_checks: mapped_checks(samples),
+        layout_checks: layout_checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -3847,6 +4222,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         unit_decisions,
         files,
     };
+    // A file of records must match its team's table on every field and read into the same
+    // channels: a reading that differs from the team's own is as unread as a refusal.
+    unread.extend(layout_unread(&report.layout_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -4003,6 +4381,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::Binary { .. } => "binary",
         LogError::Archive { .. } => "archive",
         LogError::Workbook { .. } => "workbook",
+        LogError::Layout { .. } => "layout",
         _ => "other",
     }
 }
@@ -4611,6 +4990,39 @@ fn markdown(report: &Report) -> String {
              | File | Rows | Columns | Clock | Read | Kept | Contradicted | Stated by |\n\
              |---|---:|---:|---|---:|---:|---:|---|\n{rows}",
             tables.len(),
+        );
+    }
+    if !report.layout_checks.is_empty() {
+        let files = &report.layout_checks;
+        let mut rows = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.family,
+                file.source.replace('|', "\\|"),
+                file.record_bytes,
+                file.records,
+                file.erased,
+                file.rows_beside,
+                file.cells_compared,
+                file.cells_differing,
+                if file.same_channels { "yes" } else { "no" },
+            );
+        }
+        out += &format!(
+            "\nThe {} files of binary records (M7.1c16), each read by the record layout stated \
+             for it (`validation/log-layouts.json`), the fields' names from the table its team \
+             decoded from the same records, beside it: each record's fields, decoded here from \
+             the file's bytes (a capture's block as the reader decodes its base64) apart from \
+             the reader's records, against that table's row, field for field (both NaN counting as \
+             equal), a row a record; and the record read, against the team's table read by its \
+             header, cut to the records not erased, channel for channel. *Erased* counts the \
+             records at the end that are erased memory, every byte 0xFF, which the reader drops.\n\n\
+             | File | Family | What it is | Record, bytes | Records | Erased | Table rows | Fields compared | \
+             Differing | Same channels |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---|\n{rows}",
+            files.len(),
         );
     }
     if !report.workbook_checks.is_empty() {
@@ -5367,6 +5779,151 @@ mod tests {
         assert_eq!(report.families[0].refused.get("mapping"), Some(&1));
         assert!(
             unread[0].ends_with("no mapping is stated for it in validation/log-mappings.json"),
+            "{unread:?}"
+        );
+    }
+
+    /// Every stated layout parses, lays out a file the survey files as binary records, a console
+    /// capture's with its block, and every such file has one.
+    #[test]
+    fn the_stated_layouts_cover_the_record_families() {
+        let layouts = stated_layouts().unwrap();
+        let stated: BTreeMap<String, bool> = layouts
+            .iter()
+            .map(|stated| (stated.id.clone(), stated.block.is_some()))
+            .collect();
+        let filed: BTreeMap<String, bool> = RECLASSIFIED
+            .iter()
+            .filter(|(_, _, to, _)| LAYOUT_FAMILIES.contains(to))
+            .map(|(id, _, to, _)| ((*id).to_owned(), *to == "console-capture"))
+            .collect();
+        assert_eq!(stated, filed);
+        for stated in &layouts {
+            assert!(!stated.kinds().is_empty(), "{}", stated.id);
+            assert!(
+                !stated.beside.contains(['/', '\\']) && stated.beside.len() > 1,
+                "{}",
+                stated.beside
+            );
+        }
+    }
+
+    /// Invented records, a `u32` clock in ms and an `f32` pressure in kPa, with their team's
+    /// table beside them.
+    fn record_samples(rows: &[(u32, f32)], erased: usize, table: &str) -> [Sample; 2] {
+        let mut bytes: Vec<u8> = rows
+            .iter()
+            .flat_map(|(ms, kpa)| ms.to_le_bytes().into_iter().chain(kpa.to_le_bytes()))
+            .collect();
+        bytes.extend(vec![0xFF; 8 * erased]);
+        [
+            Sample {
+                path: PathBuf::from("flight").join("dump"),
+                source: "test",
+                family: "record-dump".to_owned(),
+                bytes,
+            },
+            Sample {
+                path: PathBuf::from("flight").join("DUMP_parsed.csv"),
+                source: "test",
+                family: "table-csv".to_owned(),
+                bytes: table.as_bytes().to_vec(),
+            },
+        ]
+    }
+
+    fn stated_layout() -> StatedLayout {
+        use hpr_flightdata::records::FieldKind;
+        StatedLayout {
+            id: "0000000000000000".to_owned(),
+            source: "a test".to_owned(),
+            block: None,
+            beside: "*_parsed.csv".to_owned(),
+            fields: vec![(FieldKind::U32, 1), (FieldKind::F32, 1)],
+        }
+    }
+
+    /// A stated layout reads a file by its types and the names of the table beside it, in any
+    /// case; the check counts every field against that table, a NaN equal to a NaN, and the
+    /// erased records the reader drops; a changed cell is counted, and a file with no table
+    /// beside it, or a table naming more columns than the layout has fields, is refused.
+    #[test]
+    fn a_stated_layout_is_held_to_its_teams_table() {
+        let rows = [(1000, 101.3_f32), (1010, 101.25), (1020, 101.2)];
+        let table = "Time (ms), pressure__kpa\n1000, 101.30000305175781\n1010, 101.25\n\
+                     1020, 101.19999694824219\n4294967295, nan\n";
+        let samples = record_samples(&rows, 1, table);
+        let stated = stated_layout();
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        assert_eq!(log.format, LogFormat::BinaryRecords);
+        assert_eq!(layout.fields[1].name, "pressure__kpa");
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!(
+            (
+                file.records,
+                file.erased,
+                file.rows_beside,
+                file.cells_compared
+            ),
+            (4, 1, 4, 8)
+        );
+        assert_eq!(file.cells_differing, 0);
+        assert!(file.same_channels);
+
+        // One cell the team wrote otherwise is one field differing.
+        let changed = table.replace("101.25", "101.26");
+        let samples = record_samples(&rows, 1, &changed);
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!(file.cells_differing, 1);
+        assert!(!file.same_channels);
+
+        let [dump, _] = samples;
+        let alone = [dump];
+        assert_eq!(
+            read_stated(&stated, &alone[0], &alone)
+                .map(|_| ())
+                .unwrap_err(),
+            "0 files beside it are its team's table `*_parsed.csv`, where one must be"
+        );
+        let wide = record_samples(&rows, 0, "Time (ms),pressure__kpa,temp__C\n1000,1,2\n");
+        assert_eq!(
+            read_stated(&stated, &wide[0], &wide)
+                .map(|_| ())
+                .unwrap_err(),
+            "its team's table names 3 columns, where the stated layout has 2 fields"
+        );
+        // Each way of differing makes a file unread; a file that matches doesn't.
+        let matching = LayoutFile {
+            records: 4,
+            rows_beside: 4,
+            cells_compared: 8,
+            same_channels: true,
+            ..LayoutFile::default()
+        };
+        assert!(layout_unread(std::slice::from_ref(&matching)).is_empty());
+        let differing = [
+            LayoutFile {
+                cells_differing: 1,
+                ..matching.clone()
+            },
+            LayoutFile {
+                rows_beside: 5,
+                ..matching.clone()
+            },
+            LayoutFile {
+                same_channels: false,
+                ..matching.clone()
+            },
+        ];
+        assert_eq!(layout_unread(&differing).len(), 3);
+        // A file of the family with no layout stated is unread.
+        let (report, unread) = survey(&alone, Vec::new());
+        assert_eq!(report.families[0].refused.get("layout"), Some(&1));
+        assert!(
+            unread[0].ends_with("no layout is stated for it in validation/log-layouts.json"),
             "{unread:?}"
         );
     }

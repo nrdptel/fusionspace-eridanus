@@ -81,4 +81,13 @@ pub enum LogError {
         /// What is wrong.
         message: String,
     },
+    /// A file of binary records needs a layout the caller states, as a console capture does
+    /// ([`capture`](crate::capture)), or the layout the caller gave can't read it: no field or too
+    /// many, a name the table can't hold, names that state no clock, or a table past its bound
+    /// ([`records`](crate::records)).
+    #[error("record layout: {message}")]
+    Layout {
+        /// What is wrong.
+        message: String,
+    },
 }

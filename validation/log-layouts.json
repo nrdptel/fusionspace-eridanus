@@ -1,0 +1,40 @@
+{
+  "about": "Record layouts for the sample files of binary records, read by `cargo xtask logs` through `hpr_flightdata::records` and `hpr_flightdata::capture` (M7.1c16, ADR-271). Each states, for a file by id (the first 16 hex digits of its SHA-256), the types of its records' fields, little-endian, in order, as [kind, count] runs; for a console capture, the block holding the records; and the table beside it, in its folder, that the logger's team decoded from the same records: `data.csv` by that name, or `*_parsed.csv`, the file's own name then `_parsed.csv`, in any case. The fields' names are that table's header, read from it at each run, as the files are private. No team documents the types: each is inferred from the bytes and held, by the survey, to the team's table on every field of every record.",
+  "layouts": [
+    {
+      "id": "5c15ad3db182065c",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "block": "data",
+      "beside": "data.csv",
+      "fields": [["u32", 1], ["f32", 24]]
+    },
+    {
+      "id": "a964e00316c378d9",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "block": "data",
+      "beside": "data.csv",
+      "fields": [["u32", 1], ["f32", 24]]
+    },
+    {
+      "id": "d304c5e63044e3e3",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "block": "data",
+      "beside": "data.csv",
+      "fields": [["u32", 1], ["f32", 24]]
+    },
+    {
+      "id": "67f97f55050a505f",
+      "source": "a team's flight computer's raw file, a ground recording; the team's table beside it names 3 columns, the first a clock in ms",
+      "block": null,
+      "beside": "*_parsed.csv",
+      "fields": [["u32", 1], ["f32", 2]]
+    },
+    {
+      "id": "8f291cf155079b3d",
+      "source": "a team's flight computer's raw file; the team's table beside it names 23 columns, the first a clock in ms",
+      "block": null,
+      "beside": "*_parsed.csv",
+      "fields": [["u32", 1], ["f32", 22]]
+    }
+  ]
+}
