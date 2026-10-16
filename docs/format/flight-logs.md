@@ -2445,8 +2445,8 @@ files it holds today, 1,016 are read, the 8 archives counted as read when they u
 workbooks when a sheet of each reads. The report labels 45 files for
 [M7.1c19](../decisions-and-roadmap.md#m7-1c19), the next increment.
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans all five increments left, M7.1c19 to M7.1c23; 43 of the 45, of layouts no reader knows
-yet, are unread.
+plans all five increments left, through the last file; 43 of the 45, of layouts no reader
+knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
