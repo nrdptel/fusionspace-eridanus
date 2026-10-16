@@ -1207,7 +1207,7 @@ The derived channels, in each sheet:
 - `[Altitude (Baro-Ft-AGL)]` is that less one constant, the pad's, within both printed half steps
   (half the spread under 0.0016 m (0.0053 ft) in each), and its first sample, on the pad, is
   within 3 m (9.8 ft) of 0: 0.20 m (0.65 ft) and 0.72 m (2.4 ft). Were the two altitudes' names
-  swapped, the pad would read its height in the standard atmosphere, more than 3 m but where the
+  swapped, the pad would read its height in the standard atmosphere, more than 3 m (9.8 ft) but where the
   pad's pressure is within about 36 Pa (0.005 psi) of 101,325 Pa.
 - `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both printed half
   steps, in the first sheet; the second has neither.
@@ -1244,7 +1244,8 @@ as 8 bytes, version `0x0500`, or 16, version `0x0600` (§5.8.1); this one is 6 b
 field of 0, the kind other tools write, which Rentz reads as BIFF5 (§5.8.2). Its cells settle it:
 they are BIFF2's records, `INTEGER` (`0x0002`), `NUMBER` (`0x0003`) and `LABEL` (`0x0004`), the
 text in single bytes, and xlrd, below, reads the file as BIFF2 too. The plan called the stream
-BIFF8's, from its BOF's id; ADR-274's amendment records what it holds. It ends with an `EOF` (end
+BIFF8's, from its BOF's id; [ADR-274's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+the plan for the rest of the importers, records what it holds. It ends with an `EOF` (end
 of file) record. The reader writes these cells out under
 whichever BOF opens the stream. It refuses a later version's cell records by name, a shared
 string or a formula, as it doesn't read them; a record longer than 8,224 bytes; a cell past
