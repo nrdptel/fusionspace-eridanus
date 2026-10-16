@@ -7700,8 +7700,8 @@ fn markdown(report: &Report) -> String {
         let mut rows = String::new();
         for file in files {
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {:.2e} | {} | {} | {} | {} | {} | {} | {} \
-                 |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {:.2e} | {:.3} | {} | {} | {} | {} | {} | \
+                 {} |\n",
                 file.id,
                 file.channels_read,
                 if file.left_out.is_empty() {
@@ -7720,7 +7720,7 @@ fn markdown(report: &Report) -> String {
                 file.raw_samples_compared,
                 file.velocity_samples_after_the_sheet_stops,
                 file.worst_time_s,
-                format!("{:.3}", file.worst_value_steps),
+                file.worst_value_steps,
                 held(file.asl_from_pressure),
                 figure(file.asl_spread_m, 4),
                 held(file.agl_below_asl),

@@ -55,6 +55,22 @@ const HEADER: [&str; 11] = [
     "VOLTAGE [V]",
 ];
 
+/// A row of the export: the clock, the pressures and heights, `ACCEL`, `SPEED`, the event's code
+/// and name, and the voltage's channel and value.
+type Row = (
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    u16,
+    &'static str,
+    u16,
+    f64,
+);
+
 /// The invented export: four samples 5 ms apart, the pressures in pascals under `[hpa]`, as the
 /// sample's are, liftoff the second row's event, and the voltage channels cycling.
 fn export() -> Vec<u8> {
@@ -63,7 +79,7 @@ fn export() -> Vec<u8> {
     for (column, name) in HEADER.iter().enumerate() {
         bytes.extend(label(0, column as u16, name));
     }
-    let rows: [(f64, f64, f64, f64, f64, f64, f64, u16, &str, u16, f64); 4] = [
+    let rows: [Row; 4] = [
         (
             0.005, 98_000.5, 0.0, 98_000.0, 0.0, -9.22, 0.0, 0, "PAD", 1, 7.4,
         ),
@@ -103,6 +119,7 @@ fn export() -> Vec<u8> {
 }
 
 /// The export's one sheet, read.
+#[cfg(test)]
 fn read() -> FlightLog {
     let sheets = xls::read(&export()).unwrap();
     assert_eq!(sheets.len(), 1);

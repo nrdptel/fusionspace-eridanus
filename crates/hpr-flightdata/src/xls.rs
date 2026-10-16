@@ -72,7 +72,7 @@
 //!     data.extend(name.as_bytes());
 //!     stream.extend(record(0x0004, &data));
 //! }
-//! for (row, values) in [[0.0, 0.0], [0.05, 1.5]].iter().enumerate() {
+//! for (row, values) in [[0.0f64, 0.0], [0.05, 1.5]].iter().enumerate() {
 //!     for (column, value) in values.iter().enumerate() {
 //!         let mut data = cell(row as u16 + 1, column as u16);
 //!         data.extend(value.to_le_bytes());
@@ -84,7 +84,8 @@
 //! let sheets = xls::sheets(&stream)?;
 //! assert_eq!(sheets[0].text, "Time (s),Altitude (m)\n0,0\n0.05,1.5\n");
 //! let log = xls::read(&stream)?.remove(0).log?;
-//! assert_eq!(log.altitude_m, [0.0, 1.5]);
+//! // A table read by its header: each column a channel in its stated unit.
+//! assert!(log.channels.iter().any(|c| c.column == "Altitude (m)" && c.values == [0.0, 1.5]));
 //! # Ok::<(), hpr_flightdata::error::LogError>(())
 //! ```
 
