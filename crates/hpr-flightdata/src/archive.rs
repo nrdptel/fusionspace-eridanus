@@ -78,9 +78,10 @@ pub fn unpack(bytes: &[u8]) -> Result<Vec<Member>, LogError> {
 ///
 /// [`LogError::NotThisFormat`] when the bytes don't open as a zip archive; [`LogError::Archive`]
 /// when the zip reader can't read its central directory, the directory holds more entries than
-/// the reader keeps (two of one name), an entry is a symbolic link or a folder's entry that holds
-/// bytes, a file is encrypted, compressed by a method other than stored or deflated, or damaged
-/// (its CRC-32 fails), or the archive decompresses to more than `max_unpacked_bytes`.
+/// the reader keeps (two of one name), an entry's name can't be read, an entry is a symbolic link
+/// or a folder's entry that holds bytes, a file is encrypted, compressed by a method other than stored or deflated, or damaged
+/// (its CRC-32 fails, or it holds more bytes than it states), or the archive decompresses to more
+/// than `max_unpacked_bytes`.
 pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member>, LogError> {
     if !is_archive(bytes) {
         return Err(LogError::NotThisFormat {
@@ -109,7 +110,10 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
         let mut entry = archive
             .by_index(index)
             .map_err(|error| refused(format!("entry {index} can't be opened: {error}")))?;
-        let name = entry.name().to_owned();
+        let name = entry
+            .name()
+            .map_err(|error| refused(format!("entry {index}'s name can't be read: {error}")))?
+            .into_owned();
         if entry.is_symlink() {
             return Err(refused(format!(
                 "entry {index}, {:?}, is a symbolic link, not a file",
@@ -255,6 +259,8 @@ mod tests {
     fn a_stated_size_smaller_than_the_data_does_not_fool_the_budget() {
         // A file of 4,000 zeros whose central directory states 10 bytes, uncompressed: a bomb's
         // trick. Its size fields are at offset 24 of the central record and 22 of the local one.
+        // The zip reader gives no byte past the stated size: the read that crosses it fails, long
+        // before the budget; were it to give them, the budget counts what comes out.
         let mut bytes = archive(&[("bomb", &[0u8; 4000][..])]);
         let central = bytes
             .windows(4)
@@ -263,7 +269,11 @@ mod tests {
         bytes[central + 24..central + 28].copy_from_slice(&10u32.to_le_bytes());
         bytes[22..26].copy_from_slice(&10u32.to_le_bytes());
         let refusal = message(unpack_within(&bytes, 1000));
-        assert!(refusal.contains("more than 1000 bytes"), "{refusal}");
+        assert!(
+            refusal.contains("\"bomb\", can't be decompressed")
+                && refusal.contains("larger than its declared uncompressed size"),
+            "{refusal}"
+        );
     }
 
     #[test]
@@ -359,12 +369,14 @@ mod tests {
         let mut bytes = zip.finish().expect("finished").into_inner();
         // As written, it states its 500 bytes.
         assert!(message(unpack(&bytes)).contains("folder's entry that holds bytes"));
-        // With its stated size, at offset 24 of the central record, set to 0, it still holds them.
+        // With its stated size, at offset 24 of the central record, set to 0, it still holds them,
+        // and the zip reader refuses the first byte past the 0 it states.
         let at = central(&bytes);
         bytes[at + 24..at + 28].copy_from_slice(&0u32.to_le_bytes());
         let refusal = message(unpack(&bytes));
         assert!(
-            refusal.contains("folder's entry that holds bytes"),
+            refusal.contains("\"dd/\", can't be decompressed")
+                && refusal.contains("larger than its declared uncompressed size"),
             "{refusal}"
         );
     }
