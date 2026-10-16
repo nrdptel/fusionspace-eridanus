@@ -753,12 +753,26 @@ milliseconds would give 0.001.
 read as °F would be −4 °C, a launch's temperature too, so every temperature is kept as written;
 so is every rate of turn, and every other column no check holds, such as a battery's voltage,
 humidity, a magnetometer and an orientation's quaternion. One board's accelerometer reads 0 at rest, with
-gravity taken out, and is kept too, as are words, packed fields and counts. A GPS track's own
-speed holds no unit either: on the pad it is 0 m/s (0 ft/s) whatever the unit, under a
-parachute it is the wind's, near 0 on a calm day, and one bad fix jumps hundreds of meters a
-second. So a track's degrees are held by its place; its clock by the time to apogee of its own
-altitude or by the clock of a file from the same logger; and its altitude, where it has one, by
-another logger's in the same flight.
+gravity taken out, and is kept too, as are words, packed fields and counts.
+
+**A track's own speed: not met.** The plan named a GPS track's own speed among the checks, but it
+holds no unit, so that part of [M7.1c22](../decisions-and-roadmap.md#m7-1c22)'s *done when* is
+not met, as the amendment to
+[ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+the plan for the last importers, records. The survey measures it: a track's ground speed at each
+row whose position changes, the great-circle distance from the fix before over the step of the
+track's own clock, over the whole recording. Over the 5 tracks held by a place check of a
+latitude and a longitude (two of them the same fixes, with and without a header), the median
+lies 0.6920 to 7.3836 m/s (2.270 to 24.225 ft/s), a spread of 10.67 times. The pad's hours are
+included, so a median can be a receiver's jitter as much as the wind's drift. A clock misread by
+one power of ten moves every speed 10 times, less than that spread, so no band on these tracks
+refuses that misread. Nor could a band hold a clock on every flight: a track drifts with the
+wind, which at a launch runs from calm to NFPA 1127's limit of 20 mph (8.9 m/s). Each track's
+fastest step lies 235.44 to 1,200.13 m/s (772.4 to 3,937.5 ft/s). Radians stated as degrees
+would move 57 times slower, which a band could part on these 5 tracks alone, but a band fitted
+to them is a sample, not a bound. So a track's degrees are held by its place, which needs no
+band; its clock by the time to apogee of its own altitude or by the clock of a file from the
+same logger; and its altitude, where it has one, by another logger's in the same flight.
 
 **What the 20 show.** Their mappings read 64 columns in a unit, keep 102 as written and leave 7
 out, and all 60 checks pass. The 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g). The 6

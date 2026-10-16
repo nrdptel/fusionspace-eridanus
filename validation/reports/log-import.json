@@ -3529,7 +3529,14 @@
         ],
         "record": "e86a34a7e5d8e6c3"
       }
-    ]
+    ],
+    "track_speeds": {
+      "tracks": 5,
+      "slowest_median_m_s": 0.692,
+      "fastest_median_m_s": 7.3836,
+      "least_fastest_step_m_s": 235.4407,
+      "most_fastest_step_m_s": 1200.1289
+    }
   },
   "filter_scales": {
     "files": 44,

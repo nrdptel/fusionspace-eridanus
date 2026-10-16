@@ -342,14 +342,21 @@ showed, measured, and the decisions.
    team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
    one, in a probe while the checks were built, read with the sign opposite to the other
    loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
-5. **A track's own speed, which the plan named, holds no unit.** Between fixes, on the pad, a
-   track's speed has a median of 0 m/s, whatever the unit. Under the parachute it is the wind's,
-   a few meters a second, and near 0 on a calm day. One bad fix reaches 235 to 1,200 m/s
-   (measured while the checks were built; not in the report). No band admits every flight's
-   drift and refuses a clock misread by a power of ten or degrees read as radians, which are 57
-   times smaller. So the track's units are held by its place; its clock by the time to apogee of
-   its own altitude or by the clock of a file of the same logger; and its altitude, where it has
-   one, by another logger's.
+5. **A track's own speed, which the plan named, holds no unit: that part of the *done when* is
+   not met, recorded.** The survey measures it (`cargo xtask logs`, the report's paragraph on a
+   track's own speed): a track's ground speed at each row whose position changes, the
+   great-circle distance from the fix before over the step of its own clock, over the whole
+   recording, the pad's hours included, so a median can be a receiver's jitter as much as the
+   wind's drift. Over the 5 tracks held by a place check of a latitude and a longitude (two of
+   them the same fixes), the median lies 0.6920 to 7.3836 m/s, a spread of 10.67 times, more
+   than the 10 times a clock misread by one power of ten moves it, so no band on these tracks
+   refuses that misread; and as a track drifts with the wind, which at a launch runs from calm
+   to NFPA 1127's limit of 20 mph (8.9 m/s), no band holds a clock on every flight. Each
+   track's fastest step lies 235.44 to 1,200.13 m/s. Radians stated as degrees move 57 times
+   slower, which a band could part on these 5 tracks alone, but a
+   band fitted to them is a sample, not a bound. So the track's units are held by its place,
+   which needs no band; its clock by the time to apogee of its own altitude or by the clock of a
+   file of the same logger; and its altitude, where it has one, by another logger's.
 6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
    computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
    cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map

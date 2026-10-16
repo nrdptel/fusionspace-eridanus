@@ -126,6 +126,9 @@ const SPEED_FLOOR_M_S: f64 = 10.0;
 /// Standard gravity, m/s².
 const G0: f64 = 9.806_65;
 
+/// The Earth's mean radius, m: the IUGG's R₁ (Moritz, *Geodetic Reference System 1980*, 2000).
+const EARTH_RADIUS_M: f64 = 6_371_008.8;
+
 /// One file's stated mapping and its checks, from [`HELD`].
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -394,6 +397,25 @@ struct HeldFile {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct Checks {
     files: Vec<HeldFile>,
+    /// A track's own speed, measured; it holds no unit (ADR-274's amendment for M7.1c22).
+    #[serde(default)]
+    track_speeds: TrackSpeeds,
+}
+
+/// A track's own speed over the held tracks with a latitude and a longitude: its ground speed
+/// between consecutive fixes, the great-circle distance over the track's own clock. Only
+/// aggregates, as most of the tracks are private.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+pub(super) struct TrackSpeeds {
+    /// The tracks measured.
+    tracks: usize,
+    /// The least and the greatest of the tracks' median ground speeds over the rows whose
+    /// position changes, m/s, rounded to 4 decimals.
+    slowest_median_m_s: Option<f64>,
+    fastest_median_m_s: Option<f64>,
+    /// The least and the greatest of the tracks' fastest single steps, m/s.
+    least_fastest_step_m_s: Option<f64>,
+    most_fastest_step_m_s: Option<f64>,
 }
 
 impl Checks {
@@ -870,6 +892,7 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
         samples,
     };
     let mut files = Vec::new();
+    let mut tracks = Vec::new();
     for (stated, read, refused) in read_files {
         let mut file = HeldFile {
             id: stated.id.clone(),
@@ -895,6 +918,12 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
                 }
             }
             file.events = log.events.len();
+            tracks.extend(
+                stated
+                    .checks
+                    .iter()
+                    .filter_map(|check| track_speed(check, &log, &mapping)),
+            );
             file.outcomes = stated
                 .checks
                 .iter()
@@ -916,7 +945,76 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
         files.push(file);
     }
     files.sort_by(|a, b| a.id.cmp(&b.id));
-    Checks { files }
+    Checks {
+        files,
+        track_speeds: track_speeds(&tracks),
+    }
+}
+
+/// A track's ground speeds between consecutive fixes, m/s: the great-circle distance (haversine)
+/// over the clock's step, leaving out a fix that isn't a number or reads 0, 0, as a receiver
+/// writes before its first fix, and a step that doesn't move the clock forward.
+fn ground_speeds(log: &FlightLog, latitude: &str, longitude: &str) -> Vec<f64> {
+    let channel = |name: &str| log.channels.iter().find(|c| c.column == name);
+    let (Some(lat), Some(lon)) = (channel(latitude), channel(longitude)) else {
+        return Vec::new();
+    };
+    let fixes: Vec<(f64, f64, f64)> = lat
+        .time_s
+        .iter()
+        .zip(&lat.values)
+        .zip(&lon.values)
+        .map(|((t, a), b)| (*t, *a, *b))
+        .filter(|(t, a, b)| {
+            t.is_finite() && a.is_finite() && b.is_finite() && (*a, *b) != (0.0, 0.0)
+        })
+        .collect();
+    fixes
+        .windows(2)
+        .filter_map(|pair| {
+            let ((t0, lat0, lon0), (t1, lat1, lon1)) = (pair[0], pair[1]);
+            let dt = t1 - t0;
+            if dt <= 0.0 {
+                return None;
+            }
+            let (p0, p1) = (lat0.to_radians(), lat1.to_radians());
+            let h = ((p1 - p0) / 2.0).sin().powi(2)
+                + p0.cos() * p1.cos() * ((lon1 - lon0).to_radians() / 2.0).sin().powi(2);
+            Some(2.0 * EARTH_RADIUS_M * h.sqrt().min(1.0).asin() / dt)
+        })
+        .collect()
+}
+
+/// A track's median ground speed over the rows whose position changes, and its fastest step,
+/// m/s, for a place check of a latitude and a longitude.
+fn track_speed(check: &Check, log: &FlightLog, mapping: &Mapping) -> Option<(f64, f64)> {
+    let Check::Place {
+        latitude: Some(latitude),
+        longitude,
+    } = check
+    else {
+        return None;
+    };
+    let name = |index: usize| mapping.columns.get(index).map(|c| c.name.as_str());
+    let speeds = ground_speeds(log, name(*latitude)?, name(*longitude)?);
+    let moving: Vec<f64> = speeds.iter().copied().filter(|v| *v > 0.0).collect();
+    Some((
+        teensy_median(moving)?,
+        speeds.iter().copied().reduce(f64::max)?,
+    ))
+}
+
+/// The tracks' speeds, gathered: the least and the greatest of their medians and fastest steps.
+fn track_speeds(tracks: &[(f64, f64)]) -> TrackSpeeds {
+    let least = |v: &mut dyn Iterator<Item = f64>| v.reduce(f64::min).map(rounded);
+    let most = |v: &mut dyn Iterator<Item = f64>| v.reduce(f64::max).map(rounded);
+    TrackSpeeds {
+        tracks: tracks.len(),
+        slowest_median_m_s: least(&mut tracks.iter().map(|t| t.0)),
+        fastest_median_m_s: most(&mut tracks.iter().map(|t| t.0)),
+        least_fastest_step_m_s: least(&mut tracks.iter().map(|t| t.1)),
+        most_fastest_step_m_s: most(&mut tracks.iter().map(|t| t.1)),
+    }
 }
 
 /// The survey's failures: the mapping file's own, a held file with no mapping, a refusal, a unit
@@ -1039,8 +1137,10 @@ pub(super) fn markdown(checks: &Checks) -> String {
          3.28 or more reaches; *1 g at rest* is the accelerometer's median magnitude over the \
          recording, in g, within {:.2}–{:.2}; and *place*, a track's, is whether the median size of \
          each column's readings other than 0 lies past ±π/2 for a latitude and ±π for a \
-         longitude, which no place has in radians, its values not shown. A column with no unit is kept as written: a temperature, as no check here tells \
-         °C from °F at a launch's temperatures, and a rate of turn, which none holds.\n\n\
+         longitude, which no place has in radians, its values not shown. A column with no unit \
+         is kept as written: a temperature, as no check here tells °C from °F at a launch's \
+         temperatures, a rate of turn, which none holds, and every other column no check \
+         holds.\n\n\
          | File | What | Rows | Read | Kept | Left out | Events | Checks |\n\
          |---|---|---:|---:|---:|---:|---:|---|\n{rows}",
         checks.files.len(),
@@ -1053,6 +1153,46 @@ pub(super) fn markdown(checks: &Checks) -> String {
         UNIT_BAND.start(),
         REST_BAND_G.start(),
         REST_BAND_G.end(),
+    ) + &track_paragraph(&checks.track_speeds)
+}
+
+/// The report's paragraph on a track's own speed: what was measured, and why it holds no unit.
+fn track_paragraph(speeds: &TrackSpeeds) -> String {
+    let (Some(slowest), Some(fastest), Some(least_step), Some(most_step)) = (
+        speeds.slowest_median_m_s,
+        speeds.fastest_median_m_s,
+        speeds.least_fastest_step_m_s,
+        speeds.most_fastest_step_m_s,
+    ) else {
+        return String::new();
+    };
+    let spread = fastest / slowest;
+    format!(
+        "\nA track's own speed, which ADR-274's plan named among the checks, holds no unit, so \
+         that part of M7.1c22's *done when* is not met. Over the {} tracks held by a place check \
+         of a latitude and a longitude, the median ground speed of the rows whose position \
+         changes, the great-circle distance from the fix before over the step of the track's \
+         own clock, over the whole recording, the pad's hours included, so a median can be a \
+         receiver's jitter as much as the wind's drift, lies {slowest:.4}–{fastest:.4} m/s, a \
+         spread of {spread:.2} times, {} the 10 times a clock misread by one power of ten moves \
+         it, so {}. Nor could a band hold a clock on every flight: a track drifts with the wind, \
+         which at a launch runs from calm to NFPA 1127's limit of 20 mph (8.9 m/s). Each \
+         track's fastest step lies {least_step:.4}–{most_step:.4} m/s. Radians stated as \
+         degrees would move 57 times slower, which a band could part on these {} tracks alone, \
+         but a band fitted to them is a sample, not a bound; the place check holds a track's \
+         degrees with none, and its clock is held by the clock checks.\n",
+        speeds.tracks,
+        if spread > 10.0 {
+            "wider than"
+        } else {
+            "narrower than"
+        },
+        if spread > 10.0 {
+            "no band on these tracks refuses that misread"
+        } else {
+            "a band on these tracks alone could refuse that misread"
+        },
+        speeds.tracks,
     )
 }
 
@@ -1341,6 +1481,54 @@ mod tests {
         }
     }
 
+    /// A track's ground speed: 0.001° of latitude is R·π/180·0.001 = 111.1951 m on the mean
+    /// Earth; a fix of 0, 0 or not a number is left out, and a repeated fix moves 0 m/s.
+    #[test]
+    fn a_tracks_ground_speed_is_its_great_circle_steps_over_its_clock() {
+        let mapping = Mapping {
+            header_line: None,
+            separator: ',',
+            decimal_comma: false,
+            clock: 0,
+            columns: ["t", "lat", "lon"]
+                .iter()
+                .zip([None, Some(Quantity::Latitude), Some(Quantity::Longitude)])
+                .map(|(name, quantity)| ColumnMapping {
+                    name: (*name).to_owned(),
+                    quantity,
+                    unit: Some(if quantity.is_some() { "deg" } else { "s" }.to_owned()),
+                    skip: false,
+                })
+                .collect(),
+            clock_wrap: None,
+            rows: RowForm::Cells,
+        };
+        // A row on the clock's step before it is left out: it doesn't move the clock forward.
+        let text = "0,0,0\n1,10.25,-20.5\n2,10.25,-20.5\n3,10.251,-20.5\n3,10.251,-20.5\n4,,\n\
+                    5,10.253,-20.5\n";
+        let log = hpr_flightdata::generic::read_with(text, &mapping).expect("reads");
+        let speeds = ground_speeds(&log, "lat", "lon");
+        let step = EARTH_RADIUS_M * std::f64::consts::PI / 180.0 * 0.001;
+        assert_eq!(speeds.len(), 3, "{speeds:?}");
+        assert_eq!(speeds[0], 0.0);
+        assert!((speeds[1] - step).abs() < 1e-6, "{speeds:?}");
+        // Across the empty row: 0.002° over 2 s.
+        assert!((speeds[2] - step).abs() < 1e-6, "{speeds:?}");
+        assert!((step - 111.1951).abs() < 1e-4);
+        let check = Check::Place {
+            latitude: Some(1),
+            longitude: 2,
+        };
+        let (median, fastest) = track_speed(&check, &log, &mapping).expect("a track");
+        assert!((median - step).abs() < 1e-6 && (fastest - step).abs() < 1e-6);
+        // A longitude alone makes no ground speed.
+        let lone = Check::Place {
+            latitude: None,
+            longitude: 2,
+        };
+        assert_eq!(track_speed(&lone, &log, &mapping), None);
+    }
+
     /// The pad is the lowest height over the [`CLIMB_WINDOW_S`] before apogee: a barometer that
     /// drifts down 100 m over an hour on the ground doesn't move liftoff, and a record that starts
     /// at liftoff has a pad.
@@ -1537,6 +1725,7 @@ mod tests {
             unread(
                 &Checks {
                     files: vec![file.clone()],
+                    ..Checks::default()
                 },
                 &[],
             )
