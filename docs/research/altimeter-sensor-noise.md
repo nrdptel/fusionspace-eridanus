@@ -76,11 +76,11 @@ handling and ignition, so they are upper bounds on sensor noise. Logs are from p
 | Device (logs) | Rate | Samples per window | σ altitude (m) | σ pressure (Pa) | Logged step |
 |---|---|---|---|---|---|
 | Blue Raven (5 flights) | 50 Hz | pad 70–73; rest 213–290 | 0.43–0.62; 0.51–1.13 | 5.5–8.5; 6.6–13 | 0.15–0.18 m |
-| StratoLoggerCF (10) | 20 Hz | rest 92–161 | 0.16–0.25 | — | 1 ft (0.3048 m) |
+| StratoLoggerCF (10) | 20 Hz | rest 92–161 | 0.16–0.25 | not logged | 1 ft (0.3048 m) |
 | Altus TeleMetrum, TeleMega (5) | 100 Hz | pad 18–25 | 0.52–1.14 | 5.5–12.1 | 1 Pa |
 | Altus TeleMega, after landing (1) | 10 Hz | rest 302 | 0.64 | 7.5 | 1 Pa |
 | Team-built board, LPS-class (1) | 3 Hz | pad, 1 h (10,781) | 0.77 | 8.1 | about 1 Pa |
-| Missile Works RRC3 (1) | 20 Hz | no pad in the log | — | — | 10 Pa (0.95 m) |
+| Missile Works RRC3 (1) | 20 Hz | no pad in the log | none | none | 10 Pa (0.95 m) |
 
 - **Not white.** Detrended Blue Raven altitude has lag-1 autocorrelation +0.40 to +0.54 in six windows, the TeleMega
   rest +0.36; two 18-sample Altus pad windows give −0.35 and −0.29. The 1 h record's Allan deviation falls from
@@ -103,12 +103,12 @@ handling and ignition, so they are upper bounds on sensor noise. Logs are from p
 | Part | Range; step | Noise density | Zero-g offset; drift | Scale; tempco | Source |
 |---|---|---|---|---|---|
 | ADXL375 | ±200 g (min ±180); 49 mg | 5 mg/√Hz | ±0.4 g typ, ±6 max; ±10 mg/°C | ±10%; ±0.02%/°C | [D1] p. 3 ¶ |
-| H3LIS331DL | ±100/200/400 g; 49–195 mg | 15 mg/√Hz | ±1 g; ±5 mg/°C | —; ±0.01%/°C | [D2] p. 4 |
+| H3LIS331DL | ±100/200/400 g; 49–195 mg | 15 mg/√Hz | ±1 g; ±5 mg/°C | not given; ±0.01%/°C | [D2] p. 4 |
 | MMA6555 | ±105 g; 55 mg | ≤1 LSB RMS, 400 Hz | ±3.3 g; ±14 mg cancelled | ±5% | [D4] p. 7 |
 | ADXL377 (analog) | ±200 g | 2.7 (x, y), 4.3 (z) mg/√Hz | ±15 g; z ±30 mg/°C | ±11%; ±0.02%/°C | [D6] p. 3 |
 | MPU-6000 / MPU-9250 | ±2–16 g; 0.49 mg | 400 / 300 µg/√Hz | ±50–80 mg | ±3% | [D9] p. 13, [D10] p. 9 |
 | BMX160 | ±2–16 g; 0.49 mg | 180 µg/√Hz | ±40 mg; ±1 mg/K | ±4% | [D8] p. 8 |
-| BMI088 | ±3–24 g; 0.73 mg | 160–190 µg/√Hz | 20 mg; <0.2 mg/K | —; 0.002%/K | [D3] p. 9 |
+| BMI088 | ±3–24 g; 0.73 mg | 160–190 µg/√Hz | 20 mg; <0.2 mg/K | not given; 0.002%/K | [D3] p. 9 |
 
 - **RMS from density.** σ = density × √(1.57 × bandwidth), single-pole (**Inference**): ADXL375 44 mg at 50 Hz,
   125 mg at 400 Hz; H3LIS331DL 133–376 mg at 50–400 Hz. Prefer a stated RMS: the MPU-9250's 8 mg at 94 Hz [D10] p. 9 is
