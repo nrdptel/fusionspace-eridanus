@@ -41,7 +41,7 @@
 //! | `Tilt_Angle_(deg)`, `Future_Angle_(deg)`, `Roll_Angle_(deg)` | [`Quantity::Angle`] | the header's degrees |
 //! | `Gyro_X`, `Gyro_Y`, `Gyro_Z` | [`Quantity::AngularRate`] | °/s: the manual and the summary (below) |
 //! | `Accel_X`, `Accel_Y`, `Accel_Z` | [`Quantity::Acceleration`] | g, × 9.806 65 m/s²: the manual and the pad (below) |
-//! | `Quat_1` … `Quat_4` | [`Quantity::Number`] | the attitude quaternion, "the rotation axis first and the magnitude term fourth" (p24), of unit norm |
+//! | `Quat_1` … `Quat_4` | [`Quantity::Number`] | the attitude quaternion, of unit norm, its magnitude term first: the manual writes the USB download's with "the rotation axis first and the magnitude term fourth" (p24, [`crate::blueraven_usb`]), but as of 2026-10-15, in each high-rate file among the sample logs whose first row holds numbers, `Quat_1` is the largest term there, about 1 on the pad |
 //! | `Current` | [`Quantity::Unrecognized`], as written | no source states its unit (below) |
 //! | `Rocket_FER_Hex`, `Apo_FER_Hex` and the other `…_FER_Hex` | [`Quantity::Number`]: the register's bits | hexadecimal in the file (below) |
 //! | `Liftoff`, `Apogee` and the other flags | [`Quantity::Number`], 0 or 1 | below |

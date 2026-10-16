@@ -43,10 +43,15 @@
 //! gives ([`generic`]). A zip archive of a flight's files is unpacked in
 //! memory, within a bound, and each file read on its own ([`archive`]); an Excel workbook's
 //! sheets are written out as text, each cell as the workbook stores it, and each sheet read on
-//! its own ([`workbook`]). [`readings`] takes a first set of readings from the
+//! its own ([`workbook`]); a team flight computer's binary records are read by a layout the caller
+//! states, from a raw file ([`records`]) or a serial console's capture of them as base64
+//! ([`capture`]); the Blue Raven's USB download to a serial terminal, each line held to its
+//! CRC ([`blueraven_usb`]); a course's Teensy data logger, one sensor's reading a line
+//! ([`teensy`]); and one team's radio telemetry packets, `255:…:254`, as its flight computer
+//! logged them, as a receiver heard them, and inside an RTF document ([`packets`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, older `.xls` spreadsheets and the tables whose headers state too little are planned for milestone [M7.1c15][roadmap] of the roadmap,
+//! formats and older `.xls` spreadsheets are planned for milestones [M7.1c20 to M7.1c23][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -79,6 +84,8 @@ pub mod archive;
 pub mod arts2;
 pub mod arts2_raw;
 pub mod blueraven;
+pub mod blueraven_usb;
+pub mod capture;
 pub mod eggtimer;
 pub mod entacore;
 pub mod error;
@@ -91,17 +98,20 @@ pub mod import;
 pub mod kml;
 pub mod log;
 pub mod nmea;
+pub mod packets;
 pub mod perfectflite;
 pub mod phone_launch;
 pub mod raven;
 pub mod raven_fipa;
 pub mod rdas;
 pub mod readings;
+pub mod records;
 pub mod rrc3;
 pub mod rrc3_rff;
 pub mod rtx;
 pub mod sillygoose;
 mod table;
+pub mod teensy;
 pub mod workbook;
 
 #[cfg(test)]

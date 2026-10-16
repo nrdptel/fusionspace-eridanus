@@ -2,7 +2,8 @@
 //! Classic's and TRS's over a serial cable, the Quantum's and Proton's from their WiFi page.
 //!
 //! The file is comma-separated text: one header row naming the columns, then one row per sample,
-//! every column on the row's time. There is no preamble and the header states no units:
+//! every column on the row's time. There is no preamble and the header states no units (a
+//! European locale's spreadsheet may save it with semicolons, *Cells* below):
 //!
 //! ```text
 //! T,Alt,Veloc,FAlt,FVeloc,LDA,LowV,Apogee,N-O,Drogue,Main
@@ -27,8 +28,9 @@
 //! that name in the header (Proton p26; *Eggtimer Proton Release Notes*, version 2.01C, p2), so a
 //! marker column may carry any name.
 //!
-//! A file is this layout if its first line that isn't blank is comma-separated, names `T` then
-//! `Alt`, and names at least one more column this reader knows (the table below). That keeps out a
+//! A file is this layout if its first line that isn't blank is comma-separated, or
+//! semicolon-separated if it holds a semicolon, names `T` then `Alt`, and names at least one more
+//! column this reader knows (the table below). That keeps out a
 //! PerfectFlite export (`Time,Altitude,…`) and an RRC3's (`Time,Altitude,Pressure,…`).
 //!
 //! **Units.** The header states none. Each column, what it is read as, and where that comes from:
@@ -60,6 +62,17 @@
 //! least share is 95.9 %, and with the clock read in the wrong unit, a factor of 1,000 off, at
 //! most 9.5 %: the check also guards the time's unit (below).
 //!
+//! **Filtered altitudes checked.** A filtered altitude must scale to `Alt` as a filter of it can:
+//! the one multiplier that best takes `Alt` to it, with no offset (a least-squares fit through
+//! zero), must lie from 0.1 to 2. A filter lags the altitude, under it on the way up and over it
+//! on the way down; on a steady climb at `v` ft/s to `H` ft, a lag of `τ` s moves the multiplier
+//! by about `1.5 v τ / H`, while a lost decimal place writes a value 10 times over. A file whose
+//! filtered altitude lies outside is refused ([`LogError::Unit`]): its numbers can't be trusted,
+//! the clock's among them, as a seconds clock written without its decimal point reads as
+//! milliseconds. As of 2026-10-15, over the 44 Eggtimer files the project's sample logs read, every
+//! one with a filtered altitude, the multiplier lies from 0.900 to 1.000; a 45th, whose decimal
+//! points a spreadsheet took out (`12.34` written `1234`), gives 99.9 and is refused.
+//!
 //! **The accelerometer.** As of 2026-10-12, in the 4 of those files with an accelerometer,
 //! `AccelFPSS` is about 32 times `AccelG` (32.17 ft/s² is one g), `VAccel` tracks the sum of
 //! `AccelFPSS` over the steps, and `AccelG`'s median before the start of flight (`T` below 0) is
@@ -76,7 +89,10 @@
 //! files in both. The logger takes 4 to 33 samples a second going up and 1 to 10 coming down
 //! (Classic p19–20; Quantum p25), so a step between rows is 0.03 to 1 in seconds and 30 to 1,000
 //! in milliseconds. The reader takes the median step between rows: above 5, a factor of 5 clear of
-//! either range, `T` is in milliseconds; otherwise in seconds. A file of one row has no step, and
+//! either range, `T` is in milliseconds; otherwise in seconds. In the CSV download, a median step
+//! above 1 and below 30 is neither, and the file is refused ([`LogError::Unit`]): a seconds clock
+//! whose decimal points were taken out writes 0.05 as 5. (The terminal download's coast settles
+//! its clock instead, below.) A file of one row has no step, and
 //! is read in seconds. A note on the record says which, and why. The terminal download's table
 //! checks this, and its altitudes' feet, against the coast too (below).
 //!
@@ -103,7 +119,11 @@
 //! reads `Eggtimer`.
 //!
 //! **Cells.** Lines end in CR, LF, CR LF or CR CR LF (a blank line after every row, which is
-//! skipped). A row whose every cell is empty, as some downloads end with hundreds of, is skipped
+//! skipped). A semicolon-separated file, as a European locale's spreadsheet saves the download, may
+//! write its numbers with a decimal comma: the mark is settled once for the file, a comma only if
+//! no number is written with a point and one is written with a comma before other than three
+//! digits, and a cell in the other mark is no number, so a thousands separator is never read as a
+//! decimal mark. A note says which. A row whose every cell is empty, as some downloads end with hundreds of, is skipped
 //! and counted in a note. An empty cell, or a row shorter than the header, leaves a gap, `NaN`,
 //! counted per column in a note. A cell that isn't a number, a row longer than the header, an empty
 //! time, and a time that doesn't increase are refused, naming the line. A column this reader
@@ -251,7 +271,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
-use crate::table::{Notes, finite, number, numbered_lines, short};
+use crate::table::{self, Notes, finite, number, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "Eggtimer CSV";
@@ -260,6 +280,11 @@ const FORMAT: &str = "Eggtimer CSV";
 /// samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds: 5 is a
 /// factor of 5 clear of the first and 6 of the second.
 const MILLISECONDS_ABOVE: f64 = 5.0;
+
+/// The median steps between rows, ends excluded, that are neither seconds nor milliseconds at the
+/// manuals' rates: above 1 s and below 30 ms. A file with one is refused: one whose decimal
+/// points were taken out writes 0.05 s as 5 and 0.25 s as 25.
+const NEITHER_UNIT: (f64, f64) = (1.0, 30.0);
 
 /// How far a speed may be from its altitude's change over the step and still count as that
 /// change, in the file's units: 1 %, or 1 ft/s, whichever is larger. The cells are rounded to
@@ -273,6 +298,19 @@ const SPEED_MATCH_FT_S: f64 = 1.0;
 /// least share is 95.9 %, and with the clock read in the wrong unit, a factor of 1,000 off, the
 /// most is 9.5 %: 90 % sits between the two, near the first.
 const SPEED_MATCH_SHARE: f64 = 0.9;
+
+/// How far a filtered altitude may scale from `Alt` and still be read in feet: the least-squares
+/// factor through zero that takes `Alt` to it, `Σ(filtered × Alt) / Σ Alt²` over the rows holding
+/// both, must lie from 0.1 to 2. A filter that follows the altitude lags it: under it on the way
+/// up, by more the less of the climb the file holds, and over it on the way down, by little, as
+/// the descent is slow. A lag of `τ` at a speed `v` over a climb or a descent of height `H` moves
+/// the factor by about `1.5 v τ / H`: 0.1 holds for a climb of 1.7 `v τ` or more, and a descent
+/// at 100 ft/s, `τ` a second, stays under 2 from 150 ft. A decimal place lost writes a
+/// value 10 times over, two places 100 times: 2 is a factor of 5 below the first. As of
+/// 2026-10-15, over the 44 Eggtimer files the project's sample logs read, every one with a
+/// filtered altitude, the factor lies from 0.900 to 1.000; in a semicolon-separated file whose
+/// decimal points were taken out, `12.34` written `1234`, it is 99.9, and the file is refused.
+const FILTERED_SCALE: std::ops::RangeInclusive<f64> = 0.1..=2.0;
 
 /// The most events one marker column gives; past it, the column's rises are counted in a note
 /// instead. A marker marks one event of the flight (Quantum p38, Proton p46): as of 2026-10-12, no
@@ -373,13 +411,16 @@ fn kind_of(name: &str) -> Option<Kind> {
         .then_some(Kind::Marker)
 }
 
-/// Whether a header row is an Eggtimer's: comma-separated, `T` then `Alt`, then at least one more
-/// name the reader knows.
-fn is_header(line: &str) -> bool {
-    let mut names = line.split(',').map(str::trim);
-    names.next() == Some("T")
-        && names.next() == Some("Alt")
-        && names.any(|name| kind_of(name).is_some())
+/// The separator of a header row that is an Eggtimer's, `None` for one that isn't: `T` then
+/// `Alt`, then at least one more name the reader knows, separated by commas, or else by
+/// semicolons. Commas are tried first, as a Proton's channel may be named with a semicolon.
+fn header_separator(line: &str) -> Option<char> {
+    [',', ';'].into_iter().find(|&separator| {
+        let mut names = line.split(separator).map(str::trim);
+        names.next() == Some("T")
+            && names.next() == Some("Alt")
+            && names.any(|name| kind_of(name).is_some())
+    })
 }
 
 /// Whether the text is an Eggtimer's download, judged from its first line that isn't blank, never
@@ -388,7 +429,7 @@ pub(crate) fn recognizes(text: &str) -> bool {
     numbered_lines(text)
         .map(|(_, line)| line.trim())
         .find(|line| !line.is_empty())
-        .is_some_and(is_header)
+        .is_some_and(|line| header_separator(line).is_some())
 }
 
 /// One column of the file, as the header names it.
@@ -441,7 +482,7 @@ fn read_table(text: &str, checks: Checks) -> Result<FlightLog, LogError> {
             message: "the file is empty".to_owned(),
         });
     };
-    if !is_header(header) {
+    let Some(separator) = header_separator(header) else {
         return Err(LogError::NotThisFormat {
             format: FORMAT,
             message: format!(
@@ -450,16 +491,31 @@ fn read_table(text: &str, checks: Checks) -> Result<FlightLog, LogError> {
                 short(header)
             ),
         });
-    }
+    };
     let mut notes = Notes::default();
-    let columns = header_columns(header, header_line, &mut notes)?;
+    let columns = header_columns(header, separator, header_line, &mut notes)?;
+    let rows_text = || {
+        numbered_lines(text)
+            .filter(|(number, line)| *number > header_line && !line.trim().is_empty())
+    };
+    let decimal_comma = separator != ','
+        && table::decimal_comma_shown(
+            rows_text().flat_map(|(_, line)| line.split(separator).map(str::trim)),
+        );
+    if separator != ',' {
+        notes.push(format!(
+            "the cells are separated by semicolons, as a European locale's export writes them; a \
+             number's decimal mark is a {}",
+            if decimal_comma { "comma" } else { "point" }
+        ));
+    }
 
     // Each row's cells as numbers, `NaN` where empty; a row leaves out the cells past its end.
     let mut rows: Vec<(usize, Vec<f64>)> = Vec::new();
     let mut cells_written = 0_usize;
     let mut blank_rows = 0_usize;
     for (number, line) in lines {
-        let cells: Vec<&str> = line.split(',').map(str::trim).collect();
+        let cells: Vec<&str> = line.split(separator).map(str::trim).collect();
         if cells.iter().all(|cell| cell.is_empty()) {
             blank_rows += 1;
             continue;
@@ -474,7 +530,7 @@ fn read_table(text: &str, checks: Checks) -> Result<FlightLog, LogError> {
                 ),
             ));
         }
-        let values = row_values(&cells, &columns, number)?;
+        let values = row_values(&cells, &columns, number, decimal_comma)?;
         cells_written = cells_written.saturating_add(cells.len());
         rows.push((number, values));
         if crate::log::too_sparse(columns.len() + 1, rows.len(), cells_written) {
@@ -497,11 +553,16 @@ fn read_table(text: &str, checks: Checks) -> Result<FlightLog, LogError> {
 }
 
 /// The header's columns after the time, each with what it is. The time is `T` and the altitude
-/// `Alt`, checked by [`is_header`].
-fn header_columns(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Column>, LogError> {
+/// `Alt`, checked by [`header_separator`].
+fn header_columns(
+    header: &str,
+    separator: char,
+    line: usize,
+    notes: &mut Notes,
+) -> Result<Vec<Column>, LogError> {
     let mut columns = Vec::new();
     let mut after_lda = false;
-    for (index, name) in header.split(',').map(str::trim).enumerate().skip(1) {
+    for (index, name) in header.split(separator).map(str::trim).enumerate().skip(1) {
         if name.is_empty() {
             return Err(syntax(
                 line,
@@ -536,8 +597,13 @@ fn header_columns(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Co
 }
 
 /// A row's cells as numbers in the file's units, the time first; `NaN` for an empty cell. The
-/// time must be there.
-fn row_values(cells: &[&str], columns: &[Column], line: usize) -> Result<Vec<f64>, LogError> {
+/// time must be there. A number is in the file's decimal mark, settled once for the file.
+fn row_values(
+    cells: &[&str],
+    columns: &[Column],
+    line: usize,
+    decimal_comma: bool,
+) -> Result<Vec<f64>, LogError> {
     let mut values = Vec::with_capacity(cells.len());
     for (index, cell) in cells.iter().enumerate() {
         if cell.is_empty() {
@@ -550,7 +616,7 @@ fn row_values(cells: &[&str], columns: &[Column], line: usize) -> Result<Vec<f64
             values.push(f64::NAN);
             continue;
         }
-        let Some(value) = number(cell, false) else {
+        let Some(value) = table::number_in_mark(cell, decimal_comma) else {
             let under = match index.checked_sub(1).and_then(|at| columns.get(at)) {
                 Some(column) => short(&column.name),
                 None => "T".to_owned(),
@@ -594,6 +660,23 @@ fn build(
         written_time.push(time);
     }
     let clock = time_unit(&written_time);
+    // The terminal download's coast check settles its clock on its own (module docs).
+    if let Some((_, median)) = clock
+        && checks == Checks::Csv
+        && median > NEITHER_UNIT.0
+        && median < NEITHER_UNIT.1
+    {
+        return Err(LogError::Unit {
+            format: FORMAT,
+            line: header_line,
+            message: format!(
+                "the median step between rows of `T` is {}, which is neither seconds nor \
+                 milliseconds at the manuals' 1 to 33 samples a second (0.03 to 1 s, 30 to \
+                 1,000 ms): a file whose decimal points were taken out writes 0.05 s as 5",
+                plain(median, 3)
+            ),
+        });
+    }
     let units_per_second = clock.map_or(1.0, |(per_second, _)| per_second);
     let time_s: Vec<f64> = written_time
         .iter()
@@ -619,6 +702,7 @@ fn build(
             header_line,
         )?),
     };
+    filtered_checks(&columns, &written, header_line)?;
     let speeds = speed_checks(&mut columns, &written, &step_s, &mut notes);
 
     // One note per name decided, so a header repeating a name doesn't repeat its note. On the
@@ -724,7 +808,7 @@ fn build(
     log.events = events(&columns, &written, &time_s, &mut notes);
 
     // The primary track: `Alt`, unless it is kept as written, and the barometer's raw speed, or
-    // its filtered one. Invariant: `Alt` is the header's name after `T` (`is_header`), so it is
+    // its filtered one. Invariant: `Alt` is the header's name after `T` (`header_separator`), so it is
     // the first channel.
     log.altitude_m = columns
         .first()
@@ -757,6 +841,54 @@ fn build(
     Ok(log)
 }
 
+/// Each filtered altitude checked against `Alt`: one whose least-squares factor on `Alt` lies
+/// outside [`FILTERED_SCALE`] refuses the file, its numbers not to be trusted, naming the header's
+/// line. A file whose `Alt` is zero on every row has nothing to check against.
+fn filtered_checks(columns: &[Column], written: &[Vec<f64>], line: usize) -> Result<(), LogError> {
+    // `Alt` is the first column: the header's name after `T` (`header_separator`).
+    let Some(altitude) = written.first() else {
+        return Ok(());
+    };
+    for (column, filtered) in columns.iter().zip(written) {
+        if column.kind != Kind::FilteredAltitude {
+            continue;
+        }
+        let (mut product, mut square) = (0.0_f64, 0.0_f64);
+        for (&f, &a) in filtered.iter().zip(altitude) {
+            if f.is_finite() && a.is_finite() {
+                product += f * a;
+                square += a * a;
+            }
+        }
+        if square == 0.0 {
+            continue;
+        }
+        let factor = product / square;
+        if FILTERED_SCALE.contains(&factor) {
+            continue;
+        }
+        let measured = if factor.is_finite() {
+            format!(
+                "it is {} times `Alt` by a least-squares fit",
+                plain(factor, 3)
+            )
+        } else {
+            "its least-squares factor on `Alt` isn't a finite number".to_owned()
+        };
+        return Err(LogError::Unit {
+            format: FORMAT,
+            line,
+            message: format!(
+                "`{}` isn't a filter of `Alt`: {measured}, outside the 0.1 to 2 a filter of the \
+                 altitude can be, so the file's numbers can't be trusted; a file whose decimal \
+                 points were taken out writes `12.34` as `1234`, 100 times over",
+                short(&column.name)
+            ),
+        });
+    }
+    Ok(())
+}
+
 /// What the rows say of a speed: the column of the altitude it should be the change of, and on
 /// how many of the rows after the first it is, of how many can be checked.
 #[derive(Debug, Clone, Copy)]
@@ -782,7 +914,7 @@ fn speed_checks(
         .position(|column| column.kind == Kind::FilteredAltitude);
     let mut checks = vec![None; columns.len()];
     for (index, check) in checks.iter_mut().enumerate() {
-        // `Alt` is the first column: the header's name after `T` (`is_header`).
+        // `Alt` is the first column: the header's name after `T` (`header_separator`).
         let altitude = match columns.get(index).map(|column| column.kind) {
             Some(Kind::RawSpeed) => Some(0),
             Some(Kind::FilteredSpeed) => filtered,
@@ -1118,7 +1250,7 @@ fn parabola(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// The coast window before `Alt`'s top (module docs, *The coast check*) and how fast each altitude
 /// column slows over it; why there is none otherwise.
 fn coast(columns: &[Column], written: &[Vec<f64>], time_s: &[f64]) -> Result<Coast, String> {
-    // Invariant: `Alt` is the header's name after `T` (`is_header`), so it is the first column.
+    // Invariant: `Alt` is the header's name after `T` (`header_separator`), so it is the first column.
     let alt = written.first().map_or(&[][..], Vec::as_slice);
     let count = alt.len().min(time_s.len());
     let Some(last) = count.checked_sub(1) else {
@@ -1763,7 +1895,7 @@ fn split_download(text: &str) -> Option<Download<'_>> {
     for (number, line) in lines.take(MAX_PREAMBLE_LINES) {
         let trimmed = line.trim();
         if let Some(title) = title {
-            if is_header(trimmed) {
+            if header_separator(trimmed) == Some(',') {
                 // `line` is a slice of `text`: the table starts where it does.
                 let start = (line.as_ptr() as usize).checked_sub(text.as_ptr() as usize)?;
                 return Some(Download {
@@ -1789,7 +1921,7 @@ fn split_download(text: &str) -> Option<Download<'_>> {
                 Some(words) => title = Some(words.trim()),
                 None => pending = Some(rest.trim()),
             }
-        } else if is_header(trimmed) {
+        } else if header_separator(trimmed) == Some(',') {
             // A table with no title before it is the CSV download's.
             return None;
         } else if trimmed != "Flight Summary:" {
@@ -2793,6 +2925,7 @@ mod tests {
             "T,Alt,Veloc,AccelG,AccelFPSS,VAccel,AltAccel,FAlt,FVeloc,FAccelG,FAccelFPSS,\
              FAccelVel,FAccelAlt,LDA,MaxV,MaxA,BO#1,LowV,Apogee,N-O,CH1,CH2",
             "T,Alt,Apogee",
+            "T;Alt;Veloc;Filt_Alt;FVeloc;LDA;LowV;Apogee;N-O;Drogue;Main",
         ] {
             assert!(recognizes(&format!("\r\n{header}\r\n0,0\r\n")), "{header}");
         }
@@ -2806,6 +2939,8 @@ mod tests {
             "Time,Altitude,Pressure,Velocity,Temperature,Events,Voltages\n",
             "Alt,T,Veloc\n",
             "# T,Alt,Veloc\n",
+            "T;Alt;Foo\n",
+            "Time;Altitude;Pressure;Velocity;Temperature;Events;Voltages;\n",
         ] {
             assert!(!recognizes(text), "{text:?}");
         }
@@ -2909,16 +3044,17 @@ mod tests {
         assert_eq!(prefix(&slow.notes[0]), prefix(&millis.notes[0]));
         assert!(slow.notes[0].contains("is 1000,"));
 
-        let at_the_line = read(&format!("T,Alt,LDA\n{}", rows(5.0))).unwrap();
-        assert_eq!(at_the_line.time_s, [0.0, 5.0, 10.0, 15.0]);
-        let above = read(&format!("T,Alt,LDA\n{}", rows(5.01))).unwrap();
-        assert!(close(above.time_s[1], 0.00501));
+        // At the line between the two, 5, a step is neither unit's at the manuals' rates, and
+        // the file is refused either side of it.
+        for step in [5.0, 5.01] {
+            let refused = read(&format!("T,Alt,LDA\n{}", rows(step)));
+            assert!(matches!(refused, Err(LogError::Unit { .. })), "{step}");
+        }
         let seconds = read(&format!("T,Alt,LDA\n{}", rows(0.5))).unwrap();
         assert_eq!(
             prefix(&seconds.notes[0]),
             "`T` read in seconds, from the step"
         );
-        assert_eq!(prefix(&at_the_line.notes[0]), prefix(&seconds.notes[0]));
 
         // The median, not the mean: a long pause doesn't turn seconds into milliseconds.
         let paused = read("T,Alt,LDA\n0,0,0\n0.05,1,0\n0.1,2,0\n100,3,0\n").unwrap();
@@ -3277,6 +3413,172 @@ mod tests {
                 .vertical_speed_m_s
                 .is_none()
         );
+    }
+
+    /// A flight in the TRS's `Filt_Alt` layout, each row's cells joined by `separator`, the
+    /// filtered altitude and its speed written `filtered_scale` times their values and every
+    /// number by `mark` (to change its decimal mark).
+    fn filtered_flight(
+        separator: &str,
+        filtered_scale: f64,
+        mark: impl Fn(String) -> String,
+    ) -> String {
+        let mut text = ["T", "Alt", "Veloc", "Filt_Alt", "FVeloc", "LDA", "Apogee"].join(separator);
+        text.push('\n');
+        let (mut altitude, mut filtered) = (0.0_f64, 0.0_f64);
+        for row in 0..60_u32 {
+            let t = f64::from(row) * 0.05;
+            // Up at a falling speed, then down: a whole-foot altitude, as the logger writes it.
+            let next = (t * (200.0 - 30.0 * t)).max(0.0).round();
+            let speed = if row == 0 {
+                0.0
+            } else {
+                (next - altitude) / 0.05
+            };
+            let next_filtered = filtered + 0.2 * (next - filtered);
+            let filtered_speed = if row == 0 {
+                0.0
+            } else {
+                (next_filtered - filtered) / 0.05
+            };
+            altitude = next;
+            filtered = next_filtered;
+            let cells = [
+                plain(t, 2),
+                plain(altitude, 0),
+                format!("{speed:.2}"),
+                format!("{:.2}", filtered * filtered_scale),
+                format!("{:.2}", filtered_speed * filtered_scale),
+                "0".to_owned(),
+                "0".to_owned(),
+            ];
+            let cells: Vec<String> = cells.into_iter().map(&mark).collect();
+            text.push_str(&cells.join(separator));
+            text.push('\n');
+        }
+        text
+    }
+
+    fn channel<'a>(log: &'a FlightLog, name: &str) -> &'a Channel {
+        log.channels.iter().find(|c| c.column == name).unwrap()
+    }
+
+    #[test]
+    fn semicolons_read_as_commas_do_with_either_decimal_mark() {
+        let commas = read(&filtered_flight(",", 1.0, |cell| cell)).unwrap();
+        let points = read(&filtered_flight(";", 1.0, |cell| cell)).unwrap();
+        let decimal_commas =
+            read(&filtered_flight(";", 1.0, |cell| cell.replace('.', ","))).unwrap();
+        for log in [&points, &decimal_commas] {
+            assert_eq!(log.time_s, commas.time_s);
+            assert_eq!(log.altitude_m, commas.altitude_m);
+            assert_eq!(log.vertical_speed_m_s, commas.vertical_speed_m_s);
+            assert_eq!(log.channels, commas.channels);
+            assert_eq!(log.notes[..commas.notes.len()], commas.notes[..]);
+        }
+        assert_eq!(
+            channel(&points, "Filt_Alt").quantity,
+            Quantity::AltitudeAboveGround
+        );
+        assert_eq!(channel(&points, "FVeloc").quantity, Quantity::Speed);
+        assert!(!commas.notes.iter().any(|n| n.contains("semicolons")));
+        assert!(points.notes.iter().any(|n| n.ends_with(
+            "separated by semicolons, as a European locale's export writes them; a number's \
+             decimal mark is a point"
+        )));
+        assert!(decimal_commas.notes.iter().any(|n| n.ends_with(
+            "separated by semicolons, as a European locale's export writes them; a number's \
+             decimal mark is a comma"
+        )));
+        // A comma-separated file never reads a decimal comma, and a semicolon one never mixes the
+        // marks: a cell in the other is refused, naming its line.
+        let mixed = filtered_flight(";", 1.0, |cell| cell).replacen("0.25;", "0,25;", 1);
+        assert!(matches!(
+            read(&mixed),
+            Err(LogError::Syntax { line: 7, ref message, .. }) if message.starts_with("\"0,25\"")
+        ));
+        // A point among decimal commas, as `1.250`, settles the file on points, so its first
+        // decimal comma is refused: the marks are never mixed.
+        let thousands = filtered_flight(";", 1.0, |cell| cell.replace('.', ",")).replacen(
+            ";0;0\n",
+            ";1.250;0\n",
+            1,
+        );
+        assert!(matches!(read(&thousands), Err(LogError::Syntax { .. })));
+    }
+
+    #[test]
+    fn a_filtered_altitude_off_the_altitudes_scale_refuses_the_file() {
+        // Written a hundred times its value, as a file whose decimal points were taken out: the
+        // filter lags `Alt` at 0.923 times it, so the fit gives 92.319.
+        let refused = read(&filtered_flight(";", 100.0, |cell| cell));
+        assert!(
+            matches!(
+                &refused,
+                Err(LogError::Unit { line: 1, message, .. }) if message.starts_with(
+                    "`Filt_Alt` isn't a filter of `Alt`: it is 92.319 times `Alt` by a \
+                     least-squares fit, outside the 0.1 to 2"
+                )
+            ),
+            "{refused:?}"
+        );
+        // The band's edges: written 2.1 and 0.11 times, 1.939 and 0.102 times `Alt` by the fit,
+        // the filtered altitude is read; at 2.2 and 0.105 times, 2.031 and 0.097, the file is
+        // refused.
+        for (scale, reads) in [(2.1, true), (0.11, true), (2.2, false), (0.105, false)] {
+            match read(&filtered_flight(",", scale, |cell| cell)) {
+                Ok(log) => {
+                    assert!(reads, "{scale}");
+                    assert_eq!(
+                        channel(&log, "Filt_Alt").quantity,
+                        Quantity::AltitudeAboveGround
+                    );
+                }
+                Err(error) => assert!(
+                    !reads && matches!(error, LogError::Unit { .. }),
+                    "{scale}: {error}"
+                ),
+            }
+        }
+        // A factor that isn't a number refuses the file too.
+        let huge = "T,Alt,FAlt\n0,1e200,1e200\n0.05,1e200,1e200\n";
+        assert!(matches!(
+            read(huge),
+            Err(LogError::Unit { ref message, .. }) if message.contains("isn't a finite number")
+        ));
+        // An altitude of zero throughout has nothing to check against.
+        let flat = "T,Alt,FAlt\n0,0,0\n0.05,0,5\n0.1,0,9\n";
+        assert_eq!(
+            channel(&read(flat).unwrap(), "FAlt").quantity,
+            Quantity::AltitudeAboveGround
+        );
+    }
+
+    #[test]
+    fn a_step_neither_seconds_nor_milliseconds_refuses_the_file() {
+        // A seconds clock written without its decimal points: 0.05 s as 5.
+        let stripped = "T,Alt,Veloc\n0,0,0\n5,10,200\n10,25,300\n15,40,300\n";
+        assert!(matches!(
+            read(stripped),
+            Err(LogError::Unit { line: 1, ref message, .. })
+                if message.starts_with("the median step between rows of `T` is 5,")
+        ));
+        // The ends are each a unit's: a step of 1 is seconds, one of 30 milliseconds.
+        let one = read("T,Alt,Veloc\n0,0,0\n1,10,10\n2,25,15\n").unwrap();
+        assert_eq!(one.time_s, [0.0, 1.0, 2.0]);
+        let thirty = read("T,Alt,Veloc\n0,0,0\n30,1,33\n60,2,33\n").unwrap();
+        assert_eq!(thirty.time_s, [0.0, 0.03, 0.06]);
+        let over = "T,Alt,Veloc\n0,0,0\n1.01,10,10\n2.02,25,15\n";
+        assert!(matches!(read(over), Err(LogError::Unit { .. })));
+        let under = "T,Alt,Veloc\n0,0,0\n29.9,1,33\n59.8,2,33\n";
+        assert!(matches!(read(under), Err(LogError::Unit { .. })));
+    }
+
+    #[test]
+    fn a_semicolon_in_a_channel_name_keeps_a_comma_file_a_comma_file() {
+        let log = read("T,Alt,Veloc,LDA,Apogee,Dr;1\n0,0,0,0,0,0\n0.05,1,20,0,0,0\n").unwrap();
+        assert_eq!(log.channels.last().unwrap().column, "Dr;1");
+        assert!(!log.notes.iter().any(|n| n.contains("semicolons")));
     }
 
     /// An unknown column before `LDA` is kept as written; after it, it is a marker with events.

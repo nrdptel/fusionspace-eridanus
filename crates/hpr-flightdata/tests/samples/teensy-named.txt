@@ -1,0 +1,12 @@
+ICM data in us, milli-g, deg/s, milli-T, deg C
+LIS data in us, g
+MS5 data in us, deg C, Pa
+ADC data in us, deg C
+LIS, t, 500000121, xh, -0.10, yh, 0.05, zh, 1.02
+ICM, t, 500000500, xa, 12.20, ya, -20.50, za, 998.40, xg, 0.18, yg, -0.12, zg, 0.06, xm, 30.15, ym, 4.20, zm, -18.75, T, 24.50
+MS5, t, 500001000, T, 24.10, P, 95000
+ADC, t, 500001200, T1, 21.250, T2, 22.000
+VOL, t, 500001400, V, 4.105
+LIS, t, 500001121, xh, -0.12, yh, 0.07, zh, 1.00
+ICM, t, 500001500, xa, 11.90, ya, -20.10, za, 1001.10, xg, 0.12, yg, -0.18, zg, 0.00, xm, 30.30, ym, 4.05, zm, -18.90, T, 24.50
+MS5, t, 500021000, T, 24.10, P, 94998

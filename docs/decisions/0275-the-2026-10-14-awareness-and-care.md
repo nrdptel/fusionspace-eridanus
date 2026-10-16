@@ -1,6 +1,6 @@
-# ADR-270: Neer's 2026-10-14 plan: awareness and care on the sites (2026-10-14)
+# ADR-275: Neer's 2026-10-14 plan: awareness and care on the sites (2026-10-14)
 
-- **Status:** accepted; adds M0.13, queued after release 0.2 ([M10.2](../ROADMAP.md))
+- **Status:** accepted; adds M0.13, queued after release 0.2 ([M10.2](../ROADMAP.md)); amends ADR-147 §6 (the roadmap's budget)
 - **Summary:** The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access.
 
 [adr-162]: 0162-the-suite-and-its-releases.md
@@ -82,6 +82,7 @@ bars at the top of each page and lines in the home page's footer, changing with 
      Awareness Day (August 31) and World Cancer Day (February 4) take a footer line on the day**,
      once their organizers' pages are read. **Suicide prevention keeps its banner** (September
      10), the one heavy topic where WHO's guidance supports showing where help is.
+9. **The roadmap's budget rises** from 47,500 to 48,500 bytes, for M0.13 (as ADR-217 did for M9.8).
 
 **Consequences.** M0.13 joins the queue after release 0.2. Its first increment changes three
 repositories (the product system, this one and fusionspace.co's), and the table needs a yearly

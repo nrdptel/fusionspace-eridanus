@@ -1,0 +1,300 @@
+---
+source: crates/hpr-flightdata/tests/blueraven_usb.rs
+expression: log
+---
+{
+  "format": "blue_raven_usb",
+  "logger": "Featherweight Blue Raven",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Year",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0
+      ]
+    },
+    {
+      "column": "Month",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        5.0,
+        5.0,
+        5.0,
+        5.0
+      ]
+    },
+    {
+      "column": "Day",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        23.0,
+        23.0,
+        23.0,
+        23.0
+      ]
+    },
+    {
+      "column": "Time",
+      "quantity": "time_of_day",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        36900.12,
+        36900.122,
+        36900.124,
+        36900.126
+      ]
+    },
+    {
+      "column": "Sync",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        20.0,
+        22.0,
+        24.0,
+        26.0
+      ]
+    },
+    {
+      "column": "Gyro X",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        -0.15,
+        -0.12,
+        2.5,
+        3.1
+      ]
+    },
+    {
+      "column": "Gyro Y",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.42,
+        0.4,
+        -1.2,
+        -1.5
+      ]
+    },
+    {
+      "column": "Gyro Z",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        -0.07,
+        -0.06,
+        0.33,
+        0.4
+      ]
+    },
+    {
+      "column": "Accel X",
+      "quantity": "acceleration",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        -0.0980665,
+        -0.196133,
+        -0.196133,
+        -0.4903325
+      ]
+    },
+    {
+      "column": "Accel Y",
+      "quantity": "acceleration",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.29419949999999995,
+        0.392266,
+        62.76256,
+        68.64654999999999
+      ]
+    },
+    {
+      "column": "Accel Z",
+      "quantity": "acceleration",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        9.610517,
+        9.7085835,
+        118.66046499999999,
+        129.44778
+      ]
+    },
+    {
+      "column": "Quaternion X",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        -0.1,
+        -0.10003333333333334,
+        -0.09966666666666667,
+        -0.09916666666666667
+      ]
+    },
+    {
+      "column": "Quaternion Y",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.05,
+        0.05,
+        0.050333333333333334,
+        0.050833333333333335
+      ]
+    },
+    {
+      "column": "Quaternion Z",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        -0.0013333333333333333,
+        -0.0013666666666666666,
+        -0.002,
+        -0.0025
+      ]
+    },
+    {
+      "column": "Quaternion magnitude",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.9937333333333334,
+        0.9937,
+        0.9937666666666667,
+        0.9938
+      ]
+    },
+    {
+      "column": "LOG_HIR 11",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.0,
+        0.0,
+        3.0,
+        3.0
+      ]
+    },
+    {
+      "column": "LOG_HIR 12",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.002,
+        0.004,
+        0.006
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "a high-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.120, whose date the manual says starts from the firmware's build date unless the phone has set it",
+    "the high-rate record holds 12 values where the manual lists 10: the manual's read in its order, the other 2 kept as written"
+  ]
+}

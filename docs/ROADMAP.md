@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 47,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 48,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -114,13 +114,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-- [ ] **M0.13 Awareness and care on the sites** (ADR-270; Neer, 2026-10-14; VISION V53). A thin
+- [ ] **M0.13 Awareness and care on the sites** (ADR-275; Neer, 2026-10-14; VISION V53). A thin
   banner and a footer line that change through the year (heritage and awareness months, health,
   access, science and space days, rocketry safety), from a dated, sourced table
   ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)).
   - [ ] **M0.13a The banner, the footer line and the help page.** *Done when:* the pattern is in
     the product system first; the docs site and fusionspace.co show at most one banner and one
-    footer line, picked in the reader's browser by ADR-270's rule, with no location lookup and
+    footer line, picked in the reader's browser by ADR-275's rule, with no location lookup and
     nothing with scripts off; a test fails a row with no organizer's page, past its stale-after
     date, an unparsed window or a banner over 90 characters; the page check, on a date in each
     month, fails a clipped, overlapping or unlabeled banner at every width in both themes; a help
@@ -159,10 +159,17 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M2.3c3 OpenRocket's newest release** (ADR-212). *Done when:* the fixture and public
       OpenRocket reports fly its newest release after 24.12 beside 24.12 on the flights both
       fly, each named, and its steps to a first answer are recounted (ADR-241). Moves: accuracy.
-    - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226). *Done when:* the fixture report
-      gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
-      parts, each input swapped for OpenRocket's in that order, the rest named as other, the
-      parts tested to sum to the whole. Moves: accuracy.
+    - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273). *Done when:* the fixture
+      report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
+      parts, each input swapped for OpenRocket's in that order, the rest named as other, the parts
+      tested to sum to the whole. The drag part splits off the pressure drag of tangent-ogive noses
+      above Mach 1 (ADR-273: OpenRocket's #3391), by swapping in OpenRocket's per-component nose
+      pressure drag as its public interface reports it: its share of the gap, with its sign, over
+      the flights whose hpr flight passes Mach 1 with a tangent-ogive nose, each such flight counted
+      as swapped or skipped with its reason, #222's flight among those swapped or an ADR saying why
+      not; and a public fineness-3 probe sets OpenRocket 24.12's and hpr's nose pressure drag, on
+      the nose's base area, at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
+      test pinning hpr's at each. Moves: accuracy.
     - [ ] **M2.3c7 Faster than sound: published flights** (ADR-236). *Done when:* the
       real-flights report scores every COTS-motor flight on RASAero II's published comparison
       list whose design ships with RASAero II, read by hpr's own `.CDX1` importer, each not read
@@ -388,11 +395,24 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
-    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269): in fifteen.
-    - [ ] **M7.1c15 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
-      EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
-      ADR-258).
-      *Done when:* the parent's.
+    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
+    ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
+    - [ ] **M7.1c20 Workbooks with a reading beside.** *Done when:* the two headerless Raven FIP
+      sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls`
+      reads from its bare BIFF8 stream, by its stated units, each height following its pressure
+      by one barometric formula whose constants the report states.
+    - [ ] **M7.1c21 Altimeters' other text.** *Done when:* MARSA's two files read, their apogee
+      within 5 % of another logger's in the same flight; the AltOS telemetry CSV reads by its
+      header; the AltOS-like table by AltOS's state numbers; the CSV with formula cells reads,
+      each formula kept as text.
+    - [ ] **M7.1c22 Tables by mapping, and files that aren't logs.** *Done when:* the 20 logs read,
+      each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
+      a track's own speed); the 7 others filed as not logs, each with its reason in the report.
+    - [ ] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
+      the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
+      each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
+      report and M7.1 left open while it lasts; the guide lists every format the roadmap names
+      with no sample (CATS, Juno) as needing samples.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped

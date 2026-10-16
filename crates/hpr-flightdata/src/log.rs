@@ -290,6 +290,31 @@ pub enum LogFormat {
     /// header row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,
     /// then one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.
     GenericTable,
+    /// A file of binary records end to end, each a run of fields, read by a layout the caller
+    /// states, since the file states none ([`crate::records`]).
+    BinaryRecords,
+    /// A serial console's capture of a flight computer's shell, its memory dumped as base64
+    /// between marker lines such as `----++++//[[( data start )]]\\++++----`, each block's
+    /// records read by a layout the caller states ([`crate::capture`]).
+    ConsoleCapture,
+    /// The Featherweight Blue Raven's flight data as its USB port downloads it to a serial
+    /// terminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC
+    /// ([`crate::blueraven_usb`]).
+    BlueRavenUsb,
+    /// A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,
+    /// then its values, such as `Alt`, the clock, `P` and a pressure, `MSL` and an altitude
+    /// ([`crate::teensy`]).
+    TeensyTabs,
+    /// A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg
+    /// C, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).
+    TeensyNamed,
+    /// One team's radio telemetry packets as text, one `255:…:254` packet a line, such as
+    /// `255:T:11:PP:100150:950.12:21.50:3.25:254`: the flight computer's own log, or what a
+    /// receiver heard ([`crate::packets`]).
+    RadioPacketText,
+    /// The same packets in an RTF document a spreadsheet saved as CSV, one `255,…,254` packet a
+    /// line ([`crate::packets::read_rtf`]).
+    RadioPacketRtf,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -374,6 +399,9 @@ const RAVEN_PRESSURE_STEP_ATM: f64 = 4.0e-5;
 /// `Pressure` in all 50 RRC3 files among the project's sample logs.
 const RRC3_PRESSURE_STEP_PA: f64 = 10.0;
 
+/// The step the radio packets write their pressure in, Pa: 0.01 hPa ([`crate::packets`]).
+const RADIO_PACKET_PRESSURE_STEP_PA: f64 = 1.0;
+
 /// The Blue Raven's pressure step, atm: 2 × 10⁻⁵ atm (2.0265 Pa), as its USB download writes the
 /// pressure in atmospheres times 50,000 (*Blue Raven User's Guide*, 2026-05-12, p23). The app's
 /// file prints the pressure to 10⁻⁴ atm, but its altitude above the pad steps by 0.5 to 0.6 ft near
@@ -408,7 +436,12 @@ impl LogFormat {
     /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
     /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
     /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A table read by
-    /// its header has no track, and no step: 0.
+    /// its header has no track, and no step: 0; nor do binary records read by a stated layout, or a
+    /// console capture's, which are read as such a table. A Blue Raven's USB download has no
+    /// track either, and its pressure is written in the CSV's steps, 1/50,000 atm: the CSV's step.
+    /// Nor does a Teensy data logger's file, whose pressure is written in whole pascals: 1 Pa,
+    /// 0.083 m near sea level.
+    /// Nor do the radio packets, whose pressure is written to 0.01 hPa, 1 Pa.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -418,7 +451,13 @@ impl LogFormat {
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
-            Self::BlueRavenCsv => BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
+            Self::TeensyTabs | Self::TeensyNamed => ONE_PASCAL_M,
+            Self::RadioPacketText | Self::RadioPacketRtf => {
+                RADIO_PACKET_PRESSURE_STEP_PA * ONE_PASCAL_M
+            }
+            Self::BlueRavenCsv | Self::BlueRavenUsb => {
+                BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M
+            }
             Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
             Self::Kml => 1.0,
             Self::Nmea0183 => 0.1,
@@ -441,7 +480,7 @@ impl LogFormat {
             Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
             Self::RtxRaw => crate::rtx::ALTITUDE_STEP_M,
             Self::RtxCsv | Self::RtxText => crate::rtx::EXPORT_ALTITUDE_STEP_M,
-            Self::GenericTable => 0.0,
+            Self::GenericTable | Self::BinaryRecords | Self::ConsoleCapture => 0.0,
         }
     }
 
@@ -472,8 +511,12 @@ impl LogFormat {
             | Self::SillyGooseText
             | Self::AerospaceNuGroundStationText
             | Self::RdasText
-            | Self::RtxText => ".txt",
-            Self::EggtimerRtf => ".rtf",
+            | Self::RtxText
+            | Self::BlueRavenUsb
+            | Self::TeensyTabs
+            | Self::TeensyNamed
+            | Self::RadioPacketText => ".txt",
+            Self::EggtimerRtf | Self::RadioPacketRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
@@ -482,6 +525,8 @@ impl LogFormat {
             Self::AltosEeprom => ".eeprom",
             Self::Arts2Odf => ".odf",
             Self::RtxRaw => ".rtx",
+            Self::BinaryRecords => ".bin",
+            Self::ConsoleCapture => ".cap",
         }
     }
 
@@ -522,6 +567,13 @@ impl LogFormat {
             Self::RtxCsv => "RTx CSV",
             Self::RtxText => "RTx text",
             Self::GenericTable => "a table read by its header",
+            Self::BinaryRecords => "binary records by a stated layout",
+            Self::ConsoleCapture => "console capture of base64 records",
+            Self::BlueRavenUsb => "Blue Raven USB download",
+            Self::TeensyTabs => "Teensy data logger, tab-separated",
+            Self::TeensyNamed => "Teensy data logger, named fields",
+            Self::RadioPacketText => "radio packets",
+            Self::RadioPacketRtf => "radio packets in RTF",
         }
     }
 }

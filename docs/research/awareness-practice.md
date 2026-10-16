@@ -167,7 +167,7 @@ dates and names are facts, restated in our own words.
 
 ## The maintainer's calls (2026-10-15)
 
-Recorded in [ADR-270](../decisions/0270-the-2026-10-14-awareness-and-care.md) §8:
+Recorded in [ADR-275](../decisions/0275-the-2026-10-14-awareness-and-care.md) §8:
 - Transgender Day of Visibility and of Remembrance take the banner, Remembrance as a solemn day.
 - November 11 takes one shared, solemn line naming each region's day.
 - Sexual assault and domestic violence: help page only. Overdose and cancer days: footer on the day.

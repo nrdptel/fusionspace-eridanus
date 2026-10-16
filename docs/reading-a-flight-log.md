@@ -16,10 +16,10 @@ AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its f
 board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a
 phone app's `launch` CSV, an Eggtimer's download saved as RTF, the Raven's `.FIPa` and the
 RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no samples), the
-R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
+R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`), a team flight computer's binary records by a layout the caller states (the library only), a Blue Raven's USB download, each line held to its CRC (the library only), and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254` (the library only) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
 readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
 loggers. Other loggers come with
-[M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15).
+[M7.1c20 to M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c20).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
@@ -201,7 +201,7 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15)), or take readings from
+- Read other loggers' files ([M7.1c20 to M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c20)), or take readings from
   the logs the library already reads beside PerfectFlite's
   ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the

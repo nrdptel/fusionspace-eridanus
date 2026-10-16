@@ -130,7 +130,7 @@ checkable items.
 - **2026-10-09, fusionspace.co rebuilt** ([ADR-217, fusionspace.co rebuilt](decisions/0217-the-2026-10-09-fusionspace-co-rebuilt.md)).
   FusionSpace's front page rebuilt from the ground up, like the old tools, presenting every project
   and product.
-- **2026-10-14, awareness and care** ([ADR-270, awareness and care on the sites](decisions/0270-the-2026-10-14-awareness-and-care.md)).
+- **2026-10-14, awareness and care** ([ADR-275, awareness and care on the sites](decisions/0275-the-2026-10-14-awareness-and-care.md)).
   The sites spread awareness, outreach and care through the year, as Motor Finder's monthly
   banners did but done properly, and the project is considerate of everyone who uses it.
 
@@ -208,7 +208,7 @@ Decisions Neer confirmed at kickoff:
 | V50 | Live guide figures: the reader changes a number in the text and hpr itself, in the browser, redraws the figure, offline | M0.7c (after release 0.5), ADR-195 |
 | V51 | An in-depth, illustrated guide for each product: a landing page and a tour ending on a public real flight, every picture made by a command CI reruns and checked for clipping, phone and watch captures against the safe area ([product guides](research/product-guides.md)) | M0.8a, the release checklist from 0.2, ADR-196 |
 | V52 | A design from purchasable parts in minutes: search the catalog, build from it, and get a parts list to buy from; a catalog of hpr's own beyond OpenRocket's, every value with its source and date, parachutes with their drag and its range, motor hardware, rail buttons and recovery hardware ([parts catalog](research/parts-catalog.md)) | M5.6a to M5.6d, M9.1, ADR-197 |
-| V53 | Awareness and care: a banner and a footer line through the year (heritage and awareness months, health, access, science and space, rocketry safety) from a dated, sourced table, regions named, solemn days alone, a checked help page; then a code of conduct, a page on getting involved and a way to report a barrier ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)) | M0.13a, M0.13b, ADR-270 |
+| V53 | Awareness and care: a banner and a footer line through the year (heritage and awareness months, health, access, science and space, rocketry safety) from a dated, sourced table, regions named, solemn days alone, a checked help page; then a code of conduct, a page on getting involved and a way to report a barrier ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)) | M0.13a, M0.13b, ADR-275 |
 
 ## North stars
 

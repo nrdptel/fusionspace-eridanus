@@ -54,7 +54,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The workbooks are read
 /// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
-pub const READ: [(&str, LogFormat, &str); 35] = [
+pub const READ: [(&str, LogFormat, &str); 40] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -113,6 +113,11 @@ pub const READ: [(&str, LogFormat, &str); 35] = [
     ("rtx-csv", LogFormat::RtxCsv, "M7.1c12"),
     ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
     ("table-csv", LogFormat::GenericTable, "M7.1c13"),
+    ("blueraven-usb-txt", LogFormat::BlueRavenUsb, "M7.1c17"),
+    (TEENSY_TABS_FAMILY, LogFormat::TeensyTabs, "M7.1c18"),
+    (TEENSY_NAMED_FAMILY, LogFormat::TeensyNamed, "M7.1c18"),
+    (RADIO_TXT_FAMILY, LogFormat::RadioPacketText, "M7.1c19"),
+    (RADIO_RTF_FAMILY, LogFormat::RadioPacketRtf, "M7.1c19"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -129,17 +134,36 @@ const WORKBOOK_FAMILY: &str = "workbook-xlsx";
 /// The increment that reads [`WORKBOOK_FAMILY`]'s sheets.
 const WORKBOOK_INCREMENT: &str = "M7.1c14";
 
+/// The family of tables read by a column mapping their publisher states ([`MAPPINGS`]), whose
+/// headers name a clock with no unit, so that no reader takes them on their own.
+const MAPPED_FAMILY: &str = "mapped-table-csv";
+
+/// The increment that reads [`MAPPED_FAMILY`]'s files.
+const MAPPED_INCREMENT: &str = "M7.1c15";
+
+/// The column mappings the publishers of some sample tables state, by file id: committed, as the
+/// tables they map are public.
+const MAPPINGS: &str = include_str!("../../validation/log-mappings.json");
+
+/// The families of binary records read by a layout stated for each file ([`LAYOUTS`]): a serial
+/// console's captures of base64 blocks, and files of records end to end.
+const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
+
+/// The increment that reads [`LAYOUT_FAMILIES`]' files.
+const LAYOUT_INCREMENT: &str = "M7.1c16";
+
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c15";
+const LEFT_TO: &str = "M7.1c20";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
 /// a log or its description of a rocket, a flyer's summary of flights, a team flight computer's
 /// saved state, a simulation's export, a wind profile, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 15] = [
+const NOT_LOGS: [&str; 16] = [
     "blueraven-events-txt",
     "blueraven-settings-csv",
     "blueraven-settings-xlsx",
+    "blueraven-summary-copy-txt",
     "checklist",
     "debrief-synthetic-csv",
     "empty",
@@ -247,16 +271,31 @@ const RTX_CSV: &str = "Missile Works mDACS's CSV export of an RTx GPS tracker's 
 /// Why a file the catalog files as generic CSV is read as a table by its header.
 const TABLE_CSV: &str = "a table no other reader takes, a header row naming its clock with a \
     unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is a table its publisher states a mapping for.
+const MAPPED_TABLE: &str = "a table whose header names its clock with no unit, `t`, `ts` or \
+    `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); \
+    filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is an Eggtimer's CSV.
+const EGGTIMER_SEMICOLON: &str = "an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with \
+    semicolons between its cells, as a European locale's spreadsheet writes it; filed as \
+    generic CSV by its extension";
+
 /// Why a file the catalog files as text is an RTx's text export.
 const RTX_TXT: &str = "Missile Works mDACS's text export of an RTx GPS tracker's fixes, a \
     tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension";
-/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c7.
-const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
-    maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
-    extension";
 /// Why a file the catalog files as RTF is an Eggtimer's download.
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
+
+/// Why a file the catalog files as text is a console capture of binary records.
+const CONSOLE_CAPTURE: &str = "a serial console's capture of a team flight computer's shell \
+    dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker \
+    lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text \
+    by its extension";
+/// Why a file the catalog files as binary is a file of records end to end.
+const RECORD_DUMP: &str = "a team flight computer's raw file of fixed-size binary records end \
+    to end, with no header or marks, read by the record layout stated for it \
+    (`validation/log-layouts.json`); filed as binary";
 
 /// Why a spreadsheet is a workbook of logs, its sheets each read as a file of its own.
 const WORKBOOK: &str = "an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a \
@@ -268,6 +307,10 @@ const FLIGHT_SUMMARY_XLSX: &str = "a flyer's summary of flights in a spreadsheet
 /// Why a spreadsheet is a team's checklist, not a log.
 const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
     cells and no measurement; not a log";
+/// Why a file the catalog files as text is a Blue Raven's USB download.
+const BLUERAVEN_USB: &str = "a Blue Raven's flight data as its USB port downloads it to a serial \
+    terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual \
+    describes";
 /// Why a spreadsheet is a Blue Raven's settings, not a log.
 const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a spreadsheet, a \
     `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an \
@@ -275,7 +318,86 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 160] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 187] = [
+    ("cd6f44ad29c505e6", "txt", RADIO_TXT_FAMILY, RADIO_ONBOARD),
+    ("a10560cbf44516e5", "txt", RADIO_TXT_FAMILY, RADIO_RECEIVED),
+    ("12f752fa1d21c27f", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("2b8cca725a7b5fd6", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("34e2963eda0e95bc", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("3f3c6284f174edfc", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("425b1ac3fbe4f794", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("bfea33e67007ae0e", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("d17b644dac464173", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
+    ("0bc1429eeabbbda7", "txt", TEENSY_NAMED_FAMILY, TEENSY_NAMED),
+    (
+        "455ecee4a48bd98e",
+        "txt",
+        BLUERAVEN_USB_FAMILY,
+        BLUERAVEN_USB,
+    ),
+    (
+        "a106c197fc5f6dec",
+        "txt",
+        BLUERAVEN_USB_FAMILY,
+        BLUERAVEN_USB,
+    ),
+    (
+        "4ee1c37b025e6a9f",
+        "txt",
+        "blueraven-summary-copy-txt",
+        "a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as \
+         a table of cells between `|`: a copy, as the program's events file beside it is a \
+         reading; the CSV reads",
+    ),
+    (
+        "5c15ad3db182065c",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    (
+        "a964e00316c378d9",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    (
+        "d304c5e63044e3e3",
+        "txt",
+        "console-capture",
+        CONSOLE_CAPTURE,
+    ),
+    ("67f97f55050a505f", "binary", "record-dump", RECORD_DUMP),
+    ("8f291cf155079b3d", "binary", "record-dump", RECORD_DUMP),
+    ("045f5b9ed473b800", "csv", "mapped-table-csv", MAPPED_TABLE),
+    ("0c7808a84fb39c83", "csv", "mapped-table-csv", MAPPED_TABLE),
+    ("a9cf47fe2b2e5be0", "csv", "mapped-table-csv", MAPPED_TABLE),
+    ("d88a7fc53cbd55d1", "csv", "mapped-table-csv", MAPPED_TABLE),
+    ("dd5287b375e84be8", "csv", "mapped-table-csv", MAPPED_TABLE),
+    ("f912724676eea0ca", "csv", "mapped-table-csv", MAPPED_TABLE),
+    (
+        "7a71bfeb7d7b1ee4",
+        "csv",
+        "eggtimer-csv-damaged",
+        "an Eggtimer's CSV download saved with semicolons by a spreadsheet that took out its \
+         decimal points, `12.34` written `1234`: its filtered altitude is about 100 times `Alt`, \
+         so the reader refuses it, its numbers not to be trusted",
+    ),
+    (
+        "cda3fcdb9d634cd0",
+        "csv",
+        "eggtimer-csv",
+        EGGTIMER_SEMICOLON,
+    ),
+    (
+        "bc062b34affee518",
+        "csv",
+        "rrc3-csv-damaged",
+        "an RRC3's mDACS export in a European locale's form, semicolons and decimal commas, \
+         whose rows a spreadsheet sorted by their time's text, `10,05` before `2`; put in \
+         order by value, they step 0.05 s from 0 with none missing, but the reader keeps the \
+         file's order and refuses a time that goes back, naming the line",
+    ),
     ("02cf95e874f824f7", "xlsx", "workbook-xlsx", WORKBOOK),
     ("084653fe77f2ca50", "xlsx", "workbook-xlsx", WORKBOOK),
     ("229efb1695f3277f", "xlsx", "workbook-xlsx", WORKBOOK),
@@ -495,9 +617,9 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 160] = [
     ("db13cb37b77732af", "csv", "phone-launch-csv", PHONE_LAUNCH),
     ("e556289cc743ecd9", "csv", "phone-launch-csv", PHONE_LAUNCH),
     ("ec774588ec195de6", "csv", "phone-launch-csv", PHONE_LAUNCH),
-    ("3a36f081e5be9e9d", "rtf", "telemetry-rtf", TELEMETRY_RTF),
+    ("3a36f081e5be9e9d", "rtf", RADIO_RTF_FAMILY, RADIO_RTF),
     ("70415b30a59d4411", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
-    ("8720c50cdeaf8ad3", "rtf", "telemetry-rtf", TELEMETRY_RTF),
+    ("8720c50cdeaf8ad3", "rtf", RADIO_RTF_FAMILY, RADIO_RTF),
     (
         "88f33383ccf621a0",
         "aerospacenu-sillygoose-txt",
@@ -709,6 +831,28 @@ struct Report {
     /// The tables read by their headers, each column's decision counted.
     #[serde(default)]
     table_checks: Vec<TableFile>,
+    /// Tables read by a mapping their publisher states (M7.1c15).
+    #[serde(default)]
+    mapped_checks: Vec<MappedFile>,
+    /// Files of binary records read by a stated layout, against their teams' tables (M7.1c16).
+    #[serde(default)]
+    layout_checks: Vec<LayoutFile>,
+    /// The Blue Raven's USB downloads against their CRCs, their lengths, the manual and the same
+    /// flight's other files (M7.1c17).
+    #[serde(default)]
+    usb_checks: Vec<UsbFile>,
+    /// A course's Teensy data logger's files against their own lines and the physics their units
+    /// must keep (M7.1c18).
+    #[serde(default)]
+    teensy_checks: Vec<TeensyFile>,
+    /// One team's radio telemetry packets against their own lines, the flight computer's own log
+    /// and the physics their units must keep (M7.1c19).
+    #[serde(default)]
+    packet_checks: Vec<PacketFile>,
+
+    /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
+    #[serde(default)]
+    filter_scales: FilterScales,
     /// The Excel workbooks, each sheet's outcome counted.
     workbook_checks: Vec<WorkbookFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
@@ -2565,6 +2709,2133 @@ fn workbook_checks(samples: &[Sample]) -> Vec<WorkbookFile> {
     out
 }
 
+/// A column mapping a table's publisher states, from [`MAPPINGS`].
+#[derive(Debug, Clone, Deserialize)]
+struct StatedMapping {
+    /// The file's id: the first 16 hex digits of its SHA-256.
+    id: String,
+    /// Where the publisher states it.
+    source: String,
+    mapping: hpr_flightdata::generic::Mapping,
+}
+
+/// The file of [`MAPPINGS`].
+#[derive(Debug, Deserialize)]
+struct StatedMappings {
+    mappings: Vec<StatedMapping>,
+}
+
+/// The stated mappings, refused if the file doesn't parse or names an id twice.
+fn stated_mappings() -> Result<Vec<StatedMapping>, String> {
+    let file: StatedMappings = serde_json::from_str(MAPPINGS)
+        .map_err(|error| format!("validation/log-mappings.json: {error}"))?;
+    let mut ids = BTreeSet::new();
+    for stated in &file.mappings {
+        if !ids.insert(stated.id.as_str()) {
+            return Err(format!(
+                "validation/log-mappings.json maps {} twice",
+                stated.id
+            ));
+        }
+    }
+    Ok(file.mappings)
+}
+
+/// A file read by the mapping its publisher states, with that mapping. Refused if no mapping is
+/// stated for the file, if a reader takes it on its own (a mapping is only for a file none
+/// does), if its header doesn't name the mapping's columns, in order, or as the mapping's reading
+/// refuses it.
+fn read_mapped(id: &str, bytes: &[u8]) -> Result<(FlightLog, StatedMapping), String> {
+    let stated = stated_mappings()?
+        .into_iter()
+        .find(|stated| stated.id == id)
+        .ok_or("no mapping is stated for it in validation/log-mappings.json")?;
+    let log = read_by(&stated, bytes)?;
+    Ok((log, stated))
+}
+
+/// A file read by a stated mapping, refused as [`read_mapped`] says.
+fn read_by(stated: &StatedMapping, bytes: &[u8]) -> Result<FlightLog, String> {
+    if let Ok(log) = hpr_flightdata::import::read(bytes) {
+        return Err(format!(
+            "it reads as {} on its own, so a stated mapping can't be its reading",
+            log.format.name()
+        ));
+    }
+    let text = hpr_flightdata::import::decode(bytes);
+    let mapping = &stated.mapping;
+    let header: Option<Vec<&str>> = mapping.header_line.map(|line| {
+        lines(&text)
+            .nth(line.saturating_sub(1))
+            .unwrap_or_default()
+            .split(mapping.separator)
+            .map(str::trim)
+            .collect()
+    });
+    let named: Vec<&str> = mapping.columns.iter().map(|c| c.name.as_str()).collect();
+    match header {
+        Some(header) if header != named => {
+            return Err(format!(
+                "its header names {header:?}, where the stated mapping names {named:?}"
+            ));
+        }
+        None => return Err("the stated mapping names no header line".to_owned()),
+        Some(_) => {}
+    }
+    hpr_flightdata::generic::read_with(&text, mapping).map_err(|e| e.to_string())
+}
+
+/// A text's lines as the readers number them: ended by CR, LF or CR LF.
+fn lines(text: &str) -> impl Iterator<Item = &str> {
+    let mut rest = Some(text);
+    std::iter::from_fn(move || {
+        let current = rest?;
+        match current.find(['\r', '\n']) {
+            Some(end) => {
+                let skip = if current[end..].starts_with("\r\n") {
+                    2
+                } else {
+                    1
+                };
+                rest = Some(&current[end + skip..]);
+                Some(&current[..end])
+            }
+            None => {
+                rest = None;
+                (!current.is_empty()).then_some(current)
+            }
+        }
+    })
+}
+
+/// One table read by a stated mapping, for the report.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct MappedFile {
+    id: String,
+    /// Where the publisher states the mapping.
+    source: String,
+    rows: usize,
+    columns: usize,
+    clock_unit: String,
+    /// Columns the mapping states a unit for, read in it.
+    read: usize,
+    /// Columns the mapping states a unit for, kept as written as the values' check refused it.
+    contradicted: usize,
+    /// Columns the mapping keeps as written.
+    kept: usize,
+}
+
+/// Every table read by its stated mapping.
+fn mapped_checks(samples: &[Sample]) -> Vec<MappedFile> {
+    use hpr_flightdata::log::Quantity;
+    let mut files = Vec::new();
+    for sample in samples.iter().filter(|s| s.family == MAPPED_FAMILY) {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let Ok((log, stated)) = read_mapped(&id, &sample.bytes) else {
+            continue;
+        };
+        let mapping = &stated.mapping;
+        let mut file = MappedFile {
+            id,
+            source: stated.source.clone(),
+            rows: log.channels.first().map_or(0, |c| c.values.len()),
+            columns: mapping.columns.len(),
+            clock_unit: mapping
+                .columns
+                .get(mapping.clock)
+                .and_then(|c| c.unit.clone())
+                .unwrap_or_default(),
+            ..MappedFile::default()
+        };
+        for (index, column) in mapping.columns.iter().enumerate() {
+            if index == mapping.clock {
+                continue;
+            }
+            let channel = log.channels.iter().find(|c| c.column == column.name);
+            match (column.unit.is_some(), channel.map(|c| c.quantity)) {
+                (true, Some(Quantity::Unrecognized) | None) => file.contradicted += 1,
+                (true, Some(_)) => file.read += 1,
+                (false, _) => file.kept += 1,
+            }
+        }
+        files.push(file);
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
+}
+
+/// The record layouts stated for the sample files of binary records, by file id: committed, as
+/// they hold only types; the fields' names are read from the table beside each file at each run.
+const LAYOUTS: &str = include_str!("../../validation/log-layouts.json");
+
+/// A record layout stated for a file, from [`LAYOUTS`].
+#[derive(Debug, Clone, Deserialize)]
+struct StatedLayout {
+    /// The file's id: the first 16 hex digits of its SHA-256.
+    id: String,
+    /// What the file is, in general words.
+    source: String,
+    /// The console capture's block holding the records; `None` for a file of records.
+    block: Option<String>,
+    /// The table beside the file that its team decoded from the same records: a file name, or
+    /// `*` then a suffix, for the file's own name then the suffix, in any case.
+    beside: String,
+    /// The fields' types, as runs of `(kind, count)`.
+    fields: Vec<(hpr_flightdata::records::FieldKind, usize)>,
+}
+
+impl StatedLayout {
+    /// Each field's type, in order.
+    fn kinds(&self) -> Vec<hpr_flightdata::records::FieldKind> {
+        self.fields
+            .iter()
+            .flat_map(|(kind, count)| std::iter::repeat_n(*kind, *count))
+            .collect()
+    }
+}
+
+/// The file of [`LAYOUTS`].
+#[derive(Debug, Deserialize)]
+struct StatedLayouts {
+    layouts: Vec<StatedLayout>,
+}
+
+/// The stated layouts, refused if the file doesn't parse or names an id twice.
+fn stated_layouts() -> Result<Vec<StatedLayout>, String> {
+    let file: StatedLayouts = serde_json::from_str(LAYOUTS)
+        .map_err(|error| format!("validation/log-layouts.json: {error}"))?;
+    let mut ids = BTreeSet::new();
+    for stated in &file.layouts {
+        if !ids.insert(stated.id.as_str()) {
+            return Err(format!(
+                "validation/log-layouts.json states {} twice",
+                stated.id
+            ));
+        }
+    }
+    Ok(file.layouts)
+}
+
+/// The sample beside `sample`, in its folder, that `beside` names (a [`StatedLayout::beside`]);
+/// refused unless exactly one is.
+fn beside<'a>(sample: &Sample, beside: &str, samples: &'a [Sample]) -> Result<&'a Sample, String> {
+    let name = sample
+        .path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let wanted = match beside.strip_prefix('*') {
+        Some(suffix) => format!("{name}{suffix}"),
+        None => beside.to_owned(),
+    };
+    let found: Vec<&Sample> = samples
+        .iter()
+        .filter(|other| {
+            other.path.parent() == sample.path.parent()
+                && other
+                    .path
+                    .file_name()
+                    .is_some_and(|other| other.to_string_lossy().eq_ignore_ascii_case(&wanted))
+        })
+        .collect();
+    match found.as_slice() {
+        [one] => Ok(one),
+        found => Err(format!(
+            "{} files beside it are its team's table `{beside}`, where one must be",
+            found.len()
+        )),
+    }
+}
+
+/// A file of binary records read by the layout stated for it, with that statement, the layout
+/// (its names from the team's table beside it) and that table. Refused if no layout is stated for
+/// the file, if a reader takes it on its own, if the table beside it isn't one sample, or names
+/// other than one column a field, or as the layout's reading refuses it.
+fn read_layout<'a>(
+    id: &str,
+    sample: &Sample,
+    samples: &'a [Sample],
+) -> Result<
+    (
+        FlightLog,
+        StatedLayout,
+        hpr_flightdata::records::RecordLayout,
+        &'a Sample,
+    ),
+    String,
+> {
+    let stated = stated_layouts()?
+        .into_iter()
+        .find(|stated| stated.id == id)
+        .ok_or("no layout is stated for it in validation/log-layouts.json")?;
+    let (log, layout, table) = read_stated(&stated, sample, samples)?;
+    Ok((log, stated, layout, table))
+}
+
+/// A file of binary records read by a stated layout, refused as [`read_layout`] says: the record,
+/// the layout and the team's table beside the file.
+fn read_stated<'a>(
+    stated: &StatedLayout,
+    sample: &Sample,
+    samples: &'a [Sample],
+) -> Result<(FlightLog, hpr_flightdata::records::RecordLayout, &'a Sample), String> {
+    use hpr_flightdata::records::{Field, RecordLayout};
+    if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+        return Err(format!(
+            "it reads as {} on its own, so a stated layout can't be its reading",
+            log.format.name()
+        ));
+    }
+    let table = beside(sample, &stated.beside, samples)?;
+    let text = hpr_flightdata::import::decode(&table.bytes);
+    let names: Vec<&str> = lines(&text)
+        .next()
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .collect();
+    let kinds = stated.kinds();
+    if names.len() != kinds.len() {
+        return Err(format!(
+            "its team's table names {} columns, where the stated layout has {} fields",
+            names.len(),
+            kinds.len()
+        ));
+    }
+    let layout = RecordLayout::new(
+        names
+            .iter()
+            .zip(&kinds)
+            .map(|(name, kind)| Field::new(*name, *kind))
+            .collect(),
+    );
+    let log = match &stated.block {
+        Some(block) => hpr_flightdata::capture::read(
+            &hpr_flightdata::import::decode(&sample.bytes),
+            block,
+            &layout,
+        ),
+        None => hpr_flightdata::records::read(&sample.bytes, &layout),
+    }
+    .map_err(|error| error.to_string())?;
+    Ok((log, layout, table))
+}
+
+/// One file of binary records against its team's table, for the report.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+struct LayoutFile {
+    id: String,
+    family: String,
+    /// What the file is, in general words, from its stated layout.
+    source: String,
+    /// A record's size, bytes.
+    record_bytes: usize,
+    /// Whole records in the file, or in its block.
+    records: usize,
+    /// Of those, the run at the end that is erased memory, every byte `0xFF`.
+    erased: usize,
+    /// The fields of the records not erased: the samples the record read holds, gaps among them.
+    fields_written: usize,
+    /// The team's table's rows.
+    rows_beside: usize,
+    /// Of those, the rows of a cell count other than the layout's field count.
+    rows_misshapen: usize,
+    /// Fields compared with the table's cells, one a record's field and the row's cell.
+    cells_compared: usize,
+    /// Of those, the ones whose values differ (both NaN counting as equal).
+    cells_differing: usize,
+    /// Whether the record read holds the same channels and events as the team's table read by
+    /// its header, cut to the records not erased.
+    same_channels: bool,
+}
+
+/// The files of binary records that differ from their teams' tables, as lines of the unread list:
+/// a field differing, a row count other than the records', a row of another cell count than the
+/// layout's fields, or other channels.
+fn layout_unread(files: &[LayoutFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| {
+            f.cells_differing > 0
+                || f.rows_beside != f.records
+                || f.rows_misshapen > 0
+                || !f.same_channels
+        })
+        .map(|file| {
+            format!(
+                "  {} ({}): differs from its team's table beside it: {} of {} fields differ, {} \
+                 rows for {} records, {} of another cell count, the same channels: {}",
+                file.id,
+                file.family,
+                file.cells_differing,
+                file.cells_compared,
+                file.rows_beside,
+                file.records,
+                file.rows_misshapen,
+                file.same_channels
+            )
+        })
+        .collect()
+}
+
+/// A field's value from its bytes, decoded here apart from the reader: the kinds the stated
+/// layouts use, little-endian. `None` for another kind.
+fn field_value(kind: hpr_flightdata::records::FieldKind, bytes: &[u8]) -> Option<f64> {
+    use hpr_flightdata::records::FieldKind;
+    match kind {
+        FieldKind::U32 => Some(f64::from(u32::from_le_bytes(bytes.try_into().ok()?))),
+        FieldKind::F32 => Some(f64::from(f32::from_le_bytes(bytes.try_into().ok()?))),
+        _ => None,
+    }
+}
+
+/// Every file of binary records against the table its team decoded from the same records.
+fn layout_checks(samples: &[Sample]) -> Vec<LayoutFile> {
+    let mut files = Vec::new();
+    for sample in samples
+        .iter()
+        .filter(|s| LAYOUT_FAMILIES.contains(&s.family.as_str()))
+    {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let Ok((log, stated, layout, table)) = read_layout(&id, sample, samples) else {
+            continue;
+        };
+        if let Some(file) = layout_file(id, sample, &stated, &layout, table, &log) {
+            files.push(file);
+        }
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
+}
+
+/// One file of binary records, read by `layout`, against its team's table `table`, as [`LayoutFile`]
+/// counts; `None` if its block isn't in it.
+fn layout_file(
+    id: String,
+    sample: &Sample,
+    stated: &StatedLayout,
+    layout: &hpr_flightdata::records::RecordLayout,
+    table: &Sample,
+    log: &FlightLog,
+) -> Option<LayoutFile> {
+    let bytes = match &stated.block {
+        Some(block) => {
+            hpr_flightdata::capture::blocks(&hpr_flightdata::import::decode(&sample.bytes))
+                .ok()?
+                .into_iter()
+                .find(|b| &b.name == block)?
+                .bytes
+        }
+        None => sample.bytes.clone(),
+    };
+    let size = layout.record_bytes();
+    let records: Vec<&[u8]> = bytes.chunks_exact(size).collect();
+    let erased = records
+        .iter()
+        .rev()
+        .take_while(|record| record.iter().all(|&byte| byte == 0xFF))
+        .count();
+    let text = hpr_flightdata::import::decode(&table.bytes);
+    let mut table_lines = lines(&text).filter(|l| !l.trim().is_empty());
+    let header = table_lines.next().unwrap_or_default();
+    let rows: Vec<&str> = table_lines.collect();
+    let kept = records.len() - erased;
+    let mut file = LayoutFile {
+        id,
+        family: sample.family.clone(),
+        source: stated.source.clone(),
+        record_bytes: size,
+        records: records.len(),
+        erased,
+        fields_written: kept * layout.fields.len(),
+        rows_beside: rows.len(),
+        ..LayoutFile::default()
+    };
+    for (record, row) in records.iter().zip(&rows) {
+        let cells: Vec<&str> = row.split(',').map(str::trim).collect();
+        if cells.len() != layout.fields.len() {
+            file.rows_misshapen += 1;
+        }
+        let mut at = 0;
+        for (index, field) in layout.fields.iter().enumerate() {
+            let width = field.kind.bytes();
+            let value = field_value(field.kind, &record[at..at + width]);
+            at += width;
+            let cell = cells.get(index).and_then(|cell| cell.parse::<f64>().ok());
+            file.cells_compared += 1;
+            let equal = match (value, cell) {
+                (Some(a), Some(b)) => a == b || (a.is_nan() && b.is_nan()),
+                _ => false,
+            };
+            if !equal {
+                file.cells_differing += 1;
+            }
+        }
+    }
+    // The team's table, its rows cut to the records the reader keeps, read by its header.
+    let mut cut = header.to_owned();
+    for row in rows.iter().take(kept) {
+        cut.push('\n');
+        cut.push_str(row);
+    }
+    cut.push('\n');
+    file.same_channels = hpr_flightdata::generic::read(&cut).is_ok_and(|theirs| {
+        let json = |log: &FlightLog| serde_json::to_string(&(&log.channels, &log.events)).ok();
+        json(&theirs).is_some() && json(&theirs) == json(log)
+    });
+    Some(file)
+}
+
+/// The family of the Blue Raven's USB downloads (M7.1c17), filed by the catalog as `txt`.
+const BLUERAVEN_USB_FAMILY: &str = "blueraven-usb-txt";
+
+/// The Blue Raven's USB downloads among the sample logs, by flight: the low-rate file, the
+/// high-rate file, and the AltOS board's CSV of the same flight, from the same rocket, by id.
+const BLUERAVEN_USB_FLIGHTS: [(&str, &str, &str); 1] =
+    [("a106c197fc5f6dec", "455ecee4a48bd98e", "e56325370ab76ab8")];
+
+/// How near the AltOS board's the low-rate download's pressure on the pad must be, as a ratio. The
+/// band tells the manual's scale from a wrong one: its other scale for the pressure, atm × 10,000
+/// in the live status line (p22), would be 5 times off. It doesn't tell atm from bar, 1.3 % apart;
+/// the manual states atm. Nor is it a check of the barometer: the two files' days aren't known to
+/// be the same, as the Blue Raven's date may be its firmware's build date.
+const USB_PAD_BAND: std::ops::RangeInclusive<f64> = 0.98..=1.02;
+
+/// How long after the high-rate download's first acceleration above 3 g the low-rate download's
+/// first register may first set its lowest bit, the one the app's files call `Liftoff`: five
+/// low-rate records, s.
+const USB_LIFTOFF_LAG_S: f64 = 0.1;
+
+/// A unit quaternion × 30,000, each of its four components cut to a whole number, has a norm
+/// within 2 of 30,000: each component moves by less than 1.
+const QUATERNION_NORM_BAND: std::ops::RangeInclusive<f64> = 29_998.0..=30_002.0;
+
+/// A Blue Raven USB download against what the file itself states, each record decoded here apart
+/// from the reader (M7.1c17).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct UsbFile {
+    id: String,
+    /// `high-rate` or `low-rate`.
+    kind: String,
+    /// Pieces of the file's lines that open `@ LOG_`, each up to the next or the line's end.
+    pieces: usize,
+    /// Of those, the ones that close with `CRC:` and four hexadecimal digits whose CRC-16/BUYPASS,
+    /// worked out here, differs from their text.
+    crc_differs: usize,
+    /// Of those that close with a CRC, the ones whose CRC-16/BUYPASS, worked out here, checks.
+    crc_checks: usize,
+    /// Of those, the ones whose stated length is their own, with the line end the logger sends.
+    length_agrees: usize,
+    /// The records the reader read.
+    records: usize,
+    /// Values of the checked records, decoded here by the manual's table, against the reader's
+    /// channels, the clock's channels among them.
+    values_compared: usize,
+    /// Of those, the ones that differ.
+    values_differing: usize,
+    /// The least and greatest norm of the high-rate records' quaternion, the 7th to the 10th
+    /// value, as written.
+    quaternion_norm: Option<[f64; 2]>,
+    /// The high-rate records whose quaternion's norm was taken: each record whose CRC checks must
+    /// have one.
+    quaternions: usize,
+    /// Whether the reader's channels are the ones decoded here, by name and in order.
+    same_columns: bool,
+    /// The high-rate download's longest run of samples whose acceleration, the three axes'
+    /// magnitude, is above 3 g, s from its first sample to its last; and the greatest mean of that
+    /// magnitude over the samples of any 1 s, g. A motor's boost holds several g for a second or
+    /// more.
+    longest_above_3g_s: Option<f64>,
+    greatest_mean_1s_g: Option<f64>,
+    /// The low-rate download's pressure on the pad over the AltOS board's of the same flight,
+    /// each the median of its first [`PAD_SAMPLES`].
+    pad_pressure_over_altos: Option<f64>,
+    /// How far the low-rate download's pressure moves over the whole file, greatest less least,
+    /// over its pressure on the pad; and how far the AltOS board's falls, its least over its pad's.
+    pressure_span_over_pad: Option<f64>,
+    altos_least_over_pad: Option<f64>,
+    /// The time on the logger's clock from the high-rate download's first acceleration above 3 g
+    /// to the low-rate download's first register's lowest bit first set, s.
+    liftoff_lag_s: Option<f64>,
+}
+
+/// The CRC-16 the Blue Raven's manual calls Buypass, worked out here apart from the reader:
+/// polynomial `0x8005`, starting at 0, no reflection, no final XOR.
+fn buypass(bytes: &[u8]) -> u16 {
+    bytes.iter().fold(0_u16, |crc, &byte| {
+        (0..8).fold(crc ^ (u16::from(byte) << 8), |crc, _| {
+            (crc << 1) ^ if crc & 0x8000 == 0 { 0 } else { 0x8005 }
+        })
+    })
+}
+
+/// The manual's fields of a record's group, each as a divisor and a factor to the reader's unit,
+/// with the reader's name for it, written here apart from the reader (*Blue Raven User's Guide*,
+/// p23–24).
+fn usb_manual(group: &str) -> &'static [(&'static str, f64, f64)] {
+    const G: f64 = 9.806_65;
+    const FT: f64 = 0.3048;
+    match group {
+        "LOG_HIR" => &[
+            ("Gyro X", 100.0, 1.0),
+            ("Gyro Y", 100.0, 1.0),
+            ("Gyro Z", 100.0, 1.0),
+            ("Accel X", 100.0, G),
+            ("Accel Y", 100.0, G),
+            ("Accel Z", 100.0, G),
+            ("Quaternion X", 30_000.0, 1.0),
+            ("Quaternion Y", 30_000.0, 1.0),
+            ("Quaternion Z", 30_000.0, 1.0),
+            ("Quaternion magnitude", 30_000.0, 1.0),
+        ],
+        "Bo:" => &[
+            ("Bo: temperature", 1.0, 1.0),
+            ("Bo: pressure", 50_000.0, 101_325.0),
+        ],
+        "V:" => &[
+            ("V: battery", 1_000.0, 1.0),
+            ("V: Apo", 1_000.0, 1.0),
+            ("V: Main", 1_000.0, 1.0),
+            ("V: 3rd", 1_000.0, 1.0),
+            ("V: 4th", 1_000.0, 1.0),
+            ("V: current", 1_000.0, 1.0),
+        ],
+        "Vel:" => &[
+            ("Vel: up", 1.0, FT),
+            ("Vel: down-range", 1.0, FT),
+            ("Vel: cross-range", 1.0, FT),
+        ],
+        "Pos:" => &[
+            ("Pos: altitude", 1.0, FT),
+            ("Pos: down-range", 1.0, FT),
+            ("Pos: cross-range", 1.0, FT),
+        ],
+        "ang:" => &[
+            ("ang: tilt", 10.0, 1.0),
+            ("ang: roll", 1.0, 1.0),
+            ("ang: future tilt", 10.0, 1.0),
+        ],
+        "FER:" => &[
+            ("FER: rocket", 1.0, 1.0),
+            ("FER: Apo", 1.0, 1.0),
+            ("FER: Main", 1.0, 1.0),
+            ("FER: 3rd", 1.0, 1.0),
+            ("FER: 4th", 1.0, 1.0),
+        ],
+        _ => &[],
+    }
+}
+
+/// A checked record's values decoded here, by name: the clock's channels, then each group's, by
+/// the manual where the group holds at least its count, kept as written otherwise and past it.
+/// `None` if a value isn't a number.
+fn usb_values(tokens: &[&str]) -> Option<Vec<(String, f64)>> {
+    let kind = *tokens.get(1)?;
+    let (h, rest) = tokens.get(6)?.split_once(':')?;
+    let (m, s) = rest.split_once(':')?;
+    let seconds = s.parse::<f64>().ok()?;
+    let time = (h.parse::<f64>().ok()? * 60.0 + m.parse::<f64>().ok()?) * 60.0 + seconds;
+    let mut values: Vec<(String, f64)> = Vec::new();
+    for (name, index) in [("Year", 3), ("Month", 4), ("Day", 5)] {
+        values.push((name.to_owned(), tokens.get(index)?.parse().ok()?));
+    }
+    // The reader works the time of day out in whole milliseconds; the line gives it before the
+    // sync code.
+    values.push(("Time".to_owned(), (time * 1_000.0).round() / 1_000.0));
+    values.push(("Sync".to_owned(), tokens.get(7)?.parse().ok()?));
+    let mut groups: Vec<(String, Vec<&str>)> = Vec::new();
+    if kind == "LOG_HIR" {
+        groups.push(("LOG_HIR".to_owned(), Vec::new()));
+    }
+    for &token in tokens.get(8..)? {
+        if kind == "LOG_LOW" && token.ends_with(':') {
+            groups.push((token.to_owned(), Vec::new()));
+        } else {
+            groups.last_mut()?.1.push(token);
+        }
+    }
+    for (group, tokens) in groups {
+        let counts: Vec<f64> = tokens
+            .iter()
+            .map(|token| {
+                if group == "FER:" {
+                    i64::from_str_radix(token, 16).ok().map(|n| n as f64)
+                } else {
+                    token.parse::<i64>().ok().map(|n| n as f64)
+                }
+            })
+            .collect::<Option<_>>()?;
+        let manual = usb_manual(&group);
+        let read = if counts.len() >= manual.len() {
+            manual.len()
+        } else {
+            0
+        };
+        for (place, count) in counts.iter().enumerate() {
+            values.push(match manual.get(place).filter(|_| place < read) {
+                Some((name, per, unit)) => ((*name).to_owned(), count / per * unit),
+                None => (format!("{group} {}", place + 1), *count),
+            });
+        }
+    }
+    Some(values)
+}
+
+/// Every Blue Raven USB download against its own CRCs, lengths and the manual, and, by flight,
+/// against the other download and the AltOS board's CSV of the same flight.
+fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
+    let by_id: BTreeMap<String, &Sample> = samples
+        .iter()
+        .map(|s| (hex(&Sha256::digest(&s.bytes))[..16].to_owned(), s))
+        .collect();
+    let mut files = Vec::new();
+    let mut logs: BTreeMap<String, FlightLog> = BTreeMap::new();
+    for (id, sample) in by_id
+        .iter()
+        .filter(|(_, s)| s.family == BLUERAVEN_USB_FAMILY)
+    {
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let log = hpr_flightdata::import::read(&sample.bytes).ok();
+        let mut file = UsbFile {
+            id: id.clone(),
+            records: log
+                .as_ref()
+                .and_then(|log| log.channels.iter().find(|c| c.column == "Sync"))
+                .map_or(0, |c| c.values.len()),
+            ..UsbFile::default()
+        };
+        let mut decoded: Vec<Vec<(String, f64)>> = Vec::new();
+        let mut norms: Vec<f64> = Vec::new();
+        for line in text.split(['\r', '\n']) {
+            let starts: Vec<usize> = line.match_indices("@ LOG_").map(|(at, _)| at).collect();
+            for (k, &start) in starts.iter().enumerate() {
+                file.pieces += 1;
+                let end = starts.get(k + 1).copied().unwrap_or(line.len());
+                let piece = line[start..end].trim_end();
+                // Stricter than the reader, which also takes `CRC:XXXX` and more spaces: a piece
+                // the reader keeps and this doesn't shows as a count that differs.
+                let Some(at) = piece.rfind(" CRC: ") else {
+                    continue;
+                };
+                let stated = u16::from_str_radix(&piece[at + 6..], 16).ok();
+                if piece.len() != at + 10 || stated.is_none() {
+                    continue;
+                }
+                if stated != Some(buypass(piece[..at].trim_end().as_bytes())) {
+                    file.crc_differs += 1;
+                    continue;
+                }
+                file.crc_checks += 1;
+                let tokens: Vec<&str> = piece[..at].split_whitespace().collect();
+                if tokens.get(2).and_then(|n| n.parse::<usize>().ok()) == Some(piece.len() + 2) {
+                    file.length_agrees += 1;
+                }
+                file.kind = match tokens.get(1) {
+                    Some(&"LOG_HIR") => "high-rate",
+                    Some(&"LOG_LOW") => "low-rate",
+                    _ => "other",
+                }
+                .to_owned();
+                if file.kind == "high-rate" {
+                    let quaternion: Vec<f64> = tokens
+                        .iter()
+                        .skip(8 + 6)
+                        .take(4)
+                        .filter_map(|token| token.parse::<f64>().ok())
+                        .collect();
+                    if quaternion.len() == 4 {
+                        norms.push(quaternion.iter().map(|q| q * q).sum::<f64>().sqrt());
+                    }
+                }
+                if let Some(values) = usb_values(&tokens) {
+                    decoded.push(values);
+                }
+            }
+        }
+        file.quaternions = norms.len();
+        file.quaternion_norm = norms.iter().fold(None, |range, &norm| {
+            Some(range.map_or([norm, norm], |[least, most]: [f64; 2]| {
+                [least.min(norm), most.max(norm)]
+            }))
+        });
+        if let Some(log) = &log {
+            for (k, record) in decoded.iter().enumerate() {
+                for (name, value) in record {
+                    file.values_compared += 1;
+                    let theirs = log
+                        .channels
+                        .iter()
+                        .find(|c| &c.column == name)
+                        .and_then(|c| c.values.get(k));
+                    if theirs != Some(value) {
+                        file.values_differing += 1;
+                    }
+                }
+            }
+            let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
+            file.same_columns = decoded.first().is_some_and(|record| {
+                record
+                    .iter()
+                    .map(|(name, _)| name.as_str())
+                    .collect::<Vec<_>>()
+                    == names
+            });
+            if file.kind == "high-rate" {
+                (file.longest_above_3g_s, file.greatest_mean_1s_g) = boost(log);
+            }
+            logs.insert(id.clone(), log.clone());
+        }
+        files.push(file);
+    }
+    let channel = |log: &FlightLog, name: &str| -> Option<Channel> {
+        log.channels.iter().find(|c| c.column == name).cloned()
+    };
+    for (low, high, altos) in BLUERAVEN_USB_FLIGHTS {
+        let (Some(low_log), Some(high_log)) = (logs.get(low), logs.get(high)) else {
+            continue;
+        };
+        let altos_log = by_id
+            .get(altos)
+            .and_then(|s| hpr_flightdata::import::read(&s.bytes).ok());
+        let pressure = channel(low_log, "Bo: pressure");
+        let altos_pressure = altos_log.as_ref().and_then(|log| {
+            log.channels
+                .iter()
+                .find(|c| c.quantity == hpr_flightdata::log::Quantity::Pressure)
+                .cloned()
+        });
+        let file = files.iter_mut().find(|f| f.id == low);
+        let Some(file) = file else { continue };
+        if let (Some(ours), Some(theirs)) = (&pressure, &altos_pressure) {
+            file.pad_pressure_over_altos =
+                ratio(pad_median(&ours.values), pad_median(&theirs.values));
+            let least = ours.values.iter().copied().fold(f64::INFINITY, f64::min);
+            let most = ours
+                .values
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max);
+            file.pressure_span_over_pad = ratio(Some(most - least), pad_median(&ours.values));
+            file.altos_least_over_pad = ratio(
+                Some(theirs.values.iter().copied().fold(f64::INFINITY, f64::min)),
+                pad_median(&theirs.values),
+            );
+        }
+        // The first high-rate record above 3 g, and the first low-rate one whose rocket register
+        // has its lowest bit set, each at its time of day.
+        let time =
+            |log: &FlightLog, k: usize| channel(log, "Time").and_then(|c| c.values.get(k).copied());
+        let axes: Vec<Channel> = ["Accel X", "Accel Y", "Accel Z"]
+            .iter()
+            .filter_map(|name| channel(high_log, name))
+            .collect();
+        let launch = (axes.len() == 3)
+            .then(|| {
+                (0..axes[0].values.len()).find(|&k| {
+                    axes.iter().map(|a| a.values[k].powi(2)).sum::<f64>().sqrt() > 3.0 * 9.806_65
+                })
+            })
+            .flatten()
+            .and_then(|k| time(high_log, k));
+        let liftoff = channel(low_log, "FER: rocket")
+            .and_then(|c| c.values.iter().position(|v| (*v as i64) & 1 == 1))
+            .and_then(|k| time(low_log, k));
+        if let (Some(launch), Some(liftoff)) = (launch, liftoff) {
+            // Rounded to the millisecond the clock states.
+            file.liftoff_lag_s = Some(((liftoff - launch) * 1_000.0).round() / 1_000.0);
+        }
+    }
+    files
+}
+
+/// A high-rate download's longest run above 3 g, s, and its greatest mean acceleration over 1 s,
+/// g, from the reader's `Accel X`, `Accel Y` and `Accel Z`; `None` without them.
+fn boost(log: &FlightLog) -> (Option<f64>, Option<f64>) {
+    const G: f64 = 9.806_65;
+    let axes: Vec<&Channel> = ["Accel X", "Accel Y", "Accel Z"]
+        .iter()
+        .filter_map(|name| log.channels.iter().find(|c| c.column == *name))
+        .collect();
+    let [x, y, z] = axes.as_slice() else {
+        return (None, None);
+    };
+    let g: Vec<f64> = (0..x.values.len())
+        .map(|k| (x.values[k].powi(2) + y.values[k].powi(2) + z.values[k].powi(2)).sqrt() / G)
+        .collect();
+    let time = &x.time_s;
+    let (mut longest, mut start) = (0.0_f64, None);
+    for (k, &a) in g.iter().enumerate() {
+        match (a > 3.0, start) {
+            (true, None) => start = Some(k),
+            (false, Some(first)) => {
+                longest = longest.max(time[k - 1] - time[first]);
+                start = None;
+            }
+            _ => {}
+        }
+    }
+    if let Some(first) = start {
+        longest = longest.max(time[g.len() - 1] - time[first]);
+    }
+    // Each sample's mean over the samples from it to 1 s later.
+    let (mut sum, mut end, mut greatest) = (0.0, 0, None::<f64>);
+    for begin in 0..g.len() {
+        while end < g.len() && time[end] < time[begin] + 1.0 {
+            sum += g[end];
+            end += 1;
+        }
+        if time[g.len() - 1] >= time[begin] + 1.0 - 1e-9 {
+            let mean = sum / (end - begin) as f64;
+            greatest = Some(greatest.map_or(mean, |most| most.max(mean)));
+        }
+        sum -= g[begin];
+    }
+    (Some(longest), greatest)
+}
+
+/// The USB downloads that fail a check, as lines of the unread list: a record the reader kept
+/// other than the ones whose CRC checks here, a stated length not its own, a value differing from
+/// this decoding, channels other than the ones decoded here, a high-rate record with no quaternion
+/// or one whose norm is off 30,000, or, by flight, a pad pressure off the AltOS board's or a
+/// liftoff bit set before the first acceleration above 3 g or late.
+fn usb_unread(files: &[UsbFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| {
+            f.records != f.crc_checks
+                || f.length_agrees != f.crc_checks
+                || f.values_differing > 0
+                || f.values_compared == 0
+                || !f.same_columns
+                || (f.kind != "high-rate" && f.kind != "low-rate")
+                || (f.kind == "high-rate"
+                    && (f.quaternions != f.crc_checks
+                        || !f.quaternion_norm.is_some_and(|[least, most]| {
+                            QUATERNION_NORM_BAND.contains(&least)
+                                && QUATERNION_NORM_BAND.contains(&most)
+                        })))
+                || (f.kind == "low-rate"
+                    && (!f
+                        .pad_pressure_over_altos
+                        .is_some_and(|r| USB_PAD_BAND.contains(&r))
+                        || !f
+                            .liftoff_lag_s
+                            .is_some_and(|lag| (0.0..=USB_LIFTOFF_LAG_S).contains(&lag))))
+        })
+        .map(|f| {
+            format!(
+                "  {} ({BLUERAVEN_USB_FAMILY}): fails its checks: {} records read of {} whose CRC \
+                 checks, {} lengths agree, {} of {} values differ, the same columns: {}, {} \
+                 quaternions, norm {:?}, pad pressure over the AltOS board's {:?}, liftoff lag \
+                 {:?} s",
+                f.id,
+                f.records,
+                f.crc_checks,
+                f.length_agrees,
+                f.values_differing,
+                f.values_compared,
+                f.same_columns,
+                f.quaternions,
+                f.quaternion_norm,
+                f.pad_pressure_over_altos,
+                f.liftoff_lag_s
+            )
+        })
+        .collect()
+}
+
+/// The families of a course's Teensy data logger's files (M7.1c18), filed by the catalog as `txt`.
+const TEENSY_TABS_FAMILY: &str = "teensy-tabs-txt";
+const TEENSY_NAMED_FAMILY: &str = "teensy-named-txt";
+
+/// Why a file the catalog files as text is the Teensy data logger's tab-separated layout.
+const TEENSY_TABS: &str = "a course's Teensy data logger, one sensor's reading a line: a tag, \
+    the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an \
+    altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"";
+/// Why a file the catalog files as text is the Teensy data logger's layout with named fields.
+const TEENSY_NAMED: &str = "a course's Teensy data logger, newer layout: lines stating each \
+    sensor's units, then one sensor's reading a line, a tag, `t`, the clock in microseconds and \
+    name–value pairs, by commas; the course's *Flight Data* page lists it as \"New Teensy Data \
+    Logger\"";
+
+/// The most the tab-separated layout's `MSL` may differ from the BMP180's formula worked out
+/// exactly from its `P`, m: its half step, as it is written to the hundredth of a meter, and an
+/// allowance of 44,330 × 2⁻²³ m, 5.3 mm, for the logger's own rounding of the formula, whose form
+/// no document gives.
+const TEENSY_MSL_BOUND_M: f64 = 0.005 + 44_330.0 / 8_388_608.0;
+
+/// How near standard gravity an accelerometer's magnitude on the pad and after landing must be, as
+/// a ratio: a sensor's offsets and scale errors move it by a few percent, where a unit other
+/// than the one read (g, thousandths of a g, ft/s²) is 3 or more times off.
+const TEENSY_GRAVITY_BAND: std::ops::RangeInclusive<f64> = 0.97..=1.03;
+
+/// How near √(2h/g) the time from liftoff to apogee must be, as a ratio, for a clock read in
+/// microseconds: a motor's burn adds time and drag takes some away, and the sample flights fall
+/// within 14 %; a clock read wrongly by a power of ten is 10 or more times off.
+const TEENSY_APOGEE_BAND: std::ops::RangeInclusive<f64> = 0.5..=2.0;
+
+/// The pressure on the pad any launch site has, Pa: from about 5,500 m above sea level, the
+/// standard atmosphere's 50 kPa, to below it on the highest days at sea level.
+const TEENSY_PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
+
+/// The pad, s from liftoff: the 5 s ending 1 s before it, when the rocket stands on its rail.
+const TEENSY_PAD_S: std::ops::Range<f64> = -6.0..-1.0;
+
+/// How long at the end of a file the landed magnitude is taken over, s.
+const TEENSY_LANDED_S: f64 = 2.0;
+
+/// A Teensy data logger's file against its own lines, decoded here apart from the reader, and
+/// against the physics its units must keep (M7.1c18).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct TeensyFile {
+    id: String,
+    /// `tab-separated` or `named fields`.
+    layout: String,
+    /// The lines of readings decoded here, by tag.
+    tags: BTreeMap<String, usize>,
+    /// Values decoded here, against the reader's channels.
+    values_compared: usize,
+    /// Of those, the ones that differ.
+    values_differing: usize,
+    /// Whether the reader's channels are the ones decoded here, by name and in order.
+    same_columns: bool,
+    /// The tab-separated layout's `Alt` lines, and the most any `MSL` differs from 44,330 × (1 −
+    /// (P / 101,325)^(1/5.255)), the BMP180's formula worked out in 64-bit floats, m.
+    alt_lines: usize,
+    msl_worst_m: Option<f64>,
+    /// Of those lines, the ones whose `MSL` differs from the formula by more than the half step of
+    /// its last digit, 0.005 m: the logger's own rounding of the formula.
+    msl_past_half_step: usize,
+    /// The accelerometer's magnitude, the median on the pad ([`TEENSY_PAD_S`]) and over the last
+    /// [`TEENSY_LANDED_S`], over standard gravity in the unit read: `A` in m/s², `ICM`'s in
+    /// thousandths of a g.
+    pad_over_g: Option<f64>,
+    landed_over_g: Option<f64>,
+    /// The same over the file's first [`TEENSY_LANDED_S`], minutes before launch while the logger
+    /// was handled: not a check, the reason the pad is taken just before liftoff.
+    powered_on_over_g: Option<f64>,
+    /// The time from liftoff, the accelerometer's first magnitude above 3 g in the 30 s before
+    /// apogee, to apogee, the barometric altitude's highest, over √(2h/g) for the apogee's height
+    /// above the pad's, the median on the pad ([`TEENSY_PAD_S`]).
+    apogee_time_ratio: Option<f64>,
+    /// Whether the named layout's `MS5` pressure on the pad, the median there
+    /// ([`TEENSY_PAD_S`]), is in [`TEENSY_PAD_PRESSURE_PA`]: a launch site's pressure isn't
+    /// written down, as it gives the site's elevation.
+    pad_pressure_in_band: Option<bool>,
+    /// Whether the reader read the channels the checks hold to the files in the quantities the
+    /// checks take them in: `A` or `ICM`'s accelerations as accelerations, `P` as a pressure and
+    /// `MSL` as an altitude above sea level.
+    quantities_read: bool,
+    /// The high-g accelerometer's magnitude over the accelerometer's, in their units read, the
+    /// median over the boost, where the accelerometer reads from 3 g to 90 % of its greatest:
+    /// `HG` over `A` (both in m/s²), or `LIS` over `ICM` (both in g). Not a check: a measure.
+    high_g_over_low: Option<f64>,
+}
+
+/// A line of a Teensy data logger's file as the survey decodes it: the tag, the clock in µs, and
+/// each value's column and value as written.
+type TeensyLine = (String, u64, Vec<(String, f64)>);
+
+/// Decodes a line of a Teensy data logger's file ([`TeensyLine`]).
+fn teensy_line(line: &str, named: bool) -> Option<TeensyLine> {
+    let fields: Vec<&str> = if named {
+        line.split(',').map(str::trim).collect()
+    } else {
+        line.split('\t').collect()
+    };
+    let (tag, clock, rest) = if named {
+        (*fields.first()?, *fields.get(2)?, fields.get(3..)?)
+    } else {
+        (*fields.first()?, *fields.get(1)?, fields.get(2..)?)
+    };
+    let clock: u64 = clock.parse().ok()?;
+    let numbers: Option<Vec<f64>> = rest.iter().map(|f| f.parse::<f64>().ok()).collect();
+    let values = match numbers {
+        Some(numbers) if !named => numbers
+            .into_iter()
+            .enumerate()
+            .map(|(k, v)| (format!("{tag} {}", k + 1), v))
+            .collect(),
+        _ => rest
+            .chunks(2)
+            .map(|pair| Some((format!("{tag} {}", pair[0]), pair.get(1)?.parse().ok()?)))
+            .collect::<Option<Vec<_>>>()?,
+    };
+    Some((tag.to_owned(), clock, values))
+}
+
+/// The SI value the named layout's stated unit gives, written here apart from the reader; `None`
+/// for a unit kept as written.
+fn teensy_unit(unit: &str, value: f64) -> Option<f64> {
+    match unit {
+        "milli-g" => Some(value * 9.806_65 / 1_000.0),
+        "g" => Some(value * 9.806_65),
+        "deg/s" | "Pa" => Some(value),
+        "deg C" => Some(value + 273.15),
+        _ => None,
+    }
+}
+
+/// Each named field's stated unit: its group, the name less a leading `x`, `y` or `z`, takes the
+/// unit in the order the groups come, or every field the one unit stated.
+fn teensy_field_units(names: &[String], units: &[String]) -> Option<Vec<String>> {
+    let group = |name: &str| -> String {
+        match name.strip_prefix(['x', 'y', 'z']) {
+            Some(rest) if !rest.is_empty() => rest.to_owned(),
+            _ => name.to_owned(),
+        }
+    };
+    let mut groups: Vec<String> = Vec::new();
+    for name in names {
+        if !groups.contains(&group(name)) {
+            groups.push(group(name));
+        }
+    }
+    let unaxed = names.iter().all(|name| group(name) == *name);
+    if units.len() == 1 && (groups.len() == 1 || unaxed) {
+        Some(vec![units[0].clone(); names.len()])
+    } else if units.len() == groups.len() {
+        names
+            .iter()
+            .map(|name| {
+                let at = groups.iter().position(|g| *g == group(name))?;
+                Some(units[at].clone())
+            })
+            .collect()
+    } else {
+        None
+    }
+}
+
+/// The median of some values, `None` if there are none.
+fn teensy_median(mut values: Vec<f64>) -> Option<f64> {
+    values.sort_by(f64::total_cmp);
+    let n = values.len();
+    match n {
+        0 => None,
+        _ if n % 2 == 1 => Some(values[n / 2]),
+        _ => Some((values[n / 2 - 1] + values[n / 2]) / 2.0),
+    }
+}
+
+/// The BMP180's altitude from a pressure, m (Bosch, BST-BMP180-DS000, §3.6).
+fn bmp180_altitude_m(pressure_pa: f64) -> f64 {
+    44_330.0 * (1.0 - (pressure_pa / 101_325.0).powf(1.0 / 5.255))
+}
+
+/// Liftoff and apogee: apogee the barometric altitude's highest, by time, and liftoff the
+/// accelerometer's first magnitude above 3 g in the 30 s before it, `accel` in g by time.
+fn teensy_flight(accel: &[(f64, f64)], altitude: &[(f64, f64)]) -> Option<(f64, f64, f64)> {
+    let &(apogee_s, apogee_m) = altitude.iter().max_by(|a, b| a.1.total_cmp(&b.1))?;
+    let liftoff_s = accel
+        .iter()
+        .find(|(t, g)| (apogee_s - 30.0..apogee_s).contains(t) && *g > 3.0)?
+        .0;
+    Some((liftoff_s, apogee_s, apogee_m))
+}
+
+/// The median of a series over the pad ([`TEENSY_PAD_S`]) before a liftoff.
+fn teensy_pad(series: &[(f64, f64)], liftoff_s: f64) -> Option<f64> {
+    let pad = liftoff_s + TEENSY_PAD_S.start..liftoff_s + TEENSY_PAD_S.end;
+    teensy_median(
+        series
+            .iter()
+            .filter(|(t, _)| pad.contains(t))
+            .map(|(_, v)| *v)
+            .collect(),
+    )
+}
+
+/// The time from liftoff to apogee over √(2h/g), h the apogee's height above the pad's.
+fn teensy_apogee_ratio(altitude: &[(f64, f64)], flight: (f64, f64, f64)) -> Option<f64> {
+    let (liftoff_s, apogee_s, apogee_m) = flight;
+    let height_m = apogee_m - teensy_pad(altitude, liftoff_s)?;
+    (height_m > 0.0).then(|| (apogee_s - liftoff_s) / (2.0 * height_m / 9.806_65).sqrt())
+}
+
+/// The median of a magnitude over the last [`TEENSY_LANDED_S`].
+fn teensy_landed(magnitude: &[(f64, f64)]) -> Option<f64> {
+    let last = magnitude.last()?.0;
+    teensy_median(
+        magnitude
+            .iter()
+            .filter(|(t, _)| *t >= last - TEENSY_LANDED_S)
+            .map(|(_, g)| *g)
+            .collect(),
+    )
+}
+
+/// The median of a high-g accelerometer's magnitude over a low-g one's, both in g by time, over
+/// the boost: each low-g sample from 3 g to 90 % of its greatest, with the high-g sample nearest
+/// in time.
+fn teensy_high_over_low(low: &[(f64, f64)], high: &[(f64, f64)]) -> Option<f64> {
+    let greatest = low.iter().map(|(_, g)| *g).fold(0.0, f64::max);
+    let ratios = low
+        .iter()
+        .filter(|(_, g)| (3.0..0.9 * greatest).contains(g))
+        .filter_map(|&(t, g)| {
+            let at = high.partition_point(|(s, _)| *s < t);
+            let near = [at.checked_sub(1), Some(at)]
+                .into_iter()
+                .flatten()
+                .filter_map(|k| high.get(k))
+                .min_by(|a, b| (a.0 - t).abs().total_cmp(&(b.0 - t).abs()))?;
+            Some(near.1 / g)
+        })
+        .collect();
+    teensy_median(ratios)
+}
+
+/// Every Teensy data logger's file, decoded here apart from the reader and held to its physics.
+fn teensy_checks(samples: &[Sample]) -> Vec<TeensyFile> {
+    let mut files = Vec::new();
+    for sample in samples
+        .iter()
+        .filter(|s| s.family == TEENSY_TABS_FAMILY || s.family == TEENSY_NAMED_FAMILY)
+    {
+        let named = sample.family == TEENSY_NAMED_FAMILY;
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let mut file = TeensyFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            layout: if named {
+                "named fields"
+            } else {
+                "tab-separated"
+            }
+            .to_owned(),
+            ..TeensyFile::default()
+        };
+        let mut units: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut columns: Vec<String> = Vec::new();
+        let mut decoded: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+        let mut msl_worst = None::<f64>;
+        let (mut low, mut high, mut altitude, mut pressure) =
+            (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+        for line in text.lines().map(|l| l.trim_end_matches('\r')) {
+            if line.trim().is_empty() {
+                continue;
+            }
+            if named && let Some((tag, stated)) = line.split_once(" data in ") {
+                // The clock's unit first, then the fields'.
+                let stated: Vec<String> = stated.split(',').map(|u| u.trim().to_owned()).collect();
+                units.insert(tag.to_owned(), stated[1..].to_vec());
+                continue;
+            }
+            let Some((tag, clock_us, values)) = teensy_line(line, named) else {
+                continue;
+            };
+            let t = clock_us as f64 / 1e6;
+            *file.tags.entry(tag.clone()).or_default() += 1;
+            let field_units = named
+                .then(|| {
+                    let names: Vec<String> = values
+                        .iter()
+                        .map(|(c, _)| c[tag.len() + 1..].to_owned())
+                        .collect();
+                    teensy_field_units(&names, units.get(&tag)?)
+                })
+                .flatten();
+            for (k, (column, written)) in values.iter().enumerate() {
+                if !columns.contains(column) {
+                    columns.push(column.clone());
+                }
+                let read = field_units
+                    .as_ref()
+                    .and_then(|u| teensy_unit(&u[k], *written))
+                    .unwrap_or(*written);
+                decoded.entry(column.clone()).or_default().push(read);
+            }
+            let written = |name: &str| {
+                values
+                    .iter()
+                    .find(|(c, _)| c == &format!("{tag} {name}"))
+                    .map(|(_, v)| *v)
+            };
+            let magnitude = |names: [&str; 3]| -> Option<f64> {
+                let mut sum = 0.0;
+                for name in names {
+                    sum += written(name)?.powi(2);
+                }
+                Some(sum.sqrt())
+            };
+            match (named, tag.as_str()) {
+                (false, "A") => low.extend(magnitude(["1", "2", "3"]).map(|a| (t, a / 9.806_65))),
+                (false, "HG") => high.extend(magnitude(["1", "2", "3"]).map(|a| (t, a / 9.806_65))),
+                (false, "Alt") => {
+                    if let (Some(p), Some(msl)) = (written("P"), written("MSL")) {
+                        file.alt_lines += 1;
+                        let off = (msl - bmp180_altitude_m(p)).abs();
+                        if off > 0.005 {
+                            file.msl_past_half_step += 1;
+                        }
+                        msl_worst = Some(msl_worst.map_or(off, |worst| worst.max(off)));
+                        altitude.push((t, msl));
+                    }
+                }
+                (true, "ICM") => {
+                    low.extend(magnitude(["xa", "ya", "za"]).map(|a| (t, a / 1_000.0)))
+                }
+                (true, "LIS") => high.extend(magnitude(["xh", "yh", "zh"]).map(|a| (t, a))),
+                (true, "MS5") => {
+                    if let Some(p) = written("P") {
+                        pressure.push((t, p));
+                        altitude.push((t, bmp180_altitude_m(p)));
+                    }
+                }
+                _ => {}
+            }
+        }
+        file.msl_worst_m = msl_worst;
+        file.landed_over_g = teensy_landed(&low);
+        file.powered_on_over_g = low.first().and_then(|&(start, _)| {
+            teensy_median(
+                low.iter()
+                    .filter(|(t, _)| *t <= start + TEENSY_LANDED_S)
+                    .map(|(_, g)| *g)
+                    .collect(),
+            )
+        });
+        file.high_g_over_low = teensy_high_over_low(&low, &high);
+        if let Some(flight) = teensy_flight(&low, &altitude) {
+            file.pad_over_g = teensy_pad(&low, flight.0);
+            file.apogee_time_ratio = teensy_apogee_ratio(&altitude, flight);
+            if named {
+                file.pad_pressure_in_band =
+                    teensy_pad(&pressure, flight.0).map(|p| TEENSY_PAD_PRESSURE_PA.contains(&p));
+            }
+        }
+        if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+            use hpr_flightdata::log::Quantity;
+            let checked: &[(&str, Quantity)] = if named {
+                &[
+                    ("ICM xa", Quantity::Acceleration),
+                    ("ICM ya", Quantity::Acceleration),
+                    ("ICM za", Quantity::Acceleration),
+                    ("MS5 P", Quantity::Pressure),
+                ]
+            } else {
+                &[
+                    ("A 1", Quantity::Acceleration),
+                    ("A 2", Quantity::Acceleration),
+                    ("A 3", Quantity::Acceleration),
+                    ("Alt P", Quantity::Pressure),
+                    ("Alt MSL", Quantity::AltitudeMsl),
+                ]
+            };
+            file.quantities_read = checked.iter().all(|(column, quantity)| {
+                log.channels
+                    .iter()
+                    .any(|c| c.column == *column && c.quantity == *quantity)
+            });
+            let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
+            file.same_columns = names == columns.iter().map(String::as_str).collect::<Vec<_>>();
+            for column in &columns {
+                let ours = &decoded[column];
+                let theirs = log.channels.iter().find(|c| &c.column == column);
+                file.values_compared += ours.len();
+                file.values_differing += match theirs {
+                    Some(channel) => {
+                        ours.iter()
+                            .zip(&channel.values)
+                            .filter(|(a, b)| a != b)
+                            .count()
+                            + ours.len().abs_diff(channel.values.len())
+                    }
+                    None => ours.len(),
+                };
+            }
+        }
+        files.push(file);
+    }
+    files
+}
+
+/// The Teensy files that fail a check, as lines of the unread list: a value differing from this
+/// decoding, channels other than the ones decoded here, an `MSL` off its pressure's, an
+/// accelerometer off 1 g on the pad or after landing, an apogee's time off √(2h/g), or a pressure
+/// on the pad no launch site has.
+fn teensy_unread(files: &[TeensyFile]) -> Vec<String> {
+    let within = |value: Option<f64>, band: &std::ops::RangeInclusive<f64>| {
+        value.is_some_and(|v| band.contains(&v))
+    };
+    files
+        .iter()
+        .filter(|f| {
+            f.values_differing > 0
+                || f.values_compared == 0
+                || !f.same_columns
+                || !f.quantities_read
+                || !within(f.pad_over_g, &TEENSY_GRAVITY_BAND)
+                || !within(f.landed_over_g, &TEENSY_GRAVITY_BAND)
+                || !within(f.apogee_time_ratio, &TEENSY_APOGEE_BAND)
+                || match f.layout.as_str() {
+                    "tab-separated" => {
+                        f.alt_lines == 0 || !f.msl_worst_m.is_some_and(|m| m <= TEENSY_MSL_BOUND_M)
+                    }
+                    "named fields" => f.pad_pressure_in_band != Some(true),
+                    _ => true,
+                }
+        })
+        .map(|f| {
+            format!(
+                "  {} (Teensy, {}): fails its checks: {} of {} values differ, the same columns: \
+                 {}, the quantities read: {}, {} `Alt` lines, MSL off by up to {:?} m, pad and \
+                 landed over 1 g {:?} and {:?}, apogee time over √(2h/g) {:?}, pad pressure in its \
+                 band: {:?}",
+                f.id,
+                f.layout,
+                f.values_differing,
+                f.values_compared,
+                f.same_columns,
+                f.quantities_read,
+                f.alt_lines,
+                f.msl_worst_m,
+                f.pad_over_g,
+                f.landed_over_g,
+                f.apogee_time_ratio,
+                f.pad_pressure_in_band
+            )
+        })
+        .collect()
+}
+
+/// The families of one team's radio telemetry packets (M7.1c19): the text form, the flight
+/// computer's own log and a receiver's text, which the catalog files as `txt`, and the exports a
+/// spreadsheet saved as CSV from an RTF document, which it files as `rtf`.
+const RADIO_TXT_FAMILY: &str = "radio-packets-txt";
+const RADIO_RTF_FAMILY: &str = "radio-packets-rtf";
+
+/// Why a file the catalog files as text is a flight computer's own log of its packets.
+const RADIO_ONBOARD: &str = "a team flight computer's own log of the radio telemetry packets it \
+    sends, `255:T:…:254` lines after a whole number and its filter's `Gain[…]` lines; filed as \
+    text by its extension";
+/// Why a file the catalog files as text is a receiver's text of the packets it heard.
+const RADIO_RECEIVED: &str = "the text a ground receiver wrote of one team's radio telemetry \
+    packets, `255:T:…:254` from the flight computer and `255:N:…:254` relayed, with GPS fixes, \
+    by a second transmitter, many cut or run together; filed as text by its extension";
+/// Why a file the catalog files as RTF is an export of the packets.
+const RADIO_RTF: &str = "one team's radio telemetry packets cut to the flight, saved as an RTF \
+    document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first \
+    cells; filed as RTF by the catalog";
+
+/// The flight computer's own log among the packet files: the text form with its filter's gains.
+const PACKET_ONBOARD: &str = "onboard log";
+/// A receiver's text of the packets it heard: the text form without the gains.
+const PACKET_RECEIVED: &str = "received";
+/// An export of the packets from an RTF document.
+const PACKET_EXPORT: &str = "RTF export";
+
+/// How far below the pad's median a pressure must fall for liftoff, Pa: 1 hPa, about 8 m of
+/// height near sea level. On the sample flight's pad, armed for minutes, no reading falls more
+/// than 0.61 hPa below the median before it (the survey prints the largest such fall).
+const PACKET_LIFTOFF_DROP_PA: f64 = 100.0;
+
+/// How near √(2h/g) the time from liftoff to apogee must be, as a ratio, for a clock read in
+/// milliseconds: a motor's burn adds time and drag takes some away, where a clock read wrongly by
+/// a power of ten puts the ratio 10 or more times off.
+const PACKET_APOGEE_BAND: std::ops::RangeInclusive<f64> = 0.5..=2.0;
+
+/// The least `PP 3`, as written, the survey takes its ratio to the pressure's height over: below
+/// it, on the pad and near the ground, the ratio of two small numbers says nothing.
+const PACKET_PP3_FLOOR: f64 = 200.0;
+
+/// The standard atmosphere's height of a pressure, m: `H = (T₀ / L)[1 − (P / P₀)^(R* L / (g₀′
+/// M₀))]`, 44,330.77 m and 0.190263 with P₀ = 101,325 Pa, the troposphere's pressure and height of
+/// the U.S. Standard Atmosphere, 1976 (NOAA, NASA and USAF), eq. 33a solved for H.
+fn standard_height_m(pressure_pa: f64) -> f64 {
+    44_330.77 * (1.0 - (pressure_pa / 101_325.0).powf(0.190_263))
+}
+
+/// A whole packet as the survey decodes it, apart from the reader: the path's letter, the stage,
+/// the kind, the clock in ms and the values as written.
+#[derive(Debug, Clone, PartialEq)]
+struct SurveyPacket {
+    path: String,
+    stage: String,
+    kind: String,
+    clock_ms: u64,
+    written: Vec<String>,
+}
+
+/// Whether a field is a number as the packets write one, `-?\d+(\.\d+)?`.
+fn packet_number(field: &str) -> bool {
+    let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    let body = field.strip_prefix('-').unwrap_or(field);
+    match body.split_once('.') {
+        Some((whole, fraction)) => digits(whole) && digits(fraction),
+        None => digits(body),
+    }
+}
+
+/// A line as a whole packet, its fields separated by `separator`: `255`, one capital letter, two
+/// digits, two capital letters, the clock's digits, numbers, `254`.
+fn survey_packet(line: &str, separator: char) -> Option<SurveyPacket> {
+    let fields: Vec<&str> = line.split(separator).collect();
+    if fields.len() < 7 || fields[0] != "255" || fields[fields.len() - 1] != "254" {
+        return None;
+    }
+    let capitals = |s: &str, n: usize| s.len() == n && s.bytes().all(|b| b.is_ascii_uppercase());
+    let values = &fields[5..fields.len() - 1];
+    let stage_digits = fields[2].len() == 2 && fields[2].bytes().all(|b| b.is_ascii_digit());
+    if !capitals(fields[1], 1)
+        || !stage_digits
+        || !capitals(fields[3], 2)
+        || !fields[4].bytes().all(|b| b.is_ascii_digit())
+        || !values.iter().all(|v| packet_number(v))
+    {
+        return None;
+    }
+    Some(SurveyPacket {
+        path: fields[1].to_owned(),
+        stage: fields[2].to_owned(),
+        kind: fields[3].to_owned(),
+        clock_ms: fields[4].parse().ok()?,
+        written: values.iter().map(|v| (*v).to_owned()).collect(),
+    })
+}
+
+/// An export's line with its markup taken off, `None` for markup alone: the spreadsheet's commas
+/// after it, then on the document's `last` line its closing `}`, a `\` ending it, and the control
+/// words before it (`\`, letters, an optional signed number and an optional space).
+fn export_text(line: &str, last: bool) -> Option<&str> {
+    let mut text = line.trim().trim_end_matches(',');
+    if last {
+        text = text.strip_suffix('}').unwrap_or(text);
+    }
+    text = text.strip_suffix('\\').unwrap_or(text);
+    while let Some(rest) = text.strip_prefix('\\') {
+        let letters = rest.len()
+            - rest
+                .trim_start_matches(|c: char| c.is_ascii_alphabetic())
+                .len();
+        if letters == 0 {
+            break;
+        }
+        let rest = &rest[letters..];
+        let rest = rest.strip_prefix('-').unwrap_or(rest);
+        let rest = rest.trim_start_matches(|c: char| c.is_ascii_digit());
+        text = rest.strip_prefix(' ').unwrap_or(rest);
+    }
+    (!text.is_empty() && !text.starts_with(['{', '\\'])).then_some(text)
+}
+
+/// Whether a line is a stage's mark, `Stage` and a number's word from `One` to `Nine`, as the
+/// onboard log writes them; a word the radio garbled is a broken line.
+fn packet_mark(line: &str) -> bool {
+    line.strip_prefix("Stage ").is_some_and(|word| {
+        [
+            "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+        ]
+        .contains(&word)
+    })
+}
+
+/// A packet file as the survey decodes it.
+#[derive(Debug, Default)]
+struct PacketDecoding {
+    /// Every whole packet in file order, repeated ones too: `255`, its fields and `254`, with as
+    /// many values as its kind's first.
+    whole: Vec<SurveyPacket>,
+    /// Whether each whole packet is a repeat of one before it: the same stage, kind, clock and
+    /// values as written.
+    repeat: Vec<bool>,
+    /// The stage marks with a packet after them, at that packet's time, s.
+    marks: Vec<(String, f64)>,
+    /// The stage marks repeating one before them.
+    repeated_marks: usize,
+    gains: usize,
+    broken: usize,
+}
+
+/// Decodes a packet file's text: the text form's lines, or an export's (`export`).
+fn decode_packets(text: &str, export: bool) -> PacketDecoding {
+    let lines: Vec<&str> = text
+        .split(['\r', '\n'])
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .collect();
+    let mut decoding = PacketDecoding::default();
+    let mut counts: BTreeMap<String, (usize, bool)> = BTreeMap::new();
+    let mut heard: BTreeSet<(String, String, u64, Vec<String>)> = BTreeSet::new();
+    let mut pending: Vec<String> = Vec::new();
+    let mut seen_marks: BTreeSet<String> = BTreeSet::new();
+    for (index, line) in lines.iter().enumerate() {
+        let line = if export {
+            match export_text(line, index + 1 == lines.len()) {
+                Some(text) => text,
+                None => continue,
+            }
+        } else {
+            line
+        };
+        let separator = if export { ',' } else { ':' };
+        let Some(packet) = survey_packet(line, separator) else {
+            if packet_mark(line) {
+                if seen_marks.insert(line.to_owned()) {
+                    pending.push(line.to_owned());
+                } else {
+                    decoding.repeated_marks += 1;
+                }
+            } else if !export && line.starts_with("Gain[") {
+                decoding.gains += 1;
+            } else if !export
+                && index == 0
+                && line.len() <= 10
+                && line.bytes().all(|b| b.is_ascii_digit())
+            {
+                // The onboard log's opening whole number.
+            } else {
+                decoding.broken += 1;
+            }
+            continue;
+        };
+        // A kind's first packet sets its count of values and its clock: stage `88`'s packets, the
+        // relaying transmitter's, run on that transmitter's own clock.
+        let own_clock = packet.stage == "88";
+        let first = *counts
+            .entry(packet.kind.clone())
+            .or_insert((packet.written.len(), own_clock));
+        if first != (packet.written.len(), own_clock) {
+            decoding.broken += 1;
+            continue;
+        }
+        let repeat = !heard.insert((
+            packet.stage.clone(),
+            packet.kind.clone(),
+            packet.clock_ms,
+            packet.written.clone(),
+        ));
+        if !repeat && !own_clock {
+            let time_s = packet.clock_ms as f64 / 1000.0;
+            decoding
+                .marks
+                .extend(pending.drain(..).map(|mark| (mark, time_s)));
+        }
+        decoding.whole.push(packet);
+        decoding.repeat.push(repeat);
+    }
+    decoding
+}
+
+/// The channels the reader must give a decoding, in its order: each kind in the order it first
+/// comes, `<kind> stage` and then `<kind> 1` to `<kind> n`, by time in s, `PP 1` in Pa (written in
+/// hPa) and the rest as written, repeats left out.
+fn packet_columns(decoding: &PacketDecoding) -> Vec<(String, Vec<f64>, Vec<f64>)> {
+    let mut columns: Vec<(String, Vec<f64>, Vec<f64>)> = Vec::new();
+    for (packet, _) in decoding
+        .whole
+        .iter()
+        .zip(&decoding.repeat)
+        .filter(|(_, repeat)| !**repeat)
+    {
+        // Stage `88`'s kinds run on the relaying transmitter's own clock: no time on the log's
+        // axis, and their clock kept as written in `<kind> clock`.
+        let own_clock = packet.stage == "88";
+        let time_s = if own_clock {
+            f64::NAN
+        } else {
+            packet.clock_ms as f64 / 1000.0
+        };
+        let stage_name = format!("{} stage", packet.kind);
+        if !columns.iter().any(|(name, ..)| *name == stage_name) {
+            columns.push((stage_name.clone(), Vec::new(), Vec::new()));
+            if own_clock {
+                columns.push((format!("{} clock", packet.kind), Vec::new(), Vec::new()));
+            }
+            for place in 1..=packet.written.len() {
+                columns.push((format!("{} {place}", packet.kind), Vec::new(), Vec::new()));
+            }
+        }
+        let mut values = vec![packet.stage.parse::<f64>().unwrap_or(f64::NAN)];
+        if own_clock {
+            values.push(packet.clock_ms as f64);
+        }
+        for (place, written) in packet.written.iter().enumerate() {
+            let value = written.parse::<f64>().unwrap_or(f64::NAN);
+            values.push(if packet.kind == "PP" && place == 0 {
+                value * 100.0
+            } else {
+                value
+            });
+        }
+        let at = columns
+            .iter()
+            .position(|(name, ..)| *name == stage_name)
+            .unwrap_or(0);
+        for (column, value) in columns[at..].iter_mut().zip(values) {
+            column.1.push(time_s);
+            column.2.push(value);
+        }
+    }
+    columns
+}
+
+/// The leading count of the reader's note containing `words`, 0 if no note does.
+fn note_count(notes: &[String], words: &str) -> usize {
+    notes
+        .iter()
+        .find(|note| note.contains(words))
+        .and_then(|note| {
+            let digits: String = note.chars().take_while(char::is_ascii_digit).collect();
+            digits.parse().ok()
+        })
+        .unwrap_or(0)
+}
+
+/// The median of some values, `None` if there are none.
+fn packet_median(values: &[f64]) -> Option<f64> {
+    teensy_median(values.to_vec())
+}
+
+/// A flight in the onboard log's pressures, `(t s, P Pa, stage)` in file order, from `start`, the
+/// first packet after the last of stage `00`.
+#[derive(Debug, Clone, PartialEq)]
+struct PressureFlight {
+    /// The first packet whose pressure is more than [`PACKET_LIFTOFF_DROP_PA`] below the median
+    /// of those 6 s to 1 s before it ([`TEENSY_PAD_S`]), before apogee.
+    liftoff: usize,
+    /// That median, Pa: the pad's pressure.
+    pad_pa: f64,
+    /// The least pressure from `start`, the first if several.
+    apogee: usize,
+    /// The most any packet from `start` to liftoff falls below the same median, Pa.
+    largest_pad_drop_pa: f64,
+}
+
+/// The median of the pressures 6 s to 1 s before packet `index` ([`TEENSY_PAD_S`]).
+fn pad_window(series: &[(f64, f64, f64)], index: usize) -> Option<f64> {
+    let t = series[index].0;
+    let window: Vec<f64> = series[..index]
+        .iter()
+        .rev()
+        .take_while(|(s, ..)| *s >= t + TEENSY_PAD_S.start)
+        .filter(|(s, ..)| *s < t + TEENSY_PAD_S.end)
+        .map(|(_, p, _)| *p)
+        .collect();
+    packet_median(&window)
+}
+
+/// Finds a [`PressureFlight`] in `(t s, P Pa, stage)` packets.
+fn pressure_flight(series: &[(f64, f64, f64)]) -> Option<PressureFlight> {
+    let start = series
+        .iter()
+        .rposition(|(_, _, stage)| *stage == 0.0)
+        .map_or(0, |last| last + 1);
+    let apogee = (start..series.len()).min_by(|a, b| series[*a].1.total_cmp(&series[*b].1))?;
+    let mut largest_pad_drop_pa = f64::NEG_INFINITY;
+    for index in start..apogee {
+        let Some(median) = pad_window(series, index) else {
+            continue;
+        };
+        let drop = median - series[index].1;
+        if drop > PACKET_LIFTOFF_DROP_PA {
+            return Some(PressureFlight {
+                liftoff: index,
+                pad_pa: median,
+                apogee,
+                largest_pad_drop_pa,
+            });
+        }
+        largest_pad_drop_pa = largest_pad_drop_pa.max(drop);
+    }
+    None
+}
+
+/// One team's radio telemetry packet file against its own lines, decoded here apart from the
+/// reader, against the flight computer's own log beside it, and, for that log, against the
+/// physics its units must keep (M7.1c19).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct PacketFile {
+    id: String,
+    /// [`PACKET_ONBOARD`], [`PACKET_RECEIVED`] or [`PACKET_EXPORT`].
+    form: String,
+    /// The whole packets decoded here, repeats too, by kind and by path.
+    kinds: BTreeMap<String, usize>,
+    paths: BTreeMap<String, usize>,
+    /// Of those, the ones repeating a packet before them, and the lines that are no packet, a
+    /// stage's mark, a gain or the opening whole number, or a packet with another count of values
+    /// than its kind's first.
+    repeated: usize,
+    broken: usize,
+    /// The reader's notes' counts of the same.
+    reader_repeated: usize,
+    reader_broken: usize,
+    /// The stage marks with a packet after them, and whether the reader's events are they; the
+    /// marks repeating one before them, which the reader drops, and its note's count of them.
+    marks: usize,
+    repeated_marks: usize,
+    reader_repeated_marks: usize,
+    same_events: bool,
+    /// Values decoded here, in the units read (the clock in s, `PP 1` in Pa), against the
+    /// reader's channels, and the times of each channel's values that differ.
+    values_compared: usize,
+    values_differing: usize,
+    times_differing: usize,
+    /// Whether the reader's channels are the ones decoded here, by name and in order.
+    same_columns: bool,
+    /// Whether the reader read `PP 1` as a pressure.
+    quantities_read: bool,
+    /// The flight computer's own log beside a received file or an export, if one is.
+    onboard: Option<String>,
+    /// A received file's or an export's whole packets that the onboard log holds a packet of the
+    /// same stage, kind and clock for, by path, and of those the ones whose values differ from
+    /// it as numbers.
+    held: BTreeMap<String, usize>,
+    held_differing: usize,
+    /// The whole packets it holds no packet for: GPS fixes (`GG`), which only the second
+    /// transmitter sends, and the rest.
+    unheld_gps: usize,
+    unheld_other: usize,
+    /// The onboard log's stage, kind and clock that come with two sets of values.
+    ambiguous_keys: usize,
+    /// The onboard log's flight ([`PressureFlight`]): whether the pad's pressure is in
+    /// [`TEENSY_PAD_PRESSURE_PA`] (not written, as it gives the site's elevation); the most a
+    /// pressure on the pad falls below its median before liftoff, Pa; the time from liftoff to the
+    /// flight computer's next stage, s; and the time from liftoff to apogee over √(2h/g), h the
+    /// standard atmosphere's height of the apogee's pressure above the pad's.
+    pad_pressure_in_band: Option<bool>,
+    largest_pad_drop_pa: Option<f64>,
+    liftoff_to_next_stage_s: Option<f64>,
+    apogee_time_ratio: Option<f64>,
+    /// The `PP` packets whose `PP 3` is above [`PACKET_PP3_FLOOR`], and its least and greatest
+    /// ratio to the standard atmosphere's height of `PP 1` above the pad's: a measure, not a check.
+    pp3_packets: usize,
+    pp3_over_height_least: Option<f64>,
+    pp3_over_height_greatest: Option<f64>,
+}
+
+/// A figure stored to `scale` (such as 1,000 for thousandths) by `step` (`f64::round`, or
+/// `f64::floor` and `f64::ceil` to round a range outward), so that the report doesn't carry the
+/// last bits of a platform's `powf`.
+fn stored(value: f64, scale: f64, step: fn(f64) -> f64) -> f64 {
+    step(value * scale) / scale
+}
+
+/// The onboard log's flight held to its physics, in the units read: `PP 1` in Pa, the clock in s.
+fn packet_physics(file: &mut PacketFile, decoding: &PacketDecoding) {
+    let mut series = Vec::new();
+    let mut third = Vec::new();
+    for (packet, _) in decoding
+        .whole
+        .iter()
+        .zip(&decoding.repeat)
+        .filter(|(packet, repeat)| !**repeat && packet.kind == "PP")
+    {
+        let number = |k: usize| packet.written.get(k).and_then(|v| v.parse::<f64>().ok());
+        let (Some(pressure_hpa), Ok(stage)) = (number(0), packet.stage.parse::<f64>()) else {
+            continue;
+        };
+        series.push((packet.clock_ms as f64 / 1000.0, pressure_hpa * 100.0, stage));
+        third.push(number(2));
+    }
+    let Some(flight) = pressure_flight(&series) else {
+        return;
+    };
+    let (liftoff_s, _, liftoff_stage) = series[flight.liftoff];
+    let (apogee_s, apogee_pa, _) = series[flight.apogee];
+    file.pad_pressure_in_band = Some(TEENSY_PAD_PRESSURE_PA.contains(&flight.pad_pa));
+    file.largest_pad_drop_pa = Some(flight.largest_pad_drop_pa)
+        .filter(|d| d.is_finite())
+        .map(|d| stored(d, 10.0, f64::round));
+    file.liftoff_to_next_stage_s = series[flight.liftoff..]
+        .iter()
+        .find(|(_, _, stage)| *stage != liftoff_stage)
+        .map(|(t, ..)| stored(t - liftoff_s, 1_000.0, f64::round));
+    let pad_m = standard_height_m(flight.pad_pa);
+    let height_m = standard_height_m(apogee_pa) - pad_m;
+    file.apogee_time_ratio = (height_m > 0.0).then(|| {
+        let ratio = (apogee_s - liftoff_s) / (2.0 * height_m / 9.806_65).sqrt();
+        stored(ratio, 10_000.0, f64::round)
+    });
+    let ratios: Vec<f64> = series
+        .iter()
+        .zip(&third)
+        .filter_map(|(&(_, pressure_pa, _), pp3)| {
+            let pp3 = pp3.filter(|v| *v > PACKET_PP3_FLOOR)?;
+            let height = standard_height_m(pressure_pa) - pad_m;
+            (height > 0.0).then_some(pp3 / height)
+        })
+        .collect();
+    file.pp3_packets = ratios.len();
+    file.pp3_over_height_least = ratios
+        .iter()
+        .copied()
+        .reduce(f64::min)
+        .map(|r| stored(r, 1_000.0, f64::floor));
+    file.pp3_over_height_greatest = ratios
+        .iter()
+        .copied()
+        .reduce(f64::max)
+        .map(|r| stored(r, 1_000.0, f64::ceil));
+}
+
+/// Every radio packet file, decoded here apart from the reader, each received file and export held
+/// to the onboard log beside it, and that log to its physics.
+fn packet_checks(samples: &[Sample]) -> Vec<PacketFile> {
+    let mut decoded = Vec::new();
+    for sample in samples
+        .iter()
+        .filter(|s| s.family == RADIO_TXT_FAMILY || s.family == RADIO_RTF_FAMILY)
+    {
+        let export = sample.family == RADIO_RTF_FAMILY;
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let decoding = decode_packets(&text, export);
+        let form = if export {
+            PACKET_EXPORT
+        } else if decoding.gains > 0 {
+            PACKET_ONBOARD
+        } else {
+            PACKET_RECEIVED
+        };
+        let mut file = PacketFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            form: form.to_owned(),
+            marks: decoding.marks.len(),
+            repeated_marks: decoding.repeated_marks,
+            repeated: decoding.repeat.iter().filter(|r| **r).count(),
+            broken: decoding.broken,
+            ..PacketFile::default()
+        };
+        for packet in &decoding.whole {
+            *file.kinds.entry(packet.kind.clone()).or_default() += 1;
+            *file.paths.entry(packet.path.clone()).or_default() += 1;
+        }
+        let columns = packet_columns(&decoding);
+        if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+            use hpr_flightdata::log::Quantity;
+            file.quantities_read = log
+                .channels
+                .iter()
+                .any(|c| c.column == "PP 1" && c.quantity == Quantity::Pressure);
+            file.reader_broken = note_count(&log.notes, "broken lines");
+            file.reader_repeated = note_count(&log.notes, "packets heard again");
+            file.reader_repeated_marks = note_count(&log.notes, "`Stage` lines heard again");
+            file.same_events = log.events.len() == decoding.marks.len()
+                && log
+                    .events
+                    .iter()
+                    .zip(&decoding.marks)
+                    .all(|(event, (name, t))| event.name == *name && event.time_s == *t);
+            let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
+            file.same_columns =
+                names == columns.iter().map(|(n, ..)| n.as_str()).collect::<Vec<_>>();
+            for (name, times, values) in &columns {
+                file.values_compared += values.len();
+                let Some(channel) = log.channels.iter().find(|c| &c.column == name) else {
+                    file.values_differing += values.len();
+                    file.times_differing += times.len();
+                    continue;
+                };
+                // A gap in both, as the relaying transmitter's times are, is no difference.
+                let off = |ours: &[f64], theirs: &[f64]| {
+                    ours.iter()
+                        .zip(theirs)
+                        .filter(|(a, b)| a != b && !(a.is_nan() && b.is_nan()))
+                        .count()
+                        + ours.len().abs_diff(theirs.len())
+                };
+                file.values_differing += off(values, &channel.values);
+                file.times_differing += off(times, &channel.time_s);
+            }
+        }
+        decoded.push((sample.path.parent().map(Path::to_path_buf), file, decoding));
+    }
+    // Each received file and export against the one onboard log in its folder.
+    let mut files = Vec::new();
+    for (folder, file, decoding) in &decoded {
+        let mut file = file.clone();
+        let beside: Vec<_> = decoded
+            .iter()
+            .filter(|(f, other, _)| f == folder && other.form == PACKET_ONBOARD)
+            .collect();
+        if file.form == PACKET_ONBOARD {
+            let mut keys: BTreeMap<(&str, &str, u64), &[String]> = BTreeMap::new();
+            for packet in &decoding.whole {
+                let key = (packet.stage.as_str(), packet.kind.as_str(), packet.clock_ms);
+                if keys
+                    .insert(key, &packet.written)
+                    .is_some_and(|before| before != packet.written.as_slice())
+                {
+                    file.ambiguous_keys += 1;
+                }
+            }
+            packet_physics(&mut file, decoding);
+        } else if let [(_, onboard, onboard_decoding)] = beside.as_slice() {
+            file.onboard = Some(onboard.id.clone());
+            let numbers = |written: &[String]| -> Vec<f64> {
+                written
+                    .iter()
+                    .map(|v| v.parse::<f64>().unwrap_or(f64::NAN))
+                    .collect()
+            };
+            let mut held: BTreeMap<(&str, &str, u64), Vec<f64>> = BTreeMap::new();
+            for packet in &onboard_decoding.whole {
+                held.insert(
+                    (packet.stage.as_str(), packet.kind.as_str(), packet.clock_ms),
+                    numbers(&packet.written),
+                );
+            }
+            for packet in &decoding.whole {
+                match held.get(&(packet.stage.as_str(), packet.kind.as_str(), packet.clock_ms)) {
+                    Some(values) => {
+                        *file.held.entry(packet.path.clone()).or_default() += 1;
+                        if *values != numbers(&packet.written) {
+                            file.held_differing += 1;
+                        }
+                    }
+                    None if packet.kind == "GG" => file.unheld_gps += 1,
+                    None => file.unheld_other += 1,
+                }
+            }
+        }
+        files.push(file);
+    }
+    files
+}
+
+/// The packet files that fail a check, as lines of the unread list: a value, time, channel or
+/// event other than this decoding's, counts of repeats or broken lines other than the reader's, a
+/// received file or export with no one onboard log beside it, none of its packets held there or
+/// one differing from it, an onboard log with a stage, kind and clock twice over, a pad pressure
+/// no launch site has, or an apogee's time off √(2h/g).
+fn packet_unread(files: &[PacketFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| {
+            f.values_compared == 0
+                || f.values_differing > 0
+                || f.times_differing > 0
+                || !f.same_columns
+                || !f.same_events
+                || !f.quantities_read
+                || f.reader_broken != f.broken
+                || f.reader_repeated != f.repeated
+                || f.reader_repeated_marks != f.repeated_marks
+                || match f.form.as_str() {
+                    PACKET_ONBOARD => {
+                        f.ambiguous_keys > 0
+                            || f.pad_pressure_in_band != Some(true)
+                            || !f
+                                .apogee_time_ratio
+                                .is_some_and(|r| PACKET_APOGEE_BAND.contains(&r))
+                    }
+                    PACKET_RECEIVED | PACKET_EXPORT => {
+                        f.onboard.is_none()
+                            || f.held.values().sum::<usize>() == 0
+                            || f.held_differing > 0
+                            || f.unheld_other > 0
+                    }
+                    _ => true,
+                }
+        })
+        .map(|f| {
+            format!(
+                "  {} (radio packets, {}): fails its checks: {} of {} values and {} times differ, \
+                 the same columns: {}, the same events: {}, PP 1 read as a pressure: {}, repeats \
+                 {} against the reader's {}, repeated marks {} against {}, broken lines {} against \
+                 {}, onboard log {:?}, held \
+                 {:?} of which {} differ, not held other than GPS {}, ambiguous keys {}, pad pressure in its band: {:?}, \
+                 apogee time over √(2h/g) {:?}",
+                f.id,
+                f.form,
+                f.values_differing,
+                f.values_compared,
+                f.times_differing,
+                f.same_columns,
+                f.same_events,
+                f.quantities_read,
+                f.repeated,
+                f.reader_repeated,
+                f.repeated_marks,
+                f.reader_repeated_marks,
+                f.broken,
+                f.reader_broken,
+                f.onboard,
+                f.held,
+                f.held_differing,
+                f.unheld_other,
+                f.ambiguous_keys,
+                f.pad_pressure_in_band,
+                f.apogee_time_ratio
+            )
+        })
+        .collect()
+}
+
+/// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15): the least-squares factor
+/// through zero, `Σ(filtered × Alt) / Σ Alt²`, over the files read, and the files refused for it.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct FilterScales {
+    /// Eggtimer CSV files read with a filtered altitude.
+    files: usize,
+    /// The least factor, and its file's id.
+    least: Option<(f64, String)>,
+    /// The greatest factor, and its file's id.
+    greatest: Option<(f64, String)>,
+    /// Files of the damaged family the reader refuses for the factor, by id, with its message.
+    refused: Vec<String>,
+}
+
+/// The filtered altitude's factor on `Alt` in each Eggtimer CSV file read, from its record (both
+/// channels in meters, so the factor is the file's own), and the damaged files refused for it.
+fn filter_scales(samples: &[Sample]) -> FilterScales {
+    let mut scales = FilterScales::default();
+    for sample in samples {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        match (
+            sample.family.as_str(),
+            hpr_flightdata::import::read(&sample.bytes),
+        ) {
+            ("eggtimer-csv", Ok(log)) => {
+                let column = |names: &[&str]| {
+                    log.channels
+                        .iter()
+                        .find(|channel| names.contains(&channel.column.as_str()))
+                };
+                let (Some(altitude), Some(filtered)) =
+                    (column(&["Alt"]), column(&["FAlt", "Filt_Alt", "KAlt"]))
+                else {
+                    continue;
+                };
+                let (mut product, mut square) = (0.0_f64, 0.0_f64);
+                for (&f, &a) in filtered.values.iter().zip(&altitude.values) {
+                    if f.is_finite() && a.is_finite() {
+                        product += f * a;
+                        square += a * a;
+                    }
+                }
+                if square == 0.0 {
+                    continue;
+                }
+                let factor = product / square;
+                scales.files += 1;
+                if scales
+                    .least
+                    .as_ref()
+                    .is_none_or(|(least, _)| factor < *least)
+                {
+                    scales.least = Some((factor, id.clone()));
+                }
+                if scales
+                    .greatest
+                    .as_ref()
+                    .is_none_or(|(most, _)| factor > *most)
+                {
+                    scales.greatest = Some((factor, id));
+                }
+            }
+            ("eggtimer-csv-damaged", Err(error))
+                if error.to_string().contains("isn't a filter of") =>
+            {
+                scales.refused.push(format!("{id}: {error}"));
+            }
+            _ => {}
+        }
+    }
+    scales.refused.sort();
+    scales
+}
+
 /// Each table read by its header, as [`TableFile`] counts it.
 fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
     use hpr_flightdata::generic;
@@ -3349,6 +5620,10 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             ARCHIVE_INCREMENT
         } else if sample.family == WORKBOOK_FAMILY {
             WORKBOOK_INCREMENT
+        } else if sample.family == MAPPED_FAMILY {
+            MAPPED_INCREMENT
+        } else if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
+            LAYOUT_INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
@@ -3438,6 +5713,60 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             ));
             continue;
         }
+        if sample.family == MAPPED_FAMILY {
+            let (outcome, record) = match read_mapped(&id, &sample.bytes) {
+                Ok((log, _)) => {
+                    row.read += 1;
+                    *loggers.entry(log.logger.clone()).or_default() += 1;
+                    let record = match serde_json::to_vec(&log) {
+                        Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                        Err(_) => "unwritable".to_owned(),
+                    };
+                    (format!("{:?}", log.format), record)
+                }
+                Err(error) => {
+                    *row.refused.entry("mapping".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:mapping".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
+        if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
+            let (outcome, record) = match read_layout(&id, sample, samples) {
+                Ok((log, ..)) => {
+                    row.read += 1;
+                    *loggers.entry(log.logger.clone()).or_default() += 1;
+                    let record = match serde_json::to_vec(&log) {
+                        Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                        Err(_) => "unwritable".to_owned(),
+                    };
+                    (format!("{:?}", log.format), record)
+                }
+                Err(error) => {
+                    *row.refused.entry("layout".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:layout".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
@@ -3507,7 +5836,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 ADR-251, ADR-253, ADR-254, ADR-255): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, AerospaceNU's logs, and the files inside the zip archives among them; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
-                processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
+                repository under refs/rocketpy, whose data folder holds tables RocketPy \
+                processed, are left out; the teams' logs from it that the collection catalogs \
+                are read like any other. A file's id is the first 16 hex digits of its \
                 SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it."
             .to_owned(),
         sources,
@@ -3521,6 +5852,12 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         arts2_checks: arts2_checks(samples),
         rtx_checks: rtx_checks(samples),
         table_checks: table_checks(samples),
+        mapped_checks: mapped_checks(samples),
+        layout_checks: layout_checks(samples),
+        usb_checks: usb_checks(samples),
+        teensy_checks: teensy_checks(samples),
+        packet_checks: packet_checks(samples),
+        filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
@@ -3530,6 +5867,19 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         unit_decisions,
         files,
     };
+    // A file of records must match its team's table on every field and read into the same
+    // channels: a reading that differs from the team's own is as unread as a refusal.
+    unread.extend(layout_unread(&report.layout_checks));
+    // A USB download whose reading fails its own CRCs, lengths, the manual or the same flight's
+    // other files is as unread as a refusal.
+    unread.extend(usb_unread(&report.usb_checks));
+    // A Teensy file whose reading differs from this decoding or fails the physics its units must
+    // keep is as unread as a refusal.
+    unread.extend(teensy_unread(&report.teensy_checks));
+    // A packet file whose reading differs from this decoding, whose packets differ from the
+    // flight computer's own log, or whose units fail the flight's physics is as unread as a
+    // refusal.
+    unread.extend(packet_unread(&report.packet_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -3686,6 +6036,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::Binary { .. } => "binary",
         LogError::Archive { .. } => "archive",
         LogError::Workbook { .. } => "workbook",
+        LogError::Layout { .. } => "layout",
         _ => "other",
     }
 }
@@ -3698,8 +6049,9 @@ fn markdown(report: &Report) -> String {
          sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
-         the collection catalogs, and RocketPy's processed flight tables, which no logger \
-         wrote. A family is the catalog's name for a layout; *unrecognized* means no reader \
+         the collection catalogs, and RocketPy's repository under `refs/rocketpy`, whose data \
+         folder holds tables RocketPy processed; the teams' logs from it that the collection \
+         catalogs are read like any other. A family is the catalog's name for a layout; *unrecognized* means no reader \
          knows the layout yet, and *damaged* a file of a known layout no reader can make sense \
          of.\n\n\
          | Source | Files | Not met before |\n|---|---:|---:|\n",
@@ -4243,6 +6595,348 @@ fn markdown(report: &Report) -> String {
             sum(|t| t.contradicted),
             sum(|t| t.text),
         );
+    }
+    if let (Some((least, least_id)), Some((most, most_id))) =
+        (&report.filter_scales.least, &report.filter_scales.greatest)
+    {
+        let refused: Vec<String> = report
+            .filter_scales
+            .refused
+            .iter()
+            .map(|line| match line.split_once(": ") {
+                Some((id, message)) => format!("`{id}`, {message}"),
+                None => line.clone(),
+            })
+            .collect();
+        out += &format!(
+            "\nEggtimer filtered altitudes against `Alt` (M7.1c15): over the {} Eggtimer CSV files \
+             read with a filtered altitude, the least-squares factor through zero from `Alt` to \
+             it lies from {least:.4} (`{least_id}`) to {most:.4} (`{most_id}`); the reader \
+             refuses a file outside 0.1 to 2. Refused for it: {}.\n",
+            report.filter_scales.files,
+            if refused.is_empty() {
+                "none".to_owned()
+            } else {
+                refused.join("; ")
+            }
+        );
+    }
+    if !report.mapped_checks.is_empty() {
+        let tables = &report.mapped_checks;
+        let mut rows = String::new();
+        for table in tables {
+            rows += &format!(
+                "| `{}` | {} | {} | `{}` | {} | {} | {} | {} |\n",
+                table.id,
+                table.rows,
+                table.columns,
+                table.clock_unit,
+                table.read,
+                table.kept,
+                table.contradicted,
+                table.source.replace('|', "\\|"),
+            );
+        }
+        out += &format!(
+            "\nThe {} tables read by the column mapping their publisher states (M7.1c15, \
+             `validation/log-mappings.json`, which says where each is stated): each column but \
+             the clock read in the unit the mapping states, kept as written where it states none, \
+             or kept as written because a value contradicts the unit stated.\n\n\
+             | File | Rows | Columns | Clock | Read | Kept | Contradicted | Stated by |\n\
+             |---|---:|---:|---|---:|---:|---:|---|\n{rows}",
+            tables.len(),
+        );
+    }
+    if !report.layout_checks.is_empty() {
+        let files = &report.layout_checks;
+        let mut rows = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.family,
+                file.source.replace('|', "\\|"),
+                file.record_bytes,
+                file.records,
+                file.erased,
+                file.fields_written,
+                file.rows_beside,
+                file.rows_misshapen,
+                file.cells_compared,
+                file.cells_differing,
+                if file.same_channels { "yes" } else { "no" },
+            );
+        }
+        out += &format!(
+            "\nThe {} files of binary records (M7.1c16), each read by the record layout stated \
+             for it (`validation/log-layouts.json`), the fields' names from the table its team \
+             decoded from the same records, beside it: each record's fields, decoded here from \
+             the file's bytes (a capture's block as the reader decodes its base64) apart from \
+             the reader's records, against that table's row, field for field (both NaN counting as \
+             equal), a row a record; and the record read, against the team's table read by its \
+             header, cut to the records not erased, channel for channel. *Erased* counts the \
+             records at the end that are erased memory, every byte 0xFF, which the reader drops; \
+             *Fields written* counts the fields of the others, the samples the record read holds \
+             (a float that isn't finite a gap among them); *Misshapen* counts the table's rows \
+             of a cell count other than the layout's fields.\n\n\
+             | File | Family | What it is | Record, bytes | Records | Erased | Fields written | \
+             Table rows | Misshapen | Fields compared | Differing | Same channels |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|\n{rows}",
+            files.len(),
+        );
+    }
+    if !report.usb_checks.is_empty() {
+        let files = &report.usb_checks;
+        let range = |range: Option<[f64; 2]>, digits: usize| {
+            range.map_or("–".to_owned(), |[least, most]| {
+                format!("{least:.digits$} to {most:.digits$}")
+            })
+        };
+        let mut rows = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.kind,
+                file.pieces,
+                file.crc_differs,
+                file.crc_checks,
+                file.length_agrees,
+                file.records,
+                file.values_compared,
+                file.values_differing,
+                range(file.quaternion_norm, 2),
+                file.pad_pressure_over_altos
+                    .map_or("–".to_owned(), |ratio| format!("{ratio:.4}")),
+                file.liftoff_lag_s
+                    .map_or("–".to_owned(), |lag| format!("{lag:.3}")),
+            );
+        }
+        let boosts: Vec<String> = files
+            .iter()
+            .filter_map(|file| {
+                Some(format!(
+                    "`{}`'s acceleration, the three axes' magnitude, stays above 3 g for at most \
+                     {:.3} s at a time, and its greatest mean over 1 s is {:.2} g",
+                    file.id, file.longest_above_3g_s?, file.greatest_mean_1s_g?
+                ))
+            })
+            .collect();
+        let flat: Vec<String> = files
+            .iter()
+            .filter_map(|file| {
+                Some(format!(
+                    "`{}`'s pressure moves by {:.2} % of its pad's over the whole file, where the \
+                     AltOS board's falls to {:.3} of its pad's",
+                    file.id,
+                    100.0 * file.pressure_span_over_pad?,
+                    file.altos_least_over_pad?
+                ))
+            })
+            .collect();
+        out += &format!(
+            "\nThe {} Blue Raven USB downloads (M7.1c17), each checked here apart from the reader: \
+             *Pieces* counts the parts of its lines that open `@ LOG_`, each up to the next or \
+             the line's end; *CRC differs* those that close with `CRC:` and four hexadecimal \
+             digits whose CRC-16/BUYPASS, worked out here, differs from their text, and *CRC \
+             checks* those whose CRC checks; *Length agrees* those of these whose stated length \
+             is their own, with the line end the logger sends; *Read* the records the reader \
+             keeps, which must be the ones whose CRC checks. Each \
+             checked record's values, decoded here by the manual's table, are compared with the \
+             reader's channels. *Quaternion norm* is the least and greatest norm of a high-rate \
+             record's 7th to 10th values, which a unit quaternion × 30,000 cut to whole numbers \
+             keeps within 2 of 30,000; *Pad over AltOS* the low-rate pressure on the pad, the \
+             median of the first {PAD_SAMPLES}, over the AltOS board's in the same rocket; \
+             *Liftoff lag* the time from the high-rate file's first acceleration, the three axes' \
+             magnitude, above 3 g to the \
+             first low-rate record whose first register has its lowest bit set, the bit the app's \
+             files call `Liftoff`. {}. {}.\n\n\
+             | File | Kind | Pieces | CRC differs | CRC checks | Length agrees | Read | Values \
+             compared | Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |\n\
+             |---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|\n{rows}",
+            files.len(),
+            if boosts.is_empty() {
+                "No high-rate download's acceleration is measured".to_owned()
+            } else {
+                boosts.join("; ")
+            },
+            if flat.is_empty() {
+                "No AltOS board's pressure is compared".to_owned()
+            } else {
+                flat.join("; ")
+            },
+        );
+    }
+    if !report.teensy_checks.is_empty() {
+        let files = &report.teensy_checks;
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |v| format!("{v:.digits$}"))
+        };
+        let mut rows = String::new();
+        for file in files {
+            let tags: Vec<String> = file
+                .tags
+                .iter()
+                .map(|(tag, n)| format!("{tag} {n}"))
+                .collect();
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.layout,
+                tags.join(", "),
+                file.values_compared,
+                file.values_differing,
+                if file.alt_lines == 0 {
+                    "–".to_owned()
+                } else {
+                    file.alt_lines.to_string()
+                },
+                figure(file.msl_worst_m, 4),
+                if file.alt_lines == 0 {
+                    "–".to_owned()
+                } else {
+                    file.msl_past_half_step.to_string()
+                },
+                figure(file.pad_over_g, 4),
+                figure(file.landed_over_g, 4),
+                figure(file.powered_on_over_g, 4),
+                figure(file.apogee_time_ratio, 4),
+                match file.pad_pressure_in_band {
+                    Some(true) => "inside",
+                    Some(false) => "outside",
+                    None => "–",
+                },
+                figure(file.high_g_over_low, 3),
+            );
+        }
+        out += &format!(
+            "\nThe {} files of a course's Teensy data logger (M7.1c18), each decoded here apart \
+             from the reader: *Lines* counts the lines of readings by tag, and each value, in the \
+             unit read, is compared with the reader's channels. *MSL off* is the most an `Alt` \
+             line's `MSL` differs from 44,330 × (1 − (P / 101,325)^(1/5.255)), the Bosch BMP180's \
+             formula worked out in 64-bit floats, m, which its half step, 0.005 m, and an \
+             allowance of 44,330 × 2⁻²³ = 0.0053 m for the logger's own rounding of the formula \
+             bound: {:.4} m; *Past half step* the `Alt` lines it differs on by more than 0.005 m; \
+             *Pad* and *Landed* the accelerometer's magnitude over 1 g, the median on the pad, the \
+             5 s ending 1 s before liftoff, and over the last {TEENSY_LANDED_S} s, `A` taken in \
+             m/s² and `ICM` in thousandths of a g, each read by the reader as an acceleration, as \
+             `P` must be read as a pressure and `MSL` as an altitude; *First 2 s* the same over the \
+             file's first {TEENSY_LANDED_S} s, minutes before launch, a measure, not a check; \
+             *Apogee time* the time from liftoff, the first magnitude above 3 g in the 30 s before \
+             apogee, to apogee over √(2h/g), h the apogee's height above the pad's, the clock read \
+             in microseconds; *Pad pressure* whether the `MS5` pressure on the pad is between 50 \
+             and 110 kPa, the value itself not written, as it gives the site's elevation. \
+             *High-g over low* is a measure, not a check: the high-g accelerometer's \
+             magnitude over the other's during the boost, from 3 g to 90 % of its greatest, `HG` \
+             over `A` (both read as m/s²) or `LIS` over `ICM` (both as stated): `HG` is kept as \
+             written for it.\n\n\
+             | File | Layout | Lines | Values compared | Differing | `Alt` lines | MSL off, m | \
+             Past half step | Pad | Landed | First 2 s | Apogee time | Pad pressure | High-g over \
+             low |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|\n{rows}",
+            files.len(),
+            TEENSY_MSL_BOUND_M,
+        );
+    }
+    if !report.packet_checks.is_empty() {
+        let files = &report.packet_checks;
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |v| format!("{v:.digits$}"))
+        };
+        let counts = |map: &BTreeMap<String, usize>| {
+            if map.is_empty() {
+                "–".to_owned()
+            } else {
+                map.iter()
+                    .map(|(key, n)| format!("{key} {n}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            }
+        };
+        let mut rows = String::new();
+        let mut cross = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                file.id,
+                file.form,
+                counts(&file.kinds),
+                counts(&file.paths),
+                file.repeated,
+                file.broken,
+                file.marks,
+                file.repeated_marks,
+                file.values_compared,
+                file.values_differing + file.times_differing,
+            );
+            if file.form != PACKET_ONBOARD {
+                cross += &format!(
+                    "| `{}` | {} | {} | {} | {} | {} | {} |\n",
+                    file.id,
+                    file.form,
+                    file.onboard
+                        .as_deref()
+                        .map_or("–".to_owned(), |id| format!("`{id}`")),
+                    counts(&file.held),
+                    file.held_differing,
+                    file.unheld_gps,
+                    file.unheld_other,
+                );
+            }
+        }
+        out += &format!(
+            "\nThe {} files of one team's radio telemetry packets, `255:…:254` (M7.1c19), each \
+             decoded here apart from the reader: *Packets* counts the whole packets by kind and by \
+             path (`T` from the flight computer, `N` relayed by a second transmitter), repeats \
+             included; *Repeated* those with the same stage, kind, clock and values as one before \
+             them, which the reader drops; *Broken* the lines that are no packet, mark, filter gain \
+             or opening number, or a packet with another count of values than its kind's first; \
+             *Marks* the `Stage` lines, `Stage` and a number's word from `One` to `Nine`, with a \
+             packet after them, each the reader's event, and *Marks repeated* those repeating one \
+             before them, which the reader drops. Each \
+             value and its time, in the units read (the clock in s from ms, `PP 1` in Pa from \
+             hPa), is compared with the reader's channels, as are its counts of repeats and broken \
+             lines, its events and its channels' names.\n\n\
+             | File | Form | Packets by kind | By path | Repeated | Broken | Marks | Marks \
+             repeated | Values compared | Differing |\n\
+             |---|---|---|---|---:|---:|---:|---:|---:|---:|\n{rows}\n\
+             Each received file and export against the flight computer's own log beside it: \
+             *Held* counts, by path, its whole packets, repeats included, for which the log holds \
+             a packet of the same stage, kind and clock, and *Differing* those whose values differ \
+             from it as numbers; the rest the log doesn't hold, the GPS fixes (`GG`), which only \
+             the second transmitter sends, and others.\n\n\
+             | File | Form | Onboard log | Held | Differing | Not held, GPS | Not held, other |\n\
+             |---|---|---|---|---:|---:|---:|\n{cross}",
+            files.len(),
+        );
+        for file in files.iter().filter(|f| f.form == PACKET_ONBOARD) {
+            out += &format!(
+                "\nThe onboard log `{}` held to its flight, in the units read: the pad's pressure, \
+                 the median of `PP 1` from 6 s to 1 s before liftoff, {} 500–1,100 hPa (the value \
+                 not written, as it gives the site's elevation); liftoff the first packet after the \
+                 last of stage `00` whose pressure is more than 1 hPa below the median of the 6 s \
+                 to 1 s before it, where before liftoff no packet falls more than {} hPa below its \
+                 median, {} s before the flight computer's next stage; apogee the least pressure. \
+                 The time from liftoff to apogee over √(2h/g), h the standard atmosphere's height \
+                 of the apogee's pressure above the pad's (44,330.77 × (1 − (P / 101,325)^0.190263) \
+                 m, U.S. Standard Atmosphere, 1976), the clock read in ms: {}, inside 0.5–2. Over \
+                 the {} packets whose `PP 3` is above {PACKET_PP3_FLOOR}, `PP 3` is {} to {} times \
+                 the standard atmosphere's height of `PP 1` above the pad's in meters, a measure, \
+                 not a check: no unit is settled for it, so the reader keeps it as written.\n",
+                file.id,
+                match file.pad_pressure_in_band {
+                    Some(true) => "inside",
+                    Some(false) => "outside",
+                    None => "not found, so not inside",
+                },
+                figure(file.largest_pad_drop_pa.map(|d| d / 100.0), 2),
+                figure(file.liftoff_to_next_stage_s, 3),
+                figure(file.apogee_time_ratio, 4),
+                file.pp3_packets,
+                figure(file.pp3_over_height_least, 3),
+                figure(file.pp3_over_height_greatest, 3),
+            );
+        }
     }
     if !report.workbook_checks.is_empty() {
         let books = &report.workbook_checks;
@@ -4880,6 +7574,285 @@ mod tests {
         );
         assert_eq!(altos.refused.get("unrecognized"), Some(&1));
         assert_eq!(report.families[1].increment, "not a log");
+    }
+
+    /// The filtered altitude's factor on `Alt` is printed over the Eggtimer files read, with the
+    /// damaged files the reader refuses for it.
+    #[test]
+    fn the_filter_scales_span_the_files_read() {
+        let file = |scale: f64| {
+            let mut text = String::from("T,Alt,FAlt,LDA\n");
+            for row in 0..20_u32 {
+                let altitude = f64::from(row * 10);
+                text += &format!(
+                    "{},{altitude},{},0\n",
+                    f64::from(row) * 0.05,
+                    altitude * scale
+                );
+            }
+            text.into_bytes()
+        };
+        let sample = |family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join("e.csv"),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let scales = filter_scales(&[
+            sample("eggtimer-csv", file(0.95)),
+            sample("eggtimer-csv", file(1.0)),
+            sample("eggtimer-csv-damaged", file(100.0)),
+        ]);
+        assert_eq!(scales.files, 2);
+        assert!((scales.least.unwrap().0 - 0.95).abs() < 1e-12);
+        assert!((scales.greatest.unwrap().0 - 1.0).abs() < 1e-12);
+        assert_eq!(scales.refused.len(), 1);
+        assert!(
+            scales.refused[0].contains("it is 100 times `Alt`"),
+            "{:?}",
+            scales.refused
+        );
+    }
+
+    /// Every stated mapping parses, maps a file the survey files as a mapped table, and every
+    /// such file has one.
+    #[test]
+    fn the_stated_mappings_cover_the_mapped_tables() {
+        let stated: BTreeSet<String> = stated_mappings()
+            .unwrap()
+            .into_iter()
+            .map(|stated| stated.id)
+            .collect();
+        let mapped: BTreeSet<String> = RECLASSIFIED
+            .iter()
+            .filter(|(_, _, to, _)| *to == MAPPED_FAMILY)
+            .map(|(id, ..)| (*id).to_owned())
+            .collect();
+        assert_eq!(stated, mapped);
+    }
+
+    /// A stated mapping reads a table whose clock names no unit; it is refused on a file whose
+    /// header names other columns, or a file a reader takes on its own; a mapped file with no
+    /// mapping stated is unread.
+    #[test]
+    fn a_stated_mapping_reads_only_the_header_it_names() {
+        use hpr_flightdata::generic::{ColumnMapping, Mapping};
+        use hpr_flightdata::log::Quantity;
+        let column = |name: &str, quantity: Option<Quantity>, unit: Option<&str>| ColumnMapping {
+            name: name.to_owned(),
+            quantity,
+            unit: unit.map(str::to_owned),
+        };
+        let stated = StatedMapping {
+            id: "0000000000000000".to_owned(),
+            source: "a test".to_owned(),
+            mapping: Mapping {
+                header_line: Some(1),
+                separator: ',',
+                decimal_comma: false,
+                clock: 0,
+                columns: vec![
+                    column("ts", None, Some("s")),
+                    column("alt", Some(Quantity::AltitudeAboveGround), Some("m")),
+                ],
+            },
+        };
+        let table = "ts,alt\n0,0\n0.5,40\n1,70\n";
+        assert!(hpr_flightdata::import::read(table.as_bytes()).is_err());
+        let log = read_by(&stated, table.as_bytes()).unwrap();
+        assert_eq!(log.format, LogFormat::GenericTable);
+        assert_eq!(log.channels[0].quantity, Quantity::AltitudeAboveGround);
+        assert_eq!(log.channels[0].values, [0.0, 40.0, 70.0]);
+        let error = read_by(&stated, b"t,alt\n0,0\n0.5,40\n").unwrap_err();
+        assert!(
+            error.starts_with("its header names [\"t\", \"alt\"]"),
+            "{error}"
+        );
+        let error = read_by(&stated, b"ts,alt (ft)\n0,0\n0.5,40\n").unwrap_err();
+        assert!(error.starts_with("its header names"), "{error}");
+        let eggtimer = "T,Alt,Veloc\n0,0,0\n0.05,1,20\n0.1,2,20\n";
+        let error = read_by(&stated, eggtimer.as_bytes()).unwrap_err();
+        assert_eq!(
+            error,
+            "it reads as Eggtimer CSV on its own, so a stated mapping can't be its reading"
+        );
+        let mut no_header = stated.clone();
+        no_header.mapping.header_line = None;
+        assert_eq!(
+            read_by(&no_header, table.as_bytes()).unwrap_err(),
+            "the stated mapping names no header line"
+        );
+        let samples = [Sample {
+            path: PathBuf::from("flight").join("table.csv"),
+            source: "test",
+            family: MAPPED_FAMILY.to_owned(),
+            bytes: table.as_bytes().to_vec(),
+        }];
+        let (report, unread) = survey(&samples, Vec::new());
+        assert_eq!(report.families[0].refused.get("mapping"), Some(&1));
+        assert!(
+            unread[0].ends_with("no mapping is stated for it in validation/log-mappings.json"),
+            "{unread:?}"
+        );
+    }
+
+    /// Every stated layout parses, lays out a file the survey files as binary records, a console
+    /// capture's with its block, and every such file has one.
+    #[test]
+    fn the_stated_layouts_cover_the_record_families() {
+        let layouts = stated_layouts().unwrap();
+        let stated: BTreeMap<String, bool> = layouts
+            .iter()
+            .map(|stated| (stated.id.clone(), stated.block.is_some()))
+            .collect();
+        let filed: BTreeMap<String, bool> = RECLASSIFIED
+            .iter()
+            .filter(|(_, _, to, _)| LAYOUT_FAMILIES.contains(to))
+            .map(|(id, _, to, _)| ((*id).to_owned(), *to == "console-capture"))
+            .collect();
+        assert_eq!(stated, filed);
+        for stated in &layouts {
+            assert!(!stated.kinds().is_empty(), "{}", stated.id);
+            assert!(
+                !stated.beside.contains(['/', '\\']) && stated.beside.len() > 1,
+                "{}",
+                stated.beside
+            );
+        }
+    }
+
+    /// Invented records, a `u32` clock in ms and an `f32` pressure in kPa, with their team's
+    /// table beside them.
+    fn record_samples(rows: &[(u32, f32)], erased: usize, table: &str) -> [Sample; 2] {
+        let mut bytes: Vec<u8> = rows
+            .iter()
+            .flat_map(|(ms, kpa)| ms.to_le_bytes().into_iter().chain(kpa.to_le_bytes()))
+            .collect();
+        bytes.extend(vec![0xFF; 8 * erased]);
+        [
+            Sample {
+                path: PathBuf::from("flight").join("dump"),
+                source: "test",
+                family: "record-dump".to_owned(),
+                bytes,
+            },
+            Sample {
+                path: PathBuf::from("flight").join("DUMP_parsed.csv"),
+                source: "test",
+                family: "table-csv".to_owned(),
+                bytes: table.as_bytes().to_vec(),
+            },
+        ]
+    }
+
+    fn stated_layout() -> StatedLayout {
+        use hpr_flightdata::records::FieldKind;
+        StatedLayout {
+            id: "0000000000000000".to_owned(),
+            source: "a test".to_owned(),
+            block: None,
+            beside: "*_parsed.csv".to_owned(),
+            fields: vec![(FieldKind::U32, 1), (FieldKind::F32, 1)],
+        }
+    }
+
+    /// A stated layout reads a file by its types and the names of the table beside it, in any
+    /// case; the check counts every field against that table, a NaN equal to a NaN, and the
+    /// erased records the reader drops; a changed cell is counted, and a file with no table
+    /// beside it, or a table naming more columns than the layout has fields, is refused.
+    #[test]
+    fn a_stated_layout_is_held_to_its_teams_table() {
+        let rows = [(1000, 101.3_f32), (1010, 101.25), (1020, 101.2)];
+        let table = "Time (ms), pressure__kpa\n1000, 101.30000305175781\n1010, 101.25\n\
+                     1020, 101.19999694824219\n4294967295, nan\n";
+        let samples = record_samples(&rows, 1, table);
+        let stated = stated_layout();
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        assert_eq!(log.format, LogFormat::BinaryRecords);
+        assert_eq!(layout.fields[1].name, "pressure__kpa");
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!(
+            (
+                file.records,
+                file.erased,
+                file.fields_written,
+                file.rows_beside,
+                file.rows_misshapen,
+                file.cells_compared
+            ),
+            (4, 1, 6, 4, 0, 8)
+        );
+        assert_eq!(file.cells_differing, 0);
+        assert!(file.same_channels);
+
+        // One cell the team wrote otherwise is one field differing.
+        let changed = table.replace("101.25", "101.26");
+        let samples = record_samples(&rows, 1, &changed);
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!(file.cells_differing, 1);
+        assert!(!file.same_channels);
+
+        // A row of another cell count is counted, though its first cells match.
+        let wider = table.replace("1010, 101.25\n", "1010, 101.25, 7\n");
+        let samples = record_samples(&rows, 1, &wider);
+        let (log, layout, beside) = read_stated(&stated, &samples[0], &samples).unwrap();
+        let file =
+            layout_file("id".to_owned(), &samples[0], &stated, &layout, beside, &log).unwrap();
+        assert_eq!((file.rows_misshapen, file.cells_differing), (1, 0));
+
+        let [dump, _] = samples;
+        let alone = [dump];
+        assert_eq!(
+            read_stated(&stated, &alone[0], &alone)
+                .map(|_| ())
+                .unwrap_err(),
+            "0 files beside it are its team's table `*_parsed.csv`, where one must be"
+        );
+        let wide = record_samples(&rows, 0, "Time (ms),pressure__kpa,temp__C\n1000,1,2\n");
+        assert_eq!(
+            read_stated(&stated, &wide[0], &wide)
+                .map(|_| ())
+                .unwrap_err(),
+            "its team's table names 3 columns, where the stated layout has 2 fields"
+        );
+        // Each way of differing makes a file unread; a file that matches doesn't.
+        let matching = LayoutFile {
+            records: 4,
+            rows_beside: 4,
+            cells_compared: 8,
+            same_channels: true,
+            ..LayoutFile::default()
+        };
+        assert!(layout_unread(std::slice::from_ref(&matching)).is_empty());
+        let differing = [
+            LayoutFile {
+                cells_differing: 1,
+                ..matching.clone()
+            },
+            LayoutFile {
+                rows_beside: 5,
+                ..matching.clone()
+            },
+            LayoutFile {
+                rows_misshapen: 1,
+                ..matching.clone()
+            },
+            LayoutFile {
+                same_channels: false,
+                ..matching.clone()
+            },
+        ];
+        assert_eq!(layout_unread(&differing).len(), 4);
+        // A file of the family with no layout stated is unread.
+        let (report, unread) = survey(&alone, Vec::new());
+        assert_eq!(report.families[0].refused.get("layout"), Some(&1));
+        assert!(
+            unread[0].ends_with("no layout is stated for it in validation/log-layouts.json"),
+            "{unread:?}"
+        );
     }
 
     /// A summary agrees with the Blue Raven file beside it in feet; one whose figures are the
@@ -5830,5 +8803,548 @@ mod tests {
         assert!(!rtx_cut(106.975_720, truth));
         assert!(rtx_cut(32.983_539, 32.983_539_000_000_1));
         assert!(!rtx_cut(32.983_540, 32.983_539_4));
+    }
+
+    /// A download passes the survey's checks only inside every band, and fails closed where a
+    /// check has nothing to measure.
+    #[test]
+    fn usb_downloads_fail_outside_each_band_or_with_nothing_measured() {
+        let high = UsbFile {
+            id: "high".to_owned(),
+            kind: "high-rate".to_owned(),
+            pieces: 3,
+            crc_checks: 3,
+            length_agrees: 3,
+            records: 3,
+            values_compared: 51,
+            quaternion_norm: Some([29_998.0, 30_002.0]),
+            quaternions: 3,
+            same_columns: true,
+            ..UsbFile::default()
+        };
+        let low = UsbFile {
+            id: "low".to_owned(),
+            kind: "low-rate".to_owned(),
+            quaternion_norm: None,
+            quaternions: 0,
+            pad_pressure_over_altos: Some(0.98),
+            liftoff_lag_s: Some(0.1),
+            ..high.clone()
+        };
+        assert!(usb_unread(&[high.clone(), low.clone()]).is_empty());
+        let fails = |file: UsbFile| usb_unread(&[file]).len() == 1;
+        for (norm, quaternions) in [
+            (None, 3),
+            (Some([29_997.9, 30_000.0]), 3),
+            (Some([29_999.0, 30_002.1]), 3),
+            (Some([29_999.0, 30_000.0]), 2),
+        ] {
+            assert!(fails(UsbFile {
+                quaternion_norm: norm,
+                quaternions,
+                ..high.clone()
+            }));
+        }
+        for (pad, lag) in [
+            (None, Some(0.02)),
+            (Some(0.979), Some(0.02)),
+            (Some(1.021), Some(0.02)),
+            (Some(1.0), None),
+            (Some(1.0), Some(-0.001)),
+            (Some(1.0), Some(0.101)),
+        ] {
+            assert!(fails(UsbFile {
+                pad_pressure_over_altos: pad,
+                liftoff_lag_s: lag,
+                ..low.clone()
+            }));
+        }
+        for broken in [
+            UsbFile {
+                records: 2,
+                ..high.clone()
+            },
+            UsbFile {
+                length_agrees: 2,
+                ..high.clone()
+            },
+            UsbFile {
+                values_differing: 1,
+                ..high.clone()
+            },
+            UsbFile {
+                values_compared: 0,
+                ..high.clone()
+            },
+            UsbFile {
+                same_columns: false,
+                ..high.clone()
+            },
+            UsbFile {
+                kind: "other".to_owned(),
+                ..high.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
+    }
+
+    /// The boost measures on an invented download: 1.2 s at 5 g between 1 g on the pad.
+    #[test]
+    fn a_boost_is_measured_from_the_accelerations() {
+        let time: Vec<f64> = (0..2_000).map(|k| f64::from(k) * 0.002).collect();
+        let g = |t: f64| if (1.0..2.2).contains(&t) { 5.0 } else { 1.0 };
+        let mut log = hpr_flightdata::import::read(include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/blueraven-usb-high-rate.txt"
+        ))
+        .unwrap();
+        for (column, scale) in [("Accel X", 0.6), ("Accel Y", 0.0), ("Accel Z", 0.8)] {
+            let axis = log
+                .channels
+                .iter_mut()
+                .find(|c| c.column == column)
+                .unwrap();
+            axis.time_s = time.clone();
+            axis.values = time.iter().map(|&t| g(t) * scale * 9.806_65).collect();
+        }
+        let (longest, greatest) = boost(&log);
+        let longest = longest.unwrap();
+        assert!((longest - 1.198).abs() < 1e-9, "{longest}");
+        assert!((greatest.unwrap() - 5.0).abs() < 1e-9);
+    }
+
+    /// A Teensy file passes inside every band and fails just outside each, on either side; the
+    /// tab-separated layout needs its `Alt` lines, the named one its pad pressure.
+    #[test]
+    fn teensy_files_fail_outside_each_band() {
+        let tabs = TeensyFile {
+            id: "t".to_owned(),
+            layout: "tab-separated".to_owned(),
+            values_compared: 10,
+            same_columns: true,
+            alt_lines: 2,
+            msl_worst_m: Some(0.0054),
+            pad_over_g: Some(0.99),
+            landed_over_g: Some(1.0),
+            apogee_time_ratio: Some(1.0),
+            quantities_read: true,
+            ..TeensyFile::default()
+        };
+        let named = TeensyFile {
+            layout: "named fields".to_owned(),
+            alt_lines: 0,
+            msl_worst_m: None,
+            pad_pressure_in_band: Some(true),
+            ..tabs.clone()
+        };
+        assert!(teensy_unread(&[tabs.clone(), named.clone()]).is_empty());
+        let fails = |file: TeensyFile| teensy_unread(&[file]).len() == 1;
+        assert!((TEENSY_MSL_BOUND_M - 0.010_284_6).abs() < 1e-6);
+        for (low, high) in [(0.969, 1.031)] {
+            for g in [low, high] {
+                assert!(fails(TeensyFile {
+                    pad_over_g: Some(g),
+                    ..tabs.clone()
+                }));
+                assert!(fails(TeensyFile {
+                    landed_over_g: Some(g),
+                    ..named.clone()
+                }));
+            }
+        }
+        for ratio in [0.49, 2.01] {
+            assert!(fails(TeensyFile {
+                apogee_time_ratio: Some(ratio),
+                ..tabs.clone()
+            }));
+        }
+        assert!(fails(TeensyFile {
+            pad_pressure_in_band: Some(false),
+            ..named.clone()
+        }));
+        for broken in [
+            TeensyFile {
+                msl_worst_m: Some(0.0104),
+                ..tabs.clone()
+            },
+            TeensyFile {
+                msl_worst_m: None,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                alt_lines: 0,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                values_differing: 1,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                values_compared: 0,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                same_columns: false,
+                ..named.clone()
+            },
+            TeensyFile {
+                pad_over_g: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                apogee_time_ratio: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                pad_pressure_in_band: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                quantities_read: false,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                quantities_read: false,
+                ..named.clone()
+            },
+            TeensyFile {
+                layout: "other".to_owned(),
+                ..tabs.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
+    }
+
+    /// The survey's decoding of both layouts' invented files: each line's columns, the named
+    /// layout's units by group, and a flight's liftoff, pad and apogee ratio.
+    #[test]
+    fn teensy_lines_and_flights_are_decoded_here() {
+        let (tag, clock, values) = teensy_line("Alt\t3100\tP\t95000\tMSL\t540.42", false).unwrap();
+        assert_eq!((tag.as_str(), clock), ("Alt", 3100));
+        assert_eq!(
+            values,
+            [
+                ("Alt P".to_owned(), 95_000.0),
+                ("Alt MSL".to_owned(), 540.42)
+            ]
+        );
+        let (_, _, values) = teensy_line("A\t2000\t0.25\t-0.5\t9.75", false).unwrap();
+        assert_eq!(values[2], ("A 3".to_owned(), 9.75));
+        let (_, clock, values) =
+            teensy_line("MS5, t, 500001000, T, 24.10, P, 95000", true).unwrap();
+        assert_eq!(
+            (clock, values[1].clone()),
+            (500_001_000, ("MS5 P".to_owned(), 95_000.0))
+        );
+        let names: Vec<String> = ["xa", "ya", "xg", "T"].map(str::to_owned).to_vec();
+        let units: Vec<String> = ["milli-g", "deg/s", "deg C"].map(str::to_owned).to_vec();
+        assert_eq!(
+            teensy_field_units(&names, &units).unwrap(),
+            ["milli-g", "milli-g", "deg/s", "deg C"]
+        );
+        assert!(teensy_field_units(&names, &units[..2]).is_none());
+        // One unit for several groups only without axes.
+        assert!(teensy_field_units(&names, &units[..1]).is_none());
+        let unaxed: Vec<String> = ["T1", "T2"].map(str::to_owned).to_vec();
+        assert_eq!(
+            teensy_field_units(&unaxed, &units[2..]).unwrap(),
+            ["deg C", "deg C"]
+        );
+        assert!(TEENSY_PAD_PRESSURE_PA.contains(&50_000.0));
+        assert!(!TEENSY_PAD_PRESSURE_PA.contains(&49_999.0));
+        assert!(TEENSY_PAD_PRESSURE_PA.contains(&110_000.0));
+        assert!(!TEENSY_PAD_PRESSURE_PA.contains(&110_001.0));
+        assert!((bmp180_altitude_m(95_000.0) - 540.4176).abs() < 1e-4);
+        // A ballistic flight: 1 g on the pad from 0 to 10 s, 5 g for a moment at 10 s, apogee
+        // 490.3 m up at 20 s, √(2h/g) = 10 s.
+        let accel: Vec<(f64, f64)> = (0..3_000)
+            .map(|k| {
+                let t = f64::from(k) * 0.01;
+                (t, if (10.0..10.05).contains(&t) { 5.0 } else { 1.0 })
+            })
+            .collect();
+        let altitude: Vec<(f64, f64)> = (0..300)
+            .map(|k| {
+                let t = f64::from(k) * 0.1;
+                let up = if t < 10.0 {
+                    0.0
+                } else {
+                    490.332_5 - 4.903_325 * (t - 20.0).powi(2)
+                };
+                (t, 100.0 + up.max(0.0))
+            })
+            .collect();
+        let flight = teensy_flight(&accel, &altitude).unwrap();
+        assert_eq!(flight.0, 10.0);
+        assert_eq!(teensy_pad(&accel, flight.0), Some(1.0));
+        let ratio = teensy_apogee_ratio(&altitude, flight).unwrap();
+        assert!((ratio - 1.0).abs() < 1e-3, "{ratio}");
+        assert_eq!(teensy_landed(&accel), Some(1.0));
+    }
+
+    /// The survey's decoding of invented packet files: whole packets in either separator, an
+    /// export's markup, the text form's gains, opening number, marks, broken lines, a packet with
+    /// another count of values and a repeat, and the channels the reader must give.
+    #[test]
+    fn packets_are_decoded_here() {
+        for (field, number) in [
+            ("12", true),
+            ("-0.50", true),
+            ("3.", false),
+            (".5", false),
+            ("1e3", false),
+            ("", false),
+            ("-", false),
+        ] {
+            assert_eq!(packet_number(field), number, "{field}");
+        }
+        let packet = survey_packet("255:N:11:PP:100150:950.12:21.50:3.25:254", ':').unwrap();
+        assert_eq!(
+            (
+                packet.path.as_str(),
+                packet.stage.as_str(),
+                packet.kind.as_str()
+            ),
+            ("N", "11", "PP")
+        );
+        assert_eq!((packet.clock_ms, packet.written.len()), (100_150, 3));
+        assert_eq!(
+            survey_packet("255,T,11,AA,100152,9.70,0.40,-0.80,254", ','),
+            survey_packet("255:T:11:AA:100152:9.70:0.40:-0.80:254", ':')
+        );
+        for broken in [
+            "255:T:11:PP:100150:950.12:21.50:3.25:25",
+            "25255:T:11:PP:100150:950.12:254",
+            "255:TT:11:PP:100150:950.12:254",
+            "255:T:1:PP:100150:950.12:254",
+            "255:T:11:P:100150:950.12:254",
+            "255:T:11:PP:1001x0:950.12:254",
+            "255:T:11:PP:100150:254",
+            "255:T:11:PP:100150:9a:254",
+        ] {
+            assert!(survey_packet(broken, ':').is_none(), "{broken}");
+        }
+        assert_eq!(
+            export_text("\\f0\\fs24 \\cf0 255,T,11,AA,1,9.65,254,", false),
+            Some("255,T,11,AA,1,9.65,254")
+        );
+        assert_eq!(
+            export_text("255,T,11,PP,2,871.9,254\\,", false),
+            Some("255,T,11,PP,2,871.9,254")
+        );
+        assert_eq!(
+            export_text("255,T,55,CC,3,1.5,254}", true),
+            Some("255,T,55,CC,3,1.5,254")
+        );
+        assert_eq!(
+            export_text("255,T,55,CC,3,1.5,254}", false),
+            Some("255,T,55,CC,3,1.5,254}")
+        );
+        assert_eq!(export_text("{\\rtf1\\ansi,,,,", false), None);
+        assert_eq!(export_text("\\f0\\fs24 \\cf0 ,,,,,,", false), None);
+        assert_eq!(export_text("Stage Two\\,,,,", false), Some("Stage Two"));
+        let text = "7\r\nGain[0]: 0.5 Gain[1]: 0.25\r\n255:T:00:PP:1000:950.00:20.0:1:254\r\n\
+                    Stage Two\r\nStage Nwo\r\nStage Two\r\n255:T:11:PP:1150:949.50:20.0:2:254\r\n\
+                    255:T:11:PP:1150:949.50:20.0:2:254\r\n255:T:11:PP:1300:949.00:20.0:254\r\n\
+                    255:T:11:AA:1302:9.7:0.4:-0.8:254\r\n255:T:11:A\r\n7\r\n";
+        let decoding = decode_packets(text, false);
+        assert_eq!(
+            (decoding.whole.len(), decoding.gains, decoding.broken),
+            (4, 1, 4)
+        );
+        assert_eq!(decoding.repeated_marks, 1);
+        assert_eq!(decoding.repeat, [false, false, true, false]);
+        assert_eq!(decoding.marks, [("Stage Two".to_owned(), 1.15)]);
+        let columns = packet_columns(&decoding);
+        let names: Vec<&str> = columns.iter().map(|(n, ..)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "PP stage", "PP 1", "PP 2", "PP 3", "AA stage", "AA 1", "AA 2", "AA 3"
+            ]
+        );
+        assert_eq!(columns[0].2, [0.0, 11.0]);
+        assert_eq!(columns[1].1, [1.0, 1.15]);
+        assert_eq!(columns[1].2, [95_000.0, 94_950.0]);
+        assert_eq!(columns[3].2, [1.0, 2.0]);
+        assert_eq!(columns[7].2, [-0.8]);
+        // The same packets in an export, one line a cell's text, CR line ends as a receiver writes.
+        let export = "{\\rtf1\\ansi,,,\r\\f0\\fs24 \\cf0 255,T,00,PP,1000,950,20,1,254\\,\r\
+                      255,T,11,PP,1150,949.5,20,2,254}";
+        let exported = decode_packets(export, true);
+        assert_eq!((exported.whole.len(), exported.broken), (2, 0));
+        assert_eq!(packet_columns(&exported)[1].2, [95_000.0, 94_950.0]);
+        let notes = [
+            "1 `Gain[…]` lines, kept out".to_owned(),
+            "12 broken lines dropped, the first on line 3".to_owned(),
+            "3 packets heard again dropped".to_owned(),
+        ];
+        assert_eq!(note_count(&notes, "broken lines"), 12);
+        assert_eq!(note_count(&notes, "packets heard again"), 3);
+        assert_eq!(note_count(&notes[..1], "packets heard again"), 0);
+        assert!((standard_height_m(89_874.57) - 1_000.0).abs() < 0.01);
+    }
+
+    /// A pressure flight: stage `00`'s lower pressure before the armed pad left out, liftoff the
+    /// first packet more than 1 hPa below the pad's median 6 s to 1 s before it, apogee the least
+    /// pressure, and the largest fall on the pad before liftoff.
+    #[test]
+    fn pressure_flights_are_found() {
+        let series: Vec<(f64, f64, f64)> = (0..600)
+            .map(|k| {
+                let t = f64::from(k) / 10.0;
+                let pressure = match t {
+                    _ if t < 5.0 => 60_000.0,
+                    _ if (15.0..15.05).contains(&t) => 94_920.0,
+                    _ if t < 20.0 => 95_000.0,
+                    _ if t < 30.0 => 95_000.0 - 2_000.0 * (t - 20.0),
+                    _ => 75_000.0 + 1_000.0 * (t - 30.0),
+                };
+                (t, pressure, if t < 5.0 { 0.0 } else { 11.0 })
+            })
+            .collect();
+        let flight = pressure_flight(&series).unwrap();
+        assert_eq!(series[flight.liftoff].0, 20.1);
+        assert_eq!(series[flight.apogee].0, 30.0);
+        assert_eq!(flight.pad_pa, 95_000.0);
+        assert!((flight.largest_pad_drop_pa - 80.0).abs() < 1e-9);
+        // A fall of exactly 1 hPa is not liftoff; the first beyond it is.
+        let mut edge = series.clone();
+        edge[201].1 = 94_900.0;
+        assert_eq!(edge[pressure_flight(&edge).unwrap().liftoff].0, 20.2);
+        // No packet after stage `00` with a pad behind it: no flight.
+        assert!(pressure_flight(&series[..50]).is_none());
+        assert!((stored(1.234_56, 1_000.0, f64::floor) - 1.234).abs() < 1e-12);
+        assert!((stored(1.234_16, 1_000.0, f64::ceil) - 1.235).abs() < 1e-12);
+    }
+
+    /// A packet file passes with every check met and fails each one alone: a difference from this
+    /// decoding or the reader's counts, a received file or export with no onboard log, nothing held
+    /// or a packet differing from it, and an onboard log off its physics' bands on either side.
+    #[test]
+    fn packet_files_fail_each_check() {
+        let onboard = PacketFile {
+            id: "o".to_owned(),
+            form: PACKET_ONBOARD.to_owned(),
+            values_compared: 10,
+            same_columns: true,
+            same_events: true,
+            quantities_read: true,
+            pad_pressure_in_band: Some(true),
+            apogee_time_ratio: Some(1.0),
+            ..PacketFile::default()
+        };
+        let received = PacketFile {
+            form: PACKET_RECEIVED.to_owned(),
+            onboard: Some("o".to_owned()),
+            held: BTreeMap::from([("N".to_owned(), 3)]),
+            unheld_gps: 2,
+            pad_pressure_in_band: None,
+            apogee_time_ratio: None,
+            repeated: 4,
+            reader_repeated: 4,
+            broken: 5,
+            reader_broken: 5,
+            ..onboard.clone()
+        };
+        let export = PacketFile {
+            form: PACKET_EXPORT.to_owned(),
+            ..received.clone()
+        };
+        assert!(packet_unread(&[onboard.clone(), received.clone(), export.clone()]).is_empty());
+        let fails = |file: PacketFile| packet_unread(&[file]).len() == 1;
+        for ratio in [0.499, 2.001] {
+            assert!(fails(PacketFile {
+                apogee_time_ratio: Some(ratio),
+                ..onboard.clone()
+            }));
+        }
+        for ratio in [0.5, 2.0] {
+            assert!(!fails(PacketFile {
+                apogee_time_ratio: Some(ratio),
+                ..onboard.clone()
+            }));
+        }
+        for broken in [
+            PacketFile {
+                apogee_time_ratio: None,
+                ..onboard.clone()
+            },
+            PacketFile {
+                pad_pressure_in_band: Some(false),
+                ..onboard.clone()
+            },
+            PacketFile {
+                pad_pressure_in_band: None,
+                ..onboard.clone()
+            },
+            PacketFile {
+                ambiguous_keys: 1,
+                ..onboard.clone()
+            },
+            PacketFile {
+                values_compared: 0,
+                ..onboard.clone()
+            },
+            PacketFile {
+                values_differing: 1,
+                ..received.clone()
+            },
+            PacketFile {
+                times_differing: 1,
+                ..export.clone()
+            },
+            PacketFile {
+                unheld_other: 1,
+                ..received.clone()
+            },
+            PacketFile {
+                unheld_other: 1,
+                ..export.clone()
+            },
+            PacketFile {
+                same_columns: false,
+                ..received.clone()
+            },
+            PacketFile {
+                same_events: false,
+                ..export.clone()
+            },
+            PacketFile {
+                quantities_read: false,
+                ..onboard.clone()
+            },
+            PacketFile {
+                reader_broken: 4,
+                ..received.clone()
+            },
+            PacketFile {
+                reader_repeated: 5,
+                ..export.clone()
+            },
+            PacketFile {
+                reader_repeated_marks: 1,
+                ..received.clone()
+            },
+            PacketFile {
+                onboard: None,
+                ..received.clone()
+            },
+            PacketFile {
+                held: BTreeMap::new(),
+                ..export.clone()
+            },
+            PacketFile {
+                held_differing: 1,
+                ..received.clone()
+            },
+            PacketFile {
+                form: "other".to_owned(),
+                ..onboard.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
     }
 }

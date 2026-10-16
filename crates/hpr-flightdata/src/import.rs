@@ -25,6 +25,12 @@
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
 //! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
+//! | [Blue Raven USB download](crate::blueraven_usb) | one of the first 1,000 lines opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks |
+//! | [Teensy data logger, tab-separated](crate::teensy) | its first line that isn't blank is a tag, a whole-number clock and values, by tabs, and one of its first 100 is `Alt`, the clock, `P` and a number, `MSL` and a number |
+//! | [Radio packets](crate::packets) | its first line that isn't blank is a `255:…:254` packet, a whole number or `Gain[…]`, and a packet is one of its first 100 |
+//! | [Radio packets in RTF](crate::packets::read_rtf) | an RTF document, one of whose first 100 lines, its markup taken off, is a `255,…,254` packet |
+//! | [Teensy data logger, named fields](crate::teensy::read_named) | its first line that isn't blank states a tag's units, `ICM data in us, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas |
+//! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
@@ -56,8 +62,9 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, generic, kml, nmea,
-    perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
+    arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus, fwgps,
+    fwsummary, generic, kml, nmea, packets, perfectflite, phone_launch, raven, raven_fipa, rdas,
+    rrc3, rrc3_rff, rtx, sillygoose, teensy,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -66,8 +73,14 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Rrc3Rff,
     LogFormat::Arts2Odf,
     LogFormat::RtxRaw,
+    LogFormat::RadioPacketRtf,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
+    LogFormat::BlueRavenUsb,
+    LogFormat::TeensyTabs,
+    LogFormat::TeensyNamed,
+    LogFormat::RadioPacketText,
+    LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
@@ -155,12 +168,35 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let first = lines.next()?;
-    // An RTF document is told by its opening group; only an Eggtimer's download is read in one.
+    // An RTF document is told by its opening group: radio packets by a packet in its first lines,
+    // and otherwise an Eggtimer's download.
+    if packets::recognizes_rtf(text) {
+        return Some(LogFormat::RadioPacketRtf);
+    }
     if eggtimer::recognizes_rtf(text) {
         return Some(LogFormat::EggtimerRtf);
     }
     if aerospacenu_gs::recognizes(text) {
         return Some(LogFormat::AerospaceNuGroundStationText);
+    }
+    // A Blue Raven's USB download is told by a record whose CRC checks.
+    if blueraven_usb::recognizes(text) {
+        return Some(LogFormat::BlueRavenUsb);
+    }
+    // A Teensy data logger's file by its `Alt` line, or by its units lines.
+    if teensy::recognizes_tabs(text) {
+        return Some(LogFormat::TeensyTabs);
+    }
+    if teensy::recognizes_named(text) {
+        return Some(LogFormat::TeensyNamed);
+    }
+    // Radio packets by a `255:…:254` packet in the first lines.
+    if packets::recognizes_text(text) {
+        return Some(LogFormat::RadioPacketText);
+    }
+    // A console capture is told by its block markers, past the shell's own lines.
+    if capture::recognizes(text) {
+        return Some(LogFormat::ConsoleCapture);
     }
     // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
     // open with the receiver's power-up noise, a KML file with an XML declaration.
@@ -289,6 +325,11 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::AltosCsv) => altos::read(&text),
         Some(LogFormat::RavenFipCsv) => raven::read(&text),
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
+        Some(LogFormat::BlueRavenUsb) => blueraven_usb::read(&text),
+        Some(LogFormat::TeensyTabs) => teensy::read(&text),
+        Some(LogFormat::TeensyNamed) => teensy::read_named(&text),
+        Some(LogFormat::RadioPacketText) => packets::read(&text),
+        Some(LogFormat::RadioPacketRtf) => packets::read_rtf(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),
@@ -315,6 +356,14 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
         Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
         Some(LogFormat::GenericTable) => generic::read(&text),
+        // A capture states no layout for its records: the caller's is needed.
+        Some(LogFormat::ConsoleCapture) => Err(capture::needs_a_layout(&text)),
+        // Never recognized: a file of records has no marks of its own.
+        Some(LogFormat::BinaryRecords) => Err(LogError::Layout {
+            message: "a file of binary records is read by a layout the caller states \
+                      (`records::read`)"
+                .to_owned(),
+        }),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
@@ -378,7 +427,7 @@ mod tests {
                 "sep=;\ntime (ms);deltaTime (ms);status;baro-altitude (m)\n",
                 Some(LogFormat::FluctusCsv),
             ),
-            ("T;Alt;Veloc;FAlt\n", None),
+            ("T;Alt;Veloc;FAlt\n", Some(LogFormat::EggtimerCsv)),
             ("0.00\t3\t71.5F\t9.2\n", Some(LogFormat::PerfectFliteText)),
             ("0.00\t3\t21.9C\t9.2\n", Some(LogFormat::PerfectFliteText)),
             ("0.00\t3\t71.5\t9.2\n", None),
