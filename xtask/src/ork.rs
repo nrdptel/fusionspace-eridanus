@@ -1337,7 +1337,10 @@ pub(crate) fn examples_in_jar(jar: &Path) -> Result<Vec<Case>, String> {
         let mut entry = archive
             .by_index(index)
             .map_err(|error| format!("{}: {error}", jar.display()))?;
-        let name = entry.name().to_owned();
+        let name = entry
+            .name()
+            .map_err(|error| format!("{}: entry {index}: {error}", jar.display()))?
+            .into_owned();
         if !(name.starts_with("datafiles/examples/") && name.to_ascii_lowercase().ends_with(".ork"))
         {
             continue;

@@ -163,7 +163,17 @@ fn unpack_zip(bytes: &[u8], budget: u64) -> Result<Imported<Unpacked>, OrkError>
         if entry.is_dir() {
             continue;
         }
-        let name = entry.name().to_owned();
+        let name = match entry.name() {
+            Ok(name) => name.into_owned(),
+            Err(error) => {
+                warnings.push(Warning::new(
+                    format!("entry {index}"),
+                    WarningKind::Skipped,
+                    format!("this entry's name could not be read, so it was left out: {error}"),
+                ));
+                continue;
+            }
+        };
         let left = budget.saturating_sub(used);
         let mut content = Vec::new();
         // One byte past what is left, so that an entry filling the budget exactly is still known

@@ -318,6 +318,10 @@ fn central_records(bytes: &[u8], start: usize) -> usize {
     count
 }
 
+/// Bit 11 of a zip entry's general purpose flags, the language encoding flag: set, its name is
+/// UTF-8; clear, it is in IBM code page 437 (APPNOTE.TXT 6.3.10, section 4.4.4 and appendix D).
+const UTF8_FLAG: u16 = 1 << 11;
+
 /// Reads a container, taking a design of an older version to the current one.
 ///
 /// [`read_within`] with [`MAX_UNPACKED_BYTES`].
@@ -370,25 +374,36 @@ pub fn read_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Opened<Hprz>
         let entry = archive.by_index_raw(index).map_err(|error| {
             FormatError::Container(format!("entry {index} can't be opened: {error}"))
         })?;
-        let name = entry.name();
+        let raw = entry.name_raw();
         if entry.is_dir() {
             // A folder's entry holds nothing: one that holds bytes, or that the zip reader takes
             // for a folder by a `\` at its end, would be lost.
+            let name = String::from_utf8_lossy(raw);
             if entry.size() > 0 || name.ends_with('\\') {
                 return Err(FormatError::Container(format!(
                     "{:?} is a folder's entry that is not an empty folder",
-                    shortened(name)
+                    shortened(&name)
                 )));
             }
             continue;
         }
-        if entry.name_raw() != name.as_bytes() {
+        // The name is its own bytes read as UTF-8, never a guess at another code page. The zip
+        // reader decodes any bytes that happen to be valid UTF-8 as UTF-8, marked or not, so the
+        // mark is read here, not inferred from what the reader made of the name.
+        let marked = entry.flags().as_u16() & UTF8_FLAG != 0;
+        if !raw.is_ascii() && !marked {
             return Err(FormatError::Container(format!(
                 "the name of {:?} isn't marked as UTF-8, as a name beyond plain ASCII must be \
                  (some zip tools leave the mark off)",
-                shortened(name)
+                shortened(&String::from_utf8_lossy(raw))
             )));
         }
+        let Ok(name) = std::str::from_utf8(raw) else {
+            return Err(FormatError::Container(format!(
+                "the name of {:?} is marked as UTF-8, and its bytes aren't UTF-8",
+                shortened(&String::from_utf8_lossy(raw))
+            )));
+        };
         if entry.is_symlink() {
             return Err(FormatError::Container(format!(
                 "{:?} is a symbolic link, which a container doesn't hold",
@@ -416,7 +431,8 @@ pub fn read_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Opened<Hprz>
         if entry.is_dir() {
             continue;
         }
-        let name = entry.name().to_owned();
+        // Exact: every name was checked above to be UTF-8.
+        let name = String::from_utf8_lossy(entry.name_raw()).into_owned();
         let left = budget.saturating_sub(used);
         let mut content = Vec::new();
         // One byte past what is left, so that an entry filling the budget exactly is still known

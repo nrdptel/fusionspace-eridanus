@@ -109,7 +109,10 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
         let mut entry = archive
             .by_index(index)
             .map_err(|error| refused(format!("entry {index} can't be opened: {error}")))?;
-        let name = entry.name().to_owned();
+        let name = entry
+            .name()
+            .map_err(|error| refused(format!("entry {index}'s name can't be read: {error}")))?
+            .into_owned();
         if entry.is_symlink() {
             return Err(refused(format!(
                 "entry {index}, {:?}, is a symbolic link, not a file",

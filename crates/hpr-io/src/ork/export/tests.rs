@@ -32,7 +32,7 @@ fn entries(bytes: &[u8]) -> Vec<(String, Vec<u8>)> {
             let mut entry = archive.by_index(index).expect("an entry");
             let mut contents = Vec::new();
             entry.read_to_end(&mut contents).expect("the entry's bytes");
-            (entry.name().to_owned(), contents)
+            (entry.name().expect("a name").into_owned(), contents)
         })
         .collect()
 }
