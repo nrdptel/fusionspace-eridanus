@@ -33,10 +33,10 @@
 //!
 //! **The accelerometer's columns, as the sample shows them.** No manual describes them. `ACCEL`
 //! is measured along an axis pointing down the rocket: in the sample it reads −0.94 g before
-//! liftoff and below 0 through the boost. `SPEED` is `ACCEL` summed over the clock, gravity left
-//! in: over the sample's boost its change is `ACCEL`'s to within 0.2 %. So `SPEED` isn't the
-//! rocket's speed, and the record's vertical speed is left empty; both columns are kept, signs
-//! and all, as channels.
+//! liftoff, where an axis pointing up would read +1 g at rest. `SPEED` is `ACCEL` summed over the
+//! clock, gravity left in: over the sample's boost, the median of its change against `ACCEL`'s is
+//! 1 to within 0.2 %. So `SPEED` isn't the rocket's speed, and the record's vertical speed is
+//! left empty; both columns are kept, signs and all, as channels.
 //!
 //! **Units the file doesn't state, or states wrongly, held to physics.** `TIME` names no unit. The
 //! altimeter stores 200 samples a second until apogee and fewer after it (*AltiMAX G4 Manual*,
@@ -48,14 +48,14 @@
 //! a value in neither is refused.
 //!
 //! **Events.** The two `EVENT` columns are a code and its name. A row whose code isn't 0 is an
-//! event, named as the text column writes it, such as `BARO-LIFTOFF` or `APOGEE PRESSURE`; the
-//! sample writes `PAD` beside every code 0. The names follow the manual's list of events
+//! event, named as the text column writes it, such as `BARO-LIFTOFF` or `APOGEE PRESSURE`. The
+//! names follow the manual's list of events
 //! (*AltiMAX G3 User Manual*, p. 15), in the software's own spelling; the codes aren't documented,
 //! so they are kept as written.
 //!
-//! **Voltages.** `VOLT. CHANNEL` cycles through 1 to 5, a row each, and `VOLTAGE [V]` is that
+//! **Voltages.** `VOLT. CHANNEL` is a channel number, one a row, and `VOLTAGE [V]` is that
 //! channel's voltage: the reader gives each number its own voltage channel, `VOLTAGE [V] (channel
-//! 1)` and so on. The software lists five voltages, the battery's, the igniter's and three pyro
+//! 1)` and so on, five in the sample. The software lists five voltages, the battery's, the igniter's and three pyro
 //! channels' (*AltiMAX G4 Manual*, p. 42), but not which number is which, so none is named.
 //!
 //! **Cells.** A row holds as many cells as the header; an empty value is a gap, `NaN`, counted in

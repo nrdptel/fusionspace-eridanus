@@ -313,10 +313,10 @@ out.
   RTF document, every packet a receiver or an export holds that the onboard log also holds
   matching the log's field for field ([M7.1c19](decisions-and-roadmap.md#m7-1c19),
   [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)), and a Raven FIP export
-  pasted into a workbook with its header missing, read under a stated header and matching the
-  `.FIPa` of the same flight sample by sample, and an AltiMAX altimeter's `.xls` export, every
-  cell checked by an outside reader and each height following its pressure by the standard
-  atmosphere's formula ([M7.1c20](decisions-and-roadmap.md#m7-1c20),
+  pasted into a workbook with its header missing, read under a stated header, the two sample
+  sheets matching the `.FIPa` of the same flight sample by sample, and an AltiMAX altimeter's
+  `.xls` export, every cell of the sample checked by an outside reader and each of its heights
+  following its pressure by the standard atmosphere's formula ([M7.1c20](decisions-and-roadmap.md#m7-1c20),
   [the layouts](format/flight-logs.md#a-fip-export-pasted-below-no-header)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
   app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept

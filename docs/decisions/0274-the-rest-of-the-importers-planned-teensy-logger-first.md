@@ -153,19 +153,20 @@ the files showed, measured, and the reader's decisions.
    in its pattern until a channel stops. A sheet writes every row as wide as its widest, so a
    row may end in empty cells; a first row that is itself a header is refused, as `raven::read`
    reads such a file whole.
-2. **One sheet has a table pasted over two of its columns.** Columns 34 and 35 (AH and AI) hold,
-   in all of its 52,879 rows, a clock and a value that aren't the export's: rows past the
-   export's last, its 25,180th, hold them alone, and from the row where the first channel stops,
-   where the export's rows shift one cell left, they cover the cells of whichever channel stands
-   there. `raven::read_rows_around` reads such a sheet by one rule: a channel whose sample, in any
+2. **One sheet has a table pasted over two of its columns.** Columns 34 and 35 (AH and AI) hold
+   a clock and a value pasted over the export's cells, where the header puts `[Altitude
+   (Accel-Ft)]`; from the row where the first channel stops, where the export's rows shift one
+   cell left, they cover the cells of whichever channel stands there. `raven::read_rows_around` reads such a sheet by one rule: a channel whose sample, in any
    row, has a cell in a pasted column is left out whole, with a note; every other channel is
    read; and a row whose pasted cells hide whether a channel has a sample there (its time and
-   value cells, and the status cell after them) is refused. The rule leaves out three of the
+   value cells, and the cell after them, pasted over or empty) is refused. The rule leaves out three of the
    five channels the FIP works out and reads the other 13, among them the 11 the `.FIPa` holds,
    which always sit in a row's first 33 cells.
 3. **The `.xls` stream isn't BIFF8's.** The plan called it a bare BIFF8 stream, from its BOF's
-   record id, `0x0809`, BIFF8's. Its BOF's body is 6 bytes with a version of 0, where BIFF8's is
-   16 bytes, and its cells are BIFF2's records: 50,668 `INTEGER`, 202,672 `NUMBER` and 25,345
+   record id, `0x0809`, which BIFF5 to BIFF8 share. Its BOF's body is 6 bytes with a version of
+   0, where Excel writes 8 bytes and `0x0500` for BIFF5 and 16 bytes and `0x0600` for BIFF8 (Rentz,
+   *OpenOffice.org's Documentation of the Microsoft Excel File Format*, §5.8), and its cells are
+   BIFF2's records: 50,668 `INTEGER`, 202,672 `NUMBER` and 25,345
    `LABEL`. xlrd 2.0.2, run as an outside reader, reads the file as BIFF2. `hpr_flightdata::xls`
    reads BIFF2's cell records under any BOF and refuses the later versions' cell records by
    name. The file is read from its bare stream, as planned; its format is named for what it
@@ -180,7 +181,8 @@ the files showed, measured, and the reader's decisions.
 5. **The checks** (`cargo xtask logs`, the report's sections for each):
    - each sheet against its `.FIPa`, sample by sample, as the raw downloads are checked against
      the FIP's own exports, every `.FIPa` channel of a known quantity matched by name;
-   - the derived channels the `.FIPa` doesn't hold, which back the stated names:
+   - four of the five derived channels the `.FIPa` doesn't hold, where a sheet keeps them, which
+     back the stated names (`[Altitude (Accel-Ft)]` is held to nothing):
      `[Altitude (Baro-Ft-ASL)]` is the standard atmosphere's height of the sheet's own pressure,
      44,330.77 × (1 − (P / 101,325)^0.190263) m, less one offset, within the printed half steps;
      `[Altitude (Baro-Ft-AGL)]` is that less one constant, and reads within 3 m of 0 on the pad,
@@ -192,17 +194,18 @@ the files showed, measured, and the reader's decisions.
      less one offset for the file, within 44,330.77 × 2⁻²³ m, 5.3 mm, the allowance the Teensy
      logger's check takes for a software's own working of a formula no document gives;
    - its pad pressure between 50 and 110 kPa; `ACCEL`'s magnitude before liftoff within 15 % of
-     1 g, as its step is 0.06 g; `SPEED`'s change over the boost within 10 % of `ACCEL`; and the
-     time from liftoff to apogee within a factor of 2 of √(2h/g).
+     1 g, where a column in g or ft/s², read as m/s², would be 9.8 or 3.3 times off; `SPEED`'s
+     change over the boost within 10 % of `ACCEL`; and the time from liftoff to apogee within a
+     factor of 2 of √(2h/g).
 
 **Consequences of the amendment.** The survey reads 1,023 of its 1,122 files. The two sheets
 match their `.FIPa` in 40,841 and 48,290 samples, none differing: the worst time is 0.00005 s, the
 FIP's printing, and the worst value 0 steps. Their ASL is the formula's height of their pressure
-to within 0.004 m and 0.020 m, their AGL is ASL less one constant to within 0.0015 m, and it reads
-0.20 m and 0.72 m on the pad. A probe swapping the two altitudes' names in the first sheet's header
-failed the pad check. The `.xls`'s 278,685 cells and 253,340 values equal the survey's decoding,
-and xlrd agrees on every cell. Its heights follow the formula to within 0.0044 m over 50,668
-pairs. `ACCEL` reads 0.940 g before liftoff: its axis points down the rocket, so it reads −1 g
-at rest. `SPEED` is `ACCEL` summed over the clock, its change 0.999 times `ACCEL` over the boost,
-so it isn't the rocket's speed. The time to apogee is 0.945 times √(2h/g). 36 files are left, to
+to within 0.004 m and 0.020 m, their AGL is ASL less one constant to within 0.0016 m, and it reads
+0.20 m and 0.72 m on the pad. A probe, not committed, swapping the two altitudes' names in the
+first sheet's header failed the pad check. The `.xls`'s 278,685 cells and 253,340 values equal
+the survey's decoding, and xlrd agrees on every cell. Its heights follow the formula to within
+0.0045 m over 50,668 pairs. `ACCEL` reads −0.940 g before liftoff: its axis points down the
+rocket, where one pointing up would read +1 g at rest. `SPEED` is `ACCEL` summed over the clock,
+its change 0.999 times `ACCEL` over the boost, so it isn't the rocket's speed. The time to apogee is 0.945 times √(2h/g). 36 files are left, to
 M7.1c21 to M7.1c23.

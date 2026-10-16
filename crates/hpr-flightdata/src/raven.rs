@@ -266,8 +266,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 ///
 /// The rows are read as [`read`] reads them, but for one thing a sheet does: it writes every row
 /// as wide as its widest, so a row may end in empty cells past its last channel's sample. The rows
-/// are numbered from 1 in errors, and a first row that is itself a header is refused: the file
-/// has its own, and [`read`] reads it.
+/// are numbered from 1 in errors, and a first row whose first cell begins with `Time`, as a
+/// header's first clock name does, is refused: the file has its own, and [`read`] reads it.
 ///
 /// ```
 /// use hpr_flightdata::raven;
@@ -1416,7 +1416,10 @@ mod tests {
         }
         // An empty cell after the hidden ones is a sample's status left empty or the next clock
         // stopped too: refused, not read as either.
-        for row in ["0.05,1.01,b0000,7,8,,,,", "0.05,1.01,b0000,7,8,,0.05,1,b0000"] {
+        for row in [
+            "0.05,1.01,b0000,7,8,,,,",
+            "0.05,1.01,b0000,7,8,,0.05,1,b0000",
+        ] {
             let sheet = format!("0,1.02,b0000,7,8,b0000,0,0,b0000\n{row}\n");
             match read_rows_around(HEADER, &sheet, &[4, 5]) {
                 Err(LogError::Syntax { line, message, .. }) => {

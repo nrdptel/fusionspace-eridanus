@@ -84,10 +84,10 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([one team's radio telemetry packets](#one-teams-radio-telemetry-packets)).
 > Since [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (workbooks with a reading beside), a
 > Raven FIP export pasted into a workbook with its header line missing is read under a header
-> the caller states, and matches the `.FIPa` of the same flight sample by sample
-> ([a FIP export pasted below no header](#a-fip-export-pasted-below-no-header)); and an AltiMAX
-> altimeter's Excel export, an older binary `.xls` file, is read cell for cell, each height
-> following its pressure by the standard atmosphere's formula
+> the caller states, and in the two sample sheets matches the `.FIPa` of the same flight sample by
+> sample ([a FIP export pasted below no header](#a-fip-export-pasted-below-no-header)); and an
+> AltiMAX altimeter's Excel export, an older binary `.xls` file, is read cell for cell, each height
+> in the sample file following its pressure by the standard atmosphere's formula
 > ([the AltiMAX's Excel export](#the-altimaxs-excel-export)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c21](../decisions-and-roadmap.md#m7-1c21) to
@@ -1145,8 +1145,10 @@ and neither do `hpr analyze` and the Python package.
 > hold 48 cells in its pattern. Every channel the `.FIPa` beside each sheet holds, the raw file of
 > the same flight, matches the sheet's sample by sample
 > ([below](#how-the-fip-sheets-were-checked)). The five channels the FIP works out from the
-> others, the bracketed ones, aren't in the `.FIPa`; they are held to the sheet's own pressure and
-> to each other, which backs the names the stated header gives them.
+> others, the bracketed ones, aren't in the `.FIPa`. The two barometric altitudes are held to the
+> sheet's own pressure and to each other, and the two velocities to each other where a sheet
+> keeps them, which backs the names the stated header gives them; `[Altitude (Accel-Ft)]` isn't
+> held to anything.
 
 **The stated header** is in `validation/log-headers.json`, by the file's id:
 
@@ -1156,18 +1158,20 @@ Time@[Velocity (Accel-MPH)],[Velocity (Accel-MPH)],bILBA
 ```
 
 The rows are read as the FIP CSV's are, but for one thing a sheet does: it writes every row as
-wide as its widest, so a row may end in empty cells. A first row that is itself a header is
-refused: the file has its own, and `raven::read` reads it whole.
+wide as its widest, so a row may end in empty cells. A first row that reads as a header, its
+first cell beginning with `Time`, is refused: the file has its own, and `raven::read` reads it
+whole.
 
-**A table pasted over.** In one sample sheet, columns 34 and 35 (AH and AI) hold, in all 52,879
-rows, a clock and a value that aren't the export's. They stand where the header puts `[Altitude
-(Accel-Ft)]`, and they run on below the export's last row. As the export's rows shift left where
+**A table pasted over.** In one sample sheet, columns 34 and 35 (AH and AI) hold a clock and a
+value pasted over the export's cells, where the header puts `[Altitude (Accel-Ft)]`. As the
+export's rows shift left where
 channels stop, the two columns cover different channels' cells in different rows. The rule, given
 the pasted columns: a channel whose sample, in any row, has a cell in them is left out whole, with
 a note naming it and counting the rows, and every other channel is read. To walk a row, each
 channel must still show whether it has a sample there: a cell of its time or value outside the
-pasted columns that isn't empty, or else the status cell after them, `b` and digits, which a
-stopped channel doesn't have. A row whose pasted cells hide that is refused.
+pasted columns that isn't empty, or else the cell after them: a sample's status cell, `b` and
+digits, or, for a stopped channel, the next channel's time. A row whose pasted cells hide that,
+the cell after them pasted over or empty too, is refused.
 
 In that sheet the rule leaves out `[Altitude (Accel-Ft)]` (covered in 1,259 rows), `[Velocity
 (Accel-Ft/Sec)]` (11,331) and `[Velocity (Accel-MPH)]` (23,921), and reads the other 13 channels.
@@ -1196,10 +1200,11 @@ The derived channels, in each sheet:
 - `[Altitude (Baro-Ft-ASL)]` is the standard atmosphere's height of the sheet's own `Baro (Atm)`,
   44,330.77 × (1 − (P / 101,325)^0.190263) m, less one offset, within the pressure's printed
   half step, 0.000005 atm, times the formula's slope, and the altitude's own: half the spread is
-  0.004 m (0.013 ft) and 0.020 m (0.066 ft).
+  under 0.004 m (0.013 ft) and 0.020 m (0.066 ft).
 - `[Altitude (Baro-Ft-AGL)]` is that less one constant, the pad's, within both printed half steps
-  (half the spread 0.0015 m (0.0049 ft) in each), and its first sample, on the pad, is within 3 m
-  (9.8 ft) of 0: 0.20 m (0.66 ft) and 0.72 m (2.4 ft). Were the two altitudes' names swapped, the pad would read the site's elevation.
+  (half the spread under 0.0016 m (0.0053 ft) in each), and its first sample, on the pad, is
+  within 3 m (9.8 ft) of 0: 0.20 m (0.65 ft) and 0.72 m (2.4 ft). Were the two altitudes' names
+  swapped, the pad would read the site's elevation.
 - `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both printed half
   steps, in the first sheet; the second has neither.
 
@@ -1220,15 +1225,16 @@ decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20))
 > **How far to trust it.** The one sample file is read cell for cell: the survey's own decoding
 > and xlrd 2.0.2, an independent Python reader, agree with the text on all 278,685 cells. No
 > manual describes the columns, so the reading is held to physics: each height follows its
-> pressure by the standard atmosphere's formula to within 4.4 mm (0.17 in), and the clock, the
+> pressure by the standard atmosphere's formula to within 4.5 mm (0.18 in), and the clock, the
 > accelerometer and its sum are held to the flight. The pressure columns say `[hpa]` but hold
 > pascals, and are read so. The voltages are kept as stated, unchecked.
 
 **The stream.** A record is a 2-byte id, a 2-byte length and its data (*OpenOffice.org's
 Documentation of the Microsoft Excel File Format*, Daniel Rentz, revision 1.42, 2008, §2.1). The
-sample opens with a BOF record, the stream's start, whose id, `0x0809`, is BIFF8's, Excel 97's;
-but its body is 6 bytes with a version field of 0, not BIFF8's 16, and its cells are BIFF2's
-records, those of Excel 2.x: `INTEGER` (`0x0002`), `NUMBER` (`0x0003`) and `LABEL` (`0x0004`), the
+sample opens with a BOF record, the stream's start, with the id `0x0809` that BIFF5 to BIFF8
+share, Excel 5's to Excel 97's and later. Excel writes that BOF's body as 8 bytes, version
+`0x0500`, or 16, version `0x0600` (§5.8.1); this one is 6 bytes with a version field of 0, the
+kind other tools write (§5.8.2). Its cells are BIFF2's records, those of Excel 2.x: `INTEGER` (`0x0002`), `NUMBER` (`0x0003`) and `LABEL` (`0x0004`), the
 text in single bytes. It ends with an `EOF` record. The reader writes these cells out under
 whichever BOF opens the stream. It refuses a later version's cell records by name, a shared
 string or a formula, as it doesn't read them; a record longer than 8,224 bytes; a cell past
@@ -1255,11 +1261,11 @@ SPEED [m/s],EVENT,EVENT,VOLT. CHANNEL,VOLTAGE [V]
 
 The reader decides the pressure's unit by its first value, on the pad: read in hectopascals as
 stated, it would put the pad above 50,000 hPa; read in pascals, it falls between 500 and 1,100
-hPa, as any launch site's does. The two ranges don't overlap, so only one reading fits, and a note
-says which. A file whose pad fits neither is refused.
+hPa, as any launch site's does. The two ranges don't overlap, so only one reading fits; a note
+says so when it is pascals. A file whose pad fits neither is refused.
 
-`ACCEL` is measured along an axis pointing down the rocket: it reads −0.94 g before liftoff and
-below 0 through the boost. `SPEED` is `ACCEL` summed over the clock, gravity left in, so it isn't
+`ACCEL` is measured along an axis pointing down the rocket: it reads −0.94 g at rest before
+liftoff, where an axis pointing up would read +1 g. `SPEED` is `ACCEL` summed over the clock, gravity left in, so it isn't
 the rocket's speed, and the record's vertical speed is left empty.
 
 <a id="how-the-altimax-export-was-checked"></a>**How it was checked.** The survey decodes the
@@ -1271,14 +1277,15 @@ the text read by the stated units, but the pressures in pascals. Then, on the fl
 
 - **The heights.** Each of the 50,668 heights, filtered and raw, is the standard atmosphere's
   height of its pressure in pascals, 44,330.77 × (1 − (P / 101,325)^0.190263) m (U.S. Standard
-  Atmosphere, 1976), less one offset for the file, to within 0.0044 m (0.014 ft). The check
-  allows 44,330.77 × 2⁻²³ = 0.0053 m (0.017 ft) for the software's own working of the formula, whose form no document gives.
+  Atmosphere, 1976), less one offset for the file, to within 0.0045 m (0.015 ft). The check
+  allows 44,330.77 × 2⁻²³ = 0.0053 m (0.017 ft) for the software's own working of the formula,
+  whose form no document gives.
   The offset, the pad's height in that atmosphere, isn't written, as it gives the site's
   elevation. Read in hectopascals, the heights would miss by more than a kilometer.
 - **The pad pressure,** the first raw pressure, is between 50 and 110 kPa.
 - **The accelerometer.** Before liftoff, `ACCEL`'s first magnitude above 3 g, it reads 0.940 g;
-  the check allows 0.85 to 1.15, as its step is 0.06 g, where g or ft/s² would be 3 or more times
-  off. Over the boost, `SPEED`'s change is 0.999 times `ACCEL`, inside 0.9 to 1.1.
+  the check allows 0.85 to 1.15, where a column in g or ft/s², read as m/s², would be 9.8 or 3.3
+  times off. Over the boost, `SPEED`'s change is 0.999 times `ACCEL`, inside 0.9 to 1.1.
 - **The time to apogee.** From liftoff to the highest raw height, the time is 0.945 times
   √(2h/g), h the apogee's height above the first sample's; the check allows a factor of 2.
 
@@ -2731,8 +2738,9 @@ survey's decoding, and each received or exported packet against the onboard log'
 ([above](#how-the-radio-packets-were-checked)), and each FIP sheet against the `.FIPa` beside it
 ([above](#how-the-fip-sheets-were-checked)), and the AltiMAX export against the survey's own
 decoding of its stream and its physical checks ([above](#how-the-altimax-export-was-checked)). Of
-the 1,122 files it holds today, 1,023 are read, the 8 archives counted as read when they unpack
-and the 16 workbooks when a sheet of each reads. The report labels 38 files for
+the 1,122 files it holds today, 1,023 are read, the 8 archives counted as read when they unpack,
+the 16 workbooks of their own layout when a sheet of each reads, and the 2 FIP sheets when they
+read under their stated headers. The report labels 38 files for
 [M7.1c21](../decisions-and-roadmap.md#m7-1c21), the next increment.
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
 plans the three increments left, through the last file; 36 of the 38, of layouts no reader knows

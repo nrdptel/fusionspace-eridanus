@@ -7738,8 +7738,9 @@ fn markdown(report: &Report) -> String {
              at the `.FIPa`'s time as the FIP prints it and within half a step of its \
              resolution: *Samples* counts them, *After the stop* the `.FIPa`'s velocity samples \
              after the export stops that channel, and *Time off*, s, and *Value off*, in steps, \
-             are the worst. The five derived channels the `.FIPa` doesn't hold back the stated \
-             header's names for them: *ASL* is whether `[Altitude (Baro-Ft-ASL)]` is the standard \
+             are the worst. Four of the five derived channels the `.FIPa` doesn't hold, where \
+             a sheet keeps them, back the stated header's names for them (`[Altitude \
+             (Accel-Ft)]` is held to nothing): *ASL* is whether `[Altitude (Baro-Ft-ASL)]` is the standard \
              atmosphere's height of the sheet's own `Baro (Atm)`, 44,330.77 × (1 − (P / \
              101,325)^0.190263) m, less one offset, within the pressure's printed half step, \
              0.000005 atm, times the formula's slope, and the altitude's in its sixth significant \
@@ -7783,7 +7784,7 @@ fn markdown(report: &Report) -> String {
                  in hectopascals, as the columns state, it would be {}. The first raw \
                  pressure, on the pad, is {} 50–110 kPa. `ACCEL` before liftoff, its first \
                  magnitude above 3 g, reads {} g in magnitude, its sign {}: the axis it measures \
-                 along points down the rocket, so it reads −1 g at rest and below 0 in the boost; \
+                 along points down the rocket, so it reads −1 g at rest, not +1 g; \
                  the band is {:.2}–{:.2}. `SPEED`'s change over 0.08 s against `ACCEL`, the median \
                  over the boost: {}, as `SPEED` sums `ACCEL` over the clock, gravity left in, so \
                  it isn't the rocket's speed; the band is {:.1}–{:.1}. The time from liftoff to \
