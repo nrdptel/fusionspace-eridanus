@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 1,
       "read": 0,
       "refused": {
@@ -51,6 +51,13 @@
       "increment": "M7.1c3",
       "files": 14,
       "read": 14,
+      "refused": {}
+    },
+    {
+      "family": "altimax-xls",
+      "increment": "M7.1c20",
+      "files": 1,
+      "read": 1,
       "refused": {}
     },
     {
@@ -106,7 +113,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 2,
       "read": 0,
       "refused": {
@@ -188,7 +195,7 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 23,
       "read": 2,
       "refused": {
@@ -260,7 +267,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 2,
       "read": 0,
       "refused": {
@@ -441,6 +448,13 @@
       "refused": {}
     },
     {
+      "family": "raven-fip-sheet-xlsx",
+      "increment": "M7.1c20",
+      "files": 2,
+      "read": 2,
+      "refused": {}
+    },
+    {
       "family": "raven-fipa",
       "increment": "M7.1c5",
       "files": 57,
@@ -523,7 +537,7 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 6,
       "read": 0,
       "refused": {
@@ -547,26 +561,17 @@
       "refused": {}
     },
     {
-      "family": "xls",
-      "increment": "M7.1c20",
-      "files": 1,
-      "read": 0,
-      "refused": {
-        "unrecognized": 1
-      }
-    },
-    {
       "family": "xlsx",
-      "increment": "M7.1c20",
-      "files": 4,
+      "increment": "M7.1c21",
+      "files": 2,
       "read": 0,
       "refused": {
-        "archive": 4
+        "archive": 2
       }
     },
     {
       "family": "xml",
-      "increment": "M7.1c20",
+      "increment": "M7.1c21",
       "files": 2,
       "read": 0,
       "refused": {
@@ -582,6 +587,9 @@
     }
   ],
   "reclassified": [
+    "6f5e20612831ac57 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
+    "b2a86ded765053b4 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
+    "444687655195f5c8 xls -> altimax-xls: a Rocketronics AltiMAX flight as its PC software exports it to Excel: a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`; filed as a spreadsheet",
     "cd6f44ad29c505e6 txt -> radio-packets-txt: a team flight computer's own log of the radio telemetry packets it sends, `255:T:…:254` lines after a whole number and its filter's `Gain[…]` lines; filed as text by its extension",
     "a10560cbf44516e5 txt -> radio-packets-txt: the text a ground receiver wrote of one team's radio telemetry packets, `255:T:…:254` from the flight computer and `255:N:…:254` relayed, with GPS fixes, by a second transmitter, many cut or run together; filed as text by its extension",
     "12f752fa1d21c27f txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
@@ -797,7 +805,7 @@
     "Featherweight Blue Raven": 138,
     "Featherweight GPS ground station": 14,
     "Featherweight GPS tracker": 40,
-    "Featherweight Raven": 137,
+    "Featherweight Raven": 139,
     "GPS Visualizer": 1,
     "KML": 3,
     "Missile Works RRC3": 57,
@@ -809,6 +817,7 @@
     "PerfectFlite Pnut": 39,
     "PerfectFlite SL100": 35,
     "PerfectFlite SLCF": 101,
+    "Rocketronics AltiMAX": 1,
     "Rocketry Ltd Mercury": 4,
     "Rocketry Ltd Nano V1": 7,
     "Silicdyne Fluctus": 6,
@@ -2482,6 +2491,79 @@
       "pp3_over_height_greatest": null
     }
   ],
+  "fip_sheet_checks": [
+    {
+      "id": "6f5e20612831ac57",
+      "channels_read": 16,
+      "left_out": [],
+      "fipa": "66aadbe6b4daa392",
+      "matching": true,
+      "fipa_channels_unmatched": [],
+      "raw_samples_compared": 40841,
+      "velocity_samples_after_the_sheet_stops": 850,
+      "worst_time_s": 0.00005000000000165983,
+      "worst_value_steps": 0.0,
+      "asl_from_pressure": true,
+      "asl_spread_m": 0.0039572146466611,
+      "agl_on_pad_m": 0.1982111352,
+      "agl_below_asl": true,
+      "agl_spread_m": 0.0015240000000176224,
+      "mph_is_fps": true
+    },
+    {
+      "id": "b2a86ded765053b4",
+      "channels_read": 13,
+      "left_out": [
+        "\"[Altitude (Accel-Ft)]\" left out: the pasted columns cover its cells in 1259 rows",
+        "\"[Velocity (Accel-Ft/Sec)]\" left out: the pasted columns cover its cells in 11331 rows",
+        "\"[Velocity (Accel-MPH)]\" left out: the pasted columns cover its cells in 23921 rows"
+      ],
+      "fipa": "856e61d186324d0a",
+      "matching": true,
+      "fipa_channels_unmatched": [],
+      "raw_samples_compared": 48290,
+      "velocity_samples_after_the_sheet_stops": 811,
+      "worst_time_s": 0.00005000000000165983,
+      "worst_value_steps": 0.0,
+      "asl_from_pressure": true,
+      "asl_spread_m": 0.019588609011975677,
+      "agl_on_pad_m": 0.7181575680000001,
+      "agl_below_asl": true,
+      "agl_spread_m": 0.0015240000000176224,
+      "mph_is_fps": null
+    }
+  ],
+  "altimax_checks": [
+    {
+      "id": "444687655195f5c8",
+      "records": {
+        "0x0002": 50668,
+        "0x0003": 202672,
+        "0x0004": 25345,
+        "0x000a": 1,
+        "0x0024": 11,
+        "0x0200": 1,
+        "0x041e": 36,
+        "0x0809": 1
+      },
+      "bof": "0x6 bytes, version 0x0000, type 0x0010",
+      "cells_compared": 278685,
+      "cells_differing": 0,
+      "values_compared": 253340,
+      "values_differing": 0,
+      "quantities_read": true,
+      "height_pairs": 50668,
+      "height_spread_m": 0.004411181767963512,
+      "stated_hpa_off_by_km": true,
+      "pad_pressure_in_band": true,
+      "pad_over_g": 0.9403211086354667,
+      "pad_sign": -1.0,
+      "apogee_time_ratio": 0.9451513224284789,
+      "speed_change_over_accel": 0.9988259256913342,
+      "events": 21,
+      "voltage_channels": 5
+    }
+  ],
   "filter_scales": {
     "files": 44,
     "least": [
@@ -3273,7 +3355,7 @@
     "425b1ac3fbe4f794 teensy-tabs-txt collection TeensyTabs fcd1c3f939147729",
     "430e151a84016c4c e80-imu-txt collection RdasText 45b70499751658e2",
     "43d5e11c04f31edb altos-csv collection AltosCsv 331aab93b720a25b",
-    "444687655195f5c8 xls collection refused:unrecognized -",
+    "444687655195f5c8 altimax-xls collection AltimaxXls 6c4e199693c5a444",
     "4459da7192ab9ddc e80-imu-txt collection RdasText b7406dd4a16443b4",
     "447c80b042a64226 blueraven-settings-xlsx archives refused:archive -",
     "44a479aaaf2812ce workbook-xlsx collection Workbook:3 9d43d4a58b9cd887",
@@ -3451,7 +3533,7 @@
     "6e1eb3693fdc34f0 pf2 collection PerfectFlitePf2 3c0b7852c5feaf9e",
     "6e78a74048da02e5 altimetercloud-csv collection AltimeterCloudCsv cc52534eed8608b7",
     "6eb0feab514cae17 pf2 collection PerfectFlitePf2 f75073f711c8f651",
-    "6f5e20612831ac57 xlsx collection refused:archive -",
+    "6f5e20612831ac57 raven-fip-sheet-xlsx collection RavenFipCsv a56dd642fa3c2c0d",
     "6f660a568f43b096 raven-fipa collection RavenFipa 921f3498f71b26e0",
     "6f9001b262e1b39f pfa collection PerfectFlitePfa 3b72f48c1e055ee9",
     "6f9703c1f6138539 aerospacenu-sillygoose-txt aerospacenu SillyGooseText 7c38fd9a172c5abb",
@@ -3748,7 +3830,7 @@
     "b26cc0ad79d74a7b rocket-parameters collection refused:unrecognized -",
     "b27cc498f8d15caa workbook-xlsx collection Workbook:3 5d400a153137bc99",
     "b2986691bbdc1fce nmea collection Nmea0183 6e346d0da8b9416d",
-    "b2a86ded765053b4 xlsx collection refused:archive -",
+    "b2a86ded765053b4 raven-fip-sheet-xlsx collection RavenFipCsv a81201d613ef9b7b",
     "b2eed6dabe72bf40 rrc3-csv collection Rrc3Csv 139c6d636866fa92",
     "b2f63e295244a1c5 rocket-parameters collection refused:unrecognized -",
     "b348b373dbe7073f table-csv collection GenericTable 8cf1c50f4fa3bdd8",

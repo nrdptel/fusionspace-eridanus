@@ -153,7 +153,7 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c20";
+const LEFT_TO: &str = "M7.1c21";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
@@ -318,7 +318,10 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 187] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 190] = [
+    ("6f5e20612831ac57", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
+    ("b2a86ded765053b4", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
+    ("444687655195f5c8", "xls", ALTIMAX_FAMILY, ALTIMAX_XLS),
     ("cd6f44ad29c505e6", "txt", RADIO_TXT_FAMILY, RADIO_ONBOARD),
     ("a10560cbf44516e5", "txt", RADIO_TXT_FAMILY, RADIO_RECEIVED),
     ("12f752fa1d21c27f", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
@@ -849,6 +852,14 @@ struct Report {
     /// and the physics their units must keep (M7.1c19).
     #[serde(default)]
     packet_checks: Vec<PacketFile>,
+    /// Raven FIP exports pasted into workbooks below no header, against the `.FIPa` of the same
+    /// flight and their derived channels against each other (M7.1c20).
+    #[serde(default)]
+    fip_sheet_checks: Vec<FipSheetFile>,
+    /// AltiMAX `.xls` exports against their own records and the physics their units must keep
+    /// (M7.1c20).
+    #[serde(default)]
+    altimax_checks: Vec<AltimaxFile>,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -5602,6 +5613,626 @@ fn aerospacenu_family(extension: &str, bytes: &[u8]) -> &'static str {
     }
 }
 
+/// The family of Featherweight Raven FIP exports pasted into a workbook below no header line
+/// (M7.1c20), filed by the catalog as `xlsx`.
+const FIP_SHEET_FAMILY: &str = "raven-fip-sheet-xlsx";
+
+/// The family of Rocketronics AltiMAX exports to a bare `.xls` worksheet (M7.1c20), filed by the
+/// catalog as `xls`.
+const ALTIMAX_FAMILY: &str = "altimax-xls";
+
+/// The increment that reads [`FIP_SHEET_FAMILY`]'s and [`ALTIMAX_FAMILY`]'s files.
+const BESIDE_INCREMENT: &str = "M7.1c20";
+
+/// Why a workbook is a FIP export's rows.
+const FIP_SHEET: &str = "a Featherweight Raven's FIP export pasted into an Excel workbook, \
+    `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting \
+    left where a channel stops, read under the header stated for it \
+    (`validation/log-headers.json`); filed as a spreadsheet";
+/// Why an `.xls` file is an AltiMAX export.
+const ALTIMAX_XLS: &str = "a Rocketronics AltiMAX flight as its PC software exports it to Excel: \
+    a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER \
+    [m],…`; filed as a spreadsheet";
+
+/// The header lines stated for FIP exports pasted below none, by file id: committed, as a header
+/// is the FIP's layout, not a flight's data.
+const HEADERS: &str = include_str!("../../validation/log-headers.json");
+
+/// A header stated for a FIP export's rows, from [`HEADERS`].
+#[derive(Debug, Clone, Deserialize)]
+struct StatedHeader {
+    /// The file's id: the first 16 hex digits of its SHA-256.
+    id: String,
+    /// The FIP's header line for the export.
+    header: String,
+    /// The sheet's columns, numbered from 1, that another table was pasted over.
+    #[serde(default)]
+    pasted: Vec<usize>,
+}
+
+/// The file of [`HEADERS`].
+#[derive(Debug, Deserialize)]
+struct StatedHeaders {
+    headers: Vec<StatedHeader>,
+}
+
+/// The stated headers, refused if the file doesn't parse or names an id twice.
+fn stated_headers() -> Result<Vec<StatedHeader>, String> {
+    let file: StatedHeaders = serde_json::from_str(HEADERS)
+        .map_err(|error| format!("validation/log-headers.json: {error}"))?;
+    let mut ids = BTreeSet::new();
+    for stated in &file.headers {
+        if !ids.insert(stated.id.as_str()) {
+            return Err(format!(
+                "validation/log-headers.json states {} twice",
+                stated.id
+            ));
+        }
+    }
+    Ok(file.headers)
+}
+
+/// A FIP export's rows in a workbook, its one sheet read under the header stated for it
+/// ([`hpr_flightdata::raven::read_rows_around`]).
+fn read_fip_sheet(id: &str, bytes: &[u8]) -> Result<FlightLog, String> {
+    let stated = stated_headers()?
+        .into_iter()
+        .find(|stated| stated.id == id)
+        .ok_or("no header is stated for it in validation/log-headers.json")?;
+    let sheets = hpr_flightdata::workbook::sheets(bytes).map_err(|error| error.to_string())?;
+    let [sheet] = sheets.as_slice() else {
+        return Err(format!(
+            "it has {} sheets, where an export fills one",
+            sheets.len()
+        ));
+    };
+    hpr_flightdata::raven::read_rows_around(&stated.header, &sheet.text, &stated.pasted)
+        .map_err(|error| error.to_string())
+}
+
+/// An AltiMAX export: the `.xls` file's one worksheet, read as [`hpr_flightdata::altimax`]'s
+/// table and as nothing else.
+fn read_altimax(bytes: &[u8]) -> Result<FlightLog, String> {
+    let sheets = hpr_flightdata::xls::read(bytes).map_err(|error| error.to_string())?;
+    let [sheet] = sheets.as_slice() else {
+        return Err(format!(
+            "it has {} sheets, where an export fills one",
+            sheets.len()
+        ));
+    };
+    match &sheet.log {
+        Ok(log) if log.format == LogFormat::AltimaxXls => Ok(log.clone()),
+        Ok(log) => Err(format!(
+            "its sheet reads as {}, not an AltiMAX export",
+            log.format.name()
+        )),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+/// Half a unit in the sixth significant figure of a value the FIP printed, in its unit: the FIP
+/// prints its derived channels to six significant figures, dropping trailing zeros. A value a
+/// hair under a power of ten, as a conversion back from SI can leave it, takes the larger step.
+fn fip_half_step(value: f64) -> f64 {
+    if value == 0.0 || !value.is_finite() {
+        return 0.0;
+    }
+    0.5 * 10f64.powf((value.abs() * (1.0 + 1e-9)).log10().floor() - 5.0)
+}
+
+/// Whether differences, each with its tolerance, are one constant within every tolerance
+/// (`offset`) or zero within it, and half their spread: one constant fits when the greatest
+/// difference less its tolerance is no more than the least plus its.
+fn one_offset(pairs: &[(f64, f64)], offset: bool) -> (bool, f64) {
+    let (mut floor, mut ceiling) = (f64::NEG_INFINITY, f64::INFINITY);
+    let (mut least, mut most) = (f64::INFINITY, f64::NEG_INFINITY);
+    for &(difference, tolerance) in pairs {
+        floor = floor.max(difference - tolerance);
+        ceiling = ceiling.min(difference + tolerance);
+        least = least.min(difference);
+        most = most.max(difference);
+    }
+    let held = !pairs.is_empty()
+        && pairs.iter().all(|(d, t)| d.is_finite() && t.is_finite())
+        && if offset {
+            floor <= ceiling
+        } else {
+            floor <= 0.0 && 0.0 <= ceiling
+        };
+    (held, if pairs.is_empty() { 0.0 } else { (most - least) / 2.0 })
+}
+
+/// The most the AltiMAX's heights may differ from the standard atmosphere's height of their
+/// pressures, less one offset for the file, m: an allowance of 44,330.77 × 2⁻²³ m, 5.3 mm, for
+/// the software's own working of the formula, whose form no document gives, as for the Teensy
+/// logger's (ADR-274).
+const ALTIMAX_HEIGHT_BOUND_M: f64 = 44_330.77 / 8_388_608.0;
+
+/// How near 1 g ACCEL's magnitude before liftoff must be, as a ratio: its step is 0.6 m/s², 6 %
+/// of g, and an offset or scale error moves it a few percent more, where a unit other than m/s²
+/// (g, ft/s²) is 3 or more times off.
+const ALTIMAX_GRAVITY_BAND: std::ops::RangeInclusive<f64> = 0.85..=1.15;
+
+/// How near 1 the median ratio of SPEED's change to ACCEL over the boost must be: SPEED is ACCEL
+/// summed over the clock, where a speed in ft/s or km/h would be 3.3 or 3.6 times it.
+const ALTIMAX_SPEED_BAND: std::ops::RangeInclusive<f64> = 0.9..=1.1;
+
+/// The most a FIP sheet's `[Altitude (Baro-Ft-AGL)]` may read on the pad, its first sample, m:
+/// the FIP sets it to 0 there, and its barometer's noise on the pad is a few of its 4 Pa steps,
+/// about 0.3 m each, where `[Altitude (Baro-Ft-ASL)]` read in its place would be the site's
+/// elevation, tens of meters or more but at the sea's edge.
+const FIP_PAD_AGL_M: f64 = 3.0;
+
+/// A FIP export's rows in a workbook against the `.FIPa` of the same flight beside it, and its
+/// derived channels, which the `.FIPa` doesn't hold, against each other (M7.1c20).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct FipSheetFile {
+    id: String,
+    /// The channels read, status columns apart, and those left out because pasted columns cover
+    /// their cells.
+    channels_read: usize,
+    left_out: Vec<String>,
+    /// The `.FIPa` beside it, by id, and whether every channel it holds matches the sheet's
+    /// sample by sample ([`compare_raw`]): the samples compared, the velocity's samples after
+    /// the sheet stops it, and the worst difference in time, s, and in value, in steps of the
+    /// `.FIPa`'s resolution.
+    fipa: Option<String>,
+    matching: bool,
+    /// The `.FIPa`'s channels of a known quantity that no channel of the sheet matches by name
+    /// and quantity, so that nothing compares them.
+    fipa_channels_unmatched: Vec<String>,
+    raw_samples_compared: usize,
+    velocity_samples_after_the_sheet_stops: usize,
+    worst_time_s: f64,
+    worst_value_steps: f64,
+    /// Whether `[Altitude (Baro-Ft-ASL)]` is the standard atmosphere's height of the sheet's own
+    /// `Baro (Atm)` ([`standard_height_m`]) less one offset, within the pressure's printed half
+    /// step, 0.000005 atm, times the formula's slope, and the altitude's ([`fip_half_step`]); and
+    /// half the spread, m.
+    asl_from_pressure: Option<bool>,
+    asl_spread_m: Option<f64>,
+    /// `[Altitude (Baro-Ft-AGL)]`'s first sample, on the pad, in magnitude, m: within
+    /// [`FIP_PAD_AGL_M`] of 0, as the AGL check alone would hold with the two altitudes'
+    /// names swapped.
+    agl_on_pad_m: Option<f64>,
+    /// Whether `[Altitude (Baro-Ft-AGL)]` is `[Altitude (Baro-Ft-ASL)]` less one constant, the
+    /// pad's, within both printed half steps; and half the spread, m.
+    agl_below_asl: Option<bool>,
+    agl_spread_m: Option<f64>,
+    /// Whether `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both
+    /// printed half steps; `None` where a channel is left out.
+    mph_is_fps: Option<bool>,
+}
+
+/// A FIP sheet's derived channels against its pressure and each other ([`FipSheetFile`]).
+fn fip_derived(log: &FlightLog, file: &mut FipSheetFile) {
+    const FT: f64 = 0.3048;
+    let channel = |name: &str| log.channels.iter().find(|c| c.column == name);
+    let pressure = channel("Baro (Atm)");
+    let asl = channel("[Altitude (Baro-Ft-ASL)]");
+    let agl = channel("[Altitude (Baro-Ft-AGL)]");
+    if let (Some(pressure), Some(asl)) = (pressure, asl)
+        && pressure.time_s == asl.time_s
+    {
+        let pairs: Vec<(f64, f64)> = pressure
+            .values
+            .iter()
+            .zip(&asl.values)
+            .map(|(&p, &h)| {
+                // The formula's slope, m/Pa, times the pressure's printed half step.
+                let slope = 44_330.77 * 0.190_263 / 101_325.0
+                    * (p / 101_325.0).powf(0.190_263 - 1.0);
+                let tolerance =
+                    slope * 0.000_005 * 101_325.0 + fip_half_step(h / FT) * FT;
+                (standard_height_m(p) - h, tolerance)
+            })
+            .collect();
+        let (held, spread) = one_offset(&pairs, true);
+        file.asl_from_pressure = Some(held);
+        file.asl_spread_m = Some(spread);
+    }
+    if let (Some(asl), Some(agl)) = (asl, agl)
+        && asl.time_s == agl.time_s
+    {
+        let pairs: Vec<(f64, f64)> = asl
+            .values
+            .iter()
+            .zip(&agl.values)
+            .map(|(&a, &b)| (a - b, (fip_half_step(a / FT) + fip_half_step(b / FT)) * FT))
+            .collect();
+        let (held, spread) = one_offset(&pairs, true);
+        file.agl_below_asl = Some(held);
+        file.agl_spread_m = Some(spread);
+        file.agl_on_pad_m = agl.values.first().map(|m| m.abs());
+    }
+    let fps = channel("[Velocity (Accel-Ft/Sec)]");
+    let mph = channel("[Velocity (Accel-MPH)]");
+    if let (Some(fps), Some(mph)) = (fps, mph) {
+        const MPH: f64 = 0.447_04;
+        let gaps_agree = fps.time_s == mph.time_s
+            && fps
+                .values
+                .iter()
+                .zip(&mph.values)
+                .all(|(a, b)| a.is_nan() == b.is_nan());
+        let pairs: Vec<(f64, f64)> = fps
+            .values
+            .iter()
+            .zip(&mph.values)
+            .filter(|(a, _)| !a.is_nan())
+            .map(|(&a, &b)| (b - a, fip_half_step(a / FT) * FT + fip_half_step(b / MPH) * MPH))
+            .collect();
+        file.mph_is_fps = Some(gaps_agree && one_offset(&pairs, false).0);
+    }
+}
+
+/// Every FIP sheet, read under its stated header, against the `.FIPa` beside it.
+fn fip_sheet_checks(samples: &[Sample]) -> Vec<FipSheetFile> {
+    let mut files = Vec::new();
+    for sample in samples.iter().filter(|s| s.family == FIP_SHEET_FAMILY) {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let mut file = FipSheetFile {
+            id: id.clone(),
+            ..FipSheetFile::default()
+        };
+        let Ok(log) = read_fip_sheet(&id, &sample.bytes) else {
+            files.push(file);
+            continue;
+        };
+        file.channels_read = log
+            .channels
+            .iter()
+            .filter(|c| !c.column.eq_ignore_ascii_case("bILBA"))
+            .count();
+        file.left_out = log
+            .notes
+            .iter()
+            .filter(|note| note.contains(" left out: "))
+            .cloned()
+            .collect();
+        let folder = sample.path.parent();
+        let beside = samples.iter().find(|other| {
+            other.path.parent() == folder && other.family == "raven-fipa"
+        });
+        if let Some(fipa) = beside {
+            file.fipa = Some(hex(&Sha256::digest(&fipa.bytes))[..16].to_owned());
+            let raw = hpr_flightdata::import::read(&fipa.bytes);
+            if let Ok(raw) = &raw {
+                file.fipa_channels_unmatched = raw
+                    .channels
+                    .iter()
+                    .filter(|own| own.quantity != hpr_flightdata::log::Quantity::Unrecognized)
+                    .filter(|own| {
+                        !log.channels.iter().any(|c| {
+                            channel_key(&c.column) == channel_key(&own.column)
+                                && c.quantity == own.quantity
+                        })
+                    })
+                    .map(|own| own.column.clone())
+                    .collect();
+            }
+            if let Ok(raw) = &raw
+                && let Some(compared) = compare_raw(raw, &log)
+            {
+                file.matching = true;
+                file.raw_samples_compared = compared.raw_samples;
+                file.velocity_samples_after_the_sheet_stops = compared.velocity_after_the_stop;
+                file.worst_time_s = compared.worst_time_s;
+                file.worst_value_steps = compared.worst_value_steps;
+            }
+        }
+        fip_derived(&log, &mut file);
+        files.push(file);
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
+}
+
+/// The FIP sheets that fail a check, as lines of the unread list: no `.FIPa` beside it, a
+/// sample that differs from the `.FIPa`'s, or a derived channel that doesn't follow the others.
+fn fip_sheet_unread(files: &[FipSheetFile]) -> Vec<String> {
+    files
+        .iter()
+        .filter(|f| {
+            !f.matching
+                || f.raw_samples_compared == 0
+                || !f.fipa_channels_unmatched.is_empty()
+                || f.asl_from_pressure != Some(true)
+                || f.agl_below_asl != Some(true)
+                || !f.agl_on_pad_m.is_some_and(|m| m <= FIP_PAD_AGL_M)
+                || f.mph_is_fps == Some(false)
+        })
+        .map(|f| {
+            format!(
+                "  {} (Raven FIP sheet): fails its checks: the .FIPa beside it {:?}, matching \
+                 sample by sample: {}, its channels unmatched: {:?}, ASL from the pressure: {:?}, \
+                 AGL below ASL: {:?}, AGL on the pad {:?} m, mph as ft/s: {:?}",
+                f.id,
+                f.fipa,
+                f.matching,
+                f.fipa_channels_unmatched,
+                f.asl_from_pressure,
+                f.agl_below_asl,
+                f.agl_on_pad_m,
+                f.mph_is_fps
+            )
+        })
+        .collect()
+}
+
+/// An AltiMAX `.xls` export against its own records, decoded here apart from the reader, and
+/// the physics its units must keep (M7.1c20).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+struct AltimaxFile {
+    id: String,
+    /// The worksheet stream's records, by id in hex, as counted here; and the BOF's own
+    /// length, BIFF version field and sheet type, in hex.
+    records: BTreeMap<String, usize>,
+    bof: String,
+    /// The cells of BIFF2's cell records, `INTEGER`, `NUMBER` and `LABEL`, decoded here, against
+    /// the reader's sheet text; and those that differ.
+    cells_compared: usize,
+    cells_differing: usize,
+    /// The reader's values against the sheet's text read here by its stated units, but the
+    /// pressures in pascals; and those that differ.
+    values_compared: usize,
+    values_differing: usize,
+    /// Whether the reader read the pressures as pressures, the heights as heights above the pad,
+    /// ACCEL as an acceleration and SPEED as a speed.
+    quantities_read: bool,
+    /// The pressure–height pairs of both columns, filtered and raw, and half the spread of each
+    /// height less [`standard_height_m`] of its pressure in pascals: one offset for the file
+    /// within it, bounded by [`ALTIMAX_HEIGHT_BOUND_M`]. The offset, the pad's pressure height,
+    /// isn't written, as it gives the site's elevation.
+    height_pairs: usize,
+    height_spread_m: Option<f64>,
+    /// Whether, with the pressures read in hectopascals, as stated, half the spread would be
+    /// more than a kilometer: a measure of the stated unit, not a check. The spread itself isn't
+    /// written, as with the flight's heights it gives the site's elevation.
+    stated_hpa_off_by_km: bool,
+    /// Whether the first raw pressure, on the pad, is in [`TEENSY_PAD_PRESSURE_PA`].
+    pad_pressure_in_band: Option<bool>,
+    /// ACCEL's magnitude over g, the median of the samples before liftoff, ACCEL's first
+    /// magnitude above 3 g; and the sign it reads there.
+    pad_over_g: Option<f64>,
+    pad_sign: Option<f64>,
+    /// The time from liftoff to apogee, the highest raw height, over √(2h/g), h the apogee's
+    /// height above the first sample's.
+    apogee_time_ratio: Option<f64>,
+    /// The median ratio of SPEED's change to ACCEL over the boost, while ACCEL's magnitude is
+    /// above 3 g, each over 0.08 s.
+    speed_change_over_accel: Option<f64>,
+    /// The events the reader states, and the voltage channels it splits `VOLTAGE [V]` into.
+    events: usize,
+    voltage_channels: usize,
+}
+
+/// One cell of BIFF2's cell records as this survey decodes it: its row, column and value, a
+/// number or text.
+fn biff2_cell(id: u16, data: &[u8]) -> Option<(u16, u16, Result<f64, String>)> {
+    let word = |at: usize| -> Option<u16> {
+        Some(u16::from_le_bytes(data.get(at..at + 2)?.try_into().ok()?))
+    };
+    let (row, column) = (word(0)?, word(2)?);
+    // Each record's 3 bytes of cell attributes follow the row and column.
+    let value = match id {
+        0x0002 => Ok(f64::from(word(7)?)),
+        0x0003 => Ok(f64::from_le_bytes(data.get(7..15)?.try_into().ok()?)),
+        0x0004 => {
+            let length = usize::from(*data.get(7)?);
+            Err(String::from_utf8(data.get(8..8 + length)?.to_vec()).ok()?)
+        }
+        _ => return None,
+    };
+    Some((row, column, value))
+}
+
+/// Every AltiMAX export, decoded here apart from the reader and held to its physics.
+fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
+    use hpr_flightdata::log::Quantity;
+    let mut files = Vec::new();
+    for sample in samples.iter().filter(|s| s.family == ALTIMAX_FAMILY) {
+        let bytes = &sample.bytes;
+        let mut file = AltimaxFile {
+            id: hex(&Sha256::digest(bytes))[..16].to_owned(),
+            ..AltimaxFile::default()
+        };
+        // The records, and the cells of BIFF2's cell records, by row and column.
+        let mut cells: BTreeMap<(u16, u16), Result<f64, String>> = BTreeMap::new();
+        let mut at = 0;
+        while let Some(head) = bytes.get(at..at + 4) {
+            let id = u16::from_le_bytes([head[0], head[1]]);
+            let length = usize::from(u16::from_le_bytes([head[2], head[3]]));
+            let Some(data) = bytes.get(at + 4..at + 4 + length) else {
+                break;
+            };
+            *file.records.entry(format!("{id:#06x}")).or_default() += 1;
+            if at == 0 {
+                file.bof = format!(
+                    "{length:#x} bytes, version {:#06x}, type {:#06x}",
+                    u16::from_le_bytes([data.first().copied().unwrap_or(0), data.get(1).copied().unwrap_or(0)]),
+                    u16::from_le_bytes([data.get(2).copied().unwrap_or(0), data.get(3).copied().unwrap_or(0)])
+                );
+            }
+            if let Some((row, column, value)) = biff2_cell(id, data) {
+                cells.insert((row, column), value);
+            }
+            at += 4 + length;
+        }
+        let Ok(sheets) = hpr_flightdata::xls::sheets(bytes) else {
+            files.push(file);
+            continue;
+        };
+        let text = sheets.first().map(|sheet| sheet.text.as_str()).unwrap_or("");
+        let table: Vec<Vec<&str>> = text.lines().map(|line| line.split(',').collect()).collect();
+        // The rows holding a cell, in order, are the text's lines.
+        let rows: Vec<u16> = cells.keys().map(|(row, _)| *row).collect::<BTreeSet<_>>().into_iter().collect();
+        for (&(row, column), value) in &cells {
+            file.cells_compared += 1;
+            let line = rows.iter().position(|r| *r == row);
+            let written = line.and_then(|l| table.get(l)).and_then(|cells| cells.get(usize::from(column)));
+            let same = match (written, value) {
+                (Some(text), Ok(number)) => text.parse::<f64>().is_ok_and(|v| v.to_bits() == number.to_bits()),
+                (Some(text), Err(label)) => !text.starts_with('"') && text == label,
+                (None, _) => false,
+            };
+            if !same {
+                file.cells_differing += 1;
+            }
+        }
+        // Each text cell must be a decoded cell's: a cell the text holds that no record does is
+        // a difference too.
+        let written: usize = table.iter().map(|cells| cells.iter().filter(|c| !c.is_empty()).count()).sum();
+        let decoded = cells.values().filter(|v| !matches!(v, Err(label) if label.is_empty())).count();
+        file.cells_differing += written.abs_diff(decoded);
+        let Ok(log) = read_altimax(bytes) else {
+            files.push(file);
+            continue;
+        };
+        // The text read here: the header, then a number per cell, the pressures in pascals.
+        let Some((header, body)) = table.split_first() else {
+            files.push(file);
+            continue;
+        };
+        let column = |name: &str| -> Vec<f64> {
+            let Some(at) = header.iter().position(|h| *h == name) else {
+                return Vec::new();
+            };
+            body.iter().map(|cells| cells.get(at).and_then(|c| c.parse().ok()).unwrap_or(f64::NAN)).collect()
+        };
+        let time = column("TIME");
+        let channel = |name: &str| log.channels.iter().find(|c| c.column == name);
+        let same = |ours: &[f64], theirs: &[f64]| -> usize {
+            ours.iter()
+                .zip(theirs)
+                .filter(|(a, b)| a.to_bits() != b.to_bits() && !(a.is_nan() && b.is_nan()))
+                .count()
+                + ours.len().abs_diff(theirs.len())
+        };
+        file.values_compared += time.len();
+        file.values_differing += same(&time, &log.time_s);
+        let named = [
+            ("PRESS FILTER [hpa]", Quantity::Pressure),
+            ("HEIGHT FILTER [m]", Quantity::AltitudeAboveGround),
+            ("PRESS RAW [hpa]", Quantity::Pressure),
+            ("HEIGHT RAW [m]", Quantity::AltitudeAboveGround),
+            ("ACCEL [m/s2]", Quantity::Acceleration),
+            ("SPEED [m/s]", Quantity::Speed),
+        ];
+        file.quantities_read = named.iter().all(|(name, quantity)| channel(name).is_some_and(|c| c.quantity == *quantity));
+        let mut columns: Vec<&str> = named.iter().map(|(name, _)| *name).collect();
+        columns.extend(["EVENT", "VOLT. CHANNEL"]);
+        for name in columns {
+            let ours = column(name);
+            file.values_compared += ours.len();
+            file.values_differing += match channel(name) {
+                Some(c) => same(&ours, &c.values),
+                None => ours.len(),
+            };
+        }
+        // Each voltage on the rows of its channel's number.
+        let (numbers, voltages) = (column("VOLT. CHANNEL"), column("VOLTAGE [V]"));
+        let split: BTreeSet<u64> = numbers.iter().filter(|n| n.is_finite()).map(|n| *n as u64).collect();
+        file.voltage_channels = split.len();
+        for number in split {
+            let ours: Vec<f64> = numbers.iter().zip(&voltages).filter(|(n, _)| **n == number as f64).map(|(_, v)| *v).collect();
+            file.values_compared += ours.len();
+            file.values_differing += match channel(&format!("VOLTAGE [V] (channel {number})")) {
+                Some(c) => same(&ours, &c.values),
+                None => ours.len(),
+            };
+        }
+        file.events = log.events.len();
+        // The heights against their pressures, in pascals and, as a measure, in hectopascals.
+        let pairs = |scale: f64| -> Vec<(f64, f64)> {
+            [("PRESS FILTER [hpa]", "HEIGHT FILTER [m]"), ("PRESS RAW [hpa]", "HEIGHT RAW [m]")]
+                .iter()
+                .flat_map(|(p, h)| column(p).into_iter().zip(column(h)))
+                .map(|(p, h)| (standard_height_m(p * scale) - h, 0.0))
+                .collect()
+        };
+        let in_pa = pairs(1.0);
+        file.height_pairs = in_pa.len();
+        file.height_spread_m = Some(one_offset(&in_pa, true).1);
+        file.stated_hpa_off_by_km = one_offset(&pairs(100.0), true).1 > 1_000.0;
+        file.pad_pressure_in_band = column("PRESS RAW [hpa]").first().map(|p| TEENSY_PAD_PRESSURE_PA.contains(p));
+        // Liftoff, apogee and the boost.
+        let (accel, speed, height) = (column("ACCEL [m/s2]"), column("SPEED [m/s]"), column("HEIGHT RAW [m]"));
+        const G0: f64 = 9.806_65;
+        let liftoff = accel.iter().position(|a| a.abs() > 3.0 * G0);
+        let apogee = (0..height.len())
+            .filter(|&k| !height[k].is_nan())
+            .max_by(|&a, &b| height[a].total_cmp(&height[b]));
+        if let Some(liftoff) = liftoff {
+            file.pad_over_g = teensy_median(accel[..liftoff].iter().map(|a| a.abs() / G0).collect());
+            file.pad_sign = teensy_median(accel[..liftoff].to_vec()).map(f64::signum);
+            let window = 8;
+            let ratios: Vec<f64> = (liftoff + window..accel.len().saturating_sub(window))
+                .take_while(|&k| accel[k].abs() > 3.0 * G0)
+                .map(|k| {
+                    let dv = (speed[k + window] - speed[k - window]) / (time[k + window] - time[k - window]);
+                    dv / accel[k]
+                })
+                .collect();
+            file.speed_change_over_accel = teensy_median(ratios);
+            if let (Some(apogee), Some(first)) = (apogee, height.first())
+                && apogee > liftoff
+            {
+                let h = height[apogee] - first;
+                file.apogee_time_ratio = (h > 0.0).then(|| (time[apogee] - time[liftoff]) / (2.0 * h / G0).sqrt());
+            }
+        }
+        files.push(file);
+    }
+    files
+}
+
+/// The AltiMAX files that fail a check, as lines of the unread list: a cell or a value differing
+/// from this decoding, quantities other than the ones read, a height off its pressure's, a pad
+/// pressure no launch site has, ACCEL off 1 g before liftoff, SPEED's change off ACCEL, or an
+/// apogee's time off √(2h/g).
+fn altimax_unread(files: &[AltimaxFile]) -> Vec<String> {
+    let within = |value: Option<f64>, band: &std::ops::RangeInclusive<f64>| {
+        value.is_some_and(|v| band.contains(&v))
+    };
+    files
+        .iter()
+        .filter(|f| {
+            f.cells_compared == 0
+                || f.cells_differing > 0
+                || f.values_compared == 0
+                || f.values_differing > 0
+                || !f.quantities_read
+                || f.height_pairs == 0
+                || !f.height_spread_m.is_some_and(|m| m <= ALTIMAX_HEIGHT_BOUND_M)
+                || f.pad_pressure_in_band != Some(true)
+                || !within(f.pad_over_g, &ALTIMAX_GRAVITY_BAND)
+                || !within(f.speed_change_over_accel, &ALTIMAX_SPEED_BAND)
+                || !within(f.apogee_time_ratio, &TEENSY_APOGEE_BAND)
+        })
+        .map(|f| {
+            format!(
+                "  {} (AltiMAX): fails its checks: {} of {} cells and {} of {} values differ, the \
+                 quantities read: {}, heights off their pressures by up to {:?} m over {} pairs, \
+                 pad pressure in its band: {:?}, ACCEL before liftoff over 1 g {:?}, SPEED's \
+                 change over ACCEL {:?}, apogee time over √(2h/g) {:?}",
+                f.id,
+                f.cells_differing,
+                f.cells_compared,
+                f.values_differing,
+                f.values_compared,
+                f.quantities_read,
+                f.height_spread_m,
+                f.height_pairs,
+                f.pad_pressure_in_band,
+                f.pad_over_g,
+                f.speed_change_over_accel,
+                f.apogee_time_ratio
+            )
+        })
+        .collect()
+}
+
 /// Reads every sample; the report, and the files of a family with a reader that weren't read.
 fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>) {
     let mut families: BTreeMap<String, FamilyRow> = BTreeMap::new();
@@ -5622,6 +6253,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             WORKBOOK_INCREMENT
         } else if sample.family == MAPPED_FAMILY {
             MAPPED_INCREMENT
+        } else if sample.family == FIP_SHEET_FAMILY || sample.family == ALTIMAX_FAMILY {
+            BESIDE_INCREMENT
         } else if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
             LAYOUT_INCREMENT
         } else if sample.family.ends_with("-damaged") {
@@ -5705,6 +6338,38 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         sample.family
                     ));
                     ("refused:workbook".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
+        if sample.family == FIP_SHEET_FAMILY || sample.family == ALTIMAX_FAMILY {
+            let read = if sample.family == FIP_SHEET_FAMILY {
+                read_fip_sheet(&id, &sample.bytes)
+            } else {
+                read_altimax(&sample.bytes)
+            };
+            let (outcome, record) = match read {
+                Ok(log) => {
+                    row.read += 1;
+                    *loggers.entry(log.logger.clone()).or_default() += 1;
+                    let record = match serde_json::to_vec(&log) {
+                        Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                        Err(_) => "unwritable".to_owned(),
+                    };
+                    (format!("{:?}", log.format), record)
+                }
+                Err(error) => {
+                    *row.refused.entry("sheet".to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    ("refused:sheet".to_owned(), "-".to_owned())
                 }
             };
             files.push(format!(
@@ -5857,6 +6522,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         usb_checks: usb_checks(samples),
         teensy_checks: teensy_checks(samples),
         packet_checks: packet_checks(samples),
+        fip_sheet_checks: fip_sheet_checks(samples),
+        altimax_checks: altimax_checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -5880,6 +6547,11 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // flight computer's own log, or whose units fail the flight's physics is as unread as a
     // refusal.
     unread.extend(packet_unread(&report.packet_checks));
+    // A FIP sheet that differs from the `.FIPa` beside it, or whose derived channels don't follow
+    // its pressure and each other, and an AltiMAX export whose cells differ from this decoding or
+    // whose units fail the flight's physics, are as unread as a refusal.
+    unread.extend(fip_sheet_unread(&report.fip_sheet_checks));
+    unread.extend(altimax_unread(&report.altimax_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -6935,6 +7607,147 @@ fn markdown(report: &Report) -> String {
                 file.pp3_packets,
                 figure(file.pp3_over_height_least, 3),
                 figure(file.pp3_over_height_greatest, 3),
+            );
+        }
+    }
+    if !report.fip_sheet_checks.is_empty() {
+        let files = &report.fip_sheet_checks;
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |v| format!("{v:.digits$}"))
+        };
+        let held = |value: Option<bool>| match value {
+            Some(true) => "held",
+            Some(false) => "not held",
+            None => "–",
+        };
+        let mut rows = String::new();
+        for file in files {
+            rows += &format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} | {:.2e} | {} | {} | {} | {} | {} | {} | {} \
+                 |\n",
+                file.id,
+                file.channels_read,
+                if file.left_out.is_empty() {
+                    "none".to_owned()
+                } else {
+                    file.left_out.join("; ")
+                },
+                file.fipa
+                    .as_ref()
+                    .map_or("none".to_owned(), |id| format!("`{id}`")),
+                if file.matching && file.fipa_channels_unmatched.is_empty() {
+                    "every sample"
+                } else {
+                    "no"
+                },
+                file.raw_samples_compared,
+                file.velocity_samples_after_the_sheet_stops,
+                file.worst_time_s,
+                format!("{:.3}", file.worst_value_steps),
+                held(file.asl_from_pressure),
+                figure(file.asl_spread_m, 4),
+                held(file.agl_below_asl),
+                figure(file.agl_spread_m, 4),
+                figure(file.agl_on_pad_m, 2),
+                held(file.mph_is_fps),
+            );
+        }
+        out += &format!(
+            "\nThe {} Featherweight Raven FIP exports pasted into a workbook below no header \
+             (M7.1c20), each read under the header stated for it (`validation/log-headers.json`) \
+             and compared with the `.FIPa` of the same flight beside it. *Channels* counts those \
+             read, status columns apart; *Left out* the channels a pasted table covers, with the \
+             rows. Every channel the `.FIPa` holds must match the sheet's sample by sample, each \
+             at the `.FIPa`'s time as the FIP prints it and within half a step of its \
+             resolution: *Samples* counts them, *After the stop* the `.FIPa`'s velocity samples \
+             after the export stops that channel, and *Time off*, s, and *Value off*, in steps, \
+             are the worst. The five derived channels the `.FIPa` doesn't hold back the stated \
+             header's names for them: *ASL* is whether `[Altitude (Baro-Ft-ASL)]` is the standard \
+             atmosphere's height of the sheet's own `Baro (Atm)`, 44,330.77 × (1 − (P / \
+             101,325)^0.190263) m, less one offset, within the pressure's printed half step, \
+             0.000005 atm, times the formula's slope, and the altitude's in its sixth significant \
+             figure, with half the spread, m; *AGL* whether `[Altitude (Baro-Ft-AGL)]` is that \
+             less one constant, the pad's, within both printed half steps, and *Pad*, m, its first \
+             sample in magnitude, within {FIP_PAD_AGL_M} m of 0, as the FIP sets it to 0 on the \
+             pad, where the site's elevation would stand were the two altitudes' names swapped; \
+             *mph* whether \
+             `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both \
+             printed half steps.\n\n\
+             | File | Channels | Left out | `.FIPa` | Matching | Samples | After the stop | Time \
+             off, s | Value off, steps | ASL | Spread, m | AGL | Spread, m | Pad, m | mph |\n\
+             |---|---:|---|---|---|---:|---:|---:|---:|---|---:|---|---:|---:|---|\n{rows}",
+            files.len(),
+        );
+    }
+    if !report.altimax_checks.is_empty() {
+        let files = &report.altimax_checks;
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |v| format!("{v:.digits$}"))
+        };
+        for file in files {
+            let records: Vec<String> = file
+                .records
+                .iter()
+                .map(|(id, n)| format!("`{id}` {n}"))
+                .collect();
+            out += &format!(
+                "\nThe AltiMAX export `{}` (M7.1c20), its `.xls` stream decoded here apart from \
+                 the reader. Its records, by id: {}; the first, a BOF, of {}. Its {} cells of \
+                 BIFF2's cell records (`INTEGER` `0x0002`, `NUMBER` `0x0003`, `LABEL` `0x0004`) \
+                 against the reader's sheet text: {} differ. Its {} values, the text read here by \
+                 the stated units but the pressures in pascals, against the reader's: {} differ; \
+                 the pressures read as pressures, the heights as heights above the pad, `ACCEL` \
+                 as an acceleration and `SPEED` as a speed: {}. Each height of both columns, \
+                 filtered and raw, {} pairs, against the standard atmosphere's height of its \
+                 pressure in pascals, 44,330.77 × (1 − (P / 101,325)^0.190263) m (U.S. Standard \
+                 Atmosphere, 1976), less one offset for the file, the offset not written, as it \
+                 gives the site's elevation: half the spread is {} m, inside the bound of \
+                 44,330.77 × 2⁻²³ = {:.4} m for the software's own working of the formula; read \
+                 in hectopascals, as the columns state, it would be {}. The first raw \
+                 pressure, on the pad, is {} 50–110 kPa. `ACCEL` before liftoff, its first \
+                 magnitude above 3 g, reads {} g in magnitude, its sign {}: the axis it measures \
+                 along points down the rocket, so it reads −1 g at rest and below 0 in the boost; \
+                 the band is {:.2}–{:.2}. `SPEED`'s change over 0.08 s against `ACCEL`, the median \
+                 over the boost: {}, as `SPEED` sums `ACCEL` over the clock, gravity left in, so \
+                 it isn't the rocket's speed; the band is {:.1}–{:.1}. The time from liftoff to \
+                 apogee, the highest raw height, over √(2h/g), h the apogee's height above the \
+                 first sample's: {}, inside 0.5–2. The reader states {} events and splits \
+                 `VOLTAGE [V]` into {} channels.\n",
+                file.id,
+                records.join(", "),
+                file.bof,
+                file.cells_compared,
+                file.cells_differing,
+                file.values_compared,
+                file.values_differing,
+                if file.quantities_read { "yes" } else { "no" },
+                file.height_pairs,
+                figure(file.height_spread_m, 4),
+                ALTIMAX_HEIGHT_BOUND_M,
+                if file.stated_hpa_off_by_km {
+                    "more than a kilometer"
+                } else {
+                    "under a kilometer"
+                },
+                match file.pad_pressure_in_band {
+                    Some(true) => "inside",
+                    Some(false) => "outside",
+                    None => "not found, so not inside",
+                },
+                figure(file.pad_over_g, 3),
+                match file.pad_sign {
+                    Some(sign) if sign < 0.0 => "negative",
+                    Some(_) => "positive",
+                    None => "–",
+                },
+                ALTIMAX_GRAVITY_BAND.start(),
+                ALTIMAX_GRAVITY_BAND.end(),
+                figure(file.speed_change_over_accel, 4),
+                ALTIMAX_SPEED_BAND.start(),
+                ALTIMAX_SPEED_BAND.end(),
+                figure(file.apogee_time_ratio, 3),
+                file.events,
+                file.voltage_channels,
             );
         }
     }
@@ -8915,6 +9728,205 @@ mod tests {
 
     /// A Teensy file passes inside every band and fails just outside each, on either side; the
     /// tab-separated layout needs its `Alt` lines, the named one its pad pressure.
+    #[test]
+    fn fip_sheets_fail_on_any_check() {
+        let good = FipSheetFile {
+            id: "f".to_owned(),
+            channels_read: 16,
+            fipa: Some("r".to_owned()),
+            matching: true,
+            raw_samples_compared: 10,
+            asl_from_pressure: Some(true),
+            agl_below_asl: Some(true),
+            agl_on_pad_m: Some(0.7),
+            mph_is_fps: Some(true),
+            ..FipSheetFile::default()
+        };
+        // A channel left out leaves its check out, and fails nothing.
+        let left_out = FipSheetFile {
+            mph_is_fps: None,
+            ..good.clone()
+        };
+        assert!(fip_sheet_unread(&[good.clone(), left_out]).is_empty());
+        for broken in [
+            FipSheetFile {
+                matching: false,
+                ..good.clone()
+            },
+            FipSheetFile {
+                raw_samples_compared: 0,
+                ..good.clone()
+            },
+            FipSheetFile {
+                fipa_channels_unmatched: vec!["Baro (Atm)".to_owned()],
+                ..good.clone()
+            },
+            FipSheetFile {
+                asl_from_pressure: None,
+                ..good.clone()
+            },
+            FipSheetFile {
+                asl_from_pressure: Some(false),
+                ..good.clone()
+            },
+            FipSheetFile {
+                agl_below_asl: Some(false),
+                ..good.clone()
+            },
+            FipSheetFile {
+                agl_on_pad_m: Some(3.01),
+                ..good.clone()
+            },
+            FipSheetFile {
+                agl_on_pad_m: None,
+                ..good.clone()
+            },
+            FipSheetFile {
+                mph_is_fps: Some(false),
+                ..good.clone()
+            },
+        ] {
+            assert_eq!(fip_sheet_unread(&[broken]).len(), 1);
+        }
+    }
+
+    #[test]
+    fn one_offset_fits_within_each_tolerance() {
+        // Differences 1.0 and 1.3: within 0.16 each, an offset of 1.15 fits both; within 0.14,
+        // none does.
+        assert!(one_offset(&[(1.0, 0.16), (1.3, 0.16)], true).0);
+        assert!(!one_offset(&[(1.0, 0.14), (1.3, 0.14)], true).0);
+        assert!((one_offset(&[(1.0, 0.1), (1.3, 0.1)], true).1 - 0.15).abs() < 1e-12);
+        // No offset: each must be within its tolerance of 0.
+        assert!(one_offset(&[(0.1, 0.11), (-0.05, 0.1)], false).0);
+        assert!(!one_offset(&[(0.11, 0.1)], false).0);
+        // Nothing to fit, or a gap, holds nothing.
+        assert!(!one_offset(&[], true).0);
+        assert!(!one_offset(&[(f64::NAN, 1.0)], true).0);
+        // The FIP's sixth significant figure, a hair under a power of ten taking the larger.
+        assert_eq!(fip_half_step(906.957), 0.0005);
+        assert_eq!(fip_half_step(-1403.04), 0.005);
+        assert_eq!(fip_half_step(999.999_999_999_9), 0.005);
+        assert_eq!(fip_half_step(0.0), 0.0);
+    }
+
+    #[test]
+    fn biff2_cells_decode_by_their_record() {
+        let mut number = vec![1, 0, 2, 0, 0, 0, 0];
+        number.extend(1.5f64.to_le_bytes());
+        assert_eq!(biff2_cell(0x0003, &number), Some((1, 2, Ok(1.5))));
+        assert_eq!(
+            biff2_cell(0x0002, &[3, 0, 4, 0, 0, 0, 0, 7, 1]),
+            Some((3, 4, Ok(263.0)))
+        );
+        assert_eq!(
+            biff2_cell(0x0004, &[0, 0, 1, 0, 0, 0, 0, 3, b'P', b'A', b'D']),
+            Some((0, 1, Err("PAD".to_owned())))
+        );
+        // A record too short for its cell, or of another kind, is no cell.
+        assert_eq!(biff2_cell(0x0003, &number[..14]), None);
+        assert_eq!(biff2_cell(0x0004, &[0, 0, 1, 0, 0, 0, 0, 4, b'P']), None);
+        assert_eq!(biff2_cell(0x0203, &number), None);
+    }
+
+    #[test]
+    fn altimax_files_fail_outside_each_band() {
+        let good = AltimaxFile {
+            id: "a".to_owned(),
+            cells_compared: 10,
+            values_compared: 10,
+            quantities_read: true,
+            height_pairs: 2,
+            height_spread_m: Some(0.0044),
+            pad_pressure_in_band: Some(true),
+            pad_over_g: Some(0.94),
+            speed_change_over_accel: Some(1.0),
+            apogee_time_ratio: Some(0.95),
+            ..AltimaxFile::default()
+        };
+        assert!(altimax_unread(std::slice::from_ref(&good)).is_empty());
+        assert!((ALTIMAX_HEIGHT_BOUND_M - 0.005_284_7).abs() < 1e-6);
+        let fails = |file: AltimaxFile| altimax_unread(&[file]).len() == 1;
+        for g in [0.849, 1.151] {
+            assert!(fails(AltimaxFile {
+                pad_over_g: Some(g),
+                ..good.clone()
+            }));
+        }
+        for ratio in [0.899, 1.101] {
+            assert!(fails(AltimaxFile {
+                speed_change_over_accel: Some(ratio),
+                ..good.clone()
+            }));
+        }
+        for ratio in [0.49, 2.01] {
+            assert!(fails(AltimaxFile {
+                apogee_time_ratio: Some(ratio),
+                ..good.clone()
+            }));
+        }
+        for broken in [
+            AltimaxFile {
+                cells_compared: 0,
+                ..good.clone()
+            },
+            AltimaxFile {
+                cells_differing: 1,
+                ..good.clone()
+            },
+            AltimaxFile {
+                values_compared: 0,
+                ..good.clone()
+            },
+            AltimaxFile {
+                values_differing: 1,
+                ..good.clone()
+            },
+            AltimaxFile {
+                quantities_read: false,
+                ..good.clone()
+            },
+            AltimaxFile {
+                height_pairs: 0,
+                ..good.clone()
+            },
+            AltimaxFile {
+                height_spread_m: Some(0.0053),
+                ..good.clone()
+            },
+            AltimaxFile {
+                height_spread_m: None,
+                ..good.clone()
+            },
+            AltimaxFile {
+                pad_pressure_in_band: Some(false),
+                ..good.clone()
+            },
+            AltimaxFile {
+                pad_pressure_in_band: None,
+                ..good.clone()
+            },
+            AltimaxFile {
+                pad_over_g: None,
+                ..good.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
+    }
+
+    #[test]
+    fn the_stated_headers_parse_and_name_each_file_once() {
+        let headers = stated_headers().unwrap();
+        assert_eq!(headers.len(), 2);
+        for stated in &headers {
+            assert!(RECLASSIFIED
+                .iter()
+                .any(|(id, _, to, _)| *id == stated.id && *to == FIP_SHEET_FAMILY));
+            assert_eq!(stated.header.split(',').count(), 48);
+        }
+    }
+
     #[test]
     fn teensy_files_fail_outside_each_band() {
         let tabs = TeensyFile {

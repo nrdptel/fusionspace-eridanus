@@ -251,7 +251,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut clocks = header_clocks(header, header_line, &mut notes)?;
 
     for (number, line) in lines {
-        read_row(&mut clocks, line, number, false)?;
+        read_row(&mut clocks, line, number, RowEnd::Exact)?;
     }
     build(clocks, header_line, notes)
 }
@@ -289,6 +289,68 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 /// [`LogError::Syntax`] when a row's first cell is a clock's name, as a header's is; and what
 /// [`read`] refuses in the rows.
 pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
+    rows_under(header, rows, &[])
+}
+
+/// Reads the rows of a FIP export whose header line is missing, as [`read_rows`] does, from a
+/// sheet whose columns `pasted`, numbered from 1, hold another table pasted over the export's
+/// cells. A stopped channel shifts every channel after it one cell to the left, so a column of the
+/// sheet holds different channels' cells in different rows, and a pasted column hides a cell of
+/// whichever channel is there.
+///
+/// The rule: a channel whose sample, in any row, has a cell in a pasted column is left out whole,
+/// with a note naming it and counting the rows; every other channel is read as [`read_rows`]
+/// reads it. To walk a row, each channel's cells must still say whether it has a sample: one of
+/// its time's and values' cells outside the pasted columns not empty, or, where they are all
+/// pasted over or empty, its first status cell, a sample's `b` and digits, where a stopped
+/// channel's next cell is another channel's time or empty.
+///
+/// ```
+/// use hpr_flightdata::raven;
+///
+/// // Invented rows of a three-channel export whose fourth and fifth columns another table was
+/// // pasted over, 7 and 8: the second channel is left out.
+/// let header = "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,\
+///               Time@Baro (Atm),Baro (Atm),bILBA,\
+///               Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)],bILBA";
+/// let rows = "0,1.02,b0000,7,8,b0000,0,0,b0000\n0.05,1.01,b0000,7,8,b0000,0.05,1,b0000\n";
+/// let log = raven::read_rows_around(header, rows, &[4, 5])?;
+/// assert_eq!(log.channels.len(), 4);
+/// assert_eq!(log.time_s, [0.0, 0.05]);
+/// # Ok::<(), hpr_flightdata::error::LogError>(())
+/// ```
+///
+/// # Errors
+///
+/// As [`read_rows`]'s; and [`LogError::Syntax`] for a row in which the pasted cells hide whether a
+/// channel has a sample, and [`LogError::Mapping`] for a pasted column numbered 0.
+pub fn read_rows_around(
+    header: &str,
+    rows: &str,
+    pasted: &[usize],
+) -> Result<FlightLog, LogError> {
+    if pasted.contains(&0) {
+        return Err(LogError::Mapping {
+            message: "the pasted columns are numbered from 1, and one is 0".to_owned(),
+        });
+    }
+    let pasted: Vec<usize> = pasted.iter().map(|column| column - 1).collect();
+    rows_under(header, rows, &pasted)
+}
+
+/// What a row is read from ([`read_row`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RowEnd<'a> {
+    /// An export's own: the row ends where its last channel does.
+    Exact,
+    /// A sheet's, which writes every row as wide as its widest, so the row may end in empty cells,
+    /// and whose cells `pasted` (0-based) hold another table's values.
+    Padded { pasted: &'a [usize] },
+}
+
+/// The rows of an export under a stated header, the cells `pasted` (0-based) another table's
+/// ([`read_rows`], [`read_rows_around`]).
+fn rows_under(header: &str, rows: &str, pasted: &[usize]) -> Result<FlightLog, LogError> {
     let mut notes = Notes::default();
     let mut clocks = header_clocks(header, 0, &mut notes).map_err(|error| LogError::Mapping {
         message: format!("the header stated for a Raven FIP export's rows: {error}"),
@@ -312,14 +374,35 @@ pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
             ),
         ));
     }
+    // The rows in which a pasted column covers each clock's sample.
+    let mut covered = vec![0usize; clocks.len()];
     for (number, line) in lines {
-        read_row(&mut clocks, line, number, true)?;
+        let row = read_row(&mut clocks, line, number, RowEnd::Padded { pasted })?;
+        for (rows, hidden) in covered.iter_mut().zip(row) {
+            *rows += usize::from(hidden);
+        }
     }
     notes.push(
         "read under a header line the caller stated, the rows' own header missing".to_owned(),
     );
+    let mut kept = Vec::with_capacity(clocks.len());
+    for (clock, rows) in clocks.into_iter().zip(covered) {
+        if rows == 0 {
+            kept.push(clock);
+            continue;
+        }
+        let names: Vec<String> = clock
+            .columns
+            .iter()
+            .map(|column| format!("{:?}", short(&column.name)))
+            .collect();
+        notes.push(format!(
+            "{} left out: the pasted columns cover its cells in {rows} rows",
+            names.join(", ")
+        ));
+    }
     // Line 0 is the stated header: what `build` finds wrong with it is the caller's to fix.
-    build(clocks, 0, notes).map_err(|error| match error {
+    build(kept, 0, notes).map_err(|error| match error {
         LogError::Syntax {
             line: 0, message, ..
         } => LogError::Mapping {
@@ -443,12 +526,22 @@ fn header_clocks(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Clo
 
 /// Reads one row into the clocks: each clock either has a sample in it, its time, values and
 /// statuses, or two or more empty cells, its time's and its values', without its status cells.
-/// With `padded`, the row comes from a sheet, which writes every row as wide as its widest, and may
-/// end in empty cells past its last channel's sample.
-fn read_row(clocks: &mut [Clock], line: &str, number: usize, padded: bool) -> Result<(), LogError> {
+/// `end` says what the row is read from. Returns, by clock, whether a pasted cell covers its sample
+/// in this row, a sample then not read.
+fn read_row(
+    clocks: &mut [Clock],
+    line: &str,
+    number: usize,
+    end: RowEnd,
+) -> Result<Vec<bool>, LogError> {
+    let pasted: &[usize] = match end {
+        RowEnd::Exact => &[],
+        RowEnd::Padded { pasted } => pasted,
+    };
     let cells: Vec<&str> = line.split(',').map(str::trim).collect();
+    let mut covered = vec![false; clocks.len()];
     let mut at = 0;
-    for clock in clocks.iter_mut() {
+    for (clock, covered) in clocks.iter_mut().zip(&mut covered) {
         let empty_width = clock.empty_width();
         let Some(head) = cells.get(at..at + empty_width) else {
             return Err(syntax(
@@ -460,11 +553,30 @@ fn read_row(clocks: &mut [Clock], line: &str, number: usize, padded: bool) -> Re
                 ),
             ));
         };
-        if head.iter().all(|cell| cell.is_empty()) {
+        let known = |k: &usize| !pasted.contains(&(at + k));
+        let filled = (0..empty_width).filter(known).any(|k| !head[k].is_empty());
+        let hidden = (0..empty_width).any(|k| !known(&k));
+        let width = clock.sample_width();
+        let sampled = if filled || !hidden {
+            filled
+        } else if width > empty_width && !pasted.contains(&(at + empty_width)) {
+            // The pasted cells hide the time and values: a sample's first status cell tells.
+            cells
+                .get(at + empty_width)
+                .is_some_and(|cell| status_cell(cell).is_some())
+        } else {
+            return Err(syntax(
+                number,
+                format!(
+                    "the pasted columns hide whether the clock {:?} has a sample in the row",
+                    short(&clock.name)
+                ),
+            ));
+        };
+        if !sampled {
             at += empty_width;
             continue;
         }
-        let width = clock.sample_width();
         let Some(sample) = cells.get(at..at + width) else {
             return Err(syntax(
                 number,
@@ -475,13 +587,25 @@ fn read_row(clocks: &mut [Clock], line: &str, number: usize, padded: bool) -> Re
                 ),
             ));
         };
-        read_sample(clock, sample, number, at)?;
+        if (at..at + width).any(|k| pasted.contains(&k)) {
+            *covered = true;
+        } else {
+            read_sample(clock, sample, number, at)?;
+        }
         at += width;
     }
-    // A sheet's padding past the last channel holds nothing; anything else there is a cell no
-    // channel takes.
-    let rest = cells.get(at..).unwrap_or_default();
-    if at != cells.len() && !(padded && rest.iter().all(|cell| cell.is_empty())) {
+    // A sheet's padding past the last channel holds nothing but the pasted cells; anything else
+    // there is a cell no channel takes.
+    let rest_filled = cells
+        .iter()
+        .enumerate()
+        .skip(at)
+        .any(|(k, cell)| !cell.is_empty() && !pasted.contains(&k));
+    let fits = match end {
+        RowEnd::Exact => at == cells.len(),
+        RowEnd::Padded { .. } => !rest_filled,
+    };
+    if !fits {
         return Err(syntax(
             number,
             format!(
@@ -490,7 +614,7 @@ fn read_row(clocks: &mut [Clock], line: &str, number: usize, padded: bool) -> Re
             ),
         ));
     }
-    Ok(())
+    Ok(covered)
 }
 
 /// Reads one clock's sample, its cells starting at the row's cell `first` (0-based).
@@ -1206,5 +1330,95 @@ mod tests {
                 other => panic!("{header}: expected a mapping refusal, got {other:?}"),
             }
         }
+    }
+
+    /// [`HEADER`] and a fourth channel, the accelerometer's velocity.
+    fn header_with_velocity() -> String {
+        format!("{HEADER},Time@[Velocity (Accel-Ft/Sec)],[Velocity (Accel-Ft/Sec)],bILBA")
+    }
+
+    #[test]
+    fn a_channel_pasted_over_in_any_row_is_left_out_and_the_rest_read() {
+        // The export's rows, the first channel stopping in the third and the second in the
+        // fourth, each row shifting left; then as a sheet holds them, 12 cells wide, with a table
+        // pasted over its last two columns, which cover the velocity's value and status in the
+        // first three rows and the padding in the last.
+        let rows = [
+            "0,1.02,b0000,0,0.97,b0000,0,0,b0000,0,0,b0000",
+            "0.05,1.01,b0000,0.05,0.97,b0000,0.05,1,b0000,0.05,10,b0000",
+            ",,0.1,0.96,b0000,0.1,3,b0000,0.1,20,b0000",
+            ",,,,0.15,6,b0000,0.15,30,b0000",
+        ];
+        let sheet: String = rows
+            .iter()
+            .map(|row| {
+                let mut cells: Vec<&str> = row.split(',').collect();
+                cells.resize(12, "");
+                cells[10] = "7";
+                cells[11] = "8";
+                format!("{}\n", cells.join(","))
+            })
+            .collect();
+        let header = header_with_velocity();
+        let log = read_rows_around(&header, &sheet, &[11, 12]).unwrap();
+        let whole = read_rows(&header, &rows.join("\n")).unwrap();
+        let unpasted: Vec<_> = whole
+            .channels
+            .iter()
+            .filter(|c| c.column != "[Velocity (Accel-Ft/Sec)]")
+            .collect();
+        // Each channel's status column follows it; the velocity's went with it.
+        assert_eq!(log.channels.len(), 6);
+        assert!(log.channels.iter().zip(&unpasted).all(|(a, b)| a == *b));
+        assert_eq!((&log.time_s, &log.altitude_m), (&whole.time_s, &whole.altitude_m));
+        assert!(log.notes.iter().any(|note| note
+            == "\"[Velocity (Accel-Ft/Sec)]\" left out: the pasted columns cover its cells in 3 rows"));
+        // Nothing pasted over, the sheet's cells there are values no channel takes.
+        assert!(matches!(
+            read_rows(&header, &sheet),
+            Err(LogError::Syntax { line: 1, .. })
+        ));
+    }
+
+    #[test]
+    fn a_status_cell_tells_whether_a_pasted_over_channel_has_a_sample() {
+        // Columns 4 and 5 pasted over: the pressure's time and value. In the first row its
+        // status follows, so it had a sample there; in the second the altitude's time does, so
+        // it had stopped, and the altitude is read from the cells after.
+        let sheet = "0,1.02,b0000,7,8,b0000,0,0,b0000\n0.05,1.01,b0000,7,8,0.05,1,b0000,\n";
+        let log = read_rows_around(HEADER, sheet, &[4, 5]).unwrap();
+        assert_eq!(log.time_s, [0.0, 0.05]);
+        assert_eq!(log.altitude_m, [0.0, 0.3048]);
+        assert!(log.notes.iter().any(|note| note
+            == "\"Baro (Atm)\" left out: the pasted columns cover its cells in 1 rows"));
+        assert!(!log.channels.iter().any(|c| c.column == "Baro (Atm)"));
+        // A stopped channel's own cells are both hidden, and so is the cell after them: the row
+        // can't say whether it had a sample.
+        let hidden = "0,1.02,b0000,7,8,b0000,0,0,b0000\n,,,7,8,6,b0000,,\n";
+        match read_rows_around(HEADER, hidden, &[4, 5]) {
+            Err(LogError::Syntax { line, message, .. }) => {
+                assert_eq!(line, 2);
+                assert!(
+                    message.contains("hide whether the clock \"Time@Baro (Atm)\" has a sample"),
+                    "{message}"
+                );
+            }
+            other => panic!("expected a syntax refusal, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn pasted_columns_are_numbered_from_1() {
+        match read_rows_around(HEADER, ROWS, &[0]) {
+            Err(LogError::Mapping { message }) => {
+                assert!(message.contains("numbered from 1"), "{message}");
+            }
+            other => panic!("expected a mapping refusal, got {other:?}"),
+        }
+        // With none pasted, the rows read as `read_rows` reads them.
+        assert_eq!(
+            read_rows_around(HEADER, &padded(), &[]).unwrap(),
+            read_rows(HEADER, &padded()).unwrap()
+        );
     }
 }
