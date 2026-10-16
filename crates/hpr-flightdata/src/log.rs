@@ -319,6 +319,14 @@ pub enum LogFormat {
     /// ([`crate::xls`]), read as a table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`
     /// ([`crate::altimax`]).
     AltimaxXls,
+    /// A MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as
+    /// `<BARO_ZERO 0> 790`, then a row a sample of the time, the altitude in feet and the
+    /// acceleration in g, such as `0.1,-29.0,8.65`; the `.dat` the altimeter's software saves, or
+    /// a spreadsheet's re-save of it ([`crate::marsa`]).
+    Marsa,
+    /// AltOS's radio telemetry decoded to a table, one row a packet under a header of the
+    /// packet's fields, `serial,tick,ptype,state,…,height,crc` ([`crate::altos_telem_csv`]).
+    AltosTelemetryCsv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -447,6 +455,9 @@ impl LogFormat {
     /// 0.083 m near sea level.
     /// Nor do the radio packets, whose pressure is written to 0.01 hPa, 1 Pa. An AltiMAX's raw
     /// height follows its raw pressure, written in whole pascals: 1 Pa, 0.083 m near sea level.
+    /// A MARSA writes its altitude to a tenth of a foot, but it moves by its barometer's count,
+    /// 29.3 ft (8.93 m) at most within 300 ft of the pad among the sample files. AltOS's
+    /// telemetry decoded to a table keeps the packet's whole meters of height.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -480,7 +491,8 @@ impl LogFormat {
             Self::Rrc3Rff => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
             Self::FeatherweightSummaryCsv => 0.01 * crate::perfectflite::FOOT_M,
             Self::RdasText => crate::rdas::ALTITUDE_STEP_M,
-            Self::AltosTelemetry => 1.0,
+            Self::AltosTelemetry | Self::AltosTelemetryCsv => 1.0,
+            Self::Marsa => crate::marsa::ALTITUDE_STEP_M,
             Self::AltosEeprom => crate::altos_eeprom::ALTITUDE_STEP_M,
             Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
             Self::RtxRaw => crate::rtx::ALTITUDE_STEP_M,
@@ -509,7 +521,9 @@ impl LogFormat {
             | Self::FeatherweightSummaryCsv
             | Self::Arts2RawCsv
             | Self::RtxCsv
+            | Self::AltosTelemetryCsv
             | Self::GenericTable => ".csv",
+            Self::Marsa => ".dat",
             Self::PerfectFliteText
             | Self::Nmea0183
             | Self::EggtimerText
@@ -581,6 +595,8 @@ impl LogFormat {
             Self::RadioPacketText => "radio packets",
             Self::RadioPacketRtf => "radio packets in RTF",
             Self::AltimaxXls => "AltiMAX Excel export",
+            Self::Marsa => "MARSA download",
+            Self::AltosTelemetryCsv => "AltOS telemetry CSV",
         }
     }
 }
@@ -647,7 +663,8 @@ mod tests {
     /// Each format's resolution against a hand computation: 1 / (1.225 × 9.806 65) =
     /// 0.083 242 m for a pascal, 4 × 10⁻⁵ × 101 325 = 4.053 Pa for the Raven's step,
     /// 2 × 10⁻⁵ × 101 325 = 2.0265 Pa for the Blue Raven's, 10 Pa for an RRC3's, and
-    /// 1,000 / (1,024 × 0.010 59) = 92.2165 Pa for an ARTS2's count.
+    /// 1,000 / (1,024 × 0.010 59) = 92.2165 Pa for an ARTS2's count, and 29.3 × 0.3048 =
+    /// 8.930 64 m for a MARSA's count.
     #[test]
     fn each_formats_altitude_resolution_is_its_step() {
         let cases = [
@@ -676,6 +693,8 @@ mod tests {
             (LogFormat::RtxRaw, 1.0),
             (LogFormat::RtxCsv, 0.3048),
             (LogFormat::RtxText, 0.3048),
+            (LogFormat::Marsa, 8.930_64),
+            (LogFormat::AltosTelemetryCsv, 1.0),
             (LogFormat::GenericTable, 0.0),
         ];
         for (format, expected) in cases {

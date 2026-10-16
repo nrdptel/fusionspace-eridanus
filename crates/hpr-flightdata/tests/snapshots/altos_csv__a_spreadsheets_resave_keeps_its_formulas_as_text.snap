@@ -1,0 +1,365 @@
+---
+source: crates/hpr-flightdata/tests/altos_csv.rs
+expression: log
+---
+{
+  "format": "altos_csv",
+  "logger": "AltOS",
+  "serial_number": "3110",
+  "firmware": null,
+  "flight_number": 12,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "version",
+      "quantity": "number",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0
+      ]
+    },
+    {
+      "column": "serial",
+      "quantity": "number",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0,
+        3110.0
+      ]
+    },
+    {
+      "column": "flight",
+      "quantity": "number",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0,
+        12.0
+      ]
+    },
+    {
+      "column": "state",
+      "quantity": "number",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0
+      ]
+    },
+    {
+      "column": "acceleration (m/s^2)",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.12,
+        -0.08,
+        61.3,
+        74.8,
+        77.0,
+        76.1,
+        72.4,
+        -12.9,
+        -12.1,
+        -11.6,
+        -11.2,
+        -10.9
+      ]
+    },
+    {
+      "column": "pressure (Pa)",
+      "quantity": "pressure",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        97627.94,
+        97627.94,
+        97627.94,
+        97605.79,
+        97533.56,
+        97415.97,
+        97254.33,
+        97062.74,
+        96865.66,
+        96675.85,
+        96493.26,
+        96317.88
+      ]
+    },
+    {
+      "column": "altitude (m)",
+      "quantity": "altitude_msl",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        312.4,
+        312.4,
+        312.4,
+        314.3,
+        320.5,
+        330.6,
+        344.5,
+        361.0,
+        378.0,
+        394.4,
+        410.2,
+        425.4
+      ]
+    },
+    {
+      "column": "speed (m/s)",
+      "quantity": "speed",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        17.1,
+        36.2,
+        55.4,
+        73.9,
+        70.6,
+        67.6,
+        64.7,
+        61.9,
+        59.2
+      ]
+    },
+    {
+      "column": "speed (ft/s)",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.0,
+        null,
+        null,
+        null,
+        118.77,
+        null,
+        null,
+        null,
+        221.78,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "temperature (C)",
+      "quantity": "temperature",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": -0.5,
+      "name": "pad"
+    },
+    {
+      "time_s": 0.0,
+      "name": "boost"
+    },
+    {
+      "time_s": 1.25,
+      "name": "coast"
+    }
+  ],
+  "notes": [
+    "the header writes a unit after AltOS's name of `acceleration (m/s^2)`, `pressure (Pa)`, `altitude (m)`, `speed (m/s)`, `temperature (C)`: each the unit this reader reads the column in, so read as AltOS's",
+    "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not 1 g; the channel is kept as written",
+    "the header names no `height`, AltOS's height above the pad: the record has no primary track, only its channels",
+    "the `altitude (ft)` column's 12 cells are a spreadsheet's formulas, not values: kept here as text, not worked out, and not a channel, `{row}` standing for each cell's own row: `=I{row}*3.28084` on lines 2–13",
+    "the `speed (ft/s)` column has 9 cells holding a spreadsheet's formula, not a value: read as gaps, the formulas kept here as text, `{row}` standing for each cell's own row: `=K{row}*3.28084` on lines 3–5; `=K{row}*3.28084` on lines 7–9; `=K{row}*3.28084` on lines 11–13",
+    "the header writes `speed (ft/s)`, a unit after AltOS's `speed` that isn't the one this reader reads it in; its values are kept as written"
+  ]
+}

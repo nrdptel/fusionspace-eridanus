@@ -397,10 +397,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
     ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
-    - [ ] **M7.1c21 Altimeters' other text.** *Done when:* MARSA's two files read, their apogee
-      within 5 % of another logger's in the same flight; the AltOS telemetry CSV reads by its
-      header; the AltOS-like table by AltOS's state numbers; the CSV with formula cells reads,
-      each formula kept as text.
     - [ ] **M7.1c22 Tables by mapping, and files that aren't logs.** *Done when:* the 20 logs read,
       each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
       a track's own speed); the 7 others filed as not logs, each with its reason in the report.

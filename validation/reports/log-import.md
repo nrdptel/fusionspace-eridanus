@@ -13,17 +13,20 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c21 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c22 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimax-xls | M7.1c20 | 1 | 1 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
 | altos-eeprom | M7.1c10 | 14 | 14 | none |
+| altos-resaved-csv | M7.1c21 | 1 | 1 | none |
+| altos-table-csv | M7.1c21 | 1 | 1 | none |
 | altos-telem | M7.1c9 | 2 | 2 | none |
+| altos-telem-csv | M7.1c21 | 1 | 1 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c21 | 2 | 0 | 2 unrecognized |
+| binary | M7.1c22 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -33,7 +36,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c21 | 23 | 2 | 1 syntax, 20 unrecognized |
+| csv | M7.1c22 | 20 | 2 | 18 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -42,7 +45,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c21 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c22 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -52,6 +55,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
 | mapped-table-csv | M7.1c15 | 6 | 6 | none |
+| marsa-dat | M7.1c21 | 2 | 2 | none |
 | missileworks-rtx | M7.1c12 | 5 | 5 | none |
 | nmea | M7.1c1 | 12 | 12 | none |
 | odf | M7.1c11 | 3 | 3 | none |
@@ -78,19 +82,22 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | table-csv | M7.1c13 | 31 | 31 | none |
 | teensy-named-txt | M7.1c18 | 1 | 1 | none |
 | teensy-tabs-txt | M7.1c18 | 7 | 7 | none |
-| txt | M7.1c21 | 6 | 0 | 6 unrecognized |
+| txt | M7.1c22 | 6 | 0 | 6 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xlsx | M7.1c21 | 2 | 0 | 2 archive |
-| xml | M7.1c21 | 2 | 0 | 2 unrecognized |
+| xlsx | M7.1c22 | 2 | 0 | 2 archive |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1023 | |
+| **All** | | 1122 | 1028 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
 - `6f5e20612831ac57 xlsx -> raven-fip-sheet-xlsx`: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet
 - `b2a86ded765053b4 xlsx -> raven-fip-sheet-xlsx`: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet
 - `444687655195f5c8 xls -> altimax-xls`: a Rocketronics AltiMAX flight as its PC software exports it to Excel: a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`; filed as a spreadsheet
+- `4be82002a95c68db xml -> marsa-dat`: a MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as `<BARO_ZERO 0> 790`, then a row a sample of the time, the barometric altitude in feet and the acceleration in g, as its software saves it to a `.dat` file or a spreadsheet re-saves it; filed as XML for its `<…>` lines
+- `a80063e417b87028 xml -> marsa-dat`: a MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as `<BARO_ZERO 0> 790`, then a row a sample of the time, the barometric altitude in feet and the acceleration in g, as its software saves it to a `.dat` file or a spreadsheet re-saves it; filed as XML for its `<…>` lines
+- `850771db6621eaf6 csv -> altos-telem-csv`: AltOS's radio telemetry decoded to a table, a TeleMega's `0x09` packets one a row under a header of the packet's fields, `serial,tick,ptype,state,…,height,crc`; filed as generic CSV by its extension
+- `03adc04683e2884f csv -> altos-table-csv`: a table cut from an AltOS export, `time,state,state_name,acceleration,…`: AltOS's own column names with no `version,serial,flight` before them, read by its states; filed as generic CSV by its extension
 - `cd6f44ad29c505e6 txt -> radio-packets-txt`: a team flight computer's own log of the radio telemetry packets it sends, `255:T:…:254` lines after a whole number and its filter's `Gain[…]` lines; filed as text by its extension
 - `a10560cbf44516e5 txt -> radio-packets-txt`: the text a ground receiver wrote of one team's radio telemetry packets, `255:T:…:254` from the flight computer and `255:N:…:254` relayed, with GPS fixes, by a second transmitter, many cut or run together; filed as text by its extension
 - `12f752fa1d21c27f txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
@@ -177,7 +184,7 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `8b482eb6ae9af583 txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
 - `a65103199f08052b txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
 - `d306250ba73ea7f4 txt -> rrc3-csv`: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension
-- `9c5017ab68168088 altos-csv -> csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas
+- `9c5017ab68168088 altos-csv -> altos-resaved-csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas; read by its columns' names, the formulas kept as text
 - `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
 - `c7936ac4d86f259f kml -> kml-map`: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it
 - `1eac3d58c44943fa csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
@@ -458,6 +465,31 @@ The 2 Featherweight Raven FIP exports pasted into a workbook below no header (M7
 | `b2a86ded765053b4` | 13 | "[Altitude (Accel-Ft)]" left out: the pasted columns cover its cells in 1259 rows; "[Velocity (Accel-Ft/Sec)]" left out: the pasted columns cover its cells in 11331 rows; "[Velocity (Accel-MPH)]" left out: the pasted columns cover its cells in 23921 rows | `856e61d186324d0a` | every sample | 48290 | 811 | 5.00e-5 | 0.000 | held | 0.0196 | held | 0.0015 | 0.72 | – |
 
 The AltiMAX export `444687655195f5c8` (M7.1c20), its `.xls` stream decoded here apart from the reader. Its records, by id: `0x0002` 50668, `0x0003` 202672, `0x0004` 25345, `0x000a` 1, `0x0024` 11, `0x0200` 1, `0x041e` 36, `0x0809` 1; the first, a BOF, of 0x6 bytes, version 0x0000, type 0x0010. Its 278685 cells of BIFF2's cell records (`INTEGER` `0x0002`, `NUMBER` `0x0003`, `LABEL` `0x0004`) against the reader's sheet text: 0 differ. Its 253340 values, the text read here by the stated units but the pressures in pascals, against the reader's: 0 differ; the pressures read as pressures, the heights as heights above the pad, `ACCEL` as an acceleration and `SPEED` as a speed: yes. Each height of both columns, filtered and raw, 50668 pairs, against the standard atmosphere's height of its pressure in pascals, 44,330.77 × (1 − (P / 101,325)^0.190263) m (U.S. Standard Atmosphere, 1976), less one offset for the file, the offset not written, as it gives the site's elevation: half the spread is 0.0044 m, inside the bound of 44,330.77 × 2⁻²³ = 0.0053 m for the software's own working of the formula; read in hectopascals, as the columns state, it would be more than a kilometer. The first raw pressure, on the pad, is inside 50–110 kPa. `ACCEL` before liftoff, its first magnitude above 3 g, reads 0.940 g in magnitude, its sign negative: the axis it measures along points down the rocket, so it reads −1 g at rest, not +1 g; the band is 0.85–1.15. `SPEED`'s change over 0.08 s against `ACCEL`, the median over the boost: 0.9988, as `SPEED` sums `ACCEL` over the clock, gravity left in, so it isn't the rocket's speed; the band is 0.9–1.1. The time from liftoff to apogee, the highest raw height, over √(2h/g), h the apogee's height above the first sample's: 0.945, inside 0.5–2. The reader states 21 events and splits `VOLTAGE [V]` into 5 channels.
+
+The 2 MARSA downloads (M7.1c21), each decoded here apart from the reader: *Settings* counts its `<NAME> value` lines, *Samples* its rows, and each sample's time in s, altitude in ft and acceleration in g is compared with the reader's record, six comparisons a sample: the time and altitude on the primary track and the times and values of the altitude and acceleration channels; *Figures* is whether the record's figures are the settings, by name and value, and *Quantities* whether it read the altitude as a height above its zero and the acceleration as an acceleration. *Beside* is the other logger in the same flight, the AltOS board in the flight's folder, whose other log is the other stage's. *Apogee ratio*, the check of the feet, is the highest altitude over that board's highest height above its pad, both in m, which must be within 0.95–1.05; *In meters* the same were the altitude read in meters. *Pad, ft* is the altitude before liftoff, the first acceleration above 3 g, the median: the MARSA's zero isn't its reading on the pad. *Pad, g* is the acceleration's median there, which must be within 0.5 g of 0, nearer 0 than 1 g, as gravity is taken out. *Time off, s* is the time from liftoff to the highest altitude less the board's, a measure. *Climb*, the check of the g, is the barometric climb over the first 2 s after liftoff over the acceleration integrated twice from rest over them, which must be within 0.6–1.667, the band AltOS's `.eeprom` reader holds its own climb to; *In m/s²* the same were the acceleration read in m/s². *Count step, ft* is the least and greatest step between the altitudes written within 300 ft above the pad's reading that are one count, under 1.5 times the least: a measure, from which the format's step, 29.3 ft, is taken, so it holds near the pad only, a count spanning more feet where the air is thinner.
+
+| File | Settings | Samples | Values compared | Differing | Figures | Quantities | Beside | Apogee ratio | In meters | Pad, ft | Pad, g | Time off, s | Climb | In m/s² | Count step, ft |
+|---|---:|---:|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| `4be82002a95c68db` | 53 | 398 | 2388 | 0 | yes | yes | `2a665d94d9ad35d1` | 0.981 | 3.22 | -87.0 | -0.12 | -2.6 | 0.915 | 8.972 | 29.0–29.3 |
+| `a80063e417b87028` | 53 | 554 | 3324 | 0 | yes | yes | `2f3fbd62dbc4f064` | 0.986 | 3.23 | -87.1 | -0.12 | -1.2 | 1.035 | 10.149 | 29.1–29.3 |
+
+AltOS's radio telemetry decoded to a table (M7.1c21), each read by its header's names, the fields of the TeleMega's `0x09` packet in *AltOS Telemetry* (§2.3, Table 6), and decoded here apart from the reader: *Rows* counts them, *CRC false* those left out as packets that failed their check, and *Packet types* the types they name; each value of the rest and its time is compared with the reader's channel, and each time with its primary track, *Values compared* counting the comparisons; *Unknown* lists the columns it kept as names it doesn't know. The resolution the packet carries, which no wrong unit need fail: *Sixteenths* is whether every acceleration and speed is a whole number of sixteenths, *Meters* every height a whole meter, *Hundredths* every tick a whole hundredth of a second. *Battery, V* is `v_batt`'s least and greatest, which must be within 2.5–5.0 V, a single LiPo cell's, 3.7 V nominal (*The Altus Metrum System*, §3.2): read as the document's 12-bit counts behind its 100k/27k divider, 4 V would be about 1,055. *Events* are the reader's, each state named as AltOS's exports name its number, none `state N`, and the first `ground_pres` must be inside 50–110 kPa, the value not written. *Pad accel* is the acceleration's median in the pad state, m/s², about 0 with gravity taken out, a measure. The checks of the units: *Climb over speed* is the median from boost to coast of the height's change between two rows over their time, over their mean speed, where it is over 10 m/s; *Speed over accel* the same of the speed's change over the mean acceleration, where it is over 5 m/s². Each must be within 0.6–1.667, the band of the `.eeprom` reader's climb check: a speed or an acceleration in the packet's sixteenths, a height in feet or a tick in its 10 ms counts would miss it.
+
+| File | Rows | CRC false | Packet types | Values compared | Differing | Unknown | Sixteenths | Meters | Hundredths | Battery, V | Events | Pad accel | Climb over speed | Speed over accel |
+|---|---:|---:|---|---:|---:|---|---|---|---|---|---|---:|---:|---:|
+| `850771db6621eaf6` | 325 | 0 | 9 ×325 | 12025 | 0 | none | yes | yes | yes | 4.09–4.10 | pad, boost, fast, coast, drogue | -0.438 | 1.019 | 0.929 |
+
+Tables cut from an AltOS export (M7.1c21), AltOS's own column names with no `version,serial,flight` before them, each read by its states and decoded here apart from the reader: *States* counts each row's `state` and `state_name`, and *AltOS's* is whether every pair is one AltOS's exports write, 2 `pad` to 8 `landed`; each value and its time is compared with the reader's channel, and the primary track's times and heights with the first row at each time, as AltOS repeats one, *Values compared* counting the comparisons; the channels must be the table's columns but the clock and `state_name`, in order, and *Events* the reader's, each state named as AltOS's exports name it. *Height offset, m* is half the spread of `altitude` less `height`, which AltOS writes as its barometric altitude less the pad's, one offset, not written as it gives the site's elevation: each to the centimeter, it must be within 0.01 m. *Rise ratio*, the check of the units, is `altitude`'s rise from the first row to its highest over the standard atmosphere's height's rise of `pressure` over the same rows, 44,330.77 × (1 − (P / 101,325)^0.190263) m, which must be within 0.6–1.667, the band of the `.eeprom` reader's climb check: an altitude in feet, or a pressure in hPa, would miss it. *From pressure, m* is the most `altitude` differs from that height: a measure of AltOS's own conversion.
+
+| File | Rows | States | AltOS's | Values compared | Differing | Same columns | Events | Height offset, m | Rise ratio | From pressure, m |
+|---|---:|---|---|---:|---:|---|---|---:|---:|---:|
+| `03adc04683e2884f` | 1005 | 3 boost ×347, 5 coast ×155, 7 main ×502, 8 landed ×1 | yes | 15948 | 0 | yes | boost, coast, main, landed | 0.0050 | 1.0000 | 0.0056 |
+
+AltOS exports a spreadsheet re-saved (M7.1c21), decoded here apart from the reader: *Formulas* counts the cells of each column that hold a formula, `=…`; each is rebuilt from the reader's notes, which give a column's formulas run by run, `{row}` standing for each cell's own row, and compared with the file's cell (*Compared*, *Differing*); *Not channels* is whether every column of formulas alone is left out of the channels, as text. *Units* lists the columns whose name carries a unit after it and the quantity the reader read each as: AltOS's where the unit is the one it reads the column in, kept as written (`Unrecognized`) where it isn't. Each value of the channels, a formula or a cell that isn't a number a gap, and its time is compared with the reader's channel, *Values compared* counting the comparisons; *Not numbers* counts the cells, formulas apart, read as gaps. *Primary track* is none, as the header names no `height`.
+
+| File | Rows | Formulas | Compared | Differing | Not channels | Units | Values compared | Differing | Not numbers | Primary track |
+|---|---:|---|---:|---:|---|---|---:|---:|---:|---|
+| `9c5017ab68168088` | 26916 | `(ft/s)` 26916, `Altitude (ft)` 26916, `altitude (ft)` 26916 | 80748 | 0 | yes | `acceleration (m/s^2)` Acceleration, `altitude (m)` AltitudeMsl, `speed (m/s)` Speed, `accel_x (m/s)` Unrecognized, `accel_y (m/s)` Unrecognized, `accel_z (m/s)` Unrecognized, `tilt (degrees)` Angle, `altitude (m)` GnssAltitude | 4198896 | 0 | 1 | none |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -783,7 +815,7 @@ The files read, by the logger each names:
 | AerospaceNU SillyGoose | 13 |
 | AerospaceNU flight computer board | 20 |
 | AerospaceNU flight computer board, by its ground station | 4 |
-| AltOS | 52 |
+| AltOS | 55 |
 | AltOS EasyMega-v2.0 | 1 |
 | AltOS EasyMini-v1.0 | 1 |
 | AltOS EasyMini-v2.0 | 1 |
@@ -808,6 +840,7 @@ The files read, by the logger each names:
 | Featherweight Raven | 139 |
 | GPS Visualizer | 1 |
 | KML | 3 |
+| MARSA | 2 |
 | Missile Works RRC3 | 57 |
 | Missile Works RTx | 26 |
 | NMEA 0183 receiver (talker GP) | 12 |

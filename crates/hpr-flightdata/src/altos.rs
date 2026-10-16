@@ -48,8 +48,9 @@
 //! `baro_speed`, the barometer's, and absent without it: `accel_speed` integrates the
 //! accelerometer and `speed` is the flight computer's own estimate, which leans on the
 //! accelerometer on the way up, so both stay channels only (Debrief's reader took `accel_speed`
-//! first). The temperature is `temperature` and the battery `battery_voltage`. Both `time` and
-//! `height` are required.
+//! first). The temperature is `temperature` and the battery `battery_voltage`. `time` is
+//! required. A header with no `height` gives the record no primary track, only its channels,
+//! with a note.
 //!
 //! **Quirks, and what this reader does about them.**
 //!
@@ -83,6 +84,45 @@
 //!   extra cells are empty (a trailing comma). A row whose time isn't a number can't be placed on
 //!   the clock and is left out, with a note.
 //!
+//! **The states.** AltosUI's exports number the flight's states and name them on each row: 2
+//! `pad`, 3 `boost`, 4 `fast`, 5 `coast`, 6 `drogue`, 7 `main` and 8 `landed`. A row whose
+//! `state` and `state_name` are one of these numbers named as another, or a name numbered as
+//! another, is counted in a note, the first such line quoted, and the events take the names as
+//! written: Debrief's own sample export names state 1 `pad`. (A table cut from an export is
+//! stricter, below.)
+//!
+//! **A spreadsheet's re-save.** A flyer may open an export in a spreadsheet and save it again. The
+//! reader reads three things a spreadsheet leaves:
+//!
+//! - *A unit after a name.* A header may write a unit after a column's name in parentheses, `height
+//!   (m)`. The column is read by its name. Where the unit is the one this reader reads the column
+//!   in (the table above: `s`; `m`; `m/s^2`, `m/s²` or `m/s/s`; `m/s`; `V`; `degrees`, `deg` or
+//!   `°`; `C` or `°C`; `Pa`), it is read as AltOS's, the columns named in one note. Any other
+//!   unit, such as `altitude (ft)` or `accel_x (m/s)`, keeps the column as written,
+//!   [`Quantity::Unrecognized`], with a note: the reader can't tell how its values were made. A
+//!   pressure written `Pa` whose values settle as hPa is kept as written too. A unit after `time`
+//!   other than `s` is refused, as the clock can't be placed.
+//! - *Formulas.* A cell may hold the spreadsheet's formula, such as `=3.28084*J2`, not a value.
+//!   The formulas aren't worked out. A column of formulas alone isn't a channel; a column with
+//!   some has those cells as gaps. Either way the column's formulas are kept as text in a note,
+//!   run by run: a run is rows on consecutive lines whose formula is the same once each reference
+//!   to the cell's own row is written `{row}`, so `=3.28084*J2` on line 2 and `=3.28084*J3` on
+//!   line 3 are one run, `` `=3.28084*J{row}` on lines 2–3 ``, and each cell the note gives can
+//!   be rebuilt from it. A reference is one to three capital letters, an optional `$` and the
+//!   row's number; a CSV a spreadsheet saves writes its row *n* on line *n*. A note gives at most 8 runs a
+//!   column, counting the cells past them, and quotes at most 200 characters of a formula; at
+//!   most 64 columns' formulas are noted, one more note counting the rest.
+//! - *A deleted column.* `height` may be gone, as above.
+//!
+//! **A table cut from an export.** A file may hold AltOS's columns alone: a header of AltOS's own
+//! names with no `#version,serial,flight` before them and no unit after them, naming `time`,
+//! `state` and `state_name`, such as `time,state,state_name,acceleration,pressure,altitude,height`.
+//! Such names alone don't show the file is AltOS's, so its states must: of its first 100 rows, at
+//! least one must give a `state` and a `state_name` that are one of AltOS's pairs, and none may
+//! give a pair that contradicts them ([`recognizes_table`]); a row further on that contradicts
+//! them is refused at its line. Each row is then read as an export's, with a note that the header
+//! was found this way.
+//!
 //! **What the file says about itself.** The serial number and flight number come from the comment
 //! lines `# serial …` and `# flight …` when the file has them, and from the first row's `serial`
 //! and `flight` cells otherwise; `# product …` names the device, as in `AltOS TeleMetrum`. The
@@ -95,8 +135,13 @@
 //! this reader departs from Debrief's: it keeps every column as a channel where Debrief keeps a
 //! chosen few; it keeps the file's clock, where Debrief moves the zero to the first row; it reads a
 //! hectopascal pressure as such; it refuses a long row; it requires the header first (after
-//! comment lines), where Debrief searches the first 60 lines for it. AltOS's radio-telemetry log
-//! (`tick`, `ptype`, …) is a different file and isn't read here.
+//! comment lines), where Debrief searches the first 60 lines for it. The units after names, the
+//! formulas, the record with no `height` and the table cut from an export are this reader's own,
+//! written from the collection's files ([ADR-274][adr-274]). AltOS's radio telemetry is other
+//! files: its log of packets, `.telem` ([`crate::altos_telem`]), and the packets decoded to a
+//! table, `serial,tick,ptype,…` ([`crate::altos_telem_csv`]).
+//!
+//! [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
@@ -159,6 +204,50 @@ fn role(name: &str, after_longitude: bool) -> (Role, bool) {
     }
 }
 
+/// A header cell split into its name and the unit written after it in parentheses, as a
+/// spreadsheet's user wrote `acceleration (m/s^2)`: the unit `None` for a name with none, such as
+/// AltosUI writes.
+fn split_unit(cell: &str) -> (&str, Option<&str>) {
+    match cell
+        .strip_suffix(')')
+        .and_then(|rest| rest.rsplit_once(" ("))
+    {
+        Some((name, unit)) if !name.trim().is_empty() => (name.trim(), Some(unit.trim())),
+        _ => (cell, None),
+    }
+}
+
+/// Whether a unit written after a column's name is the one this reader reads the column's role
+/// in ([`split_unit`]). A pressure's `Pa` must also be the unit its values settle.
+fn unit_agrees(role: Role, unit: &str) -> bool {
+    use Quantity as Q;
+    let units: &[&str] = match role {
+        Role::Clock => &["s"],
+        Role::Value(Q::AltitudeAboveGround | Q::AltitudeMsl | Q::GnssAltitude | Q::Distance) => {
+            &["m"]
+        }
+        Role::Value(Q::Acceleration) => &["m/s^2", "m/s²", "m/s/s"],
+        Role::Value(Q::Speed) => &["m/s"],
+        Role::Value(Q::Voltage) => &["V"],
+        Role::Value(Q::Latitude | Q::Longitude | Q::Angle) => &["degrees", "deg", "°"],
+        Role::Celsius => &["C", "°C"],
+        Role::Pressure => &["Pa"],
+        _ => &[],
+    };
+    units.contains(&unit)
+}
+
+/// The unit a header writes after a column's name, against the one this reader reads it in.
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Unit {
+    /// None written, as AltosUI writes its header.
+    Unwritten,
+    /// The one this reader reads the column in: the column is read as AltOS's.
+    Agrees,
+    /// Another: the column is kept as written.
+    Differs,
+}
+
 /// Whether a column is one of the receiver's satellite columns, `sat01` to `sat32`.
 fn is_satellite(lower: &str) -> bool {
     lower
@@ -197,9 +286,12 @@ struct Preamble {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] if the first line that isn't a `#` comment isn't AltOS's header
-/// (`version,serial,flight,…`, with or without a leading `#`); [`LogError::Syntax`] for a header
-/// without a `time` or a `height` column, a row with more cells than the header names, or a
-/// pressure in hPa too large to convert to pascals; [`LogError::NoData`] if no row has a time.
+/// (`version,serial,flight,…`, with or without a leading `#`) or a header of AltOS's own names
+/// that names `time`, `state` and `state_name`; [`LogError::Syntax`] for a header without a
+/// `time` column, a row with more cells than the header names, a row whose `state` and
+/// `state_name` aren't the number and the name AltOS gives one state, a header-only table none of
+/// whose rows gives a state AltOS's exports name, or a pressure in hPa too large to convert to
+/// pascals; [`LogError::NoData`] if no row has a time.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let text = text.replace("\r\n", "\n").replace('\r', "\n");
@@ -209,15 +301,20 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         .map(|(index, line)| (index + 1, line.trim()));
 
     let mut preamble = Preamble::default();
-    let (header_line, header) = loop {
+    let mut comments = false;
+    let (header_line, header, bare_table) = loop {
         match lines.next() {
             Some((_, "")) => {}
             Some((number, line)) => {
                 let bare = line.trim_start_matches('#').trim();
                 if is_header(bare) {
-                    break (number, bare.split(',').map(|cell| cell.trim().to_owned()));
+                    break (number, bare, false);
+                }
+                if !comments && is_table_header(line) {
+                    break (number, line, true);
                 }
                 if line.starts_with('#') {
+                    comments = true;
                     preamble.read(bare);
                     continue;
                 }
@@ -237,11 +334,14 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             }
         }
     };
-    let names: Vec<String> = header.collect();
+    let names: Vec<String> = header
+        .split(',')
+        .map(|cell| cell.trim().to_owned())
+        .collect();
     let columns = header_columns(&names, header_line)?;
 
     let mut notes = Notes::default();
-    let mut table = Table::new(&names, &columns);
+    let mut table = Table::new(&names, &columns, bare_table);
     for (number, line) in lines {
         if line.is_empty() {
             continue;
@@ -257,7 +357,17 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if table.time_s.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    assemble(&names, &columns, table, &preamble, notes)
+    if bare_table && table.states_checked == 0 {
+        return Err(LogError::Syntax {
+            format: FORMAT,
+            line: header_line,
+            message: "a table of AltOS's columns with no `version,serial,flight` header is read \
+                      by its states, and no row's `state` and `state_name` are a state AltOS's \
+                      exports name"
+                .to_owned(),
+        });
+    }
+    assemble(&names, &columns, table, &preamble, notes, bare_table)
 }
 
 /// Whether a line, its `#` taken off, is AltOS's header.
@@ -268,6 +378,87 @@ fn is_header(bare: &str) -> bool {
             .next()
             .is_some_and(|cell| cell.eq_ignore_ascii_case(expected))
     })
+}
+
+/// Whether a line is a header of AltOS's own column names only, as AltosUI writes them, with no
+/// `version,serial,flight` before them and no unit after them, naming `time`, `state` and
+/// `state_name`: a table cut from an AltOS export.
+fn is_table_header(line: &str) -> bool {
+    let names: Vec<&str> = line.split(',').map(str::trim).collect();
+    let mut after_longitude = false;
+    let all_known = names.iter().all(|name| {
+        let known = role(name, after_longitude).1;
+        after_longitude |= name.eq_ignore_ascii_case("longitude");
+        known
+    });
+    all_known
+        && ["time", "state", "state_name"]
+            .iter()
+            .all(|wanted| names.iter().any(|name| name.eq_ignore_ascii_case(wanted)))
+}
+
+/// Whether a text is a table cut from an AltOS export, its header AltOS's own names with no
+/// `version,serial,flight` before them, naming `time`, `state` and `state_name`, and AltOS's
+/// states its proof: of its first 100 rows, at least one gives a `state` and a `state_name` that
+/// AltOS's exports write for one state ([`crate::altos_telem`]), and none gives a pair they
+/// contradict.
+pub fn recognizes_table(text: &str) -> bool {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
+    let mut lines = text
+        .split(['\r', '\n'])
+        .map(str::trim)
+        .filter(|line| !line.is_empty());
+    let Some(header) = lines.next().filter(|line| is_table_header(line)) else {
+        return false;
+    };
+    let names: Vec<&str> = header.split(',').map(str::trim).collect();
+    let find = |wanted: &str| {
+        names
+            .iter()
+            .position(|name| name.eq_ignore_ascii_case(wanted))
+    };
+    let (Some(state), Some(state_name)) = (find("state"), find("state_name")) else {
+        return false;
+    };
+    let mut checked = 0;
+    for line in lines.take(100) {
+        let cells: Vec<&str> = line.split(',').map(str::trim).collect();
+        if let (Some(number), Some(name)) = (cells.get(state), cells.get(state_name)) {
+            match state_pair(number, name) {
+                Ok(true) => checked += 1,
+                Ok(false) => {}
+                Err(_) => return false,
+            }
+        }
+    }
+    checked > 0
+}
+
+/// Whether a row's `state` and `state_name` are a pair AltOS's exports write ([`crate::altos_telem`]):
+/// `Ok(true)` if they are, `Ok(false)` if neither is a state they name, so nothing is checked,
+/// and why not if one is and the other isn't its partner.
+fn state_pair(number: &str, name: &str) -> Result<bool, String> {
+    use crate::altos_telem::STATES;
+    // A number a spreadsheet rewrote, `3.0` for `3`, is the same state.
+    let by_number = number
+        .parse::<f64>()
+        .ok()
+        .and_then(|number| STATES.iter().find(|(known, _)| f64::from(*known) == number));
+    let by_name = STATES
+        .iter()
+        .find(|(_, known)| known.eq_ignore_ascii_case(name));
+    match (by_number, by_name) {
+        (None, None) => Ok(false),
+        (Some(a), Some(b)) if a == b => Ok(true),
+        (Some((known, partner)), _) => Err(format!(
+            "the row's state {known} is named {:?}, where AltOS names {known} `{partner}`",
+            short(name)
+        )),
+        (None, Some((partner, known))) => Err(format!(
+            "the row's state {:?} is named `{known}`, where AltOS numbers `{known}` {partner}",
+            short(number)
+        )),
+    }
 }
 
 impl Preamble {
@@ -291,20 +482,30 @@ impl Preamble {
     }
 }
 
-/// A column of the header: its role, and whether the reader knows its name.
+/// A column of the header: its role, whether the reader knows its name, and the unit written
+/// after the name.
 #[derive(Debug, Clone, Copy)]
 struct Column {
     role: Role,
     known: bool,
+    unit: Unit,
 }
 
-/// Each header cell's column; refuses a header without `time` or `height`.
+/// The index of the first header cell whose name, less any unit after it, is the one wanted.
+fn named(names: &[String], wanted: &str) -> Option<usize> {
+    names
+        .iter()
+        .position(|name| split_unit(name).0.eq_ignore_ascii_case(wanted))
+}
+
+/// Each header cell's column; refuses a header without `time`.
 fn header_columns(names: &[String], number: usize) -> Result<Vec<Column>, LogError> {
     let mut after_longitude = false;
     let mut altitudes = 0;
     let columns: Vec<Column> = names
         .iter()
-        .map(|name| {
+        .map(|cell| {
+            let (name, unit) = split_unit(cell);
             let lower = name.to_ascii_lowercase();
             // A second `altitude` is the GPS receiver's even if no `longitude` precedes it.
             let gnss = after_longitude || (lower == "altitude" && altitudes > 0);
@@ -315,19 +516,142 @@ fn header_columns(names: &[String], number: usize) -> Result<Vec<Column>, LogErr
                 after_longitude = true;
             }
             let (role, known) = role(name, gnss);
-            Column { role, known }
+            match unit {
+                None => Column {
+                    role,
+                    known,
+                    unit: Unit::Unwritten,
+                },
+                Some(unit) if known && unit_agrees(role, unit) => Column {
+                    role,
+                    known,
+                    unit: Unit::Agrees,
+                },
+                Some(_) => Column {
+                    role: if known && role != Role::Text {
+                        Role::Value(Quantity::Unrecognized)
+                    } else {
+                        role
+                    },
+                    known,
+                    unit: Unit::Differs,
+                },
+            }
         })
         .collect();
-    for required in ["time", "height"] {
-        if !names.iter().any(|name| name.eq_ignore_ascii_case(required)) {
-            return Err(LogError::Syntax {
-                format: FORMAT,
-                line: number,
-                message: format!("the header names no `{required}` column"),
+    match named(names, "time") {
+        Some(index) if columns[index].role == Role::Clock => Ok(columns),
+        Some(_) => Err(LogError::Syntax {
+            format: FORMAT,
+            line: number,
+            message: "the header writes a unit after `time` other than s".to_owned(),
+        }),
+        None => Err(LogError::Syntax {
+            format: FORMAT,
+            line: number,
+            message: "the header names no `time` column".to_owned(),
+        }),
+    }
+}
+
+/// The most runs of formulas a column's note gives one by one ([`Formulas`]); past them the
+/// rest are counted.
+const MAX_FORMULA_RUNS: usize = 8;
+
+/// A run of rows on consecutive lines whose cells in a column hold one formula, its cell
+/// references to its own row written `{row}`: the formula, and the first and last lines of the
+/// run.
+#[derive(Debug, Clone)]
+struct Run {
+    formula: String,
+    first: usize,
+    last: usize,
+}
+
+/// The most characters of a formula a note quotes.
+const FORMULA_CHARS: usize = 200;
+
+/// The most columns of formulas the notes give, apart from the other notes' bound, so that a
+/// note about a column or a line can't push a formula out; past them one note counts the rest.
+const MAX_FORMULA_COLUMNS: usize = 64;
+
+/// A column's formula cells, the runs of them kept as text.
+#[derive(Debug, Clone, Default)]
+struct Formulas {
+    /// The cells that hold a formula.
+    cells: usize,
+    /// The first [`MAX_FORMULA_RUNS`] runs, in the file's order.
+    runs: Vec<Run>,
+    /// The cells of the runs past them.
+    left_out: usize,
+}
+
+impl Formulas {
+    /// Adds a formula cell on a line, the line being the cell's row in the spreadsheet, as a CSV
+    /// a spreadsheet saves writes its row 1 on line 1.
+    fn add(&mut self, cell: &str, line: usize) {
+        self.cells += 1;
+        let formula = cut(&own_row(cell, line), FORMULA_CHARS);
+        if let Some(run) = self.runs.last_mut()
+            && self.left_out == 0
+            && run.formula == formula
+            && line == run.last + 1
+        {
+            run.last = line;
+        } else if self.runs.len() < MAX_FORMULA_RUNS && self.left_out == 0 {
+            self.runs.push(Run {
+                formula,
+                first: line,
+                last: line,
             });
+        } else {
+            self.left_out += 1;
         }
     }
-    Ok(columns)
+}
+
+/// A formula with each cell reference to its own row, such as `J2` in row 2's `=3.28*J2`, written
+/// `J{row}`: a reference is one to three letters, an optional `$`, and the row's number, with no
+/// letter or digit before it and none, nor a `(`, after it, so a function such as `LOG10(` isn't
+/// one.
+fn own_row(formula: &str, row: usize) -> String {
+    let row = row.to_string();
+    let bytes = formula.as_bytes();
+    let mut out = String::with_capacity(formula.len());
+    let mut at = 0;
+    while at < bytes.len() {
+        let letters = bytes[at..]
+            .iter()
+            .take_while(|b| b.is_ascii_uppercase())
+            .count();
+        let starts = at == 0 || !bytes[at - 1].is_ascii_alphanumeric();
+        if letters == 0 || !starts {
+            // Copies one character, whole.
+            let next = formula[at..].chars().next().map_or(1, char::len_utf8);
+            out.push_str(&formula[at..at + next]);
+            at += next;
+            continue;
+        }
+        let mut end = at + letters;
+        let dollar = bytes.get(end) == Some(&b'$');
+        if dollar {
+            end += 1;
+        }
+        let digits = bytes[end..]
+            .iter()
+            .take_while(|b| b.is_ascii_digit())
+            .count();
+        let after = bytes.get(end + digits);
+        let ends = after.is_none_or(|b| !b.is_ascii_alphanumeric() && *b != b'(');
+        if letters <= 3 && digits > 0 && ends && formula[end..end + digits] == row {
+            out.push_str(&formula[at..end]);
+            out.push_str("{row}");
+        } else {
+            out.push_str(&formula[at..end + digits]);
+        }
+        at = end + digits;
+    }
+    out
 }
 
 /// The rows read so far, column by column.
@@ -339,14 +663,26 @@ struct Table {
     /// Each column's values, row by row, as written (no unit converted yet); empty for the clock
     /// and text columns.
     values: Vec<Vec<f64>>,
-    /// Each column's count of cells that were empty or not a finite number.
+    /// Each column's count of cells that were empty or not a finite number, formulas apart.
     gaps: Vec<usize>,
+    /// Each column's formula cells.
+    formulas: Vec<Formulas>,
     /// Each kept row's `state_name`, if the file has the column.
     states: Vec<String>,
     /// The index of the `time` column.
     clock: usize,
-    /// The index of the `state_name` column.
+    /// The indices of the `state` and `state_name` columns.
+    state: Option<usize>,
     state_name: Option<usize>,
+    /// The rows whose `state` and `state_name` are a pair AltOS's exports write.
+    states_checked: usize,
+    /// Whether the header is a table's with no `version,serial,flight` ([`is_table_header`]),
+    /// whose states are the proof that it is AltOS's: a row contradicting them is refused.
+    bare: bool,
+    /// Otherwise, the rows whose `state` and `state_name` contradict AltOS's pair, and the first
+    /// of them, its line and why.
+    states_differing: usize,
+    first_differing: Option<String>,
     /// The indices of the `serial` and `flight` columns.
     serial: Option<usize>,
     flight: Option<usize>,
@@ -359,23 +695,24 @@ struct Table {
 }
 
 impl Table {
-    fn new(names: &[String], columns: &[Column]) -> Self {
-        let find = |wanted: &str| {
-            names
-                .iter()
-                .position(|name| name.eq_ignore_ascii_case(wanted))
-        };
+    fn new(names: &[String], columns: &[Column], bare: bool) -> Self {
         Self {
             time_s: Vec::new(),
             lines: Vec::new(),
             values: vec![Vec::new(); columns.len()],
             gaps: vec![0; columns.len()],
+            formulas: vec![Formulas::default(); columns.len()],
             states: Vec::new(),
             // `header_columns` has refused a header without a `time` column.
-            clock: find("time").unwrap_or(0),
-            state_name: find("state_name"),
-            serial: find("serial"),
-            flight: find("flight"),
+            clock: named(names, "time").unwrap_or(0),
+            state: named(names, "state"),
+            state_name: named(names, "state_name"),
+            states_checked: 0,
+            bare,
+            states_differing: 0,
+            first_differing: None,
+            serial: named(names, "serial"),
+            flight: named(names, "flight"),
             first_serial: None,
             first_flight: None,
             rows: 0,
@@ -411,6 +748,23 @@ impl Table {
             ));
             return Ok(());
         };
+        if let (Some(state), Some(name)) = (cell(self.state), cell(self.state_name)) {
+            match state_pair(state, name) {
+                Ok(checked) => self.states_checked += usize::from(checked),
+                Err(message) if self.bare => {
+                    return Err(LogError::Syntax {
+                        format: FORMAT,
+                        line: number,
+                        message,
+                    });
+                }
+                Err(message) => {
+                    self.states_differing += 1;
+                    self.first_differing
+                        .get_or_insert_with(|| format!("line {number}: {message}"));
+                }
+            }
+        }
         self.rows += 1;
         self.cells_written += cells.len().min(columns.len());
         if crate::log::too_sparse(columns.len(), self.rows, self.cells_written) {
@@ -444,8 +798,13 @@ impl Table {
             if matches!(column.role, Role::Clock | Role::Text) {
                 continue;
             }
-            // A cell a short row leaves out is a gap its row's note counts, not the column's.
+            // A cell a short row leaves out is a gap its row's note counts, not the column's; a
+            // formula is text, kept in its column's note.
             let value = match cells.get(index) {
+                Some(cell) if cell.starts_with('=') => {
+                    self.formulas[index].add(cell, number);
+                    f64::NAN
+                }
                 Some(cell) => number_in(cell).unwrap_or_else(|| {
                     self.gaps[index] += 1;
                     f64::NAN
@@ -490,6 +849,31 @@ fn pressure_factor(values: &[f64]) -> Option<f64> {
     }
 }
 
+/// A column's formulas as a note gives them: each run's formula and its lines, then any cells
+/// past the runs given.
+fn formula_runs(formulas: &Formulas) -> String {
+    let mut runs: Vec<String> = formulas
+        .runs
+        .iter()
+        .map(|run| {
+            let cells = run.last - run.first + 1;
+            let lines = if cells == 1 {
+                format!("line {}", run.first)
+            } else {
+                format!("lines {}–{}", run.first, run.last)
+            };
+            format!("`{}` on {lines}", run.formula)
+        })
+        .collect();
+    if formulas.left_out > 0 {
+        runs.push(format!(
+            "{} more past them",
+            count(formulas.left_out, "cell")
+        ));
+    }
+    runs.join("; ")
+}
+
 /// Builds the log from the rows.
 ///
 /// # Errors
@@ -501,18 +885,40 @@ fn assemble(
     mut table: Table,
     preamble: &Preamble,
     line_notes: Notes,
+    bare_table: bool,
 ) -> Result<FlightLog, LogError> {
     let mut notes: Vec<String> = Vec::new();
     let mut column_notes = Notes::default();
     let n = table.time_s.len();
-    let find = |wanted: &str| {
-        names
-            .iter()
-            .position(|name| name.eq_ignore_ascii_case(wanted))
+    // A column by its name, and its role: a unit written after the name that differs from this
+    // reader's makes the column another's.
+    let find = |wanted: &str, role: Role| {
+        named(names, wanted).filter(|&index| columns[index].role == role)
     };
+    if let Some(first) = &table.first_differing {
+        notes.push(format!(
+            "{} a `state` and a `state_name` that aren't the pair AltOS's exports write, the \
+             first at {first}; the events take the names as written",
+            match table.states_differing {
+                1 => "1 row gives".to_owned(),
+                n => format!("{n} rows give"),
+            }
+        ));
+    }
+    if bare_table {
+        notes.push(format!(
+            "the header names AltOS's columns with no `version,serial,flight` before them: read \
+             as AltOS's, as {} give a `state` and a `state_name` that AltOS's exports write for \
+             one state, and none contradicts them",
+            count(table.states_checked, "row")
+        ));
+    }
 
     // GPS positions of exactly (0, 0) are the receiver's before a fix.
-    if let (Some(lat), Some(lon)) = (find("latitude"), find("longitude")) {
+    if let (Some(lat), Some(lon)) = (
+        find("latitude", Role::Value(Quantity::Latitude)),
+        find("longitude", Role::Value(Quantity::Longitude)),
+    ) {
         let gnss: Vec<usize> = (0..columns.len())
             .filter(|&index| columns[index].role == Role::Value(Quantity::GnssAltitude))
             .collect();
@@ -536,9 +942,54 @@ fn assemble(
 
     let mut channels = Vec::with_capacity(columns.len());
     let mut converted: Vec<Option<Vec<f64>>> = vec![None; columns.len()];
+    let mut units_agreeing = Vec::new();
+    let mut formula_notes: Vec<String> = Vec::new();
+    let mut formula_columns_left_out = 0;
+    let mut formula_note = |note: String| {
+        if formula_notes.len() < MAX_FORMULA_COLUMNS {
+            formula_notes.push(note);
+        } else {
+            formula_columns_left_out += 1;
+        }
+    };
     for (index, column) in columns.iter().enumerate() {
         let name = &names[index];
         let mut values = std::mem::take(&mut table.values[index]);
+        let formulas = &table.formulas[index];
+        if formulas.cells > 0 && formulas.cells == n {
+            // Every cell a formula: text, not a channel.
+            formula_note(format!(
+                "the `{}` column's {} a spreadsheet's {}, not {}: kept here as text, not worked \
+                 out, and not a channel, `{{row}}` standing for each cell's own row: {}",
+                short(name),
+                match formulas.cells {
+                    1 => "1 cell is".to_owned(),
+                    cells => format!("{cells} cells are"),
+                },
+                if formulas.cells == 1 {
+                    "formula"
+                } else {
+                    "formulas"
+                },
+                if formulas.cells == 1 {
+                    "a value"
+                } else {
+                    "values"
+                },
+                formula_runs(formulas)
+            ));
+            continue;
+        }
+        if formulas.cells > 0 {
+            formula_note(format!(
+                "the `{}` column has {} holding a spreadsheet's formula, not a value: read as \
+                 gaps, the formulas kept here as text, `{{row}}` standing for each cell's own \
+                 row: {}",
+                short(name),
+                count(formulas.cells, "cell"),
+                formula_runs(formulas)
+            ));
+        }
         let quantity = match column.role {
             Role::Clock | Role::Text => continue,
             Role::Value(quantity) => quantity,
@@ -549,6 +1000,14 @@ fn assemble(
                 Quantity::Temperature
             }
             Role::Pressure => match pressure_factor(&values) {
+                Some(factor) if factor != 1.0 && column.unit == Unit::Agrees => {
+                    notes.push(format!(
+                        "the `{}` column states Pa, but its highest value is a pad's pressure \
+                         in hPa; it is kept as written",
+                        short(name)
+                    ));
+                    Quantity::Unrecognized
+                }
                 Some(factor) => {
                     if factor != 1.0 {
                         // A finite cell that the factor makes infinite, such as `-1.7e308` hPa,
@@ -573,6 +1032,17 @@ fn assemble(
                 }
             },
         };
+        match column.unit {
+            Unit::Unwritten => {}
+            Unit::Agrees => units_agreeing.push(format!("`{}`", short(name))),
+            Unit::Differs if column.known => column_notes.push(format!(
+                "the header writes `{}`, a unit after AltOS's `{}` that isn't the one this \
+                 reader reads it in; its values are kept as written",
+                short(name),
+                short(split_unit(name).0)
+            )),
+            Unit::Differs => {}
+        }
         if !column.known {
             column_notes.push(format!(
                 "the column `{}` isn't one this reader knows; its values are kept as written",
@@ -595,7 +1065,14 @@ fn assemble(
             values,
         });
     }
-    if find("acceleration").is_some() {
+    if !units_agreeing.is_empty() {
+        notes.push(format!(
+            "the header writes a unit after AltOS's name of {}: each the unit this reader reads \
+             the column in, so read as AltOS's",
+            units_agreeing.join(", ")
+        ));
+    }
+    if find("acceleration", Role::Value(Quantity::Acceleration)).is_some() {
         notes.push(
             "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not \
              1 g; the channel is kept as written"
@@ -603,7 +1080,10 @@ fn assemble(
         );
     }
 
-    // The primary track: in time order, the first row at each time.
+    // The primary track: in time order, the first row at each time; none without a `height`, or
+    // with one of formulas alone, which isn't a channel.
+    let named_height = find("height", Role::Value(Quantity::AltitudeAboveGround));
+    let height = named_height.filter(|&index| converted[index].is_some());
     let mut order: Vec<usize> = (0..n).collect();
     order.sort_by(|&a, &b| table.time_s[a].total_cmp(&table.time_s[b]));
     let mut latest = f64::NEG_INFINITY;
@@ -623,28 +1103,42 @@ fn assemble(
             _ => kept.push(row),
         }
     }
-    if out_of_order > 0 {
-        notes.push(format!(
-            "{} coming before an earlier row's time: the primary track takes the rows in time \
-             order; the channels keep the file's",
-            count(out_of_order, "row")
-        ));
-    }
-    if kept.len() < n {
-        notes.push(format!(
-            "{} repeating an earlier row's time: the primary track keeps the first row at each \
-             time; the channels keep every row",
-            count(n - kept.len(), "row")
-        ));
+    if height.is_none() {
+        kept.clear();
+        notes.push(if named_height.is_some() {
+            "the `height` column, AltOS's height above the pad, holds a spreadsheet's formulas \
+             alone: the record has no primary track, only its channels"
+                .to_owned()
+        } else {
+            "the header names no `height`, AltOS's height above the pad: the record has no \
+             primary track, only its channels"
+                .to_owned()
+        });
+    } else {
+        if out_of_order > 0 {
+            notes.push(format!(
+                "{} coming before an earlier row's time: the primary track takes the rows in \
+                 time order; the channels keep the file's",
+                count(out_of_order, "row")
+            ));
+        }
+        if kept.len() < n {
+            notes.push(format!(
+                "{} repeating an earlier row's time: the primary track keeps the first row at \
+                 each time; the channels keep every row",
+                count(n - kept.len(), "row")
+            ));
+        }
     }
     let primary = |index: Option<usize>| {
         index
+            .filter(|_| height.is_some())
             .and_then(|index| converted[index].as_ref())
             .map(|values| kept.iter().map(|&row| values[row]).collect::<Vec<f64>>())
     };
     // The primary track is barometric: `accel_speed` integrates the accelerometer, and `speed`
     // is the flight computer's own estimate, which uses its accelerometer on the way up.
-    let speed = find("baro_speed");
+    let speed = find("baro_speed", Role::Value(Quantity::Speed));
 
     let mut events: Vec<Event> = Vec::new();
     let mut state: Option<&str> = None;
@@ -679,6 +1173,13 @@ fn assemble(
         ));
     }
 
+    notes.extend(formula_notes);
+    if formula_columns_left_out > 0 {
+        notes.push(format!(
+            "and {} holding formulas, past the {MAX_FORMULA_COLUMNS} whose formulas are given",
+            count(formula_columns_left_out, "more column")
+        ));
+    }
     notes.extend(column_notes.kept);
     notes.extend(line_notes.kept);
     let left_out = column_notes.left_out + line_notes.left_out;
@@ -700,11 +1201,10 @@ fn assemble(
         flight_number,
         stated: Stated::default(),
         time_s: kept.iter().map(|&row| table.time_s[row]).collect(),
-        // `header_columns` has refused a header without a `height` column.
-        altitude_m: primary(find("height")).unwrap_or_default(),
+        altitude_m: primary(height).unwrap_or_default(),
         vertical_speed_m_s: primary(speed),
-        temperature_k: primary(find("temperature")),
-        battery_v: primary(find("battery_voltage")),
+        temperature_k: primary(find("temperature", Role::Celsius)),
+        battery_v: primary(find("battery_voltage", Role::Value(Quantity::Voltage))),
         channels,
         events,
         notes,
@@ -723,10 +1223,15 @@ fn count(n: usize, noun: &str) -> String {
 /// Text from the file as an error or note quotes it: cut to [`QUOTED_CHARS`] characters, so a
 /// binary file's "first line" doesn't fill the message.
 fn short(text: &str) -> String {
-    if text.chars().count() <= QUOTED_CHARS {
+    cut(text, QUOTED_CHARS)
+}
+
+/// Text cut to a number of characters, its last a `…` where it is cut.
+fn cut(text: &str, chars: usize) -> String {
+    if text.chars().count() <= chars {
         text.to_owned()
     } else {
-        let mut cut: String = text.chars().take(QUOTED_CHARS - 1).collect();
+        let mut cut: String = text.chars().take(chars - 1).collect();
         cut.push('…');
         cut
     }
@@ -739,9 +1244,14 @@ mod tests {
     const HEAD: &str = "#version,serial,flight,call,time,rssi,lqi,state,state_name,acceleration,\
                         pressure,altitude,height,baro_speed,temperature,battery_voltage\n";
 
+    /// A row, its state's number the one AltOS's exports give its name.
     fn row(time: f64, state: &str, height: f64) -> String {
+        let number = crate::altos_telem::STATES
+            .iter()
+            .find(|(_, name)| *name == state)
+            .map_or(2, |(number, _)| *number);
         format!(
-            "6, 77, 4,N0CALL, {time:8.2}, -80, 40, 2, {state:>7}, 0.10, 98000.00, \
+            "6, 77, 4,N0CALL, {time:8.2}, -80, 40, {number}, {state:>7}, 0.10, 98000.00, \
              {:.2}, {height:.2}, 1.50, 20.0, 3.90\n",
             250.0 + height
         )
@@ -1025,8 +1535,8 @@ mod tests {
             ),
             ("PerfectFlite Pnut\n", "isn't AltOS's header"),
             (
-                "#version,serial,flight,time\n0,0,0,0\n",
-                "line 1: the header names no `height`",
+                "#version,serial,flight,time (ms)\n0,0,0,0\n",
+                "line 1: the header writes a unit after `time` other than s",
             ),
             (
                 "#version,serial,flight,height\n0,0,0,0\n",
@@ -1049,6 +1559,282 @@ mod tests {
         let junk = "\u{fffd}".repeat(100_000);
         let error = read(&junk).unwrap_err().to_string();
         assert!(error.len() < 400 && error.contains('…'), "{error}");
+    }
+
+    /// A header without `height` reads, with no primary track and every column a channel.
+    #[test]
+    fn no_height_no_primary_track() {
+        let log = read("#version,serial,flight,time,altitude\n6,77,4,0.5,250\n").unwrap();
+        assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
+        assert!(log.temperature_k.is_none() && log.battery_v.is_none());
+        let altitude = log
+            .channels
+            .iter()
+            .find(|c| c.column == "altitude")
+            .unwrap();
+        assert_eq!(
+            (altitude.quantity, altitude.values.as_slice()),
+            (Quantity::AltitudeMsl, &[250.0][..])
+        );
+        assert!(log.notes.iter().any(|n| n.contains("no primary track")));
+    }
+
+    /// A unit after AltOS's name that is this reader's reads the column as AltOS's; another
+    /// keeps it as written; a pressure stated in Pa whose values are hPa is kept as written.
+    #[test]
+    fn units_after_the_names() {
+        let text = "#version,serial,flight,time,height (m),acceleration (m/s^2),accel_x (m/s),\
+                    pressure (Pa)\n6,77,4,0.5,10,1.5,9.8,980\n";
+        let log = read(text).unwrap();
+        let quantity = |column: &str| {
+            log.channels
+                .iter()
+                .find(|c| c.column == column)
+                .map(|c| c.quantity)
+        };
+        assert_eq!(log.altitude_m, [10.0]);
+        assert_eq!(
+            quantity("acceleration (m/s^2)"),
+            Some(Quantity::Acceleration)
+        );
+        assert_eq!(quantity("accel_x (m/s)"), Some(Quantity::Unrecognized));
+        assert_eq!(quantity("pressure (Pa)"), Some(Quantity::Unrecognized));
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("`accel_x (m/s)`, a unit"))
+        );
+        let feet = read("#version,serial,flight,time,height (ft)\n6,77,4,0.5,10\n").unwrap();
+        assert!(
+            feet.altitude_m.is_empty(),
+            "a height in feet isn't AltOS's height"
+        );
+    }
+
+    /// A `height` of formulas alone isn't a channel, so the record has no primary track, as with
+    /// none: the clock and the track stay the same length.
+    #[test]
+    fn a_height_of_formulas_alone_is_no_primary_track() {
+        let text = "#version,serial,flight,time,height,altitude\n\
+                    6,77,4,0.5,=F2-F$2,250\n\
+                    6,77,4,0.6,=F3-F$2,251\n";
+        let log = read(text).unwrap();
+        assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
+        assert!(log.channels.iter().all(|c| c.column != "height"));
+        assert!(
+            log.notes.iter().any(|n| n.starts_with(
+                "the `height` column, AltOS's height above the pad, holds a spreadsheet's \
+                 formulas alone"
+            )),
+            "{:#?}",
+            log.notes
+        );
+    }
+
+    /// One formula cell is written of in the singular.
+    #[test]
+    fn one_formula_cell_reads_in_the_singular() {
+        let log = read("#version,serial,flight,time,height,x\n6,77,4,0.5,0,=E2*2\n").unwrap();
+        assert!(
+            log.notes.iter().any(|n| n.starts_with(
+                "the `x` column's 1 cell is a spreadsheet's formula, not a value: kept here"
+            )),
+            "{:#?}",
+            log.notes
+        );
+    }
+
+    /// The formula notes' bounds hold at their limits and count what is past them: at most
+    /// [`MAX_FORMULA_RUNS`] runs a column and [`MAX_FORMULA_COLUMNS`] columns.
+    #[test]
+    fn the_formula_bounds_hold_at_their_limits() {
+        let runs = |extra: usize| {
+            let mut text = String::from("#version,serial,flight,time,height,x\n");
+            for k in 0..MAX_FORMULA_RUNS + extra {
+                text += &format!("6,77,4,{k}.0,{k},=E{}*{k}\n", k + 2);
+            }
+            let log = read(&text).unwrap();
+            log.notes
+                .into_iter()
+                .find(|n| n.starts_with("the `x` column's"))
+                .unwrap()
+        };
+        let at = runs(0);
+        assert_eq!(at.matches("` on line ").count(), MAX_FORMULA_RUNS, "{at}");
+        assert!(!at.contains("past them"), "{at}");
+        let past = runs(2);
+        assert_eq!(
+            past.matches("` on line ").count(),
+            MAX_FORMULA_RUNS,
+            "{past}"
+        );
+        assert!(past.ends_with("; 2 cells more past them"), "{past}");
+
+        let columns = |n: usize| {
+            let names: Vec<String> = (0..n).map(|k| format!("x{k}")).collect();
+            let cells: Vec<String> = (0..n).map(|k| format!("={k}")).collect();
+            let text = format!(
+                "#version,serial,flight,time,height,{}\n6,77,4,0.0,0,{}\n",
+                names.join(","),
+                cells.join(",")
+            );
+            read(&text).unwrap().notes
+        };
+        let given = |notes: &[String]| notes.iter().filter(|n| n.starts_with("the `x")).count();
+        assert_eq!(given(&columns(MAX_FORMULA_COLUMNS)), MAX_FORMULA_COLUMNS);
+        let past = columns(MAX_FORMULA_COLUMNS + 3);
+        assert_eq!(given(&past), MAX_FORMULA_COLUMNS);
+        assert!(
+            past.iter()
+                .any(|n| n.contains("past the 64 whose formulas are given")),
+            "{past:#?}"
+        );
+    }
+
+    /// A state a spreadsheet rewrote, `3.0`, is AltOS's `3`; and a table opening with a
+    /// byte-order mark is still recognized.
+    #[test]
+    fn a_rewritten_state_and_a_byte_order_mark_still_read() {
+        let text = "\u{feff}time,state,state_name,height\n0.0,3.0,boost,0\n0.1,5.0,coast,2\n";
+        assert!(recognizes_table(text));
+        let log = read(text).unwrap();
+        let events: Vec<&str> = log.events.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(events, ["boost", "coast"]);
+    }
+
+    /// A formula is text: a column of them isn't a channel, and its note gives every formula,
+    /// each cell's own row as `{row}`, run by run; a formula among numbers is a gap.
+    #[test]
+    fn formulas_are_kept_as_text() {
+        let text = "#version,serial,flight,time,height,altitude (ft),(ft/s)\n\
+                    6,77,4,0.0,0,=3.28084*E2,=3.28*E2\n\
+                    6,77,4,0.5,10,=3.28*E3,1.5\n\
+                    6,77,4,1.0,20,=3.28*E4,=3.28*E4\n\
+                    6,77,4,1.5,30,=3.28*E5,=3.28*E5\n";
+        let log = read(text).unwrap();
+        assert_eq!(log.altitude_m, [0.0, 10.0, 20.0, 30.0]);
+        assert!(log.channels.iter().all(|c| c.column != "altitude (ft)"));
+        let note = |start: &str| {
+            log.notes
+                .iter()
+                .find(|n| n.starts_with(start))
+                .unwrap_or_else(|| panic!("{start}: {:#?}", log.notes))
+        };
+        let all = note("the `altitude (ft)` column's 4 cells are a spreadsheet's formulas");
+        assert!(
+            all.ends_with("`=3.28084*E{row}` on line 2; `=3.28*E{row}` on lines 3–5"),
+            "{all}"
+        );
+        let mixed = note("the `(ft/s)` column has 3 cells holding");
+        assert!(
+            mixed.ends_with("`=3.28*E{row}` on line 2; `=3.28*E{row}` on lines 4–5"),
+            "{mixed}"
+        );
+        let speed = log.channels.iter().find(|c| c.column == "(ft/s)").unwrap();
+        assert_eq!(speed.values[1], 1.5);
+        assert!(speed.values[0].is_nan() && speed.values[3].is_nan());
+    }
+
+    /// Only a reference to the cell's own row becomes `{row}`.
+    #[test]
+    fn own_row_rewrites_references_to_the_row_only() {
+        assert_eq!(own_row("=3.28*J2", 2), "=3.28*J{row}");
+        assert_eq!(own_row("=AL12-AL$2+J$12", 12), "=AL{row}-AL$2+J${row}");
+        assert_eq!(own_row("=LOG10(J10)", 10), "=LOG10(J{row})");
+        assert_eq!(own_row("=ABCD7+A7B", 7), "=ABCD7+A7B");
+        assert_eq!(own_row("=J22*2", 2), "=J22*2");
+        assert_eq!(own_row("=é+J3", 3), "=é+J{row}");
+    }
+
+    /// In a table with no `version` header, a row whose state number and name aren't AltOS's
+    /// pair is refused at its line; a state AltOS's exports don't name passes unchecked.
+    #[test]
+    fn a_state_unlike_altoss_is_refused() {
+        let head = "time,state,state_name,height\n-0.5,2,pad,0\n";
+        let error = read(&format!("{head}0.0,3,ignition,0\n"))
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains(
+                "line 3: the row's state 3 is named \"ignition\", where AltOS names 3 `boost`"
+            ),
+            "{error}"
+        );
+        let error = read(&format!("{head}0.0,4,boost,0\n"))
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("line 3: the row's state 4 is named"),
+            "{error}"
+        );
+        let error = read(&format!("{head}0.0,12,boost,0\n"))
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("where AltOS numbers `boost` 3"), "{error}");
+        assert!(read(&format!("{head}0.0,9,invalid,0\n")).is_ok());
+    }
+
+    /// In an export with AltOS's `version,serial,flight` header, a state unlike AltOS's is
+    /// counted in a note, its name kept for the events: one sample file numbers `pad` 1.
+    #[test]
+    fn an_exports_state_unlike_altoss_is_noted() {
+        let text = format!(
+            "{HEAD}{}{}",
+            row(-0.5, "pad", 0.0).replacen(", 2,", ", 1,", 1),
+            row(0.0, "boost", 1.25)
+        );
+        let log = read(&text).unwrap();
+        let note = log
+            .notes
+            .iter()
+            .find(|n| n.starts_with("1 row gives a `state`"))
+            .unwrap_or_else(|| panic!("{:#?}", log.notes));
+        assert!(
+            note.contains("the first at line 2: the row's state \"1\" is named `pad`"),
+            "{note}"
+        );
+        let events: Vec<&str> = log.events.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(events, ["pad", "boost"]);
+    }
+
+    /// A table cut from an export, AltOS's names with no `version` header, is read by its
+    /// states; one with no state AltOS names, a unit after a name, a name AltOS doesn't write or
+    /// comments before it, isn't.
+    #[test]
+    fn a_table_of_altoss_columns_reads_by_its_states() {
+        let text = "time,state,state_name,acceleration,pressure,altitude,height,speed,temperature\n\
+                    -0.10,3,boost,9.1,95300,512.7,5.2,15.8,23.7\n\
+                    0.00,3,boost,10.0,95290,513.5,6.0,16.8,23.7\n\
+                    0.10,5,coast,-9.8,95200,521.6,14.1,15.0,23.7\n";
+        assert!(recognizes_table(text));
+        assert_eq!(
+            crate::import::detect(text.as_bytes()),
+            Some(LogFormat::AltosCsv)
+        );
+        let log = read(text).unwrap();
+        assert_eq!(log.altitude_m, [5.2, 6.0, 14.1]);
+        assert_eq!(log.serial_number, None);
+        let events: Vec<&str> = log.events.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(events, ["boost", "coast"]);
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.starts_with("the header names AltOS's columns"))
+        );
+        let unknown = text
+            .replace("3,boost", "1,idle")
+            .replace("5,coast", "0,startup");
+        assert!(!recognizes_table(&unknown));
+        assert!(
+            read(&unknown)
+                .unwrap_err()
+                .to_string()
+                .contains("by its states")
+        );
+        assert!(!recognizes_table(&text.replace("speed,", "speed (m/s),")));
+        assert!(!recognizes_table(&text.replace("speed,", "source,")));
+        assert!(!recognizes_table(&text.replace("5,coast", "5,boost")));
+        assert!(read(&format!("# product EasyMini\n{text}")).is_err());
     }
 
     proptest::proptest! {

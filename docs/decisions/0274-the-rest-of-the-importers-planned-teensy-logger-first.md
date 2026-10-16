@@ -210,3 +210,74 @@ the survey's decoding, and xlrd agrees on every cell. Its heights follow the for
 rocket, where one pointing up would read +1 g at rest. `SPEED` is `ACCEL` summed over the clock,
 its change 0.999 times `ACCEL` over the boost, so it isn't the rocket's speed. The time to apogee is 0.945 times √(2h/g). 36 files are left, to
 M7.1c21 to M7.1c23.
+
+**Amendment for M7.1c21, the altimeters' other text (2026-10-16).** The group's five files are two
+MARSA downloads, a table of AltOS's radio telemetry, a table cut from an AltOS export, and an
+AltOS export a spreadsheet re-saved with formulas in its cells. The plan stands; these are what the
+files showed, measured, and the readers' decisions.
+
+1. **MARSA's file is described nowhere,** so `hpr_flightdata::marsa` takes its layout from the two
+   files: settings as `<NAME> value` lines, a section's heading as `<NAME>` alone, then rows of
+   three unnamed numbers, read as seconds, feet and g. The manuals give the altitude in feet and
+   the software's plot of "Baro altitude and acceleration" (*MARSA4 User Manual*, 2009, p. 18).
+   One file is the other layout re-saved by a spreadsheet, its settings' lines ending in empty
+   cells and its numbers rewritten; both read the same. The catalog files them as XML, for their
+   `<…>` lines; they are moved by id. Each setting is a figure as written, as no document gives
+   their units. A file opens with a setting and names `<MARSA VERSION>` in its first 200 lines.
+2. **The other logger in the same flight** is the AltOS board whose export sits in the MARSA's
+   flight folder: the catalog gives the flights no shared id. For one file the flight card names
+   both as one stage's loggers; for the other the card gives the MARSA no stage, and the folder's
+   only other log is labelled as the other stage's, so the board is the MARSA's stage's by
+   elimination. The survey names each pair by id. The MARSA's pad reads three counts below its
+   own zero, −87 ft, in both files, and the reader keeps the altitude as written, a height above
+   the logger's zero; the plan's apogee is the highest altitude so read, which is the harder
+   reading to pass, as measured from the pad the ratios lie nearer 1.
+3. **The telemetry table is read by its header,** `serial,tick,ptype,…`, each column by its name
+   and the fields of *AltOS Telemetry*'s `0x09` packet (§2.3, Table 6). The document sends the
+   voltages as converter counts; the table holds volts, 4.1 for the battery, a single LiPo
+   cell's (*The Altus Metrum System*, §3.2), so they are read as volts. A row whose `crc` is
+   `FALSE` is left out and counted; a tick no later than the one before refuses the file, as a
+   table of seconds can't tell the tick's 655.36 s turn from a restart.
+4. **The table cut from an export is read by AltOS's states.** Its header is AltOS's names alone,
+   with no `version,serial,flight`; of its first 100 rows, one must give a `state` and a
+   `state_name` that AltosUI's exports pair, 2 `pad` to 8 `landed`, and none may contradict them,
+   and a later row that does refuses the file. In a full export the same contradiction is only
+   counted in a note, as Debrief's sample export names state 1 `pad`: refusing it would
+   unread a file the reader has read since M7.1a.
+5. **Formulas are kept as text in notes, not in a new field.** The record has no channel of text,
+   and adding one would touch every reader's record; a note keeps each column's formulas run by
+   run, a reference to the cell's own row written `{row}`, so each formula the note gives (up to
+   8 runs a column, 200 characters a formula and 64 columns) can be rebuilt from it, and the
+   survey rebuilds each one. A column of formulas alone isn't a channel; a column
+   with some reads them as gaps. A unit after a column's name reads the column as AltOS's where it
+   is the unit the reader reads it in, and keeps it as written otherwise. The file has no
+   `height`, which the reader required until now; such a record has no primary track, only
+   its channels, with a note.
+6. **The checks** (`cargo xtask logs`, the report's sections for each): each reader's
+   record against the survey's own decoding, every channel's values and times and the primary
+   track's; MARSA's apogee within 5 % of the AltOS board's, and
+   its barometric climb over the first 2 s after liftoff within 0.6 to 5/3 of the acceleration
+   integrated twice, the band the `.eeprom` reader's climb check takes, and its acceleration
+   before liftoff within 0.5 g of 0, nearer 0 than 1 g; the telemetry's height change over its
+   speed and its speed change over its acceleration, from boost to coast, each within the same
+   band, which a value left in the packet's sixteenths, a height in feet or a tick in its counts
+   would miss, its battery between 2.5 and 5 V and its ground pressure between 50 and 110 kPa;
+   the cut table's `altitude` less `height` one offset within 0.01 m, its `altitude`'s rise over
+   the standard atmosphere's rise of its `pressure` within the same band, and its events AltOS's
+   names; and each formula rebuilt from the notes against its cell. All three ratio checks share
+   one band, so that a unit is held to one rule. The MARSA's step of a count, from which the
+   reader's altitude resolution is taken, and the telemetry's resolution are reported as
+   measures: neither can fail for a wrong unit.
+
+**Consequences of the amendment.** The survey reads 1,028 of its 1,122 files. The MARSA's apogee is
+0.981 and 0.986 times the AltOS board's (read in meters, 3.2 times); its climb is 0.915 and 1.035
+times the acceleration in g, where m/s² would give 9.0 and 10.1; its acceleration before liftoff
+is −0.12 g; and all 5,712 comparisons with the survey's decoding agree. The telemetry table's 325
+rows are all type 9 with good CRCs, its 12,025 comparisons agree, its height change is 1.019 times
+its speed and its speed change 0.929 times its acceleration, and its battery reads 4.09 to 4.10 V.
+The cut table's 1,005 rows all give AltOS's state pairs, its 15,948 comparisons agree, its
+`altitude` less `height` lies within 0.005 m of one offset, and its altitude rises 1.000 times its
+pressure's height. Debrief's sample export, read since M7.1a, gains a note counting its state 1
+named `pad`; its values are unchanged. The re-saved export's 80,748
+formulas all rebuild from the notes, and its 4,198,896 comparisons agree. 33 files are left, to
+M7.1c22 and M7.1c23.

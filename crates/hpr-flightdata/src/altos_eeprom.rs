@@ -224,7 +224,7 @@ const CLIMB_END_TICKS: i64 = 5;
 /// and a high-g accelerometer counts few steps a g. The band leaves those at least a fifth to
 /// spare on either side, and the twelfth, at about 2, outside: its two sensors disagree by a
 /// factor no port or step explains, so neither unit is taken on trust there.
-pub(crate) const CLIMB_RATIO: std::ops::RangeInclusive<f64> = 0.6..=(5.0 / 3.0);
+pub const CLIMB_RATIO: std::ops::RangeInclusive<f64> = 0.6..=(5.0 / 3.0);
 
 /// The CC1111's full-scale count, its 12-bit result's 2,047 in the top bits of 16 (SWRS033H,
 /// p. 143, p. 144).

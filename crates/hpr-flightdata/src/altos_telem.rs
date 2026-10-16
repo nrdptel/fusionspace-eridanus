@@ -140,7 +140,7 @@ const TICKS_PER_S: f64 = 100.0;
 const PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 10_000.0..=120_000.0;
 
 /// The flight's states by number, as AltosUI's exports name them.
-const STATES: [(u8, &str); 7] = [
+pub(crate) const STATES: [(u8, &str); 7] = [
     (2, "pad"),
     (3, "boost"),
     (4, "fast"),
@@ -780,7 +780,7 @@ fn pad_pressure(packets: &[Packet]) -> Option<f64> {
 }
 
 /// A state's name, as AltosUI's exports write it, or `state N`.
-fn state_name(number: u8) -> String {
+pub(crate) fn state_name(number: u8) -> String {
     STATES
         .iter()
         .find(|(known, _)| *known == number)

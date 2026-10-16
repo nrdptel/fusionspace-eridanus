@@ -51,10 +51,13 @@
 //! logged them, as a receiver heard them, and inside an RTF document ([`packets`]); a Raven FIP
 //! export pasted below no header, under the header the caller states ([`raven::read_rows`]); and
 //! an older Excel `.xls` worksheet's cells written out as text ([`xls`]), such as an AltiMAX
-//! altimeter's export ([`altimax`]). [`readings`] takes a first set of readings from the
+//! altimeter's export ([`altimax`]); a MARSA altimeter's download and a spreadsheet's re-save of
+//! it ([`marsa`]); and AltOS's radio telemetry decoded to a table ([`altos_telem_csv`]),
+//! a table of AltOS's own columns with no `version` header, and an AltOS export a spreadsheet
+//! re-saved with formula cells, each formula kept as text ([`altos`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats are planned for milestones [M7.1c21 to M7.1c23][roadmap] of the roadmap,
+//! formats are planned for milestones [M7.1c22 and M7.1c23][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -84,6 +87,7 @@ pub mod altimetercloud;
 pub mod altos;
 pub mod altos_eeprom;
 pub mod altos_telem;
+pub mod altos_telem_csv;
 pub mod archive;
 pub mod arts2;
 pub mod arts2_raw;
@@ -101,6 +105,7 @@ pub mod generic;
 pub mod import;
 pub mod kml;
 pub mod log;
+pub mod marsa;
 pub mod nmea;
 pub mod packets;
 pub mod perfectflite;

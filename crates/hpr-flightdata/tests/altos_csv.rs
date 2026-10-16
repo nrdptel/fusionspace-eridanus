@@ -73,3 +73,61 @@ fn comment_lines_and_pressure_in_hectopascals() {
     assert_ne!(speed, &column("accel_speed").values);
     insta::assert_json_snapshot!(log);
 }
+
+#[test]
+fn a_table_cut_from_an_export_reads_by_its_states() {
+    let log = hpr_flightdata::import::read(include_bytes!("samples/altos-table.csv")).unwrap();
+    assert_eq!(log.format, LogFormat::AltosCsv);
+    assert_eq!(log.serial_number, None);
+    assert_eq!(log.time_s.len(), 12);
+    assert_eq!(log.altitude_m[11], 113.0);
+    assert!(
+        log.notes
+            .iter()
+            .any(|n| n.starts_with("the header names AltOS's columns with no")),
+        "{:#?}",
+        log.notes
+    );
+    let names: Vec<&str> = log.events.iter().map(|e| e.name.as_str()).collect();
+    assert_eq!(names, ["pad", "boost", "coast"]);
+    insta::assert_json_snapshot!(log);
+}
+
+#[test]
+fn a_spreadsheets_resave_keeps_its_formulas_as_text() {
+    let log = hpr_flightdata::import::read(include_bytes!("samples/altos-resaved.csv")).unwrap();
+    assert_eq!(log.format, LogFormat::AltosCsv);
+    // No `height`: no primary track, every column a channel.
+    assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
+    let column = |name: &str| log.channels.iter().find(|c| c.column == name);
+    // Units AltOS reads its columns in read as AltOS's.
+    assert_eq!(
+        column("acceleration (m/s^2)").unwrap().quantity,
+        Quantity::Acceleration
+    );
+    assert_eq!(
+        column("altitude (m)").unwrap().quantity,
+        Quantity::AltitudeMsl
+    );
+    // The column of formulas alone isn't a channel; the one with some has gaps there.
+    assert!(column("altitude (ft)").is_none());
+    let feet = column("speed (ft/s)").unwrap();
+    assert_eq!(feet.quantity, Quantity::Unrecognized);
+    assert_eq!(feet.values[0], 0.0);
+    assert!(feet.values[1].is_nan() && feet.values[4].is_finite());
+    let note = |start: &str| {
+        log.notes
+            .iter()
+            .find(|n| n.starts_with(start))
+            .unwrap_or_else(|| panic!("{start}: {:#?}", log.notes))
+    };
+    assert!(
+        note("the `altitude (ft)` column's 12 cells are a spreadsheet's formulas")
+            .ends_with("`=I{row}*3.28084` on lines 2–13")
+    );
+    assert!(
+        note("the `speed (ft/s)` column has 9 cells holding")
+            .ends_with("`=K{row}*3.28084` on lines 3–5; `=K{row}*3.28084` on lines 7–9; `=K{row}*3.28084` on lines 11–13")
+    );
+    insta::assert_json_snapshot!(log);
+}

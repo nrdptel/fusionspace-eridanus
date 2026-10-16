@@ -16,10 +16,10 @@ AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its f
 board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a
 phone app's `launch` CSV, an Eggtimer's download saved as RTF, the Raven's `.FIPa` and the
 RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no samples), the
-R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`), a team flight computer's binary records by a layout the caller states (the library only), a Blue Raven's USB download, each line held to its CRC (the library only), and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a header you state, and an AltiMAX altimeter's `.xls` export (the library only) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
+R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`), a team flight computer's binary records by a layout the caller states (the library only), a Blue Raven's USB download, each line held to its CRC (the library only), and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a header you state, an AltiMAX altimeter's `.xls` export, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns (the library only) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
 readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
 loggers. Other loggers come with
-[M7.1c21 to M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c21).
+[M7.1c22 and M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c22).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
@@ -201,7 +201,7 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1c21 to M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c21)), or take readings from
+- Read other loggers' files ([M7.1c22 and M7.1c23, the rest of the importers](decisions-and-roadmap.md#m7-1c22)), or take readings from
   the logs the library already reads beside PerfectFlite's
   ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the

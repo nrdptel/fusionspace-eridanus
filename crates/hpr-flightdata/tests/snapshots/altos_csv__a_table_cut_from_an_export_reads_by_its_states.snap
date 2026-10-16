@@ -1,0 +1,349 @@
+---
+source: crates/hpr-flightdata/tests/altos_csv.rs
+expression: log
+---
+{
+  "format": "altos_csv",
+  "logger": "AltOS",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    -0.5,
+    -0.25,
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0,
+    2.25
+  ],
+  "altitude_m": [
+    0.0,
+    0.0,
+    0.0,
+    1.9,
+    8.1,
+    18.2,
+    32.1,
+    48.6,
+    65.6,
+    82.0,
+    97.8,
+    113.0
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": [
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65,
+    291.65
+  ],
+  "battery_v": [
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95,
+    3.95
+  ],
+  "channels": [
+    {
+      "column": "state",
+      "quantity": "number",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0
+      ]
+    },
+    {
+      "column": "acceleration",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.12,
+        -0.08,
+        61.3,
+        74.8,
+        77.0,
+        76.1,
+        72.4,
+        -12.9,
+        -12.1,
+        -11.6,
+        -11.2,
+        -10.9
+      ]
+    },
+    {
+      "column": "pressure",
+      "quantity": "pressure",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        97627.94,
+        97627.94,
+        97627.94,
+        97605.79,
+        97533.56,
+        97415.97,
+        97254.33,
+        97062.74,
+        96865.66,
+        96675.85,
+        96493.26,
+        96317.88
+      ]
+    },
+    {
+      "column": "altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        312.4,
+        312.4,
+        312.4,
+        314.3,
+        320.5,
+        330.6,
+        344.5,
+        361.0,
+        378.0,
+        394.4,
+        410.2,
+        425.4
+      ]
+    },
+    {
+      "column": "height",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        1.9,
+        8.1,
+        18.2,
+        32.1,
+        48.6,
+        65.6,
+        82.0,
+        97.8,
+        113.0
+      ]
+    },
+    {
+      "column": "speed",
+      "quantity": "speed",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        17.1,
+        36.2,
+        55.4,
+        73.9,
+        70.6,
+        67.6,
+        64.7,
+        61.9,
+        59.2
+      ]
+    },
+    {
+      "column": "temperature",
+      "quantity": "temperature",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65,
+        291.65
+      ]
+    },
+    {
+      "column": "battery_voltage",
+      "quantity": "voltage",
+      "time_s": [
+        -0.5,
+        -0.25,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0,
+        2.25
+      ],
+      "values": [
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95,
+        3.95
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": -0.5,
+      "name": "pad"
+    },
+    {
+      "time_s": 0.0,
+      "name": "boost"
+    },
+    {
+      "time_s": 1.25,
+      "name": "coast"
+    }
+  ],
+  "notes": [
+    "the header names AltOS's columns with no `version,serial,flight` before them: read as AltOS's, as 12 rows give a `state` and a `state_name` that AltOS's exports write for one state, and none contradicts them",
+    "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not 1 g; the channel is kept as written"
+  ]
+}
