@@ -1078,10 +1078,13 @@ fn a_container_reads_back_the_same() {
     // Unzipped by the zip reader alone: the design's text first, then each file, all deflated and
     // dated 1980-01-01.
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(&bytes)).unwrap();
-    let names: Vec<String> = archive.file_names().map(str::to_owned).collect();
+    let names: Vec<String> = archive
+        .file_names()
+        .map(|name| name.unwrap().into_owned())
+        .collect();
     assert_eq!(names.len(), 5);
     let mut first = archive.by_index(0).unwrap();
-    assert_eq!(first.name(), container::DESIGN_ENTRY);
+    assert_eq!(first.name().unwrap(), container::DESIGN_ENTRY);
     assert_eq!(first.compression(), zip::CompressionMethod::Deflated);
     assert_eq!(first.last_modified(), Some(zip::DateTime::DEFAULT));
     let mut text = String::new();
@@ -1125,6 +1128,33 @@ fn zip_of(entries: &[(&str, &[u8])]) -> Vec<u8> {
         archive.write_all(bytes).unwrap();
     }
     archive.finish().unwrap().into_inner()
+}
+
+/// The zip archive `bytes` with bit 11 of every entry's general purpose flags, the UTF-8 mark,
+/// set or cleared, in its local header (the 2 bytes 6 past `PK\x03\x04`) and in its central
+/// directory record (8 past `PK\x01\x02`), APPNOTE.TXT 6.3.10, sections 4.3.7 and 4.3.12.
+fn with_utf8_mark(bytes: &[u8], marked: bool) -> Vec<u8> {
+    let mut bytes = bytes.to_vec();
+    let mut flags_at = Vec::new();
+    for i in 0..bytes.len().saturating_sub(4) {
+        match &bytes[i..i + 4] {
+            b"PK\x03\x04" => flags_at.push(i + 6),
+            b"PK\x01\x02" => flags_at.push(i + 8),
+            _ => {}
+        }
+    }
+    // One local header and one central record an entry: the two-entry archives this is given.
+    assert_eq!(flags_at.len(), 4, "a signature inside an entry's data");
+    for at in flags_at {
+        let flags = u16::from_le_bytes([bytes[at], bytes[at + 1]]);
+        let flags = if marked {
+            flags | 1 << 11
+        } else {
+            flags & !(1 << 11)
+        };
+        bytes[at..at + 2].copy_from_slice(&flags.to_le_bytes());
+    }
+    bytes
 }
 
 /// Names no container holds, written and read: each refused with its reason, on both sides.
@@ -1255,6 +1285,26 @@ fn an_attachment_name_that_leaves_its_folder_is_refused() {
     }
     let message = container::read(&dos).unwrap_err().to_string();
     assert!(message.contains("isn't marked as UTF-8"), "{message}");
+    // So is one whose bytes are UTF-8 with the mark left off: the zip reader would read it as
+    // UTF-8 all the same, but without the mark the name may be in the old code page. The writer
+    // marks it, and the same archive with the mark is read.
+    let marked = zip_of(&[("design.hpr", design.as_bytes()), ("café.csv", b"1")]);
+    let read = container::read(&marked).unwrap().value;
+    assert_eq!(read.attachments[0].name, "café.csv");
+    let unmarked = with_utf8_mark(&marked, false);
+    let message = container::read(&unmarked).unwrap_err().to_string();
+    assert!(
+        message.contains("the name of \"café.csv\" isn't marked as UTF-8"),
+        "{message}"
+    );
+    // A name marked as UTF-8 whose bytes aren't is refused, not read in another code page.
+    let message = container::read(&with_utf8_mark(&dos, true))
+        .unwrap_err()
+        .to_string();
+    assert!(
+        message.contains("is marked as UTF-8, and its bytes aren't UTF-8"),
+        "{message}"
+    );
     // A folder's entry that holds bytes would be lost, so it is refused.
     let mut full = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
     full.start_file("design.hpr", zip::write::SimpleFileOptions::DEFAULT)
