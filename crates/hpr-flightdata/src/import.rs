@@ -61,10 +61,10 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus, fwgps,
-    fwsummary, generic, kml, nmea, packets, perfectflite, phone_launch, raven, raven_fipa, rdas,
-    rrc3, rrc3_rff, rtx, sillygoose, teensy,
+    aerospacenu_fcb, aerospacenu_gs, altimax, altimetercloud, altos, altos_eeprom, altos_telem,
+    archive, arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus,
+    fwgps, fwsummary, generic, kml, nmea, packets, perfectflite, phone_launch, raven, raven_fipa,
+    rdas, rrc3, rrc3_rff, rtx, sillygoose, teensy, xls,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -80,6 +80,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::TeensyTabs,
     LogFormat::TeensyNamed,
     LogFormat::RadioPacketText,
+    LogFormat::AltimaxXls,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
@@ -194,6 +195,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     if packets::recognizes_text(text) {
         return Some(LogFormat::RadioPacketText);
     }
+    // An AltiMAX export by its first five columns.
+    if altimax::recognizes(text) {
+        return Some(LogFormat::AltimaxXls);
+    }
     // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
         return Some(LogFormat::ConsoleCapture);
@@ -297,6 +302,7 @@ fn detect_text(text: &str) -> Option<LogFormat> {
 /// # Errors
 ///
 /// [`LogError::Archive`] for a zip archive, whose files [`archive::unpack`] takes out;
+/// [`LogError::Workbook`] for an `.xls` worksheet's stream, whose sheet [`xls::read`] reads;
 /// [`LogError::Unrecognized`] for a layout HPR Sim doesn't read, naming those it does; otherwise
 /// whatever the format's reader refuses.
 pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
@@ -306,6 +312,13 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
                       built on one, such as a spreadsheet's `.xlsx`: an archive's files are read \
                       one by one once unpacked (`archive::unpack`), a workbook's sheets one by \
                       one (`workbook::read`)"
+                .to_owned(),
+        });
+    }
+    if xls::recognizes(bytes) {
+        return Err(LogError::Workbook {
+            message: "the file is an Excel `.xls` worksheet, which holds a sheet of cells rather \
+                      than a log: its sheet is read once written out as text (`xls::read`)"
                 .to_owned(),
         });
     }
@@ -330,6 +343,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::TeensyNamed) => teensy::read_named(&text),
         Some(LogFormat::RadioPacketText) => packets::read(&text),
         Some(LogFormat::RadioPacketRtf) => packets::read_rtf(&text),
+        Some(LogFormat::AltimaxXls) => altimax::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),

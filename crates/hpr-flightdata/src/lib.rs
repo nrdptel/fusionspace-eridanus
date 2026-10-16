@@ -76,6 +76,7 @@
 
 pub mod aerospacenu_fcb;
 pub mod aerospacenu_gs;
+pub mod altimax;
 pub mod altimetercloud;
 pub mod altos;
 pub mod altos_eeprom;
@@ -113,6 +114,7 @@ pub mod sillygoose;
 mod table;
 pub mod teensy;
 pub mod workbook;
+pub mod xls;
 
 #[cfg(test)]
 mod synthetic;

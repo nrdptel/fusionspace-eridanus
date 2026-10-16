@@ -251,9 +251,82 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut clocks = header_clocks(header, header_line, &mut notes)?;
 
     for (number, line) in lines {
-        read_row(&mut clocks, line, number)?;
+        read_row(&mut clocks, line, number, false)?;
     }
     build(clocks, header_line, notes)
+}
+
+/// Reads the rows of a FIP export whose header line is missing, as in a sheet the export was
+/// pasted into below no header, under `header`: the header line the FIP wrote for that export,
+/// which the caller states, such as the 16 channels' with status columns:
+///
+/// ```text
+/// Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,Time@Baro (Atm),Baro (Atm),bILBA,…
+/// ```
+///
+/// The rows are read as [`read`] reads them, but for one thing a sheet does: it writes every row
+/// as wide as its widest, so a row may end in empty cells past its last channel's sample. The rows
+/// are numbered from 1 in errors, and a first row that is itself a header is refused: the file
+/// has its own, and [`read`] reads it.
+///
+/// ```
+/// use hpr_flightdata::raven;
+///
+/// // Invented rows of a two-channel export, the second channel stopped in the last row, and that
+/// // row ended by a sheet's padding.
+/// let header = "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,\
+///               Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)],bILBA";
+/// let rows = "0,1.02,b0000,0,0,b0000\n0.05,1.01,b0000,0.05,1,b0000\n0.1,1.0,b0000,,,\n";
+/// let log = raven::read_rows(header, rows)?;
+/// assert_eq!(log.time_s, [0.0, 0.05]);
+/// assert_eq!(log.channels[0].values.len(), 3);
+/// # Ok::<(), hpr_flightdata::error::LogError>(())
+/// ```
+///
+/// # Errors
+///
+/// [`LogError::Mapping`] when `header` isn't a FIP export's header, as [`read`] would refuse it;
+/// [`LogError::Syntax`] when a row's first cell is a clock's name, as a header's is; and what
+/// [`read`] refuses in the rows.
+pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
+    let mut notes = Notes::default();
+    let mut clocks = header_clocks(header, 0, &mut notes).map_err(|error| LogError::Mapping {
+        message: format!("the header stated for a Raven FIP export's rows: {error}"),
+    })?;
+    let rows = rows.strip_prefix('\u{feff}').unwrap_or(rows);
+    let mut lines = numbered_lines(rows)
+        .filter(|(_, line)| !line.trim().is_empty())
+        .peekable();
+    if let Some((number, line)) = lines.peek()
+        && line
+            .split(',')
+            .next()
+            .is_some_and(|first| is_clock(first.trim()))
+    {
+        return Err(syntax(
+            *number,
+            format!(
+                "the rows open with a header line, {:?}: the export has its own, and is read \
+                 whole",
+                short(line)
+            ),
+        ));
+    }
+    for (number, line) in lines {
+        read_row(&mut clocks, line, number, true)?;
+    }
+    notes.push(
+        "read under a header line the caller stated, the rows' own header missing".to_owned(),
+    );
+    // Line 0 is the stated header: what `build` finds wrong with it is the caller's to fix.
+    build(clocks, 0, notes).map_err(|error| match error {
+        LogError::Syntax {
+            line: 0, message, ..
+        } => LogError::Mapping {
+            message: format!("the header stated for a Raven FIP export's rows: {message}"),
+        },
+        other => other,
+    })
 }
 
 /// The file's lines, numbered from 1, ended by CR, LF or CR LF.
@@ -370,7 +443,9 @@ fn header_clocks(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Clo
 
 /// Reads one row into the clocks: each clock either has a sample in it, its time, values and
 /// statuses, or two or more empty cells, its time's and its values', without its status cells.
-fn read_row(clocks: &mut [Clock], line: &str, number: usize) -> Result<(), LogError> {
+/// With `padded`, the row comes from a sheet, which writes every row as wide as its widest, and may
+/// end in empty cells past its last channel's sample.
+fn read_row(clocks: &mut [Clock], line: &str, number: usize, padded: bool) -> Result<(), LogError> {
     let cells: Vec<&str> = line.split(',').map(str::trim).collect();
     let mut at = 0;
     for clock in clocks.iter_mut() {
@@ -403,7 +478,10 @@ fn read_row(clocks: &mut [Clock], line: &str, number: usize) -> Result<(), LogEr
         read_sample(clock, sample, number, at)?;
         at += width;
     }
-    if at != cells.len() {
+    // A sheet's padding past the last channel holds nothing; anything else there is a cell no
+    // channel takes.
+    let rest = cells.get(at..).unwrap_or_default();
+    if at != cells.len() && !(padded && rest.iter().all(|cell| cell.is_empty())) {
         return Err(syntax(
             number,
             format!(
@@ -1038,6 +1116,94 @@ mod tests {
                     proptest::prop_assert!(channel.time_s.windows(2).all(|pair| pair[1] > pair[0]));
                     proptest::prop_assert_eq!(channel.time_s.len(), channel.values.len());
                 }
+            }
+        }
+    }
+
+    /// Rows of [`HEADER`]'s export, the accelerometer stopping first: its two empty cells and no
+    /// status, every channel after it one cell to the left.
+    const ROWS: &str = "0,1.02,b0000,0,0.97,b0000,0,0,b0000\n\
+                        0.05,1.01,b0000,0.05,0.97,b0000,0.05,1,b0000\n\
+                        ,,0.1,0.96,b0000,0.1,3,b0000\n\
+                        ,,,,0.15,6,b0000\n";
+
+    /// [`ROWS`] as a sheet writes them: every row as wide as the widest, 9 cells.
+    fn padded() -> String {
+        ROWS.lines()
+            .map(|row| {
+                let cells = row.split(',').count();
+                format!("{row}{}\n", ",".repeat(9 - cells))
+            })
+            .collect()
+    }
+
+    #[test]
+    fn rows_a_sheet_padded_read_as_the_export_with_its_header() {
+        let whole = read(&format!("{HEADER}\n{ROWS}")).unwrap();
+        let rows = read_rows(HEADER, &padded()).unwrap();
+        assert_eq!(rows.channels, whole.channels);
+        assert_eq!(
+            (&rows.time_s, &rows.altitude_m),
+            (&whole.time_s, &whole.altitude_m)
+        );
+        assert_eq!(rows.time_s, [0.0, 0.05, 0.1, 0.15]);
+        assert!(
+            rows.notes
+                .iter()
+                .any(|note| note.contains("header line the caller stated"))
+        );
+        // Unpadded rows read the same.
+        assert_eq!(read_rows(HEADER, ROWS).unwrap().channels, whole.channels);
+    }
+
+    #[test]
+    fn a_value_past_the_last_channel_is_refused_padded_or_not() {
+        // The padding holds nothing; a value there is a cell no channel takes.
+        let mut rows = padded();
+        rows.push_str(",,,,0.2,7,b0000,,5\n");
+        match read_rows(HEADER, &rows) {
+            Err(LogError::Syntax { line, message, .. }) => {
+                assert_eq!(line, 5);
+                assert!(
+                    message.contains("its channels' samples take 7"),
+                    "{message}"
+                );
+            }
+            other => panic!("expected a syntax refusal, got {other:?}"),
+        }
+        // A file with its header isn't a sheet: its padding is refused, as before.
+        assert!(matches!(
+            read(&format!("{HEADER}\n{}", padded())),
+            Err(LogError::Syntax { line: 4, .. })
+        ));
+    }
+
+    #[test]
+    fn rows_with_a_header_of_their_own_are_refused() {
+        match read_rows(HEADER, &format!("{HEADER}\n{ROWS}")) {
+            Err(LogError::Syntax { line, message, .. }) => {
+                assert_eq!(line, 1);
+                assert!(message.contains("open with a header line"), "{message}");
+            }
+            other => panic!("expected a syntax refusal, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_stated_header_that_cant_read_the_rows_is_the_callers_to_fix() {
+        for (header, says) in [
+            ("Altitude,Speed", "isn't a FIP export's header"),
+            (
+                "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA",
+                "no altitude above the pad",
+            ),
+        ] {
+            match read_rows(header, "0,1.02,b0000\n") {
+                Err(LogError::Mapping { message }) => {
+                    assert!(message.contains("the header stated"), "{message}");
+                    assert!(message.contains(says), "{message}");
+                }
+                other => panic!("{header}: expected a mapping refusal, got {other:?}"),
             }
         }
     }

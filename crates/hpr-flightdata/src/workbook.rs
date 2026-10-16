@@ -1325,7 +1325,7 @@ fn cell_reference(reference: &str) -> Option<(u32, u32)> {
 
 /// A cell's text as a comma-separated line holds it: quoted if it holds a comma or a double
 /// quote, its quotes doubled; a line break becomes a space.
-fn escaped(value: &str) -> Cow<'_, str> {
+pub(crate) fn escaped(value: &str) -> Cow<'_, str> {
     let value: Cow<'_, str> = if value.contains(['\r', '\n']) {
         Cow::Owned(value.replace("\r\n", " ").replace(['\r', '\n'], " "))
     } else {
@@ -1339,7 +1339,7 @@ fn escaped(value: &str) -> Cow<'_, str> {
 }
 
 /// A name cut to 60 characters for an error, so a hostile part's long name isn't copied whole.
-fn shortened(name: &str) -> String {
+pub(crate) fn shortened(name: &str) -> String {
     const MOST: usize = 60;
     if name.chars().count() <= MOST {
         name.to_owned()
