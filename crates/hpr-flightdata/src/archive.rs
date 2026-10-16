@@ -78,8 +78,8 @@ pub fn unpack(bytes: &[u8]) -> Result<Vec<Member>, LogError> {
 ///
 /// [`LogError::NotThisFormat`] when the bytes don't open as a zip archive; [`LogError::Archive`]
 /// when the zip reader can't read its central directory, the directory holds more entries than
-/// the reader keeps (two of one name), an entry is a symbolic link or a folder's entry that holds
-/// bytes, a file is encrypted, compressed by a method other than stored or deflated, or damaged
+/// the reader keeps (two of one name), an entry's name can't be read, an entry is a symbolic link
+/// or a folder's entry that holds bytes, a file is encrypted, compressed by a method other than stored or deflated, or damaged
 /// (its CRC-32 fails, or it holds more bytes than it states), or the archive decompresses to more
 /// than `max_unpacked_bytes`.
 pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member>, LogError> {

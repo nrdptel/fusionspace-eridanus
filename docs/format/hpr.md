@@ -168,10 +168,12 @@ an attachment, kept byte for byte, under its name, in its order.
 - **Reading is held to the same rules**, so a container made by another program is refused with the
   reason rather than half read. The reader checks every name before it unpacks anything. It takes
   the design wherever the archive holds it, and passes over a folder's own entry, which some zip
-  tools write, as long as it is empty. It refuses a symbolic link, a name beyond plain ASCII that
-  isn't marked as UTF-8 (the mark zip has for it), a name marked as UTF-8 whose bytes aren't, and
-  two entries of one name, which the zip library the simulator uses would otherwise read as one,
-  dropping the other without a word.
+  tools write, as long as it is empty. It refuses a symbolic link. It refuses a name beyond plain
+  ASCII that isn't marked as UTF-8 (each entry carries a flag for it), and a name that is marked
+  but isn't valid UTF-8. It refuses two entries of one name, which the zip library the simulator
+  uses would otherwise read as one, dropping the other without a word. Each refusal names the
+  entry. To get past a name refusal, rename that file inside the archive to plain ASCII, or pack
+  the archive again with a tool that marks UTF-8 names.
 
 A `.hpr` has no place for attachments, and a `.ork` keeps only the source file's own. So
 `hpr convert` names each attachment it leaves out, as a warning.
@@ -500,9 +502,9 @@ The tests also cover the rest of this page:
   answer is recovered.
 - **The container**: a design with four attachments (a text file, an image, an empty file and a
   name in accents) reads back the same and writes the same bytes again. Each name rule above, two
-  entries of one name, a symbolic link, a name not marked as UTF-8 and one marked whose bytes
-  aren't, a folder's entry that holds bytes, a missing or damaged design, and a
-  container past 256 MiB, written or read, are each refused with the reason.
+  entries of one name, a symbolic link, a name beyond ASCII that isn't marked as UTF-8, a name
+  marked as UTF-8 that isn't valid UTF-8, a folder's entry that holds bytes, a missing or damaged
+  design, and a container past 256 MiB, written or read, are each refused with the reason.
 - **The command line**: `hpr convert` takes a public design `.ork` → `.hpr` → `.hprz` → `.ork`, each
   file the library's own, byte for byte. `hpr sim` flies a public design from its `.hpr` and its
   `.hprz` to the same output as from its `.ork`. It refuses another motor in a rocket whose airframe

@@ -345,10 +345,10 @@ pub fn read(bytes: &[u8]) -> Result<Opened<Hprz>, FormatError> {
 ///
 /// [`FormatError::Container`] when the bytes are not a zip archive, an entry can't be read, the
 /// central directory holds more entries than the zip reader keeps (two of one name), an entry is a
-/// symbolic link, its name is beyond plain ASCII and isn't marked as UTF-8, or is marked and isn't
-/// UTF-8, an attachment's name is refused, the archive
-/// would decompress to more than `max_unpacked_bytes`, or it holds no [`DESIGN_ENTRY`] or the
-/// design isn't UTF-8; and what [`read_json`] refuses in the design.
+/// symbolic link, a folder's entry that isn't an empty folder, or has a name beyond plain ASCII
+/// with no UTF-8 mark or a UTF-8 mark on bytes that aren't UTF-8, an attachment's name is refused,
+/// the archive would decompress to more than `max_unpacked_bytes`, or it holds no
+/// [`DESIGN_ENTRY`] or the design isn't UTF-8; and what [`read_json`] refuses in the design.
 pub fn read_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Opened<Hprz>, FormatError> {
     let budget = max_unpacked_bytes;
     if !matches!(bytes, [b'P', b'K', 3, 4, ..] | [b'P', b'K', 5, 6, ..]) {
