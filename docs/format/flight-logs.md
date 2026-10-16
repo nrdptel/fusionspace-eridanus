@@ -871,11 +871,12 @@ does.
 
 ### A course's Teensy data logger
 
-A university course's rocketry students fly a data logger the course builds around a Teensy, a
-small microcontroller board. The course publishes its flights' files on its *Flight Data* page,
-which lists two kinds, "Teensy Data Logger" and "New Teensy Data Logger". Both write one sensor's
-reading a line: the sensor's tag, the logger's clock in microseconds since it started, and the
-values. No document describes either layout. So HPR Sim reads what each file states, and where a
+Harvey Mudd College's advanced rocketry course flies a data logger the course builds around a
+Teensy, a small microcontroller board. The course publishes its flights' files on its
+[*Flight Data* page](https://pages.hmc.edu/spjut/AdvRoc/FlightData.md.html), which lists two
+kinds, "Teensy Data Logger" and "New Teensy Data Logger". Both write one sensor's reading a line:
+the sensor's tag (a short label such as `A` for the accelerometer or `Alt` for the barometer), the
+logger's clock in microseconds since it started, and the values. No document describes either layout. So HPR Sim reads what each file states, and where a
 file states no unit, it reads a unit only if the flight's own physics confirms it
 ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
 which decided it). `import::read` reads both with `hpr_flightdata::teensy`.
@@ -885,19 +886,22 @@ which decided it). `import::read` reads both with `hpr_flightdata::teensy`.
 > the file stating it passes a physical check on every file ([below](#how-the-teensy-files-were-checked)).
 > The gyroscope, the magnetometer, the high-g accelerometer of the older layout and the analog
 > inputs are kept as written, because no check settles their units. Those values aren't
-> converted, so they can't be wrong in SI; they simply aren't in SI.
+> converted, so they can't be wrong in SI; they simply aren't in SI. No readings, such as the
+> apogee, are taken from these files yet: they come with
+> [M7.2](../decisions-and-roadmap.md#m7-2).
 
 **The older layout** separates its fields by tabs. Seven tags come round in a cycle, each line
-with its own time. These invented lines are from the crate's test file:
+with its own time. These invented lines are from the crate's test file, the tabs shown as
+two spaces:
 
 ```text
-A	2000	0.25	-0.50	9.75
-G	2000	1.50	0.50	-2.00
-M	2000	20.10	-3.40	17.80
-Alt	3100	P	95000	MSL	540.42
-HG	3600	0.4788	-0.9577	10.5337
-ADC Pin-35	3700	0.0120000000
-ADC Pin-36	3800	0.0150000000
+A  2000  0.25  -0.50  9.75
+G  2000  1.50  0.50  -2.00
+M  2000  20.10  -3.40  17.80
+Alt  3100  P  95000  MSL  540.42
+HG  3600  0.4788  -0.9577  10.5337
+ADC Pin-35  3700  0.0120000000
+ADC Pin-36  3800  0.0150000000
 ```
 
 A value is named by its tag and its place, `A 1` to `A 3`, or by its tag and the name the line
@@ -907,7 +911,7 @@ because physical checks confirm them:
 | Values | Read as | Why |
 |---|---|---|
 | `A 1` to `A 3` | acceleration, m/s², as written | their magnitude is within 3% of 1 g, 9.806 65 m/s², on the pad and after landing |
-| `Alt P` | pressure, Pa, as written | `Alt MSL` follows from it exactly, below |
+| `Alt P` | pressure, Pa, as written | `Alt MSL` follows from it by the BMP180's formula to within 0.0103 m (0.41 in), below |
 | `Alt MSL` | a pressure altitude, m, as written | it is 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula in the data sheet of the Bosch BMP180 barometer, on every line |
 
 `Alt MSL` is a pressure altitude: the height at which the standard atmosphere's pressure equals
@@ -922,7 +926,7 @@ The rest is kept as written, as a number with no unit:
 - the analog inputs.
 
 `HG` moves in steps of 0.4788 if read as m/s², but it doesn't agree with `A`. During the boost,
-while `A` reads from 3 g to 90% of its greatest, `HG` reads 1.4 to 2.4 times `A`'s magnitude,
+while `A` reads from 3 g to 90% of its greatest, `HG` reads 1.37 to 2.39 times `A`'s magnitude,
 depending on the file. So its scale isn't settled.
 
 **The newer layout** opens with a line for each sensor that states its units, the clock's first.
@@ -942,8 +946,9 @@ unit is stated, to every field. In the example:
 
 - `xa`, `ya` and `za` are in thousandths of a g, read as m/s².
 - `xg` to `zg` are in degrees per second.
-- `xm` to `zm` are in milli-T, kept as written: a magnetic field, and Earth's is about a
-  thousandth of the values the sample file holds.
+- `xm` to `zm` are stated in milli-T and kept as written: HPR Sim holds no magnetic field, and
+  the stated unit looks wrong besides, as Earth's field, 0.025 to 0.065 milli-T, is about a
+  thousandth of the values the sample file holds, which fit microtesla.
 - `T` is in degrees Celsius, read as kelvins.
 
 A value is named by its tag and its name, such as `ICM za`. A tag with no units line, such as the
@@ -967,25 +972,32 @@ that failed one would be counted as unread:
 
 - **`Alt MSL` against the BMP180's formula,** worked out from `Alt P` in 64-bit floats. On all
   305,340 `Alt` lines it differs by at most 0.0054 m (0.21 in). The check allows 0.0103 m (0.41 in): half the
-  hundredth of a meter `MSL` is written to, plus the formula's rounding in 32-bit floats, as a
-  microcontroller works it out, 44,330 × 2⁻²³ m. On 21,540 lines the gap is more than the half
-  step alone, and it is greatest at the same pressure in every file, as such rounding is. The
-  standard atmosphere's own constants would put `MSL` 0.09 to 0.20 m (3.5 to 7.9 in) off.
+  hundredth of a meter `MSL` is written to, plus an allowance of 44,330 × 2⁻²³ m, 5.3 mm (0.21
+  in), for the logger's own rounding of the formula. On 21,540 lines the gap is more than the half
+  step alone, and it is greatest at the same pressure in every file, so the logger rounds the
+  formula its own way, which no document gives: its exponent written to 7 digits, 0.1902949,
+  leaves 91 such lines, by at most 0.06 mm (0.002 in).
 - **The accelerometer at rest.** Its magnitude on the pad, the median over the 5 s ending 1 s
-  before liftoff, is 0.984 to 0.989 g. After landing, over the last 2 s, it is 0.998 to 1.007 g.
+  before liftoff, is 0.983 to 0.989 g. Over the file's last 2 s, after landing, it is 0.997 to
+  1.008 g.
   The check allows 3% either way; read in another unit, such as g or ft/s², it would be 3 or more
   times off. Over the first 2 s of the older layout's files, minutes before launch while the
-  logger was handled, two files read 1.04 and 1.05 g, so the pad is taken just before liftoff.
+  logger was handled, three files read 1.034 to 1.048 g, so the pad is taken just before liftoff.
 - **The time to apogee.** From liftoff (the accelerometer's first reading above 3 g in the 30 s
-  before apogee) to apogee (the highest pressure altitude), the time is 0.91 to 1.14 times
-  √(2h/g), where h is the apogee's height above the pad. A coast to apogee takes about that long.
-  The check allows a factor of 2, where a clock misread by a power of ten would be 10 or more times
-  off.
+  before apogee) to apogee (the highest pressure altitude), the time is 0.90 to 1.14 times
+  √(2h/g), where h is the apogee's height above the pad: the time a coast from the pad would take
+  with no drag. It is a coarse check, as the burn adds time and drag takes some away, so it
+  allows a factor of 2, where a clock misread by a power of ten would be 10 or more times off.
 - **The pad pressure** of the newer layout, the median on the pad, is between 50 and 110 kPa, as
-  any launch site's is.
+  any launch site's is. The report says so without the value, which would give the site's
+  elevation.
 
-The newer layout's high-g accelerometer, read in its stated g, is 0.996 times its main one during
-the boost, which agrees with the unit stated.
+Each check also needs the reader to have read the values it holds as the quantities it takes them
+in, so a unit the reader got wrong fails it.
+
+The newer layout's other stated units rest on the file's statement. Its high-g accelerometer, read
+in its stated g, is 0.996 times its main one during the boost, which agrees with the unit stated;
+the report prints this as a measure, not a check.
 
 **What is left out.** There is no [primary track](#the-record), as neither layout writes an
 altitude above the pad. `hpr analyze` and the Python package don't read these files yet: the Rust
@@ -2432,7 +2444,8 @@ logger's file against the survey's decoding and its physical checks
 ([above](#how-the-teensy-files-were-checked)). Of the 1,122
 files it holds today, 1,016 are read, the 8 archives counted as read when they unpack and the 16
 workbooks when a sheet of each reads. The report labels 45 files for
-[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the first of the five increments left
+[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the next increment, though they come with all five
+increments left, M7.1c19 to M7.1c23
 ([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
 plans them all); 43 of them, of layouts no reader knows yet, are unread.
 

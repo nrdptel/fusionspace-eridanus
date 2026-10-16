@@ -2,7 +2,7 @@
 //! sensor's tag and the logger's clock in microseconds, in two layouts.
 //!
 //! The Harvey Mudd College advanced rocketry course flies a data logger it builds around a Teensy
-//! board, and publishes its flights' files on its *Flight Data* page, which lists two kinds of
+//! board, and publishes its flights' files on its [*Flight Data* page][flight-data], which lists two kinds of
 //! `.TXT` file, "Teensy Data Logger" and "New Teensy Data Logger", read by the course's own
 //! scripts. No document describes either layout, so this reader takes them from the files, and
 //! the sample logs' survey (`cargo xtask logs`) holds each part of the reading that isn't stated
@@ -12,13 +12,13 @@
 //! values, each field after a tab, shown here as spaces:
 //!
 //! ```text
-//! A  2347  0.31  1.39  9.83
-//! G  2347  2.34  1.39  -2.14
-//! M  2347  19.05  -2.25  18.45
-//! Alt  49743  P  92082  MSL  799.61
-//! HG  52443  -2.39  4.79  15.80
-//! ADC Pin-35  52510  0.0089631490
-//! ADC Pin-36  52556  0.0103227282
+//! A  2000  0.25  -0.50  9.75
+//! G  2000  1.50  0.50  -2.00
+//! M  2000  20.10  -3.40  17.80
+//! Alt  3100  P  95000  MSL  540.42
+//! HG  3600  0.4788  -0.9577  10.5337
+//! ADC Pin-35  3700  0.0120000000
+//! ADC Pin-36  3800  0.0150000000
 //! ```
 //!
 //! No line states a unit. Three of the values are read in SI, each held by the survey to the
@@ -28,13 +28,13 @@
 //! |---|---|---|
 //! | `A`'s three | [`Quantity::Acceleration`], m/s², as written | their magnitude on the pad, the 5 s ending 1 s before liftoff, and over the last 2 s, after landing, each within 3 % of standard gravity |
 //! | `Alt`'s `P` | [`Quantity::Pressure`], Pa, as written | `MSL` worked out from it, below |
-//! | `Alt`'s `MSL` | [`Quantity::AltitudeMsl`], m, as written | on every line, 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula of the Bosch BMP180 barometer's data sheet (BST-BMP180-DS000, §3.6), to within 0.0103 m: its half step, 0.005 m, as it is written to the hundredth, and the formula's error in 32-bit floats, as a microcontroller works it out, 44,330 × 2⁻²³ m |
+//! | `Alt`'s `MSL` | [`Quantity::AltitudeMsl`], m, as written | on every line, 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula of the Bosch BMP180 barometer's data sheet (BST-BMP180-DS000, §3.6), to within 0.0103 m: its half step, 0.005 m, as it is written to the hundredth, and an allowance of 44,330 × 2⁻²³ m for the logger's own rounding of the formula, such as an exponent written to 7 digits or 32-bit arithmetic |
 //!
 //! The `MSL` is so a pressure altitude, above where the pressure would be 101,325 Pa, not a
 //! height above the sea. The rest is kept as written, [`Quantity::Unrecognized`], as nothing
 //! states its unit and no check settles one: the gyroscope (`G`), the magnetometer (`M`), a
 //! quantity HPR Sim doesn't hold, the high-g accelerometer (`HG`), whose magnitude during the
-//! boost, while `A` reads from 3 g to 90 % of its greatest, is 1.4 to 2.4 times `A`'s in the
+//! boost, while `A` reads from 3 g to 90 % of its greatest, is 1.37 to 2.39 times `A`'s in the
 //! sample logs where both are read as m/s², and the two analog inputs. A
 //! value is named by its tag and its place, counted from 1, such as `A 1` or `HG 3`, or by its tag
 //! and the name the line gives it, such as `Alt P`.
@@ -46,28 +46,31 @@
 //! ```text
 //! ICM data in us, milli-g, deg/s, milli-T, deg C
 //! MS5 data in us, deg C, Pa
-//! ICM, t, 1330000500, xa, -906.74, ya, 81.54, za, 424.32, xg, 0.18, yg, 0.06, zg, 0.18, xm, 76.35, ym, 28.20, zm, 28.05, T, 33.25
-//! MS5, t, 1330004120, T, 32.90, P, 92185
+//! ICM, t, 500000500, xa, 12.20, ya, -20.50, za, 998.40, xg, 0.18, yg, -0.12, zg, 0.06, xm, 30.15, ym, 4.20, zm, -18.75, T, 24.50
+//! MS5, t, 500001000, T, 24.10, P, 95000
 //! ```
 //!
 //! The first unit is the clock's, and must be `us`. The others go to the fields by their names:
 //! a name less a leading `x`, `y` or `z` is its group, so `xa`, `ya` and `za` are one, and the
-//! units go to the groups in the order the first line of the tag names them, or one unit to every
-//! field. A tag whose units don't fit its groups so, or with no units line, such as a `VOL` line
+//! units go to the groups in the order the first line of the tag names them; one unit stated goes to
+//! every field if no name carries an axis's `x`, `y` or `z`, as `T1` and `T2` don't, or if all are
+//! one group. A tag whose units don't fit its groups so, or with no units line, such as a `VOL` line
 //! the sample file writes, is kept as written, and a note says so. The units read are `milli-g` and
 //! `g`, to m/s², `deg/s`, `deg C`, to kelvins, and `Pa`; any other is kept as written, as is
-//! `milli-T`, a magnetic field. The survey holds the stated units to the files: the `milli-g`
-//! accelerometer's magnitude on the pad and after landing within 3 % of 1,000 milli-g, as for
-//! `A`, and the `Pa` pressure on the pad between 50 and 110 kPa, as no launch site's is outside
-//! it. A value
+//! `milli-T`, a magnetic field. The survey holds two of the stated units to the files: the
+//! `milli-g` accelerometer's magnitude on the pad and over the file's last 2 s, after landing,
+//! within 3 % of 1,000 milli-g, as for `A`, and the `Pa` pressure on the pad between 50 and 110
+//! kPa, as no launch site's is outside it. The others rest on the file's statement: in the sample
+//! file, the high-g accelerometer read in its stated `g` is 0.996 times the `milli-g` one over the
+//! boost, which the survey reports. A value
 //! is named by its tag and its name, such as `ICM xa`.
 //!
 //! **The clock**, in both layouts, is the logger's count of microseconds, a whole number, read as
 //! seconds from the logger's own zero. The named layout states its unit; the tab-separated one
 //! doesn't, and the survey holds the reading to the flights: the time from liftoff to apogee,
-//! by the clock so read, is within a factor of 2 of √(2h/g) for the apogee's height h, as a
-//! coast to apogee nearly takes, where a clock read wrongly by a power of ten is 10 or more times
-//! off. Each tag is a channel set on its own clock, as each sensor is read at its own rate.
+//! by the clock so read, is within a factor of 2 of √(2h/g) for the apogee's height h, a coarse
+//! check (the burn adds time and drag takes some away), where a clock read wrongly by a power of
+//! ten is 10 or more times off. Each tag is a channel set on its own clock, as each sensor is read at its own rate.
 //!
 //! **What refuses the file.** A line that isn't a tag, a whole-number clock and values, or whose
 //! tag's layout (its count of values, or its names) differs from the tag's first line, or whose
@@ -82,6 +85,7 @@
 //! [`FlightLog::time_s`] and [`FlightLog::altitude_m`] are empty, and every value is a channel.
 //!
 //! [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
+//! [flight-data]: https://pages.hmc.edu/spjut/AdvRoc/FlightData.md.html
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
@@ -298,7 +302,7 @@ fn lines<'a>(
         line,
         message,
     };
-    let ends_open = !text.ends_with(['\n', '\r']);
+    let whole = text;
     let mut numbered = numbered_lines(text)
         .filter(|(_, line)| !line.trim().is_empty())
         .peekable();
@@ -306,7 +310,11 @@ fn lines<'a>(
     let mut units = Vec::new();
     let mut dropped_last = false;
     while let Some((number, text)) = numbered.next() {
-        let last = numbered.peek().is_none();
+        // A line the logger was cut off in: the last that isn't blank, with no line end after it.
+        let cut = numbered.peek().is_none() && {
+            let end = text.as_ptr() as usize - whole.as_ptr() as usize + text.len();
+            !whole[end..].contains(['\n', '\r'])
+        };
         if with_units
             && tags.is_empty()
             && let Some((tag, stated)) = units_line(text)
@@ -345,7 +353,7 @@ fn lines<'a>(
             );
         let (index, line) = match checked {
             Ok(found) => found,
-            Err(_) if last && ends_open => {
+            Err(_) if cut => {
                 dropped_last = true;
                 continue;
             }
@@ -515,7 +523,10 @@ fn units_of<'a>(names: &[Option<&str>], units: Option<&[&'a str]>) -> Result<Vec
         }
     }
     let fields = &units[1..];
-    if fields.len() == 1 {
+    // One unit for fields of several groups only where no name carries an axis, as `T1` and `T2`
+    // don't: a sensor's `xa` and `xg` can't share one.
+    let unaxed = names.iter().flatten().all(|name| group(name) == *name);
+    if fields.len() == 1 && (groups.len() == 1 || unaxed) {
         Ok(vec![fields[0]; names.len()])
     } else if fields.len() == groups.len() {
         Ok(names
@@ -529,8 +540,12 @@ fn units_of<'a>(names: &[Option<&str>], units: Option<&[&'a str]>) -> Result<Vec
             .collect())
     } else {
         Err(format!(
-            "its units line states {} units for {} groups of fields",
-            fields.len(),
+            "its units line states {} for {} groups of fields",
+            if fields.len() == 1 {
+                "1 unit".to_owned()
+            } else {
+                format!("{} units", fields.len())
+            },
             groups.len()
         ))
     }
@@ -717,6 +732,21 @@ mod tests {
     }
 
     #[test]
+    fn one_unit_goes_to_every_field_only_without_axes() {
+        let text = NAMED_TEXT.replace(
+            "ICM data in us, milli-g, deg/s, milli-T, deg C",
+            "ICM data in us, milli-g",
+        );
+        let log = read_named(&text).unwrap();
+        assert_eq!(channel(&log, "ICM xa").quantity, Quantity::Unrecognized);
+        assert_eq!(channel(&log, "ICM xg").quantity, Quantity::Unrecognized);
+        assert!(log.notes.iter().any(|n| n
+            == "ICM's values kept as written: its units line states 1 unit for 4 groups of fields"));
+        // `T1` and `T2` carry no axis: the one unit goes to both.
+        assert_eq!(channel(&log, "ADC T1").quantity, Quantity::Temperature);
+    }
+
+    #[test]
     fn a_clock_not_in_microseconds_is_refused_by_its_line() {
         let text = NAMED_TEXT.replace("MS5 data in us,", "MS5 data in ms,");
         let error = read_named(&text).unwrap_err();
@@ -752,6 +782,10 @@ mod tests {
         assert!(log.notes.iter().any(|n| n == DROPPED_LAST));
         let ended = format!("{cut}\r\n");
         let error = read(&ended).unwrap_err();
+        assert!(matches!(error, LogError::Syntax { line: 9, .. }), "{error}");
+        // A bad last line with a line end and blank space after it is refused, not dropped.
+        let trailing = format!("{cut}\r\n \t");
+        let error = read(&trailing).unwrap_err();
         assert!(matches!(error, LogError::Syntax { line: 9, .. }), "{error}");
         // A whole last line with no line end is read.
         let whole = TABS_TEXT.trim_end();

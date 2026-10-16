@@ -3661,13 +3661,13 @@ const TEENSY_NAMED: &str = "a course's Teensy data logger, newer layout: lines s
 const TEENSY_MSL_BOUND_M: f64 = 0.005 + 44_330.0 / 8_388_608.0;
 
 /// How near standard gravity an accelerometer's magnitude on the pad and after landing must be, as
-/// a ratio: a sensor's offsets and the pad's tilt move it by a few percent, where a unit other
+/// a ratio: a sensor's offsets and scale errors move it by a few percent, where a unit other
 /// than the one read (g, thousandths of a g, ft/s²) is 3 or more times off.
 const TEENSY_GRAVITY_BAND: std::ops::RangeInclusive<f64> = 0.97..=1.03;
 
 /// How near √(2h/g) the time from liftoff to apogee must be, as a ratio, for a clock read in
 /// microseconds: a motor's burn adds time and drag takes some away, and the sample flights fall
-/// within 10 %; a clock read wrongly by a power of ten is 10 or more times off.
+/// within 14 %; a clock read wrongly by a power of ten is 10 or more times off.
 const TEENSY_APOGEE_BAND: std::ops::RangeInclusive<f64> = 0.5..=2.0;
 
 /// The pressure on the pad any launch site has, Pa: from about 5,500 m above sea level, the
@@ -3699,17 +3699,29 @@ struct TeensyFile {
     /// (P / 101,325)^(1/5.255)), the BMP180's formula worked out in 64-bit floats, m.
     alt_lines: usize,
     msl_worst_m: Option<f64>,
+    /// Of those lines, the ones whose `MSL` differs from the formula by more than the half step of
+    /// its last digit, 0.005 m: the logger's own rounding of the formula.
+    msl_past_half_step: usize,
     /// The accelerometer's magnitude, the median on the pad ([`TEENSY_PAD_S`]) and over the last
     /// [`TEENSY_LANDED_S`], over standard gravity in the unit read: `A` in m/s², `ICM`'s in
     /// thousandths of a g.
     pad_over_g: Option<f64>,
     landed_over_g: Option<f64>,
+    /// The same over the file's first [`TEENSY_LANDED_S`], minutes before launch while the logger
+    /// was handled: not a check, the reason the pad is taken just before liftoff.
+    powered_on_over_g: Option<f64>,
     /// The time from liftoff, the accelerometer's first magnitude above 3 g in the 30 s before
     /// apogee, to apogee, the barometric altitude's highest, over √(2h/g) for the apogee's height
     /// above the pad's, the median on the pad ([`TEENSY_PAD_S`]).
     apogee_time_ratio: Option<f64>,
-    /// The named layout's `MS5` pressure on the pad, the median there ([`TEENSY_PAD_S`]), kPa.
-    pad_pressure_kpa: Option<f64>,
+    /// Whether the named layout's `MS5` pressure on the pad, the median there
+    /// ([`TEENSY_PAD_S`]), is in [`TEENSY_PAD_PRESSURE_PA`]: a launch site's pressure isn't
+    /// written down, as it gives the site's elevation.
+    pad_pressure_in_band: Option<bool>,
+    /// Whether the reader read the channels the checks hold to the files in the quantities the
+    /// checks take them in: `A` or `ICM`'s accelerations as accelerations, `P` as a pressure and
+    /// `MSL` as an altitude above sea level.
+    quantities_read: bool,
     /// The high-g accelerometer's magnitude over the accelerometer's, in their units read, the
     /// median over the boost, where the accelerometer reads from 3 g to 90 % of its greatest:
     /// `HG` over `A` (both in m/s²), or `LIS` over `ICM` (both in g). Not a check: a measure.
@@ -3775,7 +3787,8 @@ fn teensy_field_units(names: &[String], units: &[String]) -> Option<Vec<String>>
             groups.push(group(name));
         }
     }
-    if units.len() == 1 {
+    let unaxed = names.iter().all(|name| group(name) == *name);
+    if units.len() == 1 && (groups.len() == 1 || unaxed) {
         Some(vec![units[0].clone(); names.len()])
     } else if units.len() == groups.len() {
         names
@@ -3948,6 +3961,9 @@ fn teensy_checks(samples: &[Sample]) -> Vec<TeensyFile> {
                     if let (Some(p), Some(msl)) = (written("P"), written("MSL")) {
                         file.alt_lines += 1;
                         let off = (msl - bmp180_altitude_m(p)).abs();
+                        if off > 0.005 {
+                            file.msl_past_half_step += 1;
+                        }
                         msl_worst = Some(msl_worst.map_or(off, |worst| worst.max(off)));
                         altitude.push((t, msl));
                     }
@@ -3967,15 +3983,46 @@ fn teensy_checks(samples: &[Sample]) -> Vec<TeensyFile> {
         }
         file.msl_worst_m = msl_worst;
         file.landed_over_g = teensy_landed(&low);
+        file.powered_on_over_g = low.first().and_then(|&(start, _)| {
+            teensy_median(
+                low.iter()
+                    .filter(|(t, _)| *t <= start + TEENSY_LANDED_S)
+                    .map(|(_, g)| *g)
+                    .collect(),
+            )
+        });
         file.high_g_over_low = teensy_high_over_low(&low, &high);
         if let Some(flight) = teensy_flight(&low, &altitude) {
             file.pad_over_g = teensy_pad(&low, flight.0);
             file.apogee_time_ratio = teensy_apogee_ratio(&altitude, flight);
             if named {
-                file.pad_pressure_kpa = teensy_pad(&pressure, flight.0).map(|p| p / 1_000.0);
+                file.pad_pressure_in_band =
+                    teensy_pad(&pressure, flight.0).map(|p| TEENSY_PAD_PRESSURE_PA.contains(&p));
             }
         }
         if let Ok(log) = hpr_flightdata::import::read(&sample.bytes) {
+            use hpr_flightdata::log::Quantity;
+            let checked: &[(&str, Quantity)] = if named {
+                &[
+                    ("ICM xa", Quantity::Acceleration),
+                    ("ICM ya", Quantity::Acceleration),
+                    ("ICM za", Quantity::Acceleration),
+                    ("MS5 P", Quantity::Pressure),
+                ]
+            } else {
+                &[
+                    ("A 1", Quantity::Acceleration),
+                    ("A 2", Quantity::Acceleration),
+                    ("A 3", Quantity::Acceleration),
+                    ("Alt P", Quantity::Pressure),
+                    ("Alt MSL", Quantity::AltitudeMsl),
+                ]
+            };
+            file.quantities_read = checked.iter().all(|(column, quantity)| {
+                log.channels
+                    .iter()
+                    .any(|c| c.column == *column && c.quantity == *quantity)
+            });
             let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
             file.same_columns = names == columns.iter().map(String::as_str).collect::<Vec<_>>();
             for column in &columns {
@@ -4013,6 +4060,7 @@ fn teensy_unread(files: &[TeensyFile]) -> Vec<String> {
             f.values_differing > 0
                 || f.values_compared == 0
                 || !f.same_columns
+                || !f.quantities_read
                 || !within(f.pad_over_g, &TEENSY_GRAVITY_BAND)
                 || !within(f.landed_over_g, &TEENSY_GRAVITY_BAND)
                 || !within(f.apogee_time_ratio, &TEENSY_APOGEE_BAND)
@@ -4020,29 +4068,28 @@ fn teensy_unread(files: &[TeensyFile]) -> Vec<String> {
                     "tab-separated" => {
                         f.alt_lines == 0 || !f.msl_worst_m.is_some_and(|m| m <= TEENSY_MSL_BOUND_M)
                     }
-                    "named fields" => !within(
-                        f.pad_pressure_kpa.map(|kpa| kpa * 1_000.0),
-                        &TEENSY_PAD_PRESSURE_PA,
-                    ),
+                    "named fields" => f.pad_pressure_in_band != Some(true),
                     _ => true,
                 }
         })
         .map(|f| {
             format!(
                 "  {} (Teensy, {}): fails its checks: {} of {} values differ, the same columns: \
-                 {}, {} `Alt` lines, MSL off by up to {:?} m, pad and landed over 1 g {:?} and \
-                 {:?}, apogee time over √(2h/g) {:?}, pad pressure {:?} kPa",
+                 {}, the quantities read: {}, {} `Alt` lines, MSL off by up to {:?} m, pad and \
+                 landed over 1 g {:?} and {:?}, apogee time over √(2h/g) {:?}, pad pressure in its \
+                 band: {:?}",
                 f.id,
                 f.layout,
                 f.values_differing,
                 f.values_compared,
                 f.same_columns,
+                f.quantities_read,
                 f.alt_lines,
                 f.msl_worst_m,
                 f.pad_over_g,
                 f.landed_over_g,
                 f.apogee_time_ratio,
-                f.pad_pressure_kpa
+                f.pad_pressure_in_band
             )
         })
         .collect()
@@ -6061,7 +6108,7 @@ fn markdown(report: &Report) -> String {
                 .map(|(tag, n)| format!("{tag} {n}"))
                 .collect();
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
                 file.id,
                 file.layout,
                 tags.join(", "),
@@ -6073,14 +6120,21 @@ fn markdown(report: &Report) -> String {
                     file.alt_lines.to_string()
                 },
                 figure(file.msl_worst_m, 4),
-                figure(file.pad_over_g, 3),
-                figure(file.landed_over_g, 3),
-                figure(file.apogee_time_ratio, 2),
-                file.pad_pressure_kpa.map_or("–".to_owned(), |kpa| format!(
-                    "{}",
-                    (kpa / 10.0).round() * 10.0
-                )),
-                figure(file.high_g_over_low, 2),
+                if file.alt_lines == 0 {
+                    "–".to_owned()
+                } else {
+                    file.msl_past_half_step.to_string()
+                },
+                figure(file.pad_over_g, 4),
+                figure(file.landed_over_g, 4),
+                figure(file.powered_on_over_g, 4),
+                figure(file.apogee_time_ratio, 4),
+                match file.pad_pressure_in_band {
+                    Some(true) => "inside",
+                    Some(false) => "outside",
+                    None => "–",
+                },
+                figure(file.high_g_over_low, 3),
             );
         }
         out += &format!(
@@ -6088,20 +6142,26 @@ fn markdown(report: &Report) -> String {
              from the reader: *Lines* counts the lines of readings by tag, and each value, in the \
              unit read, is compared with the reader's channels. *MSL off* is the most an `Alt` \
              line's `MSL` differs from 44,330 × (1 − (P / 101,325)^(1/5.255)), the Bosch BMP180's \
-             formula worked out in 64-bit floats, m, which its half step, 0.005 m, and the \
-             formula's error in 32-bit floats, 44,330 × 2⁻²³ = 0.0053 m, bound: {:.4} m; *Pad* \
-             and *Landed* the accelerometer's magnitude over 1 g, the median on the pad, the 5 s \
-             ending 1 s before liftoff, and over the last {TEENSY_LANDED_S} s, `A` taken in m/s² \
-             and `ICM` in thousandths of a g; *Apogee time* the time from liftoff, the first \
-             magnitude above 3 g in the 30 s before apogee, to apogee over √(2h/g), h the apogee's \
-             height above the pad's, the clock read in microseconds; *Pad kPa* the `MS5` \
-             pressure on the pad, to the nearest 10 kPa. *High-g over low* is a measure, not a check: the high-g accelerometer's \
+             formula worked out in 64-bit floats, m, which its half step, 0.005 m, and an \
+             allowance of 44,330 × 2⁻²³ = 0.0053 m for the logger's own rounding of the formula \
+             bound: {:.4} m; *Past half step* the `Alt` lines it differs on by more than 0.005 m; \
+             *Pad* and *Landed* the accelerometer's magnitude over 1 g, the median on the pad, the \
+             5 s ending 1 s before liftoff, and over the last {TEENSY_LANDED_S} s, `A` taken in \
+             m/s² and `ICM` in thousandths of a g, each read by the reader as an acceleration, as \
+             `P` must be read as a pressure and `MSL` as an altitude; *First 2 s* the same over the \
+             file's first {TEENSY_LANDED_S} s, minutes before launch, a measure, not a check; \
+             *Apogee time* the time from liftoff, the first magnitude above 3 g in the 30 s before \
+             apogee, to apogee over √(2h/g), h the apogee's height above the pad's, the clock read \
+             in microseconds; *Pad pressure* whether the `MS5` pressure on the pad is between 50 \
+             and 110 kPa, the value itself not written, as it gives the site's elevation. \
+             *High-g over low* is a measure, not a check: the high-g accelerometer's \
              magnitude over the other's during the boost, from 3 g to 90 % of its greatest, `HG` \
              over `A` (both read as m/s²) or `LIS` over `ICM` (both as stated): `HG` is kept as \
              written for it.\n\n\
              | File | Layout | Lines | Values compared | Differing | `Alt` lines | MSL off, m | \
-             Pad | Landed | Apogee time | Pad kPa | High-g over low |\n\
-             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n{rows}",
+             Past half step | Pad | Landed | First 2 s | Apogee time | Pad pressure | High-g over \
+             low |\n\
+             |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|\n{rows}",
             files.len(),
             TEENSY_MSL_BOUND_M,
         );
@@ -8095,13 +8155,14 @@ mod tests {
             pad_over_g: Some(0.99),
             landed_over_g: Some(1.0),
             apogee_time_ratio: Some(1.0),
+            quantities_read: true,
             ..TeensyFile::default()
         };
         let named = TeensyFile {
             layout: "named fields".to_owned(),
             alt_lines: 0,
             msl_worst_m: None,
-            pad_pressure_kpa: Some(92.0),
+            pad_pressure_in_band: Some(true),
             ..tabs.clone()
         };
         assert!(teensy_unread(&[tabs.clone(), named.clone()]).is_empty());
@@ -8125,12 +8186,10 @@ mod tests {
                 ..tabs.clone()
             }));
         }
-        for kpa in [49.9, 110.1] {
-            assert!(fails(TeensyFile {
-                pad_pressure_kpa: Some(kpa),
-                ..named.clone()
-            }));
-        }
+        assert!(fails(TeensyFile {
+            pad_pressure_in_band: Some(false),
+            ..named.clone()
+        }));
         for broken in [
             TeensyFile {
                 msl_worst_m: Some(0.0104),
@@ -8165,7 +8224,15 @@ mod tests {
                 ..named.clone()
             },
             TeensyFile {
-                pad_pressure_kpa: None,
+                pad_pressure_in_band: None,
+                ..named.clone()
+            },
+            TeensyFile {
+                quantities_read: false,
+                ..tabs.clone()
+            },
+            TeensyFile {
+                quantities_read: false,
                 ..named.clone()
             },
             TeensyFile {
@@ -8205,6 +8272,17 @@ mod tests {
             ["milli-g", "milli-g", "deg/s", "deg C"]
         );
         assert!(teensy_field_units(&names, &units[..2]).is_none());
+        // One unit for several groups only without axes.
+        assert!(teensy_field_units(&names, &units[..1]).is_none());
+        let unaxed: Vec<String> = ["T1", "T2"].map(str::to_owned).to_vec();
+        assert_eq!(
+            teensy_field_units(&unaxed, &units[2..]).unwrap(),
+            ["deg C", "deg C"]
+        );
+        assert!(TEENSY_PAD_PRESSURE_PA.contains(&50_000.0));
+        assert!(!TEENSY_PAD_PRESSURE_PA.contains(&49_999.0));
+        assert!(TEENSY_PAD_PRESSURE_PA.contains(&110_000.0));
+        assert!(!TEENSY_PAD_PRESSURE_PA.contains(&110_001.0));
         assert!((bmp180_altitude_m(95_000.0) - 540.4176).abs() < 1e-4);
         // A ballistic flight: 1 g on the pad from 0 to 10 s, 5 g for a moment at 10 s, apogee
         // 490.3 m up at 20 s, √(2h/g) = 10 s.

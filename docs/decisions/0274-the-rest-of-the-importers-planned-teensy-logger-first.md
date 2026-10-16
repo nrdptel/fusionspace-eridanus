@@ -1,7 +1,7 @@
 # ADR-274: M7.1c18 in six: a course's Teensy logger first, then the five increments left (2026-10-15)
 
 - **Status:** accepted; narrows M7.1c18 to a first increment and plans every remaining increment, M7.1c19 to M7.1c23, each with its own *done when*, so M7.1's last files are planned once; follows [ADR-272](0272-the-blue-ravens-usb-download-before-the-rest.md)
-- **Summary:** After M7.1c17, 51 sample logs were left unread, in five groups. This record plans all of them at once, in six increments, the easiest to check first. M7.1c18 reads the 8 files of a university course's Teensy data logger, one sensor's reading a line, in two layouts. Where a file states no unit, the unit is held to the physics the files must keep: on every one of 305,340 `Alt` lines, the barometer's altitude follows its pressure by the BMP180's formula to within 5.4 mm (0.21 in); the accelerometer reads 0.984 to 0.989 g on the pad; and the time to apogee is 0.91 to 1.14 times √(2h/g). The other 43 files go to M7.1c19 to M7.1c23.
+- **Summary:** After M7.1c17, 51 sample logs were left unread, in five groups. This record plans all of them at once, in six increments, the easiest to check first. M7.1c18 reads the 8 files of a university course's Teensy data logger, one sensor's reading a line, in two layouts. Where a file states no unit, the unit is held to the physics the files must keep: on every one of 305,340 `Alt` lines, the barometer's altitude follows its pressure by the BMP180's formula to within 5.4 mm (0.21 in); the accelerometer reads 0.983 to 0.989 g on the pad; and the time to apogee is 0.90 to 1.14 times √(2h/g). The other 43 files go to M7.1c19 to M7.1c23.
 
 **Context.** ADR-271 sorted the files left after M7.1c15 into groups. After M7.1c16 and M7.1c17,
 51 remain, which `cargo xtask logs` lists by id. Their groups, from a survey of each file:
@@ -30,14 +30,15 @@ is a 100 s cut from a longer recording, so its clock starts at 1,330 s.
 The older layout's `Alt` lines carry the pressure and an altitude, `MSL`. Computed in 64-bit
 floats, the altitude follows the pressure by the Bosch BMP180 data sheet's formula, 44,330 × (1 −
 (P / 101,325)^(1/5.255)) (BST-BMP180-DS000, §3.6), to within 5.4 mm on every line. The standard
-atmosphere's own constants are 0.09 to 0.20 m off. On 21,540 of the 305,340 lines the gap is more
-than the 5 mm half step the value is written to, and it is greatest at the same pressure in every
-file. That is the formula's rounding in 32-bit floats, where its power near 0.9 is good to about
-2⁻²³: 5.3 mm of the 44,330 m scale. In 32-bit floats with another library's power, the gap is
-6.5 mm.
+atmosphere's own form, 44,330.77 × (1 − (P / 101,325)^0.190263), is 0.09 to 0.21 m off. On 21,540
+of the 305,340 lines the gap is more than the 5 mm half step the value is written to, and it is
+greatest at the same pressure in every file, so it is the logger's own rounding of the formula,
+whose exact form no document gives. The exponent written to 7 digits, 0.1902949, worked out in
+64-bit floats, leaves 91 lines past the half step, by at most 0.06 mm; 32-bit arithmetic, whose
+power near 0.9 is good to about 2⁻²³ (5.3 mm of the 44,330 m scale), would leave more.
 
 The high-g accelerometer `HG` steps by 0.4788 m/s² if read in m/s², but it doesn't agree with `A`.
-In the boost, while `A` reads from 3 g to 90 % of its greatest, `HG` is 1.4 to 2.4 times `A`, by
+In the boost, while `A` reads from 3 g to 90 % of its greatest, `HG` is 1.37 to 2.39 times `A`, by
 file. In the newer layout, the high-g `LIS`, read in its stated g, is 0.996 times the `ICM`
 accelerometer over the boost. The newer layout states its magnetometer in milli-T. Earth's field
 is 0.025 to 0.065 mT, and the values are of the order of a thousand times that.
@@ -80,7 +81,8 @@ is 0.025 to 0.065 mT, and the values are of the order of a thousand times that.
    is `milli-T`.
 5. **The check.** The survey decodes each file itself and compares every value with the reader's.
    Four physical checks hold the units:
-   - **`MSL` against the BMP180's formula** of `P`, to within 0.005 m + 44,330 × 2⁻²³ m.
+   - **`MSL` against the BMP180's formula** of `P`, to within 0.005 m + 44,330 × 2⁻²³ m: the
+     half step and an allowance for the logger's rounding of the formula.
    - **The accelerometer at rest:** its magnitude on the pad (the 5 s ending 1 s before liftoff)
      and over the last 2 s (after landing) is within 3 % of 1 g. A unit other than the one read
      would be 3 or more times off.
@@ -89,11 +91,14 @@ is 0.025 to 0.065 mT, and the values are of the order of a thousand times that.
      be 10 or more times off.
    - **The pad pressure,** for the named layout, is between 50 and 110 kPa.
 
-   A file that fails any check is as unread as a refusal.
+   Each check also needs the reader to have read the values it holds in the quantities it takes
+   them in (acceleration, pressure, altitude above sea level), so a unit the reader assigned
+   wrongly fails it. A file that fails any check is as unread as a refusal.
 
 **Consequences.** The survey reads 1,016 of its 1,122 files. The 8 files' 6,188,639 values equal
-the survey's own decoding. Their worst `MSL` gap is 0.0054 m. Their pad magnitudes run from 0.984
-to 0.989 g, and after landing from 0.998 to 1.007 g. Their times to apogee are 0.91 to 1.14 times
-√(2h/g). The newer layout's pad pressure is in the band. The pad window is the one the rocket stands
-in: over the first 2 s of the recordings, minutes before launch, while the logger was handled, two
-files read 1.04 and 1.05 g. 43 files are left, to M7.1c19 to M7.1c23.
+the survey's own decoding. Their worst `MSL` gap is 0.0054 m. Their pad magnitudes run from 0.983
+to 0.989 g, and over their last 2 s, after landing, from 0.997 to 1.008 g. Their times to apogee are
+0.90 to 1.14 times √(2h/g). The newer layout's pad pressure is in the band; the report says so
+without the value, which would give the site's elevation. The pad window is the one the rocket
+stands in: over the first 2 s of the recordings, minutes before launch, while the logger was
+handled, three files read 1.034 to 1.048 g. 43 files are left, to M7.1c19 to M7.1c23.
