@@ -153,7 +153,7 @@ the files showed, measured, and the reader's decisions.
    in its pattern until a channel stops. A sheet writes every row as wide as its widest, so a
    row may end in empty cells; a first row that is itself a header is refused, as `raven::read`
    reads such a file whole.
-2. **One sheet has a table pasted over two of its columns.** Columns 34 and 35 (AH and AI) hold
+2. **One sheet has a table pasted over two of its columns.** Columns 34 and 35 hold
    a clock and a value pasted over the export's cells, where the header puts `[Altitude
    (Accel-Ft)]`; from the row where the first channel stops, where the export's rows shift one
    cell left, they cover the cells of whichever channel stands there. `raven::read_rows_around` reads such a sheet by one rule: a channel whose sample, in any

@@ -1162,7 +1162,7 @@ wide as its widest, so a row may end in empty cells. A first row that reads as a
 first cell beginning with `Time`, is refused: the file has its own, and `raven::read` reads it
 whole.
 
-**A table pasted over.** In one sample sheet, columns 34 and 35 (AH and AI) hold a clock and a
+**A table pasted over.** In one sample sheet, columns 34 and 35 hold a clock and a
 value pasted over the export's cells, where the header puts `[Altitude (Accel-Ft)]`. As the
 export's rows shift left where
 channels stop, the two columns cover different channels' cells in different rows. The rule, given
