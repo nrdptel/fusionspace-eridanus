@@ -18,7 +18,7 @@
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite `.pfa`](crate::perfectflite::read_pfa) | names PerfectFlite, such as `PerfectFlite Alt15K/WD`, and has a `**!!Data:` line |
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs; or, with no header row, four tab-separated numbers, the third a temperature ending in `F` or `C`, in either case |
-//! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
+//! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header; or, a table cut from an export, its first line names `time`, `state` and `state_name` and only AltOS's own columns, and of its first 100 rows one gives a state as AltOS's exports number and name it, and none contradicts them |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
 //! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date |
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
@@ -30,8 +30,10 @@
 //! | [Radio packets](crate::packets) | its first line that isn't blank is a `255:…:254` packet, a whole number or `Gain[…]`, and a packet is one of its first 100 |
 //! | [Radio packets in RTF](crate::packets::read_rtf) | an RTF document, one of whose first 100 lines, its markup taken off, is a `255,…,254` packet |
 //! | [Teensy data logger, named fields](crate::teensy::read_named) | its first line that isn't blank states a tag's units, `ICM data in us, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas |
+//! | [MARSA download](crate::marsa) | its first line that isn't blank is a `<NAME> value` setting, such as `<BARO_ZERO 0> 790`, and one of its first 200 is `<MARSA VERSION>` and a value |
 //! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
+//! | [AltOS telemetry CSV](crate::altos_telem_csv) | the first line that isn't blank opens `serial,tick,ptype,` |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
 //! | [ARTS2 raw CSV](crate::arts2_raw::read_csv) | the first line that isn't blank is `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State`, the names as written |
@@ -62,9 +64,9 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimax, altimetercloud, altos, altos_eeprom, altos_telem,
-    archive, arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus,
-    fwgps, fwsummary, generic, kml, nmea, packets, perfectflite, phone_launch, raven, raven_fipa,
-    rdas, rrc3, rrc3_rff, rtx, sillygoose, teensy, xls,
+    altos_telem_csv, archive, arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer,
+    entacore, fluctus, fwgps, fwsummary, generic, kml, marsa, nmea, packets, perfectflite,
+    phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose, teensy, xls,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -81,6 +83,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::TeensyNamed,
     LogFormat::RadioPacketText,
     LogFormat::AltimaxXls,
+    LogFormat::Marsa,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
@@ -89,6 +92,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::RdasText,
     LogFormat::AltosEeprom,
     LogFormat::AltosTelemetry,
+    LogFormat::AltosTelemetryCsv,
     LogFormat::Arts2Csv,
     LogFormat::Arts2RawCsv,
     LogFormat::RtxCsv,
@@ -199,6 +203,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     if altimax::recognizes(text) {
         return Some(LogFormat::AltimaxXls);
     }
+    // A MARSA download by its settings, which open with `<`, before KML's markup.
+    if marsa::recognizes(text) {
+        return Some(LogFormat::Marsa);
+    }
     // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
         return Some(LogFormat::ConsoleCapture);
@@ -225,6 +233,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if altos_telem::recognizes(text) {
         return Some(LogFormat::AltosTelemetry);
+    }
+    if altos_telem_csv::recognizes(text) {
+        return Some(LogFormat::AltosTelemetryCsv);
     }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
@@ -257,7 +268,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
             .find(|line| !line.starts_with('#') || altos_header(line))
             .filter(|line| altos_header(line))
             .map(|_| LogFormat::AltosCsv)
-    } else if altos_header(first) {
+    } else if altos_header(first) || altos::recognizes_table(text) {
+        // A table cut from an AltOS export, AltOS's names with no `version` header, is read by
+        // its states.
         Some(LogFormat::AltosCsv)
     } else if first.starts_with("Time") && first.contains("Axial Accel (Gs)") {
         // The Raven's export opens with a time column; a Blue Raven's names the same channel
@@ -344,6 +357,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::RadioPacketText) => packets::read(&text),
         Some(LogFormat::RadioPacketRtf) => packets::read_rtf(&text),
         Some(LogFormat::AltimaxXls) => altimax::read(&text),
+        Some(LogFormat::Marsa) => marsa::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),
@@ -368,6 +382,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         Some(LogFormat::RdasText) => rdas::read(&text),
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
+        Some(LogFormat::AltosTelemetryCsv) => altos_telem_csv::read(&text),
         Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
         Some(LogFormat::GenericTable) => generic::read(&text),
         // A capture states no layout for its records: the caller's is needed.
