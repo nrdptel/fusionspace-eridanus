@@ -1135,7 +1135,9 @@ status cell, and where a channel stops, its two cells empty and every channel af
 to the left. Without the header nothing names the columns, so the caller states it:
 `hpr_flightdata::raven::read_rows` reads the rows under the header line it is given, and
 `read_rows_around` reads a sheet another table was pasted over
-([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md), amended for M7.1c20, decided it). `import::read` doesn't read such a workbook on its own,
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+decided it, in its amendment for [M7.1c20, workbooks with a reading
+beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own,
 and neither do `hpr analyze` and the Python package.
 
 > **How far to trust it.** The header stated for both sample sheets is the one Debrief's public
@@ -1194,10 +1196,10 @@ The derived channels, in each sheet:
 - `[Altitude (Baro-Ft-ASL)]` is the standard atmosphere's height of the sheet's own `Baro (Atm)`,
   44,330.77 × (1 − (P / 101,325)^0.190263) m, less one offset, within the pressure's printed
   half step, 0.000005 atm, times the formula's slope, and the altitude's own: half the spread is
-  0.004 m and 0.020 m.
+  0.004 m (0.013 ft) and 0.020 m (0.066 ft).
 - `[Altitude (Baro-Ft-AGL)]` is that less one constant, the pad's, within both printed half steps
-  (half the spread 0.0015 m in each), and its first sample, on the pad, is within 3 m of 0: 0.20 m
-  and 0.72 m. Were the two altitudes' names swapped, the pad would read the site's elevation.
+  (half the spread 0.0015 m (0.0049 ft) in each), and its first sample, on the pad, is within 3 m
+  (9.8 ft) of 0: 0.20 m (0.66 ft) and 0.72 m (2.4 ft). Were the two altitudes' names swapped, the pad would read the site's elevation.
 - `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both printed half
   steps, in the first sheet; the second has neither.
 
@@ -1212,13 +1214,13 @@ export is an `.xls` file, the binary format of Excel before 2007, and an unusual
 *worksheet stream*, its records end to end, not inside the container file (an OLE2 compound
 document) that Excel wraps its own `.xls` files in. `hpr_flightdata::xls::read` writes the
 worksheet out as text and reads it, here with `hpr_flightdata::altimax`; `import::read` refuses
-the `.xls` bytes and names `xls::read`. Only the Rust library reads it ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md), amended for
-M7.1c20, decided it).
+the `.xls` bytes and names `xls::read`. Only the Rust library reads it ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)).
 
 > **How far to trust it.** The one sample file is read cell for cell: the survey's own decoding
 > and xlrd 2.0.2, an independent Python reader, agree with the text on all 278,685 cells. No
 > manual describes the columns, so the reading is held to physics: each height follows its
-> pressure by the standard atmosphere's formula to within 4.4 mm, and the clock, the
+> pressure by the standard atmosphere's formula to within 4.4 mm (0.17 in), and the clock, the
 > accelerometer and its sum are held to the flight. The pressure columns say `[hpa]` but hold
 > pascals, and are read so. The voltages are kept as stated, unchecked.
 
@@ -1269,8 +1271,8 @@ the text read by the stated units, but the pressures in pascals. Then, on the fl
 
 - **The heights.** Each of the 50,668 heights, filtered and raw, is the standard atmosphere's
   height of its pressure in pascals, 44,330.77 × (1 − (P / 101,325)^0.190263) m (U.S. Standard
-  Atmosphere, 1976), less one offset for the file, to within 0.0044 m. The check allows 44,330.77
-  × 2⁻²³ = 0.0053 m for the software's own working of the formula, whose form no document gives.
+  Atmosphere, 1976), less one offset for the file, to within 0.0044 m (0.014 ft). The check
+  allows 44,330.77 × 2⁻²³ = 0.0053 m (0.017 ft) for the software's own working of the formula, whose form no document gives.
   The offset, the pad's height in that atmosphere, isn't written, as it gives the site's
   elevation. Read in hectopascals, the heights would miss by more than a kilometer.
 - **The pad pressure,** the first raw pressure, is between 50 and 110 kPa.
