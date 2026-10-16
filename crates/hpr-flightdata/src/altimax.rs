@@ -104,6 +104,10 @@ const STEP_S: f64 = 0.005;
 /// A pad's pressure, Pa: 500 to 1,100 hPa, the band the other readers hold a pressure to.
 const PAD_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
 
+/// The most voltage channel numbers read: the software lists five voltages (*AltiMAX G4 Manual*,
+/// p. 42); more, from a file the reader doesn't know, are refused rather than made channels.
+const VOLT_CHANNELS: usize = 16;
+
 /// Whether `text` is an AltiMAX export: its first line that isn't blank opens with the five
 /// columns `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]`, in any
 /// case.
@@ -152,9 +156,11 @@ fn role(name: &str) -> Role {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] when the first line isn't the export's header ([`recognizes`]);
-/// [`LogError::Syntax`] when a row's cells aren't as many as the header's, a time is missing, isn't
-/// a number or doesn't increase, or a value isn't a number; [`LogError::Unit`] when the clock's
-/// shortest step isn't 5 ms or a pressure's first value is a pad's in neither hPa nor Pa;
+/// [`LogError::Syntax`] when the header names a column twice (but `EVENT`, a code's and a name's),
+/// a row's cells aren't as many as the header's, a time is missing, isn't a number or doesn't
+/// increase, a value isn't a number (`NaN` included) or is too large for pascals, or `VOLT.
+/// CHANNEL` holds more than 16 numbers; [`LogError::Unit`] when the clock has one row or its
+/// shortest step isn't 5 ms, or a pressure's first value is a pad's in neither hPa nor Pa;
 /// [`LogError::NoData`] when no row follows the header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
@@ -176,6 +182,20 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         .split(',')
         .map(|name| name.trim().to_owned())
         .collect();
+    // Each column is named once, but `EVENT`, a code's and a name's: a second `TIME` or `HEIGHT
+    // RAW [m]` would read rows against the wrong clock or track.
+    for (index, name) in names.iter().enumerate() {
+        let same = names[..index]
+            .iter()
+            .filter(|earlier| earlier.eq_ignore_ascii_case(name))
+            .count();
+        if same > usize::from(name.eq_ignore_ascii_case(EVENT)) {
+            return Err(syntax(
+                header_line,
+                format!("the header names {:?} more than once", short(name)),
+            ));
+        }
+    }
     // The second column named `EVENT` holds the events' names; the first, their codes.
     let mut roles: Vec<Role> = names.iter().map(|name| role(name)).collect();
     if let Some(second) = names
@@ -207,7 +227,9 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut columns: Vec<Vec<f64>> = vec![Vec::new(); names.len()];
     let mut event_names: Vec<String> = Vec::new();
     let mut gaps = vec![0usize; names.len()];
+    let mut row_lines: Vec<usize> = Vec::new();
     for (number, line) in lines {
+        row_lines.push(number);
         let cells: Vec<&str> = line.split(',').map(str::trim).collect();
         if cells.len() != names.len() {
             return Err(syntax(
@@ -247,7 +269,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                         gaps[index] += 1;
                         f64::NAN
                     } else {
-                        let value = cell.parse::<f64>().ok().ok_or_else(|| {
+                        let value = cell.parse::<f64>().ok().filter(|value| !value.is_nan());
+                        let value = value.ok_or_else(|| {
                             syntax(
                                 number,
                                 format!(
@@ -293,11 +316,16 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             Role::Time | Role::EventName => {}
             Role::Pressure => {
                 let scale = pressure_scale(name, values, header_line, &mut notes)?;
+                let values = values
+                    .iter()
+                    .zip(&row_lines)
+                    .map(|(value, line)| finite(value * scale, FORMAT, *line, name))
+                    .collect::<Result<Vec<f64>, LogError>>()?;
                 log.channels.push(Channel {
                     column: name.clone(),
                     quantity: Quantity::Pressure,
                     time_s: time_s.clone(),
-                    values: values.iter().map(|value| value * scale).collect(),
+                    values,
                 });
             }
             Role::Value(quantity, scale) => {
@@ -313,7 +341,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             }
             Role::Voltage => {
                 let numbers = volt_channel.map(|at| columns[at].as_slice());
-                split_voltages(&mut log, name, values, numbers);
+                split_voltages(&mut log, name, values, numbers, header_line)?;
             }
         }
     }
@@ -350,8 +378,15 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 }
 
 /// Gives each voltage channel number its own channel of `values`, on the rows that name it; with
-/// no channel column, the voltages are one channel.
-fn split_voltages(log: &mut FlightLog, name: &str, values: &[f64], channels: Option<&[f64]>) {
+/// no channel column, the voltages are one channel. More than [`VOLT_CHANNELS`] numbers are
+/// refused: the software lists five voltages.
+fn split_voltages(
+    log: &mut FlightLog,
+    name: &str,
+    values: &[f64],
+    channels: Option<&[f64]>,
+    header_line: usize,
+) -> Result<(), LogError> {
     let Some(channels) = channels else {
         log.channels.push(Channel {
             column: name.to_owned(),
@@ -359,32 +394,56 @@ fn split_voltages(log: &mut FlightLog, name: &str, values: &[f64], channels: Opt
             time_s: log.time_s.clone(),
             values: values.to_vec(),
         });
-        return;
+        return Ok(());
     };
-    let mut numbers: Vec<f64> = channels.iter().copied().filter(|n| n.is_finite()).collect();
-    numbers.sort_by(f64::total_cmp);
-    numbers.dedup();
-    for number in numbers {
-        let rows: Vec<usize> = (0..values.len())
-            .filter(|row| channels[*row] == number)
-            .collect();
+    // The rows by channel number, then in order, in one sort; `+ 0.0` takes −0 to 0.
+    let mut rows: Vec<(f64, usize)> = channels
+        .iter()
+        .enumerate()
+        .filter(|(_, number)| number.is_finite())
+        .map(|(row, number)| (number + 0.0, row))
+        .collect();
+    rows.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+    let groups: Vec<&[(f64, usize)]> = rows.chunk_by(|a, b| a.0 == b.0).collect();
+    if groups.len() > VOLT_CHANNELS {
+        return Err(syntax(
+            header_line,
+            format!(
+                "`VOLT. CHANNEL` holds {} channel numbers, more than the {VOLT_CHANNELS} this \
+                 reader takes",
+                groups.len()
+            ),
+        ));
+    }
+    for group in groups {
+        // Invariant: `chunk_by` yields no empty group.
+        let number = group[0].0;
         log.channels.push(Channel {
             column: format!("{name} (channel {number})"),
             quantity: Quantity::Voltage,
-            time_s: rows.iter().map(|row| log.time_s[*row]).collect(),
-            values: rows.iter().map(|row| values[*row]).collect(),
+            time_s: group.iter().map(|(_, row)| log.time_s[*row]).collect(),
+            values: group.iter().map(|(_, row)| values[*row]).collect(),
         });
     }
+    Ok(())
 }
 
 /// Holds the clock, which names no unit, to the altimeter's 200 samples a second: its shortest
-/// step, read in seconds, must be 5 ms within 10 %.
+/// step, read in seconds, must be 5 ms within 10 %, and a single row, with no step, is refused.
 fn clock_in_seconds(time_s: &[f64], header_line: usize) -> Result<(), LogError> {
     let shortest = time_s
         .windows(2)
         .map(|pair| pair[1] - pair[0])
         .fold(f64::INFINITY, f64::min);
-    if time_s.len() < 2 || (shortest - STEP_S).abs() <= 0.1 * STEP_S {
+    if time_s.len() < 2 {
+        return Err(LogError::Unit {
+            format: FORMAT,
+            line: header_line,
+            message: "`TIME` names no unit, and with one row it has no step to tell it by"
+                .to_owned(),
+        });
+    }
+    if (shortest - STEP_S).abs() <= 0.1 * STEP_S {
         return Ok(());
     }
     Err(LogError::Unit {
@@ -597,6 +656,80 @@ mod tests {
         assert!(matches!(read(&back), Err(LogError::Syntax { line: 3, .. })));
         let word = sample().replace("-9.8", "x");
         assert!(matches!(read(&word), Err(LogError::Syntax { line: 2, .. })));
+    }
+
+    /// A refusal's line and message.
+    fn refused(text: &str) -> (usize, String) {
+        match read(text) {
+            Err(LogError::Syntax { line, message, .. } | LogError::Unit { line, message, .. }) => {
+                (line, message)
+            }
+            other => panic!("expected a refusal, got {other:?}"),
+        }
+    }
+
+    /// A second `TIME` or `HEIGHT RAW [m]` would read the rows against the wrong clock or track;
+    /// only `EVENT` is named twice, and not three times.
+    #[test]
+    fn a_column_named_twice_is_refused_but_event() {
+        for (from, to) in [
+            ("ACCEL [m/s2]", "TIME"),
+            ("SPEED [m/s]", "HEIGHT RAW [m]"),
+            ("VOLTAGE [V]", "EVENT"),
+        ] {
+            let (line, message) = refused(&sample().replacen(from, to, 1));
+            assert_eq!(line, 1, "{to}");
+            assert!(
+                message.contains(&format!("names {to:?} more than once")),
+                "{to}: {message}"
+            );
+        }
+    }
+
+    /// A `NaN` cell isn't a gap nobody counted, and a pressure in hPa too large for pascals isn't
+    /// an infinity: both are refused on their lines.
+    #[test]
+    fn a_value_that_isnt_a_finite_number_is_refused_on_its_line() {
+        let (line, message) = refused(&sample().replacen(",-9.8,", ",NaN,", 1));
+        assert_eq!(line, 2);
+        assert!(
+            message.contains("\"NaN\", under \"ACCEL [m/s2]\", isn't a number"),
+            "{message}"
+        );
+        let huge = export(&[
+            (0.005, 980.0, 0.0, 0, "PAD", 1, 7.4),
+            (0.010, 1e307, 0.9, 0, "PAD", 2, 7.3),
+        ]);
+        let (line, message) = refused(&huge);
+        assert_eq!(line, 3);
+        assert!(message.contains("too large"), "{message}");
+    }
+
+    /// The voltages split by channel number, as many as 16; a 17th is refused, not made a channel.
+    #[test]
+    fn more_than_16_voltage_channels_are_refused() {
+        let rows = |count: u32| {
+            export(
+                &(0..count)
+                    .map(|n| (0.005 * f64::from(n + 1), 98_000.0, 0.0, 0, "PAD", n, 7.0))
+                    .collect::<Vec<_>>(),
+            )
+        };
+        let log = read(&rows(16)).unwrap();
+        let voltages = log
+            .channels
+            .iter()
+            .filter(|channel| channel.quantity == Quantity::Voltage);
+        assert_eq!(voltages.count(), 16);
+        let (line, message) = refused(&rows(17));
+        assert_eq!(line, 1);
+        assert!(message.contains("17 channel numbers"), "{message}");
+    }
+
+    #[test]
+    fn a_clock_of_one_row_is_refused() {
+        let (_, message) = refused(&export(&[(0.005, 98_000.0, 0.0, 0, "PAD", 1, 7.4)]));
+        assert!(message.contains("one row"), "{message}");
     }
 
     #[test]

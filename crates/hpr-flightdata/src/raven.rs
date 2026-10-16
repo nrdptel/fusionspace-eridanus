@@ -302,9 +302,10 @@ pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
 /// with a note naming it and counting the rows; every other channel is read as [`read_rows`]
 /// reads it. To walk a row, each channel's cells must still say whether it has a sample: one of
 /// its time's and values' cells outside the pasted columns not empty; or, where some are pasted
-/// over and the rest empty, the cell after them, a sample's first status cell, `b` and digits,
-/// where a stopped channel's next cell is another channel's time. That cell pasted over or empty,
-/// a status left empty or another channel stopped too, the row is refused.
+/// over and the rest empty, and the channel has its own clock and a status, the cell after them, a
+/// sample's status, `b` and digits, where a stopped channel's next cell is another channel's time.
+/// That cell pasted over or empty, a status left empty or another channel stopped too, or a clock
+/// of more channels, the row is refused.
 ///
 /// ```
 /// use hpr_flightdata::raven;
@@ -557,10 +558,12 @@ fn read_row(
         let sampled = if filled || !hidden {
             filled
         } else {
-            // The pasted cells hide the time and values: the cell after them tells, a sample's
-            // first status cell or the next clock's time. Empty, it could be either: a status left
-            // empty, or a stopped clock's time.
-            let after = (width > empty_width && !pasted.contains(&(at + empty_width)))
+            // The pasted cells hide the time and value: for a clock of one channel with a status,
+            // the cell after them tells, the sample's status or the next clock's time. Empty, it
+            // could be either: a status left empty, or a stopped clock's time. A clock of more
+            // channels has a value there, not a status.
+            let one_status = clock.columns.len() == 1 && width > empty_width;
+            let after = (one_status && !pasted.contains(&(at + empty_width)))
                 .then(|| cells.get(at + empty_width).copied());
             match after {
                 Some(Some(cell)) if !cell.is_empty() => status_cell(cell).is_some(),
@@ -1431,6 +1434,26 @@ mod tests {
                 }
                 other => panic!("{row}: expected a syntax refusal, got {other:?}"),
             }
+        }
+    }
+
+    /// A clock of two channels has its second value, not a status, after its time's and values'
+    /// cells: the cell after them can't tell a sample from the next clock's time, so a row whose
+    /// pasted columns hide such a clock's cells is refused, not read with the clock stopped.
+    #[test]
+    fn a_pasted_over_clock_of_two_channels_is_refused() {
+        let header = "Time@A,Axial Accel (Gs),bILBA,Lateral Accel (Gs),bILBA,\
+                      Time@B,[Altitude (Baro-Ft-AGL)],bILBA";
+        let sheet = "0,1,b0000,2,b0000,0,0,b0000\n9,9,,5,,,,\n";
+        match read_rows_around(header, sheet, &[1, 2]) {
+            Err(LogError::Syntax { line, message, .. }) => {
+                assert_eq!(line, 2);
+                assert!(
+                    message.contains("hide whether the clock \"Time@A\" has a sample"),
+                    "{message}"
+                );
+            }
+            other => panic!("expected a syntax refusal, got {other:?}"),
         }
     }
 

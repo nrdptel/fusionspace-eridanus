@@ -5759,6 +5759,14 @@ fn one_offset(pairs: &[(f64, f64)], offset: bool) -> (bool, f64) {
     )
 }
 
+/// Half the spread of `pairs`' differences, as [`one_offset`] gives it, but `None` when there are
+/// none or one isn't a number: `f64::min` and `f64::max` pass over a gap, `NaN`, so a pair never
+/// compared would count as one that held.
+fn spread_of_every(pairs: &[(f64, f64)]) -> Option<f64> {
+    (!pairs.is_empty() && pairs.iter().all(|(d, t)| d.is_finite() && t.is_finite()))
+        .then(|| one_offset(pairs, true).1)
+}
+
 /// The most the AltiMAX's heights may differ from the standard atmosphere's height of their
 /// pressures, less one offset for the file, m: an allowance of 44,330.77 × 2⁻²³ m, 5.3 mm, for
 /// the software's own working of the formula, whose form no document gives, as for the Teensy
@@ -5776,8 +5784,9 @@ const ALTIMAX_SPEED_BAND: std::ops::RangeInclusive<f64> = 0.9..=1.1;
 
 /// The most a FIP sheet's `[Altitude (Baro-Ft-AGL)]` may read on the pad, its first sample, m:
 /// the FIP sets it to 0 there, and its barometer's noise on the pad is a few of its 4 Pa steps,
-/// about 0.3 m each, where `[Altitude (Baro-Ft-ASL)]` read in its place would be the site's
-/// elevation, tens of meters or more but at the sea's edge.
+/// about 0.3 m each, where `[Altitude (Baro-Ft-ASL)]` read in its place would be the pad's height
+/// in the standard atmosphere, more than 3 m but for a pad pressure within about 36 Pa of 101,325
+/// Pa, where the check can't tell the two apart.
 const FIP_PAD_AGL_M: f64 = 3.0;
 
 /// A FIP export's rows in a workbook against the `.FIPa` of the same flight beside it, and its
@@ -6104,7 +6113,7 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
             .collect();
         for (&(row, column), value) in &cells {
             file.cells_compared += 1;
-            let line = rows.iter().position(|r| *r == row);
+            let line = rows.binary_search(&row).ok();
             let written = line
                 .and_then(|l| table.get(l))
                 .and_then(|cells| cells.get(usize::from(column)));
@@ -6219,7 +6228,7 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
         };
         let in_pa = pairs(1.0);
         file.height_pairs = in_pa.len();
-        file.height_spread_m = Some(one_offset(&in_pa, true).1);
+        file.height_spread_m = spread_of_every(&in_pa);
         file.stated_hpa_off_by_km = one_offset(&pairs(100.0), true).1 > 1_000.0;
         file.pad_pressure_in_band = column("PRESS RAW [hpa]")
             .first()
@@ -7742,12 +7751,13 @@ fn markdown(report: &Report) -> String {
              a sheet keeps them, back the stated header's names for them (`[Altitude \
              (Accel-Ft)]` is held to nothing): *ASL* is whether `[Altitude (Baro-Ft-ASL)]` is the standard \
              atmosphere's height of the sheet's own `Baro (Atm)`, 44,330.77 × (1 − (P / \
-             101,325)^0.190263) m, less one offset, within the pressure's printed half step, \
+             101,325)^0.190263) m with P in pascals, less one offset, within the pressure's printed half step, \
              0.000005 atm, times the formula's slope, and the altitude's in its sixth significant \
              figure, with half the spread, m; *AGL* whether `[Altitude (Baro-Ft-AGL)]` is that \
              less one constant, the pad's, within both printed half steps, and *Pad*, m, its first \
              sample in magnitude, within {FIP_PAD_AGL_M} m of 0, as the FIP sets it to 0 on the \
-             pad, where the site's elevation would stand were the two altitudes' names swapped; \
+             pad, where the pad's height in the standard atmosphere would stand were the two \
+             altitudes' names swapped; \
              *mph* whether \
              `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both \
              printed half steps.\n\n\
@@ -9804,8 +9814,8 @@ mod tests {
         assert!((greatest.unwrap() - 5.0).abs() < 1e-9);
     }
 
-    /// A Teensy file passes inside every band and fails just outside each, on either side; the
-    /// tab-separated layout needs its `Alt` lines, the named one its pad pressure.
+    /// A FIP sheet passes with every check held, or left out with its channel, and fails on any
+    /// one that doesn't hold or can't be made.
     #[test]
     fn fip_sheets_fail_on_any_check() {
         let good = FipSheetFile {
@@ -9852,6 +9862,10 @@ mod tests {
                 ..good.clone()
             },
             FipSheetFile {
+                agl_below_asl: None,
+                ..good.clone()
+            },
+            FipSheetFile {
                 agl_on_pad_m: Some(3.01),
                 ..good.clone()
             },
@@ -9866,6 +9880,76 @@ mod tests {
         ] {
             assert_eq!(fip_sheet_unread(&[broken]).len(), 1);
         }
+    }
+
+    /// Swapped, the two altitudes' names still pass the ASL and AGL checks, each one offset from
+    /// the other, but the pad reads its height in the standard atmosphere, not 0: invented rows of
+    /// a sheet whose pad is at 0.9376 atm, 540 m (1,770 ft) in that atmosphere.
+    #[test]
+    fn a_sheet_with_its_altitudes_swapped_fails_its_pad_check() {
+        const FT: f64 = 0.3048;
+        // Six significant figures, as the FIP prints its derived channels.
+        let sig6 = |v: f64| {
+            if v == 0.0 {
+                return "0".to_owned();
+            }
+            let decimals = usize::try_from(5 - v.abs().log10().floor() as i64).unwrap_or(0);
+            format!("{v:.decimals$}")
+        };
+        let pad_ft = standard_height_m(0.9376 * 101_325.0) / FT;
+        let mut rows = String::new();
+        for (k, atm) in [0.9376, 0.93, 0.92, 0.91].into_iter().enumerate() {
+            let t = 0.05 * k as f64;
+            let asl_ft = standard_height_m(atm * 101_325.0) / FT;
+            rows += &format!(
+                "{t:.2},{atm:.5},b0000,{t:.2},{},b0000,{t:.2},{},b0000\n",
+                sig6(asl_ft),
+                sig6(asl_ft - pad_ft)
+            );
+        }
+        let read = |first: &str, second: &str| {
+            let header = format!(
+                "Time@Baro (Atm),Baro (Atm),bILBA,Time@{first},{first},bILBA,\
+                 Time@{second},{second},bILBA"
+            );
+            let log = hpr_flightdata::raven::read_rows(&header, &rows).unwrap();
+            let mut file = FipSheetFile {
+                id: "f".to_owned(),
+                channels_read: 3,
+                fipa: Some("r".to_owned()),
+                matching: true,
+                raw_samples_compared: 4,
+                ..FipSheetFile::default()
+            };
+            fip_derived(&log, &mut file);
+            file
+        };
+        let (asl, agl) = ("[Altitude (Baro-Ft-ASL)]", "[Altitude (Baro-Ft-AGL)]");
+        let right = read(asl, agl);
+        assert_eq!(right.asl_from_pressure, Some(true));
+        assert_eq!(right.agl_below_asl, Some(true));
+        assert_eq!(right.agl_on_pad_m, Some(0.0));
+        assert!(fip_sheet_unread(&[right]).is_empty());
+        let swapped = read(agl, asl);
+        assert_eq!(swapped.asl_from_pressure, Some(true));
+        assert_eq!(swapped.agl_below_asl, Some(true));
+        assert!(
+            swapped.agl_on_pad_m.is_some_and(|m| m > 500.0),
+            "{swapped:?}"
+        );
+        assert_eq!(fip_sheet_unread(&[swapped]).len(), 1);
+    }
+
+    /// A spread over pairs every one of which was compared: a gap, or none at all, has none.
+    #[test]
+    fn a_spread_needs_every_pair() {
+        let spread = spread_of_every(&[(1.0, 0.0), (1.002, 0.0)]);
+        assert!(
+            spread.is_some_and(|m| (m - 0.001).abs() < 1e-12),
+            "{spread:?}"
+        );
+        assert_eq!(spread_of_every(&[(1.0, 0.0), (f64::NAN, 0.0)]), None);
+        assert_eq!(spread_of_every(&[]), None);
     }
 
     #[test]
@@ -10007,6 +10091,8 @@ mod tests {
         }
     }
 
+    /// A Teensy file passes inside every band and fails just outside each, on either side; the
+    /// tab-separated layout needs its `Alt` lines, the named one its pad pressure.
     #[test]
     fn teensy_files_fail_outside_each_band() {
         let tabs = TeensyFile {

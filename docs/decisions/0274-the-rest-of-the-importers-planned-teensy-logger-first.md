@@ -165,8 +165,9 @@ the files showed, measured, and the reader's decisions.
 3. **The `.xls` stream isn't BIFF8's.** The plan called it a bare BIFF8 stream, from its BOF's
    record id, `0x0809`, which BIFF5 to BIFF8 share. Its BOF's body is 6 bytes with a version of
    0, where Excel writes 8 bytes and `0x0500` for BIFF5 and 16 bytes and `0x0600` for BIFF8 (Rentz,
-   *OpenOffice.org's Documentation of the Microsoft Excel File Format*, §5.8), and its cells are
-   BIFF2's records: 50,668 `INTEGER`, 202,672 `NUMBER` and 25,345
+   *OpenOffice.org's Documentation of the Microsoft Excel File Format*, §5.8). Rentz reads such a
+   tool-written BOF's version of 0 as BIFF5 (§5.8.2); the cells settle it, as they are BIFF2's
+   records: 50,668 `INTEGER`, 202,672 `NUMBER` and 25,345
    `LABEL`. xlrd 2.0.2, run as an outside reader, reads the file as BIFF2. `hpr_flightdata::xls`
    reads BIFF2's cell records under any BOF and refuses the later versions' cell records by
    name. The file is read from its bare stream, as planned; its format is named for what it
@@ -202,8 +203,8 @@ the files showed, measured, and the reader's decisions.
 match their `.FIPa` in 40,841 and 48,290 samples, none differing: the worst time is 0.00005 s, the
 FIP's printing, and the worst value 0 steps. Their ASL is the formula's height of their pressure
 to within 0.004 m and 0.020 m, their AGL is ASL less one constant to within 0.0016 m, and it reads
-0.20 m and 0.72 m on the pad. A probe, not committed, swapping the two altitudes' names in the
-first sheet's header failed the pad check. The `.xls`'s 278,685 cells and 253,340 values equal
+0.20 m and 0.72 m on the pad. A test on invented rows with the two altitudes' names swapped fails
+the pad check, with the ASL and AGL checks still holding. The `.xls`'s 278,685 cells and 253,340 values equal
 the survey's decoding, and xlrd agrees on every cell. Its heights follow the formula to within
 0.0045 m over 50,668 pairs. `ACCEL` reads −0.940 g before liftoff: its axis points down the
 rocket, where one pointing up would read +1 g at rest. `SPEED` is `ACCEL` summed over the clock,
