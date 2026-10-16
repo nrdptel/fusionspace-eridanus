@@ -195,8 +195,9 @@ enum Check {
     /// Accelerometer axes, or one magnitude: the median magnitude over the recording within
     /// [`REST_BAND_G`].
     Rest { columns: Vec<usize> },
-    /// A track: a latitude past ±π/2 or a longitude past ±π, which no place has in radians, so the
-    /// degrees are degrees.
+    /// A track: each column on its own, the median size of its readings other than 0 lies past
+    /// what radians can reach, ±π/2 for the latitude and ±π for the longitude, so the degrees are
+    /// degrees. Zeros are left out as a receiver writes them before its first fix.
     Place {
         #[serde(default)]
         latitude: Option<usize>,
@@ -270,6 +271,12 @@ impl Check {
 
     /// The columns it reads but doesn't hold, and the quantities each must have.
     fn reads(&self) -> Vec<(usize, &'static [Quantity])> {
+        const ALTITUDES: &[Quantity] = &[
+            Quantity::AltitudeAboveGround,
+            Quantity::AltitudeMsl,
+            Quantity::GnssAltitude,
+            Quantity::Altitude,
+        ];
         const HEIGHTS: &[Quantity] = &[
             Quantity::Pressure,
             Quantity::AltitudeAboveGround,
@@ -278,9 +285,9 @@ impl Check {
             Quantity::Altitude,
         ];
         match self {
-            Self::ApogeeTime { height } | Self::SpeedOverHeight { height, .. } => {
-                vec![(*height, HEIGHTS)]
-            }
+            Self::ApogeeTime { height } => vec![(*height, HEIGHTS)],
+            // A speed is held against an altitude's change, not a pressure's.
+            Self::SpeedOverHeight { height, .. } => vec![(*height, ALTITUDES)],
             Self::StandardAtmosphere { pressure, .. } => vec![(*pressure, &[Quantity::Pressure])],
             _ => Vec::new(),
         }
@@ -514,9 +521,9 @@ fn primary(log: &FlightLog) -> Vec<(f64, f64)> {
 /// The heights' running median of 5 readings, which a single wild reading doesn't move; the pad's
 /// height, the lowest of it over the [`CLIMB_WINDOW_S`] before its highest, as a rocket only
 /// climbs from the pad to apogee, so that a record starting at liftoff or hours before it has one;
-/// and the index of its highest.
+/// and the index of its highest, the last of them where several tie.
 fn pad_and_top(series: &[(f64, f64)]) -> Option<(Vec<f64>, f64, usize)> {
-    // Centred, narrowing at the ends, so the first and last readings are their own.
+    // Centered, narrowing at the ends, so the first and last readings are their own.
     let smoothed: Vec<f64> = (0..series.len())
         .map(|k| {
             let half = 2.min(k).min(series.len() - 1 - k);
@@ -789,10 +796,18 @@ fn run(
                 log.channels
                     .iter()
                     .find(|c| c.column == name(index))
-                    .is_some_and(|c| c.values.iter().any(|v| v.abs() > bound))
+                    .is_some_and(|c| {
+                        let sizes: Vec<f64> = c
+                            .values
+                            .iter()
+                            .map(|v| v.abs())
+                            .filter(|v| v.is_finite() && *v > 0.0)
+                            .collect();
+                        teensy_median(sizes).is_some_and(|m| m > bound)
+                    })
             };
-            let passed = latitude.is_some_and(|c| past(c, std::f64::consts::FRAC_PI_2))
-                || past(*longitude, std::f64::consts::PI);
+            let passed = latitude.is_none_or(|c| past(c, std::f64::consts::FRAC_PI_2))
+                && past(*longitude, std::f64::consts::PI);
             let columns = latitude.iter().copied().chain([*longitude]).collect();
             (columns, (None, passed))
         }
@@ -1022,9 +1037,9 @@ pub(super) fn markdown(checks: &Checks) -> String {
          apogee the flyer states; *speed over height*, a vertical speed's, is an altitude's \
          change over it from liftoff to apogee: each within {:.1}–5/3, which no unit off by \
          3.28 or more reaches; *1 g at rest* is the accelerometer's median magnitude over the \
-         recording, in g, within {:.2}–{:.2}; and *place*, a track's, is whether a latitude \
-         lies past ±π/2 or a longitude past ±π, which no place has in radians, its values not \
-         shown. A column with no unit is kept as written: a temperature, as no check here tells \
+         recording, in g, within {:.2}–{:.2}; and *place*, a track's, is whether the median size of \
+         each column's readings other than 0 lies past ±π/2 for a latitude and ±π for a \
+         longitude, which no place has in radians, its values not shown. A column with no unit is kept as written: a temperature, as no check here tells \
          °C from °F at a launch's temperatures, and a rate of turn, which none holds.\n\n\
          | File | What | Rows | Read | Kept | Left out | Events | Checks |\n\
          |---|---|---:|---:|---:|---:|---:|---|\n{rows}",
@@ -1300,9 +1315,22 @@ mod tests {
             latitude: Some(1),
             longitude: 2,
         };
-        let degrees = "0,35.35,-117.81\n1,35.35,-117.80\n";
-        let radians = "0,0.6170,-2.0561\n1,0.6170,-2.0560\n";
-        for (text, passed) in [(degrees, true), (radians, false)] {
+        // Invented places. Each column is held on its own: one in radians fails the check, and so
+        // does a column in radians with one glitch past the bound; zeros before a fix don't count.
+        let degrees = "0,10.25,-20.5\n1,10.25,-20.5\n";
+        let radians = "0,0.1789,-0.3578\n1,0.1789,-0.3578\n";
+        let latitude_in_radians = "0,0.1789,-20.5\n1,0.1789,-20.5\n";
+        let longitude_in_radians = "0,10.25,-0.3578\n1,10.25,-0.3578\n";
+        let a_glitch = "0,10.25,-0.3578\n1,10.25,-99\n2,10.25,-0.3578\n";
+        let before_a_fix = "0,0,0\n1,0,0\n2,0,0\n3,10.25,-20.5\n4,10.25,-20.5\n";
+        for (text, passed) in [
+            (degrees, true),
+            (radians, false),
+            (latitude_in_radians, false),
+            (longitude_in_radians, false),
+            (a_glitch, false),
+            (before_a_fix, true),
+        ] {
             let mapping = mapping("deg");
             let log = hpr_flightdata::generic::read_with(text, &mapping).expect("reads");
             assert_eq!(
@@ -1468,6 +1496,17 @@ mod tests {
         }
         // Every column is held by the rows of a held file.
         assert!(parse(&one(r#"[{"check":"rows_of","file":"b"}]"#, columns)).is_ok());
+        // A speed is held against a height, not a pressure.
+        let with_speed = r#"[{"name":"t","quantity":null,"unit":"s"},{"name":"p","quantity":"pressure","unit":"Pa"},{"name":"v","quantity":"speed","unit":"m/s"}]"#;
+        let message = parse(&one(
+            r#"[{"check":"apogee_time","height":1},{"check":"pad_pressure","column":1},{"check":"speed_over_height","speed":2,"height":1}]"#,
+            with_speed,
+        ))
+        .unwrap_err();
+        assert!(
+            message.contains("the speed over height check takes column 1"),
+            "{message}"
+        );
     }
 
     /// A refusal, a column the mapping reads in a unit but the reader doesn't, and a failed check

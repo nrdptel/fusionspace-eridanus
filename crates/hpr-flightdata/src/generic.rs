@@ -140,7 +140,9 @@
 //!   the separator, a tuple's parentheses dropped. A line with no stamp is a mark, such as a
 //!   payload's `=== MOTION DETECTED ===`: an event named by its words, without the `=`, `-` and
 //!   `*` around them, at the next row's time, up to [`MAX_MARKS`], the rest counted in a note. A
-//!   line shaped as a stamp, `dddd-dd-dd dd:dd:dd`, with no valid date and time in it is refused.
+//!   line shaped as a stamp, `dddd-dd-dd dd:dd:dd`, with no valid date and time in it is refused,
+//!   a leap second's `23:59:60` among them. As an `f64`, a time since 1970 resolves to about
+//!   0.25 µs, so a finer fraction is rounded.
 //! - **Columns left out** ([`ColumnMapping::skip`]): cells beside a table that aren't part of it.
 //!   They count in a row's width, but make no channel; a note says how many are left out.
 //!
@@ -163,6 +165,47 @@
 //! let log = generic::read_with(text, &mapping)?;
 //! assert_eq!(log.channels[1].values[1], 190.0 * 0.3048);
 //! # Ok::<(), hpr_flightdata::error::LogError>(())
+//! ```
+//!
+//! A mapping is JSON a person can write. Every column has an entry in `columns`, a column left
+//! out too; stamped rows need the stamp's entry first, the clock, in `s` and with no turn; and a
+//! turn is in the clock's own unit, 4294967296 (2³²) for a 32-bit count of microseconds:
+//!
+//! ```
+//! use hpr_flightdata::generic::{self, Mapping};
+//!
+//! // An invented payload's text: a stamp and a pressure in hectopascals, a note beside it, and a
+//! // line marking motion, an event at the next row's time.
+//! let text = "2024-06-01 14:05:09.0: 1005.5, ok\n\
+//!             === MOTION DETECTED ===\n\
+//!             2024-06-01 14:05:09.5: 1005.25, ok\n";
+//! let mapping: Mapping = serde_json::from_str(
+//!     r#"{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+//!         "rows": "stamped",
+//!         "columns": [
+//!             {"name": "stamp", "quantity": null, "unit": "s"},
+//!             {"name": "pressure", "quantity": "pressure", "unit": "hPa"},
+//!             {"name": "note", "quantity": null, "unit": null, "skip": true}]}"#,
+//! )?;
+//! let log = generic::read_with(text, &mapping)?;
+//! assert_eq!(log.channels.len(), 1); // the note is left out
+//! assert_eq!(log.channels[0].values, [100_550.0, 100_525.0]);
+//! assert_eq!(log.channels[0].time_s[1] - log.channels[0].time_s[0], 0.5);
+//! assert_eq!(log.events[0].name, "MOTION DETECTED");
+//!
+//! // An invented 32-bit count of microseconds, in rows written as lists, turning over once.
+//! let text = "[4294967000, 10.0]\n[4294967200, 10.5]\n[104, 11.0]\n";
+//! let mapping: Mapping = serde_json::from_str(
+//!     r#"{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+//!         "clock_wrap": 4294967296, "rows": "list",
+//!         "columns": [
+//!             {"name": "clock", "quantity": null, "unit": "us"},
+//!             {"name": "altitude", "quantity": "altitude_above_ground", "unit": "m"}]}"#,
+//! )?;
+//! let log = generic::read_with(text, &mapping)?;
+//! let t = &log.channels[0].time_s;
+//! assert!((t[2] - t[1] - 200e-6).abs() < 1e-9); // 104 µs is 200 µs past 4294967200 µs
+//! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
 //! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
@@ -1032,11 +1075,14 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 /// # Errors
 ///
 /// [`LogError::Mapping`] for a mapping of no column or more than [`MAX_COLUMNS`], whose clock
-/// isn't one of its columns or isn't in a unit of time, or a column whose unit the reader doesn't
-/// know or doesn't measure what its quantity does; [`LogError::Syntax`] for a row of other than
-/// the mapping's width, a clock cell that isn't a number, or a reading its unit's conversion makes
-/// infinite, naming the line; [`LogError::Unit`] for a clock that never steps forward or whose
-/// median step, in its unit, lies outside 0.1 ms to 60 s; [`LogError::NoData`] if no row follows the header.
+/// isn't one of its columns, isn't in a unit of time or is left out, whose turn isn't a count
+/// above 0, whose stamped rows' clock isn't column 0 in `s` with no turn, or a column whose unit
+/// the reader doesn't know or doesn't measure what its quantity does; [`LogError::Syntax`] for a
+/// row of other than the mapping's width, a row of lists not between `[` and `]`, a stamp with no
+/// valid date and time (a leap second's `23:59:60` among them), a clock cell that isn't a number,
+/// or a reading its unit's conversion makes infinite, naming the line; [`LogError::Unit`] for a
+/// clock that never steps forward or whose median step, in its unit, lies outside 0.1 ms to
+/// 60 s; [`LogError::NoData`] if no row follows the header.
 pub fn read_with(text: &str, mapping: &Mapping) -> Result<FlightLog, LogError> {
     read_mapped(text, mapping, Vec::new())
 }

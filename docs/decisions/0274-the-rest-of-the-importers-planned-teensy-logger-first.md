@@ -324,9 +324,11 @@ showed, measured, and the decisions.
    - An accelerometer: its median magnitude over the recording within 15 % of 1 g, M7.1c20's band.
      A recording spends most of its time on the pad or under a parachute, so the median is the
      magnitude at rest.
-   - A track's latitude and longitude, in degrees: a latitude past ±π/2 or a longitude past ±π,
-     which no place has in radians.
-   The pad is the lowest height of the readings' running median over the 300 s before apogee:
+   - A track's latitude and longitude, in degrees, each on its own: the median size of its
+     readings other than 0 (a receiver writes 0 before its first fix) past ±π/2 for a latitude
+     and ±π for a longitude, which no place has in radians.
+   Apogee is the last of the highest heights of the readings' running median over 5, and the
+   pad the lowest of them over the 300 s before apogee:
    more than twice the 122 s a rocket at Mach 3.5, the simulator's limit, about 1.2 km/s, takes
    to coast to apogee against gravity alone. Over a whole recording, one board's barometer read
    lower heights hours before launch than on the pad, and taking the lowest as the pad put
@@ -335,16 +337,19 @@ showed, measured, and the decisions.
    pad.
 4. **What is kept as written.** No check here tells °C from °F at a launch's temperatures: 24 °C
    read as °F would be −4 °C, a launch's temperature too. So every temperature is kept as written,
-   and so is every rate of turn, as no check holds one. The team's board's two accelerometer axes
-   read 0 at rest, with gravity taken out, and the axial one, in a probe while the checks were
-   built, read with the sign opposite to the other loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
+   and so is every rate of turn, as no check holds one, and every other column no check holds,
+   such as a battery's voltage, humidity, a magnetometer and an orientation's quaternion. The
+   team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
+   one, in a probe while the checks were built, read with the sign opposite to the other
+   loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
 5. **A track's own speed, which the plan named, holds no unit.** Between fixes, on the pad, a
    track's speed has a median of 0 m/s, whatever the unit. Under the parachute it is the wind's,
-   3.8 and 4.3 m/s in two of the files, and near 0 on a calm day. One bad fix reaches 235 to
-   1,200 m/s. (These speeds were measured while the checks were built; they aren't in the
-   report.) No band admits every flight's drift and refuses a clock misread by a power of ten
-   or degrees read as radians, which are 57 times smaller. So the track's units are held by its
-   place, by the time to apogee of its own altitude, and by another logger's apogee.
+   a few meters a second, and near 0 on a calm day. One bad fix reaches 235 to 1,200 m/s
+   (measured while the checks were built; not in the report). No band admits every flight's
+   drift and refuses a clock misread by a power of ten or degrees read as radians, which are 57
+   times smaller. So the track's units are held by its place; its clock by the time to apogee of
+   its own altitude or by the clock of a file of the same logger; and its altitude, where it has
+   one, by another logger's.
 6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
    computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
    cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map
@@ -366,7 +371,8 @@ each of their 60 checks passes:
 - the 10 accelerometers read 0.9600 to 1.0531 g;
 - the 6 clocks of a file beside overlap it by 0.998 to 1.000, and the recording with no flight
   steps at 1.000 times its logger's rate;
-- the 13 pad pressures lie in their band, and the 6 tracks lie past what radians can.
+- the 13 pad pressures lie in their band, the 6 tracks lie past what radians can, and the 1
+  cut of a file is the whole file's rows, value for value.
 
 A test for each check passes an invented flight read in its right unit and fails it read in a
 wrong one: seconds as milliseconds, hectopascals as pascals, meters as feet, m/s² as g and g as

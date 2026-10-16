@@ -101,8 +101,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > Since [M7.1c22](../decisions-and-roadmap.md#m7-1c22) (tables by mapping), 20 sample tables
 > whose headers state too little, or that have none, read by a column mapping the survey states
 > for each, and every unit those mappings state is held to a physical check, such as a pressure
-> on the pad or 1 g at rest; a mapping you write is held only by the values' check, and
-> temperatures and rates of turn are kept as written
+> on the pad or 1 g at rest; a mapping you write is held only by
+> [the values' check](#tables-read-by-their-headers), and temperatures and rates of turn are
+> kept as written, with no unit applied
 > ([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)).
 > Other layouts are refused, not guessed at; the last of them come with
 > [M7.1c23](../decisions-and-roadmap.md#m7-1c23).
@@ -643,43 +644,88 @@ read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook; s
 
 ### Tables a mapping holds to physics
 
-Twenty of the sample logs are tables whose headers state too little, or that have none, and whose
-publishers state no mapping: a university team's flight computer and its radio telemetry, student
-avionics, a club's GPS fixes, a payload's text, small flight computers of hobbyists and teams, and
-a flyer's workbook. The survey reads each by a column mapping it states itself, in
-`validation/log-held-mappings.json`, and since no one's word backs those mappings, every unit a
-mapping states is held to the flight's physics: a wrong unit fails a check instead of reading as
-a number ([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-decided it, in its amendment for [M7.1c22](../decisions-and-roadmap.md#m7-1c22)). **What a check tells:** each check tells a unit from the
-ones it could be mistaken for: a clock's from one a power of ten away, a height's, a speed's and
-an accelerometer's from one a factor of 3.28 (feet for meters) or more away, a pressure's from
-hectopascals, and degrees from radians; it says nothing of the logger's accuracy. These checks
-run in the survey, on its own mappings; a mapping you write is held only by the values' check.
+This section covers the 20 sample tables the survey reads by a mapping it states itself, and the
+options a mapping now has for files the header reader can't take. The physical checks below run
+in the survey only, on its own mappings: a mapping you write and pass to `read_with` is held
+only by [the values' check](#tables-read-by-their-headers). Each check tells a unit from the
+ones it could be mistaken for; it says nothing of the logger's accuracy.
+
+The 20 are tables whose headers state too little, or that have none, and whose publishers state
+no mapping: a university team's flight computer and its radio telemetry, student avionics, a
+club's GPS fixes, a payload's text, small flight computers of hobbyists and teams, and a flyer's
+workbook. The survey reads each by a column mapping in `validation/log-held-mappings.json`, and
+since no one's word backs those mappings, every unit a mapping states is held to the flight's
+physics: a wrong unit fails a check instead of reading as a number
+([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c22](../decisions-and-roadmap.md#m7-1c22)).
+
+**What a check tells:** a clock's unit from one a power of ten away; a height's, a speed's and
+an accelerometer's from one a factor of 3.28 (feet for meters) or more away; a pressure's in
+pascals from hectopascals; and degrees from radians. It doesn't tell torr or mmHg stated as
+hectopascals: 760 torr read as hPa is 76 kPa, inside the pad's band.
+
 Sixteen of the tables are in the private collection, so the mapping file names their columns by
-its own labels, such as `pressure 1`, or reads each name from the file's header at each run; the
-one name it gives from a private header is the last of a header that runs onto its first row.
+its own labels, such as `pressure 1`, or reads each name from the file's header at each run. It
+gives one name from a private header, a sensor's: that header's last name runs onto its first
+row, so the file can't give it.
 
 **What else a mapping can say.** Besides each column's quantity and unit, a
 [`Mapping`](../api/hpr_flightdata/generic/struct.Mapping.html) can say how the rows are written,
 for files the header reader can't take:
 
-- *A clock that turns over*, `clock_wrap`: a 32-bit count of microseconds turns over every 71.6
+- *A clock that turns over*, `"clock_wrap"`: the count the clock turns over at, in the clock's
+  own unit, `4294967296` (2³²) for a 32-bit count of microseconds, which turns over every 71.6
   minutes. Each value is taken modulo the turn, and each step back of more than half a turn adds
-  one, so the clock runs on. One team's board prints its count 9 × 2³² high in the upper half of
-  each turn; taken modulo the turn, the four turns in each of its files read as one clock.
+  one turn, so the clock runs on. One team's board writes values 9 × 2³² too large in the upper
+  half of each turn; modulo the turn, the four turns in each of its files read as one clock.
 - *Rows written as lists*, `"rows": "list"`: `[1000, 101325, True]`, as a program printing its
-  lists writes them. A row without its brackets is refused on its line.
+  lists writes them. A row without its brackets is refused on its line. A word such as `True` is
+  text: a column of words is left out, with a note.
 - *Stamped rows*, `"rows": "stamped"`: `2024-06-01 14:05:09.125: 1005.71`, or a tuple,
   `2024-06-01 14:05:09.125: (0.1, -0.2, 9.8)`. The stamp is the clock, in seconds from
   1970-01-01 in the stamp's own zone, which the file doesn't state, so only differences of times
-  mean anything. A line with no stamp, such as `=== MOTION DETECTED ===`, is an event at the next
-  row's time.
+  mean anything; as a 64-bit float, such a time resolves to about 0.25 µs. A line with no stamp,
+  such as `=== MOTION DETECTED ===`, is an event at the next row's time. A line shaped like a
+  stamp with no valid date and time in it, a leap second's `23:59:60` among them, is refused on
+  its line.
 - *A column left out*, `"skip": true`: cells beside a table that aren't part of it, such as a
-  flyer's notes typed beside an altimeter's table in a workbook.
+  flyer's notes typed beside an altimeter's table in a workbook. The column still has its entry
+  in `columns`, as every column does, and counts in a row's width.
+
+A mapping is JSON. This one reads a payload's stamped text, its second cell a note left out:
+
+```json
+{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+ "rows": "stamped",
+ "columns": [
+   {"name": "stamp", "quantity": null, "unit": "s"},
+   {"name": "pressure", "quantity": "pressure", "unit": "hPa"},
+   {"name": "note", "quantity": null, "unit": null, "skip": true}]}
+```
+
+Stamped rows need the stamp's entry first, as the clock, in `s` and with no turn; the clock can't
+be left out; and a turn must be a number above 0. A mapping that breaks one of these is refused,
+naming the rule. The [API documentation](../api/hpr_flightdata/generic/index.html) runs this
+example and a turning clock in rows written as lists.
+
+**The pad, apogee and liftoff,** as the checks read them from the data, not the
+[glossary's liftoff](../glossary.md#liftoff), the first motion on the rail. The file's height is its
+altitude, or the standard atmosphere's height of its pressure, smoothed by a running median of 5
+readings. Apogee is the last of the highest smoothed heights. The pad height is the lowest
+smoothed height in the 300 s before apogee: more than twice the 122 s a rocket at Mach 3.5, about
+1.2 km/s (3,900 ft/s), takes to coast to apogee against gravity alone. The window keeps out the
+hours before launch: over a whole recording, one board's barometer read lower heights then than
+on the pad, which put liftoff hours early (found while the checks were built). Liftoff is the
+last reading before apogee whose height is within 5% of the climb, apogee less the pad height,
+above the pad height.
 
 **The checks.** Each kind of reading has one check. A file that fails any of them fails the
-survey, listed among the files left unread. Liftoff is the last reading before apogee within 5%
-of the climb above the pad.
+survey, listed among the files left unread. The bands are the earlier increments': the clock's
+from [M7.1c18](../decisions-and-roadmap.md#m7-1c18) (a course's Teensy logger), the altitude's
+from [M7.1c21](../decisions-and-roadmap.md#m7-1c21) (altimeters' other text), the
+accelerometer's from [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (FIP sheets); the overlap
+and the clock rate are new here. The pad's 50 kPa is the standard atmosphere's pressure 5.6 km
+(18,300 ft) up, above any launch site.
 
 | Reading | Check | Band | A unit it refuses |
 |---|---|---|---|
@@ -688,18 +734,14 @@ of the climb above the pad.
 | The clock, on the pad with no flight | its median step over the same logger's, in a file with a flight | 0.9 to 1.1 | the same |
 | A pressure | its reading on the pad | 50 to 110 kPa | hectopascals for pascals, 100 times off |
 | An altitude | its rise over the standard atmosphere's height of the file's pressure, another logger's rise, or the apogee the flyer states | 0.6 to 5/3 | feet for meters, 3.28 times off |
-| A vertical speed | the altitude's change over it, from liftoff to apogee | 0.6 to 5/3 | ft/s for m/s |
+| A vertical speed | the altitude's change between two readings over the time between them, against the logged speed, from liftoff to apogee where the speed tops 10 m/s (33 ft/s); their median | 0.6 to 5/3 | ft/s for m/s |
 | An accelerometer | its median magnitude over the recording, mostly at rest on the pad or under a parachute | 0.85 to 1.15 g | g for m/s², 9.8 times off; ft/s², 3.28 |
-| A latitude or longitude | a latitude past ±π/2 or a longitude past ±π | | radians, which can't lie past them |
-
-The pad is the lowest height, smoothed over 5 readings, in the 300 s before apogee (for a
-pressure, its highest reading): more than twice the 122 s a rocket at Mach 3.5, about 1.2 km/s
-(3,900 ft/s), takes to coast to apogee against gravity alone, and short
-enough that a barometer's drift over the hours before launch doesn't move it.
+| A latitude and a longitude | each on its own: the median size of its readings other than 0, past ±π/2 for a latitude and ±π for a longitude | | radians stated as degrees, which can't lie past them |
 
 A worked example, with invented numbers: a table with no header logs a pressure in pascals and an
-altitude above the pad in feet. On the pad the pressure reads 97,000 Pa, inside 50 to 110 kPa; in
-hectopascals it would be 970, and read as pascals that fails. At apogee the altitude reads
+altitude above the pad in feet. On the pad the pressure reads 97,000 Pa, inside 50 to 110 kPa; had the
+file written 970 hPa and the mapping stated Pa, the pad would read 970 Pa, below 50 kPa, and
+fail. At apogee the altitude reads
 3,281 ft and the pressure 85,951 Pa. The standard atmosphere puts 97,000 Pa at 366.4 m (1,202 ft) and
 85,951 Pa at 1,366.4 m (4,483 ft), a rise of 1,000.0 m (3,281 ft), so the altitude's 3,281 ft over
 it is 1.000. Mapped in meters, the altitude would rise 3,281 m (10,764 ft), a ratio of 3.28, and
@@ -709,7 +751,8 @@ milliseconds would give 0.001.
 
 **What is kept as written.** No check here tells °C from °F at a launch's temperatures, as 24 °C
 read as °F would be −4 °C, a launch's temperature too, so every temperature is kept as written;
-so is every rate of turn, which no check holds. One board's accelerometer reads 0 at rest, with
+so is every rate of turn, and every other column no check holds, such as a battery's voltage,
+humidity, a magnetometer and an orientation's quaternion. One board's accelerometer reads 0 at rest, with
 gravity taken out, and is kept too, as are words, packed fields and counts. A GPS track's own
 speed holds no unit either: on the pad it is 0 m/s (0 ft/s) whatever the unit, under a
 parachute it is the wind's, near 0 on a calm day, and one bad fix jumps hundreds of meters a
@@ -722,8 +765,12 @@ out, and all 60 checks pass. The 12 times to apogee lie 0.8627 to 1.7105 times �
 altitudes held to their pressure rise 0.9559 to 1.0005 times the rise of its standard-atmosphere
 height, the 3 held to another logger 0.9008 to 0.9552 times its rise (all three a GPS receiver's
 altitude, two of them the same fixes with and without a header), and the 1 held to the flyer's
-stated apogee 1.0025 times. The 10 accelerometer checks read 0.9600 to 1.0531 g. The
-[survey's report](#how-it-was-checked) lists each file's checks.
+stated apogee 1.0025 times. The 1 vertical speed gives 0.9709. The 10 accelerometer checks read
+0.9600 to 1.0531 g. The other 28 pass without a ratio to quote: 13 pad pressures and 6 places,
+whose values would give a site away, 6 clocks beside another file's (overlapping 0.998 to 1.000
+of the longer span), 1 clock rate and 1 cut of a file. The survey's report,
+[`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
+lists each file's checks at these 4 decimals.
 
 ### Binary records by a stated layout
 
