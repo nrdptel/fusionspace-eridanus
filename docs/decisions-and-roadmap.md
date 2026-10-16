@@ -723,7 +723,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c19"></a>[M7.1c19][done-5] | Radio packets, `255:…:254` | done |
 | <a id="m7-1c20"></a>[M7.1c20][done-5] | Workbooks with a reading beside | done |
 | <a id="m7-1c21"></a>[M7.1c21][done-5] | Altimeters' other text | done |
-| <a id="m7-1c22"></a>[M7.1c22][phase-5] | Tables by mapping, and files that aren't logs | not yet done |
+| <a id="m7-1c22"></a>[M7.1c22][done-5] | Tables by mapping, and files that aren't logs | done |
 | <a id="m7-1c23"></a>[M7.1c23][phase-5] | The last binaries; formats with no sample | not yet done |
 | <a id="m7-1d"></a>[M7.1d][phase-5] | A flyer's own logger and GPX tracks | not yet done |
 | <a id="m7-1d1"></a>[M7.1d1][phase-5] | GPX tracks | not yet done |

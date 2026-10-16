@@ -281,3 +281,100 @@ pressure's height. Debrief's sample export, read since M7.1a, gains a note count
 named `pad`; its values are unchanged. The re-saved export's 80,748
 formulas all rebuild from the notes, and its 4,198,896 comparisons agree. 33 files are left, to
 M7.1c22 and M7.1c23.
+
+**Amendment for M7.1c22, the tables a mapping settles and the files that aren't logs
+(2026-10-16).** The group's 27 files are 20 logs whose headers state too little or that have
+none, and 7 files that aren't logs. The plan stands; these are what the files
+showed, measured, and the decisions.
+
+1. **Four things a mapping can now say** (`hpr_flightdata::generic::Mapping`), each found in a
+   file the old mapping couldn't read:
+   - a clock that turns over: one team's board counts microseconds in 32 bits, which turn over
+     every 71.6 minutes, four times in each of its six files, and prints the count 9 × 2³² high in
+     the upper half of each turn. The reader takes each value modulo the turn and adds a turn at
+     each step back of more than half of one;
+   - rows written as lists, `[…, True, True]`, as the same team's ground station saved its radio
+     telemetry;
+   - stamped rows, `YYYY-MM-DD HH:MM:SS.ffffff: reading`, a reading or a tuple `(x, y, z)`, as a
+     payload logged its barometer and accelerometer. A line with no stamp, the payload's
+     `===DETECTION MOUVEMENT===`, is an event at the next row's time;
+   - a column left out: the cells about the flight that a flyer typed beside an altimeter's table
+     pasted into a workbook.
+2. **The mappings name a private table's columns only by their own labels or its header**
+   (`validation/log-held-mappings.json`). A column whose header names it takes the name from the
+   file at each run, as the layouts of M7.1c16 do; a file with no header gets the survey's own
+   labels, such as `pressure 1`. Sixteen of the tables are in the private collection; the one
+   name the file gives from a private header is the last of a header that runs onto its first
+   row, a sensor's name. The four public tables' columns are named as their publisher names them.
+3. **Each unit the mapping states, and the clock's, is held to a physical check**, one rule for
+   each kind of reading, with the bands earlier increments set and two new ones, the overlap of
+   a clock beside another and the clock rate of a recording with no flight (`cargo xtask logs`,
+   the report's section for this increment). A file that fails any check fails the survey,
+   listed among the unread. Liftoff is the last reading before apogee within 5 % of the climb.
+   - The clock: the time from liftoff to apogee within a factor of 2 of √(2h/g), as M7.1c18's;
+     for a file with no height, its span of times overlapping another file's of the same logger
+     by at least half of the longer, or, for a recording on the pad with no flight in it, its
+     median step within 10 % of the same logger's in a file with a flight. A cut of a file is
+     held by its rows, each a row of the whole file.
+   - A pressure: its reading on the pad within 50 to 110 kPa.
+   - An altitude: its rise over the standard atmosphere's height of the file's own pressure, over
+     another logger's in the same flight, or over the apogee the flyer states, each within 0.6 to
+     5/3, M7.1c21's band, which no unit off by 3.28 (feet for meters) or more reaches. A vertical
+     speed: the altitude's change over it from liftoff to apogee, in the same band.
+   - An accelerometer: its median magnitude over the recording within 15 % of 1 g, M7.1c20's band.
+     A recording spends most of its time on the pad or under a parachute, so the median is the
+     magnitude at rest.
+   - A track's latitude and longitude, in degrees, each on its own: the median size of its
+     readings other than 0 (a receiver writes 0 before its first fix) past ±π/2 for a latitude
+     and ±π for a longitude, which no place has in radians.
+   Apogee is the last of the highest heights of the readings' running median over 5, and the
+   pad the lowest of them over the 300 s before apogee:
+   more than twice the 122 s a rocket at Mach 3.5, the simulator's limit, about 1.2 km/s, takes
+   to coast to apogee against gravity alone. Over a whole recording, one board's barometer read
+   lower heights hours before launch than on the pad, and taking the lowest as the pad put
+   liftoff hours early, a time to apogee 316 times √(2h/g) (measured while the checks were
+   built; not in the report); and a workbook's table starts at liftoff, so its first 5 s are no
+   pad.
+4. **What is kept as written.** No check here tells °C from °F at a launch's temperatures: 24 °C
+   read as °F would be −4 °C, a launch's temperature too. So every temperature is kept as written,
+   and so is every rate of turn, as no check holds one, and every other column no check holds,
+   such as a battery's voltage, humidity, a magnetometer and an orientation's quaternion. The
+   team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
+   one, in a probe while the checks were built, read with the sign opposite to the other
+   loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
+5. **A track's own speed, which the plan named, holds no unit.** Between fixes, on the pad, a
+   track's speed has a median of 0 m/s, whatever the unit. Under the parachute it is the wind's,
+   a few meters a second, and near 0 on a calm day. One bad fix reaches 235 to 1,200 m/s
+   (measured while the checks were built; not in the report). No band admits every flight's
+   drift and refuses a clock misread by a power of ten or degrees read as radians, which are 57
+   times smaller. So the track's units are held by its place; its clock by the time to apogee of
+   its own altitude or by the clock of a file of the same logger; and its altitude, where it has
+   one, by another logger's.
+6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
+   computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
+   cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map
+   files, with no clock, the tracker's own file of the same fixes beside them; and three tables
+   a program worked out from a log: a Kalman filter's state, whose altitude reaches 169 km; an
+   inertial unit's recording turned into the rocket's frame with gravity taken out; and a flyer's
+   rebuild of an altimeter's log, whose rows the flyer marks as made up, the altimeter's own file
+   beside it already read. The last two are judgement calls: each is a time series of a flight,
+   but not what a logger wrote.
+
+**Consequences of the amendment.** The survey reads 1,048 of its 1,122 files. The 20 tables give
+3,976,354 rows. Their mappings read 64 columns in a unit, keep 102 as written and leave 7 out, and
+each of their 60 checks passes:
+- the 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g);
+- the 6 rises over the standard atmosphere's lie 0.9559 to 1.0005 times, the 3 over another
+  logger's 0.9008 to 0.9552 times (two of them the same fixes with and without a header), and
+  the 1 over the flyer's stated apogee 1.0025 times;
+- the vertical speed's 1 check gives 0.9709;
+- the 10 accelerometers read 0.9600 to 1.0531 g;
+- the 6 clocks of a file beside overlap it by 0.998 to 1.000, and the recording with no flight
+  steps at 1.000 times its logger's rate;
+- the 13 pad pressures lie in their band, the 6 tracks lie past what radians can, and the 1
+  cut of a file is the whole file's rows, value for value.
+
+A test for each check passes an invented flight read in its right unit and fails it read in a
+wrong one: seconds as milliseconds, hectopascals as pascals, meters as feet, m/s² as g and g as
+m/s², m/s as ft/s, and degrees as radians. Six files are labelled for M7.1c23, four of them
+unread.

@@ -4,7 +4,10 @@
 //! whose name and unit disagree (`vz_filtered_ms`) and one with no unit. The second has a `sep=;`
 //! line, a byte-order mark, CR LF line ends, decimal commas, units in brackets, a quoted name
 //! holding the separator, a temperature whose values contradict its unit, and a column of remarks.
-//! The values each test expects are worked by hand from the files.
+//! The values each test expects are worked by hand from the files. Two more invented files are
+//! read by a caller's mapping (M7.1c22): stamped rows, an accelerometer's tuple behind a date and
+//! time with a line marking motion; and rows written as lists on a 32-bit count of microseconds
+//! that turns over, printed 9 × 2³² high in the upper half of its turn.
 
 use hpr_flightdata::generic;
 use hpr_flightdata::import;
@@ -12,6 +15,8 @@ use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
 
 const UNITS: &[u8] = include_bytes!("samples/table-units.csv");
 const SEMICOLON: &[u8] = include_bytes!("samples/table-semicolon.csv");
+const STAMPED: &[u8] = include_bytes!("samples/table-stamped.txt");
+const LIST: &[u8] = include_bytes!("samples/table-list.txt");
 
 /// Each channel's name and quantity.
 fn layout(log: &FlightLog) -> Vec<(&str, Quantity)> {
@@ -146,4 +151,78 @@ fn a_callers_mapping_reads_what_the_header_leaves_out() {
         error.contains("a speed") && error.contains("a pressure"),
         "{error}"
     );
+}
+
+/// A mapping's JSON, as a caller writes it.
+#[cfg(test)]
+fn mapping(json: &str) -> generic::Mapping {
+    serde_json::from_str(json).expect("a mapping")
+}
+
+/// Stamped rows: the clock from each stamp, the tuple's three axes, and the mark an event at the
+/// next row's time.
+#[test]
+fn stamped_rows_read_by_a_mapping() {
+    let text = import::decode(STAMPED);
+    assert!(import::read(STAMPED).is_err());
+    let log = generic::read_with(
+        &text,
+        &mapping(
+            r#"{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+                "rows": "stamped", "columns": [
+                {"name": "stamp", "quantity": null, "unit": "s"},
+                {"name": "x", "quantity": "acceleration", "unit": "m/s^2"},
+                {"name": "y", "quantity": "acceleration", "unit": "m/s^2"},
+                {"name": "z", "quantity": "acceleration", "unit": "m/s^2"}]}"#,
+        ),
+    )
+    .unwrap();
+    // 2024-06-02 is day 19,876 from 1970-01-01.
+    let midnight = 19_876.0 * 86_400.0;
+    assert_eq!(
+        log.channels[2].time_s,
+        [
+            midnight - 1.5,
+            midnight - 1.375,
+            midnight - 1.25,
+            midnight - 1.125,
+            midnight
+        ]
+    );
+    assert_eq!(values(&log, "z"), [9.81, 9.79, 40.2, 45.6, 0.0]);
+    assert_eq!(log.events.len(), 1);
+    assert_eq!(
+        (log.events[0].name.as_str(), log.events[0].time_s),
+        ("MOTION DETECTED", midnight - 1.25)
+    );
+    insta::assert_json_snapshot!(log);
+}
+
+/// Rows written as lists on a clock that turns over: each count taken modulo 2³², one turn
+/// added, and the words of the last column left out as text.
+#[test]
+fn list_rows_on_a_clock_that_turns_over() {
+    let text = import::decode(LIST);
+    let log = generic::read_with(
+        &text,
+        &mapping(
+            r#"{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+                "clock_wrap": 4294967296.0, "rows": "list", "columns": [
+                {"name": "clock", "quantity": null, "unit": "us"},
+                {"name": "pressure", "quantity": "pressure", "unit": "Pa"},
+                {"name": "fix", "quantity": null, "unit": null}]}"#,
+        ),
+    )
+    .unwrap();
+    assert_eq!(layout(&log), [("pressure", Quantity::Pressure)]);
+    assert_eq!(
+        log.channels[0].time_s,
+        [4_293.967_296, 4_294.467_296, 4_294.967_296, 4_295.467_296]
+    );
+    assert_eq!(
+        values(&log, "pressure"),
+        [101_325.0, 101_310.5, 101_290.0, 101_270.25]
+    );
+    assert_eq!(log.format, LogFormat::GenericTable);
+    insta::assert_json_snapshot!(log);
 }

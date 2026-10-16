@@ -98,9 +98,15 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > export, AltOS's column names alone, reads by AltOS's state numbers; and an export a
 > spreadsheet re-saved reads with each formula kept as text
 > ([AltOS's CSV after a spreadsheet](#altoss-csv-after-a-spreadsheet)).
-> Other layouts are refused, not guessed at; they come with
-> [M7.1c22](../decisions-and-roadmap.md#m7-1c22) and
-> [M7.1c23](../decisions-and-roadmap.md#m7-1c23), the other loggers' formats.
+> Since [M7.1c22](../decisions-and-roadmap.md#m7-1c22) (tables by mapping), 20 sample tables
+> whose headers state too little, or that have none, read by a column mapping the survey states
+> for each, and every unit those mappings state is held to a physical check, such as a pressure
+> on the pad or 1 g at rest; a mapping you write is held only by
+> [the values' check](#tables-read-by-their-headers), and temperatures and rates of turn are
+> kept as written, with no unit applied
+> ([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)).
+> Other layouts are refused, not guessed at; the last of them come with
+> [M7.1c23](../decisions-and-roadmap.md#m7-1c23).
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -237,8 +243,9 @@ flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; a flyer
 flights in spreadsheets; the events files a
 flyer's own program wrote from a Blue Raven's low-rate file, the same program's copy of a Blue
 Raven's summary, and the descriptions of a rocket such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
-export; and a wind profile. The other layouts in the sample logs are refused today, most as
-*unrecognized*; they come with [M7.1c22](../decisions-and-roadmap.md#m7-1c22) and
+export; a wind profile; a flight computer's and a battery's housekeeping; two GPS tracks'
+coordinates copied from their maps, with no clock; and three tables a program worked out from a
+log. The other layouts in the sample logs are refused today, as *unrecognized*; they come with
 [M7.1c23](../decisions-and-roadmap.md#m7-1c23), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
@@ -374,9 +381,11 @@ check was built, not committed, moved the reader's calendar by one day, and 27,1
 disagreed. Two more workbooks, Raven FIP exports pasted below no header, are read by the header
 stated for each ([below](#a-fip-export-pasted-below-no-header)), and the older `.xls` file, a
 different binary format, by its own reader ([below](#the-altimaxs-excel-export)), each checked
-the same way. Not read yet, with [M7.1c22](../decisions-and-roadmap.md#m7-1c22): two workbooks, a
-PerfectFlite export with a person's notes beside it and a state estimator's output whose clock
-names no unit. Three more workbooks are flyers' summaries of flights, not logs.
+the same way. Since [M7.1c22](../decisions-and-roadmap.md#m7-1c22), a PerfectFlite export pasted
+into a workbook with a person's notes beside it is read by a column mapping, the notes left out
+([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)); a state estimator's
+output in a workbook is a filter's, not a log. Three more workbooks are flyers' summaries of
+flights, not logs.
 
 ### R-DAS raw text
 
@@ -595,10 +604,10 @@ that doesn't measure its column's quantity is refused. Only the Rust library rea
 so far.
 
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
-above the pad isn't stated. Most of the 18 files filed as generic CSV that are still refused have
-a clock with no unit or no header row, and no publisher states their mapping; they wait, with
-[M7.1c22](../decisions-and-roadmap.md#m7-1c22). A table saved in an Excel workbook is read the
-same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
+above the pad isn't stated. Tables whose clock has no unit, or that have no header row, are read
+by a mapping their publisher states ([below](#mappings-a-publisher-states)) or one held to
+physics ([below](#tables-a-mapping-holds-to-physics)). A table saved in an Excel workbook is read
+the same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ### Mappings a publisher states
 
@@ -629,7 +638,139 @@ The survey refuses a mapping on a file whose header doesn't name the mapping's c
 on a file a reader reads on its own (a mapping can't stand in for a reader that takes the file),
 and for a file of this family with none stated. A mapping is only as right as its publisher's statement: the
 values' check catches a unit far off, a pressure over 110 kPa or a length beyond 150 km (93 mi), not feet
-read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook and is left unread.
+read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook; since
+[M7.1c22](../decisions-and-roadmap.md#m7-1c22) it is read by a mapping held to physics
+([below](#tables-a-mapping-holds-to-physics)), its clock held to the table it was logged beside.
+
+### Tables a mapping holds to physics
+
+This section covers the 20 sample tables the survey reads by a mapping it states itself, and the
+options a mapping now has for files the header reader can't take. The physical checks below run
+in the survey only, on its own mappings: a mapping you write and pass to `read_with` is held
+only by [the values' check](#tables-read-by-their-headers). Each check tells a unit from the
+ones it could be mistaken for; it says nothing of the logger's accuracy.
+
+The 20 are tables whose headers state too little, or that have none, and whose publishers state
+no mapping: a university team's flight computer and its radio telemetry, student avionics, a
+club's GPS fixes, a payload's text, small flight computers of hobbyists and teams, and a flyer's
+workbook. The survey reads each by a column mapping in `validation/log-held-mappings.json`, and
+since no one's word backs those mappings, every unit a mapping states is held to the flight's
+physics: a wrong unit fails a check instead of reading as a number
+([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c22](../decisions-and-roadmap.md#m7-1c22)).
+
+**What a check tells:** a clock's unit from one a power of ten away; a height's, a speed's and
+an accelerometer's from one a factor of 3.28 (feet for meters) or more away; a pressure's in
+pascals from hectopascals; and degrees from radians. It doesn't tell torr or mmHg stated as
+hectopascals: 760 torr read as hPa is 76 kPa, inside the pad's band.
+
+Sixteen of the tables are in the private collection, so the mapping file names their columns by
+its own labels, such as `pressure 1`, or reads each name from the file's header at each run. It
+gives one name from a private header, a sensor's: that header's last name runs onto its first
+row, so the file can't give it.
+
+**What else a mapping can say.** Besides each column's quantity and unit, a
+[`Mapping`](../api/hpr_flightdata/generic/struct.Mapping.html) can say how the rows are written,
+for files the header reader can't take:
+
+- *A clock that turns over*, `"clock_wrap"`: the count the clock turns over at, in the clock's
+  own unit, `4294967296` (2³²) for a 32-bit count of microseconds, which turns over every 71.6
+  minutes. Each value is taken modulo the turn, and each step back of more than half a turn adds
+  one turn, so the clock runs on. One team's board writes values 9 × 2³² too large in the upper
+  half of each turn; modulo the turn, the four turns in each of its files read as one clock.
+- *Rows written as lists*, `"rows": "list"`: `[1000, 101325, True]`, as a program printing its
+  lists writes them. A row without its brackets is refused on its line. A word such as `True` is
+  text: a column of words is left out, with a note.
+- *Stamped rows*, `"rows": "stamped"`: `2024-06-01 14:05:09.125: 1005.71`, or a tuple,
+  `2024-06-01 14:05:09.125: (0.1, -0.2, 9.8)`. The stamp is the clock, in seconds from
+  1970-01-01 in the stamp's own zone, which the file doesn't state, so only differences of times
+  mean anything; as a 64-bit float, such a time resolves to about 0.25 µs. A line with no stamp,
+  such as `=== MOTION DETECTED ===`, is an event at the next row's time. A line shaped like a
+  stamp with no valid date and time in it, a leap second's `23:59:60` among them, is refused on
+  its line.
+- *A column left out*, `"skip": true`: cells beside a table that aren't part of it, such as a
+  flyer's notes typed beside an altimeter's table in a workbook. The column still has its entry
+  in `columns`, as every column does, and counts in a row's width.
+
+A mapping is JSON. This one reads a payload's stamped text, its second cell a note left out:
+
+```json
+{"header_line": null, "separator": ",", "decimal_comma": false, "clock": 0,
+ "rows": "stamped",
+ "columns": [
+   {"name": "stamp", "quantity": null, "unit": "s"},
+   {"name": "pressure", "quantity": "pressure", "unit": "hPa"},
+   {"name": "note", "quantity": null, "unit": null, "skip": true}]}
+```
+
+Stamped rows need the stamp's entry first, as the clock, in `s` and with no turn; the clock can't
+be left out; and a turn must be a number above 0. A mapping that breaks one of these is refused,
+naming the rule. The [API documentation](../api/hpr_flightdata/generic/index.html) runs this
+example and a turning clock in rows written as lists.
+
+**The pad, apogee and liftoff,** as the checks read them from the data, not the
+[glossary's liftoff](../glossary.md#liftoff), the first motion on the rail. The file's height is its
+altitude, or the standard atmosphere's height of its pressure, smoothed by a running median of 5
+readings. Apogee is the last of the highest smoothed heights. The pad height is the lowest
+smoothed height in the 300 s before apogee, more than twice the 122 s a rocket at Mach 3.5, about
+1.2 km/s (3,900 ft/s), takes to coast to apogee against gravity alone. The window keeps out the
+hours before launch: over a whole recording, one board's barometer read lower heights then than
+on the pad, which put liftoff hours early (found while the checks were built). Liftoff is the
+last reading before apogee whose height above the pad is within 5% of the climb, apogee less the
+pad height.
+
+**The checks.** Each kind of reading has one check. A file that fails any of them fails the
+survey, listed among the files left unread. The bands are the earlier increments': the clock's
+from [M7.1c18](../decisions-and-roadmap.md#m7-1c18) (a course's Teensy logger), the altitude's
+from [M7.1c21](../decisions-and-roadmap.md#m7-1c21) (altimeters' other text), the
+accelerometer's from [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (FIP sheets); the overlap
+and the clock rate are new here. The pad's 50 kPa is the standard atmosphere's pressure 5.6 km
+(18,300 ft) up, above any launch site.
+
+| Reading | Check | Band | A unit it refuses |
+|---|---|---|---|
+| The clock | the time from liftoff to apogee of the file's height, over √(2h/g) | 0.5 to 2 | a power of ten: 10 times off or more |
+| The clock, with no height in the file | its span of times overlapping another file's of the same logger, over the longer span | 0.5 or more | the same |
+| The clock, on the pad with no flight | its median step over the same logger's, in a file with a flight | 0.9 to 1.1 | the same |
+| A pressure | its reading on the pad | 50 to 110 kPa | hectopascals for pascals, 100 times off |
+| An altitude | its rise over the standard atmosphere's height of the file's pressure, another logger's rise, or the apogee the flyer states | 0.6 to 5/3 | feet for meters, 3.28 times off |
+| A vertical speed | the altitude's change between two readings over the time between them, against the logged speed, from liftoff to apogee where the speed tops 10 m/s (33 ft/s); their median | 0.6 to 5/3 | ft/s for m/s |
+| An accelerometer | its median magnitude over the recording, mostly at rest on the pad or under a parachute | 0.85 to 1.15 g | g for m/s², 9.8 times off; ft/s², 3.28 |
+| A latitude and a longitude | each on its own: the median size of its readings other than 0, past ±π/2 for a latitude and ±π for a longitude | | radians stated as degrees, which can't lie past them |
+
+A worked example, with invented numbers: a table with no header logs a pressure in pascals and an
+altitude above the pad in feet. On the pad the pressure reads 97,000 Pa, inside 50 to 110 kPa; had the
+file written 970 hPa and the mapping stated Pa, the pad would read 970 Pa, below 50 kPa, and
+fail. At apogee the altitude reads
+3,281 ft and the pressure 85,951 Pa. The standard atmosphere puts 97,000 Pa at 366.4 m (1,202 ft) and
+85,951 Pa at 1,366.4 m (4,483 ft), a rise of 1,000.0 m (3,281 ft), so the altitude's 3,281 ft over
+it is 1.000. Mapped in meters, the altitude would rise 3,281 m (10,764 ft), a ratio of 3.28, and
+fail. The climb takes 15 s, and
+√(2 × 1,000 m / 9.807 m/s²) is 14.28 s, a ratio of 1.05; a clock in seconds mapped as
+milliseconds would give 0.001.
+
+**What is kept as written.** No check here tells °C from °F at a launch's temperatures, as 24 °C
+read as °F would be −4 °C, a launch's temperature too, so every temperature is kept as written;
+so is every rate of turn, and every other column no check holds, such as a battery's voltage,
+humidity, a magnetometer and an orientation's quaternion. One board's accelerometer reads 0 at rest, with
+gravity taken out, and is kept too, as are words, packed fields and counts. A GPS track's own
+speed holds no unit either: on the pad it is 0 m/s (0 ft/s) whatever the unit, under a
+parachute it is the wind's, near 0 on a calm day, and one bad fix jumps hundreds of meters a
+second. So a track's degrees are held by its place; its clock by the time to apogee of its own
+altitude or by the clock of a file from the same logger; and its altitude, where it has one, by
+another logger's in the same flight.
+
+**What the 20 show.** Their mappings read 64 columns in a unit, keep 102 as written and leave 7
+out, and all 60 checks pass. The 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g). The 6
+altitudes held to their pressure rise 0.9559 to 1.0005 times the rise of its standard-atmosphere
+height, the 3 held to another logger 0.9008 to 0.9552 times its rise (all three a GPS receiver's
+altitude, two of them the same fixes with and without a header), and the 1 held to the flyer's
+stated apogee 1.0025 times. The 1 vertical speed gives 0.9709. The 10 accelerometer checks read
+0.9600 to 1.0531 g. The other 27 are 13 pad pressures and 6 places, whose values would give a
+site away; 6 clocks beside another file's, overlapping 0.998 to 1.000 of the longer span; 1
+clock rate of 1.000 times its logger's; and 1 cut of a file, its rows all the whole file's. The survey's report,
+[`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
+lists each file's checks, each to 4 decimals.
 
 ### Binary records by a stated layout
 
@@ -2929,14 +3070,15 @@ survey's decoding, and each received or exported packet against the onboard log'
 decoding of its stream and its physical checks ([above](#how-the-altimax-export-was-checked)),
 and each MARSA download, AltOS telemetry table, table cut from an AltOS export and re-saved AltOS
 export against the survey's own decoding and the checks of its units
-([above](#a-marsa-download)). Of the 1,122 files it holds today, 1,028 are read, the 8 archives counted as read when they unpack,
+([above](#a-marsa-download)), and each table a mapping holds to physics against its checks
+([above](#tables-a-mapping-holds-to-physics)). Of the 1,122 files it holds today, 1,048 are read, the 8 archives counted as read when they unpack,
 the 16 workbooks of their own layout when a sheet of each reads, the 2 FIP sheets when they read
 under their stated headers and match their `.FIPa`, and the AltiMAX `.xls` when it reads and
-holds to its checks. The report labels 33 files for
-[M7.1c22](../decisions-and-roadmap.md#m7-1c22), the next increment.
+holds to its checks. The report labels 6 files for
+[M7.1c23](../decisions-and-roadmap.md#m7-1c23), the last increment, which
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans the two increments left, through the last file; 31 of the 33, of layouts no reader knows
-yet, are unread.
+plans; 4 of them, of layouts no reader knows yet, are unread, and 2 are AltOS exports the catalog
+files as generic CSV.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, held to
@@ -2951,7 +3093,8 @@ its decimal points taken out, counted as damaged ([above](#units-the-file-decide
 tables whose publisher states their mapping ([above](#mappings-a-publisher-states)); and one is
 an RRC3 export counted as damaged ([above](#units-the-file-decides)); and 2 are AltOS's: its
 telemetry decoded to a table and a table cut from an export, each held to its reader
-([above](#altoss-telemetry-as-a-table)). The 2 files the catalog files as XML, for their `<…>`
+([above](#altoss-telemetry-as-a-table)); 12 are tables a mapping holds to physics
+([above](#tables-a-mapping-holds-to-physics)); and 6 aren't logs (below). The 2 files the catalog files as XML, for their `<…>`
 lines, are MARSA downloads, held to their reader ([above](#a-marsa-download)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two exports of radio packets, held to the packets' reader
@@ -2971,8 +3114,9 @@ app doesn't write), was counted as damaged until
 [M7.1c13](../decisions-and-roadmap.md#m7-1c13), and is now read as a
 [table by its header](#tables-read-by-their-headers), and 30 other files filed as generic CSV. Three more are an ARTS2's raw CSV, held to
 its reader. Nine are mDACS's exports of an RTx's fixes, five CSV and four text, held to their
-reader. One more is moved to a layout not read yet: a ground station's conversion of a
-SillyGoose flight, its columns in another order under no header.
+reader. Six more filed as text, and a ground station's conversion of a SillyGoose flight, its
+columns in the order of the board's log with its settings under no header, are tables a mapping
+holds to physics, and so is one workbook ([above](#tables-a-mapping-holds-to-physics)).
 
 Some files aren't flight logs, and are counted apart as not logs, as pictures and maps are. By
 id: four spreadsheets of a team's checklist for preparing a flight, its steps and no measurement,
@@ -2989,7 +3133,14 @@ descriptions of a rocket written for a flyer's or a team's own program; three on
 team flight computer's saved state (a boot count, gyro biases, the pressure before boost); and an
 OpenRocket simulation's export, a simulation and not a flight. Inside the archives, by id: three
 more events files, one more description of a rocket, a Blue Raven's settings as a spreadsheet
-and as CSV, and a wind profile, altitude against wind speed and direction.
+and as CSV, and a wind profile, altitude against wind speed and direction. By id, since
+[M7.1c22](../decisions-and-roadmap.md#m7-1c22): a flight computer's housekeeping (its
+processor, memory, disk and network counters) and a battery pack's (its cells' voltages,
+temperatures and current); two GPS tracks' coordinates copied from their maps with no clock, the
+tracker's own file of the same fixes beside each; and three tables a program worked out from a
+log: a Kalman filter's state in a workbook, whose altitude reaches 169 km (105 mi), an inertial unit's
+recording turned into the rocket's frame with gravity taken out, and a flyer's rebuild of an
+altimeter's log, rows marked as made up, the altimeter's own file beside it read.
 
 The collection is other people's data, Debrief's fixtures come from flights shared on terms nobody
 recorded, and AerospaceNU's are published under the GPL, so no file and no value read from one is

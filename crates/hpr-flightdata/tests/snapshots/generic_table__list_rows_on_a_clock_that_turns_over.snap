@@ -1,0 +1,44 @@
+---
+source: crates/hpr-flightdata/tests/generic_table.rs
+expression: log
+---
+{
+  "format": "generic_table",
+  "logger": "unknown",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "pressure",
+      "quantity": "pressure",
+      "time_s": [
+        4293.967296,
+        4294.467296,
+        4294.967296,
+        4295.467296
+      ],
+      "values": [
+        101325.0,
+        101310.5,
+        101290.0,
+        101270.25
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the clock, \"clock\", counts modulo 4294967296: 2 values written past it taken modulo it, and it turns over once, each turn added",
+    "the column \"fix\" holds text, not numbers, such as \"True\": left out"
+  ]
+}
