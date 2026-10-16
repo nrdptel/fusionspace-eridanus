@@ -101,7 +101,7 @@ RASAero II pairs are on NC State's 2025 launch week, a slow ignition with air br
 | every tool's row | 63 | +3.0% | +1.1% to +5.6% | 24, 40 (95.7%) | 44 |
 | OpenRocket | 41 | +1.7% | −0.2% to +4.5% | 14, 28 (97.2%) | 26 |
 | RockSim | 16 | +8.9% | +1.4% to +21.0% | 4, 13 (97.9%) | 13 |
-| RocketPy; own code | 4; 2 | +2.0%; +6.5% | none | — | 3; 2 |
+| RocketPy; own code | 4; 2 | +2.0%; +6.5% | none (n ≤ 5) | none | 3; 2 |
 | strict (A) only, every tool | 23 | +3.0% | −3.1% to +13.6% | 7, 17 (96.5%) | 15 |
 | strict, OpenRocket | 15 | +1.1% | −4.2% to +13.6% | 4, 12 (96.5%) | 9 |
 | strict, RockSim | 7 | +7.3% | −13.6% to +43.3% | 1, 7 (98.4%) | 6 |
