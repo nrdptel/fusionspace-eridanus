@@ -26,6 +26,8 @@
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
 //! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
 //! | [Blue Raven USB download](crate::blueraven_usb) | one of the first 1,000 lines opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks |
+//! | [Teensy data logger, tab-separated](crate::teensy) | its first line that isn't blank is a tag, a whole-number clock and values, by tabs, and one of its first 100 is `Alt`, the clock, `P` and a number, `MSL` and a number |
+//! | [Teensy data logger, named fields](crate::teensy::read_named) | its first line that isn't blank states a tag's units, `ICM data in us, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas |
 //! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
@@ -60,7 +62,7 @@ use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
     arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus, fwgps,
     fwsummary, generic, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3,
-    rrc3_rff, rtx, sillygoose,
+    rrc3_rff, rtx, sillygoose, teensy,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -72,6 +74,8 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
     LogFormat::BlueRavenUsb,
+    LogFormat::TeensyTabs,
+    LogFormat::TeensyNamed,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
@@ -170,6 +174,13 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     // A Blue Raven's USB download is told by a record whose CRC checks.
     if blueraven_usb::recognizes(text) {
         return Some(LogFormat::BlueRavenUsb);
+    }
+    // A Teensy data logger's file by its `Alt` line, or by its units lines.
+    if teensy::recognizes_tabs(text) {
+        return Some(LogFormat::TeensyTabs);
+    }
+    if teensy::recognizes_named(text) {
+        return Some(LogFormat::TeensyNamed);
     }
     // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
@@ -303,6 +314,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::RavenFipCsv) => raven::read(&text),
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
         Some(LogFormat::BlueRavenUsb) => blueraven_usb::read(&text),
+        Some(LogFormat::TeensyTabs) => teensy::read(&text),
+        Some(LogFormat::TeensyNamed) => teensy::read_named(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),

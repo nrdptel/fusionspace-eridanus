@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 1,
       "read": 0,
       "refused": {
@@ -106,7 +106,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 2,
       "read": 0,
       "refused": {
@@ -188,7 +188,7 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 23,
       "read": 2,
       "refused": {
@@ -260,7 +260,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 2,
       "read": 0,
       "refused": {
@@ -494,8 +494,22 @@
       "refused": {}
     },
     {
-      "family": "telemetry-rtf",
+      "family": "teensy-named-txt",
       "increment": "M7.1c18",
+      "files": 1,
+      "read": 1,
+      "refused": {}
+    },
+    {
+      "family": "teensy-tabs-txt",
+      "increment": "M7.1c18",
+      "files": 7,
+      "read": 7,
+      "refused": {}
+    },
+    {
+      "family": "telemetry-rtf",
+      "increment": "M7.1c19",
       "files": 2,
       "read": 0,
       "refused": {
@@ -504,11 +518,11 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c18",
-      "files": 16,
+      "increment": "M7.1c19",
+      "files": 8,
       "read": 0,
       "refused": {
-        "unrecognized": 16
+        "unrecognized": 8
       }
     },
     {
@@ -529,7 +543,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 1,
       "read": 0,
       "refused": {
@@ -538,7 +552,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 4,
       "read": 0,
       "refused": {
@@ -547,7 +561,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c18",
+      "increment": "M7.1c19",
       "files": 2,
       "read": 0,
       "refused": {
@@ -563,6 +577,14 @@
     }
   ],
   "reclassified": [
+    "12f752fa1d21c27f txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "2b8cca725a7b5fd6 txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "34e2963eda0e95bc txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "3f3c6284f174edfc txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "425b1ac3fbe4f794 txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "bfea33e67007ae0e txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "d17b644dac464173 txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
+    "0bc1429eeabbbda7 txt -> teensy-named-txt: a course's Teensy data logger, newer layout: lines stating each sensor's units, then one sensor's reading a line, a tag, `t`, the clock in microseconds and name–value pairs, by commas; the course's *Flight Data* page lists it as \"New Teensy Data Logger\"",
     "455ecee4a48bd98e txt -> blueraven-usb-txt: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes",
     "a106c197fc5f6dec txt -> blueraven-usb-txt: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes",
     "4ee1c37b025e6a9f txt -> blueraven-summary-copy-txt: a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as a table of cells between `|`: a copy, as the program's events file beside it is a reading; the CSV reads",
@@ -784,6 +806,7 @@
     "Rocketry Ltd Nano V1": 7,
     "Silicdyne Fluctus": 6,
     "SillyGooseV2": 1,
+    "Teensy data logger": 8,
     "fw2kml": 15,
     "phone app": 27,
     "unknown": 52
@@ -2081,6 +2104,214 @@
       "liftoff_lag_s": 0.024
     }
   ],
+  "teensy_checks": [
+    {
+      "id": "2b8cca725a7b5fd6",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 42155,
+        "ADC Pin-35": 42155,
+        "ADC Pin-36": 42155,
+        "Alt": 42155,
+        "G": 42155,
+        "HG": 42155,
+        "M": 42155
+      },
+      "values_compared": 674480,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 42155,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 1545,
+      "pad_over_g": 0.9888817057935808,
+      "landed_over_g": 0.9988147153596972,
+      "powered_on_over_g": 0.9945873364740441,
+      "apogee_time_ratio": 0.9999241982942036,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 1.9104387635086257
+    },
+    {
+      "id": "12f752fa1d21c27f",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 40028,
+        "ADC Pin-35": 40028,
+        "ADC Pin-36": 40028,
+        "Alt": 40028,
+        "G": 40028,
+        "HG": 40028,
+        "M": 40028
+      },
+      "values_compared": 640448,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 40028,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 3044,
+      "pad_over_g": 0.987440627540596,
+      "landed_over_g": 1.0041848435784178,
+      "powered_on_over_g": 1.0475872354455742,
+      "apogee_time_ratio": 1.0683715803019238,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 1.4334216776773083
+    },
+    {
+      "id": "d17b644dac464173",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 49728,
+        "ADC Pin-35": 49728,
+        "ADC Pin-36": 49728,
+        "Alt": 49728,
+        "G": 49728,
+        "HG": 49728,
+        "M": 49728
+      },
+      "values_compared": 795648,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 49728,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 9912,
+      "pad_over_g": 0.9868637502996505,
+      "landed_over_g": 0.9974744169293321,
+      "powered_on_over_g": 1.0012343119640894,
+      "apogee_time_ratio": 0.9078749115539725,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 1.37488491487304
+    },
+    {
+      "id": "3f3c6284f174edfc",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 46510,
+        "ADC Pin-35": 46510,
+        "ADC Pin-36": 46510,
+        "Alt": 46510,
+        "G": 46510,
+        "HG": 46510,
+        "M": 46510
+      },
+      "values_compared": 744160,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 46510,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 6692,
+      "pad_over_g": 0.9863642345167281,
+      "landed_over_g": 1.0073210177525604,
+      "powered_on_over_g": 1.0335187486025117,
+      "apogee_time_ratio": 1.005298988438593,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 2.389463055549317
+    },
+    {
+      "id": "425b1ac3fbe4f794",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 39934,
+        "ADC Pin-35": 39934,
+        "ADC Pin-36": 39934,
+        "Alt": 39934,
+        "G": 39934,
+        "HG": 39934,
+        "M": 39934
+      },
+      "values_compared": 638944,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 39934,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 144,
+      "pad_over_g": 0.985912043077989,
+      "landed_over_g": 1.0035765994747536,
+      "powered_on_over_g": 1.0206880913327512,
+      "apogee_time_ratio": 0.9685676273016548,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 2.0032015448772866
+    },
+    {
+      "id": "bfea33e67007ae0e",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 43489,
+        "ADC Pin-35": 43489,
+        "ADC Pin-36": 43489,
+        "Alt": 43489,
+        "G": 43489,
+        "HG": 43489,
+        "M": 43489
+      },
+      "values_compared": 695824,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 43489,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 103,
+      "pad_over_g": 0.9837797550538098,
+      "landed_over_g": 1.0006658526670271,
+      "powered_on_over_g": 1.03955199231876,
+      "apogee_time_ratio": 0.9541923257285497,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 1.9717052603085987
+    },
+    {
+      "id": "34e2963eda0e95bc",
+      "layout": "tab-separated",
+      "tags": {
+        "A": 43496,
+        "ADC Pin-35": 43496,
+        "ADC Pin-36": 43496,
+        "Alt": 43496,
+        "G": 43496,
+        "HG": 43496,
+        "M": 43496
+      },
+      "values_compared": 695936,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 43496,
+      "msl_worst_m": 0.005357339254942417,
+      "msl_past_half_step": 100,
+      "pad_over_g": 0.9840319675717626,
+      "landed_over_g": 1.0068241461468717,
+      "powered_on_over_g": 1.0163146620274388,
+      "apogee_time_ratio": 1.0988752043846974,
+      "pad_pressure_in_band": null,
+      "quantities_read": true,
+      "high_g_over_low": 1.8546416676465636
+    },
+    {
+      "id": "0bc1429eeabbbda7",
+      "layout": "named fields",
+      "tags": {
+        "ADC": 5070,
+        "ICM": 98138,
+        "LIS": 100615,
+        "MS5": 4817,
+        "VOL": 200
+      },
+      "values_compared": 1303199,
+      "values_differing": 0,
+      "same_columns": true,
+      "alt_lines": 0,
+      "msl_worst_m": null,
+      "msl_past_half_step": 0,
+      "pad_over_g": 0.98889761497336,
+      "landed_over_g": 1.001210721926101,
+      "powered_on_over_g": 0.9882322377862401,
+      "apogee_time_ratio": 1.1350876968814294,
+      "pad_pressure_in_band": true,
+      "quantities_read": true,
+      "high_g_over_low": 0.9960086293660093
+    }
+  ],
   "filter_scales": {
     "files": 44,
     "least": [
@@ -2562,6 +2793,9 @@
       "`Alt` read in feet, from the `.rtx` files beside the sample exports": 4,
       "`COG` read in degrees, from the positions": 4,
       "`Vel` and `SOG` kept as written, in units no document states": 4
+    },
+    "teensy-tabs-txt": {
+      "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written": 7
     }
   },
   "files": [
@@ -2623,7 +2857,7 @@
     "0b81bee53c3096cd csv collection refused:unrecognized -",
     "0bbedeb8c6dd59cc pf2 collection PerfectFlitePf2 094723855cbfd5b3",
     "0bc0d96357b9eb10 altos-eeprom collection AltosEeprom a8e9d2820f9de3c4",
-    "0bc1429eeabbbda7 txt collection refused:unrecognized -",
+    "0bc1429eeabbbda7 teensy-named-txt collection TeensyNamed baf27f5daaa10941",
     "0bc847e6d3d9a9ee fluctus-csv collection FluctusCsv d45175512e660a50",
     "0be1279f886d0e5c pf2 collection PerfectFlitePf2 70d6ad865281b170",
     "0c037a948815bb46 blueraven-summary-csv collection FeatherweightSummaryCsv 180b3910c467be9f",
@@ -2656,7 +2890,7 @@
     "120e248f4d9d1ed5 aerospacenu-sillygoose-txt aerospacenu SillyGooseText d10b8531f914fc45",
     "12ab212a39ec19fe eggtimer-csv collection EggtimerCsv e9987612f60339bb",
     "12d8f8ca26d5d891 blueraven-csv collection BlueRavenCsv 12ea850ca0841cc4",
-    "12f752fa1d21c27f txt collection refused:unrecognized -",
+    "12f752fa1d21c27f teensy-tabs-txt collection TeensyTabs e51c32bf86c87e4b",
     "12fd94ba690475b8 blueraven-events-txt collection refused:unrecognized -",
     "131b57e37e11924c aerospacenu-sillygoose-txt aerospacenu SillyGooseText 749bbe827e11967a",
     "1341d296b3f6b676 perfectflite-csv collection PerfectFliteCsv 78ca0daf3ce49453",
@@ -2765,7 +2999,7 @@
     "2add1c81ab430ce7 eggtimer-csv collection EggtimerCsv 960a7fc1fcda5a24",
     "2ae4a21078c06c6c csv collection AltosCsv 1df7d839e4ac6285",
     "2b5d71858fa1383c eggtimer-csv collection EggtimerCsv d5f55062d379e127",
-    "2b8cca725a7b5fd6 txt collection refused:unrecognized -",
+    "2b8cca725a7b5fd6 teensy-tabs-txt collection TeensyTabs 09721f272657cdf1",
     "2bd426fc54282ae1 blueraven-summary-csv collection FeatherweightSummaryCsv c9bdcb592a574405",
     "2bdcbeaa22ae582e aerospacenu-fcb-csv aerospacenu AerospaceNuFcbCsv 9a647dbac66cd679",
     "2c6e6d889e7c5f58 raven-csv collection RavenFipCsv 2fbca324fee40af0",
@@ -2808,7 +3042,7 @@
     "34affe179ab66e72 checklist collection refused:archive -",
     "34d875c74b33740e pf2 collection PerfectFlitePf2 4b9d37637d0962d2",
     "34daa76dfba1dbf5 e80-imu-txt collection RdasText bb3959828605223a",
-    "34e2963eda0e95bc txt collection refused:unrecognized -",
+    "34e2963eda0e95bc teensy-tabs-txt collection TeensyTabs a374f193739c3577",
     "34ffb9c40a52f8a5 phone-launch-csv collection PhoneLaunchCsv 9f4b18ac621f5b55",
     "3510a91d9d37917b eggtimer-csv collection EggtimerCsv 9332545f318c2436",
     "3558867131aa48c0 raven-csv collection RavenFipCsv 549337b66221b2b1",
@@ -2856,7 +3090,7 @@
     "3ec13edcf93b4112 pfa collection PerfectFlitePfa fe5448638acf1637",
     "3ec209bd328f1a54 e80-imu-txt collection RdasText 915f660dbdb3ea98",
     "3eec6c63bba3eb96 kml collection Kml d52017a083165857",
-    "3f3c6284f174edfc txt collection refused:unrecognized -",
+    "3f3c6284f174edfc teensy-tabs-txt collection TeensyTabs 5659a73ef0a5433c",
     "407b81804d185ee9 altos-csv collection AltosCsv 8a6d0904d9f1f872",
     "40d01ca400d6085a blueraven-settings-xlsx collection refused:archive -",
     "4125f190dc562862 zip collection Archive:10 df58462edc369c7d",
@@ -2866,7 +3100,7 @@
     "420fc7e37e2db417 png collection refused:unrecognized -",
     "4228b05ebc899f6d missileworks-rtx collection RtxRaw dd98cefc3e385ac6",
     "4243bc06d5f49f2a table-csv collection GenericTable 7cc62f16ce9a6c85",
-    "425b1ac3fbe4f794 txt collection refused:unrecognized -",
+    "425b1ac3fbe4f794 teensy-tabs-txt collection TeensyTabs fcd1c3f939147729",
     "430e151a84016c4c e80-imu-txt collection RdasText 45b70499751658e2",
     "43d5e11c04f31edb altos-csv collection AltosCsv 331aab93b720a25b",
     "444687655195f5c8 xls collection refused:unrecognized -",
@@ -3395,7 +3629,7 @@
     "bf706a9e277df78e fwgps-csv collection FeatherweightGpsCsv 525b2ef3cf4ab360",
     "bf980c3411a2ad46 pf2 collection PerfectFlitePf2 bf7332b5238ecaa4",
     "bfbd53f67e83f37b pf2 collection PerfectFlitePf2 a9a34054a5841d79",
-    "bfea33e67007ae0e txt collection refused:unrecognized -",
+    "bfea33e67007ae0e teensy-tabs-txt collection TeensyTabs d9dc04c61990e149",
     "bff4916b449b4a0d raven-csv collection RavenFipCsv 03bc9f5282002ef2",
     "c00b343dc172564f raven-fipa collection RavenFipa 807079acfc747919",
     "c0137490458575d2 blueraven-csv collection BlueRavenCsv b7a05eb9e3b2a274",
@@ -3493,7 +3727,7 @@
     "d0d9f102c6744ad1 raven-csv collection RavenFipCsv 75d402e1b56fa47a",
     "d14468274e784260 pf2 collection PerfectFlitePf2 74f776bed6c33e1f",
     "d1626e71dc237d17 blueraven-events-txt collection refused:unrecognized -",
-    "d17b644dac464173 txt collection refused:unrecognized -",
+    "d17b644dac464173 teensy-tabs-txt collection TeensyTabs ed61c5b592e34cb3",
     "d19ad05cddfbcbdc fwgps-csv debrief FeatherweightGpsCsv cdc46838216df335",
     "d1da0707d6023367 phone-launch-csv collection PhoneLaunchCsv b6ad387a0d6f8dd6",
     "d21437764a14c64b workbook-xlsx collection Workbook:1 9b54734883748b79",

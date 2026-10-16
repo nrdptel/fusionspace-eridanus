@@ -1,0 +1,222 @@
+---
+source: crates/hpr-flightdata/tests/teensy.rs
+expression: log
+---
+{
+  "format": "teensy_tabs",
+  "logger": "Teensy data logger",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "A 1",
+      "quantity": "acceleration",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        0.25,
+        0.3
+      ]
+    },
+    {
+      "column": "A 2",
+      "quantity": "acceleration",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        -0.5,
+        -0.45
+      ]
+    },
+    {
+      "column": "A 3",
+      "quantity": "acceleration",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        9.75,
+        9.8
+      ]
+    },
+    {
+      "column": "G 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        1.5,
+        1.4
+      ]
+    },
+    {
+      "column": "G 2",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        0.5,
+        0.6
+      ]
+    },
+    {
+      "column": "G 3",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        -2.0,
+        -2.1
+      ]
+    },
+    {
+      "column": "M 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        20.1,
+        20.2
+      ]
+    },
+    {
+      "column": "M 2",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        -3.4,
+        -3.3
+      ]
+    },
+    {
+      "column": "M 3",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.002,
+        0.025
+      ],
+      "values": [
+        17.8,
+        17.9
+      ]
+    },
+    {
+      "column": "Alt P",
+      "quantity": "pressure",
+      "time_s": [
+        0.0031,
+        0.0261
+      ],
+      "values": [
+        95000.0,
+        94988.0
+      ]
+    },
+    {
+      "column": "Alt MSL",
+      "quantity": "altitude_msl",
+      "time_s": [
+        0.0031,
+        0.0261
+      ],
+      "values": [
+        540.42,
+        541.47
+      ]
+    },
+    {
+      "column": "HG 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0036,
+        0.0266
+      ],
+      "values": [
+        0.4788,
+        0.4788
+      ]
+    },
+    {
+      "column": "HG 2",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0036,
+        0.0266
+      ],
+      "values": [
+        -0.9577,
+        -0.4788
+      ]
+    },
+    {
+      "column": "HG 3",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0036,
+        0.0266
+      ],
+      "values": [
+        10.5337,
+        10.0549
+      ]
+    },
+    {
+      "column": "ADC Pin-35 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0037,
+        0.0267
+      ],
+      "values": [
+        0.012,
+        0.0121
+      ]
+    },
+    {
+      "column": "ADC Pin-36 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0038,
+        0.0268
+      ],
+      "values": [
+        0.015,
+        0.0149
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "each tag's lines on their own clock, the logger's count of microseconds, read as seconds from the logger's zero; no line states the unit",
+    "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written: no line states a unit, and the sample logs' survey holds these to the files",
+    "kept as written, as no line states their unit: `G 1`, `G 2`, `G 3`, `M 1`, `M 2`, `M 3`, `HG 1`, `HG 2`, `HG 3`, `ADC Pin-35 1`, `ADC Pin-36 1`",
+    "the last line, which ends the file with no line end and can't be read, dropped: a line the logger was writing when it stopped"
+  ]
+}

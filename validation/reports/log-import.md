@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c18 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c19 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,7 +22,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c18 | 2 | 0 | 2 unrecognized |
+| binary | M7.1c19 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -32,7 +32,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c18 | 23 | 2 | 1 syntax, 20 unrecognized |
+| csv | M7.1c19 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -41,7 +41,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c18 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c19 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -72,18 +72,28 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
 | table-csv | M7.1c13 | 31 | 31 | none |
-| telemetry-rtf | M7.1c18 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c18 | 16 | 0 | 16 unrecognized |
+| teensy-named-txt | M7.1c18 | 1 | 1 | none |
+| teensy-tabs-txt | M7.1c18 | 7 | 7 | none |
+| telemetry-rtf | M7.1c19 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c19 | 8 | 0 | 8 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xls | M7.1c18 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c18 | 4 | 0 | 4 archive |
-| xml | M7.1c18 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c19 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c19 | 4 | 0 | 4 archive |
+| xml | M7.1c19 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1008 | |
+| **All** | | 1122 | 1016 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `12f752fa1d21c27f txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `2b8cca725a7b5fd6 txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `34e2963eda0e95bc txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `3f3c6284f174edfc txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `425b1ac3fbe4f794 txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `bfea33e67007ae0e txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `d17b644dac464173 txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
+- `0bc1429eeabbbda7 txt -> teensy-named-txt`: a course's Teensy data logger, newer layout: lines stating each sensor's units, then one sensor's reading a line, a tag, `t`, the clock in microseconds and name–value pairs, by commas; the course's *Flight Data* page lists it as "New Teensy Data Logger"
 - `455ecee4a48bd98e txt -> blueraven-usb-txt`: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes
 - `a106c197fc5f6dec txt -> blueraven-usb-txt`: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes
 - `4ee1c37b025e6a9f txt -> blueraven-summary-copy-txt`: a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as a table of cells between `|`: a copy, as the program's events file beside it is a reading; the CSV reads
@@ -401,6 +411,19 @@ The 2 Blue Raven USB downloads (M7.1c17), each checked here apart from the reade
 | `455ecee4a48bd98e` | high-rate | 17930 | 0 | 17930 | 17930 | 17930 | 304810 | 0 | 29998.25 to 30000.00 | – | – |
 | `a106c197fc5f6dec` | low-rate | 1861 | 0 | 1706 | 1706 | 1706 | 49474 | 0 | – | 0.9977 | 0.024 |
 
+The 8 files of a course's Teensy data logger (M7.1c18), each decoded here apart from the reader: *Lines* counts the lines of readings by tag, and each value, in the unit read, is compared with the reader's channels. *MSL off* is the most an `Alt` line's `MSL` differs from 44,330 × (1 − (P / 101,325)^(1/5.255)), the Bosch BMP180's formula worked out in 64-bit floats, m, which its half step, 0.005 m, and an allowance of 44,330 × 2⁻²³ = 0.0053 m for the logger's own rounding of the formula bound: 0.0103 m; *Past half step* the `Alt` lines it differs on by more than 0.005 m; *Pad* and *Landed* the accelerometer's magnitude over 1 g, the median on the pad, the 5 s ending 1 s before liftoff, and over the last 2 s, `A` taken in m/s² and `ICM` in thousandths of a g, each read by the reader as an acceleration, as `P` must be read as a pressure and `MSL` as an altitude; *First 2 s* the same over the file's first 2 s, minutes before launch, a measure, not a check; *Apogee time* the time from liftoff, the first magnitude above 3 g in the 30 s before apogee, to apogee over √(2h/g), h the apogee's height above the pad's, the clock read in microseconds; *Pad pressure* whether the `MS5` pressure on the pad is between 50 and 110 kPa, the value itself not written, as it gives the site's elevation. *High-g over low* is a measure, not a check: the high-g accelerometer's magnitude over the other's during the boost, from 3 g to 90 % of its greatest, `HG` over `A` (both read as m/s²) or `LIS` over `ICM` (both as stated): `HG` is kept as written for it.
+
+| File | Layout | Lines | Values compared | Differing | `Alt` lines | MSL off, m | Past half step | Pad | Landed | First 2 s | Apogee time | Pad pressure | High-g over low |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|
+| `2b8cca725a7b5fd6` | tab-separated | A 42155, ADC Pin-35 42155, ADC Pin-36 42155, Alt 42155, G 42155, HG 42155, M 42155 | 674480 | 0 | 42155 | 0.0054 | 1545 | 0.9889 | 0.9988 | 0.9946 | 0.9999 | – | 1.910 |
+| `12f752fa1d21c27f` | tab-separated | A 40028, ADC Pin-35 40028, ADC Pin-36 40028, Alt 40028, G 40028, HG 40028, M 40028 | 640448 | 0 | 40028 | 0.0054 | 3044 | 0.9874 | 1.0042 | 1.0476 | 1.0684 | – | 1.433 |
+| `d17b644dac464173` | tab-separated | A 49728, ADC Pin-35 49728, ADC Pin-36 49728, Alt 49728, G 49728, HG 49728, M 49728 | 795648 | 0 | 49728 | 0.0054 | 9912 | 0.9869 | 0.9975 | 1.0012 | 0.9079 | – | 1.375 |
+| `3f3c6284f174edfc` | tab-separated | A 46510, ADC Pin-35 46510, ADC Pin-36 46510, Alt 46510, G 46510, HG 46510, M 46510 | 744160 | 0 | 46510 | 0.0054 | 6692 | 0.9864 | 1.0073 | 1.0335 | 1.0053 | – | 2.389 |
+| `425b1ac3fbe4f794` | tab-separated | A 39934, ADC Pin-35 39934, ADC Pin-36 39934, Alt 39934, G 39934, HG 39934, M 39934 | 638944 | 0 | 39934 | 0.0054 | 144 | 0.9859 | 1.0036 | 1.0207 | 0.9686 | – | 2.003 |
+| `bfea33e67007ae0e` | tab-separated | A 43489, ADC Pin-35 43489, ADC Pin-36 43489, Alt 43489, G 43489, HG 43489, M 43489 | 695824 | 0 | 43489 | 0.0054 | 103 | 0.9838 | 1.0007 | 1.0396 | 0.9542 | – | 1.972 |
+| `34e2963eda0e95bc` | tab-separated | A 43496, ADC Pin-35 43496, ADC Pin-36 43496, Alt 43496, G 43496, HG 43496, M 43496 | 695936 | 0 | 43496 | 0.0054 | 100 | 0.9840 | 1.0068 | 1.0163 | 1.0989 | – | 1.855 |
+| `0bc1429eeabbbda7` | named fields | ADC 5070, ICM 98138, LIS 100615, MS5 4817, VOL 200 | 1303199 | 0 | – | – | – | 0.9889 | 1.0012 | 0.9882 | 1.1351 | inside | 0.996 |
+
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
 | File | Sheets | Outcomes |
@@ -715,6 +738,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | rtx-txt | `Alt` read in feet, from the `.rtx` files beside the sample exports | 4 |
 | rtx-txt | `COG` read in degrees, from the positions | 4 |
 | rtx-txt | `Vel` and `SOG` kept as written, in units no document states | 4 |
+| teensy-tabs-txt | `A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written | 7 |
 
 The files read, by the logger each names:
 
@@ -762,6 +786,7 @@ The files read, by the logger each names:
 | Rocketry Ltd Nano V1 | 7 |
 | Silicdyne Fluctus | 6 |
 | SillyGooseV2 | 1 |
+| Teensy data logger | 8 |
 | fw2kml | 15 |
 | phone app | 27 |
 | unknown | 52 |

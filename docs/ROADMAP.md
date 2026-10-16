@@ -379,11 +379,26 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
-    ADR-272): in eighteen.
-    - [ ] **M7.1c18 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
-      EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
-      ADR-258).
-      *Done when:* the parent's.
+    ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
+    - [ ] **M7.1c19 Radio packets, `255:…:254`** (and `telemetry-rtf`, ADR-258). *Done when:* all
+      four forms read; every packet of the received and RTF forms the onboard log also holds
+      matches it field for field; the others counted by kind (GPS, repeated, broken).
+    - [ ] **M7.1c20 Workbooks with a reading beside.** *Done when:* the two headerless Raven FIP
+      sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls`
+      reads from its bare BIFF8 stream, by its stated units, each height following its pressure
+      by one barometric formula whose constants the report states.
+    - [ ] **M7.1c21 Altimeters' other text.** *Done when:* MARSA's two files read, their apogee
+      within 5 % of another logger's in the same flight; the AltOS telemetry CSV reads by its
+      header; the AltOS-like table by AltOS's state numbers; the CSV with formula cells reads,
+      each formula kept as text.
+    - [ ] **M7.1c22 Tables by mapping, and files that aren't logs.** *Done when:* the 20 logs read,
+      each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
+      a track's own speed); the 7 others filed as not logs, each with its reason in the report.
+    - [ ] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
+      the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
+      each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
+      report and M7.1 left open while it lasts; the guide lists every format the roadmap names
+      with no sample (CATS, Juno) as needing samples.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped
