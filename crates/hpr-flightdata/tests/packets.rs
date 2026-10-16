@@ -76,8 +76,8 @@ fn the_onboard_log_reads_each_kind_on_its_own_clock() {
     assert!(!log.notes.iter().any(|n| n.contains("broken")));
 }
 
-/// A packet heard by both paths is read once; a cut packet, a packet run into the next and a
-/// packet short of its kind's values are broken; the GPS packet is its own kind.
+/// A packet heard by both paths is read once; a cut packet, a packet run into the next, a packet
+/// short of its kind's values and a garbled mark are broken; the GPS packet is its own kind.
 #[test]
 fn the_received_text_drops_broken_and_repeated_packets() {
     let bytes = include_bytes!("samples/radio-packets-received.txt");
@@ -88,13 +88,23 @@ fn the_received_text_drops_broken_and_repeated_packets() {
     assert_eq!(channel(&log, "PP 1").time_s, [100.0, 100.3]);
     assert_eq!(channel(&log, "AA 1").values, [9.70]);
     assert_eq!(
-        note(&log, "3 broken"),
-        "3 broken lines dropped, packets the radio cut or ran into the next, or with another \
+        note(&log, "4 broken"),
+        "4 broken lines dropped, packets the radio cut or ran into the next, or with another \
          count of values than their kind's first, the first on line 4"
     );
     assert_eq!(
         note(&log, "2 packets heard"),
         "2 packets heard again dropped"
+    );
+    // A garbled mark is broken; a mark heard again is dropped.
+    assert_eq!(log.events.len(), 1);
+    assert_eq!(
+        (log.events[0].name.as_str(), log.events[0].time_s),
+        ("Stage Two", 100.3)
+    );
+    assert_eq!(
+        note(&log, "1 `Stage`"),
+        "1 `Stage` lines heard again dropped"
     );
 }
 

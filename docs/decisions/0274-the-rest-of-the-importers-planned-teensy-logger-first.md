@@ -111,8 +111,8 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
    a path letter, a two-digit stage, a two-letter kind, a whole-number clock, its values and `254`.
    The path is `T` for the flight computer and `N` for a second transmitter that relays its packets
    and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as the same packet comes by
-   both. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line is an
-   event at the next packet's clock.
+   both. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line, its
+   word a number's from `One` to `Nine`, is an event at the next packet's clock.
 2. **Broken and repeated packets are dropped and counted, not refused.** The receiver's text holds
    packets the radio cut or ran together, and most packets twice. One rule for both text forms
    keeps the reader simple; the survey shows the onboard log has no broken line, so nothing is

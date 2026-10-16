@@ -1049,7 +1049,9 @@ are from the crate's test files:
 
 Each kind becomes a set of channels on its own clock, named by the kind and the value's place,
 such as `PP 1`, with the stage as a channel of its own, `PP stage`. A `Stage Two` line, as the
-onboard log writes when the stage changes, becomes an event at the next packet's time.
+onboard log writes when the stage changes, becomes an event at the next packet's time. The word
+must be a number's, `One` to `Nine`: a mark the radio garbled is a broken line, and one heard
+again is dropped.
 
 | Values | Read as | Held to |
 |---|---|---|

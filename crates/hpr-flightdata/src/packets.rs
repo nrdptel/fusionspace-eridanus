@@ -41,8 +41,8 @@
 //! the standard atmosphere's height of the pressure above the pad's in meters, by the survey, so no
 //! unit is settled for it.
 //!
-//! **Lines that aren't packets.** A `Stage` line, such as `Stage Two`, is an event at the clock of
-//! the next packet. The onboard log opens with a whole number and `Gain[0]: …` lines, its filter's
+//! **Lines that aren't packets.** A `Stage` line, `Stage` and a number's word from `One` to `Nine`,
+//! such as `Stage Two`, is an event at the clock of the next packet; one heard again is a repeat. The onboard log opens with a whole number and `Gain[0]: …` lines, its filter's
 //! gains, which a note counts. Any other line is broken, a packet the radio cut or ran into the next:
 //! the receiver's text holds many. A broken line is dropped, and a note counts them; so is a
 //! packet heard again, the same stage, kind, clock and values as one already read, by either path.
@@ -155,10 +155,16 @@ fn is_gain(line: &str) -> bool {
     line.starts_with("Gain[")
 }
 
-/// Whether a line is a stage's mark, `Stage` and one word.
+/// The words a stage's mark may number it by, as the onboard log writes them.
+const STAGE_WORDS: [&str; 9] = [
+    "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+];
+
+/// Whether a line is a stage's mark, `Stage` and a number's word, such as `Stage Two`; a word
+/// the radio garbled, such as `Nwo`, isn't one.
 fn stage_mark(line: &str) -> Option<&str> {
     let word = line.strip_prefix("Stage ")?;
-    (!word.is_empty() && word.bytes().all(|b| b.is_ascii_alphabetic())).then_some(line)
+    STAGE_WORDS.contains(&word).then_some(line)
 }
 
 /// Whether the text is the packets' text form: its first line that isn't blank is a packet, a whole
@@ -240,9 +246,11 @@ struct Reading<'a> {
     heard: HashSet<(&'a str, &'a str, u64, Vec<&'a str>)>,
     events: Vec<Event>,
     pending_marks: Vec<String>,
+    marks_seen: HashSet<String>,
     broken: usize,
     first_broken: Option<usize>,
     repeated: usize,
+    repeated_marks: usize,
     gains: usize,
 }
 
@@ -320,6 +328,15 @@ impl<'a> Reading<'a> {
         Ok(())
     }
 
+    /// Takes a stage's mark; one already taken is a repeat.
+    fn mark(&mut self, mark: &str) {
+        if self.marks_seen.insert(mark.to_owned()) {
+            self.pending_marks.push(mark.to_owned());
+        } else {
+            self.repeated_marks += 1;
+        }
+    }
+
     /// Counts a broken line.
     fn broke(&mut self, line: usize) {
         self.broken += 1;
@@ -351,6 +368,12 @@ impl<'a> Reading<'a> {
         }
         if self.repeated > 0 {
             notes.push(format!("{} packets heard again dropped", self.repeated));
+        }
+        if self.repeated_marks > 0 {
+            notes.push(format!(
+                "{} `Stage` lines heard again dropped",
+                self.repeated_marks
+            ));
         }
         for name in self.pending_marks {
             notes.push(format!(
@@ -430,7 +453,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         if let Some(packet) = packet(line, ':') {
             reading.take(packet, TEXT, number)?;
         } else if let Some(mark) = stage_mark(line) {
-            reading.pending_marks.push(mark.to_owned());
+            reading.mark(mark);
         } else if is_gain(line) {
             reading.gains += 1;
         } else if opening && line.len() <= 10 && line.bytes().all(|b| b.is_ascii_digit()) {
@@ -461,7 +484,7 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
         if let Some(packet) = packet(line, ',') {
             reading.take(packet, RTF, *number)?;
         } else if let Some(mark) = stage_mark(line) {
-            reading.pending_marks.push(mark.to_owned());
+            reading.mark(mark);
         } else {
             reading.broke(*number);
         }
