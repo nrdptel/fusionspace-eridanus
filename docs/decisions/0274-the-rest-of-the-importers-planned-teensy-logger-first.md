@@ -344,19 +344,21 @@ showed, measured, and the decisions.
    loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
 5. **A track's own speed, which the plan named, holds no unit: that part of the *done when* is
    not met, recorded.** The survey measures it (`cargo xtask logs`, the report's paragraph on a
-   track's own speed): a track's ground speed at each row whose position changes, the
-   great-circle distance from the fix before over the step of its own clock, over the whole
-   recording, the pad's hours included, so a median can be a receiver's jitter as much as the
-   wind's drift. Over the 5 tracks held by a place check of a latitude and a longitude (two of
-   them the same fixes), the median lies 0.6920 to 7.3836 m/s, a spread of 10.67 times, more
-   than the 10 times a clock misread by one power of ten moves it, so no band on these tracks
-   refuses that misread; and as a track drifts with the wind, which at a launch runs from calm
-   to NFPA 1127's limit of 20 mph (8.9 m/s), no band holds a clock on every flight. Each
-   track's fastest step lies 235.44 to 1,200.13 m/s. Radians stated as degrees move 57 times
-   slower, which a band could part on these 5 tracks alone, but a
-   band fitted to them is a sample, not a bound. So the track's units are held by its place,
-   which needs no band; its clock by the time to apogee of its own altitude or by the clock of a
-   file of the same logger; and its altitude, where it has one, by another logger's.
+   track's own ground speed): a track's ground speed from each fix to the next the receiver
+   reports, the great-circle distance over the step of its own clock, a fix repeated over rows
+   counted once, over the whole recording, the pad's hours included, so a median can be a
+   receiver's jitter as much as the wind's drift. Over the 4 tracks held by a place check of a
+   latitude and a longitude (5 files, two of them the same fixes), the median lies 0.3460 to
+   7.3836 m/s, a spread of 21.34 times, and the fastest step 24.8509 to 400.0430 m/s, 16.10
+   times: both more than the 10 times a clock misread by a factor of 10 moves them, so no band on
+   these tracks refuses that misread on every one of them. As a track drifts with the wind, and
+   a launch may go on a calm day, its speed has no floor (NFPA 1127 limits only the surface
+   wind, to 20 mph, 8.9 m/s), so no band holds a clock on every flight. Radians stated as degrees
+   read 57 times slower, which a band could part on these 4 tracks alone, but a band fitted to
+   them is a sample, not a bound. So the track's units are held by its place, which needs no
+   band; its clock by the time to apogee of its own altitude or by the clock of a file of the
+   same logger; and its altitude, where it has one, by another logger's. A track's vertical
+   speed is its altitude's, held the same way.
 6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
    computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
    cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map

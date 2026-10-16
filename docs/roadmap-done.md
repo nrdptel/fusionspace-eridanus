@@ -1675,10 +1675,10 @@ One line per milestone or increment, in the order it was archived within its pha
       each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
       a track's own speed); the 7 others filed as not logs, each with its reason in the report.
       *Result (ADR-274):* the 20 read and the 7 filed; a track's own speed not met, recorded: it
-      holds no unit, as the 5 tracks' median speeds over the rows whose position changes spread
-      10.67 times (0.6920 to 7.3836 m/s), more than a clock off by one power of ten moves them,
-      and a track drifts with the wind, from calm up; a track's units are held by its place and
-      the clock checks instead.
+      holds no unit, as the 4 tracks' median ground speeds from fix to fix spread 21.34 times
+      (0.3460 to 7.3836 m/s), wider than the 10 times a clock misread by a factor of 10 would
+      shift them, and a track drifts with the wind, from calm up. A track's units are held by its
+      latitude-and-longitude check and the clock checks instead.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

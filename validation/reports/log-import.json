@@ -3531,11 +3531,13 @@
       }
     ],
     "track_speeds": {
-      "tracks": 5,
-      "slowest_median_m_s": 0.692,
+      "files": 5,
+      "tracks": 4,
+      "slowest_median_m_s": 0.346,
       "fastest_median_m_s": 7.3836,
-      "least_fastest_step_m_s": 235.4407,
-      "most_fastest_step_m_s": 1200.1289
+      "spread": 21.3408,
+      "least_fastest_step_m_s": 24.8509,
+      "most_fastest_step_m_s": 400.043
     }
   },
   "filter_scales": {
