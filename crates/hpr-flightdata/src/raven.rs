@@ -301,9 +301,10 @@ pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
 /// The rule: a channel whose sample, in any row, has a cell in a pasted column is left out whole,
 /// with a note naming it and counting the rows; every other channel is read as [`read_rows`]
 /// reads it. To walk a row, each channel's cells must still say whether it has a sample: one of
-/// its time's and values' cells outside the pasted columns not empty, or, where they are all
-/// pasted over or empty, its first status cell, a sample's `b` and digits, where a stopped
-/// channel's next cell is another channel's time or empty.
+/// its time's and values' cells outside the pasted columns not empty; or, where some are pasted
+/// over and the rest empty, the cell after them, a sample's first status cell, `b` and digits,
+/// where a stopped channel's next cell is another channel's time. That cell pasted over or empty,
+/// a status left empty or another channel stopped too, the row is refused.
 ///
 /// ```
 /// use hpr_flightdata::raven;
@@ -555,19 +556,26 @@ fn read_row(
         let width = clock.sample_width();
         let sampled = if filled || !hidden {
             filled
-        } else if width > empty_width && !pasted.contains(&(at + empty_width)) {
-            // The pasted cells hide the time and values: a sample's first status cell tells.
-            cells
-                .get(at + empty_width)
-                .is_some_and(|cell| status_cell(cell).is_some())
         } else {
-            return Err(syntax(
-                number,
-                format!(
-                    "the pasted columns hide whether the clock {:?} has a sample in the row",
-                    short(&clock.name)
-                ),
-            ));
+            // The pasted cells hide the time and values: the cell after them tells, a sample's
+            // first status cell or the next clock's time. Empty, it could be either: a status left
+            // empty, or a stopped clock's time.
+            let after = (width > empty_width && !pasted.contains(&(at + empty_width)))
+                .then(|| cells.get(at + empty_width).copied());
+            match after {
+                Some(Some(cell)) if !cell.is_empty() => status_cell(cell).is_some(),
+                // The row ends there: no room for a sample.
+                Some(None) => false,
+                _ => {
+                    return Err(syntax(
+                        number,
+                        format!(
+                            "the pasted columns hide whether the clock {:?} has a sample in the row",
+                            short(&clock.name)
+                        ),
+                    ));
+                }
+            }
         };
         if !sampled {
             at += empty_width;
@@ -1405,6 +1413,21 @@ mod tests {
                 );
             }
             other => panic!("expected a syntax refusal, got {other:?}"),
+        }
+        // An empty cell after the hidden ones is a sample's status left empty or the next clock
+        // stopped too: refused, not read as either.
+        for row in ["0.05,1.01,b0000,7,8,,,,", "0.05,1.01,b0000,7,8,,0.05,1,b0000"] {
+            let sheet = format!("0,1.02,b0000,7,8,b0000,0,0,b0000\n{row}\n");
+            match read_rows_around(HEADER, &sheet, &[4, 5]) {
+                Err(LogError::Syntax { line, message, .. }) => {
+                    assert_eq!(line, 2, "{row}");
+                    assert!(
+                        message.contains("hide whether the clock \"Time@Baro (Atm)\" has a sample"),
+                        "{row}: {message}"
+                    );
+                }
+                other => panic!("{row}: expected a syntax refusal, got {other:?}"),
+            }
         }
     }
 
