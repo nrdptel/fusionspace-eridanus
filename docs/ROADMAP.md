@@ -397,8 +397,8 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
     - [ ] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
       the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
       each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
-      report and M7.1 left open while it lasts; the guide lists every format the roadmap names with no sample (CATS, Juno) as
-      needing samples.
+      report and M7.1 left open while it lasts; the guide lists every format the roadmap names
+      with no sample (CATS, Juno) as needing samples.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped
