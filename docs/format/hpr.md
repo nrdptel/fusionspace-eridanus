@@ -171,9 +171,9 @@ an attachment, kept byte for byte, under its name, in its order.
   tools write, as long as it is empty. It refuses a symbolic link. It refuses a name beyond plain
   ASCII that isn't marked as UTF-8 (each entry carries a flag for it), and a name that is marked
   but isn't valid UTF-8. It refuses two entries of one name, which the zip library the simulator
-  uses would otherwise read as one, dropping the other without a word. Each refusal names the
-  entry. To get past a name refusal, rename that file inside the archive to plain ASCII, or pack
-  the archive again with a tool that marks UTF-8 names.
+  uses would otherwise read as one, dropping the other without a word. A refused link or name is
+  quoted in the message. To get past a name refusal, rename that file inside the archive to plain
+  ASCII, or pack the archive again with a tool that marks UTF-8 names.
 
 A `.hpr` has no place for attachments, and a `.ork` keeps only the source file's own. So
 `hpr convert` names each attachment it leaves out, as a warning.
