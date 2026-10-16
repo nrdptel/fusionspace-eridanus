@@ -319,7 +319,8 @@ fn central_records(bytes: &[u8], start: usize) -> usize {
 }
 
 /// Bit 11 of a zip entry's general purpose flags, the language encoding flag: set, its name is
-/// UTF-8; clear, it is in IBM code page 437 (APPNOTE.TXT 6.3.10, section 4.4.4 and appendix D).
+/// UTF-8; clear, it should be in IBM code page 437 (APPNOTE.TXT 6.3.10, section 4.4.4 and appendix
+/// D), though some zip tools write UTF-8 and leave the mark off.
 const UTF8_FLAG: u16 = 1 << 11;
 
 /// Reads a container, taking a design of an older version to the current one.
@@ -344,7 +345,8 @@ pub fn read(bytes: &[u8]) -> Result<Opened<Hprz>, FormatError> {
 ///
 /// [`FormatError::Container`] when the bytes are not a zip archive, an entry can't be read, the
 /// central directory holds more entries than the zip reader keeps (two of one name), an entry is a
-/// symbolic link or its name isn't marked as UTF-8, an attachment's name is refused, the archive
+/// symbolic link, its name is beyond plain ASCII and isn't marked as UTF-8, or is marked and isn't
+/// UTF-8, an attachment's name is refused, the archive
 /// would decompress to more than `max_unpacked_bytes`, or it holds no [`DESIGN_ENTRY`] or the
 /// design isn't UTF-8; and what [`read_json`] refuses in the design.
 pub fn read_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Opened<Hprz>, FormatError> {

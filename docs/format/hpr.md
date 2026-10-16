@@ -169,8 +169,9 @@ an attachment, kept byte for byte, under its name, in its order.
   reason rather than half read. The reader checks every name before it unpacks anything. It takes
   the design wherever the archive holds it, and passes over a folder's own entry, which some zip
   tools write, as long as it is empty. It refuses a symbolic link, a name beyond plain ASCII that
-  isn't marked as UTF-8 (the mark zip has for it), and two entries of one name, which the zip
-  library the simulator uses would otherwise read as one, dropping the other without a word.
+  isn't marked as UTF-8 (the mark zip has for it), a name marked as UTF-8 whose bytes aren't, and
+  two entries of one name, which the zip library the simulator uses would otherwise read as one,
+  dropping the other without a word.
 
 A `.hpr` has no place for attachments, and a `.ork` keeps only the source file's own. So
 `hpr convert` names each attachment it leaves out, as a warning.
@@ -499,8 +500,8 @@ The tests also cover the rest of this page:
   answer is recovered.
 - **The container**: a design with four attachments (a text file, an image, an empty file and a
   name in accents) reads back the same and writes the same bytes again. Each name rule above, two
-  entries of one name, a symbolic link, a name not marked as UTF-8, a folder's entry that holds
-  bytes, a missing or damaged design, and a
+  entries of one name, a symbolic link, a name not marked as UTF-8 and one marked whose bytes
+  aren't, a folder's entry that holds bytes, a missing or damaged design, and a
   container past 256 MiB, written or read, are each refused with the reason.
 - **The command line**: `hpr convert` takes a public design `.ork` → `.hpr` → `.hprz` → `.ork`, each
   file the library's own, byte for byte. `hpr sim` flies a public design from its `.hpr` and its
