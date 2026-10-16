@@ -90,8 +90,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > in the sample file following its pressure by the standard atmosphere's formula
 > ([the AltiMAX's Excel export](#the-altimaxs-excel-export)).
 > Since [M7.1c21](../decisions-and-roadmap.md#m7-1c21) (altimeters' other text), a MARSA
-> altimeter's download reads in feet and g, its apogee in the two sample files within 2 % of an
-> AltOS board's in the same rocket ([a MARSA download](#a-marsa-download)); AltOS's radio
+> altimeter's download reads in feet and g, units no document states and the survey holds to
+> checks: in the two sample files the apogee is 0.981 and 0.986 times an AltOS board's in the same
+> flight, a check of the unit, not of the MARSA's accuracy ([a MARSA download](#a-marsa-download)); AltOS's radio
 > telemetry decoded to a table reads by its header
 > ([AltOS's telemetry as a table](#altoss-telemetry-as-a-table)); a table cut from an AltOS
 > export, AltOS's column names alone, reads by AltOS's state numbers; and an export a
@@ -180,7 +181,7 @@ decided.
 | PerfectFlite CSV export | the same, through PerfectFlite's software | `Time,Altitude,` and more of the export's own column names | [below](#perfectflites-exports) |
 | PerfectFlite text export | the same | the same names, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, `F` or `C`, such as `71.5F` | [below](#perfectflites-exports) |
 | PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
-| AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,`; or a table cut from an export, a header of AltOS's own names alone naming `time`, `state` and `state_name`, one of whose first 100 rows gives one of AltOS's state numbers with its name | `hpr_flightdata::altos` ([below](#altoss-csv-after-a-spreadsheet)) |
+| AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | a full export: `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,`. A table cut from an export: a header of AltOS's own names that includes `time`, `state` and `state_name`, where at least one of the first 100 rows pairs a state number with its AltOS name | `hpr_flightdata::altos` ([below](#altoss-csv-after-a-spreadsheet)) |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
@@ -438,7 +439,8 @@ Metrum's ground software, saves it; only the Rust library reads it so far. It is
 sample files, two flights of one team's TeleMetrum, one of them with AltosUI's export (its CSV)
 of the board's own log of the same flight beside it, and it follows the maker's published
 description of the packets (*AltOS Telemetry*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025,
-§2–4) but for one unit, the pressure's, which the files contradict.
+§2–4) but for one unit, the pressure's, which the files contradict. The same packets decoded to
+a table are read too ([AltOS's telemetry as a table](#altoss-telemetry-as-a-table)).
 
 The board sends a 32-byte packet several times a second, each of a type: sensors, GPS fix,
 satellites, configuration, calibration. A TeleDongle,
@@ -1355,14 +1357,16 @@ at rest taken out, so about 0 on the pad. The example's last row reads 0.1 s, �
 [primary track](#the-record), a height above the logger's own zero, which isn't its reading on
 the pad: in both sample files the pad reads three counts below it, −87 ft (−27 m). It moves by
 its barometer's count, about 29 ft (9 m) near the pad, not by the tenth of a foot it is written
-in. The acceleration is the rocket's own along its axis only while the rocket points straight
-up, as AltOS's is.
+in. The acceleration is along the altimeter's axis, so it is the rocket's own only while the
+rocket points straight up; AltOS's has the same limit.
 
 **A spreadsheet's re-save** of the file, each setting's line ending in two empty cells and the
 numbers rewritten (`-87` for `-87.0`), reads the same.
 
-**How the units were checked.** Each sample file flew beside an AltOS board in the same stage,
-by the collection's flight cards; the survey reads both:
+**How the units were checked.** Each sample file sits in its flight's folder in the private
+collection beside an AltOS board's export, and the folder's other log is the other stage's, so
+the board flew in the MARSA's stage. The [survey](#how-it-was-checked) reads both, and holds the
+MARSA's units to them:
 
 - **The feet.** The highest altitude, read in feet, is 0.981 and 0.986 times the AltOS board's
   highest height above its pad. The check allows 0.95 to 1.05, the plan's 5 %
@@ -1370,7 +1374,8 @@ by the collection's flight cards; the survey reads both:
   read in meters, the altitude would be 3.2 times the board's.
 - **The g.** Over the first 2 s after liftoff (the first acceleration above 3 g), the barometric
   climb is 0.915 and 1.035 times the acceleration integrated twice from rest. The check allows
-  0.6 to 5/3; read in m/s², the climb would be 9.0 and 10.1 times it.
+  0.6 to 5/3, the band of the [`.eeprom` reader's climb check](#altoss-eeprom), wide so that only
+  a wrong unit fails it: read in m/s², the climb would be 9.0 and 10.1 times it.
 - **The g at rest.** Before liftoff the acceleration's median is −0.12 g in both files. The check
   holds it within 0.5 g of 0, nearer 0 than the 1 g an accelerometer with gravity left in would
   read.
@@ -1384,7 +1389,10 @@ is read as a quantity. No line of the file is an event, so the record has none.
 
 ### AltOS's telemetry as a table
 
-A table of AltOS's radio telemetry, one packet a row under a header of the packet's fields. An
+A table of AltOS's radio telemetry, one packet a row under a header of the packet's fields: the
+packets an [AltOS `.telem` file](#altos-telemetry) logs, decoded. It is read from one sample file
+and the maker's description of the packets; only the TeleMega's `0x09` packet is read, one board
+and one packet type to a table, and only the Rust library reads it. An
 Altus Metrum board's radio packet opens with its serial number, its clock in ticks of 10 ms and
 the packet's type, and the type lays out the rest (*AltOS Telemetry*, Bdale Garbee and Keith
 Packard, v1.9.22.2, 2025, §2.1, p. 2). The sample file holds a TeleMega's type `0x09` packets,
@@ -1410,20 +1418,28 @@ another board or packet type, or a tick no later than the one before, refuses th
 line: the tick turns over every 655.36 s, and a table of seconds can't tell a turn from a board
 switched off and on.
 
-**How it was checked.** In the sample file, all 325 rows are type 9 and pass their CRC. All
-12,025 comparisons of the reader's record with the survey's own decoding agree: each value and
-its time in the channels, and each time on the primary track. Every acceleration and speed is a
-whole number of sixteenths, every height a whole meter and every tick a whole hundredth of a
-second. The battery reads 4.09 to 4.10 V, where the check allows 2.5 to 5 V; the other voltages
-are read as volts and held to nothing. The first ground pressure lies between 50 and 110 kPa (7.3
-and 16 psi). Two measures: on the pad the acceleration's median is −0.44 m/s², about 0; and from
-boost to coast, the median over pairs of rows of the height's change over their time is 1.019
-times their mean speed.
+**How it was checked.** In the sample file, all 325 rows are type 9 and pass their CRC.
+
+- **The decoding.** All 12,025 comparisons of the reader's record with the
+  [survey's](#how-it-was-checked) own decoding agree: each value and its time in the channels,
+  and each time on the primary track.
+- **The units.** From boost to coast, the median over pairs of rows of the height's change over
+  their time is 1.019 times their mean speed, and of the speed's change over their time 0.929
+  times their mean acceleration. Each check allows 0.6 to 5/3: a speed or an acceleration left
+  in the packet's sixteenths, a height in feet or a tick in its 10 ms counts would miss it. The
+  battery reads 4.09 to 4.10 V, where the check allows 2.5 to 5 V; the other voltages are read as
+  volts and held to nothing. The first ground pressure lies between 50 and 110 kPa (7.3 and 16
+  psi).
+- **The resolution.** Every acceleration and speed is a whole number of sixteenths, every height
+  a whole meter and every tick a whole hundredth of a second, as the packet carries them; a
+  measure, as a wrong unit could keep them too. On the pad the acceleration's median is
+  −0.44 m/s², about 0.
 
 ### AltOS's CSV after a spreadsheet
 
 Two sample files read as AltOS exports that went through a spreadsheet, and
-[AltOS's CSV reader](../api/hpr_flightdata/altos/index.html) reads both.
+[AltOS's CSV reader](../api/hpr_flightdata/altos/index.html) reads both. Each case below rests on
+one sample file and on invented ones in the library's tests.
 
 **A table cut from an export** holds AltOS's columns alone: a header of AltOS's own names with no
 `#version,serial,flight` before them, such as
@@ -1436,10 +1452,12 @@ export, whose header shows it is AltOS's, is held less strictly: a contradicting
 in a note and its name kept as written, as Debrief's sample export numbers `pad` 1. In the sample
 file, all 1,005 rows give AltOS's pairs. All 15,948 comparisons of the reader's record with the
 survey's own decoding agree: each value and its time in the channels, and the primary track's
-times and heights, which keep the first row at each time AltOS repeats. Its `altitude` less its
-`height` lies within 0.005 m (0.016 ft) of one offset, the pad's altitude, where the check allows
-0.01 m (0.033 ft), the two columns' centimeter. And, a measure, its `altitude` is the standard
-atmosphere's height of its `pressure` to within 0.006 m (0.019 ft).
+times and heights, which keep the first row at each time AltOS repeats; and its events are AltOS's
+names. Its `altitude` less its `height` lies within 0.005 m (0.016 ft) of one offset, the pad's
+altitude, where the check allows 0.01 m (0.033 ft), the two columns' centimeter. Its `altitude`'s
+rise from the first row to its highest is 1.000 times the standard atmosphere's height's rise of
+its `pressure`, where the check allows 0.6 to 5/3 and an altitude in feet would give 3.3. And, a
+measure, its `altitude` is that height of its `pressure` to within 0.006 m (0.020 ft).
 
 **An export a spreadsheet re-saved** can carry three changes:
 

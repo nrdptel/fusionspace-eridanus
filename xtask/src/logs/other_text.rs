@@ -41,8 +41,8 @@ pub(super) const ALTOS_TABLE: &str = "a table cut from an AltOS export, \
     `version,serial,flight` before them, read by its states; filed as generic CSV by its \
     extension";
 
-/// Each MARSA download's other logger in the same rocket, by id: the AltOS board beside it, in
-/// the stage it flew, by the collection's flight cards, which give both stages' loggers.
+/// Each MARSA download's other logger in the same flight, by id: the AltOS board in the flight's
+/// folder of the collection, whose other log is the other stage's.
 const MARSA_BESIDE: [(&str, &str); 2] = [
     ("4be82002a95c68db", "2a665d94d9ad35d1"),
     ("a80063e417b87028", "2f3fbd62dbc4f064"),
@@ -51,10 +51,13 @@ const MARSA_BESIDE: [(&str, &str); 2] = [
 /// The apogee over the other logger's that the plan allows (ADR-274's 5 %).
 const MARSA_APOGEE_BAND: std::ops::RangeInclusive<f64> = 0.95..=1.05;
 
-/// The barometric climb over the acceleration integrated twice from rest, over the first
-/// [`MARSA_CLIMB_S`] after liftoff, that the acceleration read in g must keep: the band AltOS's
-/// `.eeprom` reader holds its own climb check to.
-const MARSA_CLIMB_BAND: std::ops::RangeInclusive<f64> = 0.6..=5.0 / 3.0;
+/// The band a ratio that checks a unit must lie in: the `.eeprom` reader's climb band, 0.6 to
+/// 5/3, symmetric about 1 in log terms ([`hpr_flightdata::altos_eeprom::CLIMB_RATIO`]), which no
+/// unit off by a factor of 3.28 (feet for meters) or more can reach. Each check below is the ratio
+/// of two readings that are equal in the right units: a barometric climb and an integrated
+/// acceleration; a height's change over time and a speed; a speed's change over time and an
+/// acceleration; an altitude's rise and its pressure's.
+const UNIT_BAND: std::ops::RangeInclusive<f64> = hpr_flightdata::altos_eeprom::CLIMB_RATIO;
 
 /// How far from 0 the acceleration's median before liftoff may be, g: nearer 0 than 1 g, as an
 /// acceleration with gravity taken out reads at rest, where one with it in reads 1 g.
@@ -142,11 +145,12 @@ struct MarsaFile {
     apogee_time_off_s: Option<f64>,
     /// The barometric climb over the first [`MARSA_CLIMB_S`] after liftoff, the first
     /// acceleration above [`LIFTOFF_G`], over the acceleration read in g integrated twice from
-    /// rest over them: within [`MARSA_CLIMB_BAND`]; and the same read in m/s², a measure.
+    /// rest over them: within [`UNIT_BAND`]; and the same read in m/s², a measure.
     climb_ratio: Option<f64>,
     climb_ratio_in_m_s2: Option<f64>,
     /// The least and greatest step between the altitudes written within [`NEAR_PAD_FT`] above
-    /// the pad's reading that are one count, under 1.5 times the least, ft.
+    /// the pad's reading that are one count, under 1.5 times the least, ft: a measure, from
+    /// which [`hpr_flightdata::marsa::ALTITUDE_STEP_M`] is taken, so not a check of it.
     count_step_ft: Option<[f64; 2]>,
 }
 
@@ -180,8 +184,12 @@ struct TelemetryCsvFile {
     /// The acceleration in the pad state, the median, m/s²: about 0, as gravity is taken out.
     pad_acceleration_m_s2: Option<f64>,
     /// The median, from boost to coast, of the height's change between two rows over their
-    /// time, over the mean of their speeds: a measure.
+    /// time, over the mean of their speeds, where it is over 10 m/s; and of the speed's change
+    /// over their time, over the mean of their accelerations, where it is over 5 m/s²: each
+    /// within [`UNIT_BAND`], which holds the height's meters, the speed's and acceleration's
+    /// sixteenths divided out, and the tick's seconds.
     climb_over_speed: Option<f64>,
+    speed_change_over_acceleration: Option<f64>,
 }
 
 /// A table cut from an AltOS export, against its rows decoded here apart from the reader and
@@ -205,6 +213,12 @@ struct AltosTableFile {
     /// The most `altitude` differs from the standard atmosphere's height of `pressure`, m: a
     /// measure of AltOS's own conversion.
     altitude_from_pressure_worst_m: Option<f64>,
+    /// `altitude`'s rise from the first row to its highest over the standard atmosphere's
+    /// height's rise of `pressure` over the same rows: within [`UNIT_BAND`], which holds both
+    /// columns' units.
+    altitude_rise_ratio: Option<f64>,
+    /// The events the reader states, in order: each state named as AltOS's exports name it.
+    events: Vec<String>,
 }
 
 /// An AltOS export a spreadsheet re-saved, against its cells decoded here apart from the reader.
@@ -537,20 +551,27 @@ fn telemetry_csv_checks(samples: &[Sample]) -> Vec<TelemetryCsvFile> {
                 .collect(),
         );
         let (height, speed) = (values("height"), values("speed"));
-        let mut ratios = Vec::new();
+        let (mut ratios, mut speed_ratios) = (Vec::new(), Vec::new());
         for k in 1..time
             .len()
             .min(height.len())
             .min(speed.len())
+            .min(acceleration.len())
             .min(states.len())
         {
             let flying = (3.0..=5.0).contains(&states[k - 1]) && (3.0..=5.0).contains(&states[k]);
+            let dt = time[k] - time[k - 1];
             let mean = (speed[k] + speed[k - 1]) / 2.0;
             if flying && mean.abs() > 10.0 {
-                ratios.push((height[k] - height[k - 1]) / (time[k] - time[k - 1]) / mean);
+                ratios.push((height[k] - height[k - 1]) / dt / mean);
+            }
+            let mean_acceleration = (acceleration[k] + acceleration[k - 1]) / 2.0;
+            if flying && mean_acceleration.abs() > 5.0 {
+                speed_ratios.push((speed[k] - speed[k - 1]) / dt / mean_acceleration);
             }
         }
         file.climb_over_speed = teensy_median(ratios);
+        file.speed_change_over_acceleration = teensy_median(speed_ratios);
         files.push(file);
     }
     files
@@ -584,6 +605,8 @@ fn altos_table_checks(samples: &[Sample]) -> Vec<AltosTableFile> {
         let mut decoded: Vec<Vec<f64>> = vec![Vec::new(); names.len()];
         let mut time = Vec::new();
         let (mut offsets, mut from_pressure) = (Vec::new(), None::<f64>);
+        // Each row's altitude and the standard atmosphere's height of its pressure.
+        let mut pairs: Vec<(f64, f64)> = Vec::new();
         for line in lines {
             let cells: Vec<&str> = line.split(',').map(str::trim).collect();
             if cells.len() != names.len() {
@@ -613,7 +636,14 @@ fn altos_table_checks(samples: &[Sample]) -> Vec<AltosTableFile> {
             if let (Some(altitude), Some(pressure)) = (cell("altitude"), cell("pressure")) {
                 let off = (altitude - standard_height_m(pressure)).abs();
                 from_pressure = Some(from_pressure.map_or(off, |worst| worst.max(off)));
+                pairs.push((altitude, standard_height_m(pressure)));
             }
+        }
+        if let Some(&(first, first_standard)) = pairs.first()
+            && let Some(&(top, top_standard)) = pairs.iter().max_by(|a, b| a.0.total_cmp(&b.0))
+            && top_standard - first_standard > 0.0
+        {
+            file.altitude_rise_ratio = Some((top - first) / (top_standard - first_standard));
         }
         if !offsets.is_empty() {
             let least = offsets.iter().copied().fold(f64::INFINITY, f64::min);
@@ -629,6 +659,7 @@ fn altos_table_checks(samples: &[Sample]) -> Vec<AltosTableFile> {
                 .collect();
             let read: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
             file.same_columns = read == columns;
+            file.events = log.events.iter().map(|e| e.name.clone()).collect();
             let mut counts = [0; 2];
             for (index, name) in names.iter().enumerate() {
                 if matches!(*name, "time" | "state_name") {
@@ -864,6 +895,11 @@ fn resaved_checks(samples: &[Sample]) -> Vec<ResavedFile> {
     files
 }
 
+/// Whether a record's events are each a state named as AltOS's exports name it, none `state N`.
+fn states_named(events: &[String]) -> bool {
+    !events.is_empty() && events.iter().all(|e| !e.starts_with("state "))
+}
+
 /// The files that fail a check, as lines of the unread list.
 pub(super) fn unread(checks: &Checks) -> Vec<String> {
     let within = |value: Option<f64>, band: &std::ops::RangeInclusive<f64>| {
@@ -871,17 +907,13 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
     };
     let mut out = Vec::new();
     for f in &checks.marsa {
-        let step_bound_ft = hpr_flightdata::marsa::ALTITUDE_STEP_M / FOOT_M;
         if f.values_compared == 0
             || f.values_differing > 0
             || !f.figures_agree
             || !f.quantities_read
             || !within(f.apogee_ratio, &MARSA_APOGEE_BAND)
-            || !within(f.climb_ratio, &MARSA_CLIMB_BAND)
+            || !within(f.climb_ratio, &UNIT_BAND)
             || !f.pad_g.is_some_and(|g| g.abs() < MARSA_PAD_G_BOUND)
-            || !f
-                .count_step_ft
-                .is_some_and(|[_, most]| most <= step_bound_ft + 1e-9)
         {
             out.push(format!(
                 "  {} (MARSA): fails its checks: {} of {} values differ, figures agree: {}, the \
@@ -900,8 +932,6 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
         }
     }
     for f in &checks.telemetry_csv {
-        let states_named =
-            !f.events.is_empty() && f.events.iter().all(|e| !e.starts_with("state "));
         if f.values_compared == 0
             || f.values_differing > 0
             || !f.unknown_columns.is_empty()
@@ -911,13 +941,16 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
             || !f
                 .battery_v
                 .is_some_and(|[a, b]| BATTERY_BAND_V.contains(&a) && BATTERY_BAND_V.contains(&b))
-            || !states_named
+            || !states_named(&f.events)
             || f.ground_pressure_in_band != Some(true)
+            || !within(f.climb_over_speed, &UNIT_BAND)
+            || !within(f.speed_change_over_acceleration, &UNIT_BAND)
         {
             out.push(format!(
                 "  {} (AltOS telemetry CSV): fails its checks: {} of {} values differ, unknown \
                  columns {:?}, sixteenths {}, whole meters {}, hundredths {}, battery {:?} V, \
-                 events {:?}, ground pressure in its band {:?}",
+                 events {:?}, ground pressure in its band {:?}, climb over speed {:?}, speed's \
+                 change over acceleration {:?}",
                 f.id,
                 f.values_differing,
                 f.values_compared,
@@ -927,7 +960,9 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 f.hundredths,
                 f.battery_v,
                 f.events,
-                f.ground_pressure_in_band
+                f.ground_pressure_in_band,
+                f.climb_over_speed,
+                f.speed_change_over_acceleration
             ));
         }
     }
@@ -936,19 +971,23 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
             || f.values_differing > 0
             || !f.same_columns
             || !f.states_altos
+            || !states_named(&f.events)
+            || !within(f.altitude_rise_ratio, &UNIT_BAND)
             || !f
                 .height_offset_spread_m
                 .is_some_and(|s| s <= HEIGHT_OFFSET_BOUND_M)
         {
             out.push(format!(
                 "  {} (a table cut from an AltOS export): fails its checks: {} of {} values \
-                 differ, the same columns: {}, states AltOS's: {}, `altitude` less `height` \
-                 spread {:?} m",
+                 differ, the same columns: {}, states AltOS's: {}, events {:?}, the altitude's \
+                 rise over its pressure's {:?}, `altitude` less `height` spread {:?} m",
                 f.id,
                 f.values_differing,
                 f.values_compared,
                 f.same_columns,
                 f.states_altos,
+                f.events,
+                f.altitude_rise_ratio,
                 f.height_offset_spread_m
             ));
         }
@@ -1015,10 +1054,11 @@ pub(super) fn markdown(checks: &Checks) -> String {
              *Settings* counts its `<NAME> value` lines, *Samples* its rows, and each sample's \
              time in s, altitude in ft and acceleration in g is compared with the reader's \
              record, six comparisons a sample: the time and altitude on the primary track and \
-             the times and values of the altitude and acceleration channels; *Figures* is whether the record's figures are the settings, by \
-             name and value, and *Quantities* whether it read the altitude as a height above its \
+             the times and values of the altitude and acceleration channels; *Figures* is \
+             whether the record's figures are the settings, by name and value, and *Quantities* whether it read the altitude as a height above its \
              zero and the acceleration as an acceleration. *Beside* is the other logger in the \
-             same rocket, an AltOS board in the same stage, by the collection's flight cards. \
+             same flight, the AltOS board in the flight's folder, whose other log is the other \
+             stage's. \
              *Apogee ratio*, the check of the feet, is the highest altitude over that board's \
              highest height above its pad, both in m, which must be within {:.2}–{:.2}; *In \
              meters* the same were the altitude read in meters. *Pad, ft* is the altitude before \
@@ -1026,13 +1066,14 @@ pub(super) fn markdown(checks: &Checks) -> String {
              isn't its reading on the pad. *Pad, g* is the acceleration's median there, which \
              must be within {MARSA_PAD_G_BOUND} g of 0, nearer 0 than 1 g, as gravity is taken \
              out. *Time off, s* is the time from liftoff to the highest altitude less the \
-             board's, a measure. *Climb*, the check of the g, is the barometric climb over the first \
-             {MARSA_CLIMB_S} s after liftoff over the acceleration integrated twice from rest \
+             board's, a measure. *Climb*, the check of the g, is the barometric climb over the \
+             first {MARSA_CLIMB_S} s after liftoff over the acceleration integrated twice from rest \
              over them, which must be within {:.1}–{:.3}, the band AltOS's `.eeprom` reader \
              holds its own climb to; *In m/s²* the same were the acceleration read in m/s². \
              *Count step, ft* is the least and greatest step between the altitudes written \
              within {NEAR_PAD_FT} ft above the pad's reading that are one count, under 1.5 \
-             times the least: the greatest must be at most the format's step, {:.1} ft.\n\n\
+             times the least: a measure, from which the format's step, {:.1} ft, is taken, so it \
+             holds near the pad only, a count spanning more feet where the air is thinner.\n\n\
              | File | Settings | Samples | Values compared | Differing | Figures | Quantities | \
              Beside | Apogee ratio | In meters | Pad, ft | Pad, g | Time off, s | Climb | In \
              m/s² | Count step, ft |\n\
@@ -1040,8 +1081,8 @@ pub(super) fn markdown(checks: &Checks) -> String {
             checks.marsa.len(),
             MARSA_APOGEE_BAND.start(),
             MARSA_APOGEE_BAND.end(),
-            MARSA_CLIMB_BAND.start(),
-            MARSA_CLIMB_BAND.end(),
+            UNIT_BAND.start(),
+            UNIT_BAND.end(),
             hpr_flightdata::marsa::ALTITUDE_STEP_M / FOOT_M,
         );
     }
@@ -1051,7 +1092,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
         for f in &checks.telemetry_csv {
             let ptypes: Vec<String> = f.ptypes.iter().map(|(p, n)| format!("{p} ×{n}")).collect();
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
                 f.id,
                 f.rows,
                 f.crc_false,
@@ -1071,6 +1112,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
                 f.events.join(", "),
                 figure(f.pad_acceleration_m_s2, 3),
                 figure(f.climb_over_speed, 3),
+                figure(f.speed_change_over_acceleration, 3),
             );
         }
         out += &format!(
@@ -1081,26 +1123,32 @@ pub(super) fn markdown(checks: &Checks) -> String {
              name; each value of the rest and its time is compared with the reader's channel, \
              and each time with its primary track, *Values compared* counting the comparisons; \
              *Unknown* \
-             lists the columns it kept as names it doesn't know. The scales the packet carries: \
-             *Sixteenths* is whether every acceleration and speed is a whole number of \
-             sixteenths, *Meters* every height a whole meter, *Hundredths* every tick a whole \
-             hundredth of a second. *Battery, V* is `v_batt`'s least and greatest, which must be \
+             lists the columns it kept as names it doesn't know. The resolution the packet \
+             carries, which no wrong unit need fail: *Sixteenths* is whether every acceleration \
+             and speed is a whole number of sixteenths, *Meters* every height a whole meter, \
+             *Hundredths* every tick a whole hundredth of a second. *Battery, V* is `v_batt`'s least and greatest, which must be \
              within {:.1}–{:.1} V, a single LiPo cell's, 3.7 V nominal (*The Altus Metrum \
              System*, §3.2): read as the document's 12-bit counts behind its 100k/27k divider, 4 \
              V would be about 1,055. *Events* are the reader's, each state named as AltOS's \
              exports name its number, none `state N`, and the first `ground_pres` must be inside \
              {}–{} kPa, the value not written. *Pad accel* is the acceleration's median in the \
-             pad state, m/s², about 0 with gravity taken out, and *Climb over speed* the median \
-             from boost to coast of the height's change between two rows over their time, over \
-             their mean speed: measures.\n\n\
+             pad state, m/s², about 0 with gravity taken out, a measure. The checks of the units: \
+             *Climb over speed* is the median from boost to coast of the height's change between \
+             two rows over their time, over their mean speed, where it is over 10 m/s; *Speed \
+             over accel* the same of the speed's change over the mean acceleration, where it is \
+             over 5 m/s². Each must be within {:.1}–{:.3}, the band of the `.eeprom` reader's \
+             climb check: a speed or an acceleration in the packet's sixteenths, a height in \
+             feet or a tick in its 10 ms counts would miss it.\n\n\
              | File | Rows | CRC false | Packet types | Values compared | Differing | Unknown | \
              Sixteenths | Meters | Hundredths | Battery, V | Events | Pad accel | Climb over \
-             speed |\n\
-             |---|---:|---:|---|---:|---:|---|---|---|---|---|---|---:|---:|\n{rows}",
+             speed | Speed over accel |\n\
+             |---|---:|---:|---|---:|---:|---|---|---|---|---|---|---:|---:|---:|\n{rows}",
             BATTERY_BAND_V.start(),
             BATTERY_BAND_V.end(),
             PAD_PRESSURE_PA.start() / 1_000.0,
             PAD_PRESSURE_PA.end() / 1_000.0,
+            UNIT_BAND.start(),
+            UNIT_BAND.end(),
         );
     }
     if !checks.altos_table.is_empty() {
@@ -1108,7 +1156,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
         for f in &checks.altos_table {
             let states: Vec<String> = f.states.iter().map(|(s, n)| format!("{s} ×{n}")).collect();
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
                 f.id,
                 f.rows,
                 states.join(", "),
@@ -1116,7 +1164,9 @@ pub(super) fn markdown(checks: &Checks) -> String {
                 f.values_compared,
                 f.values_differing,
                 if f.same_columns { "yes" } else { "no" },
+                f.events.join(", "),
                 figure(f.height_offset_spread_m, 4),
+                figure(f.altitude_rise_ratio, 4),
                 figure(f.altitude_from_pressure_worst_m, 4),
             );
         }
@@ -1128,15 +1178,22 @@ pub(super) fn markdown(checks: &Checks) -> String {
              value and its time is compared with the reader's channel, and the primary track's \
              times and heights with the first row at each time, as AltOS repeats one, *Values \
              compared* counting the comparisons; the channels must be the table's \
-             columns but the clock and `state_name`, in order. *Height offset, m* is half the \
+             columns but the clock and `state_name`, in order, and *Events* the reader's, each \
+             state named as AltOS's exports name it. *Height offset, m* is half the \
              spread of `altitude` less `height`, which AltOS writes as its barometric altitude \
              less the pad's, one offset, not written as it gives the site's elevation: each to \
-             the centimeter, it must be within {HEIGHT_OFFSET_BOUND_M:.2} m. *From pressure, m* \
-             is the most `altitude` differs from the standard atmosphere's height of `pressure`, \
-             44,330.77 × (1 − (P / 101,325)^0.190263) m: a measure of AltOS's own conversion.\n\n\
+             the centimeter, it must be within {HEIGHT_OFFSET_BOUND_M:.2} m. *Rise ratio*, the \
+             check of the units, is `altitude`'s rise from the first row to its highest over the \
+             standard atmosphere's height's rise of `pressure` over the same rows, 44,330.77 × (1 \
+             − (P / 101,325)^0.190263) m, which must be within {:.1}–{:.3}, the band of the \
+             `.eeprom` reader's climb check: an altitude in feet, or a pressure in hPa, would miss \
+             it. *From pressure, m* is the most `altitude` differs from that height: a measure of \
+             AltOS's own conversion.\n\n\
              | File | Rows | States | AltOS's | Values compared | Differing | Same columns | \
-             Height offset, m | From pressure, m |\n\
-             |---|---:|---|---|---:|---:|---|---:|---:|\n{rows}"
+             Events | Height offset, m | Rise ratio | From pressure, m |\n\
+             |---|---:|---|---|---:|---:|---|---|---:|---:|---:|\n{rows}",
+            UNIT_BAND.start(),
+            UNIT_BAND.end(),
         );
     }
     if !checks.resaved.is_empty() {
@@ -1218,12 +1275,13 @@ mod tests {
             ..Checks::default()
         };
         assert!(unread(&checks(vec![marsa(0.98, 1.0, 29.3)])).is_empty());
+        // The count step is a measure, not a check.
+        assert!(unread(&checks(vec![marsa(0.98, 1.0, 40.0)])).is_empty());
         for bad in [
             marsa(0.94, 1.0, 29.3),
             marsa(1.06, 1.0, 29.3),
             marsa(0.98, 0.59, 29.3),
             marsa(0.98, 1.67, 29.3),
-            marsa(0.98, 1.0, 29.4),
             MarsaFile {
                 values_differing: 1,
                 ..marsa(0.98, 1.0, 29.3)
@@ -1253,6 +1311,8 @@ mod tests {
             battery_v: Some([4.0, 4.1]),
             events: vec!["pad".to_owned(), "boost".to_owned()],
             ground_pressure_in_band: Some(true),
+            climb_over_speed: Some(1.02),
+            speed_change_over_acceleration: Some(0.93),
             ..TelemetryCsvFile::default()
         };
         let table = AltosTableFile {
@@ -1261,6 +1321,8 @@ mod tests {
             states_altos: true,
             same_columns: true,
             height_offset_spread_m: Some(0.01),
+            altitude_rise_ratio: Some(1.0),
+            events: vec!["boost".to_owned(), "coast".to_owned()],
             ..AltosTableFile::default()
         };
         let resaved = ResavedFile {
@@ -1306,6 +1368,23 @@ mod tests {
                 ground_pressure_in_band: Some(false),
                 ..telemetry.clone()
             },
+            // Speed in the packet's sixteenths, height in feet, the tick in its 10 ms counts.
+            TelemetryCsvFile {
+                climb_over_speed: Some(1.02 / 16.0),
+                ..telemetry.clone()
+            },
+            TelemetryCsvFile {
+                climb_over_speed: Some(1.02 * 3.28),
+                ..telemetry.clone()
+            },
+            TelemetryCsvFile {
+                speed_change_over_acceleration: Some(0.93 / 100.0),
+                ..telemetry.clone()
+            },
+            TelemetryCsvFile {
+                speed_change_over_acceleration: None,
+                ..telemetry.clone()
+            },
         ] {
             assert_eq!(all(&bad, &table, &resaved), 1, "{bad:?}");
         }
@@ -1324,6 +1403,14 @@ mod tests {
             },
             AltosTableFile {
                 height_offset_spread_m: Some(0.0101),
+                ..table.clone()
+            },
+            AltosTableFile {
+                altitude_rise_ratio: Some(3.28),
+                ..table.clone()
+            },
+            AltosTableFile {
+                events: vec!["boost".to_owned(), "state 9".to_owned()],
                 ..table.clone()
             },
         ] {

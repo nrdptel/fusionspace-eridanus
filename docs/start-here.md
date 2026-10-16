@@ -318,8 +318,9 @@ out.
   `.xls` export, every cell of the sample checked by an outside reader and each of its heights
   following its pressure by the standard atmosphere's formula ([M7.1c20](decisions-and-roadmap.md#m7-1c20),
   [the layouts](format/flight-logs.md#a-fip-export-pasted-below-no-header)), and a MARSA
-  altimeter's download, its apogee in the two sample files within 2 % of an AltOS board's in the
-  same rocket, AltOS's radio telemetry decoded to a table, read by its header, a table cut from
+  altimeter's download, read in feet and g, units held to an AltOS board's in the same flight
+  (the apogee 0.981 and 0.986 times its), AltOS's radio telemetry decoded to a table, read by its
+  header, a table cut from
   an AltOS export, read by AltOS's state numbers, and an AltOS export a spreadsheet re-saved, each
   formula kept as text ([M7.1c21](decisions-and-roadmap.md#m7-1c21),
   [the layouts](format/flight-logs.md#a-marsa-download)); in the four layouts

@@ -2661,7 +2661,8 @@
         ],
         "ground_pressure_in_band": true,
         "pad_acceleration_m_s2": -0.4375,
-        "climb_over_speed": 1.0189895538036093
+        "climb_over_speed": 1.0189895538036093,
+        "speed_change_over_acceleration": 0.9289980092903449
       }
     ],
     "altos_table": [
@@ -2679,7 +2680,14 @@
         "values_differing": 0,
         "same_columns": true,
         "height_offset_spread_m": 0.005000000000052296,
-        "altitude_from_pressure_worst_m": 0.005563596265233173
+        "altitude_from_pressure_worst_m": 0.005563596265233173,
+        "altitude_rise_ratio": 1.0000249503608825,
+        "events": [
+          "boost",
+          "coast",
+          "main",
+          "landed"
+        ]
       }
     ],
     "resaved": [

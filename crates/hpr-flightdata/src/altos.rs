@@ -403,6 +403,7 @@ fn is_table_header(line: &str) -> bool {
 /// AltOS's exports write for one state ([`crate::altos_telem`]), and none gives a pair they
 /// contradict.
 pub fn recognizes_table(text: &str) -> bool {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut lines = text
         .split(['\r', '\n'])
         .map(str::trim)
@@ -438,10 +439,11 @@ pub fn recognizes_table(text: &str) -> bool {
 /// and why not if one is and the other isn't its partner.
 fn state_pair(number: &str, name: &str) -> Result<bool, String> {
     use crate::altos_telem::STATES;
+    // A number a spreadsheet rewrote, `3.0` for `3`, is the same state.
     let by_number = number
-        .parse::<u8>()
+        .parse::<f64>()
         .ok()
-        .and_then(|number| STATES.iter().find(|(known, _)| *known == number));
+        .and_then(|number| STATES.iter().find(|(known, _)| f64::from(*known) == number));
     let by_name = STATES
         .iter()
         .find(|(_, known)| known.eq_ignore_ascii_case(name));
@@ -589,7 +591,7 @@ impl Formulas {
     /// a spreadsheet saves writes its row 1 on line 1.
     fn add(&mut self, cell: &str, line: usize) {
         self.cells += 1;
-        let formula = own_row(&cut(cell, FORMULA_CHARS), line);
+        let formula = cut(&own_row(cell, line), FORMULA_CHARS);
         if let Some(run) = self.runs.last_mut()
             && self.left_out == 0
             && run.formula == formula
@@ -957,11 +959,23 @@ fn assemble(
         if formulas.cells > 0 && formulas.cells == n {
             // Every cell a formula: text, not a channel.
             formula_note(format!(
-                "the `{}` column's {} are a spreadsheet's formulas, not values: kept here as \
-                 text, not worked out, and not a channel, `{{row}}` standing for each cell's own \
-                 row: {}",
+                "the `{}` column's {} a spreadsheet's {}, not {}: kept here as text, not worked \
+                 out, and not a channel, `{{row}}` standing for each cell's own row: {}",
                 short(name),
-                count(formulas.cells, "cell"),
+                match formulas.cells {
+                    1 => "1 cell is".to_owned(),
+                    cells => format!("{cells} cells are"),
+                },
+                if formulas.cells == 1 {
+                    "formula"
+                } else {
+                    "formulas"
+                },
+                if formulas.cells == 1 {
+                    "a value"
+                } else {
+                    "values"
+                },
                 formula_runs(formulas)
             ));
             continue;
@@ -1066,8 +1080,10 @@ fn assemble(
         );
     }
 
-    // The primary track: in time order, the first row at each time; none without a `height`.
-    let height = find("height", Role::Value(Quantity::AltitudeAboveGround));
+    // The primary track: in time order, the first row at each time; none without a `height`, or
+    // with one of formulas alone, which isn't a channel.
+    let named_height = find("height", Role::Value(Quantity::AltitudeAboveGround));
+    let height = named_height.filter(|&index| converted[index].is_some());
     let mut order: Vec<usize> = (0..n).collect();
     order.sort_by(|&a, &b| table.time_s[a].total_cmp(&table.time_s[b]));
     let mut latest = f64::NEG_INFINITY;
@@ -1089,11 +1105,15 @@ fn assemble(
     }
     if height.is_none() {
         kept.clear();
-        notes.push(
+        notes.push(if named_height.is_some() {
+            "the `height` column, AltOS's height above the pad, holds a spreadsheet's formulas \
+             alone: the record has no primary track, only its channels"
+                .to_owned()
+        } else {
             "the header names no `height`, AltOS's height above the pad: the record has no \
              primary track, only its channels"
-                .to_owned(),
-        );
+                .to_owned()
+        });
     } else {
         if out_of_order > 0 {
             notes.push(format!(
@@ -1589,6 +1609,97 @@ mod tests {
             feet.altitude_m.is_empty(),
             "a height in feet isn't AltOS's height"
         );
+    }
+
+    /// A `height` of formulas alone isn't a channel, so the record has no primary track, as with
+    /// none: the clock and the track stay the same length.
+    #[test]
+    fn a_height_of_formulas_alone_is_no_primary_track() {
+        let text = "#version,serial,flight,time,height,altitude\n\
+                    6,77,4,0.5,=F2-F$2,250\n\
+                    6,77,4,0.6,=F3-F$2,251\n";
+        let log = read(text).unwrap();
+        assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
+        assert!(log.channels.iter().all(|c| c.column != "height"));
+        assert!(
+            log.notes.iter().any(|n| n.starts_with(
+                "the `height` column, AltOS's height above the pad, holds a spreadsheet's \
+                 formulas alone"
+            )),
+            "{:#?}",
+            log.notes
+        );
+    }
+
+    /// One formula cell is written of in the singular.
+    #[test]
+    fn one_formula_cell_reads_in_the_singular() {
+        let log = read("#version,serial,flight,time,height,x\n6,77,4,0.5,0,=E2*2\n").unwrap();
+        assert!(
+            log.notes.iter().any(|n| n.starts_with(
+                "the `x` column's 1 cell is a spreadsheet's formula, not a value: kept here"
+            )),
+            "{:#?}",
+            log.notes
+        );
+    }
+
+    /// The formula notes' bounds hold at their limits and count what is past them: at most
+    /// [`MAX_FORMULA_RUNS`] runs a column and [`MAX_FORMULA_COLUMNS`] columns.
+    #[test]
+    fn the_formula_bounds_hold_at_their_limits() {
+        let runs = |extra: usize| {
+            let mut text = String::from("#version,serial,flight,time,height,x\n");
+            for k in 0..MAX_FORMULA_RUNS + extra {
+                text += &format!("6,77,4,{k}.0,{k},=E{}*{k}\n", k + 2);
+            }
+            let log = read(&text).unwrap();
+            log.notes
+                .into_iter()
+                .find(|n| n.starts_with("the `x` column's"))
+                .unwrap()
+        };
+        let at = runs(0);
+        assert_eq!(at.matches("` on line ").count(), MAX_FORMULA_RUNS, "{at}");
+        assert!(!at.contains("past them"), "{at}");
+        let past = runs(2);
+        assert_eq!(
+            past.matches("` on line ").count(),
+            MAX_FORMULA_RUNS,
+            "{past}"
+        );
+        assert!(past.ends_with("; 2 cells more past them"), "{past}");
+
+        let columns = |n: usize| {
+            let names: Vec<String> = (0..n).map(|k| format!("x{k}")).collect();
+            let cells: Vec<String> = (0..n).map(|k| format!("={k}")).collect();
+            let text = format!(
+                "#version,serial,flight,time,height,{}\n6,77,4,0.0,0,{}\n",
+                names.join(","),
+                cells.join(",")
+            );
+            read(&text).unwrap().notes
+        };
+        let given = |notes: &[String]| notes.iter().filter(|n| n.starts_with("the `x")).count();
+        assert_eq!(given(&columns(MAX_FORMULA_COLUMNS)), MAX_FORMULA_COLUMNS);
+        let past = columns(MAX_FORMULA_COLUMNS + 3);
+        assert_eq!(given(&past), MAX_FORMULA_COLUMNS);
+        assert!(
+            past.iter()
+                .any(|n| n.contains("past the 64 whose formulas are given")),
+            "{past:#?}"
+        );
+    }
+
+    /// A state a spreadsheet rewrote, `3.0`, is AltOS's `3`; and a table opening with a
+    /// byte-order mark is still recognized.
+    #[test]
+    fn a_rewritten_state_and_a_byte_order_mark_still_read() {
+        let text = "\u{feff}time,state,state_name,height\n0.0,3.0,boost,0\n0.1,5.0,coast,2\n";
+        assert!(recognizes_table(text));
+        let log = read(text).unwrap();
+        let events: Vec<&str> = log.events.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(events, ["boost", "coast"]);
     }
 
     /// A formula is text: a column of them isn't a channel, and its note gives every formula,

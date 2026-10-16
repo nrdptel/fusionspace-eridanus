@@ -217,6 +217,22 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             ));
         }
         let cell = |index: Option<usize>| index.map_or("", |index| cells[index]);
+        // A packet that failed its check is noise: left out before its serial number or type
+        // can stand for the table's.
+        let passed = match cell(find("crc")) {
+            "TRUE" => true,
+            "FALSE" => false,
+            other => {
+                return Err(syntax(
+                    number,
+                    format!("the `crc` cell is {:?}, not TRUE or FALSE", short(other)),
+                ));
+            }
+        };
+        if !passed {
+            failed += 1;
+            continue;
+        }
         let identity = (cell(serial).to_owned(), cell(ptype).to_owned());
         match &first {
             None => first = Some(identity),
@@ -235,20 +251,6 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 ));
             }
             Some(_) => {}
-        }
-        let passed = match cell(find("crc")) {
-            "TRUE" => true,
-            "FALSE" => false,
-            other => {
-                return Err(syntax(
-                    number,
-                    format!("the `crc` cell is {:?}, not TRUE or FALSE", short(other)),
-                ));
-            }
-        };
-        if !passed {
-            failed += 1;
-            continue;
         }
         let Some(time) = number_in(cell(clock)) else {
             return Err(syntax(
@@ -393,10 +395,14 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         let mut last = None;
         for (&time, &state) in time_s.iter().zip(&states) {
             if state.is_finite() && last != Some(state) {
-                // A whole number from 0 to 255 is a state's byte.
+                // A whole number from 0 to 255 is a state's byte; another number is quoted short,
+                // so a file of huge ones can't make long names.
                 let name = (0..=u8::MAX)
                     .find(|&byte| f64::from(byte) == state)
-                    .map_or_else(|| format!("state {state}"), state_name);
+                    .map_or_else(
+                        || format!("state {}", short(&state.to_string())),
+                        state_name,
+                    );
                 events.push(Event { time_s: time, name });
                 last = Some(state);
             }
@@ -472,6 +478,30 @@ mod tests {
             Err(LogError::Syntax { line, message, .. }) => (line, message),
             other => panic!("expected a syntax error, got {other:?}"),
         }
+    }
+
+    /// A packet that failed its check is noise: its serial number can't refuse the table nor
+    /// stand for it.
+    #[test]
+    fn a_failed_packet_neither_refuses_the_table_nor_names_its_board() {
+        let noisy = row("95.00", 2, 0, "FALSE").replacen("1234", "9z9", 1);
+        let mut rows = rows();
+        rows.insert(0, noisy);
+        let log = read(&table(&rows)).unwrap();
+        assert_eq!(log.serial_number.as_deref(), Some("1234"));
+        assert_eq!(log.time_s.len(), 3);
+    }
+
+    /// A state that isn't a byte is named, but its number is quoted short.
+    #[test]
+    fn a_state_that_isnt_a_byte_is_quoted_short() {
+        let huge = row("402.94", 3, 6, "TRUE").replace(",9,3,", ",9,1e300,");
+        let log = read(&table(&[row("95.27", 2, 0, "TRUE"), huge])).unwrap();
+        let name = &log.events[1].name;
+        assert!(
+            name.starts_with("state 1000") && name.chars().count() <= 6 + QUOTED_CHARS,
+            "{name}"
+        );
     }
 
     fn rows() -> Vec<String> {

@@ -94,7 +94,9 @@ pub const MAX_VALUE_CHARS: usize = 64;
 const FIRMWARE: &str = "FIRMWARE VER";
 
 /// The altitude's step, m: its barometer's count, 29.3 ft at most within 300 ft of the pad among
-/// the sample files ([`LogFormat::altitude_resolution_m`]).
+/// the sample files ([`LogFormat::altitude_resolution_m`]). It is measured there, not stated by
+/// any document, and holds near the pad only: a count of pressure spans more feet where the air
+/// is thinner, so the step is larger higher up.
 pub const ALTITUDE_STEP_M: f64 = 29.3 * FOOT_M;
 
 /// A foot, m.
@@ -128,6 +130,7 @@ fn setting(line: &str) -> Option<(&str, &str)> {
 /// Whether a text is a MARSA download: its first line that isn't blank is a setting or a
 /// heading, and one of its first 200 is the `<MARSA VERSION>` setting with a value.
 pub fn recognizes(text: &str) -> bool {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut lines = text
         .split(['\r', '\n'])
         .map(trimmed)
@@ -171,6 +174,7 @@ fn sample(line: &str) -> Result<[f64; 3], String> {
 /// that isn't three numbers, a time no later than the one before, or a value too large for its
 /// conversion to SI; [`LogError::NoData`] for a file with no samples.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     if !recognizes(text) {
         return Err(LogError::NotThisFormat {
             format: FORMAT,
@@ -500,6 +504,14 @@ mod tests {
         let (line, message) = error_line(&text);
         assert_eq!(line, 11);
         assert!(message.contains("acceleration"), "{message}");
+    }
+
+    /// A byte-order mark, as a spreadsheet's "CSV UTF-8" re-save writes, is passed over.
+    #[test]
+    fn a_byte_order_mark_is_passed_over() {
+        let marked = format!("\u{feff}{DOWNLOAD}");
+        assert!(recognizes(&marked));
+        assert_eq!(read(&marked).unwrap(), read(DOWNLOAD).unwrap());
     }
 
     #[test]
