@@ -342,14 +342,23 @@ showed, measured, and the decisions.
    team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
    one, in a probe while the checks were built, read with the sign opposite to the other
    loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
-5. **A track's own speed, which the plan named, holds no unit.** Between fixes, on the pad, a
-   track's speed has a median of 0 m/s, whatever the unit. Under the parachute it is the wind's,
-   a few meters a second, and near 0 on a calm day. One bad fix reaches 235 to 1,200 m/s
-   (measured while the checks were built; not in the report). No band admits every flight's
-   drift and refuses a clock misread by a power of ten or degrees read as radians, which are 57
-   times smaller. So the track's units are held by its place; its clock by the time to apogee of
-   its own altitude or by the clock of a file of the same logger; and its altitude, where it has
-   one, by another logger's.
+5. **A track's own speed, which the plan named, holds no unit: that part of the *done when* is
+   not met, recorded.** The survey measures it (`cargo xtask logs`, the report's paragraph on a
+   track's own ground speed): a track's ground speed from each fix to the next the receiver
+   reports, the great-circle distance over the step of its own clock, a fix repeated over rows
+   counted once, over the whole recording, the pad's hours included, so a median can be a
+   receiver's jitter as much as the wind's drift. Over the 4 tracks held by a place check of a
+   latitude and a longitude (5 files, two of them the same fixes), the median lies 0.3460 to
+   7.3836 m/s, a spread of 21.34 times, and the fastest step 24.8509 to 400.0430 m/s, 16.10
+   times: both more than the 10 times a clock misread by a factor of 10 moves them, so no band on
+   these tracks refuses that misread on every one of them. As a track drifts with the wind, and
+   a launch may go on a calm day, its speed has no floor (NFPA 1127 limits only the surface
+   wind, to 20 mph, 8.9 m/s), so no band holds a clock on every flight. Radians stated as degrees
+   read 57 times slower, which a band could part on these 4 tracks alone, but a band fitted to
+   them is a sample, not a bound. So the track's units are held by its place, which needs no
+   band; its clock by the time to apogee of its own altitude or by the clock of a file of the
+   same logger; and its altitude, where it has one, by another logger's. A track's vertical
+   speed is its altitude's, held the same way.
 6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
    computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
    cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map
