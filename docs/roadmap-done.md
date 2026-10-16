@@ -318,6 +318,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c18 A course's Teensy data logger ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c19 Radio packets, `255:…:254` ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c20 Workbooks with a reading beside ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c21 Altimeters' other text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1665,6 +1666,10 @@ One line per milestone or increment, in the order it was archived within its pha
       sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls`
       reads from its bare BIFF8 stream, by its stated units, each height following its pressure
       by one barometric formula whose constants the report states.
+    - [x] **M7.1c21 Altimeters' other text.** *Done when:* MARSA's two files read, their apogee
+      within 5 % of another logger's in the same flight; the AltOS telemetry CSV reads by its
+      header; the AltOS-like table by AltOS's state numbers; the CSV with formula cells reads,
+      each formula kept as text.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
