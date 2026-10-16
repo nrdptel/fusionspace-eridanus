@@ -32,6 +32,8 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+mod other_text;
+
 pub const USAGE: &str = "  logs [--check] [--sheets DIR]
                            reads every flight-log sample under refs/ (the collection's
                            catalog, Debrief's fixtures, AerospaceNU's logs) and writes
@@ -55,7 +57,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The workbooks are read
 /// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
-pub const READ: [(&str, LogFormat, &str); 40] = [
+pub const READ: [(&str, LogFormat, &str); 44] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -119,6 +121,26 @@ pub const READ: [(&str, LogFormat, &str); 40] = [
     (TEENSY_NAMED_FAMILY, LogFormat::TeensyNamed, "M7.1c18"),
     (RADIO_TXT_FAMILY, LogFormat::RadioPacketText, "M7.1c19"),
     (RADIO_RTF_FAMILY, LogFormat::RadioPacketRtf, "M7.1c19"),
+    (
+        other_text::MARSA_FAMILY,
+        LogFormat::Marsa,
+        other_text::INCREMENT,
+    ),
+    (
+        other_text::TELEMETRY_CSV_FAMILY,
+        LogFormat::AltosTelemetryCsv,
+        other_text::INCREMENT,
+    ),
+    (
+        other_text::ALTOS_TABLE_FAMILY,
+        LogFormat::AltosCsv,
+        other_text::INCREMENT,
+    ),
+    (
+        other_text::RESAVED_FAMILY,
+        LogFormat::AltosCsv,
+        other_text::INCREMENT,
+    ),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -154,7 +176,7 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c21";
+const LEFT_TO: &str = "M7.1c22";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
@@ -319,10 +341,34 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 190] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 194] = [
     ("6f5e20612831ac57", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
     ("b2a86ded765053b4", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
     ("444687655195f5c8", "xls", ALTIMAX_FAMILY, ALTIMAX_XLS),
+    (
+        "4be82002a95c68db",
+        "xml",
+        other_text::MARSA_FAMILY,
+        other_text::MARSA,
+    ),
+    (
+        "a80063e417b87028",
+        "xml",
+        other_text::MARSA_FAMILY,
+        other_text::MARSA,
+    ),
+    (
+        "850771db6621eaf6",
+        "csv",
+        other_text::TELEMETRY_CSV_FAMILY,
+        other_text::TELEMETRY_CSV,
+    ),
+    (
+        "03adc04683e2884f",
+        "csv",
+        other_text::ALTOS_TABLE_FAMILY,
+        other_text::ALTOS_TABLE,
+    ),
     ("cd6f44ad29c505e6", "txt", RADIO_TXT_FAMILY, RADIO_ONBOARD),
     ("a10560cbf44516e5", "txt", RADIO_TXT_FAMILY, RADIO_RECEIVED),
     ("12f752fa1d21c27f", "txt", TEENSY_TABS_FAMILY, TEENSY_TABS),
@@ -486,9 +532,10 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 190] = [
     (
         "9c5017ab68168088",
         "altos-csv",
-        "csv",
+        other_text::RESAVED_FAMILY,
         "a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header \
-         edited to carry units, its `height` column deleted, and three columns holding formulas",
+         edited to carry units, its `height` column deleted, and three columns holding formulas; \
+         read by its columns' names, the formulas kept as text",
     ),
     (
         "76a7d8937258e946",
@@ -861,6 +908,10 @@ struct Report {
     /// (M7.1c20).
     #[serde(default)]
     altimax_checks: Vec<AltimaxFile>,
+    /// MARSA downloads, AltOS telemetry decoded to a table, tables cut from an AltOS export and
+    /// an AltOS export a spreadsheet re-saved, each against its own lines (M7.1c21).
+    #[serde(default)]
+    other_text_checks: other_text::Checks,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -6610,6 +6661,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         packet_checks: packet_checks(samples),
         fip_sheet_checks: fip_sheet_checks(samples),
         altimax_checks: altimax_checks(samples),
+        other_text_checks: other_text::checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -6638,6 +6690,10 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // whose units fail the flight's physics, are as unread as a refusal.
     unread.extend(fip_sheet_unread(&report.fip_sheet_checks));
     unread.extend(altimax_unread(&report.altimax_checks));
+    // A MARSA download, a telemetry table, a table cut from an AltOS export or a re-saved export
+    // whose reading differs from this decoding, or whose units fail the flight's physics, is as
+    // unread as a refusal.
+    unread.extend(other_text::unread(&report.other_text_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -7839,6 +7895,7 @@ fn markdown(report: &Report) -> String {
             );
         }
     }
+    out += &other_text::markdown(&report.other_text_checks);
     if !report.workbook_checks.is_empty() {
         let books = &report.workbook_checks;
         let mut totals: BTreeMap<&str, usize> = BTreeMap::new();

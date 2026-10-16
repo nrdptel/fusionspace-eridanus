@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c21",
+      "increment": "M7.1c22",
       "files": 1,
       "read": 0,
       "refused": {
@@ -91,10 +91,31 @@
       "refused": {}
     },
     {
+      "family": "altos-resaved-csv",
+      "increment": "M7.1c21",
+      "files": 1,
+      "read": 1,
+      "refused": {}
+    },
+    {
+      "family": "altos-table-csv",
+      "increment": "M7.1c21",
+      "files": 1,
+      "read": 1,
+      "refused": {}
+    },
+    {
       "family": "altos-telem",
       "increment": "M7.1c9",
       "files": 2,
       "read": 2,
+      "refused": {}
+    },
+    {
+      "family": "altos-telem-csv",
+      "increment": "M7.1c21",
+      "files": 1,
+      "read": 1,
       "refused": {}
     },
     {
@@ -113,7 +134,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c21",
+      "increment": "M7.1c22",
       "files": 2,
       "read": 0,
       "refused": {
@@ -195,12 +216,11 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c21",
-      "files": 23,
+      "increment": "M7.1c22",
+      "files": 20,
       "read": 2,
       "refused": {
-        "syntax": 1,
-        "unrecognized": 20
+        "unrecognized": 18
       }
     },
     {
@@ -267,7 +287,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c21",
+      "increment": "M7.1c22",
       "files": 2,
       "read": 0,
       "refused": {
@@ -341,6 +361,13 @@
       "increment": "M7.1c15",
       "files": 6,
       "read": 6,
+      "refused": {}
+    },
+    {
+      "family": "marsa-dat",
+      "increment": "M7.1c21",
+      "files": 2,
+      "read": 2,
       "refused": {}
     },
     {
@@ -537,7 +564,7 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c21",
+      "increment": "M7.1c22",
       "files": 6,
       "read": 0,
       "refused": {
@@ -562,20 +589,11 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c21",
+      "increment": "M7.1c22",
       "files": 2,
       "read": 0,
       "refused": {
         "archive": 2
-      }
-    },
-    {
-      "family": "xml",
-      "increment": "M7.1c21",
-      "files": 2,
-      "read": 0,
-      "refused": {
-        "unrecognized": 2
       }
     },
     {
@@ -590,6 +608,10 @@
     "6f5e20612831ac57 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
     "b2a86ded765053b4 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
     "444687655195f5c8 xls -> altimax-xls: a Rocketronics AltiMAX flight as its PC software exports it to Excel: a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`; filed as a spreadsheet",
+    "4be82002a95c68db xml -> marsa-dat: a MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as `<BARO_ZERO 0> 790`, then a row a sample of the time, the barometric altitude in feet and the acceleration in g, as its software saves it to a `.dat` file or a spreadsheet re-saves it; filed as XML for its `<…>` lines",
+    "a80063e417b87028 xml -> marsa-dat: a MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as `<BARO_ZERO 0> 790`, then a row a sample of the time, the barometric altitude in feet and the acceleration in g, as its software saves it to a `.dat` file or a spreadsheet re-saves it; filed as XML for its `<…>` lines",
+    "850771db6621eaf6 csv -> altos-telem-csv: AltOS's radio telemetry decoded to a table, a TeleMega's `0x09` packets one a row under a header of the packet's fields, `serial,tick,ptype,state,…,height,crc`; filed as generic CSV by its extension",
+    "03adc04683e2884f csv -> altos-table-csv: a table cut from an AltOS export, `time,state,state_name,acceleration,…`: AltOS's own column names with no `version,serial,flight` before them, read by its states; filed as generic CSV by its extension",
     "cd6f44ad29c505e6 txt -> radio-packets-txt: a team flight computer's own log of the radio telemetry packets it sends, `255:T:…:254` lines after a whole number and its filter's `Gain[…]` lines; filed as text by its extension",
     "a10560cbf44516e5 txt -> radio-packets-txt: the text a ground receiver wrote of one team's radio telemetry packets, `255:T:…:254` from the flight computer and `255:N:…:254` relayed, with GPS fixes, by a second transmitter, many cut or run together; filed as text by its extension",
     "12f752fa1d21c27f txt -> teensy-tabs-txt: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as \"Teensy Data Logger\"",
@@ -676,7 +698,7 @@
     "8b482eb6ae9af583 txt -> rtx-txt: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension",
     "a65103199f08052b txt -> rtx-txt: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension",
     "d306250ba73ea7f4 txt -> rrc3-csv: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension",
-    "9c5017ab68168088 altos-csv -> csv: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas",
+    "9c5017ab68168088 altos-csv -> altos-resaved-csv: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas; read by its columns' names, the formulas kept as text",
     "76a7d8937258e946 csv -> altos-csv-damaged: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused",
     "c7936ac4d86f259f kml -> kml-map: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it",
     "1eac3d58c44943fa csv -> altimetercloud-csv: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension",
@@ -783,7 +805,7 @@
     "AerospaceNU SillyGoose": 13,
     "AerospaceNU flight computer board": 20,
     "AerospaceNU flight computer board, by its ground station": 4,
-    "AltOS": 52,
+    "AltOS": 55,
     "AltOS EasyMega-v2.0": 1,
     "AltOS EasyMini-v1.0": 1,
     "AltOS EasyMini-v2.0": 1,
@@ -808,6 +830,7 @@
     "Featherweight Raven": 139,
     "GPS Visualizer": 1,
     "KML": 3,
+    "MARSA": 2,
     "Missile Works RRC3": 57,
     "Missile Works RTx": 26,
     "NMEA 0183 receiver (talker GP)": 12,
@@ -2564,6 +2587,154 @@
       "voltage_channels": 5
     }
   ],
+  "other_text_checks": {
+    "marsa": [
+      {
+        "id": "4be82002a95c68db",
+        "settings": 53,
+        "headings": 4,
+        "samples": 398,
+        "values_compared": 2388,
+        "values_differing": 0,
+        "figures_agree": true,
+        "quantities_read": true,
+        "beside": "2a665d94d9ad35d1",
+        "apogee_ratio": 0.9805155052071501,
+        "apogee_ratio_in_meters": 3.2169143871625656,
+        "pad_ft": -87.0,
+        "pad_g": -0.12,
+        "apogee_time_off_s": -2.59,
+        "climb_ratio": 0.9148474555013137,
+        "climb_ratio_in_m_s2": 8.971588799491956,
+        "count_step_ft": [
+          29.0,
+          29.30000000000001
+        ]
+      },
+      {
+        "id": "a80063e417b87028",
+        "settings": 53,
+        "headings": 4,
+        "samples": 554,
+        "values_compared": 3324,
+        "values_differing": 0,
+        "figures_agree": true,
+        "quantities_read": true,
+        "beside": "2f3fbd62dbc4f064",
+        "apogee_ratio": 0.9858230365439151,
+        "apogee_ratio_in_meters": 3.2343275477162567,
+        "pad_ft": -87.1,
+        "pad_g": -0.12,
+        "apogee_time_off_s": -1.1799999999999997,
+        "climb_ratio": 1.0348818037147807,
+        "climb_ratio_in_m_s2": 10.148723640399554,
+        "count_step_ft": [
+          29.1,
+          29.299999999999983
+        ]
+      }
+    ],
+    "telemetry_csv": [
+      {
+        "id": "850771db6621eaf6",
+        "rows": 325,
+        "crc_false": 0,
+        "ptypes": {
+          "9": 325
+        },
+        "unknown_columns": [],
+        "values_compared": 12025,
+        "values_differing": 0,
+        "sixteenths": true,
+        "whole_meters": true,
+        "hundredths": true,
+        "battery_v": [
+          4.09,
+          4.1
+        ],
+        "events": [
+          "pad",
+          "boost",
+          "fast",
+          "coast",
+          "drogue"
+        ],
+        "ground_pressure_in_band": true,
+        "pad_acceleration_m_s2": -0.4375,
+        "climb_over_speed": 1.0189895538036093
+      }
+    ],
+    "altos_table": [
+      {
+        "id": "03adc04683e2884f",
+        "rows": 1005,
+        "states": {
+          "3 boost": 347,
+          "5 coast": 155,
+          "7 main": 502,
+          "8 landed": 1
+        },
+        "states_altos": true,
+        "values_compared": 15948,
+        "values_differing": 0,
+        "same_columns": true,
+        "height_offset_spread_m": 0.005000000000052296,
+        "altitude_from_pressure_worst_m": 0.005563596265233173
+      }
+    ],
+    "resaved": [
+      {
+        "id": "9c5017ab68168088",
+        "rows": 26916,
+        "formulas": {
+          "(ft/s)": 26916,
+          "Altitude (ft)": 26916,
+          "altitude (ft)": 26916
+        },
+        "formulas_compared": 80748,
+        "formulas_differing": 0,
+        "formula_columns_not_channels": true,
+        "units": [
+          [
+            "acceleration (m/s^2)",
+            "Acceleration"
+          ],
+          [
+            "altitude (m)",
+            "AltitudeMsl"
+          ],
+          [
+            "speed (m/s)",
+            "Speed"
+          ],
+          [
+            "accel_x (m/s)",
+            "Unrecognized"
+          ],
+          [
+            "accel_y (m/s)",
+            "Unrecognized"
+          ],
+          [
+            "accel_z (m/s)",
+            "Unrecognized"
+          ],
+          [
+            "tilt (degrees)",
+            "Angle"
+          ],
+          [
+            "altitude (m)",
+            "GnssAltitude"
+          ]
+        ],
+        "values_compared": 4198896,
+        "values_differing": 0,
+        "not_numbers": 1,
+        "no_primary_track": true
+      }
+    ]
+  },
   "filter_scales": {
     "files": 44,
     "least": [
@@ -3067,7 +3238,7 @@
     "031ed217bdcc573e e80-imu-txt collection RdasText 94124b6f6882c8c0",
     "0373f8b68b75d6e8 rrc3-csv collection Rrc3Csv 89aa3a92287787e6",
     "03923b6d9978ea2b e80-imu-txt collection RdasText 1b86b05ca4501faf",
-    "03adc04683e2884f csv collection refused:unrecognized -",
+    "03adc04683e2884f altos-table-csv collection AltosCsv ef8ac287fdc8f278",
     "03ae604968d190f0 raven-csv collection RavenFipCsv a96bdc7fee4c7ef7",
     "04000ab9da2c8490 pf2 collection PerfectFlitePf2 26deb4ea4430ea92",
     "045f5b9ed473b800 mapped-table-csv collection GenericTable 4fb5d1917d15dd86",
@@ -3390,7 +3561,7 @@
     "4b640bbeebbd1c2a pf2 collection PerfectFlitePf2 c54456888bda2fa1",
     "4bccb7c77b94dd2c blueraven-csv collection BlueRavenCsv 61c653a4448bffc4",
     "4bdad9db3e40a5b3 csv collection refused:unrecognized -",
-    "4be82002a95c68db xml collection refused:unrecognized -",
+    "4be82002a95c68db marsa-dat collection Marsa 367c6db402d46551",
     "4c65b0da547efe7c e80-imu-txt collection RdasText bdd5d3c23d161904",
     "4c91fd0d33f018cb raven-csv collection RavenFipCsv adb840644ac6ca28",
     "4d5d3c61f7a2a9fa blueraven-csv collection BlueRavenCsv baa32f4011509431",
@@ -3631,7 +3802,7 @@
     "842207ed1d2acee7 featherweight-summary-csv collection FeatherweightSummaryCsv 452fb40ef968778a",
     "8488c731a24fc6cd pf2 collection PerfectFlitePf2 746bab93d5288caf",
     "850166d440130929 raven-fipa collection RavenFipa 132629e5de9c9a71",
-    "850771db6621eaf6 csv collection refused:unrecognized -",
+    "850771db6621eaf6 altos-telem-csv collection AltosTelemetryCsv 40608c61f6a79dec",
     "851bbe0e27be057a blueraven-csv collection BlueRavenCsv 4aae97ebe3feca18",
     "8539ed7d61a84b2d csv collection refused:unrecognized -",
     "856e61d186324d0a raven-fipa collection RavenFipa 5f8aaa33cba8a7db",
@@ -3721,7 +3892,7 @@
     "9b45103dd53075fa csv collection refused:unrecognized -",
     "9b9e97409c15620a eggtimer-csv collection EggtimerCsv bddb9d9080b8de07",
     "9be8158fc3e3329f raven-csv collection RavenFipCsv dbcb611b693077c1",
-    "9c5017ab68168088 csv collection refused:syntax -",
+    "9c5017ab68168088 altos-resaved-csv collection AltosCsv 43fadace0c0e4fb9",
     "9c6ffdeffee7488a table-csv collection GenericTable 9ba04c658943f575",
     "9c9e9a52ce7809b6 pf2 collection PerfectFlitePf2 b0a57c8ede159539",
     "9d60bd3efe8531ab kml collection Kml 790e1b06a23d0a86",
@@ -3775,7 +3946,7 @@
     "a7675ed723d0a3ab blueraven-csv collection BlueRavenCsv 1489449c23f44aac",
     "a7a3d563991cf089 e80-imu-txt collection RdasText 6a9f977d780eed42",
     "a7cad404ec5de219 eggtimer-csv collection EggtimerCsv fbc97f40c7790b84",
-    "a80063e417b87028 xml collection refused:unrecognized -",
+    "a80063e417b87028 marsa-dat collection Marsa 34b0edefa0f5eccf",
     "a8625ad469fc352d raven-fipa collection RavenFipa a4afff96f358ec75",
     "a8de9825932e9140 altos-csv collection AltosCsv 65d30890ab97937e",
     "a8e876d95fd54408 pf2 collection PerfectFlitePf2 377d47d9c2ba31f7",
@@ -3854,7 +4025,7 @@
     "b8bd3d94f2a563d0 fluctus-csv collection FluctusCsv 17522f1251cedb14",
     "b98a8654603a0b88 aerospacenu-sillygoose-txt aerospacenu SillyGooseText d49a43ed60edf87b",
     "b9e13388b83727b8 pf2 collection PerfectFlitePf2 6ec7a415034dcfa9",
-    "b9e7d6f70b13ad15 altos-csv debrief AltosCsv 89d37e4bfcf7a929",
+    "b9e7d6f70b13ad15 altos-csv debrief AltosCsv b23a3b05c0ecb777",
     "ba1cfad9ade2ee2b perfectflite-csv collection PerfectFliteCsv b44bbfb4943aa9a9",
     "ba517d0edf87ef99 pf2 collection PerfectFlitePf2 f108f87b7fc07966",
     "ba85f42d4d359fca blueraven-summary-csv archives FeatherweightSummaryCsv dafad075810bbf13",
