@@ -770,7 +770,7 @@ stated apogee 1.0025 times. The 1 vertical speed gives 0.9709. The 10 accelerome
 site away; 6 clocks beside another file's, overlapping 0.998 to 1.000 of the longer span; 1
 clock rate of 1.000 times its logger's; and 1 cut of a file, its rows all the whole file's. The survey's report,
 [`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
-lists each file's checks at these 4 decimals.
+lists each file's checks, each to 4 decimals.
 
 ### Binary records by a stated layout
 
