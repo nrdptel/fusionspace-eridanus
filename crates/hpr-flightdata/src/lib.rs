@@ -46,11 +46,12 @@
 //! its own ([`workbook`]); a team flight computer's binary records are read by a layout the caller
 //! states, from a raw file ([`records`]) or a serial console's capture of them as base64
 //! ([`capture`]); the Blue Raven's USB download to a serial terminal, each line held to its
-//! CRC ([`blueraven_usb`]); and a course's Teensy data logger, one sensor's reading a line
-//! ([`teensy`]). [`readings`] takes a first set of readings from the
+//! CRC ([`blueraven_usb`]); a course's Teensy data logger, one sensor's reading a line
+//! ([`teensy`]); and one team's radio telemetry packets, `255:…:254`, as its flight computer
+//! logged them, as a receiver heard them, and inside an RTF document ([`packets`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats and older `.xls` spreadsheets are planned for milestones [M7.1c19 to M7.1c23][roadmap] of the roadmap,
+//! formats and older `.xls` spreadsheets are planned for milestones [M7.1c20 to M7.1c23][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -97,6 +98,7 @@ pub mod import;
 pub mod kml;
 pub mod log;
 pub mod nmea;
+pub mod packets;
 pub mod perfectflite;
 pub mod phone_launch;
 pub mod raven;

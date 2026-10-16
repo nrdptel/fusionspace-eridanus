@@ -316,6 +316,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c16 Binary records by a stated layout ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c17 The Blue Raven's USB download ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c18 A course's Teensy data logger ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c19 Radio packets, `255:…:254` ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1656,6 +1657,9 @@ One line per milestone or increment, in the order it was archived within its pha
       value equals the survey's own decoding; every `Alt` line's `MSL` is the BMP180's formula of
       its `P` to within 0.0103 m; each accelerometer read is within 3 % of 1 g on the pad and
       after landing; the time to apogee is within a factor of 2 of √(2h/g).
+    - [x] **M7.1c19 Radio packets, `255:…:254`** (and `telemetry-rtf`, ADR-258). *Done when:* all
+      four forms read; every packet of the received and RTF forms the onboard log also holds
+      matches it field for field; the others counted by kind (GPS, repeated, broken).
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
