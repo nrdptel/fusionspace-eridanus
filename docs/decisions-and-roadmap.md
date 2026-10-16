@@ -304,6 +304,7 @@ until someone rewrites it in plainer words.
 | [ADR-273: The 2026-10-15 review: OpenRocket's supersonic ogive drag as a cause][adr-273] | OpenRocket's issue #3391 (2026-10-14) reports that OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag above Mach 1: about 0.0007 against about 0.13 at Mach 1.5 by the method its own technical documentation describes. HPR Sim found the same gap on a supersonic flight in its collection (#222) and left open which code was right. [M2.3c6](#m2-3c6) splits the apogee gap to OpenRocket into thrust, mass and drag. Its drag part must now give this term on its own line: a public probe sets the two codes' nose pressure drag beside the published equivalent-cone value, and the collection's flights past Mach 1 report how much of the gap the term accounts for, with its sign. |  |
 | [ADR-274: M7.1c18 in six: a course's Teensy logger first, then the five increments left][adr-274] | After [M7.1c17](#m7-1c17), 51 sample logs were left unread, in five groups. This record plans all of them at once, in six increments, the easiest to check first. [M7.1c18](#m7-1c18) reads the 8 files of a university course's Teensy data logger, one sensor's reading a line, in two layouts. Where a file states no unit, the unit is held to the physics the files must keep: on every one of 305,340 `Alt` lines, the barometer's altitude follows its pressure by the BMP180's formula to within 5.4 mm (0.21 in); the accelerometer reads 0.983 to 0.989 g on the pad; and the time to apogee is 0.90 to 1.14 times √(2h/g). The other 43 files go to [M7.1c19](#m7-1c19) to [M7.1c23](#m7-1c23). |  |
 | [ADR-275: Neer's 2026-10-14 plan: awareness and care on the sites][adr-275] | The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access. |  |
+| [ADR-276: Neer's 2026-10-16 plan: a flyer's own logger and GPX tracks in the analyzer][adr-276] | Release 0.2, the flight analyzer, must read a flyer's own altimeter or GPS tracker from the command line and Python, not only from Rust, and must read GPX tracks. [M7.1d1](#m7-1d1) reads GPX 1.0 and 1.1; [M7.1d2](#m7-1d2) lets `hpr analyze` and the Python package read a table by a column mapping and binary records by a record layout, as the library already does. |  |
 
 ## The roadmap
 
@@ -724,6 +725,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c21"></a>[M7.1c21][phase-5] | Altimeters' other text | not yet done |
 | <a id="m7-1c22"></a>[M7.1c22][phase-5] | Tables by mapping, and files that aren't logs | not yet done |
 | <a id="m7-1c23"></a>[M7.1c23][phase-5] | The last binaries; formats with no sample | not yet done |
+| <a id="m7-1d"></a>[M7.1d][phase-5] | A flyer's own logger and GPX tracks | not yet done |
+| <a id="m7-1d1"></a>[M7.1d1][phase-5] | GPX tracks | not yet done |
+| <a id="m7-1d2"></a>[M7.1d2][phase-5] | Your own logger from the command line and Python | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1153,6 +1157,7 @@ is the milestone that added or will add that test.
 [adr-273]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
 [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
 [adr-275]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0275-the-2026-10-14-awareness-and-care.md
+[adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

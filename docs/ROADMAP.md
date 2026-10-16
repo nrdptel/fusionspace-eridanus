@@ -413,6 +413,20 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
       each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
       report and M7.1 left open while it lasts; the guide lists every format the roadmap names
       with no sample (CATS, Juno) as needing samples.
+  - [ ] **M7.1d A flyer's own logger and GPX tracks** (ADR-276): in two.
+    - [ ] **M7.1d1 GPX tracks.** *Done when:* GPX 1.0 and 1.1 files read, each track
+      segment a GPS track (latitude, longitude, elevation of unstated datum, time), routes and
+      waypoints kept apart; every value of the invented samples equals gpxpy's
+      (`validation/oracles/gpx/`); a DTD or entity, a point off the globe and a time that goes
+      back refused by name (tests); the guide says GPX is read from invented samples only.
+    - [ ] **M7.1d2 Your own logger from the command line and Python.** *Done when:*
+      `hpr analyze` reads a table by a column mapping and binary records or a console capture by
+      a record layout, each a JSON file with a schema under `schema/`, refused naming the field
+      it fails (tests); it prints a table's header reading as a mapping to edit; the Python
+      package reads a log by its reader, a mapping or a layout; a mapping can mark the primary
+      track; refs' mapped tables and layout files read the same record from the library, the
+      command and Python, channel by channel (tests), and an invented GPS-only table by a
+      mapping; the guide works one invented logger through both.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped

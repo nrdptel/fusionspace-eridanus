@@ -206,6 +206,9 @@ speed is `max_speed` in both.
   ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
+- Read GPX tracks ([M7.1d1](decisions-and-roadmap.md#m7-1d1)), or take a column mapping or
+  a record layout for your own logger anywhere but the Rust library: `hpr analyze` and Python
+  come with [M7.1d2](decisions-and-roadmap.md#m7-1d2).
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).
 - Check a barometric reading near the speed of sound. Debrief stops trusting one above Mach 0.9;
   the analyzer doesn't check yet.
