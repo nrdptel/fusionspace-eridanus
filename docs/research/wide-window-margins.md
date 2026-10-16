@@ -60,7 +60,7 @@ Measured at 2,048 px [SURVEY]:
 | rustdoc (std, docs.rs) | 936 px (~132–136) | 200 px sidebar; left-aligned 960 px limiter | 843 px R |
 | Tailwind docs | 696 px | sticky "On this page"; 40 px hatched strips at ~5% | 328 px each side |
 | Linear docs | 650 px (~91) | nav at the left edge; sticky contents | 396 px R |
-| Observable Framework | 640 px (~87) | grey sidebar fill to the left edge; fixed contents | ~320 px R |
+| Observable Framework | 640 px (~87) | gray sidebar fill to the left edge; fixed contents | ~320 px R |
 | NASA Europa Clipper; ESA Juice | 600 and 565 px | full-bleed hero photo, key-facts grid | under the hero |
 
 - **Wikipedia** limited its width after estimating ~170 characters a line at 1,280 px and ~262 at 1,920 px; its
@@ -113,16 +113,16 @@ put away, 2,048 px open, 1,440 px put away, 1,440 px open.
 
 | Rank | Option | Shows | System need | Cost |
 |---|---|---|---|---|
-| 1 | Station rail, right band | full, full, numbers, — | rail component; rule for a band | medium |
+| 1 | Station rail, right band | full, full, numbers, hidden | rail component; rule for a band | medium |
 | 2 | Notes in the sheet rail | everywhere the rail is (column ≥ 880 px) | note-in-rail rule | small–medium |
-| 3 | Drafting field (visual) | both bands, both, both, — | revise "no background art" | small build, new check |
+| 3 | Drafting field (visual) | both bands, both, both, none | revise "no background art" | small build, new check |
 | 4 | Full-bleed sheet rules | 2,048 px only | rule across the pane | medium |
 | 5 | Trust card alone | as 1 | card variant of the trust note | medium |
 | 6 | Sidenotes in the right band | as 1 | sidenote component | large |
 | 7 | Figures wider than the column | 2,048 px only | revise the 1,120 px rule | large |
 | 8 | Live glossary or citation panel | as 1 | panel component, term matcher | large |
 | 9 | Faint flight plot of the page's example | as 3 | revise; per-page data | large |
-| 10 | Leave bands bare | — | none | none |
+| 10 | Leave bands bare | nothing | none | none |
 
 1. **Station rail.** A sticky "On this page" list in the right band, drawn as a body's station axis: a 2 px ink
    line, one tick per sheet with its number and name, the current sheet's tick heavier. On top, one line of "how
@@ -142,7 +142,7 @@ put away, 2,048 px open, 1,440 px put away, 1,440 px open.
    opening note; it is better as rank 1's top line. Right-band sidenotes need 1,728 px or more and a placement script.
    Wider figures break the column rule for a gain only at 2,048 px. A glossary panel needs a term matcher and grows
    a search index at 9.06 MB of mdBook's 10 MB warning (`book.toml`). A faint plot is decoration unless it is a
-   real, labelled figure, and then it is rank 6's placement problem plus data per page.
+   real, labeled figure, and then it is rank 6's placement problem plus data per page.
 
 **Mock-ups.** Ranks 1–3, built over a saved copy of the live Atmosphere page (sidebar open and put away, 2,048 and
 1,440 px), are in the uncommitted research cache, `refs/research/wide-window-margins/mock/` (`build.py`). Each run
@@ -186,7 +186,7 @@ All read 2026-10-16. Screenshots, the Dyson PDF and mdBook's guide (MPL-2.0) are
   [WM-NEWS] meta.wikimedia.org/wiki/Tech/News/2022/48.
 - [NNG-TOC] Wang & Brown, "Table of contents", NN/g, 2023, nngroup.com/articles/table-of-contents/. [NNG-LEFT]
   Fessenden, "Horizontal attention leans left", NN/g, 2017, nngroup.com/articles/horizontal-attention-leans-left/.
-- [DYSON] Dyson, "How physical text layout affects reading from screen", Behaviour & IT 23(6), 377–393, 2004.
+- [DYSON] Dyson, "How physical text layout affects reading from screen", Behav. Inf. Technol. 23(6), 377–393, 2004.
   [WEBTYPO] webtypography.net §2.1.2 (Bringhurst). [BUTTERICK] practicaltypography.com/line-length.html.
 - [WCAG148], [WCAG222] w3.org/WAI/WCAG22/Understanding/ `visual-presentation.html`, `pause-stop-hide.html`.
 - [SCHARFF] Scharff, Ahumada & Hill, "Discriminability measures for predicting readability", SPIE 3644, 1999.
