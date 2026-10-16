@@ -3655,9 +3655,9 @@ const TEENSY_NAMED: &str = "a course's Teensy data logger, newer layout: lines s
     Logger\"";
 
 /// The most the tab-separated layout's `MSL` may differ from the BMP180's formula worked out
-/// exactly from its `P`, m: its half step, as it is written to the hundredth of a meter, and the
-/// formula's own error in 32-bit floats, as a microcontroller works it out: its power, near 0.9,
-/// rounded to within 2⁻²³ (two of its steps), of the 44,330 m scale, 5.3 mm.
+/// exactly from its `P`, m: its half step, as it is written to the hundredth of a meter, and an
+/// allowance of 44,330 × 2⁻²³ m, 5.3 mm, for the logger's own rounding of the formula, whose form
+/// no document gives.
 const TEENSY_MSL_BOUND_M: f64 = 0.005 + 44_330.0 / 8_388_608.0;
 
 /// How near standard gravity an accelerometer's magnitude on the pad and after landing must be, as

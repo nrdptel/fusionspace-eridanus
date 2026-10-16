@@ -28,7 +28,7 @@
 //! |---|---|---|
 //! | `A`'s three | [`Quantity::Acceleration`], m/s², as written | their magnitude on the pad, the 5 s ending 1 s before liftoff, and over the last 2 s, after landing, each within 3 % of standard gravity |
 //! | `Alt`'s `P` | [`Quantity::Pressure`], Pa, as written | `MSL` worked out from it, below |
-//! | `Alt`'s `MSL` | [`Quantity::AltitudeMsl`], m, as written | on every line, 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula of the Bosch BMP180 barometer's data sheet (BST-BMP180-DS000, §3.6), to within 0.0103 m: its half step, 0.005 m, as it is written to the hundredth, and an allowance of 44,330 × 2⁻²³ m for the logger's own rounding of the formula, such as an exponent written to 7 digits or 32-bit arithmetic |
+//! | `Alt`'s `MSL` | [`Quantity::AltitudeMsl`], m, as written | on every line, 44,330 × (1 − (P / 101,325)^(1/5.255)), the altitude formula of the Bosch BMP180 barometer's data sheet (BST-BMP180-DS000, §3.6), to within 0.0103 m: its half step, 0.005 m, as it is written to the hundredth, and an allowance of 44,330 × 2⁻²³ m for the logger's own rounding of the formula, whose form no document gives |
 //!
 //! The `MSL` is so a pressure altitude, above where the pressure would be 101,325 Pa, not a
 //! height above the sea. The rest is kept as written, [`Quantity::Unrecognized`], as nothing

@@ -975,8 +975,7 @@ that failed one would be counted as unread:
   hundredth of a meter `MSL` is written to, plus an allowance of 44,330 × 2⁻²³ m, 5.3 mm (0.21
   in), for the logger's own rounding of the formula. On 21,540 lines the gap is more than the half
   step alone, and it is greatest at the same pressure in every file, so the logger rounds the
-  formula its own way, which no document gives: its exponent written to 7 digits, 0.1902949,
-  leaves 91 such lines, by at most 0.06 mm (0.002 in).
+  formula its own way, which no document gives.
 - **The accelerometer at rest.** Its magnitude on the pad, the median over the 5 s ending 1 s
   before liftoff, is 0.983 to 0.989 g. Over the file's last 2 s, after landing, it is 0.997 to
   1.008 g.
@@ -2444,10 +2443,10 @@ logger's file against the survey's decoding and its physical checks
 ([above](#how-the-teensy-files-were-checked)). Of the 1,122
 files it holds today, 1,016 are read, the 8 archives counted as read when they unpack and the 16
 workbooks when a sheet of each reads. The report labels 45 files for
-[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the next increment, though they come with all five
-increments left, M7.1c19 to M7.1c23
-([ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans them all); 43 of them, of layouts no reader knows yet, are unread.
+[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the next increment.
+[ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+plans all five increments left, M7.1c19 to M7.1c23; 43 of the 45, of layouts no reader knows
+yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is

@@ -33,9 +33,8 @@ floats, the altitude follows the pressure by the Bosch BMP180 data sheet's formu
 atmosphere's own form, 44,330.77 × (1 − (P / 101,325)^0.190263), is 0.09 to 0.21 m off. On 21,540
 of the 305,340 lines the gap is more than the 5 mm half step the value is written to, and it is
 greatest at the same pressure in every file, so it is the logger's own rounding of the formula,
-whose exact form no document gives. The exponent written to 7 digits, 0.1902949, worked out in
-64-bit floats, leaves 91 lines past the half step, by at most 0.06 mm; 32-bit arithmetic, whose
-power near 0.9 is good to about 2⁻²³ (5.3 mm of the 44,330 m scale), would leave more.
+whose exact form no document gives. The check allows 44,330 × 2⁻²³ m, 5.3 mm, for it:
+the 44,330 m scale times a power near 0.9 good to about 2⁻²³.
 
 The high-g accelerometer `HG` steps by 0.4788 m/s² if read in m/s², but it doesn't agree with `A`.
 In the boost, while `A` reads from 3 g to 90 % of its greatest, `HG` is 1.37 to 2.39 times `A`, by
