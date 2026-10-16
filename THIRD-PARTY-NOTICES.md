@@ -652,6 +652,16 @@ prints counts and cell positions, never a value of the private workbooks it read
 | `openpyxl` 3.1.5 | MIT | run-only | a second reader of `.xlsx` workbooks: every cell of the sample workbooks is read by it and compared with `hpr_flightdata::workbook`'s text |
 | `et-xmlfile` 2.0.0 | MIT | run-only | what openpyxl imports |
 
+## The `.xls` reader's oracle (`validation/oracles/xls/requirements.txt`)
+
+`validation/oracles/xls/cells.py` runs in an environment of its own, `refs/venv-xls`, installed
+from that file (M7.1c20, ADR-274). Nothing in it is committed or bundled; the script prints counts,
+cell positions and the version it reads each file as, never a value of the private files it reads.
+
+| package | license | mode | notes |
+|---|---|---|---|
+| `xlrd` 2.0.2 | BSD-3-Clause | run-only | a second reader of `.xls` worksheets: every cell of the sample AltiMAX export is read by it and compared with `hpr_flightdata::xls`'s text; the script raises its bound on a sheet's rows before BIFF8, 16,384, to 65,536 for the run |
+
 ## Research caches (`refs/research/`, outside the lock file)
 
 | source | license | mode | notes |
@@ -662,6 +672,8 @@ prints counts and cell positions, never a value of the private workbooks it read
 | Rocketry Ltd's AltimeterCloud support pages (the Nano V1's *CSV Flight log format* and *Flight info page*, the Mercury V1's page, the altimeters page) and Bosch Sensortec's *BMP581 data sheet* (BST-BMP581-DS004-13), fetched 2026-10-13, in `refs/research/altimetercloud/` | their publishers' copyright, no license stated | fetched and cached | the AltimeterCloud CSV's units and the BMP581's measurement range in `hpr_flightdata::altimetercloud`, cited and restated, never copied or committed (M7.1c2, ADR-255) |
 | Altus Metrum's *AltOS Telemetry* (Bdale Garbee and Keith Packard, v1.9.22.2, 2025), *The Altus Metrum System* owner's manual (v1.9.22.2, 13 October 2025), *AltOS Companion Port* and the *AltOS* firmware design document, from altusmetrum.org, fetched 2026-10-13, in `refs/papers/altos-telem/` | CC BY-SA 3.0 | fetched and cached | the TeleDongle line, the packet header and the five packet types the sample files hold, restated with their sections in `hpr_flightdata::altos_telem` (M7.1c9, ADR-263), and the record sizes, tick rate, checksum seed, voltage dividers, GPS units and the log format of old firmware the `.eeprom` reader cites in `hpr_flightdata::altos_eeprom` (M7.1c10, ADR-265); no table or text copied, and no AltOS or AltosUI source code read (GPL) |
 | Three sensor data sheets: TE Connectivity's *MS5607-02BA03* (03/2024), Freescale's *MP3H6115A* (rev. 5.1, 2012) and Texas Instruments' *CC1110Fx/CC1111Fx* (SWRS033H), from their makers' sites, in `refs/papers/altos-eeprom/` | their makers' copyright, no license stated | fetched and cached | the MS5607's compensation, the MP3H6115A's transfer function and the CC1111 converter's full scale, cited with their pages and restated as arithmetic in `hpr_flightdata::altos_eeprom` (M7.1c10, ADR-265); no figure or text copied |
+| Rocketronics' AltiMAX manuals, the *AltiMAX G4 Manual* (2021) and the G2 and G3 user manuals in English and German, from rocketronics.de, fetched 2026-10-16, in `refs/papers/altimax/` | Rocketronics' copyright, no license stated | fetched and cached | the AltiMAX's sample rate, its zeroing when armed, its events and its five voltages, cited with their pages and restated in `hpr_flightdata::altimax` (M7.1c20, ADR-274); no table or text copied |
+| *OpenOffice.org's Documentation of the Microsoft Excel File Format* (Daniel Rentz, revision 1.42, 2008), from sc.openoffice.org, fetched 2026-10-16, in `refs/papers/excelfileformat/` | Public Documentation License 1.0 | fetched and cached | the BIFF record layouts `hpr_flightdata::xls` reads (the BOF, BIFF2's cell records, their bounds), cited with their sections and restated (M7.1c20, ADR-274); nothing copied or committed |
 
 ## Planned sources (not fetched yet)
 

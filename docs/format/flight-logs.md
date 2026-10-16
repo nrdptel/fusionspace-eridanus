@@ -82,8 +82,15 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > pressure and the clock are read in units held to the flight's physics, and the rest is kept as
 > written
 > ([one team's radio telemetry packets](#one-teams-radio-telemetry-packets)).
+> Since [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (workbooks with a reading beside), a
+> Raven FIP export pasted into a workbook with its header line missing is read under a header
+> the caller states, and in the two sample sheets matches the `.FIPa` of the same flight sample by
+> sample ([a FIP export pasted below no header](#a-fip-export-pasted-below-no-header)); and an
+> AltiMAX altimeter's Excel export, an older binary `.xls` file, is read cell for cell, each height
+> in the sample file following its pressure by the standard atmosphere's formula
+> ([the AltiMAX's Excel export](#the-altimaxs-excel-export)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
+> [M7.1c21](../decisions-and-roadmap.md#m7-1c21) to
 > [M7.1c23](../decisions-and-roadmap.md#m7-1c23), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
@@ -200,6 +207,8 @@ decided.
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
+| Raven FIP rows below no header | a Raven FIP CSV pasted into a workbook with its header line missing | not recognized: read under the header line you state | `hpr_flightdata::raven::read_rows` ([below](#a-fip-export-pasted-below-no-header)) |
+| AltiMAX Excel export, `.xls` | Rocketronics AltiMAX, a flight as its PC software exports it to Excel | not by `import::read`, which refuses the `.xls` bytes: `xls::read` writes the worksheet out as text, whose header's first five names are `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]` | `hpr_flightdata::xls` and `hpr_flightdata::altimax` ([below](#the-altimaxs-excel-export)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 | Binary records | a team's flight computer saving each sample as a fixed run of bytes, with no header | not recognized: read by the record layout you state | `hpr_flightdata::records` ([below](#binary-records-by-a-stated-layout)) |
 | Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
@@ -217,9 +226,8 @@ flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; a flyer
 flights in spreadsheets; the events files a
 flyer's own program wrote from a Blue Raven's low-rate file, the same program's copy of a Blue
 Raven's summary, and the descriptions of a rocket such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
-export; and a wind profile. The other layouts in the sample logs, among
-them an older `.xls` spreadsheet, are refused today, most as *unrecognized*; they come with
-[M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
+export; and a wind profile. The other layouts in the sample logs are refused today, most as
+*unrecognized*; they come with [M7.1c21](../decisions-and-roadmap.md#m7-1c21) to
 [M7.1c23](../decisions-and-roadmap.md#m7-1c23), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
@@ -352,11 +360,12 @@ workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells
 hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
 each sheet's columns and units are only as right as the reader it goes to. A probe run when the
 check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
-disagreed. Not read yet, with [M7.1c20](../decisions-and-roadmap.md#m7-1c20) and
-[M7.1c22](../decisions-and-roadmap.md#m7-1c22): four workbooks (a
-PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
-no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
-Three more workbooks are flyers' summaries of flights, not logs.
+disagreed. Two more workbooks, Raven FIP exports pasted below no header, are read by the header
+stated for each ([below](#a-fip-export-pasted-below-no-header)), and the older `.xls` file, a
+different binary format, by its own reader ([below](#the-altimaxs-excel-export)), each checked
+the same way. Not read yet, with [M7.1c22](../decisions-and-roadmap.md#m7-1c22): two workbooks, a
+PerfectFlite export with a person's notes beside it and a state estimator's output whose clock
+names no unit. Three more workbooks are flyers' summaries of flights, not logs.
 
 ### R-DAS raw text
 
@@ -1117,6 +1126,188 @@ Two physical checks hold the units read, on the onboard log:
 **What is left out.** There is no [primary track](#the-record), as no packet writes an altitude
 above the pad in a unit that is settled. The GPS packets' values are kept as written. `hpr
 analyze` and the Python package don't read these files yet: the Rust library does.
+
+### A FIP export pasted below no header
+
+Two sample workbooks hold a Featherweight Raven's FIP export, the CSV the Featherweight Interface
+Program (FIP) writes, pasted into a sheet with its header line missing, and beside each the
+[`.FIPa`](#the-ravens-fipa) of the same flight, the Raven's raw download. Each row is the FIP
+CSV's: for each of 16 channels a clock, a value and a `b` status cell (the `bILBA` column, [kept as
+a number](#units-no-source-states)), and where a channel stops, its two cells empty and every
+channel after it one cell to the left. Without the header nothing names the columns, so the caller states it:
+`hpr_flightdata::raven::read_rows` reads the rows under the header line it is given, and
+`read_rows_around` reads a sheet another table was pasted over
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+decided it, in its amendment for [M7.1c20, workbooks with a reading
+beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own,
+and neither do `hpr analyze` and the Python package.
+
+> **How far to trust it.** The header stated for both sample sheets is the one Debrief's public
+> sample of a Raven flight carries, the same 16 channels in the same order, and both sheets' rows
+> hold 48 cells in its pattern. Every channel the `.FIPa` beside each sheet holds, the raw file of
+> the same flight, matches the sheet's sample by sample
+> ([below](#how-the-fip-sheets-were-checked)). The five channels the FIP works out from the
+> others, the bracketed ones, aren't in the `.FIPa`. The two barometric altitudes are held to the
+> sheet's own pressure and to each other, and the two velocities to each other where a sheet
+> keeps them, which backs the names the stated header gives them; `[Altitude (Accel-Ft)]` isn't
+> held to anything.
+
+**The stated header** is in `validation/log-headers.json`, by the file's id:
+
+```text
+Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,Time@Baro (Atm),Baro (Atm),bILBA,…,
+Time@[Velocity (Accel-MPH)],[Velocity (Accel-MPH)],bILBA
+```
+
+The rows are read as the FIP CSV's are, but for one thing a sheet does: it writes every row as
+wide as its widest, so a row may end in empty cells. A first row that reads as a header, its
+first cell beginning with `Time`, is refused: the file has its own, and `raven::read` reads it
+whole.
+
+**A table pasted over.** In one sample sheet, columns 34 and 35 hold a clock and a
+value pasted over the export's cells, where the header puts `[Altitude (Accel-Ft)]`. As the
+export's rows shift left where
+channels stop, the two columns cover different channels' cells in different rows. The rule, given
+the pasted columns: a channel whose sample, in any row, has a cell in them is left out whole, with
+a note naming it and counting the rows, and every other channel is read. To walk a row, each
+channel must still show whether it has a sample there: a cell of its time or value outside the
+pasted columns that isn't empty, or else the cell after them: a sample's status cell, `b` and
+digits, or, for a stopped channel, the next channel's time. A row whose pasted cells hide that,
+the cell after them pasted over or empty too, is refused.
+
+In that sheet the rule leaves out `[Altitude (Accel-Ft)]` (covered in 1,259 rows), `[Velocity
+(Accel-Ft/Sec)]` (11,331) and `[Velocity (Accel-MPH)]` (23,921), and reads the other 13 channels.
+The 11 the `.FIPa` also holds always sit in a row's first 33 cells, so no pasted cell touches
+them.
+
+<a id="how-the-fip-sheets-were-checked"></a>**How it was checked.** The survey,
+[`cargo xtask logs`](#how-it-was-checked), compares each sheet's reading with the `.FIPa` beside
+it, as it compares the FIP's own exports with theirs
+([checked against the makers' exports](#checked-against-the-makers-exports)): each sample at the
+`.FIPa`'s time as the FIP prints it, each value within half a step of the `.FIPa`'s resolution.
+
+| Sheet | Channels read | Samples compared | Differing | Worst time, s | Worst value, steps |
+|---|---:|---:|---:|---:|---:|
+| the first | 16 | 40,841 | 0 | 0.00005 | 0 |
+| the second | 13 | 48,290 | 0 | 0.00005 | 0 |
+
+Every channel of the `.FIPa` whose quantity is known has a channel of the sheet to compare with.
+An export stops the velocity from the accelerometer early, so the `.FIPa`'s 850 and 811 samples
+after each sheet stops it aren't compared. openpyxl 3.1.5, an independent reader
+(`validation/oracles/xlsx/cells.py`), reads every cell of both sheets as the workbook reader
+writes it.
+
+The derived channels, in each sheet:
+
+- `[Altitude (Baro-Ft-ASL)]` is the standard atmosphere's height of the sheet's own `Baro (Atm)`,
+  44,330.77 × (1 − (P / 101,325)^0.190263) m with P in pascals, the atmospheres times 101,325, less
+  one offset, within the pressure's printed
+  half step, 0.000005 atm, times the formula's slope, and the altitude's own: half the spread is
+  under 0.004 m (0.013 ft) and 0.020 m (0.066 ft).
+- `[Altitude (Baro-Ft-AGL)]` is that less one constant, the pad's, within both printed half steps
+  (half the spread under 0.0016 m (0.0053 ft) in each), and its first sample, on the pad, is
+  within 3 m (9.8 ft) of 0: 0.20 m (0.65 ft) and 0.72 m (2.4 ft). Were the two altitudes' names
+  swapped, the pad would read its height in the standard atmosphere, more than 3 m (9.8 ft) but where the
+  pad's pressure is within about 36 Pa (0.005 psi) of 101,325 Pa.
+- `[Velocity (Accel-MPH)]` is `[Velocity (Accel-Ft/Sec)]`, both in m/s, within both printed half
+  steps, in the first sheet; the second has neither.
+
+A test on invented rows (`a_sheet_with_its_altitudes_swapped_fails_its_pad_check`, in
+`xtask/src/logs.rs`) reads a sheet both ways round: swapped, the two altitudes still pass the ASL
+and AGL checks, each one offset from the other, and the pad check fails, with the pad 540 m
+(1,770 ft) up in the standard atmosphere.
+
+### The AltiMAX's Excel export
+
+Rocketronics' AltiMAX altimeters are downloaded with the maker's PC software, which can export a
+flight "to Excel as altitude values" (*AltiMAX G4 Manual*, Rocketronics, 2021, p. 52). The sample
+export is an `.xls` file, the binary format of Excel before 2007, and an unusual one: a bare
+*worksheet stream*, its records end to end, not inside the container file (an OLE2 compound
+document) that Excel wraps its own `.xls` files in. `hpr_flightdata::xls::read` writes the
+worksheet out as text and reads it, here with `hpr_flightdata::altimax`; `import::read` refuses
+the `.xls` bytes and names `xls::read`. Only the Rust library reads it ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)).
+
+> **How far to trust it.** The one sample file is read cell for cell: the survey's own decoding
+> and xlrd 2.0.2, an independent Python reader, agree with the text on all 278,685 cells. No
+> manual describes the columns, so the reading is held to physics: each height follows its
+> pressure by the standard atmosphere's formula to within 4.5 mm (0.18 in), and the clock, the
+> accelerometer and its sum are held to the flight. The pressure columns say `[hpa]` but hold
+> pascals, and are read so. The voltages are kept as stated, unchecked.
+
+**The stream.** An `.xls` file is written in BIFF, Excel's Binary Interchange File Format, whose
+versions run from BIFF2, Excel 2.x's, to BIFF8, Excel 97's and later. A record is a 2-byte id, a
+2-byte length and its data (*OpenOffice.org's Documentation of the Microsoft Excel File Format*,
+Daniel Rentz, revision 1.42, 2008, §2.1). The sample opens with a BOF (beginning of file) record,
+the stream's start, with the id `0x0809` that BIFF5 to BIFF8 share. Excel writes that BOF's body
+as 8 bytes, version `0x0500`, or 16, version `0x0600` (§5.8.1); this one is 6 bytes with a version
+field of 0, the kind other tools write, which Rentz reads as BIFF5 (§5.8.2). Its cells settle it:
+they are BIFF2's records, `INTEGER` (`0x0002`), `NUMBER` (`0x0003`) and `LABEL` (`0x0004`), the
+text in single bytes, and xlrd, below, reads the file as BIFF2 too. The plan called the stream
+BIFF8's, from its BOF's id; [ADR-274's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+the plan for the rest of the importers, records what it holds. It ends with an `EOF` (end
+of file) record. The reader writes these cells out under
+whichever BOF opens the stream. It refuses a later version's cell records by name, a shared
+string or a formula, as it doesn't read them; a record longer than 8,224 bytes; a cell past
+column `IV`, the 256th, or out of order; text beyond ASCII; and a stream with a second BOF or with
+bytes after its `EOF`. A number is written as its shortest form that reads back to the same
+double, so no digit is lost or invented.
+
+**The table** has one header row and a row for each sample:
+
+```text
+TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m],ACCEL [m/s2],
+SPEED [m/s],EVENT,EVENT,VOLT. CHANNEL,VOLTAGE [V]
+```
+
+| Column | Read as | Held to |
+|---|---|---|
+| `TIME` | s, though it names no unit | its shortest step, 5 ms within 10 %, the 200 samples a second the manual gives (pp. 8 and 10); and the time to apogee |
+| `PRESS FILTER [hpa]`, `PRESS RAW [hpa]` | Pa: the values are pascals, not the hectopascals stated | the pad's pressure, 50 to 110 kPa; and the heights |
+| `HEIGHT FILTER [m]`, `HEIGHT RAW [m]` | m above the pad, the raw one the record's [primary track](#the-record) | the formula below |
+| `ACCEL [m/s2]` | m/s², its sign as written | 1 g before liftoff, within 15 % |
+| `SPEED [m/s]` | m/s, its sign as written | its change against `ACCEL` |
+| `EVENT`, a code and its name | the record's events, where the code isn't 0 | nothing |
+| `VOLT. CHANNEL`, `VOLTAGE [V]` | a voltage channel for each channel number, 1 to 5 | nothing: kept as stated |
+
+The reader decides the pressure's unit by its first value, on the pad: read in hectopascals as
+stated, it would put the pad above 50,000 hPa; read in pascals, it falls between 500 and 1,100
+hPa, as any launch site's does. The two ranges don't overlap, so only one reading fits; a note
+says so when it is pascals. A file whose pad fits neither is refused, and so are a header that
+names a column twice (but `EVENT`), a file of one row, whose clock has no step to check, a value
+that isn't a finite number or is too large for pascals, and more than 16 voltage channel
+numbers.
+
+`ACCEL` is measured along an axis pointing down the rocket: it reads −0.94 g at rest before
+liftoff, where an axis pointing up would read +1 g. `SPEED` is `ACCEL` summed over the clock, gravity left in, so it isn't
+the rocket's speed, and the record's vertical speed is left empty.
+
+<a id="how-the-altimax-export-was-checked"></a>**How it was checked.** The survey decodes the
+stream itself, apart from the reader: its records are 50,668 `INTEGER`, 202,672 `NUMBER` and
+25,345 `LABEL` cells, a BOF, an `EOF`, a `DIMENSIONS`, 11 column widths and 36 number formats. All
+278,685 cells equal the reader's text, and xlrd 2.0.2 (`validation/oracles/xls/cells.py`), which
+reads the file as BIFF2, agrees on every one. The 253,340 values of the reader's channels equal
+the text read by the stated units, but the pressures in pascals. Then, on the flight:
+
+- **The heights.** Each of the 50,668 heights, filtered and raw, is the standard atmosphere's
+  height of its pressure in pascals, 44,330.77 × (1 − (P / 101,325)^0.190263) m (U.S. Standard
+  Atmosphere, 1976), less one offset for the file, to within 0.0045 m (0.015 ft). The check
+  allows 44,330.77 × 2⁻²³ = 0.0053 m (0.017 ft) for the software's own working of the formula,
+  whose form no document gives.
+  The offset, the pad's height in that atmosphere, isn't written, as it gives the site's
+  elevation. Read in hectopascals, the heights would miss by more than a kilometer (0.6 mi).
+- **The pad pressure,** the first raw pressure, is between 50 and 110 kPa (7.3 and 16 psi).
+- **The accelerometer.** Before liftoff, `ACCEL`'s first magnitude above 3 g, it reads 0.940 g;
+  the check allows 0.85 to 1.15, where a column in g or ft/s², read as m/s², would be 9.8 or 3.3
+  times off. Over the boost, `SPEED`'s change is 0.999 times `ACCEL`, inside 0.9 to 1.1.
+- **The time to apogee.** From liftoff to the highest raw height, the time is 0.945 times
+  √(2h/g), h the apogee's height above the first sample's; the check allows a factor of 2.
+
+**What is left out.** The voltages aren't held to anything: the software lists five (the
+battery's, the igniter's and three pyro channels', *AltiMAX G4 Manual*, p. 42) but not which
+number is which, so none is named. The event codes aren't documented, so they are kept as
+written beside their names. The AltiMAX's own `.ALS` file of the same flight isn't read yet: it
+comes with [M7.1c23](../decisions-and-roadmap.md#m7-1c23), held to this export.
 
 ## The record
 
@@ -2558,13 +2749,17 @@ against the survey's own decoding of it ([above](#the-blue-ravens-usb-download))
 logger's file against the survey's decoding and its physical checks
 ([above](#how-the-teensy-files-were-checked)), and each file of radio packets against the
 survey's decoding, and each received or exported packet against the onboard log's
-([above](#how-the-radio-packets-were-checked)). Of the 1,122
-files it holds today, 1,020 are read, the 8 archives counted as read when they unpack and the 16
-workbooks when a sheet of each reads. The report labels 41 files for
-[M7.1c20](../decisions-and-roadmap.md#m7-1c20), the next increment.
+([above](#how-the-radio-packets-were-checked)), and each FIP sheet against the `.FIPa` beside it
+([above](#how-the-fip-sheets-were-checked)), and the AltiMAX export against the survey's own
+decoding of its stream and its physical checks ([above](#how-the-altimax-export-was-checked)). Of
+the 1,122 files it holds today, 1,023 are read, the 8 archives counted as read when they unpack,
+the 16 workbooks of their own layout when a sheet of each reads, the 2 FIP sheets when they read
+under their stated headers and match their `.FIPa`, and the AltiMAX `.xls` when it reads and
+holds to its checks. The report labels 38 files for
+[M7.1c21](../decisions-and-roadmap.md#m7-1c21), the next increment.
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans all five increments left, through the last file; 39 of the 41, of layouts no reader
-knows yet, are unread.
+plans the three increments left, through the last file; 36 of the 38, of layouts no reader knows
+yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is

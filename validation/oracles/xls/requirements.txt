@@ -1,0 +1,5 @@
+# The environment `cells.py` runs in, every package pinned. Install it with
+#
+#   uv venv -p 3.11 refs/venv-xls
+#   uv pip install -p refs/venv-xls -r validation/oracles/xls/requirements.txt
+xlrd==2.0.2

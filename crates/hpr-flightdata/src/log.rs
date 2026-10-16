@@ -315,6 +315,10 @@ pub enum LogFormat {
     /// The same packets in an RTF document a spreadsheet saved as CSV, one `255,…,254` packet a
     /// line ([`crate::packets::read_rtf`]).
     RadioPacketRtf,
+    /// Rocketronics' AltiMAX, a flight as its PC software exports it to an `.xls` worksheet
+    /// ([`crate::xls`]), read as a table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`
+    /// ([`crate::altimax`]).
+    AltimaxXls,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -441,7 +445,8 @@ impl LogFormat {
     /// track either, and its pressure is written in the CSV's steps, 1/50,000 atm: the CSV's step.
     /// Nor does a Teensy data logger's file, whose pressure is written in whole pascals: 1 Pa,
     /// 0.083 m near sea level.
-    /// Nor do the radio packets, whose pressure is written to 0.01 hPa, 1 Pa.
+    /// Nor do the radio packets, whose pressure is written to 0.01 hPa, 1 Pa. An AltiMAX's raw
+    /// height follows its raw pressure, written in whole pascals: 1 Pa, 0.083 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -451,7 +456,7 @@ impl LogFormat {
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
-            Self::TeensyTabs | Self::TeensyNamed => ONE_PASCAL_M,
+            Self::TeensyTabs | Self::TeensyNamed | Self::AltimaxXls => ONE_PASCAL_M,
             Self::RadioPacketText | Self::RadioPacketRtf => {
                 RADIO_PACKET_PRESSURE_STEP_PA * ONE_PASCAL_M
             }
@@ -518,6 +523,7 @@ impl LogFormat {
             | Self::RadioPacketText => ".txt",
             Self::EggtimerRtf | Self::RadioPacketRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
+            Self::AltimaxXls => ".xls",
             Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
@@ -574,6 +580,7 @@ impl LogFormat {
             Self::TeensyNamed => "Teensy data logger, named fields",
             Self::RadioPacketText => "radio packets",
             Self::RadioPacketRtf => "radio packets in RTF",
+            Self::AltimaxXls => "AltiMAX Excel export",
         }
     }
 }

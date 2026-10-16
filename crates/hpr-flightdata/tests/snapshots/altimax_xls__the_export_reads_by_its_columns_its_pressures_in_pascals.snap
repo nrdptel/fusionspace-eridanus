@@ -1,0 +1,205 @@
+---
+source: crates/hpr-flightdata/tests/altimax_xls.rs
+expression: log
+---
+{
+  "format": "altimax_xls",
+  "logger": "Rocketronics AltiMAX",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    0.005,
+    0.01,
+    0.015,
+    0.02
+  ],
+  "altitude_m": [
+    0.0,
+    0.86,
+    2.13,
+    3.89
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "PRESS FILTER [hpa]",
+      "quantity": "pressure",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        98000.5,
+        97990.25,
+        97975.75,
+        97955.0
+      ]
+    },
+    {
+      "column": "HEIGHT FILTER [m]",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        0.0,
+        0.85,
+        2.12,
+        3.87
+      ]
+    },
+    {
+      "column": "PRESS RAW [hpa]",
+      "quantity": "pressure",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        98000.0,
+        97990.0,
+        97975.0,
+        97954.0
+      ]
+    },
+    {
+      "column": "HEIGHT RAW [m]",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        0.0,
+        0.86,
+        2.13,
+        3.89
+      ]
+    },
+    {
+      "column": "ACCEL [m/s2]",
+      "quantity": "acceleration",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        -9.22,
+        -40.0,
+        -80.0,
+        -80.5
+      ]
+    },
+    {
+      "column": "SPEED [m/s]",
+      "quantity": "speed",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        0.0,
+        -0.2,
+        -0.6,
+        -1.0
+      ]
+    },
+    {
+      "column": "EVENT",
+      "quantity": "number",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        0.0,
+        3.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "VOLT. CHANNEL",
+      "quantity": "number",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02
+      ],
+      "values": [
+        1.0,
+        2.0,
+        3.0,
+        1.0
+      ]
+    },
+    {
+      "column": "VOLTAGE [V] (channel 1)",
+      "quantity": "voltage",
+      "time_s": [
+        0.005,
+        0.02
+      ],
+      "values": [
+        7.4,
+        7.35
+      ]
+    },
+    {
+      "column": "VOLTAGE [V] (channel 2)",
+      "quantity": "voltage",
+      "time_s": [
+        0.01
+      ],
+      "values": [
+        7.3
+      ]
+    },
+    {
+      "column": "VOLTAGE [V] (channel 3)",
+      "quantity": "voltage",
+      "time_s": [
+        0.015
+      ],
+      "values": [
+        0.1
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.01,
+      "name": "BARO-LIFTOFF"
+    }
+  ],
+  "notes": [
+    "read from an Excel `.xls` worksheet, its cells as stored",
+    "the column \"PRESS FILTER [hpa]\" says hPa, but its values are pascals: its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
+    "the column \"PRESS RAW [hpa]\" says hPa, but its values are pascals: its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
+    "`TIME` names no unit; read in seconds, its shortest step 0.005 s, the 200 samples a second the maker's manual gives"
+  ]
+}
