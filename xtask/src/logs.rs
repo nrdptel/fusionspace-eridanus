@@ -5749,7 +5749,14 @@ fn one_offset(pairs: &[(f64, f64)], offset: bool) -> (bool, f64) {
         } else {
             floor <= 0.0 && 0.0 <= ceiling
         };
-    (held, if pairs.is_empty() { 0.0 } else { (most - least) / 2.0 })
+    (
+        held,
+        if pairs.is_empty() {
+            0.0
+        } else {
+            (most - least) / 2.0
+        },
+    )
 }
 
 /// The most the AltiMAX's heights may differ from the standard atmosphere's height of their
@@ -5830,10 +5837,9 @@ fn fip_derived(log: &FlightLog, file: &mut FipSheetFile) {
             .zip(&asl.values)
             .map(|(&p, &h)| {
                 // The formula's slope, m/Pa, times the pressure's printed half step.
-                let slope = 44_330.77 * 0.190_263 / 101_325.0
-                    * (p / 101_325.0).powf(0.190_263 - 1.0);
-                let tolerance =
-                    slope * 0.000_005 * 101_325.0 + fip_half_step(h / FT) * FT;
+                let slope =
+                    44_330.77 * 0.190_263 / 101_325.0 * (p / 101_325.0).powf(0.190_263 - 1.0);
+                let tolerance = slope * 0.000_005 * 101_325.0 + fip_half_step(h / FT) * FT;
                 (standard_height_m(p) - h, tolerance)
             })
             .collect();
@@ -5870,7 +5876,12 @@ fn fip_derived(log: &FlightLog, file: &mut FipSheetFile) {
             .iter()
             .zip(&mph.values)
             .filter(|(a, _)| !a.is_nan())
-            .map(|(&a, &b)| (b - a, fip_half_step(a / FT) * FT + fip_half_step(b / MPH) * MPH))
+            .map(|(&a, &b)| {
+                (
+                    b - a,
+                    fip_half_step(a / FT) * FT + fip_half_step(b / MPH) * MPH,
+                )
+            })
             .collect();
         file.mph_is_fps = Some(gaps_agree && one_offset(&pairs, false).0);
     }
@@ -5901,9 +5912,9 @@ fn fip_sheet_checks(samples: &[Sample]) -> Vec<FipSheetFile> {
             .cloned()
             .collect();
         let folder = sample.path.parent();
-        let beside = samples.iter().find(|other| {
-            other.path.parent() == folder && other.family == "raven-fipa"
-        });
+        let beside = samples
+            .iter()
+            .find(|other| other.path.parent() == folder && other.family == "raven-fipa");
         if let Some(fipa) = beside {
             file.fipa = Some(hex(&Sha256::digest(&fipa.bytes))[..16].to_owned());
             let raw = hpr_flightdata::import::read(&fipa.bytes);
@@ -6060,8 +6071,14 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
             if at == 0 {
                 file.bof = format!(
                     "{length:#x} bytes, version {:#06x}, type {:#06x}",
-                    u16::from_le_bytes([data.first().copied().unwrap_or(0), data.get(1).copied().unwrap_or(0)]),
-                    u16::from_le_bytes([data.get(2).copied().unwrap_or(0), data.get(3).copied().unwrap_or(0)])
+                    u16::from_le_bytes([
+                        data.first().copied().unwrap_or(0),
+                        data.get(1).copied().unwrap_or(0)
+                    ]),
+                    u16::from_le_bytes([
+                        data.get(2).copied().unwrap_or(0),
+                        data.get(3).copied().unwrap_or(0)
+                    ])
                 );
             }
             if let Some((row, column, value)) = biff2_cell(id, data) {
@@ -6073,16 +6090,28 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
             files.push(file);
             continue;
         };
-        let text = sheets.first().map(|sheet| sheet.text.as_str()).unwrap_or("");
+        let text = sheets
+            .first()
+            .map(|sheet| sheet.text.as_str())
+            .unwrap_or("");
         let table: Vec<Vec<&str>> = text.lines().map(|line| line.split(',').collect()).collect();
         // The rows holding a cell, in order, are the text's lines.
-        let rows: Vec<u16> = cells.keys().map(|(row, _)| *row).collect::<BTreeSet<_>>().into_iter().collect();
+        let rows: Vec<u16> = cells
+            .keys()
+            .map(|(row, _)| *row)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
         for (&(row, column), value) in &cells {
             file.cells_compared += 1;
             let line = rows.iter().position(|r| *r == row);
-            let written = line.and_then(|l| table.get(l)).and_then(|cells| cells.get(usize::from(column)));
+            let written = line
+                .and_then(|l| table.get(l))
+                .and_then(|cells| cells.get(usize::from(column)));
             let same = match (written, value) {
-                (Some(text), Ok(number)) => text.parse::<f64>().is_ok_and(|v| v.to_bits() == number.to_bits()),
+                (Some(text), Ok(number)) => text
+                    .parse::<f64>()
+                    .is_ok_and(|v| v.to_bits() == number.to_bits()),
                 (Some(text), Err(label)) => !text.starts_with('"') && text == label,
                 (None, _) => false,
             };
@@ -6092,8 +6121,14 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
         }
         // Each text cell must be a decoded cell's: a cell the text holds that no record does is
         // a difference too.
-        let written: usize = table.iter().map(|cells| cells.iter().filter(|c| !c.is_empty()).count()).sum();
-        let decoded = cells.values().filter(|v| !matches!(v, Err(label) if label.is_empty())).count();
+        let written: usize = table
+            .iter()
+            .map(|cells| cells.iter().filter(|c| !c.is_empty()).count())
+            .sum();
+        let decoded = cells
+            .values()
+            .filter(|v| !matches!(v, Err(label) if label.is_empty()))
+            .count();
         file.cells_differing += written.abs_diff(decoded);
         let Ok(log) = read_altimax(bytes) else {
             files.push(file);
@@ -6108,7 +6143,14 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
             let Some(at) = header.iter().position(|h| *h == name) else {
                 return Vec::new();
             };
-            body.iter().map(|cells| cells.get(at).and_then(|c| c.parse().ok()).unwrap_or(f64::NAN)).collect()
+            body.iter()
+                .map(|cells| {
+                    cells
+                        .get(at)
+                        .and_then(|c| c.parse().ok())
+                        .unwrap_or(f64::NAN)
+                })
+                .collect()
         };
         let time = column("TIME");
         let channel = |name: &str| log.channels.iter().find(|c| c.column == name);
@@ -6129,7 +6171,9 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
             ("ACCEL [m/s2]", Quantity::Acceleration),
             ("SPEED [m/s]", Quantity::Speed),
         ];
-        file.quantities_read = named.iter().all(|(name, quantity)| channel(name).is_some_and(|c| c.quantity == *quantity));
+        file.quantities_read = named
+            .iter()
+            .all(|(name, quantity)| channel(name).is_some_and(|c| c.quantity == *quantity));
         let mut columns: Vec<&str> = named.iter().map(|(name, _)| *name).collect();
         columns.extend(["EVENT", "VOLT. CHANNEL"]);
         for name in columns {
@@ -6142,10 +6186,19 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
         }
         // Each voltage on the rows of its channel's number.
         let (numbers, voltages) = (column("VOLT. CHANNEL"), column("VOLTAGE [V]"));
-        let split: BTreeSet<u64> = numbers.iter().filter(|n| n.is_finite()).map(|n| *n as u64).collect();
+        let split: BTreeSet<u64> = numbers
+            .iter()
+            .filter(|n| n.is_finite())
+            .map(|n| *n as u64)
+            .collect();
         file.voltage_channels = split.len();
         for number in split {
-            let ours: Vec<f64> = numbers.iter().zip(&voltages).filter(|(n, _)| **n == number as f64).map(|(_, v)| *v).collect();
+            let ours: Vec<f64> = numbers
+                .iter()
+                .zip(&voltages)
+                .filter(|(n, _)| **n == number as f64)
+                .map(|(_, v)| *v)
+                .collect();
             file.values_compared += ours.len();
             file.values_differing += match channel(&format!("VOLTAGE [V] (channel {number})")) {
                 Some(c) => same(&ours, &c.values),
@@ -6155,32 +6208,43 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
         file.events = log.events.len();
         // The heights against their pressures, in pascals and, as a measure, in hectopascals.
         let pairs = |scale: f64| -> Vec<(f64, f64)> {
-            [("PRESS FILTER [hpa]", "HEIGHT FILTER [m]"), ("PRESS RAW [hpa]", "HEIGHT RAW [m]")]
-                .iter()
-                .flat_map(|(p, h)| column(p).into_iter().zip(column(h)))
-                .map(|(p, h)| (standard_height_m(p * scale) - h, 0.0))
-                .collect()
+            [
+                ("PRESS FILTER [hpa]", "HEIGHT FILTER [m]"),
+                ("PRESS RAW [hpa]", "HEIGHT RAW [m]"),
+            ]
+            .iter()
+            .flat_map(|(p, h)| column(p).into_iter().zip(column(h)))
+            .map(|(p, h)| (standard_height_m(p * scale) - h, 0.0))
+            .collect()
         };
         let in_pa = pairs(1.0);
         file.height_pairs = in_pa.len();
         file.height_spread_m = Some(one_offset(&in_pa, true).1);
         file.stated_hpa_off_by_km = one_offset(&pairs(100.0), true).1 > 1_000.0;
-        file.pad_pressure_in_band = column("PRESS RAW [hpa]").first().map(|p| TEENSY_PAD_PRESSURE_PA.contains(p));
+        file.pad_pressure_in_band = column("PRESS RAW [hpa]")
+            .first()
+            .map(|p| TEENSY_PAD_PRESSURE_PA.contains(p));
         // Liftoff, apogee and the boost.
-        let (accel, speed, height) = (column("ACCEL [m/s2]"), column("SPEED [m/s]"), column("HEIGHT RAW [m]"));
+        let (accel, speed, height) = (
+            column("ACCEL [m/s2]"),
+            column("SPEED [m/s]"),
+            column("HEIGHT RAW [m]"),
+        );
         const G0: f64 = 9.806_65;
         let liftoff = accel.iter().position(|a| a.abs() > 3.0 * G0);
         let apogee = (0..height.len())
             .filter(|&k| !height[k].is_nan())
             .max_by(|&a, &b| height[a].total_cmp(&height[b]));
         if let Some(liftoff) = liftoff {
-            file.pad_over_g = teensy_median(accel[..liftoff].iter().map(|a| a.abs() / G0).collect());
+            file.pad_over_g =
+                teensy_median(accel[..liftoff].iter().map(|a| a.abs() / G0).collect());
             file.pad_sign = teensy_median(accel[..liftoff].to_vec()).map(f64::signum);
             let window = 8;
             let ratios: Vec<f64> = (liftoff + window..accel.len().saturating_sub(window))
                 .take_while(|&k| accel[k].abs() > 3.0 * G0)
                 .map(|k| {
-                    let dv = (speed[k + window] - speed[k - window]) / (time[k + window] - time[k - window]);
+                    let dv = (speed[k + window] - speed[k - window])
+                        / (time[k + window] - time[k - window]);
                     dv / accel[k]
                 })
                 .collect();
@@ -6189,7 +6253,8 @@ fn altimax_checks(samples: &[Sample]) -> Vec<AltimaxFile> {
                 && apogee > liftoff
             {
                 let h = height[apogee] - first;
-                file.apogee_time_ratio = (h > 0.0).then(|| (time[apogee] - time[liftoff]) / (2.0 * h / G0).sqrt());
+                file.apogee_time_ratio =
+                    (h > 0.0).then(|| (time[apogee] - time[liftoff]) / (2.0 * h / G0).sqrt());
             }
         }
         files.push(file);
@@ -6214,7 +6279,9 @@ fn altimax_unread(files: &[AltimaxFile]) -> Vec<String> {
                 || f.values_differing > 0
                 || !f.quantities_read
                 || f.height_pairs == 0
-                || !f.height_spread_m.is_some_and(|m| m <= ALTIMAX_HEIGHT_BOUND_M)
+                || !f
+                    .height_spread_m
+                    .is_some_and(|m| m <= ALTIMAX_HEIGHT_BOUND_M)
                 || f.pad_pressure_in_band != Some(true)
                 || !within(f.pad_over_g, &ALTIMAX_GRAVITY_BAND)
                 || !within(f.speed_change_over_accel, &ALTIMAX_SPEED_BAND)
@@ -9930,9 +9997,11 @@ mod tests {
         let headers = stated_headers().unwrap();
         assert_eq!(headers.len(), 2);
         for stated in &headers {
-            assert!(RECLASSIFIED
-                .iter()
-                .any(|(id, _, to, _)| *id == stated.id && *to == FIP_SHEET_FAMILY));
+            assert!(
+                RECLASSIFIED
+                    .iter()
+                    .any(|(id, _, to, _)| *id == stated.id && *to == FIP_SHEET_FAMILY)
+            );
             assert_eq!(stated.header.split(',').count(), 48);
         }
     }

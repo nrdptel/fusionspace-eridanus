@@ -64,10 +64,28 @@ fn export() -> Vec<u8> {
         bytes.extend(label(0, column as u16, name));
     }
     let rows: [(f64, f64, f64, f64, f64, f64, f64, u16, &str, u16, f64); 4] = [
-        (0.005, 98_000.5, 0.0, 98_000.0, 0.0, -9.22, 0.0, 0, "PAD", 1, 7.4),
-        (0.01, 97_990.25, 0.85, 97_990.0, 0.86, -40.0, -0.2, 3, "BARO-LIFTOFF", 2, 7.3),
-        (0.015, 97_975.75, 2.12, 97_975.0, 2.13, -80.0, -0.6, 0, "PAD", 3, 0.1),
-        (0.02, 97_955.0, 3.87, 97_954.0, 3.89, -80.5, -1.0, 0, "PAD", 1, 7.35),
+        (
+            0.005, 98_000.5, 0.0, 98_000.0, 0.0, -9.22, 0.0, 0, "PAD", 1, 7.4,
+        ),
+        (
+            0.01,
+            97_990.25,
+            0.85,
+            97_990.0,
+            0.86,
+            -40.0,
+            -0.2,
+            3,
+            "BARO-LIFTOFF",
+            2,
+            7.3,
+        ),
+        (
+            0.015, 97_975.75, 2.12, 97_975.0, 2.13, -80.0, -0.6, 0, "PAD", 3, 0.1,
+        ),
+        (
+            0.02, 97_955.0, 3.87, 97_954.0, 3.89, -80.5, -1.0, 0, "PAD", 1, 7.35,
+        ),
     ];
     for (row, values) in rows.iter().enumerate() {
         let row = row as u16 + 1;
@@ -118,7 +136,10 @@ fn the_export_reads_by_its_columns_its_pressures_in_pascals() {
     // Read in pascals, as the values are, though the column says hPa.
     assert_eq!(
         quantity("PRESS RAW [hpa]"),
-        (Quantity::Pressure, vec![98_000.0, 97_990.0, 97_975.0, 97_954.0])
+        (
+            Quantity::Pressure,
+            vec![98_000.0, 97_990.0, 97_975.0, 97_954.0]
+        )
     );
     assert_eq!(quantity("ACCEL [m/s2]").0, Quantity::Acceleration);
     assert_eq!(quantity("SPEED [m/s]").0, Quantity::Speed);
@@ -132,8 +153,16 @@ fn the_export_reads_by_its_columns_its_pressures_in_pascals() {
         (log.events[0].name.as_str(), log.events[0].time_s),
         ("BARO-LIFTOFF", 0.01)
     );
-    assert!(log.notes.iter().any(|n| n.contains("read from an Excel `.xls` worksheet")));
-    assert!(log.notes.iter().any(|n| n.contains("says hPa, but its values are pascals")));
+    assert!(
+        log.notes
+            .iter()
+            .any(|n| n.contains("read from an Excel `.xls` worksheet"))
+    );
+    assert!(
+        log.notes
+            .iter()
+            .any(|n| n.contains("says hPa, but its values are pascals"))
+    );
     insta::assert_json_snapshot!(log);
 }
 

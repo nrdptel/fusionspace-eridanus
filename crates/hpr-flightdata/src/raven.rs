@@ -324,11 +324,7 @@ pub fn read_rows(header: &str, rows: &str) -> Result<FlightLog, LogError> {
 ///
 /// As [`read_rows`]'s; and [`LogError::Syntax`] for a row in which the pasted cells hide whether a
 /// channel has a sample, and [`LogError::Mapping`] for a pasted column numbered 0.
-pub fn read_rows_around(
-    header: &str,
-    rows: &str,
-    pasted: &[usize],
-) -> Result<FlightLog, LogError> {
+pub fn read_rows_around(header: &str, rows: &str, pasted: &[usize]) -> Result<FlightLog, LogError> {
     if pasted.contains(&0) {
         return Err(LogError::Mapping {
             message: "the pasted columns are numbered from 1, and one is 0".to_owned(),
@@ -1370,7 +1366,10 @@ mod tests {
         // Each channel's status column follows it; the velocity's went with it.
         assert_eq!(log.channels.len(), 6);
         assert!(log.channels.iter().zip(&unpasted).all(|(a, b)| a == *b));
-        assert_eq!((&log.time_s, &log.altitude_m), (&whole.time_s, &whole.altitude_m));
+        assert_eq!(
+            (&log.time_s, &log.altitude_m),
+            (&whole.time_s, &whole.altitude_m)
+        );
         assert!(log.notes.iter().any(|note| note
             == "\"[Velocity (Accel-Ft/Sec)]\" left out: the pasted columns cover its cells in 3 rows"));
         // Nothing pasted over, the sheet's cells there are values no channel takes.
@@ -1389,8 +1388,10 @@ mod tests {
         let log = read_rows_around(HEADER, sheet, &[4, 5]).unwrap();
         assert_eq!(log.time_s, [0.0, 0.05]);
         assert_eq!(log.altitude_m, [0.0, 0.3048]);
-        assert!(log.notes.iter().any(|note| note
-            == "\"Baro (Atm)\" left out: the pasted columns cover its cells in 1 rows"));
+        assert!(
+            log.notes.iter().any(|note| note
+                == "\"Baro (Atm)\" left out: the pasted columns cover its cells in 1 rows")
+        );
         assert!(!log.channels.iter().any(|c| c.column == "Baro (Atm)"));
         // A stopped channel's own cells are both hidden, and so is the cell after them: the row
         // can't say whether it had a sample.
