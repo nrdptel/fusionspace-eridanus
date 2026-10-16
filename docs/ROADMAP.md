@@ -397,9 +397,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
     ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
-    - [ ] **M7.1c22 Tables by mapping, and files that aren't logs.** *Done when:* the 20 logs read,
-      each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
-      a track's own speed); the 7 others filed as not logs, each with its reason in the report.
     - [ ] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
       the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
       each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the

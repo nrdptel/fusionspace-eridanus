@@ -1,0 +1,1559 @@
+{
+  "about": "Column mappings the survey states for sample tables whose headers state too little or that have none (M7.1c22, ADR-274), read by `cargo xtask logs` through `hpr_flightdata::generic::read_with`. Each maps a file, by id (the first 16 hex digits of its SHA-256); a column's name is null where the file's header gives it, read from the header at each run, as 16 of these tables are in a private collection; a name is given where the survey labels a column itself, where a public table's publisher names it, and for the last name of a header that runs onto its first row. Every column the mapping reads in a unit, and the clock, is held to a physical check, listed beside it; a file that fails one fails the survey, listed among the unread. A column with no unit is kept as written.",
+  "mappings": [
+    {
+      "id": "055206ce7e9a2fae",
+      "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, the same rows with no header",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "timestamp",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "latitude",
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": "longitude",
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": "altitude",
+            "quantity": "gnss_altitude",
+            "unit": "m"
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 3
+        },
+        {
+          "check": "place",
+          "latitude": 1,
+          "longitude": 2
+        },
+        {
+          "check": "other_logger",
+          "altitude": 3,
+          "file": "bc7d96697d1315e1"
+        }
+      ]
+    },
+    {
+      "id": "0b81bee53c3096cd",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fixes, of which only the longitude is a number the survey can read",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "value 1",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "value 2",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "longitude",
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": "value 4",
+            "quantity": null,
+            "unit": null
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "5f2b0f963a9e52e9"
+        },
+        {
+          "check": "place",
+          "longitude": 3
+        }
+      ]
+    },
+    {
+      "id": "238756c53758ae7c",
+      "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, under that header",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": null,
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": null,
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": null,
+            "quantity": "gnss_altitude",
+            "unit": "m"
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 3
+        },
+        {
+          "check": "place",
+          "latitude": 1,
+          "longitude": 2
+        },
+        {
+          "check": "other_logger",
+          "altitude": 3,
+          "file": "bc7d96697d1315e1"
+        }
+      ]
+    },
+    {
+      "id": "268517db228becd0",
+      "what": "a flyer's workbook of an altimeter's download pasted into its first sheet, `Time,Altitude,Temp,Voltage`: seconds and feet above the pad, a temperature written with its unit, and the battery; the cells beside the table, about the flight, left out",
+      "sheet": 0,
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": null,
+            "quantity": "altitude_above_ground",
+            "unit": "ft"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "beside the table 1",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 2",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 3",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 4",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 5",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 6",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          },
+          {
+            "name": "beside the table 7",
+            "quantity": null,
+            "unit": null,
+            "skip": true
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "stated_apogee",
+          "altitude": 1
+        }
+      ]
+    },
+    {
+      "id": "419f0ec872abda2d",
+      "what": "the same team's radio telemetry as its ground station saved it, each packet a list, `[…, True, True]`, on the board's microsecond count: an altitude, two pressures, two accelerometer axes, a GPS fix and its time",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "altitude",
+            "quantity": "altitude_msl",
+            "unit": "ft"
+          },
+          {
+            "name": "pressure 1",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "pressure 2",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "axis 1",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "axis 2",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "longitude",
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": "latitude",
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": "gps altitude",
+            "quantity": "gnss_altitude",
+            "unit": "m"
+          },
+          {
+            "name": "gps time",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "flag 1",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "flag 2",
+            "quantity": null,
+            "unit": null
+          }
+        ],
+        "clock_wrap": 4294967296.0,
+        "rows": "list"
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 2
+        },
+        {
+          "check": "pad_pressure",
+          "column": 2
+        },
+        {
+          "check": "pad_pressure",
+          "column": 3
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 1,
+          "pressure": 2
+        },
+        {
+          "check": "place",
+          "latitude": 7,
+          "longitude": 6
+        },
+        {
+          "check": "other_logger",
+          "altitude": 8,
+          "file": "31f063cc173e6147"
+        }
+      ]
+    },
+    {
+      "id": "47f7e2fe2d0414a3",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "pressure 1",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "pressure 2",
+            "quantity": "pressure",
+            "unit": "Pa"
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 2
+        }
+      ]
+    },
+    {
+      "id": "4bdad9db3e40a5b3",
+      "what": "a hobbyist's small flight computer's table, its header naming 17 columns with no unit: seconds, a state, a temperature, humidity, a pressure in hectopascals, a gas sensor, an altitude above the pad in feet, a gyroscope and an accelerometer in g with their magnitudes",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "pressure",
+            "unit": "hPa"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "altitude_above_ground",
+            "unit": "ft"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "g"
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 5
+        },
+        {
+          "check": "pad_pressure",
+          "column": 5
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 7,
+          "pressure": 5
+        },
+        {
+          "check": "rest",
+          "columns": [
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "check": "rest",
+          "columns": [
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4ea3b7a8a4d4119c",
+      "what": "a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma; a recording on the pad that ends before liftoff",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "ms"
+          },
+          {
+            "name": "pressure",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "temperature",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "acceleration x",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "acceleration y",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "acceleration z",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "rate x",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "rate y",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "rate z",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "after the last comma",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "clock_rate",
+          "file": "f77449557bb81617"
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "rest",
+          "columns": [
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5843d20becfb8cda",
+      "what": "a flight computer's GNSS fixes, `ts,latitude,longitude,satellites`, on the clock of the flight table beside it, which its publisher maps in seconds",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": null,
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": null,
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "d88a7fc53cbd55d1"
+        },
+        {
+          "check": "place",
+          "latitude": 1,
+          "longitude": 2
+        }
+      ]
+    },
+    {
+      "id": "5ab193c0ed84f6b4",
+      "what": "a university team's payload's text, each line a date and time, `:` and a reading: a pressure in hectopascals",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "stamp",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "pressure",
+            "quantity": "pressure",
+            "unit": "hPa"
+          }
+        ],
+        "rows": "stamped"
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        }
+      ]
+    },
+    {
+      "id": "5cf819cc85147315",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fix flag, longitude and latitude",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "fix",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "value 2",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "longitude",
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": "latitude",
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": "value 5",
+            "quantity": null,
+            "unit": null
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "47f7e2fe2d0414a3"
+        },
+        {
+          "check": "place",
+          "latitude": 4,
+          "longitude": 3
+        }
+      ]
+    },
+    {
+      "id": "5f2b0f963a9e52e9",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "pressure 1",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "pressure 2",
+            "quantity": "pressure",
+            "unit": "Pa"
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 2
+        }
+      ]
+    },
+    {
+      "id": "6416a31040c017d7",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "axis 1",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "axis 2",
+            "quantity": null,
+            "unit": null
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "5f2b0f963a9e52e9"
+        }
+      ]
+    },
+    {
+      "id": "73304debd898b712",
+      "what": "a university team's flight computer's table, its header naming 25 columns with their units but its clock, `log_us`, with no time word: two accelerometers in m/s², their gyroscopes, a barometer's pressure and each sensor's state",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 23
+        },
+        {
+          "check": "pad_pressure",
+          "column": 23
+        },
+        {
+          "check": "rest",
+          "columns": [
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "check": "rest",
+          "columns": [
+            14,
+            15,
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "id": "88f33383ccf621a0",
+      "what": "a university club's ground station's conversion of a flight computer's downlink to that board's log: a `CONFIG` line, then 28 comma-separated columns with no header, in the order of the board's log with its settings (`hpr_flightdata::sillygoose`)",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "timestampMs",
+            "quantity": null,
+            "unit": "ms"
+          },
+          {
+            "name": "pressurePa",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "tempK",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "accelX",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "accelY",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "accelZ",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "gyroX",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "gyroY",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "gyroZ",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "imuTemp",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "battV",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "altitudeM",
+            "quantity": "altitude_above_ground",
+            "unit": "m"
+          },
+          {
+            "name": "velocityMS",
+            "quantity": "speed",
+            "unit": "m/s"
+          },
+          {
+            "name": "accelerationMSS",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "unfiltAlt",
+            "quantity": "altitude_above_ground",
+            "unit": "m"
+          },
+          {
+            "name": "flightState",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "drogueCont",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "drogueFired",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "mainCont",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "mainFired",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "tiltMagnitudeDeg",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "angularVelRadS_x",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "angularVelRadS_y",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "angularVelRadS_z",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "quaternion_a",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "quaternion_b",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "quaternion_c",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "quaternion_d",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 11,
+          "pressure": 1
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 14,
+          "pressure": 1
+        },
+        {
+          "check": "rest",
+          "columns": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "check": "rest",
+          "columns": [
+            13
+          ]
+        },
+        {
+          "check": "speed_over_height",
+          "speed": 12,
+          "height": 11
+        }
+      ]
+    },
+    {
+      "id": "9b45103dd53075fa",
+      "what": "a phone-sized flight computer's table, its header naming 34 columns with no unit and the first row run onto its last name: seconds, a pressure in hectopascals, temperatures, a pressure altitude in meters and in feet, an accelerometer in m/s², and its gyroscope, magnetometer, filters' outputs and rotations",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": null,
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": null,
+            "quantity": "pressure",
+            "unit": "hPa"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": "altitude_msl",
+            "unit": "m"
+          },
+          {
+            "name": null,
+            "quantity": "altitude_msl",
+            "unit": "ft"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": null,
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "GameRotK",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "after the last comma",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 5,
+          "pressure": 1
+        },
+        {
+          "check": "standard_atmosphere",
+          "altitude": 6,
+          "pressure": 1
+        },
+        {
+          "check": "rest",
+          "columns": [
+            7,
+            8,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a601fc98238e2546",
+      "what": "a university team's payload's text, each line a date and time, `:` and a reading: an accelerometer's three axes in m/s² as a tuple, `(x, y, z)`, and a line marking motion detected",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "stamp",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "x",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "y",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          },
+          {
+            "name": "z",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          }
+        ],
+        "rows": "stamped"
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "5ab193c0ed84f6b4"
+        },
+        {
+          "check": "rest",
+          "columns": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dc85b22c94b96291",
+      "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "us"
+          },
+          {
+            "name": "axis 1",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "axis 2",
+            "quantity": null,
+            "unit": null
+          }
+        ],
+        "clock_wrap": 4294967296.0
+      },
+      "checks": [
+        {
+          "check": "clock_beside",
+          "file": "47f7e2fe2d0414a3"
+        }
+      ]
+    },
+    {
+      "id": "f1788c6722a77dd6",
+      "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, 37 rows cut from the file with no header",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "timestamp",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "latitude",
+            "quantity": "latitude",
+            "unit": "deg"
+          },
+          {
+            "name": "longitude",
+            "quantity": "longitude",
+            "unit": "deg"
+          },
+          {
+            "name": "altitude",
+            "quantity": "gnss_altitude",
+            "unit": "m"
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "rows_of",
+          "file": "055206ce7e9a2fae"
+        }
+      ]
+    },
+    {
+      "id": "f77449557bb81617",
+      "what": "a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma",
+      "mapping": {
+        "header_line": null,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "clock",
+            "quantity": null,
+            "unit": "ms"
+          },
+          {
+            "name": "pressure",
+            "quantity": "pressure",
+            "unit": "Pa"
+          },
+          {
+            "name": "temperature",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "acceleration x",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "acceleration y",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "acceleration z",
+            "quantity": "acceleration",
+            "unit": "g"
+          },
+          {
+            "name": "rate x",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "rate y",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "rate z",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "after the last comma",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "apogee_time",
+          "height": 1
+        },
+        {
+          "check": "pad_pressure",
+          "column": 1
+        },
+        {
+          "check": "rest",
+          "columns": [
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    }
+  ]
+}

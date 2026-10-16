@@ -13,7 +13,6 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c22 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimax-xls | M7.1c20 | 1 | 1 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
@@ -26,7 +25,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem-csv | M7.1c21 | 1 | 1 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c22 | 2 | 0 | 2 unrecognized |
+| binary | M7.1c23 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -36,7 +35,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c22 | 20 | 2 | 18 unrecognized |
+| csv | M7.1c23 | 2 | 2 | none |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -45,12 +44,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c22 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c23 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
+| held-table | M7.1c22 | 20 | 20 | none |
+| housekeeping-csv | not a log | 2 | 0 | 2 unrecognized |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
@@ -82,15 +83,41 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | table-csv | M7.1c13 | 31 | 31 | none |
 | teensy-named-txt | M7.1c18 | 1 | 1 | none |
 | teensy-tabs-txt | M7.1c18 | 7 | 7 | none |
-| txt | M7.1c22 | 6 | 0 | 6 unrecognized |
+| track-copy-csv | not a log | 2 | 0 | 2 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xlsx | M7.1c22 | 2 | 0 | 2 archive |
+| worked-out-table | not a log | 3 | 0 | 1 archive, 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1028 | |
+| **All** | | 1122 | 1048 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `5f2b0f963a9e52e9 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `47f7e2fe2d0414a3 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `6416a31040c017d7 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `dc85b22c94b96291 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `0b81bee53c3096cd csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `5cf819cc85147315 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `419f0ec872abda2d txt -> held-table`: a table with no header whose rows are written as lists, `[…, True, True]`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `4ea3b7a8a4d4119c csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `f77449557bb81617 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `238756c53758ae7c txt -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `055206ce7e9a2fae txt -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `f1788c6722a77dd6 txt -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `5ab193c0ed84f6b4 txt -> held-table`: a table with no header whose rows each open with a date and time, `YYYY-MM-DD HH:MM:SS.ffffff: …`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `a601fc98238e2546 txt -> held-table`: a table with no header whose rows each open with a date and time, `YYYY-MM-DD HH:MM:SS.ffffff: …`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension
+- `4bdad9db3e40a5b3 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `5843d20becfb8cda csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `73304debd898b712 csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `9b45103dd53075fa csv -> held-table`: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension
+- `268517db228becd0 xlsx -> held-table`: an Excel workbook, `.xlsx`, whose first sheet is an altimeter's table pasted in with cells about the flight beside it, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as a spreadsheet
+- `ff3c6deef6ab4527 csv -> housekeeping-csv`: a flight computer's housekeeping: its processor's load, its memory, disk and network counters and its core's temperature twice a second, and no measurement of the flight; not a log
+- `a9c693adac127305 csv -> housekeeping-csv`: a battery pack's housekeeping: its cells' voltages, its temperatures and its current once a second, and no measurement of the flight; not a log
+- `b4235128d1b200ce csv -> track-copy-csv`: coordinates with no clock: a GPS track's latitude, longitude and altitude as its map file holds them, the times left out; the tracker's own file beside it holds the same fixes with their times; not a log
+- `2d2692ead2e72287 csv -> track-copy-csv`: coordinates with no clock: a GPS track's latitude, longitude and altitude as its map file holds them, the times left out; the tracker's own file beside it holds the same fixes with their times; not a log
+- `3a002cd6365ebabc xlsx -> worked-out-table`: a filter's output in a workbook: a Kalman filter's state and its standard deviations by time, worked out from a log; its altitude runs to 169 km and its speed to 87 km/s, so the filter diverged; not a log
+- `8539ed7d61a84b2d csv -> worked-out-table`: a filter's output: an inertial unit's recording turned into the rocket's frame with gravity taken out and cut to 30 s, worked out from a recording the collection doesn't hold; not a log
+- `dc65924fec7f15b8 csv -> worked-out-table`: a flyer's rebuild of the altimeter's log beside it: rows the flyer marks as made up, an altitude worked out again from the pressure and a speed from the altitude; not what the logger wrote, which the survey reads; not a log
 - `6f5e20612831ac57 xlsx -> raven-fip-sheet-xlsx`: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet
 - `b2a86ded765053b4 xlsx -> raven-fip-sheet-xlsx`: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet
 - `444687655195f5c8 xls -> altimax-xls`: a Rocketronics AltiMAX flight as its PC software exports it to Excel: a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`; filed as a spreadsheet
@@ -255,7 +282,7 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `3a36f081e5be9e9d rtf -> radio-packets-rtf`: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog
 - `70415b30a59d4411 rtf -> eggtimer-rtf`: an Eggtimer TRS's terminal download, its settings, summary and `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension
 - `8720c50cdeaf8ad3 rtf -> radio-packets-rtf`: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog
-- `88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv`: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper
+- `88f33383ccf621a0 aerospacenu-sillygoose-txt -> held-table`: AerospaceNU's ground station's conversion of a SillyGoose's downlink, a `CONFIG` line then 28 comma-separated columns with no header in the order of the board's log with its settings, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check
 - `0ad26ad4cfc8539b ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
 - `34affe179ab66e72 ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
 - `8e23a8dc0c55248b ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
@@ -490,6 +517,31 @@ AltOS exports a spreadsheet re-saved (M7.1c21), decoded here apart from the read
 | File | Rows | Formulas | Compared | Differing | Not channels | Units | Values compared | Differing | Not numbers | Primary track |
 |---|---:|---|---:|---:|---|---|---:|---:|---:|---|
 | `9c5017ab68168088` | 26916 | `(ft/s)` 26916, `Altitude (ft)` 26916, `altitude (ft)` 26916 | 80748 | 0 | yes | `acceleration (m/s^2)` Acceleration, `altitude (m)` AltitudeMsl, `speed (m/s)` Speed, `accel_x (m/s)` Unrecognized, `accel_y (m/s)` Unrecognized, `accel_z (m/s)` Unrecognized, `tilt (degrees)` Angle, `altitude (m)` GnssAltitude | 4198896 | 0 | 1 | none |
+
+The 20 tables read by a column mapping held to physics (M7.1c22, ADR-274): tables whose headers state too little or that have none, each read by the mapping stated for it in `validation/log-held-mappings.json`, which names a private table's columns by its own labels or by the header at each run, but for the last name of a header that runs onto its first row. *Read* counts the columns read in the unit the mapping states, *Kept* those kept as written, with no unit, and *Left out* those the mapping leaves out. Each check holds a unit, its columns counted from 0: *apogee time*, the clock's, is the time from liftoff to apogee of a height over √(2h/g), within 0.5–2.0; *clock beside*, the clock's, is the overlap of this file's span of times and another's, of the same logger, over the longer of the two, at least 0.5; *clock rate*, for a recording with no flight, is its median step over the same logger's in a file held by its flight, within 0.9–1.1; *rows of* is the share of its rows that are rows of another file, value for value, which must be 1; *pad pressure*, a pressure's, is its reading at the pad within 50–110 kPa, its value not shown, as it would give the site's elevation; *standard atmosphere*, an altitude's, is its rise over the standard-atmosphere height's rise of the file's pressure; *other logger* its rise over another logger's in the same flight; *stated apogee* its rise over the apogee the flyer states; *speed over height*, a vertical speed's, is an altitude's change over it from liftoff to apogee: each within 0.6–5/3, which no unit off by 3.28 or more reaches; *1 g at rest* is the accelerometer's median magnitude over the recording, in g, within 0.85–1.15; and *place*, a track's, is whether a latitude lies past ±π/2 or a longitude past ±π, which no place has in radians, its values not shown. A column with no unit is kept as written: a temperature, as no check here tells °C from °F at a launch's temperatures, and a rate of turn, which none holds.
+
+| File | What | Rows | Read | Kept | Left out | Events | Checks |
+|---|---|---:|---:|---:|---:|---:|---|
+| `055206ce7e9a2fae` | a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, the same rows with no header | 434 | 3 | 0 | 0 | 0 | apogee time (3) 0.9315 ✓; place (1, 2) ✓; other logger (3) 0.9552 ✓ |
+| `0b81bee53c3096cd` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fixes, of which only the longitude is a number the survey can read | 17222 | 1 | 3 | 0 | 0 | clock beside 0.9999 ✓; place (3) ✓ |
+| `238756c53758ae7c` | a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, under that header | 434 | 3 | 0 | 0 | 0 | apogee time (3) 0.9315 ✓; place (1, 2) ✓; other logger (3) 0.9552 ✓ |
+| `268517db228becd0` | a flyer's workbook of an altimeter's download pasted into its first sheet, `Time,Altitude,Temp,Voltage`: seconds and feet above the pad, a temperature written with its unit, and the battery; the cells beside the table, about the flight, left out | 1184 | 1 | 2 | 7 | 0 | apogee time (1) 0.9784 ✓; stated apogee (1) 1.0025 ✓ |
+| `419f0ec872abda2d` | the same team's radio telemetry as its ground station saved it, each packet a list, `[…, True, True]`, on the board's microsecond count: an altitude, two pressures, two accelerometer axes, a GPS fix and its time | 3870 | 6 | 5 | 0 | 0 | apogee time (2) 0.9468 ✓; pad pressure (2) ✓; pad pressure (3) ✓; standard atmosphere (1, 2) 0.9992 ✓; place (7, 6) ✓; other logger (8) 0.9008 ✓ |
+| `47f7e2fe2d0414a3` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures | 953298 | 2 | 0 | 0 | 0 | apogee time (1) 0.8627 ✓; pad pressure (1) ✓; pad pressure (2) ✓ |
+| `4bdad9db3e40a5b3` | a hobbyist's small flight computer's table, its header naming 17 columns with no unit: seconds, a state, a temperature, humidity, a pressure in hectopascals, a gas sensor, an altitude above the pad in feet, a gyroscope and an accelerometer in g with their magnitudes | 125 | 6 | 10 | 0 | 5 | apogee time (5) 1.7105 ✓; pad pressure (5) ✓; standard atmosphere (7, 5) 1.0005 ✓; 1 g at rest (13, 14, 15) 0.9983 ✓; 1 g at rest (16) 1.0000 ✓ |
+| `4ea3b7a8a4d4119c` | a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma; a recording on the pad that ends before liftoff | 2480 | 4 | 5 | 0 | 0 | clock rate 1.0000 ✓; pad pressure (1) ✓; 1 g at rest (3, 4, 5) 0.9814 ✓ |
+| `5843d20becfb8cda` | a flight computer's GNSS fixes, `ts,latitude,longitude,satellites`, on the clock of the flight table beside it, which its publisher maps in seconds | 246 | 2 | 1 | 0 | 0 | clock beside 0.9993 ✓; place (1, 2) ✓ |
+| `5ab193c0ed84f6b4` | a university team's payload's text, each line a date and time, `:` and a reading: a pressure in hectopascals | 125920 | 1 | 0 | 0 | 0 | apogee time (1) 0.8640 ✓; pad pressure (1) ✓ |
+| `5cf819cc85147315` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fix flag, longitude and latitude | 19034 | 2 | 3 | 0 | 0 | clock beside 0.9999 ✓; place (4, 3) ✓ |
+| `5f2b0f963a9e52e9` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures | 862537 | 2 | 0 | 0 | 0 | apogee time (1) 0.9912 ✓; pad pressure (1) ✓; pad pressure (2) ✓ |
+| `6416a31040c017d7` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written | 862536 | 0 | 2 | 0 | 0 | clock beside 1.0000 ✓ |
+| `73304debd898b712` | a university team's flight computer's table, its header naming 25 columns with their units but its clock, `log_us`, with no time word: two accelerometers in m/s², their gyroscopes, a barometer's pressure and each sensor's state | 14837 | 7 | 17 | 0 | 67 | apogee time (23) 1.0208 ✓; pad pressure (23) ✓; 1 g at rest (5, 6, 7) 1.0356 ✓; 1 g at rest (14, 15, 16) 1.0531 ✓ |
+| `88f33383ccf621a0` | a university club's ground station's conversion of a flight computer's downlink to that board's log: a `CONFIG` line, then 28 comma-separated columns with no header, in the order of the board's log with its settings (`hpr_flightdata::sillygoose`) | 11206 | 8 | 19 | 0 | 0 | apogee time (1) 1.1103 ✓; pad pressure (1) ✓; standard atmosphere (11, 1) 0.9559 ✓; standard atmosphere (14, 1) 0.9559 ✓; 1 g at rest (3, 4, 5) 0.9854 ✓; 1 g at rest (13) 0.9854 ✓; speed over height (12, 11) 0.9709 ✓ |
+| `9b45103dd53075fa` | a phone-sized flight computer's table, its header naming 34 columns with no unit and the first row run onto its last name: seconds, a pressure in hectopascals, temperatures, a pressure altitude in meters and in feet, an accelerometer in m/s², and its gyroscope, magnetometer, filters' outputs and rotations | 9388 | 6 | 28 | 0 | 0 | apogee time (1) 1.3211 ✓; pad pressure (1) ✓; standard atmosphere (5, 1) 1.0002 ✓; standard atmosphere (6, 1) 1.0003 ✓; 1 g at rest (7, 8, 9) 0.9822 ✓ |
+| `a601fc98238e2546` | a university team's payload's text, each line a date and time, `:` and a reading: an accelerometer's three axes in m/s² as a tuple, `(x, y, z)`, and a line marking motion detected | 126269 | 3 | 0 | 0 | 1 | clock beside 0.9984 ✓; 1 g at rest (1, 2, 3) 1.0278 ✓ |
+| `dc85b22c94b96291` | a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written | 953297 | 0 | 2 | 0 | 0 | clock beside 1.0000 ✓ |
+| `f1788c6722a77dd6` | a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, 37 rows cut from the file with no header | 37 | 3 | 0 | 0 | 0 | rows of 1.0000 ✓ |
+| `f77449557bb81617` | a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma | 12000 | 4 | 5 | 0 | 0 | apogee time (1) 1.0367 ✓; pad pressure (1) ✓; 1 g at rest (3, 4, 5) 0.9600 ✓ |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -859,4 +911,4 @@ The files read, by the logger each names:
 | fw2kml | 15 |
 | phone app | 27 |
 | radio telemetry packets | 4 |
-| unknown | 52 |
+| unknown | 72 |

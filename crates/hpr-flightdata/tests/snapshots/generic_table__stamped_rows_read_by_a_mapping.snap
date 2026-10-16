@@ -1,0 +1,86 @@
+---
+source: crates/hpr-flightdata/tests/generic_table.rs
+expression: log
+---
+{
+  "format": "generic_table",
+  "logger": "unknown",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "x",
+      "quantity": "acceleration",
+      "time_s": [
+        1717286398.5,
+        1717286398.625,
+        1717286398.75,
+        1717286398.875,
+        1717286400.0
+      ],
+      "values": [
+        0.2,
+        0.1,
+        12.5,
+        13.0,
+        0.0
+      ]
+    },
+    {
+      "column": "y",
+      "quantity": "acceleration",
+      "time_s": [
+        1717286398.5,
+        1717286398.625,
+        1717286398.75,
+        1717286398.875,
+        1717286400.0
+      ],
+      "values": [
+        -0.1,
+        -0.2,
+        1.0,
+        0.8,
+        0.0
+      ]
+    },
+    {
+      "column": "z",
+      "quantity": "acceleration",
+      "time_s": [
+        1717286398.5,
+        1717286398.625,
+        1717286398.75,
+        1717286398.875,
+        1717286400.0
+      ],
+      "values": [
+        9.81,
+        9.79,
+        40.2,
+        45.6,
+        0.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 1717286398.75,
+      "name": "MOTION DETECTED"
+    }
+  ],
+  "notes": [
+    "1 line with no stamp: each a mark, an event at the next row's time"
+  ]
+}

@@ -38,15 +38,6 @@
       "refused": {}
     },
     {
-      "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c22",
-      "files": 1,
-      "read": 0,
-      "refused": {
-        "unrecognized": 1
-      }
-    },
-    {
       "family": "aerospacenu-sillygoose-txt",
       "increment": "M7.1c3",
       "files": 14,
@@ -134,7 +125,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c22",
+      "increment": "M7.1c23",
       "files": 2,
       "read": 0,
       "refused": {
@@ -216,12 +207,10 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c22",
-      "files": 20,
+      "increment": "M7.1c23",
+      "files": 2,
       "read": 2,
-      "refused": {
-        "unrecognized": 18
-      }
+      "refused": {}
     },
     {
       "family": "debrief-synthetic-csv",
@@ -287,7 +276,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c22",
+      "increment": "M7.1c23",
       "files": 2,
       "read": 0,
       "refused": {
@@ -332,6 +321,22 @@
       "files": 40,
       "read": 40,
       "refused": {}
+    },
+    {
+      "family": "held-table",
+      "increment": "M7.1c22",
+      "files": 20,
+      "read": 20,
+      "refused": {}
+    },
+    {
+      "family": "housekeeping-csv",
+      "increment": "not a log",
+      "files": 2,
+      "read": 0,
+      "refused": {
+        "unrecognized": 2
+      }
     },
     {
       "family": "jpeg",
@@ -563,12 +568,12 @@
       "refused": {}
     },
     {
-      "family": "txt",
-      "increment": "M7.1c22",
-      "files": 6,
+      "family": "track-copy-csv",
+      "increment": "not a log",
+      "files": 2,
       "read": 0,
       "refused": {
-        "unrecognized": 6
+        "unrecognized": 2
       }
     },
     {
@@ -588,12 +593,13 @@
       "refused": {}
     },
     {
-      "family": "xlsx",
-      "increment": "M7.1c22",
-      "files": 2,
+      "family": "worked-out-table",
+      "increment": "not a log",
+      "files": 3,
       "read": 0,
       "refused": {
-        "archive": 2
+        "archive": 1,
+        "unrecognized": 2
       }
     },
     {
@@ -605,6 +611,32 @@
     }
   ],
   "reclassified": [
+    "5f2b0f963a9e52e9 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "47f7e2fe2d0414a3 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "6416a31040c017d7 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "dc85b22c94b96291 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "0b81bee53c3096cd csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "5cf819cc85147315 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "419f0ec872abda2d txt -> held-table: a table with no header whose rows are written as lists, `[…, True, True]`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "4ea3b7a8a4d4119c csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "f77449557bb81617 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "238756c53758ae7c txt -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "055206ce7e9a2fae txt -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "f1788c6722a77dd6 txt -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "5ab193c0ed84f6b4 txt -> held-table: a table with no header whose rows each open with a date and time, `YYYY-MM-DD HH:MM:SS.ffffff: …`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "a601fc98238e2546 txt -> held-table: a table with no header whose rows each open with a date and time, `YYYY-MM-DD HH:MM:SS.ffffff: …`, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as text by its extension",
+    "4bdad9db3e40a5b3 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "5843d20becfb8cda csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "73304debd898b712 csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "9b45103dd53075fa csv -> held-table: a table whose header states too little or that has none, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as generic CSV by its extension",
+    "268517db228becd0 xlsx -> held-table: an Excel workbook, `.xlsx`, whose first sheet is an altimeter's table pasted in with cells about the flight beside it, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check; filed as a spreadsheet",
+    "ff3c6deef6ab4527 csv -> housekeeping-csv: a flight computer's housekeeping: its processor's load, its memory, disk and network counters and its core's temperature twice a second, and no measurement of the flight; not a log",
+    "a9c693adac127305 csv -> housekeeping-csv: a battery pack's housekeeping: its cells' voltages, its temperatures and its current once a second, and no measurement of the flight; not a log",
+    "b4235128d1b200ce csv -> track-copy-csv: coordinates with no clock: a GPS track's latitude, longitude and altitude as its map file holds them, the times left out; the tracker's own file beside it holds the same fixes with their times; not a log",
+    "2d2692ead2e72287 csv -> track-copy-csv: coordinates with no clock: a GPS track's latitude, longitude and altitude as its map file holds them, the times left out; the tracker's own file beside it holds the same fixes with their times; not a log",
+    "3a002cd6365ebabc xlsx -> worked-out-table: a filter's output in a workbook: a Kalman filter's state and its standard deviations by time, worked out from a log; its altitude runs to 169 km and its speed to 87 km/s, so the filter diverged; not a log",
+    "8539ed7d61a84b2d csv -> worked-out-table: a filter's output: an inertial unit's recording turned into the rocket's frame with gravity taken out and cut to 30 s, worked out from a recording the collection doesn't hold; not a log",
+    "dc65924fec7f15b8 csv -> worked-out-table: a flyer's rebuild of the altimeter's log beside it: rows the flyer marks as made up, an altitude worked out again from the pressure and a speed from the altitude; not what the logger wrote, which the survey reads; not a log",
     "6f5e20612831ac57 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
     "b2a86ded765053b4 xlsx -> raven-fip-sheet-xlsx: a Featherweight Raven's FIP export pasted into an Excel workbook, `.xlsx`, below no header line: each channel's clock, value and `b` status, a row shifting left where a channel stops, read under the header stated for it (`validation/log-headers.json`); filed as a spreadsheet",
     "444687655195f5c8 xls -> altimax-xls: a Rocketronics AltiMAX flight as its PC software exports it to Excel: a bare `.xls` worksheet stream, its table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`; filed as a spreadsheet",
@@ -769,7 +801,7 @@
     "3a36f081e5be9e9d rtf -> radio-packets-rtf: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog",
     "70415b30a59d4411 rtf -> eggtimer-rtf: an Eggtimer TRS's terminal download, its settings, summary and `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension",
     "8720c50cdeaf8ad3 rtf -> radio-packets-rtf: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog",
-    "88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper",
+    "88f33383ccf621a0 aerospacenu-sillygoose-txt -> held-table: AerospaceNU's ground station's conversion of a SillyGoose's downlink, a `CONFIG` line then 28 comma-separated columns with no header in the order of the board's log with its settings, read by the column mapping stated for it (`validation/log-held-mappings.json`), each unit it states held to a physical check",
     "0ad26ad4cfc8539b ods -> checklist: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log",
     "34affe179ab66e72 ods -> checklist: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log",
     "8e23a8dc0c55248b ods -> checklist: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log",
@@ -849,7 +881,7 @@
     "fw2kml": 15,
     "phone app": 27,
     "radio telemetry packets": 4,
-    "unknown": 52
+    "unknown": 72
   },
   "perfectflite_exports": {
     "files": 21,
@@ -2743,6 +2775,762 @@
       }
     ]
   },
+  "held_checks": {
+    "files": [
+      {
+        "id": "055206ce7e9a2fae",
+        "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, the same rows with no header",
+        "refused": null,
+        "rows": 434,
+        "read": 3,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              3
+            ],
+            "measured": 0.9315,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              1,
+              2
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "other logger",
+            "columns": [
+              3
+            ],
+            "measured": 0.9552,
+            "passed": true
+          }
+        ],
+        "record": "59a8f2cd62548fdf"
+      },
+      {
+        "id": "0b81bee53c3096cd",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fixes, of which only the longitude is a number the survey can read",
+        "refused": null,
+        "rows": 17222,
+        "read": 1,
+        "kept": 3,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 0.9999,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              3
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "fd646b59367e4ca9"
+      },
+      {
+        "id": "238756c53758ae7c",
+        "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, under that header",
+        "refused": null,
+        "rows": 434,
+        "read": 3,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              3
+            ],
+            "measured": 0.9315,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              1,
+              2
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "other logger",
+            "columns": [
+              3
+            ],
+            "measured": 0.9552,
+            "passed": true
+          }
+        ],
+        "record": "59a8f2cd62548fdf"
+      },
+      {
+        "id": "268517db228becd0",
+        "what": "a flyer's workbook of an altimeter's download pasted into its first sheet, `Time,Altitude,Temp,Voltage`: seconds and feet above the pad, a temperature written with its unit, and the battery; the cells beside the table, about the flight, left out",
+        "refused": null,
+        "rows": 1184,
+        "read": 1,
+        "kept": 2,
+        "left_out": 7,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 0.9784,
+            "passed": true
+          },
+          {
+            "check": "stated apogee",
+            "columns": [
+              1
+            ],
+            "measured": 1.0025,
+            "passed": true
+          }
+        ],
+        "record": "97a611ac0e52de39"
+      },
+      {
+        "id": "419f0ec872abda2d",
+        "what": "the same team's radio telemetry as its ground station saved it, each packet a list, `[…, True, True]`, on the board's microsecond count: an altitude, two pressures, two accelerometer axes, a GPS fix and its time",
+        "refused": null,
+        "rows": 3870,
+        "read": 6,
+        "kept": 5,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              2
+            ],
+            "measured": 0.9468,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              2
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              3
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              1,
+              2
+            ],
+            "measured": 0.9992,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              7,
+              6
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "other logger",
+            "columns": [
+              8
+            ],
+            "measured": 0.9008,
+            "passed": true
+          }
+        ],
+        "record": "276641a4a0c31787"
+      },
+      {
+        "id": "47f7e2fe2d0414a3",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures",
+        "refused": null,
+        "rows": 953298,
+        "read": 2,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 0.8627,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              2
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "2f12d60f38b9476e"
+      },
+      {
+        "id": "4bdad9db3e40a5b3",
+        "what": "a hobbyist's small flight computer's table, its header naming 17 columns with no unit: seconds, a state, a temperature, humidity, a pressure in hectopascals, a gas sensor, an altitude above the pad in feet, a gyroscope and an accelerometer in g with their magnitudes",
+        "refused": null,
+        "rows": 125,
+        "read": 6,
+        "kept": 10,
+        "left_out": 0,
+        "events": 5,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              5
+            ],
+            "measured": 1.7105,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              5
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              7,
+              5
+            ],
+            "measured": 1.0005,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              13,
+              14,
+              15
+            ],
+            "measured": 0.9983,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              16
+            ],
+            "measured": 1.0,
+            "passed": true
+          }
+        ],
+        "record": "9065631e8f772d77"
+      },
+      {
+        "id": "4ea3b7a8a4d4119c",
+        "what": "a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma; a recording on the pad that ends before liftoff",
+        "refused": null,
+        "rows": 2480,
+        "read": 4,
+        "kept": 5,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock rate",
+            "columns": [],
+            "measured": 1.0,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              3,
+              4,
+              5
+            ],
+            "measured": 0.9814,
+            "passed": true
+          }
+        ],
+        "record": "6effc95b719a4cd7"
+      },
+      {
+        "id": "5843d20becfb8cda",
+        "what": "a flight computer's GNSS fixes, `ts,latitude,longitude,satellites`, on the clock of the flight table beside it, which its publisher maps in seconds",
+        "refused": null,
+        "rows": 246,
+        "read": 2,
+        "kept": 1,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 0.9993,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              1,
+              2
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "ad2b5d3853f11741"
+      },
+      {
+        "id": "5ab193c0ed84f6b4",
+        "what": "a university team's payload's text, each line a date and time, `:` and a reading: a pressure in hectopascals",
+        "refused": null,
+        "rows": 125920,
+        "read": 1,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 0.864,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "612a3e0031ead240"
+      },
+      {
+        "id": "5cf819cc85147315",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a GPS receiver's fix flag, longitude and latitude",
+        "refused": null,
+        "rows": 19034,
+        "read": 2,
+        "kept": 3,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 0.9999,
+            "passed": true
+          },
+          {
+            "check": "place",
+            "columns": [
+              4,
+              3
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "11f7cd414e507a53"
+      },
+      {
+        "id": "5f2b0f963a9e52e9",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: two barometers' pressures",
+        "refused": null,
+        "rows": 862537,
+        "read": 2,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 0.9912,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              2
+            ],
+            "measured": null,
+            "passed": true
+          }
+        ],
+        "record": "2aa2909784fa3b5d"
+      },
+      {
+        "id": "6416a31040c017d7",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written",
+        "refused": null,
+        "rows": 862536,
+        "read": 0,
+        "kept": 2,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 1.0,
+            "passed": true
+          }
+        ],
+        "record": "963c3cf8da5be4f9"
+      },
+      {
+        "id": "73304debd898b712",
+        "what": "a university team's flight computer's table, its header naming 25 columns with their units but its clock, `log_us`, with no time word: two accelerometers in m/s², their gyroscopes, a barometer's pressure and each sensor's state",
+        "refused": null,
+        "rows": 14837,
+        "read": 7,
+        "kept": 17,
+        "left_out": 0,
+        "events": 67,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              23
+            ],
+            "measured": 1.0208,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              23
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              5,
+              6,
+              7
+            ],
+            "measured": 1.0356,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              14,
+              15,
+              16
+            ],
+            "measured": 1.0531,
+            "passed": true
+          }
+        ],
+        "record": "415c16d522e20585"
+      },
+      {
+        "id": "88f33383ccf621a0",
+        "what": "a university club's ground station's conversion of a flight computer's downlink to that board's log: a `CONFIG` line, then 28 comma-separated columns with no header, in the order of the board's log with its settings (`hpr_flightdata::sillygoose`)",
+        "refused": null,
+        "rows": 11206,
+        "read": 8,
+        "kept": 19,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 1.1103,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              11,
+              1
+            ],
+            "measured": 0.9559,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              14,
+              1
+            ],
+            "measured": 0.9559,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              3,
+              4,
+              5
+            ],
+            "measured": 0.9854,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              13
+            ],
+            "measured": 0.9854,
+            "passed": true
+          },
+          {
+            "check": "speed over height",
+            "columns": [
+              12,
+              11
+            ],
+            "measured": 0.9709,
+            "passed": true
+          }
+        ],
+        "record": "12c36f24046af407"
+      },
+      {
+        "id": "9b45103dd53075fa",
+        "what": "a phone-sized flight computer's table, its header naming 34 columns with no unit and the first row run onto its last name: seconds, a pressure in hectopascals, temperatures, a pressure altitude in meters and in feet, an accelerometer in m/s², and its gyroscope, magnetometer, filters' outputs and rotations",
+        "refused": null,
+        "rows": 9388,
+        "read": 6,
+        "kept": 28,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 1.3211,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              5,
+              1
+            ],
+            "measured": 1.0002,
+            "passed": true
+          },
+          {
+            "check": "standard atmosphere",
+            "columns": [
+              6,
+              1
+            ],
+            "measured": 1.0003,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              7,
+              8,
+              9
+            ],
+            "measured": 0.9822,
+            "passed": true
+          }
+        ],
+        "record": "eb101996e01462f0"
+      },
+      {
+        "id": "a601fc98238e2546",
+        "what": "a university team's payload's text, each line a date and time, `:` and a reading: an accelerometer's three axes in m/s² as a tuple, `(x, y, z)`, and a line marking motion detected",
+        "refused": null,
+        "rows": 126269,
+        "read": 3,
+        "kept": 0,
+        "left_out": 0,
+        "events": 1,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 0.9984,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              1,
+              2,
+              3
+            ],
+            "measured": 1.0278,
+            "passed": true
+          }
+        ],
+        "record": "28c6c941e8cebb4b"
+      },
+      {
+        "id": "dc85b22c94b96291",
+        "what": "a university team's flight computer's file of one sensor's readings, no header: a 32-bit count of microseconds, which it prints 9 × 2³² high in the upper half of each turn, then the values: a two-axis accelerometer's axes, 0 at rest (gravity taken out), kept as written",
+        "refused": null,
+        "rows": 953297,
+        "read": 0,
+        "kept": 2,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "clock beside",
+            "columns": [],
+            "measured": 1.0,
+            "passed": true
+          }
+        ],
+        "record": "d9804e3959ba0f71"
+      },
+      {
+        "id": "f1788c6722a77dd6",
+        "what": "a university club's GPS fixes, `timestamp,latitude,longitude,altitude`: Unix seconds, degrees and meters, as the club's own notes on the flight state, 37 rows cut from the file with no header",
+        "refused": null,
+        "rows": 37,
+        "read": 3,
+        "kept": 0,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "rows of",
+            "columns": [],
+            "measured": 1.0,
+            "passed": true
+          }
+        ],
+        "record": "b10fdd6b54dde163"
+      },
+      {
+        "id": "f77449557bb81617",
+        "what": "a student team's avionics table, no header: milliseconds, a pressure, a temperature, three accelerometer axes and three gyroscope axes, each row ending in a comma",
+        "refused": null,
+        "rows": 12000,
+        "read": 4,
+        "kept": 5,
+        "left_out": 0,
+        "events": 0,
+        "outcomes": [
+          {
+            "check": "apogee time",
+            "columns": [
+              1
+            ],
+            "measured": 1.0367,
+            "passed": true
+          },
+          {
+            "check": "pad pressure",
+            "columns": [
+              1
+            ],
+            "measured": null,
+            "passed": true
+          },
+          {
+            "check": "1 g at rest",
+            "columns": [
+              3,
+              4,
+              5
+            ],
+            "measured": 0.96,
+            "passed": true
+          }
+        ],
+        "record": "e86a34a7e5d8e6c3"
+      }
+    ]
+  },
   "filter_scales": {
     "files": 44,
     "least": [
@@ -3251,7 +4039,7 @@
     "04000ab9da2c8490 pf2 collection PerfectFlitePf2 26deb4ea4430ea92",
     "045f5b9ed473b800 mapped-table-csv collection GenericTable 4fb5d1917d15dd86",
     "04de3cd8df2ab428 raven-csv collection RavenFipCsv 43b61b5ba10bd211",
-    "055206ce7e9a2fae txt aerospacenu refused:unrecognized -",
+    "055206ce7e9a2fae held-table aerospacenu GenericTable 59a8f2cd62548fdf",
     "0593220770e9c74a aerospacenu-sillygoose-txt aerospacenu SillyGooseText 8e19404b483905cf",
     "05b3553690148b86 featherweight-summary-csv collection FeatherweightSummaryCsv f3ecb5c5c309ef09",
     "0608648c087e2749 blueraven-csv collection BlueRavenCsv ce4317c44eb296af",
@@ -3285,7 +4073,7 @@
     "0b44ddd2e409eb70 png collection refused:unrecognized -",
     "0b603bfc6b4e835c e80-imu-txt collection RdasText 0213a29c0f905223",
     "0b7c15d882dfb10e pf2 collection PerfectFlitePf2 8c1751a27ffc8fdb",
-    "0b81bee53c3096cd csv collection refused:unrecognized -",
+    "0b81bee53c3096cd held-table collection GenericTable fd646b59367e4ca9",
     "0bbedeb8c6dd59cc pf2 collection PerfectFlitePf2 094723855cbfd5b3",
     "0bc0d96357b9eb10 altos-eeprom collection AltosEeprom a8e9d2820f9de3c4",
     "0bc1429eeabbbda7 teensy-named-txt collection TeensyNamed baf27f5daaa10941",
@@ -3388,7 +4176,7 @@
     "22e60eace8174b79 rrc3-csv collection Rrc3Csv 471984311c973720",
     "2305273e8e8f1d5d eggtimer-csv collection EggtimerCsv 4befc2cfbd6222ba",
     "23057e681888074a eggtimer-csv collection EggtimerCsv c87a571d3d38b10c",
-    "238756c53758ae7c txt aerospacenu refused:unrecognized -",
+    "238756c53758ae7c held-table aerospacenu GenericTable 59a8f2cd62548fdf",
     "238fb0746e7fe9c5 pf2 collection PerfectFlitePf2 e8e2118255ddc0a1",
     "241f4d9f882bfcd9 pf2 collection PerfectFlitePf2 05474ecf99a2de23",
     "24504b8c3141cef1 featherweight-summary-csv collection FeatherweightSummaryCsv d035043be8b5425d",
@@ -3403,7 +4191,7 @@
     "2616eca4152e9f6c raven-fipa collection RavenFipa b2fb79efbd4749d8",
     "261d753bc922b301 blueraven-summary-csv archives FeatherweightSummaryCsv 8524e2015f3d989e",
     "265ba245c424d90f kml collection Kml b9dac4568449f57b",
-    "268517db228becd0 xlsx collection refused:archive -",
+    "268517db228becd0 held-table collection GenericTable 97a611ac0e52de39",
     "26f3d5fbfe0ad9dc kml collection Kml 4ad91f647f4bc913",
     "274d3f1e0aae100f kml collection Kml 708052ac52a864ff",
     "2793afee5d86fed2 blueraven-csv collection BlueRavenCsv 9b5cba3ad4f54488",
@@ -3436,7 +4224,7 @@
     "2c6e6d889e7c5f58 raven-csv collection RavenFipCsv 2fbca324fee40af0",
     "2c9f9a32c9ed6b60 blueraven-summary-csv collection FeatherweightSummaryCsv a6017d8762f36ca5",
     "2d2455b75cfe7672 workbook-xlsx collection Workbook:1 7294c4a03118f71e",
-    "2d2692ead2e72287 csv collection refused:unrecognized -",
+    "2d2692ead2e72287 track-copy-csv collection refused:unrecognized -",
     "2d7367091e81905e eggtimer-csv collection EggtimerCsv a47bd4e7332c9292",
     "2d8063ec6a98cac0 altimetercloud-csv collection AltimeterCloudCsv 227c07d74b721d42",
     "2def5687b655bf6f zip collection Archive:1 6c8a251b101a4581",
@@ -3498,7 +4286,7 @@
     "397c1ac88706673b pf2 collection PerfectFlitePf2 f6815e29f50efa97",
     "397dc62ac0d8f12d blueraven-csv collection BlueRavenCsv 61cad8f8bb6a319b",
     "39a251cf4a17ed0c e80-imu-txt collection RdasText eb6a2e7d3e422ba6",
-    "3a002cd6365ebabc xlsx collection refused:archive -",
+    "3a002cd6365ebabc worked-out-table collection refused:archive -",
     "3a289df6965f7d9f blueraven-csv collection BlueRavenCsv 326c0251f9de3217",
     "3a36f081e5be9e9d radio-packets-rtf collection RadioPacketRtf bbe69c30db6610ad",
     "3a68d913a1e86e33 pf2 collection PerfectFlitePf2 2710c9dc1cde7db2",
@@ -3527,7 +4315,7 @@
     "4125f190dc562862 zip collection Archive:10 df58462edc369c7d",
     "413de085a44f4872 featherweight-summary-csv collection FeatherweightSummaryCsv b264740e283f9494",
     "4151a819d5ce2ca1 perfectflite-csv collection PerfectFliteCsv 42b3af93841d2de7",
-    "419f0ec872abda2d txt collection refused:unrecognized -",
+    "419f0ec872abda2d held-table collection GenericTable 276641a4a0c31787",
     "420fc7e37e2db417 png collection refused:unrecognized -",
     "4228b05ebc899f6d missileworks-rtx collection RtxRaw dd98cefc3e385ac6",
     "4243bc06d5f49f2a table-csv collection GenericTable 7cc62f16ce9a6c85",
@@ -3552,7 +4340,7 @@
     "476c533e30e6a873 rrc3-rff collection Rrc3Rff 9fe1946e1dc662e9",
     "47df882e3794735c blueraven-summary-csv collection FeatherweightSummaryCsv a4a03e78d253fd70",
     "47ef88c075d04d8c blueraven-csv collection BlueRavenCsv 853a8a6e54e33bf1",
-    "47f7e2fe2d0414a3 csv collection refused:unrecognized -",
+    "47f7e2fe2d0414a3 held-table collection GenericTable 2f12d60f38b9476e",
     "4877081f774a63e0 pf2 collection PerfectFlitePf2 22989dde6a6f246d",
     "48995ec06f1a5a9a raven-fipa collection RavenFipa a84d9959a3278574",
     "4914c080152572df raven-csv collection RavenFipCsv 0c85e88250f95760",
@@ -3568,7 +4356,7 @@
     "4b55f02c030fdc57 raven-fipa collection RavenFipa 60de062c2bf88cff",
     "4b640bbeebbd1c2a pf2 collection PerfectFlitePf2 c54456888bda2fa1",
     "4bccb7c77b94dd2c blueraven-csv collection BlueRavenCsv 61c653a4448bffc4",
-    "4bdad9db3e40a5b3 csv collection refused:unrecognized -",
+    "4bdad9db3e40a5b3 held-table collection GenericTable 9065631e8f772d77",
     "4be82002a95c68db marsa-dat collection Marsa 367c6db402d46551",
     "4c65b0da547efe7c e80-imu-txt collection RdasText bdd5d3c23d161904",
     "4c91fd0d33f018cb raven-csv collection RavenFipCsv adb840644ac6ca28",
@@ -3577,7 +4365,7 @@
     "4d9ee3f2bdc4d60f aerospacenu-sillygoose-txt aerospacenu SillyGooseText a44abc1434cb282a",
     "4dd7c18c0a684065 featherweight-summary-csv collection FeatherweightSummaryCsv e781eb6592949c69",
     "4e02ab5104aeac39 raven-fipa collection RavenFipa 7ee8bff062a9171d",
-    "4ea3b7a8a4d4119c csv collection refused:unrecognized -",
+    "4ea3b7a8a4d4119c held-table collection GenericTable 6effc95b719a4cd7",
     "4ea68d160c884f50 aerospacenu-fcb-csv aerospacenu AerospaceNuFcbCsv c36efdc08aea00c5",
     "4ed6012a31b4a214 raven-csv collection RavenFipCsv 1a0ada7e9646df68",
     "4ee1c37b025e6a9f blueraven-summary-copy-txt collection refused:unrecognized -",
@@ -3622,13 +4410,13 @@
     "568680cedc411f79 blueraven-summary-csv collection FeatherweightSummaryCsv 37d0612736d645db",
     "56da61ddf4935294 altos-eeprom collection AltosEeprom 628ab62a216e3186",
     "57f5e0120b3ac25e e80-imu-txt collection RdasText c15e71baa9545411",
-    "5843d20becfb8cda csv collection refused:unrecognized -",
+    "5843d20becfb8cda held-table collection GenericTable ad2b5d3853f11741",
     "58a05345fdccc849 blueraven-csv collection BlueRavenCsv c45b9987d6c36cbd",
     "58e77a621f2b447b pf2 collection PerfectFlitePf2 0636d360098c9d7d",
     "5a3d62647c24414b pf2 collection PerfectFlitePf2 a4c176b21570831f",
     "5a89995d6a5b2dcb fwgps-csv collection FeatherweightGpsCsv f95a744320220e0c",
     "5a8e62c2fe533f02 blueraven-csv collection BlueRavenCsv fac260c1afae22db",
-    "5ab193c0ed84f6b4 txt collection refused:unrecognized -",
+    "5ab193c0ed84f6b4 held-table collection GenericTable 612a3e0031ead240",
     "5adaaecdce4e926d pf2 collection PerfectFlitePf2 a952c7770c8ceed0",
     "5b23fe50d01ac639 raven-fipa collection RavenFipa b16d8c0afa292473",
     "5ba6e0636251a849 e80-imu-txt collection RdasText 5e9ee096732379e8",
@@ -3637,7 +4425,7 @@
     "5c3d9d9e93068f88 raven-fipa collection RavenFipa 3ff0b7d39cc04c79",
     "5c69a5aa0300ccd2 rrc3-rff collection Rrc3Rff a2578639c6cd4a10",
     "5cb271496c8e5623 table-csv collection GenericTable 663c3142c0c0f1c3",
-    "5cf819cc85147315 csv collection refused:unrecognized -",
+    "5cf819cc85147315 held-table collection GenericTable 11f7cd414e507a53",
     "5d736364e5548356 raven-fipa collection RavenFipa e993cbed20a4aa49",
     "5d89a1017ea3b939 pfa collection PerfectFlitePfa 7ad676e4e6a5e170",
     "5d8f49c478eb90a1 rrc3-csv collection Rrc3Csv 86e3fad97022c92a",
@@ -3649,7 +4437,7 @@
     "5e3fc2ee13f93d52 pf2 collection PerfectFlitePf2 30dafec639691a5d",
     "5e64b446199988ac raven-csv collection RavenFipCsv a2b29f12df29fd8c",
     "5eb701d1bfcfebc8 raven-csv collection RavenFipCsv b7d327f088f99837",
-    "5f2b0f963a9e52e9 csv collection refused:unrecognized -",
+    "5f2b0f963a9e52e9 held-table collection GenericTable 2aa2909784fa3b5d",
     "5f48e98c9d3b14ee entacore-aim-csv collection EntacoreAimCsv 1ef5d79dedb8a4a6",
     "5f545490bde604b4 blueraven-csv collection BlueRavenCsv ba2fa8b1e981d6d5",
     "5f6d8d9b2a364465 fluctus-csv collection FluctusCsv e18698f24340da3a",
@@ -3666,7 +4454,7 @@
     "632d9640d30c91a6 blueraven-csv archives BlueRavenCsv 4cef3326b14e7396",
     "63543ab201ee2fbd blueraven-settings-xlsx collection refused:archive -",
     "63c90afebee4dd64 nmea collection Nmea0183 ea4c84b5699919ea",
-    "6416a31040c017d7 csv collection refused:unrecognized -",
+    "6416a31040c017d7 held-table collection GenericTable 963c3cf8da5be4f9",
     "648cfefeab0ae8de pf2 collection PerfectFlitePf2 e2f5a9976be04d6c",
     "649aabb939c609bf pf2 collection PerfectFlitePf2 855e80e15ab1b9ea",
     "6514e233df78ba9d e80-imu-txt collection RdasText 3784cd039628257e",
@@ -3729,7 +4517,7 @@
     "72f1a07d5577b744 nmea collection Nmea0183 10a285d6032ee2c9",
     "72fe76198973cf34 e80-imu-txt collection RdasText 0a25bb0ce0cd67b9",
     "73115a1066a7294d altos-telem collection AltosTelemetry 75ff59647ab9b720",
-    "73304debd898b712 csv collection refused:unrecognized -",
+    "73304debd898b712 held-table collection GenericTable 415c16d522e20585",
     "73820946d69ed259 blueraven-csv collection BlueRavenCsv 47f7241e0c4fa4c7",
     "74201deabc8b669a rtx-txt collection RtxText 6d9b2e98ea755083",
     "74230c89a47a0817 pf2 collection PerfectFlitePf2 456f3d0ee94f0ea8",
@@ -3812,7 +4600,7 @@
     "850166d440130929 raven-fipa collection RavenFipa 132629e5de9c9a71",
     "850771db6621eaf6 altos-telem-csv collection AltosTelemetryCsv 40608c61f6a79dec",
     "851bbe0e27be057a blueraven-csv collection BlueRavenCsv 4aae97ebe3feca18",
-    "8539ed7d61a84b2d csv collection refused:unrecognized -",
+    "8539ed7d61a84b2d worked-out-table collection refused:unrecognized -",
     "856e61d186324d0a raven-fipa collection RavenFipa 5f8aaa33cba8a7db",
     "86119af3c5e136dc kml collection Kml 85435ff3f3143ceb",
     "862b7e934dbbc78b eggtimer-csv collection EggtimerCsv 29ad2c1e2c2e7e43",
@@ -3826,7 +4614,7 @@
     "8855863e76ea3fbc workbook-xlsx debrief Workbook:1 6cb893a132c25110",
     "889a3ca3fde8f8eb rrc3-csv collection Rrc3Csv 53cbf1eb7efcebff",
     "88b16ea55c9a6415 arts2-csv collection Arts2Csv 6646f245fc3d5f90",
-    "88f33383ccf621a0 aerospacenu-sillygoose-gs-csv aerospacenu refused:unrecognized -",
+    "88f33383ccf621a0 held-table aerospacenu GenericTable 12c36f24046af407",
     "88fa453139709224 raven-csv collection RavenFipCsv cca97eb8a2b2c8ff",
     "88fcb6bb17c5d9c6 altimetercloud-csv collection AltimeterCloudCsv c490f71163f62411",
     "8975c06182cb5c76 pf2 collection PerfectFlitePf2 17b7a4a8a9056ea8",
@@ -3897,7 +4685,7 @@
     "9a76d2c67312778d raven-fipa collection RavenFipa fc525321a4d868ff",
     "9b3616ebe985dd0b entacore-aim-csv collection EntacoreAimCsv 9caa7e6e75c809b2",
     "9b3dbd5e2ce1378e pfa collection PerfectFlitePfa a7e19bfd80e80b2f",
-    "9b45103dd53075fa csv collection refused:unrecognized -",
+    "9b45103dd53075fa held-table collection GenericTable eb101996e01462f0",
     "9b9e97409c15620a eggtimer-csv collection EggtimerCsv bddb9d9080b8de07",
     "9be8158fc3e3329f raven-csv collection RavenFipCsv dbcb611b693077c1",
     "9c5017ab68168088 altos-resaved-csv collection AltosCsv 43fadace0c0e4fb9",
@@ -3946,7 +4734,7 @@
     "a52b0670198ede82 pf2 collection PerfectFlitePf2 84c0fe4196906a2a",
     "a5751ffa3e8310c3 altos-csv collection AltosCsv 1edffbf14fbde734",
     "a5b75c6656a7bc50 raven-fipa collection RavenFipa c2bf910bb19092ce",
-    "a601fc98238e2546 txt collection refused:unrecognized -",
+    "a601fc98238e2546 held-table collection GenericTable 28c6c941e8cebb4b",
     "a65103199f08052b rtx-txt collection RtxText 50ebd275589a10ed",
     "a67bdeaf23283bd7 entacore-aim-csv collection EntacoreAimCsv b6f58ea50c3ed712",
     "a6b833db7b9242a9 altos-csv collection AltosCsv 15eb5681123d8e5d",
@@ -3963,7 +4751,7 @@
     "a95023350df4d9f4 pf2 collection PerfectFlitePf2 87d24bafc445bc74",
     "a964e00316c378d9 console-capture collection ConsoleCapture 73d2a07560a05723",
     "a9c52e7618e24af3 nmea collection Nmea0183 9071bb6ca86d1e6c",
-    "a9c693adac127305 csv collection refused:unrecognized -",
+    "a9c693adac127305 housekeeping-csv collection refused:unrecognized -",
     "a9cf47fe2b2e5be0 mapped-table-csv collection GenericTable 1a6f6d57937095dd",
     "aa024f71d157990d rrc3-csv collection Rrc3Csv e410c1c7b944bd5b",
     "aa38a65020f9996d raven-fipa collection RavenFipa df114d255571ae15",
@@ -4016,7 +4804,7 @@
     "b35c5dd842ee5565 pf2 collection PerfectFlitePf2 ba1880583c961c2d",
     "b37412cd21322410 pfa collection PerfectFlitePfa a048daa2f583fc58",
     "b3a0b7c497a7e637 fwgps-csv collection FeatherweightGpsCsv 6704adb1b5fe2063",
-    "b4235128d1b200ce csv collection refused:unrecognized -",
+    "b4235128d1b200ce track-copy-csv collection refused:unrecognized -",
     "b4f7a3949e33ca0d arts2-raw-csv collection Arts2RawCsv cf31723560691ac7",
     "b52cbd2c0f3ce88f raven-fipa collection RavenFipa 7257d7e884ea007f",
     "b5a2bc642ce5ddd9 fwgps-csv collection FeatherweightGpsCsv aa35ea8a962aaae4",
@@ -4202,8 +4990,8 @@
     "dba863cbee5bab24 blueraven-csv collection BlueRavenCsv ff5b3797ef7138fd",
     "dc014691471f301d blueraven-events-txt archives refused:unrecognized -",
     "dc04824138eddff0 blueraven-summary-csv collection FeatherweightSummaryCsv 58d2c95b5bbb386b",
-    "dc65924fec7f15b8 csv collection refused:unrecognized -",
-    "dc85b22c94b96291 csv collection refused:unrecognized -",
+    "dc65924fec7f15b8 worked-out-table collection refused:unrecognized -",
+    "dc85b22c94b96291 held-table collection GenericTable d9804e3959ba0f71",
     "dc8dae5302ef0dcf e80-imu-txt collection RdasText d0c792a547b2cf52",
     "dcd13155284e2941 aerospacenu-sillygoose-txt aerospacenu SillyGooseText 7ed42bc0e2c8bee6",
     "dd2ec06ec4267dff blueraven-csv collection BlueRavenCsv f054a3b6a08d7c78",
@@ -4287,7 +5075,7 @@
     "f02f670d32be52dd raven-fipa collection RavenFipa 0f71a31e27414014",
     "f0ec3c5366b31d1d pf2 collection PerfectFlitePf2 2bd31bea95b4ceea",
     "f1127b4df399fd50 raven-fipa collection RavenFipa 18cb3baeedde0f72",
-    "f1788c6722a77dd6 txt aerospacenu refused:unrecognized -",
+    "f1788c6722a77dd6 held-table aerospacenu GenericTable b10fdd6b54dde163",
     "f1e6e520ef1b6276 kml collection Kml 19ae6f6e4c39d040",
     "f2233f659bd4b671 altimetercloud-csv collection AltimeterCloudCsv 125dcce6b085e6cd",
     "f230503fda73eeb5 raven-fipa collection RavenFipa 34957ae8198d64aa",
@@ -4314,7 +5102,7 @@
     "f6cddc271ebaaa0d png collection refused:unrecognized -",
     "f6e3aecdef5111c1 pf2 collection PerfectFlitePf2 5214814eee770569",
     "f71b367cbabfbc75 raven-fipa collection RavenFipa 8e5be4d1492b462f",
-    "f77449557bb81617 csv collection refused:unrecognized -",
+    "f77449557bb81617 held-table collection GenericTable e86a34a7e5d8e6c3",
     "f7b6e0a3273d6b79 workbook-xlsx collection Workbook:1 a282d4a033f9c0e2",
     "f7f5a04ebf40b396 aerospacenu-fcb-csv aerospacenu AerospaceNuFcbCsv 36563ac0de099348",
     "f8230fc88e137f0a pf2 collection PerfectFlitePf2 a28dfb789efa56c0",
@@ -4347,7 +5135,7 @@
     "fe5753fb505af744 e80-imu-txt collection RdasText fa41ef23ace6f1cf",
     "fe5e01edf5f1202c entacore-aim-csv collection EntacoreAimCsv 53231d9c1a181f09",
     "ff3ad892e63f060d table-csv collection GenericTable 3a58f8230b7cca26",
-    "ff3c6deef6ab4527 csv collection refused:unrecognized -",
+    "ff3c6deef6ab4527 housekeeping-csv collection refused:unrecognized -",
     "ff4deb3ea1485b26 raven-fipa collection RavenFipa 42cb64f1df7b6b27",
     "ff6326c2236a0723 entacore-aim-csv collection EntacoreAimCsv 5d91ba2df20bd52f",
     "ffa962727106574e pf2 collection PerfectFlitePf2 b5699927ade7af3a",

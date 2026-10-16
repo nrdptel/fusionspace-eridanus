@@ -122,6 +122,28 @@
 //! header leaves out, or keep a column as written; a unit it states must measure what its
 //! quantity does, or the mapping is refused ([`LogError::Mapping`]).
 //!
+//! A mapping can also say what a header can't, about how the logger writes its rows:
+//!
+//! - **A clock that turns over** ([`Mapping::clock_wrap`]): the count a logger's counter runs over
+//!   at, in the clock's unit, such as 2³² for a 32-bit count of microseconds. Each value is taken
+//!   modulo it, as a logger may write it past the turn (one team's board prints its count 9 × 2³²
+//!   high in the upper half of each turn, for a reason its files don't state), and each step
+//!   back of more than half a turn is a turn: from there on the turn is added, so the clock runs
+//!   on. A restart that steps back so far is read as a turn too. A note counts the values written
+//!   past the turn and the turns.
+//! - **Rows written as lists** ([`RowForm::List`]): `[1, 2.5, True]`, as a program printing its
+//!   lists writes them. The brackets are dropped; a row without them is refused on its line.
+//! - **Stamped rows** ([`RowForm::Stamped`]): a date and time, then `:` and the cells, as
+//!   `2022-10-13 14:05:09.125: 1005.71` or `2022-10-13 14:05:09.125: (0.1, -0.2, 9.8)`. The stamp
+//!   is column 0, the clock, in seconds from 1970-01-01 00:00 in the stamp's own zone, which such
+//!   a file doesn't state: only the differences of its times are durations. The cells are split at
+//!   the separator, a tuple's parentheses dropped. A line with no stamp is a mark, such as a
+//!   payload's `=== MOTION DETECTED ===`: an event named by its words, without the `=`, `-` and
+//!   `*` around them, at the next row's time, up to [`MAX_MARKS`], the rest counted in a note. A
+//!   line shaped as a stamp, `dddd-dd-dd dd:dd:dd`, with no valid date and time in it is refused.
+//! - **Columns left out** ([`ColumnMapping::skip`]): cells beside a table that aren't part of it.
+//!   They count in a row's width, but make no channel; a note says how many are left out.
+//!
 //! ```
 //! use hpr_flightdata::generic;
 //! use hpr_flightdata::log::Quantity;
@@ -164,6 +186,10 @@ pub const MAX_COLUMNS: usize = 512;
 /// The most events one column of words gives; past it, its changes are counted in a note, so a
 /// hostile file whose word changes every row can't fill memory with events.
 pub const MAX_EVENTS_PER_COLUMN: usize = 64;
+
+/// The most marks a file of stamped rows gives as events ([`RowForm::Stamped`]); past it, they
+/// are counted in a note.
+pub const MAX_MARKS: usize = 64;
 
 /// How many lines from the file's start the header may lie within.
 const HEAD_LINES: usize = 64;
@@ -218,6 +244,35 @@ pub struct Mapping {
     pub clock: usize,
     /// Every column, in the file's order.
     pub columns: Vec<ColumnMapping>,
+    /// The count the clock turns over at, in its unit, for a logger's counter that runs over,
+    /// such as 2³² microseconds; `None` for a clock that doesn't (module docs, *A column
+    /// mapping*).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clock_wrap: Option<f64>,
+    /// How each row is written: plain cells, unless the mapping says otherwise.
+    #[serde(default, skip_serializing_if = "RowForm::is_cells")]
+    pub rows: RowForm,
+}
+
+/// How a table's rows are written (module docs, *A column mapping*).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RowForm {
+    /// Cells between separators.
+    #[default]
+    Cells,
+    /// A list between `[` and `]`, as a program printing its lists writes it: `[1, 2.5, True]`.
+    List,
+    /// A date and time, `YYYY-MM-DD HH:MM:SS` with any fraction of a second, then `:` and the
+    /// cells, between parentheses if they are a tuple, as `(x, y, z)`. The stamp is column 0, the
+    /// clock, in seconds.
+    Stamped,
+}
+
+impl RowForm {
+    fn is_cells(&self) -> bool {
+        *self == Self::Cells
+    }
 }
 
 /// What one column holds.
@@ -232,6 +287,10 @@ pub struct ColumnMapping {
     /// `m/s^2`, in any case; `None` when [`ColumnMapping::quantity`] is `None` or
     /// [`Quantity::Number`].
     pub unit: Option<String>,
+    /// Whether the mapping leaves the column out, as cells beside a table that aren't part of it:
+    /// no channel is made of it, its cells only counted in the row's width.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub skip: bool,
 }
 
 /// What a unit measures.
@@ -704,6 +763,7 @@ fn infer(written: &str) -> (ColumnMapping, Option<String>) {
                 name: written.to_owned(),
                 quantity: None,
                 unit: None,
+                skip: false,
             },
             Some(why),
         )
@@ -761,6 +821,7 @@ fn infer(written: &str) -> (ColumnMapping, Option<String>) {
             name: written.to_owned(),
             quantity: Some(quantity_of(unit.dimension, &words)),
             unit: Some(unit_key),
+            skip: false,
         },
         None,
     )
@@ -922,6 +983,8 @@ fn find_header(text: &str) -> Option<(Mapping, Vec<String>)> {
             decimal_comma,
             clock,
             columns,
+            clock_wrap: None,
+            rows: RowForm::Cells,
         },
         notes,
     ))
@@ -1007,6 +1070,19 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
             mapping.clock
         )));
     };
+    if clock.skip {
+        return Err(mapping_error(format!(
+            "the clock, {}, is a column the mapping leaves out",
+            quoted(&clock.name)
+        )));
+    }
+    if let Some(turn) = mapping.clock_wrap
+        && !(turn.is_finite() && turn > 0.0)
+    {
+        return Err(mapping_error(format!(
+            "the clock's turn, {turn}, isn't a count above 0"
+        )));
+    }
     let clock_unit = clock
         .unit
         .as_deref()
@@ -1018,9 +1094,16 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
                 quoted(&clock.name)
             ))
         })?;
+    if mapping.rows == RowForm::Stamped
+        && (mapping.clock != 0 || clock_unit.convert(1.0) != 1.0 || mapping.clock_wrap.is_some())
+    {
+        return Err(mapping_error(
+            "stamped rows' clock is their stamp: column 0, in `s`, with no turn".to_owned(),
+        ));
+    }
     let mut units = Vec::with_capacity(width);
     for (index, column) in mapping.columns.iter().enumerate() {
-        if index == mapping.clock {
+        if index == mapping.clock || column.skip {
             units.push(None);
             continue;
         }
@@ -1078,6 +1161,11 @@ struct Rows {
     changes: Vec<Vec<(usize, String)>>,
     /// For each such column, its last word, and how many changes past the kept ones it makes.
     last_word: Vec<(Option<String>, usize)>,
+    /// Stamped rows' marks: the index of the row each comes before and its words, the first
+    /// [`MAX_MARKS`] of them; how many past those; and how many follow the last row.
+    marks: Vec<(usize, String)>,
+    marks_left_out: usize,
+    marks_after_last: usize,
 }
 
 fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
@@ -1094,7 +1182,13 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
         text: vec![(0, None); width],
         changes: vec![Vec::new(); width],
         last_word: vec![(None, 0); width],
+        marks: Vec::new(),
+        marks_left_out: 0,
+        marks_after_last: 0,
     };
+    // The marks since the last row, kept up to the cap and the rest counted.
+    let mut pending_marks = Vec::new();
+    let mut pending_past_cap = 0;
     let event_columns: Vec<bool> = mapping
         .columns
         .iter()
@@ -1111,7 +1205,45 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
             continue;
         }
         header_skipped = true;
-        let cells = cells(line, mapping.separator, width + 1);
+        let (stamp, body) = match mapping.rows {
+            RowForm::Cells => (None, line),
+            RowForm::List => {
+                let Some(body) = line
+                    .trim()
+                    .strip_prefix('[')
+                    .and_then(|b| b.strip_suffix(']'))
+                else {
+                    return Err(syntax(
+                        line_number,
+                        "the row isn't a list between `[` and `]`".to_owned(),
+                    ));
+                };
+                (None, body)
+            }
+            RowForm::Stamped => match stamped(line) {
+                Stamp::Row(seconds, body) => (Some(seconds), body),
+                Stamp::None => {
+                    if rows.marks.len() + pending_marks.len() < MAX_MARKS {
+                        pending_marks.push(mark(line));
+                    } else {
+                        pending_past_cap += 1;
+                    }
+                    continue;
+                }
+                Stamp::Invalid => {
+                    return Err(syntax(
+                        line_number,
+                        "the row's stamp isn't a date and time, `YYYY-MM-DD HH:MM:SS`, followed \
+                         by `:`"
+                            .to_owned(),
+                    ));
+                }
+            },
+        };
+        let mut cells = cells(body, mapping.separator, width + 1);
+        if stamp.is_some() {
+            cells.insert(0, Cow::Borrowed(""));
+        }
         if cells.len() != width {
             return Err(syntax(
                 line_number,
@@ -1131,13 +1263,16 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
             ));
         }
         let clock_cell = cells.get(mapping.clock).map_or("", |c| c.as_ref());
-        let Some(time) = number(clock_cell, mapping.decimal_comma) else {
+        let Some(time) = stamp.or_else(|| number(clock_cell, mapping.decimal_comma)) else {
             return Err(syntax(
                 line_number,
                 format!("the clock's cell {} isn't a number", quoted(clock_cell)),
             ));
         };
         let row = rows.clock.len();
+        rows.marks
+            .extend(pending_marks.drain(..).map(|words| (row, words)));
+        rows.marks_left_out += std::mem::take(&mut pending_past_cap);
         for (index, cell) in cells.iter().enumerate() {
             let value = number(cell, mapping.decimal_comma);
             if value.is_none() && !cell.is_empty() {
@@ -1165,7 +1300,133 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
         rows.lines.push(line_number);
         rows.clock.push(time);
     }
+    rows.marks_after_last = pending_marks.len() + pending_past_cap;
     Ok(rows)
+}
+
+/// What a line of stamped rows opens with (module docs, *A column mapping*).
+enum Stamp<'a> {
+    /// A stamp: its clock, in seconds from 1970-01-01 00:00 in the stamp's own zone, and the
+    /// rest of the line after its `:`, the parentheses dropped if it is a tuple.
+    Row(f64, &'a str),
+    /// The shape of a stamp, `dddd-dd-dd dd:dd:dd`, with no valid date and time in it, or no `:`
+    /// after it.
+    Invalid,
+    /// No stamp: a mark.
+    None,
+}
+
+fn stamped(line: &str) -> Stamp<'_> {
+    let line = line.trim_start();
+    let bytes = line.as_bytes();
+    let shape = b"dddd-dd-dd dd:dd:dd";
+    let shaped = bytes.len() >= shape.len()
+        && shape.iter().zip(bytes).all(|(want, got)| {
+            if *want == b'd' {
+                got.is_ascii_digit()
+            } else {
+                want == got
+            }
+        });
+    if !shaped {
+        return Stamp::None;
+    }
+    // Every byte of the shape is ASCII, so these slices are on character boundaries.
+    let field = |from: usize, count: usize| -> i64 {
+        line[from..from + count]
+            .bytes()
+            .fold(0, |n, b| n * 10 + i64::from(b - b'0'))
+    };
+    let (year, month, day) = (field(0, 4), field(5, 2), field(8, 2));
+    let (hour, minute, second) = (field(11, 2), field(14, 2), field(17, 2));
+    if !(1..=12).contains(&month)
+        || !(1..=days_in_month(year, month)).contains(&day)
+        || hour > 23
+        || minute > 59
+        || second > 59
+    {
+        return Stamp::Invalid;
+    }
+    let mut end = shape.len();
+    let mut fraction = 0.0;
+    if bytes.get(end) == Some(&b'.') {
+        let count = bytes[end + 1..]
+            .iter()
+            .take_while(|b| b.is_ascii_digit())
+            .count();
+        if count == 0 || count > 9 {
+            return Stamp::Invalid;
+        }
+        fraction = field(end + 1, count) as f64 / 10f64.powi(count as i32);
+        end += 1 + count;
+    }
+    let Some(rest) = line[end..].strip_prefix(':') else {
+        return Stamp::Invalid;
+    };
+    let rest = rest.trim();
+    let rest = rest
+        .strip_prefix('(')
+        .and_then(|r| r.strip_suffix(')'))
+        .map_or(rest, str::trim);
+    let whole = days_from_civil(year, month, day) * 86_400 + hour * 3_600 + minute * 60 + second;
+    Stamp::Row(whole as f64 + fraction, rest)
+}
+
+/// A mark's words: the line trimmed of spaces and of the `=`, `-` and `*` runs around it.
+fn mark(line: &str) -> String {
+    short(
+        line.trim()
+            .trim_matches(|c: char| c == '=' || c == '-' || c == '*' || c.is_whitespace()),
+    )
+}
+
+/// Days in a month of the proleptic Gregorian calendar.
+fn days_in_month(year: i64, month: i64) -> i64 {
+    match month {
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    }
+}
+
+/// Days from 1970-01-01 to a date of the proleptic Gregorian calendar (H. Hinnant,
+/// *chrono-Compatible Low-Level Date Algorithms*, `days_from_civil`, public domain).
+fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
+    let year = if month <= 2 { year - 1 } else { year };
+    let era = year.div_euclid(400);
+    let year_of_era = year - era * 400;
+    let shifted_month = (month + 9) % 12;
+    let day_of_year = (153 * shifted_month + 2) / 5 + day - 1;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    era * 146_097 + day_of_era - 719_468
+}
+
+/// A count and its noun, `1 line` or `2 lines`.
+fn counted(count: usize, one: &str, many: &str) -> String {
+    format!("{count} {}", if count == 1 { one } else { many })
+}
+
+/// A clock that counts modulo `turn`, unwrapped in place: each value taken modulo it, and `turn`
+/// added for each step back of more than half of it. How many values were written past the turn,
+/// and how many turns there were.
+fn unwrap_clock(clock: &mut [f64], turn: f64) -> (usize, usize) {
+    let (mut past, mut turns) = (0, 0);
+    let mut offset = 0.0;
+    let mut previous: Option<f64> = None;
+    for value in clock.iter_mut() {
+        let counted = value.rem_euclid(turn);
+        if counted != *value {
+            past += 1;
+        }
+        if previous.is_some_and(|p| p - counted > turn / 2.0) {
+            offset += turn;
+            turns += 1;
+        }
+        previous = Some(counted);
+        *value = counted + offset;
+    }
+    (past, turns)
 }
 
 /// The median of the clock's steps forward, in its unit; `None` if it never steps forward.
@@ -1198,10 +1459,13 @@ fn read_mapped(
     header_notes: Vec<String>,
 ) -> Result<FlightLog, LogError> {
     let (clock_unit, units) = units(mapping)?;
-    let rows = read_rows(text, mapping)?;
+    let mut rows = read_rows(text, mapping)?;
     if rows.clock.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
+    let turned = mapping
+        .clock_wrap
+        .map(|turn| (turn, unwrap_clock(&mut rows.clock, turn)));
     let clock_name = mapping
         .columns
         .get(mapping.clock)
@@ -1242,6 +1506,42 @@ fn read_mapped(
     // One note at most for each column, and one for the clock: bounded by `MAX_COLUMNS`, so all
     // are kept, unlike notes about single lines.
     let mut notes = header_notes;
+    if let Some((turn, (past, turns))) = turned {
+        notes.push(format!(
+            "the clock, {}, counts modulo {turn}: {} written past it taken modulo it, and it \
+             turns over {}, each turn added",
+            quoted(clock_name),
+            counted(past, "value", "values"),
+            match turns {
+                1 => "once".to_owned(),
+                n => format!("{n} times"),
+            }
+        ));
+    }
+    let skipped_columns = mapping.columns.iter().filter(|c| c.skip).count();
+    if skipped_columns > 0 {
+        notes.push(format!(
+            "the mapping leaves out {skipped_columns} of the {} columns",
+            mapping.columns.len()
+        ));
+    }
+    if !rows.marks.is_empty() || rows.marks_left_out > 0 {
+        notes.push(format!(
+            "{} with no stamp: each a mark, an event at the next row's time{}",
+            counted(rows.marks.len() + rows.marks_left_out, "line", "lines"),
+            if rows.marks_left_out > 0 {
+                format!(", the first {MAX_MARKS} kept")
+            } else {
+                String::new()
+            }
+        ));
+    }
+    if rows.marks_after_last > 0 {
+        notes.push(format!(
+            "{} with no stamp after the last row: left out",
+            counted(rows.marks_after_last, "line", "lines")
+        ));
+    }
     let back = rows.clock.windows(2).filter(|p| p[1] < p[0]).count();
     if back > 0 {
         notes.push(format!(
@@ -1252,7 +1552,7 @@ fn read_mapped(
     let mut channels = Vec::new();
     let mut changes: Vec<(usize, &str)> = Vec::new();
     for (index, column) in mapping.columns.iter().enumerate() {
-        if index == mapping.clock {
+        if index == mapping.clock || column.skip {
             continue;
         }
         let values = &rows.values[index];
@@ -1332,7 +1632,9 @@ fn read_mapped(
             values,
         });
     }
-    // In the file's order: by row, and a row's events in its columns' order (a stable sort).
+    changes.extend(rows.marks.iter().map(|(r, w)| (*r, w.as_str())));
+    // In the file's order: by row, and a row's events in its columns' order, its marks after
+    // them (a stable sort).
     changes.sort_by_key(|(row, _)| *row);
     let events = changes
         .into_iter()
@@ -1648,13 +1950,17 @@ mod tests {
                     name: "time".to_owned(),
                     quantity: None,
                     unit: Some("s".to_owned()),
+                    skip: false,
                 },
                 ColumnMapping {
                     name: "pressure".to_owned(),
                     quantity: Some(Quantity::Pressure),
                     unit: Some("kPa".to_owned()),
+                    skip: false,
                 },
             ],
+            clock_wrap: None,
+            rows: RowForm::Cells,
         };
         let log = read_with(text, &mapping).expect("reads");
         assert_eq!(
@@ -1835,5 +2141,257 @@ mod tests {
         let json = |log: &FlightLog| serde_json::to_value(&log.channels).expect("writes");
         assert_eq!(json(&by_mapping), json(&by_header));
         assert_eq!(by_mapping.events, by_header.events);
+    }
+
+    fn column(name: &str, quantity: Option<Quantity>, unit: Option<&str>) -> ColumnMapping {
+        ColumnMapping {
+            name: name.to_owned(),
+            quantity,
+            unit: unit.map(str::to_owned),
+            skip: false,
+        }
+    }
+
+    fn headerless(columns: Vec<ColumnMapping>) -> Mapping {
+        Mapping {
+            header_line: None,
+            separator: ',',
+            decimal_comma: false,
+            clock: 0,
+            columns,
+            clock_wrap: None,
+            rows: RowForm::Cells,
+        }
+    }
+
+    fn mapping_refusal(text: &str, mapping: &Mapping) -> String {
+        match read_with(text, mapping) {
+            Err(LogError::Mapping { message }) => message,
+            other => panic!("expected a mapping refusal, got {other:?}"),
+        }
+    }
+
+    /// A 32-bit count of microseconds, printed past its turn where it is past half of it (as
+    /// 9 × 2³² more, as one team's board prints it), and turning over once: one clock that runs on.
+    #[test]
+    fn a_clock_that_turns_over_runs_on() {
+        let turn = 4_294_967_296.0_f64;
+        let counts = [
+            turn - 40_000.0,
+            turn - 20_000.0,
+            0.0,
+            20_000.0,
+            turn / 2.0 + 10_000.0,
+        ];
+        let written = [
+            counts[0] + 9.0 * turn,
+            counts[1] + 9.0 * turn,
+            counts[2],
+            counts[3],
+            counts[4] + 9.0 * turn,
+        ];
+        let text: String = written
+            .iter()
+            .enumerate()
+            .map(|(k, w)| format!("{w},{}\n", 90_000 + k))
+            .collect();
+        let mut mapping = headerless(vec![
+            column("clock", None, Some("us")),
+            column("pressure", Some(Quantity::Pressure), Some("Pa")),
+        ]);
+        mapping.clock_wrap = Some(turn);
+        let log = read_with(&text, &mapping).expect("reads");
+        let times = &channel(&log, "pressure").time_s;
+        let expected = [
+            (turn - 40_000.0) / 1e6,
+            (turn - 20_000.0) / 1e6,
+            turn / 1e6,
+            (turn + 20_000.0) / 1e6,
+            (turn + turn / 2.0 + 10_000.0) / 1e6,
+        ];
+        assert_eq!(times.as_slice(), expected);
+        assert!(log.notes.iter().any(|n| n.contains(
+            "counts modulo 4294967296: 3 values written past it taken modulo it, and it turns over \
+             once"
+        )));
+        // Without the turn the same file reads a clock that jumps back by days.
+        mapping.clock_wrap = None;
+        let log = read_with(&text, &mapping).expect("reads");
+        assert!(log.notes.iter().any(|n| n.contains("steps back 1 times")));
+        for bad in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+            mapping.clock_wrap = Some(bad);
+            assert!(mapping_refusal(&text, &mapping).contains("isn't a count above 0"));
+        }
+    }
+
+    #[test]
+    fn rows_written_as_lists_drop_their_brackets() {
+        let mut mapping = headerless(vec![
+            column("clock", None, Some("ms")),
+            column("pressure", Some(Quantity::Pressure), Some("Pa")),
+            column("fix", None, None),
+        ]);
+        mapping.rows = RowForm::List;
+        let text = "[0, 101325, True]\n[500, 101300, True]\n";
+        let log = read_with(text, &mapping).expect("reads");
+        assert_eq!(channel(&log, "pressure").values, [101_325.0, 101_300.0]);
+        assert_eq!(channel(&log, "pressure").time_s, [0.0, 0.5]);
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("\"fix\" holds text, not numbers, such as \"True\""))
+        );
+        for row in ["1000, 101200, True]", "[1000, 101200, True"] {
+            match read_with(&format!("{text}{row}\n"), &mapping) {
+                Err(LogError::Syntax { line, message, .. }) => {
+                    assert_eq!(line, 3);
+                    assert!(message.contains("isn't a list"), "{message}");
+                }
+                other => panic!("expected a refusal, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn stamped_rows_take_their_stamp_as_the_clock() {
+        let mut mapping = headerless(vec![
+            column("stamp", None, Some("s")),
+            column("x", Some(Quantity::Acceleration), Some("m/s^2")),
+            column("y", Some(Quantity::Acceleration), Some("m/s^2")),
+            column("z", Some(Quantity::Acceleration), Some("m/s^2")),
+        ]);
+        mapping.rows = RowForm::Stamped;
+        let text = "2022-10-13 23:59:59.875: (0.5, -0.25, 9.75)\n\
+                    ===== MOTION DETECTED =====\n\
+                    2022-10-14 00:00:00.125000: (1, 2, 30)\n\
+                    2022-10-14 00:00:01: (0, 0, 9.8)\n\
+                    -- end --\n";
+        let log = read_with(text, &mapping).expect("reads");
+        // 2022-10-13 is day 19,278 from 1970-01-01.
+        let midnight = 19_279.0 * 86_400.0;
+        assert_eq!(
+            channel(&log, "z").time_s,
+            [midnight - 0.125, midnight + 0.125, midnight + 1.0]
+        );
+        assert_eq!(channel(&log, "x").values, [0.5, 1.0, 0.0]);
+        assert_eq!(channel(&log, "z").values, [9.75, 30.0, 9.8]);
+        assert_eq!(log.events.len(), 1);
+        assert_eq!(log.events[0].name, "MOTION DETECTED");
+        assert_eq!(log.events[0].time_s, midnight + 0.125);
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("1 line with no stamp: each a mark"))
+        );
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("1 line with no stamp after the last row"))
+        );
+        // A stamp's shape with no date or time in it, or no `:` after it, is refused on its line.
+        for bad in [
+            "2022-02-29 00:00:02: (0, 0, 9.8)",
+            "2022-10-14 24:00:02: (0, 0, 9.8)",
+            "2022-10-14 00:00:02. (0, 0, 9.8)",
+            "2022-10-14 00:00:02 (0, 0, 9.8)",
+            "2022-10-14 00:00:02.1234567890: (0, 0, 9.8)",
+        ] {
+            match read_with(&format!("{text}{bad}\n"), &mapping) {
+                Err(LogError::Syntax { line, message, .. }) => {
+                    assert_eq!(line, 6, "{bad}");
+                    assert!(message.contains("stamp isn't a date"), "{message}");
+                }
+                other => panic!("{bad}: expected a refusal, got {other:?}"),
+            }
+        }
+        // A leap day is a date; a stamp with a single value reads as one cell.
+        let mut one = headerless(vec![
+            column("stamp", None, Some("s")),
+            column("pressure", Some(Quantity::Pressure), Some("hPa")),
+        ]);
+        one.rows = RowForm::Stamped;
+        let log = read_with(
+            "2024-02-29 12:00:00: 1005.5\n2024-02-29 12:00:00.5: 1005.25\n",
+            &one,
+        )
+        .expect("reads");
+        assert_eq!(channel(&log, "pressure").values, [100_550.0, 100_525.0]);
+        // Past the cap, marks are counted, not kept, before a row and after the last.
+        let many = format!(
+            "{}2024-02-29 12:00:00: 1005.5\n{}2024-02-29 12:00:01: 1005.25\nend\nend\n",
+            "mark\n".repeat(MAX_MARKS - 2),
+            "mark\n".repeat(5)
+        );
+        let log = read_with(&many, &one).expect("reads");
+        assert_eq!(log.events.len(), MAX_MARKS);
+        assert!(log.notes.iter().any(|n| n.contains(&format!(
+            "{} lines with no stamp: each a mark, an event at the next row's time, the first \
+             {MAX_MARKS} kept",
+            MAX_MARKS + 3
+        ))));
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("2 lines with no stamp after the last row"))
+        );
+        let mut wrong = one.clone();
+        wrong.columns[0].unit = Some("ms".to_owned());
+        assert!(mapping_refusal("", &wrong).contains("column 0, in `s`"));
+        let mut wrong = one;
+        wrong.clock_wrap = Some(60.0);
+        assert!(mapping_refusal("", &wrong).contains("with no turn"));
+    }
+
+    #[test]
+    fn columns_left_out_make_no_channel() {
+        let mut mapping = headerless(vec![
+            column("time", None, Some("s")),
+            column("altitude", Some(Quantity::AltitudeAboveGround), Some("ft")),
+            column("beside 1", None, None),
+            column("beside 2", Some(Quantity::Pressure), Some("ft")),
+        ]);
+        mapping.columns[2].skip = true;
+        mapping.columns[3].skip = true;
+        let text = "0,0,Name,12\n0.5,100,,\n1,180,,\n";
+        let log = read_with(text, &mapping).expect("reads");
+        assert_eq!(log.channels.len(), 1);
+        assert_eq!(log.channels[0].column, "altitude");
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n == "the mapping leaves out 2 of the 4 columns")
+        );
+        assert!(!log.notes.iter().any(|n| n.contains("Name")));
+        // A row still needs every cell, and the clock can't be left out.
+        assert!(matches!(
+            read_with("0,0,Name\n", &mapping),
+            Err(LogError::Syntax { line: 1, .. })
+        ));
+        // A column left out isn't held to its unit: kept, a pressure in feet is refused.
+        mapping.columns[3].skip = false;
+        assert!(mapping_refusal(text, &mapping).contains("\"beside 2\""));
+        mapping.columns[3].skip = true;
+        mapping.columns[0].skip = true;
+        assert!(mapping_refusal(text, &mapping).contains("the mapping leaves out"));
+    }
+
+    /// The new options default when a mapping's JSON leaves them out, and a mapping that doesn't
+    /// use them writes the JSON it wrote before; set, they round-trip.
+    #[test]
+    fn a_mappings_options_default_and_round_trip() {
+        let old = r#"{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"columns":[{"name":"t","quantity":null,"unit":"s"}]}"#;
+        let mapping: Mapping = serde_json::from_str(old).expect("parses");
+        assert_eq!(mapping.clock_wrap, None);
+        assert_eq!(mapping.rows, RowForm::Cells);
+        assert!(!mapping.columns[0].skip);
+        assert_eq!(serde_json::to_string(&mapping).expect("writes"), old);
+        let new = r#"{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"columns":[{"name":"t","quantity":null,"unit":"s"},{"name":"x","quantity":null,"unit":null,"skip":true}],"clock_wrap":4294967296.0,"rows":"stamped"}"#;
+        let mapping: Mapping = serde_json::from_str(new).expect("parses");
+        assert_eq!(mapping.clock_wrap, Some(4_294_967_296.0));
+        assert_eq!(mapping.rows, RowForm::Stamped);
+        assert!(mapping.columns[1].skip);
+        assert_eq!(serde_json::to_string(&mapping).expect("writes"), new);
+        let list: Mapping = serde_json::from_str(&new.replace("stamped", "list")).expect("parses");
+        assert_eq!(list.rows, RowForm::List);
     }
 }

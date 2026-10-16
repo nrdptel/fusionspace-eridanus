@@ -32,6 +32,7 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+mod held;
 mod other_text;
 
 pub const USAGE: &str = "  logs [--check] [--sheets DIR]
@@ -176,13 +177,13 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
 /// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c22";
+const LEFT_TO: &str = "M7.1c23";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
 /// a log or its description of a rocket, a flyer's summary of flights, a team flight computer's
 /// saved state, a simulation's export, a wind profile, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 16] = [
+const NOT_LOGS: [&str; 19] = [
     "blueraven-events-txt",
     "blueraven-settings-csv",
     "blueraven-settings-xlsx",
@@ -192,13 +193,16 @@ const NOT_LOGS: [&str; 16] = [
     "empty",
     "flight-computer-params-csv",
     "flight-summary-xlsx",
+    held::HOUSEKEEPING_FAMILY,
     "jpeg",
     "kml-map",
     "openrocket-simulation-csv",
     "pdf",
     "png",
     "rocket-parameters",
+    held::TRACK_COPY_FAMILY,
     "wind-profile-csv",
+    held::WORKED_OUT_FAMILY,
 ];
 
 /// The files inside the sample zip archives that no source holds on its own, by id, each with its
@@ -341,7 +345,70 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 194] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 220] = [
+    // M7.1c22: tables read by a mapping held to physics, and the files of the group that
+    // aren't logs.
+    ("5f2b0f963a9e52e9", "csv", held::FAMILY, held::HELD_CSV),
+    ("47f7e2fe2d0414a3", "csv", held::FAMILY, held::HELD_CSV),
+    ("6416a31040c017d7", "csv", held::FAMILY, held::HELD_CSV),
+    ("dc85b22c94b96291", "csv", held::FAMILY, held::HELD_CSV),
+    ("0b81bee53c3096cd", "csv", held::FAMILY, held::HELD_CSV),
+    ("5cf819cc85147315", "csv", held::FAMILY, held::HELD_CSV),
+    ("419f0ec872abda2d", "txt", held::FAMILY, held::HELD_LIST),
+    ("4ea3b7a8a4d4119c", "csv", held::FAMILY, held::HELD_CSV),
+    ("f77449557bb81617", "csv", held::FAMILY, held::HELD_CSV),
+    ("238756c53758ae7c", "txt", held::FAMILY, held::HELD_TXT),
+    ("055206ce7e9a2fae", "txt", held::FAMILY, held::HELD_TXT),
+    ("f1788c6722a77dd6", "txt", held::FAMILY, held::HELD_TXT),
+    ("5ab193c0ed84f6b4", "txt", held::FAMILY, held::HELD_STAMPED),
+    ("a601fc98238e2546", "txt", held::FAMILY, held::HELD_STAMPED),
+    ("4bdad9db3e40a5b3", "csv", held::FAMILY, held::HELD_CSV),
+    ("5843d20becfb8cda", "csv", held::FAMILY, held::HELD_CSV),
+    ("73304debd898b712", "csv", held::FAMILY, held::HELD_CSV),
+    ("9b45103dd53075fa", "csv", held::FAMILY, held::HELD_CSV),
+    ("268517db228becd0", "xlsx", held::FAMILY, held::HELD_XLSX),
+    (
+        "ff3c6deef6ab4527",
+        "csv",
+        held::HOUSEKEEPING_FAMILY,
+        held::COMPUTER_HOUSEKEEPING,
+    ),
+    (
+        "a9c693adac127305",
+        "csv",
+        held::HOUSEKEEPING_FAMILY,
+        held::BATTERY_HOUSEKEEPING,
+    ),
+    (
+        "b4235128d1b200ce",
+        "csv",
+        held::TRACK_COPY_FAMILY,
+        held::TRACK_COPY,
+    ),
+    (
+        "2d2692ead2e72287",
+        "csv",
+        held::TRACK_COPY_FAMILY,
+        held::TRACK_COPY,
+    ),
+    (
+        "3a002cd6365ebabc",
+        "xlsx",
+        held::WORKED_OUT_FAMILY,
+        held::FILTER_OUTPUT,
+    ),
+    (
+        "8539ed7d61a84b2d",
+        "csv",
+        held::WORKED_OUT_FAMILY,
+        held::FRAME_OUTPUT,
+    ),
+    (
+        "dc65924fec7f15b8",
+        "csv",
+        held::WORKED_OUT_FAMILY,
+        held::REBUILT,
+    ),
     ("6f5e20612831ac57", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
     ("b2a86ded765053b4", "xlsx", FIP_SHEET_FAMILY, FIP_SHEET),
     ("444687655195f5c8", "xls", ALTIMAX_FAMILY, ALTIMAX_XLS),
@@ -674,10 +741,8 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 194] = [
     (
         "88f33383ccf621a0",
         "aerospacenu-sillygoose-txt",
-        "aerospacenu-sillygoose-gs-csv",
-        "a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 \
-         comma-separated columns with no header, in another order than the board's own log, so \
-         nothing in the file says which column is which; for the column mapper",
+        held::FAMILY,
+        held::HELD_GROUND_STATION,
     ),
     ("0ad26ad4cfc8539b", "ods", "checklist", CHECKLIST),
     ("34affe179ab66e72", "ods", "checklist", CHECKLIST),
@@ -912,6 +977,9 @@ struct Report {
     /// an AltOS export a spreadsheet re-saved, each against its own lines (M7.1c21).
     #[serde(default)]
     other_text_checks: other_text::Checks,
+    /// Tables read by a column mapping, each unit held to a physical check (M7.1c22).
+    #[serde(default)]
+    held_checks: held::Checks,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -6378,6 +6446,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
     let mut unit_decisions: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
     let mut pfa_checks = PfaChecks::default();
+    let held = held::checks(samples);
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
         let read_by = READ.iter().find(|(family, _, _)| *family == sample.family);
@@ -6390,6 +6459,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             WORKBOOK_INCREMENT
         } else if sample.family == MAPPED_FAMILY {
             MAPPED_INCREMENT
+        } else if sample.family == held::FAMILY {
+            held::INCREMENT
         } else if sample.family == FIP_SHEET_FAMILY || sample.family == ALTIMAX_FAMILY {
             BESIDE_INCREMENT
         } else if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
@@ -6507,6 +6578,26 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         sample.family
                     ));
                     ("refused:sheet".to_owned(), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
+        if sample.family == held::FAMILY {
+            // Read once, before the loop, as a file's checks may need another's record; a
+            // refusal is listed among the unread by `held::unread`.
+            let (outcome, record) = match held.record(&id) {
+                Some(record) => {
+                    row.read += 1;
+                    *loggers.entry("unknown".to_owned()).or_default() += 1;
+                    (format!("{:?}", LogFormat::GenericTable), record.to_owned())
+                }
+                None => {
+                    *row.refused.entry("mapping".to_owned()).or_default() += 1;
+                    ("refused:mapping".to_owned(), "-".to_owned())
                 }
             };
             files.push(format!(
@@ -6662,6 +6753,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         fip_sheet_checks: fip_sheet_checks(samples),
         altimax_checks: altimax_checks(samples),
         other_text_checks: other_text::checks(samples),
+        held_checks: held,
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -6694,6 +6786,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // whose reading differs from this decoding, or whose units fail the flight's physics, is as
     // unread as a refusal.
     unread.extend(other_text::unread(&report.other_text_checks));
+    // A table read by a stated mapping whose units fail a physical check is as unread as a
+    // refusal.
+    unread.extend(held::unread(&report.held_checks, samples));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -7896,6 +7991,7 @@ fn markdown(report: &Report) -> String {
         }
     }
     out += &other_text::markdown(&report.other_text_checks);
+    out += &held::markdown(&report.held_checks);
     if !report.workbook_checks.is_empty() {
         let books = &report.workbook_checks;
         let mut totals: BTreeMap<&str, usize> = BTreeMap::new();
@@ -8600,6 +8696,7 @@ mod tests {
             name: name.to_owned(),
             quantity,
             unit: unit.map(str::to_owned),
+            skip: false,
         };
         let stated = StatedMapping {
             id: "0000000000000000".to_owned(),
@@ -8613,6 +8710,8 @@ mod tests {
                     column("ts", None, Some("s")),
                     column("alt", Some(Quantity::AltitudeAboveGround), Some("m")),
                 ],
+                clock_wrap: None,
+                rows: hpr_flightdata::generic::RowForm::Cells,
             },
         };
         let table = "ts,alt\n0,0\n0.5,40\n1,70\n";
