@@ -712,12 +712,12 @@ example and a turning clock in rows written as lists.
 [glossary's liftoff](../glossary.md#liftoff), the first motion on the rail. The file's height is its
 altitude, or the standard atmosphere's height of its pressure, smoothed by a running median of 5
 readings. Apogee is the last of the highest smoothed heights. The pad height is the lowest
-smoothed height in the 300 s before apogee: more than twice the 122 s a rocket at Mach 3.5, about
+smoothed height in the 300 s before apogee, more than twice the 122 s a rocket at Mach 3.5, about
 1.2 km/s (3,900 ft/s), takes to coast to apogee against gravity alone. The window keeps out the
 hours before launch: over a whole recording, one board's barometer read lower heights then than
 on the pad, which put liftoff hours early (found while the checks were built). Liftoff is the
-last reading before apogee whose height is within 5% of the climb, apogee less the pad height,
-above the pad height.
+last reading before apogee whose height above the pad is within 5% of the climb, apogee less the
+pad height.
 
 **The checks.** Each kind of reading has one check. A file that fails any of them fails the
 survey, listed among the files left unread. The bands are the earlier increments': the clock's
@@ -766,9 +766,9 @@ altitudes held to their pressure rise 0.9559 to 1.0005 times the rise of its sta
 height, the 3 held to another logger 0.9008 to 0.9552 times its rise (all three a GPS receiver's
 altitude, two of them the same fixes with and without a header), and the 1 held to the flyer's
 stated apogee 1.0025 times. The 1 vertical speed gives 0.9709. The 10 accelerometer checks read
-0.9600 to 1.0531 g. The other 28 pass without a ratio to quote: 13 pad pressures and 6 places,
-whose values would give a site away, 6 clocks beside another file's (overlapping 0.998 to 1.000
-of the longer span), 1 clock rate and 1 cut of a file. The survey's report,
+0.9600 to 1.0531 g. The other 27 are 13 pad pressures and 6 places, whose values would give a
+site away; 6 clocks beside another file's, overlapping 0.998 to 1.000 of the longer span; 1
+clock rate of 1.000 times its logger's; and 1 cut of a file, its rows all the whole file's. The survey's report,
 [`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
 lists each file's checks at these 4 decimals.
 
