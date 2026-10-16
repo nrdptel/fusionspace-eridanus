@@ -101,3 +101,39 @@ to 0.989 g, and over their last 2 s, after landing, from 0.997 to 1.008 g. Their
 without the value, which would give the site's elevation. The pad window is the one the rocket
 stands in: over the first 2 s of the recordings, minutes before launch, while the logger was
 handled, three files read 1.034 to 1.048 g. 43 files are left, to M7.1c19 to M7.1c23.
+
+**Amendment for M7.1c19, the radio packets (2026-10-15).** The group's four files are one flight's:
+the flight computer's own log of its packets, the text a ground receiver wrote of what it heard,
+and two exports of the log, cut to the flight. The plan stands; these are the reader's decisions.
+
+1. **One reader, two formats** (`hpr_flightdata::packets`). `RadioPacketText` reads the onboard
+   log and the receiver's text by one rule; `RadioPacketRtf` reads the exports. A packet is `255`,
+   a path letter, a two-digit stage, a two-letter kind, a whole-number clock, its values and `254`.
+   The path is `T` for the flight computer and `N` for a second transmitter that relays its packets
+   and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as the same packet comes by
+   both. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line is an
+   event at the next packet's clock.
+2. **Broken and repeated packets are dropped and counted, not refused.** The receiver's text holds
+   packets the radio cut or ran together, and most packets twice. One rule for both text forms
+   keeps the reader simple; the survey shows the onboard log has no broken line, so nothing is
+   lost there. A packet whose kind has another count of values than its first is broken.
+3. **The exports are read line by line, not unwrapped.** A spreadsheet split the RTF document's
+   lines at the colons and saved them as CSV, so the markup no longer nests: the opening group's
+   line ends in commas, and only some lines keep the `\` that broke them. The reader drops each
+   line's trailing commas, the control words before a packet, a closing `\` and the document's
+   last `}`; a line of markup alone is dropped. ADR-258's unwrapping of the Eggtimer's RTF reads a
+   whole document and would join these lines.
+4. **Units held to physics.** The clock is read in milliseconds and `PP 1` in hectopascals, held
+   by the survey to the onboard log: the pad's pressure between 500 and 1,100 hPa, and the time from
+   liftoff to apogee within a factor of 2 of √(2h/g). The rest is kept as written. `PP 3` climbs
+   with the flight but reads 1.11 to 1.24 times the standard atmosphere's height in meters, so no
+   unit is read for it.
+
+**Consequences of the amendment.** The survey reads 1,020 of its 1,122 files. It decodes the four
+files itself, and the 1,313,381 values it compares equal the reader's. Of the receiver's 42,796
+whole packets, 38,475 are the onboard log's packets of the same stage, kind and clock, every one
+field for field (29,914 relayed, 8,561 direct); the other 4,321 are GPS packets, which the onboard
+log doesn't record; 8,368 are repeats and 10,494 lines are broken. The exports' 4,939 and 2,469
+whole packets all match the onboard log's; one export has 1 broken line. The onboard log has no
+broken line. The time from liftoff to apogee is 1.055 times √(2h/g), and the pad's pressure is in
+its band. 39 files are left, to M7.1c20 to M7.1c23.

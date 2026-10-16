@@ -27,6 +27,8 @@
 //! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
 //! | [Blue Raven USB download](crate::blueraven_usb) | one of the first 1,000 lines opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks |
 //! | [Teensy data logger, tab-separated](crate::teensy) | its first line that isn't blank is a tag, a whole-number clock and values, by tabs, and one of its first 100 is `Alt`, the clock, `P` and a number, `MSL` and a number |
+//! | [Radio packets](crate::packets) | its first line that isn't blank is a `255:…:254` packet, a whole number or `Gain[…]`, and a packet is one of its first 100 |
+//! | [Radio packets in RTF](crate::packets::read_rtf) | an RTF document, one of whose first 100 lines, its markup taken off, is a `255,…,254` packet |
 //! | [Teensy data logger, named fields](crate::teensy::read_named) | its first line that isn't blank states a tag's units, `ICM data in us, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas |
 //! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
@@ -61,8 +63,8 @@ use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
     arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer, entacore, fluctus, fwgps,
-    fwsummary, generic, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3,
-    rrc3_rff, rtx, sillygoose, teensy,
+    fwsummary, generic, kml, nmea, packets, perfectflite, phone_launch, raven, raven_fipa, rdas,
+    rrc3, rrc3_rff, rtx, sillygoose, teensy,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -71,11 +73,13 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Rrc3Rff,
     LogFormat::Arts2Odf,
     LogFormat::RtxRaw,
+    LogFormat::RadioPacketRtf,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
     LogFormat::BlueRavenUsb,
     LogFormat::TeensyTabs,
     LogFormat::TeensyNamed,
+    LogFormat::RadioPacketText,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
@@ -164,7 +168,11 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let first = lines.next()?;
-    // An RTF document is told by its opening group; only an Eggtimer's download is read in one.
+    // An RTF document is told by its opening group: radio packets by a packet in its first lines,
+    // and otherwise an Eggtimer's download.
+    if packets::recognizes_rtf(text) {
+        return Some(LogFormat::RadioPacketRtf);
+    }
     if eggtimer::recognizes_rtf(text) {
         return Some(LogFormat::EggtimerRtf);
     }
@@ -181,6 +189,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if teensy::recognizes_named(text) {
         return Some(LogFormat::TeensyNamed);
+    }
+    // Radio packets by a `255:…:254` packet in the first lines.
+    if packets::recognizes_text(text) {
+        return Some(LogFormat::RadioPacketText);
     }
     // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
@@ -316,6 +328,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::BlueRavenUsb) => blueraven_usb::read(&text),
         Some(LogFormat::TeensyTabs) => teensy::read(&text),
         Some(LogFormat::TeensyNamed) => teensy::read_named(&text),
+        Some(LogFormat::RadioPacketText) => packets::read(&text),
+        Some(LogFormat::RadioPacketRtf) => packets::read_rtf(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),

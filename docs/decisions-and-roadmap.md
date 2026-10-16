@@ -715,7 +715,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c16"></a>[M7.1c16][done-5] | Binary records by a stated layout | done |
 | <a id="m7-1c17"></a>[M7.1c17][done-5] | The Blue Raven's USB download | done |
 | <a id="m7-1c18"></a>[M7.1c18][done-5] | A course's Teensy data logger | done |
-| <a id="m7-1c19"></a>[M7.1c19][phase-5] | Radio packets, `255:…:254` | not yet done |
+| <a id="m7-1c19"></a>[M7.1c19][done-5] | Radio packets, `255:…:254` | done |
 | <a id="m7-1c20"></a>[M7.1c20][phase-5] | Workbooks with a reading beside | not yet done |
 | <a id="m7-1c21"></a>[M7.1c21][phase-5] | Altimeters' other text | not yet done |
 | <a id="m7-1c22"></a>[M7.1c22][phase-5] | Tables by mapping, and files that aren't logs | not yet done |

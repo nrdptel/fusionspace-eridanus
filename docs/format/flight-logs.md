@@ -75,8 +75,14 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > one sensor's reading a line; where its file states no unit, the unit read is held to the
 > physics of the flight, and the rest is kept as written
 > ([a course's Teensy data logger](#a-courses-teensy-data-logger)).
+> One team's radio telemetry packets, read since [M7.1c19](../decisions-and-roadmap.md#m7-1c19),
+> come in three forms: the flight computer's own log, the text a receiver wrote of what it heard,
+> and exports inside an RTF document. Every packet the receiver or an export holds is the onboard
+> log's packet of the same kind and clock, field for field; the pressure and the clock are read in
+> units the flight's physics confirms, and the rest is kept as written
+> ([one team's radio telemetry packets](#one-teams-radio-telemetry-packets)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c19](../decisions-and-roadmap.md#m7-1c19) to
+> [M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
 > [M7.1c23](../decisions-and-roadmap.md#m7-1c23), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
@@ -164,6 +170,8 @@ decided.
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
 | Blue Raven USB download | Featherweight Blue Raven, its low-rate or high-rate set as its USB port sends it to a serial terminal, one line a sample | a line among the first 1,000 that opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks | `hpr_flightdata::blueraven_usb` ([below](#the-blue-ravens-usb-download)) |
 | Teensy data logger, tab-separated | a university course's own logger, built around a Teensy board, its older layout: one sensor's reading a line | its first line is a tag, a whole-number clock and values, by tabs, and one of its first 100 is an `Alt` line with `P` and `MSL` | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
+| Radio packets | one university team's flight computer's radio packets, `255:…:254`: its own log, or the text a receiver wrote of what it heard | its first line is a packet, a whole number or a `Gain[…]` line, and one of its first 100 is a packet | `hpr_flightdata::packets` ([below](#one-teams-radio-telemetry-packets)) |
+| Radio packets in RTF | the same packets in an RTF document a spreadsheet saved as CSV, `255,…,254` | an RTF document, one of whose first 100 lines, its markup taken off, is a packet | `hpr_flightdata::packets` ([below](#one-teams-radio-telemetry-packets)) |
 | Teensy data logger, named fields | the same course's logger, its newer layout | its first line states a sensor's units, such as `ICM data in us, milli-g, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets; separated by commas, or by semicolons, a European locale's, perhaps ending each line | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
@@ -211,7 +219,7 @@ Raven's summary, and the descriptions of a rocket such programs read; a team fli
 export; and a wind profile. The other layouts in the sample logs, among
 them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c19](../decisions-and-roadmap.md#m7-1c19) to
+[M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
 [M7.1c23](../decisions-and-roadmap.md#m7-1c23), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
@@ -1002,6 +1010,104 @@ the report prints this as a measure, not a check.
 altitude above the pad. `hpr analyze` and the Python package don't read these files yet: the Rust
 library does.
 
+### One team's radio telemetry packets
+
+A university team's flight computer writes each reading as a *packet*, a line framed by `255` and
+`254`, and sends the packets down by radio. For one flight the team published four files of them:
+the flight computer's own log, the text a ground receiver wrote of what it heard, and two exports
+of the log, cut to the flight, each saved as an RTF document (a word processor's format) and then
+as CSV by a spreadsheet. No document describes the packets, so HPR Sim reads what the files show,
+and holds the reading to the flight computer's own log
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
+which decided it). `import::read` reads all three forms with `hpr_flightdata::packets`.
+
+> **How far to trust it.** The layout is taken from the files. Every packet the receiver's text
+> or an export holds is, field for field, the onboard log's packet of the same kind and clock
+> ([below](#how-the-radio-packets-were-checked)). The clock is read in milliseconds and one value
+> in hectopascals, each held to the flight's physics; the other values are kept as written,
+> because nothing settles their units. No readings, such as the apogee, are taken from these
+> files yet: they come with [M7.2](../decisions-and-roadmap.md#m7-2).
+
+**A packet** separates its fields by colons, or by commas in the exports. These invented lines
+are from the crate's test files:
+
+```text
+255:T:11:PP:100150:950.12:21.50:3.25:254
+255:T:11:AA:100152:9.70:0.40:-0.80:254
+255:N:88:GG:100200:1.00:2.00:1234.56:9876.54:8.00:250.00:90.00:0.50:254
+```
+
+| Field | What it is |
+|---|---|
+| `255` | the packet's start |
+| `T` | the path it came by: `T` from the flight computer, `N` relayed by a second transmitter, which also sends the GPS packets |
+| `11` | the flight computer's stage of the flight, `00` to `55`, or `88` on a GPS packet |
+| `PP` | the packet's kind, two capital letters: the samples have `PP`, `AA`, `CC` and `GG` (GPS) |
+| `100150` | the flight computer's clock, in milliseconds |
+| the values | numbers, as many as the kind's first packet holds |
+| `254` | the packet's end |
+
+Each kind becomes a set of channels on its own clock, named by the kind and the value's place,
+such as `PP 1`, with the stage as a channel of its own, `PP stage`. A `Stage Two` line, as the
+onboard log writes when the stage changes, becomes an event at the next packet's time.
+
+| Values | Read as | Held to |
+|---|---|---|
+| the clock | seconds, from milliseconds | the time from liftoff to apogee, against √(2h/g) ([below](#how-the-radio-packets-were-checked)) |
+| `PP 1` | a pressure, Pa, from hectopascals | the pad's pressure, between 500 and 1,100 hPa, and the time to apogee, which takes the height from it |
+| the rest | kept as written | nothing settles a unit |
+
+`PP 3` climbs with the flight and reads about 0 on the pad, but it is 1.11 to 1.24 times the
+height the standard atmosphere gives the pressure, in meters, so neither meters nor feet fits it,
+and it is kept as written.
+
+**Lines that aren't packets.** The radio loses bytes, so the receiver's text holds many *broken*
+lines: a packet cut short, or run into the next. A broken line is dropped, and a note counts
+them. So is a packet heard again: the same stage, kind, clock and values as one already read, by
+either path, since the receiver hears most packets twice, directly and relayed. The onboard log
+opens with a whole number and its filter's gains, `Gain[0]: …`, which a note counts.
+
+**The exports** are RTF documents whose lines a spreadsheet split at the colons and saved as CSV.
+So each line has commas after it, the document's markup sits in the first cells, and a `\` ends a
+line where the document broke it. The reader takes each line on its own: it drops the commas, the
+markup before a packet, a `\` at the end and the `}` that closes the document. A line of markup
+alone is dropped.
+
+A file with no whole packet is refused, and so is one with more than 32 kinds, a packet with more
+than 32 values, or a clock past 2³² ms, 49.7 days.
+
+<a id="how-the-radio-packets-were-checked"></a>**How it was checked.** The sample logs hold the
+four files of one flight. The survey, [`cargo xtask logs`](#how-it-was-checked), decodes each file
+itself and compares every value with the reader's: none differs. It then looks up each packet of
+the receiver's text and of the exports in the onboard log, by its stage, kind and clock:
+
+| File | Form | Whole packets | Held by the onboard log | Differing | Not held: GPS | Not held: other | Repeated | Broken lines |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| the receiver's text | received | 42,796 | 38,475 (29,914 relayed, 8,561 direct) | 0 | 4,321 | 0 | 8,368 | 10,494 |
+| the export of every packet | RTF | 4,939 | 4,939 | 0 | 0 | 0 | 2 | 0 |
+| the export of the pressures | RTF | 2,469 | 2,469 | 0 | 0 | 0 | 1 | 1 |
+
+The onboard log itself holds 264,462 whole packets and no broken line; 2 are repeated. Counts
+include repeats; *repeated* counts the packets a reading drops as heard before, mostly the
+receiver's second hearing of a packet, directly and relayed. The survey compares 1,313,381 values
+with the reader's in all four files, and none differs. The GPS packets are the second
+transmitter's fixes, which the onboard log doesn't record.
+
+Two physical checks hold the units read, on the onboard log:
+
+- **The pad pressure,** the median of `PP 1` over the 5 s ending 1 s before liftoff, is between 500 and
+  1,100 hPa, as any launch site's is. The report says so without the value, which would give the
+  site's elevation.
+- **The time to apogee.** From liftoff (the first packet, after the pad's stage `00`, whose
+  pressure is more than 1 hPa below the median of the 5 s ending 1 s before it) to apogee (the
+  lowest pressure), the time is 1.055 times √(2h/g), where h is the height the standard
+  atmosphere gives the two pressures. The check allows a factor of 2; a clock misread by a
+  power of ten would be 10 or more times off.
+
+**What is left out.** There is no [primary track](#the-record), as no packet writes an altitude
+above the pad in a unit that is settled. The GPS packets' values are kept as written. `hpr
+analyze` and the Python package don't read these files yet: the Rust library does.
+
 ## The record
 
 Every reader fills the same record, `FlightLog`, in SI units:
@@ -1476,7 +1582,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c19](../decisions-and-roadmap.md#m7-1c19).
+  [M7.1c20](../decisions-and-roadmap.md#m7-1c20).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -2440,12 +2546,14 @@ multiplier ([above](#units-the-file-decides)), and each file of binary records a
 team's table ([above](#binary-records-by-a-stated-layout)), and each Blue Raven USB download
 against the survey's own decoding of it ([above](#the-blue-ravens-usb-download)), and each Teensy
 logger's file against the survey's decoding and its physical checks
-([above](#how-the-teensy-files-were-checked)). Of the 1,122
-files it holds today, 1,016 are read, the 8 archives counted as read when they unpack and the 16
-workbooks when a sheet of each reads. The report labels 45 files for
-[M7.1c19](../decisions-and-roadmap.md#m7-1c19), the next increment.
+([above](#how-the-teensy-files-were-checked)), and each file of radio packets against the
+survey's decoding, and each received or exported packet against the onboard log's
+([above](#how-the-radio-packets-were-checked)). Of the 1,122
+files it holds today, 1,020 are read, the 8 archives counted as read when they unpack and the 16
+workbooks when a sheet of each reads. The report labels 41 files for
+[M7.1c20](../decisions-and-roadmap.md#m7-1c20), the next increment.
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans all five increments left, through the last file; 43 of the 45, of layouts no reader
+plans all five increments left, through the last file; 39 of the 41, of layouts no reader
 knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
@@ -2461,13 +2569,15 @@ its decimal points taken out, counted as damaged ([above](#units-the-file-decide
 tables whose publisher states their mapping ([above](#mappings-a-publisher-states)); and one is
 an RRC3 export counted as damaged ([above](#units-the-file-decides)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
-download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c19](../decisions-and-roadmap.md#m7-1c19). Sixteen spreadsheets are workbooks of flights'
+download, held to its reader, and two exports of radio packets, held to the packets' reader
+([above](#one-teams-radio-telemetry-packets)). Sixteen spreadsheets are workbooks of flights'
 logs, held to the workbook reader. Three files filed as text are console captures and two filed
 as binary are files of records, each read by the layout stated for it
 ([above](#binary-records-by-a-stated-layout)). Two more filed as text are a Blue Raven's USB
 downloads, held to their reader ([above](#the-blue-ravens-usb-download)), and eight more are a
-course's Teensy logger's, held to theirs ([above](#a-courses-teensy-data-logger)). Five files filed as
+course's Teensy logger's, held to theirs ([above](#a-courses-teensy-data-logger)), and two
+are radio packets, the onboard log and the receiver's text, held to the packets' reader
+([above](#one-teams-radio-telemetry-packets)). Five files filed as
 generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,

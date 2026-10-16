@@ -380,9 +380,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
     ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
-    - [ ] **M7.1c19 Radio packets, `255:…:254`** (and `telemetry-rtf`, ADR-258). *Done when:* all
-      four forms read; every packet of the received and RTF forms the onboard log also holds
-      matches it field for field; the others counted by kind (GPS, repeated, broken).
     - [ ] **M7.1c20 Workbooks with a reading beside.** *Done when:* the two headerless Raven FIP
       sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls`
       reads from its bare BIFF8 stream, by its stated units, each height following its pressure
