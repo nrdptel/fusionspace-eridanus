@@ -317,6 +317,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c17 The Blue Raven's USB download ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c18 A course's Teensy data logger ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c19 Radio packets, `255:…:254` ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c20 Workbooks with a reading beside ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1660,6 +1661,10 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M7.1c19 Radio packets, `255:…:254`** (and `telemetry-rtf`, ADR-258). *Done when:* all
       four forms read; every packet of the received and RTF forms the onboard log also holds
       matches it field for field; the others counted by kind (GPS, repeated, broken).
+    - [x] **M7.1c20 Workbooks with a reading beside.** *Done when:* the two headerless Raven FIP
+      sheets match the `.FIPa` or FIP CSV of the same flight sample by sample; the AltiMAX `.xls`
+      reads from its bare BIFF8 stream, by its stated units, each height following its pressure
+      by one barometric formula whose constants the report states.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
