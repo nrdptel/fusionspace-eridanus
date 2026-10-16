@@ -99,7 +99,7 @@ All but B1 are plotted only. Reynolds numbers are on body length unless marked. 
   - **Model.** A 1/10-scale TT-500A: 50.3 mm body, 1,050 mm long, 30° cone nose. Configuration 4 has the tail fins
     only: four trapezoids, root 70 mm, tip 43 mm, span 68.6 mm (Fig. 1, PDF p. 4).
   - **Tunnel.** The NAL 2 m transonic tunnel with an internal six-component balance. Mach 0.50 is at 7.5 × 10⁶ per
-    metre (Table 2, PDF p. 5).
+    meter (Table 2, PDF p. 5).
   - **Data.** Normal force at 4° and 8° (Fig. 5) and CP at 8° (Fig. 8), plotted against Mach, with no tables. The
     pages read state no wall corrections or uncertainty.
   - **Reading.** By eye at Mach 0.5 and 8°, C_N ≈ 2.45 ± 0.1 at 45° roll and about 2.7 at 90° (**Inference**).
@@ -129,8 +129,8 @@ All but B1 are plotted only. Reynolds numbers are on body length unless marked. 
 |---|---|---|
 | C_Nα and CP below Mach 0.6, whole finned rocket | 5 (B1–B5), plus B6 with outside geometry | B1 |
 | Drag of a whole finned rocket below Mach 0.3 | 4 (A1, B1, B3, B4); A2 and B8 too coarse | B1 shape, B3 (±0.01) |
-| C_Nα or CP of a modern hobby or HPR rocket | 0 | — |
-| Public-use terms | 3 (B3, B4, B5) | — |
+| C_Nα or CP of a modern hobby or HPR rocket | 0 | none |
+| Public-use terms | 3 (B3, B4, B5) | NASA and NACA |
 
 Every hobby source is copyrighted with no open license (A2 is under arXiv's), and so are B1 and B2: cite them, cache
 them privately, never commit their tables. A fixture would hold the project's own readings with page and figure, as the
