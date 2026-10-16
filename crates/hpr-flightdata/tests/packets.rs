@@ -139,7 +139,7 @@ fn files_past_the_limits_are_refused_by_name() {
         other => panic!("{other:?}"),
     };
     refused("7\r\n25:T:00\r\n", "no whole packet");
-    refused("255:T:00:PP:4294967296:950.00:254\r\n", "past 2³² ms");
+    refused("255:T:00:PP:4294967296:950.00:254\r\n", "2³² ms or more");
     let values = vec!["1.0"; packets::MAX_VALUES + 1].join(":");
     refused(
         &format!("255:T:00:PP:1:{values}:254\n"),

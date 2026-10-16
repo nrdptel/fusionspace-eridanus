@@ -77,9 +77,10 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([a course's Teensy data logger](#a-courses-teensy-data-logger)).
 > One team's radio telemetry packets, read since [M7.1c19](../decisions-and-roadmap.md#m7-1c19),
 > come in three forms: the flight computer's own log, the text a receiver wrote of what it heard,
-> and exports inside an RTF document. Every packet the receiver or an export holds is the onboard
-> log's packet of the same kind and clock, field for field; the pressure and the clock are read in
-> units the flight's physics confirms, and the rest is kept as written
+> and exports inside an RTF document. Every packet the receiver or an export holds that the
+> onboard log also holds, by its stage, kind and clock, matches the log's field for field; the
+> pressure and the clock are read in units held to the flight's physics, and the rest is kept as
+> written
 > ([one team's radio telemetry packets](#one-teams-radio-telemetry-packets)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
@@ -1022,8 +1023,9 @@ and holds the reading to the flight computer's own log
 which decided it). `import::read` reads all three forms with `hpr_flightdata::packets`.
 
 > **How far to trust it.** The layout is taken from the files. Every packet the receiver's text
-> or an export holds is, field for field, the onboard log's packet of the same kind and clock
-> ([below](#how-the-radio-packets-were-checked)). The clock is read in milliseconds and one value
+> or an export holds that the onboard log also holds, by its stage, kind and clock, matches the
+> log's field for field ([below](#how-the-radio-packets-were-checked)); the receiver's GPS packets
+> are the only ones the log doesn't hold. The clock is read in milliseconds and one value
 > in hectopascals, each held to the flight's physics; the other values are kept as written,
 > because nothing settles their units. No readings, such as the apogee, are taken from these
 > files yet: they come with [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -1041,7 +1043,7 @@ are from the crate's test files:
 |---|---|
 | `255` | the packet's start |
 | `T` | the path it came by: `T` from the flight computer, `N` relayed by a second transmitter, which also sends the GPS packets |
-| `11` | the flight computer's stage of the flight, `00` to `55`, or `88` on a GPS packet |
+| `11` | the flight computer's stage of the flight, `00` to `55` in the samples, or `88` on a GPS packet |
 | `PP` | the packet's kind, two capital letters: the samples have `PP`, `AA`, `CC` and `GG` (GPS) |
 | `100150` | the flight computer's clock, in milliseconds |
 | the values | numbers, as many as the kind's first packet holds |
@@ -1059,14 +1061,14 @@ again is dropped.
 | `PP 1` | a pressure, Pa, from hectopascals | the pad's pressure, between 500 and 1,100 hPa, and the time to apogee, which takes the height from it |
 | the rest | kept as written | nothing settles a unit |
 
-`PP 3` climbs with the flight and reads about 0 on the pad, but it is 1.11 to 1.24 times the
+`PP 3` climbs with the flight, but where it reads above 200 it is 1.11 to 1.24 times the
 height the standard atmosphere gives the pressure, in meters, so neither meters nor feet fits it,
 and it is kept as written.
 
 **Lines that aren't packets.** The radio loses bytes, so the receiver's text holds many *broken*
 lines: a packet cut short, or run into the next. A broken line is dropped, and a note counts
 them. So is a packet heard again: the same stage, kind, clock and values as one already read, by
-either path, since the receiver hears most packets twice, directly and relayed. The onboard log
+either path, as the receiver heard many packets twice. The onboard log
 opens with a whole number and its filter's gains, `Gain[0]: …`, which a note counts.
 
 **The exports** are RTF documents whose lines a spreadsheet split at the colons and saved as CSV.
@@ -1076,7 +1078,7 @@ markup before a packet, a `\` at the end and the `}` that closes the document. A
 alone is dropped.
 
 A file with no whole packet is refused, and so is one with more than 32 kinds, a packet with more
-than 32 values, or a clock past 2³² ms, 49.7 days.
+than 32 values, or a clock of 2³² ms, 49.7 days, or more.
 
 <a id="how-the-radio-packets-were-checked"></a>**How it was checked.** The sample logs hold the
 four files of one flight. The survey, [`cargo xtask logs`](#how-it-was-checked), decodes each file
@@ -1086,12 +1088,11 @@ the receiver's text and of the exports in the onboard log, by its stage, kind an
 | File | Form | Whole packets | Held by the onboard log | Differing | Not held: GPS | Not held: other | Repeated | Broken lines |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | the receiver's text | received | 42,796 | 38,475 (29,914 relayed, 8,561 direct) | 0 | 4,321 | 0 | 8,368 | 10,494 |
-| the export of every packet | RTF | 4,939 | 4,939 | 0 | 0 | 0 | 2 | 0 |
-| the export of the pressures | RTF | 2,469 | 2,469 | 0 | 0 | 0 | 1 | 1 |
+| the export of all three kinds | RTF | 4,939 | 4,939 | 0 | 0 | 0 | 2 | 0 |
+| the export of mostly pressures | RTF | 2,469 | 2,469 | 0 | 0 | 0 | 1 | 1 |
 
 The onboard log itself holds 264,462 whole packets and no broken line; 2 are repeated. Counts
-include repeats; *repeated* counts the packets a reading drops as heard before, mostly the
-receiver's second hearing of a packet, directly and relayed. The survey compares 1,313,381 values
+include repeats; *repeated* counts the packets a reading drops as heard before, by either path. The survey compares 1,313,381 values
 with the reader's in all four files, and none differs. The GPS packets are the second
 transmitter's fixes, which the onboard log doesn't record.
 

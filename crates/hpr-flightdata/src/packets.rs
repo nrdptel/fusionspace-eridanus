@@ -7,8 +7,8 @@
 //! exports of the log, cut to the flight, saved as RTF documents and then as CSV. No document
 //! describes the packets, so this reader takes them from the files, and the sample logs' survey
 //! (`cargo xtask logs`) holds the reading to the files: every packet the receiver or an export
-//! holds is the onboard log's packet of the same kind and clock, field for field
-//! ([ADR-274][adr-274]).
+//! holds that the onboard log also holds, by its stage, kind and clock, matches the log's field
+//! for field ([ADR-274][adr-274]).
 //!
 //! **A packet** is fields separated by colons, or by commas in the exports:
 //!
@@ -23,7 +23,7 @@
 //! |---|---|
 //! | `255` | the packet's start |
 //! | `T` | the path it came by, one capital letter: `T` from the flight computer, `N` relayed by a second transmitter, which also sends the GPS packets |
-//! | `11` | two digits: the flight computer's stage of the flight, `00` to `55`, or `88` on a GPS packet |
+//! | `11` | two digits: the flight computer's stage of the flight, `00` to `55` in the samples, or `88` on a GPS packet |
 //! | `PP` | its kind, two capital letters |
 //! | `100150` | the flight computer's clock, ms, a whole number |
 //! | the values | numbers, as many as the kind's first packet holds |
@@ -37,7 +37,7 @@
 //! of the two pressures, where the check allows a factor of 2. `PP 1` is read as a pressure in
 //! hectopascals, [`Quantity::Pressure`], the survey holding its pad reading between 500 and 1,100
 //! hPa, where every launch site's is; the rest is kept as written, [`Quantity::Unrecognized`], as
-//! nothing states its unit. Among them, `PP 3` climbs with the flight, but by 1.11 to 1.24 times
+//! nothing states its unit. Among them, `PP 3` climbs with the flight, but where it reads above 200 it is 1.11 to 1.24 times
 //! the standard atmosphere's height of the pressure above the pad's in meters, by the survey, so no
 //! unit is settled for it.
 //!
@@ -56,7 +56,7 @@
 //! of markup alone is dropped.
 //!
 //! **What refuses the file.** No packet at all ([`LogError::Syntax`]); more than [`MAX_KINDS`]
-//! kinds, more than [`MAX_VALUES`] values in a packet, or a clock past 2³² ms, 49.7 days.
+//! kinds, more than [`MAX_VALUES`] values in a packet, or a clock of 2³² ms, 49.7 days, or more.
 //!
 //! The record has no barometric track, as no packet states an altitude above the pad in a settled
 //! unit: [`FlightLog::time_s`] and [`FlightLog::altitude_m`] are empty, and every value is a channel.
@@ -273,7 +273,7 @@ impl<'a> Reading<'a> {
             return Err(syntax(
                 format,
                 line,
-                "a packet's clock is past 2³² ms".to_owned(),
+                "a packet's clock is 2³² ms or more".to_owned(),
             ));
         }
         let index = match self.kinds.iter().position(|kind| kind.name == packet.kind) {

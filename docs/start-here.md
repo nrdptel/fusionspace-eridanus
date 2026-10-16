@@ -310,8 +310,8 @@ out.
   ([M7.1c18](decisions-and-roadmap.md#m7-1c18),
   [the layout](format/flight-logs.md#a-courses-teensy-data-logger)), and one team's radio
   telemetry packets, as its flight computer logged them, as a receiver heard them and inside an
-  RTF document, every packet a receiver or an export holds matching the onboard log's field for
-  field ([M7.1c19](decisions-and-roadmap.md#m7-1c19),
+  RTF document, every packet a receiver or an export holds that the onboard log also holds
+  matching the log's field for field ([M7.1c19](decisions-and-roadmap.md#m7-1c19),
   [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
   app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept

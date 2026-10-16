@@ -110,11 +110,11 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
    log and the receiver's text by one rule; `RadioPacketRtf` reads the exports. A packet is `255`,
    a path letter, a two-digit stage, a two-letter kind, a whole-number clock, its values and `254`.
    The path is `T` for the flight computer and `N` for a second transmitter that relays its packets
-   and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as the same packet comes by
-   both. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line, its
+   and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as a packet's
+   fields don't depend on the path it came by. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line, its
    word a number's from `One` to `Nine`, is an event at the next packet's clock.
 2. **Broken and repeated packets are dropped and counted, not refused.** The receiver's text holds
-   packets the radio cut or ran together, and most packets twice. One rule for both text forms
+   packets the radio cut or ran together, and many packets twice. One rule for both text forms
    keeps the reader simple; the survey shows the onboard log has no broken line, so nothing is
    lost there. A packet whose kind has another count of values than its first is broken.
 3. **The exports are read line by line, not unwrapped.** A spreadsheet split the RTF document's
@@ -126,7 +126,7 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
 4. **Units held to physics.** The clock is read in milliseconds and `PP 1` in hectopascals, held
    by the survey to the onboard log: the pad's pressure between 500 and 1,100 hPa, and the time from
    liftoff to apogee within a factor of 2 of √(2h/g). The rest is kept as written. `PP 3` climbs
-   with the flight but reads 1.11 to 1.24 times the standard atmosphere's height in meters, so no
+   with the flight but, where it reads above 200, reads 1.11 to 1.24 times the standard atmosphere's height in meters, so no
    unit is read for it.
 
 **Consequences of the amendment.** The survey reads 1,020 of its 1,122 files. It decodes the four
