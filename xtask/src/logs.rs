@@ -38,8 +38,9 @@ pub const USAGE: &str = "  logs [--check] [--sheets DIR]
                            validation/reports/log-import.json and .md; --check writes nothing
                            and fails unless they reproduce and every file of a family
                            with a reader is read; --sheets writes each sample workbook to
-                           DIR/<id>.xlsx and its sheets' text to DIR/<id>/<n>.csv, for
-                           validation/oracles/xlsx/cells.py (DIR under refs/: it's private)";
+                           DIR/<id>.xlsx or DIR/<id>.xls and its sheets' text to
+                           DIR/<id>/<n>.csv, for validation/oracles/xlsx/cells.py and
+                           validation/oracles/xls/cells.py (DIR under refs/: it's private)";
 
 const REPORT_JSON: &str = "validation/reports/log-import.json";
 const REPORT_MD: &str = "validation/reports/log-import.md";
@@ -5353,8 +5354,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Each workbook sample as `<id>.xlsx` in `dir`, and its sheets' text as `<id>/<n>.csv`, `n`
-/// from 0 in the workbook's order, for an outside reader to check the text against.
+/// Each workbook sample as `<id>.xlsx` in `dir`, the FIP sheets' too, and each `.xls` export as
+/// `<id>.xls`, and its sheets' text as `<id>/<n>.csv`, `n` from 0 in the workbook's order, for
+/// an outside reader to check the text against.
 fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
     // The sheets are other people's data: only under the repository's `refs/`, which git
     // ignores, the folder taken from the repository's root and never climbing out of it.
@@ -5371,13 +5373,21 @@ fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
         ));
     }
     let mut books = 0;
-    for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
+    let workbooks = [WORKBOOK_FAMILY, FIP_SHEET_FAMILY, ALTIMAX_FAMILY];
+    for sample in samples
+        .iter()
+        .filter(|s| workbooks.contains(&s.family.as_str()))
+    {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
-        let sheets = hpr_flightdata::workbook::sheets(&sample.bytes)
-            .map_err(|error| format!("{id}: {error}"))?;
+        let (sheets, extension) = if sample.family == ALTIMAX_FAMILY {
+            (hpr_flightdata::xls::sheets(&sample.bytes), "xls")
+        } else {
+            (hpr_flightdata::workbook::sheets(&sample.bytes), "xlsx")
+        };
+        let sheets = sheets.map_err(|error| format!("{id}: {error}"))?;
         let folder = dir.join(&id);
         fs::create_dir_all(&folder).map_err(|error| format!("{}: {error}", folder.display()))?;
-        let book = dir.join(format!("{id}.xlsx"));
+        let book = dir.join(format!("{id}.{extension}"));
         fs::write(&book, &sample.bytes).map_err(|error| format!("{}: {error}", book.display()))?;
         for (n, sheet) in sheets.iter().enumerate() {
             let path = folder.join(format!("{n}.csv"));

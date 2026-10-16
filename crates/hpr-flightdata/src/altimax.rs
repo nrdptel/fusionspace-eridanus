@@ -18,8 +18,8 @@
 //! | `TIME` | the clock | seconds, though it names no unit: held below |
 //! | `PRESS FILTER [hpa]`, `PRESS RAW [hpa]` | pressure | the unit its values show, held below |
 //! | `HEIGHT FILTER [m]`, `HEIGHT RAW [m]` | altitude above the pad | m: the altimeter sets its sensors "to "0"" when armed (*AltiMAX G3 User Manual*, p. 10) |
-//! | `ACCEL [m/s2]` | acceleration | m/s² |
-//! | `SPEED [m/s]` | speed | m/s |
+//! | `ACCEL [m/s2]` | acceleration | m/s², as written: below |
+//! | `SPEED [m/s]` | speed | m/s, as written: below |
 //! | `EVENT`, numbers | a number, as written | 0 on a row with no event |
 //! | `EVENT`, text | the flight's events | below |
 //! | `VOLT. CHANNEL` | a number, as written | which voltage the row's `VOLTAGE [V]` is |
@@ -29,9 +29,14 @@
 //! note.
 //!
 //! **The primary track** is `HEIGHT RAW [m]`, the height from the barometer's own reading; the
-//! filtered height is a channel, as an Eggtimer's filtered altitude is. `SPEED [m/s]` comes from
-//! the altimeter's filter, which the manual doesn't describe, so it is a channel and not the
-//! record's vertical speed.
+//! filtered height is a channel, as an Eggtimer's filtered altitude is.
+//!
+//! **The accelerometer's columns, as the sample shows them.** No manual describes them. `ACCEL`
+//! is measured along an axis pointing down the rocket: in the sample it reads −0.94 g before
+//! liftoff and below 0 through the boost. `SPEED` is `ACCEL` summed over the clock, gravity left
+//! in: over the sample's boost its change is `ACCEL`'s to within 0.2 %. So `SPEED` isn't the
+//! rocket's speed, and the record's vertical speed is left empty; both columns are kept, signs
+//! and all, as channels.
 //!
 //! **Units the file doesn't state, or states wrongly, held to physics.** `TIME` names no unit. The
 //! altimeter stores 200 samples a second until apogee and fewer after it (*AltiMAX G4 Manual*,
@@ -100,7 +105,8 @@ const STEP_S: f64 = 0.005;
 const PAD_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
 
 /// Whether `text` is an AltiMAX export: its first line that isn't blank opens with the five
-/// columns [`MARKS`] names.
+/// columns `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]`, in any
+/// case.
 pub fn recognizes(text: &str) -> bool {
     numbered_lines(text)
         .map(|(_, line)| line)

@@ -75,7 +75,10 @@ pub enum LogError {
     /// A column mapping the caller gave can't read the file: it names no column or too many,
     /// its clock isn't one of its columns or isn't in a unit of time, or a column's unit isn't
     /// one the reader knows or doesn't measure what its quantity does
-    /// ([`generic::read_with`](crate::generic::read_with)).
+    /// ([`generic::read_with`](crate::generic::read_with)); or a header line the caller stated
+    /// for a FIP export's rows isn't a FIP header, holds no altitude above the pad, or comes with
+    /// a pasted column numbered 0 ([`raven::read_rows`](crate::raven::read_rows),
+    /// [`raven::read_rows_around`](crate::raven::read_rows_around)).
     #[error("column mapping: {message}")]
     Mapping {
         /// What is wrong.

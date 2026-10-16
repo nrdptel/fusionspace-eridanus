@@ -1,0 +1,20 @@
+{
+  "by_file": {
+    "444687655195f5c8": {
+      "agree": {
+        "number": 253340,
+        "string": 25345
+      },
+      "biff_version": 20,
+      "disagree": {},
+      "sheets": 1,
+      "where": []
+    }
+  },
+  "cells": {
+    "agree": 278685,
+    "disagree": 0
+  },
+  "files": 1,
+  "xlrd": "2.0.2"
+}

@@ -1,8 +1,9 @@
 """Every cell of the sample workbooks as openpyxl reads it, against `hpr_flightdata::workbook`'s text.
 
 openpyxl (MIT) is run as an outside reader; none of its code is ported. `cargo xtask logs --sheets
-DIR` writes each sample workbook of the `workbook-xlsx` family to `DIR/<id>.xlsx` and its sheets'
-text, as `hpr_flightdata::workbook::sheets` writes it, to `DIR/<id>/<n>.csv`. This script opens
+DIR` writes each sample workbook of the `workbook-xlsx` and `raven-fip-sheet-xlsx` families to
+`DIR/<id>.xlsx` and its sheets' text, as `hpr_flightdata::workbook::sheets` writes it, to
+`DIR/<id>/<n>.csv`. This script opens
 each workbook with openpyxl, values only (a formula's saved value), and compares, sheet by sheet
 and row by row, every cell that holds a value:
 
