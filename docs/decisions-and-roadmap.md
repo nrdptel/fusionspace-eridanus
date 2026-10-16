@@ -303,6 +303,7 @@ until someone rewrites it in plainer words.
 | [ADR-272: M7.1c17 in two: the Blue Raven's USB download first; the rest to M7.1c18][adr-272] | After [M7.1c16](#m7-1c16), 54 sample logs were left unread. Two of them are a Blue Raven's recording as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. [M7.1c17](#m7-1c17) reads these, keeping only the records whose CRC checks, each held to its stated length, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to [M7.1c18](#m7-1c18). |  |
 | [ADR-273: The 2026-10-15 review: OpenRocket's supersonic ogive drag as a cause][adr-273] | OpenRocket's issue #3391 (2026-10-14) reports that OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag above Mach 1: about 0.0007 against about 0.13 at Mach 1.5 by the method its own technical documentation describes. HPR Sim found the same gap on a supersonic flight in its collection (#222) and left open which code was right. [M2.3c6](#m2-3c6) splits the apogee gap to OpenRocket into thrust, mass and drag. Its drag part must now give this term on its own line: a public probe sets the two codes' nose pressure drag beside the published equivalent-cone value, and the collection's flights past Mach 1 report how much of the gap the term accounts for, with its sign. |  |
 | [ADR-274: M7.1c18 in six: a course's Teensy logger first, then the five increments left][adr-274] | After [M7.1c17](#m7-1c17), 51 sample logs were left unread, in five groups. This record plans all of them at once, in six increments, the easiest to check first. [M7.1c18](#m7-1c18) reads the 8 files of a university course's Teensy data logger, one sensor's reading a line, in two layouts. Where a file states no unit, the unit is held to the physics the files must keep: on every one of 305,340 `Alt` lines, the barometer's altitude follows its pressure by the BMP180's formula to within 5.4 mm (0.21 in); the accelerometer reads 0.983 to 0.989 g on the pad; and the time to apogee is 0.90 to 1.14 times √(2h/g). The other 43 files go to [M7.1c19](#m7-1c19) to [M7.1c23](#m7-1c23). |  |
+| [ADR-275: Neer's 2026-10-14 plan: awareness and care on the sites][adr-275] | The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access. |  |
 
 ## The roadmap
 
@@ -448,6 +449,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
 | <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
 | <a id="m0-12"></a>[M0.12][done-0] | Typeset equations | done |
+| <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
+| <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
+| <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1148,6 +1152,7 @@ is the milestone that added or will add that test.
 [adr-272]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0272-the-blue-ravens-usb-download-before-the-rest.md
 [adr-273]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
 [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
+[adr-275]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0275-the-2026-10-14-awareness-and-care.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
