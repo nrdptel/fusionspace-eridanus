@@ -1087,7 +1087,7 @@ the receiver's text and of the exports in the onboard log, by its stage, kind an
 
 | File | Form | Whole packets | Held by the onboard log | Differing | Not held: GPS | Not held: other | Repeated | Broken lines |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| the receiver's text | received | 42,796 | 38,475 (29,914 relayed, 8,561 direct) | 0 | 4,321 | 0 | 8,368 | 10,494 |
+| the receiver's text | received | 42,796 | 38,475 (29,914 relayed, 8,561 direct) | 0 | 4,321 | 0 | 8,368 | 10,495 |
 | the export of all three kinds | RTF | 4,939 | 4,939 | 0 | 0 | 0 | 2 | 0 |
 | the export of mostly pressures | RTF | 2,469 | 2,469 | 0 | 0 | 0 | 1 | 1 |
 

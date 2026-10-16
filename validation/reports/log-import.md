@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c19 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c20 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,7 +22,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c19 | 2 | 0 | 2 unrecognized |
+| binary | M7.1c20 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -32,7 +32,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c19 | 23 | 2 | 1 syntax, 20 unrecognized |
+| csv | M7.1c20 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -41,7 +41,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c19 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c20 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -62,6 +62,8 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | pfa | M7.1c2 | 25 | 25 | none |
 | phone-launch-csv | M7.1c4 | 27 | 27 | none |
 | png | not a log | 6 | 0 | 6 unrecognized |
+| radio-packets-rtf | M7.1c19 | 2 | 2 | none |
+| radio-packets-txt | M7.1c19 | 2 | 2 | none |
 | raven-csv | M7.1a | 80 | 80 | none |
 | raven-fipa | M7.1c5 | 57 | 57 | none |
 | record-dump | M7.1c16 | 2 | 2 | none |
@@ -74,18 +76,19 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | table-csv | M7.1c13 | 31 | 31 | none |
 | teensy-named-txt | M7.1c18 | 1 | 1 | none |
 | teensy-tabs-txt | M7.1c18 | 7 | 7 | none |
-| telemetry-rtf | M7.1c19 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c19 | 8 | 0 | 8 unrecognized |
+| txt | M7.1c20 | 6 | 0 | 6 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xls | M7.1c19 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c19 | 4 | 0 | 4 archive |
-| xml | M7.1c19 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c20 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c20 | 4 | 0 | 4 archive |
+| xml | M7.1c20 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1016 | |
+| **All** | | 1122 | 1020 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `cd6f44ad29c505e6 txt -> radio-packets-txt`: a team flight computer's own log of the radio telemetry packets it sends, `255:T:…:254` lines after a whole number and its filter's `Gain[…]` lines; filed as text by its extension
+- `a10560cbf44516e5 txt -> radio-packets-txt`: the text a ground receiver wrote of one team's radio telemetry packets, `255:T:…:254` from the flight computer and `255:N:…:254` relayed, with GPS fixes, by a second transmitter, many cut or run together; filed as text by its extension
 - `12f752fa1d21c27f txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
 - `2b8cca725a7b5fd6 txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
 - `34e2963eda0e95bc txt -> teensy-tabs-txt`: a course's Teensy data logger, one sensor's reading a line: a tag, the clock in microseconds and the values, by tabs, `Alt` lines giving a pressure and an altitude; the course's *Flight Data* page lists it as "Teensy Data Logger"
@@ -238,9 +241,9 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `db13cb37b77732af csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
 - `e556289cc743ecd9 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
 - `ec774588ec195de6 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
-- `3a36f081e5be9e9d rtf -> telemetry-rtf`: a radio telemetry stream, lines such as `255,T,…` in a layout no maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its extension
+- `3a36f081e5be9e9d rtf -> radio-packets-rtf`: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog
 - `70415b30a59d4411 rtf -> eggtimer-rtf`: an Eggtimer TRS's terminal download, its settings, summary and `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension
-- `8720c50cdeaf8ad3 rtf -> telemetry-rtf`: a radio telemetry stream, lines such as `255,T,…` in a layout no maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its extension
+- `8720c50cdeaf8ad3 rtf -> radio-packets-rtf`: one team's radio telemetry packets cut to the flight, saved as an RTF document and then by a spreadsheet as CSV, `255,T,…,254`, the document's markup in the first cells; filed as RTF by the catalog
 - `88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv`: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper
 - `0ad26ad4cfc8539b ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
 - `34affe179ab66e72 ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
@@ -423,6 +426,25 @@ The 8 files of a course's Teensy data logger (M7.1c18), each decoded here apart 
 | `bfea33e67007ae0e` | tab-separated | A 43489, ADC Pin-35 43489, ADC Pin-36 43489, Alt 43489, G 43489, HG 43489, M 43489 | 695824 | 0 | 43489 | 0.0054 | 103 | 0.9838 | 1.0007 | 1.0396 | 0.9542 | – | 1.972 |
 | `34e2963eda0e95bc` | tab-separated | A 43496, ADC Pin-35 43496, ADC Pin-36 43496, Alt 43496, G 43496, HG 43496, M 43496 | 695936 | 0 | 43496 | 0.0054 | 100 | 0.9840 | 1.0068 | 1.0163 | 1.0989 | – | 1.855 |
 | `0bc1429eeabbbda7` | named fields | ADC 5070, ICM 98138, LIS 100615, MS5 4817, VOL 200 | 1303199 | 0 | – | – | – | 0.9889 | 1.0012 | 0.9882 | 1.1351 | inside | 0.996 |
+
+The 4 files of one team's radio telemetry packets, `255:…:254` (M7.1c19), each decoded here apart from the reader: *Packets* counts the whole packets by kind and by path (`T` from the flight computer, `N` relayed by a second transmitter), repeats included; *Repeated* those with the same stage, kind, clock and values as one before them, which the reader drops; *Broken* the lines that are no packet, mark, filter gain or opening number, or a packet with another count of values than its kind's first; *Marks* the `Stage` lines, `Stage` and a number's word from `One` to `Nine`, with a packet after them, each the reader's event, and *Marks repeated* those repeating one before them, which the reader drops. Each value and its time, in the units read (the clock in s from ms, `PP 1` in Pa from hPa), is compared with the reader's channels, as are its counts of repeats and broken lines, its events and its channels' names.
+
+| File | Form | Packets by kind | By path | Repeated | Broken | Marks | Marks repeated | Values compared | Differing |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|
+| `3a36f081e5be9e9d` | RTF export | AA 1233, CC 1237, PP 2469 | T 4939 | 2 | 0 | 4 | 0 | 20984 | 0 |
+| `8720c50cdeaf8ad3` | RTF export | CC 1, PP 2468 | T 2469 | 1 | 1 | 0 | 0 | 9873 | 0 |
+| `cd6f44ad29c505e6` | onboard log | AA 66113, CC 66118, PP 132231 | T 264462 | 2 | 0 | 4 | 0 | 1123957 | 0 |
+| `a10560cbf44516e5` | received | AA 10578, CC 10634, GG 4321, PP 17263 | N 34235, T 8561 | 8368 | 10495 | 1 | 1 | 158567 | 0 |
+
+Each received file and export against the flight computer's own log beside it: *Held* counts, by path, its whole packets, repeats included, for which the log holds a packet of the same stage, kind and clock, and *Differing* those whose values differ from it as numbers; the rest the log doesn't hold, the GPS fixes (`GG`), which only the second transmitter sends, and others.
+
+| File | Form | Onboard log | Held | Differing | Not held, GPS | Not held, other |
+|---|---|---|---|---:|---:|---:|
+| `3a36f081e5be9e9d` | RTF export | `cd6f44ad29c505e6` | T 4939 | 0 | 0 | 0 |
+| `8720c50cdeaf8ad3` | RTF export | `cd6f44ad29c505e6` | T 2469 | 0 | 0 | 0 |
+| `a10560cbf44516e5` | received | `cd6f44ad29c505e6` | N 29914, T 8561 | 0 | 4321 | 0 |
+
+The onboard log `cd6f44ad29c505e6` held to its flight, in the units read: the pad's pressure, the median of `PP 1` from 6 s to 1 s before liftoff, inside 500–1,100 hPa (the value not written, as it gives the site's elevation); liftoff the first packet after the last of stage `00` whose pressure is more than 1 hPa below the median of the 6 s to 1 s before it, where before liftoff no packet falls more than 0.61 hPa below its median, 0.894 s before the flight computer's next stage; apogee the least pressure. The time from liftoff to apogee over √(2h/g), h the standard atmosphere's height of the apogee's pressure above the pad's (44,330.77 × (1 − (P / 101,325)^0.190263) m, U.S. Standard Atmosphere, 1976), the clock read in ms: 1.0548, inside 0.5–2. Over the 2113 packets whose `PP 3` is above 200, `PP 3` is 1.116 to 1.231 times the standard atmosphere's height of `PP 1` above the pad's in meters, a measure, not a check: no unit is settled for it, so the reader keeps it as written.
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -789,4 +811,5 @@ The files read, by the logger each names:
 | Teensy data logger | 8 |
 | fw2kml | 15 |
 | phone app | 27 |
+| radio telemetry packets | 4 |
 | unknown | 52 |

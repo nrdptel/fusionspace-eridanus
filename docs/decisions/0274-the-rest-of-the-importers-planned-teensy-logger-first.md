@@ -133,7 +133,7 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
 files itself, and the 1,313,381 values it compares equal the reader's. Of the receiver's 42,796
 whole packets, 38,475 are the onboard log's packets of the same stage, kind and clock, every one
 field for field (29,914 relayed, 8,561 direct); the other 4,321 are GPS packets, which the onboard
-log doesn't record; 8,368 are repeats and 10,494 lines are broken. The exports' 4,939 and 2,469
+log doesn't record; 8,368 are repeats and 10,495 lines are broken. The exports' 4,939 and 2,469
 whole packets all match the onboard log's; one export has 1 broken line. The onboard log has no
 broken line. The time from liftoff to apogee is 1.055 times √(2h/g), and the pad's pressure is in
 its band. 39 files are left, to M7.1c20 to M7.1c23.
