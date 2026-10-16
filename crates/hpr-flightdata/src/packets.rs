@@ -33,8 +33,8 @@
 //! confirms them. Each kind is a set of channels on its own clock, named by the kind and the
 //! value's place from 1, such as `PP 1`, and the kind's stage field is its own channel, `PP stage`.
 //! A kind whose first packet is on stage `88`, the GPS packets in the samples, runs on the relaying
-//! transmitter's own clock, whose offset from the flight computer's is unknown (in the sample
-//! received file, about 55 minutes ahead): its times are gaps (`NaN`) and its clock is kept as
+//! transmitter's own clock, whose offset from the flight computer's nothing states: its times are
+//! gaps (`NaN`) and its clock is kept as
 //! written, ms, in a channel of its own, `GG clock`. A packet of the kind on another stage than its
 //! first's, or the reverse, is broken. The clock is read
 //! as milliseconds, the survey holding it to the flight: the time from liftoff (the first packet,

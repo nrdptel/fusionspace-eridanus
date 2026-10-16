@@ -1055,8 +1055,8 @@ document confirms what they mean, and what `AA` and `CC` measure isn't known.
 
 Each kind becomes a set of channels on its own clock, named by the kind and the value's place,
 such as `PP 1`, with the stage as a channel of its own, `PP stage`. The GPS packets (stage `88`)
-carry the relaying transmitter's own clock, not the flight computer's: in the received sample it
-runs about 55 minutes ahead, by an offset nothing states. So their times are left as gaps, and
+carry the relaying transmitter's own clock, not the flight computer's, ahead of it by an offset
+nothing states. So their times are left empty (gaps, with no place on the record's time axis), and
 their clock is kept as written in a channel of its own, `GG clock`. A `Stage Two` line, as the
 onboard log writes when the stage changes, becomes an event at the next packet's time. The word
 must be a number's, `One` to `Nine`: a mark the radio garbled is a broken line, and one heard

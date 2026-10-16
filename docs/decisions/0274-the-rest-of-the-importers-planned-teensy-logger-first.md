@@ -113,8 +113,8 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
    and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as a packet's
    fields don't depend on the path it came by. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line, its
    word a number's from `One` to `Nine`, is an event at the next packet's clock. A kind whose first
-   packet is on stage `88` runs on the relaying transmitter's own clock, about 55 minutes ahead of
-   the flight computer's in the received file by an offset nothing states: its times are gaps and
+   packet is on stage `88` runs on the relaying transmitter's own clock, ahead of the flight
+   computer's by an offset nothing states: its times are gaps and
    its clock is kept as written, in `GG clock`. The survey fails a received or exported packet the
    onboard log doesn't hold unless it is a GPS packet.
 2. **Broken and repeated packets are dropped and counted, not refused.** The receiver's text holds
