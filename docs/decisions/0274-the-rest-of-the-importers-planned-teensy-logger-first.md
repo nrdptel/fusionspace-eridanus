@@ -112,7 +112,11 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
    The path is `T` for the flight computer and `N` for a second transmitter that relays its packets
    and sends the GPS packets (kind `GG`, stage `88`); it isn't kept, as a packet's
    fields don't depend on the path it came by. Each kind is a channel set on its own clock, its stage a channel too; a `Stage` line, its
-   word a number's from `One` to `Nine`, is an event at the next packet's clock.
+   word a number's from `One` to `Nine`, is an event at the next packet's clock. A kind whose first
+   packet is on stage `88` runs on the relaying transmitter's own clock, about 55 minutes ahead of
+   the flight computer's in the received file by an offset nothing states: its times are gaps and
+   its clock is kept as written, in `GG clock`. The survey fails a received or exported packet the
+   onboard log doesn't hold unless it is a GPS packet.
 2. **Broken and repeated packets are dropped and counted, not refused.** The receiver's text holds
    packets the radio cut or ran together, and many packets twice. One rule for both text forms
    keeps the reader simple; the survey shows the onboard log has no broken line, so nothing is
@@ -130,7 +134,7 @@ and two exports of the log, cut to the flight. The plan stands; these are the re
    unit is read for it.
 
 **Consequences of the amendment.** The survey reads 1,020 of its 1,122 files. It decodes the four
-files itself, and the 1,313,381 values it compares equal the reader's. Of the receiver's 42,796
+files itself, and the 1,315,788 values it compares equal the reader's. Of the receiver's 42,796
 whole packets, 38,475 are the onboard log's packets of the same stage, kind and clock, every one
 field for field (29,914 relayed, 8,561 direct); the other 4,321 are GPS packets, which the onboard
 log doesn't record; 8,368 are repeats and 10,495 lines are broken. The exports' 4,939 and 2,469

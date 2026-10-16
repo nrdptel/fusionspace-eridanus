@@ -85,6 +85,9 @@ fn the_received_text_drops_broken_and_repeated_packets() {
     let log = import::read(bytes).unwrap();
     assert_eq!(channel(&log, "GG 3").values, [1234.56]);
     assert_eq!(channel(&log, "GG stage").values, [88.0]);
+    // The relaying transmitter's own clock: kept as written, no time on the log's axis.
+    assert_eq!(channel(&log, "GG clock").values, [100_050.0]);
+    assert!(channel(&log, "GG 3").time_s[0].is_nan());
     assert_eq!(channel(&log, "PP 1").time_s, [100.0, 100.3]);
     assert_eq!(channel(&log, "AA 1").values, [9.70]);
     assert_eq!(

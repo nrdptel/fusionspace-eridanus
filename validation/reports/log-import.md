@@ -434,7 +434,7 @@ The 4 files of one team's radio telemetry packets, `255:…:254` (M7.1c19), each
 | `3a36f081e5be9e9d` | RTF export | AA 1233, CC 1237, PP 2469 | T 4939 | 2 | 0 | 4 | 0 | 20984 | 0 |
 | `8720c50cdeaf8ad3` | RTF export | CC 1, PP 2468 | T 2469 | 1 | 1 | 0 | 0 | 9873 | 0 |
 | `cd6f44ad29c505e6` | onboard log | AA 66113, CC 66118, PP 132231 | T 264462 | 2 | 0 | 4 | 0 | 1123957 | 0 |
-| `a10560cbf44516e5` | received | AA 10578, CC 10634, GG 4321, PP 17263 | N 34235, T 8561 | 8368 | 10495 | 1 | 1 | 158567 | 0 |
+| `a10560cbf44516e5` | received | AA 10578, CC 10634, GG 4321, PP 17263 | N 34235, T 8561 | 8368 | 10495 | 1 | 1 | 160974 | 0 |
 
 Each received file and export against the flight computer's own log beside it: *Held* counts, by path, its whole packets, repeats included, for which the log holds a packet of the same stage, kind and clock, and *Differing* those whose values differ from it as numbers; the rest the log doesn't hold, the GPS fixes (`GG`), which only the second transmitter sends, and others.
 

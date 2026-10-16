@@ -25,12 +25,18 @@
 //! | `T` | the path it came by, one capital letter: `T` from the flight computer, `N` relayed by a second transmitter, which also sends the GPS packets |
 //! | `11` | two digits: the flight computer's stage of the flight, `00` to `55` in the samples, or `88` on a GPS packet |
 //! | `PP` | its kind, two capital letters |
-//! | `100150` | the flight computer's clock, ms, a whole number |
+//! | `100150` | the clock, ms, a whole number: the flight computer's, or on stage `88` the relaying transmitter's own |
 //! | the values | numbers, as many as the kind's first packet holds |
 //! | `254` | the packet's end |
 //!
-//! Each kind is a set of channels on its own clock, named by the kind and the value's place from
-//! 1, such as `PP 1`, and the kind's stage field is its own channel, `PP stage`. The clock is read
+//! The path, the stages' meanings and the GPS packets are inferred from the files: no document
+//! confirms them. Each kind is a set of channels on its own clock, named by the kind and the
+//! value's place from 1, such as `PP 1`, and the kind's stage field is its own channel, `PP stage`.
+//! A kind whose first packet is on stage `88`, the GPS packets in the samples, runs on the relaying
+//! transmitter's own clock, whose offset from the flight computer's is unknown (in the sample
+//! received file, about 55 minutes ahead): its times are gaps (`NaN`) and its clock is kept as
+//! written, ms, in a channel of its own, `GG clock`. A packet of the kind on another stage than its
+//! first's, or the reverse, is broken. The clock is read
 //! as milliseconds, the survey holding it to the flight: the time from liftoff (the first packet,
 //! after the pad's stage `00`, whose pressure is more than 1 hPa below the median of the 5 s ending
 //! 1 s before it) to the least pressure is 1.055 times √(2h/g), h the standard atmosphere's height
@@ -45,7 +51,8 @@
 //! such as `Stage Two`, is an event at the clock of the next packet; one heard again is a repeat. The onboard log opens with a whole number and `Gain[0]: …` lines, its filter's
 //! gains, which a note counts. Any other line is broken, a packet the radio cut or ran into the next:
 //! the receiver's text holds many. A broken line is dropped, and a note counts them; so is a
-//! packet heard again, the same stage, kind, clock and values as one already read, by either path.
+//! packet heard again, the same stage, kind, clock and values as written as one already read, by
+//! either path.
 //! A packet whose kind has another count of values than its first packet is broken.
 //!
 //! **The exports** ([`LogFormat::RadioPacketRtf`]) are an RTF document whose lines a spreadsheet
@@ -56,7 +63,8 @@
 //! of markup alone is dropped.
 //!
 //! **What refuses the file.** No packet at all ([`LogError::Syntax`]); more than [`MAX_KINDS`]
-//! kinds, more than [`MAX_VALUES`] values in a packet, or a clock of 2³² ms, 49.7 days, or more.
+//! kinds, more than [`MAX_VALUES`] values in a packet, a clock of 2³² ms, 49.7 days, or more, or a
+//! `PP 1` too large for its conversion to pascals.
 //!
 //! The record has no barometric track, as no packet states an altitude above the pad in a settled
 //! unit: [`FlightLog::time_s`] and [`FlightLog::altitude_m`] are empty, and every value is a channel.
@@ -85,6 +93,9 @@ pub const MAX_VALUES: usize = 32;
 
 /// The largest clock, ms: a 32-bit count of milliseconds.
 const CLOCK_LIMIT_MS: u64 = u32::MAX as u64;
+
+/// The stage field of the relaying transmitter's packets, the GPS packets in the samples.
+const RELAYED_STAGE: &str = "88";
 
 /// Hectopascals to pascals.
 const HECTOPASCAL_PA: f64 = 100.0;
@@ -234,6 +245,10 @@ fn rtf_line(line: &str, last: bool) -> RtfLine<'_> {
 struct Kind<'a> {
     name: &'a str,
     count: usize,
+    /// Whether the kind runs on the relaying transmitter's own clock, as stage `88`'s packets do.
+    own_clock: bool,
+    /// Each packet's clock as written, ms, kept for a kind on its own clock.
+    clocks: Vec<f64>,
     time_s: Vec<f64>,
     stages: Vec<f64>,
     values: Vec<Vec<f64>>,
@@ -289,6 +304,8 @@ impl<'a> Reading<'a> {
                 self.kinds.push(Kind {
                     name: packet.kind,
                     count: packet.values.len(),
+                    own_clock: packet.stage == RELAYED_STAGE,
+                    clocks: Vec::new(),
                     time_s: Vec::new(),
                     stages: Vec::new(),
                     values: vec![Vec::new(); packet.values.len()],
@@ -296,7 +313,8 @@ impl<'a> Reading<'a> {
                 self.kinds.len() - 1
             }
         };
-        if self.kinds[index].count != packet.values.len() {
+        let kind = &self.kinds[index];
+        if kind.count != packet.values.len() || kind.own_clock != (packet.stage == RELAYED_STAGE) {
             self.broke(line);
             return Ok(());
         }
@@ -309,13 +327,20 @@ impl<'a> Reading<'a> {
             self.repeated += 1;
             return Ok(());
         }
-        // The clock's milliseconds as seconds: a shrinking conversion, which can't overflow.
-        let time_s = packet.clock_ms as f64 / 1000.0;
-        for name in self.pending_marks.drain(..) {
-            self.events.push(Event { time_s, name });
-        }
         let kind = &mut self.kinds[index];
-        kind.time_s.push(time_s);
+        if kind.own_clock {
+            // Another clock than the flight computer's, its offset unknown: no time on the log's
+            // axis.
+            kind.time_s.push(f64::NAN);
+            kind.clocks.push(packet.clock_ms as f64);
+        } else {
+            // The clock's milliseconds as seconds: a shrinking conversion, which can't overflow.
+            let time_s = packet.clock_ms as f64 / 1000.0;
+            for name in self.pending_marks.drain(..) {
+                self.events.push(Event { time_s, name });
+            }
+            kind.time_s.push(time_s);
+        }
         kind.stages.push(f64::from(stage_number(packet.stage)));
         for (place, (column, value)) in kind.values.iter_mut().zip(&packet.values).enumerate() {
             let value = if packet.kind == "PP" && place == 0 {
@@ -389,6 +414,14 @@ impl<'a> Reading<'a> {
                 time_s: kind.time_s.clone(),
                 values: kind.stages,
             });
+            if kind.own_clock {
+                channels.push(Channel {
+                    column: format!("{} clock", kind.name),
+                    quantity: Quantity::Unrecognized,
+                    time_s: kind.time_s.clone(),
+                    values: kind.clocks,
+                });
+            }
             for (place, values) in kind.values.into_iter().enumerate() {
                 let quantity = if kind.name == "PP" && place == 0 {
                     Quantity::Pressure

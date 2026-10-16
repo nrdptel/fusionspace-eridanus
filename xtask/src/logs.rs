@@ -4255,7 +4255,7 @@ fn decode_packets(text: &str, export: bool) -> PacketDecoding {
         .filter(|line| !line.is_empty())
         .collect();
     let mut decoding = PacketDecoding::default();
-    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut counts: BTreeMap<String, (usize, bool)> = BTreeMap::new();
     let mut heard: BTreeSet<(String, String, u64, Vec<String>)> = BTreeSet::new();
     let mut pending: Vec<String> = Vec::new();
     let mut seen_marks: BTreeSet<String> = BTreeSet::new();
@@ -4289,10 +4289,13 @@ fn decode_packets(text: &str, export: bool) -> PacketDecoding {
             }
             continue;
         };
-        let count = *counts
+        // A kind's first packet sets its count of values and its clock: stage `88`'s packets, the
+        // relaying transmitter's, run on that transmitter's own clock.
+        let own_clock = packet.stage == "88";
+        let first = *counts
             .entry(packet.kind.clone())
-            .or_insert(packet.written.len());
-        if count != packet.written.len() {
+            .or_insert((packet.written.len(), own_clock));
+        if first != (packet.written.len(), own_clock) {
             decoding.broken += 1;
             continue;
         }
@@ -4302,7 +4305,7 @@ fn decode_packets(text: &str, export: bool) -> PacketDecoding {
             packet.clock_ms,
             packet.written.clone(),
         ));
-        if !repeat {
+        if !repeat && !own_clock {
             let time_s = packet.clock_ms as f64 / 1000.0;
             decoding
                 .marks
@@ -4325,15 +4328,28 @@ fn packet_columns(decoding: &PacketDecoding) -> Vec<(String, Vec<f64>, Vec<f64>)
         .zip(&decoding.repeat)
         .filter(|(_, repeat)| !**repeat)
     {
-        let time_s = packet.clock_ms as f64 / 1000.0;
+        // Stage `88`'s kinds run on the relaying transmitter's own clock: no time on the log's
+        // axis, and their clock kept as written in `<kind> clock`.
+        let own_clock = packet.stage == "88";
+        let time_s = if own_clock {
+            f64::NAN
+        } else {
+            packet.clock_ms as f64 / 1000.0
+        };
         let stage_name = format!("{} stage", packet.kind);
         if !columns.iter().any(|(name, ..)| *name == stage_name) {
             columns.push((stage_name.clone(), Vec::new(), Vec::new()));
+            if own_clock {
+                columns.push((format!("{} clock", packet.kind), Vec::new(), Vec::new()));
+            }
             for place in 1..=packet.written.len() {
                 columns.push((format!("{} {place}", packet.kind), Vec::new(), Vec::new()));
             }
         }
         let mut values = vec![packet.stage.parse::<f64>().unwrap_or(f64::NAN)];
+        if own_clock {
+            values.push(packet.clock_ms as f64);
+        }
         for (place, written) in packet.written.iter().enumerate() {
             let value = written.parse::<f64>().unwrap_or(f64::NAN);
             values.push(if packet.kind == "PP" && place == 0 {
@@ -4610,8 +4626,12 @@ fn packet_checks(samples: &[Sample]) -> Vec<PacketFile> {
                     file.times_differing += times.len();
                     continue;
                 };
+                // A gap in both, as the relaying transmitter's times are, is no difference.
                 let off = |ours: &[f64], theirs: &[f64]| {
-                    ours.iter().zip(theirs).filter(|(a, b)| a != b).count()
+                    ours.iter()
+                        .zip(theirs)
+                        .filter(|(a, b)| a != b && !(a.is_nan() && b.is_nan()))
+                        .count()
                         + ours.len().abs_diff(theirs.len())
                 };
                 file.values_differing += off(values, &channel.values);
@@ -4703,6 +4723,7 @@ fn packet_unread(files: &[PacketFile]) -> Vec<String> {
                         f.onboard.is_none()
                             || f.held.values().sum::<usize>() == 0
                             || f.held_differing > 0
+                            || f.unheld_other > 0
                     }
                     _ => true,
                 }
@@ -4713,7 +4734,7 @@ fn packet_unread(files: &[PacketFile]) -> Vec<String> {
                  the same columns: {}, the same events: {}, PP 1 read as a pressure: {}, repeats \
                  {} against the reader's {}, repeated marks {} against {}, broken lines {} against \
                  {}, onboard log {:?}, held \
-                 {:?} of which {} differ, ambiguous keys {}, pad pressure in its band: {:?}, \
+                 {:?} of which {} differ, not held other than GPS {}, ambiguous keys {}, pad pressure in its band: {:?}, \
                  apogee time over √(2h/g) {:?}",
                 f.id,
                 f.form,
@@ -4732,6 +4753,7 @@ fn packet_unread(files: &[PacketFile]) -> Vec<String> {
                 f.onboard,
                 f.held,
                 f.held_differing,
+                f.unheld_other,
                 f.ambiguous_keys,
                 f.pad_pressure_in_band,
                 f.apogee_time_ratio
@@ -9271,6 +9293,14 @@ mod tests {
             },
             PacketFile {
                 times_differing: 1,
+                ..export.clone()
+            },
+            PacketFile {
+                unheld_other: 1,
+                ..received.clone()
+            },
+            PacketFile {
+                unheld_other: 1,
                 ..export.clone()
             },
             PacketFile {

@@ -218,8 +218,7 @@ flights in spreadsheets; the events files a
 flyer's own program wrote from a Blue Raven's low-rate file, the same program's copy of a Blue
 Raven's summary, and the descriptions of a rocket such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
-them an older `.xls` spreadsheet and a radio telemetry stream
-saved as RTF, are refused today, most as *unrecognized*; they come with
+them an older `.xls` spreadsheet, are refused today, most as *unrecognized*; they come with
 [M7.1c20](../decisions-and-roadmap.md#m7-1c20) to
 [M7.1c23](../decisions-and-roadmap.md#m7-1c23), and the [survey's report](#how-it-was-checked)
 counts them by layout.
@@ -1025,7 +1024,9 @@ which decided it). `import::read` reads all three forms with `hpr_flightdata::pa
 > **How far to trust it.** The layout is taken from the files. Every packet the receiver's text
 > or an export holds that the onboard log also holds, by its stage, kind and clock, matches the
 > log's field for field ([below](#how-the-radio-packets-were-checked)); the receiver's GPS packets
-> are the only ones the log doesn't hold. The clock is read in milliseconds and one value
+> are the only ones the log doesn't hold. That match shows the copies are decoded alike, not that
+> a value is right: the two physical checks below, a pressure band and a time to apogee within a
+> factor of 2, are what hold the units. The clock is read in milliseconds and one value
 > in hectopascals, each held to the flight's physics; the other values are kept as written,
 > because nothing settles their units. No readings, such as the apogee, are taken from these
 > files yet: they come with [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -1045,12 +1046,18 @@ are from the crate's test files:
 | `T` | the path it came by: `T` from the flight computer, `N` relayed by a second transmitter, which also sends the GPS packets |
 | `11` | the flight computer's stage of the flight, `00` to `55` in the samples, or `88` on a GPS packet |
 | `PP` | the packet's kind, two capital letters: the samples have `PP`, `AA`, `CC` and `GG` (GPS) |
-| `100150` | the flight computer's clock, in milliseconds |
+| `100150` | the clock, in milliseconds: the flight computer's, or on stage `88` the relaying transmitter's own |
 | the values | numbers, as many as the kind's first packet holds |
 | `254` | the packet's end |
 
+The path, the stages and the GPS packets are read from the files, not from a document: no
+document confirms what they mean, and what `AA` and `CC` measure isn't known.
+
 Each kind becomes a set of channels on its own clock, named by the kind and the value's place,
-such as `PP 1`, with the stage as a channel of its own, `PP stage`. A `Stage Two` line, as the
+such as `PP 1`, with the stage as a channel of its own, `PP stage`. The GPS packets (stage `88`)
+carry the relaying transmitter's own clock, not the flight computer's: in the received sample it
+runs about 55 minutes ahead, by an offset nothing states. So their times are left as gaps, and
+their clock is kept as written in a channel of its own, `GG clock`. A `Stage Two` line, as the
 onboard log writes when the stage changes, becomes an event at the next packet's time. The word
 must be a number's, `One` to `Nine`: a mark the radio garbled is a broken line, and one heard
 again is dropped.
@@ -1092,7 +1099,7 @@ the receiver's text and of the exports in the onboard log, by its stage, kind an
 | the export of mostly pressures | RTF | 2,469 | 2,469 | 0 | 0 | 0 | 1 | 1 |
 
 The onboard log itself holds 264,462 whole packets and no broken line; 2 are repeated. Counts
-include repeats; *repeated* counts the packets a reading drops as heard before, by either path. The survey compares 1,313,381 values
+include repeats; *repeated* counts the packets a reading drops as heard before, by either path. The survey compares 1,315,788 values
 with the reader's in all four files, and none differs. The GPS packets are the second
 transmitter's fixes, which the onboard log doesn't record.
 
@@ -1583,9 +1590,9 @@ sample logs:
   counted in a note. In the sample file, the table's clock is in milliseconds and its heights in
   feet, each by two checks, the coast among them (above); its speeds, which don't follow the
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
-  knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
-  radio telemetry stream in two other sample files, which comes with
-  [M7.1c20](../decisions-and-roadmap.md#m7-1c20).
+  knows. An RTF document holding anything else is refused as not an Eggtimer's. The radio packets
+  in two other sample files are read by
+  [the packets' reader](#one-teams-radio-telemetry-packets), not this one.
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
