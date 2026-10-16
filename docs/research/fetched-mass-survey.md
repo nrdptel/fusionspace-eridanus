@@ -4,7 +4,7 @@ This note surveys every H-to-O solid motor in ThrustCurve's search API, takes th
 and compares its header masses with the record's `propWeightG` and `totalWeightG`. It follows
 [AMW retests](amw-retests.md) §3 and feeds [issue #578](https://github.com/nrdptel/fusionspace-eridanus/issues/578)
 (a fetched-mass cross-check), [motor data](motor-data.md) and [apogee bias](apogee-bias.md). Read 2026-10-15;
-**Inference** marks this note's own readings.
+**Inference** marks this note's own readings. Corrected 2026-10-16: mass-expended files fly the right burnout mass.
 
 **In short.** Disagreement is common, mostly harmless in sign, and has no natural gap to set a tolerance.
 - **One file in three is off by more than 2%.** Of 685 motors with a file and a record, the file's propellant mass
@@ -12,11 +12,14 @@ and compares its header masses with the record's `propWeightG` and `totalWeightG
   better: 57 of 632 beyond 1%, 9 beyond 5% (§2).
 - **The file is mostly high, half of those for one reason.** 168 of the 223 are file-high, 84 of them for this
   one: for 98 files the "propellant" is CAR's loaded mass minus its burnout mass, median 5.0% above the propellant.
-  Too much propellant leaves the rocket light at burnout, so apogee reads high, the waiver-unflattering side (§3).
+  Their loaded mass matches CAR's too, so they fly CAR's measured burnout mass (all 98 within 0.72%); only the
+  mass during the burn runs light (§3).
 - **The flattering side is smaller but real.** 55 files are low by more than 2%, 17 by more than 10%. Of the seven
   beyond −20%, four give the mass after firing as propellant and three are unexplained (§3).
-- **The record is usually the right one.** Against CAR's index, the record matches the certified propellant mass
-  for 174 of 179 matched files, the file for 69. Two records hold CAR's burnout mass instead (§4).
+- **The record holds the propellant, the file the burnout mass.** Against CAR's index, the record matches the
+  certified propellant for 174 of 179 matched files, the file for 69. But with the file's loaded mass, the record's
+  propellant leaves the 98 mass-expended motors heavy at burnout by a median 6.7%. Two records hold CAR's burnout
+  mass instead (§4).
 - **No natural gap; the guard sees none of it.** Down to −20.5% the file-low gaps have no step over 2.1 points; six
   more scatter from −24.6% to −52.5%. The 200–5,000 m/s exhaust-velocity guard refuses no taken file (§5). On toy
   rockets a 20% low file costs 0.5–0.8% of apogee.
@@ -74,8 +77,10 @@ Patterns found by `scripts/classify.py` (one quantity equal to another within 1 
   burnout mass [S4]: 90 Cesaroni (59 cert RASP) and 8 CAR-certified AMW. They exceed CAR's propellant by
   median **+5.0%** (p10 +1.5%, p90 +10.4%, max +15.3%). Example: 168H410-14A's file gives 84.5 g, CAR 75.9 g
   propellant, 182.5 g loaded, 98.0 g burnout. The excess is likely delay grain, ejection charge and liner, some
-  of it leaving after burnout (**Inference**: no source found gives what it is made of or the split), so the
-  burnout-mass error lies anywhere from 0 to the whole excess, up to 15% of the propellant.
+  of it leaving after burnout (**Inference**: no source found gives what it is made of or the split). For all 98,
+  the file's loaded minus propellant is CAR's measured burnout mass within 0.72% (median 0.0%;
+  `verify/burnout.py`), so the burnout mass flown is right. The mass falls too fast during the burn, by up to 15%
+  of the propellant, and if part of the excess (a delay grain) burns after burnout, the coast is light by that part.
 - **Mass after firing given as propellant (file low).** Cesaroni 4937L395-P −35.2%, 548I242-15A −26.3% and
   517I255-16A −17.3% equal CAR's burnout mass [S4]. AMW N4000BB −19.3% and N2700BB −7.1% are the sheets' mass
   after firing (amw-retests §3). AeroTech L339N (−24.6%) and Ellis J228 (−52.5%) fit the same pattern on the
@@ -102,7 +107,9 @@ Patterns found by `scripts/classify.py` (one quantity equal to another within 1 
 
 - **CAR-certified motors.** 179 taken files match a CAR row by designation (154 Cesaroni, 25 AMW) [S4]. The record
   equals CAR's propellant for 174; the file for 69, the mass expended for 98, the burnout mass for 4.
-  So for these makers the record is the better source (`car_check.py`).
+  So for these makers the record is the better source for the propellant (`car_check.py`), but not for the
+  burnout mass: the record's propellant with the file's loaded mass leaves the 98 mass-expended motors heavy at
+  burnout by a median 6.7% (0.6% to 45.6%, the top where the record itself is wrong; `verify/burnout.py`).
 - **CAR's own rows have slips:** 836J210-16A lists 82.7 g of propellant (ISP 403 s), and 287H340-14A and
   305H226-14A look swapped (**Inference**: 305H226's CAR propellant, 206.7 g, exceeds its loaded minus burnout
   mass, 184 g). Their files and records agree, so they are not in the tail; they are 3 of the 5 records that miss
@@ -132,17 +139,18 @@ is denser still, filled by the mass-expended files at +1 to +15%.
 | Taken files flagged, file below record | 92 | 55 | 49 | 33 | 24 | 17 | 10 | 7 |
 
 - **Which way each errs.** A file-low propellant leaves the burnout mass heavy and the apogee low: the
-  waiver-flattering side. A two-sided check at 2–5% would also fire on most of the 98 mass-expended files, whose
-  error is the safe side for a waiver. A one-sided check at 5% flags 33 motors, both AMW N files among them; at
+  waiver-flattering side. A two-sided check at 2–5% would also fire on most of the 98 mass-expended files, which
+  fly the measured burnout mass. A one-sided check at 5% flags 33 motors, both AMW N files among them; at
   10% it misses N2700BB (**Inference**).
 - **The guard.** Every taken file's `c` is 1,274 to 4,128 m/s (`analyze.py`), inside 200–5,000 m/s, so the guard
   refuses none, and it can't: a 20% mass error moves `c` by 25%, a unit slip by 1,000 times.
 - **Apogee size.** `scripts/toy_sensitivity.py` flies three invented rockets (H128W on 1.2 kg, K456DM on 4 kg,
   M1297W on 12 kg; C_D 0.45) with the propellant scaled at a fixed loaded mass. Apogee moves 0.026–0.042% per 1%
-  of propellant gap: −20% costs 0.52–0.84%, +10% adds 0.23–0.41%. AMW retests found 0.9–1.2% for N4000BB.
-- **Bundled catalog.** One of its 22 H+ curves, 21062O3400-P (+3.1% on the record), carries the mass-expended
-  header (its 11,272 g is CAR's loaded minus burnout mass); 3300L3200-P is +6.6% with no CAR row to tell. The catalog is
-  now built from headers alone ([ThrustCurve data](thrustcurve-data.md) §6).
+  of propellant gap: −20% costs 0.52–0.84%, +10% adds 0.23–0.41% (not for mass-expended files, whose burnout
+  mass is right). AMW retests found 0.9–1.2% for N4000BB.
+- **Bundled catalog** (built from headers, [ThrustCurve data](thrustcurve-data.md) §6): of 22 H+ curves,
+  21062O3400-P (+3.1%) carries the mass-expended header and so flies CAR's 5,570 g burnout mass; 3300L3200-P
+  is +6.6% with no CAR row to tell.
 
 ## What this suggests
 
@@ -150,12 +158,12 @@ is denser still, filled by the mass-expended files at +1 to +15%.
   tolerance, naming both masses. No natural gap sets the number; 5% is a choice: it catches both AMW N files,
   flags 33 of 685 motors, and what it lets through costs about 0.2% of apogee or less on the toy rockets.
   Its tests would pin N4000BB-like and N2700BB-like files and one at −4.9%.
-- **Or fly the record's masses** when the record has them, the file's curve unchanged. On CAR-certified motors the
-  record matches CAR's propellant for 174 of 179, the file for 69. Refusing a record whose `c` exceeds 2,450 m/s
-  would refuse seven: the two burnout-mass records, and 654J316-17A, J148, M6000ST, HP-H135W and K400C, whose
-  files agree with their records (**Inference**).
-- **Motor data's trust statement** can say: a fetched file's propellant mass is within 0.5% of ThrustCurve's
-  record for 386 of 685 H+ motors, beyond 5% for 136, and the loaded mass beyond 1% for 57 of 632.
+- **Not the record's propellant on its own.** Swapping it in for the file's would fix the propellant on 174 of
+  179 CAR-matched motors, but leave the 98 mass-expended motors heavy at burnout (median 6.7%), the
+  waiver-flattering side. A record-plausibility bound at 2,450 m/s would refuse seven records: the two
+  burnout-mass ones, and 654J316-17A, J148, M6000ST, HP-H135W and K400C, whose files agree (**Inference**).
+- **Motor data's trust statement:** a fetched file's propellant is within 0.5% of the record for 386 of 685 H+
+  motors and beyond 5% for 136; the loaded mass is beyond 1% for 57 of 632.
 - **Apogee bias:** on the three toy rockets, the low-apogee share from fetched masses is under 1% of apogee on all
   but about six of the 55 file-low motors (up to about 2% for J228), and near zero on the median motor. On those
   rockets it cannot explain a bias of several percent.
@@ -189,4 +197,4 @@ Read 2026-10-15 unless noted. Downloads cached under `refs/research/fetched-mass
 6. **S6** NAR data sheets for AMW N2700BB and N4000BB, as [AMW retests](amw-retests.md) D5, D6.
 7. **Scripts** (`refs/research/fetched-mass-survey/scripts/`, run with `python3 -I`): `fetch.py`, `survey.py`
    (writes `data/rows.json`), `analyze.py`, `classify.py`, `car_check.py`, `shared.py`, `tolerance.py`,
-   `toy_sensitivity.py`; their outputs are the `data/*-out.txt` files.
+   `toy_sensitivity.py`; their outputs are the `data/*-out.txt` files. `verify/` holds the check pass's recounts.
