@@ -148,12 +148,12 @@ public form.
 | Arcas Robin, short (tunnel) | 1.0–1.2 | +59% (at 1.0) | +55% | 2.6 calibers aft |
 | HPR Sim on the Arcas, short | 1.2 (its M_s) | +71% | +71% | 1.6 calibers aft |
 | Basic Finner (dense set) | 1.07–1.10 | +22% to +26% | +9% to +12% | 0.2 caliber aft |
-| Allen 2001, fin 12 (from 0.9) | ≥ 1.2 | — | +16% from 0.9 | 0.34 caliber aft from 0.9 |
-| Allen 2005, body + tails, 0° | ≥ 1.19 | — | +19% from 0.9 | 0.43 caliber aft from 0.9 |
+| Allen 2001, fin 12 (from 0.9) | ≥ 1.2 | no 0.8 point | +16% from 0.9 | 0.34 caliber aft from 0.9 |
+| Allen 2005, body + tails, 0° | ≥ 1.19 | no 0.8 point | +19% from 0.9 | 0.43 caliber aft from 0.9 |
 | RM SL56A30 store | dip at 1.0 | −9% (from 0.6) | +20% (from 0.6) | 0.68 caliber forward at 1.0 |
 
-**Inference** throughout. The Arcas and HPR Sim rows use the aero page's short-model table; its CP in metres is
-converted at about 0.0573 m a caliber, the ratio of its own metre and caliber columns. The 2.36-caliber miss is the
+**Inference** throughout. The Arcas and HPR Sim rows use the aero page's short-model table; its CP in meters is
+converted at about 0.0573 m a caliber, the ratio of its own meter and caliber columns. The 2.36-caliber miss is the
 long model's.
 
 ## What this suggests
