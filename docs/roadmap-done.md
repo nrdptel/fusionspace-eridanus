@@ -296,6 +296,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M6.2d EGO ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d1 Branin and Hartmann 3 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d2 Hartmann 6 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
+- M7.1 Flight log importers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1a The record, a survey, three families ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1b RRC3, Eggtimer and Blue Raven CSV ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c The other importers ([Phase 5](#phase-5-flight-data-and-forensics))
@@ -322,7 +323,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c21 Altimeters' other text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c22 Tables by mapping, and files that aren't logs ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c23 The last binaries; formats with no sample ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1d A flyer's own logger and GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1d1 GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1d2 Your own logger from the command line and Python ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1492,7 +1495,13 @@ One line per milestone or increment, in the order it was archived within its pha
 
 ## Phase 5: Flight data and forensics
 
-- **M7.1** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+- [x] **M7.1 Flight log importers** (ADR-251): one canonical flight record every importer maps
+  into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
+  snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
+  Formats without samples are listed in the docs as needing samples.
+  Met (ADR-251, ADR-276): of 1,122 sample files, 1,052 read and pinned by the report (one a KML
+  map rather than a flight's log); the 3 damaged and the 67 others that aren't logs refused by name
+  and listed; `logs --check` and `wasm-check` pass.
   - [x] **M7.1a The record, a survey, three families.** *Done when:* `cargo xtask logs` surveys
     every log sample in refs by family, read or refused with a reason, into a committed
     report (counts, anonymized ids) the refs step checks; every PerfectFlite (`.pf2`, CSV, text),
@@ -1692,12 +1701,22 @@ One line per milestone or increment, in the order it was archived within its pha
       each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
       report and M7.1 left open while it lasts; the guide lists every format the roadmap names
       with no sample (CATS, Juno) as needing samples.
-  - **M7.1d** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.1d A flyer's own logger and GPX tracks** (ADR-276): in two.
     - [x] **M7.1d1 GPX tracks.** *Done when:* GPX 1.0 and 1.1 files read, each track
       segment a GPS track (latitude, longitude, elevation of unstated datum, time), routes and
       waypoints kept apart; every value of the invented samples equals gpxpy's
       (`validation/oracles/gpx/`); a DTD or entity, a point off the globe and a time that goes
       back refused by name (tests); the guide says GPX is read from invented samples only.
+    - [x] **M7.1d2 Your own logger from the command line and Python.** *Done when:*
+      `hpr analyze` reads a table by a column mapping and binary records or a console capture by
+      a record layout, each a JSON file with a schema under `schema/`, refused naming the field
+      it fails (tests); it prints a table's header reading as a mapping to edit; the Python
+      package reads a log by its reader, a mapping or a layout; a mapping can mark the primary
+      track; refs' mapped tables and layout files read the same record from the library, the
+      command and Python, channel by channel (tests), and an invented GPS-only table by a
+      mapping; the guide works one invented logger through both.
+      Met (ADR-276 amended): 31 sample files (26 mapped, 5 laid out) and 4 invented ones read
+      alike on all three; `hpr analyze --print-mapping`, `--mapping`, `--layout`, `--record`.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

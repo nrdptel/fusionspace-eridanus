@@ -16,8 +16,7 @@ AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its f
 board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a
 phone app's `launch` CSV, an Eggtimer's download saved as RTF, the Raven's `.FIPa` and the
 RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no samples), the
-R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files, Missile Works' RTx tracker's `.rtx` file and its exports, and GPX files (checked on invented files only), and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`), a team flight computer's binary records by a layout the caller states (the library only), a Blue Raven's USB download, each line held to its CRC (the library only), and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a header you state, an AltiMAX altimeter's `.xls` export and its own `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns, and tables whose headers state too little, by a column mapping you state, the sample tables' mappings each holding every unit to a physical check (the library only) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
-readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
+R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files, Missile Works' RTx tracker's `.rtx` file and its exports, and GPX files (checked on invented files only), and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook, a team flight computer's binary records by a layout the caller states, a Blue Raven's USB download, each line held to its CRC, and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a header you state, an AltiMAX altimeter's `.xls` export and its own `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns, and tables whose headers state too little, by a column mapping you state, the sample tables' mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md)). Python reads by its reader each the library tells from the file alone, and a table or binary records by a mapping or a layout, but not yet an `.xls` export, a zip archive's files or a workbook's sheet but by a mapping ([`FlightLog`](your-own-logger.md#from-python)); `hpr analyze` reads PerfectFlite's `.pf2` logs by their reader and any other logger's table by a column mapping, its binary records by a record layout ([Reading your own logger](your-own-logger.md)). Readings are taken from PerfectFlite's logs only: [M7.2](decisions-and-roadmap.md#m7-2) validates them on other
 loggers. Formats no sample holds yet, such as a CATS flight computer's, are
 [listed as needing samples](format/flight-logs.md#formats-that-need-samples).
 
@@ -42,7 +41,9 @@ hpr analyze flight.pf2
 prints the readings as text, or as one JSON document with `--json`.
 [`hpr analyze`](cli.md#hpr-analyze) shows its output on an example log, and its
 [JSON schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze.schema.json) lists
-the fields.
+the fields. Another logger's table is read by a column mapping, `--mapping`, and its binary
+records by a record layout, `--layout`: each a JSON file you write, as
+[Reading your own logger](your-own-logger.md) works through on an invented logger.
 
 ## From a program
 
@@ -207,9 +208,10 @@ speed is `max_speed` in both.
   PerfectFlite's ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
-- Read GPX tracks ([M7.1d1](decisions-and-roadmap.md#m7-1d1)), or take a column mapping or
-  a record layout for your own logger anywhere but the Rust library: `hpr analyze` and Python
-  come with [M7.1d2](decisions-and-roadmap.md#m7-1d2).
+- Read another logger's file by its own reader from the command line: `hpr analyze` reads
+  PerfectFlite's `.pf2` that way, and a table or binary records by the column mapping or record
+  layout you write for it ([Reading your own logger](your-own-logger.md)); Python reads by its
+  reader each format the library tells from the file alone.
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).
 - Check a barometric reading near the speed of sound. Debrief stops trusting one above Mach 0.9;
   the analyzer doesn't check yet.

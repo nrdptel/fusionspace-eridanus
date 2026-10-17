@@ -26,7 +26,7 @@ part, and 12 by nothing:
 | G8 | GPS heights: a phone app's altitude unit as written; KML heights the least sure | FL, GPS logs | no |
 | G9 | Formats with no sample (CATS, "Juno" and the others listed), refused, not shipped | FL, formats that need samples | yes (research note, #603, #604) |
 | G10 | The analyzer's readings: an invented `.pf2` and one real log by hand; withheld for other loggers | [log readings](../physics/log-readings.md) | yes (M7.2, #524) |
-| G11 | Reading your own logger: an invented logger and an invented GPS table | the own-logger guide (M7.1d2) | in part (M7.2, #600) |
+| G11 | Reading your own logger: an invented logger and an invented GPS table | [your own logger](../your-own-logger.md) | in part (M7.2, #600) |
 | G12 | Dryden turbulence, unvalidated for rockets | [turbulence](../physics/turbulence.md) | yes (#39) |
 | G13 | A dropped booster's or middle stage's own flight | [staging](../physics/staging.md) | yes (#179, #354) |
 | G14 | Base drag with the motor burning | [aero](../physics/aero.md) | yes (#633) |
@@ -104,7 +104,7 @@ and nothing fails when one is missing (the 12 untracked gaps). Widening the accu
 has one row per model and four fixed columns, and the readers' gaps are per field and per format.
 Keeping the prose: the status quo.
 
-**Consequences.** M2.10 goes next in the queue, after M7.1, ahead of M7.2's readings, which lean
+**Consequences.** M2.10 goes first in the queue, ahead of M7.2's readings, which lean
 on the same readers. The first run of the check will fail on every gap above until each has a row
 and an issue; that is the milestone's work. Issue work then takes the `needs-sample` issues
 like any other, and a periodic search keeps each row's `searched` list current.

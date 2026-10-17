@@ -115,6 +115,10 @@
 //! converted to seconds. The record has no primary track ([`FlightLog::time_s`] and
 //! [`FlightLog::altitude_m`] are empty): which column is a barometric altitude above the pad isn't
 //! stated, so the readings that need one wait for [M7.2][roadmap] to take them from the channels.
+//! A mapping can state it ([`Mapping::primary`]): that column, an
+//! [`Quantity::AltitudeAboveGround`], becomes the primary track on the clock, and stays a channel
+//! too. Its clock must go forward, as the track's must; a mapping is refused if it doesn't, or if
+//! the column holds no altitude it can read.
 //!
 //! **A column mapping.** [`mapping`] returns what the reader takes from the header, as a
 //! [`Mapping`] a person or a program can change; [`read_with`] reads a file by a mapping, with the
@@ -213,6 +217,7 @@
 
 use std::borrow::Cow;
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::error::LogError;
@@ -273,7 +278,8 @@ const SINGLE_LETTER_SUFFIXES: [&str; 6] = ["s", "m", "g", "c", "f", "v"];
 /// How a file's columns are read: the header's line, the separator, and what each column holds.
 /// [`mapping`] returns the one the header states; a caller may change it and read the file by it
 /// with [`read_with`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Mapping {
     /// The header row's line, from 1; `None` for a file with no header row, whose rows start at
     /// its first line that isn't blank or a `#` comment.
@@ -285,6 +291,12 @@ pub struct Mapping {
     pub decimal_comma: bool,
     /// The clock's column, from 0. Its [`ColumnMapping::unit`] must be a unit of time.
     pub clock: usize,
+    /// The primary track's column, from 0: the barometric altitude above the pad, which becomes
+    /// [`FlightLog::altitude_m`] on the clock, [`FlightLog::time_s`] (module docs, *The record*).
+    /// Its quantity must be [`Quantity::AltitudeAboveGround`]. `None` for a table that has none,
+    /// or doesn't say which; the header never says, so [`mapping`] returns `None`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub primary: Option<usize>,
     /// Every column, in the file's order.
     pub columns: Vec<ColumnMapping>,
     /// The count the clock turns over at, in its unit, for a logger's counter that runs over,
@@ -298,7 +310,7 @@ pub struct Mapping {
 }
 
 /// How a table's rows are written (module docs, *A column mapping*).
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RowForm {
     /// Cells between separators.
@@ -319,7 +331,8 @@ impl RowForm {
 }
 
 /// What one column holds.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ColumnMapping {
     /// The column's name, as the header writes it, or as the caller names it.
     pub name: String,
@@ -1025,6 +1038,7 @@ fn find_header(text: &str) -> Option<(Mapping, Vec<String>)> {
             separator,
             decimal_comma,
             clock,
+            primary: None,
             columns,
             clock_wrap: None,
             rows: RowForm::Cells,
@@ -1048,6 +1062,16 @@ pub fn mapping(text: &str) -> Result<Mapping, LogError> {
     find_header(text)
         .map(|(mapping, _)| mapping)
         .ok_or_else(not_this_format)
+}
+
+/// [`mapping`], with a note on each column the header leaves kept as written, saying why, as
+/// [`read`] gives them.
+///
+/// # Errors
+///
+/// As [`mapping`].
+pub fn header_reading(text: &str) -> Result<(Mapping, Vec<String>), LogError> {
+    find_header(text).ok_or_else(not_this_format)
 }
 
 fn not_this_format() -> LogError {
@@ -1146,6 +1170,36 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
         return Err(mapping_error(
             "stamped rows' clock is their stamp: column 0, in `s`, with no turn".to_owned(),
         ));
+    }
+    if let Some(primary) = mapping.primary {
+        let Some(column) = mapping.columns.get(primary) else {
+            return Err(mapping_error(format!(
+                "the primary track is column {primary}, of {width}"
+            )));
+        };
+        let refused = |why: &str| {
+            mapping_error(format!(
+                "the primary track, {}, {why}",
+                quoted(&column.name)
+            ))
+        };
+        if primary == mapping.clock {
+            return Err(refused("is the clock's column"));
+        }
+        if column.skip {
+            return Err(refused("is a column the mapping leaves out"));
+        }
+        if column.quantity != Some(Quantity::AltitudeAboveGround) {
+            let mapped = column
+                .quantity
+                .and_then(|q| serde_json::to_value(q).ok())
+                .and_then(|v| v.as_str().map(|name| format!("mapped to `{name}`")))
+                .unwrap_or_else(|| "kept as written".to_owned());
+            return Err(refused(&format!(
+                "is {mapped}: it must be `altitude_above_ground`, the barometric altitude above \
+                 the pad"
+            )));
+        }
     }
     let mut units = Vec::with_capacity(width);
     for (index, column) in mapping.columns.iter().enumerate() {
@@ -1596,6 +1650,7 @@ fn read_mapped(
         ));
     }
     let mut channels = Vec::new();
+    let mut primary_channel = None;
     let mut changes: Vec<(usize, &str)> = Vec::new();
     for (index, column) in mapping.columns.iter().enumerate() {
         if index == mapping.clock || column.skip {
@@ -1671,6 +1726,9 @@ fn read_mapped(
             }
             None => (quantity, values.clone()),
         };
+        if mapping.primary == Some(index) {
+            primary_channel = Some(channels.len());
+        }
         channels.push(Channel {
             column: column.name.clone(),
             quantity,
@@ -1678,6 +1736,12 @@ fn read_mapped(
             values,
         });
     }
+    let (track_time_s, altitude_m) = primary_track(
+        mapping,
+        primary_channel.and_then(|i| channels.get(i)),
+        &time_s,
+        &rows.lines,
+    )?;
     changes.extend(rows.marks.iter().map(|(r, w)| (*r, w.as_str())));
     // In the file's order: by row, and a row's events in its columns' order, its marks after
     // them (a stable sort).
@@ -1696,8 +1760,8 @@ fn read_mapped(
         firmware: None,
         flight_number: None,
         stated: Stated::default(),
-        time_s: Vec::new(),
-        altitude_m: Vec::new(),
+        time_s: track_time_s,
+        altitude_m,
         vertical_speed_m_s: None,
         temperature_k: None,
         battery_v: None,
@@ -1705,6 +1769,55 @@ fn read_mapped(
         events,
         notes,
     })
+}
+
+/// The primary track a mapping marks ([`Mapping::primary`]), its times and altitudes; both empty
+/// for a mapping that marks none. `channel` is the column's channel, `None` if it made none;
+/// `time_s` the clock, each row's from `lines`.
+///
+/// Refused if the column made no channel, as one that holds no number makes none, if its values
+/// contradict its unit, so that it is kept as written, or if the clock doesn't go forward, as the
+/// track's times must.
+fn primary_track(
+    mapping: &Mapping,
+    channel: Option<&Channel>,
+    time_s: &[f64],
+    lines: &[usize],
+) -> Result<(Vec<f64>, Vec<f64>), LogError> {
+    let Some(primary) = mapping.primary else {
+        return Ok((Vec::new(), Vec::new()));
+    };
+    let column = mapping.columns.get(primary);
+    let name = quoted(column.map_or("", |c| c.name.as_str()));
+    let channel = match channel {
+        None => {
+            return Err(mapping_error(format!(
+                "the primary track, {name}, holds no number"
+            )));
+        }
+        Some(channel) if channel.quantity != Quantity::AltitudeAboveGround => {
+            return Err(mapping_error(format!(
+                "the primary track, {name}, holds values that contradict its unit, {}",
+                quoted(column.and_then(|c| c.unit.as_deref()).unwrap_or_default())
+            )));
+        }
+        Some(channel) => channel,
+    };
+    if let Some(step) = time_s.windows(2).position(|pair| pair[1] <= pair[0]) {
+        let clock = mapping
+            .columns
+            .get(mapping.clock)
+            .map_or("", |c| c.name.as_str());
+        return Err(mapping_error(format!(
+            "the primary track, {name}, needs a clock that goes forward, and the clock, {}, \
+             doesn't on line {}: {} s, then {} s",
+            quoted(clock),
+            lines.get(step + 1).copied().unwrap_or_default(),
+            time_s[step],
+            time_s[step + 1]
+        )));
+    }
+    Ok((channel.time_s.clone(), channel.values.clone()))
 }
 
 #[cfg(test)]
@@ -2005,6 +2118,7 @@ mod tests {
                     skip: false,
                 },
             ],
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         };
@@ -2205,6 +2319,7 @@ mod tests {
             decimal_comma: false,
             clock: 0,
             columns,
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         }
@@ -2428,12 +2543,14 @@ mod tests {
         let old = r#"{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"columns":[{"name":"t","quantity":null,"unit":"s"}]}"#;
         let mapping: Mapping = serde_json::from_str(old).expect("parses");
         assert_eq!(mapping.clock_wrap, None);
+        assert_eq!(mapping.primary, None);
         assert_eq!(mapping.rows, RowForm::Cells);
         assert!(!mapping.columns[0].skip);
         assert_eq!(serde_json::to_string(&mapping).expect("writes"), old);
-        let new = r#"{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"columns":[{"name":"t","quantity":null,"unit":"s"},{"name":"x","quantity":null,"unit":null,"skip":true}],"clock_wrap":4294967296.0,"rows":"stamped"}"#;
+        let new = r#"{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"primary":1,"columns":[{"name":"t","quantity":null,"unit":"s"},{"name":"x","quantity":null,"unit":null,"skip":true}],"clock_wrap":4294967296.0,"rows":"stamped"}"#;
         let mapping: Mapping = serde_json::from_str(new).expect("parses");
         assert_eq!(mapping.clock_wrap, Some(4_294_967_296.0));
+        assert_eq!(mapping.primary, Some(1));
         assert_eq!(mapping.rows, RowForm::Stamped);
         assert!(mapping.columns[1].skip);
         assert_eq!(serde_json::to_string(&mapping).expect("writes"), new);

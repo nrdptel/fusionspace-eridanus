@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mapping",
+  "description": "How a file's columns are read: the header's line, the separator, and what each column holds.\n[`mapping`] returns the one the header states; a caller may change it and read the file by it\nwith [`read_with`].",
+  "type": "object",
+  "properties": {
+    "clock": {
+      "description": "The clock's column, from 0. Its [`ColumnMapping::unit`] must be a unit of time.",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "clock_wrap": {
+      "description": "The count the clock turns over at, in its unit, for a logger's counter that runs over,\nsuch as 2³² microseconds; `None` for a clock that doesn't (module docs, *A column\nmapping*).",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "columns": {
+      "description": "Every column, in the file's order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ColumnMapping"
+      }
+    },
+    "decimal_comma": {
+      "description": "Whether a comma in a cell is the decimal mark, as `1,5` for 1.5; only where the separator\nisn't a comma. Either way, a cell in the other mark is no number (module docs, *Rows*).",
+      "type": "boolean"
+    },
+    "header_line": {
+      "description": "The header row's line, from 1; `None` for a file with no header row, whose rows start at\nits first line that isn't blank or a `#` comment.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint",
+      "minimum": 0
+    },
+    "primary": {
+      "description": "The primary track's column, from 0: the barometric altitude above the pad, which becomes\n[`FlightLog::altitude_m`] on the clock, [`FlightLog::time_s`] (module docs, *The record*).\nIts quantity must be [`Quantity::AltitudeAboveGround`]. `None` for a table that has none,\nor doesn't say which; the header never says, so [`mapping`] returns `None`.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint",
+      "minimum": 0
+    },
+    "rows": {
+      "description": "How each row is written: plain cells, unless the mapping says otherwise.",
+      "$ref": "#/$defs/RowForm"
+    },
+    "separator": {
+      "description": "The character between cells.",
+      "type": "string",
+      "maxLength": 1,
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "separator",
+    "decimal_comma",
+    "clock",
+    "columns"
+  ],
+  "$defs": {
+    "ColumnMapping": {
+      "description": "What one column holds.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The column's name, as the header writes it, or as the caller names it.",
+          "type": "string"
+        },
+        "quantity": {
+          "description": "What the column measures; `None` to keep its numbers as written\n([`Quantity::Unrecognized`]). Ignored for the clock.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "skip": {
+          "description": "Whether the mapping leaves the column out, as cells beside a table that aren't part of it:\nno channel is made of it, its cells only counted in the row's width.",
+          "type": "boolean"
+        },
+        "unit": {
+          "description": "The unit the values are written in, one of [`unit_spellings`], such as `ft` or\n`m/s^2`, in any case; `None` when [`ColumnMapping::quantity`] is `None` or\n[`Quantity::Number`].",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ]
+    },
+    "Quantity": {
+      "description": "What a channel measures. The unit is SI but for angles, which are in degrees as GNSS\nreceivers and loggers write them.",
+      "oneOf": [
+        {
+          "description": "A barometric altitude above the logger's own zero, m; in a Featherweight GPS tracker's\nsummary ([`LogFormat::FeatherweightSummaryCsv`]), its receiver's altitude above the pad it\nstates.",
+          "type": "string",
+          "const": "altitude_above_ground"
+        },
+        {
+          "description": "A barometric altitude above mean sea level, m.",
+          "type": "string",
+          "const": "altitude_msl"
+        },
+        {
+          "description": "An altitude from GNSS, above mean sea level as the receiver states it, m.",
+          "type": "string",
+          "const": "gnss_altitude"
+        },
+        {
+          "description": "An altitude the logger integrated from its accelerometer, above its zero, m.",
+          "type": "string",
+          "const": "inertial_altitude"
+        },
+        {
+          "description": "An altitude whose sensor or zero the file doesn't state, m: a table read by its header\n([`LogFormat::GenericTable`]) names an altitude and its unit, and often no more.",
+          "type": "string",
+          "const": "altitude"
+        },
+        {
+          "description": "Air pressure, Pa.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A speed or velocity the logger computed, m/s; its column says from which sensor and along\nwhich direction.",
+          "type": "string",
+          "const": "speed"
+        },
+        {
+          "description": "An acceleration, m/s²; its column says along which axis, and whether gravity is in it.",
+          "type": "string",
+          "const": "acceleration"
+        },
+        {
+          "description": "A temperature, K.",
+          "type": "string",
+          "const": "temperature"
+        },
+        {
+          "description": "An electric potential, V, such as a battery's or a pyro channel's.",
+          "type": "string",
+          "const": "voltage"
+        },
+        {
+          "description": "An electric current, A.",
+          "type": "string",
+          "const": "current"
+        },
+        {
+          "description": "A latitude, degrees north.",
+          "type": "string",
+          "const": "latitude"
+        },
+        {
+          "description": "A longitude, degrees east.",
+          "type": "string",
+          "const": "longitude"
+        },
+        {
+          "description": "An angle, degrees, such as a tilt or a bearing.",
+          "type": "string",
+          "const": "angle"
+        },
+        {
+          "description": "A rate of turn, degrees per second, such as a gyroscope's about one of its axes.",
+          "type": "string",
+          "const": "angular_rate"
+        },
+        {
+          "description": "A distance, m, such as a GNSS receiver's range from the pad.",
+          "type": "string",
+          "const": "distance"
+        },
+        {
+          "description": "A time of day on the logger's own clock, s after its midnight, in whatever time zone the\nclock was set to: files state none.",
+          "type": "string",
+          "const": "time_of_day"
+        },
+        {
+          "description": "A length of time, s, such as a summary's time from liftoff to an event.",
+          "type": "string",
+          "const": "duration"
+        },
+        {
+          "description": "A number with no unit, such as a count of satellites, a signal strength, a flag or a\nstate code, as the file writes it, or a fraction, such as a percentage the file writes,\ndivided by 100.",
+          "type": "string",
+          "const": "number"
+        },
+        {
+          "description": "A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim\ndoesn't know either.",
+          "type": "string",
+          "const": "unrecognized"
+        }
+      ]
+    },
+    "RowForm": {
+      "description": "How a table's rows are written (module docs, *A column mapping*).",
+      "oneOf": [
+        {
+          "description": "Cells between separators.",
+          "type": "string",
+          "const": "cells"
+        },
+        {
+          "description": "A list between `[` and `]`, as a program printing its lists writes it: `[1, 2.5, True]`.",
+          "type": "string",
+          "const": "list"
+        },
+        {
+          "description": "A date and time, `YYYY-MM-DD HH:MM:SS` with any fraction of a second, then `:` and the\ncells, between parentheses if they are a tuple, as `(x, y, z)`. The stamp is column 0, the\nclock, in seconds.",
+          "type": "string",
+          "const": "stamped"
+        }
+      ]
+    }
+  }
+}

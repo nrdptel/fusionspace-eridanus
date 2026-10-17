@@ -158,6 +158,19 @@ pub(crate) fn log() -> String {
     )
 }
 
+/// `hpr analyze`'s note on a log read by the flyer's own column mapping or record layout
+/// (`docs/your-own-logger.md`): the logger's samples in the units the file states, which may be
+/// a GPS tracker's with no barometer, and no readings until M7.2.
+pub(crate) fn own_log() -> String {
+    format!(
+        "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping or layout \
+         states, not simulated: as right as those units are. HPR Sim takes no reading from it \
+         until roadmap milestone M7.2 validates them on other loggers; go by the logger's own \
+         figures, and check a unit against a known height, such as the launch site's elevation \
+         from a GPS altitude, before trusting the record.{MORE}{SITE}your-own-logger.html"
+    )
+}
+
 /// What `hpr motors show`'s notes say about the figures and what to go by instead.
 const MOTOR_FIGURES: &str = "the size, masses and delays as the file's header gives them, the \
                              impulse, thrusts and burn time computed from its curve, which can \

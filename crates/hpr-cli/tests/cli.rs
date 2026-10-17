@@ -3908,7 +3908,7 @@ fn analyze_refuses_what_it_cannot_read() {
         document["error"]["message"]
             .as_str()
             .unwrap()
-            .contains("reads PerfectFlite .pf2 logs so far, and this isn't one"),
+            .contains("reads PerfectFlite .pf2 logs on their own, and this isn't one"),
         "{document:#}"
     );
 
@@ -3944,6 +3944,358 @@ fn analyze_refuses_what_it_cannot_read() {
         "analyze.schema.json",
     );
     assert_eq!(document["apogee"]["status"], "read");
+}
+
+/// The invented logger's files beside each other (M7.1d2): its table, binary records and console
+/// capture, and a GPS tracker's table, each with the mapping or layout that reads it.
+const OWN_LOGGER: &str = "validation/fixtures/logs/own-logger";
+
+/// Each invented log, with `--mapping` or `--layout` and the file that reads it.
+const OWN_LOGS: [(&str, &str, &str); 4] = [
+    ("flight.csv", "--mapping", "flight.mapping.json"),
+    ("gps-track.csv", "--mapping", "gps-track.mapping.json"),
+    ("flight.bin", "--layout", "flight.layout.json"),
+    (
+        "flight-capture.txt",
+        "--layout",
+        "flight-capture.layout.json",
+    ),
+];
+
+/// The library's record of an invented log, read as `hpr analyze` reads it.
+fn own_record(log: &str, how: &str, file: &str) -> hpr::hpr_flightdata::log::FlightLog {
+    use hpr::hpr_flightdata::custom;
+    let folder = root().join(OWN_LOGGER);
+    let bytes = std::fs::read(folder.join(log)).unwrap();
+    let text = std::fs::read_to_string(folder.join(file)).unwrap();
+    match how {
+        "--mapping" => {
+            custom::read_by_mapping(&bytes, &custom::mapping_from_json(&text).unwrap(), None)
+        }
+        _ => custom::read_by_layout(&bytes, &custom::layout_from_json(&text).unwrap()),
+    }
+    .unwrap()
+}
+
+/// Holds a record `hpr analyze --record` printed to the library's, channel by channel, then
+/// whole: the same file read by the same mapping or layout is the same record on both surfaces.
+fn same_record(printed: &Value, library: &hpr::hpr_flightdata::log::FlightLog, what: &str) {
+    let mut printed = printed.clone();
+    let tool = printed.as_object_mut().unwrap().remove("tool");
+    assert!(
+        tool.is_some(),
+        "{what}: the record is stamped as every JSON output is"
+    );
+    let library = serde_json::to_value(library).unwrap();
+    let channels = printed["channels"].as_array().unwrap();
+    let expected = library["channels"].as_array().unwrap();
+    assert_eq!(channels.len(), expected.len(), "{what}: the channels");
+    for (channel, expected) in channels.iter().zip(expected) {
+        assert_eq!(
+            channel, expected,
+            "{what}: the channel {}",
+            expected["column"]
+        );
+    }
+    assert_eq!(printed, library, "{what}");
+}
+
+/// The invented logger's table, records and capture, and the GPS tracker's table, read by the
+/// command with their mapping or layout, are the library's records channel by channel; the
+/// table's mapping marks its primary track, which the readings are taken from, and the GPS
+/// table's marks none.
+#[test]
+fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
+    for (log, how, file) in OWN_LOGS {
+        let path = repo_file(&format!("{OWN_LOGGER}/{log}"));
+        let description = repo_file(&format!("{OWN_LOGGER}/{file}"));
+        let output = hpr(&["analyze", &path, how, &description, "--record"]);
+        assert_eq!(output.status.code(), Some(0), "{log}: {output:?}");
+        assert!(output.stderr.is_empty(), "{log}: {}", text(&output.stderr));
+        let printed: Value = serde_json::from_slice(&output.stdout).unwrap();
+        validate("analyze-record.schema.json", &printed);
+        let library = own_record(log, how, file);
+        same_record(&printed, &library, log);
+        // `--json` changes nothing: the record is JSON either way.
+        let output = hpr(&["analyze", &path, how, &description, "--record", "--json"]);
+        assert_eq!(
+            serde_json::from_slice::<Value>(&output.stdout).unwrap(),
+            printed
+        );
+
+        let document = json(
+            &["analyze", &path, how, &description],
+            0,
+            "analyze.schema.json",
+        );
+        let read_by = if how == "--mapping" {
+            "mapping"
+        } else {
+            "layout"
+        };
+        assert_eq!(
+            document["log"][read_by],
+            description.as_str(),
+            "{document:#}"
+        );
+        assert_eq!(document["log"]["samples"], library.time_s.len());
+        let names: Vec<&str> = library.channels.iter().map(|c| c.column.as_str()).collect();
+        let listed: Vec<&str> = document["log"]["channels"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["column"].as_str().unwrap())
+            .collect();
+        assert_eq!(listed, names, "{log}");
+        // The readings wait for M7.2 on every logger but PerfectFlite's.
+        assert_eq!(document["apogee"]["reason"], "not_validated_for_logger");
+        // The same file as Windows PowerShell 5.1 writes `>` output, UTF-16 with its mark, and
+        // as UTF-8 with a mark, reads the same record.
+        let folder = tempfile::tempdir().unwrap();
+        let written = std::fs::read_to_string(root().join(OWN_LOGGER).join(file)).unwrap();
+        let utf16: Vec<u8> = [0xFF, 0xFE]
+            .into_iter()
+            .chain(written.encode_utf16().flat_map(u16::to_le_bytes))
+            .collect();
+        let marked = [&[0xEF, 0xBB, 0xBF][..], written.as_bytes()].concat();
+        for (name, bytes) in [("utf16.json", utf16), ("marked.json", marked)] {
+            let copy = folder.path().join(name);
+            std::fs::write(&copy, bytes).unwrap();
+            let output = hpr(&["analyze", &path, how, copy.to_str().unwrap(), "--record"]);
+            assert_eq!(output.status.code(), Some(0), "{log}, {name}: {output:?}");
+            same_record(
+                &serde_json::from_slice(&output.stdout).unwrap(),
+                &library,
+                name,
+            );
+        }
+    }
+    let flight = own_record("flight.csv", "--mapping", "flight.mapping.json");
+    assert_eq!(flight.time_s.len(), 251);
+    // The invented flight's apogee, 1,345.2 ft, is the primary track's highest sample.
+    let top = flight.altitude_m.iter().copied().fold(f64::MIN, f64::max);
+    assert!((top - 1345.2 * 0.3048).abs() < 1e-9, "{top}");
+    let gps = own_record("gps-track.csv", "--mapping", "gps-track.mapping.json");
+    assert!(gps.time_s.is_empty() && gps.altitude_m.is_empty());
+    let text = text_ok(&[
+        "analyze",
+        &repo_file(&format!("{OWN_LOGGER}/gps-track.csv")),
+        "--mapping",
+        &repo_file(&format!("{OWN_LOGGER}/gps-track.mapping.json")),
+    ]);
+    assert!(
+        text.contains(
+            "no primary track: no barometric altitude above the pad\n4 channels: Lat \
+             (latitude), Lon (longitude), GPS Alt (m) (GNSS altitude), Sats (number)\n"
+        ),
+        "{text}"
+    );
+}
+
+/// `--print-mapping` prints what a table's header states as a mapping that reads back as the
+/// library's, unstamped, and the notes and what to do next on standard error; with `--json`,
+/// standard error stays empty.
+#[test]
+fn analyze_prints_a_tables_header_as_a_mapping_to_edit() {
+    use hpr::hpr_flightdata::custom;
+    let path = repo_file(&format!("{OWN_LOGGER}/flight.csv"));
+    let printed = streams(&["analyze", &path, "--print-mapping"]);
+    let mapping = custom::mapping_from_json(&printed.out).unwrap();
+    let (expected, notes) = custom::header_mapping(&std::fs::read(&path).unwrap(), None).unwrap();
+    assert_eq!(mapping, expected);
+    assert_eq!(mapping.primary, None);
+    assert_eq!(notes.len(), 1, "{notes:?}");
+    assert!(
+        printed.err.contains(&format!("note: {}", notes[0])),
+        "{}",
+        printed.err
+    );
+    assert!(
+        printed.err.contains("set \"primary\" to the column"),
+        "{}",
+        printed.err
+    );
+    let value: Value = serde_json::from_str(&printed.out).unwrap();
+    assert!(value.get("tool").is_none(), "{value:#}");
+    validate("analyze-mapping.schema.json", &value);
+    let output = hpr(&["analyze", &path, "--print-mapping", "--json"]);
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty(), "{}", text(&output.stderr));
+    assert_eq!(text(&output.stdout), printed.out);
+    // The edited mapping the folder holds reads the same file.
+    let edited =
+        std::fs::read_to_string(root().join(OWN_LOGGER).join("flight.mapping.json")).unwrap();
+    let edited = custom::mapping_from_json(&edited).unwrap();
+    assert_eq!(edited.columns.len(), mapping.columns.len());
+    assert_eq!(edited.header_line, mapping.header_line);
+    assert_eq!(edited.primary, Some(1));
+    validate(
+        "analyze-layout.schema.json",
+        &serde_json::from_str(
+            &std::fs::read_to_string(root().join(OWN_LOGGER).join("flight-capture.layout.json"))
+                .unwrap(),
+        )
+        .unwrap(),
+    );
+}
+
+/// A control character from a file, such as an escape in a column's name or a mapping's value,
+/// reaches the terminal as `?`: in the text output and in every message line.
+#[test]
+fn analyze_shows_a_files_control_characters_as_question_marks() {
+    let folder = tempfile::tempdir().unwrap();
+    let name = "\u{1b}[31mAlt\u{7} (ft)";
+    let table = folder.path().join("escape.csv");
+    std::fs::write(&table, format!("Time (ms),{name}\n0,0\n200,10\n400,20\n")).unwrap();
+    let mapping = |quantity: &str| {
+        serde_json::json!({
+            "header_line": 1,
+            "separator": ",",
+            "decimal_comma": false,
+            "clock": 0,
+            "primary": 1,
+            "columns": [
+                {"name": "Time (ms)", "quantity": null, "unit": "ms"},
+                {"name": name, "quantity": quantity, "unit": "ft"},
+            ],
+        })
+        .to_string()
+    };
+    let read = |quantity: &str| {
+        let file = folder.path().join("escape.json");
+        std::fs::write(&file, mapping(quantity)).unwrap();
+        let output = hpr(&[
+            "analyze",
+            table.to_str().unwrap(),
+            "--mapping",
+            file.to_str().unwrap(),
+        ]);
+        (
+            output.status.code(),
+            text(&output.stdout),
+            text(&output.stderr),
+        )
+    };
+    let (status, out, err) = read("altitude_above_ground");
+    assert_eq!(status, Some(0), "{err}");
+    assert!(
+        out.contains("1 channel: ?[31mAlt? (ft) (altitude above ground)"),
+        "{out}"
+    );
+    let (status, out, err) = read("\u{1b}]0;title\u{7}");
+    assert_eq!(status, Some(1), "{err}");
+    assert!(out.is_empty(), "{out}");
+    assert!(err.contains("unknown variant `?]0;title?`"), "{err}");
+    for printed in [&out, &err] {
+        assert!(!printed.contains(['\u{1b}', '\u{7}']), "{printed:?}");
+    }
+}
+
+/// A mapping or a layout that fails is refused naming the field, its path in the JSON, and the
+/// options that need each other or exclude each other are refused before anything is read.
+#[test]
+fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = repo_file(&format!("{OWN_LOGGER}/flight.csv"));
+    let mapping =
+        std::fs::read_to_string(root().join(OWN_LOGGER).join("flight.mapping.json")).unwrap();
+    let refused = |name: &str, text: &str, how: &str, log: &str| {
+        let file = folder.path().join(name);
+        std::fs::write(&file, text).unwrap();
+        let document = json_error(&["analyze", log, how, file.to_str().unwrap()], 1, "input");
+        said(&document)
+    };
+    let said = refused(
+        "unit.json",
+        &mapping.replace("\"ft\"", "3"),
+        "--mapping",
+        &path,
+    );
+    // The words the guide quotes (docs/your-own-logger.md), line and column included.
+    assert!(
+        said.contains(
+            "unit.json: column mapping: `columns[1].unit`: invalid type: integer `3`, expected a \
+             string at line 16 column 15"
+        ),
+        "{said}"
+    );
+    assert!(
+        said.contains("schema/cli/analyze-mapping.schema.json lists every field"),
+        "{said}"
+    );
+    let said = refused(
+        "key.json",
+        &mapping.replace("\"primary\"", "\"primry\""),
+        "--mapping",
+        &path,
+    );
+    assert!(
+        said.contains("column mapping: unknown field `primry`"),
+        "{said}"
+    );
+    let said = refused(
+        "clock.json",
+        &mapping.replace("\"primary\": 1", "\"primary\": 0"),
+        "--mapping",
+        &path,
+    );
+    assert!(
+        said.contains(
+            "flight.csv: column mapping: the primary track, \"Time (ms)\", is the clock's column"
+        ),
+        "{said}"
+    );
+    let layout =
+        std::fs::read_to_string(root().join(OWN_LOGGER).join("flight.layout.json")).unwrap();
+    let records = repo_file(&format!("{OWN_LOGGER}/flight.bin"));
+    let said = refused(
+        "kind.json",
+        &layout.replace("\"f32\"", "\"float\""),
+        "--layout",
+        &records,
+    );
+    assert!(
+        said.contains("kind.json: record layout: `fields[1].kind`: unknown variant `float`"),
+        "{said}"
+    );
+    let capture = repo_file(&format!("{OWN_LOGGER}/flight-capture.txt"));
+    let said = refused("block.json", &layout, "--layout", &capture);
+    assert!(
+        said.contains("its blocks \"flight\": the layout must name the block"),
+        "{said}"
+    );
+
+    let document = json_error(&["analyze", &path, "--sheet", "0"], 1, "input");
+    assert!(said_of(&document).starts_with("--sheet names the workbook's sheet"));
+    let document = json_error(
+        &[
+            "analyze",
+            &path,
+            "--mapping",
+            &repo_file(&format!("{OWN_LOGGER}/flight.mapping.json")),
+            "--sheet",
+            "0",
+        ],
+        1,
+        "input",
+    );
+    assert!(
+        said_of(&document).contains("a sheet is named, and the file isn't an `.xlsx` workbook")
+    );
+    for conflict in [
+        vec!["--print-mapping", "--record"],
+        vec!["--mapping", "a.json", "--layout", "b.json"],
+        vec!["--print-mapping", "--mapping", "a.json"],
+    ] {
+        let mut args = vec!["analyze", path.as_str()];
+        args.extend(conflict.iter().copied());
+        assert_eq!(hpr(&args).status.code(), Some(2), "{args:?}");
+    }
+}
+
+/// [`said`], for a test whose closure shadows it.
+fn said_of(document: &Value) -> String {
+    said(document)
 }
 
 /// The public Pnut log Debrief ships, where `refs/` has it (`cargo xtask refs fetch`): hpr reads

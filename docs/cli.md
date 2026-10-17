@@ -276,7 +276,7 @@ only the files each command really reads. "Not yet" commands exit with
 | `hpr mc` | Fly a design many times, each flight's inputs scattered at random, and print how its apogee and landing spread; export every flight | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log, another logger's table by a column mapping, binary records or a console capture by a record layout | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
 
@@ -1585,14 +1585,17 @@ the rocket lifted off, how high it went, how fast it climbed, and when it landed
 the log. It takes no design file and runs no simulation, so it answers "what did my rocket do?"
 for anyone who flew one, whatever they designed it in.
 
-It reads PerfectFlite's `.pf2` logs so far, the Pnut's, the StratoLogger's and the
-StratoLoggerCF's ([the format](format/pf2.md)). The library reads AltOS's CSV, the Featherweight
+It reads PerfectFlite's `.pf2` logs by their own reader, the Pnut's, the StratoLogger's and the
+StratoLoggerCF's ([the format](format/pf2.md)), and another logger's file by a JSON file you
+write for it: a table by a column mapping, `--mapping`, and binary records, or a serial
+console's capture of them, by a record layout, `--layout`
+([Reading your own logger](your-own-logger.md) works one through). The library reads AltOS's CSV, the Featherweight
 Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, an Eggtimer TRS's terminal text,
 PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's
 SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne Fluctus's
 CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, an Eggtimer's download saved as RTF,
 the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight
-summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping (the library, not `hpr analyze`), and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
+summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
 [M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers; formats no
 sample holds are [listed as needing samples](format/flight-logs.md#formats-that-need-samples). It
 has no
@@ -1624,6 +1627,7 @@ from ([Reading a flight log](reading-a-flight-log.md) works through it). Its tru
 $ hpr analyze validation/fixtures/logs/synthetic-pnut.pf2
 synthetic-pnut.pf2: PerfectFlite Pnut, serial 0, flight 1
 984 samples every 0.050 s, from 0.00 s to 49.15 s; heights from the altitude after a 0.30 s running median
+4 channels: Altitude (altitude above ground), Velocity (speed), Temperature (F) (temperature), Voltage (voltage)
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
 liftoff           0.55 s
@@ -1647,6 +1651,24 @@ The highest sample in the file is 10.4 m (34 ft) above the apogee: the pressure 
 charge that fired a second after it. The readings are taken from the altitude after a
 [running median](glossary.md#running-median), which sets that pulse aside.
 [Reading a flight log](reading-a-flight-log.md) explains each reading, and how far to trust it.
+
+A logger of your own is read by a file you write for it, each JSON with a schema
+([JSON output](#json-output)):
+
+- `--print-mapping` prints what a table's header states, as a column mapping to edit, and reads
+  nothing more; it is the same with `--json`, and not stamped with `tool`, so it reads back.
+- `--mapping FILE` reads a table by its column mapping, which can mark the column that is the
+  barometric altitude above the pad as the primary track; `--sheet N` names the `.xlsx`
+  workbook's sheet the table is on, from 0.
+- `--layout FILE` reads binary records, or the block of a serial console's capture the layout
+  names, by a record layout.
+- `--record` prints the record the log reads into, every channel in SI units (degrees for
+  angles), as one JSON document, in place of the readings.
+
+A mapping or a layout that doesn't follow its schema is refused, exit code 1, naming the field by
+its path in the JSON, such as `columns[1].unit`; one the log contradicts, such as a primary track
+on the clock's column, is refused naming the column. [Reading your own logger](your-own-logger.md) works one invented
+logger through each.
 
 ### `hpr weather`
 
@@ -1846,6 +1868,7 @@ describes its fields and units:
 | `hpr motors search` | [`motors-search.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/motors-search.schema.json) |
 | `hpr convert` | [`convert.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/convert.schema.json) |
 | `hpr analyze` | [`analyze.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze.schema.json) |
+| `hpr analyze --record` | [`analyze-record.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-record.schema.json) |
 | `hpr weather` | [`weather.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/weather.schema.json) |
 | `hpr completions` | [`completions.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/completions.schema.json) |
 | any failure | [`error.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/error.schema.json) |
@@ -1859,6 +1882,10 @@ document's `help` lists what to do about the failure, the lines the text output 
 `help:`, and is empty when there is nothing to suggest. The sidecar of a CSV recording
 ([Exporting the recording](#exporting-the-recording)) has its own schema,
 [`sim-export-meta.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/sim-export-meta.schema.json).
+Two files `hpr analyze` reads have schemas too, with no `tool`, as a person writes them: the
+column mapping, [`analyze-mapping.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-mapping.schema.json),
+which `--print-mapping` prints, and the record layout,
+[`analyze-layout.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-layout.schema.json).
 
 Units are SI, and each field's name says its unit: `total_impulse_ns` is in newton-seconds and
 `diameter_m` in meters. The exceptions say so in their names too: `hpr sim` gives angles in
@@ -1986,8 +2013,10 @@ you press Tab. Save it where your shell looks for completions:
   apogee. A dropped stage flies as a point under its devices' drag, so its landing is rough. It flies a
   `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
-- **One log format.** `hpr analyze` reads PerfectFlite's `.pf2` so far; the library reads the
-  other layouts [the layouts read](format/flight-logs.md) lists, and `hpr analyze` takes them,
+- **One log format by its own reader.** `hpr analyze` reads PerfectFlite's `.pf2` by its reader,
+  and another logger's table or binary records by a mapping or a layout you write
+  ([Reading your own logger](your-own-logger.md)); the library reads the other layouts
+  [the layouts read](format/flight-logs.md) lists, and `hpr analyze` takes them by their readers,
   with readings such as the drogue and main descent rates and the Mach number, with
   [M7.2](decisions-and-roadmap.md#m7-2).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read

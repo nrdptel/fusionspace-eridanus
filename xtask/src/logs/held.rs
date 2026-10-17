@@ -531,6 +531,7 @@ fn resolve(stated: &Stated, text: &str) -> Result<Mapping, String> {
         decimal_comma: stated.mapping.decimal_comma,
         clock: stated.mapping.clock,
         columns,
+        primary: None,
         clock_wrap: stated.mapping.clock_wrap,
         rows: stated.mapping.rows,
     })
@@ -558,6 +559,32 @@ fn read(stated: &Stated, bytes: &[u8]) -> Result<(FlightLog, Mapping), String> {
     let mapping = resolve(stated, &text)?;
     let log = hpr_flightdata::generic::read_with(&text, &mapping).map_err(|e| e.to_string())?;
     Ok((log, mapping))
+}
+
+/// Every held table read by its stated mapping, its names filled in from its header, for
+/// `cargo xtask logs --surfaces`: its sample, the mapping, the sheet and the record. Refused if a
+/// stated file has no sample or doesn't read.
+pub(super) fn mapped(samples: &[Sample]) -> Result<Vec<super::Surface<'_>>, String> {
+    let mut surfaces = Vec::new();
+    for stated in stated()? {
+        let sample = samples
+            .iter()
+            .find(|s| s.family == FAMILY && id_of(&s.bytes) == stated.id)
+            .ok_or(format!(
+                "{}: no sample of {FAMILY} under refs/ has this id",
+                stated.id
+            ))?;
+        let (log, mapping) =
+            read(&stated, &sample.bytes).map_err(|error| format!("{}: {error}", stated.id))?;
+        surfaces.push(super::Surface {
+            id: stated.id.clone(),
+            sample,
+            description: super::Description::Mapping(mapping),
+            sheet: stated.sheet,
+            log,
+        });
+    }
+    Ok(surfaces)
 }
 
 /// A channel's readings as heights, m, in time order as the file holds them: a pressure's
@@ -1558,6 +1585,7 @@ mod tests {
             decimal_comma: false,
             clock: 0,
             columns,
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         };
@@ -1932,6 +1960,7 @@ mod tests {
                     skip: false,
                 })
                 .collect(),
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         };
@@ -1984,6 +2013,7 @@ mod tests {
                     skip: false,
                 })
                 .collect(),
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         };
@@ -2121,6 +2151,7 @@ mod tests {
                     skip: false,
                 },
             ],
+            primary: None,
             clock_wrap: None,
             rows: RowForm::Cells,
         };

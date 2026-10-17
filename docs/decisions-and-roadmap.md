@@ -701,7 +701,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m3-5"></a>[M3.5][phase-4] | RASAero `.CDX1` files in and out | not yet done |
 | <a id="m3-6"></a>[M3.6][phase-4] | RocketPy scripts and files in and out | not yet done |
 | <a id="m4-4"></a>[M4.4][phase-4] | Use from C, and in the browser through WebAssembly | not yet done |
-| <a id="m7-1"></a>[M7.1][phase-5] | Reading flight logs from altimeters and trackers, with no design file and no simulation | not yet done |
+| <a id="m7-1"></a>[M7.1][done-5] | Reading flight logs from altimeters and trackers, with no design file and no simulation | done |
 | <a id="m7-1a"></a>[M7.1a][done-5] | The flight record every reader fills, a survey of the sample logs, and the PerfectFlite, AltOS and Raven readers | done |
 | <a id="m7-1b"></a>[M7.1b][done-5] | The RRC3's, Eggtimer's and the Blue Raven's CSV, each unit a header leaves out decided from the file or stated as assumed | done |
 | <a id="m7-1c"></a>[M7.1c][done-5] | The other loggers' formats, spreadsheets and generic CSV | done |
@@ -728,9 +728,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c21"></a>[M7.1c21][done-5] | Altimeters' other text | done |
 | <a id="m7-1c22"></a>[M7.1c22][done-5] | Tables by mapping, and files that aren't logs | done |
 | <a id="m7-1c23"></a>[M7.1c23][done-5] | The last binaries; formats with no sample | done |
-| <a id="m7-1d"></a>[M7.1d][phase-5] | A flyer's own logger and GPX tracks | not yet done |
+| <a id="m7-1d"></a>[M7.1d][done-5] | A flyer's own logger and GPX tracks | done |
 | <a id="m7-1d1"></a>[M7.1d1][done-5] | GPX tracks | done |
-| <a id="m7-1d2"></a>[M7.1d2][phase-5] | Your own logger from the command line and Python | not yet done |
+| <a id="m7-1d2"></a>[M7.1d2][done-5] | Your own logger from the command line and Python | done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |

@@ -90,7 +90,11 @@ pub fn availability(name: &str) -> Option<Availability> {
             ],
         }),
         "analyze" => Some(Availability::Available {
-            reads: vec!["a PerfectFlite `.pf2` flight log".to_owned()],
+            reads: vec![
+                "a PerfectFlite `.pf2` flight log".to_owned(),
+                "another logger's table by a column mapping".to_owned(),
+                "binary records or a console capture by a record layout".to_owned(),
+            ],
             writes: text_or_json(),
         }),
         "weather" => Some(Availability::Available {

@@ -1416,7 +1416,16 @@ pub struct AnalyzedLog {
     pub path: String,
     /// Its format.
     pub format: LogFormatName,
-    /// The logger, as the file names it.
+    /// The column mapping file it was read by, as given (`--mapping`); `null` for a log read by
+    /// its format's own reader.
+    pub mapping: Option<String>,
+    /// The record layout file it was read by, as given (`--layout`); `null` for a log read
+    /// otherwise.
+    pub layout: Option<String>,
+    /// The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a
+    /// text file.
+    pub sheet: Option<usize>,
+    /// The logger, as the file names it; `unknown` for a log read by a mapping or a layout.
     pub logger: String,
     /// The logger's serial number, as the file states it.
     pub serial_number: Option<String>,
@@ -1424,15 +1433,31 @@ pub struct AnalyzedLog {
     pub firmware: Option<String>,
     /// The flight's number in the logger's memory, as the file states it.
     pub flight_number: Option<u32>,
-    /// How many samples the file holds.
+    /// How many samples the primary track holds, the barometric altitude above the pad the
+    /// readings are taken from; 0 for a log that has none, such as a table read by a mapping
+    /// that marks none.
     pub samples: usize,
-    /// The first sample's time, s.
+    /// The primary track's first sample's time, s; 0 for a log that has none.
     pub first_time_s: f64,
-    /// The last sample's time, s.
+    /// The primary track's last sample's time, s; 0 for a log that has none.
     pub last_time_s: f64,
+    /// Every column the log holds, the primary track's among them, in the file's order:
+    /// `--record` prints their samples.
+    pub channels: Vec<AnalyzedChannel>,
     /// What the reader noticed and worked around, such as a sample count that differs from the
     /// one the file states.
     pub notes: Vec<String>,
+}
+
+/// One column of the log `hpr analyze` read.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct AnalyzedChannel {
+    /// The column's name, as the file or the mapping writes it.
+    pub column: String,
+    /// What it measures, which sets its unit: SI, but degrees for angles.
+    pub quantity: hpr::hpr_flightdata::log::Quantity,
+    /// How many samples it holds, gaps among them.
+    pub samples: usize,
 }
 
 /// A flight log's format.
@@ -1441,6 +1466,13 @@ pub struct AnalyzedLog {
 pub enum LogFormatName {
     /// PerfectFlite's `.pf2`: the Pnut, the StratoLogger and the StratoLoggerCF.
     PerfectFlitePf2,
+    /// A table read by a column mapping (`--mapping`).
+    GenericTable,
+    /// A file of binary records read by a record layout (`--layout`).
+    BinaryRecords,
+    /// A serial console's capture of binary records as base64, a block of it read by a record
+    /// layout (`--layout`).
+    ConsoleCapture,
     /// A format this build of `hpr` doesn't name.
     Other,
 }
@@ -1687,7 +1719,7 @@ impl ErrorDocument {
     }
 }
 
-/// The JSON Schema of each output, by the file name it is published under.
+/// The JSON Schema of each output, by the file name it is published under: each names the tool.
 pub fn schemas() -> Vec<(&'static str, String)> {
     let mut schemas = vec![
         ("motors-list.schema.json", schema::<MotorList>()),
@@ -1701,11 +1733,43 @@ pub fn schemas() -> Vec<(&'static str, String)> {
         ("completions.schema.json", schema::<Completions>()),
         ("convert.schema.json", schema::<Convert>()),
         ("analyze.schema.json", schema::<Analyze>()),
+        (
+            "analyze-record.schema.json",
+            schema::<hpr::hpr_flightdata::log::FlightLog>(),
+        ),
         ("weather.schema.json", schema::<Weather>()),
         ("error.schema.json", schema::<ErrorDocument>()),
     ];
     schemas.sort_by_key(|(name, _)| *name);
     schemas
+}
+
+/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping and record
+/// layout, by the file name it is published under: a person writes the file, so it names no tool.
+pub fn input_schemas() -> Vec<(&'static str, String)> {
+    vec![
+        (
+            "analyze-layout.schema.json",
+            input_schema::<hpr::hpr_flightdata::custom::Layout>(),
+        ),
+        (
+            "analyze-mapping.schema.json",
+            input_schema::<hpr::hpr_flightdata::generic::Mapping>(),
+        ),
+    ]
+}
+
+/// The schema of a file a command reads, as [`schema`] but with no `tool`: a person writes the
+/// file, and a key the type doesn't name is refused. A column mapping is an output too, as
+/// `hpr analyze --print-mapping` prints it, unstamped so that it reads back.
+#[expect(
+    clippy::expect_used,
+    reason = "a `Schema` is a JSON value with string keys, which always serializes"
+)]
+fn input_schema<T: JsonSchema>() -> String {
+    let schema = schemars::schema_for!(T);
+    let text = serde_json::to_string_pretty(&schema).expect("a JSON value serializes");
+    format!("{text}\n")
 }
 
 /// One type's schema, pretty-printed with a trailing newline.

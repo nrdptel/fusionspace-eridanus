@@ -4,10 +4,11 @@
 //! Units are SI, converted from the file's own at reading: meters, meters per second, kelvin,
 //! volts. A gap in a channel, such as a row that left a column out, is `NaN`.
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// A flight log, read.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct FlightLog {
     /// The file format it was read from.
     pub format: LogFormat,
@@ -27,17 +28,21 @@ pub struct FlightLog {
     /// The barometric altitude, m, as the logger converts its pressure, above the logger's own
     /// zero: for a PerfectFlite, its reading on the pad.
     #[serde(with = "gaps")]
+    #[schemars(with = "Vec<Option<f64>>")]
     pub altitude_m: Vec<f64>,
     /// The vertical speed, m/s, up positive, as the logger computes it; `None` if the file has
     /// no such column. A barometric logger works it out from its own altitude.
     #[serde(with = "optional_gaps", default)]
+    #[schemars(with = "Option<Vec<Option<f64>>>")]
     pub vertical_speed_m_s: Option<Vec<f64>>,
     /// The logger's temperature sensor, K; `None` if the file has no such column. It sits in the
     /// electronics bay, so it reads the bay, not the air.
     #[serde(with = "optional_gaps", default)]
+    #[schemars(with = "Option<Vec<Option<f64>>>")]
     pub temperature_k: Option<Vec<f64>>,
     /// The logger's battery voltage, V; `None` if the file has no such column.
     #[serde(with = "optional_gaps", default)]
+    #[schemars(with = "Option<Vec<Option<f64>>>")]
     pub battery_v: Option<Vec<f64>>,
     /// Every data column the file holds, in the file's order, each on its own clock and in SI:
     /// the primary track's columns above included, so that the record keeps every sample the
@@ -65,7 +70,7 @@ impl FlightLog {
 }
 
 /// One column of a flight log, on its own clock.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[non_exhaustive]
 pub struct Channel {
     /// The column's name as the file writes it, such as `Axial Accel (Gs)`: it says which axis
@@ -80,16 +85,18 @@ pub struct Channel {
     ///
     /// [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
     #[serde(with = "gaps")]
+    #[schemars(with = "Vec<Option<f64>>")]
     pub time_s: Vec<f64>,
     /// Each sample's value in the quantity's unit ([`Quantity::unit`]); `NaN` where the file left
     /// the cell empty or wrote something that isn't a number.
     #[serde(with = "gaps")]
+    #[schemars(with = "Vec<Option<f64>>")]
     pub values: Vec<f64>,
 }
 
 /// What a channel measures. The unit is SI but for angles, which are in degrees as GNSS
 /// receivers and loggers write them.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Quantity {
@@ -168,7 +175,7 @@ impl Quantity {
 }
 
 /// Something the logger says happened, at a time on the log's clock.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[non_exhaustive]
 pub struct Event {
     /// When, s, from the log's zero.
@@ -178,7 +185,7 @@ pub struct Event {
 }
 
 /// A flight log's file format.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum LogFormat {
@@ -634,7 +641,7 @@ impl LogFormat {
 }
 
 /// What a flight log states about the flight, in SI.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Stated {
     /// The apogee the logger computed, m above its own zero; `None` if the file states none, or
     /// states something that isn't a height, such as a PerfectFlite's `PWRLOSS`.
@@ -654,7 +661,7 @@ pub struct Stated {
 
 /// A figure a file states once about its flight, such as a summary's `Max Altitude,2500.25
 /// feet`: kept as the file writes it, and in SI where its unit is known.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[non_exhaustive]
 pub struct Figure {
     /// The figure's name as the file writes it, such as `Max Altitude`.
