@@ -1,5 +1,7 @@
 # ThrustCurve.org motor data for the M1.3 catalog
 
+Re-checked 2026-10-17: 6 claims corrected.
+
 Checked 2026-09-17 with `validation/oracles/thrustcurve/survey.py` (pinned `motors.json`, API
 captures cached in the gitignored `refs/samples/thrustcurve/`). ThrustCurve's site code
 (`JohnCoker/thrustcurve3`, ISC, permissive) was read at `577afa6` only to confirm definitions.
@@ -36,9 +38,10 @@ captures cached in the gitignored `refs/samples/thrustcurve/`). ThrustCurve's si
   come "from the certification organization ... or derived from them and/or the thrust curve"
   (motorstats.html). Each simfile page shows the file's statistics next to the motor's.
 - Measured: `avgThrustN*burnTimeS/totImpulseNs` is within 1% of 1 for 749 of 1004 solid motors
-  (median exactly 0; CAR 274/293, NAR 162/202, TRA 282/466, Uncertified 2/13). The other 255 are
-  inconsistent by more than 1%. Curves can't separate F = I/t from I(window)/t (only 0.13% of the
-  impulse lies outside the window, median), so the glossary and the code decide: I/t.
+  (median 0 to rounding; CAR 274/293, NAR 162/202, TRA 282/466, Uncertified 2/13). The other 255
+  are inconsistent by more than 1%. Curves can't separate F = I/t from I(window)/t (median 0.13% of
+  the impulse lies outside the window on the PD files, 0.11% on all), so the glossary and the code
+  decide: I/t.
 
 ## 3. Download API (https://www.thrustcurve.org/info/api.html, `/api/v1/swagger.json` v1.0.3)
 
@@ -53,7 +56,10 @@ captures cached in the gitignored `refs/samples/thrustcurve/`). ThrustCurve's si
 - Licenses, as the uploader picks them (https://www.thrustcurve.org/info/contribute.html#license):
   Public Domain, "anyone may do anything with the file"; Free Usage, "traditional free software
   licenses (I.e., GPL, Creative Commons, Apache)"; Other (restricted), "such as an explicit
-  copyright"; Unknown. No site-wide data terms; the Swagger "ISC license" covers the API spec.
+  copyright"; Unknown. No page grants a license for the motor records: the home page reads "All
+  rights under copyright reserved" (read 2026-10-17, and in a 2026-07-09 archive capture). The
+  Swagger file names the ISC license for the API (`info.license`); it says nothing about the
+  records.
   **Bundle `PD` only:** `free` may be GPL or share-alike, unstated; `other` is restricted; no
   value means unknown. Also exclude PD files whose own text contradicts the flag (section 4).
 
@@ -92,8 +98,9 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
 ## 6. Bundle (`validation/oracles/thrustcurve/bundle.py`)
 
 - **Rule:** license PD; within 1% on all three under definition A; solid, in production; no
-  provenance flag; up to 3 per class from distinct manufacturers, ranked cert > mfr > user, RASP
-  first, then smallest worst error. **32 curves, 32 motors, classes B to O** (no class A passes).
+  provenance flag; up to 3 per class from distinct manufacturers, ranked cert > mfr > user,
+  RASP first, then a file whose header length and diameter match the metadata, then smallest
+  worst error. **32 curves, 32 motors, classes B to O** (no class A passes).
 - **Curves:** B Quest B4; C Estes C5; D Quest D5 (RSE, user); E CTI 26E31, AT E26W; F AT F52C,
   CTI 68F240, Estes F15 (RSE, user); G CTI 131G84, AT G69N; H CTI 168H54, Loki H125-CT, AT H170M
   (RSE, mfr); I CTI 411I175, AT I175WS, Loki I377-CT; J CTI 1266J760, Loki J300LR, AT J450DM;
@@ -101,11 +108,11 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
   8187M1545, Loki M1378LR, AT M1350W; N CTI 13628N5600, AT N3300R; O CTI 21062O3400, AT O6000W.
   The ids, sha256 and URLs are in `crates/hpr-motor/data/thrustcurve/catalog.json`.
 - The script downloads each `data.eng`/`.rse`, checks that it parses to the API's samples, that
-  it is PD and that it passes, then writes the curve bytes unchanged (31 of 32 are CRLF),
-  `catalog.json` and `src/bundled.rs`. Two runs give byte-identical output. `.gitattributes` marks
-  the curves `-text` so git keeps their bytes. Since issue #295, `cargo xtask motor-catalog`
-  writes `catalog.json` and `src/bundled.rs` from the files alone (header and curve, no API
-  figure), and an xtask test fails if either differs; the script's catalog output is superseded.
+  it is PD and that it passes, then writes the curve bytes unchanged (31 of 32 are CRLF;
+  H170M's is LF) and removes any other file there; it writes no catalog. Two runs give
+  byte-identical output. `.gitattributes` marks the curves `-text` so git keeps their bytes.
+  Since issue #295, `cargo xtask motor-catalog` writes `catalog.json` and `src/bundled.rs` from
+  the files alone (header and curve, no API figure), and an xtask test fails if either differs.
 - Notes: N3300R's header says 1060 mm long, the metadata 1046 mm; the catalog now flies the
   header's. The AMW K1075 header names CTI. D5 and F15 are user curves matched to NAR's averaged data.
 - **Excluded:** of 554 PD files, 358 fail the 1% check (A), including all 14 whose text
@@ -120,6 +127,28 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
 | Impulse off more than 5% (up to 21%; likely a wrong curve, L42) | 41 |
 | Only on a value printed coarser than 1% (for example 0.23 s) | 34 |
 
+## Re-check, 2026-10-17: what moved on the live site
+
+The counts above are the 2026-09-17 survey's and held then. On 2026-10-17 (API read 14:39 to
+14:45 UTC):
+
+- Still 1156 motors with the same fields; only `dataFiles` changed, down one on 7 motors. Solid
+  files 1705 (was 1712): 41 unlicensed files deleted, 34 PD user files added on 09-23 and 09-24.
+  No surviving file changed its license or bytes. License: none 1084, PD 588, free 33; PD by
+  source: cert 367, user 186, mfr 35; 405 motors have a PD file.
+- 198 PD files pass the 1% check under A: the 196 above plus two new Cesaroni RockSim files
+  (129G79, 2765L730). Their classes already hold a Cesaroni curve, so the rule picks the same 32.
+- All 32 bundled curves are still listed under the same motor and simfile ids, still PD, and
+  today's downloads match the sha256 in `catalog.json`. The "63 replaced, 70 deleted" figure in
+  `ideas-design-and-physics.md` (a 2026-09-24 forum post) accounts for all but two changes, with
+  hybrids counted: the 70 deletions are 40 solid and 30 hybrid files, the 63 uploads 33 solid
+  and 30 hybrid. One more unlicensed Cesaroni 229H255 file was deleted, and another contributor
+  uploaded an AeroTech F32T. None touched a bundled curve. No deleted solid file was PD (hybrid
+  licenses were not captured in September).
+- The quoted pages (glossary, motor statistics, contribute, RASP, simulators, API page and
+  `swagger.json` v1.0.3) are byte-identical to their pins or, for the last two, to the hashes
+  under Pins; every quote stands.
+
 ## Pins
 
 - Pinned in M1.3 (`validation/refs.lock.toml`): the glossary, motor-statistics, contribute, RASP
@@ -132,3 +161,11 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
 - **Coarse metadata.** Four bundled motors pass against stored values printed coarser than 1%:
   Quest B4 (burn time 1.1 s, average thrust 4.4 N), CTI 68F240 (0.29 s), Loki J300LR (4.1 s) and
   AeroTech K400C (3.2 s). Their 1% agreement is real but only as tight as those digits.
+
+## Open questions
+
+- The 2026-09-17 POST captures are still an unpinned cache, so a checkout without the cache can
+  re-derive the survey's counts only from today's site, which has moved (above). Pinning a dated
+  capture would make the next re-check exact.
+- The site code also drops negative and NaN points before the steps in section 2. None of the 32
+  bundled curves has one (checked 2026-10-17), so the bundle is unaffected.
