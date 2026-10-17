@@ -66,7 +66,8 @@ coast with no drag after its split.
 >   program and `hpr sim` fly such powered separations, each device on the part its stage is in
 >   ([M4.5g1](../decisions-and-roadmap.md#m4-5g1), powered separation in `hpr sim`;
 >   [M4.5g2](../decisions-and-roadmap.md#m4-5g2), several separations); a dropped stage's own
->   flight is not validated. `hpr sim` flies a configuration whose separation can
+>   flight is not validated
+>   ([evidence row G13](../evidence.md#g13)). `hpr sim` flies a configuration whose separation can
 >   only come after apogee as one stack, with a note.
 > - **Whole flights are compared with OpenRocket's on its own examples.** On 41 of the 53
 >   configurations of OpenRocket's examples that both programs fly to the end, the stability margin off the rod agrees
@@ -824,15 +825,15 @@ from the pod or from the rocket has not been tested against OpenRocket.
 
 **Which *direction* the angle turns is assumed, and is not settled.** HPR Sim measures a roll angle
 from $x_B$ toward $y_B$, right-handed about $+z_B$, which points at the nose
-([frames](../physics/frames.md)). OpenRocket's [technical documentation][techdoc] (§3.1.4) puts its
-own $x$ axis along the centerline pointing **aft**, and says nothing about the other two. A
-right-handed angle about an aft-pointing axis is a left-handed one about HPR Sim's $+z_B$, so if
-that is what OpenRocket means, every angle read here is **mirrored**: a mass object at 90° sits on
-the other side of the airframe, and a canted fin set rolls the other way. Nothing in the reference
-library can settle it, because a mirrored design is still a perfectly valid design; one
-deliberately asymmetric design put through the [OpenRocket oracle](../decisions-and-roadmap.md#m2-2)
-will. Until then HPR Sim takes the number unchanged, and this is on the list of
-[readings that are not settled](#not-settled).
+([frames](../physics/frames.md)) ([evidence row G16](../evidence.md#g16)). OpenRocket's [technical
+documentation][techdoc] (§3.1.4) puts its own $x$ axis along the centerline pointing **aft**, and
+says nothing about the other two. A right-handed angle about an aft-pointing axis is a left-handed
+one about HPR Sim's $+z_B$, so if that is what OpenRocket means, every angle read here is
+**mirrored**: a mass object at 90° sits on the other side of the airframe, and a canted fin set
+rolls the other way. Nothing in the reference library can settle it, because a mirrored design is
+still a perfectly valid design; one deliberately asymmetric design put through the [OpenRocket
+oracle](../decisions-and-roadmap.md#m2-2) will. Until then HPR Sim takes the number unchanged, and
+this is on the list of [readings that are not settled](#not-settled).
 
 **An override that covers the parts inside a component** is read from the mass flag. A `.ork` says
 "this figure covers the components inside this one" once for the mass, once for the center of
@@ -1466,14 +1467,14 @@ never writes one for two of the tags that matter most here: across the whole cor
 caches a number **0 times out of 131** and `innerradius` **0 out of 80**. So the 71 comparisons are
 all `aftradius`, `foreradius`, `radius` and `packedradius`, and the two rules this milestone adds,
 **an inner tube's automatic outer radius** and **a ring's automatic bore**, have *no oracle coverage
-at all*. They rest on their unit tests and on the argument for them, until an OpenRocket oracle
-reads those parts too: the one [below](#held-against-openrocket-itself) reads body radii only, and
+at all* ([evidence row G18](../evidence.md#g18)). They rest on their unit tests and on the argument
+for them, until an OpenRocket oracle reads those parts too: the one
+[below](#held-against-openrocket-itself) reads body radii only, and
 [M2.2](../decisions-and-roadmap.md#m2-2) is where the rest belongs. `cargo xtask ork` prints the
 per-tag denominators and names the tags nothing reaches, so the gap is in the report rather than
-only here.
-Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7), fourteen probe designs run in OpenRocket do
-reach an inner tube's automatic outer radius, a ring's and a bulkhead's, inside a nose cone, a
-transition and a body tube ([above](#inside-a-nose-cone-or-a-transition)); the library's own
+only here. Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7), fourteen probe designs run in
+OpenRocket do reach an inner tube's automatic outer radius, a ring's and a bulkhead's, inside a nose
+cone, a transition and a body tube ([above](#inside-a-nose-cone-or-a-transition)); the library's own
 files still cache no such number.
 
 The four cached numbers that disagree (not the four inside a pod) are one body tube and the
@@ -2863,7 +2864,8 @@ section has the row.
 conditions, a 0.15 m (0.49 ft) rod at 28.61° N with no wind, HPR Sim's sustainer turns over, its angle of
 attack past 90°, at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it does not, so
 the apogee `hpr sim` prints assumes the unstable sustainer stays upright. Why the two launches
-differ is not traced. `hpr sim` prints the least margin of −4.21 calibers with a warning that the
+differ is not traced
+([evidence row G17](../evidence.md#g17)). `hpr sim` prints the least margin of −4.21 calibers with a warning that the
 rocket is unstable under power and its apogee is not a prediction
 ([Flight metrics: unstable under power](../physics/metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)).

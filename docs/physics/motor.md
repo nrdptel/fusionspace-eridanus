@@ -241,7 +241,8 @@ holding one [`MountedMotor`](../api/hpr_design/config/struct.MountedMotor.html).
 Valetudo's mount is 43 mm (1.7 in) inside, so this 38 mm motor fits. `Simulation::new(&rocket,
 "from-file", ...)` then flies the configuration by its id: straight up from a 3 m (9.8 ft) rail, in calm
 air, with no parachutes. The rocket weighs 8.82 kg at liftoff, leaves the rail at 17.7 m/s (58 ft/s), and
-reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not validated; see
+reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not validated
+([evidence row G24](../evidence.md#g24)); see
 [Accuracy](../accuracy.md) before trusting them.
 
 A design file holds configurations in the same form, as JSON, with the motor written out in full:

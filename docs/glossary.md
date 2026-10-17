@@ -496,6 +496,15 @@ Climate Data Store. Its pressure-level files give the temperature, wind and
 [ERA5 weather files](format/era5.md).
 
 
+### Evidence register
+
+The list of every gap these pages state in what backs a reader, a model or a check, one row
+each: the kind of evidence behind it (a real file, another program's answer, a published layout,
+an argument), the kind that would settle it, and the open issue that waits for it. Each page that
+states a gap links its row, and the build fails a gap stated with no row. See
+[What backs each claim](evidence.md).
+
+
 ### Event
 
 A moment the simulator locates exactly and records, such as liftoff, rail exit, burnout, apogee and
@@ -1367,7 +1376,7 @@ Random gusts on top of the steady wind. HPR Sim models them with the Dryden spec
 a military aircraft specification, from a seeded generator that repeats bit for bit for the same
 seed on one platform. No flight uses turbulence yet, none is planned
 ([issue #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39)), and Dryden is unvalidated for
-rockets. See [Turbulence](physics/turbulence.md).
+rockets ([evidence row G12](evidence.md#g12)). See [Turbulence](physics/turbulence.md).
 
 
 ### Validation case

@@ -26,6 +26,11 @@ small extracted fixtures with a clear license are committed, each with its prove
 
   Code-to-code agreement is not truth. Real flights are the final arbiter, and their uncertainty
   (weather, as-built mass, motor variation) must be stated.
+- **Every gap tracked.** Where a page says a reader, a model or a check rests on less than real
+  evidence, it links a row of the evidence register, which names the kind of evidence behind it,
+  the kind wanted and an open issue until a real sample settles it
+  ([What backs each claim](evidence.md)). `cargo xtask evidence`, in the gate and CI, fails a gap
+  stated with no row, and a row short of what it wants with no open issue.
 - **Stored references with provenance.** Every reference output records the tool, version, date,
   inputs hash and command, so CI can compare without Java or Python. A manually triggered workflow
   regenerates the references.
@@ -206,7 +211,7 @@ drift sits near a limit, leave room on both sides; the warning can't say which:
 
 | issue | what reads wrong | when it warns |
 |---|---|---|
-| [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219) | HPR Sim flies the turn that thrust makes about a [center of gravity](glossary.md#center-of-gravity-cg) off the axis; OpenRocket's flights don't, and nothing measures which is right. The turn reverses with the offset's side, so against a wind or a tilted rail the apogee or the drift can read low | the center of gravity of the rocket, or of a sustainer flying on after a split, more than 1e-9 m off the axis at launch, at a motor's ignition or burnout, or with its motors spent (exact while one motor burns at a time; two off-axis motors burning together could peak between): most designs with a lug or a rail button, since each sits off the axis. 1e-9 m only screens out rounding (a symmetric design sits near 1e-18 m off), it is not a measured limit |
+| [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219) | HPR Sim flies the turn that thrust makes about a [center of gravity](glossary.md#center-of-gravity-cg) off the axis; OpenRocket's flights don't, and nothing measures which is right ([evidence row G15](evidence.md#g15)). The turn reverses with the offset's side, so against a wind or a tilted rail the apogee or the drift can read low | the center of gravity of the rocket, or of a sustainer flying on after a split, more than 1e-9 m off the axis at launch, at a motor's ignition or burnout, or with its motors spent (exact while one motor burns at a time; two off-axis motors burning together could peak between): most designs with a lug or a rail button, since each sits off the axis. 1e-9 m only screens out rounding (a symmetric design sits near 1e-18 m off), it is not a measured limit |
 | [#213](https://github.com/nrdptel/fusionspace-eridanus/issues/213) | a single side [pod](glossary.md#pod)'s drag and normal force are applied on the rocket's axis, so the steady tilt its drag would give (about 0.15° on [the pods' worked example](physics/aero.md#pods)) and the roll its normal force would give are left out; which way that moves the flight turns with the pod's side | a rocket with one pod, not two or more, off the axis and holding a part; two or more pods stand evenly round the axis and cancel |
 | [#106](https://github.com/nrdptel/fusionspace-eridanus/issues/106) | where the supersonic [shock-expansion method](physics/aero.md#the-body-faster-than-sound-in-a-flight) hands over from [slender-body theory](glossary.md#slender-body-theory), over 0.3 in Mach number, a body part's pitch and yaw damping is sampled away from its own center of pressure (4.71 calibers apart at Mach 1.3 on the tests' 54 mm (2.1 in) rocket); the margins don't use it, but the apogee and drift can lean either way | the top speed of the rocket, or of a sustainer flying on after a split, past the start of its own handover (Mach 1.2 or later). The message names the handover's span, or every speed past its start where a lip rides partly in a boattail's wake or a part behind a boattail keeps slender-body theory's station |
 | [#8](https://github.com/nrdptel/fusionspace-eridanus/issues/8) | a wind level of 1.5 m/s (4.9 ft/s) or less (light air, whose direction a vane doesn't show) still turns the interpolated direction; where the other levels share one direction, that likely shortens the drift | a wind table interpolated by speed and direction ([`SpeedDirection`](physics/wind.md#models)) whose near-calm level turns by any angle against its neighbor inside the flight's heights; only library flights meet it, as `hpr sim` flies one wind and Python's wind is a function |
@@ -457,7 +462,8 @@ rows, each percentage to its meters, the words and each flight's inputs to the c
 files read to their digests, the page to the data, and each explanation to its numbers; `--check`
 flies it again where the checkout is. Today: 6.04% over seven flights, outside the target, five
 outside 5% (NDRT 2020, Prometheus, Cavour and Genesis consistent with HPR Sim's drag; Juno III with
-its motor's impulse). Four of the seven altimeters' kinds are assumed barometric; with those four
+its motor's impulse). Four of the seven altimeters' kinds are assumed barometric
+([evidence row G21](evidence.md#g21)); with those four
 read as heights instead, the mean is 6.63%.
 
 ## Simulators and papers

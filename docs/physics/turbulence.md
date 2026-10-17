@@ -14,7 +14,8 @@ seed, and why no flight uses them.
 - **How well it is validated:** analytic and unit tests only: over 2²⁰ samples, each component's
   spectrum is within 4 standard errors of theory in every octave band (±1–3% in the wide bands).
   Not compared with another simulator or a real flight.
-- **What it leaves out:** Dryden is an aircraft model, unvalidated for rockets. Its frozen gust
+- **What it leaves out:** Dryden is an aircraft model, unvalidated for rockets
+  ([evidence row G12](../evidence.md#g12)). Its frozen gust
   pattern needs airspeed well above the gusts, which fails on the rail and near apogee. No flight
   uses it, and none is planned ([issue #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39)).
   Above 2000 ft the caller supplies the intensity.

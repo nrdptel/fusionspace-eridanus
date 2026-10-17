@@ -1086,7 +1086,7 @@ struct Page {
 
 /// The Markdown extensions that both GitHub and the site render; the site's math through its
 /// preprocessor ([`math`]), so a formula is never read as prose.
-fn options() -> Options {
+pub(crate) fn options() -> Options {
     Options::ENABLE_TABLES
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
@@ -2766,7 +2766,7 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
 
 /// The anchors GitHub gives the headings of a Markdown file, which is read for nothing else, and
 /// the `id`s of its `<a id="...">` elements.
-fn anchors_of(text: &str) -> BTreeSet<String> {
+pub(crate) fn anchors_of(text: &str) -> BTreeSet<String> {
     let mut found = anchors(headings(text, None));
     found.extend(raw_html_ids(text));
     found

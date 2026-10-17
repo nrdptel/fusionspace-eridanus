@@ -16,16 +16,36 @@ AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its f
 board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a
 phone app's `launch` CSV, an Eggtimer's download saved as RTF, the Raven's `.FIPa` and the
 RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no samples), the
-R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files, Missile Works' RTx tracker's `.rtx` file and its exports, and GPX files (checked on invented files only), and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook, a team flight computer's binary records by a layout the caller states, a Blue Raven's USB download, each line held to its CRC, and a course's Teensy data logger, its units held to the flight's physics, and one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a header you state, an AltiMAX altimeter's `.xls` export and its own `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns, and tables whose headers state too little, by a column mapping you state, the sample tables' mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md)). Python reads by its reader each the library tells from the file alone, and a table or binary records by a mapping or a layout, but not yet an `.xls` export, a zip archive's files or a workbook's sheet but by a mapping ([`FlightLog`](your-own-logger.md#from-python)); `hpr analyze` reads PerfectFlite's `.pf2` logs by their reader and any other logger's table by a column mapping, its binary records by a record layout ([Reading your own logger](your-own-logger.md)). Readings are taken from PerfectFlite's logs only: [M7.2](decisions-and-roadmap.md#m7-2) validates them on other
-loggers. Formats no sample holds yet, such as a CATS flight computer's, are
-[listed as needing samples](format/flight-logs.md#formats-that-need-samples).
+R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw
+downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and
+NMEA files, Missile Works' RTx tracker's `.rtx` file and its exports, and GPX files (checked on
+invented files only), and tables from loggers no other reader knows, by the units their headers
+state, into the same record, those in a CSV layout also from the sheets of an Excel workbook, a team
+flight computer's binary records by a layout the caller states, a Blue Raven's USB download, each
+line held to its CRC, and a course's Teensy data logger, its units held to the flight's physics, and
+one team's radio telemetry packets, `255:…:254`, a Raven FIP export pasted below no header, under a
+header you state, an AltiMAX altimeter's `.xls` export and its own `.ALS` file, Entacore AIM's
+`.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a
+table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns,
+and tables whose headers state too little, by a column mapping you state, the sample tables'
+mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md))
+([evidence row G1](evidence.md#g1)). Python reads by its reader each the library tells from the file
+alone, and a table or binary records by a mapping or a layout, but not yet an `.xls` export, a zip
+archive's files or a workbook's sheet but by a mapping
+([`FlightLog`](your-own-logger.md#from-python)); `hpr analyze` reads PerfectFlite's `.pf2` logs by
+their reader and any other logger's table by a column mapping, its binary records by a record layout
+([Reading your own logger](your-own-logger.md)). Readings are taken from PerfectFlite's logs only:
+[M7.2](decisions-and-roadmap.md#m7-2) validates them on other loggers. Formats no sample holds yet,
+such as a CATS flight computer's, are [listed as needing
+samples](format/flight-logs.md#formats-that-need-samples) ([evidence row G9](evidence.md#g9)).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
 > The landing is read at the first sample within 2 m (6.6 ft) of the pad, so early by the time the
 > last 2 m (6.6 ft) take: 0.33 s at 6 m/s (20 ft/s), 0.5 s at 4 m/s (13 ft/s). On one real flight, a
 > public log that isn't committed here and so isn't checked in CI, the analyzer reads 1,010 ft where
-> the altimeter states 1,009 ft. The analyzer has no check yet for a barometer's errors near the
+> the altimeter states 1,009 ft
+> ([evidence row G10](evidence.md#g10)). The analyzer has no check yet for a barometer's errors near the
 > speed of sound. If the flight may have come near Mach 0.9, about 300 m/s (984 ft/s), treat the
 > top speed and the heights near it with care: the barometer's error can pull the top speed down
 > too, so a low reading doesn't clear it. The rules behind each reading are on
@@ -202,10 +222,12 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read a format no sample holds yet, such as a CATS flight computer's: the formats that
-  need samples are [listed](format/flight-logs.md#formats-that-need-samples), each with what a
-  reader would need. Nor does it take readings from the logs the library already reads beside
-  PerfectFlite's ([M7.2](decisions-and-roadmap.md#m7-2)).
+- Read a format no sample holds yet, such as a CATS flight computer's
+  ([evidence row G9](evidence.md#g9)): the formats that need samples are
+  [listed](format/flight-logs.md#formats-that-need-samples), each with what a reader would need, and
+  a sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662). Nor
+  does it take readings from the logs the library already reads beside PerfectFlite's
+  ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Read another logger's file by its own reader from the command line: `hpr analyze` reads

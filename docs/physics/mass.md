@@ -471,7 +471,7 @@ OpenRocket's within
 0.001%, part by part as well as whole (the worst, a transition, is 0.0003% apart), and its center
 of mass within 0.001 mm (0.000039 in). Where no fin, rail button or recovery part is in the probe, the inertias
 agree within 0.001% too. One gap is pinned rather than hidden, and described below: an elliptical
-fin set weighs 0.18% more. None of these readings raises a warning, since nothing is assumed:
+fin set weighs 0.18% more. None of these readings raises a warning, since the file states each one:
 
 | the file says | what it weighs (OpenRocket 24.12, and now HPR Sim) |
 |---|---|

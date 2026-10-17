@@ -112,6 +112,7 @@
 # Reference
 
 - [Checking a claim](checking-a-claim.md)
+- [What backs each claim](evidence.md)
 - [Validation plan and reference inventory](VALIDATION.md)
 - [The API reference](api.md)
 - [How a release is built](releasing.md)

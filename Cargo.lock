@@ -2821,6 +2821,7 @@ dependencies = [
  "math-core",
  "pulldown-cmark",
  "roxmltree",
+ "schemars",
  "serde",
  "serde_json",
  "sha2",

@@ -35,6 +35,7 @@ mod design_checks;
 mod designs;
 #[cfg(test)]
 mod docs;
+mod evidence;
 mod examples;
 mod features;
 mod figures;
@@ -102,6 +103,7 @@ Commands:
 {EXAMPLES}
 {FIGURES}
 {GUIDES}
+{EVIDENCE}
 {FORMAT}
 {GRIB2}
 {ORK}
@@ -134,6 +136,7 @@ fn usage() -> String {
         .replace("{EXAMPLES}", examples::USAGE)
         .replace("{FIGURES}", figures::USAGE)
         .replace("{GUIDES}", guides::USAGE)
+        .replace("{EVIDENCE}", evidence::USAGE)
         .replace("{FORMAT}", format::USAGE)
         .replace("{GRIB2}", grib2::USAGE)
         .replace("{ORK}", ork::USAGE)
@@ -168,6 +171,7 @@ fn main() -> ExitCode {
         Some("examples") => examples::run(&args.collect::<Vec<_>>()),
         Some("figures") => figures::run(&args.collect::<Vec<_>>()),
         Some("guides") => guides::run(&args.collect::<Vec<_>>()),
+        Some("evidence") => evidence::run(&args.collect::<Vec<_>>()),
         Some("format") => format::run(&args.collect::<Vec<_>>()),
         Some("grib2-values") => grib2::run(&args.collect::<Vec<_>>()),
         Some("ork") => ork::run(&args.collect::<Vec<_>>()),
