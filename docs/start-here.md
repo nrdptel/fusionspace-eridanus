@@ -104,13 +104,13 @@ one and are unchanged ([M0.6e](decisions-and-roadmap.md#m0-6e), US names).
 | Monte Carlo | One rocket flown many times with its mass, drag, motor, wind, rail and recovery delays scattered, seeded so a run repeats exactly; the spread of the apogee, the landing or any number a flight reports, with failed flights counted. From Rust or `hpr mc`, staged flights included; every flight exported as CSV, or, for a design without staging, returned to Python as NumPy arrays, the same numbers to the bit with both built in release mode | [Monte Carlo dispersion](monte-carlo.md), [`hpr mc`](cli.md#hpr-mc) |
 | Optimization | Three optimizers search for the design that makes a result best. [CMA-ES](glossary.md#cma-es) tunes a design's numbers (a ballast mass, a body length) and picks from choices such as a motor or a catalog nose cone, within limits such as a minimum stability margin. [NSGA-II](glossary.md#nsga-ii) weighs two goals against each other, such as apogee against stability. [EGO](optimization.md#few-evaluations-ego), efficient global optimization, is for models so slow that only tens of evaluations can be afforded. Each is held to test functions whose answers are known, and CMA-ES and NSGA-II also to outside implementations. On a rocket, an answer is only as good as HPR Sim's flight models. From Rust only; EGO is checked on two, three and six variables, and competition rule files are not built yet | [Optimization](optimization.md) |
 | Python | The `hpr` package: the builder's rocket, motor, site and flight from Python, with the recording as NumPy arrays and a design read from a file. A Monte Carlo run, its flights as NumPy arrays. `pip install fusionspace-hpr` from PyPI, or built from source; no staging; a design read from a file flies its stored parachutes with `recovery=True`, and most `.ork` configurations are refused as they don't fly as written | [Python](python.md) |
-| Evidence | A register of every gap these pages state in what backs a reader, a model or a check: the kind of evidence behind it, the kind that would settle it, and the open issue waiting for a real sample; the build fails a gap a page states with no row ([M2.10](decisions-and-roadmap.md#m2-10)) | [What backs each claim](evidence.md) |
+| Evidence | A register of the gaps these pages state in what backs a reader, a model or a check: the kind of evidence behind each, the kind that would settle it, and the open issue waiting for a real sample; the build fails a gap stated in one of its listed phrases with no row, though a gap worded otherwise passes ([M2.10](decisions-and-roadmap.md#m2-10)) | [What backs each claim](evidence.md) |
 
 ## What doesn't work yet
 
 These are the gaps you are most likely to meet. Each model page lists what its own model leaves
-out, and [What backs each claim](evidence.md) lists every gap the pages state, with the issue that
-waits for its evidence.
+out, and [What backs each claim](evidence.md) lists the gaps the pages state, with the issue that
+waits for each one's evidence.
 
 ### Speed and angle of attack
 

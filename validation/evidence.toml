@@ -56,7 +56,7 @@ claim = "AltOS radio telemetry is decoded from AltOS's documents for the packet 
 pages = ["format/flight-logs.md#altos-telemetry"]
 kind = "spec"
 wanted = "real"
-not_checked = "the eleven packet types no sample holds, which are left out; the GPS ground speed and climb rate, which nothing checks"
+not_checked = "the eleven packet types no sample holds, which are left out; the GPS ground speed, climb rate and course, which nothing checks"
 issue = 656
 
 [[row]]
@@ -112,7 +112,7 @@ issue = 661
 [[row]]
 id = "G9"
 surface = "Flight-log readers"
-claim = "Formats with no sample (CATS's, a logger named Juno and the others listed) have no reader and are refused"
+claim = "Formats with no sample (CATS's, a logger named Juno and the others listed) have no reader of their own"
 pages = [
   "start-here.md#outputs-and-ways-to-use-it",
   "cli.md#hpr-analyze",
@@ -166,7 +166,7 @@ issue = 665
 [[row]]
 id = "G13"
 surface = "Flight models"
-claim = "A dropped booster or middle stage flies on after the split, as its own rocket"
+claim = "A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag"
 pages = [
   "cli.md#the-command-line",
   "physics/recovery.md#from-an-openrocket-file",
@@ -194,11 +194,11 @@ issue = 667
 [[row]]
 id = "G15"
 surface = "Flight models"
-claim = "Thrust about a center of gravity off the axis turns the rocket, so some vertical calm flights drift sideways"
+claim = "Thrust about a center of gravity off the axis turns the rocket in HPR Sim, and not in OpenRocket"
 pages = ["VALIDATION.md#operating-envelope"]
-kind = "code-to-code"
+kind = "reasoning"
 wanted = "real"
-not_checked = "which is right: OpenRocket's flights don't drift, and nothing measures it"
+not_checked = "which of the two is right, which nothing measures"
 issue = 668
 
 [[row]]
@@ -258,14 +258,14 @@ issue = 673
 [[row]]
 id = "G21"
 surface = "Accuracy against real flights"
-claim = "Four of the seven public altimeters are taken as barometric"
+claim = "Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses"
 pages = [
   "accuracy.md#accuracy",
   "VALIDATION.md#real-flights",
 ]
 kind = "reasoning"
 wanted = "real"
-not_checked = "each of the four altimeters' sensor; none is calibrated"
+not_checked = "each of the four altimeters' sensor, none of them calibrated; each design's fin edges"
 issue = 674
 
 [[row]]
@@ -352,7 +352,7 @@ pages = [
 ]
 kind = "reasoning"
 wanted = "real"
-not_checked = "a second measured flare; any flare past its corner's limit"
+not_checked = "a second measured flare; any flare past its corner's limit; a near-flat flare, read by the older generalized method"
 issue = 680
 
 [[row]]

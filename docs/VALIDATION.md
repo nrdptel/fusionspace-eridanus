@@ -26,11 +26,13 @@ small extracted fixtures with a clear license are committed, each with its prove
 
   Code-to-code agreement is not truth. Real flights are the final arbiter, and their uncertainty
   (weather, as-built mass, motor variation) must be stated.
-- **Every gap tracked.** Where a page says a reader, a model or a check rests on less than real
+- **Gaps tracked.** Where a page says a reader, a model or a check rests on less than real
   evidence, it links a row of the evidence register, which names the kind of evidence behind it,
   the kind wanted and an open issue until a real sample settles it
   ([What backs each claim](evidence.md)). `cargo xtask evidence`, in the gate and CI, fails a gap
-  stated with no row, and a row short of what it wants with no open issue.
+  stated in one of its listed phrases with no row, and a row short of what it wants with no open
+  issue; a gap worded otherwise passes it
+  ([#685](https://github.com/nrdptel/fusionspace-eridanus/issues/685)).
 - **Stored references with provenance.** Every reference output records the tool, version, date,
   inputs hash and command, so CI can compare without Java or Python. A manually triggered workflow
   regenerates the references.

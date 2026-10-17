@@ -1733,7 +1733,7 @@ logger wrote, best with the maker's own export of the same flight beside them. T
 table says what was found for each of the two, and what a reader would need. The search, of makers' pages and
 public repositories, is in
 [a research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/sample-logs-cats-juno.md),
-read on 2026-10-16. A sample of any format on this list can be offered in
+read on 2026-10-16. A sample of a format in the table below can be offered in
 [its issue, #662](https://github.com/nrdptel/fusionspace-eridanus/issues/662), with the terms it may be tested on.
 
 | Format | Samples found | What a reader needs |

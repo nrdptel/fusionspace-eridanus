@@ -498,11 +498,11 @@ Climate Data Store. Its pressure-level files give the temperature, wind and
 
 ### Evidence register
 
-The list of every gap these pages state in what backs a reader, a model or a check, one row
+The list of the gaps these pages state in what backs a reader, a model or a check, one row
 each: the kind of evidence behind it (a real file, another program's answer, a published layout,
-an argument), the kind that would settle it, and the open issue that waits for it. Each page that
-states a gap links its row, and the build fails a gap stated with no row. See
-[What backs each claim](evidence.md).
+an argument), the kind that would settle it, and the open issue that waits for it. A page that
+states a gap links its row, and the build fails a gap stated in one of the check's phrases with no
+row; a gap worded otherwise isn't caught. See [What backs each claim](evidence.md).
 
 
 ### Event
