@@ -3208,45 +3208,61 @@ fitted to this file:
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
 **How the export writes a number.** Two rules, fitted to this one file, reproduce the export's
-numbers. The software holds each value as a 64-bit float, a *double*, good to about 16
-significant digits; the export keeps 15, as Excel does.
+numbers: *converting*, a model of how it turns a number into 15 digits, and *multiplying*, how it
+turns a voltage channel's count into volts. Neither changes what the reader returns, the values
+the file stores; the rules only write those values as the export does, so the check can compare
+them. The software holds each value as a 64-bit float, a *double*, whose significant part holds
+53 bits, good to about 16 significant digits; the export keeps 15, as Excel does.
 
-*Converting.* The export doesn't round a value to 15 digits once. Its numbers match arithmetic
-in 80-bit floating point, the format of an x86 processor's older floating-point unit, whose
-numbers carry 64 bits of precision against a double's 53. That is a model fitted to this file,
-not taken from the software. In three steps, the model:
+*Converting.* The export doesn't round a value to 15 digits once. Its numbers match arithmetic in
+80-bit floating point, the format of an x86 processor's older floating-point unit, whose
+significant part holds 64 bits. That is a model fitted to this file, not taken from the software,
+and one row of the 25,334 is what tells it from plainer rules (below). In three steps, the model:
 
 1. guesses the value's power of ten from its power of two: the power of two's exponent times
-   log₁₀ 2, rounded down. The guess is one too low for some values: those from 100 to under 128
-   share their power of two, 2⁶, with those from 64 to under 100, so both get 10¹;
-2. scales the value by that power of ten to 18 digits, rounded to 64 bits. Where the guess was
-   low, that makes 19 digits, and it divides them by 10, rounded to 64 bits again;
-3. rounds the result to a whole number, half to even, and that to 15 digits, upward when exactly
-   halfway.
+   log₁₀ 2, rounded down. The guess is one too low from each power of ten up to the next power of
+   two: from 10 to under 16, 100 to under 128 and 1,000 to under 1,024, for example, and from
+   0.001 to under 2⁻⁹, 0.001 953 125;
+2. scales the value by that power of ten to 18 digits and rounds it to 64 bits, the nearest
+   number whose significant part fits 64 bits. Where the guess was low, that makes 19 digits,
+   and it divides them by 10, rounded to 64 bits again;
+3. rounds the result to a whole number, *half to even* (an exact half goes to the even
+   neighbor: …498.5 to …498, …499.5 to …500), and that to 15 digits, upward when exactly halfway.
 
-Two examples show what the steps do. A clock summed from 5 ms steps in doubles can land just
-under halfway between two 15-digit values, close enough that the 18 digits land on halfway,
-which then rounds up: 347 steps, for example, make 1.734 999 999 999 984 998 7 s, which the rule
-writes 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And the file's clock at
-122.005 s is 122.005 000 000 015 499 495 s, which at 18 digits is …015 499 and just under half a
-unit more. Scaled straight to 18 digits it rounds down, to …499, and then to …015. The guess,
-one low there, gives 19 digits instead, …154 994.95, which rounds at the 64th bit to …154 995;
-divided by 10, that is …15 499.5, exactly half a unit, which rounds to …15 500 and then up, to
-…016, as the export writes it.
+A clock summed from 5 ms steps in doubles can land just under halfway between two 15-digit
+values, close enough that the 18 digits land on halfway, which then rounds up. For example,
+347 steps make 1.734 999 999 999 984 998 7 s, which the model writes 1.734 999 999 999 99 and
+rounding once 1.734 999 999 999 98.
+
+The file's clock at 122.005 s is where the guess shows. Its value is
+122.005 000 000 015 499 495 s; its power of two is 2⁶, so the guess is 10¹, where 10² is right.
+Each line of this table is one step, as a whole number at the scale it works at:
+
+| Step | With the power of ten exact, 10² | With the guess, 10¹ |
+|---|---|---|
+| Scaled | 122 005 000 000 015 499.495, 18 digits | 1 220 050 000 000 154 994.95, 19 digits |
+| Rounded to 64 bits | …015 499.492 | …154 995 |
+| Divided by 10 | not needed | …015 499.5 |
+| Rounded to a whole number, half to even | …015 499 | …015 500 |
+| To 15 digits, half up | 122.005 000 000 015 | 122.005 000 000 016, as the export writes it |
+
+The other choices in the model can't change a value, so no file can test them: half up instead of
+half to even in step 3 gives the same 15 digits, as …499.5 goes to …500 either way, and the
+second rounding to 64 bits moves a value too little to cross a half.
 
 With the power of ten known exactly, rounded first to each number of digits and then half up to
 15, this many of the 25,334 clock values differ from the export's. Rounded once, 11 differ, the
-122.005 s row among them; rounded first to 18, the rule's own number, only that row, so it alone
-needs the guess and the first rounding to 64 bits. The rest of the model, half to even in step 3
-and the second rounding to 64 bits, is how 80-bit arithmetic rounds; no count in the report
-singles either out.
+122.005 s row among them. Rounded first to 18 digits, the one of these that matches the rest,
+only that row differs, so it alone needs the guess and the first rounding to 64 bits. A running
+sum one double higher at that row in the software could explain it too, under that plainer
+rule; the file can't rule that out, but the model needs no such difference.
 
 | Rounded first to | 15 (once) | 16 | 17 | 18 | 19 | 20 |
 |---|---:|---:|---:|---:|---:|---:|
 | Clock values that differ | 11 | 1,245 | 109 | 1 | 11 | 11 |
 
-The rule divides by 10 for 2,327 clock values, 3,265 accelerations and 5,066 voltages, and
-none of the 25,334 of each differs.
+The model divides by 10 for 2,327 clock values, 3,265 accelerations and 5,066 voltages, and every
+one of the 25,334 clock values, accelerations and voltages matches the export.
 
 *Multiplying.* The volts are the double nearest the count times the factor, computed exactly and
 then rounded once. Multiplying the count by the factor already rounded to a double puts 31

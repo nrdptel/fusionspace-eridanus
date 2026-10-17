@@ -147,7 +147,7 @@ struct AlsFile {
     #[serde(default)]
     divided_by_ten: [u64; 3],
     /// The clock values, s, that would differ with the power of ten known exactly, rounded first
-    /// to 18 digits, the rule's own number of digits: the first [`LISTED`].
+    /// to 18 digits, the number the rule scales to: the first [`LISTED`].
     #[serde(default)]
     time_at_18_digits_s: Vec<f64>,
     /// The export's rows from apogee on, whose speed the software works out from the pressure,
@@ -231,8 +231,9 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
 /// them, by the rule fitted to its sample: a decimal conversion in 80-bit floating point, whose
 /// significands hold 64 bits, the format of an x86 processor's x87 unit.
 ///
-/// 1. The power of ten is guessed from the value's power of two E₂ as ⌊E₂ · log₁₀ 2⌋, which is
-///    one low for some values, such as those from 100 to under 128.
+/// 1. The power of ten is guessed from the value's power of two E₂, |value| = m × 2^E₂ with
+///    1 ≤ m < 2, as ⌊E₂ · log₁₀ 2⌋, which is one low from each power of ten up to the next power
+///    of two: 10 to under 16, 100 to under 128, 0.001 to under 2⁻⁹.
 /// 2. The value is scaled by it to 18 digits and rounded to a 64-bit significand; where the guess
 ///    made it 19 digits, it is divided by 10 and rounded again.
 /// 3. It is rounded to a whole number, half to even, and that half up to 15 digits.
@@ -245,9 +246,15 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
 /// ...154 994.95, which rounds at the 64th bit to ...154 995, and divided by 10 is ...15 499.5,
 /// exactly half a unit, which rounds to ...15 500 and then up, to ...016, as the export writes it.
 ///
-/// `None` for zero, a value that isn't finite, or one outside about 10⁻⁹ to 10¹⁸: under it, the
-/// power of ten, 10¹⁸ or more, no longer fits 64 bits, so an 80-bit unit would round it, which
-/// the rule doesn't model.
+/// Half up instead of half to even in step 3 gives the same 15 digits: the only halves whose
+/// rounding could move them, ...499.5, go to ...500 either way. And the second rounding to 64
+/// bits can't move a value across a half, as the 19 digits divided by 10 lie a 160th or more from
+/// any half they aren't on, and rounding them to 64 bits moves them a 128th or less. So no file
+/// can test either.
+///
+/// `None` for zero, a value that isn't finite, or one outside 2⁻³³ to 2⁶⁰, about 1.2 × 10⁻¹⁰ to
+/// 1.2 × 10¹⁸: under it, the power of ten, 10²⁸ or more, needs more than 64 bits, so an 80-bit
+/// unit would round it, and over it the scale is a division; the rule models neither.
 fn export_digits(value: f64) -> Option<(i64, i32)> {
     conversion(value).map(|(digits, _)| digits)
 }
@@ -287,12 +294,10 @@ fn conversion(value: f64) -> Option<((i64, i32), bool)> {
         let shifted = significand << 60;
         (significand, exponent) = round_to_64_bits(shifted / 10, exponent - 60, shifted % 10 != 0)?;
     }
-    let mut whole = nearest_whole(significand, exponent)?;
+    let whole = nearest_whole(significand, exponent)?;
     let mut last = 3 - k + i32::from(divided);
-    if whole == P18 {
-        whole /= 10;
-        last += 1;
-    }
+    // Can't fail: the guess is at most one low, so a value divided is under 2 × 10¹⁷, and one
+    // not divided is under 10¹⁸ by the test above; refused, not written, if it did.
     if !(P17..P18).contains(&whole) {
         return None;
     }
@@ -329,7 +334,8 @@ fn round_to_64_bits(n: u128, e: i32, dropped: bool) -> Option<(u128, i32)> {
     Some((rounded, e + shift as i32))
 }
 
-/// `significand` × 2^`exponent` rounded to a whole number, half to even; `None` if it doesn't fit.
+/// `significand` × 2^`exponent` rounded to a whole number, half to even, for a significand of at
+/// most 64 bits, as here; `None` if it doesn't fit.
 fn nearest_whole(significand: u128, exponent: i32) -> Option<u128> {
     if exponent >= 0 {
         let shift = exponent as u32;
@@ -390,12 +396,12 @@ fn units(ours: Option<(i64, i32)>, theirs: Option<(i64, i32)>) -> u64 {
 /// Adds a comparison of a value written as the export writes it with the export's to
 /// `[compared, differing, most]`.
 fn tally(counts: &mut [u64; 3], ours: f64, theirs: f64) {
-    let digits = export_digits(ours);
-    // A value the conversion can't write differs, unless it is zero, as the export's must be.
-    let units = if digits.is_none() && ours != 0.0 {
-        u64::MAX
-    } else {
-        units(digits, digits_15(theirs))
+    // Zero matches only zero; a value the conversion can't write, or an export cell that isn't a
+    // finite number, differs.
+    let units = match (export_digits(ours), digits_15(theirs)) {
+        (Some(a), Some(b)) => units(Some(a), Some(b)),
+        _ if ours == 0.0 && theirs == 0.0 => 0,
+        _ => u64::MAX,
     };
     counts[0] += 1;
     if units > 0 {
@@ -880,6 +886,7 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 .iter()
                 .any(|c| c[0] != every || c[1] > 0)
             || f.speed[0] == 0
+            || f.speed[0] + f.speed_not_compared as u64 != every
             || f.speed[1] > 0
             || !f.events_equal
             || !within_height
@@ -1159,8 +1166,9 @@ mod tests {
             export_digits(row.next_down()),
             Some((122_005_000_000_015, -12))
         );
-        // The guess is one low from 100 to under 128, where E₂ is 6, and right from 64 to under
-        // 100 and from 128; one low for 0.001, where E₂ is −10, and right under it.
+        // The guess is one low from each power of ten up to the next power of two: from 100 to
+        // under 128, where E₂ is 6, but right from 64 to under 100 and from 128; from 10 to
+        // under 16 and 1,000 to under 1,024; for 0.001, where E₂ is −10, but right under it.
         for (value, divided) in [
             (64.0, false),
             (99.999, false),
@@ -1169,6 +1177,12 @@ mod tests {
             (128.0, false),
             (0.001, true),
             (0.000_9, false),
+            (10.0, true),
+            (15.999, true),
+            (16.0, false),
+            (9.999, false),
+            (1000.0, true),
+            (1024.0, false),
             (-100.0, true),
         ] {
             assert_eq!(divided_by_ten(value), divided, "{value}");
@@ -1176,15 +1190,35 @@ mod tests {
         assert_eq!(export_digits(100.0), Some((100_000_000_000_000, -12)));
         assert_eq!(export_digits(64.0), Some((640_000_000_000_000, -13)));
         // Outside its magnitudes, it writes nothing, and a value it can't write differs.
-        for none in [0.0, 1e-10, 1e19, f64::NAN, f64::INFINITY] {
+        for none in [0.0, 1.1e-10, 1.2e18, f64::NAN, f64::INFINITY] {
             assert_eq!(export_digits(none), None, "{none}");
         }
-        assert_eq!(export_digits(1e-9), Some((100_000_000_000_000, -23)));
+        assert_eq!(export_digits(1.2e-10), Some((120_000_000_000_000, -24)));
         assert_eq!(export_digits(1e18), Some((100_000_000_000_000, 4)));
         let mut c = [0; 3];
-        tally(&mut c, 1e-10, 0.0);
+        tally(&mut c, 1.1e-10, 0.0);
         tally(&mut c, 0.0, 0.0);
         assert_eq!(c, [2, 1, u64::MAX]);
+        // Zero against a blank or infinite cell, or a value against zero, differs.
+        for (ours, theirs) in [
+            (0.0, f64::NAN),
+            (0.0, f64::INFINITY),
+            (1.0, 0.0),
+            (0.0, 1.0),
+        ] {
+            let mut c = [0; 3];
+            tally(&mut c, ours, theirs);
+            assert_eq!(c, [1, 1, u64::MAX], "{ours} against {theirs}");
+        }
+        // Just under a power of ten, the 15 digits carry into the next.
+        assert_eq!(
+            export_digits(1.0_f64.next_down()),
+            Some((100_000_000_000_000, -14))
+        );
+        assert_eq!(
+            export_digits(10.0_f64.next_down()),
+            Some((100_000_000_000_000, -13))
+        );
     }
 
     /// Rounding to 64 bits and to whole numbers: half to even, a bit dropped before breaking a
@@ -1345,6 +1379,7 @@ mod tests {
             voltage: [10, 0, 0],
             time: [10, 0, 0],
             speed: [4, 0, 0],
+            speed_not_compared: 6,
             events_equal: true,
             height_off_m: [Some(0.01), Some(0.02)],
             height_bound_m: Some(0.04),
@@ -1389,6 +1424,9 @@ mod tests {
             |f| f.time[0] = 9,
             |f| f.time[1] = 1,
             |f| f.speed = [0, 0, 0],
+            // Rows before apogee left uncompared.
+            |f| f.speed[0] = 3,
+            |f| f.speed_not_compared = 5,
             |f| f.speed[1] = 1,
             |f| f.events_equal = false,
             |f| f.height_off_m[0] = Some(0.041),

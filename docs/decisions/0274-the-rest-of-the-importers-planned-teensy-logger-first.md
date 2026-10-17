@@ -424,14 +424,15 @@ decisions.
      either, nor which channel is which (*AltiMAX G4 Manual*, p. 42);
    - two rules fitted to the sample. The export writes a number as arithmetic in 80-bit floats
      would, 64 bits of precision: scaled to 18 significant digits by a power of ten guessed from
-     the number's power of two, ⌊E₂ · log₁₀ 2⌋, which is one low for some, divided by 10 where
+     the number's power of two 2^E₂, ⌊E₂ · log₁₀ 2⌋, which is one low for some, divided by 10 where
      the guess made it 19 digits, rounded to a whole number half to even, and that half up to 15
      digits. Its volts are the 64-bit float nearest the exact product (the count times the
      factor's own float puts 31 off). With both, every value compared matches, and the check
      allows no difference. With the power of ten known exactly instead, rounded once 11 clock
      values differ in the 15th digit; first to 16, 17, 18, 19 or 20 digits, 1,245, 109, 1, 11
      and 11. The one at 18 is at 122.005 s, which the guess, low there, rounds up as the export
-     does;
+     does; a running sum one float higher there in the software could explain it too, which the
+     file can't rule out (the flight-log page's *How the export writes a number*);
    - the acceleration is read at the export's own 0.0981 m/s² a count, 0.01 g at 9.81 m/s², so
      it equals the export's;
    - the clock is 5 ms or 25 ms a record, by a bit of its first byte: the manual's table's 200
