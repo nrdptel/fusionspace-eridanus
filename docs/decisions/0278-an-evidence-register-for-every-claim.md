@@ -1,7 +1,7 @@
 # ADR-278: An evidence register: what backs each claim, and an open issue until a real sample does (2026-10-17)
 
 - **Status:** accepted
-- **Summary:** The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic when surveyed, 7 of them flight-log format readers (#645 has since been filed for GPX). Milestone M2.10 adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of a real sample has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score.
+- **Summary:** The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic when surveyed, 7 of them flight-log format readers (#645 has since been filed for GPX). Milestone M2.10 adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of its wanted kind (a real sample, unless an ADR sets less) has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score.
 
 **Context.** [VALIDATION.md](../VALIDATION.md) names four levels of evidence (analytic and unit
 tests, component references, code to code, real flights), and the accuracy page's matrix applies
@@ -83,7 +83,7 @@ row should keep, so the next search doesn't repeat it.
    takes an ADR, as for G23, the one such row now); and `searched`, a dated list of where a search looked and what it found.
 2. *The check.* A `cargo xtask evidence` step, run by the gate and CI, fails when a page states
    that a surface rests on invented samples, an assumption or no sample without naming a row;
-   when a row short of `real` has no open issue labelled `needs-sample`, or its issue is closed
+   when a row short of its wanted kind has no open issue labelled `needs-sample`, or its issue is closed
    with the kind short of its wanted kind; when a `real` row lists no sample with its hash and the
    test that reads it; or, in the gate's `refs` step (the samples live under the gitignored
    `refs/`, so CI checks only the register's structure), when a sample is missing, its hash

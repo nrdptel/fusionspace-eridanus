@@ -206,7 +206,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register
   has a generated schema checked like the others; `cargo xtask evidence`, run by the gate and CI,
   fails when a page states a gap in any phrase of a committed list without naming a row (a test
-  shows each phrase fires on a canary page, and each of ADR-278's 24 table sentences is detected),
+  shows each phrase fires on a canary page, each of ADR-278's 24 table sentences is detected, and
+  a test pins the list's length and the row ids),
   when a row's page anchor is gone, when a row short of its wanted kind has no open `needs-sample`
   issue or its issue is closed, or when a `real` row lists no sample with its SHA-256 and test; the
   gate's `refs` step fails when such a sample is missing, its hash differs or its test skipped;
