@@ -12,6 +12,7 @@
 //! | [ARTS2 `.odf`](crate::arts2_raw) | its bytes: the length 9, then `Ozark.odf`; told before the file is decoded as text |
 //! | [RTx `.rtx`](crate::rtx) | its bytes: an MS-NRBF serialization header, version 1.0, then the class record of a `List<Int32>`; told before the file is decoded as text |
 //! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
+//! | [GPX](crate::gpx) | its root element is `gpx`, after any XML declaration and comments |
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
 //! | [Featherweight summary CSV](crate::fwsummary) | the first line names `Rocket Name`, and one of the first 200 names `Max Altitude` or `Launch time UTC` |
@@ -65,7 +66,7 @@ use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimax, altimax_als, altimetercloud, altos, altos_eeprom,
     altos_telem, altos_telem_csv, archive, arts2, arts2_raw, blueraven, blueraven_usb, capture,
-    eggtimer, entacore, entacore_raw, fluctus, fwgps, fwsummary, generic, kml, marsa, nmea,
+    eggtimer, entacore, entacore_raw, fluctus, fwgps, fwsummary, generic, gpx, kml, marsa, nmea,
     packets, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
     teensy, xls,
 };
@@ -90,6 +91,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Marsa,
     LogFormat::ConsoleCapture,
     LogFormat::Kml,
+    LogFormat::Gpx,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
     LogFormat::FeatherweightSummaryCsv,
@@ -222,9 +224,12 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         return Some(LogFormat::ConsoleCapture);
     }
     // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
-    // open with the receiver's power-up noise, a KML file with an XML declaration.
+    // open with the receiver's power-up noise, a KML or GPX file with an XML declaration.
     if kml::recognizes(text) {
         return Some(LogFormat::Kml);
+    }
+    if gpx::recognizes(text) {
+        return Some(LogFormat::Gpx);
     }
     if nmea::recognizes(text) {
         return Some(LogFormat::Nmea0183);
@@ -379,6 +384,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::Arts2RawCsv) => arts2_raw::read_csv(&text),
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
+        Some(LogFormat::Gpx) => gpx::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),
         Some(LogFormat::AerospaceNuFcbCsv) => aerospacenu_fcb::read(&text),
         Some(LogFormat::AerospaceNuGroundStationText) => aerospacenu_gs::read(&text),
@@ -543,7 +549,10 @@ mod tests {
                 "<?xml version=\"1.0\"?>\n<!-- a track -->\n<kml xmlns=\"http://www.opengis.net/kml/2.2\"></kml>\n",
                 Some(LogFormat::Kml),
             ),
-            ("<?xml version=\"1.0\"?>\n<gpx></gpx>\n", None),
+            (
+                "<?xml version=\"1.0\"?>\n<gpx></gpx>\n",
+                Some(LogFormat::Gpx),
+            ),
             (
                 "\u{fffd}\u{fffd}x\r\n\
                  $GPGGA,120000.00,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*67\r\n\

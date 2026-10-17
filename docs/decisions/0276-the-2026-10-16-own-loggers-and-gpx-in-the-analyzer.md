@@ -1,6 +1,6 @@
 # ADR-276: Neer's 2026-10-16 plan: a flyer's own logger and GPX tracks in the analyzer (2026-10-16)
 
-- **Status:** accepted; adds M7.1d (M7.1d1 and M7.1d2) to [M7.1](../ROADMAP.md), so both land before release 0.2 ([M10.2](../ROADMAP.md)); amends ADR-147 §6 (the roadmap's budget)
+- **Status:** accepted; adds M7.1d (M7.1d1 and M7.1d2) to [M7.1](../ROADMAP.md), so both land before release 0.2 ([M10.2](../ROADMAP.md)); amends ADR-147 §6 (the roadmap's budget); amended 2026-10-17 for M7.1d1
 - **Summary:** Release 0.2, the flight analyzer, must read a flyer's own altimeter or GPS tracker from the command line and Python, not only from Rust, and must read GPX tracks. M7.1d1 reads GPX 1.0 and 1.1; M7.1d2 lets `hpr analyze` and the Python package read a table by a column mapping and binary records by a record layout, as the library already does.
 
 [adr-268]: 0268-tables-read-by-their-headers-before-the-rest.md
@@ -48,3 +48,32 @@ added. A survey of the code and the roadmap that day found:
 analyzer's two command-line and Python options become part of its public interface, so their
 schemas follow the CLI's stability rules from the start. GPX's elevations stay of unstated datum
 until a real tracker's file shows what one writes.
+
+**Amendment for M7.1d1, how the GPX reader reads (2026-10-17).** Writing the reader from the two
+schemas and GPX 1.0's manual settled five things the plan left open:
+
+1. **The elevation is an altitude of unstated zero**, `Quantity::Altitude`, not a GNSS altitude,
+   `Quantity::GnssAltitude`, as §1 had it: the record's GNSS altitude is one above mean sea level
+   as the receiver states it, and a GPX file states neither its datum nor its sensor. Its unit,
+   meters, the schemas do state.
+2. **Waypoints and routes are figures the file states**, `Stated::figures`, not channels: a
+   waypoint's or route point's latitude, longitude, elevation and time, the time in seconds from
+   the log's zero, so a reading that looks for positions among the channels finds the flown
+   tracks only.
+3. **A track's times go forward.** Within a track, from one segment to the next, a time earlier
+   than the one before it refuses the file, as such a track isn't one recording; two tracks may
+   run in any order. A time with no zone is read as UTC, as both schemas say every time is.
+4. **Damage refuses the file, by name and line.** Besides the plan's document type and entity, a
+   point off the globe and a time that goes back: a value that isn't the schema's kind of number
+   (a decimal with no exponent, a whole satellite count), an element read twice in one point, a
+   time that isn't a date and time, a GPX 1.0 `course` outside 0° to 360°. A GPX file is written
+   by a program, so these mean a damaged file, not a reading to guess at. The longitude may be
+   180, which GPX 1.1 leaves out and GPX 1.0 allows: it is −180's meridian.
+5. **More of a point is read**: the satellite count, the three dilutions of precision and GPX
+   1.0's course and speed, each a channel where a point states it, each held to gpxpy's reading
+   with the rest. gpxpy keeps a time to the microsecond and drops finer digits, so the samples
+   write none finer.
+
+**Consequences of the amendment.** Three invented files, GPX 1.0 and 1.1, read to 392 values
+and times on their tracks and 12 figures of their waypoints and route points, each equal to
+gpxpy 1.6.2's to the last bit. No reading uses a GPX track until M7.2 reads other loggers.

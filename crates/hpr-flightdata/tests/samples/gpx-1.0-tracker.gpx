@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.0" creator="an invented GPS logger, firmware 0.9" xmlns="http://www.topografix.com/GPX/1/0" xmlns:inv="https://example.invalid/logger/1">
+<name>Invented tracker download</name>
+<time>2031-08-02T12:45:00-04:00</time>
+<trk>
+<name>Rocket</name>
+<number>3</number>
+<trkseg>
+<trkpt lat="42.4300000" lon="-71.1000000">
+<ele>38.0</ele>
+<time>2031-08-02T08:30:00-04:00</time>
+<course>0.0</course>
+<speed>0.00</speed>
+<magvar>345.2</magvar>
+<fix>3d</fix>
+<sat>7</sat>
+<hdop>1.2</hdop>
+</trkpt>
+<trkpt lat="42.4300010" lon="-71.0999990">
+<ele>38.4</ele>
+<time>2031-08-02T08:30:01-04:00</time>
+<course>45.0</course>
+<speed>0.10</speed>
+<fix>3d</fix>
+<sat>7</sat>
+<hdop>1.2</hdop>
+</trkpt>
+<trkpt lat="42.4300020" lon="-71.0999970">
+<ele>92.6</ele>
+<time>2031-08-02T08:30:02-04:00</time>
+<course>52.3</course>
+<speed>1.85</speed>
+<fix>3d</fix>
+<sat>6</sat>
+<hdop>1.9</hdop>
+</trkpt>
+</trkseg>
+<trkseg>
+<trkpt lat="42.4302200" lon="-71.0997100">
+<ele>655.2</ele>
+<time>2031-08-02T08:30:06.5-04:00</time>
+<course>61.0</course>
+<speed>14.20</speed>
+<fix>2d</fix>
+<sat>5</sat>
+<hdop>3.4</hdop>
+</trkpt>
+<trkpt lat="42.4303100" lon="-71.0995900">
+<ele>702.9</ele>
+<time>2031-08-02T08:30:07.5-04:00</time>
+<course>63.4</course>
+<speed>12.75</speed>
+<fix>3d</fix>
+<sat>6</sat>
+<hdop>2.1</hdop>
+<inv:accel>3.2</inv:accel>
+</trkpt>
+<trkpt lat="42.4303900" lon="-71.0994800">
+<time>2031-08-02T08:30:08.5-04:00</time>
+<course>64.1</course>
+<speed>11.30</speed>
+<fix>none</fix>
+<sat>4</sat>
+<hdop>6.0</hdop>
+</trkpt>
+<trkpt lat="42.4304600" lon="-71.0993800">
+<ele>731.0</ele>
+<time>2031-08-02T08:30:09.5-04:00</time>
+<course>65.8</course>
+<speed>9.92</speed>
+<fix>3d</fix>
+<sat>7</sat>
+<hdop>1.5</hdop>
+</trkpt>
+<trkpt lat="42.4305200" lon="-71.0992900">
+<ele>728.4</ele>
+<time>2031-08-02T08:30:10.5-04:00</time>
+<course>66.0</course>
+<speed>8.61</speed>
+<fix>3d</fix>
+<sat>8</sat>
+<hdop>1.3</hdop>
+</trkpt>
+</trkseg>
+</trk>
+</gpx>

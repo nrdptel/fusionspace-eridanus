@@ -338,6 +338,9 @@ pub enum LogFormat {
     /// type byte and big-endian fields a record, between bytes that count the clock's ticks
     /// ([`crate::entacore_raw::read_dump`]).
     EntacoreDump,
+    /// A GPX file, the GPS Exchange Format, version 1.0 or 1.1 as Topografix publishes it: its
+    /// tracks' points, each segment a GPS track ([`crate::gpx`]). Positions only.
+    Gpx,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -458,7 +461,9 @@ impl LogFormat {
     /// holds no altitude either: its coarsest pressure is a TeleMetrum v1's, whose counts move by
     /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
     /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
-    /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A table read by
+    /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A GPX
+    /// file writes its elevation as a decimal of any length, and no sample log is one to show a
+    /// step: 0. A table read by
     /// its header has no track, and no step: 0; nor do binary records read by a stated layout, or a
     /// console capture's, which are read as such a table. A Blue Raven's USB download has no
     /// track either, and its pressure is written in the CSV's steps, 1/50,000 atm: the CSV's step.
@@ -495,6 +500,7 @@ impl LogFormat {
             Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
             Self::Kml => 1.0,
             Self::Nmea0183 => 0.1,
+            Self::Gpx => 0.0,
             Self::PerfectFlitePfa | Self::EggtimerText => crate::perfectflite::FOOT_M,
             Self::AltimeterCloudCsv => 0.001,
             Self::EntacoreAimCsv => ONE_PASCAL_M,
@@ -562,6 +568,7 @@ impl LogFormat {
             Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
+            Self::Gpx => ".gpx",
             Self::AltosTelemetry => ".telem",
             Self::AltosEeprom => ".eeprom",
             Self::Arts2Odf => ".odf",
@@ -585,6 +592,7 @@ impl LogFormat {
             Self::FeatherweightGpsCsv => "Featherweight GPS CSV",
             Self::Kml => "KML",
             Self::Nmea0183 => "NMEA 0183",
+            Self::Gpx => "GPX",
             Self::PerfectFlitePfa => "PerfectFlite .pfa",
             Self::EggtimerText => "Eggtimer text",
             Self::AltimeterCloudCsv => "AltimeterCloud CSV",
@@ -636,8 +644,10 @@ pub struct Stated {
     /// How many samples the file says it holds.
     pub samples: Option<usize>,
     /// Every figure a summary file states, in the file's order, such as a Featherweight
-    /// summary's `Max velocity,500.50 feet/sec`; empty for a file of samples, and then left out of
-    /// the record's JSON, so that a record written before the field was reads the same.
+    /// summary's `Max velocity,500.50 feet/sec`, and a GPX file's waypoints and route points,
+    /// places marked or planned, not flown ([`crate::gpx`]); empty for a file of samples, and then
+    /// left out of the record's JSON, so that a record written before the field was reads the
+    /// same.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub figures: Vec<Figure>,
 }
@@ -703,6 +713,7 @@ mod tests {
             (LogFormat::FeatherweightGpsCsv, 0.3048),
             (LogFormat::Kml, 1.0),
             (LogFormat::Nmea0183, 0.1),
+            (LogFormat::Gpx, 0.0),
             (LogFormat::PerfectFlitePfa, 0.3048),
             (LogFormat::EggtimerText, 0.3048),
             (LogFormat::EntacoreAimCsv, 0.083_242),

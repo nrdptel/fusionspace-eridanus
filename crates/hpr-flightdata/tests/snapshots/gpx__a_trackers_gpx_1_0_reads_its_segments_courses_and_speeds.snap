@@ -1,0 +1,257 @@
+---
+source: crates/hpr-flightdata/tests/gpx.rs
+expression: log
+---
+{
+  "format": "gpx",
+  "logger": "an invented GPS logger, firmware 0.9",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Rocket segment 1 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        42.43,
+        42.430001,
+        42.430002
+      ]
+    },
+    {
+      "column": "Rocket segment 1 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        -71.1,
+        -71.099999,
+        -71.099997
+      ]
+    },
+    {
+      "column": "Rocket segment 1 elevation",
+      "quantity": "altitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        38.0,
+        38.4,
+        92.6
+      ]
+    },
+    {
+      "column": "Rocket segment 1 satellites",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        7.0,
+        7.0,
+        6.0
+      ]
+    },
+    {
+      "column": "Rocket segment 1 HDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        1.2,
+        1.2,
+        1.9
+      ]
+    },
+    {
+      "column": "Rocket segment 1 speed",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        0.0,
+        0.1,
+        1.85
+      ]
+    },
+    {
+      "column": "Rocket segment 1 course",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "values": [
+        0.0,
+        45.0,
+        52.3
+      ]
+    },
+    {
+      "column": "Rocket segment 2 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        42.43022,
+        42.43031,
+        42.43039,
+        42.43046,
+        42.43052
+      ]
+    },
+    {
+      "column": "Rocket segment 2 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        -71.09971,
+        -71.09959,
+        -71.09948,
+        -71.09938,
+        -71.09929
+      ]
+    },
+    {
+      "column": "Rocket segment 2 elevation",
+      "quantity": "altitude",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        655.2,
+        702.9,
+        null,
+        731.0,
+        728.4
+      ]
+    },
+    {
+      "column": "Rocket segment 2 satellites",
+      "quantity": "number",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        5.0,
+        6.0,
+        4.0,
+        7.0,
+        8.0
+      ]
+    },
+    {
+      "column": "Rocket segment 2 HDOP",
+      "quantity": "number",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        3.4,
+        2.1,
+        6.0,
+        1.5,
+        1.3
+      ]
+    },
+    {
+      "column": "Rocket segment 2 speed",
+      "quantity": "speed",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        14.2,
+        12.75,
+        11.3,
+        9.92,
+        8.61
+      ]
+    },
+    {
+      "column": "Rocket segment 2 course",
+      "quantity": "angle",
+      "time_s": [
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5
+      ],
+      "values": [
+        61.0,
+        63.4,
+        64.1,
+        65.8,
+        66.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "read as GPX 1.0, its `version`: 1 track, 2 segments with points, each read as a GPS track, 8 points",
+    "`ele` read in meters, from the GPX schemas, as an altitude whose datum the file doesn't state: the schemas give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "the log's zero is `2031-08-02T08:30:00-04:00`, the first time the file gives a track point",
+    "track points whose `fix` is `none`, where the receiver had no fix, kept as written: 1",
+    "`speed` read in meters per second and `course` in degrees from true north, from GPX 1.0's manual",
+    "elements no reading uses, not read: `fix` in 8 track points, `magvar` in 1 track point, other namespaces' elements in 1 track point"
+  ]
+}

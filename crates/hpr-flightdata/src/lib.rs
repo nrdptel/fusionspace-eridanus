@@ -35,10 +35,10 @@
 //! AltosUI's export of the same flight in all 9 samples that have one ([`altos_eeprom`]), the
 //! ARTS2's `.odf` and its raw CSV export, the `.odf` in units held to the interpreted export of the
 //! same flight ([`arts2_raw`]), and
-//! four GPS logs: Featherweight's
-//! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]), NMEA 0183 ([`nmea`]) and Missile
-//! Works' RTx tracker's `.rtx` file and its CSV and text exports ([`rtx`]), every column kept as a
-//! channel on its own clock. A table from a logger no other reader knows is read by the units its
+//! five GPS logs: Featherweight's
+//! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]), NMEA 0183 ([`nmea`]), Missile
+//! Works' RTx tracker's `.rtx` file and its CSV and text exports ([`rtx`]) and GPX 1.0 and 1.1,
+//! checked on invented files only ([`gpx`]), every column kept as a channel on its own clock. A table from a logger no other reader knows is read by the units its
 //! header states, each held to the column's name and values, or by a column mapping the caller
 //! gives ([`generic`]). A zip archive of a flight's files is unpacked in
 //! memory, within a bound, and each file read on its own ([`archive`]); an Excel workbook's
@@ -106,6 +106,7 @@ pub mod fluctus;
 pub mod fwgps;
 pub mod fwsummary;
 pub mod generic;
+pub mod gpx;
 pub mod import;
 pub mod kml;
 pub mod log;

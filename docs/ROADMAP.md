@@ -395,11 +395,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1d A flyer's own logger and GPX tracks** (ADR-276): in two.
-    - [ ] **M7.1d1 GPX tracks.** *Done when:* GPX 1.0 and 1.1 files read, each track
-      segment a GPS track (latitude, longitude, elevation of unstated datum, time), routes and
-      waypoints kept apart; every value of the invented samples equals gpxpy's
-      (`validation/oracles/gpx/`); a DTD or entity, a point off the globe and a time that goes
-      back refused by name (tests); the guide says GPX is read from invented samples only.
     - [ ] **M7.1d2 Your own logger from the command line and Python.** *Done when:*
       `hpr analyze` reads a table by a column mapping and binary records or a console capture by
       a record layout, each a JSON file with a schema under `schema/`, refused naming the field

@@ -240,6 +240,13 @@ const DAY_NS: i64 = 86_400 * NS_PER_S;
 /// type declaration. A file with a document type declaration is recognized so that [`read`]
 /// refuses it by name, rather than the importer calling it a layout it doesn't know.
 pub(crate) fn recognizes(text: &str) -> bool {
+    root_is(text, "kml")
+}
+
+/// Whether the text's root element is `name`, unprefixed, after an optional byte-order mark, XML
+/// declaration, comments and document type declaration: KML's test, and GPX's
+/// ([`crate::gpx`]).
+pub(crate) fn root_is(text: &str, name: &str) -> bool {
     let mut rest = text.strip_prefix('\u{feff}').unwrap_or(text);
     for _ in 0..PROLOG_ITEMS {
         rest = rest.trim_start();
@@ -263,9 +270,11 @@ pub(crate) fn recognizes(text: &str) -> bool {
             None => return false,
         }
     }
-    rest.strip_prefix("<kml").is_some_and(|after| {
-        after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
-    })
+    rest.strip_prefix('<')
+        .and_then(|after| after.strip_prefix(name))
+        .is_some_and(|after| {
+            after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
+        })
 }
 
 /// The length of a document type declaration at the start of the text, `<!DOCTYPE` to its closing
@@ -448,8 +457,9 @@ fn xml_error(failure: &XmlFailure) -> LogError {
 /// How deep the text nests its elements, counted without parsing it, and the 1-based line where
 /// the nesting first passes [`MAX_DEPTH`] (0 if it doesn't). Comments, CDATA sections, processing
 /// instructions and declarations change no depth; a `>` inside a quoted attribute value doesn't
-/// end its tag. Adapted from the `.ork` reader's count (`hpr_io::ork`), the same project's code.
-fn nesting(text: &str) -> (usize, usize) {
+/// end its tag. Adapted from the `.ork` reader's count (`hpr_io::ork`), the same project's code;
+/// GPX's reader counts with it too ([`crate::gpx`]).
+pub(crate) fn nesting(text: &str) -> (usize, usize) {
     let bytes = text.as_bytes();
     let mut index = 0;
     let mut depth = 0usize;
@@ -573,7 +583,7 @@ impl Mode {
 
 /// Which clock a point's time is on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Clock {
+pub(crate) enum Clock {
     /// A `when` with its zone: UTC.
     Utc,
     /// A `when` with no zone: a local time in a zone the file doesn't state.
@@ -761,8 +771,8 @@ fn time_of_day_ns(text: &str) -> Option<i64> {
 /// A `when` as nanoseconds since 1970-01-01T00:00:00 on its clock: `YYYY-MM-DDThh:mm:ss`, optional
 /// decimals, then `Z`, `±hh:mm` or nothing ([`Clock::Local`]). `None` for a date without a time
 /// of day (XML Schema's `date`, `gYearMonth`, `gYear`), which places no point in a flight, or for
-/// anything else.
-fn when_ns(text: &str) -> Option<(Clock, i64)> {
+/// anything else. GPX's reader reads its times with it too ([`crate::gpx`]).
+pub(crate) fn when_ns(text: &str) -> Option<(Clock, i64)> {
     let text = text.trim();
     let (date, rest) = text.split_once('T')?;
     let mut fields = date.split('-');
