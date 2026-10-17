@@ -1,30 +1,31 @@
 # What motor makers and certifiers publish beyond the thrust curve
 
+Re-checked 2026-10-17: 25 claims corrected.
+
 This note counts what the makers of COTS solid motors and the three certifiers (NAR, Tripoli's TMT, CAR) publish
 per motor besides the thrust curve: nozzle throat and exit, grains, case and hardware masses, delays, and measured
 impulse against the nominal. It backs the thrust-at-altitude idea ([ideas](ideas.md)), motor mass properties
 during the burn (`hpr-motor/src/grains.rs`), and the impulse part of [apogee-bias](apogee-bias.md) §1. It builds on
 [thrustcurve-data](thrustcurve-data.md). Read 2026-10-11. Counts are censuses or text searches over PDF text.
 
-**In short.** A nozzle exit diameter is published for almost no motor. Certifiers give one for 2 of ThrustCurve's
-1,004 solid motors, both on 1990s letters. AeroTech's drawings give one on 15 of 376, all 98 mm. AeroTech, through
-its parent company RCS, publishes far more than anyone else: grain count and size on 374 drawings, a throat on about
-302, and hardware masses for 34 case sizes. A geometric bound, the bore of the nozzle cap or the aft closure's
-diameter, cuts the area of today's "exit ≤ case" bound to 0.17–0.58 of it. Certified impulse matches ThrustCurve's
-within 0.5% on 47 of 49 TRA letters; one catalog entry carries a single firing, +3.05%. NAR's retests of 17 small
-motors (2023–26) ran a median 9.4% below the 1992–2012 test mean, which the catalog keeps on 15. No source grants a
-license. Cite the facts; never commit the documents.
+**In short.** Certifiers give a nozzle exit for 2 of ThrustCurve's 1,004 solid motors, both on 1990s letters;
+AeroTech's drawings for 15 of 376, all 98 mm; RCS's store per nozzle part ([nozzle exits](nozzle-exits.md)); Loki per
+nozzle-number band. RCS, AeroTech's parent, publishes far more than anyone else: grain count and size on 375 drawings,
+a throat on 304, hardware masses for 40 case sizes. A geometric bound, the nozzle cap's bore or the aft closure's
+diameter, cuts today's "exit ≤ case" area to 0.17–0.79 of it. Certified impulse matches ThrustCurve's within 0.5% on
+47 of 49 TRA letters; one catalog entry carries a single firing, +3.05%. NAR's retests of 17 small motors ran a median
+9.4% below the 1992–2012 test mean, which the catalog keeps on 15. No source grants a license.
 
 ## 1. What each source gives per motor
 
 | Source (documents) | Nozzle | Grains | Masses | Impulse |
 |---|---|---|---|---|
-| AeroTech RMS drawings (325) [M1] | throat ~254, exit 14 | N, OD × length 324; core 27 | none | none |
-| AeroTech DMS drawings (51) [M2] | throat 48, exit 1 | N, OD × length 50; core 32 | none | none |
-| AeroTech instructions (214) [M3] | who owns it | none | hardware, 34 sizes | none |
-| AeroTech matrix (362 motors) [M15] | none | none | propellant, loaded | certified |
+| AeroTech RMS drawings (325) [M1] | throat 256, exit 14 | N, OD × length 325; core 34 | none | none |
+| AeroTech DMS drawings (51) [M2] | throat 48, exit 1 | N, OD × length 50; core 39 | none | none |
+| AeroTech instructions (214) [M3] | who owns it | none | hardware, 34 + 6 KBA sizes | none |
+| AeroTech matrix (363 rows, one per delay) [M15] | none | none | propellant, loaded | certified |
 | Cesaroni pages (284) [C7] | none | none | loaded, propellant, burnout | certified |
-| Loki table, 30 sheets [L1, L2] | throat by nozzle number, 33 | typical per case | loaded, propellant | nominal |
+| Loki table, 30 sheets [L1, L2] | throat (33), exit, by nozzle no. | typical per case | loaded, propellant | nominal |
 | AMW 2003–07, Gorilla [A2, G1] | graphite, hardware | AMW: count, length | Gorilla: propellant, total | nominal |
 | NAR sheets (141) [S2] | none | none | loaded, propellant, burnout | mean, σ |
 | TRA letters (49) [S2] | throat 5, exit 2 (to 2001) | none | loaded; burnout 2018+ | mean, ± |
@@ -41,21 +42,21 @@ NAR's own list (2026-08-12) links a sheet for each of its 190 motors (3 dead); s
 - **Certifiers: 2 of 1,004 motors (0.2%).** TMT letters of 1998–2001 carried throat and "exit cone" rows; TRA
   dropped them by 2006, NAR sheets never had them, CAR's index has no such column [S2, S7]. Five letters give a
   throat; two of those (K1050W, M1315W) list seven Medusa orifices, not a throat and an exit. The usable exits:
-  L1500T 1.4 in (throat 0.734 in) [S10] and I195J 0.416 in (throat 0.182 in, area ratio 5.22) [S11]. The I195J
-  in today's catalog peaks at 216 N against the letter's 452 N, so the 1999 nozzle may not be today's.
+  L1500T 1.4 in (throat 0.734 in) [S10] and I195J 0.416 in (throat 0.182 in, area ratio 5.22) [S11].
 - **AeroTech drawings: 15 of 376.** Thirteen RMS-98 reloads and the M1340W DMS at 1.75 in; the N2220DM at 2.74 in
-  [M1, M2]. Cesaroni, Loki, AMW and Gorilla publish no exit. One RCS store page gives a whole nozzle: the 01500 part,
-  0.180 in throat, 0.438 in exit, 1.000 in OD, 8 g [M16]. **Inference:** drilling widens the throat, not the exit, so
-  its area ratio falls from 5.9 molded to 3.7 when drilled to 0.228 in.
-- **The L1500T's two exits disagree.** Its drawing gives 1.75 in [M5]; its 1998 letter 1.4 in [S10]; both give a
-  0.734 in throat; the drawing's 2007 revision renamed the nozzle part. [Apogee-bias](apogee-bias.md) used 1.4 in
-  (+0.99% of average thrust at 1,300 m); the drawing gives +1.55% (**Inference**, ISA, Δp = 14.7 kPa).
+  [M1, M2]. Loki gives exits by nozzle-number band: 0.470–0.900 in (38 mm), 0.850–1.250 in (54 mm), 1.255–1.818 in
+  (76 mm) [L1]; Cesaroni, AMW and Gorilla none. RCS's store gives 25 whole nozzles ([nozzle exits](nozzle-exits.md)
+  §1), e.g. the 01500: 0.180 in throat, 0.438 in exit, 1.000 in OD, 8 g [M16]. **Inference:** drilling widens the
+  throat, not the exit, so its area ratio falls from 5.9 molded to 3.7 when drilled to 0.228 in.
+- **The L1500T's two exits are likely two nozzles:** 1.75 in on the drawing [M5], 1.4 in on the 1998 letter [S10],
+  both a 0.734 in throat; the part was redesigned in 2003 (**Inference**, [nozzle exits](nozzle-exits.md) §2). At
+  1,300 m (ISA, Δp = 14.7 kPa) 1.75 in adds +1.55% of average thrust, as [apogee-bias](apogee-bias.md) now uses.
 - **A tighter bound from parts that sit over the exit (Inference).** 260 of 325 RMS drawings (none at 98 mm)
   list the plastic cap that slips over the nozzle's aft end, by bore [M1]; the exit must fit inside it. Against
-  the case cross-section that bound's area is 0.28 (24 mm), 0.20–0.52 (29 mm, three caps), 0.17–0.29 (38 mm),
+  the case's outside diameter that bound's area is 0.28 (24 mm), 0.20–0.52 (29 mm, three caps), 0.17–0.29 (38 mm),
   0.50 (54 mm) and 0.58 (75 mm). The 01500 nozzle passes: 0.438 in exit under a 0.625 in cap. For Cesaroni the aft
   closure or nozzle boss on its dimension drawings caps the exit: Pro29 1.00 in, Pro54 1.25 in, Pro75 XL 2.200 in,
-  Pro98 2.05 in (XL 2.70 in), Pro150 4.250 in [C6]; Pro24 and Pro38 show none.
+  Pro98 2.05 in (XL 2.70 in), Pro150 4.250 in [C6], 0.28–0.79 of the case; Pro24 and Pro38 show none.
 - **Worked example, AeroTech N3300R-P (98 mm RMS) (Inference).** Drawing: throat 1.0 in, exit 1.75 in, area
   ratio 3.06, six grains 3.37 × 6.00 in [M4]. At a 1,300 m field (Δp = 14.7 kPa) the drawn exit adds
   14.7 kPa × 15.5 cm² = 22.8 N, 0.72% of the 3,168 N average thrust; the case bound gives 111.6 N (3.5%), 4.9 times.
@@ -65,31 +66,30 @@ NAR's own list (2026-08-12) links a sheet for each of its 190 motors (3 dead); s
 | Product line | Nozzle | Source |
 |---|---|---|
 | AeroTech RMS, 18–98 mm | single-use, in the reload kit; discarded with the liner | [M8, p. 1; M11] |
-| AeroTech DMS, LMS, single-use | part of the disposable motor | [M7; M13] |
+| AeroTech DMS, LMS, single-use | part of the disposable motor | [M3; M7; M13] |
 | Kosdon by AeroTech (KBA) | reusable graphite, hardware; throats 0.221–0.928 in on its 6 sheets | [M19] |
 | Cesaroni Pro24–Pro54 | in the preassembled reload (rear closure and nozzle) | [C2, p. 3] |
 | Cesaroni Pro75, Pro98 | in the kit; the nozzle holder is hardware | [C3, p. 3; C4] |
 | Loki 29–76 mm | reusable graphite, hardware; engraved with the throat in 64ths of an inch | [L1, L3] |
-| Loki 54/2800, 54/4000; 98 mm | single-use, in the kit (graphite insert; 98 mm uses Cesaroni's) | [L4, L5] |
+| Loki 54/2800, 54/4000 | single-use, in the kit (graphite insert) | [L4] |
 | AMW, Gorilla | reusable graphite, hardware | [A3, G2] |
 
-In single-use lines (AeroTech RMS, every Cesaroni line) the nozzle goes with the reload's designation; in graphite
-lines with the case, though Loki's nozzle number still sets each reload's throat.
+Single-use nozzles go with the reload's designation, graphite ones with the case (Loki's number sets the throat).
 
 ## 4. Grains and masses
 
 - **Grains: makers only.** No certifier publishes grain count or size (0 of 190 documents; none in CAR's index).
-  AeroTech drawings give N and OD × length on 374 (about 240 motors), the core on 59 [M1, M2]. Loki gives a
+  AeroTech drawings give N and OD × length on 375 (about 243 motors), the core on 73 [M1, M2]. Loki gives a
   typical BATES set per case: three 3.25 in grains, 5/8 in cores, for its 12.875 in 54 mm case [L1]. Cesaroni's
-  "nG" names are length classes: a Pro75-4G may hold four half-length grains [C3, p. 12].
-- **Hardware mass: AeroTech only.** Instruction sheets give 34 sizes, e.g. RMS-29/180 84.7 g [M10, p. 2], RMS-54/852
-  278 g [M9, p. 2], RMS-98/15360 3,204 g [M8, p. 2]; some sizes have two values (38/360: 147.4 and 166 g), likely
-  two generations. Nobody splits case, closures and nozzle.
+  "nG" names are length classes: the Pro75-4G L1355 holds two full and four half-length grains [C3, p. 12].
+- **Hardware mass: AeroTech only.** Instruction sheets give 34 RMS and LMS sizes and 6 KBA sizes, e.g. RMS-29/180
+  84.7 g [M10, p. 2], RMS-54/852 278 g [M9, p. 2], RMS-98/15360 3,204 g [M8, p. 2]; some sizes have two values
+  (38/360: 147.4 and 166 g), likely two generations. Nobody splits case, closures and nozzle.
 - **Loaded and burnout mass include the hardware for reloads**, on all three certifiers (NAR's AMW K475 sheet,
   TRA's N4000W-PS letter, CAR's index) [S8, S16, S7].
-- **Mass lost beyond the propellant**, (loaded − burnout − propellant)/propellant: median +1.2% on NAR sheets
-  (high power, n = 45, p10 −1.4%, p90 +7.4%), +4.7% in CAR's index (above 160 N·s, n = 223), +6.6% on TRA
-  2018–24 letters (n = 19, −10% to +96%) [S8, S7, S2]. Cesaroni's pages: median 26.9 g over 259, 7 negative [C7].
+- **Mass lost beyond the propellant**, (loaded − burnout − propellant)/propellant, for propellant over 62.5 g:
+  median +1.2% on NAR sheets (n = 45, p10 −1.4%, p90 +7.4%), +4.7% in CAR's index (n = 223), +6.6% on TRA 2018–24
+  letters (H and up, n = 19, −10% to +96%) [S8, S7, S2]. Cesaroni's pages: median 26.9 g over 259, 7 negative [C7].
 - **Propellant mass is the maker's declared number.** 26 of 35 recent TRA letters mark it "provided by
   manufacturer" [S2]; NAR weighs the motor before and after, not the propellant [S17, §8.3.7]. The four 2025 TRA
   letters lose exactly zero beyond it. **Inference:** their burnout mass was computed, not weighed.
@@ -105,54 +105,54 @@ lines with the case, though Loki's nozzle number still sets each reload's throat
   Its lbf·s column converts to 10,673 and 9,969.7, mean 10,322, so 10,637 looks like a transposed digit.
   ThrustCurve lists N2700W-PS at 10,637 N·s, the first firing as printed: **+3.05%, sim high** [S16].
 - **Spreads:** 24 TRA letters give "mean ± x" with x undefined, median 2.4% of the mean; one letter's lbf·s and
-  N·s spreads disagree (J1265T) [S2]. NAR spreads are σ, median σ/mean 0.63% ([apogee-bias](apogee-bias.md)).
+  N·s spreads disagree (J1265T) [S2]. NAR's are σ: σ/mean 0.63% on 28 high-power sheets ([apogee-bias](apogee-bias.md)).
 - **Cesaroni and CAR:** a Cesaroni name's leading number is within 0.5% of CAR's measured impulse on 239 of 246 rows
   [S7], and within 1% of the reload page's value on all 237 that parsed [C7]: the pages repeat the certification.
   CAR integrates between the 5% points [S18, §12.1.3]; the tail outside is a median 0.13% of impulse
   ([thrustcurve-data](thrustcurve-data.md) §2), so CAR figures read low by about that (**Inference**).
 - **Makers publish no per-lot data; NAR's retests do.** The matrix's N3300R is 14,041 N·s, as ThrustCurve; its letter
-  measured 14,091 (+0.36%) [M15, S23]. Since 2023 NAR S&T retested 18 listed motors, all F or smaller, with lot ids (17)
-  and each firing; its list now prints the retest mean [S24]. On 17 matching their original sheet (146 firings, 4 CATOs
-  left out; the old sheets don't say), impulse is a median −9.4% from the 1992–2012 mean (−21.5% to +8.5%; 15 low, 7
-  below −10%). ThrustCurve keeps the old mean on 15 (**sim high**), nominal on 2. Choice unstated; high power unbounded.
+  measured 14,091 (+0.36%) [M15, S23]. Since 2023 NAR S&T retested 18 listed motors, all F or smaller, with lot ids
+  (17) and each firing, and lists the retest mean [S24]. On 17 matching their original sheet (146 firings; 4 CATOs left
+  out), impulse is a median −9.4% from the 1992–2012 mean (−21.5% to +8.5%; 15 low, 7 below −10%). The catalog keeps
+  the old mean on 15, nominal on 2: **sim high** on 15, low on E12, F15. H and up: [lot impulse](hpr-lot-impulse.md).
 
 ## 6. Delays
 
-Measured delays run slightly early. NAR, 210 delays on 86 of the first 157 sheets: median −0.06 s, relative p10 −16%,
-p90 +11% [S8]. TRA, 121 firings in 13 letters: median −0.09 s, p10 −16%, p90 +14% [S2]. Composite delays can burn more
-slowly at sites thousands of feet up [S3, p. 2]. AeroTech's tool removes 4 or 8 s, 2 s less with its washer [M14, p. 1];
-Cesaroni's Pro54 tool up to 10 s [C2, p. 2]; Loki offers five delay lengths per reload [L2].
+Measured delays run slightly early on average. NAR, 261 delays on 104 of 159 cached sheets: median −0.14 s, relative
+p10 −16%, p90 +10% [S8]. TRA, 156 firings in 16 letters: median 0.00 s (mean −0.16 s), p10 −16%, p90 +15% [S2].
+Composite delays can burn more slowly at sites thousands of feet up [S3, p. 2]. AeroTech's tool removes 4 or 8 s, 2 s
+less with its washer [M14, p. 1]; Cesaroni's Pro54 tool up to 10 s [C2, p. 2]; Loki offers five delay lengths [L2].
 
 ## 7. Where the test was fired
 
-NFPA 1125 tests "at or corrected to sea level and 20°C ± 5°C" [S19, FR-8, p. 7]. NAR's manual keeps sites within
-500 ft of sea level [S17, §1.5]; 19 of 159 cached NAR sheets state 20–500 ft and 17–23 °C [S8]. One breaks it:
-the Estes L2350 (2021) was fired at 5,276 ft and "corrected to sea level", method unstated [S20]. **No TRA letter
-(0 of 49) and nothing CAR publishes states the site or its conditions.** An uncorrected curve from 1,500 m would
-read high at sea level by (p₀ − p)·A_e: +1.13% of average thrust for the L1500T's 1.4 in exit, +0.58% for the
-I195J, both against the letters' measured averages (**Inference**, ISA). At NAR's 500 ft limit it is at most +0.12%.
+NFPA 1125 tests "at or corrected to sea level and 20°C ± 5°C" [S19, FR-8, p. 7]. NAR's manual keeps sites within 500 ft
+of sea level [S17, §1.5]; 19 of 159 cached NAR sheets state 20–500 ft and 17–23 °C [S8]. One breaks it: the Estes L2350
+(2021) was fired at 5,276 ft and "corrected to sea level", method unstated [S20]. **No TRA letter (0 of 49) and nothing
+CAR publishes states the site or its conditions.** An uncorrected curve from 1,500 m would read high at sea level by
+(p₀ − p)·A_e: +1.13% of average thrust for the L1500T's old 1.4 in exit (+1.77% for its 1.75 in), +0.58% for the I195J
+(**Inference**, ISA); at 500 ft, up to +0.36% on 16 drawn AeroTech exits ([nozzle exits](nozzle-exits.md) §3). TMT
+fired near sea level in 2017–24, near Denver from 2025 ([TMT test sites](tmt-test-sites.md)).
 
 ## 8. Terms
 
 RCS reserves all rights and grants no license [M17]; Cesaroni allows personal, non-commercial download only [C9];
 Loki asks that nothing be reproduced without permission [L2]. 136 of 141 NAR sheets carry an NAR copyright line;
 TRA letters carry none, and Tripoli says its data is public through thrustcurve.org [S5]. CAR's index is a public
-view with no license [S7]. ThrustCurve's robots.txt asks for 3 s between fetches. **None grants redistribution:** facts
-restated with a citation are fine; a committed table would be re-entered by hand with sources; PDFs stay in `refs/`.
+view with no license [S7]. **None grants redistribution:** cite facts; re-enter any table by hand; PDFs stay in `refs/`.
 
 ## What this suggests
 
-- **Thrust at altitude:** replace "exit ≤ case" by the cap-bore bound (AeroTech RMS), the aft-boss bound (Cesaroni)
-  or a drawn exit; the term shrinks 2–6 times (**Inference**, §2). Keep both L1500T exits until one is confirmed.
-- **Grains (`grains.rs`):** N, OD and length for about 240 AeroTech motors and Loki's typical cases; the core and
-  the density still come from mass. Cesaroni has no published geometry.
+- **Thrust at altitude:** use RCS's exit per part ([nozzle exits](nozzle-exits.md) §1: 213 of 215 RMS drawings at
+  38–98 mm), Loki's band, else Cesaroni's aft boss; a cap bore overstates most single-throat exits 1.4–2× in area.
+- **Grains (`grains.rs`):** N, OD and length for about 243 AeroTech motors and Loki's cases; core on 73 or from mass.
 - **Mass and impulse:** AeroTech hardware masses split loaded mass; burnout mass is measured, propellant declared. A
   check of catalog impulse against a certifier's latest mean would flag N2700W-PS and 17 of NAR's retested motors.
 
 ## Open questions
 
-- Which L1500T exit is current, 1.75 in or 1.4 in; whether RCS's other nozzle pages (not listable) give exits.
-- Where TMT fires and whether it corrects to sea level; what TRA's "±" means; how NAR corrected the L2350.
+- Is the L1500T's pre-2003 nozzle still shipped? Why does the I195J, nozzle near its letter's, peak at 216 N, not 452 N?
+- Where TMT fired before 2017 and whether it corrects ([TMT test sites](tmt-test-sites.md)); TRA's "±"; the L2350's
+  correction. Dropped on re-check, unsupported: Loki 98 mm "in the kit"; "the 1999 nozzle may not be today's".
 - Whether Cesaroni's 2001–2014 page masses describe current reloads. AMW's site is a placeholder, Ellis Mountain's
   domain is gone, Estes's C6-5 page gives nominal impulse and masses but no nozzle or grain [E1]; Quest is unread.
 
@@ -167,12 +167,12 @@ S3, S24 (`refs/research/blocked-sources/`). Terms in §8. `tc:` `https://www.thr
   `index.aspx?pageid=7452840`, instructions `page/instructions`
 - **M4, M5** N3300R-P drawing, rev B 2009-11-02, `cf:98-15360_n3300r-p_assy_1648897918405.pdf`; L1500T-P
   drawing (nozzle note 4/11/07), `cf:98-5120_l1500t-p_assy_1648849442531.pdf`; **M7** `cf:k400c-14a_rcs_assembly.pdf`
-- **M8–M14** instruction sheets listed on M3: N3300R-P (P/N 20093), RMS-54/852-1706, RMS-29/180-240,
+- **M8–M11, M13, M14** instruction sheets listed on M3: N3300R-P (P/N 20093), RMS-54/852-1706, RMS-29/180-240,
   RMS-98 2560–20480, 29–54 mm DMS (P/N 21049), RMS-38/360-1320 Plus
 - **M15** AeroTech Master Motor Matrix, 4/2/23:
   <https://cdn.shopify.com/s/files/1/0615/7592/1878/files/AeroTech_Master_Motor_Matrix_4-2-23.pdf>
-- **M16, M17** RCS nozzle 01500 <https://www.rocketmotorparts.com/details/p1577809_7762949.aspx>; terms of use §11
-  <https://www.rocketmotorparts.com/storepage1577807.aspx>
+- **M16, M17** RCS nozzle 01500 <https://www.rocketmotorparts.com/details/p1577809_7762949.aspx>
+  (redirects); terms of use §11 <https://www.rocketmotorparts.com/storepage1577807.aspx>
 - **M19** Kosdon-by-AeroTech sheets on M3, e.g. `cf:75-7600_kba_ac_in_k08151n_1642721053837.pdf`
 - **C2–C5** Cesaroni Pro54, Pro75, Pro98 and Pro24 instructions, on <https://pro38.com/resources/>
 - **C6, C7, C9** Cesaroni dimension drawings (e.g. `pro38.com/wp-content/uploads/2024/11/Pro54_dimensions.pdf`),
