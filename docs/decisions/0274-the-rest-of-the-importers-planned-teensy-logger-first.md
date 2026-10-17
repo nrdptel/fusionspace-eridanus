@@ -416,22 +416,23 @@ decisions.
 2. **The `.ALS`** is a header of 32 bytes, one record of 22 bytes for each of the export's 25,334
    rows, and a trailer. Every value it stores is the export's: both pressures, the event code and
    the voltage channel's number, 101,336 values, bit for bit; the acceleration, the voltages, the
-   clock and the speed before apogee written as the export writes a number, every one equal but
-   for one clock value on a rounding tie (below); and the 21 events by name, in order. Decided:
+   clock and the speed before apogee written as the export writes a number (below), every one
+   equal; and the 21 events by name, in order. Decided:
    - the voltages stay counts. The export's factors, 3.218 215 77 V over 1,024 on channels 1 and
      5 and 5.463 126 83 V over 2,048 on 2 to 4 (0.003 142 79 and 0.002 667 54 V a count), fit all
      25,334 rows, the volts the 64-bit float nearest the exact product, yet no document states
      either, nor which channel is which (*AltiMAX G4 Manual*, p. 42);
-   - two rules fitted to the sample: the export writes a number rounded first to 18 significant
-     digits and that half up to 15 (rounded once, 11 clock values differ in the 15th digit;
-     first to 16, 17, 19 or 20 digits, 1,245, 109, 11 and 11; to 18, the row on a tie), and its
-     volts are the 64-bit float nearest the exact product (the count times the factor's own float
-     puts 31 off). With both, every value compared matches but that clock row, at 122.005 s,
-     3.5 × 10⁻⁴ of a step of a float under the rule's tie, which the next float up matches: one
-     bit, in the software's running sum or in its own rounding to 18 digits, decides it, and the
-     file can't show which. The check lets such rows alone differ, by a unit, each within a step
-     of the tie (*On a tie* in the report), how many uncapped: a misread step would move every
-     later time by 5 ms or more;
+   - two rules fitted to the sample. The export writes a number as arithmetic in 80-bit floats
+     would, 64 bits of precision: scaled to 18 significant digits by a power of ten guessed from
+     the number's power of two 2^E₂, ⌊E₂ · log₁₀ 2⌋, which is one low for some, divided by 10 where
+     the guess made it 19 digits, rounded to a whole number half to even, and that half up to 15
+     digits. Its volts are the 64-bit float nearest the exact product (the count times the
+     factor's own float puts 31 off). With both, every value compared matches, and the check
+     allows no difference. With the power of ten known exactly instead, rounded once 11 clock
+     values differ in the 15th digit; first to 16, 17, 18, 19 or 20 digits, 1,245, 109, 1, 11
+     and 11. The one at 18 is at 122.005 s, which the guess, low there, rounds up as the export
+     does; a running sum one float higher there in the software could explain it too, which the
+     file can't rule out (the flight-log page's *How the export writes a number*);
    - the acceleration is read at the export's own 0.0981 m/s² a count, 0.01 g at 9.81 m/s², so
      it equals the export's;
    - the clock is 5 ms or 25 ms a record, by a bit of its first byte: the manual's table's 200

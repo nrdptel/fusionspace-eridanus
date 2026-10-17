@@ -3586,20 +3586,13 @@
         ],
         "time": [
           25334,
-          1,
-          1
+          0,
+          0
         ],
         "speed": [
           8373,
           0,
           0
-        ],
-        "time_on_tie": 1,
-        "time_on_tie_rows": [
-          [
-            122.0050000000155,
-            0.000350381703168
-          ]
         ],
         "voltage_by_doubles_differing": 31,
         "time_by_digits_differing": [
@@ -3609,6 +3602,14 @@
           1,
           11,
           11
+        ],
+        "divided_by_ten": [
+          2327,
+          3265,
+          5066
+        ],
+        "time_at_18_digits_s": [
+          122.0050000000155
         ],
         "speed_not_compared": 16961,
         "events_equal": true,
