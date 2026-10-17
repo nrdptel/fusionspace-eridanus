@@ -495,7 +495,9 @@ impl<'a, 'input> Reader<'a, 'input> {
     /// Reads a route's points.
     fn route(&mut self, node: Node<'_, 'input>) -> Result<(), LogError> {
         self.routes += 1;
-        let name = self.name_of(node).unwrap_or_else(|| self.routes.to_string());
+        let name = self
+            .name_of(node)
+            .unwrap_or_else(|| self.routes.to_string());
         let mut number = 0;
         for child in node.children() {
             if self.own_name(child) != Some("rtept") {
@@ -589,10 +591,13 @@ impl<'a, 'input> Reader<'a, 'input> {
             let Some(text) = node.attribute(attribute) else {
                 return Err(syntax(
                     line,
-                    format!("a `{element}` has no `{attribute}`, which GPX requires of every point"),
+                    format!(
+                        "a `{element}` has no `{attribute}`, which GPX requires of every point"
+                    ),
                 ));
             };
-            let value = decimal(text).ok_or_else(|| not_a_number(line, element, attribute, text))?;
+            let value =
+                decimal(text).ok_or_else(|| not_a_number(line, element, attribute, text))?;
             let on_globe = if latitude {
                 (-90.0..=90.0).contains(&value)
             } else {
@@ -1088,9 +1093,16 @@ mod tests {
                     <gpx version=\"1.1\"><trk><name>&a;</name></trk></gpx>";
         assert!(recognizes(text));
         let (_, message) = refusal(text);
-        assert!(message.starts_with("the file declares a document type"), "{message}");
+        assert!(
+            message.starts_with("the file declares a document type"),
+            "{message}"
+        );
         let external = "<!DOCTYPE gpx SYSTEM \"file:///etc/passwd\"><gpx version=\"1.1\"/>";
-        assert!(refusal(external).1.starts_with("the file declares a document type"));
+        assert!(
+            refusal(external)
+                .1
+                .starts_with("the file declares a document type")
+        );
     }
 
     #[test]
@@ -1133,7 +1145,11 @@ mod tests {
         // A waypoint off the globe too.
         let text = "<gpx version=\"1.0\" xmlns=\"http://www.topografix.com/GPX/1/0\">\
                     <wpt lat=\"95\" lon=\"0\"/></gpx>";
-        assert!(refusal(text).1.starts_with("a point off the globe: a `wpt`'s `lat`"));
+        assert!(
+            refusal(text)
+                .1
+                .starts_with("a point off the globe: a `wpt`'s `lat`")
+        );
     }
 
     #[test]
@@ -1211,15 +1227,42 @@ mod tests {
     #[test]
     fn values_not_the_schemas_numbers_are_refused_by_name() {
         for (inner, message) in [
-            ("<ele>1e3</ele>", "a `trkpt`'s `ele` reads `1e3`, not a decimal number"),
-            ("<ele>NaN</ele>", "a `trkpt`'s `ele` reads `NaN`, not a decimal number"),
-            ("<ele>.</ele>", "a `trkpt`'s `ele` reads `.`, not a decimal number"),
-            ("<hdop>1,5</hdop>", "a `trkpt`'s `hdop` reads `1,5`, not a decimal number"),
-            ("<sat>7.0</sat>", "a `trkpt`'s `sat` reads `7.0`, not a whole number"),
-            ("<sat>-1</sat>", "a `trkpt`'s `sat` reads `-1`, not a whole number"),
-            ("<ele>1</ele><ele>2</ele>", "a `trkpt` holds two `ele` elements"),
-            ("<time>2031-07-14</time>", "a `trkpt`'s `time` reads `2031-07-14`, not a date"),
-            ("<time>yesterday</time>", "a `trkpt`'s `time` reads `yesterday`, not a date"),
+            (
+                "<ele>1e3</ele>",
+                "a `trkpt`'s `ele` reads `1e3`, not a decimal number",
+            ),
+            (
+                "<ele>NaN</ele>",
+                "a `trkpt`'s `ele` reads `NaN`, not a decimal number",
+            ),
+            (
+                "<ele>.</ele>",
+                "a `trkpt`'s `ele` reads `.`, not a decimal number",
+            ),
+            (
+                "<hdop>1,5</hdop>",
+                "a `trkpt`'s `hdop` reads `1,5`, not a decimal number",
+            ),
+            (
+                "<sat>7.0</sat>",
+                "a `trkpt`'s `sat` reads `7.0`, not a whole number",
+            ),
+            (
+                "<sat>-1</sat>",
+                "a `trkpt`'s `sat` reads `-1`, not a whole number",
+            ),
+            (
+                "<ele>1</ele><ele>2</ele>",
+                "a `trkpt` holds two `ele` elements",
+            ),
+            (
+                "<time>2031-07-14</time>",
+                "a `trkpt`'s `time` reads `2031-07-14`, not a date",
+            ),
+            (
+                "<time>yesterday</time>",
+                "a `trkpt`'s `time` reads `yesterday`, not a date",
+            ),
         ] {
             let text = gpx(&format!("<trkpt lat=\"1\" lon=\"2\">{inner}</trkpt>"));
             let (line, refused) = refusal(&text);
@@ -1227,21 +1270,31 @@ mod tests {
             assert!(refused.starts_with(message), "{inner}: {refused}");
         }
         let text = gpx("<trkpt lat=\"1e1\" lon=\"2\"/>");
-        assert!(refusal(&text).1.starts_with("a `trkpt`'s `lat` reads `1e1`"));
+        assert!(
+            refusal(&text)
+                .1
+                .starts_with("a `trkpt`'s `lat` reads `1e1`")
+        );
         let text = gpx("<trkpt lon=\"2\"/>");
         assert!(refusal(&text).1.starts_with("a `trkpt` has no `lat`"));
         // A course outside 0° to 360°, in GPX 1.0, where a track point holds one.
         let course = "<gpx version=\"1.0\" xmlns=\"http://www.topografix.com/GPX/1/0\"><trk>\
                       <trkseg><trkpt lat=\"1\" lon=\"2\"><course>360.5</course></trkpt>\
                       </trkseg></trk></gpx>";
-        assert!(refusal(course).1.starts_with("a `trkpt`'s `course` is 360.5°"));
+        assert!(
+            refusal(course)
+                .1
+                .starts_with("a `trkpt`'s `course` is 360.5°")
+        );
     }
 
     #[test]
     fn an_empty_value_is_a_gap_not_a_refusal() {
-        let text = gpx("<trkpt lat=\"1\" lon=\"2\"><ele>5</ele><time>2031-07-14T17:04:05Z</time>\
+        let text = gpx(
+            "<trkpt lat=\"1\" lon=\"2\"><ele>5</ele><time>2031-07-14T17:04:05Z</time>\
                         </trkpt>\n<trkpt lat=\"1\" lon=\"2\"><ele/><time> </time><sat></sat>\
-                        </trkpt>");
+                        </trkpt>",
+        );
         let log = read(&text).unwrap();
         let elevation = &log.channels[2];
         assert_eq!(elevation.column, "t elevation");

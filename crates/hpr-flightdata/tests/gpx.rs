@@ -145,8 +145,7 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
         .or_else(|| places.clone().find_map(|point| point.time_us));
     // A difference of whole microseconds below 2⁵³ converts exactly, so this is the correctly
     // rounded value of the same quotient the reader takes in nanoseconds.
-    let seconds =
-        |time: Option<i64>| time.map_or(f64::NAN, |us| (us - zero.unwrap()) as f64 / 1e6);
+    let seconds = |time: Option<i64>| time.map_or(f64::NAN, |us| (us - zero.unwrap()) as f64 / 1e6);
 
     let mut channels = Vec::new();
     let mut used = HashSet::new();
@@ -181,12 +180,7 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
                         .iter()
                         .map(|point| pick(point).unwrap_or(f64::NAN))
                         .collect();
-                    channels.push((
-                        format!("{name} {suffix}"),
-                        quantity,
-                        time_s.clone(),
-                        values,
-                    ));
+                    channels.push((format!("{name} {suffix}"), quantity, time_s.clone(), values));
                 }
             }
         }
@@ -194,11 +188,17 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
 
     let mut labels = Vec::new();
     for (index, point) in file.waypoints.iter().enumerate() {
-        let name = point.name.clone().unwrap_or_else(|| (index + 1).to_string());
+        let name = point
+            .name
+            .clone()
+            .unwrap_or_else(|| (index + 1).to_string());
         labels.push((format!("waypoint {name}"), point));
     }
     for (index, route) in file.routes.iter().enumerate() {
-        let name = route.name.clone().unwrap_or_else(|| (index + 1).to_string());
+        let name = route
+            .name
+            .clone()
+            .unwrap_or_else(|| (index + 1).to_string());
         for (number, point) in route.points.iter().enumerate() {
             labels.push((format!("route {name} point {}", number + 1), point));
         }
@@ -236,7 +236,10 @@ fn every_value_of_the_samples_equals_gpxpys() {
         .collect();
     on_disk.sort();
     let covered: Vec<&str> = oracle.files.iter().map(|file| file.file.as_str()).collect();
-    assert_eq!(covered, on_disk, "rerun validation/oracles/gpx/gpxpy_read.py");
+    assert_eq!(
+        covered, on_disk,
+        "rerun validation/oracles/gpx/gpxpy_read.py"
+    );
 
     let mut versions = HashSet::new();
     let (mut values, mut figures_compared) = (0, 0);
@@ -297,14 +300,25 @@ fn every_value_of_the_samples_equals_gpxpys() {
         for ((name, quantity, value), (their_name, their_quantity, theirs)) in
             ours.iter().zip(&figures)
         {
-            assert_eq!((*name, *quantity), (their_name.as_str(), Some(*their_quantity)));
+            assert_eq!(
+                (*name, *quantity),
+                (their_name.as_str(), Some(*their_quantity))
+            );
             assert_eq!(value.len(), 1);
-            assert!(same(value[0], *theirs), "{} {name}: {} against gpxpy's {theirs}", file.file, value[0]);
+            assert!(
+                same(value[0], *theirs),
+                "{} {name}: {} against gpxpy's {theirs}",
+                file.file,
+                value[0]
+            );
             figures_compared += 1;
         }
     }
     // Both versions are read, and the comparison isn't empty.
-    assert_eq!(versions, HashSet::from(["1.0".to_owned(), "1.1".to_owned()]));
+    assert_eq!(
+        versions,
+        HashSet::from(["1.0".to_owned(), "1.1".to_owned()])
+    );
     assert_eq!((values, figures_compared), (392, 12));
 }
 
@@ -328,7 +342,11 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
         ]
     );
     // No channel holds a waypoint's or a route point's position: the track's 16 points only.
-    assert!(log.channels.iter().all(|channel| channel.values.len() == 16));
+    assert!(
+        log.channels
+            .iter()
+            .all(|channel| channel.values.len() == 16)
+    );
     // The guide's worked example: the 10th point, the highest, 9 s after the first and 466.4 m
     // above it.
     let elevation = &log.channels[2];
@@ -339,13 +357,16 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
     assert!(elevation.values[12].is_nan());
     assert_eq!(elevation.time_s[..3], [0.0, 1.0, 2.001]);
     let names: Vec<&str> = log.stated.figures.iter().map(|f| f.name.as_str()).collect();
-    assert_eq!(names[..5], [
-        "waypoint Pad latitude",
-        "waypoint Pad longitude",
-        "waypoint Pad elevation",
-        "waypoint Pad time",
-        "waypoint Landing latitude",
-    ]);
+    assert_eq!(
+        names[..5],
+        [
+            "waypoint Pad latitude",
+            "waypoint Pad longitude",
+            "waypoint Pad elevation",
+            "waypoint Pad time",
+            "waypoint Landing latitude",
+        ]
+    );
     // The pad's waypoint was marked 24 s before the track's first point, the log's zero.
     assert_eq!(log.stated.figures[3].values, [-24.0]);
     assert_eq!(log.stated.figures[3].written, "2031-07-14T17:03:40Z");
@@ -388,7 +409,11 @@ fn a_trackers_gpx_1_0_reads_its_segments_courses_and_speeds() {
     assert!(log.notes.iter().any(|n| n.starts_with(
         "track points whose `fix` is `none`, where the receiver had no fix, kept as written: 1"
     )));
-    assert!(log.notes.iter().any(|n| n.contains("other namespaces' elements in 1 track point")));
+    assert!(
+        log.notes
+            .iter()
+            .any(|n| n.contains("other namespaces' elements in 1 track point"))
+    );
     insta::assert_json_snapshot!(log);
 }
 
