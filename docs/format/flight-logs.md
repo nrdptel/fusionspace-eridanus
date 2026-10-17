@@ -107,10 +107,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)).
 > Since [M7.1c23](../decisions-and-roadmap.md#m7-1c23) (the last binaries), an AltiMAX's own
 > `.ALS` file reads to the values of the Excel export beside it, its pressures and event codes
-> bit for bit and the rest to the export's 15 significant digits, by two rules fitted to that
-> file, except one clock value that sits on a rounding tie and is a unit off in its 15th digit
-> ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's `.xtra` file and the raw
-> dump of its memory read to each other, value for value
+> bit for bit and the rest to the export's 15 significant digits, every value, by two rules
+> fitted to that file ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's
+> `.xtra` file and the raw dump of its memory read to each other, value for value
 > ([the AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump)); no document describes either's
 > bytes, so each layout rests on one sample flight. Every sample log in a layout HPR Sim knows is
 > now read, except 3 damaged files. Other layouts are refused, not guessed at; those the roadmap
@@ -2672,11 +2671,11 @@ calibration the file carries, and a count with no source stays as written.
 >   [Its section](#the-arts2s-raw-data) has the details.
 > - **AltiMAX `.ALS`:** the one sample file has the PC software's Excel export beside it. Its
 >   pressures, event codes and voltage channels' numbers equal the export's, 101,336 values bit
->   for bit. Its acceleration, voltages and clock match the export's 15 significant digits but
->   for one clock value, a unit off in the 15th digit, once two rules for how the export rounds
->   and multiplies are applied. The rules were fitted to this one file, so they are shown
->   consistent with it, not to hold for every file. The voltages' factors and the speed after
->   apogee are the software's, not the file's. [Its section](#the-altimaxs-als) has the details.
+>   for bit. Its acceleration, voltages and clock match the export's 15 significant digits, every
+>   value, once two rules for how the export converts and multiplies are applied. The rules were
+>   fitted to this one file, so they are shown consistent with it, not to hold for every file.
+>   The voltages' factors and the speed after apogee are the software's, not the file's.
+>   [Its section](#the-altimaxs-als) has the details.
 > - **AIM raw dump and `.xtra`:** one flight's dump and the `.xtra` the AIM software made of it,
 >   435,075 values equal bit for bit. Both run slow against the GPS's clock on the sample flight:
 >   the dump's times by 0.9 % in flight and 2.1 % on the pad, the `.xtra`'s, which the software
@@ -3201,7 +3200,7 @@ fitted to this file:
 | Both pressures, the event code and the voltage channel's number, as stored | 101,336 | every one equal |
 | The acceleration | 25,334 | every one equal |
 | The voltages, by the export's own factors | 25,334 | every one equal |
-| The clock, 5 ms or 25 ms a record summed in 64-bit floats | 25,334 | all equal but one, a unit off in the 15th digit, on a rounding tie (below) |
+| The clock, 5 ms or 25 ms a record summed in 64-bit floats | 25,334 | every one equal |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
 | Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in); the check allows 42 mm (1.7 in), the height of half a pascal at the zero pressure |
@@ -3212,32 +3211,44 @@ The [survey's report](#how-it-was-checked) prints these under the files' anonymi
 numbers. The software holds each value as a 64-bit float, a *double*, good to about 16
 significant digits; the export keeps 15, as Excel does.
 
-*Rounding.* The export doesn't round a value to 15 digits once: it rounds it to 18 digits first,
-and that to 15, upward when exactly halfway. A clock summed from 5 ms steps in doubles often
-lands just under halfway between two 15-digit values, close enough that rounding to 18 digits
-lands on halfway, which then rounds up: 347 steps make 1.734 999 999 999 984 998 7 s, which the
-rule writes 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. Rounded first to each
-number of digits, this many of the 25,334 clock values differ from the export's:
+*Converting.* The export doesn't round a value to 15 digits once. Its numbers match arithmetic
+in 80-bit floating point, the format of an x86 processor's older floating-point unit, whose
+numbers carry 64 bits of precision against a double's 53: a model fitted to this file, as the
+software's code isn't public. In three steps, the export:
+
+1. guesses the value's power of ten from its power of two: the power of two's exponent times
+   log₁₀ 2, rounded down. The guess is one too low for some values; 100 to 128, for example, share
+   their power of two with 64 to 99;
+2. scales the value by that power of ten to 18 digits, rounded to 64 bits. Where the guess was
+   low, that makes 19 digits, and it divides them by 10, rounded to 64 bits again;
+3. rounds the result to a whole number, half to even, and that to 15 digits, upward when exactly
+   halfway.
+
+Two clock values show why each step is needed. A clock summed from 5 ms steps in doubles often
+lands just under halfway between two 15-digit values, close enough that the 18 digits land on
+halfway, which then rounds up: 347 steps make 1.734 999 999 999 984 998 7 s, which the rule
+writes 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And at 122.005 s the clock
+is 122.005 000 000 015 499 495 s, which at 18 digits is …015 499 and just under half a unit more.
+Scaled straight to 18 digits it rounds down, to …499, and then to …015. The guess, one low there,
+gives 19 digits instead, …154 994.95, which rounds at the 64th bit to …154 995; divided by 10,
+that is …15 499.5, exactly half a unit, which rounds to …15 500 and then up, to …016, as the
+export writes it. With the power of ten known exactly, rounded first to each number of digits,
+this many of the 25,334 clock values differ from the export's:
 
 | Rounded first to | 15 (once) | 16 | 17 | 18 | 19 | 20 |
 |---|---:|---:|---:|---:|---:|---:|
 | Clock values that differ | 11 | 1,245 | 109 | 1 | 11 | 11 |
 
+The rule divides by 10 for 2,327 clock values, 3,265 accelerations and 5,066 voltages, and
+none of the 25,334 of each differs.
+
 *Multiplying.* The volts are the double nearest the count times the factor, computed exactly and
 then rounded once. Multiplying the count by the factor already rounded to a double puts 31
 voltages a unit off in the 15th digit.
 
-*The one row on a tie.* At 122.005 s the reader's sum lies 3.5 × 10⁻⁴ of a step under the point
-where the 18-digit rounding tips up, a step being the gap between neighboring doubles,
-1.4 × 10⁻¹⁴ s there; the next double up writes the export's digits. So one bit, in the
-software's running sum or in its own rounding to 18 digits, decides this row's 15th digit, and
-the file can't show which. The check passes only if every value matches but rows like this one,
-each a unit off and within a step of the tipping point. It doesn't limit how many: a misread
-step would move every later time by 5 ms or more, not single rows by a step. This file has one.
-
 The [survey's report](#how-it-was-checked) prints each count: *By doubles*, the voltages
-multiplied by the rounded factor; *First rounded to 15–20 digits*, the table above; and *On a
-tie*, each such row with its time and its distance from the tipping point.
+multiplied by the rounded factor; *Divided by 10*, the clock values, accelerations and voltages
+the guess put at 19 digits; and *First rounded to 15–20 digits*, the table above.
 
 **Left out.** The voltages stay counts: the export turns them into volts by one factor for
 channels 1 and 5 and another for 2 to 4, 0.00314278884 and 0.00266754240 V a count, rounded

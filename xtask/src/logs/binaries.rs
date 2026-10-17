@@ -133,25 +133,19 @@ struct AlsFile {
     voltage: [u64; 3],
     time: [u64; 3],
     speed: [u64; 3],
-    /// The clock's rows on a tie: those that differ, but match with the reader's sum moved one
-    /// step of a double up or down, each within that step of the rule's tie, where a one-bit
-    /// difference in the sum, or in the software's own rounding, decides the 15th digit. Counted
-    /// in `time` as differing by one unit; the only rows that may differ, how many not capped.
-    #[serde(default)]
-    time_on_tie: u64,
-    /// Those rows: the time, s, and the tie's distance from it in steps of a double there,
-    /// positive where the tie is above the reader's value, [`steps_from_tie`].
-    #[serde(default)]
-    time_on_tie_rows: Vec<(f64, Option<f64>)>,
     /// The voltage rule's evidence: how many voltages would differ taken as the count times the
     /// factor's own double.
     #[serde(default)]
     voltage_by_doubles_differing: u64,
-    /// The clock rule's evidence: how many clock values would differ rounded first to 15, 16, 17,
-    /// 18, 19 or 20 significant digits and then half up to 15, [`digits_via`], 15 being rounding
-    /// once; the rows on a tie counted.
+    /// The conversion's evidence: how many clock values would differ with the power of ten known
+    /// exactly, rounded first to 15, 16, 17, 18, 19 or 20 significant digits and then half up to
+    /// 15, [`digits_via`], 15 being rounding once.
     #[serde(default)]
     time_by_digits_differing: [u64; 6],
+    /// How many values the conversion scaled to 19 digits and divided by 10, its power of ten
+    /// guessed one low: clock values, accelerations and voltages.
+    #[serde(default)]
+    divided_by_ten: [u64; 3],
     /// The export's rows from apogee on, whose speed the software works out from the pressure,
     /// not compared.
     speed_not_compared: usize,
@@ -229,13 +223,117 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
     Some((digits, exponent - 14))
 }
 
-/// A value's 15 significant digits as the AltiMAX export writes them, by the rule fitted to its
-/// sample: rounded to 18 significant digits, then half up to 15; as [`digits_15`] gives them. Rounding once instead
-/// moves a value lying just under a tie at the 18th digit, as a clock summed in doubles often
-/// does: the sum of 347 steps of 5 ms is 1.734 999 999 999 984 998 7, which the export writes
-/// 1.734 999 999 999 99, not ...98.
+/// A value's 15 significant digits as the AltiMAX export writes them, as [`digits_15`] gives
+/// them, by the rule fitted to its sample: a decimal conversion in 80-bit floating point, whose
+/// significands hold 64 bits, the format of an x86 processor's x87 unit.
+///
+/// 1. The power of ten is guessed from the value's power of two E₂ as ⌊E₂ · log₁₀ 2⌋, which is
+///    one low for values such as 100 to 128.
+/// 2. The value is scaled by it to 18 digits and rounded to a 64-bit significand; where the guess
+///    made it 19 digits, it is divided by 10 and rounded again.
+/// 3. It is rounded to a whole number, half to even, and that half up to 15 digits.
+///
+/// Rounding once to 15 digits instead moves a value just under halfway between two 15-digit
+/// values, as a clock summed in doubles often is: 347 steps of 5 ms make
+/// 1.734 999 999 999 984 998 7, which the export writes 1.734 999 999 999 99, not ...98. And the
+/// guess matters at 122.005 000 000 015 499 495, ...015 499 at 18 digits and just under half a
+/// unit more: scaled to 18 digits it rounds down, to ...015; the guess, one low, scales it to 19,
+/// ...154 994.95, which rounds at the 64th bit to ...154 995, and divided by 10 is ...15 499.5,
+/// exactly half a unit, which rounds to ...15 500 and then up, to ...016, as the export writes it.
+///
+/// `None` for zero, a value that isn't finite, or one outside the magnitudes whose arithmetic
+/// here is exact, about 10⁻¹⁴ to 10¹⁸.
 fn export_digits(value: f64) -> Option<(i64, i32)> {
-    digits_via(value, 18)
+    conversion(value).map(|(digits, _)| digits)
+}
+
+/// Whether [`export_digits`] divides a value by 10, its power of ten guessed one low.
+fn divided_by_ten(value: f64) -> bool {
+    conversion(value).is_some_and(|(_, divided)| divided)
+}
+
+/// [`export_digits`]'s digits, and whether it divided by 10.
+fn conversion(value: f64) -> Option<((i64, i32), bool)> {
+    const P17: u128 = 100_000_000_000_000_000;
+    const P18: u128 = 1_000_000_000_000_000_000;
+    const P15: u128 = 1_000_000_000_000_000;
+    if value == 0.0 || !value.is_normal() {
+        return None;
+    }
+    // value = m × 2^e exactly; E₂ = ⌊log₂ |value|⌋.
+    let bits = value.to_bits();
+    let biased = ((bits >> 52) & 0x7FF) as i32;
+    let m = u128::from(bits & ((1 << 52) - 1) | (1 << 52));
+    let e = biased - 1075;
+    let guess = (f64::from(biased - 1023) * std::f64::consts::LOG10_2).floor() as i32;
+    // Scaled by 10^k = 5^k × 2^k, exact, then rounded to 64 bits.
+    let k = 17 - guess;
+    let (mut significand, mut exponent) = round_to_64_bits(
+        m.checked_mul(5_u128.checked_pow(u32::try_from(k).ok()?)?)?,
+        e + k,
+        false,
+    )?;
+    let divided = nearest_whole(significand, exponent)? >= P18;
+    if divided {
+        let shifted = significand << 60;
+        (significand, exponent) = round_to_64_bits(shifted / 10, exponent - 60, shifted % 10 != 0)?;
+    }
+    let mut whole = nearest_whole(significand, exponent)?;
+    let mut last = 3 - k + i32::from(divided);
+    if whole == P18 {
+        whole /= 10;
+        last += 1;
+    }
+    if !(P17..P18).contains(&whole) {
+        return None;
+    }
+    let mut fifteen = whole / 1000 + u128::from(whole % 1000 >= 500);
+    if fifteen == P15 {
+        fifteen /= 10;
+        last += 1;
+    }
+    let fifteen = i64::try_from(fifteen).ok()?;
+    Some((
+        (if value < 0.0 { -fifteen } else { fifteen }, last),
+        divided,
+    ))
+}
+
+/// `n` × 2^`e` rounded to a significand of 64 bits, half to even, where `dropped` marks a nonzero
+/// remainder below `n` already dropped; `None` if one was dropped from a value that has no bits
+/// left to round.
+fn round_to_64_bits(n: u128, e: i32, dropped: bool) -> Option<(u128, i32)> {
+    let bits = 128 - n.leading_zeros();
+    if bits <= 64 {
+        return (!dropped).then_some((n, e));
+    }
+    let shift = bits - 64;
+    let kept = n >> shift;
+    let rest = n & ((1 << shift) - 1);
+    let half = 1 << (shift - 1);
+    let up = rest > half || (rest == half && (dropped || kept & 1 == 1));
+    let rounded = kept + u128::from(up);
+    // Rounding up from 64 ones carries into a 65th bit.
+    if rounded == 1 << 64 {
+        return Some((1 << 63, e + shift as i32 + 1));
+    }
+    Some((rounded, e + shift as i32))
+}
+
+/// `significand` × 2^`exponent` rounded to a whole number, half to even; `None` if it doesn't fit.
+fn nearest_whole(significand: u128, exponent: i32) -> Option<u128> {
+    if exponent >= 0 {
+        let shift = exponent as u32;
+        return (significand.leading_zeros() > shift).then(|| significand << shift);
+    }
+    let shift = exponent.unsigned_abs();
+    if shift >= 128 {
+        return Some(0);
+    }
+    let kept = significand >> shift;
+    let rest = significand & ((1 << shift) - 1);
+    let half = 1 << (shift - 1);
+    Some(kept + u128::from(rest > half || (rest == half && kept & 1 == 1)))
 }
 
 /// A value's 15 significant digits rounded first, correctly, to `first` digits, 15 to 20, and
@@ -256,34 +354,6 @@ fn digits_via(value: f64, first: usize) -> Option<(i64, i32)> {
     }
     let fifteen = i64::try_from(fifteen).ok()?;
     Some((if value < 0.0 { -fifteen } else { fifteen }, exponent - 14))
-}
-
-/// The distance from a positive value to the export rule's tie between its digits and `theirs`,
-/// a unit of the 15th digit away, in steps of a double there, positive where the tie is above the
-/// value: the tie is the lower one's digits then 499 5 at the 16th to 19th, where the 18 digits
-/// round up to its 500. `None` where the two aren't a unit apart, or for a value under 2⁻¹¹,
-/// whose steps the arithmetic here can't hold.
-fn steps_from_tie(ours: f64, theirs: (i64, i32)) -> Option<f64> {
-    let (mine, exponent) = export_digits(ours)?;
-    if ours <= 0.0 || !ours.is_normal() || exponent != theirs.1 || mine.abs_diff(theirs.0) != 1 {
-        return None;
-    }
-    // ours = m × 2^e, a step of a double 2^e; the tie, (lower × 10⁴ + 4,995) × 10^(exponent − 4).
-    let bits = ours.to_bits();
-    let e = ((bits >> 52) & 0x7FF) as i32 - 1075;
-    let m = u128::from(bits & ((1 << 52) - 1) | (1 << 52));
-    let tie = u128::try_from(mine.min(theirs.0))
-        .ok()?
-        .checked_mul(10_000)?
-        .checked_add(4_995)?;
-    let ten = 4 - exponent;
-    if e >= 0 || ten <= 0 || tie.leading_zeros() <= (-e) as u32 {
-        return None;
-    }
-    // The tie in steps: tie × 2^−e / 10^ten, its whole part and fraction apart.
-    let scaled = tie << (-e) as u32;
-    let p = 10_u128.checked_pow(ten as u32)?;
-    Some((scaled / p) as f64 - m as f64 + (scaled % p) as f64 / p as f64)
 }
 
 /// The export's volts for a count: the double nearest the count times the factor, worked
@@ -311,22 +381,18 @@ fn units(ours: Option<(i64, i32)>, theirs: Option<(i64, i32)>) -> u64 {
 /// Adds a comparison of a value written as the export writes it with the export's to
 /// `[compared, differing, most]`.
 fn tally(counts: &mut [u64; 3], ours: f64, theirs: f64) {
-    let units = units(export_digits(ours), digits_15(theirs));
+    let digits = export_digits(ours);
+    // A value the conversion can't write differs, unless it is zero, as the export's must be.
+    let units = if digits.is_none() && ours != 0.0 {
+        u64::MAX
+    } else {
+        units(digits, digits_15(theirs))
+    };
     counts[0] += 1;
     if units > 0 {
         counts[1] += 1;
     }
     counts[2] = counts[2].max(units);
-}
-
-/// Whether a clock value the export writes otherwise is within a step of a double of a tie that
-/// would give the export's digits: its neighbor above or below writes them.
-fn clock_on_tie(ours: f64, theirs: f64) -> bool {
-    let want = digits_15(theirs);
-    export_digits(ours) != want
-        && [ours.next_down(), ours.next_up()]
-            .iter()
-            .any(|n| export_digits(*n) == want)
 }
 
 /// A channel's values by name.
@@ -395,6 +461,7 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
         let their_accel = channel(&theirs, "ACCEL [m/s2]");
         for (a, b) in accel.iter().zip(&their_accel) {
             tally(&mut file.accel, *a, *b);
+            file.divided_by_ten[1] += u64::from(divided_by_ten(*a));
         }
         file.accel[1] += accel.len().abs_diff(their_accel.len()) as u64;
         let our_time: Vec<f64> = ours
@@ -404,11 +471,7 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
             .unwrap_or_default();
         for (a, b) in our_time.iter().zip(&theirs.time_s) {
             tally(&mut file.time, *a, *b);
-            if clock_on_tie(*a, *b) {
-                file.time_on_tie += 1;
-                let steps = digits_15(*b).and_then(|want| steps_from_tie(*a, want));
-                file.time_on_tie_rows.push((*a, steps));
-            }
+            file.divided_by_ten[0] += u64::from(divided_by_ten(*a));
             for (slot, first) in (15..=20).enumerate() {
                 if digits_via(*a, first) != digits_15(*b) {
                     file.time_by_digits_differing[slot] += 1;
@@ -423,7 +486,10 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
             let factor = format!("{volts_e8}e-8").parse::<f64>().unwrap_or(f64::NAN) / divisor;
             for (count, volt) in counts.iter().zip(&volts) {
                 match export_volts(*count, volts_e8, divisor) {
-                    Some(ours) => tally(&mut file.voltage, ours, *volt),
+                    Some(ours) => {
+                        tally(&mut file.voltage, ours, *volt);
+                        file.divided_by_ten[2] += u64::from(divided_by_ten(ours));
+                    }
                     None => {
                         file.voltage[0] += 1;
                         file.voltage[1] += 1;
@@ -793,23 +859,14 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 .iter()
                 .all(|off| off.is_some_and(|o| o <= bound))
         });
-        // Every record is compared, but the speed from apogee on, and none may differ but a clock
-        // row on a tie, one unit off, within a step of a double of it.
+        // Every record is compared, but the speed from apogee on, and none may differ.
         let every = f.records as u64;
-        let ties_hold = f.time[1] == f.time_on_tie
-            && f.time[2] <= 1
-            && f.time_on_tie_rows.len() as u64 == f.time_on_tie
-            && f.time_on_tie_rows
-                .iter()
-                .all(|(_, steps)| steps.is_some_and(|s| s.abs() <= 1.0));
         if f.records == 0
             || f.records != f.rows
             || f.stored_differing > 0
-            || [f.accel, f.voltage]
+            || [f.accel, f.voltage, f.time]
                 .iter()
                 .any(|c| c[0] != every || c[1] > 0)
-            || f.time[0] != every
-            || !ties_hold
             || f.speed[0] == 0
             || f.speed[1] > 0
             || !f.events_equal
@@ -818,7 +875,7 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
             out.push(format!(
                 "  {} (AltiMAX .ALS): fails its checks against its export {}: {} records, {} rows, \
                  {} of {} stored values differ, at 15 digits acceleration {:?}, voltage {:?}, \
-                 time {:?} ({} on a tie), speed {:?}, events equal: {}, heights off {:?} m within \
+                 time {:?}, speed {:?}, events equal: {}, heights off {:?} m within \
                  {:?}",
                 f.id,
                 f.export,
@@ -829,7 +886,6 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 f.accel,
                 f.voltage,
                 f.time,
-                f.time_on_tie,
                 f.speed,
                 f.events_equal,
                 f.height_off_m,
@@ -880,20 +936,6 @@ fn counts(c: [u64; 3]) -> String {
     format!("{} / {} / {}", c[0], c[1], c[2])
 }
 
-/// The clock's rows on a tie, for the report: how many, then each one's time and the tie's
-/// distance, under or over it.
-fn on_tie(f: &AlsFile) -> String {
-    let mut text = f.time_on_tie.to_string();
-    for (time_s, steps) in &f.time_on_tie_rows {
-        text += &match steps {
-            Some(steps) if *steps >= 0.0 => format!(", {time_s:.3} s {steps:.1e} of a step under"),
-            Some(steps) => format!(", {time_s:.3} s {:.1e} of a step over", -steps),
-            None => format!(", {time_s:.3} s"),
-        };
-    }
-    text
-}
-
 /// The report's section for this increment.
 pub(super) fn markdown(checks: &Checks) -> String {
     let factor_text = |(_, volts_e8, divisor): (f64, u64, f64)| {
@@ -913,30 +955,28 @@ pub(super) fn markdown(checks: &Checks) -> String {
              *Stored* compares the values the file stores that the export writes unchanged, both \
              pressures, the event code and the voltage channel, bit for bit, as compared / \
              differing. The rest are written by the rule fitted to the sample for how the export \
-             writes a value, its 18 significant digits rounded half up to 15, and compared with \
-             the export's 15, as compared / \
+             writes a value, a conversion in 80-bit floats: scaled to 18 significant digits by a \
+             power of ten guessed from the value's power of two, divided by 10 where the guess \
+             made it 19, rounded to a whole number, half to even, and then half up to 15 digits; \
+             and compared with the export's 15, as compared / \
              differing / the most, in units of the 15th digit: the acceleration; each voltage \
              channel's counts times the export's factor, {} on channels 1 and 5 and {} on 2 to \
              4, which no document states, as the double nearest the exact product; the clock, \
              5 ms or 25 ms a record summed in doubles; and the speed before apogee, 0 before \
              `BARO-LIFTOFF` and then the counts summed, {} billionths of a m/s each. None may \
-             differ but the clock's rows *On a tie*, which *Clock* counts as differing, by one \
-             unit: each matches with the reader's sum one step of a double up or down, lying \
-             within that step of the rule's tie, so that a one-bit difference in the sum or in \
-             the software's own rounding would decide its 15th digit. How many isn't capped; \
-             each is listed with its time, s, and the tie's distance in steps of a double, under \
-             or over the reader's value. The rules' evidence: *By doubles* counts \
-             the voltages that would differ as the count times the factor's own double, and \
-             *First rounded to 15–20 digits* the clock values that would differ rounded first to \
-             15, 16, 17, 18, 19 or 20 digits and then half up to 15, 15 being rounding once, the \
-             rows on a tie counted. *Speed left* counts the rows \
+             differ. The rules' evidence: *By doubles* counts the voltages that would differ as \
+             the count times the factor's own double; *Divided by 10* the clock values, \
+             accelerations and voltages the conversion divided by 10; and *First rounded to \
+             15–20 digits* the clock values that would differ with the power of ten known \
+             exactly, rounded first to 15, 16, 17, 18, 19 or 20 digits and then half up to 15, \
+             15 being rounding once. *Speed left* counts the rows \
              from apogee on, whose speed the software works out from the pressure: not \
              compared. *Heights off* is the most the standard atmosphere's height of each \
              pressure, less that of the header's zero pressure, differs from the export's, \
              filtered and raw, in m, which must be within half what one pascal moves the zero's \
              height, *Bound*.\n\n\
              | File | Export | Records | Rows | Stored | Acceleration | Voltage | By doubles \
-             | Clock | On a tie | First rounded to 15–20 digits | Speed | Speed left | Events \
+             | Clock | Divided by 10 | First rounded to 15–20 digits | Speed | Speed left | Events \
              | Heights off, m | Bound, m |\n\
              |---|---|---:|---:|---|---|---|---:|---|---:|---:|---|---:|---|---|---:|\n\
              | `{}` | `{}` | {} | {} | {} / {} | {} | {} | {} | {} | {} | {} | {} | {} | {} {} \
@@ -954,7 +994,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
             counts(f.voltage),
             f.voltage_by_doubles_differing,
             counts(f.time),
-            on_tie(f),
+            counts(f.divided_by_ten),
             f.time_by_digits_differing
                 .iter()
                 .map(u64::to_string)
@@ -1060,58 +1100,117 @@ mod tests {
         assert_eq!(c, [2, 1, 2]);
     }
 
-    /// The export's rule against rounding once: 347 steps of 5 ms summed in doubles lie just
-    /// under the tie at the 18th digit, which the export rounds up.
+    /// The export's conversion against rounding once: 347 steps of 5 ms summed in doubles lie
+    /// just under halfway at the 18th digit, which the export rounds up; and the clock row at
+    /// 122.005 s, just under half a unit over ...499 at the 18th, which only the power of ten
+    /// guessed one low rounds up, as the export does.
     #[test]
-    fn the_export_rounds_eighteen_digits_half_up() {
+    fn the_export_converts_in_80_bit_floats() {
         let mut time = 0.0;
         for _ in 0..347 {
             time += 0.005;
         }
         assert_eq!(format!("{time:.19e}"), "1.7349999999999849987e0");
         assert_eq!(export_digits(time), Some((173_499_999_999_999, -14)));
+        assert_eq!(export_digits(-time), Some((-173_499_999_999_999, -14)));
         assert_eq!(digits_15(time), Some((173_499_999_999_998, -14)));
-        // Just under the rule's tie, ...499 5 at the 16th to 19th digits, down; the next double,
-        // over it, up.
-        let under = 122.005_000_000_015_5_f64;
-        assert_eq!(export_digits(under), Some((122_005_000_000_015, -12)));
+        assert!(!divided_by_ten(time));
+        // The literal's double is the one just under halfway, ...015 499 495.
+        let row = 122.005_000_000_015_5_f64;
+        assert_eq!(format!("{row:.20e}"), "1.22005000000015499495e2");
+        assert!(divided_by_ten(row));
+        assert_eq!(export_digits(row), Some((122_005_000_000_016, -12)));
+        assert_eq!(digits_via(row, 18), Some((122_005_000_000_015, -12)));
+        assert_eq!(digits_15(row), Some((122_005_000_000_015, -12)));
+        // A step of a double down is far from halfway, and rounds down either way.
         assert_eq!(
-            export_digits(under.next_up()),
-            Some((122_005_000_000_016, -12))
+            export_digits(row.next_down()),
+            Some((122_005_000_000_015, -12))
         );
+        // The guess is one low for 100 to 128, where E₂ is 6, and right for 64 to 100 and from
+        // 128; one low for 0.001, where E₂ is −10, and right under it.
+        for (value, divided) in [
+            (64.0, false),
+            (99.999, false),
+            (100.0, true),
+            (127.999, true),
+            (128.0, false),
+            (0.001, true),
+            (0.000_9, false),
+            (-100.0, true),
+        ] {
+            assert_eq!(divided_by_ten(value), divided, "{value}");
+        }
+        assert_eq!(export_digits(100.0), Some((100_000_000_000_000, -12)));
+        assert_eq!(export_digits(64.0), Some((640_000_000_000_000, -13)));
+        // Outside its magnitudes, it writes nothing, and a value it can't write differs.
+        for none in [0.0, 1e-16, 1e19, f64::NAN, f64::INFINITY] {
+            assert_eq!(export_digits(none), None, "{none}");
+        }
+        assert_eq!(export_digits(1e-14), Some((100_000_000_000_000, -28)));
+        assert_eq!(export_digits(1e18), Some((100_000_000_000_000, 4)));
+        let mut c = [0; 3];
+        tally(&mut c, 1e-16, 0.0);
+        tally(&mut c, 0.0, 0.0);
+        assert_eq!(c, [2, 1, u64::MAX]);
     }
 
-    /// Each first rounding on the 347-step sum: 16 to 18 digits round its ...984 998 7 up, 15,
-    /// 19 and 20 don't. And the distance from the rule's tie of the double just under it.
+    /// Rounding to 64 bits and to whole numbers: half to even, a bit dropped before breaking a
+    /// tie upward, and 64 ones carrying into the next power of two.
     #[test]
-    fn first_roundings_and_a_ties_distance() {
+    fn rounding_to_64_bits_and_to_whole_numbers() {
+        let top = 1_u128 << 64;
+        assert_eq!(round_to_64_bits(top | 1, 0, false), Some((1 << 63, 1)));
+        assert_eq!(round_to_64_bits(top | 1, 0, true), Some(((1 << 63) + 1, 1)));
+        assert_eq!(
+            round_to_64_bits(top | 3, 0, false),
+            Some(((1 << 63) + 2, 1))
+        );
+        assert_eq!(
+            round_to_64_bits(top | 2, -3, false),
+            Some(((1 << 63) + 1, -2))
+        );
+        assert_eq!(
+            round_to_64_bits((top << 1) - 1, 0, false),
+            Some((1 << 63, 2))
+        );
+        assert_eq!(round_to_64_bits(5, 0, false), Some((5, 0)));
+        assert_eq!(round_to_64_bits(5, 0, true), None);
+        for ((significand, exponent), whole) in [
+            ((3, -1), 2),
+            ((5, -1), 2),
+            ((7, -2), 2),
+            ((5, -2), 1),
+            ((1, 3), 8),
+            ((1, -200), 0),
+        ] {
+            assert_eq!(
+                nearest_whole(significand, exponent),
+                Some(whole),
+                "{significand} × 2^{exponent}"
+            );
+        }
+        assert_eq!(nearest_whole(1, 128), None);
+    }
+
+    /// Each first rounding with the power of ten exact on the 347-step sum: 16 to 18 digits
+    /// round its ...984 998 7 up, 15, 19 and 20 don't. On the 122.005 s row, only 16 and 17 round
+    /// up, which put many other clock values off.
+    #[test]
+    fn first_roundings_with_the_power_of_ten_exact() {
         let mut time = 0.0;
         for _ in 0..347 {
             time += 0.005;
         }
-        let last: Vec<i64> = (15..=20)
-            .map(|first| digits_via(time, first).map_or(-1, |(d, _)| d % 10))
-            .collect();
-        assert_eq!(last, [8, 9, 9, 9, 8, 8]);
+        let last = |value: f64| -> Vec<i64> {
+            (15..=20)
+                .map(|first| digits_via(value, first).map_or(-1, |(d, _)| d % 10))
+                .collect()
+        };
+        assert_eq!(last(time), [8, 9, 9, 9, 8, 8]);
+        assert_eq!(last(122.005_000_000_015_5), [5, 6, 6, 5, 5, 5]);
         assert_eq!(digits_via(time, 15), digits_15(time));
         assert_eq!(digits_via(time, 14), None);
-        // The tie is 122.005 000 000 015 499 5; the double under it, 5.0 × 10⁻¹⁸ below, is
-        // 0.000 350 of a step, 1.42 × 10⁻¹⁴, under it; the next double up is that much short of
-        // a step over it.
-        let under = 122.005_000_000_015_5_f64;
-        let steps = steps_from_tie(under, (122_005_000_000_016, -12));
-        assert!(
-            steps.is_some_and(|s| (s - 3.503_817e-4).abs() < 1e-9),
-            "{steps:?}"
-        );
-        let over = steps_from_tie(under.next_up(), (122_005_000_000_015, -12));
-        assert!(
-            over.is_some_and(|s| (s + 1.0 - 3.503_817e-4).abs() < 1e-9),
-            "{over:?}"
-        );
-        // Two units apart, or the same, there is no tie between.
-        assert_eq!(steps_from_tie(under, (122_005_000_000_017, -12)), None);
-        assert_eq!(steps_from_tie(under, (122_005_000_000_015, -12)), None);
     }
 
     /// The volts are the double nearest the exact product: 968 counts of 3.218 215 77 V over
@@ -1129,26 +1228,6 @@ mod tests {
         for refused in [-1.0, 0.5, 65_536.0, f64::NAN] {
             assert_eq!(export_volts(refused, volts_e8, divisor), None);
         }
-    }
-
-    /// A clock value a hair under the rule's tie writes other digits than the export's, but its
-    /// next double up writes the export's: on a tie. A step further under, it isn't.
-    #[test]
-    fn a_clock_value_on_a_tie() {
-        // The literal's double is the one just under the tie.
-        let under = 122.005_000_000_015_5_f64;
-        assert_eq!(format!("{under:.20e}"), "1.22005000000015499495e2");
-        let theirs = 122.005_000_000_016;
-        assert_ne!(export_digits(under), digits_15(theirs));
-        assert!(clock_on_tie(under, theirs));
-        assert!(!clock_on_tie(under.next_down(), theirs));
-        // A value the export writes the same is not on a tie.
-        assert!(!clock_on_tie(theirs, theirs));
-        // From over the tie: the next double down writes the export's lower digits.
-        let lower = 122.005_000_000_015;
-        assert_ne!(export_digits(under.next_up()), digits_15(lower));
-        assert!(clock_on_tie(under.next_up(), lower));
-        assert!(!clock_on_tie(under.next_up().next_up(), lower));
     }
 
     #[test]
@@ -1232,10 +1311,8 @@ mod tests {
             stored_compared: 40,
             accel: [10, 0, 0],
             voltage: [10, 0, 0],
-            time: [10, 1, 1],
+            time: [10, 0, 0],
             speed: [4, 0, 0],
-            time_on_tie: 1,
-            time_on_tie_rows: vec![(0.5, Some(3.5e-4))],
             events_equal: true,
             height_off_m: [Some(0.01), Some(0.02)],
             height_bound_m: Some(0.04),
@@ -1268,9 +1345,6 @@ mod tests {
         };
         assert_eq!(als(|_| {}), 0);
         assert_eq!(als(|f| f.height_off_m[1] = Some(0.04)), 0);
-        // A tie row a whole step from the tie, either side, still holds; past it, not.
-        assert_eq!(als(|f| f.time_on_tie_rows[0].1 = Some(1.0)), 0);
-        assert_eq!(als(|f| f.time_on_tie_rows[0].1 = Some(-1.0)), 0);
         for fail in [
             (|f| f.records = 0) as fn(&mut AlsFile),
             |f| f.rows = 9,
@@ -1281,14 +1355,7 @@ mod tests {
             |f| f.voltage[0] = 9,
             |f| f.voltage[1] = 1,
             |f| f.time[0] = 9,
-            // A clock row off but not on a tie; a tie row more than a unit or a step off, or
-            // missing from the list.
-            |f| f.time[1] = 2,
-            |f| f.time[2] = 2,
-            |f| f.time_on_tie_rows.clear(),
-            |f| f.time_on_tie_rows[0].1 = Some(-1.5),
-            |f| f.time_on_tie_rows[0].1 = Some(1.01),
-            |f| f.time_on_tie_rows[0].1 = None,
+            |f| f.time[1] = 1,
             |f| f.speed = [0, 0, 0],
             |f| f.speed[1] = 1,
             |f| f.events_equal = false,
