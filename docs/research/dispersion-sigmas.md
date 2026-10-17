@@ -12,7 +12,7 @@ including each 1σ taken from a stated 2σ or 3σ (normal assumed). Few coverage
 - **Measured inputs are rare.** Of 9 hobby and academic sources here that print input sigmas, one takes a value
   from repeat firings (MAPLEAF's motor spread, from a NAR test sheet [3, 4]); wind is the exception, drawn from a
   measured forecast error or a weather ensemble in five [1, 5, 6, 11, 13]. Four of five professional tables are
-  labelled estimates or "assumed" [14–16, 18]; the fifth gives no basis [17]. The professional figures from data are
+  labeled estimates or "assumed" [14–16, 18]; the fifth gives no basis [17]. The professional figures from data are
   SP-8039's typical motor scatter (total impulse 0.3%, action time 2.0%) [19] and angles after wind weighting [20].
 - **The values cluster loosely.** Hobby: launch tilt 1° (5 of 7 sources), drag 3.8–20%, dry mass 0–3.9%, impulse
   0.9–2.5% (one example 15%), burn time 1.5–19%. Professional 1σ: impulse 0.67–2.5%, mass 0.33% (weighed), drag
@@ -32,11 +32,11 @@ including each 1σ taken from a stated 2σ or 3σ (normal assumed). Few coverage
 | Dry mass | 0–3.9%, zero mean [5–10]; A | 0.33% [16, 17], 5 lb [14], 1.7 lb [15]; A | +7.4%, σ ≈ 11% |
 | Total impulse | 2.33% M [3]; 0.9–2.5% A [5, 6, 10] | 0.67–2.5% A [14–18]; 0.3% M [19] | 2.5–3.1% |
 | Burn time | 10.7% M [3]; 1.5–19% A [5, 6, 9, 10] | 2.0% M [19] | not measured |
-| Launch tilt | 1° in 5 of 7 [2, 5, 6, 8, 9]; 1.5°, 2°; A | 0.03–0.33° setting [14–18]; A | — |
-| Azimuth | 1–5°, or uniform [2, 5, 7, 8, 10]; A | 0.25–1.33° [14, 16, 17]; A | — |
-| Wind | ensembles, forecast error, M [1, 5, 6, 11, 13]; offsets A [7, 8] | 0.67–1 m/s left [14–17]; A | — |
+| Launch tilt | 1° in 5 of 7 [2, 5, 6, 8, 9]; 1.5°, 2°; A | 0.03–0.33° setting [14–18]; A | none |
+| Azimuth | 1–5°, or uniform [2, 5, 7, 8, 10]; A | 0.25–1.33° [14, 16, 17]; A | none |
+| Wind | ensembles, forecast error, M [1, 5, 6, 11, 13]; offsets A [7, 8] | 0.67–1 m/s left [14–17]; A | none |
 | Temperature, air | 2.2–6 K; pressure ~3%; density 2%; A [7, 8, 10] | density 1% [18]; A | ERA5 ±0.5 K |
-| Measurement | not added by any source | — | ~0.4% of apogee per logger |
+| Measurement | not added by any source | none | ~0.4% of apogee per logger |
 
 ## 2. Motor: impulse and burn time
 
