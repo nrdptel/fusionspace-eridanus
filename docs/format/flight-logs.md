@@ -3253,10 +3253,10 @@ second rounding to 64 bits moves a value too little to cross a half.
 
 With the power of ten known exactly, rounded first to each number of digits and then half up to
 15, this many of the 25,334 clock values differ from the export's. Rounded once, 11 differ, the
-122.005 s row among them. Rounded first to 18 digits, the only choice that leaves just one row
-differing, only that row differs. Under the model, it alone needs the guess and the first
-rounding to 64 bits; a running sum one double higher at that row in the software would explain
-it under the plainer rule, and the file can't rule that out.
+122.005 s row among them; rounded first to 18 digits, only that row. Under the model, it alone
+needs the guess and the first rounding to 64 bits; a running sum one double higher at that row
+in the software would explain it under the plainer 18-digit rule, and the file can't rule that
+out.
 
 | Rounded first to | 15 (once) | 16 | 17 | 18 | 19 | 20 |
 |---|---:|---:|---:|---:|---:|---:|
