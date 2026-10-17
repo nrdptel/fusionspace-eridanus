@@ -144,10 +144,11 @@ expression: log
   "notes": [
     "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
     "read as GPX 1.1, its `version`: 3 tracks, 3 segments with points, each read as a GPS track, 10 points",
-    "`ele` read in meters, from the GPX schemas, as an altitude whose datum the file doesn't state: the schemas give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state: they give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
     "the log's zero is `2031-09-20T09:15:00`, the first time the file gives a track point",
-    "times with no zone read as UTC, as the GPX schemas say every time is: 7 of the file's times state none",
+    "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say every time is: 7 of the file's times state none",
     "track points with no `time` keep their places, their times gaps: 3 of 10",
-    "tracks and segments with no point, left out: 0 tracks with no segment, 1 segment with no point"
+    "tracks and segments with no point, left out: 0 tracks with no segment, 1 segment with no point",
+    "elements with no value read as gaps: `time` in 1 track point"
   ]
 }

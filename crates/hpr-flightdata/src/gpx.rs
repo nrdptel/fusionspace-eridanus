@@ -17,21 +17,25 @@
 //! </gpx>
 //! ```
 //!
-//! **What the schemas set.** Topografix's schemas, *GPX 1.0* (topografix.com/GPX/1/0/gpx.xsd)
-//! and *GPX 1.1* (topografix.com/GPX/1/1/gpx.xsd), with GPX 1.0's manual
-//! (topografix.com/gpx_manual.asp). A point's `lat` and `lon` are "decimal degrees, WGS84
-//! datum", the latitude from −90 to 90 and the longitude from −180 to 180 (1.1 excludes 180
-//! itself, 1.0 doesn't; this reader takes 180, the same meridian as −180). Its `ele` is "Elevation
-//! (in meters) of the point", in no stated datum: neither schema nor the manual says whether it is
-//! above mean sea level, above the WGS84 ellipsoid or from a barometer. Its `time` is an XML
-//! Schema `dateTime`, and "Date and time in are in Univeral Coordinated Time (UTC), not local
-//! time!" (both schemas). `sat` is the "Number of satellites used to calculate the GPX fix",
-//! `hdop`, `vdop` and `pdop` its dilutions of precision, and `fix` "none" means "GPS had no fix".
-//! In GPX 1.0 a track point may also hold `course`, "degrees, true", and `speed`, "meters per
-//! second" (the manual); GPX 1.1 dropped both. A track segment "holds a list of Track Points which
-//! are logically connected in order. To represent a single GPS track where GPS reception was
-//! lost, or the GPS receiver was turned off, start a new Track Segment for each continuous span of
-//! track data" (both schemas).
+//! **What the sources set.** Topografix's schemas, *GPX 1.0* (topografix.com/GPX/1/0/gpx.xsd)
+//! and *GPX 1.1* (topografix.com/GPX/1/1/gpx.xsd), and GPX 1.0's manual
+//! (topografix.com/gpx_manual.asp). GPX 1.0's schema holds types and no documentation, so the
+//! words quoted here are GPX 1.1's schema's; GPX 1.0's manual says the same of each element it
+//! describes. A point's `lat` and `lon` are in "Decimal degrees, WGS84 datum", the latitude from
+//! −90 to 90 and the longitude from −180 to 180 (both schemas' types: 1.1 leaves out 180 itself,
+//! 1.0 doesn't; this reader takes 180, the same meridian as −180). Its `ele` is the "Elevation
+//! (in meters) of the point", with no datum of its own. GPX 1.1's schema opens with "all
+//! coordinates are relative to the WGS84 datum", which could be read as heights above the WGS84
+//! ellipsoid, but it doesn't say so of `ele`, nor does the manual, and neither says whether a
+//! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. Its
+//! `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral Coordinated Time
+//! (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
+//! `hdop`, `vdop` and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no
+//! fix". In GPX 1.0 a track point may also hold `course`, in "degrees, true", and `speed`, in
+//! "meters per second" (the manual); GPX 1.1 dropped both. A track segment "holds a list of Track
+//! Points which are logically connected in order. To represent a single GPS track where GPS
+//! reception was lost, or the GPS receiver was turned off, start a new Track Segment for each
+//! continuous span of track data."
 //!
 //! **Tracks and channels.** A GPX file holds tracks of positions, not an altimeter's record over
 //! time, so the record's primary track is empty and every value is a channel, with a note, as the
@@ -50,8 +54,9 @@
 //! | `<name> course` | [`Quantity::Angle`], ° from true north | GPX 1.0's `course` |
 //!
 //! A channel is there only if some point of its segment holds its element; a point that lacks it,
-//! or holds it empty, such as `<ele/>`, is a gap, `NaN`, the empty ones counted in a note. The rest of a point (`magvar`, `geoidheight`, `fix`, its names and
-//! descriptions, `extensions` and other namespaces' elements) is counted in a note and not read.
+//! or holds it empty, such as `<ele/>`, is a gap, `NaN`, the empty ones counted in a note. The
+//! rest of a point (`magvar`, `geoidheight`, `fix`, its names and descriptions, `extensions` and
+//! other namespaces' elements) is counted in a note and not read.
 //! The elevation is [`Quantity::Altitude`], not [`Quantity::GnssAltitude`], whose altitude is
 //! above mean sea level as the receiver states it: a GPX file states neither the datum nor the
 //! sensor, so only the rise from one point to another means what it says.
@@ -64,8 +69,8 @@
 //! is in seconds from the log's zero, [`Quantity::Duration`]. No reading takes them for the flight.
 //!
 //! **Times.** A point's time is its `time`, in UTC: one that states an offset from UTC, such as
-//! `-04:00`, is moved to UTC; one that states no zone is read as UTC, as both schemas say every
-//! time is, with a note counting them. The log's zero is the first time the file gives a track
+//! `-04:00`, is moved to UTC; one that states no zone is read as UTC, as GPX 1.1's schema and
+//! GPX 1.0's manual say every time is, with a note counting them. The log's zero is the first time the file gives a track
 //! point, or, with none, a waypoint or route point, and a note names it. A track point with no
 //! time keeps its place with its time a gap, `NaN`. Times within a track go forward, segment to
 //! segment: one that goes back is refused by name, as such a track isn't one recording. Two
@@ -77,7 +82,9 @@
 //! or one off the globe; a value that isn't the schema's kind of number (`ele` and the rest are
 //! XML Schema `decimal`s, written with no exponent; `sat` is a whole number); a `course` outside
 //! 0° to 360°; a point holding one of the elements read twice; a `time` that isn't a date and
-//! time; and a time that goes back within a track. Each names the element and its line.
+//! time; and a time that goes back within a track. Each names what it found and its line: a
+//! point's, or the declaration's, the root's, or the line where the nesting passes the bound
+//! (the parser places no node count's refusal, which reads line 1).
 //!
 //! **Hostile input.** `roxmltree` parses the XML, with its default refusal of a document type
 //! declaration and a limit of [`MAX_NODES`] nodes. The parser descends the tree on the stack, so
@@ -127,7 +134,7 @@ pub const MAX_PLACES: usize = 10_000;
 
 /// The most XML nodes the parser builds for one file, so a file of many tiny elements can't fill
 /// memory. A track point with its elevation, time, satellite count and three dilutions of
-/// precision is about 20 nodes, its whitespace included, so this holds some 200,000 such points,
+/// precision is about 21 nodes, its whitespace included, so this holds some 190,000 such points,
 /// more than two days of a receiver writing once a second.
 pub const MAX_NODES: u32 = 4_000_000;
 
@@ -161,15 +168,16 @@ pub(crate) fn recognizes(text: &str) -> bool {
 /// [`LogError::NotThisFormat`] if its root element isn't `gpx`, or is in a namespace that is
 /// neither GPX 1.0's nor 1.1's. [`LogError::NoData`] if it holds no track point.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
-    read_within(text, MAX_NODES)
+    read_within(text, MAX_NODES, MAX_POINTS)
 }
 
-/// [`read`], parsing at most `max_nodes` XML nodes.
-fn read_within(text: &str, max_nodes: u32) -> Result<FlightLog, LogError> {
+/// [`read`], parsing at most `max_nodes` XML nodes and reading at most `max_points` track points.
+fn read_within(text: &str, max_nodes: u32, max_points: usize) -> Result<FlightLog, LogError> {
     let document = parse(text, max_nodes)?;
     let root = document.root_element();
     let version = version(&document, root)?;
     let mut reader = Reader::new(&document, root.tag_name().namespace(), version);
+    reader.max_points = max_points;
     for node in root.children() {
         match reader.own_name(node) {
             Some("wpt") => reader.waypoint(node)?,
@@ -208,7 +216,13 @@ fn parse(text: &str, nodes: u32) -> Result<Document<'_>, LogError> {
         ..ParsingOptions::default()
     };
     Document::parse_with_options(text, options).map_err(|error| {
-        let line = usize::try_from(error.pos().row).unwrap_or(usize::MAX);
+        let mut line = usize::try_from(error.pos().row).unwrap_or(usize::MAX);
+        // The parser places this refusal at the text's start; its declaration's line is found.
+        if matches!(error, roxmltree::Error::DtdDetected)
+            && let Some(offset) = kml::doctype_offset(text)
+        {
+            line = 1 + text[..offset].matches('\n').count();
+        }
         let message = match &error {
             roxmltree::Error::DtdDetected => "the file declares a document type, which this \
                  reader refuses so that no entity can expand"
@@ -350,8 +364,8 @@ struct Stamp {
     zoned: bool,
     /// As written, cut to the length a note quotes.
     written: String,
-    /// The line it is on.
-    line: usize,
+    /// The byte offset of its element, for a refusal's line.
+    at: usize,
 }
 
 /// A number and its text as written, cut to the length a note quotes.
@@ -375,6 +389,9 @@ struct Point {
     speed: Option<f64>,
     course: Option<f64>,
 }
+
+/// A channel's value at a point, `None` where the point holds none.
+type Pick = fn(&Point) -> Option<f64>;
 
 /// One track segment read.
 struct Segment {
@@ -416,6 +433,8 @@ struct Reader<'a, 'input> {
     unread_left_out: usize,
     /// Elements read that hold no value, by the kind of point and the element's name.
     empty: BTreeMap<(Kind, &'input str), usize>,
+    /// The most track points read, [`MAX_POINTS`] but in tests.
+    max_points: usize,
 }
 
 impl<'a, 'input> Reader<'a, 'input> {
@@ -440,6 +459,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             unread: BTreeMap::new(),
             unread_left_out: 0,
             empty: BTreeMap::new(),
+            max_points: MAX_POINTS,
         }
     }
 
@@ -449,9 +469,11 @@ impl<'a, 'input> Reader<'a, 'input> {
             .then(|| node.tag_name().name())
     }
 
-    /// The 1-based line a node starts on.
-    fn line(&self, node: Node<'_, '_>) -> usize {
-        line_of(self.document, node)
+    /// The 1-based line of a byte offset, found only for a refusal: it counts the lines from the
+    /// text's start, so finding it for every point would take time growing as the square of the
+    /// file's length.
+    fn line_at(&self, offset: usize) -> usize {
+        usize::try_from(self.document.text_pos_at(offset).row).unwrap_or(usize::MAX)
     }
 
     /// A child element's text, by its name, in GPX's namespace.
@@ -546,7 +568,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             }
             let mut points = Vec::new();
             for trkpt in trkpts {
-                if self.points >= MAX_POINTS {
+                if self.points >= self.max_points {
                     self.points_left_out += 1;
                     continue;
                 }
@@ -556,13 +578,15 @@ impl<'a, 'input> Reader<'a, 'input> {
                         && stamp.ns < previous.ns
                     {
                         return Err(syntax(
-                            stamp.line,
+                            self.line_at(stamp.at),
                             format!(
                                 "a time that goes back: track `{name}`'s point is timed `{}`, \
                                  before `{}`, the time of the point ahead of it at line {}; a \
                                  track's times go forward, so this one isn't read as one \
                                  recording",
-                                stamp.written, previous.written, previous.line
+                                stamp.written,
+                                previous.written,
+                                self.line_at(previous.at)
                             ),
                         ));
                     }
@@ -584,20 +608,20 @@ impl<'a, 'input> Reader<'a, 'input> {
 
     /// Reads a point: its position, then each element it holds.
     fn point(&mut self, node: Node<'_, 'input>, kind: Kind) -> Result<Point, LogError> {
-        let line = self.line(node);
+        let at = node.range().start;
         let element = kind.element();
         let mut point = Point::default();
         for (attribute, latitude) in [("lat", true), ("lon", false)] {
             let Some(text) = node.attribute(attribute) else {
                 return Err(syntax(
-                    line,
+                    self.line_at(at),
                     format!(
                         "a `{element}` has no `{attribute}`, which GPX requires of every point"
                     ),
                 ));
             };
-            let value =
-                decimal(text).ok_or_else(|| not_a_number(line, element, attribute, text))?;
+            let value = decimal(text)
+                .ok_or_else(|| not_a_number(self.line_at(at), element, attribute, text))?;
             let on_globe = if latitude {
                 (-90.0..=90.0).contains(&value)
             } else {
@@ -605,7 +629,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             };
             if !on_globe {
                 return Err(syntax(
-                    line,
+                    self.line_at(at),
                     format!(
                         "a point off the globe: a `{element}`'s `{attribute}` is {}, where a {} \
                          is {}",
@@ -651,10 +675,10 @@ impl<'a, 'input> Reader<'a, 'input> {
                 }
                 continue;
             }
-            let child_line = self.line(child);
+            let child_at = child.range().start;
             if seen.contains(&name) {
                 return Err(syntax(
-                    child_line,
+                    self.line_at(child_at),
                     format!("a `{element}` holds two `{name}` elements, where GPX allows one"),
                 ));
             }
@@ -666,17 +690,27 @@ impl<'a, 'input> Reader<'a, 'input> {
                 continue;
             }
             if name == "time" {
-                point.time = Some(stamp(&text, child_line, element)?);
+                let read = stamp(&text, child_at);
+                point.time = Some(read.ok_or_else(|| {
+                    syntax(
+                        self.line_at(child_at),
+                        format!(
+                            "a `{element}`'s `time` reads `{}`, not a date and time this reader \
+                             reads, such as `2031-07-14T17:04:04.250Z`",
+                            short(trimmed(&text))
+                        ),
+                    )
+                })?);
                 continue;
             }
             if name == "sat" {
                 let count = whole_number(&text)
-                    .ok_or_else(|| not_a_number(child_line, element, name, &text))?;
+                    .ok_or_else(|| not_a_number(self.line_at(child_at), element, name, &text))?;
                 point.sat = Some(count);
                 continue;
             }
-            let value =
-                decimal(&text).ok_or_else(|| not_a_number(child_line, element, name, &text))?;
+            let value = decimal(&text)
+                .ok_or_else(|| not_a_number(self.line_at(child_at), element, name, &text))?;
             match name {
                 "ele" => {
                     point.ele = Some(Written {
@@ -691,7 +725,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                 _ => {
                     if !(0.0..=360.0).contains(&value) {
                         return Err(syntax(
-                            child_line,
+                            self.line_at(child_at),
                             format!(
                                 "a `{element}`'s `course` is {}°, outside the 0° to 360° GPX \
                                  1.0 allows",
@@ -728,9 +762,9 @@ impl<'a, 'input> Reader<'a, 'input> {
         let place_points = || self.places.iter().map(|place| &place.point);
         if track_points().any(|point| point.ele.is_some()) {
             notes.push(
-                "`ele` read in meters, from the GPX schemas, as an altitude whose datum the file \
-                 doesn't state: the schemas give the unit and no datum, so it may be above mean \
-                 sea level, above the WGS84 ellipsoid or above another zero"
+                "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude \
+                 whose datum the file doesn't state: they give the unit and no datum, so it may \
+                 be above mean sea level, above the WGS84 ellipsoid or above another zero"
                     .to_owned(),
             );
         }
@@ -755,8 +789,8 @@ impl<'a, 'input> Reader<'a, 'input> {
             .count();
         if unzoned > 0 {
             notes.push(format!(
-                "times with no zone read as UTC, as the GPX schemas say every time is: {unzoned} \
-                 of the file's times state none"
+                "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say \
+                 every time is: {unzoned} of the file's times state none"
             ));
         }
         let untimed = track_points().filter(|point| point.time.is_none()).count();
@@ -829,15 +863,15 @@ impl<'a, 'input> Reader<'a, 'input> {
         if self.segments_left_out + self.points_left_out + self.places_left_out > 0 {
             notes.push(format!(
                 "more than this reader reads, left out: {} segments past the {MAX_TRACKS} read, \
-                 {} track points past the {MAX_POINTS}, {} waypoints and route points past the \
+                 {} track points past the {}, {} waypoints and route points past the \
                  {MAX_PLACES}",
-                self.segments_left_out, self.points_left_out, self.places_left_out
+                self.segments_left_out, self.points_left_out, self.max_points, self.places_left_out
             ));
         }
 
         let seconds = |stamp: Option<&Stamp>| match (stamp, zero_ns) {
             // Within the reader's dates, 1678 to 2262, two times differ by less than 2⁶⁴ ns,
-            // and by less than 2⁵³ ns, 104 days, the difference converts exactly.
+            // and when they differ by less than 2⁵³ ns, 104 days, the difference converts exactly.
             (Some(stamp), Some(zero)) => {
                 (i128::from(stamp.ns) - i128::from(zero)) as f64 / NS_PER_S as f64
             }
@@ -856,7 +890,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                 .iter()
                 .map(|point| seconds(point.time.as_ref()))
                 .collect();
-            let column = |pick: fn(&Point) -> Option<f64>| -> Option<Vec<f64>> {
+            let column = |pick: Pick| -> Option<Vec<f64>> {
                 segment
                     .points
                     .iter()
@@ -869,7 +903,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                             .collect()
                     })
             };
-            let picks: [(&str, Quantity, fn(&Point) -> Option<f64>); 9] = [
+            let picks: [(&str, Quantity, Pick); 9] = [
                 ("latitude", Quantity::Latitude, |p| {
                     p.lat.as_ref().map(|w| w.value)
                 }),
@@ -1036,34 +1070,20 @@ fn not_a_number(line: usize, element: &str, name: &str, text: &str) -> LogError 
 
 /// A `time` as nanoseconds since 1970-01-01T00:00:00 UTC, read by the KML reader's parser of XML
 /// Schema's `dateTime` ([`kml::when_ns`]): with `Z` or an offset, moved to UTC; with no zone, as
-/// UTC.
-fn stamp(text: &str, line: usize, element: &str) -> Result<Stamp, LogError> {
+/// UTC. `None` if it isn't one; `at` is its element's byte offset.
+fn stamp(text: &str, at: usize) -> Option<Stamp> {
     let written = trimmed(text);
-    let refused = || {
-        syntax(
-            line,
-            format!(
-                "a `{element}`'s `time` reads `{}`, not a date and time this reader reads, such \
-                 as `2031-07-14T17:04:04.250Z`",
-                short(written)
-            ),
-        )
+    let (zoned, ns) = match kml::when_ns(written)? {
+        (Clock::Utc, ns) => (true, ns),
+        (Clock::Local, ns) => (false, ns),
+        _ => return None,
     };
-    match kml::when_ns(written) {
-        Some((Clock::Utc, ns)) => Ok(Stamp {
-            ns,
-            zoned: true,
-            written: short(written),
-            line,
-        }),
-        Some((Clock::Local, ns)) => Ok(Stamp {
-            ns,
-            zoned: false,
-            written: short(written),
-            line,
-        }),
-        _ => Err(refused()),
-    }
+    Some(Stamp {
+        ns,
+        zoned,
+        written: short(written),
+        at,
+    })
 }
 
 #[cfg(test)]
@@ -1092,11 +1112,16 @@ mod tests {
         let text = "<?xml version=\"1.0\"?>\n<!DOCTYPE gpx [<!ENTITY a \"aaaa\">]>\n\
                     <gpx version=\"1.1\"><trk><name>&a;</name></trk></gpx>";
         assert!(recognizes(text));
-        let (_, message) = refusal(text);
+        let (line, message) = refusal(text);
+        assert_eq!(line, 2);
         assert!(
             message.starts_with("the file declares a document type"),
             "{message}"
         );
+        // Past a comment naming a document type, the declaration's own line.
+        let later = "<?xml version=\"1.0\"?>\n<!-- <!DOCTYPE x> -->\n\n<!DOCTYPE gpx [\n]>\n\
+                     <gpx version=\"1.1\"/>";
+        assert_eq!(refusal(later).0, 4);
         let external = "<!DOCTYPE gpx SYSTEM \"file:///etc/passwd\"><gpx version=\"1.1\"/>";
         assert!(
             refusal(external)
@@ -1200,7 +1225,8 @@ mod tests {
 
     #[test]
     fn the_version_and_namespace_must_be_gpx_and_agree() {
-        let missing = "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\"/>";
+        let missing = "<?xml version=\"1.0\"?>\n<gpx xmlns=\"http://www.topografix.com/GPX/1/1\"/>";
+        assert_eq!(refusal(missing).0, 2);
         assert!(refusal(missing).1.contains("states no `version`"));
         let unknown = "<gpx version=\"1.2\"/>";
         assert!(refusal(unknown).1.contains("`version` is `1.2`"));
@@ -1327,12 +1353,73 @@ mod tests {
             "{message}"
         );
         let text = gpx(&"<trkpt lat=\"1\" lon=\"2\"/>".repeat(10));
-        assert!(read_within(&text, 1_000).is_ok());
-        let (_, message) = match read_within(&text, 10) {
+        assert!(read_within(&text, 1_000, MAX_POINTS).is_ok());
+        let (line, message) = match read_within(&text, 10, MAX_POINTS) {
             Err(LogError::Syntax { line, message, .. }) => (line, message),
             other => panic!("{other:?}"),
         };
         assert_eq!(message, "the file holds more than 10 XML nodes");
+        // The parser places no node count's refusal: it reads the text's first line.
+        assert_eq!(line, 1);
+    }
+
+    #[test]
+    fn past_each_cap_the_rest_is_counted_and_left_out() {
+        let note = |log: &FlightLog| {
+            log.notes
+                .iter()
+                .find(|note| note.starts_with("more than this reader reads, left out: "))
+                .cloned()
+                .unwrap_or_default()
+        };
+        // Segments: one more than the cap, each of one point.
+        let segments: String = (0..=MAX_TRACKS)
+            .map(|_| "<trkseg><trkpt lat=\"1\" lon=\"2\"/></trkseg>")
+            .collect();
+        let text = format!("<gpx version=\"1.1\"><trk>{segments}</trk></gpx>");
+        let log = read(&text).unwrap();
+        assert_eq!(log.channels.len(), 2 * MAX_TRACKS);
+        assert!(note(&log).starts_with(&format!(
+            "more than this reader reads, left out: 1 segments past the {MAX_TRACKS} read, 1 \
+             track points past the {MAX_POINTS}"
+        )));
+        // Track points: the cap lowered, as a million would make a slow test.
+        let text = gpx(&"<trkpt lat=\"1\" lon=\"2\"/>".repeat(7));
+        let log = read_within(&text, MAX_NODES, 5).unwrap();
+        assert_eq!(log.channels[0].values.len(), 5);
+        assert!(note(&log).contains("2 track points past the 5"));
+        // Waypoints and route points, together.
+        let places: String = (0..MAX_PLACES)
+            .map(|_| "<wpt lat=\"1\" lon=\"2\"/>")
+            .chain(["<rte><rtept lat=\"1\" lon=\"2\"/></rte>"])
+            .collect();
+        let text = format!(
+            "<gpx version=\"1.1\">{places}<trk><trkseg><trkpt lat=\"1\" lon=\"2\"/></trkseg>\
+             </trk></gpx>"
+        );
+        let log = read(&text).unwrap();
+        assert_eq!(log.stated.figures.len(), 2 * MAX_PLACES);
+        assert!(note(&log).ends_with(&format!(
+            "1 waypoints and route points past the {MAX_PLACES}"
+        )));
+        // The names of elements not read: those past the cap are counted, not named.
+        let names: String = (0..=MAX_UNREAD_NAMES).map(|n| format!("<x{n}/>")).collect();
+        let log = read(&gpx(&format!(
+            "<trkpt lat=\"1\" lon=\"2\">{names}{names}</trkpt>"
+        )))
+        .unwrap();
+        let unread = log
+            .notes
+            .iter()
+            .find(|note| note.starts_with("elements no reading uses"))
+            .unwrap();
+        assert_eq!(
+            unread.matches(" in 2 track points").count(),
+            MAX_UNREAD_NAMES
+        );
+        assert!(unread.ends_with(&format!(
+            "and 2 more of names past the {MAX_UNREAD_NAMES} listed"
+        )));
     }
 
     #[test]

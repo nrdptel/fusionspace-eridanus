@@ -2573,8 +2573,9 @@ documents.
 
 > **How far to trust it.** No sample log in the collection is a GPX file, so the reader is checked
 > only on three invented files, against gpxpy 1.6.2, an outside GPX reader: all 392 values and
-> times of their track points and all 12 figures of their waypoints and route points are equal to
-> the last bit. What a real tracker writes, and above all what its elevation is measured from, no
+> times of their tracks' channels (a gap matching a gap) and all 12 figures of their waypoints and
+> route points are equal to the last bit. Where a time states no zone, gpxpy leaves it unplaced,
+> and the check reads it as UTC, as the reader does. What a real tracker writes, and above all what its elevation is measured from, no
 > file has shown yet. A GPX file from a tracker or app flown on a rocket, with a barometric
 > altimeter's log of the same flight beside it, would show both: it can be offered in
 > [an issue](https://github.com/nrdptel/fusionspace-eridanus/issues).
@@ -2588,13 +2589,13 @@ documents.
   spreads the fix); in GPX 1.0, also its course in degrees from true north and its speed in meters
   per second. A value a point leaves out, or leaves empty, such as `<ele/>`, is a gap. The rest,
   such as `fix` and an app's own `extensions`, is counted in a note and not read.
-- *Elevation.* The schemas give `ele` a unit, meters, but no datum: it may be above mean sea
+- *Elevation.* GPX 1.1's schema and GPX 1.0's manual give `ele` a unit, meters, but no datum: it may be above mean sea
   level, above the WGS84 ellipsoid (the smooth shape GPS works positions out on, not sea level)
   or from a barometer. So it is read as an altitude of unstated zero, not as a GPS altitude above
   sea level, and only its rise from one point to another means what it says.
-- *Times.* GPX times are in UTC, as both schemas require. A time with an offset, such as
+- *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with an offset, such as
   `08:30:00-04:00`, is moved to UTC; one with no zone is read as UTC, with a note. The record's
-  zero is the first time the file gives a track point. A point with no time keeps its place with
+  zero is the first time the file gives a track point (or, with none, a waypoint or route point). A point with no time keeps its place with
   its time a gap. Within a track, times must go forward: one that goes back is refused, naming its
   line, since such a track isn't one recording. Two tracks may run in any order, as a file
   holding two flights does.

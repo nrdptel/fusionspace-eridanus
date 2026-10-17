@@ -55,14 +55,15 @@ schemas and GPX 1.0's manual settled five things the plan left open:
 1. **The elevation is an altitude of unstated zero**, `Quantity::Altitude`, not a GNSS altitude,
    `Quantity::GnssAltitude`, as §1 had it: the record's GNSS altitude is one above mean sea level
    as the receiver states it, and a GPX file states neither its datum nor its sensor. Its unit,
-   meters, the schemas do state.
+   meters, GPX 1.1's schema and GPX 1.0's manual do state.
 2. **Waypoints and routes are figures the file states**, `Stated::figures`, not channels: a
    waypoint's or route point's latitude, longitude, elevation and time, the time in seconds from
    the log's zero, so a reading that looks for positions among the channels finds the flown
    tracks only.
 3. **A track's times go forward.** Within a track, from one segment to the next, a time earlier
    than the one before it refuses the file, as such a track isn't one recording; two tracks may
-   run in any order. A time with no zone is read as UTC, as both schemas say every time is.
+   run in any order. A time with no zone is read as UTC, as GPX 1.1's schema and GPX 1.0's
+   manual say every time is.
 4. **Damage refuses the file, by name and line.** Besides the plan's document type and entity, a
    point off the globe and a time that goes back: a value that isn't the schema's kind of number
    (a decimal with no exponent, a whole satellite count), an element read twice in one point, a
@@ -76,5 +77,5 @@ schemas and GPX 1.0's manual settled five things the plan left open:
    write none finer.
 
 **Consequences of the amendment.** Three invented files, GPX 1.0 and 1.1, read to 392 values
-and times on their tracks and 12 figures of their waypoints and route points, each equal to
-gpxpy 1.6.2's to the last bit. No reading uses a GPX track until M7.2 reads other loggers.
+and times of their tracks' channels (a gap matching a gap) and 12 figures of their waypoints and
+route points, each equal to gpxpy 1.6.2's to the last bit. No reading uses a GPX track until M7.2 reads other loggers.

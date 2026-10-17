@@ -79,6 +79,9 @@ struct Point {
     course: Option<f64>,
 }
 
+/// A channel's value at a point, `None` where the point holds none.
+type Pick = fn(&Point) -> Option<f64>;
+
 fn oracle() -> Oracle {
     serde_json::from_str(include_str!("fixtures/gpx/gpxpy.json")).unwrap()
 }
@@ -163,7 +166,7 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
             };
             let name = unique(&mut used, label);
             let time_s: Vec<f64> = points.iter().map(|point| seconds(point.time_us)).collect();
-            let picks: [(&str, Quantity, fn(&Point) -> Option<f64>); 9] = [
+            let picks: [(&str, Quantity, Pick); 9] = [
                 ("latitude", Quantity::Latitude, |p| Some(p.lat)),
                 ("longitude", Quantity::Longitude, |p| Some(p.lon)),
                 ("elevation", Quantity::Altitude, |p| p.ele),
@@ -347,13 +350,29 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
             .iter()
             .all(|channel| channel.values.len() == 16)
     );
-    // The guide's worked example: the 10th point, the highest, 9 s after the first and 466.4 m
-    // above it.
+    // The guide's worked example: the first point and the 10th, the highest, 9 s later and
+    // 466.4 m (1,530 ft) higher.
     let elevation = &log.channels[2];
-    assert_eq!(log.channels[0].values[9], 35.200_165_9);
-    assert_eq!(log.channels[1].values[9], -97.099_961_1);
+    assert_eq!(
+        (log.channels[0].values[0], log.channels[1].values[0]),
+        (35.200_012, -97.100_034)
+    );
+    assert_eq!(
+        (log.channels[0].values[9], log.channels[1].values[9]),
+        (35.200_165_9, -97.099_961_1)
+    );
     assert_eq!((elevation.values[0], elevation.values[9]), (402.0, 868.4));
-    assert_eq!(elevation.time_s[9], 9.0);
+    assert_eq!((elevation.time_s[0], elevation.time_s[9]), (0.0, 9.0));
+    let rise_m = elevation.values[9] - elevation.values[0];
+    assert!((rise_m - 466.4).abs() < 1e-9, "{rise_m}");
+    assert_eq!((rise_m / 0.3048).round(), 1530.0);
+    let highest = elevation
+        .values
+        .iter()
+        .copied()
+        .filter(|value| !value.is_nan())
+        .fold(f64::NEG_INFINITY, f64::max);
+    assert_eq!(highest, elevation.values[9]);
     assert!(elevation.values[12].is_nan());
     assert_eq!(elevation.time_s[..3], [0.0, 1.0, 2.001]);
     let names: Vec<&str> = log.stated.figures.iter().map(|f| f.name.as_str()).collect();
@@ -373,8 +392,8 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
     assert!(names.contains(&"route Recovery walk point 3 longitude"));
     assert!(log.events.is_empty());
     for note in [
-        "`ele` read in meters, from the GPX schemas, as an altitude whose datum the file doesn't \
-         state",
+        "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose \
+         datum the file doesn't state",
         "the log's zero is `2031-07-14T17:04:04.000Z`, the first time the file gives a track point",
         "waypoints and routes kept apart from the tracks, as figures the file states, as places \
          marked or planned, not flown: 2 waypoints, 1 route, 5 places read",
@@ -445,7 +464,8 @@ fn two_flights_in_one_file_read_as_two_tracks() {
     assert_eq!(log.channels[3].time_s, [-4370.0, -4369.0, -4368.0]);
     assert!(log.channels[6].time_s.iter().all(|t| t.is_nan()));
     for note in [
-        "times with no zone read as UTC, as the GPX schemas say every time is: 7 of the file's \
+        "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say every time \
+         is: 7 of the file's \
          times state none",
         "track points with no `time` keep their places, their times gaps: 3 of 10",
         "tracks and segments with no point, left out: 0 tracks with no segment, 1 segment with \

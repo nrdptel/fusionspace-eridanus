@@ -247,7 +247,29 @@ pub(crate) fn recognizes(text: &str) -> bool {
 /// declaration, comments and document type declaration: KML's test, and GPX's
 /// ([`crate::gpx`]).
 pub(crate) fn root_is(text: &str, name: &str) -> bool {
+    prolog(text).is_some_and(|(root, _)| {
+        text[root..]
+            .strip_prefix('<')
+            .and_then(|after| after.strip_prefix(name))
+            .is_some_and(|after| {
+                after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
+            })
+    })
+}
+
+/// The byte offset of the document type declaration in the text's prolog, before its root
+/// element, so a refusal of it can name its line ([`crate::gpx`]); `None` if there is none.
+pub(crate) fn doctype_offset(text: &str) -> Option<usize> {
+    prolog(text).and_then(|(_, doctype)| doctype)
+}
+
+/// The text's prolog walked past an optional byte-order mark, XML declaration, comments and
+/// document type declaration, at most [`PROLOG_ITEMS`] of them: the byte offset where what
+/// follows them starts, and that of the document type declaration, if any. `None` if one of
+/// them doesn't close.
+fn prolog(text: &str) -> Option<(usize, Option<usize>)> {
     let mut rest = text.strip_prefix('\u{feff}').unwrap_or(text);
+    let mut doctype = None;
     for _ in 0..PROLOG_ITEMS {
         rest = rest.trim_start();
         let (open, close) = if rest.starts_with("<?") {
@@ -255,26 +277,17 @@ pub(crate) fn root_is(text: &str, name: &str) -> bool {
         } else if rest.starts_with("<!--") {
             ("<!--", "-->")
         } else if rest.starts_with("<!DOCTYPE") {
-            match doctype_length(rest) {
-                Some(length) => {
-                    rest = &rest[length..];
-                    continue;
-                }
-                None => return false,
-            }
+            let length = doctype_length(rest)?;
+            doctype = Some(text.len() - rest.len());
+            rest = &rest[length..];
+            continue;
         } else {
             break;
         };
-        match rest[open.len()..].find(close) {
-            Some(end) => rest = &rest[open.len() + end + close.len()..],
-            None => return false,
-        }
+        let end = rest[open.len()..].find(close)?;
+        rest = &rest[open.len() + end + close.len()..];
     }
-    rest.strip_prefix('<')
-        .and_then(|after| after.strip_prefix(name))
-        .is_some_and(|after| {
-            after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
-        })
+    Some((text.len() - rest.len(), doctype))
 }
 
 /// The length of a document type declaration at the start of the text, `<!DOCTYPE` to its closing
