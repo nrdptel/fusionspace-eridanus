@@ -3211,8 +3211,9 @@ The [survey's report](#how-it-was-checked) prints these under the files' anonymi
 numbers: *converting*, a model of how it turns a number into 15 digits, and *multiplying*, how it
 turns a voltage channel's count into volts. Neither changes what the reader returns, the values
 the file stores; the rules only write those values as the export does, so the check can compare
-them. The software holds each value as a 64-bit float, a *double*, whose significant part holds
-53 bits, good to about 16 significant digits; the export keeps 15, as Excel does.
+them. The software holds each value as a 64-bit float, a *double*, whose significant part (the
+*significand*) holds 53 bits, good to about 16 significant digits; the export keeps 15, as Excel
+does.
 
 *Converting.* The export doesn't round a value to 15 digits once. Its numbers match arithmetic in
 80-bit floating point, the format of an x86 processor's older floating-point unit, whose
@@ -3252,10 +3253,10 @@ second rounding to 64 bits moves a value too little to cross a half.
 
 With the power of ten known exactly, rounded first to each number of digits and then half up to
 15, this many of the 25,334 clock values differ from the export's. Rounded once, 11 differ, the
-122.005 s row among them. Rounded first to 18 digits, the one of these that matches the rest,
-only that row differs, so it alone needs the guess and the first rounding to 64 bits. A running
-sum one double higher at that row in the software could explain it too, under that plainer
-rule; the file can't rule that out, but the model needs no such difference.
+122.005 s row among them. Rounded first to 18 digits, the only choice that leaves just one row
+differing, only that row differs. Under the model, it alone needs the guess and the first
+rounding to 64 bits; a running sum one double higher at that row in the software would explain
+it under the plainer rule, and the file can't rule that out.
 
 | Rounded first to | 15 (once) | 16 | 17 | 18 | 19 | 20 |
 |---|---:|---:|---:|---:|---:|---:|

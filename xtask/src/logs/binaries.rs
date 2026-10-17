@@ -886,7 +886,7 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 .iter()
                 .any(|c| c[0] != every || c[1] > 0)
             || f.speed[0] == 0
-            || f.speed[0] + f.speed_not_compared as u64 != every
+            || f.speed[0].saturating_add(f.speed_not_compared as u64) != every
             || f.speed[1] > 0
             || !f.events_equal
             || !within_height
