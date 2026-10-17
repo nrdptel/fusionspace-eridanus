@@ -307,6 +307,7 @@ until someone rewrites it in plainer words.
 | [ADR-276: Neer's 2026-10-16 plan: a flyer's own logger and GPX tracks in the analyzer][adr-276] | Release 0.2, the flight analyzer, must read a flyer's own altimeter or GPS tracker from the command line and Python, not only from Rust, and must read GPX tracks. [M7.1d1](#m7-1d1) reads GPX 1.0 and 1.1; [M7.1d2](#m7-1d2) lets `hpr analyze` and the Python package read a table by a column mapping and binary records by a record layout, as the library already does. |  |
 | [ADR-277: A track's own speed, held by its vertical speed before apogee][adr-277] | [M7.1c22](#m7-1c22)'s *done when* names a track's own speed among the physical checks that hold a mapped table's units. A track's ground speed holds none: the 4 tracks' medians spread 21.34 times. Its vertical speed does. In the 5 s before apogee a coasting rocket slows at g, plus a little drag, so a parabola fitted to a GPS track's fixes there must slow at 0.6 to 5/3 g. An altitude in feet stated as meters reads 3.28 times too high. The club's GPS track slows at 0.9925 g, so that part of the *done when* is met. |  |
 | [ADR-278: An evidence register: what backs each claim, and an open issue until a real sample does][adr-278] | The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic, 8 of them flight-log readers. Milestone [M2.10](#m2-10) adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of a real sample has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score. |  |
+| [ADR-279: The 2026-10-17 review: fin flutter held to measurement, and intervals by design][adr-279] | HPR Sim's fin flutter speed, a safety output, is checked only against Martin's own worked examples, and nothing shows which way it errs on a real fin (the evidence register's row G22). A published wind-tunnel test found five composite fins fluttering at 19.6–21.5 m/s (64–71 ft/s) where the NACA formula gives 15.3 m/s (50 ft/s). [M2.11](#m2-11) scores the flutter speed against measured flutter onsets from at least two published tests and against an independent BSD-licensed calculator, states the largest error on the flattering side, and adds a flutter row to the scoreboard. It is queued after release 0.3, before the competition presets that print a flutter speed. Separately, release 0.3's paired bootstrap interval is also reported resampled by design, since resampling single flights understates the spread when a few designs supply most of them. |  |
 
 ## The roadmap
 
@@ -590,6 +591,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
 | <a id="m2-10"></a>[M2.10][done-1] | Evidence register | done |
+| <a id="m2-11"></a>[M2.11][phase-1] | Fin flutter held to measurement | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1163,6 +1165,7 @@ is the milestone that added or will add that test.
 [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 [adr-277]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0277-a-tracks-own-speed-held-by-its-vertical-speed.md
 [adr-278]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md
+[adr-279]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

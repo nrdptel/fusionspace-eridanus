@@ -61,5 +61,19 @@ From the 2026-10-09 planning review:
   run reports each state's 90% apogee range with Wilks bounds, each state cited to its rulebook
   with a source date and a stale-after date.
 
+From the 2026-10-15 planning review:
+
+- SOON: the 2027 IREC altitude score. User: an IREC team choosing a motor and a ballast for its
+  target apogee. Workflow: `hpr mc` with an IREC preset prints the altitude score's 50% and 90%
+  ranges by the [2027 rules][irec27] (§6.6.1, p. 28: 350 points times one less the miss over 30%
+  of the target, given only within 30%; zero beyond is our reading), and Table 4-1's predicted
+  flight data (p. 21): seven predicted values (liftoff thrust to weight, rail exit speed, least
+  static margin, peak acceleration, peak speed, flutter speed, apogee) beside the declared target.
+  Moves: a new steps row, `steps.irec-score`, each tool's by its docs. *Done when:* tests pin the
+  score at the target (350), 10% short (233.3) and either side of the 30% edge; the preset cites
+  the rules' date and a stale-after date; each of the seven values comes from a tested output;
+  the scoreboard shows the row.
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
+[irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
