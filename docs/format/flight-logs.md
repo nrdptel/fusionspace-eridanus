@@ -106,8 +106,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > kept as written, with no unit applied
 > ([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)).
 > Since [M7.1c23](../decisions-and-roadmap.md#m7-1c23) (the last binaries), an AltiMAX's own
-> `.ALS` file reads to the values of the Excel export beside it, every value it stores bit for
-> bit ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's `.xtra` file and the raw
+> `.ALS` file reads to the values of the Excel export beside it, its pressures and event codes
+> bit for bit and the rest to the export's 15 significant digits
+> ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's `.xtra` file and the raw
 > dump of its memory read to each other, value for value
 > ([the AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump)); no document describes either's
 > bytes, so each layout rests on one sample flight. Every sample log in a layout HPR Sim knows is
@@ -228,8 +229,8 @@ decided.
 | AltOS `.eeprom` | Altus Metrum's TeleMetrum, TeleMega, EasyMega and EasyMini, the board's own log as AltosUI downloads it | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line | `hpr_flightdata::altos_eeprom` ([below](#altoss-eeprom)) |
 | RTx `.rtx` | Missile Works' RTx GPS tracker, its fixes as mDACS (Missile Works' program) saves a download | a .NET serialization header (MS-NRBF, version 1.0), then the class record of a list of 32-bit integers | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
-| AltiMAX `.ALS` | Rocketronics AltiMAX, a flight as the altimeter writes it to its memory card | a header stating at least one record, then records of 22 bytes, the first up to 1,000 each holding a first byte with bit 0 set and bit 1 clear, its voltage channel the one after the record before's, and 8 zero bytes at its end | `hpr_flightdata::altimax_als` ([below](#the-altimaxs-als)) |
-| Entacore AIM `.xtra` | Entacore AIM XTRA, a flight as the AIM software saves it | a Boost serialization archive's signature, `serialization::archive`, and a first record of an AIM kind | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)) |
+| AltiMAX `.ALS` | Rocketronics AltiMAX, a flight as the altimeter writes it to its memory card | a header stating at least one record, then records of 22 bytes, the first up to 1,000 each holding a first byte with bit 0 set and bit 1 clear and its voltage channel the one after the record before's | `hpr_flightdata::altimax_als` ([below](#the-altimaxs-als)) |
+| Entacore AIM `.xtra` | Entacore AIM XTRA, a flight as the AIM software saves it | a Boost serialization archive's signature, `serialization::archive`, the top object's header the sample has, and a first record whose class is an AIM kind's | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)) |
 | Entacore AIM raw dump | the same flight computer's memory, as the AIM software downloads it before any conversion | a first byte `0x13`, a recording's opening, then the AIM's records, up to 1,000, or erased memory | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)); `import::read` takes a dump of one recording, and `entacore_raw::read_dump` each recording of several |
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
@@ -1722,7 +1723,7 @@ read on 2026-10-16.
 |---|---|---|
 | CATS Vega `.cfl`, the flight computer's own log | none among the survey's; 11 public logs from the EuRoC 2023 competition in CATS's own repository, under the GPL-3.0, and 13 in its gallery, licensed to CATS alone | samples on terms that let their bytes be tested, and a layout: only CATS's GPL source code publishes one, and this project doesn't read GPL code, so a reader would be checked against the CSV the CATS Configurator exports, the program run as an outside tool |
 | CATS ground station's CSV | none among the survey's; 22 public files beside those logs, under the GPL-3.0 | samples on terms that let them be tested; its header states each unit, such as `altitude[m]` and `ts[deciseconds]`, so the [table reader](#tables-read-by-their-headers) may take it, untried |
-| "Juno" | no logger of that name: the roadmap's "EuRoC/Juno CSV layouts" meant a rocket, Projeto Jupiter's Juno III, whose files RocketPy's repository holds | a sample from a logger named Juno, if one exists; none was found. The rocket's own files need no new reader: its altimeter's table is an RRC3 export, which [the RRC3's reader](#the-layouts-read) reads; its GNSS receiver's table and its team's telemetry state no unit, so they read only by a [column mapping](#mappings-a-publisher-states) someone states, and none is stated |
+| "Juno" | no logger of that name found: the roadmap's "EuRoC/Juno CSV layouts" meant a rocket, Projeto Jupiter's Juno III, whose files RocketPy's repository holds | a sample from a logger named Juno, if one exists; none was found. The rocket's own files would need no new reader: its altimeter's table has an RRC3 export's columns, which [the RRC3's reader](#the-layouts-read) reads, though it isn't run on them here, as RocketPy's data isn't among the survey's samples; its GNSS receiver's table and its team's telemetry state no unit, so they read only by a [column mapping](#mappings-a-publisher-states) someone states, and none is stated |
 
 The roadmap names no others, but makers HPR Sim reads also write formats no sample holds.
 AltOS's `.eeprom` log formats other than 1, 6, 7, 14, 15, 16 and 22 are refused, naming the
@@ -2668,14 +2669,15 @@ calibration the file carries, and a count with no source stays as written.
 >   exports' acceleration agrees within 0.080 of a count on every record after the first. The
 >   rate rests on DataAnalyzer's exports and a climb check, not on the file.
 >   [Its section](#the-arts2s-raw-data) has the details.
-> - **AltiMAX `.ALS`:** the one sample file has the PC software's Excel export beside it. Every
->   pressure, event code and voltage count it stores equals the export's, 101,336 values bit for
->   bit, and the acceleration and the clock agree to the export's 15 significant digits. The
+> - **AltiMAX `.ALS`:** the one sample file has the PC software's Excel export beside it. Its
+>   pressures, event codes and voltage channels' numbers equal the export's, 101,336 values bit
+>   for bit; its acceleration agrees to the export's 15 significant digits, and its clock and
+>   voltages, the latter through the export's factors, within one in the 15th digit. The
 >   voltages' factors and the speed after apogee are the software's, not the file's.
 >   [Its section](#the-altimaxs-als) has the details.
 > - **AIM raw dump and `.xtra`:** one flight's dump and the `.xtra` the AIM software made of it,
->   435,075 values equal bit for bit. The computer's clock, which both carry, runs about 1 % slow
->   against the GPS's on the sample flight. [Their section](#the-aims-xtra-and-raw-dump) has the
+>   435,075 values equal bit for bit. The computer's clock, which both carry, runs slow against
+>   the GPS's on the sample flight, by 0.9 % in flight and 2.1 % on the pad. [Their section](#the-aims-xtra-and-raw-dump) has the
 >   details.
 >
 > Not compared: the exports' altitudes (but the order of the ARTS2's), flags and the velocities
@@ -3175,7 +3177,7 @@ p. 10); the clock is the running sum, as the export's `TIME` is. The
 
 **What the record holds.** Each value is a channel, named as the export names its column:
 `PRESS FILTER` and `PRESS RAW` in pascals; `ACCEL` in m/s², each count 0.0981 m/s², the export's
-own factor, so the pad reads about −1 g; `EVENT` and `VOLT. CHANNEL` as numbers; and each voltage
+own factor, so at rest it reads about −1 g; `EVENT` and `VOLT. CHANNEL` as numbers; and each voltage
 channel's counts as written, `VOLTAGE count (channel 1)` to `(channel 5)`. A record's event code
 is an event, named as the export names it (`BARO-LIFTOFF`, `APOGEE PRESSURE`, `LAND` and 13
 more), or `event N` for a code the sample doesn't show. The zero and apogee pressures are
@@ -3190,13 +3192,13 @@ it, and `cargo xtask logs --check` fails if any of these comparisons does:
 | Compared, against the export | Values | Result |
 |---|---:|---|
 | Records, against its rows | 25,334 | one a row |
-| Both pressures, the event code and the voltage count, as stored | 101,336 | every one equal |
+| Both pressures, the event code and the voltage channel's number, as stored | 101,336 | every one equal |
 | The acceleration, at the export's 15 significant digits | 25,334 | every one equal |
 | The voltages, by the export's own factors, at 15 digits | 25,334 | 31 off by one in the 15th digit, the most the check allows for the writer's rounding |
 | The clock, at 15 digits | 25,334 | 11 off by one in the 15th digit |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
-| The events | 21 | the same names at the same rows |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in), where half what a pascal moves the zero's height is 42 mm (1.7 in) |
+| The events | 21 | the same names, in the same order |
+| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.35 in), where half what a pascal moves the zero's height is 42 mm (1.7 in) |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
@@ -3205,8 +3207,9 @@ channels 1 and 5 and another for 2 to 4, 0.00314278884 and 0.00266754240 V a cou
 document states either, nor which channel is which. The export's speed after apogee, 16,961 rows,
 is worked out by the software from the pressure, not stored, and isn't compared. The header's
 other bytes and the trailer aren't read. A record's last 8 bytes, zero in every sample record, are
-held to zero, and a file where they aren't is refused; so is one whose records run past the count
-its 16 bits can hold, more than 65,536. One sample, from one altimeter, is all the layout rests
+held to zero, and a file where they aren't is refused, naming the byte; so is one with a record
+past the header's count, as a flight of more than 65,536 records, more than its 16 bits count,
+would have. One sample, from one altimeter, is all the layout rests
 on.
 
 ### The AIM's `.xtra` and raw dump
@@ -3217,22 +3220,23 @@ describes neither (*AIM XTRA/BASE v4.x.x Manual*, Entacore, 2 February 2025, p. 
 logs hold one flight's three files: the raw dump of the memory, the `.xtra` the software made of
 it, and an earlier copy of that `.xtra`, cut short. `hpr_flightdata::entacore_raw` reads both
 layouts. `import::read` takes an `.xtra` file, and a dump that holds one recording; the sample's
-holds ten, nine that climb no more than 16 m (52 ft) and then the flight, and `entacore_raw::read_dump`
-reads each as a record of its own.
+holds ten, nine whose pressure shows no flight and then the flight, and
+`entacore_raw::read_dump` reads each as a record of its own.
 
 A dump is the memory's recordings end to end, then erased memory, bytes of `0xFF`. A recording
 opens with the byte `0x13` and 101 bytes that aren't read. After that, a byte from `0x80` to
 `0xFE` adds its low 7 bits to a clock counted in the computer's *ticks*, and any other byte is a
-record's type, its fields following, big-endian. Each of the 16 types is a sensor group at its own
-rate: the manual gives the barometer every 20 ms, the accelerometers and gyroscope every 10 ms,
-the magnetometer every 100 ms, the temperature every 500 ms and the GPS every 200 ms (p. 2). The
+record's type, its fields following, big-endian. Each of the 16 types is one group of readings,
+such as the barometer's or the status's, at its own rate: the manual gives the barometer every
+20 ms, the accelerometers and gyroscope every 10 ms, the magnetometer every 100 ms, the
+temperature every 500 ms, and the GPS's position every 200 ms and its time every 500 ms (p. 2). The
 `.xtra` is an archive in the binary format of Boost, a C++ library, holding the same samples
 converted, one record each with its time in seconds. The
 [API reference](../api/hpr_flightdata/entacore_raw/index.html) gives every type and field.
 
 **What the record holds.** Each group's fields are channels on the group's own clock, named as the
-CSV export names the same columns: `acceleration`, `lat. X accel.` and `lat. Y accel.` in m/s², read
-in g; `Gyro X` to `Gyro Z` in degrees a second; `pressure` in pascals; `temperature` in kelvin;
+CSV export names the same columns: `acceleration`, `lat. X accel.` and `lat. Y accel.` in m/s², from
+the g the computer records; `Gyro X` to `Gyro Z` in degrees a second; `pressure` in pascals; `temperature` in kelvin;
 `battery 1 voltage`, `battery 2 voltage` and `A Voltage` to `D Voltage` in volts; `lat`, `long`,
 `GPS MSL`, `SVs` and the GPS's time; and the status, `state` and the four outputs' `on` and `cont`
 flags. The magnetometer and the attitude quaternion are kept as written. Each change of `state`
@@ -3240,15 +3244,14 @@ is an event, `state 1` to `state 3`, and so is each output's firing, such as `C 
 are converted as the software converts them, in 32-bit floats, so the two readers' channels are
 equal. A raw battery record `04 80 00`, for example, holds the count 2,048 in its top 12 bits;
 times 3.3 V × 133/33, a factor of 13.299 999 2 V taken in 32-bit floats, over 4,096, it reads
-6.649 999 6 V, one step of a 32-bit float below 6.65 V, as the `.xtra` holds it. Neither file
+6.649 999 6 V, one step of a 32-bit float below 6.65 V, as the software writes it to the `.xtra`. Neither file
 holds an altitude, so the record's primary track is empty, as for the `.ALS`.
 
 **The clock.** The dump's ticks are read as milliseconds, as the software reads them. The
 `.xtra`'s times are the software's own sum of them in 32-bit floats, which falls behind as it
-grows: in the sample, by 2.40 s by the end of a recording of nearly an hour, and by 0.9 % of the
-climb's time. Neither is GPS time. Against the GPS's time of week, recorded beside them, a tick is
+grows: in the sample, by 2.40 s by the end of the recording, and by 0.9 % of the climb's time. Neither is GPS time. Against the GPS's time of week, recorded beside them, a tick is
 1.009 ms of the GPS's clock over the flight and 1.021 ms on the pad, so both files' times run
-about 1 % short. The reader doesn't correct them: one flight can't tell whether that is this
+0.9 % short in flight and 2.1 % on the pad. The reader doesn't correct them: one flight can't tell whether that is this
 computer's clock or every AIM's.
 
 **Checked.** `cargo xtask logs` reads the three files of the flight, and
@@ -3263,18 +3266,20 @@ computer's clock or every AIM's.
 | The pad: the three accelerometers' medians over the last 10 s before liftoff, as one magnitude | | 0.965 g, inside 0.85 to 1.15 |
 | The time from liftoff to the least pressure, over √(2h/g), h the standard atmosphere's climb | | 1.064, inside 0.5 to 2 |
 
-The dump holds one sample past the `.xtra`'s, a gyroscope reading the software leaves out. On the
+The dump holds one sample past the `.xtra`'s, which the software leaves out. On the
 pad the accelerometer reads 0.965 g, 0.961 along the rocket alone, and the maker's `.xtra` reads
 the same: the sensor reads about 3.5 % low. The check allows 15 %, the band for an accelerometer
 at rest that [the AltiMAX export](#the-altimaxs-excel-export) set, where a reading in another unit
 or at another of the sensor's ranges is 2 or more times off. Liftoff, for these checks, is the
-first reading above 1.5 g in the run that holds `state 1`, which the computer sets about a second
-into the boost.
+first reading above 1.5 g in the run that holds `state 1`, the computer's launch detect, which
+came 1.14 s after liftoff on the sample flight.
 
 **Left out.** A recording's 101 opening bytes; what `state`'s numbers mean; the magnetometer's
 unit; and which battery is the computer's and which the charges'. Each byte whose meaning the
 sample doesn't show is held to the one value it has there, and a file where it differs is refused,
-naming the byte; so is a type or class the sample doesn't hold, as its length is unknown. One
+naming the byte. A type or class the sample doesn't hold is refused too, as its length is
+unknown; among a dump's first 1,000 records, or as an `.xtra`'s first, it leaves the file
+unrecognized instead. One
 flight, from one computer, is all the layouts rest on.
 
 ## How it was checked

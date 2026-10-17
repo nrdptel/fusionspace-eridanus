@@ -185,6 +185,9 @@ struct AimFlight {
     /// s, and its climb over the ticks'.
     pad_g: Option<f64>,
     pad_axial_g: Option<f64>,
+    /// How long after liftoff `state 1`, the launch detect, comes, s.
+    #[serde(default)]
+    detect_after_liftoff_s: Option<f64>,
     apogee_time_ratio: Option<f64>,
     gps_ms_per_tick: [Option<f64>; 2],
     xtra_behind_s: Option<f64>,
@@ -554,6 +557,11 @@ fn flight_physics(flight: &mut AimFlight, xtra_log: &FlightLog, dump_log: &Fligh
     let Some(liftoff) = liftoff_s(dump_log) else {
         return;
     };
+    flight.detect_after_liftoff_s = dump_log
+        .events
+        .iter()
+        .find(|e| e.name == "state 1")
+        .map(|e| e.time_s - liftoff);
     let pad_median = |name: &str| -> Option<f64> {
         let axis = channel(dump_log, name)?;
         let mut pad: Vec<f64> = axis
@@ -787,17 +795,17 @@ pub(super) fn markdown(checks: &Checks) -> String {
              that holds `state 1`, the logger's launch detect: *Pad, g* is the magnitude of the \
              three accelerometers' medians over the last {PAD_WINDOW_S} s before liftoff, which \
              must be within {:.2}–{:.2}, an accelerometer's band at rest, and then the axial \
-             one's alone; *Apogee time* the time from liftoff to the least \
+             one's alone; *Detect, s* how long after liftoff `state 1` comes; *Apogee time* the time from liftoff to the least \
              pressure over √(2h/g), h the standard atmosphere's climb from the pad, within \
              {:.1}–{:.1}; *GPS ms a tick* the GPS's time of week over the ticks, on the pad and \
              from liftoff on; *Behind, s* how far the `.xtra`'s \
              clock is behind the ticks at its last sample, and *Climb* its climb's time over the \
              ticks'.\n\n\
              | Prefix | Samples | Others | Other climb, m | Values | Dump only | `.xtra` times | \
-             Dump times | Short | Pad, g | Apogee time | GPS ms a tick | Behind, s | Climb |\n\
-             |---|---|---:|---:|---|---:|---|---|---|---:|---:|---|---:|---:|\n\
+             Dump times | Short | Pad, g | Detect, s | Apogee time | GPS ms a tick | Behind, s | Climb |\n\
+             |---|---|---:|---:|---|---:|---|---|---|---:|---:|---:|---|---:|---:|\n\
              | {} | {} / {} / {} / {} | {} | {} | {} / {} | {} | {} / {} | {} / {} | {} / {} | {} \
-             / {} | {} | {} / {} | {} | {} |\n",
+             / {} | {} | {} | {} / {} | {} | {} |\n",
             f.ids.first().map_or("", String::as_str),
             f.ids.get(1).map_or("", String::as_str),
             f.ids.get(2).map_or("", String::as_str),
@@ -823,6 +831,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
             f.short_differing,
             figure(f.pad_g, 3),
             figure(f.pad_axial_g, 3),
+            figure(f.detect_after_liftoff_s, 2),
             figure(f.apogee_time_ratio, 3),
             figure(f.gps_ms_per_tick[0], 4),
             figure(f.gps_ms_per_tick[1], 4),

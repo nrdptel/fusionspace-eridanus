@@ -5,7 +5,8 @@
 //! software reads directly (*AltiMAX G2 Handbuch*, Louis Schreyer, 2010, p. 12). No manual
 //! describes the bytes, so the layout here was worked out from the one sample file, decoded
 //! against the software's Excel export of the same flight ([`altimax`](crate::altimax)): the file
-//! holds one record for each of the export's rows, and every value it stores is the export's.
+//! holds one record for each of the export's rows, and every value it stores is the export's, to
+//! the export's 15 significant digits.
 //!
 //! **Layout.** Little-endian throughout: a header of 32 bytes, then one record of 22 bytes a
 //! sample, then a trailer.
@@ -68,15 +69,16 @@
 //! pressure, less that of the zero pressure.
 //!
 //! **Recognition.** [`recognizes`] takes a file whose header states at least one record and
-//! whose first records, up to 1,000, are each a kind with bit 0 set and bit 1 clear, a voltage
-//! channel one past the record before's (1 after 5), and eight zero bytes at their end.
+//! whose first records, up to 1,000, are each a kind with bit 0 set and bit 1 clear and a voltage
+//! channel one past the record before's (1 after 5). It doesn't read the eight zero bytes, so a
+//! file that differs only there is refused by [`read`], naming the byte, not left unrecognized.
 //!
-//! **Refused**, naming the byte: a file shorter than its header and one record; a record whose
-//! kind or zero bytes aren't as above; a raw pressure on the first record that isn't a pad's,
-//! 50,000 to 110,000 Pa; a filtered pressure that isn't finite; and records running on past the
-//! header's count, as they would in a flight of more than 65,536 records, whose count 16 bits
-//! can't hold. A file that ends before its header's count is read to its last whole record, with
-//! a note.
+//! **Refused**, naming the byte: a record whose kind or zero bytes aren't as above; a raw
+//! pressure on the first record that isn't a pad's, 50,000 to 110,000 Pa; a filtered pressure
+//! that isn't finite; and a record past the header's count, as a flight of more than 65,536
+//! records, whose count 16 bits can't hold, would have. A file shorter than its header and one
+//! record isn't this format. A file that ends before its header's count is read to its last
+//! whole record, with a note.
 //!
 //! ```
 //! use hpr_flightdata::altimax_als;
@@ -204,7 +206,10 @@ fn stated_records(bytes: &[u8]) -> Option<usize> {
 }
 
 /// Why the record at `index` isn't one, given the voltage channel of the record before, if any.
-fn fault(record: &Record, zeros: &[u8], before: Option<u8>) -> Option<String> {
+/// The kind's bits and the channels' turns are the layout's pattern, which [`recognizes`] reads;
+/// the zero bytes are held to the sample, which only [`read`] checks, so that a file differing
+/// there is refused by name, not left unrecognized.
+fn fault(record: &Record, zeros: &[u8], before: Option<u8>, held: bool) -> Option<String> {
     let channel = record.kind >> 3;
     if record.kind & KIND_SET == 0 || record.kind & KIND_CLEAR != 0 {
         return Some(format!(
@@ -228,7 +233,7 @@ fn fault(record: &Record, zeros: &[u8], before: Option<u8>) -> Option<String> {
             ));
         }
     }
-    if zeros.iter().any(|&byte| byte != 0) {
+    if held && zeros.iter().any(|&byte| byte != 0) {
         return Some(
             "its last 8 bytes aren't zero, as they are in every sample record: the reader \
              doesn't know what they hold"
@@ -239,7 +244,9 @@ fn fault(record: &Record, zeros: &[u8], before: Option<u8>) -> Option<String> {
 }
 
 /// Whether `bytes` are an AltiMAX `.ALS` file: a header stating at least one record, and the
-/// first records, up to 1,000, each a record as the module describes.
+/// first records, up to 1,000, each with its kind's bit 0 set and bit 1 clear and its voltage
+/// channel the one after the record before's. The bytes held to the sample aren't read here:
+/// [`read`] refuses a file that differs there, naming the byte.
 pub fn recognizes(bytes: &[u8]) -> bool {
     let Some(stated) = stated_records(bytes) else {
         return false;
@@ -249,7 +256,7 @@ pub fn recognizes(bytes: &[u8]) -> bool {
         let Some((record, zeros)) = record(bytes, index) else {
             return index > 0;
         };
-        if fault(&record, zeros, before).is_some() {
+        if fault(&record, zeros, before, false).is_some() {
             return false;
         }
         before = Some(record.kind >> 3);
@@ -294,7 +301,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         let Some((record, zeros)) = record(bytes, index) else {
             break;
         };
-        if let Some(message) = fault(&record, zeros, before) {
+        if let Some(message) = fault(&record, zeros, before, true) {
             return Err(binary(
                 offset(index),
                 format!("record {}: {message}", index + 1),
@@ -321,7 +328,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
     // A record past the header's count: a flight longer than 16 bits can count.
     if let Some((next, zeros)) = record(bytes, records.len())
         && records.len() == stated
-        && fault(&next, zeros, before).is_none()
+        && fault(&next, zeros, before, true).is_none()
     {
         return Err(binary(
             offset(stated),

@@ -415,9 +415,9 @@ decisions.
    to it by id.
 2. **The `.ALS`** is a header of 32 bytes, one record of 22 bytes for each of the export's 25,334
    rows, and a trailer. Every value it stores is the export's: both pressures, the event code and
-   the voltage count, 101,336 values, bit for bit; the acceleration, the clock and the speed
-   before apogee to the export's 15 significant digits, the clock 11 values one in the last digit
-   off; and the 21 events by name. Decided:
+   the voltage channel's number, 101,336 values, bit for bit; the acceleration, the clock and the
+   speed before apogee to the export's 15 significant digits, the clock 11 values one in the last
+   digit off; and the 21 events by name, in order. Decided:
    - the voltages stay counts. The export's factors, 0.00314278884 V a count on channels 1 and 5
      and 0.00266754240 on 2 to 4, fit all 25,334 rows to 15 digits but 31 one in the last digit
      off, yet no document states either, nor which channel is which (*AltiMAX G4 Manual*, p. 42);
@@ -440,12 +440,10 @@ decisions.
    serialization binary archive of the dump's last recording's records, converted in 32-bit
    floats, each with its time in seconds. The two readers' channels are equal, 435,075 values bit
    for bit, and the short copy's bytes and its 814,206 values and times are the whole one's
-   first. The dump holds one sample
-   past the `.xtra`'s, a gyroscope reading the software leaves out. Decided:
+   first. The dump holds one sample past the `.xtra`'s, which the software leaves out. Decided:
    - the values are converted as the software converts them, in 32-bit floats. The batteries'
-     factor is 3.3 V × 133/33 taken in 32-bit floats, 13.299 999 2 V: the `.xtra` holds it in
-     every one of the flight's 9,186 battery values, and f32(13.3), one step higher, misses every
-     one;
+     factor is 3.3 V × 133/33 taken in 32-bit floats, 13.299 999 2 V, one step below f32(13.3):
+     with it, every battery value equals the `.xtra`'s;
    - the ticks are read as milliseconds, as the software reads them, and the `.xtra`'s times as
      written: the software sums them in 32-bit floats, a tick byte at a time, 2.40 s behind the
      ticks by the end of the recording and 0.9 % short over the climb, each of the 224,643 times
@@ -458,7 +456,9 @@ decisions.
    - the channels take the CSV export's names; the outputs' letters and `on` and `cont` are
      inferred, as the CSV names four outputs so and the sample's C and D fire with the recovery
      charges; what `state`'s numbers mean isn't stated. Each byte the sample doesn't explain is
-     held to its one value there, and a type or class the sample doesn't hold is refused;
+     held to its one value there, and a type or class the sample doesn't hold is refused. The
+     recognizers read only the layouts' pattern, not the held bytes, so a file that differs in
+     one is refused by name, not left unrecognized;
    - no primary track, as for the `.ALS`.
 4. **The flight's own checks.** Liftoff, for them, is the first reading above 1.5 g in the run
    that holds `state 1`, the computer's launch detect, which comes about a second into the boost.

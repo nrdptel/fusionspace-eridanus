@@ -247,17 +247,30 @@ fn refusals_name_the_byte() {
     ));
 }
 
-/// The recognizer takes the file and its cut copies, and nothing whose records break the rules.
+/// The recognizer takes the file and its cut copies, and nothing whose records break the
+/// layout's pattern; a file that differs only in a byte held to the sample is taken, so that the
+/// importer refuses it by name.
 #[test]
 fn recognition() {
     let bytes = als();
     assert!(altimax_als::recognizes(&bytes[..at(1)]));
     assert!(!altimax_als::recognizes(&bytes[..at(1) - 1]));
     assert!(!altimax_als::recognizes(&[0; 400]));
-    let mut zeroed = bytes.clone();
-    zeroed[at(2) + 14] = 7;
-    assert!(!altimax_als::recognizes(&zeroed));
-    let mut turned = bytes;
+    let mut turned = bytes.clone();
     turned[at(1)] = 3 << 3 | 1;
     assert!(!altimax_als::recognizes(&turned));
+    let mut zeroed = bytes;
+    zeroed[at(2) + 14] = 7;
+    assert!(altimax_als::recognizes(&zeroed));
+    match import::read(&zeroed) {
+        Err(LogError::Binary {
+            format: "AltiMAX .ALS",
+            offset,
+            message,
+        }) => {
+            assert_eq!(offset, at(2));
+            assert!(message.contains("last 8 bytes aren't zero"));
+        }
+        other => panic!("{other:?}"),
+    }
 }

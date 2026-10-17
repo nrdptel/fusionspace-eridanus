@@ -575,6 +575,46 @@ fn find_record(bytes: &[u8], index: usize) -> usize {
     at
 }
 
+/// A file that differs from the sample only in a byte held to it is recognized, so that the
+/// importer refuses it by name rather than as a layout it doesn't know.
+#[test]
+fn a_held_byte_is_refused_by_name_through_the_importer() {
+    let mut dump = dump();
+    let battery = dump_at(2);
+    dump[battery + 2] = 0x01;
+    assert!(entacore_raw::recognizes_dump(&dump));
+    match import::read(&dump) {
+        Err(LogError::Binary {
+            format: "Entacore AIM raw dump",
+            offset,
+            message,
+        }) => {
+            assert_eq!(offset, battery);
+            assert!(message.contains("bits 0–3"));
+        }
+        other => panic!("{other:?}"),
+    }
+    let mut xtra = xtra(13).0;
+    let line = find_class(&xtra, 17);
+    xtra[line] = 1;
+    assert!(entacore_raw::recognizes_xtra(&xtra));
+    match import::read(&xtra) {
+        Err(LogError::Binary {
+            format: "Entacore AIM .xtra",
+            message,
+            ..
+        }) => assert!(message.contains("two flag bytes aren't zero")),
+        other => panic!("{other:?}"),
+    }
+    // Another Boost archive's first class, or its top header, isn't an AIM file's.
+    let mut other = xtra.clone();
+    other[XTRA_RECORDS_AT] = 99;
+    assert!(!entacore_raw::recognizes_xtra(&other));
+    let mut other = xtra;
+    other[37] = 4;
+    assert!(!entacore_raw::recognizes_xtra(&other));
+}
+
 /// None of the other readers' invented binary samples is taken for an AIM file or an `.ALS`.
 #[test]
 fn no_other_sample_is_taken_for_these() {

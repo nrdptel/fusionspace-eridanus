@@ -10,10 +10,11 @@
 //! copy's bytes are the `.xtra`'s first ones. So every rule here is checked against the
 //! maker's own conversion, on one flight.
 //!
-//! **What the records hold.** One record a sample of one sensor group, each group at its own rate
-//! (the manual gives the barometer every 20 ms, the accelerometers and gyroscope every 10 ms, the
-//! magnetometer every 100 ms, the temperature every 500 ms and the GPS every 200 ms, p2, each
-//! written at a multiple of its period the owner sets for each phase of the flight, p21). Each
+//! **What the records hold.** One record a sample of one group of readings, each group at its own
+//! rate (the manual gives the barometer every 20 ms, the accelerometers and gyroscope every 10 ms,
+//! the magnetometer every 100 ms, the temperature every 500 ms, and the GPS's position every
+//! 200 ms and its time every 500 ms, p2, each written at a multiple of its period the owner sets
+//! for each phase of the flight, p21). Each
 //! group is a kind of record, and each of its fields a channel, on the clock of that kind's
 //! records. The names are the CSV export's, where its column is the same sensor:
 //!
@@ -33,8 +34,9 @@
 //! | 21, `0x15` | `quaternion 1` … `quaternion 4` | [`Quantity::Unrecognized`], as written | i16 / 32,768 each |
 //!
 //! The raw values are big-endian, and are converted as the software converts them, in 32-bit
-//! floats, so that the two readers' channels are equal value for value. The accelerations are in
-//! g, as the CSV's are; `lat. X accel.` reads 16 g at −4,096, the 16 g its sensor measures (p6).
+//! floats, so that the two readers' channels are equal value for value. The accelerations are
+//! recorded in g, as the CSV's are, and read in m/s²; `lat. X accel.` reads 16 g at −4,096, the
+//! 16 g its sensor measures (p2).
 //! Which battery is the computer's and which the ejection charges' isn't known: both read 6.6 V in
 //! the sample. The magnetometer's unit isn't settled, as for the CSV. The quaternion is kept as
 //! written. The `on` and `cont` names, and the letters, are inferred from the sample: the CSV
@@ -68,17 +70,20 @@
 //! the ticks in milliseconds from the recording's start, as the software reads them. Two things
 //! the dump and the `.xtra` differ in, both the software's: it sums the `.xtra`'s times in 32-bit
 //! floats, a tick at a time, so they fall behind the ticks as the sum grows: in the sample, by
-//! 2.40 s by the end of a recording of nearly an hour, and by 0.9 % of the climb's time; and it
-//! leaves the dump's last record out. Neither file's clock is GPS time: over the sample's flight
-//! the computer's tick is 1.009 ms of the GPS's own clock, 1.021 on the pad, so its times run
-//! short by about 1 %.
+//! 2.40 s by the end of the recording, and by 0.9 % of the climb's time; and it leaves the dump's
+//! last record out. Neither file's clock is GPS time: over the sample's flight the computer's tick
+//! is 1.009 ms of the GPS's own clock, 1.021 on the pad, so its times run 0.9 % short in flight
+//! and 2.1 % on the pad.
 //!
 //! **Held to the sample.** Each byte whose meaning the sample doesn't show is held to the one
 //! value it has in every sample record, and a file where it differs is refused, naming the byte:
 //! the `.xtra`'s base fields, 3.3 and 0, the output lines' two flag bytes, 0, and the status's
 //! third set of four bytes, 0; the dump's battery bits 0–3, the output lines' bits 14–15, the
-//! GPS byte's bits 6–7, the status's bits 0–3 and a state number other than the four. A type or
-//! class the sample doesn't hold is refused too: its length is unknown.
+//! GPS byte's bits 6–7, the status's bits 0–3 and a state number other than the four.
+//! [`recognizes_xtra`] and [`recognizes_dump`] don't read these, so a file that differs there is
+//! refused by name, not left unrecognized. A type or class the sample doesn't hold is refused
+//! too, as its length is unknown; among a dump's first 1,000 records, or as an `.xtra`'s first
+//! record, it leaves the file unrecognized instead.
 //!
 //! ```
 //! use hpr_flightdata::entacore_raw;
@@ -129,7 +134,7 @@ const DUMP_RECORDING_BYTES: usize = 101;
 /// Erased memory.
 const ERASED: u8 = 0xFF;
 
-/// The records [`recognizes_xtra`] and [`recognizes_dump`] read.
+/// The records [`recognizes_dump`] reads.
 const RECOGNIZED_RECORDS: usize = 1_000;
 
 /// What a field's raw value is read as.
@@ -456,8 +461,8 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
             }
             // As the software: the 12-bit count times 3.3 V × 133/33 taken in single precision
             // (f32(3.3) × f32(133/33) = 13.299 999 2, one ulp below f32(13.3)), over 4096,
-            // rounded to an f32. The sample `.xtra` agrees with this factor in every battery
-            // record; f32(13.3) misses every one.
+            // rounded to an f32. With this factor, every battery value in the sample equals the
+            // `.xtra`'s, as the survey's comparison shows.
             let volts =
                 f64::from(raw >> 4) * f64::from(3.3_f32 * (133.0_f64 / 33.0) as f32) / 4_096.0;
             vec![f64::from(volts as f32)]
@@ -605,11 +610,14 @@ fn build(format: LogFormat, samples: &[Sample], notes: Vec<String>) -> FlightLog
     }
 }
 
-/// Whether `bytes` are an AIM `.xtra` file: a Boost binary archive's signature, and a first
-/// record of an AIM kind.
+/// Whether `bytes` are an AIM `.xtra` file: a Boost binary archive's signature, the sample's
+/// top object header, and a first record whose class is an AIM kind's. The rest isn't read here:
+/// [`read_xtra`] refuses a file whose records differ from the sample's, naming the byte.
 pub fn recognizes_xtra(bytes: &[u8]) -> bool {
+    let class = le::<2>(bytes, XTRA_RECORDS_AT).map(i16::from_le_bytes);
     bytes.starts_with(XTRA_SIGNATURE)
-        && xtra_samples(bytes, RECOGNIZED_RECORDS).is_ok_and(|(samples, _)| !samples.is_empty())
+        && le::<10>(bytes, XTRA_SIGNATURE.len()) == Some(XTRA_TOP)
+        && class.is_some_and(|class| KINDS.iter().any(|kind| kind.class == class))
 }
 
 fn xtra_error(offset: usize, message: String) -> LogError {
@@ -620,8 +628,8 @@ fn xtra_error(offset: usize, message: String) -> LogError {
     }
 }
 
-/// The `.xtra`'s samples, up to `limit`, and its notes.
-fn xtra_samples(bytes: &[u8], limit: usize) -> Result<(Vec<Sample>, Vec<String>), LogError> {
+/// The `.xtra`'s samples, and its notes.
+fn xtra_samples(bytes: &[u8]) -> Result<(Vec<Sample>, Vec<String>), LogError> {
     if !bytes.starts_with(XTRA_SIGNATURE) {
         return Err(LogError::NotThisFormat {
             format: XTRA_FORMAT,
@@ -651,7 +659,7 @@ fn xtra_samples(bytes: &[u8], limit: usize) -> Result<(Vec<Sample>, Vec<String>)
     let mut seen: Vec<i16> = Vec::new();
     let mut at = XTRA_RECORDS_AT;
     let mut index: u64 = 0;
-    while index < count && samples.len() < limit {
+    while index < count {
         let start = at;
         let Some(sample) = xtra_record(bytes, &mut at, index, &mut seen)? else {
             notes.push(if bytes.len() == start {
@@ -669,7 +677,7 @@ fn xtra_samples(bytes: &[u8], limit: usize) -> Result<(Vec<Sample>, Vec<String>)
         samples.push(sample);
         index += 1;
     }
-    if samples.len() < limit && bytes.len() > at {
+    if bytes.len() > at {
         notes.push(format!(
             "{} bytes after the {count} records aren't read",
             bytes.len() - at
@@ -798,7 +806,7 @@ fn xtra_record(
 /// version, an object id or a byte held to the sample isn't as the module describes;
 /// [`LogError::NoData`] when it holds no whole record.
 pub fn read_xtra(bytes: &[u8]) -> Result<FlightLog, LogError> {
-    let (samples, mut notes) = xtra_samples(bytes, usize::MAX)?;
+    let (samples, mut notes) = xtra_samples(bytes)?;
     if samples.is_empty() {
         return Err(LogError::NoData {
             format: XTRA_FORMAT,
@@ -808,7 +816,7 @@ pub fn read_xtra(bytes: &[u8]) -> Result<FlightLog, LogError> {
     notes.push(
         "the times are the software's, summed in 32-bit floats, so they drift from the \
          computer's own clock as they grow, behind it in the one sample; and that clock isn't \
-         the GPS's: on the sample's flight, a tick is 1.01 to 1.02 ms of the GPS's clock"
+         the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
             .to_owned(),
     );
     Ok(build(LogFormat::EntacoreXtra, &samples, notes))
@@ -845,8 +853,10 @@ struct Recording {
     samples: Vec<Sample>,
 }
 
-/// The raw dump's recordings, reading at most `limit` records in all.
-fn dump_recordings(bytes: &[u8], limit: usize) -> Result<Vec<Recording>, LogError> {
+/// The raw dump's recordings, reading at most `limit` records in all. With `held` false, as
+/// [`recognizes_dump`] walks it, a record whose bits aren't held to the sample is passed over,
+/// not refused: only [`read_dump`] refuses it, naming the byte.
+fn dump_recordings(bytes: &[u8], limit: usize, held: bool) -> Result<Vec<Recording>, LogError> {
     if bytes.first() != Some(&DUMP_RECORDING) {
         return Err(LogError::NotThisFormat {
             format: DUMP_FORMAT,
@@ -903,9 +913,13 @@ fn dump_recordings(bytes: &[u8], limit: usize) -> Result<Vec<Recording>, LogErro
                 format!("the dump ends inside a record of type {byte:#04x}"),
             ));
         };
-        let values = raw_values(kind, data).map_err(|message| dump_error(at, message))?;
+        let values = match raw_values(kind, data) {
+            Ok(values) => Some(values),
+            Err(message) if held => return Err(dump_error(at, message)),
+            Err(_) => None,
+        };
         // Invariant: the dump opens with a recording, so one is open.
-        if let Some(recording) = recordings.last_mut() {
+        if let (Some(recording), Some(values)) = (recordings.last_mut(), values) {
             recording.samples.push(Sample {
                 kind,
                 time_s: ticks as f64 / 1_000.0,
@@ -919,10 +933,11 @@ fn dump_recordings(bytes: &[u8], limit: usize) -> Result<Vec<Recording>, LogErro
 }
 
 /// Whether `bytes` are an AIM raw dump: a recording's opening, then records of the AIM's types,
-/// up to 1,000, or erased memory.
+/// up to 1,000, or erased memory. The bits held to the sample aren't read here: [`read_dump`]
+/// refuses a dump that differs there, naming the byte.
 pub fn recognizes_dump(bytes: &[u8]) -> bool {
     bytes.len() > DUMP_RECORDING_BYTES
-        && dump_recordings(bytes, RECOGNIZED_RECORDS)
+        && dump_recordings(bytes, RECOGNIZED_RECORDS, false)
             .is_ok_and(|recordings| recordings.iter().any(|r| !r.samples.is_empty()))
 }
 
@@ -935,7 +950,7 @@ pub fn recognizes_dump(bytes: &[u8]) -> bool {
 /// sample's, a bit held to the sample is set, the dump ends inside a record, or data follows
 /// erased memory; [`LogError::NoData`] when it holds no record.
 pub fn read_dump(bytes: &[u8]) -> Result<Vec<FlightLog>, LogError> {
-    let recordings = dump_recordings(bytes, usize::MAX)?;
+    let recordings = dump_recordings(bytes, usize::MAX, true)?;
     if recordings.iter().all(|r| r.samples.is_empty()) {
         return Err(LogError::NoData {
             format: DUMP_FORMAT,
@@ -955,8 +970,8 @@ pub fn read_dump(bytes: &[u8]) -> Result<Vec<FlightLog>, LogError> {
                     recording.start
                 ),
                 "the clock is the computer's ticks, read as milliseconds from the recording's \
-                 start, as the AIM software reads them; on the one sample flight, a tick is 1.01 \
-                 to 1.02 ms of the GPS's clock"
+                 start, as the AIM software reads them; on the one sample flight, a tick is \
+                 1.009 to 1.021 ms of the GPS's clock"
                     .to_owned(),
             ];
             Ok(build(LogFormat::EntacoreDump, &recording.samples, notes))
@@ -973,7 +988,7 @@ pub fn read_dump(bytes: &[u8]) -> Result<Vec<FlightLog>, LogError> {
 pub(crate) fn read_dump_one(bytes: &[u8]) -> Result<FlightLog, LogError> {
     let mut recordings = read_dump(bytes)?;
     if recordings.len() > 1 {
-        let second = dump_recordings(bytes, usize::MAX)?
+        let second = dump_recordings(bytes, usize::MAX, true)?
             .get(1)
             .map_or(0, |r| r.start);
         return Err(dump_error(

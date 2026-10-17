@@ -1987,7 +1987,7 @@ you press Tab. Save it where your shell looks for completions:
   `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **One log format.** `hpr analyze` reads PerfectFlite's `.pf2` so far; the library reads the
-  other loggers' files ([the layouts read](format/flight-logs.md)), and `hpr analyze` takes them,
+  other layouts [the layouts read](format/flight-logs.md) lists, and `hpr analyze` takes them,
   with readings such as the drogue and main descent rates and the Mach number, with
   [M7.2](decisions-and-roadmap.md#m7-2).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
