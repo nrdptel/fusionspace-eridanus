@@ -791,7 +791,7 @@ decided it.)
 - *Enough fixes, spread enough.* The check needs at least 4 fixes, one more than the parabola's
   three terms, that set its curvature c about as well as 5 fixes 1 s apart. The measure is
   [(XᵀX)⁻¹]_cc, the variance of c for each square meter of independent noise on a fix, at most
-  1/12 s⁻⁴: 5 fixes 1 s apart give 1/14, and 1/12 lets them come 4% closer together. The
+  1/12 s⁻⁴: 5 fixes 1 s apart give 1/14, and 1/12 lets them come 3.8% closer together. The
   reading's standard error is then at most 0.0589 g per meter of noise. With 3 m (9.8 ft) of
   noise on each fix, a right unit reading 1.03 g lies 2.4 standard errors above the band's foot,
   and the same fixes in feet stated as meters 3.0 past its top. Four fixes over the last 3 s, as

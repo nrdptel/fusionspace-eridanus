@@ -145,7 +145,7 @@ const TRACK_FIXES: usize = 4;
 
 /// How loosely the fixes may set the parabola's curvature c: [(XᵀX)⁻¹]_cc, the variance of c per
 /// square meter of independent noise on each fix, at most 1/12 s⁻⁴. That is a little looser than
-/// 5 fixes 1 s apart, 1/14 s⁻⁴, so that 5 fixes of a receiver once a second, up to 4 % closer
+/// 5 fixes 1 s apart, 1/14 s⁻⁴, so that 5 fixes of a receiver once a second, up to 3.8 % closer
 /// together, take the check. The reading's standard error is then at most 2√(1/12)/g = 0.0589 g
 /// per meter of noise: with 3 m, a right unit reading 1.03 g lies 2.4 standard errors above the
 /// band's foot, and the same fixes in feet stated as meters 3.0 past its top. Fewer fixes or fixes
