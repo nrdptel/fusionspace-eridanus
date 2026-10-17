@@ -96,9 +96,9 @@ Bringing the library's mappings and layouts to `hpr analyze` and Python settled 
    file of records. A layout marks no primary track: a field's name states its unit, not its
    zero, so `Alt (ft)` reads as an altitude of unstated zero until a layout can say more.
 3. **A file is refused by the path of the field it fails,** such as `columns[1].unit`, with its
-   line and column, through `serde_path_to_error` (MIT OR Apache-2.0, needing only serde and itoa, both already
-   in the tree); a key the
-   schema doesn't name is refused, so a misspelled one isn't silently left out. A file is at most
+   line and column, through `serde_path_to_error` (MIT OR Apache-2.0, needing only serde,
+   serde_core and itoa, all already in the tree); a key the schema doesn't name is refused, so a
+   misspelled one isn't silently left out. A file is at most
    1 MiB. The schemas, `analyze-mapping`, `analyze-layout` and `analyze-record`, sit in
    `schema/cli/` with the command's others; the two a person writes carry no `tool`.
 4. **A workbook's sheet is named by its number, from 0** (`--sheet`, `sheet=`), `.xlsx` only. A

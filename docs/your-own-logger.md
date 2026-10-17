@@ -7,22 +7,24 @@ This page is for a flyer whose altimeter or flight computer writes a file no rea
 a board they built that logs to a card, a team's flight computer, or a commercial logger whose
 format isn't read yet. FusionSpace HPR · Analyzer, the command line and the Python package read
 such a file by the mapping or layout you write, into the same
-[record](format/flight-logs.md#the-record) every other log reads into: each column a channel, its
-values in SI units (degrees for angles) on the logger's clock, and one altitude, the primary track,
-the readings are taken from. Every example below reads one invented logger's files, which flew
+[record](format/flight-logs.md#the-record) every other log reads into: each column of numbers but
+the clock and those you skip a channel on the logger's clock, its values in SI units (degrees for
+angles) where your mapping or layout states a unit, and, where a mapping marks one, the barometric
+altitude above the pad as the primary track, the one the readings will be taken from. Every
+example below reads one invented flight's files, its logger's and its GPS tracker's; it flew
 nowhere.
 
 > **How far to trust it.** The record is the logger's own samples, converted to SI units (degrees
-> for angles) by the units your file states: it is as right as those are. The reader refuses a
-> unit that doesn't measure its column's quantity, and keeps as written a column whose values a
-> unit makes impossible, but a wrong unit whose values stay plausible reads in it. The tests read this
-> page's files, and each sample log the project reads by a stated mapping or layout where the
-> samples are present (they are other people's, so CI reads this page's only), from the command
-> line, from Python and from the Rust library, and hold the three records equal, channel by
-> channel. The readings (liftoff, apogee, the top speed, landing) aren't taken from these logs
-> yet: they wait for [M7.2, readings on other loggers](decisions-and-roadmap.md#m7-2). Until then,
-> go by the logger's own figures, and check a unit against a known height, such as the launch
-> site's elevation from a GPS altitude, before trusting it.
+> for angles) by the units your mapping or layout states: it is as right as those are. The
+> reader refuses a unit that doesn't measure its column's quantity, and keeps as written a column
+> whose values a unit makes impossible, but a wrong unit whose values stay plausible reads in it.
+> The tests read this page's files, and each sample log the project reads by a stated mapping or
+> layout where the samples are present (they are other people's, so CI reads this page's only),
+> from the command line, from Python and from the Rust library, and hold the three records equal,
+> channel by channel. The readings (liftoff, apogee, the top speed, landing) aren't taken from
+> these logs yet: they wait for [M7.2, readings on other loggers](decisions-and-roadmap.md#m7-2).
+> Until then, go by the logger's own figures, and check a unit against a known height, such as the
+> launch site's elevation from a GPS altitude, before trusting it.
 
 ## The logger
 
@@ -105,8 +107,9 @@ why. A column it can't read stays in the record, its numbers unconverted.
 Save the printed mapping to a file, `hpr analyze flight.csv --print-mapping > flight.mapping.json`,
 and give `Alt` what the header leaves out: its quantity, `altitude_above_ground`, and its unit,
 `ft`. Then mark it as the primary track, `"primary": 1`, its column counted from 0: the barometric
-altitude above the pad that the readings will be taken from. The file may be UTF-8 or, as Windows
-PowerShell 5.1 saves what `>` sends it, UTF-16. The file the folder holds:
+altitude above the pad that the readings will be taken from. A mapping or layout file may be
+UTF-8, or UTF-16 with its byte-order mark, as Windows PowerShell 5.1 saves what `>` sends it. The
+file the folder holds:
 
 <!-- quote: validation/fixtures/logs/own-logger/flight.mapping.json -->
 ```json

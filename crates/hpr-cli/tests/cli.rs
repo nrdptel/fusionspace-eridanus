@@ -4099,6 +4099,15 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
 fn analyze_prints_a_tables_header_as_a_mapping_to_edit() {
     use hpr::hpr_flightdata::custom;
     let path = repo_file(&format!("{OWN_LOGGER}/flight.csv"));
+    // The guide shows the table's first lines as the file holds them.
+    let table = std::fs::read_to_string(&path).unwrap();
+    let first: String = table
+        .lines()
+        .take(3)
+        .map(|line| format!("{line}\n"))
+        .collect();
+    let guide = std::fs::read_to_string(root().join("docs/your-own-logger.md")).unwrap();
+    assert!(guide.contains(&format!("```text\n{first}```\n")), "{first}");
     let printed = streams(&["analyze", &path, "--print-mapping"]);
     let mapping = custom::mapping_from_json(&printed.out).unwrap();
     let (expected, notes) = custom::header_mapping(&std::fs::read(&path).unwrap(), None).unwrap();
