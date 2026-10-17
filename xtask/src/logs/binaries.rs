@@ -248,7 +248,12 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
 fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
     let by_id: BTreeMap<String, &Sample> = samples.iter().map(|s| (id_of(&s.bytes), s)).collect();
     let mut files = Vec::new();
-    for (als_id, export_id) in ALS_BESIDE {
+    // A file the samples don't hold has no entry, as for the other checks; its export missing
+    // fails it.
+    for (als_id, export_id) in ALS_BESIDE
+        .into_iter()
+        .filter(|(id, _)| by_id.contains_key(*id))
+    {
         let mut file = AlsFile {
             id: als_id.to_owned(),
             export: export_id.to_owned(),
@@ -420,6 +425,10 @@ fn kind_channels<'a>(
 fn aim_checks(samples: &[Sample]) -> Vec<AimFlight> {
     let by_id: BTreeMap<String, &Sample> = samples.iter().map(|s| (id_of(&s.bytes), s)).collect();
     let [short_id, xtra_id, dump_id] = AIM_FLIGHT;
+    // Samples that hold none of the flight's files have no entry; any one missing fails it.
+    if !AIM_FLIGHT.iter().any(|id| by_id.contains_key(*id)) {
+        return Vec::new();
+    }
     let mut flight = AimFlight {
         ids: AIM_FLIGHT.iter().map(|id| (*id).to_owned()).collect(),
         ..AimFlight::default()
@@ -906,6 +915,14 @@ mod tests {
         let mut none = boost_log(&[7.0, 7.0], 0.1);
         none.events.clear();
         assert_eq!(liftoff_s(&none), None);
+    }
+
+    /// Samples that hold none of the files have no entry, and nothing unread.
+    #[test]
+    fn no_files_no_entries() {
+        let none = checks(&[]);
+        assert_eq!(none, Checks::default());
+        assert!(unread(&none).is_empty());
     }
 
     fn passing_als() -> AlsFile {

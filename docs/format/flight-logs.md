@@ -3182,7 +3182,7 @@ more), or `event N` for a code the sample doesn't show. The zero and apogee pres
 figures. The file holds no height, so the record's [primary track](#the-record) is empty and its
 channels hold everything. A height is the standard atmosphere's height of a pressure, less that
 of the zero pressure: with a zero pressure of 98,000 Pa, a filtered pressure of 97,000 Pa is
-44,330.77 × (1 − (97,000 / 101,325)^0.190263) − 280.5 = 366.4 − 280.5 = 85.9 m above the pad.
+44,330.77 × (1 − (97,000 / 101,325)^0.190263) − 280.5 = 366.4 − 280.5 = 85.9 m (282 ft) above the pad.
 
 **Checked.** `cargo xtask logs` reads the `.ALS` and the Excel export of the same flight beside
 it, and `cargo xtask logs --check` fails if any of these comparisons does:
@@ -3196,7 +3196,7 @@ it, and `cargo xtask logs --check` fails if any of these comparisons does:
 | The clock, at 15 digits | 25,334 | 11 off by one in the 15th digit |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names at the same rows |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm, where half what a pascal moves the zero's height is 42 mm |
+| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in), where half what a pascal moves the zero's height is 42 mm (1.7 in) |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
@@ -3217,7 +3217,7 @@ describes neither (*AIM XTRA/BASE v4.x.x Manual*, Entacore, 2 February 2025, p. 
 logs hold one flight's three files: the raw dump of the memory, the `.xtra` the software made of
 it, and an earlier copy of that `.xtra`, cut short. `hpr_flightdata::entacore_raw` reads both
 layouts. `import::read` takes an `.xtra` file, and a dump that holds one recording; the sample's
-holds ten, nine that climb no more than 16 m and then the flight, and `entacore_raw::read_dump`
+holds ten, nine that climb no more than 16 m (52 ft) and then the flight, and `entacore_raw::read_dump`
 reads each as a record of its own.
 
 A dump is the memory's recordings end to end, then erased memory, bytes of `0xFF`. A recording
