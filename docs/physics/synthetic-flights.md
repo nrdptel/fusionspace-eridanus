@@ -2,9 +2,9 @@
 
 See how FusionSpace HPR makes the simulated flights, each with its logger's
 [flight log](../glossary.md#flight-log) and a truth that is known, on which its readings and fits
-are tested, and what their noise holds and leaves
-out. The noise follows the makers' datasheets and the noise measured in a few public logs; it has
-not been checked against the statistics of real logs, and the flights are HPR Sim's own.
+are tested, and what their noise holds and leaves out. The noise follows the makers' datasheets
+and the noise measured in a few public logs; it has not been checked against the statistics of
+real logs, and the flights are HPR Sim's own.
 
 ## In short
 
@@ -16,12 +16,6 @@ not been checked against the statistics of real logs, and the flights are HPR Si
   range; a GNSS fix that lags in boost and drops out. Each flight's truth is HPR Sim's trajectory,
   every 0.01 s, with its [dynamic pressure](../glossary.md#dynamic-pressure) and
   [Mach number](../glossary.md#mach-number).
-- **What it is for:** a reading taken from a log states a 90% interval, and
-  [ADR-257, calibrated intervals](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md)
-  asks that each interval be tested on at least 1,000 flights whose truth is known. Only a
-  simulated flight has a known truth. The sets were fixed before any interval was written, so no
-  interval can be tuned on the flights it is judged on
-  ([ADR-280, the synthetic flights first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md)).
 - **Sources:** the pressure sensors' and accelerometers' datasheets and the noise measured in
   public logs ([the sensor noise note][noise]); a wind-tunnel test of the static pressure along an
   ogive-cylinder through Mach 1 ([the Mach error note][mach]); the ejection pulse of Debrief's
@@ -29,9 +23,9 @@ not been checked against the statistics of real logs, and the flights are HPR Si
   [high-power safety code][hprcode] for the wind's limit.
 - **How well it is validated:** each noise term is pinned by a test that holds it to its stated
   value on a truth built for that term alone, and fails when the term is changed. A flight drawn
-  again is the same to the bit. What the tests can't show is that the terms together look like a
-  real log: that comparison is
-  [M7.2b, readings on every logger](../decisions-and-roadmap.md#m7-2b)'s work, on the tuning set.
+  again is the same to the bit. No test yet shows that the terms together look like a real log
+  of the same family: [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks
+  that comparison.
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, the logger's own
   speed column, and flights past Mach 1.17, the fastest of the ten designs
   ([What it leaves out](#what-it-leaves-out)).
@@ -43,6 +37,13 @@ that a reading takes it from, so the two agreeing shows they read the trace alik
 either is right ([Flight-log readings](log-readings.md#checked-against)). To learn how often a
 90% interval holds the truth, the truth must be known, on many flights.
 
+Each reading and fit states a 90% interval, and
+[ADR-257, calibrated intervals](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md)
+asks that each be tested on at least 1,000 flights whose truth is known: it must miss about 5%
+of the time on each side. The sets were fixed before any interval was written, so no interval
+can be tuned on the flights it is judged on
+([ADR-280, the synthetic flights first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md)).
+
 A simulated flight knows its truth, but a check on it is only as good as its noise. A model that
 adds white noise alone flatters an interval: real barometer noise is correlated from sample to
 sample, so its errors don't average away as fast ([the smoothing note][smoothing] §6). So each
@@ -52,7 +53,11 @@ A check on these flights shows how well a method recovers HPR Sim's trajectory f
 sensors. It doesn't show how well HPR Sim predicts a real flight: that is
 [M7.3, a flight against its simulation](../decisions-and-roadmap.md#m7-3)'s question, on real logs.
 
-## The sets
+## The flights
+
+The sets each flight belongs to, what it draws, and the loggers that record it.
+
+### The sets
 
 Three sets, each on its own seed, written down before any method was tuned:
 
@@ -77,7 +82,7 @@ knowing HPR Sim's model:
 - **The thrust curve** is tilted: its thrust times $1 + \tau(2t/t_b - 1)$, with $\tau$ between
   −0.3 and 0.3, then scaled back to the same total impulse.
 
-## What a flight draws
+### What a flight draws
 
 | Input | Range | Why |
 |---|---|---|
@@ -87,7 +92,7 @@ knowing HPR Sim's model:
 | zero-lift drag | 0.8 to 1.2 times | twice the low end of the 10 to 16% spread (the same) |
 | wind | up to 20 mph (8.9 m/s), from any direction | the safety code's limit |
 | rail | 0° to 10° from vertical, toward any direction | inside the code's 20° |
-| site | 0 to 1,500 m (4,921 ft) above sea level | sea-level fields to the high deserts |
+| site | 0 to 1,500 m (0 to 4,921 ft) above sea level | sea-level fields to the high deserts |
 | air | the 1976 standard, −15 to +15 K | a day off standard |
 
 The loggers convert pressure to height by the standard atmosphere, so a day off standard is a
@@ -98,7 +103,7 @@ burnout, apogee, each charge and deployment, and landing. Heights are above the 
 center of mass stood at liftoff. The specific force along the rocket's axis is what an
 accelerometer would feel; under a canopy the rocket is taken to hang vertically.
 
-## The loggers
+### The loggers
 
 A flight draws one of six profiles, each like a family of real loggers, at that maker's logged
 rate and step. Its log is tagged with that family's format, its logger named as synthetic.
@@ -117,6 +122,8 @@ mean of its samples on the pad. The RRC3 uses the NOAA formula instead, as its m
 does ([the height formulas note][heights]); the two differ by about 1 m (3.3 ft) in 2 km (6,562 ft).
 
 ## The noise, term by term
+
+What each sensor adds to the truth, where each term comes from, and a worked example.
 
 ### The pressure
 
@@ -157,8 +164,9 @@ flight's Mach number, and held at its
 end values outside the table. One caliber back at Mach 1, $C_p = -0.08$. In the worked example
 below that reads 473 m (1,552 ft) too high, for a moment.
 
-**The ejection pulse** has the shape of the one on Debrief's public Pnut log: the height
-reads −8, 1, 16, 15, 2, −3 and −3 m against the true one, 0.05 s apart from the charge, scaled by
+**The ejection pulse** has the shape of the one on Debrief's public Pnut log, in seven samples
+0.05 s apart from the charge: the height reads 8 m (26.2 ft) low at the charge, 16 m (52.5 ft)
+high 0.1 s after it, and 3 m (9.8 ft) low from 0.25 s, then true again. The shape is scaled by
 0 to 2 per flight, and turned into pressure at the pad's density.
 
 ### The acceleration
@@ -197,7 +205,7 @@ no flag that they lag.
 The log starts 2 to 10 s before liftoff and ends 2 to 10 s after landing, each drawn. The AltOS
 profile changes from 100 Hz to 10 Hz at its first sample after apogee.
 
-## A worked example
+### A worked example
 
 An AltOS-like logger flies through Mach 1 at 1,000 m (3,281 ft) above sea level on a standard day,
 its port one caliber behind the nose's shoulder.

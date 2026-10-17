@@ -308,6 +308,7 @@ until someone rewrites it in plainer words.
 | [ADR-277: A track's own speed, held by its vertical speed before apogee][adr-277] | [M7.1c22](#m7-1c22)'s *done when* names a track's own speed among the physical checks that hold a mapped table's units. A track's ground speed holds none: the 4 tracks' medians spread 21.34 times. Its vertical speed does. In the 5 s before apogee a coasting rocket slows at g, plus a little drag, so a parabola fitted to a GPS track's fixes there must slow at 0.6 to 5/3 g. An altitude in feet stated as meters reads 3.28 times too high. The club's GPS track slows at 0.9925 g, so that part of the *done when* is met. |  |
 | [ADR-278: An evidence register: what backs each claim, and an open issue until a real sample does][adr-278] | The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic, 8 of them flight-log readers. Milestone [M2.10](#m2-10) adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of a real sample has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score. |  |
 | [ADR-279: The 2026-10-17 review: fin flutter held to measurement, and intervals by design][adr-279] | HPR Sim's fin flutter check, a safety output, is tested only against Martin's own worked examples, and nothing shows which way it errs on a fin someone else measured (the evidence register's row G22). A published wind-tunnel test found five identical composite fins fluttering at 19.6–21.5 m/s (64–71 ft/s); on that fin HPR Sim's flutter speed reads about 10.7 m/s (35 ft/s), on the safe side. [M2.11](#m2-11) scores HPR Sim's flutter readings against at least three distinct measured fins from at least two research groups, each case's inputs and test conditions stated, and against an independent BSD-licensed calculator; it states the largest error on the flattering side and the range the cases cover, and adds a flutter row to the scoreboard. It is queued after release 0.3 and before the IREC prediction table that prints a flutter speed ([M6.6](#m6-6)). Separately, release 0.3's paired bootstrap interval is also reported resampled by design, with the number of designs, since resampling single flights treats repeat flights of one design as independent. |  |
+| [ADR-280: M7.2 in seven, the synthetic flights first][adr-280] | [M7.2](#m7-2) is split in seven: [M7.2a](#m7-2a) draws 2,400 synthetic flights on fixed seeds (a tuning set of 200 and two test sets of 1,000, the second flying a model reshaped in drag, wind shear and thrust), each with its truth and the log one of six simulated loggers would write, by cited noise terms; the readings on every logger, the rest of the readings, the smoother, the 90% intervals, two recordings and stages, and ghost files follow, each checked on those flights. |  |
 
 ## The roadmap
 
@@ -734,6 +735,13 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1d1"></a>[M7.1d1][done-5] | GPX tracks | done |
 | <a id="m7-1d2"></a>[M7.1d2][done-5] | Your own logger from the command line and Python | done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
+| <a id="m7-2a"></a>[M7.2a][phase-5] | The synthetic flights, each with its truth and its logger's log | not yet done |
+| <a id="m7-2b"></a>[M7.2b][phase-5] | The readings on every logger | not yet done |
+| <a id="m7-2c"></a>[M7.2c][phase-5] | The rest of the readings | not yet done |
+| <a id="m7-2d"></a>[M7.2d][phase-5] | Reconstructing the flight: a smoother over the barometer, accelerometer and GNSS | not yet done |
+| <a id="m7-2e"></a>[M7.2e][phase-5] | 90% intervals on the readings, tested on the synthetic flights | not yet done |
+| <a id="m7-2f"></a>[M7.2f][phase-5] | Two recordings of one flight, and stages | not yet done |
+| <a id="m7-2g"></a>[M7.2g][phase-5] | Ghost files: the flight as JSON, CZML and glTF | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
@@ -1166,6 +1174,7 @@ is the milestone that added or will add that test.
 [adr-277]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0277-a-tracks-own-speed-held-by-its-vertical-speed.md
 [adr-278]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md
 [adr-279]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
+[adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
