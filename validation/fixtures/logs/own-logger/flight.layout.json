@@ -1,0 +1,8 @@
+{
+  "fields": [
+    { "name": "Time (ms)", "kind": "u32" },
+    { "name": "Alt (ft)", "kind": "f32" },
+    { "name": "Pressure (Pa)", "kind": "f32" },
+    { "name": "Accel X (g)", "kind": "f32" }
+  ]
+}

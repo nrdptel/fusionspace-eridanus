@@ -36,7 +36,7 @@ mod binaries;
 mod held;
 mod other_text;
 
-pub const USAGE: &str = "  logs [--check] [--sheets DIR]
+pub const USAGE: &str = "  logs [--check] [--sheets DIR] [--surfaces DIR]
                            reads every flight-log sample under refs/ (the collection's
                            catalog, Debrief's fixtures, AerospaceNU's logs) and writes
                            validation/reports/log-import.json and .md; --check writes nothing
@@ -44,7 +44,12 @@ pub const USAGE: &str = "  logs [--check] [--sheets DIR]
                            with a reader is read; --sheets writes each sample workbook to
                            DIR/<id>.xlsx or DIR/<id>.xls and its sheets' text to
                            DIR/<id>/<n>.csv, for validation/oracles/xlsx/cells.py and
-                           validation/oracles/xls/cells.py (DIR under refs/: it's private)";
+                           validation/oracles/xls/cells.py (DIR under refs/: it's private);
+                           --surfaces writes each sample read by a stated mapping or layout,
+                           that mapping or layout and the library's record of it to DIR, with
+                           DIR/manifest.json, for crates/hpr-py/tests/test_logs.py to read the
+                           same files from the command line and Python (DIR under refs/), once
+                           hpr_flightdata::custom reads each as the stated reading does";
 
 const REPORT_JSON: &str = "validation/reports/log-import.json";
 const REPORT_MD: &str = "validation/reports/log-import.md";
@@ -5450,10 +5455,18 @@ struct Sample {
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
     let mut sheets_dir = None;
+    let mut surfaces_dir = None;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--surfaces" => {
+                surfaces_dir = Some(
+                    args.next()
+                        .ok_or(format!("--surfaces needs a folder\n\n{USAGE}"))?
+                        .clone(),
+                );
+            }
             "--sheets" => {
                 sheets_dir = Some(
                     args.next()
@@ -5468,6 +5481,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let (samples, sources) = samples(&root)?;
     if let Some(dir) = sheets_dir {
         return write_sheets(&samples, Path::new(&dir));
+    }
+    if let Some(dir) = surfaces_dir {
+        return write_surfaces(&root, &samples, Path::new(&dir));
     }
     let (report, unread) = survey(&samples, sources);
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
@@ -5512,20 +5528,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// `<id>.xls`, and its sheets' text as `<id>/<n>.csv`, `n` from 0 in the workbook's order, for
 /// an outside reader to check the text against.
 fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
-    // The sheets are other people's data: only under the repository's `refs/`, which git
-    // ignores, the folder taken from the repository's root and never climbing out of it.
-    let refs = crate::designs::root()?.join("refs");
-    let dir = &refs.join(dir.strip_prefix("refs").unwrap_or(dir));
-    if !dir.starts_with(&refs)
-        || dir
-            .components()
-            .any(|part| matches!(part, std::path::Component::ParentDir))
-    {
-        return Err(format!(
-            "--sheets writes private data: give a folder under refs/, not {}",
-            dir.display()
-        ));
-    }
+    let dir = &private_dir(dir, "--sheets")?;
     let mut books = 0;
     let workbooks = [WORKBOOK_FAMILY, FIP_SHEET_FAMILY, ALTIMAX_FAMILY];
     for sample in samples
@@ -5552,6 +5555,181 @@ fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
     }
     println!(
         "logs: wrote {books} workbooks and their sheets to {}",
+        dir.display()
+    );
+    Ok(())
+}
+
+/// `dir` under the repository's `refs/`, which git ignores, for an option that writes other
+/// people's data: taken from the repository's root and never climbing out of it.
+fn private_dir(dir: &Path, option: &str) -> Result<PathBuf, String> {
+    let refs = crate::designs::root()?.join("refs");
+    let dir = refs.join(dir.strip_prefix("refs").unwrap_or(dir));
+    if !dir.starts_with(&refs)
+        || dir
+            .components()
+            .any(|part| matches!(part, std::path::Component::ParentDir))
+    {
+        return Err(format!(
+            "{option} writes private data: give a folder under refs/, not {}",
+            dir.display()
+        ));
+    }
+    Ok(dir)
+}
+
+/// How a sample is read for `--surfaces`: by a column mapping or a record layout.
+enum Description {
+    Mapping(hpr_flightdata::generic::Mapping),
+    Layout(hpr_flightdata::custom::Layout),
+}
+
+/// A sample read by a stated mapping or layout, for `--surfaces`: its id, the sample, the mapping
+/// or layout with every name filled in, a workbook's sheet, and the record the stated reading
+/// gives.
+struct Surface<'a> {
+    id: String,
+    sample: &'a Sample,
+    description: Description,
+    sheet: Option<usize>,
+    log: FlightLog,
+}
+
+/// One line of `--surfaces`' manifest.
+#[derive(Debug, Serialize)]
+struct SurfaceEntry {
+    id: String,
+    /// The log's path.
+    log: String,
+    /// `mapping` or `layout`.
+    by: &'static str,
+    /// The mapping's or layout's file, in the folder.
+    description: String,
+    sheet: Option<usize>,
+    /// The library's record, as JSON, in the folder.
+    record: String,
+}
+
+/// Every sample read by a stated mapping (validation/log-mappings.json and
+/// validation/log-held-mappings.json) or layout (validation/log-layouts.json), as the report reads
+/// it. Refused if a stated file has no sample, or doesn't read.
+fn surfaces(samples: &[Sample]) -> Result<Vec<Surface<'_>>, String> {
+    let id = |sample: &Sample| hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+    let mut surfaces = Vec::new();
+    for stated in stated_mappings()? {
+        let sample = samples
+            .iter()
+            .find(|s| id(s) == stated.id)
+            .ok_or(format!("{}: no sample under refs/ has this id", stated.id))?;
+        let log = read_by(&stated, &sample.bytes).map_err(|e| format!("{}: {e}", stated.id))?;
+        surfaces.push(Surface {
+            id: stated.id.clone(),
+            sample,
+            description: Description::Mapping(stated.mapping),
+            sheet: None,
+            log,
+        });
+    }
+    surfaces.extend(held::mapped(samples)?);
+    for stated in stated_layouts()? {
+        let sample = samples
+            .iter()
+            .find(|s| id(s) == stated.id)
+            .ok_or(format!("{}: no sample under refs/ has this id", stated.id))?;
+        let (log, layout, _) =
+            read_stated(&stated, sample, samples).map_err(|e| format!("{}: {e}", stated.id))?;
+        surfaces.push(Surface {
+            id: stated.id.clone(),
+            sample,
+            description: Description::Layout(hpr_flightdata::custom::Layout {
+                fields: layout.fields,
+                byte_order: layout.byte_order,
+                block: stated.block.clone(),
+            }),
+            sheet: None,
+            log,
+        });
+    }
+    Ok(surfaces)
+}
+
+/// `--surfaces`: each sample a stated mapping or layout reads, that mapping or layout as the file
+/// `hpr analyze` and Python take, and the record `hpr_flightdata::custom` reads from the two,
+/// held first to the record the stated reading gives, channel by channel. With no sample under
+/// refs/, the manifest says so and lists none, so that the Python test skips.
+fn write_surfaces(root: &Path, samples: &[Sample], dir: &Path) -> Result<(), String> {
+    let dir = private_dir(dir, "--surfaces")?;
+    fs::create_dir_all(&dir).map_err(|error| format!("{}: {error}", dir.display()))?;
+    let write = |name: &str, text: String| {
+        let path = dir.join(name);
+        fs::write(&path, text).map_err(|error| format!("{}: {error}", path.display()))
+    };
+    let surfaces = if samples.is_empty() {
+        Vec::new()
+    } else {
+        surfaces(samples)?
+    };
+    let mut entries = Vec::new();
+    for surface in &surfaces {
+        let bytes = &surface.sample.bytes;
+        let (by, json, read) = match &surface.description {
+            Description::Mapping(mapping) => (
+                "mapping",
+                serde_json::to_string_pretty(mapping),
+                hpr_flightdata::custom::read_by_mapping(bytes, mapping, surface.sheet),
+            ),
+            Description::Layout(layout) => (
+                "layout",
+                serde_json::to_string_pretty(layout),
+                hpr_flightdata::custom::read_by_layout(bytes, layout),
+            ),
+        };
+        let id = &surface.id;
+        let record = read.map_err(|error| format!("{id}: the {by} file doesn't read: {error}"))?;
+        for (got, stated) in record.channels.iter().zip(&surface.log.channels) {
+            if serde_json::to_string(got).ok() != serde_json::to_string(stated).ok() {
+                return Err(format!(
+                    "{id}: read by its {by} file, channel {:?} differs from the stated reading's",
+                    stated.column
+                ));
+            }
+        }
+        if serde_json::to_string(&record).ok() != serde_json::to_string(&surface.log).ok() {
+            return Err(format!(
+                "{id}: read by its {by} file, the record differs from the stated reading's"
+            ));
+        }
+        let description = format!("{id}.{by}.json");
+        write(
+            &description,
+            json.map_err(|error| error.to_string())? + "\n",
+        )?;
+        let record_file = format!("{id}.record.json");
+        write(
+            &record_file,
+            serde_json::to_string(&record).map_err(|error| error.to_string())?,
+        )?;
+        entries.push(SurfaceEntry {
+            id: id.clone(),
+            log: root
+                .join(&surface.sample.path)
+                .to_string_lossy()
+                .into_owned(),
+            by,
+            description,
+            sheet: surface.sheet,
+            record: record_file,
+        });
+    }
+    let manifest = serde_json::json!({ "refs": !samples.is_empty(), "files": entries });
+    write(
+        "manifest.json",
+        serde_json::to_string_pretty(&manifest).map_err(|error| error.to_string())? + "\n",
+    )?;
+    println!(
+        "logs: wrote {} files read by a stated mapping or layout, each read the same by \
+         hpr_flightdata::custom, to {}",
+        entries.len(),
         dir.display()
     );
     Ok(())
@@ -8798,6 +8976,7 @@ mod tests {
                     column("ts", None, Some("s")),
                     column("alt", Some(Quantity::AltitudeAboveGround), Some("m")),
                 ],
+                primary: None,
                 clock_wrap: None,
                 rows: hpr_flightdata::generic::RowForm::Cells,
             },

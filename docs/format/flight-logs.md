@@ -610,11 +610,14 @@ states no unit, so its 45 stays as written. `Phase` gives two events, `PAD` at 0
 **A column mapping.** `generic::mapping` returns the header's reading as a `Mapping`, which
 serializes to JSON; `generic::read_with` reads a file by one, with the same checks, so a person
 can state a unit the header leaves out or name the columns of a file with no header row. A unit
-that doesn't measure its column's quantity is refused. Only the Rust library reads these tables
-so far.
+that doesn't measure its column's quantity is refused. The command line and Python read a table by
+a mapping too, from a JSON file (`hpr_flightdata::custom`): `hpr analyze --print-mapping` prints
+the header's reading, and `--mapping` reads the table by an edited one
+([Reading your own logger](../your-own-logger.md)).
 
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
-above the pad isn't stated. Tables whose clock has no unit, or that have no header row, are read
+above the pad isn't stated, unless a mapping marks it (its `primary`, a column mapped to
+`altitude_above_ground`, whose clock must go forward). Tables whose clock has no unit, or that have no header row, are read
 by a mapping their publisher states ([below](#mappings-a-publisher-states)) or one held to
 physics ([below](#tables-a-mapping-holds-to-physics)). A table saved in an Excel workbook is read
 the same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
@@ -627,7 +630,8 @@ publishes such a file states what each column holds and in what unit, the survey
 logs reads the file by that statement: `validation/log-mappings.json` holds, for each file by its
 id, the `Mapping` as `generic::read_with` takes it and where it is stated. To read such a file
 yourself, write a `Mapping` the same way (`generic::mapping` gives one to start from, for a file
-whose header names its clock's unit) and pass it to `generic::read_with`
+whose header names its clock's unit) and pass it to `generic::read_with`, or save it as a JSON file
+for `hpr analyze --mapping` and Python ([Reading your own logger](../your-own-logger.md))
 ([ADR-270](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md), which decided it).
 
 Six of the sample logs are teams' flights that RocketPy, the open-source simulator, keeps in its
@@ -866,7 +870,8 @@ milliseconds then 24 four-byte floats, and nothing in the file says so: no heade
 marks. Such a file can't be recognized, only read by a layout someone states. The library reads it
 by the layout you give, each field's name and type in the record's order
 ([`records::RecordLayout`](../api/hpr_flightdata/records/struct.RecordLayout.html)), and never
-guesses one. A type is an integer of 8, 16, 32 or 64 bits, signed or not, or a 32-bit or 64-bit
+guesses one; the command line and Python take the layout as a JSON file
+([Reading your own logger](../your-own-logger.md#binary-records-by-a-record-layout)). A type is an integer of 8, 16, 32 or 64 bits, signed or not, or a 32-bit or 64-bit
 IEEE 754 float (binary32 or binary64, the standard's names for single and double precision),
 little-endian (the least significant byte first, as most microcontrollers store numbers) unless
 the layout's `byte_order` says

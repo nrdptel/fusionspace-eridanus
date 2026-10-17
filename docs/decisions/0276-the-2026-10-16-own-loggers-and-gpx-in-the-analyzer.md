@@ -1,6 +1,6 @@
 # ADR-276: Neer's 2026-10-16 plan: a flyer's own logger and GPX tracks in the analyzer (2026-10-16)
 
-- **Status:** accepted; adds M7.1d (M7.1d1 and M7.1d2) to [M7.1](../ROADMAP.md), so both land before release 0.2 ([M10.2](../ROADMAP.md)); amends ADR-147 §6 (the roadmap's budget); amended 2026-10-17 for M7.1d1
+- **Status:** accepted; adds M7.1d (M7.1d1 and M7.1d2) to [M7.1](../ROADMAP.md), so both land before release 0.2 ([M10.2](../ROADMAP.md)); amends ADR-147 §6 (the roadmap's budget); amended 2026-10-17 for M7.1d1 and for M7.1d2
 - **Summary:** Release 0.2, the flight analyzer, must read a flyer's own altimeter or GPS tracker from the command line and Python, not only from Rust, and must read GPX tracks. M7.1d1 reads GPX 1.0 and 1.1; M7.1d2 lets `hpr analyze` and the Python package read a table by a column mapping and binary records by a record layout, as the library already does.
 
 [adr-268]: 0268-tables-read-by-their-headers-before-the-rest.md
@@ -80,3 +80,42 @@ schemas and GPX 1.0's manual settled five things the plan left open:
 of their tracks' channels, each at its time (a gap matching a gap), and 12 figures of their
 waypoints and route points, each equal to gpxpy 1.6.2's to the last bit. No reading uses a GPX
 track until M7.2 reads other loggers.
+
+**Amendment for M7.1d2, how the command line and Python read a flyer's logger (2026-10-17).**
+Bringing the library's mappings and layouts to `hpr analyze` and Python settled what §2 left open:
+
+1. **A mapping file is the library's `Mapping` as JSON**, with one field more, `primary`: the
+   primary track's column, from 0, as `clock` is. It is written only when set, so a mapping
+   written before reads and writes as it did. The column must be mapped to
+   `altitude_above_ground`, the record's own definition of its primary track; it can't be the
+   clock or a column left out; it must hold numbers its unit doesn't contradict; and the clock
+   must go forward, each time after the one before, as the record's track times must. A mapping
+   that breaks one is refused, naming the column. The column stays a channel too.
+2. **A layout file is a record layout and, for a serial console's capture, its block.** A capture
+   read by a layout that names no block is refused, its blocks listed, as is a block named for a
+   file of records. A layout marks no primary track: a field's name states its unit, not its
+   zero, so `Alt (ft)` reads as an altitude of unstated zero until a layout can say more.
+3. **A file is refused by the path of the field it fails,** such as `columns[1].unit`, with its
+   line and column, through `serde_path_to_error` (MIT OR Apache-2.0, needing only serde and itoa, both already
+   in the tree); a key the
+   schema doesn't name is refused, so a misspelled one isn't silently left out. A file is at most
+   1 MiB. The schemas, `analyze-mapping`, `analyze-layout` and `analyze-record`, sit in
+   `schema/cli/` with the command's others; the two a person writes carry no `tool`.
+4. **A workbook's sheet is named by its number, from 0** (`--sheet`, `sheet=`), `.xlsx` only. A
+   workbook read by a mapping with no sheet named is refused, its sheets listed, rather than one
+   picked.
+5. **`hpr analyze` reads PerfectFlite's `.pf2` logs by their reader and another logger's table or
+   binary records by a mapping or a layout; Python reads by its reader, too, each format the
+   library tells from the file alone (`import::read`).** The command's output is its readings,
+   which every other logger withholds until M7.2; `--record` prints the record of any log it
+   reads. `--print-mapping` prints the header's reading unstamped, so it reads back as a mapping
+   file, its notes on standard error.
+6. **A reading withheld on another logger no longer names the format,** as a table read by a
+   mapping and one read by its header are one format; the text says it once for all five.
+
+**Consequences of the M7.1d2 amendment.** The 31 sample files the survey reads by a stated
+mapping or layout (6 publishers' mappings, 20 held to physics, 5 layouts) read the same record
+from the library, the command line and Python, channel by channel, where `refs/` holds them
+(`cargo xtask logs --surfaces` and `crates/hpr-py/tests/test_logs.py`); the invented logger's
+table, records and capture, and a GPS tracker's table, do so in CI. M7.1 is complete.
+

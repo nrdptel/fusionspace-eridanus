@@ -46,7 +46,8 @@
 //! workbook stores it, and each sheet read on its own ([`workbook`]); a team flight computer's
 //! binary records are read by a layout the caller states, from a raw file ([`records`]) or a
 //! serial console's capture of them as base64
-//! ([`capture`]); the Blue Raven's USB download to a serial terminal, each line held to its
+//! ([`capture`]), and a mapping or a layout from the JSON file a person writes for their own
+//! logger, as the command line and Python take them ([`custom`]); the Blue Raven's USB download to a serial terminal, each line held to its
 //! CRC ([`blueraven_usb`]); a course's Teensy data logger, one sensor's reading a line
 //! ([`teensy`]); one team's radio telemetry packets, `255:…:254`, as its flight computer
 //! logged them, as a receiver heard them, and inside an RTF document ([`packets`]); a Raven FIP
@@ -98,6 +99,7 @@ pub mod arts2_raw;
 pub mod blueraven;
 pub mod blueraven_usb;
 pub mod capture;
+pub mod custom;
 pub mod eggtimer;
 pub mod entacore;
 pub mod entacore_raw;

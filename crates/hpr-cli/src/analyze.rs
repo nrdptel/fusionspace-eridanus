@@ -6,34 +6,84 @@
 //! and landing, each with where it came from, or withheld with the reason the log can't support
 //! it. What the file states about itself, such as the logger's own apogee, is printed beside
 //! them, never in place of them.
+//!
+//! A flyer's own logger is read by a file that says how ([ADR-276][adr-276]): a table by a
+//! column mapping (`--mapping`), binary records or a serial console's capture of them by a
+//! record layout (`--layout`), each a JSON file read by `hpr_flightdata::custom`, as the Python
+//! package reads it. `--print-mapping` prints what a table's header states as a mapping to
+//! edit, and `--record` prints the record a log reads into, every channel, in place of the
+//! readings.
+//!
+//! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 
 use std::path::Path;
 
-use hpr::hpr_flightdata::log::{FlightLog, LogFormat};
+use hpr::hpr_flightdata::custom;
+use hpr::hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
 use hpr::hpr_flightdata::perfectflite;
 use hpr::hpr_flightdata::readings::{self, Reading, Readings, Reason, Source};
 
 use crate::console::Level;
 use crate::output::{
-    Analyze, AnalyzeMethod, AnalyzedLog, ApogeeReading, HighestSample, LandingReading,
-    LiftoffReading, LogFormatName, LogReading, LoggerStated, MaxAccelerationReading,
-    MaxSpeedReading, ReadingSource, WithheldReading, WithheldReason,
+    Analyze, AnalyzeMethod, AnalyzedChannel, AnalyzedLog, ApogeeReading, HighestSample,
+    LandingReading, LiftoffReading, LogFormatName, LogReading, LoggerStated,
+    MaxAccelerationReading, MaxSpeedReading, ReadingSource, WithheldReading, WithheldReason,
 };
 use crate::units::{gravities, meters, speed};
 use crate::{Failure, Out};
 
+/// The column mapping's schema, as the help lines name it.
+const MAPPING_SCHEMA: &str = "schema/cli/analyze-mapping.schema.json";
+/// The record layout's schema, as the help lines name it.
+const LAYOUT_SCHEMA: &str = "schema/cli/analyze-layout.schema.json";
+
 /// `hpr analyze`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct AnalyzeArgs {
-    /// The flight log: a PerfectFlite .pf2
+    /// The flight log: a PerfectFlite .pf2, or another logger's file read by --mapping or
+    /// --layout
     pub log: String,
+    /// Read the log as a table, by this column mapping: a JSON file, as --print-mapping prints
+    /// one (schema/cli/analyze-mapping.schema.json)
+    #[arg(long, value_name = "FILE", conflicts_with = "layout")]
+    pub mapping: Option<String>,
+    /// Read the log as binary records, or a serial console's capture of them, by this record
+    /// layout: a JSON file (schema/cli/analyze-layout.schema.json)
+    #[arg(long, value_name = "FILE")]
+    pub layout: Option<String>,
+    /// The sheet of an .xlsx workbook the table is on, from 0, for --mapping or --print-mapping
+    #[arg(long, value_name = "N", value_parser = crate::typed::number::<usize>())]
+    pub sheet: Option<usize>,
+    /// Print what the table's header states, as a column mapping to edit and give back with
+    /// --mapping, and read nothing more
+    #[arg(long, conflicts_with_all = ["mapping", "layout", "record"])]
+    pub print_mapping: bool,
+    /// Print the record the log reads into, every channel in SI units (degrees for
+    /// angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
+    #[arg(long)]
+    pub record: bool,
 }
 
 /// Runs `hpr analyze`.
 pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
-    let log = read_log(&args.log)?;
+    if args.sheet.is_some() && args.mapping.is_none() && !args.print_mapping {
+        return Err(Failure::helped(
+            "--sheet names the workbook's sheet a table is on, and no table is read by a mapping",
+            "give --sheet with --mapping or --print-mapping",
+        ));
+    }
+    if args.print_mapping {
+        return print_mapping(args, to);
+    }
+    let log = read_log(args)?;
+    if args.record {
+        // The record is JSON with `--json` or without: a file a program reads, its schema
+        // committed.
+        to.json = true;
+        return to.emit(&log, |_, _| Ok(()));
+    }
     let read = readings::read(&log);
-    let document = document(&args.log, &log, &read);
+    let document = document(args, &log, &read);
     let lines = text_lines(&document);
     to.emit(&document, |out, diagnostics| {
         out.lines(&lines, &[])?;
@@ -46,16 +96,91 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     })
 }
 
-/// Reads a flight log in a format HPR Sim knows, by its extension or its first line.
-fn read_log(path: &str) -> Result<FlightLog, Failure> {
+/// Prints what the log's header states as a mapping to edit, unstamped so that it reads back as
+/// a mapping file; without `--json`, a note on each column kept as written and what to do next
+/// follow on standard error.
+fn print_mapping(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
+    let path = &args.log;
+    let bytes = crate::read_file(path)?;
+    let (mapping, notes) = custom::header_mapping(&bytes, args.sheet).map_err(|error| {
+        Failure::helped(
+            format!("{path}: {error}"),
+            format!(
+                "write the mapping by hand, its fields as {MAPPING_SCHEMA} lists them; the guide's \
+                 page on reading your own logger shows one"
+            ),
+        )
+    })?;
+    let text = serde_json::to_string_pretty(&mapping)
+        .map_err(|error| Failure::Output(std::io::Error::from(error)))?;
+    to.emit_file(&hpr::hpr_sim::export::ascii(&text), |diagnostics| {
+        for note in &notes {
+            diagnostics.line(Level::Note, note)?;
+        }
+        diagnostics.line(
+            Level::Help,
+            "save it to a file and check each column's quantity and unit; set \"primary\" to \
+             the column, from 0, that is the barometric altitude above the pad, mapped to \
+             altitude_above_ground; then read the log with --mapping and that file",
+        )
+    })
+}
+
+/// A mapping's or a layout's file, read as its JSON.
+fn read_description<T>(
+    path: &str,
+    parse: fn(&str) -> Result<T, hpr::hpr_flightdata::error::LogError>,
+    schema: &str,
+) -> Result<T, Failure> {
+    let bytes = crate::read_file(path)?;
+    let text = String::from_utf8(bytes).map_err(|_| {
+        Failure::helped(
+            format!("{path}: not UTF-8 text, as a JSON file is"),
+            "save the file as UTF-8",
+        )
+    })?;
+    parse(&text).map_err(|error| {
+        Failure::helped(
+            format!("{path}: {error}"),
+            format!("fix what it names; {schema} lists every field"),
+        )
+    })
+}
+
+/// Reads the flight log: by the mapping or the layout given, or else as a PerfectFlite `.pf2`,
+/// by its extension or its first line.
+fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
+    let path = args.log.as_str();
+    if let Some(file) = &args.mapping {
+        let mapping = read_description(file, custom::mapping_from_json, MAPPING_SCHEMA)?;
+        let bytes = crate::read_file(path)?;
+        return custom::read_by_mapping(&bytes, &mapping, args.sheet).map_err(|error| {
+            Failure::helped(
+                format!("{path}: {error}"),
+                format!("check {file} against the log: the field or column the error names"),
+            )
+        });
+    }
+    if let Some(file) = &args.layout {
+        let layout = read_description(file, custom::layout_from_json, LAYOUT_SCHEMA)?;
+        let bytes = crate::read_file(path)?;
+        return custom::read_by_layout(&bytes, &layout).map_err(|error| {
+            Failure::helped(
+                format!("{path}: {error}"),
+                format!("check {file} against the logger's records: the field the error names"),
+            )
+        });
+    }
     let bytes = crate::read_file(path)?;
     let unknown = || {
         Failure::helped(
             format!(
-                "{path}: hpr analyze reads PerfectFlite .pf2 logs so far, and this isn't one; \
-                 other loggers' files arrive with milestone M7.1"
+                "{path}: hpr analyze reads PerfectFlite .pf2 logs on their own, and this isn't \
+                 one; another logger's table is read by a column mapping (--mapping), its binary \
+                 records by a record layout (--layout)"
             ),
-            "give a .pf2 log that PerfectFlite's software saved",
+            "give a .pf2 log that PerfectFlite's software saved; for another logger's table, \
+             --print-mapping prints what its header states as a mapping to edit",
         )
     };
     // Only the comments of a `.pf2` can hold anything but ASCII, and hpr doesn't use them: a
@@ -82,16 +207,22 @@ fn read_log(path: &str) -> Result<FlightLog, Failure> {
 }
 
 /// The output document.
-fn document(path: &str, log: &FlightLog, read: &Readings) -> Analyze {
+fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
     Analyze {
         kind: crate::trust::Kind::Measured,
         trust: crate::trust::log(),
         log: AnalyzedLog {
-            path: path.to_owned(),
+            path: args.log.clone(),
             format: match log.format {
                 LogFormat::PerfectFlitePf2 => LogFormatName::PerfectFlitePf2,
+                LogFormat::GenericTable => LogFormatName::GenericTable,
+                LogFormat::BinaryRecords => LogFormatName::BinaryRecords,
+                LogFormat::ConsoleCapture => LogFormatName::ConsoleCapture,
                 _ => LogFormatName::Other,
             },
+            mapping: args.mapping.clone(),
+            layout: args.layout.clone(),
+            sheet: args.sheet,
             logger: log.logger.clone(),
             serial_number: log.serial_number.clone(),
             firmware: log.firmware.clone(),
@@ -99,6 +230,15 @@ fn document(path: &str, log: &FlightLog, read: &Readings) -> Analyze {
             samples: log.time_s.len(),
             first_time_s: log.time_s.first().copied().unwrap_or(0.0),
             last_time_s: log.time_s.last().copied().unwrap_or(0.0),
+            channels: log
+                .channels
+                .iter()
+                .map(|channel| AnalyzedChannel {
+                    column: channel.column.clone(),
+                    quantity: channel.quantity,
+                    samples: channel.values.len(),
+                })
+                .collect(),
             notes: log.notes.clone(),
         },
         stated: LoggerStated {
@@ -199,6 +339,17 @@ fn text_lines(document: &Analyze) -> Vec<String> {
         || log.path.clone(),
         |name| name.to_string_lossy().into_owned(),
     );
+    let by = |file: &str| {
+        Path::new(file).file_name().map_or_else(
+            || file.to_owned(),
+            |name| name.to_string_lossy().into_owned(),
+        )
+    };
+    if let Some(file) = &log.mapping {
+        about = vec![format!("read by the mapping {}", by(file))];
+    } else if let Some(file) = &log.layout {
+        about = vec![format!("read by the layout {}", by(file))];
+    }
     let mut lines = vec![format!("{name}: {}", about.join(", "))];
     let method = &document.method;
     lines.push(match (method.sample_interval_s, method.median_window_s) {
@@ -207,7 +358,23 @@ fn text_lines(document: &Analyze) -> Vec<String> {
              altitude after a {window:.2} s running median",
             log.samples, log.first_time_s, log.last_time_s
         ),
-        _ => format!("{} samples", log.samples),
+        _ if log.samples == 0 => {
+            "no primary track: no barometric altitude above the pad".to_owned()
+        }
+        _ => format!(
+            "{} samples, from {:.2} s to {:.2} s",
+            log.samples, log.first_time_s, log.last_time_s
+        ),
+    });
+    let channels: Vec<String> = log
+        .channels
+        .iter()
+        .map(|channel| format!("{} ({})", channel.column, quantity_words(channel.quantity)))
+        .collect();
+    lines.push(match channels.len() {
+        0 => "no channels".to_owned(),
+        1 => format!("1 channel: {}", channels.join(", ")),
+        n => format!("{n} channels: {}", channels.join(", ")),
     });
     let mut stated = Vec::new();
     if let Some(apogee) = document.stated.apogee_m {
@@ -226,6 +393,24 @@ fn text_lines(document: &Analyze) -> Vec<String> {
 
     let row = |name: &str, value: String| format!("{name:<18}{value}");
     let withheld = |reading: &WithheldReading| format!("withheld: {}", reading.detail);
+    // On a logger the readings aren't validated on, every reading is withheld for that one
+    // reason: said once.
+    let all = [
+        withheld_of(&document.liftoff),
+        withheld_of(&document.apogee),
+        withheld_of(&document.max_speed),
+        withheld_of(&document.max_acceleration),
+        withheld_of(&document.landing),
+    ];
+    let unvalidated = |reading: &Option<&WithheldReading>| {
+        reading.is_some_and(|r| r.reason == WithheldReason::NotValidatedForLogger)
+    };
+    if let [Some(reading), ..] = all
+        && all.iter().all(unvalidated)
+    {
+        lines.push(row("every reading", withheld(reading)));
+        return lines;
+    }
     lines.push(row(
         "liftoff",
         match &document.liftoff {
@@ -305,6 +490,26 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     lines
 }
 
+/// The reading's withholding, if it was withheld.
+fn withheld_of<T>(reading: &LogReading<T>) -> Option<&WithheldReading> {
+    match reading {
+        LogReading::Read(_) => None,
+        LogReading::Withheld(withheld) => Some(withheld),
+    }
+}
+
+/// What a channel measures, in words: its JSON name, its words spaced.
+fn quantity_words(quantity: Quantity) -> String {
+    match quantity {
+        Quantity::GnssAltitude => "GNSS altitude".to_owned(),
+        Quantity::AltitudeMsl => "altitude above sea level".to_owned(),
+        _ => serde_json::to_value(quantity)
+            .ok()
+            .and_then(|value| value.as_str().map(|name| name.replace('_', " ")))
+            .unwrap_or_default(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -316,7 +521,15 @@ mod tests {
     fn a_top_acceleration_gives_g() {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
         let log = perfectflite::read(text).unwrap();
-        let mut document = document("synthetic-pnut.pf2", &log, &readings::read(&log));
+        let args = AnalyzeArgs {
+            log: "synthetic-pnut.pf2".to_owned(),
+            mapping: None,
+            layout: None,
+            sheet: None,
+            print_mapping: false,
+            record: false,
+        };
+        let mut document = document(&args, &log, &readings::read(&log));
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {
             acceleration_m_s2: 1000.0,
             time_s: 0.75,

@@ -1,0 +1,33 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "Time (s)",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "Lat",
+      "quantity": "latitude",
+      "unit": "deg"
+    },
+    {
+      "name": "Lon",
+      "quantity": "longitude",
+      "unit": "deg"
+    },
+    {
+      "name": "GPS Alt (m)",
+      "quantity": "gnss_altitude",
+      "unit": "m"
+    },
+    {
+      "name": "Sats",
+      "quantity": "number",
+      "unit": null
+    }
+  ]
+}

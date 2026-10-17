@@ -129,10 +129,42 @@
         "altitude_resolution_m"
       ]
     },
+    "AnalyzedChannel": {
+      "description": "One column of the log `hpr analyze` read.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "The column's name, as the file or the mapping writes it.",
+          "type": "string"
+        },
+        "quantity": {
+          "description": "What it measures, which sets its unit: SI, but degrees for angles.",
+          "$ref": "#/$defs/Quantity"
+        },
+        "samples": {
+          "description": "How many samples it holds, gaps among them.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "column",
+        "quantity",
+        "samples"
+      ]
+    },
     "AnalyzedLog": {
       "description": "The log `hpr analyze` read.",
       "type": "object",
       "properties": {
+        "channels": {
+          "description": "Every column the log holds, the primary track's among them, in the file's order:\n`--record` prints their samples.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnalyzedChannel"
+          }
+        },
         "firmware": {
           "description": "The logger's firmware version, as the file states it.",
           "type": [
@@ -141,7 +173,7 @@
           ]
         },
         "first_time_s": {
-          "description": "The first sample's time, s.",
+          "description": "The primary track's first sample's time, s; 0 for a log that has none.",
           "type": "number",
           "format": "double"
         },
@@ -159,13 +191,27 @@
           "$ref": "#/$defs/LogFormatName"
         },
         "last_time_s": {
-          "description": "The last sample's time, s.",
+          "description": "The primary track's last sample's time, s; 0 for a log that has none.",
           "type": "number",
           "format": "double"
         },
+        "layout": {
+          "description": "The record layout file it was read by, as given (`--layout`); `null` for a log read\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "logger": {
-          "description": "The logger, as the file names it.",
+          "description": "The logger, as the file names it; `unknown` for a log read by a mapping or a layout.",
           "type": "string"
+        },
+        "mapping": {
+          "description": "The column mapping file it was read by, as given (`--mapping`); `null` for a log read by\nits format's own reader.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "notes": {
           "description": "What the reader noticed and worked around, such as a sample count that differs from the\none the file states.",
@@ -179,7 +225,7 @@
           "type": "string"
         },
         "samples": {
-          "description": "How many samples the file holds.",
+          "description": "How many samples the primary track holds, the barometric altitude above the pad the\nreadings are taken from; 0 for a log that has none, such as a table read by a mapping\nthat marks none.",
           "type": "integer",
           "format": "uint",
           "minimum": 0
@@ -190,6 +236,15 @@
             "string",
             "null"
           ]
+        },
+        "sheet": {
+          "description": "The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a\ntext file.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
         }
       },
       "required": [
@@ -199,6 +254,7 @@
         "samples",
         "first_time_s",
         "last_time_s",
+        "channels",
         "notes"
       ]
     },
@@ -358,6 +414,21 @@
           "description": "PerfectFlite's `.pf2`: the Pnut, the StratoLogger and the StratoLoggerCF.",
           "type": "string",
           "const": "perfect_flite_pf2"
+        },
+        {
+          "description": "A table read by a column mapping (`--mapping`).",
+          "type": "string",
+          "const": "generic_table"
+        },
+        {
+          "description": "A file of binary records read by a record layout (`--layout`).",
+          "type": "string",
+          "const": "binary_records"
+        },
+        {
+          "description": "A serial console's capture of binary records as base64, a block of it read by a record\nlayout (`--layout`).",
+          "type": "string",
+          "const": "console_capture"
         },
         {
           "description": "A format this build of `hpr` doesn't name.",
@@ -602,6 +673,111 @@
         "time_s",
         "altitude_m",
         "source"
+      ]
+    },
+    "Quantity": {
+      "description": "What a channel measures. The unit is SI but for angles, which are in degrees as GNSS\nreceivers and loggers write them.",
+      "oneOf": [
+        {
+          "description": "A barometric altitude above the logger's own zero, m; in a Featherweight GPS tracker's\nsummary ([`LogFormat::FeatherweightSummaryCsv`]), its receiver's altitude above the pad it\nstates.",
+          "type": "string",
+          "const": "altitude_above_ground"
+        },
+        {
+          "description": "A barometric altitude above mean sea level, m.",
+          "type": "string",
+          "const": "altitude_msl"
+        },
+        {
+          "description": "An altitude from GNSS, above mean sea level as the receiver states it, m.",
+          "type": "string",
+          "const": "gnss_altitude"
+        },
+        {
+          "description": "An altitude the logger integrated from its accelerometer, above its zero, m.",
+          "type": "string",
+          "const": "inertial_altitude"
+        },
+        {
+          "description": "An altitude whose sensor or zero the file doesn't state, m: a table read by its header\n([`LogFormat::GenericTable`]) names an altitude and its unit, and often no more.",
+          "type": "string",
+          "const": "altitude"
+        },
+        {
+          "description": "Air pressure, Pa.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A speed or velocity the logger computed, m/s; its column says from which sensor and along\nwhich direction.",
+          "type": "string",
+          "const": "speed"
+        },
+        {
+          "description": "An acceleration, m/s²; its column says along which axis, and whether gravity is in it.",
+          "type": "string",
+          "const": "acceleration"
+        },
+        {
+          "description": "A temperature, K.",
+          "type": "string",
+          "const": "temperature"
+        },
+        {
+          "description": "An electric potential, V, such as a battery's or a pyro channel's.",
+          "type": "string",
+          "const": "voltage"
+        },
+        {
+          "description": "An electric current, A.",
+          "type": "string",
+          "const": "current"
+        },
+        {
+          "description": "A latitude, degrees north.",
+          "type": "string",
+          "const": "latitude"
+        },
+        {
+          "description": "A longitude, degrees east.",
+          "type": "string",
+          "const": "longitude"
+        },
+        {
+          "description": "An angle, degrees, such as a tilt or a bearing.",
+          "type": "string",
+          "const": "angle"
+        },
+        {
+          "description": "A rate of turn, degrees per second, such as a gyroscope's about one of its axes.",
+          "type": "string",
+          "const": "angular_rate"
+        },
+        {
+          "description": "A distance, m, such as a GNSS receiver's range from the pad.",
+          "type": "string",
+          "const": "distance"
+        },
+        {
+          "description": "A time of day on the logger's own clock, s after its midnight, in whatever time zone the\nclock was set to: files state none.",
+          "type": "string",
+          "const": "time_of_day"
+        },
+        {
+          "description": "A length of time, s, such as a summary's time from liftoff to an event.",
+          "type": "string",
+          "const": "duration"
+        },
+        {
+          "description": "A number with no unit, such as a count of satellites, a signal strength, a flag or a\nstate code, as the file writes it, or a fraction, such as a percentage the file writes,\ndivided by 100.",
+          "type": "string",
+          "const": "number"
+        },
+        {
+          "description": "A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim\ndoesn't know either.",
+          "type": "string",
+          "const": "unrecognized"
+        }
       ]
     },
     "ReadingSource": {

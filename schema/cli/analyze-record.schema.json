@@ -1,0 +1,652 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FlightLog",
+  "description": "A flight log, read.",
+  "type": "object",
+  "properties": {
+    "altitude_m": {
+      "description": "The barometric altitude, m, as the logger converts its pressure, above the logger's own\nzero: for a PerfectFlite, its reading on the pad.",
+      "type": "array",
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "format": "double"
+      }
+    },
+    "battery_v": {
+      "description": "The logger's battery voltage, V; `None` if the file has no such column.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "default": null,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "format": "double"
+      }
+    },
+    "channels": {
+      "description": "Every data column the file holds, in the file's order, each on its own clock and in SI:\nthe primary track's columns above included, so that the record keeps every sample the\nlogger wrote. A clock column is the time of its channels, not a channel itself. Empty in\na record written before the field was.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Channel"
+      }
+    },
+    "events": {
+      "description": "What the logger says happened and when, such as an AltOS flight computer's change of\nstate: in the file's order, or in time order where the file states them apart from its\nrows, as an Eggtimer's summary does.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Event"
+      }
+    },
+    "firmware": {
+      "description": "The logger's firmware version, as the file states it.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "flight_number": {
+      "description": "The flight's number in the logger's memory, as the file states it.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0
+    },
+    "format": {
+      "description": "The file format it was read from.",
+      "$ref": "#/$defs/LogFormat"
+    },
+    "logger": {
+      "description": "The logger, as the file names it, such as `PerfectFlite Pnut`.",
+      "type": "string"
+    },
+    "notes": {
+      "description": "What the reader noticed and worked around, such as a sample count that differs from the\none the file states.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "serial_number": {
+      "description": "The logger's serial number, as the file states it.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stated": {
+      "description": "What the file states about the flight: the logger's own figures, kept beside HPR Sim's\nreadings and never in place of them.",
+      "$ref": "#/$defs/Stated"
+    },
+    "temperature_k": {
+      "description": "The logger's temperature sensor, K; `None` if the file has no such column. It sits in the\nelectronics bay, so it reads the bay, not the air.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "default": null,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "format": "double"
+      }
+    },
+    "time_s": {
+      "description": "Each sample's time, s, from the logger's own zero. Strictly increasing.",
+      "type": "array",
+      "items": {
+        "type": "number",
+        "format": "double"
+      }
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "vertical_speed_m_s": {
+      "description": "The vertical speed, m/s, up positive, as the logger computes it; `None` if the file has\nno such column. A barometric logger works it out from its own altitude.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "default": null,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "required": [
+    "tool",
+    "format",
+    "logger",
+    "stated",
+    "time_s",
+    "altitude_m",
+    "notes"
+  ],
+  "$defs": {
+    "Channel": {
+      "description": "One column of a flight log, on its own clock.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "The column's name as the file writes it, such as `Axial Accel (Gs)`: it says which axis\nor sensor a quantity came from where the file says so.",
+          "type": "string"
+        },
+        "quantity": {
+          "description": "What the column measures, which sets its unit.",
+          "$ref": "#/$defs/Quantity"
+        },
+        "time_s": {
+          "description": "Each sample's time, s, from the log's zero, the same zero as [`FlightLog::time_s`]; `NaN`\nwhere the file gives the sample no time, as a KML path without times does (the GPS logs'\ndecision, [ADR-254][adr-254]). In the file's order, so a time may go back where the\nlogger's clock did.\n\n[adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "values": {
+          "description": "Each sample's value in the quantity's unit ([`Quantity::unit`]); `NaN` where the file left\nthe cell empty or wrote something that isn't a number.",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "required": [
+        "column",
+        "quantity",
+        "time_s",
+        "values"
+      ]
+    },
+    "Event": {
+      "description": "Something the logger says happened, at a time on the log's clock.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "What, in the logger's own word, such as `boost` or `drogue`.",
+          "type": "string"
+        },
+        "time_s": {
+          "description": "When, s, from the log's zero.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "name"
+      ]
+    },
+    "Figure": {
+      "description": "A figure a file states once about its flight, such as a summary's `Max Altitude,2500.25\nfeet`: kept as the file writes it, and in SI where its unit is known.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The figure's name as the file writes it, such as `Max Altitude`.",
+          "type": "string"
+        },
+        "quantity": {
+          "description": "What the figure measures, which sets the unit of [`Figure::values`]; `None` for text, such\nas a date, a time of day or a name, and [`Quantity::Unrecognized`] for numbers kept as\nwritten, in a unit HPR Sim doesn't know or that the figure's name contradicts.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "values": {
+          "description": "The value in the quantity's unit ([`Quantity::unit`]), one number for each the file\nwrites: three for a vector, such as a direction's components along the logger's axes;\nempty for text. Every one a reader writes is finite: a `NaN` here would be written to JSON\nas `null`, which doesn't read back.",
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "written": {
+          "description": "The value as the file writes it, unit and all, its cells joined by commas, such as\n`2500.25 feet` or `-1.0000,0.0000,0.0000`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "written",
+        "values"
+      ]
+    },
+    "LogFormat": {
+      "description": "A flight log's file format.",
+      "oneOf": [
+        {
+          "description": "PerfectFlite's `.pf2`, as its software writes a Pnut's, a StratoLogger's or a\nStratoLoggerCF's flights.",
+          "type": "string",
+          "const": "perfect_flite_pf2"
+        },
+        {
+          "description": "PerfectFlite's comma-separated export: a header row such as `Time, Altitude, Velocity,\nTemperature (F), Voltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_csv"
+        },
+        {
+          "description": "PerfectFlite's tab-separated text export: a header row such as `Time Altitude Temp.\nVoltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_text"
+        },
+        {
+          "description": "AltOS's CSV, as AltosUI exports a TeleMetrum's, TeleMega's, EasyMega's or EasyMini's\nflight: a `#version,serial,flight,…` header, then rows in SI.",
+          "type": "string",
+          "const": "altos_csv"
+        },
+        {
+          "description": "The Featherweight Raven's FIP CSV, as the Featherweight Interface Program exports it: each\nchannel its own `Time@` column, its values, and a status column.",
+          "type": "string",
+          "const": "raven_fip_csv"
+        },
+        {
+          "description": "Missile Works' mDACS export of an RRC3's flight: a header row `Time, Altitude, Pressure,\nVelocity, Temperature, Events, Voltages`, then rows on one clock.",
+          "type": "string",
+          "const": "rrc3_csv"
+        },
+        {
+          "description": "An Eggtimer's flight data, as its own download writes it: a header row such as `T, Alt,\nVRaw, VFilt`, then rows on one clock.",
+          "type": "string",
+          "const": "eggtimer_csv"
+        },
+        {
+          "description": "The Featherweight Blue Raven's CSV, as its phone app exports a flight: a low-rate file of\nits barometric and inertial figures, or a high-rate file of its inertial sensors, each\nwith a header row such as `Year,Month,Day,Time,Flight_Time_(s),…`.",
+          "type": "string",
+          "const": "blue_raven_csv"
+        },
+        {
+          "description": "A Featherweight GPS tracker's CSV, as its ground station's app or software writes it: the\ntracker's log, with a header row such as `UTCTIME,UNIXTIME,ALT,LAT,LON,#SATS,…`, or the\nground station's, such as `TRACKER,DATE,TIME,LAT,LON,ALT,…`. Positions only, no barometer.",
+          "type": "string",
+          "const": "featherweight_gps_csv"
+        },
+        {
+          "description": "A KML file (OGC 07-147r2) holding a GPS track as a path or a `gx:Track`, as AltOS, Missile\nWorks' RTx, Big Red Bee's BeeLine, fw2kml and others write it. Positions only.",
+          "type": "string",
+          "const": "kml"
+        },
+        {
+          "description": "A GPS receiver's NMEA 0183 sentences as it wrote them, such as `$GPGGA,…*hh`. Positions\nonly.",
+          "type": "string",
+          "const": "nmea0183"
+        },
+        {
+          "description": "PerfectFlite's older `.pfa`, as its software saves an Alt15K/WD's flight: `Ground:`,\n`Apogee:` and `NumSamps:` lines, then `**!!Data:` and one altitude a line.",
+          "type": "string",
+          "const": "perfect_flite_pfa"
+        },
+        {
+          "description": "An Eggtimer TRS's flight as its terminal download prints it: the flight settings and the\nflight summary, then the table the CSV download writes.",
+          "type": "string",
+          "const": "eggtimer_text"
+        },
+        {
+          "description": "AltimeterCloud's CSV of a Rocketry Ltd Nano V1's or Mercury's flight, as a flight page on\naltimetercloud.com hands it back: a header row such as `Time(ms),Altitude(m),…`.",
+          "type": "string",
+          "const": "altimeter_cloud_csv"
+        },
+        {
+          "description": "Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`\ncolumn.",
+          "type": "string",
+          "const": "entacore_aim_csv"
+        },
+        {
+          "description": "AerospaceNU's SillyGoose flight computer's log, as the board writes it: tab-separated\ntext under a header such as `timestampMs pressurePa tempK …`.",
+          "type": "string",
+          "const": "silly_goose_text"
+        },
+        {
+          "description": "Silicdyne's Fluctus flight computer's CSV: a `sep=;` line, then a semicolon-separated\ntable whose names carry their units, such as `time (ms);baro-altitude (m);…`.",
+          "type": "string",
+          "const": "fluctus_csv"
+        },
+        {
+          "description": "Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then\ncomma-separated rows from launch.",
+          "type": "string",
+          "const": "arts2_csv"
+        },
+        {
+          "description": "AerospaceNU's flight computer board's CSV, as the club's tools write a flight: a header\nrow opening `,packetType,timestamp_ms,…` or `,timestamp_s,…`, then one row a sample.",
+          "type": "string",
+          "const": "aerospace_nu_fcb_csv"
+        },
+        {
+          "description": "AerospaceNU's ground station's text, as it parses the flight computer board's downlink: a\n`RUN START` line, then one packet a line, `HH:MM:SS.ffffff: <packet> {…}`.",
+          "type": "string",
+          "const": "aerospace_nu_ground_station_text"
+        },
+        {
+          "description": "A phone app's `launch….csv`: a header row opening `Seconds,Timestamp,AltitudeMSLGPS,…`,\nthen one row a sample. The app isn't named in its files.",
+          "type": "string",
+          "const": "phone_launch_csv"
+        },
+        {
+          "description": "An Eggtimer TRS's terminal download, as [`LogFormat::EggtimerText`] reads it, saved inside\nan RTF document.",
+          "type": "string",
+          "const": "eggtimer_rtf"
+        },
+        {
+          "description": "The Featherweight Raven's raw download, `.FIPa`, as the Featherweight Interface Program\nsaves the altimeter's memory: a text header, then checksummed binary frames.",
+          "type": "string",
+          "const": "raven_fipa"
+        },
+        {
+          "description": "Missile Works' RRC3 raw flight file, `.rff`, as mDACS saves a download: a .NET\n`BinaryFormatter` stream holding the altimeter's 16-bit words.",
+          "type": "string",
+          "const": "rrc3_rff"
+        },
+        {
+          "description": "A Featherweight summary, as the Featherweight UI app exports a Blue Raven's or a GPS\ntracker's flight beside its data: one `name,value` row a figure, such as `Max\nAltitude,2500.25 feet`, and no samples.",
+          "type": "string",
+          "const": "featherweight_summary_csv"
+        },
+        {
+          "description": "AED Electronics' R-DAS raw data, as its Windows software exports a flight to text: a\n`*** Configuration ***` section, then a table of the converters' counts.",
+          "type": "string",
+          "const": "rdas_text"
+        },
+        {
+          "description": "AltOS radio telemetry, as AltosUI saves the packets a TeleDongle hears to a `.telem`\nfile: one `TELEM` line a packet, its bytes in hexadecimal.",
+          "type": "string",
+          "const": "altos_telemetry"
+        },
+        {
+          "description": "AltOS's raw flight download, as AltosUI saves a flight computer's memory to an `.eeprom`\nfile: a JSON object of the board's configuration then the memory in hexadecimal, or, from\nolder versions, the configuration as the board prints it then one record a line.",
+          "type": "string",
+          "const": "altos_eeprom"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's flight as its PC software saves it to an `.odf` file: the board's\nsettings and calibration, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_odf"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's raw data, as its PC software exports a flight: a\n`MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_raw_csv"
+        },
+        {
+          "description": "Missile Works' RTx/GPS tracker's fixes, as mDACS saves a download to an `.rtx` file: a\n.NET `BinaryFormatter` stream of one `List<Int32>`, each slot a 16-bit word mapped modulo\n10⁹. Positions only.",
+          "type": "string",
+          "const": "rtx_raw"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to CSV: a `UTC Time,Latitude,Longitude,Altitude,…`\nheader, then one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_csv"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to text: a tab-separated `UTC Lat Lon Alt …` header,\nthen one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_text"
+        },
+        {
+          "description": "A table of samples from a logger no other reader knows, read by what its header states: a\nheader row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,\nthen one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.",
+          "type": "string",
+          "const": "generic_table"
+        },
+        {
+          "description": "A file of binary records end to end, each a run of fields, read by a layout the caller\nstates, since the file states none ([`crate::records`]).",
+          "type": "string",
+          "const": "binary_records"
+        },
+        {
+          "description": "A serial console's capture of a flight computer's shell, its memory dumped as base64\nbetween marker lines such as `----++++//[[( data start )]]\\\\++++----`, each block's\nrecords read by a layout the caller states ([`crate::capture`]).",
+          "type": "string",
+          "const": "console_capture"
+        },
+        {
+          "description": "The Featherweight Blue Raven's flight data as its USB port downloads it to a serial\nterminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC\n([`crate::blueraven_usb`]).",
+          "type": "string",
+          "const": "blue_raven_usb"
+        },
+        {
+          "description": "A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,\nthen its values, such as `Alt`, the clock, `P` and a pressure, `MSL` and an altitude\n([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_tabs"
+        },
+        {
+          "description": "A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg\nC, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_named"
+        },
+        {
+          "description": "One team's radio telemetry packets as text, one `255:…:254` packet a line, such as\n`255:T:11:PP:100150:950.12:21.50:3.25:254`: the flight computer's own log, or what a\nreceiver heard ([`crate::packets`]).",
+          "type": "string",
+          "const": "radio_packet_text"
+        },
+        {
+          "description": "The same packets in an RTF document a spreadsheet saved as CSV, one `255,…,254` packet a\nline ([`crate::packets::read_rtf`]).",
+          "type": "string",
+          "const": "radio_packet_rtf"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight as its PC software exports it to an `.xls` worksheet\n([`crate::xls`]), read as a table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`\n([`crate::altimax`]).",
+          "type": "string",
+          "const": "altimax_xls"
+        },
+        {
+          "description": "A MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as\n`<BARO_ZERO 0> 790`, then a row a sample of the time, the altitude in feet and the\nacceleration in g, such as `0.1,-29.0,8.65`; the `.dat` the altimeter's software saves, or\na spreadsheet's re-save of it ([`crate::marsa`]).",
+          "type": "string",
+          "const": "marsa"
+        },
+        {
+          "description": "AltOS's radio telemetry decoded to a table, one row a packet under a header of the\npacket's fields, `serial,tick,ptype,state,…,height,crc` ([`crate::altos_telem_csv`]).",
+          "type": "string",
+          "const": "altos_telemetry_csv"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight's `.ALS` file: a header, then a record of 22 bytes a\nsample, its pressures, acceleration, event and one voltage channel's count\n([`crate::altimax_als`]).",
+          "type": "string",
+          "const": "altimax_als"
+        },
+        {
+          "description": "Entacore AIM XTRA, a flight as its software saves it to an `.xtra` file, a Boost binary\narchive of one record a sensor group's sample ([`crate::entacore_raw`]).",
+          "type": "string",
+          "const": "entacore_xtra"
+        },
+        {
+          "description": "Entacore AIM XTRA, one recording of its memory as its software downloads it, raw: a\ntype byte and big-endian fields a record, between bytes that count the clock's ticks\n([`crate::entacore_raw::read_dump`]).",
+          "type": "string",
+          "const": "entacore_dump"
+        },
+        {
+          "description": "A GPX file, the GPS Exchange Format, version 1.0 or 1.1 as Topografix publishes it: its\ntracks' points, each segment a GPS track ([`crate::gpx`]). Positions only.",
+          "type": "string",
+          "const": "gpx"
+        }
+      ]
+    },
+    "Quantity": {
+      "description": "What a channel measures. The unit is SI but for angles, which are in degrees as GNSS\nreceivers and loggers write them.",
+      "oneOf": [
+        {
+          "description": "A barometric altitude above the logger's own zero, m; in a Featherweight GPS tracker's\nsummary ([`LogFormat::FeatherweightSummaryCsv`]), its receiver's altitude above the pad it\nstates.",
+          "type": "string",
+          "const": "altitude_above_ground"
+        },
+        {
+          "description": "A barometric altitude above mean sea level, m.",
+          "type": "string",
+          "const": "altitude_msl"
+        },
+        {
+          "description": "An altitude from GNSS, above mean sea level as the receiver states it, m.",
+          "type": "string",
+          "const": "gnss_altitude"
+        },
+        {
+          "description": "An altitude the logger integrated from its accelerometer, above its zero, m.",
+          "type": "string",
+          "const": "inertial_altitude"
+        },
+        {
+          "description": "An altitude whose sensor or zero the file doesn't state, m: a table read by its header\n([`LogFormat::GenericTable`]) names an altitude and its unit, and often no more.",
+          "type": "string",
+          "const": "altitude"
+        },
+        {
+          "description": "Air pressure, Pa.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A speed or velocity the logger computed, m/s; its column says from which sensor and along\nwhich direction.",
+          "type": "string",
+          "const": "speed"
+        },
+        {
+          "description": "An acceleration, m/s²; its column says along which axis, and whether gravity is in it.",
+          "type": "string",
+          "const": "acceleration"
+        },
+        {
+          "description": "A temperature, K.",
+          "type": "string",
+          "const": "temperature"
+        },
+        {
+          "description": "An electric potential, V, such as a battery's or a pyro channel's.",
+          "type": "string",
+          "const": "voltage"
+        },
+        {
+          "description": "An electric current, A.",
+          "type": "string",
+          "const": "current"
+        },
+        {
+          "description": "A latitude, degrees north.",
+          "type": "string",
+          "const": "latitude"
+        },
+        {
+          "description": "A longitude, degrees east.",
+          "type": "string",
+          "const": "longitude"
+        },
+        {
+          "description": "An angle, degrees, such as a tilt or a bearing.",
+          "type": "string",
+          "const": "angle"
+        },
+        {
+          "description": "A rate of turn, degrees per second, such as a gyroscope's about one of its axes.",
+          "type": "string",
+          "const": "angular_rate"
+        },
+        {
+          "description": "A distance, m, such as a GNSS receiver's range from the pad.",
+          "type": "string",
+          "const": "distance"
+        },
+        {
+          "description": "A time of day on the logger's own clock, s after its midnight, in whatever time zone the\nclock was set to: files state none.",
+          "type": "string",
+          "const": "time_of_day"
+        },
+        {
+          "description": "A length of time, s, such as a summary's time from liftoff to an event.",
+          "type": "string",
+          "const": "duration"
+        },
+        {
+          "description": "A number with no unit, such as a count of satellites, a signal strength, a flag or a\nstate code, as the file writes it, or a fraction, such as a percentage the file writes,\ndivided by 100.",
+          "type": "string",
+          "const": "number"
+        },
+        {
+          "description": "A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim\ndoesn't know either.",
+          "type": "string",
+          "const": "unrecognized"
+        }
+      ]
+    },
+    "Stated": {
+      "description": "What a flight log states about the flight, in SI.",
+      "type": "object",
+      "properties": {
+        "apogee_m": {
+          "description": "The apogee the logger computed, m above its own zero; `None` if the file states none, or\nstates something that isn't a height, such as a PerfectFlite's `PWRLOSS`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "figures": {
+          "description": "Every figure a summary file states, in the file's order, such as a Featherweight\nsummary's `Max velocity,500.50 feet/sec`, and a GPX file's waypoints and route points,\nplaces marked or planned, not flown ([`crate::gpx`]); empty for a file of samples, and then\nleft out of the record's JSON, so that a record written before the field was reads the\nsame.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Figure"
+          }
+        },
+        "ground_elevation_msl_m": {
+          "description": "The launch site's elevation, m above mean sea level, as the logger states it.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "samples": {
+          "description": "How many samples the file says it holds.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

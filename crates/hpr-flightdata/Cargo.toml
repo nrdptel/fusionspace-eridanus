@@ -33,7 +33,11 @@ hpr-atmos.workspace = true
 roxmltree.workspace = true
 # The sheets and shared strings of `.xlsx` workbooks (M7.1c14), read as a stream.
 quick-xml.workspace = true
+# The JSON Schemas of a column mapping, a record layout and the record (M7.1d2), as hpr-design's.
+schemars.workspace = true
 serde.workspace = true
+# A mapping's or a layout's JSON refused by the field it fails (M7.1d2).
+serde_path_to_error.workspace = true
 # The JSON head of AltOS's `.eeprom` downloads (M7.1c10).
 serde_json.workspace = true
 thiserror.workspace = true

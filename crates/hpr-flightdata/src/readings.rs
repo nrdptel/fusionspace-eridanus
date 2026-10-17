@@ -296,11 +296,12 @@ pub fn read(log: &FlightLog) -> Readings {
         log.format,
         LogFormat::PerfectFlitePf2 | LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText
     ) {
-        let detail = format!(
-            "HPR Sim's readings were set and tested on PerfectFlite logs; reading a {} log waits \
-             for roadmap milestone M7.2, which validates them on other loggers",
-            log.format.name()
-        );
+        // The format isn't named: a table read by a mapping and one read by its header are one
+        // format, and the record can't tell which.
+        let detail = "HPR Sim's readings were set and tested on PerfectFlite logs only; on this \
+                      logger's they wait for roadmap milestone M7.2, which validates them on other \
+                      loggers"
+            .to_owned();
         let reason = Reason::NotValidatedForLogger;
         return Readings {
             sample_interval_s: None,

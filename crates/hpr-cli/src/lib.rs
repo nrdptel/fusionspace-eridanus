@@ -386,6 +386,31 @@ impl Out<'_> {
     }
 }
 
+impl Out<'_> {
+    /// Writes `document`, a file the command makes, such as a column mapping to edit, as it is
+    /// with `--json` or without, and a newline: not stamped as [`Out::emit`]'s documents are, so
+    /// that it reads back as the file it is. `text` writes the text form's `note:` and `help:`
+    /// lines to standard error; with `--json` they are left out, so that standard error stays
+    /// empty. Fails as [`Out::emit`] does.
+    pub(crate) fn emit_file(
+        &mut self,
+        document: &str,
+        text: impl FnOnce(&mut Diagnostics<'_>) -> io::Result<()>,
+    ) -> Result<(), Failure> {
+        writeln!(self.out, "{document}")
+            .and_then(|()| self.out.flush())
+            .map_err(Failure::Output)?;
+        if !self.json {
+            text(&mut self.diagnostics).map_err(Failure::Output)?;
+        }
+        self.diagnostics.flush();
+        match self.diagnostics.failure() {
+            Some(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(Failure::Output(error)),
+            _ => Ok(()),
+        }
+    }
+}
+
 /// Writes one pretty-printed JSON document, stamped with [`output::TOOL`], and a newline. The
 /// text is ASCII, as the product system's `data.md` asks: any other character, such as the
 /// designation's middle dot, is written as its `\u` escape ([`hpr::hpr_sim::export::ascii`]).
@@ -840,10 +865,24 @@ fn completions(shell: Shell, to: &mut Out<'_>) -> Result<(), Failure> {
     })
 }
 
-/// The JSON Schema of each `--json` output, by file name: what `cargo xtask cli` writes to
-/// `schema/cli/`.
+/// Every JSON Schema `cargo xtask cli` writes to `schema/cli/`, by file name: each `--json`
+/// output's ([`output_schemas`]) and each file a command reads ([`input_schemas`]).
 pub fn schemas() -> Vec<(&'static str, String)> {
+    let mut schemas = output::schemas();
+    schemas.extend(output::input_schemas());
+    schemas.sort_by_key(|(name, _)| *name);
+    schemas
+}
+
+/// The JSON Schema of each `--json` output, by file name: each names the tool.
+pub fn output_schemas() -> Vec<(&'static str, String)> {
     output::schemas()
+}
+
+/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping and record layout,
+/// by file name: a person writes the file, so it names no tool and refuses a key it doesn't list.
+pub fn input_schemas() -> Vec<(&'static str, String)> {
+    output::input_schemas()
 }
 
 #[cfg(test)]
