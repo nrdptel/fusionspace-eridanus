@@ -394,14 +394,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
-  - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
-    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
-    ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
-    - [ ] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
-      the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
-      each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
-      report and M7.1 left open while it lasts; the guide lists every format the roadmap names
-      with no sample (CATS, Juno) as needing samples.
   - [ ] **M7.1d A flyer's own logger and GPX tracks** (ADR-276): in two.
     - [ ] **M7.1d1 GPX tracks.** *Done when:* GPX 1.0 and 1.1 files read, each track
       segment a GPS track (latitude, longitude, elevation of unstated datum, time), routes and

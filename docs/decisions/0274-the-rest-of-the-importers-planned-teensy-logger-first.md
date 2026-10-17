@@ -402,3 +402,78 @@ A test for each check passes an invented flight read in its right unit and fails
 wrong one: seconds as milliseconds, hectopascals as pascals, meters as feet, m/s² as g and g as
 m/s², m/s as ft/s, degrees as radians, and a track's meters as feet and feet as meters. Six files are labelled for M7.1c23, four of them
 unread.
+
+**Amendment for M7.1c23, the last binaries and the formats with no sample (2026-10-16).** The
+group's six files are two AltOS exports the catalog files as generic CSV, an AltiMAX's `.ALS`,
+and an Entacore AIM XTRA's three files of one flight: the raw dump of its memory, the `.xtra` the
+AIM software made of it, and an earlier copy of that `.xtra`, cut short. No document describes
+either binary layout. The plan stands; these are what the bytes showed, measured, and the
+decisions.
+
+1. **The two AltOS exports** open with `#` lines of the board's settings and then AltosUI's
+   `#version,serial,flight,…` header. AltOS's CSV reader takes them as they are; they're moved
+   to it by id.
+2. **The `.ALS`** is a header of 32 bytes, one record of 22 bytes for each of the export's 25,334
+   rows, and a trailer. Every value it stores is the export's: both pressures, the event code and
+   the voltage count, 101,336 values, bit for bit; the acceleration, the clock and the speed
+   before apogee to the export's 15 significant digits, the clock 11 values one in the last digit
+   off; and the 21 events by name. Decided:
+   - the voltages stay counts. The export's factors, 0.00314278884 V a count on channels 1 and 5
+     and 0.00266754240 on 2 to 4, fit all 25,334 rows to 15 digits but 31 one in the last digit
+     off, yet no document states either, nor which channel is which (*AltiMAX G4 Manual*, p. 42);
+   - the acceleration is read at the export's own 0.0981 m/s² a count, 0.01 g at 9.81 m/s², so
+     it equals the export's;
+   - the clock is 5 ms or 25 ms a record, by a bit of its first byte: the manual's table's 200
+     and 40 samples a second (p. 10), not its text's 50 (p. 8), which the sample's 25 ms steps
+     contradict;
+   - no primary track: the file stores no height. The export's heights are the standard
+     atmosphere's height of each pressure less that of the header's zero pressure, within
+     8.7 mm on every row, inside half of what a pascal moves the zero's height, 42 mm;
+   - each record's last 8 bytes, zero in every sample record, are held to zero; the header's
+     other bytes and the trailer aren't read.
+
+   The export's speed from apogee on, 16,961 rows, isn't in the file: the software works it out
+   from the pressure, and it isn't compared.
+3. **The AIM's files.** The dump is the memory's recordings end to end, then erased memory: a
+   recording opens with `0x13` and 101 bytes not read, and then bytes `0x80` to `0xFE` count the
+   clock's ticks and any other byte is one of 16 record types, big-endian. The `.xtra` is a Boost
+   serialization binary archive of the dump's last recording's records, converted in 32-bit
+   floats, each with its time in seconds. The two readers' channels are equal, 435,075 values bit
+   for bit, and the short copy's bytes and its 814,206 values and times are the whole one's
+   first. The dump holds one sample
+   past the `.xtra`'s, a gyroscope reading the software leaves out. Decided:
+   - the values are converted as the software converts them, in 32-bit floats. The batteries'
+     factor is 3.3 V × 133/33 taken in 32-bit floats, 13.299 999 2 V: the `.xtra` holds it in
+     every one of the flight's 9,186 battery values, and f32(13.3), one step higher, misses every
+     one;
+   - the ticks are read as milliseconds, as the software reads them, and the `.xtra`'s times as
+     written: the software sums them in 32-bit floats, a tick byte at a time, 2.40 s behind the
+     ticks by the end of the recording and 0.9 % short over the climb, each of the 224,643 times
+     equal to that sum. Against the GPS's time of week, a tick is 1.0209 ms of the GPS's clock on
+     the pad and 1.0087 in flight. The reader doesn't correct it, as one flight can't say
+     whether that is this computer's clock or every AIM's; its notes and the guide say so;
+   - `import::read` takes a dump of one recording and refuses one of several, naming where the
+     second starts; `entacore_raw::read_dump` reads each. The sample holds ten: nine climbing no
+     more than 15.6 m, and the flight;
+   - the channels take the CSV export's names; the outputs' letters and `on` and `cont` are
+     inferred, as the CSV names four outputs so and the sample's C and D fire with the recovery
+     charges; what `state`'s numbers mean isn't stated. Each byte the sample doesn't explain is
+     held to its one value there, and a type or class the sample doesn't hold is refused;
+   - no primary track, as for the `.ALS`.
+4. **The flight's own checks.** Liftoff, for them, is the first reading above 1.5 g in the run
+   that holds `state 1`, the computer's launch detect, which comes about a second into the boost.
+   On the pad the three accelerometers' medians read 0.965 g as one magnitude, 0.961 along the
+   rocket alone, and the maker's `.xtra` reads the same; the Teensy logger's 3 % can't hold this
+   sensor, so the check takes M7.1c20's band for an accelerometer at rest, 0.85 to 1.15 g, which a
+   reading in another unit or at another of the sensor's ranges, 2 or more times off, can't
+   reach. The time from liftoff to the least pressure is 1.064 times √(2h/g).
+5. **The formats with no sample.** The roadmap's CATS and "Juno" have none among the survey's:
+   CATS's public logs are under the GPL-3.0, and its `.cfl` layout is published only in GPL
+   source, which this project doesn't read; "Juno" is a rocket, Projeto Jupiter's Juno III, whose
+   files need no new reader. The guide lists them, and the other makers' formats with no sample,
+   as needing samples, each with what a reader would need.
+
+**Consequences of the amendment.** The survey reads 1,052 of its 1,122 files; the other 70 are
+67 files that aren't logs and 3 damaged ones. Every file of a family with a reader is read, and
+`cargo xtask logs --check` now fails on a file of a family with none, so a new layout among the
+samples can't sit unread. M7.1's importers are done; readings from them come with M7.2.

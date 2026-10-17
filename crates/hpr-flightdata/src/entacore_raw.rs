@@ -6,8 +6,8 @@
 //! XTRA/BASE v4.x.x Manual*, Entacore, 2 February 2025, p38). The layouts here were worked out from
 //! one flight's three files among the sample logs: a raw dump of the computer's memory, the
 //! `.xtra` the software made of it, and an earlier copy of that `.xtra`, cut short. The raw dump's
-//! last recording converts, by the rules below, to the `.xtra`'s records byte for byte, and the
-//! short copy's bytes are the `.xtra`'s first ones. So every rule here is checked against the
+//! last recording reads, by the rules below, to the `.xtra`'s values bit for bit, and the short
+//! copy's bytes are the `.xtra`'s first ones. So every rule here is checked against the
 //! maker's own conversion, on one flight.
 //!
 //! **What the records hold.** One record a sample of one sensor group, each group at its own rate
@@ -456,8 +456,8 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
             }
             // As the software: the 12-bit count times 3.3 V × 133/33 taken in single precision
             // (f32(3.3) × f32(133/33) = 13.299 999 2, one ulp below f32(13.3)), over 4096,
-            // rounded to an f32. The `.xtra` files agree with this factor in every sample record;
-            // f32(13.3) misses some of them by one ulp.
+            // rounded to an f32. The sample `.xtra` agrees with this factor in every battery
+            // record; f32(13.3) misses every one.
             let volts =
                 f64::from(raw >> 4) * f64::from(3.3_f32 * (133.0_f64 / 33.0) as f32) / 4_096.0;
             vec![f64::from(volts as f32)]

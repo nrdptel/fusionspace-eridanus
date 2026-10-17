@@ -56,9 +56,11 @@
 //! a table of AltOS's own columns with no `version` header, and an AltOS export a spreadsheet
 //! re-saved with formula cells, each formula kept as text ([`altos`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
-//! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats are planned for milestones [M7.1c22 and M7.1c23][roadmap] of the roadmap,
-//! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
+//! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps.
+//! An AltiMAX's own `.ALS` file ([`altimax_als`]) and an Entacore AIM's `.xtra` files and raw
+//! dumps of its memory ([`entacore_raw`]) are read too, each layout worked out from one sample
+//! flight and held to the maker's conversion of it. The rest of the readings, smoothing and
+//! reconstruction are planned for [M7.2][roadmap] of the roadmap.
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
 //!
