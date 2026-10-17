@@ -40,43 +40,44 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 13. M7.4 Fault diagnosis
 14. M7.5 The bias every simulator shares
 15. M10.3 Release 0.3: accuracy and diagnosis
-16. M2.3c7 Faster than sound: published flights
-17. M6.3 Challenge specs and presets
-18. M6.4 Airbrakes
-19. M6.2e Robust mode
-20. M6.6 Submission packs
-21. M6.7 Ejection charges
-22. M3.5 RASAero `.CDX1` import/export
-23. M3.6 RocketPy interop
-24. M2.9 The other tools' cells
-25. M6.8 Field kit: checklists, the settings check and the ground-test log
-26. M0.7b Rocketry explained: recovery, wind and motors
-27. M10.4 Release 0.4: the competition kit
-28. M4.4 C ABI and WASM
-29. M9.0 UI architecture ADR plus a spike
-30. M9.2 3D flight replay with a ghost
-31. M10.5 Release 0.5: the app preview
-32. M0.7c Rocketry explained: live figures
-33. M5.6a A catalog of hpr's own: format, search and a parts list
-34. M8.2 Edit model for UIs
-35. M9.1 Desktop app shell
-36. M5.6b Parachutes and recovery hardware
-37. M8.1 Design assistant
-38. M5.6c Motor hardware and rail buttons
-39. M5.6d More makers and electronics
-40. M3.4 RockSim `.rkt` import/export
-41. M9.3 Web PWA
-42. M10.6 Release 1.0: the app
-43. M0.7d Rocketry explained: the rest of the hobby
-44. M11.1 A motor of your own
-45. M11.2 Experimental solids
-46. M12.1 Parachute gores
-47. M12.2 Opening loads
-48. M9.4 Mobile
-49. M9.6 The four web tools, rebuilt
-50. M6.5 Roll control: tail-fin tabs and canards
-51. M13.3 Flight computer logic
-52. M13.1 Ground station
+16. M2.11 Fin flutter held to measurement
+17. M2.3c7 Faster than sound: published flights
+18. M6.3 Challenge specs and presets
+19. M6.4 Airbrakes
+20. M6.2e Robust mode
+21. M6.6 Submission packs
+22. M6.7 Ejection charges
+23. M3.5 RASAero `.CDX1` import/export
+24. M3.6 RocketPy interop
+25. M2.9 The other tools' cells
+26. M6.8 Field kit: checklists, the settings check and the ground-test log
+27. M0.7b Rocketry explained: recovery, wind and motors
+28. M10.4 Release 0.4: the competition kit
+29. M4.4 C ABI and WASM
+30. M9.0 UI architecture ADR plus a spike
+31. M9.2 3D flight replay with a ghost
+32. M10.5 Release 0.5: the app preview
+33. M0.7c Rocketry explained: live figures
+34. M5.6a A catalog of hpr's own: format, search and a parts list
+35. M8.2 Edit model for UIs
+36. M9.1 Desktop app shell
+37. M5.6b Parachutes and recovery hardware
+38. M8.1 Design assistant
+39. M5.6c Motor hardware and rail buttons
+40. M5.6d More makers and electronics
+41. M3.4 RockSim `.rkt` import/export
+42. M9.3 Web PWA
+43. M10.6 Release 1.0: the app
+44. M0.7d Rocketry explained: the rest of the hobby
+45. M11.1 A motor of your own
+46. M11.2 Experimental solids
+47. M12.1 Parachute gores
+48. M12.2 Opening loads
+49. M9.4 Mobile
+50. M9.6 The four web tools, rebuilt
+51. M6.5 Roll control: tail-fin tabs and canards
+52. M13.3 Flight computer logic
+53. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -199,6 +200,27 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   moves apogee by more than 0.5%, with that size (unsized ones marked), flown with the fix too
   where the fix is public and its license allows (ADR-246). Moves: none of HPR Sim's numbers; it
   fills the columns they are compared with.
+- [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings
+  are scored against at least three distinct fins measured fluttering (wind tunnel or flight, none
+  of the wings Martin's line was drawn through; repeat runs of one design are one fin) from
+  published tests by at least two research groups, each fin committed with its table and page:
+  planform, thickness, mounting (clamped root or glued to a tube), material and the shear modulus
+  used (the effective value, and a ply's where given), and the test's air pressure, temperature and
+  Mach number, each marked measured or assumed; for each fin, `validation/reports/latest.md` gives
+  the flutter speed's error against its lowest measured onset (the test's speed step stated), with
+  its sign under each modulus reading, and the side of Martin's line the figure 3 check places it
+  on (a fluttered fin placed on the safe side is a flattering error); the flutter page states the
+  largest flattering-side error, or that the cases show none, with the range of Mach number and
+  thickness ratio they cover and that they are not a bound, and either one case lies inside
+  Martin's thickness ratios (1–10%) or that gap stays open in evidence row G22; a test pins each
+  case's error and side, and a mutation probe that multiplies the speed by √2 fails one; the same
+  fins and the calculator's own examples are compared with Bennett's BSD-licensed calculator, each
+  within 1% or the difference put down to a named modeling choice that a test pins; G22's kind and
+  what it leaves unchecked are updated from these; and the scoreboard gains a flutter row, HPR
+  Sim's largest flattering-side error over the cases with their count, each other tool's cell read
+  from its current docs with the date or named as a capability it lacks. Fewer than three fins or
+  one group only by an ADR that gives the count found and why no more are published, the gap left
+  in the report.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
@@ -552,9 +574,9 @@ capability none of them has, checked against its docs with the date (ADR-209).
   M7.4, M7.5; with M2.7, M2.8 and M2.6 met; M1.14b to M1.14g each met or ended by ADR-143's stop
   rule with its gaps in an ADR; and on the held-out flights all fly, HPR Sim's mean absolute error
   is below 24.12's and that of any OpenRocket release out before M2.7 is met (M2.3c3, ADR-212; a
-  paired bootstrap interval reported), its absolute bias within 3%, and its 50% and 90% ranges each
-  hold the logs within their bounds; only if M1.14 ended by the stop rule short of these may an ADR
-  record the miss instead (ADR-209 §7).
+  paired bootstrap interval reported, resampled by flight and by design, ADR-279), its absolute bias
+  within 3%, and its 50% and 90% ranges each hold the logs within their bounds; only if M1.14 ended
+  by the stop rule short of these may an ADR record the miss instead (ADR-209 §7).
 - [ ] **M10.4 Release 0.4: the competition kit.** *Done when:* the checklist holds after M6.3,
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0

@@ -142,9 +142,38 @@ From the 2026-10-10 planning review:
   public designs and the collection (as aggregates), both tools' apogees with and without the
   tables are published; a test pins the file to bytes derived by hand from the format's docs.
 
+From the 2026-10-15 planning review:
+
+- SOON: a measured reference for a tangent ogive's wave drag. User: a flyer of a minimum-diameter
+  rocket past Mach 1, where the nose is most of the pressure drag. Workflow: the aerodynamics
+  validation report scores HPR Sim's nose pressure drag against a published wind-tunnel measurement
+  of ogive-cylinders, the half of [#222][i-222] that the OpenRocket comparison can't settle. Moves:
+  a new supersonic nose-drag row in `validation/reports/latest.md` (none today);
+  `accuracy.supersonic` only if a model change follows. Tracked in [#616][i-616], from [the note on
+  ogive wave drag](ogive-wave-drag.md). *Done when:* the report gives the error and its sign at
+  three or more Mach numbers from 1.3 to 3 (to 2.5 the core band, past it the extended) on at least
+  two fineness ratios, at zero angle of attack on the base area, each against a pressure-only
+  reference (integrated surface pressures, or forebody drag with its friction correction stated)
+  cited to its table or figure, and a test pins each case.
+
+From the 2026-10-17 planning review:
+
+- LATER: roughness from a measurement. A part's finish takes a measured Ra or Rz, or an FDM layer
+  height, mapped to a sand-grain band by [hobby finish roughness](hobby-finish-roughness.md), and
+  the apogee is flown at both ends of the band. User: a flyer with printed fins. Moves: the apogee
+  band from finish, per design. *Done when:* each mapping is cited and pinned, both ends print, and
+  a value with no unit is refused.
+- LATER: a boattail's center of pressure against tunnel data. User: a builder adding a boattail,
+  where a [forum thread](https://www.rocketryforum.com/threads/impact-of-boattail-on-cp.198351/)
+  reports simulators disagreeing on how far it moves CP forward. Moves: a new CP row in
+  `validation/reports/latest.md`. *Done when:* three or more boattail angles at two or more Mach
+  numbers from a published tunnel test give HPR Sim's CP error and its sign, each pinned by a test.
+
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3
 [tc-thread]: https://www.rocketryforum.com/threads/thrustcurve-open-thread.164391/page-30
 [or-tables]: https://www.rocketryforum.com/threads/omg-openrocket-26xx-sapshot-drag-csv-and-stability-csv.199161/
 [or-2348]: https://github.com/openrocket/openrocket/issues/2348
 [m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
+[i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
+[i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616

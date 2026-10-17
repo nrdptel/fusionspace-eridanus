@@ -1247,8 +1247,9 @@ fn adr_number(path: &str) -> Option<u32> {
 /// Every mention in a surface of kind `kind` with the text `text`, in order.
 fn mentions(kind: Kind, text: &str) -> Vec<Mention> {
     let mut found = Vec::new();
+    let lower = text.to_ascii_lowercase();
     for (range, held) in ranges(kind, text) {
-        found.extend(old_names(text, range.clone()));
+        found.extend(old_names_in(&lower, range.clone()));
         if held != Held::OldName {
             found.extend(bare_hprs(text, range, held));
         }
@@ -1340,7 +1341,12 @@ fn ranges(kind: Kind, text: &str) -> Vec<(Range<usize>, Held)> {
 /// The old name in `text[range]`: `hpr-sim` in any case, with an ASCII or a non-breaking hyphen,
 /// not as the end of a package's name since ADR-203 (`fusionspace-hpr-sim`).
 fn old_names(text: &str, range: Range<usize>) -> Vec<Mention> {
-    let lower = text.to_ascii_lowercase();
+    old_names_in(&text.to_ascii_lowercase(), range)
+}
+
+/// [`old_names`] in `lower`, the text already in ASCII lower case: a surface with many ranges
+/// lowers its text once, not once a range.
+fn old_names_in(lower: &str, range: Range<usize>) -> Vec<Mention> {
     let mut found = Vec::new();
     let mut from = range.start;
     while let Some(at) = lower[from..range.end].find("hpr").map(|at| from + at) {

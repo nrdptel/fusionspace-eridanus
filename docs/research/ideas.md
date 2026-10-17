@@ -110,45 +110,43 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-13)
+## Earlier planning reviews (2026-10-08 to 2026-10-15)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
-cause (M2.3c6, [ADR-226][adr-226]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
+cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
+([M2.3c6][m2-3c6], [ADR-273][adr-273]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
 Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]), the
 post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]). The rest moved
-to the theme notes on [avionics](ideas-avionics.md), [flight data](ideas-flight-data.md),
-[pad and recovery](ideas-pad-and-recovery.md), [design and physics](ideas-design-and-physics.md)
-and [competitions](ideas-competitions-and-clubs.md).
+to the [theme notes](#theme-notes).
 
-## The 2026-10-15 planning review
+## The 2026-10-17 planning review
 
-- PROMOTED into [M2.3c6][m2-3c6] ([ADR-273][adr-273]): OpenRocket's supersonic drag on a tangent
-  ogive, as its own cause. User: a flyer comparing the two simulators on a rocket past Mach 1.
-  OpenRocket's issue [#3391][or-3391] (2026-10-14) reports that 24.12 gives a tangent ogive's
-  nose almost no pressure drag above Mach 1, where its own technical documentation's method gives
-  about 0.13 at Mach 1.5 on a fineness-3 nose; our [#222][i-222] found the same gap on a private
-  design. Workflow: the gap-by-cause report names that term on its own line. Moves: the part of
-  the `accuracy.collection` gap to OpenRocket with a cited cause. *Done when:* M2.3c6's.
-- SOON: the 2027 IREC altitude score. User: an IREC team choosing a motor and a ballast for its
-  target apogee. Workflow: `hpr mc` with an IREC preset prints the altitude score's 50% and 90%
-  ranges by the [2027 rules][irec27] (§6.6.1, p. 28: 350 points times one less the miss over 30%
-  of the target, given only within 30%; zero beyond is our reading), and Table 4-1's predicted
-  flight data (p. 21): seven predicted values (liftoff thrust to weight, rail exit speed, least
-  static margin, peak acceleration, peak speed, flutter speed, apogee) beside the declared target.
-  Moves: a new steps row, `steps.irec-score`, each tool's by its docs. *Done when:* tests pin the
-  score at the target (350), 10% short (233.3) and either side of the 30% edge; the preset cites
-  the rules' date and a stale-after date; each of the seven values comes from a tested output;
-  the scoreboard shows the row.
-- SOON: a measured reference for a tangent ogive's wave drag. User: a flyer of a
-  minimum-diameter rocket past Mach 1, where the nose is most of the pressure drag. Workflow: the
-  aerodynamics validation report scores HPR Sim's nose pressure drag against a published
-  wind-tunnel measurement of ogive-cylinders, the half of [#222][i-222] that the OpenRocket
-  comparison can't settle. Moves: a new supersonic nose-drag row in `validation/reports/latest.md`
-  (none today); `accuracy.supersonic` only if a model change follows. *Done when:* the report gives
-  the error and its sign at three or more Mach numbers from 1.3 to 3 (to 2.5 the core band, past
-  it the extended) on at least two fineness ratios, at zero angle of attack on the base area, each
-  against a pressure-only reference (integrated surface pressures, or forebody drag with its
-  friction correction stated) cited to its table or figure, and a test pins each case.
+- PROMOTED to [M2.11][m2-11] ([ADR-279][adr-279]): fin flutter held to measurement. User: a flyer
+  checking a fin's flutter margin, or a team filling IREC's prediction table. Workflow: the flutter
+  page gives the speed's error and its side on fins measured fluttering in published tests, and
+  beside an independent calculator. Moves: a new scoreboard row, the largest flattering-side flutter
+  error, for each tool. *Done when:* M2.11's.
+- SOON: one altitude formula for every logged apogee ([#701][i-701]). User: a flyer comparing two
+  altimeters on one flight, or a log with a simulation. Workflow: `hpr analyze` derives height from
+  logged pressure by the standard atmosphere from the pad, beside the logger's column, each family's
+  conversion named sourced or assumed. Moves: `accuracy.public`, `accuracy.collection`,
+  `bias.public` and `bias.collection`, their reference apogees on one formula. *Done when:* #701's,
+  and the real-flight and fixture reports give those rows both ways.
+- SOON: a second-method report for Student Launch, whose reviews ask for data from a different
+  calculation method. User: a team's simulation lead. Workflow: `hpr crosscheck design.ork` sets HPR
+  Sim's apogee, rail-exit margin and speed, landing energies and descent time beside the file's
+  stored OpenRocket results, each against its requirement in the [2027 handbook][sl27], each gap
+  split by cause. Moves: a new steps row, `steps.sl-crosscheck`. *Done when:* the five numbers print
+  for both tools on every public Student Launch design (count stated), tests pin them, and the page
+  cites the handbook (source and stale-after dates) and names any HPR Sim feature its rule 1.1.1
+  bars (none today).
+- SOON: the drag settings worth checking, named in a design's summary. User: a flyer of an imported
+  `.ork` whose fin cross-sections and finishes were never set. Workflow: `hpr sim` and `hpr check`
+  mark each left at a default, with the C_D change at Mach 0.3 and the apogee change from the other
+  common setting (18% in C_D in one reported case, [flight-derived C_D][fdcd]). Moves:
+  `features.count`, and the share of `bias.collection` such defaults carry (#614, #585). *Done
+  when:* both changes print with each setting's source; tests cover a file left at defaults and one
+  set; the fixture report counts the designs left at defaults, as aggregates.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -195,6 +193,8 @@ and [competitions](ideas-competitions-and-clubs.md).
 [m7-3]: ../decisions-and-roadmap.md#m7-3
 [m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
 [adr-273]: ../decisions/0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
-[or-3391]: https://github.com/openrocket/openrocket/issues/3391
-[i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
-[irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
+[m2-11]: ../decisions-and-roadmap.md#m2-11
+[adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
+[i-701]: https://github.com/nrdptel/fusionspace-eridanus/issues/701
+[sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf
+[fdcd]: flight-derived-cd.md

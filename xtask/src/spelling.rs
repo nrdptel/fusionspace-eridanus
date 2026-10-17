@@ -1204,6 +1204,24 @@ fn words(piece: &str, offset: usize, findings: &mut Vec<Finding>) {
     }
 }
 
+/// Each of [`ISE_STEMS`] joined to each of [`ISE_ENDINGS`], stem by stem and each stem's endings
+/// in their order, with the stem's length and the ending's two forms: built once a run instead of
+/// once a word.
+fn ise_patterns() -> &'static [(String, usize, &'static str, &'static str)] {
+    static PATTERNS: std::sync::OnceLock<Vec<(String, usize, &str, &str)>> =
+        std::sync::OnceLock::new();
+    PATTERNS.get_or_init(|| {
+        ISE_STEMS
+            .iter()
+            .flat_map(|stem| {
+                ISE_ENDINGS
+                    .iter()
+                    .map(move |(uk, us)| (format!("{stem}{uk}"), stem.len(), *uk, *us))
+            })
+            .collect()
+    })
+}
+
 /// The US form of `token`, if it is a word (not an identifier) holding a misspelling.
 fn misspelling(token: &str) -> Option<String> {
     if is_identifier(token) {
@@ -1224,12 +1242,18 @@ fn misspelling(token: &str) -> Option<String> {
         ))
     });
     let word = ruled.as_deref().unwrap_or(&lower);
-    let ised = ISE_STEMS.iter().find_map(|stem| {
-        ISE_ENDINGS.iter().find_map(|(uk, us)| {
-            let at = word.find(&format!("{stem}{uk}"))? + stem.len();
-            Some(format!("{}{us}{}", &word[..at], &word[at + uk.len()..]))
-        })
-    });
+    // A word holds `{stem}{uk}` only if it holds `uk`, so a word holding none of the endings
+    // (most words) skips the stems' searches; the order tried is unchanged.
+    let ised = if ISE_ENDINGS.iter().any(|(uk, _)| word.contains(uk)) {
+        ise_patterns()
+            .iter()
+            .find_map(|(pattern, stem_len, uk, us)| {
+                let at = word.find(pattern.as_str())? + stem_len;
+                Some(format!("{}{us}{}", &word[..at], &word[at + uk.len()..]))
+            })
+    } else {
+        None
+    };
     let replaced = ised.or(ruled)?;
     Some(if token.chars().all(|c| !c.is_lowercase()) {
         replaced.to_uppercase()
