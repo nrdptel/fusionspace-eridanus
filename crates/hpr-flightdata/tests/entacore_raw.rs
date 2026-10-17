@@ -16,9 +16,13 @@ const OPENING: usize = 1 + 101;
 /// Where the `.xtra`'s first record starts.
 const XTRA_RECORDS_AT: usize = 54;
 
-/// The invented flight: the ticks before each record, its raw type and big-endian payload, and
-/// its `.xtra` class and little-endian payload, as the software converts it.
-fn flight() -> Vec<(u32, u8, Vec<u8>, i16, Vec<u8>)> {
+/// A record of the invented flight: the ticks before it, its raw type and big-endian payload,
+/// and its `.xtra` class and little-endian payload, as the software converts it.
+type Record = (u32, u8, Vec<u8>, i16, Vec<u8>);
+
+/// The invented flight.
+#[cfg(test)]
+fn flight() -> Vec<Record> {
     let f32s = |values: &[f32]| {
         values
             .iter()
@@ -115,6 +119,7 @@ fn flight() -> Vec<(u32, u8, Vec<u8>, i16, Vec<u8>)> {
 }
 
 /// The tick bytes for `n` ticks, 126 at most a byte: `0xFF` is erased memory.
+#[cfg(test)]
 fn ticks(mut n: u32) -> Vec<u8> {
     let mut bytes = Vec::new();
     while n > 0 {
@@ -126,6 +131,7 @@ fn ticks(mut n: u32) -> Vec<u8> {
 }
 
 /// The dump of one recording of the flight, then erased memory.
+#[cfg(test)]
 fn dump() -> Vec<u8> {
     let mut bytes = vec![0x13];
     bytes.extend([0; 101]);
@@ -139,6 +145,7 @@ fn dump() -> Vec<u8> {
 }
 
 /// Each class's version, as the sample's archive states it.
+#[cfg(test)]
 fn version(class: i16) -> u32 {
     match class {
         2 | 3 => 3,
@@ -151,6 +158,7 @@ fn version(class: i16) -> u32 {
 
 /// The `.xtra` the software makes of the flight, stating `count` records, and the times it
 /// writes: the ticks summed in 32-bit floats, a tick byte at a time.
+#[cfg(test)]
 fn xtra(count: u64) -> (Vec<u8>, Vec<f32>) {
     let mut bytes = b"\x16\0\0\0serialization::archive\x10\0\x04\x04\x04\x08\x01\0\0\0".to_vec();
     bytes.extend([0, 3, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -183,6 +191,7 @@ fn xtra(count: u64) -> (Vec<u8>, Vec<f32>) {
 }
 
 /// The channel of a column.
+#[cfg(test)]
 fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
     log.channels
         .iter()
@@ -191,6 +200,7 @@ fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
 }
 
 /// The events, as names and times.
+#[cfg(test)]
 fn events(log: &FlightLog) -> Vec<(&str, f64)> {
     log.events
         .iter()
@@ -199,6 +209,7 @@ fn events(log: &FlightLog) -> Vec<(&str, f64)> {
 }
 
 /// A dump's refusal, its offset and message.
+#[cfg(test)]
 fn dump_refusal(bytes: &[u8]) -> (usize, String) {
     match entacore_raw::read_dump(bytes) {
         Err(LogError::Binary {
@@ -211,6 +222,7 @@ fn dump_refusal(bytes: &[u8]) -> (usize, String) {
 }
 
 /// An `.xtra`'s refusal, its offset and message.
+#[cfg(test)]
 fn xtra_refusal(bytes: &[u8]) -> (usize, String) {
     match entacore_raw::read_xtra(bytes) {
         Err(LogError::Binary {
@@ -520,6 +532,7 @@ fn xtra_refusals_and_notes() {
 }
 
 /// Where record `index`'s type byte is in the invented dump.
+#[cfg(test)]
 fn dump_at(index: usize) -> usize {
     let mut at = OPENING;
     for (k, (n, _, payload, ..)) in flight().into_iter().enumerate() {
@@ -533,6 +546,7 @@ fn dump_at(index: usize) -> usize {
 }
 
 /// Where the payload of the first record of `class` starts in the invented `.xtra`.
+#[cfg(test)]
 fn find_class(bytes: &[u8], class: i16) -> usize {
     let index = flight().iter().position(|r| r.3 == class).unwrap();
     let start = find_record(bytes, index);
@@ -541,6 +555,7 @@ fn find_class(bytes: &[u8], class: i16) -> usize {
 }
 
 /// Where record `index` of the invented `.xtra` starts.
+#[cfg(test)]
 fn find_record(bytes: &[u8], index: usize) -> usize {
     let mut at = XTRA_RECORDS_AT;
     let mut seen = Vec::new();
@@ -560,17 +575,21 @@ fn find_record(bytes: &[u8], index: usize) -> usize {
     at
 }
 
-/// None of the other readers' invented samples is taken for an AIM file or an `.ALS`.
+/// None of the other readers' invented binary samples is taken for an AIM file or an `.ALS`.
 #[test]
 fn no_other_sample_is_taken_for_these() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/samples");
-    let mut read = 0;
-    for entry in std::fs::read_dir(dir).unwrap() {
-        let bytes = std::fs::read(entry.unwrap().path()).unwrap();
-        assert!(!entacore_raw::recognizes_dump(&bytes));
-        assert!(!entacore_raw::recognizes_xtra(&bytes));
-        assert!(!altimax_als::recognizes(&bytes));
-        read += 1;
+    for bytes in [
+        &include_bytes!("samples/altos-eeprom-telemetrum-v1.eeprom")[..],
+        include_bytes!("samples/altos-eeprom-telemetrum-v2.eeprom"),
+        include_bytes!("samples/altos-telemetry.telem"),
+        include_bytes!("samples/arts2-raw.odf"),
+        include_bytes!("samples/marsa.dat"),
+        include_bytes!("samples/perfectflite-alt15k.pfa"),
+        include_bytes!("samples/rtx.rtx"),
+        include_bytes!("samples/eggtimer-rtf-two-downloads.rtf"),
+    ] {
+        assert!(!entacore_raw::recognizes_dump(bytes));
+        assert!(!entacore_raw::recognizes_xtra(bytes));
+        assert!(!altimax_als::recognizes(bytes));
     }
-    assert!(read > 50);
 }

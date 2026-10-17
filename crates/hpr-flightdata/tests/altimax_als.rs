@@ -32,6 +32,7 @@ const RECORDS: [(u8, u32, i16, bool); 12] = [
 /// The invented file: its header, with the zero and apogee pressures and the last record's
 /// index, then the records, each record's voltage channel 1 to 5 in turn and its count 500 plus
 /// its index.
+#[cfg(test)]
 fn als() -> Vec<u8> {
     let mut bytes = vec![0_u8; HEADER];
     bytes[4..8].copy_from_slice(&98_000_u32.to_le_bytes());
@@ -51,11 +52,13 @@ fn als() -> Vec<u8> {
 }
 
 /// The byte where record `index` starts.
+#[cfg(test)]
 fn at(index: usize) -> usize {
     HEADER + RECORD * index
 }
 
 /// The channel of a column.
+#[cfg(test)]
 fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
     log.channels
         .iter()
@@ -64,6 +67,7 @@ fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
 }
 
 /// A refusal's offset and message.
+#[cfg(test)]
 fn refusal(bytes: &[u8]) -> (usize, String) {
     match altimax_als::read(bytes) {
         Err(LogError::Binary {
@@ -76,6 +80,7 @@ fn refusal(bytes: &[u8]) -> (usize, String) {
 }
 
 /// The clock, 5 ms a record and 25 ms for the slower four, summed from the first at 5 ms.
+#[cfg(test)]
 fn clock() -> Vec<f64> {
     let mut time = 0.0;
     RECORDS
