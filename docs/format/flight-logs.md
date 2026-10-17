@@ -3203,7 +3203,7 @@ fitted to this file:
 | The clock, 5 ms or 25 ms a record summed in 64-bit floats | 25,334 | every one equal |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.35 in); the check allows 41.9 mm (1.65 in), the height of half a pascal at the zero pressure |
+| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in); the check allows 41.9 mm (1.65 in), the height of half a pascal at the zero pressure |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
