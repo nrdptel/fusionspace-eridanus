@@ -3198,7 +3198,7 @@ it, and `cargo xtask logs --check` fails if any of these comparisons does:
 | The clock, at 15 digits | 25,334 | 11 off by one in the 15th digit |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.35 in), where half what a pascal moves the zero's height is 42 mm (1.7 in) |
+| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in), where half what a pascal moves the zero's height is 42 mm (1.7 in) |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
