@@ -483,7 +483,7 @@ thick fills it.
 | an inner tube, coupler or launch lug with a wall of 0 | nothing |
 | a shoulder with a wall of 0, or none written | nothing, whether or not the file closes its end with a cap, on a hollow nose or a filled one |
 | a filled nose cone with a walled shoulder | the solid cone plus the shoulder's own wall |
-| a nose cone, transition or body tube with no thickness written | a 2 mm (0.079 in) wall, whatever its radius (measured on a nose cone and a tube at 50 mm (2.0 in) and at 30 mm (1.2 in), and on a transition) |
+| a nose cone, transition or body tube with no thickness written | a 2 mm (0.079 in) wall, whatever its radius past that (measured on a nose cone and a tube at 50 mm (2.0 in) and at 30 mm (1.2 in), and on a transition) |
 | a part weighed by its volume (a nose, transition, tube, coupler, engine block, fin set, ring or lug) with no material | cardboard, 680 kg/m³ |
 | a canopy or streamer with no material | ripstop nylon, 0.067 kg/m² |
 | shroud lines or a shock cord with no material | a 2 mm (0.079 in) elastic cord, 0.0018 kg/m |

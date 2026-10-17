@@ -47,8 +47,8 @@ say how a model is checked, a different list.
 
 No row is `real` or `sibling` yet, so the report below has no column for either. A row also says
 what its evidence doesn't cover (*not checked*), lists each real sample with its SHA-256 hash (a
-fingerprint of the file's bytes) and the test that reads it, and keeps a dated list of where a search for better
-evidence looked and what it found, so the next search doesn't repeat it.
+fingerprint of the file's bytes) and the test that reads it, and keeps a dated list of where a
+search for better evidence looked and what it found, so the next search doesn't repeat it.
 
 ## Sending a sample
 
@@ -95,7 +95,7 @@ The register holds 31 rows, as of October 17, 2026.
 | <a id="g9"></a>G9 | Flight-log readers | Formats with no sample (CATS's, a logger named Juno and the others listed) have no reader of their own. **Not checked:** the formats the list names, of which no sample can be tested on its terms. | none | real | [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) | none |
 | <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, and on one real log by a test that runs only where the log is fetched. **Not checked:** real logs of other loggers, for which the readings are withheld. | spec | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | none |
 | <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | none |
-| <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them yet. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | none |
+| <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | none |
 | <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | none |
 | <a id="g14"></a>G14 | Aerodynamics | Base drag with the motor burning takes the motor case off the base. **Not checked:** any measurement of base drag under power. | reasoning | real | [#667](https://github.com/nrdptel/fusionspace-eridanus/issues/667) | none |
 | <a id="g15"></a>G15 | Flight models | Thrust about a center of gravity off the axis turns the rocket in HPR Sim, and not in OpenRocket. **Not checked:** which of the two is right, which nothing measures. | reasoning | real | [#668](https://github.com/nrdptel/fusionspace-eridanus/issues/668) | none |

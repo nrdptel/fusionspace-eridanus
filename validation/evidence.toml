@@ -152,7 +152,7 @@ issue = 664
 [[row]]
 id = "G12"
 surface = "Flight models"
-claim = "Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them yet"
+claim = "Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them"
 pages = [
   "accuracy.md#results-by-model",
   "physics/turbulence.md#in-short",
