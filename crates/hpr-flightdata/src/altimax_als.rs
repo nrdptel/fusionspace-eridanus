@@ -239,7 +239,7 @@ fn fault(record: &Record, zeros: &[u8], before: Option<u8>) -> Option<String> {
 }
 
 /// Whether `bytes` are an AltiMAX `.ALS` file: a header stating at least one record, and the
-/// first records, up to 1,000, each a record ([`fault`] finds nothing).
+/// first records, up to 1,000, each a record as the module describes.
 pub fn recognizes(bytes: &[u8]) -> bool {
     let Some(stated) = stated_records(bytes) else {
         return false;
