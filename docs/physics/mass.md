@@ -472,7 +472,10 @@ OpenRocket's within
 of mass within 0.001 mm (0.000039 in). Where no fin, rail button or recovery part is in the probe, the inertias
 agree within 0.001% too. One gap is pinned rather than hidden, and described below: an elliptical
 fin set weighs 0.18% more. None of these readings raises a warning: where the file writes no
-value, HPR Sim takes the one OpenRocket 24.12 takes, as its probes measure it:
+value, or a wall of 0, HPR Sim takes what OpenRocket 24.12 takes, as its probes measure it and the
+table below lists. One case no probe reaches: a part whose radius is no more than the 2 mm
+(0.079 in) default wall, with no thickness written, is taken as filled, as a stated wall that
+thick fills it.
 
 | the file says | what it weighs (OpenRocket 24.12, and now HPR Sim) |
 |---|---|

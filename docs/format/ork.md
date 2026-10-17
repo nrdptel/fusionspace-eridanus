@@ -1467,7 +1467,7 @@ never writes one for two of the tags that matter most here: across the whole cor
 caches a number **0 times out of 131** and `innerradius` **0 out of 80**. So the 71 comparisons are
 all `aftradius`, `foreradius`, `radius` and `packedradius`, and the two rules this milestone adds,
 **an inner tube's automatic outer radius** and **a ring's automatic bore**, have *no oracle coverage
-at all* ([evidence row G18](../evidence.md#g18)). They rest on their unit tests and on the argument
+in these files* ([evidence row G18](../evidence.md#g18)). They rest on their unit tests and on the argument
 for them, until an OpenRocket oracle reads those parts too: the one
 [below](#held-against-openrocket-itself) reads body radii only, and
 [M2.2](../decisions-and-roadmap.md#m2-2) is where the rest belongs. `cargo xtask ork` prints the

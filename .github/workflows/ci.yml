@@ -372,7 +372,7 @@ jobs:
   # other check has passed on that commit.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, python, validate, doc, wasm-check, phone, deny, site]
+    needs: [fmt, clippy, test, examples, types, python, validate, doc, evidence, wasm-check, phone, deny, site]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.site.outputs.pages == 'true'
     runs-on: ubuntu-latest
     permissions:

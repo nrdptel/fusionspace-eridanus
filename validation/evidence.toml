@@ -31,7 +31,7 @@ pages = [
 ]
 kind = "code-to-code"
 wanted = "real"
-not_checked = "what a real tracker or phone writes, and what its `ele` is measured from"
+not_checked = "what a real tracker or phone writes, and what its elevation (`ele`) is measured from"
 issue = 654
 
 [[row.searched]]
@@ -122,13 +122,13 @@ pages = [
 ]
 kind = "none"
 wanted = "real"
-not_checked = "every format the list names: no sample on terms that let its bytes be tested"
+not_checked = "the formats the list names, of which no sample can be tested on its terms"
 issue = 662
 
 [[row]]
 id = "G10"
 surface = "The flight analyzer"
-claim = "The analyzer's readings are checked on an invented flight whose every reading is known, and on one real log by hand"
+claim = "The analyzer's readings are checked on an invented flight whose every reading is known, and on one real log by a test that runs only where the log is fetched"
 pages = [
   "reading-a-flight-log.md#reading-a-flight-log",
   "accuracy.md#accuracy",
@@ -152,7 +152,7 @@ issue = 664
 [[row]]
 id = "G12"
 surface = "Flight models"
-claim = "Dryden turbulence is an aircraft model, flown as its standard gives it"
+claim = "Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them yet"
 pages = [
   "accuracy.md#results-by-model",
   "physics/turbulence.md#in-short",
@@ -160,7 +160,7 @@ pages = [
 ]
 kind = "spec"
 wanted = "real"
-not_checked = "any rocket flight: it is unvalidated for rockets"
+not_checked = "any rocket flight, for which the model is unvalidated"
 issue = 665
 
 [[row]]
@@ -228,11 +228,11 @@ issue = 670
 [[row]]
 id = "G18"
 surface = "`.ork` import"
-claim = "An inner tube's automatic outer radius and a ring's automatic bore rest on their unit tests"
+claim = "An inner tube's automatic outer radius is held to OpenRocket only on fourteen probe designs, and a ring's automatic bore rests on its unit tests"
 pages = ["format/ork.md#checked-against-the-answers-openrocket-cached"]
 kind = "spec"
 wanted = "real"
-not_checked = "OpenRocket's own values for designs that use them: no oracle covers them"
+not_checked = "OpenRocket's values for a real design's automatic radii, which the library's files never cache, and for a ring's automatic bore"
 issue = 671
 
 [[row]]
@@ -252,7 +252,7 @@ claim = "A pushed part leaves through the end the simulator assumes, from the wa
 pages = ["physics/recovery.md#ejected-pieces"]
 kind = "reasoning"
 wanted = "real"
-not_checked = "a measured deployment: the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess"
+not_checked = "a measured deployment; the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess"
 issue = 673
 
 [[row]]
@@ -260,6 +260,7 @@ id = "G21"
 surface = "Accuracy against real flights"
 claim = "Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses"
 pages = [
+  "start-here.md#accuracy-so-far",
   "accuracy.md#accuracy",
   "VALIDATION.md#real-flights",
 ]
@@ -271,11 +272,11 @@ issue = 674
 [[row]]
 id = "G22"
 surface = "Fin flutter"
-claim = "Martin's flutter formula gives a fin's flutter speed"
+claim = "Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew"
 pages = ["physics/flutter.md#in-short"]
 kind = "spec"
 wanted = "real"
-not_checked = "flutter data: nothing here is checked against a hobby rocket"
+not_checked = "a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings"
 issue = 675
 
 [[row]]
@@ -290,7 +291,7 @@ wanted_adr = "ADR-278"
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss the real flights by 6.04% on average, outside the 5% target"
+claim = "The simulation's apogees miss seven public real flights by 6.04% on average and 53 private ones by 12.95%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",
@@ -326,7 +327,7 @@ pages = [
 ]
 kind = "code-to-code"
 wanted = "real"
-not_checked = "the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; a measured drag of any of them"
+not_checked = "a measured drag of any of them; the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; and the comparison misses past Mach 1.6, where against Calisto's export HPR Sim is within 10% at 8 of the 17 rows from Mach 1.2 to 2.0"
 issue = 678
 
 [[row]]
@@ -339,7 +340,7 @@ pages = [
 ]
 kind = "code-to-code"
 wanted = "real"
-not_checked = "a measured tube fin's lift or center, of which none was found; the interference between tubes, an unchecked estimate"
+not_checked = "a measured tube fin's lift or center, of which none was found; which code is right, as OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's at every Mach number; the interference between tubes, an unchecked estimate"
 issue = 679
 
 [[row]]
@@ -352,7 +353,7 @@ pages = [
 ]
 kind = "reasoning"
 wanted = "real"
-not_checked = "a second measured flare; any flare past its corner's limit; a near-flat flare, read by the older generalized method"
+not_checked = "a second measured flare; any flare past its corner's limit; the attachment test, a wedge's limit rather than a flare's own; a near-flat flare, read by the older generalized method"
 issue = 680
 
 [[row]]
@@ -370,9 +371,9 @@ id = "G30"
 surface = "Flight-log readers"
 claim = "The AltiMAX's Excel export keeps its voltages as the file states them"
 pages = ["format/flight-logs.md#the-altimaxs-excel-export"]
-kind = "reasoning"
+kind = "none"
 wanted = "real"
-not_checked = "the voltages, unchecked against anything"
+not_checked = "the voltages, which nothing checks"
 issue = 682
 
 [[row]]
@@ -382,5 +383,5 @@ claim = "An RRC3's Temperature and Voltages columns, which state no unit, are re
 pages = ["format/flight-logs.md#units-no-source-states"]
 kind = "reasoning"
 wanted = "real"
-not_checked = "the units, assumed: a file whose temperature or voltage can be checked against another record of the same flight"
+not_checked = "the units, which are assumed; a file whose temperature or voltage can be checked against another record of the same flight"
 issue = 683

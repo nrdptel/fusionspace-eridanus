@@ -30,8 +30,8 @@ and, less certainly, supersonic.
     ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222),
     [a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
   - *Base drag under power is unvalidated.* HPR Sim takes the burning motor's area off the base
-    (Niskanen) ([evidence row G14](../evidence.md#g14)); OpenRocket keeps the whole base. Neither
-    rule has been checked against a measured flight. On one private supersonic flight the choice
+    (Niskanen); OpenRocket keeps the whole base. Neither rule has been checked against a measured
+    flight ([evidence row G14](../evidence.md#g14)). On one private supersonic flight the choice
     moves the apogee by about 24 percentage points
     ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222), [Drag](#drag)).
   - *A boattail's own drag faster than sound* against 58 readings of 20 measured boattails of 3°

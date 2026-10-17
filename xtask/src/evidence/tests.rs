@@ -424,6 +424,19 @@ fn evidence_each_register_rule_fails_its_row() {
             .unwrap();
         alone(line, &format!("{field} = \"\""), &format!("has no {field}"));
     }
+    // What goes to cargo and the test harness is a name, never an option.
+    for field in ["package", "target", "test"] {
+        let line = (REGISTER_TEXT.lines())
+            .find(|line| line.starts_with(&format!("{field} = ")))
+            .unwrap();
+        for value in ["--include-ignored", "a b", "x;y"] {
+            alone(
+                line,
+                &format!("{field} = \"{value}\""),
+                &format!("its {field} `{value}` isn't a name"),
+            );
+        }
+    }
     // Dates: real ones, searches oldest first and none after as_of.
     alone(
         "as_of = \"2026-10-17\"",
@@ -738,7 +751,12 @@ fn evidence_a_gap_asks_in_its_row_s_issue() {
     Case::page("motors.md", "searches ([G2](evidence.md#g2)).\n", &asks).fails_only(
         "docs/motors.md:5: asks for a sample in the issue list; link the row's issue instead",
     );
-    for dest in [format!("{list}/"), format!("{list}?q=label%3Aneeds-sample")] {
+    let label = "https://github.com/nrdptel/fusionspace-eridanus/labels/needs-sample";
+    for dest in [
+        format!("{list}/"),
+        format!("{list}?q=label%3Aneeds-sample"),
+        label.to_owned(),
+    ] {
         let asks = format!("searches ([G2](evidence.md#g2)); no sample yet: [send one]({dest}).\n");
         Case::page("motors.md", "searches ([G2](evidence.md#g2)).\n", &asks)
             .fails_only("asks for a sample in the issue list");
@@ -837,7 +855,9 @@ fn evidence_links_resolve_from_the_page() {
         Some("G1")
     );
     assert_eq!(named("format/x.md", "evidence.md#g1"), None);
-    assert_eq!(named("x.md", "./evidence.md#G1").as_deref(), Some("G1"));
+    assert_eq!(named("x.md", "./evidence.md#g1").as_deref(), Some("G1"));
+    // The report's anchors are lowercase, and a fragment's case counts.
+    assert_eq!(named("x.md", "./evidence.md#G1"), None);
     assert_eq!(named("x.md", "evidence.md#g12").as_deref(), Some("G12"));
     assert_eq!(named("x.md", "evidence.md#gx"), None);
     assert_eq!(named("x.md", "evidence.md#g"), None);
@@ -900,7 +920,7 @@ has an open issue labeled `needs-sample`, linked in its row below.
 | Row | Surface | Claim | Evidence | Wanted | Issue | Last search |
 |---|---|---|---|---|---|---|
 | <a id=\"g1\"></a>G1 | Flight-log readers | GPX tracks: built from the schemas, checked against \
-gpxpy on an invented file. Not checked: what a writer puts in `ele`. | code to code | real | \
+gpxpy on an invented file. **Not checked:** what a writer puts in `ele`. | code to code | real | \
 [#645](https://github.com/nrdptel/fusionspace-eridanus/issues/645) | 2026-10-17 |
 | <a id=\"g2\"></a>G2 | The motor finder | Replayed on stand-in searches. | spec | spec \
 ([ADR-145](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\

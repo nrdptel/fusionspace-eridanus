@@ -104,7 +104,7 @@ pub(crate) fn region(
     for row in rows {
         let mut claim = sentence(&row.claim);
         if let Some(not_checked) = row.not_checked.as_deref().filter(|t| !t.trim().is_empty()) {
-            let _ = write!(claim, " Not checked: {}", sentence(not_checked));
+            let _ = write!(claim, " **Not checked:** {}", sentence(not_checked));
         }
         let wanted = match &row.wanted_adr {
             Some(adr) => format!("{} ({})", row.wanted.words(), adr_link(adr, decisions)?),

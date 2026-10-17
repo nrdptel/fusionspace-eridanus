@@ -19,7 +19,7 @@ RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, 
 R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw
 downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and
 NMEA files, Missile Works' RTx tracker's `.rtx` file and its exports, and GPX files (checked on
-invented files only), and tables from loggers no other reader knows, by the units their headers
+invented files only, [evidence row G1](evidence.md#g1)), and tables from loggers no other reader knows, by the units their headers
 state, into the same record, those in a CSV layout also from the sheets of an Excel workbook, a team
 flight computer's binary records by a layout the caller states, a Blue Raven's USB download, each
 line held to its CRC, and a course's Teensy data logger, its units held to the flight's physics, and
@@ -28,8 +28,8 @@ header you state, an AltiMAX altimeter's `.xls` export and its own `.ALS` file, 
 `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a
 table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or cut to its columns,
 and tables whose headers state too little, by a column mapping you state, the sample tables'
-mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md))
-([evidence row G1](evidence.md#g1)). Python reads by its reader each the library tells from the file
+mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md)).
+Python reads by its reader each the library tells from the file
 alone, and a table or binary records by a mapping or a layout, but not yet an `.xls` export, a zip
 archive's files or a workbook's sheet but by a mapping
 ([`FlightLog`](your-own-logger.md#from-python)); `hpr analyze` reads PerfectFlite's `.pf2` logs by

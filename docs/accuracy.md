@@ -14,14 +14,13 @@ includes a sideways force on the body that RocketPy leaves out.** With each code
 example's. **Against the logs of seven real flights, HPR Sim's apogees miss by 6.04% on average,
 outside the 5% target, and by −8.90% to +10.40% one by one** ([real flights](#real-flights),
 [report][real-report]) ([evidence row G24](evidence.md#g24)); four of the five misses past 5% are
-consistent with HPR Sim's drag, and one with the motor's impulse. These flights are not held out:
-the models were chosen with their results in view, so they calibrate more than they test, until
+consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
+kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)). **Against 53 more
+flights from a private collection, HPR Sim's apogees are +8.73% above the logs on average and miss
+by 12.95% (mean absolute), also outside the target; OpenRocket's are +7.79% above**
+([private collection](#real-flights-of-the-private-collection), [report][fixture-report]). Neither
+set is held out: both were seen during development, so neither is a blind test until
 [M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted before their logs are read.
-Four of those seven altimeters' kinds are assumed, and none is calibrated
-([evidence row G21](evidence.md#g21)). **Against 53 more flights from a private collection, HPR
-Sim's apogees are +8.73% above the logs on average and miss by 12.95% (mean absolute), also
-outside the target; OpenRocket's are +7.79% above**
-([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 > **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.

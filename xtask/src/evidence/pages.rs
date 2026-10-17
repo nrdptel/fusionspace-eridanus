@@ -325,10 +325,14 @@ fn without_pairs(text: &str, open: char, close: char) -> String {
 }
 
 /// Whether a link's destination is the repository's list of issues itself, less any query, any
-/// fragment and a trailing slash, rather than one numbered issue.
+/// fragment and a trailing slash, or the list of one label's issues, rather than one numbered
+/// issue.
 pub(crate) fn is_issue_list(dest: &str) -> bool {
     let dest = dest.split(['?', '#']).next().unwrap_or_default();
-    dest.trim_end_matches('/') == format!("https://github.com/{REPOSITORY}/issues")
+    let dest = dest.trim_end_matches('/');
+    let repository = format!("https://github.com/{REPOSITORY}/");
+    dest.strip_prefix(repository.as_str())
+        .is_some_and(|rest| rest == "issues" || rest.starts_with("labels/"))
 }
 
 /// Where `phrase` first stands in `text` as whole words: no letter or digit right before it,
@@ -357,8 +361,9 @@ pub(crate) fn first_match(text: &str, phrase: &str) -> Option<usize> {
 }
 
 /// The row a link on `page` (from `docs/`) names, as `G12`: a destination that resolves, from
-/// the page's directory, to the report's page with the fragment `g` and a number, in either
-/// case. `None` for any other link.
+/// the page's directory, to the report's page with the fragment `g` and a number, in lowercase
+/// as the report writes its anchors (`#G1` lands on no row, since an anchor's case counts).
+/// `None` for any other link.
 pub(crate) fn row_named(page: &str, dest: &str) -> Option<String> {
     if is_outside(dest) {
         return None;
@@ -372,7 +377,6 @@ pub(crate) fn row_named(page: &str, dest: &str) -> Option<String> {
     if join(parent(page), path)? != PAGE_NAME {
         return None;
     }
-    let fragment = fragment.to_ascii_lowercase();
     let number = fragment.strip_prefix('g')?;
     (!number.is_empty() && number.bytes().all(|b| b.is_ascii_digit())).then(|| format!("G{number}"))
 }

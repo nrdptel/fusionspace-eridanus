@@ -604,6 +604,19 @@ fn sample_rules(sample: &Sample) -> Vec<String> {
             problems.push(format!("has no {field}"));
         }
     }
+    // The three go to cargo and the test harness as arguments: a name, never an option.
+    let name = |b: u8| b.is_ascii_alphanumeric() || b"_:.-".contains(&b);
+    for (field, text) in [
+        ("package", &sample.package),
+        ("target", &sample.target),
+        ("test", &sample.test),
+    ] {
+        if !text.is_empty() && (text.starts_with('-') || !text.bytes().all(name)) {
+            problems.push(format!(
+                "its {field} `{text}` isn't a name: letters, digits and `_:.-`, not starting `-`"
+            ));
+        }
+    }
     problems
 }
 
