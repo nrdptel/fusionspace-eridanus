@@ -37,7 +37,8 @@ part with its page).
   screening and Sobol' indices) and [optimization](https://hpr.fusionspace.co/optimization.html)
   of design numbers and choices (CMA-ES, NSGA-II's trade-offs between goals, and EGO for slow
   models), in the library; `hpr mc` runs the Monte Carlo from the command line.
-- A PerfectFlite `.pf2` flight log read on its own, with no design file (`hpr analyze`).
+- A PerfectFlite `.pf2` flight log read on its own, with no design file, or another logger's
+  table or binary records by a mapping or layout you write (`hpr analyze`).
 - Flights exported as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and a Python package.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
@@ -208,7 +209,7 @@ lists only what exists: a "not yet" command refuses, with exit status 3, until i
 | `hpr mc` | Fly a design many times, each flight's inputs scattered at random, and print how its apogee and landing spread; export every flight | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](https://hpr.fusionspace.co/decisions-and-roadmap.html#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log | text, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log, another logger's table by a column mapping, binary records or a console capture by a record layout | text, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-completions)) |
 

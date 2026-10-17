@@ -382,7 +382,22 @@ fn version_and_every_document_name_the_tool() {
         // The title block comes first, before the command's own fields.
         assert!(text.starts_with("{\n  \"tool\": {"), "{args:?}: {text}");
     }
-    for (name, schema) in hpr_cli::schemas() {
+    // Every schema published is an output's or a read file's, so none escapes both checks.
+    let mut both: Vec<&str> = hpr_cli::output_schemas()
+        .iter()
+        .chain(&hpr_cli::input_schemas())
+        .map(|(name, _)| *name)
+        .collect();
+    both.sort_unstable();
+    let published: Vec<&str> = hpr_cli::schemas().iter().map(|(name, _)| *name).collect();
+    assert_eq!(both, published);
+    // A file a person writes names no tool, and a key its schema doesn't list is refused.
+    for (name, schema) in hpr_cli::input_schemas() {
+        let schema: Value = serde_json::from_str(&schema).unwrap();
+        assert!(schema["properties"].get("tool").is_none(), "{name}");
+        assert_eq!(schema["additionalProperties"], Value::Bool(false), "{name}");
+    }
+    for (name, schema) in hpr_cli::output_schemas() {
         let schema: Value = serde_json::from_str(&schema).unwrap();
         assert!(
             schema["required"]

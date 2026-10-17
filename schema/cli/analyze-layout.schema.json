@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Layout",
+  "description": "A record layout as its file states it: the fields of a record, their byte order, and for a\nserial console's capture, the block the records are in.",
+  "type": "object",
+  "properties": {
+    "block": {
+      "description": "For a serial console's capture of the records as base64, the name of the block they are\nin, as the capture's start marker names it ([`capture`]); `None` for a file of the\nrecords' bytes.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "byte_order": {
+      "description": "The order of each field's bytes: little-endian unless the layout says otherwise.",
+      "$ref": "#/$defs/ByteOrder",
+      "default": "little"
+    },
+    "fields": {
+      "description": "Each field of a record, in the record's order. A field's name states its unit as a\ntable's header does, such as `Time (ms)` or `pressure__pa`: the records are written out\nas a table under those names and read by what they state ([`records::read`]), so one\nfield must be a clock in a unit of time.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Field"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "fields"
+  ],
+  "$defs": {
+    "ByteOrder": {
+      "description": "The order of a field's bytes.",
+      "oneOf": [
+        {
+          "description": "The least significant byte first, as ARM and x86 processors store a number.",
+          "type": "string",
+          "const": "little"
+        },
+        {
+          "description": "The most significant byte first.",
+          "type": "string",
+          "const": "big"
+        }
+      ]
+    },
+    "Field": {
+      "description": "One field of a record: its name, as a table's header would write it, and its type.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "The field's type.",
+          "$ref": "#/$defs/FieldKind"
+        },
+        "name": {
+          "description": "The field's name, its unit in it where it has one, such as `pressure__kpa` or `Time (ms)`\n([`generic`]'s *Units in a name*).",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind"
+      ]
+    },
+    "FieldKind": {
+      "description": "The type of one field of a record.",
+      "oneOf": [
+        {
+          "description": "An unsigned 8-bit integer.",
+          "type": "string",
+          "const": "u8"
+        },
+        {
+          "description": "A signed 8-bit integer, two's complement.",
+          "type": "string",
+          "const": "i8"
+        },
+        {
+          "description": "An unsigned 16-bit integer.",
+          "type": "string",
+          "const": "u16"
+        },
+        {
+          "description": "A signed 16-bit integer, two's complement.",
+          "type": "string",
+          "const": "i16"
+        },
+        {
+          "description": "An unsigned 32-bit integer.",
+          "type": "string",
+          "const": "u32"
+        },
+        {
+          "description": "A signed 32-bit integer, two's complement.",
+          "type": "string",
+          "const": "i32"
+        },
+        {
+          "description": "An unsigned 64-bit integer.",
+          "type": "string",
+          "const": "u64"
+        },
+        {
+          "description": "A signed 64-bit integer, two's complement.",
+          "type": "string",
+          "const": "i64"
+        },
+        {
+          "description": "An IEEE 754 binary32 float.",
+          "type": "string",
+          "const": "f32"
+        },
+        {
+          "description": "An IEEE 754 binary64 float.",
+          "type": "string",
+          "const": "f64"
+        }
+      ]
+    }
+  }
+}

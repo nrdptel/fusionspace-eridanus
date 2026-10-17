@@ -5,6 +5,9 @@ Four types make a flight, in the order a program needs them: an ``Environment``,
 Values are in SI units, named in every argument and attribute. The guide's Python page walks
 through them: https://hpr.fusionspace.co/python.html
 
+A ``FlightLog`` is a flight log read into one record, by its format's own reader or by the column
+mapping or record layout you write for your own logger, as ``hpr analyze`` reads it.
+
 Import it as ``from fusionspace import hpr``.
 """
 
@@ -12,6 +15,7 @@ from fusionspace.hpr._hpr import (
     DragTable,
     Environment,
     Flight,
+    FlightLog,
     HprError,
     MonteCarlo,
     Motor,
@@ -24,6 +28,7 @@ __all__ = [
     "DragTable",
     "Environment",
     "Flight",
+    "FlightLog",
     "HprError",
     "MonteCarlo",
     "Motor",

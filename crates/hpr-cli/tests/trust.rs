@@ -163,6 +163,37 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
     assert_eq!(document["trust"], note.as_str());
 }
 
+/// A log read by the flyer's own mapping or layout ends with its own note: the logger's samples
+/// in the units the file states, which may hold no barometer at all (a GPS tracker's table), and
+/// no readings until M7.2.
+#[test]
+fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
+    let folder = "validation/fixtures/logs/own-logger";
+    for (log, by, file) in [
+        ("gps-track.csv", "--mapping", "gps-track.mapping.json"),
+        ("flight.bin", "--layout", "flight.layout.json"),
+    ] {
+        let log = repo_file(&format!("{folder}/{log}"));
+        let file = repo_file(&format!("{folder}/{file}"));
+        let (out, _) = run(&["analyze", &log, by, &file]);
+        let note = closing_note_at(&out, "your-own-logger.html");
+        in_order(
+            &note,
+            &[
+                "The logger's own samples, read by HPR Sim in the units your mapping or layout \
+                 states, not simulated: as right as those units are.",
+                "until roadmap milestone M7.2 validates them on other loggers;",
+                "check a unit against a known height,",
+            ],
+        );
+        assert!(!note.contains("barometer"), "{note}");
+        let (json, _) = run(&["analyze", &log, by, &file, "--json"]);
+        let document: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(document["kind"], "measured");
+        assert_eq!(document["trust"], note.as_str());
+    }
+}
+
 /// `hpr motors show` ends with where its figures come from and what to go by instead: the
 /// catalog's download date for a catalog motor, the file for a motor file; `--json` carries it
 /// as `trust`, beside `kind: "copied"`.

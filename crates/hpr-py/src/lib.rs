@@ -44,11 +44,12 @@
 
 #![allow(
     clippy::disallowed_methods,
-    reason = "the bindings are an I/O boundary, as the command line is: `Motor.from_file` and \
-              `Rocket.from_file` read the files Python names"
+    reason = "the bindings are an I/O boundary, as the command line is: `Motor.from_file`, \
+              `Rocket.from_file` and `FlightLog.read` read the files Python names"
 )]
 
 mod flight;
+mod log;
 mod models;
 mod montecarlo;
 mod rocket;
@@ -115,6 +116,7 @@ fn _hpr(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<rocket::Rocket>()?;
     m.add_class::<flight::DragTable>()?;
     m.add_class::<flight::Flight>()?;
+    m.add_class::<log::FlightLog>()?;
     m.add_class::<montecarlo::MonteCarlo>()?;
     Ok(())
 }

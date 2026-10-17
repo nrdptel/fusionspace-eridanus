@@ -60,6 +60,7 @@
 
 use std::fmt::Write as _;
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::error::LogError;
@@ -81,7 +82,7 @@ pub const MAX_TEXT_BYTES: usize = 256 * 1024 * 1024;
 const FORMAT: &str = "binary records";
 
 /// The type of one field of a record.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum FieldKind {
@@ -120,7 +121,7 @@ impl FieldKind {
 }
 
 /// The order of a field's bytes.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ByteOrder {
     /// The least significant byte first, as ARM and x86 processors store a number.
@@ -131,7 +132,8 @@ pub enum ByteOrder {
 }
 
 /// One field of a record: its name, as a table's header would write it, and its type.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Field {
     /// The field's name, its unit in it where it has one, such as `pressure__kpa` or `Time (ms)`
     /// ([`generic`]'s *Units in a name*).

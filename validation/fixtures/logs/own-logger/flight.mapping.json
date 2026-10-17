@@ -1,0 +1,29 @@
+{
+  "header_line": 2,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "primary": 1,
+  "columns": [
+    {
+      "name": "Time (ms)",
+      "quantity": null,
+      "unit": "ms"
+    },
+    {
+      "name": "Alt",
+      "quantity": "altitude_above_ground",
+      "unit": "ft"
+    },
+    {
+      "name": "Pressure (Pa)",
+      "quantity": "pressure",
+      "unit": "pa"
+    },
+    {
+      "name": "Accel X (g)",
+      "quantity": "acceleration",
+      "unit": "g"
+    }
+  ]
+}

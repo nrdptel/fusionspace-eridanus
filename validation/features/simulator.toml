@@ -496,10 +496,8 @@ label = "Reads an altimeter's flight log"
 
 [[capability.cell]]
 tool = "hpr"
-has = "partly"
+has = "yes"
 page = "docs/reading-a-flight-log.md"
-milestone = "M7.1"
-note = "it reads PerfectFlite's logs only, so far"
 
 [[capability.cell]]
 tool = "openrocket"

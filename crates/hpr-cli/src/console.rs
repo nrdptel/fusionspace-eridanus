@@ -213,9 +213,15 @@ impl Paint {
         styled
     }
 
-    /// Writes one message line, [`Paint::prefixed`].
+    /// Writes one message line, [`Paint::prefixed`]. A message can quote a file's text, such as
+    /// a column's name or a JSON value, so each control character in it but a line break, such
+    /// as an escape that would reach the terminal, is shown as `?`.
     pub(crate) fn line(self, to: &mut dyn Write, level: Level, text: &str) -> io::Result<()> {
-        writeln!(to, "{}", self.prefixed(level, text))
+        let text: String = text
+            .chars()
+            .map(|c| if c.is_control() && c != '\n' { '?' } else { c })
+            .collect();
+        writeln!(to, "{}", self.prefixed(level, &text))
     }
 }
 
