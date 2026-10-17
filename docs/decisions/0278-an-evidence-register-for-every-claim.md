@@ -38,7 +38,7 @@ part, and 12 by nothing:
 | G20 | The direction of the ejection push (ADR-086) | [recovery](../physics/recovery.md) | no |
 | G21 | Four of seven public altimeters assumed barometric | [accuracy](../accuracy.md) | in part (research note) |
 | G22 | Martin's flutter formula, not compared with flutter data | [flutter](../physics/flutter.md) | yes (research topic) |
-| G23 | The motor finder, replayed on stand-in searches; a live check is barred by ThrustCurve's license (ADR-145), so this row's wanted kind stays below `real` | [motor stock](../motor-stock.md) | no |
+| G23 | The motor finder, replayed on stand-in searches; a live check is barred by ThrustCurve's license (ADR-145), so this row's kind and wanted kind are both `spec`, and it has no open issue | [motor stock](../motor-stock.md) | no |
 | G24 | The simulation as a whole, short of its real-flight targets | [accuracy](../accuracy.md) | yes (M2.6 to M2.9) |
 
 The tracked ones show the pattern works when someone files it.
@@ -80,7 +80,7 @@ row should keep, so the next search doesn't repeat it.
    only) or `none`; `wanted` (the kind that would settle it); `not_checked`; `samples` (each real
    sample's SHA-256 and the test that reads it, the file under `refs/` with its license);
    `issue`, which closes only when the row reaches its wanted kind (a wanted kind below `real`
-   takes an ADR, as for G23); and `searched`, a dated list of where a search looked and what it found.
+   takes an ADR, as for G23, the one such row now); and `searched`, a dated list of where a search looked and what it found.
 2. *The check.* A `cargo xtask evidence` step, run by the gate and CI, fails when a page states
    that a surface rests on invented samples, an assumption or no sample without naming a row;
    when a row short of `real` has no open issue labelled `needs-sample`, or its issue is closed
@@ -89,7 +89,8 @@ row should keep, so the next search doesn't repeat it.
    `refs/`, so CI checks only the register's structure), when a sample is missing, its hash
    differs, or its test skipped. A skipped test is never evidence. The phrases that state a gap
    are a committed list with a test that each one fires on a canary page, and a fixture of the
-   24 surveyed sentences must each be detected; removing a phrase or a row takes an ADR.
+   24 surveyed sentences must each be detected; a test pins the phrase list's length and the row ids,
+   so removing a phrase or a row fails until an ADR amends this one.
 3. *The report.* A committed report counts the rows by kind and surface, and a docs page shows it,
    with no combined score; rows with no search, or whose last search is over 30 days old, are listed as due.
 4. *The request.* Each format page's request for a sample (each entry under the flight-log page's

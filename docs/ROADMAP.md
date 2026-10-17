@@ -211,7 +211,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   issue or its issue is closed, or when a `real` row lists no sample with its SHA-256 and test; the
   gate's `refs` step fails when such a sample is missing, its hash differs or its test skipped;
   each failure is pinned by a test that shows it fires; rows G1 to G24 of ADR-278's table exist,
-  each short of its wanted kind with an open issue; a docs page shows a committed report counting
+  each but G23 (at its wanted kind) short of it with an open issue; a docs page shows a committed report counting
   rows by kind and surface, with no combined score, and the rows due a search (none yet, or the
   last over 30 days old); each format page's sample request links its issue. Moves: honest trust.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
