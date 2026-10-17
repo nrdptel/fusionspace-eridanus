@@ -3581,19 +3581,22 @@
         ],
         "voltage": [
           25334,
-          31,
-          1
+          0,
+          0
         ],
         "time": [
           25334,
-          11,
-          1
+          0,
+          0
         ],
         "speed": [
           8373,
           0,
           0
         ],
+        "time_on_tie": 1,
+        "voltage_by_doubles_differing": 31,
+        "time_rounded_once_differing": 11,
         "speed_not_compared": 16961,
         "events_equal": true,
         "events": 21,
