@@ -231,6 +231,28 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo doc --workspace --no-deps --all-features --locked
 
+  # The evidence register (M2.10, ADR-278): the guide's pages, the register's schema and report,
+  # and each row short of its wanted evidence held to an open `needs-sample` issue, which needs a
+  # token that can read the issues. The samples it lists are under the gitignored refs/, so the
+  # gate's refs step checks them, not CI.
+  evidence:
+    name: evidence
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo run --locked --quiet --package xtask -- evidence
+
   wasm-check:
     name: wasm-check
     runs-on: ubuntu-latest
@@ -350,7 +372,7 @@ jobs:
   # other check has passed on that commit.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, python, validate, doc, wasm-check, phone, deny, site]
+    needs: [fmt, clippy, test, examples, types, python, validate, doc, evidence, wasm-check, phone, deny, site]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.site.outputs.pages == 'true'
     runs-on: ubuntu-latest
     permissions:

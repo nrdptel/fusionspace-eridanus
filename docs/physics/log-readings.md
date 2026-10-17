@@ -16,14 +16,15 @@ it withholds one instead of guessing.
   taken from a published source. The landing check uses a fall from rest in vacuum: drag only
   slows a fall, so no real descent is faster.
 - **How well it is validated:** against an invented flight whose every reading is known exactly,
-  each reading lands within the bound the log's rounding and the filter allow
-  ([Checked against](#checked-against)). On a real log, Debrief's public Pnut file, FusionSpace HPR
-  reads 1,010 ft where the altimeter's own software states 1,009 ft: one flight, and two readings of
-  one pressure trace rather than a measurement of the height. That log isn't committed, so this
-  check runs only where it has been fetched, not in CI. The private collection of logs Debrief was
-  built on is read by the importer ([M7.1a](../decisions-and-roadmap.md#m7-1a),
-  [the layouts read](../format/flight-logs.md)), but the readings aren't yet checked against it:
-  that is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
+  each reading lands within the bound the log's rounding and the filter allow ([Checked
+  against](#checked-against)) ([evidence row G10](../evidence.md#g10)). On a real log, Debrief's
+  public Pnut file, FusionSpace HPR reads 1,010 ft where the altimeter's own software states 1,009
+  ft: one flight, and two readings of one pressure trace rather than a measurement of the height.
+  That log isn't committed, so this check runs only where it has been fetched, not in CI. The
+  private collection of logs Debrief was built on is read by the importer
+  ([M7.1a](../decisions-and-roadmap.md#m7-1a), [the layouts read](../format/flight-logs.md)), but
+  the readings aren't yet checked against it: that is [M7.2](../decisions-and-roadmap.md#m7-2)'s
+  work.
 - **What it leaves out:** the drogue and main descent rates each on its own, Mach number,
   dynamic pressure, burnout, and anything an accelerometer or GPS would give. It takes the
   logger's altitude as the logger converted it, with no correction for the day's air, and has no
@@ -234,7 +235,8 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
 - **Other loggers.** The readings are taken from PerfectFlite's logs only: on a record read from
   another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
   *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
-  there. A GPS log has no barometric track, and a raw download's barometer records pressures, not
+  there
+  ([evidence row G10](../evidence.md#g10)). A GPS log has no barometric track, and a raw download's barometer records pressures, not
   altitudes, as a Blue Raven's USB download does, so every reading withholds on all three, on a Teensy data logger's file, which writes no altitude above the pad, on the radio packets, whose climbing value has no settled unit, on a table read by its header, whose header
   doesn't say which column is a barometric altitude above the pad, and on a Featherweight
   summary, which holds no samples. The AltiMAX's `.ALS` and Entacore AIM's `.xtra` files and raw

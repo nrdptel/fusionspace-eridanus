@@ -18,9 +18,10 @@ motor from the catalog that comes with HPR Sim. It then finds the rocket's
 > ([Aerodynamics](physics/aero.md#verification)). The mass and CG come from each part's shape and a
 > published density, so glue, paint and hardware are missing until you weigh the parts and enter
 > the weights ([What else a design can hold](#what-else-a-design-can-hold)). This rocket's flight is
-> not validated: whole flights of other rockets have been compared with RocketPy's, OpenRocket's
-> and seven real flights' ([Accuracy](accuracy.md#real-flights)), but not this one's
-> ([Getting started](getting-started.md#accuracy-of-these-numbers)).
+> not validated ([evidence row G24](evidence.md#g24)): whole flights of other rockets have been
+> compared with RocketPy's, OpenRocket's and seven real flights'
+> ([Accuracy](accuracy.md#real-flights)), but not this one's ([Getting
+> started](getting-started.md#accuracy-of-these-numbers)).
 
 ## Running the example
 

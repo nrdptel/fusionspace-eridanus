@@ -31,8 +31,9 @@ and, less certainly, supersonic.
     [a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
   - *Base drag under power is unvalidated.* HPR Sim takes the burning motor's area off the base
     (Niskanen); OpenRocket keeps the whole base. Neither rule has been checked against a measured
-    flight. On one private supersonic flight the choice moves the apogee by about 24 percentage
-    points ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222), [Drag](#drag)).
+    flight ([evidence row G14](../evidence.md#g14)). On one private supersonic flight the choice
+    moves the apogee by about 24 percentage points
+    ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222), [Drag](#drag)).
   - *A boattail's own drag faster than sound* against 58 readings of 20 measured boattails of 3°
     to 10°, Mach 1.2 to 3.12: −21.9% to +28.3%, within 0.0123. Through Mach 1 it reads low, and
     under Niskanen's subsonic rule long boattails get almost nothing. Steeper ones in a thick
@@ -54,11 +55,11 @@ and, less certainly, supersonic.
     [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) don't
     record their fins or surface finish, so HPR Sim uses stated guesses for them. Against Calisto's,
     the one real RASAero II export, HPR Sim is within 10% at every Mach number up to 0.8, at 3 of
-    the 7 between, and at 8 of 17 from 1.2 to 2.0, where it reads −14.9% to −5.1%, lowest at Mach 2.
-    Other plausible fins bring 14 to 17 of the 17 within 10%, though none puts every row of every
-    band within it; before HPR Sim modeled the boattail's wave drag it read
-    −29.8% to −24.4% there
-    ([Drag against RASAero II through Mach 2](#drag-against-rasaero-ii-through-mach-2)).
+    the 7 between, and at 8 of 17 from 1.2 to 2.0, where it reads −14.9% to −5.1%, lowest at Mach 2
+    ([evidence row G26](../evidence.md#g26)). Other plausible fins bring 14 to 17 of the 17 within
+    10%, though none puts every row of every band within it; before HPR Sim modeled the boattail's
+    wave drag it read −29.8% to −24.4% there ([Drag against RASAero II through Mach
+    2](#drag-against-rasaero-ii-through-mach-2)).
   - *Drag at Mach 0.3* against the same curves: four of seven cases within 10%. Cavour
     [under power](../glossary.md#power-on-and-power-off-drag) (motor burning) is −18.3%, cause
     open, and Valetudo's table is 1.44 times its own [OpenRocket](../glossary.md#openrocket)
@@ -3348,11 +3349,11 @@ reads the same probes with HPR Sim and pins all 70 gaps. The record shows:
   as tubes are added. An unchecked estimate, taken 0.005 radii from the body and still rising as
   that gap closes, gives at least 1.96 times the lift of the same number of isolated rings for
   three tubes of 6 mm (0.24 in) radius, 1.57 for six, and 1.13 for six touching each other
-  ([#234](https://github.com/nrdptel/fusionspace-eridanus/issues/234)). OpenRocket's lift on the 6 mm (0.24 in) probes
-  is 1.73 times the long-ring limit of isolated rings: below the estimate for three tubes. For
-  six, the same estimate taken closer, and carried on to contact, is about 1.65, a little below
-  OpenRocket's.
-  HPR Sim leaves the interference out.
+  ([#234](https://github.com/nrdptel/fusionspace-eridanus/issues/234))
+  ([evidence row G27](../evidence.md#g27)). OpenRocket's lift on the 6 mm (0.24 in) probes is
+  1.73 times the long-ring limit of isolated rings: below the estimate for three tubes. For six,
+  the same estimate taken closer, and carried on to contact, is about 1.65, a little below
+  OpenRocket's. HPR Sim leaves the interference out.
 - OpenRocket puts the tubes' center a quarter of their length aft of the leading edge up to Mach
   0.5. Its maintainers describe that as the subsonic rule its flat fins and tube fins share
   ([openrocket#3262](https://github.com/openrocket/openrocket/pull/3262)).
@@ -3421,7 +3422,8 @@ force is less tested ([Fins through Mach 1](#fins-through-mach-1)).
 > - **The flight uses the table as the equations say it should.** A rocket flying on a table swings
 >   in pitch and yaw as the small-angle equations of motion predict for the table's slope and
 >   center of pressure.
-> - **Only up to Mach 0.75 on real data.** Only one real export has been flown, Calisto's.
+> - **Only up to Mach 0.75 on real data.** Only one real export has been flown, Calisto's
+>   ([evidence row G19](../evidence.md#g19)).
 >   Faster than that, the table is checked by unit tests alone.
 > - **Past the export's last angle, and at 0° faster than Mach 1.3, HPR Sim assumes.** The assumptions
 >   fit RASAero II's viscous part through Mach 1.3. Faster, that part grows much more slowly with
@@ -4266,7 +4268,8 @@ other programs.
 - **A flared body's supersonic normal force rests on one measured flare.** Since
   [M1.8e17](../decisions-and-roadmap.md#m1-8e17) a conical flare flies the shock-expansion method
   while its corner's shock is attached, which moves a flared rocket's center of pressure forward
-  by a tenth to a quarter of a caliber against the model it had before. The one measurement beside
+  by a tenth to a quarter of a caliber against the model it had before
+  ([evidence row G28](../evidence.md#g28)). The one measurement beside
   it is TN D-4865's model 2, an 18.5° flare on a 2.75° cone: −1.9% and +7.0% at Mach 1.9 and 2.3,
   +13.4% at 2.96, and +51.5% and +50.4% at 3.95 and 4.63, where that flare's boundary layer is
   separated ([What a marched flare is worth](#what-a-marched-flare-is-worth)). No other flare
@@ -5081,7 +5084,8 @@ give a curve's value back at each Mach number.
 ([Loft lesson L18](../decisions-and-roadmap.md#l18): Loft, the earlier simulator this project
 learns from, used an invented transonic drag curve).
 
-The curves don't all reach Mach 2. Calisto's, the one real RASAero II export, does. Juno III's is
+The curves don't all reach Mach 2. Calisto's, the one real RASAero II export, does
+([evidence row G26](../evidence.md#g26)). Juno III's is
 hand-edited past Mach 0.92: it climbs a constant step per row to Mach 1.0 and then drops to 0.001,
 so the comparison stops at 0.92. Cavour's stop below Mach 0.93, and Valetudo's at 1.53.
 

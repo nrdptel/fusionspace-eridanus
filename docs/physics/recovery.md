@@ -682,7 +682,8 @@ The push is equal and opposite:
     rocket does.
   - A body moving through the air at under 1 mm/s, at its own apogee in still air say, points up.
 
-  These are assumptions, not measurements ([ADR-086][adr-086]). All the partings that fire on a
+  These are assumptions, not measurements ([ADR-086][adr-086])
+  ([evidence row G20](../evidence.md#g20)). All the partings that fire on a
   body at one instant part it together, each final body taking the pushes of the joints on its
   sides, so the order you list them in doesn't matter.
 - A separation has no push. A payload always leaves forward, so a push on a payload in the nose's
@@ -746,7 +747,8 @@ taken that away.
 
 - **A piece coasts with no drag until its device opens,** as every separated body does. Give it
   a parachute, or its tumble from the moment it leaves.
-- **The push's direction is assumed** whenever the airframe isn't flying whole with nothing open:
+- **The push's direction is assumed** whenever the airframe isn't flying whole with nothing open
+  ([evidence row G20](../evidence.md#g20)):
   it goes by the velocity through the air, as above. A payload always leaves forward.
 - **No powered separation with ejections.** A sustainer flies on a design cut at its stage
   boundary, whose components aren't the pieces the ejections were given for, so it is refused,
@@ -869,7 +871,8 @@ past its target. Its apogee is 1.79% lower and OpenRocket opens it 8.9 m (29 ft)
 with both taken out, as *How close it is* above does, 0.065 s is left
 ([ADR-159][adr-159], powered separation in `hpr sim`).
 
-**What it leaves out.** The booster's own descent is not validated: OpenRocket flies it as a rigid
+**What it leaves out.** The booster's own descent is not validated
+([evidence row G13](../evidence.md#g13)): OpenRocket flies it as a rigid
 body, and its record keeps only the sustainer's branch. A tumbling booster falls side-on from the
 split, where a real one flies nose-first for a while, so its peak and landing are likely too low
 and too close to the pad ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). `hpr sim`

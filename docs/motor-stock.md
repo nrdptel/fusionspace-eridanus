@@ -21,7 +21,8 @@ below.
 > copy gives them back offline. That is checked on recorded answers, below: eight from motor.fusionspace.co
 > and two curve files from ThrustCurve.org, beside three stand-in searches in ThrustCurve.org's shape,
 > since ThrustCurve.org grants no license for its motor records (its site reads "All rights under
-> copyright reserved"). Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is up to about an hour old when it is built,
+> copyright reserved")
+> ([evidence row G23](evidence.md#g23)). Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is up to about an hour old when it is built,
 > and the simulator counts its saved copy as fresh for another hour, so a fresh answer can be two
 > hours behind the vendor's page; a stale copy is as old as its date says. (ThrustCurve.org's answers
 > count as fresh for a day.) The site's terms ask you to check stock
@@ -255,7 +256,8 @@ cheapest was \$260.99.
 
 The last lines come from ThrustCurve.org, under its own credit line, except the records: the 297
 are the stand-in searches ([above](#matching-motors-to-thrustcurveorg)), so the count is theirs,
-and the match runs on the finder's own copy of ThrustCurve.org's figures. J450DM's file is a real
+and the match runs on the finder's own copy of ThrustCurve.org's figures
+([evidence row G23](evidence.md#g23)). J450DM's file is a real
 answer: the certification test's curve (`source cert`), public domain, and the very file the
 simulator already carries for J450DM ([Solid motors](physics/motor.md)). Its curve starts at zero
 thrust at ignition, then follows the file's 36 points. The simulator works its figures out from
@@ -329,7 +331,8 @@ motor is in stock exactly when one of its listings is, and the vendor counts cou
 The tests in [`crates/hpr-net/tests/thrustcurve.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/thrustcurve.rs)
 replay two answers recorded from ThrustCurve.org on 1 October 2026 at 08:22 UTC, AeroTech J450DM's
 `.eng` file and AeroTech F27R/L's `.rse` file, both public domain, and the three stand-in searches
-described [above](#matching-motors-to-thrustcurveorg). They check that:
+described [above](#matching-motors-to-thrustcurveorg)
+([evidence row G23](evidence.md#g23)). They check that:
 
 - each answer, read and written back out, holds exactly the recording's fields and values, carries
   ThrustCurve.org's credit, comes from the saved copy on a second read, and works offline, fresh

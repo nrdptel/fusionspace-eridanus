@@ -17,7 +17,7 @@ kilometers or more.
 > real flights have been flown in ERA5 weather and compared with their logs
 > ([real flights](../accuracy.md#real-flights), milestone
 > [M2.3b](../decisions-and-roadmap.md#m2-3b)): their apogees miss by 6.04% on average, outside the
-> 5% target. Humidity is
+> 5% target ([evidence row G24](../evidence.md#g24)). Humidity is
 > not read yet, so the air is taken as dry.
 
 Code: `hpr_io::era5` and `hpr_io::netcdf`

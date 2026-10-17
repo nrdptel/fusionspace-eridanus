@@ -589,7 +589,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
 | <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
-| <a id="m2-10"></a>[M2.10][phase-1] | Evidence register | not yet done |
+| <a id="m2-10"></a>[M2.10][done-1] | Evidence register | done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |

@@ -11,7 +11,8 @@ such a file by the mapping or layout you write, into the same
 the clock and those you skip a channel on the logger's clock, its values in SI units (degrees for
 angles) where your mapping or layout states a unit, and, where a mapping marks one, the barometric
 altitude above the pad as the primary track, the one the readings will be taken from. Every
-example below reads one invented flight's files, its logger's and its GPS tracker's; it flew
+example below reads one invented flight's files, its logger's and its GPS tracker's
+([evidence row G11](evidence.md#g11)); it flew
 nowhere.
 
 > **How far to trust it.** The record is the logger's own samples, converted to SI units (degrees

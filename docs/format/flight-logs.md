@@ -23,10 +23,12 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > The two raw downloads read since [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the Raven's
 > `.FIPa` and the RRC3's `.rff`, match their makers' exports of the same flights in every sample,
 > wherever an export sits beside them; 7 of their 63 sample files have none, and are unchecked
-> ([raw downloads](#raw-downloads)). The Featherweight app's flight summaries, read since
+> ([raw downloads](#raw-downloads))
+> ([evidence row G6](../evidence.md#g6)). The Featherweight app's flight summaries, read since
 > [M7.1c6](../decisions-and-roadmap.md#m7-1c6), hold the logger's own figures and no samples;
 > only their maximum and pad altitudes are checked, against the files of samples beside them
-> ([Featherweight's summaries](#featherweights-summaries)). A zip archive of a flight's files,
+> ([Featherweight's summaries](#featherweights-summaries))
+> ([evidence row G7](../evidence.md#g7)). A zip archive of a flight's files,
 > unpacked since [M7.1c7](../decisions-and-roadmap.md#m7-1c7), is read file by file, each as if
 > it lay on its own ([zip archives](#zip-archives)). The R-DAS's raw text, read since
 > [M7.1c8](../decisions-and-roadmap.md#m7-1c8), holds the counts of its converters and no
@@ -113,7 +115,8 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([the AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump)); no document describes either's
 > bytes, so each layout rests on one sample flight. Every sample log in a layout HPR Sim knows is
 > now read, except 3 damaged files. Other layouts are refused, not guessed at; those the roadmap
-> names with no sample are [listed](#formats-that-need-samples), with what a reader would need.
+> names with no sample are [listed](#formats-that-need-samples), with what a reader would need
+> ([evidence row G9](../evidence.md#g9)).
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -221,7 +224,7 @@ decided.
 | Featherweight summary CSV | Featherweight Blue Raven and GPS tracker: the flight's summary, as the Featherweight app exports it beside the samples | a first line that isn't blank naming `Rocket Name`, and `Max Altitude` or `Launch time UTC` among the first 200 lines | `hpr_flightdata::fwsummary` ([below](#featherweights-summaries)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
-| GPX | GPS tracks in the GPS Exchange Format, version 1.0 or 1.1, as GPS receivers, phone apps and mapping tools write them; no sample log is one, so the reader is checked on invented files only | the document's root element is `gpx` | [below](#gpx) |
+| GPX | GPS tracks in the GPS Exchange Format, version 1.0 or 1.1, as GPS receivers, phone apps and mapping tools write them; no sample log is one, so the reader is checked on invented files only ([evidence row G1](../evidence.md#g1)) | the document's root element is `gpx` | [below](#gpx) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
 | R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank reading `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | MARSA download | MARSA Systems' MARSA4 and MARSA54, a flight as their software, MARSA_Connect, saves it to a `.dat` file, or a spreadsheet re-saves it | a first line that isn't blank that is a setting or a heading, `<NAME> value` or `<NAME>`, and a `<MARSA VERSION>` setting with a value within the first 200 lines that aren't blank | `hpr_flightdata::marsa` ([below](#a-marsa-download)) |
@@ -348,7 +351,8 @@ quarters of a day. Under a format that shows only a time, a number under 1 is wr
 day, `18:00:00`; one that also holds a day is written as a date and a time. An elapsed time, such
 as `[h]:mm:ss`, counts its hours past 24 (`36:00:00`). Seconds are rounded to the millisecond. A
 workbook that counts from 1904, as old Mac workbooks may, is read from 1904; no sample workbook
-does, so that path is checked by the crate's tests alone. A date before 1900-03-01, where Excel's
+does, so that path is checked by the crate's tests alone
+([evidence row G2](../evidence.md#g2)). A date before 1900-03-01, where Excel's
 calendar holds a 29 February 1900 that never was, or after 9999-12-31, is kept as the number
 stored, and the notes count it. Every other number is kept as stored, so a clock a logger wrote in
 seconds stays a number.
@@ -537,7 +541,8 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 | `a8` | link quality | top bit set, the packet passed the CRC; 40 |
 | `c1` | checksum | 0x5A plus the 34 bytes from `d2` to `a8`, modulo 256 |
 
-Left out: the eleven packet types no sample holds; and the GPS fields nothing checks. The
+Left out: the eleven packet types no sample holds
+([evidence row G3](../evidence.md#g3)); and the GPS fields nothing checks. The
 board's own log, which the document doesn't describe, is read from AltosUI's `.eeprom` files
 ([AltOS's `.eeprom`](#altoss-eeprom)).
 
@@ -1478,7 +1483,8 @@ decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20))
 > manual describes the columns, so the reading is held to physics: each height follows its
 > pressure by the standard atmosphere's formula to within 4.5 mm (0.18 in), and the clock, the
 > accelerometer and its sum are held to the flight. The pressure columns say `[hpa]` but hold
-> pascals, and are read so. The voltages are kept as stated, unchecked.
+> pascals, and are read so. The voltages are kept as stated, unchecked
+> ([evidence row G30](../evidence.md#g30)).
 
 **The stream.** An `.xls` file is written in BIFF, Excel's Binary Interchange File Format, whose
 versions run from BIFF2, Excel 2.x's, to BIFF8, Excel 97's and later. A record is a 2-byte id, a
@@ -1672,7 +1678,7 @@ switched off and on.
 
 Two sample files read as AltOS exports that went through a spreadsheet, and
 [AltOS's CSV reader](../api/hpr_flightdata/altos/index.html) reads both. Each case below rests on
-one sample file and on invented ones in the library's tests.
+one sample file and on invented ones in the library's tests ([evidence row G6](../evidence.md#g6)).
 
 **A table cut from an export** holds AltOS's columns alone: a header of AltOS's own names with no
 `#version,serial,flight` before them, such as
@@ -1717,29 +1723,34 @@ value and its time.
 
 ### Formats that need samples
 
-Three of the formats the roadmap names have no sample among the logs the survey reads. GPX's
+Three of the formats the roadmap names have no sample among the logs the survey reads
+([evidence row G9](../evidence.md#g9)). GPX's
 layout is published and another program reads it, so its reader was built from the schemas and
-checked on invented files against that program ([GPX](#gpx)). For the other two, CATS's and
+checked on invented files against that program ([GPX](#gpx))
+([evidence row G1](../evidence.md#g1)). For the other two, CATS's and
 "Juno", no reader can be built and checked yet: a reader is built from samples, the bytes a
 logger wrote, best with the maker's own export of the same flight beside them. The
 table says what was found for each of the two, and what a reader would need. The search, of makers' pages and
 public repositories, is in
 [a research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/sample-logs-cats-juno.md),
-read on 2026-10-16.
+read on 2026-10-16. A sample of a format in the table below can be offered in
+[its issue, #662](https://github.com/nrdptel/fusionspace-eridanus/issues/662), with the terms it may be tested on.
 
 | Format | Samples found | What a reader needs |
 |---|---|---|
-| CATS Vega `.cfl`, the flight computer's own log | none among the survey's; 11 public logs from the EuRoC 2023 competition in CATS's own repository, under the GPL-3.0, and 13 in its gallery, licensed to CATS alone | samples on terms that let their bytes be tested, and a layout: only CATS's GPL source code publishes one, and this project doesn't read GPL code, so a reader would be checked against the CSV the CATS Configurator exports, the program run as an outside tool |
-| CATS ground station's CSV | none among the survey's; 22 public files beside those logs, under the GPL-3.0 | samples on terms that let them be tested; its header states each unit, such as `altitude[m]` and `ts[deciseconds]`, so the [table reader](#tables-read-by-their-headers) may take it, untried |
-| "Juno" | no logger of that name found: an earlier roadmap's "EuRoC/Juno CSV layouts" meant a rocket, Projeto Jupiter's Juno III, whose files RocketPy's repository holds | a sample from a logger named Juno, if one exists; none was found. The rocket's own files would need no new reader: its altimeter's table has an RRC3 export's columns, which [the RRC3's reader](#the-layouts-read) reads, though it isn't run on them here, as RocketPy's data isn't among the survey's samples; its GNSS receiver's table and its team's telemetry state no unit, so they read only by a [column mapping](#mappings-a-publisher-states) someone states, and none is stated |
+| CATS Vega `.cfl`, the flight computer's own log | none among the survey's; 11 public logs from the EuRoC 2023 competition in CATS's own repository, under the GPL-3.0, and 13 in its gallery, licensed to CATS alone | samples on terms that let their bytes be tested, and a layout: only CATS's GPL source code publishes one, and this project doesn't read GPL code, so a reader would be checked against the CSV the CATS Configurator exports, the program run as an outside tool; offer one in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) |
+| CATS ground station's CSV | none among the survey's; 22 public files beside those logs, under the GPL-3.0 | samples on terms that let them be tested; its header states each unit, such as `altitude[m]` and `ts[deciseconds]`, so the [table reader](#tables-read-by-their-headers) may take it, untried; offer one in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) |
+| "Juno" | no logger of that name found: an earlier roadmap's "EuRoC/Juno CSV layouts" meant a rocket, Projeto Jupiter's Juno III, whose files RocketPy's repository holds | a sample from a logger named Juno, if one exists; none was found. The rocket's own files would need no new reader: its altimeter's table has an RRC3 export's columns, which [the RRC3's reader](#the-layouts-read) reads, though it isn't run on them here, as RocketPy's data isn't among the survey's samples; its GNSS receiver's table and its team's telemetry state no unit, so they read only by a [column mapping](#mappings-a-publisher-states) someone states, and none is stated; offer one in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) |
 
 The roadmap names no others, but makers HPR Sim reads also write formats no sample holds.
 AltOS's `.eeprom` log formats other than 1, 6, 7, 14, 15, 16 and 22 are refused, naming the
-format ([AltOS's `.eeprom`](#altoss-eeprom)); public files in formats 5, 9 and 19 exist, but
-none with terms that let it be tested. The others with no sample HPR Sim can test are Entacore
-AIM USB's `.aim` files, the Eggtimer Quasar's and ION's CSV, the Featherweight Blue Jay's, a
-MicroPeak's memory, Jolly Logic's AltimeterThree export, and the EasyTimer V2's, TeleMini's and
-EasyMotor's logs.
+format ([AltOS's `.eeprom`](#altoss-eeprom)); public files in formats 5, 9 and 19 exist, but none
+with terms that let it be tested ([evidence row G4](../evidence.md#g4); offer one in
+[#657](https://github.com/nrdptel/fusionspace-eridanus/issues/657)). The others with no sample HPR
+Sim can test are Entacore AIM USB's `.aim` files, the Eggtimer Quasar's and ION's CSV, the
+Featherweight Blue Jay's, a MicroPeak's memory, Jolly Logic's AltimeterThree export, and the
+EasyTimer V2's, TeleMini's and EasyMotor's logs ([evidence row G9](../evidence.md#g9); offer one in
+[#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662)).
 
 ## The record
 
@@ -1810,7 +1821,8 @@ Most units come from the file's own column names or from the maker's manual. A f
   Fahrenheit, or Celsius when the altitude is in meters, and in volts, assumed: the RRC3's own
   unit settings pair feet with degrees Fahrenheit and meters with degrees Celsius (*RRC3+/RRC3
   User Manual*, rev. 1.71, p12), but mDACS writes each in its own preferred unit (*mDACS User
-  Manual*, rev. 1.71, p5), which the file doesn't name. Each record says so in a note.
+  Manual*, rev. 1.71, p5), which the file doesn't name
+  ([evidence row G31](../evidence.md#g31)). Each record says so in a note.
 - GPS Visualizer's KML altitude is kept as written, unrecognized: the program takes its source's
   altitude as meters unless the source's column names feet, so its KML holds meters only if the
   source said which, and the file can't show whether it did. The one such sample, set beside a
@@ -1905,7 +1917,8 @@ sample logs:
   manuals write as a number can't be left out, so a thousands separator is never read as a
   decimal mark. Two of the sample downloads, from the European Rocketry Challenge (EuRoC), are
   semicolon-separated: one with decimal points, read; the other with none at all, as a
-  spreadsheet took them out, refused (above). Decimal commas are tested on invented files only.
+  spreadsheet took them out, refused (above). Decimal commas are tested on invented files only
+  ([evidence row G2](../evidence.md#g2)).
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
   manual.** The manual gives their units for the logger's USB download, which HPR Sim reads too
   ([below](#the-blue-ravens-usb-download)): feet per second, feet, degrees per second and g
@@ -2205,7 +2218,7 @@ sample logs:
     moves a pressure altitude across a band 1,840 m (6,037 ft) wide, and a GPS reading $N$ read in meters and
     in feet differs by $0.695\,N$ m, so the pad separates the two only where $N$ tops about 2,650:
     a pad above about 2,650 m (8,694 ft) if the column is in meters, 810 m (2,657 ft) if in feet. No sample
-    file's pad is that high.
+    file's pad is that high ([evidence row G8](../evidence.md#g8)).
 - **An Eggtimer's download saved as RTF, unwrapped.** One sample file is an Eggtimer TRS's
   terminal download that a text editor saved as an RTF document (Rich Text Format, a word
   processor's markup). The reader takes the document's plain text, following the parts of the RTF
@@ -2264,8 +2277,9 @@ Direction of 1st motion,-1.0000,0.0000,0.0000
 > Sim's readings. Two are checked: the maximum altitude and the pad's altitude, against the file
 > of samples beside each summary, and 32 of the 33 Blue Raven summaries with such a file agree in
 > both ([checked against the files beside](#checked-against-the-files-beside)). The speeds,
-> accelerations, times and the rest are converted from the unit the file writes and checked
-> against nothing. Where a number matters, set it beside the samples the app exported with it.
+> accelerations, times and the rest are converted from the unit the file writes and checked against
+> nothing ([evidence row G7](../evidence.md#g7)). Where a number matters, set it beside the samples
+> the app exported with it.
 
 **How it is recognized.** A file is a summary when its first line that isn't blank names
 `Rocket Name`, and a line among its first 200 names `Max Altitude` or `Launch time UTC`, figures
@@ -2366,7 +2380,8 @@ agree in it. The one of each logger that agrees in neither figure agrees with no
 not even as meters; the survey doesn't show why. Nor is it measured why a Blue Raven's stated
 apogee runs up to 3% below its low-rate file's highest altitude
 ([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
-§4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
+§4). The summaries with no file of samples beside them are read by the same rules, unchecked
+([evidence row G7](../evidence.md#g7)). No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
 against the files of samples in the same archive ([zip archives](#zip-archives)); the two inside
 Excel workbooks are read by the same rules, unchecked ([Excel workbooks](#excel-workbooks)).
@@ -2382,13 +2397,13 @@ on it until [M7.2](../decisions-and-roadmap.md#m7-2), the milestone that reads o
 
 > **How far to trust it.** Positions, heights and times are read as the file writes them; HPR
 > Sim claims no accuracy for a GPS fix, and a GPS altitude is above sea level, not above the
-> pad. The clocks are the files' own, and some don't state their time zone. Heights from KML
-> files are the least sure: one writer's are feet written as meters, kept as written, and two
-> files rise less than half as high as the barometer on the same flight did
-> ([units no source states](#units-no-source-states)). The RTx's altitudes can't go below 0, so
-> near sea level many read exactly 0 ([Missile Works' RTx](#missile-works-rtx)). GPX is read
-> from invented files only, as no sample log is one, and its elevations state no datum
-> ([GPX](#gpx)).
+> pad. The clocks are the files' own, and some don't state their time zone. Heights from KML files
+> are the least sure ([evidence row G8](../evidence.md#g8)): one writer's are feet written as
+> meters, kept as written, and two files rise less than half as high as the barometer on the same
+> flight did ([units no source states](#units-no-source-states)). The RTx's altitudes can't go below
+> 0, so near sea level many read exactly 0 ([Missile Works' RTx](#missile-works-rtx)). GPX is read
+> from invented files only, as no sample log is one, and its elevations state no datum ([GPX](#gpx))
+> ([evidence row G1](../evidence.md#g1)).
 
 Five layouts are read. Each point's time is the one the file gives it; where it gives none, the
 point keeps its place with its time a gap.
@@ -2441,7 +2456,7 @@ point keeps its place with its time a gap.
   ([below](#missile-works-rtx)).
 - **GPX**, the GPS Exchange Format, which GPS receivers, phone apps and mapping tools exchange
   tracks in, read since [M7.1d1](../decisions-and-roadmap.md#m7-1d1) from invented files only
-  ([below](#gpx)).
+  ([below](#gpx)) ([evidence row G1](../evidence.md#g1)).
 
 For example, take a `GGA` sentence's position and an `RMC` sentence's speed, invented after the
 textbook example public descriptions of NMEA 0183 give; a test in the crate reads these two lines
@@ -2544,7 +2559,8 @@ track (see [GPS logs](#gps-logs)).
   a note.
 - *Gaps and refusals.* A coordinate out of range (minutes past 59, the decimals without their
   leading 1, a hemisphere byte other than its two letters, beyond 90° or 180°) is a gap, as is a
-  position of exactly (0, 0); no sample file has one. An `.rtx` that isn't the list's shape, or
+  position of exactly (0, 0); no sample file has one
+  ([evidence row G2](../evidence.md#g2)). An `.rtx` that isn't the list's shape, or
   whose size or slots break the rules above, is refused, naming the byte; an export's row of
   other than ten cells, or a cell that isn't its field's, is refused, naming the line.
 
@@ -2578,7 +2594,8 @@ and exchange tracks in. Topografix publishes its two versions as schemas,
 documents.
 
 > **How far to trust it.** No sample log in the collection is a GPX file, so the reader is checked
-> only on three invented files, against gpxpy 1.6.2, an outside GPX reader: all 196 values of
+> only on three invented files, against gpxpy 1.6.2, an outside GPX reader
+> ([evidence row G1](../evidence.md#g1)): all 196 values of
 > their tracks' channels, each at its time (a gap matching a gap), and all 12 figures of their
 > waypoints and route points match gpxpy's as the same 64-bit numbers. The test is
 > `every_value_of_the_samples_equals_gpxpys` in `crates/hpr-flightdata/tests/gpx.rs`; gpxpy's
@@ -2590,7 +2607,7 @@ documents.
 > writes, and above all what its elevation is measured from, no file has shown yet. A GPX file
 > from a tracker or app flown on a rocket, with a barometric altimeter's log of the same flight
 > beside it, would show both: it can be offered in
-> [an issue](https://github.com/nrdptel/fusionspace-eridanus/issues).
+> [its issue, #654](https://github.com/nrdptel/fusionspace-eridanus/issues/654).
 
 - *Tracks.* A file holds tracks (`trk`), each of segments (`trkseg`), each of points (`trkpt`);
   a receiver starts a new segment where it lost reception or was turned off. Each segment is
@@ -2746,10 +2763,11 @@ calibration the file carries, and a count with no source stays as written.
 >
 > - **Raven `.FIPa`:** 55 of the 57 sample files have the FIP's export beside them, and in all 55
 >   every sample of every channel the two share agrees, 6,016,104 raw samples, with no value off
->   by a step. The other 2 are decoded by the same rules, unchecked by an export.
+>   by a step. The other 2 are decoded by the same rules, unchecked by an export
+>   ([evidence row G6](../evidence.md#g6)).
 > - **RRC3 `.rff`:** 1 of the 6 has mDACS's export beside it, and its 3,541 pressures agree, each
 >   to the step. The pairs and single words have no calibration to check; the other 5 files are
->   decoded by the same rules, unchecked by an export.
+>   decoded by the same rules, unchecked by an export ([evidence row G6](../evidence.md#g6)).
 > - **AltOS `.eeprom`:** 9 of the 14 sample files have AltosUI's export beside them, and all 9
 >   agree within half its print step on every value converted to SI; 1 more has only the board's
 >   radio telemetry, which agrees; the other 4 have nothing beside them. The TeleMetrum v1's
@@ -2906,10 +2924,12 @@ sheet and a second check, and a count with no source is kept as written.
 >   check below: 11 pass, their ratios from 0.859 to 1.400 where the reader accepts 0.6 to 5/3,
 >   and the twelfth, at 1.988, keeps its acceleration and pressure as counts.
 > - **Assumed:** that the TeleMetrum v1's converter measures against the pressure sensor's own
->   supply, which no document states; the exports of its flights agree.
+>   supply, which no document states
+>   ([evidence row G4](../evidence.md#g4)); the exports of its flights agree.
 > - **Not read:** the TeleMega v4's IMU, which its one sample file never ran.
 > - **Unchecked:** 4 files have neither an export nor telemetry beside them (14 = 9 with an export,
->   1 with telemetry alone, and these 4). They're decoded by the same rules and pass the reader's
+>   1 with telemetry alone, and these 4)
+>   ([evidence row G4](../evidence.md#g4)). They're decoded by the same rules and pass the reader's
 >   own checks.
 
 The board logs its sensors 100 times a second in the climb and 10 times a second in the descent
@@ -3072,7 +3092,8 @@ itself. Per file, by an anonymized id, the [survey's report](#how-it-was-checked
 count and each climb ratio.
 
 Left out: the TeleMega v4's IMU and the fields kept as written, until a source or a second check
-bears their units out; and any log format not listed above, which no sample holds.
+bears their units out; and any log format not listed above, which no sample holds
+([evidence row G4](../evidence.md#g4)).
 
 ### The ARTS2's raw data
 
@@ -3094,7 +3115,8 @@ CSV carries none, so its counts are kept as written.
 >   follows the pressure in order. The climb check, the climb over the first 2 s by the pressure
 >   over the climb by the acceleration, gives ratios of 0.754, 1.032 and 1.145, where the reader
 >   accepts 0.6 to 5/3.
-> - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files. Where the
+> - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files
+>   ([evidence row G5](../evidence.md#g5)). Where the
 >   file keeps it isn't known: the reader refuses a file whose likeliest word for it isn't the
 >   sample files' 2, and on the sample files the climb check is sure to catch only a time step
 >   below 0.67 or above 1.38 times the true one. The pressure is the sensor's nominal conversion, with an error band of

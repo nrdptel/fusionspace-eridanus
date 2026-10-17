@@ -8,7 +8,8 @@ a short program that flies a rocket from the launch rail to the ground and print
 Then it walks through that program, so you can change it and fly your own variations. It needs
 some Rust, but no knowledge of this project.
 
-> **How far to trust it.** A simulation, not validated: this rocket left no flight log to check
+> **How far to trust it.** A simulation, not validated
+> ([evidence row G24](evidence.md#g24)): this rocket left no flight log to check
 > it against. On seven other rockets' logged flights HPR Sim's apogees missed by 6.04% on average,
 > outside the 5% target ([real flights](accuracy.md#real-flights)), and on 53 more from a private
 > collection they were +8.73% above the logs, OpenRocket's +7.79%

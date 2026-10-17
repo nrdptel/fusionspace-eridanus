@@ -21,7 +21,8 @@ other, to your fins and your rocket's flight.
   including his verdicts on three metals and his titanium design ([Tests](#tests)). His
   safe/unsafe line is a band that this project measured off his printed chart: 0.25 to 0.31
   ([The line in Martin's data](#the-line-in-martins-data)). His unfailed wings flew to at least
-  Mach 1.3; nothing here is checked against a hobby rocket. Where the source allows two readings,
+  Mach 1.3; nothing here is checked against a hobby rocket
+  ([evidence row G22](../evidence.md#g22)). Where the source allows two readings,
   the simulator takes the one with the lower flutter speed. That doesn't make the whole result
   conservative: nothing shows that it is.
 - **What it leaves out:** sweep, and how the fin is mounted: Martin's wings were clamped at the

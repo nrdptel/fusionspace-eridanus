@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Register",
+  "description": "The evidence register: one row per claim the site makes about what backs a reader, a model\nor a check, with the kind of evidence behind it and the kind that would settle it\n(ADR-278).",
+  "type": "object",
+  "properties": {
+    "as_of": {
+      "description": "The day the report counts searches from, `YYYY-MM-DD`: a row whose last search is more\nthan 30 days before it is due another.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "row": {
+      "description": "The rows, in the order of their ids.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Row"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "as_of"
+  ],
+  "$defs": {
+    "Kind": {
+      "description": "A kind of evidence. The kinds say where the evidence comes from, not how strong it is, so a\nrow gives the kind it has and the kind it wants apart.",
+      "oneOf": [
+        {
+          "description": "A file or a measurement from the device or the flight itself.",
+          "type": "string",
+          "const": "real"
+        },
+        {
+          "description": "A real file from a related device or firmware.",
+          "type": "string",
+          "const": "sibling"
+        },
+        {
+          "description": "Another program's answer on the same input, such as gpxpy's or OpenRocket's.",
+          "type": "string",
+          "const": "code-to-code"
+        },
+        {
+          "description": "Built from a published layout, schema or standard.",
+          "type": "string",
+          "const": "spec"
+        },
+        {
+          "description": "Checked against the data it was fitted to.",
+          "type": "string",
+          "const": "calibration"
+        },
+        {
+          "description": "An argument only.",
+          "type": "string",
+          "const": "reasoning"
+        },
+        {
+          "description": "Nothing yet.",
+          "type": "string",
+          "const": "none"
+        }
+      ]
+    },
+    "Row": {
+      "description": "One claim the site makes about what backs a reader, a model or a check.",
+      "type": "object",
+      "properties": {
+        "claim": {
+          "description": "The claim, one sentence with no full stop at its end.",
+          "type": "string"
+        },
+        "id": {
+          "description": "`G` and a number, `G1`, `G2` and so on, increasing down the file. A page names the row by\nlinking the report's anchor for it, `evidence.md#g1`.",
+          "type": "string",
+          "pattern": "^G[1-9][0-9]*$"
+        },
+        "issue": {
+          "description": "The number of the open issue, labeled `needs-sample`, that asks for the wanted evidence;\nneeded unless the row has its wanted kind.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "default": null,
+          "minimum": 0
+        },
+        "kind": {
+          "description": "The kind of evidence behind the claim now.",
+          "$ref": "#/$defs/Kind"
+        },
+        "not_checked": {
+          "description": "What the evidence doesn't cover; needed unless the row has its wanted kind.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "pages": {
+          "description": "Each page that states the claim, from `docs/`, with the anchor of its section:\n`format/flight-logs.md#gpx`. Every page that links the row is listed, and every page\nlisted links it.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "sample": {
+          "description": "The samples behind a `real` row, one or more; a row of any other kind has none.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Sample"
+          }
+        },
+        "searched": {
+          "description": "The searches for better evidence, oldest first.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Search"
+          }
+        },
+        "surface": {
+          "description": "The reader, model or output the claim is about; several rows may share one.",
+          "type": "string"
+        },
+        "wanted": {
+          "description": "The kind that would settle the claim: `real`, unless a decision record sets another.",
+          "$ref": "#/$defs/Kind"
+        },
+        "wanted_adr": {
+          "description": "The decision record that sets a wanted kind other than `real`, as `ADR-145`; only then.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "pattern": "^ADR-[0-9]{3,4}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "surface",
+        "claim",
+        "pages",
+        "kind",
+        "wanted"
+      ]
+    },
+    "Sample": {
+      "description": "A real sample behind a `real` row: a file under the gitignored `refs/`, its hash, its license,\nand the test that reads it.",
+      "type": "object",
+      "properties": {
+        "license": {
+          "description": "The file's license, and where it came from.",
+          "type": "string"
+        },
+        "package": {
+          "description": "The cargo package whose test reads the file, such as `fusionspace-hpr-flightdata`.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The file, from the repository's root: `refs/...`.",
+          "type": "string",
+          "pattern": "^refs/"
+        },
+        "sha256": {
+          "description": "The file's SHA-256, 64 lowercase hex digits.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "target": {
+          "description": "The test's target: `lib` for the package's library, or the name of an integration test,\nthe `name` of `tests/<name>.rs`.",
+          "type": "string"
+        },
+        "test": {
+          "description": "The test's full path, as `cargo test -- --exact` takes it, such as\n`gpx::tests::reads_a_real_track`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "license",
+        "package",
+        "target",
+        "test"
+      ]
+    },
+    "Search": {
+      "description": "One search for better evidence: the day, where it looked and what it found, so the next\nsearch doesn't repeat it.",
+      "type": "object",
+      "properties": {
+        "found": {
+          "description": "What it found, nothing included.",
+          "type": "string"
+        },
+        "looked": {
+          "description": "Where it looked: the sites, archives and collections searched.",
+          "type": "string"
+        },
+        "on": {
+          "description": "The day of the search, `YYYY-MM-DD`.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "on",
+        "looked",
+        "found"
+      ]
+    }
+  }
+}

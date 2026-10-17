@@ -1,0 +1,387 @@
+# The evidence register (M2.10, ADR-278): one row for each gap the guide states in what backs a
+# reader, a model or a check. `cargo xtask evidence` holds it to the pages and writes its report
+# into docs/evidence.md; its schema is schema/validation/evidence.schema.json.
+#
+# Each row names its surface, the claim, the guide's pages that state the gap (each links the row as
+# `evidence.md#g<n>`), the kind of evidence behind it and the kind that would settle it. A kind is
+# one of: real (a file or measurement from the device or flight itself), sibling (a real file from a
+# related device or firmware), code-to-code (another program's answer), spec (built from a published
+# layout or schema), calibration (checked against the data it was fitted to, or seen while it was
+# chosen), reasoning (an argument only) or none. Every row wants real unless `wanted_adr` names the
+# decision record that sets less. A row short of its wanted kind says what is not checked and names
+# its open issue, labeled needs-sample, which closes only when the row reaches its wanted kind. A
+# real row lists each sample under refs/ with its SHA-256, its license and the test that reads it.
+# `searched` keeps where a search for better evidence looked and what it found, so the next one
+# doesn't repeat it.
+#
+# `as_of` is the date the report counts a row's last search from: a row with no search, or whose
+# last is over 30 days before it, is due one.
+
+as_of = "2026-10-17"
+
+[[row]]
+id = "G1"
+surface = "Flight-log readers"
+claim = "GPX tracks are read as the GPX 1.0 and 1.1 schemas define them, checked against gpxpy on three invented files"
+pages = [
+  "start-here.md#what-works-today",
+  "reading-a-flight-log.md#reading-a-flight-log",
+  "format/flight-logs.md#the-layouts-read",
+  "api.md#the-crates",
+]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "what a real tracker or phone writes, and what its elevation (`ele`) is measured from"
+issue = 654
+
+[[row.searched]]
+on = "2026-10-17"
+looked = "the download pages and documents of Featherweight, AltOS, Eggfinder, Missile Works and BigRedBee, and public repositories of flight logs"
+found = "no openly downloadable GPX of a real rocket flight: the dedicated trackers write KML, CSV or raw NMEA, and GPX comes from phone apps, handheld receivers and mapping tools"
+
+[[row]]
+id = "G2"
+surface = "Flight-log readers"
+claim = "Paths no sample log reaches are checked by the readers' tests alone: decimal commas, workbooks dated from 1904, a Raven `.FIPa` temperature below zero, an RTx fix at (0, 0)"
+pages = ["format/flight-logs.md#excel-workbooks"]
+kind = "spec"
+wanted = "real"
+not_checked = "a real file that takes any of these paths"
+issue = 655
+
+[[row]]
+id = "G3"
+surface = "Flight-log readers"
+claim = "AltOS radio telemetry is decoded from AltOS's documents for the packet types the samples hold"
+pages = ["format/flight-logs.md#altos-telemetry"]
+kind = "spec"
+wanted = "real"
+not_checked = "the eleven packet types no sample holds, which are left out; the GPS ground speed, climb rate and course, which nothing checks"
+issue = 656
+
+[[row]]
+id = "G4"
+surface = "Flight-log readers"
+claim = "AltOS `.eeprom` logs are read in formats 1, 6, 7, 14, 15, 16 and 22, with the TeleMetrum v1's converter assumed"
+pages = ["format/flight-logs.md#formats-that-need-samples"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "that the TeleMetrum v1's converter measures against the pressure sensor's own supply, which no document states; the TeleMega v4's IMU, which its one sample never ran; 4 of the 14 sample files, with neither an export nor telemetry beside them; formats 5, 9 and 19, refused"
+issue = 657
+
+[[row]]
+id = "G5"
+surface = "Flight-log readers"
+claim = "ARTS2 raw data is timed at 50 records a second, the rate the maker's DataAnalyzer gives every file"
+pages = ["format/flight-logs.md#the-arts2s-raw-data"]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "where the file stores its rate, if it does, and a file recorded at another rate"
+issue = 658
+
+[[row]]
+id = "G6"
+surface = "Flight-log readers"
+claim = "Some layouts rest on one sample or on no export to compare with: the AltiMAX `.ALS`, the AIM `.xtra` and raw dump, 7 of 63 raw downloads, 5 of 6 RRC3 `.rff` files, and each case of an AltOS CSV re-saved by a spreadsheet"
+pages = ["format/flight-logs.md#flight-logs-the-record-and-the-layouts-read"]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "a second flight of each layout read beside its maker's export; the raw downloads with no export beside them"
+issue = 659
+
+[[row]]
+id = "G7"
+surface = "Flight-log readers"
+claim = "Featherweight summaries are checked on their maximum and pad altitude only"
+pages = ["format/flight-logs.md#flight-logs-the-record-and-the-layouts-read"]
+kind = "none"
+wanted = "real"
+not_checked = "the speeds, accelerations, times and the rest, converted from the unit the file writes and checked against nothing"
+issue = 660
+
+[[row]]
+id = "G8"
+surface = "Flight-log readers"
+claim = "GPS heights are kept in the unit the file writes: a phone app's altitude as written, KML heights the least sure"
+pages = ["format/flight-logs.md#units-the-file-decides"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "each height's unit and what it is measured from, beside a barometric log of the same flight"
+issue = 661
+
+[[row]]
+id = "G9"
+surface = "Flight-log readers"
+claim = "Formats with no sample (CATS's, a logger named Juno and the others listed) have no reader of their own"
+pages = [
+  "start-here.md#outputs-and-ways-to-use-it",
+  "cli.md#hpr-analyze",
+  "reading-a-flight-log.md#reading-a-flight-log",
+  "format/flight-logs.md#flight-logs-the-record-and-the-layouts-read",
+  "api.md#the-crates",
+]
+kind = "none"
+wanted = "real"
+not_checked = "the formats the list names, of which no sample can be tested on its terms"
+issue = 662
+
+[[row]]
+id = "G10"
+surface = "The flight analyzer"
+claim = "The analyzer's readings are checked on an invented flight whose every reading is known, and on one real log by a test that runs only where the log is fetched"
+pages = [
+  "reading-a-flight-log.md#reading-a-flight-log",
+  "accuracy.md#accuracy",
+  "physics/log-readings.md#in-short",
+]
+kind = "spec"
+wanted = "real"
+not_checked = "real logs of other loggers, for which the readings are withheld"
+issue = 663
+
+[[row]]
+id = "G11"
+surface = "The flight analyzer"
+claim = "Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files"
+pages = ["your-own-logger.md#reading-your-own-logger"]
+kind = "spec"
+wanted = "real"
+not_checked = "a real logger's files read by a mapping or layout someone states"
+issue = 664
+
+[[row]]
+id = "G12"
+surface = "Flight models"
+claim = "Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them"
+pages = [
+  "accuracy.md#results-by-model",
+  "physics/turbulence.md#in-short",
+  "glossary.md#turbulence-dryden",
+]
+kind = "spec"
+wanted = "real"
+not_checked = "any rocket flight, for which the model is unvalidated"
+issue = 665
+
+[[row]]
+id = "G13"
+surface = "Flight models"
+claim = "A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag"
+pages = [
+  "cli.md#the-command-line",
+  "physics/recovery.md#from-an-openrocket-file",
+  "physics/staging.md#in-short",
+  "format/ork.md#openrocket-ork-design-files",
+]
+kind = "none"
+wanted = "real"
+not_checked = "the whole flight of the dropped part, which is not validated at all"
+issue = 666
+
+[[row]]
+id = "G14"
+surface = "Aerodynamics"
+claim = "Base drag with the motor burning takes the motor case off the base"
+pages = [
+  "accuracy.md#results-by-model",
+  "physics/aero.md#in-short",
+]
+kind = "reasoning"
+wanted = "real"
+not_checked = "any measurement of base drag under power"
+issue = 667
+
+[[row]]
+id = "G15"
+surface = "Flight models"
+claim = "Thrust about a center of gravity off the axis turns the rocket in HPR Sim, and not in OpenRocket"
+pages = ["VALIDATION.md#operating-envelope"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "which of the two is right, which nothing measures"
+issue = 668
+
+[[row]]
+id = "G16"
+surface = "`.ork` import"
+claim = "A part's roll angle in an `.ork` file turns the way HPR Sim assumes"
+pages = ["format/ork.md#opening-a-design-in-full"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "which direction OpenRocket turns it"
+issue = 669
+
+[[row]]
+id = "G17"
+surface = "Flight models"
+claim = "The apogee printed for an unstable sustainer assumes it stays upright, and flights off a rod and off a rail differ"
+pages = [
+  "cli.md#separation",
+  "physics/staging.md#against-openrocket",
+  "format/ork.md#flights-openrocket-aborted",
+]
+kind = "reasoning"
+wanted = "real"
+not_checked = "an unstable sustainer's real flight; where the rod and the rail differ, not traced"
+issue = 670
+
+[[row]]
+id = "G18"
+surface = "`.ork` import"
+claim = "An inner tube's automatic outer radius is held to OpenRocket only on fourteen probe designs, and a ring's automatic bore rests on its unit tests"
+pages = ["format/ork.md#checked-against-the-answers-openrocket-cached"]
+kind = "spec"
+wanted = "real"
+not_checked = "OpenRocket's values for a real design's automatic radii, which the library's files never cache, and for a ring's automatic bore"
+issue = 671
+
+[[row]]
+id = "G19"
+surface = "Aerodynamics"
+claim = "RASAero II's exported tables are flown from one real export, to Mach 0.75"
+pages = ["physics/aero.md#the-normal-force-from-rasaero-ii"]
+kind = "spec"
+wanted = "real"
+not_checked = "a real export flown faster, checked by unit tests alone; past the export's last angle, and at 0° faster than Mach 1.3, the values are assumed"
+issue = 672
+
+[[row]]
+id = "G20"
+surface = "Flight models"
+claim = "A pushed part leaves through the end the simulator assumes, from the way its body points as it falls"
+pages = ["physics/recovery.md#ejected-pieces"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "a measured deployment; the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess"
+issue = 673
+
+[[row]]
+id = "G21"
+surface = "Accuracy against real flights"
+claim = "Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses"
+pages = [
+  "start-here.md#accuracy-so-far",
+  "accuracy.md#accuracy",
+  "VALIDATION.md#real-flights",
+]
+kind = "reasoning"
+wanted = "real"
+not_checked = "each of the four altimeters' sensor, none of them calibrated; each design's fin edges"
+issue = 674
+
+[[row]]
+id = "G22"
+surface = "Fin flutter"
+claim = "Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew"
+pages = ["physics/flutter.md#in-short"]
+kind = "spec"
+wanted = "real"
+not_checked = "a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings"
+issue = 675
+
+[[row]]
+id = "G23"
+surface = "The motor finder"
+claim = "The motor finder is replayed on three stand-in searches in ThrustCurve.org's shape"
+pages = ["motor-stock.md#motor-stock-and-prices"]
+kind = "spec"
+wanted = "spec"
+wanted_adr = "ADR-278"
+
+[[row]]
+id = "G24"
+surface = "Accuracy against real flights"
+claim = "The simulation's apogees miss seven public real flights by 6.04% on average and 53 private ones by 12.95%, both outside the 5% target"
+pages = [
+  "start-here.md#accuracy-so-far",
+  "getting-started.md#getting-started",
+  "recording-a-trajectory.md#recording-a-trajectory",
+  "exporting-a-flight.md#exporting-a-flight",
+  "your-own-rocket.md#your-own-rocket",
+  "accuracy.md#accuracy",
+  "physics/motor.md#putting-it-in-a-rocket",
+  "format/era5.md#era5-weather-files",
+]
+kind = "calibration"
+wanted = "real"
+not_checked = "a flight held out from every choice of model and every fit, predicted before its log is read"
+issue = 676
+
+[[row]]
+id = "G25"
+surface = "Design export"
+claim = "The `.ork` files `hpr convert` writes are checked by opening them in OpenRocket"
+pages = ["cli.md#what-it-leaves-out"]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "whether RockSim opens them"
+issue = 677
+
+[[row]]
+id = "G26"
+surface = "Aerodynamics"
+claim = "Drag is compared with the RASAero II curves of RocketPy's example rockets, of which Calisto's is the one real RASAero II export"
+pages = [
+  "accuracy.md#results-by-model",
+  "physics/aero.md#in-short",
+]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "a measured drag of any of them; the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; and the comparison misses past Mach 1.6, where against Calisto's export HPR Sim is within 10% at 8 of the 17 rows from Mach 1.2 to 2.0"
+issue = 678
+
+[[row]]
+id = "G27"
+surface = "Aerodynamics"
+claim = "Tube fins' normal force and center of pressure are compared with OpenRocket 24.12's on 14 probe designs and its tube fin rocket"
+pages = [
+  "accuracy.md#results-by-model",
+  "physics/aero.md#tube-fins",
+]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "a measured tube fin's lift or center, of which none was found; which code is right, as OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's at every Mach number; the interference between tubes, an unchecked estimate"
+issue = 679
+
+[[row]]
+id = "G28"
+surface = "Aerodynamics"
+claim = "A flared body's supersonic normal force rests on one measured flare, and a flare past its corner's limit flies a rule checked against nothing"
+pages = [
+  "accuracy.md#known-gaps",
+  "physics/aero.md#validity-and-open-questions",
+]
+kind = "reasoning"
+wanted = "real"
+not_checked = "a second measured flare; any flare past its corner's limit; the attachment test, a wedge's limit rather than a flare's own; a near-flat flare, read by the older generalized method"
+issue = 680
+
+[[row]]
+id = "G29"
+surface = "Aerodynamics"
+claim = "Faster than sound, a boattail's share of the body's force comes from the shock-expansion method, and a blunt tip flies it behind a Newtonian cap"
+pages = ["api.md#the-crates"]
+kind = "spec"
+wanted = "real"
+not_checked = "the boattail's share, unvalidated; a blunt tip, checked on a sphere-cone only"
+issue = 681
+
+[[row]]
+id = "G30"
+surface = "Flight-log readers"
+claim = "The AltiMAX's Excel export keeps its voltages as the file states them"
+pages = ["format/flight-logs.md#the-altimaxs-excel-export"]
+kind = "none"
+wanted = "real"
+not_checked = "the voltages, which nothing checks"
+issue = 682
+
+[[row]]
+id = "G31"
+surface = "Flight-log readers"
+claim = "An RRC3's Temperature and Voltages columns, which state no unit, are read in the units its manual pairs with the file's altitude unit"
+pages = ["format/flight-logs.md#units-no-source-states"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "the units, which are assumed; a file whose temperature or voltage can be checked against another record of the same flight"
+issue = 683

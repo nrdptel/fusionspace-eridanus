@@ -40,7 +40,7 @@ Its other commands are registered but not available yet: each refuses and names 
 >   of its 53 example flights, and within 0.12% on all 53
 >   ([Recovery](physics/recovery.md#from-an-openrocket-file)). It flies a
 >   [separation](glossary.md#separation) under power, or several in turn as on a three-stage
->   rocket, but a dropped stage's own flight is not validated.
+>   rocket, but a dropped stage's own flight is not validated ([evidence row G13](evidence.md#g13)).
 >   With no device open within 1 s of apogee, where and how fast its rocket comes down are not
 >   predictions ([what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
 > - `hpr motors show` works out each figure from the motor's
@@ -572,7 +572,8 @@ marked rough like a booster's.
   apogees, with the file's parachutes, are within 1.37% of OpenRocket's own record, which opens them
   too, and within 2.48% of OpenRocket's flight with nothing deployed.
 - **Not validated:** the dropped middle stage's own flight, like the booster's (issue
-  [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
+  [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
+  ([evidence row G13](evidence.md#g13)).
 
 The [M4.5g2 milestone](decisions-and-roadmap.md#m4-5g2) shipped this; its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0160-several-powered-separations.md)
@@ -585,7 +586,7 @@ I115W at launch, and the note reads "the stack comes apart under power at 2.440 
 `Booster Set`, drops away". Boosters with no motor that lights stay on to the landing, as
 OpenRocket flies them. Both configurations' apogees are within 1.23% of OpenRocket's
 ([Staging: Boosters beside the core](physics/staging.md#boosters-beside-the-core)); the dropped
-boosters' own flight is not validated, like a booster's. The
+boosters' own flight is not validated, like a booster's ([evidence row G13](evidence.md#g13)). The
 [M4.5m milestone](decisions-and-roadmap.md#m4-5m) shipped this; its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md)
 says how a parallel stage is read and flown.
@@ -601,7 +602,8 @@ with `A3`, `A3` still burning". The impulse it gives, 0.509 N·s, is the one the
 section holds. This sustainer is unstable, with a least margin of −4.21 calibers. In the
 conditions of OpenRocket's record, a 0.15 m (5.9 in) rod at 28.61° N with no wind, HPR Sim's
 sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it
-does not, so the apogee printed assumes it stays upright, and why the two differ is not traced.
+does not, so the apogee printed assumes it stays upright, and why the two differ is not traced
+([evidence row G17](evidence.md#g17)).
 `hpr sim` warns that the rocket is unstable under power and marks that apogee as not a prediction
 ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)). The
@@ -636,7 +638,8 @@ their own inertia ([a packed part wider than its bore](physics/design.md#a-packe
   C6-3 payload would reach 268.8 m (882 ft), 4.00% above OpenRocket's 258.5 m (848 ft) for the same
   payload flying on its own airframe.
 - **Not validated:** the booster's flight after the split, as above (issue
-  [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). Nor a real payload whose parachute
+  [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
+  ([evidence row G13](evidence.md#g13)). Nor a real payload whose parachute
   opens late, which would land later and further away: OpenRocket's record holds no such flight.
 - **The figure and the exports stop at the split.** `--plot` and `--export` follow the stack, which
   ends where it comes apart; after that, each part's flight is in the events and landings only,
@@ -1597,7 +1600,8 @@ CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, an Eggtimer's dow
 the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight
 summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
 [M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers; formats no
-sample holds are [listed as needing samples](format/flight-logs.md#formats-that-need-samples). It
+sample holds are [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
+([evidence row G9](evidence.md#g9)). It
 has no
 check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
 0.9, about 300 m/s (984 ft/s), treat the top speed and the heights near it with care: the
@@ -2026,7 +2030,8 @@ you press Tab. Save it where your shell looks for completions:
 - **No validation check.** The validation cases and their reference results are files in the
   repository, not part of the tool. To re-run them, clone the repository and run
   `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)).
-- **RockSim is unchecked.** OpenRocket opens the files `hpr convert` writes; whether RockSim
+- **RockSim is unchecked.** OpenRocket opens the files `hpr convert` writes
+  ([evidence row G25](evidence.md#g25)); whether RockSim
   does is not checked.
 - **`hpr sim` doesn't fly the weather.** [`hpr weather`](#hpr-weather) writes a profile that only
   a program reads so far (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).

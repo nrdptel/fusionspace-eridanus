@@ -29,7 +29,8 @@ part to its own landing.
   1.23% of its apogee ([Boosters beside the core](#boosters-beside-the-core)).
   Tests pin the bookkeeping: ignition times to 1e-12 s, the mass step at the split to 1e-12 of the
   mass, and, while the sustainer is not yet burning, the two parts' momenta to 1e-9 of the stack's.
-  The flight of a dropped booster or middle stage after its split is not validated at all.
+  The flight of a dropped booster or middle stage after its split is not validated at all
+  ([evidence row G13](../evidence.md#g13)).
 - **What it leaves out:**
   - **The booster's own airframe drag.** After the split the booster is a point: a mass with only
     its recovery device's drag. So the simulator requires a device on it that opens at the
@@ -256,7 +257,8 @@ the tail forward.** At each split the stages behind it drop away and descend to 
 landing, and the rest flies on as a new sustainer. The simulator cuts that sustainer from the whole
 design at the new boundary, as it cut the first, and carries the nose tip's state straight across,
 as in [Powered separation](#powered-separation). This is checked against OpenRocket's three-stage
-example, not against a real flight, and the dropped stages' own flights are not validated. The
+example, not against a real flight, and the dropped stages' own flights are not validated
+([evidence row G13](../evidence.md#g13)). The
 decision record is [ADR-160][adr-160] (several powered separations).
 
 **How it is set.** `Simulation::with_separations` takes the separations in the order they fire.
@@ -375,7 +377,8 @@ separates, as OpenRocket flies a descent (its technical documentation v13.05, §
   warnings, so a drawn lag's isn't).
 - **The booster** tumbles side-on from the split until its own device opens, as after a powered
   split, and its flight is not validated
-  ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). Every flight that drops a booster
+  ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
+  ([evidence row G13](../evidence.md#g13)). Every flight that drops a booster
   warns of #179 ([the separated parts' warnings](../VALIDATION.md#the-separated-parts-warnings)).
 - **Not measured:** a real payload whose parachute opens late would land later and further
   away; OpenRocket's record holds no such flight to compare with.
@@ -422,7 +425,8 @@ new physics is involved. The stack flies whole until
 the split, and the split is a powered separation like any other
 ([Powered separation](#powered-separation)): the core flies on with its own shape and mass, and
 the boosters fly as a point with only their devices' drag, tumbling side-on from the split, as a
-dropped booster does in the simulator. Their own flight after the split is not validated: their peak
+dropped booster does in the simulator. Their own flight after the split is not validated
+([evidence row G13](../evidence.md#g13)): their peak
 and landing are likely too low and too close to the pad
 ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
 
@@ -500,7 +504,8 @@ still burning ([M4.5n](../decisions-and-roadmap.md#m4-5n), a stage's first burno
 
 The sustainer's flight is not affected: it keeps no thrust from the dropped motors in either
 program. The dropped booster's own flight is not validated
-([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
+([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
+([evidence row G13](../evidence.md#g13)).
 
 ## Validation
 
@@ -618,7 +623,8 @@ breaking up. When OpenRocket aborts is its own call, too: its probe of the same 
 with nothing deployed aborts at 2.40 s, not 1.81 s. The sustainer's least static margin is −4.21
 calibers at the split. In the record's conditions, a 0.15 m (0.49 ft) rod at 28.61° N with no wind, HPR Sim's
 sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it does
-not, and why the two differ is not traced. `hpr sim` warns that the sustainer is unstable under
+not, and why the two differ is not traced
+([evidence row G17](../evidence.md#g17)). `hpr sim` warns that the sustainer is unstable under
 power and that its apogee is not a prediction
 ([Flight metrics: unstable under power](metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)).

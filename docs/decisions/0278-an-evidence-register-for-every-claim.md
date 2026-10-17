@@ -1,6 +1,6 @@
 # ADR-278: An evidence register: what backs each claim, and an open issue until a real sample does (2026-10-17)
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-10-17 for M2.10
 - **Summary:** The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic when surveyed, 7 of them flight-log format readers (#645 has since been filed for GPX). Milestone M2.10 adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of its wanted kind (a real sample, unless an ADR sets less) has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score.
 
 **Context.** [VALIDATION.md](../VALIDATION.md) names four levels of evidence (analytic and unit
@@ -108,3 +108,36 @@ Keeping the prose: the status quo.
 on the same readers. The first run of the check will fail on every gap above until each has a row
 and an issue; that is the milestone's work. Issue work then takes the `needs-sample` issues
 like any other, and a periodic search keeps each row's `searched` list current.
+
+**Amendment for M2.10, how the register and its check work (2026-10-17).** Building the register
+settled what the decision left open:
+
+- *Naming a row.* A block of a page (a paragraph, a list item's own text, a table row or a
+  heading) names a row by linking it on the report page, `evidence.md#g<n>`. A phrase from the
+  list in a block that links no row fails the check, so the sentence that states a gap carries
+  the way to its row and its issue. The pages read are the guide's, those `docs/SUMMARY.md`
+  lists, except the records and the process pages (the decision records and the roadmap, the
+  plan, the writing rules, how a release is built) and the report itself; a decision record
+  states the gaps of its day, not the software's now. Each row lists the pages that link it, and
+  the check fails a page that links a row without being listed, a listed page that doesn't link
+  it, or a listed anchor that is gone.
+- *Kinds and what is wanted.* The kinds stay categories (the FDA guidance's point), so the check
+  doesn't rank them: a row is short of its wanted kind when the two differ, and it reaches it
+  only when they are equal. A row wanting less than `real` names the decision record that sets
+  it (`wanted_adr`). `calibration` covers data a model was chosen beside as well as data it was
+  fitted to: the simulation as a whole (G24) is compared with real flights, but every one so far
+  was seen while its models were chosen, so its row stays short of `real` until held-out
+  flights, predicted first ([M2.7](../ROADMAP.md)), are flown against it.
+- *The issues.* Each row short of its wanted kind has its own issue, labeled `needs-sample`, whose
+  done-when is the row reaching its wanted kind; an issue about fixing the code beside it (such
+  as #179 for G13) is linked from it but isn't it, since that one closes when the code is fixed,
+  with the evidence still short. `cargo xtask evidence` reads the labeled issues' states with
+  `gh` once a run, in CI's `evidence` job and the gate's `evidence` step, and fails when it
+  can't read them unless `--offline` is passed; the tests give it the states.
+- *A sample's test.* A sample's row names the cargo package, test target and exact test that
+  read it; the gate's `refs` step runs that test alone and fails unless exactly one test ran and
+  passed, none was ignored, and no line of its output starts with `skipped:`, the line this
+  project's tests print when a file under `refs/` is missing.
+- *Due a search.* The register's `as_of` date is the day the report counts from, so the report
+  is the same on every machine and every day until the register changes; a row whose last
+  search is over 30 days before it, or that has none, is listed as due.
