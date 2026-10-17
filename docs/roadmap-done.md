@@ -1499,8 +1499,9 @@ One line per milestone or increment, in the order it was archived within its pha
   into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
-  Met (ADR-251, ADR-276): of 1,122 sample files, 1,052 read and pinned by the report; the 3 damaged
-  and 67 that aren't logs refused by name and listed; `logs --check` and `wasm-check` pass.
+  Met (ADR-251, ADR-276): of 1,122 sample files, 1,052 read and pinned by the report (one a KML
+  map rather than a flight's log); the 3 damaged and the 67 others that aren't logs refused by name
+  and listed; `logs --check` and `wasm-check` pass.
   - [x] **M7.1a The record, a survey, three families.** *Done when:* `cargo xtask logs` surveys
     every log sample in refs by family, read or refused with a reason, into a committed
     report (counts, anonymized ids) the refs step checks; every PerfectFlite (`.pf2`, CSV, text),

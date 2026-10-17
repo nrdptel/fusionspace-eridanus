@@ -84,7 +84,12 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     }
     let read = readings::read(&log);
     let document = document(args, &log, &read);
-    let lines = text_lines(&document);
+    // A column's name is the file's text: a control character in it, such as an escape, is
+    // shown as `?` rather than reaching the terminal.
+    let lines: Vec<String> = text_lines(&document)
+        .iter()
+        .map(|line| crate::printable(line))
+        .collect();
     to.emit(&document, |out, diagnostics| {
         out.lines(&lines, &[])?;
         crate::sim_text::trust_lines(&document.trust, out)?;
@@ -133,9 +138,9 @@ fn read_description<T>(
     schema: &str,
 ) -> Result<T, Failure> {
     let bytes = crate::read_file(path)?;
-    let text = String::from_utf8(bytes).map_err(|_| {
+    let text = custom::json_text(&bytes).ok_or_else(|| {
         Failure::helped(
-            format!("{path}: not UTF-8 text, as a JSON file is"),
+            format!("{path}: not UTF-8 or UTF-16 text, as a JSON file is"),
             "save the file as UTF-8",
         )
     })?;
@@ -210,7 +215,13 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
 fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
     Analyze {
         kind: crate::trust::Kind::Measured,
-        trust: crate::trust::log(),
+        // A log read by the flyer's own description may hold no barometer at all, such as a GPS
+        // tracker's table, and none of HPR Sim's readings.
+        trust: if args.mapping.is_some() || args.layout.is_some() {
+            crate::trust::own_log()
+        } else {
+            crate::trust::log()
+        },
         log: AnalyzedLog {
             path: args.log.clone(),
             format: match log.format {

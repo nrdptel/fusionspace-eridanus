@@ -6,8 +6,11 @@ a record layout for binary records.
 This page is for a flyer whose altimeter or flight computer writes a file no reader here knows:
 a board they built that logs to a card, a team's flight computer, or a commercial logger whose
 format isn't read yet. FusionSpace HPR · Analyzer, the command line and the Python package read
-such a file by the mapping or layout you write, into the same record every other log reads into.
-Every example below reads one invented logger's files, which flew nowhere.
+such a file by the mapping or layout you write, into the same
+[record](format/flight-logs.md#the-record) every other log reads into: each column a channel, its
+values in SI units (degrees for angles) on the logger's clock, and one altitude, the primary track,
+the readings are taken from. Every example below reads one invented logger's files, which flew
+nowhere.
 
 > **How far to trust it.** The record is the logger's own samples, converted to SI units (degrees
 > for angles) by the units your file states: it is as right as those are. The reader refuses a
@@ -44,7 +47,14 @@ A GPS tracker beside it writes `gps-track.csv`, read in [A GPS tracker's table](
 
 A column mapping says how a table's columns are read: the header's line, the separator, the
 clock's column, and what each column measures in which unit. You rarely write one from nothing:
-`--print-mapping` prints what the header states, for you to edit.
+`--print-mapping` prints what the header states, for you to edit. The invented table starts with
+a comment, so its header is on line 2:
+
+```text
+# An invented flight, written as a flyer's own logger would write it
+Time (ms),Alt,Pressure (Pa),Accel X (g)
+0,0.0,87823,1.00
+```
 
 ### What the header states
 
@@ -95,7 +105,8 @@ why. A column it can't read stays in the record, its numbers unconverted.
 Save the printed mapping to a file, `hpr analyze flight.csv --print-mapping > flight.mapping.json`,
 and give `Alt` what the header leaves out: its quantity, `altitude_above_ground`, and its unit,
 `ft`. Then mark it as the primary track, `"primary": 1`, its column counted from 0: the barometric
-altitude above the pad that the readings will be taken from. The file the folder holds:
+altitude above the pad that the readings will be taken from. The file may be UTF-8 or, as Windows
+PowerShell 5.1 saves what `>` sends it, UTF-16. The file the folder holds:
 
 <!-- quote: validation/fixtures/logs/own-logger/flight.mapping.json -->
 ```json
@@ -172,12 +183,12 @@ flight.csv: read by the mapping flight.mapping.json
 
 every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
 
-How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
-simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
-by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
-0.9, which can upset the top speed and the heights near it. For a record or a certification, the
-altimeter's own reading is the one to log, and the RSO decides.
-More: https://hpr.fusionspace.co/reading-a-flight-log.html
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
+states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
+milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
+against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
+record.
+More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
 <!-- cli: end -->
@@ -234,12 +245,12 @@ no primary track: no barometric altitude above the pad
 
 every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
 
-How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
-simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
-by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
-0.9, which can upset the top speed and the heights near it. For a record or a certification, the
-altimeter's own reading is the one to log, and the RSO decides.
-More: https://hpr.fusionspace.co/reading-a-flight-log.html
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
+states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
+milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
+against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
+record.
+More: https://hpr.fusionspace.co/your-own-logger.html
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
 ```
 
@@ -260,12 +271,12 @@ no primary track: no barometric altitude above the pad
 
 every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
 
-How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
-simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
-by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
-0.9, which can upset the top speed and the heights near it. For a record or a certification, the
-altimeter's own reading is the one to log, and the RSO decides.
-More: https://hpr.fusionspace.co/reading-a-flight-log.html
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
+states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
+milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
+against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
+record.
+More: https://hpr.fusionspace.co/your-own-logger.html
 note: read from the block `flight` of a console capture, line 2: 4016 bytes of base64 decoded
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
 ```
@@ -282,6 +293,7 @@ layout:
 
 <!-- python: example -->
 ```python
+import numpy as np
 from fusionspace import hpr
 
 folder = "validation/fixtures/logs/own-logger"
@@ -291,7 +303,7 @@ mapping["columns"][1]["unit"] = "ft"
 mapping["primary"] = 1
 log = hpr.FlightLog.read(f"{folder}/flight.csv", mapping=mapping)
 print(log)
-top = max(log.altitude_m)
+top = np.nanmax(log.altitude_m)  # a gap is NaN
 print(f"highest sample {top:.2f} m ({top / 0.3048:.1f} ft) above the pad")
 for channel in log.channels:
     print(f"{channel['column']}: {channel['quantity']} in {channel['unit']}")
@@ -300,16 +312,17 @@ print(records)
 ```
 
 ```text
-FlightLog(a table read by its header, 3 channels, 251 samples on the primary track)
+FlightLog(generic_table, 3 channels, 251 samples on the primary track)
 highest sample 410.02 m (1345.2 ft) above the pad
 Alt: altitude_above_ground in m
 Pressure (Pa): pressure in Pa
 Accel X (g): acceleration in m/s²
-FlightLog(binary records by a stated layout, 3 channels, 0 samples on the primary track)
+FlightLog(binary_records, 3 channels, 0 samples on the primary track)
 ```
 <!-- python: end -->
 
-Each channel's `time_s` and `values` are NumPy arrays, a gap NaN; `log.to_dict()` is the whole
+The records' log has no samples on its primary track, as a layout marks none. Each channel's
+`time_s` and `values` are NumPy arrays, a gap NaN; `log.to_dict()` is the whole
 record as `hpr analyze --record` writes it, without its `tool`, a gap `None`. A mapping or a
 layout that fails raises `HprError` naming the field or the column, in the command line's words.
 
@@ -370,12 +383,12 @@ no primary track: no barometric altitude above the pad
 
 every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
 
-How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
-simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
-by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
-0.9, which can upset the top speed and the heights near it. For a record or a certification, the
-altimeter's own reading is the one to log, and the RSO decides.
-More: https://hpr.fusionspace.co/reading-a-flight-log.html
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
+states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
+milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
+against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
+record.
+More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
 <!-- cli: end -->

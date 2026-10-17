@@ -97,6 +97,28 @@ pub fn layout_from_json(text: &str) -> Result<Layout, LogError> {
     from_json(text, "layout").map_err(|message| LogError::Layout { message })
 }
 
+/// A mapping's or a layout's file as text: UTF-8, a byte-order mark dropped, or UTF-16 with its
+/// byte-order mark, as Windows PowerShell 5.1 writes what `>` sends to a file; `None` for any
+/// other bytes.
+#[must_use]
+pub fn json_text(bytes: &[u8]) -> Option<String> {
+    let utf16 = |rest: &[u8], unit: fn([u8; 2]) -> u16| {
+        let (pairs, odd) = rest.as_chunks::<2>();
+        if !odd.is_empty() {
+            return None;
+        }
+        char::decode_utf16(pairs.iter().map(|pair| unit(*pair)))
+            .collect::<Result<String, _>>()
+            .ok()
+    };
+    match bytes {
+        [0xEF, 0xBB, 0xBF, rest @ ..] => std::str::from_utf8(rest).ok().map(str::to_owned),
+        [0xFF, 0xFE, rest @ ..] => utf16(rest, u16::from_le_bytes),
+        [0xFE, 0xFF, rest @ ..] => utf16(rest, u16::from_be_bytes),
+        _ => std::str::from_utf8(bytes).ok().map(str::to_owned),
+    }
+}
+
 /// The JSON read as a `T`, or why not: the path of the field it fails, then serde's words, which
 /// end in the line and column.
 fn from_json<T: DeserializeOwned>(text: &str, what: &str) -> Result<T, String> {
@@ -114,6 +136,8 @@ fn from_json<T: DeserializeOwned>(text: &str, what: &str) -> Result<T, String> {
         if words.starts_with("unknown field") {
             segments.pop();
         }
+        // serde's words quote the value refused, which can be as long as the file.
+        let words = cut(&words, MAX_WORDS_CHARS);
         match path(&segments) {
             path if path.is_empty() => words,
             path => format!("`{path}`: {words}"),
@@ -121,6 +145,21 @@ fn from_json<T: DeserializeOwned>(text: &str, what: &str) -> Result<T, String> {
     })?;
     json.end().map_err(|error| error.to_string())?;
     Ok(value)
+}
+
+/// The most characters of serde's words a refusal quotes: room for the value refused and the
+/// list of every value a field takes (a quantity's 20).
+const MAX_WORDS_CHARS: usize = 1000;
+
+/// Text cut to a number of characters, its last a `…` where it is cut.
+fn cut(text: &str, chars: usize) -> String {
+    if text.chars().count() <= chars {
+        text.to_owned()
+    } else {
+        let mut cut: String = text.chars().take(chars - 1).collect();
+        cut.push('…');
+        cut
+    }
 }
 
 /// A field's path in the JSON, as `columns[2].unit`; empty for the document itself.
@@ -361,6 +400,12 @@ t (ms),alt (ft),accel (g)
             "the primary track, \"alt (ft)\", is kept as written: it must be \
              `altitude_above_ground`, the barometric altitude above the pad"
         );
+        // A height its unit makes impossible keeps the column as written, so no track.
+        let impossible = TABLE.replace("100,6.0,6.1", "100,999999999,6.1");
+        assert_eq!(
+            refused("1", &impossible),
+            "the primary track, \"alt (ft)\", holds values that contradict its unit, \"ft\""
+        );
     }
 
     #[test]
@@ -426,6 +471,44 @@ t (ms),alt (ft),accel (g)
         assert!(refused(&format!("{} {{}}", mapping("1"))).starts_with("trailing characters"));
         let long = format!("{}{}", mapping("1"), " ".repeat(MAX_FILE_BYTES));
         assert!(refused(&long).starts_with("a mapping file is at most 1048576 bytes"));
+        // A refused value as long as the file is quoted cut, not whole.
+        let huge = mapping("1").replace("acceleration", &"x".repeat(100_000));
+        let said = refused(&huge);
+        assert!(
+            said.starts_with("`columns[2].quantity`: unknown variant `xxx"),
+            "{said}"
+        );
+        assert!(said.ends_with('…'), "{said}");
+        assert_eq!(
+            said.chars().count(),
+            "`columns[2].quantity`: ".chars().count() + MAX_WORDS_CHARS
+        );
+    }
+
+    #[test]
+    fn a_files_text_is_utf8_or_utf16_with_its_mark() {
+        let text = mapping("1");
+        assert_eq!(json_text(text.as_bytes()), Some(text.clone()));
+        let marked = [&[0xEF, 0xBB, 0xBF][..], text.as_bytes()].concat();
+        assert_eq!(json_text(&marked), Some(text.clone()));
+        let little: Vec<u8> = [0xFF, 0xFE]
+            .into_iter()
+            .chain(text.encode_utf16().flat_map(u16::to_le_bytes))
+            .collect();
+        assert_eq!(json_text(&little), Some(text.clone()));
+        let big: Vec<u8> = [0xFE, 0xFF]
+            .into_iter()
+            .chain(text.encode_utf16().flat_map(u16::to_be_bytes))
+            .collect();
+        assert_eq!(json_text(&big), Some(text.clone()));
+        // Read, each is the mapping the text states.
+        assert_eq!(
+            mapping_from_json(&json_text(&little).unwrap()).unwrap(),
+            mapping_from_json(&text).unwrap()
+        );
+        assert_eq!(json_text(&little[..little.len() - 1]), None);
+        assert_eq!(json_text(&[0xFF, 0xFE, 0x00, 0xD8]), None);
+        assert_eq!(json_text(b"{\xff}"), None);
     }
 
     const LAYOUT: &str = r#"{

@@ -37,7 +37,8 @@ part with its page).
   screening and Sobol' indices) and [optimization](https://hpr.fusionspace.co/optimization.html)
   of design numbers and choices (CMA-ES, NSGA-II's trade-offs between goals, and EGO for slow
   models), in the library; `hpr mc` runs the Monte Carlo from the command line.
-- A PerfectFlite `.pf2` flight log read on its own, with no design file (`hpr analyze`).
+- A PerfectFlite `.pf2` flight log read on its own, with no design file, or another logger's
+  table or binary records by a mapping or layout you write (`hpr analyze`).
 - Flights exported as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and a Python package.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a

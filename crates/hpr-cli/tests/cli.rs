@@ -4049,6 +4049,26 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
         assert_eq!(listed, names, "{log}");
         // The readings wait for M7.2 on every logger but PerfectFlite's.
         assert_eq!(document["apogee"]["reason"], "not_validated_for_logger");
+        // The same file as Windows PowerShell 5.1 writes `>` output, UTF-16 with its mark, and
+        // as UTF-8 with a mark, reads the same record.
+        let folder = tempfile::tempdir().unwrap();
+        let written = std::fs::read_to_string(root().join(OWN_LOGGER).join(file)).unwrap();
+        let utf16: Vec<u8> = [0xFF, 0xFE]
+            .into_iter()
+            .chain(written.encode_utf16().flat_map(u16::to_le_bytes))
+            .collect();
+        let marked = [&[0xEF, 0xBB, 0xBF][..], written.as_bytes()].concat();
+        for (name, bytes) in [("utf16.json", utf16), ("marked.json", marked)] {
+            let copy = folder.path().join(name);
+            std::fs::write(&copy, bytes).unwrap();
+            let output = hpr(&["analyze", &path, how, copy.to_str().unwrap(), "--record"]);
+            assert_eq!(output.status.code(), Some(0), "{log}, {name}: {output:?}");
+            same_record(
+                &serde_json::from_slice(&output.stdout).unwrap(),
+                &library,
+                name,
+            );
+        }
     }
     let flight = own_record("flight.csv", "--mapping", "flight.mapping.json");
     assert_eq!(flight.time_s.len(), 251);
@@ -4117,6 +4137,58 @@ fn analyze_prints_a_tables_header_as_a_mapping_to_edit() {
         )
         .unwrap(),
     );
+}
+
+/// A control character from a file, such as an escape in a column's name or a mapping's value,
+/// reaches the terminal as `?`: in the text output and in every message line.
+#[test]
+fn analyze_shows_a_files_control_characters_as_question_marks() {
+    let folder = tempfile::tempdir().unwrap();
+    let name = "\u{1b}[31mAlt\u{7} (ft)";
+    let table = folder.path().join("escape.csv");
+    std::fs::write(&table, format!("Time (ms),{name}\n0,0\n200,10\n400,20\n")).unwrap();
+    let mapping = |quantity: &str| {
+        serde_json::json!({
+            "header_line": 1,
+            "separator": ",",
+            "decimal_comma": false,
+            "clock": 0,
+            "primary": 1,
+            "columns": [
+                {"name": "Time (ms)", "quantity": null, "unit": "ms"},
+                {"name": name, "quantity": quantity, "unit": "ft"},
+            ],
+        })
+        .to_string()
+    };
+    let read = |quantity: &str| {
+        let file = folder.path().join("escape.json");
+        std::fs::write(&file, mapping(quantity)).unwrap();
+        let output = hpr(&[
+            "analyze",
+            table.to_str().unwrap(),
+            "--mapping",
+            file.to_str().unwrap(),
+        ]);
+        (
+            output.status.code(),
+            text(&output.stdout),
+            text(&output.stderr),
+        )
+    };
+    let (status, out, err) = read("altitude_above_ground");
+    assert_eq!(status, Some(0), "{err}");
+    assert!(
+        out.contains("1 channel: ?[31mAlt? (ft) (altitude above ground)"),
+        "{out}"
+    );
+    let (status, out, err) = read("\u{1b}]0;title\u{7}");
+    assert_eq!(status, Some(1), "{err}");
+    assert!(out.is_empty(), "{out}");
+    assert!(err.contains("unknown variant `?]0;title?`"), "{err}");
+    for printed in [&out, &err] {
+        assert!(!printed.contains(['\u{1b}', '\u{7}']), "{printed:?}");
+    }
 }
 
 /// A mapping or a layout that fails is refused naming the field, its path in the JSON, and the

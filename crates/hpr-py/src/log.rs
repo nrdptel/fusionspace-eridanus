@@ -31,15 +31,30 @@ fn read_bytes(path: &Path) -> PyResult<Vec<u8>> {
 /// A mapping's or a layout's JSON: a dict's, or a file's at a path.
 fn description_json(py: Python<'_>, given: &Bound<'_, PyAny>) -> PyResult<String> {
     if given.is_instance_of::<PyDict>() {
+        // Indented, so that a refusal's line and column point into the dict's own lines; NaN
+        // refused, as no field takes one.
+        let options = PyDict::new(py);
+        options.set_item("indent", 2)?;
+        options.set_item("allow_nan", false)?;
         return py
             .import("json")?
-            .call_method1("dumps", (given,))?
-            .extract::<String>();
+            .call_method("dumps", (given,), Some(&options))
+            .and_then(|text| text.extract::<String>())
+            .map_err(|refused| {
+                error(format!(
+                    "a mapping or a layout given as a dict must be one JSON can hold: {refused}"
+                ))
+            });
     }
     let path: PathBuf = given
         .extract()
         .map_err(|_| error("a mapping or a layout is a dict, or the path of its JSON file"))?;
-    std::fs::read_to_string(&path).map_err(|e| error(format!("{}: {e}", path.display())))
+    custom::json_text(&read_bytes(&path)?).ok_or_else(|| {
+        error(format!(
+            "{}: not UTF-8 or UTF-16 text, as a JSON file is",
+            path.display()
+        ))
+    })
 }
 
 /// A library error on the file at `path`, as the command line words it.
@@ -204,9 +219,14 @@ impl FlightLog {
     }
 
     fn __repr__(&self) -> String {
+        // The format as ``format`` names it: a table read by a mapping is a `generic_table`, as
+        // one read by its header is, so the format's words would name the wrong way it was read.
+        let format = serde_json::to_value(self.log.format)
+            .ok()
+            .and_then(|name| name.as_str().map(str::to_owned))
+            .unwrap_or_default();
         format!(
-            "FlightLog({}, {} channels, {} samples on the primary track)",
-            self.log.format.name(),
+            "FlightLog({format}, {} channels, {} samples on the primary track)",
             self.log.channels.len(),
             self.log.time_s.len()
         )

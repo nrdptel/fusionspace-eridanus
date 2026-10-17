@@ -125,7 +125,7 @@ def test_the_header_mapping_is_the_one_the_command_prints(repo, hpr_cli):
     assert mapping == json.loads((repo / OWN_LOGGER / "flight.mapping.json").read_text())
 
 
-def test_a_mapping_or_layout_is_refused_naming_the_field(repo):
+def test_a_mapping_or_layout_is_refused_naming_the_field(repo, tmp_path):
     path = repo / OWN_LOGGER / "flight.csv"
     mapping = json.loads((repo / OWN_LOGGER / "flight.mapping.json").read_text())
     mapping["columns"][1]["unit"] = 3
@@ -145,6 +145,18 @@ def test_a_mapping_or_layout_is_refused_naming_the_field(repo):
         hpr.FlightLog.read(path, sheet=0)
     with pytest.raises(hpr.HprError, match="a dict, or the path of its JSON file"):
         hpr.FlightLog.read(path, mapping=5)
+    with pytest.raises(hpr.HprError, match="must be one JSON can hold"):
+        hpr.FlightLog.read(path, mapping={"primary": float("nan")})
+    with pytest.raises(hpr.HprError, match="must be one JSON can hold"):
+        hpr.FlightLog.read(path, mapping={"primary": object()})
+    # A mapping file Windows PowerShell 5.1 wrote, UTF-16 with its mark, reads as UTF-8 does.
+    text = (repo / OWN_LOGGER / "flight.mapping.json").read_text()
+    utf16 = tmp_path / "utf16.json"
+    utf16.write_bytes(b"\xff\xfe" + text.encode("utf-16-le"))
+    assert (
+        hpr.FlightLog.read(path, mapping=utf16).to_dict()
+        == hpr.FlightLog.read(path, mapping=repo / OWN_LOGGER / "flight.mapping.json").to_dict()
+    )
     # By its own reader, the table reads by what its header states: the altitude, whose unit it
     # doesn't state, kept as written.
     by_header = hpr.FlightLog.read(path)
