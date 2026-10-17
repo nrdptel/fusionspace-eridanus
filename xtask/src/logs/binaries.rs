@@ -133,22 +133,23 @@ struct AlsFile {
     voltage: [u64; 3],
     time: [u64; 3],
     speed: [u64; 3],
-    /// The clock's rows that match only with the reader's sum moved one step of a double up or
-    /// down, each within that step of the rule's tie, so that a one-bit difference between the
-    /// reader's running sum and the software's would decide its 15th digit: counted as compared
-    /// and not differing, and not capped.
+    /// The clock's rows on a tie: those that differ, but match with the reader's sum moved one
+    /// step of a double up or down, each within that step of the rule's tie, where a one-bit
+    /// difference in the sum, or in the software's own rounding, decides the 15th digit. Counted
+    /// in `time` as differing by one unit; the only rows that may differ, how many not capped.
     #[serde(default)]
     time_on_tie: u64,
-    /// Those rows: the time, s, and how far it lies from the tie, in steps of a double there,
-    /// [`steps_from_tie`].
+    /// Those rows: the time, s, and the tie's distance from it in steps of a double there,
+    /// positive where the tie is above the reader's value, [`steps_from_tie`].
     #[serde(default)]
     time_on_tie_rows: Vec<(f64, Option<f64>)>,
-    /// The rules' evidence: how many voltages would differ taken as the count times the factor's
-    /// own double; and how many clock values would differ rounded first to 15 to 20 significant
-    /// digits and then half up to 15, [`digits_via`], 15 being rounding once, the tie rows
-    /// counted as differing.
+    /// The voltage rule's evidence: how many voltages would differ taken as the count times the
+    /// factor's own double.
     #[serde(default)]
     voltage_by_doubles_differing: u64,
+    /// The clock rule's evidence: how many clock values would differ rounded first to 15, 16, 17,
+    /// 18, 19 or 20 significant digits and then half up to 15, [`digits_via`], 15 being rounding
+    /// once; the rows on a tie counted.
     #[serde(default)]
     time_by_digits_differing: [u64; 6],
     /// The export's rows from apogee on, whose speed the software works out from the pressure,
@@ -257,9 +258,11 @@ fn digits_via(value: f64, first: usize) -> Option<(i64, i32)> {
     Some((if value < 0.0 { -fifteen } else { fifteen }, exponent - 14))
 }
 
-/// How far a positive value lies from the export rule's tie between its digits and `theirs`, a
-/// unit of the 15th digit away, in steps of a double there: the tie is the lower one's digits
-/// then 499 5 at the 16th to 19th, where the 18 digits round up to its 500. `None` if the two
+/// The distance from a positive value to the export rule's tie between its digits and `theirs`,
+/// a unit of the 15th digit away, in steps of a double there, positive where the tie is above the
+/// value: the tie is the lower one's digits then 499 5 at the 16th to 19th, where the 18 digits
+/// round up to its 500. `None` for a value under 2⁻¹¹, whose steps the arithmetic here can't
+/// hold, and where the two
 /// aren't a unit apart.
 fn steps_from_tie(ours: f64, theirs: (i64, i32)) -> Option<f64> {
     let (mine, exponent) = export_digits(ours)?;
@@ -401,13 +404,11 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
             .map(|c| c.time_s.clone())
             .unwrap_or_default();
         for (a, b) in our_time.iter().zip(&theirs.time_s) {
+            tally(&mut file.time, *a, *b);
             if clock_on_tie(*a, *b) {
-                file.time[0] += 1;
                 file.time_on_tie += 1;
                 let steps = digits_15(*b).and_then(|want| steps_from_tie(*a, want));
-                file.time_on_tie_rows.push((*a, steps.map(f64::abs)));
-            } else {
-                tally(&mut file.time, *a, *b);
+                file.time_on_tie_rows.push((*a, steps));
             }
             for (slot, first) in (15..=20).enumerate() {
                 if digits_via(*a, first) != digits_15(*b) {
@@ -427,6 +428,7 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
                     None => {
                         file.voltage[0] += 1;
                         file.voltage[1] += 1;
+                        file.voltage[2] = u64::MAX;
                     }
                 }
                 if export_digits(count * factor) != digits_15(*volt) {
@@ -792,14 +794,23 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 .iter()
                 .all(|off| off.is_some_and(|o| o <= bound))
         });
-        // Every record is compared, but the speed from apogee on, and none may differ.
+        // Every record is compared, but the speed from apogee on, and none may differ but a clock
+        // row on a tie, one unit off, within a step of a double of it.
         let every = f.records as u64;
+        let ties_hold = f.time[1] == f.time_on_tie
+            && f.time[2] <= 1
+            && f.time_on_tie_rows.len() as u64 == f.time_on_tie
+            && f.time_on_tie_rows
+                .iter()
+                .all(|(_, steps)| steps.is_some_and(|s| s.abs() <= 1.0));
         if f.records == 0
             || f.records != f.rows
             || f.stored_differing > 0
-            || [f.accel, f.voltage, f.time]
+            || [f.accel, f.voltage]
                 .iter()
                 .any(|c| c[0] != every || c[1] > 0)
+            || f.time[0] != every
+            || !ties_hold
             || f.speed[0] == 0
             || f.speed[1] > 0
             || !f.events_equal
@@ -870,25 +881,29 @@ fn counts(c: [u64; 3]) -> String {
     format!("{} / {} / {}", c[0], c[1], c[2])
 }
 
-/// The report's section for this increment.
-/// The clock's rows on a tie, for the report: how many, then each one's time and distance.
+/// The clock's rows on a tie, for the report: how many, then each one's time and the tie's
+/// distance, under or over it.
 fn on_tie(f: &AlsFile) -> String {
     let mut text = f.time_on_tie.to_string();
     for (time_s, steps) in &f.time_on_tie_rows {
         text += &match steps {
-            Some(steps) => format!(", {time_s:.3} s {steps:.1e} of a step"),
+            Some(steps) if *steps >= 0.0 => format!(", {time_s:.3} s {steps:.1e} of a step under"),
+            Some(steps) => format!(", {time_s:.3} s {:.1e} of a step over", -steps),
             None => format!(", {time_s:.3} s"),
         };
     }
     text
 }
 
+/// The report's section for this increment.
 pub(super) fn markdown(checks: &Checks) -> String {
     let factor_text = |(_, volts_e8, divisor): (f64, u64, f64)| {
+        let volts = volts_e8 as f64 * 1e-8;
         format!(
-            "{}.{:08} V over {divisor}",
+            "{}.{:08} V over {divisor}, {:.11} V a count",
             volts_e8 / 100_000_000,
-            volts_e8 % 100_000_000
+            volts_e8 % 100_000_000,
+            volts / divisor
         )
     };
     let mut out = String::new();
@@ -906,11 +921,12 @@ pub(super) fn markdown(checks: &Checks) -> String {
              4, which no document states, as the double nearest the exact product; the clock, \
              5 ms or 25 ms a record summed in doubles; and the speed before apogee, 0 before \
              `BARO-LIFTOFF` and then the counts summed, {} billionths of a m/s each. None may \
-             differ, but for the clock's rows *On a tie*: those that match only with the reader's \
-             sum one step of a double up or down, each that close to the rule's tie, so that a \
-             one-bit difference between the reader's running sum and the software's would decide \
-             its 15th digit; they are counted, not capped, each with its time, s, and its \
-             distance from the tie in steps of a double. The rules' evidence: *By doubles* counts \
+             differ but the clock's rows *On a tie*, which *Clock* counts as differing, by one \
+             unit: each matches with the reader's sum one step of a double up or down, lying \
+             within that step of the rule's tie, so that a one-bit difference in the sum or in \
+             the software's own rounding would decide its 15th digit. How many isn't capped; \
+             each is listed with its time, s, and the tie's distance in steps of a double, under \
+             or over the reader's value. The rules' evidence: *By doubles* counts \
              the voltages that would differ as the count times the factor's own double, and \
              *First rounded to 15–20 digits* the clock values that would differ rounded first to \
              15, 16, 17, 18, 19 or 20 digits and then half up to 15, 15 being rounding once, the \
@@ -1036,7 +1052,7 @@ mod tests {
         assert_eq!(units(digits_15(1.0), digits_15(10.0)), u64::MAX);
         // A carry through every digit moves the power of ten.
         assert_eq!(
-            export_digits(9.999_999_999_999_999_6),
+            export_digits(9.999_999_999_999_996),
             Some((100_000_000_000_000, -13))
         );
         let mut c = [0; 3];
@@ -1056,14 +1072,13 @@ mod tests {
         assert_eq!(format!("{time:.19e}"), "1.7349999999999849987e0");
         assert_eq!(export_digits(time), Some((173_499_999_999_999, -14)));
         assert_eq!(digits_15(time), Some((173_499_999_999_998, -14)));
-        // Below the 18th digit's tie, down; at it, up.
+        // Just under the rule's tie, ...499 5 at the 16th to 19th digits, down; the next double,
+        // over it, up.
+        let under = 122.005_000_000_015_5_f64;
+        assert_eq!(export_digits(under), Some((122_005_000_000_015, -12)));
         assert_eq!(
-            export_digits(1.000_000_000_000_004_9),
-            Some((100_000_000_000_000, -14))
-        );
-        assert_eq!(
-            export_digits(1.000_000_000_000_005),
-            Some((100_000_000_000_001, -14))
+            export_digits(under.next_up()),
+            Some((122_005_000_000_016, -12))
         );
     }
 
@@ -1218,9 +1233,10 @@ mod tests {
             stored_compared: 40,
             accel: [10, 0, 0],
             voltage: [10, 0, 0],
-            time: [10, 0, 0],
+            time: [10, 1, 1],
             speed: [4, 0, 0],
             time_on_tie: 1,
+            time_on_tie_rows: vec![(0.5, Some(3.5e-4))],
             events_equal: true,
             height_off_m: [Some(0.01), Some(0.02)],
             height_bound_m: Some(0.04),
@@ -1263,7 +1279,13 @@ mod tests {
             |f| f.voltage[0] = 9,
             |f| f.voltage[1] = 1,
             |f| f.time[0] = 9,
-            |f| f.time[1] = 1,
+            // A clock row off but not on a tie; a tie row more than a unit or a step off, or
+            // missing from the list.
+            |f| f.time[1] = 2,
+            |f| f.time[2] = 2,
+            |f| f.time_on_tie_rows.clear(),
+            |f| f.time_on_tie_rows[0].1 = Some(-1.5),
+            |f| f.time_on_tie_rows[0].1 = None,
             |f| f.speed = [0, 0, 0],
             |f| f.speed[1] = 1,
             |f| f.events_equal = false,

@@ -427,10 +427,11 @@ decisions.
      first to 16, 17, 19 or 20 digits, 1,245, 109, 11 and 11; to 18, the row on a tie), and its
      volts are the 64-bit float nearest the exact product (the count times the factor's own float
      puts 31 off). With both, every value compared matches but that clock row, at 122.005 s,
-     3.5 × 10⁻⁴ of a step of a float under the rule's tie, which the next float up matches: a
-     one-bit difference between the reader's running sum and the software's would decide it, and
-     the file can't show whether there is one. The check counts such rows apart (*On a tie* in
-     the report), uncapped, rather than as differing;
+     3.5 × 10⁻⁴ of a step of a float under the rule's tie, which the next float up matches: one
+     bit, in the software's running sum or in its own rounding to 18 digits, decides it, and the
+     file can't show which. The check lets such rows alone differ, by a unit, each within a step
+     of the tie (*On a tie* in the report), how many uncapped: a misread step would move every
+     later time by 5 ms or more;
    - the acceleration is read at the export's own 0.0981 m/s² a count, 0.01 g at 9.81 m/s², so
      it equals the export's;
    - the clock is 5 ms or 25 ms a record, by a bit of its first byte: the manual's table's 200
