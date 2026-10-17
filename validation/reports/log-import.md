@@ -14,9 +14,10 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
+| altimax-als | M7.1c23 | 1 | 1 | none |
 | altimax-xls | M7.1c20 | 1 | 1 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
-| altos-csv | M7.1a | 48 | 48 | none |
+| altos-csv | M7.1a | 50 | 50 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
 | altos-eeprom | M7.1c10 | 14 | 14 | none |
 | altos-resaved-csv | M7.1c21 | 1 | 1 | none |
@@ -25,7 +26,6 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem-csv | M7.1c21 | 1 | 1 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c23 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -35,7 +35,6 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-usb-txt | M7.1c17 | 2 | 2 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
 | console-capture | M7.1c16 | 3 | 3 | none |
-| csv | M7.1c23 | 2 | 2 | none |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -44,7 +43,8 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c23 | 2 | 0 | 2 unrecognized |
+| entacore-dump | M7.1c23 | 1 | 1 | none |
+| entacore-xtra | M7.1c23 | 2 | 2 | none |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -88,7 +88,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
 | worked-out-table | not a log | 3 | 0 | 1 archive, 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1048 | |
+| **All** | | 1122 | 1052 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -211,6 +211,10 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `8b482eb6ae9af583 txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
 - `a65103199f08052b txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
 - `d306250ba73ea7f4 txt -> rrc3-csv`: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension
+- `2ae4a21078c06c6c csv -> altos-csv`: AltosUI's CSV export of a flight, `#` lines of the board's settings and then its `#version,serial,flight,…` header, filed as generic CSV by its extension
+- `c1257942e34815f7 csv -> altos-csv`: AltosUI's CSV export of a flight, `#` lines of the board's settings and then its `#version,serial,flight,…` header, filed as generic CSV by its extension
+- `96bad107a7162e43 binary -> altimax-als`: an AltiMAX altimeter's own file of a flight, `.ALS`: a header of 32 bytes, then a record of 22 bytes a sample, its pressures, acceleration, event and one voltage channel's count; filed as binary
+- `b08cb7688c29d173 binary -> entacore-dump`: an Entacore AIM XTRA's memory as its software downloads it, raw: recordings back to back, each record a type byte and its big-endian fields between bytes that count the clock's ticks, then erased memory; filed as binary
 - `9c5017ab68168088 altos-csv -> altos-resaved-csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas; read by its columns' names, the formulas kept as text
 - `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
 - `c7936ac4d86f259f kml -> kml-map`: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it
@@ -546,6 +550,18 @@ The 20 tables read by a column mapping held to physics (M7.1c22, ADR-274): table
 A track's own speed, which ADR-274's plan named among the checks, holds the track's GPS altitude by its vertical speed: the *track speed* check above. It takes the highest fix as apogee and needs 4 fixes or more in the 5 s before it, the highest included, that set the parabola's curvature about as well as 5 fixes 1 s apart; it holds a unit within a wide band, and doesn't measure drag. It passes in 2 files, slowing at 0.9925 g. The survey fails a GPS altitude of a track a place check holds that could take the check and takes none. The other track with a GPS altitude has 1 fix there, too few or too close together to take it, and its altitude is held by its other checks. It doesn't hold the clock, which the clock checks hold, as every held file's: read 10 times too short, the window would take 50 s of fixes.
 
 A track's ground speed holds no unit. Over the 4 tracks held by a place check of a latitude and a longitude (5 files, a file whose fixes are another's counted once), the median ground speed from each fix to the next the receiver reports, the great-circle distance over the step of the track's own clock, taken over the whole recording, the pad's hours included, so that a median can be a receiver's jitter as much as the wind's drift, lies 0.3460–7.3836 m/s, a spread of 21.34 times, wider than the 10 times a clock misread by a factor of 10 moves it, so no band on these tracks refuses that misread on every one of them. Nor could a band hold a clock on every flight: a track drifts with the wind, and a launch may go on a calm day, so its speed has no floor (NFPA 1127 limits only the surface wind, to 20 mph, 8.9 m/s). Each track's fastest step lies 24.8509–400.0430 m/s, a spread of 16.10 times, so a track's top speed holds no clock either. Radians stated as degrees would read 57 times slower, which a band could part on these tracks alone, but a band fitted to them is a sample, not a bound; the place check holds a track's degrees with no band.
+
+The AltiMAX `.ALS` (M7.1c23), read by its reader, against the `.xls` export of the same flight beside it, read by the export's: *Records* and *Rows* count each; *Stored* compares the values the file stores that the export writes unchanged, both pressures, the event code and the voltage channel, bit for bit, as compared / differing. The rest are compared at the export's 15 significant digits, as compared / differing / the most, in units of the 15th digit: the acceleration; each voltage channel's counts times the export's factor, 0.00314278884 V a count on channels 1 and 5, 0.00266754240 on 2 to 4, which no document states; the clock, 5 ms or 25 ms a record; and the speed before apogee, 0 before `BARO-LIFTOFF` and then the counts summed, 490325 billionths of a m/s each. A value may differ by 1 unit, the writer's rounding at a tie. *Speed left* counts the rows from apogee on, whose speed the software works out from the pressure: not compared. *Heights off* is the most the standard atmosphere's height of each pressure, less that of the header's zero pressure, differs from the export's, filtered and raw, in m, which must be within half what one pascal moves the zero's height, *Bound*.
+
+| File | Export | Records | Rows | Stored | Acceleration | Voltage | Clock | Speed | Speed left | Events | Heights off, m | Bound, m |
+|---|---|---:|---:|---|---|---|---|---|---:|---|---|---:|
+| `96bad107a7162e43` | `444687655195f5c8` | 25334 | 25334 | 101336 / 0 | 25334 / 0 / 0 | 25334 / 31 / 1 | 25334 / 11 / 1 | 8373 / 0 / 0 | 16961 | 21 equal | 0.0087 / 0.0086 | 0.0419 |
+
+The Entacore AIM's files of one flight (M7.1c23), `80ceccffb671441d`, `073f4a6678b4bb0b` and `b08cb7688c29d173`: a short copy of an `.xtra`, the whole `.xtra` its software made of the raw dump, and the dump. *Prefix* is whether the short copy's bytes are the whole one's first. *Samples* counts what each reader read: the short copy, the whole `.xtra`, the dump's recordings and its last, the flight. *Others* counts the other recordings' samples, and *Other climb* the most any rises over its first pressure in the standard atmosphere, m. *Values* compares the whole `.xtra`'s channels with the flight recording's, value for value, bit for bit, as compared / differing; *Dump only* counts the samples the dump holds past them. *`.xtra` times* compares the `.xtra`'s times with the dump's ticks summed here as the software sums them, in 32-bit floats a tick byte at a time, and *Dump times* the dump reader's with the ticks in ms, the dump walked here apart from the reader; *Short* compares the short copy's values and times with the whole one's first. On the flight, on the dump's clock, liftoff is the first of the unbroken run of axial readings above 1.5 g that holds `state 1`, the logger's launch detect: *Pad, g* is the magnitude of the three accelerometers' medians over the last 10 s before liftoff, which must be within 0.85–1.15, an accelerometer's band at rest, and then the axial one's alone; *Apogee time* the time from liftoff to the least pressure over √(2h/g), h the standard atmosphere's climb from the pad, within 0.5–2.0; *GPS ms a tick* the GPS's time of week over the ticks, on the pad and from liftoff on; *Behind, s* how far the `.xtra`'s clock is behind the ticks at its last sample, and *Climb* its climb's time over the ticks'.
+
+| Prefix | Samples | Others | Other climb, m | Values | Dump only | `.xtra` times | Dump times | Short | Pad, g | Apogee time | GPS ms a tick | Behind, s | Climb |
+|---|---|---:|---:|---|---:|---|---|---|---:|---:|---|---:|---:|
+| yes | 210200 / 224643 / 10 / 224644 | 402505 | 15.6 | 435075 / 0 | 1 | 224643 / 0 | 224644 / 0 | 814206 / 0 | 0.965 / 0.961 | 1.064 | 1.0209 / 1.0087 | 2.40 | 0.9910 |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -890,6 +906,7 @@ The files read, by the logger each names:
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
+| Entacore AIM XTRA | 12 |
 | Featherweight Blue Raven | 138 |
 | Featherweight GPS ground station | 14 |
 | Featherweight GPS tracker | 40 |
@@ -906,7 +923,7 @@ The files read, by the logger each names:
 | PerfectFlite Pnut | 39 |
 | PerfectFlite SL100 | 35 |
 | PerfectFlite SLCF | 101 |
-| Rocketronics AltiMAX | 1 |
+| Rocketronics AltiMAX | 2 |
 | Rocketry Ltd Mercury | 4 |
 | Rocketry Ltd Nano V1 | 7 |
 | Silicdyne Fluctus | 6 |

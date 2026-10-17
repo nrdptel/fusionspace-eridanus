@@ -97,7 +97,7 @@ const UNIT_BAND: std::ops::RangeInclusive<f64> = hpr_flightdata::altos_eeprom::C
 /// The accelerometer's median magnitude over a recording, in g, mostly at rest on the pad and
 /// under a parachute: within 15 % of 1 g, M7.1c20's band, where a unit off by 3.28 (ft/s²), 9.8
 /// (g for m/s²) or a thousand (mg) is far outside.
-const REST_BAND_G: std::ops::RangeInclusive<f64> = 0.85..=1.15;
+pub(super) const REST_BAND_G: std::ops::RangeInclusive<f64> = 0.85..=1.15;
 
 /// The pressures a launch site's pad can have, Pa.
 const PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;

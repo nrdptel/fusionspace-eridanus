@@ -83,6 +83,7 @@
 pub mod aerospacenu_fcb;
 pub mod aerospacenu_gs;
 pub mod altimax;
+pub mod altimax_als;
 pub mod altimetercloud;
 pub mod altos;
 pub mod altos_eeprom;
@@ -96,6 +97,7 @@ pub mod blueraven_usb;
 pub mod capture;
 pub mod eggtimer;
 pub mod entacore;
+pub mod entacore_raw;
 pub mod error;
 pub mod filter;
 pub mod fluctus;
