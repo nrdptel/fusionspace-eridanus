@@ -205,13 +205,15 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register
   has a generated schema checked like the others; `cargo xtask evidence`, run by the gate and CI,
-  fails when a page says a surface rests on invented samples, an assumption or no sample without
-  naming a row, when a row short of `real` has no open `needs-sample` issue or its issue is closed
-  with the kind unchanged, when a sample's SHA-256 differs from its cached file, or when a `real`
-  row's test skipped, each failure pinned by a test that shows it can fire; the 24 gaps ADR-278
-  lists each have a row and, short of `real`, an open issue; a docs page shows a committed report
-  counting rows by kind and surface, with no combined score, and the rows whose last dated search
-  is over 30 days old; each format page's sample request links its issue. Moves: honest trust.
+  fails when a page states a gap in any phrase of a committed list without naming a row (a test
+  shows each phrase fires on a canary page, and each of ADR-278's 24 table sentences is detected),
+  when a row's page anchor is gone, when a row short of its wanted kind has no open `needs-sample`
+  issue or its issue is closed, or when a `real` row lists no sample with its SHA-256 and test; the
+  gate's `refs` step fails when such a sample is missing, its hash differs or its test skipped;
+  each failure is pinned by a test that shows it fires; rows G1 to G24 of ADR-278's table exist,
+  each short of its wanted kind with an open issue; a docs page shows a committed report counting
+  rows by kind and surface, with no combined score, and the rows due a search (none yet, or the
+  last over 30 days old); each format page's sample request links its issue. Moves: honest trust.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
