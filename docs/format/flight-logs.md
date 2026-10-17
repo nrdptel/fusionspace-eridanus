@@ -108,7 +108,8 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > Since [M7.1c23](../decisions-and-roadmap.md#m7-1c23) (the last binaries), an AltiMAX's own
 > `.ALS` file reads to the values of the Excel export beside it, its pressures and event codes
 > bit for bit and the rest to the export's 15 significant digits, by two rules fitted to that
-> file, all but one clock value on a rounding tie ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's `.xtra` file and the raw
+> file, except one clock value that sits on a rounding tie and is a unit off in its 15th digit
+> ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's `.xtra` file and the raw
 > dump of its memory read to each other, value for value
 > ([the AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump)); no document describes either's
 > bytes, so each layout rests on one sample flight. Every sample log in a layout HPR Sim knows is
@@ -3239,9 +3240,10 @@ multiplied by the rounded factor; *First rounded to 15–20 digits*, the table a
 tie*, each such row with its time and its distance from the tipping point.
 
 **Left out.** The voltages stay counts: the export turns them into volts by one factor for
-channels 1 and 5 and another for 2 to 4, 0.00314278884 and 0.00266754240 V a count as its
-numbers show. They equal 3.218 215 77 V ÷ 1,024 and 5.463 126 83 V ÷ 2,048, a reading of ours
-that the multiplying rule uses; no document states either factor, nor which channel is which. The export's speed after apogee, 16,961 rows,
+channels 1 and 5 and another for 2 to 4, 0.00314278884 and 0.00266754240 V a count, rounded
+here, found by dividing the export's volts by its counts. They equal 3.218 215 77 V ÷ 1,024 and
+5.463 126 83 V ÷ 2,048 exactly, a reading of ours that the multiplying rule uses; no document
+states either factor, nor which channel is which. The export's speed after apogee, 16,961 rows,
 is worked out by the software from the pressure, not stored, and isn't compared. The header's
 other bytes and the trailer aren't read. A record's last 8 bytes, zero in every sample record, are
 held to zero, and a file where they aren't is refused, naming the byte; so is one with a record

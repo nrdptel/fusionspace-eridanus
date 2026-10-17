@@ -261,9 +261,8 @@ fn digits_via(value: f64, first: usize) -> Option<(i64, i32)> {
 /// The distance from a positive value to the export rule's tie between its digits and `theirs`,
 /// a unit of the 15th digit away, in steps of a double there, positive where the tie is above the
 /// value: the tie is the lower one's digits then 499 5 at the 16th to 19th, where the 18 digits
-/// round up to its 500. `None` for a value under 2⁻¹¹, whose steps the arithmetic here can't
-/// hold, and where the two
-/// aren't a unit apart.
+/// round up to its 500. `None` where the two aren't a unit apart, or for a value under 2⁻¹¹,
+/// whose steps the arithmetic here can't hold.
 fn steps_from_tie(ours: f64, theirs: (i64, i32)) -> Option<f64> {
     let (mine, exponent) = export_digits(ours)?;
     if ours <= 0.0 || !ours.is_normal() || exponent != theirs.1 || mine.abs_diff(theirs.0) != 1 {
@@ -1269,6 +1268,9 @@ mod tests {
         };
         assert_eq!(als(|_| {}), 0);
         assert_eq!(als(|f| f.height_off_m[1] = Some(0.04)), 0);
+        // A tie row a whole step from the tie, either side, still holds; past it, not.
+        assert_eq!(als(|f| f.time_on_tie_rows[0].1 = Some(1.0)), 0);
+        assert_eq!(als(|f| f.time_on_tie_rows[0].1 = Some(-1.0)), 0);
         for fail in [
             (|f| f.records = 0) as fn(&mut AlsFile),
             |f| f.rows = 9,
@@ -1285,6 +1287,7 @@ mod tests {
             |f| f.time[2] = 2,
             |f| f.time_on_tie_rows.clear(),
             |f| f.time_on_tie_rows[0].1 = Some(-1.5),
+            |f| f.time_on_tie_rows[0].1 = Some(1.01),
             |f| f.time_on_tie_rows[0].1 = None,
             |f| f.speed = [0, 0, 0],
             |f| f.speed[1] = 1,
