@@ -448,7 +448,8 @@ decisions.
      written: the software sums them in 32-bit floats, a tick byte at a time, 2.40 s behind the
      ticks by the end of the recording and 0.9 % short over the climb, each of the 224,643 times
      equal to that sum. Against the GPS's time of week, a tick is 1.0209 ms of the GPS's clock on
-     the pad and 1.0087 in flight. The reader doesn't correct it, as one flight can't say
+     the pad and 1.0087 in flight, so the `.xtra`'s times run about 1.8 % short of the GPS's
+     over the climb (0.9910 ÷ 1.0087 = 0.982). The reader doesn't correct it, as one flight can't say
      whether that is this computer's clock or every AIM's; its notes and the guide say so;
    - `import::read` takes a dump of one recording and refuses one of several, naming where the
      second starts; `entacore_raw::read_dump` reads each. The sample holds ten: nine climbing no

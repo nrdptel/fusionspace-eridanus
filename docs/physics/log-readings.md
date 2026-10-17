@@ -239,7 +239,8 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
   doesn't say which column is a barometric altitude above the pad, and on a Featherweight
   summary, which holds no samples. The AltiMAX's `.ALS` and Entacore AIM's `.xtra` files and raw
   dumps, read since [M7.1c23, the last of the importers](../decisions-and-roadmap.md#m7-1c23),
-  hold pressures and no altitude above the pad, so every reading withholds on them too.
+  hold pressures and no altitude above the pad, and, as on every logger's file but a
+  PerfectFlite's, every reading is withheld on them until M7.2.
 
 ## Tests and references
 
