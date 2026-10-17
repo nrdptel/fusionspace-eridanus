@@ -63,10 +63,11 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    aerospacenu_fcb, aerospacenu_gs, altimax, altimetercloud, altos, altos_eeprom, altos_telem,
-    altos_telem_csv, archive, arts2, arts2_raw, blueraven, blueraven_usb, capture, eggtimer,
-    entacore, fluctus, fwgps, fwsummary, generic, kml, marsa, nmea, packets, perfectflite,
-    phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose, teensy, xls,
+    aerospacenu_fcb, aerospacenu_gs, altimax, altimax_als, altimetercloud, altos, altos_eeprom,
+    altos_telem, altos_telem_csv, archive, arts2, arts2_raw, blueraven, blueraven_usb, capture,
+    eggtimer, entacore, entacore_raw, fluctus, fwgps, fwsummary, generic, kml, marsa, nmea,
+    packets, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
+    teensy, xls,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -75,6 +76,9 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Rrc3Rff,
     LogFormat::Arts2Odf,
     LogFormat::RtxRaw,
+    LogFormat::AltimaxAls,
+    LogFormat::EntacoreXtra,
+    LogFormat::EntacoreDump,
     LogFormat::RadioPacketRtf,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
@@ -161,6 +165,12 @@ fn detect_binary(bytes: &[u8]) -> Option<LogFormat> {
         Some(LogFormat::Arts2Odf)
     } else if rtx::recognizes_raw(bytes) {
         Some(LogFormat::RtxRaw)
+    } else if altimax_als::recognizes(bytes) {
+        Some(LogFormat::AltimaxAls)
+    } else if entacore_raw::recognizes_xtra(bytes) {
+        Some(LogFormat::EntacoreXtra)
+    } else if entacore_raw::recognizes_dump(bytes) {
+        Some(LogFormat::EntacoreDump)
     } else {
         None
     }
@@ -378,6 +388,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
         Some(LogFormat::Arts2Odf) => arts2_raw::read_odf(bytes),
         Some(LogFormat::RtxRaw) => rtx::read_raw(bytes),
+        Some(LogFormat::AltimaxAls) => altimax_als::read(bytes),
+        Some(LogFormat::EntacoreXtra) => entacore_raw::read_xtra(bytes),
+        Some(LogFormat::EntacoreDump) => entacore_raw::read_dump_one(bytes),
         Some(LogFormat::RtxCsv | LogFormat::RtxText) => rtx::read_export(&text),
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         Some(LogFormat::RdasText) => rdas::read(&text),

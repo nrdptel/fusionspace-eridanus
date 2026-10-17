@@ -327,6 +327,17 @@ pub enum LogFormat {
     /// AltOS's radio telemetry decoded to a table, one row a packet under a header of the
     /// packet's fields, `serial,tick,ptype,state,…,height,crc` ([`crate::altos_telem_csv`]).
     AltosTelemetryCsv,
+    /// Rocketronics' AltiMAX, a flight's `.ALS` file: a header, then a record of 22 bytes a
+    /// sample, its pressures, acceleration, event and one voltage channel's count
+    /// ([`crate::altimax_als`]).
+    AltimaxAls,
+    /// Entacore AIM XTRA, a flight as its software saves it to an `.xtra` file, a Boost binary
+    /// archive of one record a sensor group's sample ([`crate::entacore_raw`]).
+    EntacoreXtra,
+    /// Entacore AIM XTRA, one recording of its memory as its software downloads it, raw: a
+    /// type byte and big-endian fields a record, between bytes that count the clock's ticks
+    /// ([`crate::entacore_raw::read_dump`]).
+    EntacoreDump,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -457,7 +468,9 @@ impl LogFormat {
     /// height follows its raw pressure, written in whole pascals: 1 Pa, 0.083 m near sea level.
     /// A MARSA writes its altitude to a tenth of a foot, but it moves by its barometer's count,
     /// 29.3 ft (8.93 m) at most within 300 ft of the pad among the sample files. AltOS's
-    /// telemetry decoded to a table keeps the packet's whole meters of height.
+    /// telemetry decoded to a table keeps the packet's whole meters of height. An AltiMAX's
+    /// `.ALS` file and Entacore AIM's `.xtra` and raw dump hold no altitude, only pressures in
+    /// whole pascals: 1 Pa, 0.083 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -467,7 +480,12 @@ impl LogFormat {
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
-            Self::TeensyTabs | Self::TeensyNamed | Self::AltimaxXls => ONE_PASCAL_M,
+            Self::TeensyTabs
+            | Self::TeensyNamed
+            | Self::AltimaxXls
+            | Self::AltimaxAls
+            | Self::EntacoreXtra
+            | Self::EntacoreDump => ONE_PASCAL_M,
             Self::RadioPacketText | Self::RadioPacketRtf => {
                 RADIO_PACKET_PRESSURE_STEP_PA * ONE_PASCAL_M
             }
@@ -538,6 +556,9 @@ impl LogFormat {
             Self::EggtimerRtf | Self::RadioPacketRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::AltimaxXls => ".xls",
+            Self::AltimaxAls => ".ALS",
+            Self::EntacoreXtra => ".xtra",
+            Self::EntacoreDump => ".bin",
             Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
@@ -595,6 +616,9 @@ impl LogFormat {
             Self::RadioPacketText => "radio packets",
             Self::RadioPacketRtf => "radio packets in RTF",
             Self::AltimaxXls => "AltiMAX Excel export",
+            Self::AltimaxAls => "AltiMAX .ALS",
+            Self::EntacoreXtra => "Entacore AIM .xtra",
+            Self::EntacoreDump => "Entacore AIM raw dump",
             Self::Marsa => "MARSA download",
             Self::AltosTelemetryCsv => "AltOS telemetry CSV",
         }
@@ -695,6 +719,9 @@ mod tests {
             (LogFormat::RtxText, 0.3048),
             (LogFormat::Marsa, 8.930_64),
             (LogFormat::AltosTelemetryCsv, 1.0),
+            (LogFormat::AltimaxAls, 0.083_242),
+            (LogFormat::EntacoreXtra, 0.083_242),
+            (LogFormat::EntacoreDump, 0.083_242),
             (LogFormat::GenericTable, 0.0),
         ];
         for (format, expected) in cases {

@@ -298,6 +298,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M6.2d2 Hartmann 6 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M7.1a The record, a survey, three families ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1b RRC3, Eggtimer and Blue Raven CSV ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c The other importers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c1 GPS tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c2 Text loggers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c3 Club layouts ([Phase 5](#phase-5-flight-data-and-forensics))
@@ -320,6 +321,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c20 Workbooks with a reading beside ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c21 Altimeters' other text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c22 Tables by mapping, and files that aren't logs ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c23 The last binaries; formats with no sample ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1502,7 +1504,9 @@ One line per milestone or increment, in the order it was archived within its pha
     logs --check` fails on one not read); a unit the header doesn't name is decided from the file's
     own evidence and the evidence stated, or the assumption stated in a note.
     Met (ADR-253): 173 files read (50, 43, 80); 24 kinds of unit decision counted in the report.
-  - **M7.1c** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
+    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269, ADR-270, ADR-271,
+    ADR-272, ADR-274): in twenty-three, the last six planned at once (ADR-274).
     - [x] **M7.1c1 GPS tracks:** Featherweight's GPS CSV (tracker and ground station), KML,
       NMEA 0183, each with an empty primary track. *Done when:* every `fwgps-csv`, `kml` and
       `nmea` sample in refs imports (`cargo xtask logs --check`), and a unit or clock the file
@@ -1682,6 +1686,11 @@ One line per milestone or increment, in the order it was archived within its pha
       take the check and takes none. A track's ground speed holds no unit, as the 4 tracks'
       medians spread 21.34 times (0.3460 to 7.3836 m/s), wider than a clock 10 times off moves
       them; their degrees are held by the latitude-and-longitude check.
+    - [x] **M7.1c23 The last binaries; formats with no sample.** *Done when:* the `.ALS` decodes to
+      the `.xls` beside it, value for value; the `.xtra` files and the raw dump decode against
+      each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
+      report and M7.1 left open while it lasts; the guide lists every format the roadmap names
+      with no sample (CATS, Juno) as needing samples.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

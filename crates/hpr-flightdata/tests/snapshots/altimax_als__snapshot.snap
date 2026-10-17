@@ -1,0 +1,287 @@
+---
+source: crates/hpr-flightdata/tests/altimax_als.rs
+expression: "altimax_als::read(&als()).unwrap()"
+---
+{
+  "format": "altimax_als",
+  "logger": "Rocketronics AltiMAX",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": 12,
+    "figures": [
+      {
+        "name": "zero pressure",
+        "written": "98000 Pa",
+        "quantity": "pressure",
+        "values": [
+          98000.0
+        ]
+      },
+      {
+        "name": "apogee pressure",
+        "written": "97690 Pa",
+        "quantity": "pressure",
+        "values": [
+          97690.0
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "PRESS FILTER",
+      "quantity": "pressure",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02,
+        0.025,
+        0.030000000000000002,
+        0.035,
+        0.04,
+        0.065,
+        0.09,
+        0.11499999999999999,
+        0.13999999999999999
+      ],
+      "values": [
+        98000.5,
+        98000.5,
+        97990.5,
+        97950.5,
+        97880.5,
+        97800.5,
+        97740.5,
+        97700.5,
+        97690.5,
+        97700.5,
+        97720.5,
+        97740.5
+      ]
+    },
+    {
+      "column": "PRESS RAW",
+      "quantity": "pressure",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02,
+        0.025,
+        0.030000000000000002,
+        0.035,
+        0.04,
+        0.065,
+        0.09,
+        0.11499999999999999,
+        0.13999999999999999
+      ],
+      "values": [
+        98000.0,
+        98000.0,
+        97990.0,
+        97950.0,
+        97880.0,
+        97800.0,
+        97740.0,
+        97700.0,
+        97690.0,
+        97700.0,
+        97720.0,
+        97740.0
+      ]
+    },
+    {
+      "column": "ACCEL",
+      "quantity": "acceleration",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02,
+        0.025,
+        0.030000000000000002,
+        0.035,
+        0.04,
+        0.065,
+        0.09,
+        0.11499999999999999,
+        0.13999999999999999
+      ],
+      "values": [
+        -9.81,
+        -9.81,
+        -78.48,
+        -77.49900000000001,
+        -29.430000000000003,
+        1.9620000000000002,
+        0.49050000000000005,
+        0.1962,
+        0.0,
+        -9.81,
+        -9.81,
+        -9.81
+      ]
+    },
+    {
+      "column": "EVENT",
+      "quantity": "number",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02,
+        0.025,
+        0.030000000000000002,
+        0.035,
+        0.04,
+        0.065,
+        0.09,
+        0.11499999999999999,
+        0.13999999999999999
+      ],
+      "values": [
+        0.0,
+        0.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        9.0,
+        42.0,
+        0.0,
+        14.0
+      ]
+    },
+    {
+      "column": "VOLT. CHANNEL",
+      "quantity": "number",
+      "time_s": [
+        0.005,
+        0.01,
+        0.015,
+        0.02,
+        0.025,
+        0.030000000000000002,
+        0.035,
+        0.04,
+        0.065,
+        0.09,
+        0.11499999999999999,
+        0.13999999999999999
+      ],
+      "values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        1.0,
+        2.0
+      ]
+    },
+    {
+      "column": "VOLTAGE count (channel 1)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.005,
+        0.030000000000000002,
+        0.11499999999999999
+      ],
+      "values": [
+        500.0,
+        505.0,
+        510.0
+      ]
+    },
+    {
+      "column": "VOLTAGE count (channel 2)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.01,
+        0.035,
+        0.13999999999999999
+      ],
+      "values": [
+        501.0,
+        506.0,
+        511.0
+      ]
+    },
+    {
+      "column": "VOLTAGE count (channel 3)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.015,
+        0.04
+      ],
+      "values": [
+        502.0,
+        507.0
+      ]
+    },
+    {
+      "column": "VOLTAGE count (channel 4)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.02,
+        0.065
+      ],
+      "values": [
+        503.0,
+        508.0
+      ]
+    },
+    {
+      "column": "VOLTAGE count (channel 5)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.025,
+        0.09
+      ],
+      "values": [
+        504.0,
+        509.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.015,
+      "name": "BARO-LIFTOFF"
+    },
+    {
+      "time_s": 0.065,
+      "name": "APOGEE PRESSURE"
+    },
+    {
+      "time_s": 0.09,
+      "name": "event 42"
+    },
+    {
+      "time_s": 0.13999999999999999,
+      "name": "LAND"
+    }
+  ],
+  "notes": [
+    "the clock isn't stored: each record is 0.005 s after the one before, or 0.025 s where its kind's bit 2 is set, the 200 and 40 samples a second the maker's manual gives",
+    "the voltage counts are kept as written: no document states their factor to volts"
+  ]
+}

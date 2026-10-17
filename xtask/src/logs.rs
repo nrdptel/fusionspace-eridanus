@@ -32,6 +32,7 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+mod binaries;
 mod held;
 mod other_text;
 
@@ -58,7 +59,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The workbooks are read
 /// sheet by sheet ([`WORKBOOK_FAMILY`]); the other families' files are [`LEFT_TO`]'s.
-pub const READ: [(&str, LogFormat, &str); 44] = [
+pub const READ: [(&str, LogFormat, &str); 46] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -118,6 +119,16 @@ pub const READ: [(&str, LogFormat, &str); 44] = [
     ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
     ("table-csv", LogFormat::GenericTable, "M7.1c13"),
     ("blueraven-usb-txt", LogFormat::BlueRavenUsb, "M7.1c17"),
+    (
+        binaries::ALS_FAMILY,
+        LogFormat::AltimaxAls,
+        binaries::INCREMENT,
+    ),
+    (
+        binaries::XTRA_FAMILY,
+        LogFormat::EntacoreXtra,
+        binaries::INCREMENT,
+    ),
     (TEENSY_TABS_FAMILY, LogFormat::TeensyTabs, "M7.1c18"),
     (TEENSY_NAMED_FAMILY, LogFormat::TeensyNamed, "M7.1c18"),
     (RADIO_TXT_FAMILY, LogFormat::RadioPacketText, "M7.1c19"),
@@ -176,8 +187,9 @@ const LAYOUT_FAMILIES: [&str; 2] = ["console-capture", "record-dump"];
 /// The increment that reads [`LAYOUT_FAMILIES`]' files.
 const LAYOUT_INCREMENT: &str = "M7.1c16";
 
-/// The increment the families with no reader yet are left to.
-const LEFT_TO: &str = "M7.1c23";
+/// The label of a family no reader reads: since M7.1c23, every sample file's family has a
+/// reader, so a file of such a family is as unread as a refusal.
+const LEFT_TO: &str = "no reader";
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
@@ -274,6 +286,9 @@ const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 /// Why a file the catalog files as generic CSV, by its extension, is AltimeterCloud's.
 const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano \
     V1's or a Mercury's, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is AltosUI's export.
+const ALTOS_CSV: &str = "AltosUI's CSV export of a flight, `#` lines of the board's settings \
+    and then its `#version,serial,flight,…` header, filed as generic CSV by its extension";
 /// Why a file the catalog files as generic CSV is Entacore AIM's.
 const ENTACORE_AIM: &str = "Entacore AIM's CSV, each channel group beside its own time column, \
     filed as generic CSV by its extension";
@@ -345,7 +360,7 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 220] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 224] = [
     // M7.1c22: tables read by a mapping held to physics, and the files of the group that
     // aren't logs.
     ("5f2b0f963a9e52e9", "csv", held::FAMILY, held::HELD_CSV),
@@ -595,6 +610,22 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 220] = [
         "an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its \
          UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as \
          text by its extension",
+    ),
+    // M7.1c23: AltosUI's exports the catalog files as generic CSV, an AltiMAX's own file and an
+    // Entacore AIM's raw dump.
+    ("2ae4a21078c06c6c", "csv", "altos-csv", ALTOS_CSV),
+    ("c1257942e34815f7", "csv", "altos-csv", ALTOS_CSV),
+    (
+        "96bad107a7162e43",
+        "binary",
+        binaries::ALS_FAMILY,
+        binaries::ALS,
+    ),
+    (
+        "b08cb7688c29d173",
+        "binary",
+        binaries::DUMP_FAMILY,
+        binaries::DUMP,
     ),
     (
         "9c5017ab68168088",
@@ -980,6 +1011,10 @@ struct Report {
     /// Tables read by a column mapping, each unit held to a physical check (M7.1c22).
     #[serde(default)]
     held_checks: held::Checks,
+    /// An AltiMAX's `.ALS` against its export, and an Entacore AIM's `.xtra` files and raw dump
+    /// against each other (M7.1c23).
+    #[serde(default)]
+    binary_checks: binaries::Checks,
 
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
@@ -5459,15 +5494,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     if !unread.is_empty() {
         return Err(format!(
-            "{} file(s) of a family with a reader not read:\n{}",
+            "{} file(s) not read, or of a family with no reader:\n{}",
             unread.len(),
             unread.join("\n")
         ));
     }
     if check {
         println!(
-            "logs: the committed report reproduces, and every file of a family with a reader is \
-             read"
+            "logs: the committed report reproduces, every file's family has a reader, and every file \
+             of one is read"
         );
     }
     Ok(())
@@ -6438,7 +6473,7 @@ fn altimax_unread(files: &[AltimaxFile]) -> Vec<String> {
         .collect()
 }
 
-/// Reads every sample; the report, and the files of a family with a reader that weren't read.
+/// Reads every sample; the report, and the files that weren't read or whose family has no reader.
 fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>) {
     let mut families: BTreeMap<String, FamilyRow> = BTreeMap::new();
     let mut files = Vec::new();
@@ -6465,6 +6500,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             BESIDE_INCREMENT
         } else if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
             LAYOUT_INCREMENT
+        } else if sample.family == binaries::DUMP_FAMILY {
+            binaries::INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
@@ -6472,6 +6509,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else {
             LEFT_TO
         };
+        if increment == LEFT_TO {
+            unread.push(format!(
+                "  {} ({}, {id}): its family has no reader: name the reader in `READ`, or move \
+                 the file to a family that has one in `RECLASSIFIED`",
+                sample.path.display(),
+                sample.family
+            ));
+        }
         let row = families
             .entry(sample.family.clone())
             .or_insert_with(|| FamilyRow {
@@ -6633,6 +6678,44 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             ));
             continue;
         }
+        if sample.family == binaries::DUMP_FAMILY {
+            // A dump holds recordings: each read as a record of its own, all pinned together. The
+            // importer must take it too, so that a user's own file of the layout is read.
+            if hpr_flightdata::import::detect(&sample.bytes) != Some(LogFormat::EntacoreDump) {
+                unread.push(format!(
+                    "  {} ({}, {id}): the importer doesn't recognize it as an AIM dump",
+                    sample.path.display(),
+                    sample.family
+                ));
+            }
+            let (outcome, record) = match hpr_flightdata::entacore_raw::read_dump(&sample.bytes) {
+                Ok(logs) => {
+                    row.read += 1;
+                    for log in &logs {
+                        *loggers.entry(log.logger.clone()).or_default() += 1;
+                    }
+                    let record = match serde_json::to_vec(&logs) {
+                        Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                        Err(_) => "unwritable".to_owned(),
+                    };
+                    (format!("{:?}", LogFormat::EntacoreDump), record)
+                }
+                Err(error) => {
+                    *row.refused.entry(refusal(&error).to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    (format!("refused:{}", refusal(&error)), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
         if LAYOUT_FAMILIES.contains(&sample.family.as_str()) {
             let (outcome, record) = match read_layout(&id, sample, samples) {
                 Ok((log, ..)) => {
@@ -6754,6 +6837,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         altimax_checks: altimax_checks(samples),
         other_text_checks: other_text::checks(samples),
         held_checks: held,
+        binary_checks: binaries::checks(samples),
         filter_scales: filter_scales(samples),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
@@ -6789,6 +6873,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // A table read by a stated mapping whose units fail a physical check is as unread as a
     // refusal.
     unread.extend(held::unread(&report.held_checks, samples));
+    // An `.ALS` whose values differ from its export's, or AIM files that don't decode to each
+    // other or whose units fail the flight's physics, are as unread as a refusal.
+    unread.extend(binaries::unread(&report.binary_checks));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -7992,6 +8079,7 @@ fn markdown(report: &Report) -> String {
     }
     out += &other_text::markdown(&report.other_text_checks);
     out += &held::markdown(&report.held_checks);
+    out += &binaries::markdown(&report.binary_checks);
     if !report.workbook_checks.is_empty() {
         let books = &report.workbook_checks;
         let mut totals: BTreeMap<&str, usize> = BTreeMap::new();

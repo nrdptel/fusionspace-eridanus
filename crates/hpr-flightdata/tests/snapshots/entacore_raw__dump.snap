@@ -1,0 +1,463 @@
+---
+source: crates/hpr-flightdata/tests/entacore_raw.rs
+expression: "entacore_raw::read_dump(&dump()).unwrap()"
+---
+[
+  {
+    "format": "entacore_dump",
+    "logger": "Entacore AIM XTRA",
+    "serial_number": null,
+    "firmware": null,
+    "flight_number": null,
+    "stated": {
+      "apogee_m": null,
+      "ground_elevation_msl_m": null,
+      "samples": 18
+    },
+    "time_s": [],
+    "altitude_m": [],
+    "vertical_speed_m_s": null,
+    "temperature_k": null,
+    "battery_v": null,
+    "channels": [
+      {
+        "column": "pressure",
+        "quantity": "pressure",
+        "time_s": [
+          0.01,
+          0.463
+        ],
+        "values": [
+          97700.0,
+          97500.0
+        ]
+      },
+      {
+        "column": "acceleration",
+        "quantity": "acceleration",
+        "time_s": [
+          0.015,
+          0.33
+        ],
+        "values": [
+          9.80665,
+          68.64654999999999
+        ]
+      },
+      {
+        "column": "battery 1 voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.02
+        ],
+        "values": [
+          6.649999618530273
+        ]
+      },
+      {
+        "column": "temperature",
+        "quantity": "temperature",
+        "time_s": [
+          0.02
+        ],
+        "values": [
+          294.65
+        ]
+      },
+      {
+        "column": "state",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          0.0,
+          1.0,
+          3.0
+        ]
+      },
+      {
+        "column": "A on",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "column": "B on",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "column": "C on",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      {
+        "column": "D on",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "column": "A cont",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "column": "B cont",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "column": "C cont",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "column": "D cont",
+        "quantity": "number",
+        "time_s": [
+          0.03,
+          0.33,
+          0.46
+        ],
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "column": "lat. X accel.",
+        "quantity": "acceleration",
+        "time_s": [
+          0.33
+        ],
+        "values": [
+          29.41995
+        ]
+      },
+      {
+        "column": "lat. Y accel.",
+        "quantity": "acceleration",
+        "time_s": [
+          0.33
+        ],
+        "values": [
+          -19.6133
+        ]
+      },
+      {
+        "column": "A Voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.46
+        ],
+        "values": [
+          0.824999988079071
+        ]
+      },
+      {
+        "column": "lat",
+        "quantity": "latitude",
+        "time_s": [
+          0.461
+        ],
+        "values": [
+          29.700000347077093
+        ]
+      },
+      {
+        "column": "long",
+        "quantity": "longitude",
+        "time_s": [
+          0.461
+        ],
+        "values": [
+          -95.00000111017926
+        ]
+      },
+      {
+        "column": "GPS MSL",
+        "quantity": "gnss_altitude",
+        "time_s": [
+          0.461
+        ],
+        "values": [
+          150.0
+        ]
+      },
+      {
+        "column": "SVs",
+        "quantity": "number",
+        "time_s": [
+          0.461
+        ],
+        "values": [
+          9.0
+        ]
+      },
+      {
+        "column": "GPS flag",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.461
+        ],
+        "values": [
+          1.0
+        ]
+      },
+      {
+        "column": "GPS Time of Week",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.462
+        ],
+        "values": [
+          123456000.0
+        ]
+      },
+      {
+        "column": "GPS week",
+        "quantity": "number",
+        "time_s": [
+          0.462
+        ],
+        "values": [
+          2400.0
+        ]
+      },
+      {
+        "column": "GPS time flag 1",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.462
+        ],
+        "values": [
+          1.0
+        ]
+      },
+      {
+        "column": "GPS time flag 2",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.462
+        ],
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "column": "GPS leap seconds",
+        "quantity": "number",
+        "time_s": [
+          0.462
+        ],
+        "values": [
+          18.0
+        ]
+      },
+      {
+        "column": "Gyro X",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          7.0
+        ]
+      },
+      {
+        "column": "Gyro Y",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          -14.0
+        ]
+      },
+      {
+        "column": "Gyro Z",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          21.0
+        ]
+      },
+      {
+        "column": "Mag X",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          0.0005000000237487257
+        ]
+      },
+      {
+        "column": "Mag Y",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          -0.0002500000118743628
+        ]
+      },
+      {
+        "column": "Mag Z",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          0.0010000000474974513
+        ]
+      },
+      {
+        "column": "quaternion 1",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.5
+        ]
+      },
+      {
+        "column": "quaternion 2",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          -0.25
+        ]
+      },
+      {
+        "column": "quaternion 3",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "column": "quaternion 4",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.999969482421875
+        ]
+      },
+      {
+        "column": "battery 2 voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.467
+        ],
+        "values": [
+          6.64675235748291
+        ]
+      },
+      {
+        "column": "B Voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.468
+        ],
+        "values": [
+          0.4124999940395355
+        ]
+      }
+    ],
+    "events": [
+      {
+        "time_s": 0.33,
+        "name": "state 1"
+      },
+      {
+        "time_s": 0.46,
+        "name": "state 3"
+      },
+      {
+        "time_s": 0.46,
+        "name": "C on"
+      }
+    ],
+    "notes": [
+      "recording 1 of the dump's 1, from byte 0; its 101 opening bytes aren't read",
+      "the clock is the computer's ticks, read as milliseconds from the recording's start, as the AIM software reads them; on the one sample flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
+    ]
+  }
+]

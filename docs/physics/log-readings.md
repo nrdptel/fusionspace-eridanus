@@ -237,8 +237,11 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
   there. A GPS log has no barometric track, and a raw download's barometer records pressures, not
   altitudes, as a Blue Raven's USB download does, so every reading withholds on all three, on a Teensy data logger's file, which writes no altitude above the pad, on the radio packets, whose climbing value has no settled unit, on a table read by its header, whose header
   doesn't say which column is a barometric altitude above the pad, and on a Featherweight
-  summary, which holds no samples. Other loggers' files
-  come with [M7.1c23, the last of the importers](../decisions-and-roadmap.md#m7-1c23).
+  summary, which holds no samples. The AltiMAX's `.ALS` and Entacore AIM's `.xtra` files and raw
+  dumps, read since [M7.1c23, the last of the importers](../decisions-and-roadmap.md#m7-1c23),
+  hold pressures and no altitude above the pad, and, as on every logger's file but a
+  PerfectFlite's, every reading is withheld on them until
+  [M7.2](../decisions-and-roadmap.md#m7-2) validates them.
 
 ## Tests and references
 

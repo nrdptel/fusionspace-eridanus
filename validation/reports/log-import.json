@@ -45,6 +45,13 @@
       "refused": {}
     },
     {
+      "family": "altimax-als",
+      "increment": "M7.1c23",
+      "files": 1,
+      "read": 1,
+      "refused": {}
+    },
+    {
       "family": "altimax-xls",
       "increment": "M7.1c20",
       "files": 1,
@@ -61,8 +68,8 @@
     {
       "family": "altos-csv",
       "increment": "M7.1a",
-      "files": 48,
-      "read": 48,
+      "files": 50,
+      "read": 50,
       "refused": {}
     },
     {
@@ -122,15 +129,6 @@
       "files": 3,
       "read": 3,
       "refused": {}
-    },
-    {
-      "family": "binary",
-      "increment": "M7.1c23",
-      "files": 2,
-      "read": 0,
-      "refused": {
-        "unrecognized": 2
-      }
     },
     {
       "family": "blueraven-csv",
@@ -206,13 +204,6 @@
       "refused": {}
     },
     {
-      "family": "csv",
-      "increment": "M7.1c23",
-      "files": 2,
-      "read": 2,
-      "refused": {}
-    },
-    {
       "family": "debrief-synthetic-csv",
       "increment": "not a log",
       "files": 6,
@@ -275,13 +266,18 @@
       "refused": {}
     },
     {
+      "family": "entacore-dump",
+      "increment": "M7.1c23",
+      "files": 1,
+      "read": 1,
+      "refused": {}
+    },
+    {
       "family": "entacore-xtra",
       "increment": "M7.1c23",
       "files": 2,
-      "read": 0,
-      "refused": {
-        "unrecognized": 2
-      }
+      "read": 2,
+      "refused": {}
     },
     {
       "family": "featherweight-summary-csv",
@@ -730,6 +726,10 @@
     "8b482eb6ae9af583 txt -> rtx-txt: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension",
     "a65103199f08052b txt -> rtx-txt: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension",
     "d306250ba73ea7f4 txt -> rrc3-csv: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension",
+    "2ae4a21078c06c6c csv -> altos-csv: AltosUI's CSV export of a flight, `#` lines of the board's settings and then its `#version,serial,flight,…` header, filed as generic CSV by its extension",
+    "c1257942e34815f7 csv -> altos-csv: AltosUI's CSV export of a flight, `#` lines of the board's settings and then its `#version,serial,flight,…` header, filed as generic CSV by its extension",
+    "96bad107a7162e43 binary -> altimax-als: an AltiMAX altimeter's own file of a flight, `.ALS`: a header of 32 bytes, then a record of 22 bytes a sample, its pressures, acceleration, event and one voltage channel's count; filed as binary",
+    "b08cb7688c29d173 binary -> entacore-dump: an Entacore AIM XTRA's memory as its software downloads it, raw: recordings back to back, each record a type byte and its big-endian fields between bytes that count the clock's ticks, then erased memory; filed as binary",
     "9c5017ab68168088 altos-csv -> altos-resaved-csv: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas; read by its columns' names, the formulas kept as text",
     "76a7d8937258e946 csv -> altos-csv-damaged: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused",
     "c7936ac4d86f259f kml -> kml-map: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it",
@@ -856,6 +856,7 @@
     "Eggtimer Build_1.52": 1,
     "Eggtimer TRS": 2,
     "Entacore AIM": 16,
+    "Entacore AIM XTRA": 12,
     "Featherweight Blue Raven": 138,
     "Featherweight GPS ground station": 14,
     "Featherweight GPS tracker": 40,
@@ -872,7 +873,7 @@
     "PerfectFlite Pnut": 39,
     "PerfectFlite SL100": 35,
     "PerfectFlite SLCF": 101,
-    "Rocketronics AltiMAX": 1,
+    "Rocketronics AltiMAX": 2,
     "Rocketry Ltd Mercury": 4,
     "Rocketry Ltd Nano V1": 7,
     "Silicdyne Fluctus": 6,
@@ -3564,6 +3565,81 @@
       ]
     }
   },
+  "binary_checks": {
+    "als": [
+      {
+        "id": "96bad107a7162e43",
+        "export": "444687655195f5c8",
+        "records": 25334,
+        "rows": 25334,
+        "stored_compared": 101336,
+        "stored_differing": 0,
+        "accel": [
+          25334,
+          0,
+          0
+        ],
+        "voltage": [
+          25334,
+          31,
+          1
+        ],
+        "time": [
+          25334,
+          11,
+          1
+        ],
+        "speed": [
+          8373,
+          0,
+          0
+        ],
+        "speed_not_compared": 16961,
+        "events_equal": true,
+        "events": 21,
+        "height_off_m": [
+          0.00867517421283992,
+          0.008578289425713592
+        ],
+        "height_bound_m": 0.04189833522572428
+      }
+    ],
+    "aim": [
+      {
+        "ids": [
+          "80ceccffb671441d",
+          "073f4a6678b4bb0b",
+          "b08cb7688c29d173"
+        ],
+        "short_is_prefix": true,
+        "short_samples": 210200,
+        "xtra_samples": 224643,
+        "recordings": 10,
+        "flight_samples": 224644,
+        "other_samples": 402505,
+        "other_climb_m": 15.646321030587842,
+        "values_compared": 435075,
+        "values_differing": 0,
+        "dump_only_samples": 1,
+        "xtra_times_compared": 224643,
+        "xtra_times_differing": 0,
+        "dump_times_compared": 224644,
+        "dump_times_differing": 0,
+        "short_compared": 814206,
+        "short_differing": 0,
+        "pad_g": 0.9653496902232178,
+        "pad_axial_g": 0.9609375,
+        "detect_after_liftoff_s": 1.137000000000171,
+        "apogee_time_ratio": 1.0644935127343274,
+        "gps_ms_per_tick": [
+          1.0209428354230494,
+          1.0086821580982197
+        ],
+        "xtra_behind_s": 2.402472656250211,
+        "xtra_climb_ratio": 0.9909764238433582
+      }
+    ]
+  },
   "filter_scales": {
     "files": 44,
     "least": [
@@ -4081,7 +4157,7 @@
     "065337301b7e08e5 e80-imu-txt collection RdasText 77d3797a1439a042",
     "06ba9b8df63e90ca perfectflite-txt collection PerfectFliteText 55b2e3270c0ea936",
     "06cd0c78b5f7eed7 zip collection Archive:2 2aa8ef193fbb5fbd",
-    "073f4a6678b4bb0b entacore-xtra collection refused:unrecognized -",
+    "073f4a6678b4bb0b entacore-xtra collection EntacoreXtra 947143cb7a372148",
     "0798355f91ab2f60 blueraven-csv collection BlueRavenCsv 70340fc5ee638cb5",
     "07a4be15bd1849af pf2 collection PerfectFlitePf2 5feb0b748d33d098",
     "07c2b9a08b73212a fwgps-csv collection FeatherweightGpsCsv 7a7d84a15e123200",
@@ -4249,7 +4325,7 @@
     "2a59964bbe5015d0 pf2 collection PerfectFlitePf2 1f2011536a71617b",
     "2a665d94d9ad35d1 altos-csv collection AltosCsv 30ce809c31dd259e",
     "2add1c81ab430ce7 eggtimer-csv collection EggtimerCsv 960a7fc1fcda5a24",
-    "2ae4a21078c06c6c csv collection AltosCsv 1df7d839e4ac6285",
+    "2ae4a21078c06c6c altos-csv collection AltosCsv 1df7d839e4ac6285",
     "2b5d71858fa1383c eggtimer-csv collection EggtimerCsv d5f55062d379e127",
     "2b8cca725a7b5fd6 teensy-tabs-txt collection TeensyTabs 09721f272657cdf1",
     "2bd426fc54282ae1 blueraven-summary-csv collection FeatherweightSummaryCsv c9bdcb592a574405",
@@ -4614,7 +4690,7 @@
     "80455c31566a07a3 pf2 collection PerfectFlitePf2 f83f6145e2628feb",
     "808ab9d85d247613 pf2 collection PerfectFlitePf2 a667886097114f4f",
     "80a0c9b4dde22b48 kml collection Kml 374c53c4740f3bcf",
-    "80ceccffb671441d entacore-xtra collection refused:unrecognized -",
+    "80ceccffb671441d entacore-xtra collection EntacoreXtra f848b5c9946bf464",
     "810aa6083d876fff phone-launch-csv collection PhoneLaunchCsv f525541950e722e8",
     "812433d6c88ea3a7 pfa collection PerfectFlitePfa 59d0e6c8d613818b",
     "81693d9be93bd905 phone-launch-csv collection PhoneLaunchCsv c411585eabede22c",
@@ -4706,7 +4782,7 @@
     "9611014e6dae139c altos-eeprom collection AltosEeprom dc3f316655f5c9cb",
     "9689ca0cca283689 featherweight-summary-csv collection FeatherweightSummaryCsv b54b35a0ef93e81e",
     "9689f65b26b16233 pf2 collection PerfectFlitePf2 55ed233f16ea98c4",
-    "96bad107a7162e43 binary collection refused:unrecognized -",
+    "96bad107a7162e43 altimax-als collection AltimaxAls 4eea4dfeefb390e1",
     "96f7ae065b3c4a51 pf2 collection PerfectFlitePf2 c5315238fc52e1c1",
     "980729728d67013c rrc3-csv collection Rrc3Csv 400848c2a714f37c",
     "98461fff034fb52d altos-csv collection AltosCsv daff2e7e52853d85",
@@ -4818,7 +4894,7 @@
     "b022af5684794ccc eggtimer-csv collection EggtimerCsv 371c65a60b7e79b0",
     "b058125238f044b7 e80-imu-txt collection RdasText 35a6b51153e59314",
     "b065513aa2908da2 blueraven-summary-csv collection FeatherweightSummaryCsv 48c20a776b3ed0b6",
-    "b08cb7688c29d173 binary collection refused:unrecognized -",
+    "b08cb7688c29d173 entacore-dump collection EntacoreDump e70e468205960eac",
     "b0c1ed79b7929d5a perfectflite-csv collection PerfectFliteCsv 9dadc7f127ffdf5a",
     "b0c33cf2ce7b4fe1 blueraven-csv collection BlueRavenCsv 7c3b6c9991f6c923",
     "b122d4bddf7a8a89 altos-eeprom collection AltosEeprom f786da93e56623e0",
@@ -4889,7 +4965,7 @@
     "c074a7b24a7406c0 rrc3-csv collection Rrc3Csv 9cb6ec46fdfa925b",
     "c0999b76a7081138 eggtimer-csv collection EggtimerCsv c07f1500b4d8437b",
     "c11d2531ef92ea1a e80-imu-txt collection RdasText 039500d98f77fe45",
-    "c1257942e34815f7 csv collection AltosCsv 6766eebf78854b3e",
+    "c1257942e34815f7 altos-csv collection AltosCsv 6766eebf78854b3e",
     "c128314e3a495428 fwgps-csv collection FeatherweightGpsCsv 35afde9515ec5a7e",
     "c1c7fb9329818f21 debrief-synthetic-csv debrief refused:unrecognized -",
     "c1d628decf435f1a raven-csv collection RavenFipCsv 5008c4ca37d4440b",

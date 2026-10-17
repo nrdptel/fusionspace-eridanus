@@ -702,7 +702,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1"></a>[M7.1][phase-5] | Reading flight logs from altimeters and trackers, with no design file and no simulation | not yet done |
 | <a id="m7-1a"></a>[M7.1a][done-5] | The flight record every reader fills, a survey of the sample logs, and the PerfectFlite, AltOS and Raven readers | done |
 | <a id="m7-1b"></a>[M7.1b][done-5] | The RRC3's, Eggtimer's and the Blue Raven's CSV, each unit a header leaves out decided from the file or stated as assumed | done |
-| <a id="m7-1c"></a>[M7.1c][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
+| <a id="m7-1c"></a>[M7.1c][done-5] | The other loggers' formats, spreadsheets and generic CSV | done |
 | <a id="m7-1c1"></a>[M7.1c1][done-5] | GPS tracks | done |
 | <a id="m7-1c2"></a>[M7.1c2][done-5] | The rest | done |
 | <a id="m7-1c3"></a>[M7.1c3][done-5] | Club layouts | done |
@@ -725,7 +725,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c20"></a>[M7.1c20][done-5] | Workbooks with a reading beside | done |
 | <a id="m7-1c21"></a>[M7.1c21][done-5] | Altimeters' other text | done |
 | <a id="m7-1c22"></a>[M7.1c22][done-5] | Tables by mapping, and files that aren't logs | done |
-| <a id="m7-1c23"></a>[M7.1c23][phase-5] | The last binaries; formats with no sample | not yet done |
+| <a id="m7-1c23"></a>[M7.1c23][done-5] | The last binaries; formats with no sample | done |
 | <a id="m7-1d"></a>[M7.1d][phase-5] | A flyer's own logger and GPX tracks | not yet done |
 | <a id="m7-1d1"></a>[M7.1d1][phase-5] | GPX tracks | not yet done |
 | <a id="m7-1d2"></a>[M7.1d2][phase-5] | Your own logger from the command line and Python | not yet done |
