@@ -99,7 +99,8 @@ roxmltree = "0.21.1"
 schemars = "1.2.2"
 serde = { version = "1.0.229", features = ["derive"] }
 # A flight-log mapping's or layout's JSON refused by the path of the field it fails (M7.1d2):
-# `columns[2].unit`, not only a line and column. dtolnay's, MIT OR Apache-2.0, needing serde and itoa.
+# `columns[2].unit`, not only a line and column. dtolnay's, MIT OR Apache-2.0, needing serde,
+# serde_core and itoa.
 serde_path_to_error = "0.1.20"
 # `float_roundtrip` parses every float back to the exact f64 it was written from.
 serde_json = { version = "1.0.151", features = ["float_roundtrip"] }

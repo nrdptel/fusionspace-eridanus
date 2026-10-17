@@ -99,7 +99,7 @@ pub fn layout_from_json(text: &str) -> Result<Layout, LogError> {
 
 /// A mapping's or a layout's file as text: UTF-8, a byte-order mark dropped, or UTF-16 with its
 /// byte-order mark, as Windows PowerShell 5.1 writes what `>` sends to a file; `None` for any
-/// other bytes.
+/// other bytes, among them UTF-16 with no mark, whose zero bytes no JSON text holds.
 #[must_use]
 pub fn json_text(bytes: &[u8]) -> Option<String> {
     let utf16 = |rest: &[u8], unit: fn([u8; 2]) -> u16| {
@@ -115,6 +115,9 @@ pub fn json_text(bytes: &[u8]) -> Option<String> {
         [0xEF, 0xBB, 0xBF, rest @ ..] => std::str::from_utf8(rest).ok().map(str::to_owned),
         [0xFF, 0xFE, rest @ ..] => utf16(rest, u16::from_le_bytes),
         [0xFE, 0xFF, rest @ ..] => utf16(rest, u16::from_be_bytes),
+        // JSON escapes a NUL inside a string, so a zero byte isn't UTF-8 JSON: most likely
+        // UTF-16 with no mark.
+        _ if bytes.contains(&0) => None,
         _ => std::str::from_utf8(bytes).ok().map(str::to_owned),
     }
 }
@@ -507,6 +510,8 @@ t (ms),alt (ft),accel (g)
             mapping_from_json(&text).unwrap()
         );
         assert_eq!(json_text(&little[..little.len() - 1]), None);
+        assert_eq!(json_text(&little[2..]), None, "UTF-16 with no mark");
+        assert_eq!(json_text(&big[2..]), None, "UTF-16 with no mark");
         assert_eq!(json_text(&[0xFF, 0xFE, 0x00, 0xD8]), None);
         assert_eq!(json_text(b"{\xff}"), None);
     }
