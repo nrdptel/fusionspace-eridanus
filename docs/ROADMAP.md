@@ -200,19 +200,27 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   moves apogee by more than 0.5%, with that size (unsized ones marked), flown with the fix too
   where the fix is public and its license allows (ADR-246). Moves: none of HPR Sim's numbers; it
   fills the columns they are compared with.
-- [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter speed
-  is scored against at least three measured flutter onsets (wind tunnel or flight, none from the
-  wings Martin's line was drawn through) from at least two independent published tests, each with
-  its fin's geometry, material and shear modulus stated and committed with its table and page;
-  `validation/reports/latest.md` gives each case's error with its sign; the flutter page states the
-  largest error on the flattering side (the model above a measured onset), or that the cases show
-  none, and a test pins each case, with a mutation probe that raises the speed failing one; the
-  same fins and the calculator's own examples are compared with Bennett's BSD-licensed calculator,
-  each within 1% or the difference put down to a named modeling choice that a test pins; evidence
-  row G22's kind and what it leaves unchecked are updated from these; and the scoreboard gains a
-  flutter row, HPR Sim's largest flattering-side error over the cases, with each other tool's cell
-  read from its current docs with the date, or named as a capability it lacks. Fewer than three
-  onsets only by an ADR that records each search.
+- [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings
+  are scored against at least three distinct fins measured fluttering (wind tunnel or flight, none
+  of the wings Martin's line was drawn through; repeat runs of one design are one fin) from
+  published tests by at least two research groups, each fin committed with its table and page:
+  planform, thickness, mounting (clamped root or glued to a tube), material and the shear modulus
+  used (the effective value, and a ply's where given), and the test's air pressure, temperature and
+  Mach number, each marked measured or assumed; for each fin, `validation/reports/latest.md` gives
+  the flutter speed's error against its lowest measured onset (the test's speed step stated), with
+  its sign under each modulus reading, and the side of Martin's line the figure 3 check places it
+  on (a fluttered fin placed on the safe side is a flattering error); the flutter page states the
+  largest flattering-side error, or that the cases show none, with the range of Mach number and
+  thickness ratio they cover and that they are not a bound, and either one case lies inside
+  Martin's thickness ratios (1–10%) or that gap stays open in evidence row G22; a test pins each
+  case's error and side, and a mutation probe that multiplies the speed by √2 fails one; the same
+  fins and the calculator's own examples are compared with Bennett's BSD-licensed calculator, each
+  within 1% or the difference put down to a named modeling choice that a test pins; G22's kind and
+  what it leaves unchecked are updated from these; and the scoreboard gains a flutter row, HPR
+  Sim's largest flattering-side error over the cases with their count, each other tool's cell read
+  from its current docs with the date or named as a capability it lacks. Fewer than three fins or
+  one group only by an ADR that gives the count found and why no more are published, the gap left
+  in the report.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on

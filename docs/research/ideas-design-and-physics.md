@@ -164,7 +164,8 @@ From the 2026-10-17 planning review:
   band from finish, per design. *Done when:* each mapping is cited and pinned, both ends print, and
   a value with no unit is refused.
 - LATER: a boattail's center of pressure against tunnel data. User: a builder adding a boattail,
-  where forum threads report simulators moving CP forward too far. Moves: a new CP row in
+  where a [forum thread](https://www.rocketryforum.com/threads/impact-of-boattail-on-cp.198351/)
+  reports simulators disagreeing on how far it moves CP forward. Moves: a new CP row in
   `validation/reports/latest.md`. *Done when:* three or more boattail angles at two or more Mach
   numbers from a published tunnel test give HPR Sim's CP error and its sign, each pinned by a test.
 

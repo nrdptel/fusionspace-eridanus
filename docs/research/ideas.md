@@ -124,29 +124,29 @@ to the [theme notes](#theme-notes).
 - PROMOTED to [M2.11][m2-11] ([ADR-279][adr-279]): fin flutter held to measurement. User: a flyer
   checking a fin's flutter margin, or a team filling IREC's prediction table. Workflow: the flutter
   page gives the speed's error and its side on fins measured fluttering in published tests, and
-  beside an independent calculator. Moves: a new scoreboard row, the largest flattering-side
-  flutter error, each tool's. *Done when:* M2.11's.
+  beside an independent calculator. Moves: a new scoreboard row, the largest flattering-side flutter
+  error, for each tool. *Done when:* M2.11's.
 - SOON: one altitude formula for every logged apogee ([#701][i-701]). User: a flyer comparing two
   altimeters on one flight, or a log with a simulation. Workflow: `hpr analyze` derives height from
   logged pressure by the standard atmosphere from the pad, beside the logger's column, each family's
-  conversion named sourced or assumed. Moves: `accuracy.public`, `accuracy.collection` and both
-  `bias` rows, their reference apogees on one formula. *Done when:* #701's, and the real-flight and
-  fixture reports give those rows both ways.
+  conversion named sourced or assumed. Moves: `accuracy.public`, `accuracy.collection`,
+  `bias.public` and `bias.collection`, their reference apogees on one formula. *Done when:* #701's,
+  and the real-flight and fixture reports give those rows both ways.
 - SOON: a second-method report for Student Launch, whose reviews ask for data from a different
   calculation method. User: a team's simulation lead. Workflow: `hpr crosscheck design.ork` sets HPR
   Sim's apogee, rail-exit margin and speed, landing energies and descent time beside the file's
   stored OpenRocket results, each against its requirement in the [2027 handbook][sl27], each gap
-  split by cause. Moves: a new steps row, `steps.sl-crosscheck`. *Done when:* the five print for
-  both tools on every public Student Launch design (count stated), tests pin them, and the page
+  split by cause. Moves: a new steps row, `steps.sl-crosscheck`. *Done when:* the five numbers print
+  for both tools on every public Student Launch design (count stated), tests pin them, and the page
   cites the handbook (source and stale-after dates) and names any HPR Sim feature its rule 1.1.1
   bars (none today).
 - SOON: the drag settings worth checking, named in a design's summary. User: a flyer of an imported
   `.ork` whose fin cross-sections and finishes were never set. Workflow: `hpr sim` and `hpr check`
   mark each left at a default, with the C_D change at Mach 0.3 and the apogee change from the other
-  common setting (up to 18% in C_D, [flight-derived C_D][fdcd]). Moves: `features.count`, and the
-  share of `bias.collection` such defaults carry (#614, #585). *Done when:* both changes print with
-  each setting's source; tests cover a file left at defaults and one set; the fixture report counts
-  the designs left at defaults, as aggregates.
+  common setting (18% in C_D in one reported case, [flight-derived C_D][fdcd]). Moves:
+  `features.count`, and the share of `bias.collection` such defaults carry (#614, #585). *Done
+  when:* both changes print with each setting's source; tests cover a file left at defaults and one
+  set; the fixture report counts the designs left at defaults, as aggregates.
 
 ## MAINTAINER'S CALL (money, outreach)
 

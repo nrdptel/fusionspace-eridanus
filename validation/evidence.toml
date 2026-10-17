@@ -52,7 +52,7 @@ issue = 655
 [[row.searched]]
 on = "2026-10-17"
 looked = "GitHub code search for semicolon-separated altimeter exports (mDACS, Eggtimer and Blue Raven headers split by `;`) and for `.FIPa` and `.rtx` files; the Harvey Mudd College advanced rocketry course's flight data page (its 11 workbooks fetched) and a University of Minnesota course directory (one `.FIPa`); the 1904 date flag counted in every workbook of the private collection"
-found = "nothing usable: the one public decimal-comma export found, a SpaceTeam Aachen RRC3 export (2021) in the GPL-3.0 repositories M0WW0M/European-FlightData and catsystems/euroc21-team-data, is in its European-FlightData copy byte for byte a file the private collection already holds; none of 126 private and 11 public course workbooks uses the 1904 date system; no public `.rtx` was found; the Minnesota `.FIPa` (no license) records a June flight"
+found = "nothing usable: the one public decimal-comma export found, a SpaceTeam Aachen RRC3 export (2021) in the GPL-3.0 repositories M0WW0M/European-FlightData and catsystems/euroc21-team-data, is in its European-FlightData copy byte for byte a file the private collection already holds; none of 126 private workbooks (copies included) and 11 public course workbooks uses the 1904 date system; no public `.rtx` was found; the Minnesota `.FIPa` (no license) records a June flight"
 
 [[row]]
 id = "G3"
@@ -142,7 +142,7 @@ issue = 661
 [[row.searched]]
 on = "2026-10-17"
 looked = "GitHub code search for Featherweight GPS tracker CSVs (`UTCTIME,UNIXTIME,ALT`, 12 files in 7 repositories) with KML or a barometric log beside them; the Harvey Mudd College course page's AIM KML files"
-found = "two MIT flights each with a tracker CSV, its KML (`altitudeMode` absolute) and a Blue Raven barometric log: RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML), whose two files disagree on the date (2026-04-07 by the Blue Raven's clock, 2026-05-16 by the tracker's UTC), so their pairing has to be shown first; and Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new; peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven; the course page's KML links return HTTP 404; cached under refs/samples-search/G8"
+found = "two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML (`altitudeMode` absolute) and a Blue Raven barometric log: RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML), whose two files disagree on the date (2026-04-07 by the Blue Raven's clock, 2026-05-16 by the tracker's UTC), so their pairing has to be shown first; and Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new; peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven; the course page's KML links return HTTP 404; cached under refs/samples-search/G8"
 
 [[row]]
 id = "G9"
@@ -182,7 +182,7 @@ issue = 663
 [[row.searched]]
 on = "2026-10-17"
 looked = "team flight data repositories on GitHub with a license and a logger's own figures beside its log: RIT-Launch-Initiative/flight-data, RMIT-Hive-Rocketry/GCS, Lmx154/RL-RocketPy-Notebook, AerospaceTeamGraz/RocketFlightData, ISSUIUC/flight-data, curtscraw/osu_rocketry_data"
-found = "under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files (whose summary statistics the team's note describes) and two Blue Raven flights whose summaries state the peak, the first burnout's time and each channel's firing time; RMIT-Hive-Rocketry/GCS's Blue Raven flight with its summary; none is in the private collection but 5 of the RRC3 exports; the other repositories have no license"
+found = "under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files (whose summary statistics the team's note describes) and two Blue Raven flights whose summaries state the peak, the first burnout's time and each channel's firing time; RMIT-Hive-Rocketry/GCS's Blue Raven flight with its summary; none is in the private collection but 5 of the RRC3 exports; the other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds"
 
 [[row]]
 id = "G11"
@@ -284,7 +284,7 @@ issue = 669
 [[row.searched]]
 on = "2026-10-17"
 looked = "OpenRocket's user guide (basic rocket design page) and wiki; openrocket/openrocket issues found by searching for angle, rotation, rail button and mirror (#940, #1548, #1640)"
-found = "partial: #940 puts 0 degrees at the top of the rocket's side view and #1548 discusses pods' angles with rear-view pictures, but no source states which way the angle turns; the OpenRocket 24.12 jar, run on a probe with one part turned by a known angle, remains the way to settle it (not run in this search)"
+found = "partial: #940 puts 0 degrees at the top of the rocket and #1548 discusses pods' angles with rear-view pictures, but no source states which way the angle turns; the OpenRocket 24.12 jar, run on a probe with one part turned by a known angle, remains the way to settle it (not run in this search)"
 
 [[row]]
 id = "G17"
@@ -317,7 +317,7 @@ issue = 671
 
 [[row.searched]]
 on = "2026-10-17"
-looked = "the private collection's 714 .ork files, opened and counted for inner tubes whose outer radius is `auto` and centering rings whose bore is `auto`; a GitHub code search is no help, as .ork files are zipped"
+looked = "the private collection's 714 .ork files (copies included), opened and counted for inner tubes whose outer radius is `auto` and centering rings whose bore is `auto`; a GitHub code search is no help, as .ork files are zipped"
 found = "no file holds OpenRocket's computed radii, as the issue says, but the designs exist: 43 files have an inner tube with an automatic outer radius (43 tubes), 446 have rings with an automatic bore (1,179 rings), 35 have both; reading OpenRocket's own values for them needs the OpenRocket jar run on them as an oracle"
 
 [[row]]
@@ -333,7 +333,7 @@ issue = 672
 [[row.searched]]
 on = "2026-10-17"
 looked = "GitHub code search for RASAero II's export header (\"CD Power-Off\" with \"CN Potential\", \"CA Power-Off\", extension:csv) and for .CDX1 design files; the repositories found (anbanpillay/ASRI-PyROPS, rkuhlf/rocket-simulation, activecontrols/Propulsion, stanford-ssi/rockets-irec, spaceconcordia/rocketry-performance, AIAANortheastern/KarmanSims); the private collection's RASAero designs, counted only"
-found = "partial: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export to Mach 5 at 0°, 2° and 4° (rocketpy_migration/data/aerodynamics/rasaero_data.csv) and workbooks of RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5 (Inputs/RASAeroII15 Detailed.xlsx, RASAeroII15.xlsx), which would check the values assumed past 4° and at 0° faster than Mach 1.3; no license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files and no exports; 12 of their flights carry a log, 8 of the 11 with a logged speed past about 255 m/s (837 ft/s), so exports made from them in RASAero II would meet the row"
+found = "partial: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export to Mach 5 at 0°, 2° and 4° (rocketpy_migration/data/aerodynamics/rasaero_data.csv) and workbooks of RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5 (Inputs/RASAeroII15 Detailed.xlsx, RASAeroII15.xlsx), which would check the values assumed past 4° and at 0° faster than Mach 1.3; no license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files (copies included) and no exports; 12 of their flights carry a log, a few of them past about 255 m/s (837 ft/s) by a plausible logged speed, so exports made from them in RASAero II would meet the row"
 
 [[row]]
 id = "G20"
@@ -348,7 +348,7 @@ issue = 673
 [[row.searched]]
 on = "2026-10-17"
 looked = "web searches for measured deployments (onboard video or accelerometer traces of ejection, nose cone and drogue separation), student post-flight reports (Stanford SSI wiki, NAU capstone), Rocket Reviews ejection tests, and the private collection's logs, counted only"
-found = "nothing usable: the reports describe outcomes, not which end each part left through; the private collection has 227 logs on 94 flights with tilt, gyroscope or orientation channels (Blue Raven, AltOS and team loggers), which show how a body pointed at deployment but not which end a part left through, and no video"
+found = "nothing usable: the reports describe outcomes, not which end each part left through; the private collection has 227 logs (copies included) on 94 flights with tilt, gyroscope or orientation channels (Blue Raven, AltOS and team loggers), which show how a body pointed at deployment but not which end a part left through, and no video"
 
 [[row]]
 id = "G21"
@@ -381,8 +381,8 @@ issue = 675
 
 [[row.searched]]
 on = "2026-10-17"
-looked = "web searches for measured flutter of hobby-size fins (wind tunnel, ground test, logged failure); Cal Poly's 2013 Fin Flutter Analysis (digitalcommons.calpoly.edu/aerosp/109); a 2008 WPI project report; Dinulović et al., FME Transactions 50(3) 2022 and Aerospace 11(1) 2024 (doi 10.3390/aerospace11010026)"
-found = "a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analysis of Tapered Composite Fins: Analysis and Experiment', FME Transactions 50 (2022) 576 to 585, Table 4, p. 583: five clamped e-glass fins, 0.65 mm (0.026 in) thick, 180 mm (7.1 in) root, 90 mm (3.5 in) tip, 262 mm (10.3 in) span, fluttered at 19.6 to 21.5 m/s (64 to 71 ft/s) in a wind tunnel, where TN 4197's boundary as the paper writes it gives 15.3 m/s (50 ft/s), 22% to 29% low (the safe side) on that fin; copyright the Faculty of Mechanical Engineering, Belgrade, all rights reserved, so cite only. Its fins are clamped plates at low speed, not fins glued to a tube. The Cal Poly report found no measured flutter speed, the WPI report says flutter was not tested, and the 2024 Aerospace article (CC BY) could not be reached (HTTP 403)"
+looked = "web searches for measured flutter of hobby-size fins (wind tunnel, ground test, logged failure); Cal Poly's 2013 Fin Flutter Analysis (digitalcommons.calpoly.edu/aerosp/109); a 2008 WPI project report; Dinulović et al., FME Transactions 50(3) 2022 and Aerospace 11(1) 2024 (doi 10.3390/aerospace11010026); the same group's Materials 2025 test of 3D-printed PLA plates, cited in the hardware line's note"
+found = "a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analysis of Tapered Composite Fins: Analysis and Experiment', FME Transactions 50 (2022) 576 to 585, Table 4, p. 583: five clamped e-glass fins, 0.65 mm (0.026 in) thick, 180 mm (7.1 in) root, 90 mm (3.5 in) tip, 262 mm (10.3 in) span, fluttered at 19.6 to 21.5 m/s (64 to 71 ft/s) in a wind tunnel, where TN 4197's speed as the paper evaluates it (thickness over the mean chord, an effective shear modulus of 7.96 GPa) is 15.3 m/s (50 ft/s), 21.9% to 28.8% below; HPR Sim's reading, thickness over the root chord, gives about 10.7 m/s (35 ft/s) at sea level on that modulus, 45% to 50% below; both on the safe side for the speed, on that one fin, which is not yet scored by HPR Sim's deciding check (Martin's figure 3); copyright the Faculty of Mechanical Engineering, Belgrade, all rights reserved, so cite only. Its fins are clamped plates at low speed, not fins glued to a tube. The Materials 2025 plates, which fluttered at about 10 to 12 m/s (33 to 39 ft/s), come from the same group, so not an independent test. The Cal Poly report found no measured flutter speed, the WPI report says flutter was not tested, and the 2024 Aerospace article (CC BY) could not be reached (HTTP 403)"
 
 [[row]]
 id = "G23"
@@ -415,7 +415,7 @@ issue = 676
 [[row.searched]]
 on = "2026-10-17"
 looked = "public pairs of a design and a log not yet used: CATS's EuRoC 2021 team data (github.com/catsystems/euroc21-team-data, GPL-3.0), GitHub repository and code searches for EuRoC designs (extension:ork), and the private collection's catalog, counted only"
-found = "partial: euroc21-team-data@ef54912c holds three loggers' records of one 2021 flight (STA-CARL2: AltiMAX, RRC3, Eggtimer) but no design file was found for it; the private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far, so the samples a held-out set needs exist; what is missing is the held-out protocol, a set fixed and predictions written before its logs are read"
+found = "partial: euroc21-team-data@ef54912c holds three loggers' records of one 2021 flight (STA-CARL2: AltiMAX, RRC3, Eggtimer) but no design file was found for it; the private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far, so the samples a held-out set needs exist; RIT-Launch-Initiative/flight-data (MIT) also holds public pairs, `rocket.ork` designs beside their Featherweight flight logs and an OpenRocket simulation export (2026/AirbrakesL1Tests); what is missing is the held-out protocol, a set fixed and predictions written before its logs are read"
 
 [[row]]
 id = "G25"
@@ -466,7 +466,7 @@ issue = 679
 [[row.searched]]
 on = "2026-10-17"
 looked = "web searches for wind-tunnel or flight measurements of tube fins' normal force and center of pressure (NARAM R&D reports, DTIC, NTRS), PSAS's fin design references, and the private collection's .ork files, counted only"
-found = "nothing measured: no wind-tunnel or flight measurement of a tube fin's lift or center was found; the private collection has 8 .ork files with a tube fin set, 1 of their flights with a parsing log, which can check an apogee but not the lift or center"
+found = "nothing measured: no wind-tunnel or flight measurement of a tube fin's lift or center was found; the private collection has 8 .ork files (copies included) with a tube fin set, 1 of their flights with a parsing log, which can check an apogee but not the lift or center"
 
 [[row]]
 id = "G28"
@@ -529,4 +529,4 @@ issue = 683
 [[row.searched]]
 on = "2026-10-17"
 looked = "GitHub code search for RRC3 exports (\"Temperature Events Voltages\" extension:csv); CATS's EuRoC 2021 team data (GPL-3.0); RocketPy-Team/RocketPaper (MIT); RocketPy's Juno III data; the private collection's RRC3 logs and the other loggers on their flights, counted only"
-found = "partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units, its altitude in meters and its pad temperature 36.1, read as °C by the pairing rule, but no other logger on that flight records temperature; RocketPaper@23d9271d's Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column, a real file that names the unit. In the private collection 90 RRC3 CSVs, 4 with bracketed units; one flight id pairs an unbracketed RRC3 file with a StratoLogger that names °F and their pad temperatures agree within 3 °F, but their peaks disagree too far for them to be sure to be the same flight"
+found = "partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units, its altitude in meters and its pad temperature 36.1, read as °C by the pairing rule, but no other logger on that flight records temperature; RocketPaper@23d9271d's Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column, a real file that names the unit. In the private collection 90 RRC3 CSVs (copies included), 4 with bracketed units"

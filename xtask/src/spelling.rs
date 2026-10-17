@@ -1243,7 +1243,7 @@ fn misspelling(token: &str) -> Option<String> {
     });
     let word = ruled.as_deref().unwrap_or(&lower);
     // A word holds `{stem}{uk}` only if it holds `uk`, so a word holding none of the endings
-    // (most words) skips the stems' 268 searches; the order tried is unchanged.
+    // (most words) skips the stems' searches; the order tried is unchanged.
     let ised = if ISE_ENDINGS.iter().any(|(uk, _)| word.contains(uk)) {
         ise_patterns()
             .iter()
