@@ -49,8 +49,8 @@
 //! | `<name> speed` | [`Quantity::Speed`], m/s | GPX 1.0's `speed` |
 //! | `<name> course` | [`Quantity::Angle`], ° from true north | GPX 1.0's `course` |
 //!
-//! A channel is there only if some point of its segment holds its element; a point that lacks it
-//! is a gap, `NaN`. The rest of a point (`magvar`, `geoidheight`, `fix`, its names and
+//! A channel is there only if some point of its segment holds its element; a point that lacks it,
+//! or holds it empty, such as `<ele/>`, is a gap, `NaN`, the empty ones counted in a note. The rest of a point (`magvar`, `geoidheight`, `fix`, its names and
 //! descriptions, `extensions` and other namespaces' elements) is counted in a note and not read.
 //! The elevation is [`Quantity::Altitude`], not [`Quantity::GnssAltitude`], whose altitude is
 //! above mean sea level as the receiver states it: a GPX file states neither the datum nor the
@@ -414,6 +414,8 @@ struct Reader<'a, 'input> {
     unread: BTreeMap<(Kind, String), usize>,
     /// Elements not read whose names are past those listed.
     unread_left_out: usize,
+    /// Elements read that hold no value, by the kind of point and the element's name.
+    empty: BTreeMap<(Kind, &'input str), usize>,
 }
 
 impl<'a, 'input> Reader<'a, 'input> {
@@ -437,6 +439,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             no_fix: 0,
             unread: BTreeMap::new(),
             unread_left_out: 0,
+            empty: BTreeMap::new(),
         }
     }
 
@@ -652,6 +655,11 @@ impl<'a, 'input> Reader<'a, 'input> {
             }
             seen.push(name);
             let text = all_text(child);
+            // An empty element, such as `<ele/>`, states nothing: a gap, counted.
+            if trimmed(&text).is_empty() {
+                *self.empty.entry((kind, name)).or_insert(0) += 1;
+                continue;
+            }
             if name == "time" {
                 point.time = Some(stamp(&text, child_line, element)?);
                 continue;
@@ -783,6 +791,17 @@ impl<'a, 'input> Reader<'a, 'input> {
                  point",
                 counted(self.empty_tracks, "track"),
                 counted(self.empty_segments, "segment")
+            ));
+        }
+        if !self.empty.is_empty() {
+            let listed: Vec<String> = self
+                .empty
+                .iter()
+                .map(|((kind, name), count)| format!("`{name}` in {}", kind.counted(*count)))
+                .collect();
+            notes.push(format!(
+                "elements with no value read as gaps: {}",
+                listed.join(", ")
             ));
         }
         if !self.unread.is_empty() {
@@ -1133,6 +1152,12 @@ mod tests {
             ),
             "{message}"
         );
+        // A time written later in another zone can be earlier in UTC: 18:04:04+01:00 is 17:04:04Z.
+        let zoned_back = gpx(
+            "<trkpt lat=\"1\" lon=\"2\"><time>2031-07-14T17:04:05Z</time></trkpt>\n\
+             <trkpt lat=\"1\" lon=\"2\"><time>2031-07-14T18:04:04+01:00</time></trkpt>",
+        );
+        assert!(refusal(&zoned_back).1.starts_with("a time that goes back"));
         // The same instant in another zone is no step back, and a repeated time is none either.
         let zones = gpx(
             "<trkpt lat=\"1\" lon=\"2\"><time>2031-07-14T17:04:05Z</time></trkpt>\n\
@@ -1210,6 +1235,29 @@ mod tests {
                       <trkseg><trkpt lat=\"1\" lon=\"2\"><course>360.5</course></trkpt>\
                       </trkseg></trk></gpx>";
         assert!(refusal(course).1.starts_with("a `trkpt`'s `course` is 360.5°"));
+    }
+
+    #[test]
+    fn an_empty_value_is_a_gap_not_a_refusal() {
+        let text = gpx("<trkpt lat=\"1\" lon=\"2\"><ele>5</ele><time>2031-07-14T17:04:05Z</time>\
+                        </trkpt>\n<trkpt lat=\"1\" lon=\"2\"><ele/><time> </time><sat></sat>\
+                        </trkpt>");
+        let log = read(&text).unwrap();
+        let elevation = &log.channels[2];
+        assert_eq!(elevation.column, "t elevation");
+        assert_eq!(elevation.values[0], 5.0);
+        assert!(elevation.values[1].is_nan() && elevation.time_s[1].is_nan());
+        // A satellite count no point states has no channel.
+        assert_eq!(log.channels.len(), 3);
+        assert!(log.notes.iter().any(|note| note
+            == "elements with no value read as gaps: `ele` in 1 track point, `sat` in 1 track \
+                point, `time` in 1 track point"));
+        // An empty position is no position: refused.
+        assert!(
+            refusal(&gpx("<trkpt lat=\"\" lon=\"2\"/>"))
+                .1
+                .starts_with("a `trkpt`'s `lat` reads ``, not a decimal number")
+        );
     }
 
     #[test]

@@ -2586,8 +2586,8 @@ documents.
   degrees, its elevation in meters (`ele`), its time, and, where it states them, its satellite
   count and dilutions of precision (`hdop`, `vdop`, `pdop`: how much the satellites' geometry
   spreads the fix); in GPX 1.0, also its course in degrees from true north and its speed in meters
-  per second. The rest, such as `fix` and an app's own `extensions`, is counted in a note and not
-  read.
+  per second. A value a point leaves out, or leaves empty, such as `<ele/>`, is a gap. The rest,
+  such as `fix` and an app's own `extensions`, is counted in a note and not read.
 - *Elevation.* The schemas give `ele` a unit, meters, but no datum: it may be above mean sea
   level, above the WGS84 ellipsoid (the smooth shape GPS works positions out on, not sea level)
   or from a barometer. So it is read as an altitude of unstated zero, not as a GPS altitude above

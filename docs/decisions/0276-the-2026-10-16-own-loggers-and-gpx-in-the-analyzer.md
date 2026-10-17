@@ -67,8 +67,9 @@ schemas and GPX 1.0's manual settled five things the plan left open:
    point off the globe and a time that goes back: a value that isn't the schema's kind of number
    (a decimal with no exponent, a whole satellite count), an element read twice in one point, a
    time that isn't a date and time, a GPX 1.0 `course` outside 0° to 360°. A GPX file is written
-   by a program, so these mean a damaged file, not a reading to guess at. The longitude may be
-   180, which GPX 1.1 leaves out and GPX 1.0 allows: it is −180's meridian.
+   by a program, so these mean a damaged file, not a reading to guess at. An empty element, such
+   as `<ele/>`, states nothing: it is a gap, counted in a note, as gpxpy reads it too. The
+   longitude may be 180, which GPX 1.1 leaves out and GPX 1.0 allows: it is −180's meridian.
 5. **More of a point is read**: the satellite count, the three dilutions of precision and GPX
    1.0's course and speed, each a channel where a point states it, each held to gpxpy's reading
    with the rest. gpxpy keeps a time to the microsecond and drops finer digits, so the samples
