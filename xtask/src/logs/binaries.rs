@@ -146,6 +146,10 @@ struct AlsFile {
     /// guessed one low: clock values, accelerations and voltages.
     #[serde(default)]
     divided_by_ten: [u64; 3],
+    /// The clock values, s, that would differ with the power of ten known exactly, rounded first
+    /// to 18 digits, the rule's own number of digits: the first [`LISTED`].
+    #[serde(default)]
+    time_at_18_digits_s: Vec<f64>,
     /// The export's rows from apogee on, whose speed the software works out from the pressure,
     /// not compared.
     speed_not_compared: usize,
@@ -475,6 +479,9 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
             for (slot, first) in (15..=20).enumerate() {
                 if digits_via(*a, first) != digits_15(*b) {
                     file.time_by_digits_differing[slot] += 1;
+                    if first == 18 && file.time_at_18_digits_s.len() < LISTED {
+                        file.time_at_18_digits_s.push(*a);
+                    }
                 }
             }
         }
@@ -936,6 +943,29 @@ fn counts(c: [u64; 3]) -> String {
     format!("{} / {} / {}", c[0], c[1], c[2])
 }
 
+/// How many clock values the report lists that differ rounded first to 18 digits.
+const LISTED: usize = 10;
+
+/// The clock values that would differ with the power of ten known exactly, for the report: how
+/// many, first rounded to 15 to 20 digits, then those at 18 by time, s, and at 21 digits.
+fn first_rounded(f: &AlsFile) -> String {
+    let mut text = f
+        .time_by_digits_differing
+        .iter()
+        .map(u64::to_string)
+        .collect::<Vec<_>>()
+        .join(" / ");
+    if !f.time_at_18_digits_s.is_empty() {
+        let listed: Vec<String> = f
+            .time_at_18_digits_s
+            .iter()
+            .map(|t| format!("{t:.3} s, {t:.20e}"))
+            .collect();
+        text += &format!("; at 18: {}", listed.join("; "));
+    }
+    text
+}
+
 /// The report's section for this increment.
 pub(super) fn markdown(checks: &Checks) -> String {
     let factor_text = |(_, volts_e8, divisor): (f64, u64, f64)| {
@@ -969,7 +999,8 @@ pub(super) fn markdown(checks: &Checks) -> String {
              accelerations and voltages the conversion divided by 10; and *First rounded to \
              15–20 digits* the clock values that would differ with the power of ten known \
              exactly, rounded first to 15, 16, 17, 18, 19 or 20 digits and then half up to 15, \
-             15 being rounding once. *Speed left* counts the rows \
+             15 being rounding once, and those at 18, the rule's own, by time and at 21 digits, \
+             the first {LISTED}. *Speed left* counts the rows \
              from apogee on, whose speed the software works out from the pressure: not \
              compared. *Heights off* is the most the standard atmosphere's height of each \
              pressure, less that of the header's zero pressure, differs from the export's, \
@@ -995,11 +1026,7 @@ pub(super) fn markdown(checks: &Checks) -> String {
             f.voltage_by_doubles_differing,
             counts(f.time),
             counts(f.divided_by_ten),
-            f.time_by_digits_differing
-                .iter()
-                .map(u64::to_string)
-                .collect::<Vec<_>>()
-                .join(" / "),
+            first_rounded(f),
             counts(f.speed),
             f.speed_not_compared,
             f.events,

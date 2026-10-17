@@ -3608,6 +3608,9 @@
           3265,
           5066
         ],
+        "time_at_18_digits_s": [
+          122.0050000000155
+        ],
         "speed_not_compared": 16961,
         "events_equal": true,
         "events": 21,
