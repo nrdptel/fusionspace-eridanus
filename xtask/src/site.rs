@@ -255,8 +255,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(failure("the built site", &built.problems));
     }
     println!(
-        "built theme: every page links the theme and its fonts, and nothing a page or stylesheet \
-         loads comes from another server"
+        "built theme: every page links the theme and its fonts and names the link preview's \
+         card, which the site serves, and nothing a page or stylesheet loads comes from another \
+         server"
     );
     println!(
         "built frame: {framed} pages open with a `header` drawing the lockup, show the sidebar \

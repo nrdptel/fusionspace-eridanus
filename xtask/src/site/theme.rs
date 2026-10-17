@@ -13,6 +13,9 @@
 //!   open, or a comment or string that never ends, fails: a browser drops the rules after it
 //!   without a word, as it would have dropped any rule added after the stray `}` that ended
 //!   `hpr.css` until 2026-10-14.
+//! - **A link preview on every page.** Every page's head names the brand kit's card for HPR as
+//!   its Open Graph image, by the site's whole address, with the page's own title; the site serves
+//!   the card as committed, and the card is compared with the pinned revision like the theme.
 //! - **The strip and the fonts on every page.** Every page of the guide links the theme, whose
 //!   `body::before` draws the gradient strip, and `fonts/fonts.css`.
 //! - **A title block ends the landing page**, with its fields from ISO 7200 as the system's
@@ -122,6 +125,33 @@ pub(crate) const COPIED: [(&str, &str); 29] = [
         "kit/logo/svg/fusion-space-mark-void.svg",
     ),
 ];
+/// The brand kit's card for HPR, the link preview's image, copied unchanged from the product
+/// system: where it sits under the site's source, which mdBook copies to the site as it is (so the
+/// site serves it at the same path), and where it sits in the system's repository. It lives in
+/// the guide's images rather than in [`THEME`], as mdBook serves no image from the theme but the
+/// favicon; `cargo xtask figures` reads only SVGs, so it isn't held to the figures' colors.
+pub(crate) const CARD: (&str, &str) = (
+    "images/og-image-dark.png",
+    "kit/projects/achernar/og-image-dark.png",
+);
+/// The Open Graph and X tags every page's head holds (`head.hbs`) so that a shared address draws
+/// a preview, with the value each must have; `None` for those that only must not be empty.
+/// `og:title` must be the page's own `<title>`, and `og:image` the site's address of [`CARD`],
+/// with its width and height as the served file gives them.
+const PREVIEW: [(&str, Option<&str>); 9] = [
+    ("og:type", Some("website")),
+    ("og:site_name", Some("FusionSpace HPR")),
+    ("og:title", None),
+    ("og:description", None),
+    ("og:image", None),
+    ("og:image:width", None),
+    ("og:image:height", None),
+    ("og:image:alt", None),
+    ("twitter:card", Some("summary_large_image")),
+];
+/// The sidebar alone, which mdBook loads in a frame for a reader without scripts: no page to
+/// share, with no title, so `head.hbs` gives it no preview.
+const SIDEBAR_FRAME: &str = "toc.html";
 /// hpr-sim's own stylesheets under [`THEME`].
 const OWN: [&str; 1] = ["hpr.css"];
 /// hpr-sim's own files under [`THEME`] that aren't stylesheets, each with the license line it
@@ -199,6 +229,12 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
         }
     }
     problems.extend(missing_copies(&theme));
+    if !source.join(CARD.0).is_file() {
+        problems.push(format!(
+            "docs/{} is missing: copy it unchanged from the system's {}",
+            CARD.0, CARD.1
+        ));
+    }
     for (file, spdx) in OWN_OTHER {
         if read(&theme.join(file))?.lines().next() != Some(spdx) {
             problems.push(format!(
@@ -256,6 +292,19 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
                     "could not read {original} at {commit} to compare with {THEME}/{file}: {why}"
                 )),
             }
+        }
+        let (card, original) = CARD;
+        let ours = fs::read(source.join(card))
+            .map_err(|err| format!("could not read docs/{card}: {err}"))?;
+        match committed_file(&design, &commit, original) {
+            Ok(theirs) if theirs == ours => {}
+            Ok(_) => problems.push(format!(
+                "docs/{card} differs from {original} at {commit}: copy it unchanged from the \
+                 pinned revision"
+            )),
+            Err(why) => problems.push(format!(
+                "could not read {original} at {commit} to compare with docs/{card}: {why}"
+            )),
         }
         let (local, original) = CHECK_JS;
         let ours =
@@ -712,6 +761,24 @@ pub(super) fn fill_issue_date(output: &Path, date: &str) -> Result<usize, String
 /// ends with.
 pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = served_unchanged(&root.join(THEME), output)?;
+    let card = fs::read(root.join(super::SOURCE).join(CARD.0))
+        .map_err(|err| format!("could not read {}/{}: {err}", super::SOURCE, CARD.0))?;
+    let served = fs::read(output.join(CARD.0)).ok();
+    if served.as_deref() != Some(card.as_slice()) {
+        problems.push(format!(
+            "{} is not {}/{} as committed: mdBook didn't serve the link preview's image",
+            CARD.0,
+            super::SOURCE,
+            CARD.0
+        ));
+    }
+    let size = png_size(&card).ok_or_else(|| {
+        format!(
+            "{}/{} is not a PNG whose size can be read",
+            super::SOURCE,
+            CARD.0
+        )
+    })?;
     let mut names = Vec::new();
     html_files(output, "", &mut names)?;
     for name in &names {
@@ -728,6 +795,11 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
             problems.extend(
                 head_problems(&html)
                     .into_iter()
+                    .chain(if name == SIDEBAR_FRAME {
+                        Vec::new()
+                    } else {
+                        preview_problems(&html, size)
+                    })
                     .map(|why| format!("{name}: {why}")),
             );
         }
@@ -852,6 +924,74 @@ fn head_problems(html: &str) -> Vec<String> {
     }
     problems.dedup();
     problems
+}
+
+/// What is wrong with a built page's link preview, the tags of [`PREVIEW`]: a tag missing or
+/// given twice, or a value off what it must be. `og:title` must be the page's own `<title>`, as
+/// mdBook writes both; `og:image` the site's address of [`CARD`], whole, as a preview's reader
+/// fetches it from another server; and the image's width and height `size`, the served file's.
+fn preview_problems(html: &str, size: (u32, u32)) -> Vec<String> {
+    let metas: Vec<&str> = tags(html, "meta").collect();
+    let title = html
+        .split_once("<title>")
+        .and_then(|(_, rest)| rest.split_once("</title>"))
+        .map(|(title, _)| title.trim());
+    let image = format!("{}{}", super::SITE_URL, CARD.0);
+    let (width, height) = (size.0.to_string(), size.1.to_string());
+    let mut problems = Vec::new();
+    for (key, wanted) in PREVIEW {
+        let attribute = if key.starts_with("og:") {
+            "property"
+        } else {
+            "name"
+        };
+        let values: Vec<&str> = metas
+            .iter()
+            .filter(|tag| attributes(tag, attribute).any(|value| value == key))
+            .filter_map(|tag| attributes(tag, "content").next())
+            .collect();
+        let [value] = values.as_slice() else {
+            problems.push(if values.is_empty() {
+                format!("no `<meta {attribute}=\"{key}\">` for the link preview")
+            } else {
+                format!(
+                    "{} `<meta {attribute}=\"{key}\">` tags, where a preview takes one",
+                    values.len()
+                )
+            });
+            continue;
+        };
+        let wanted = match key {
+            "og:title" => title,
+            "og:image" => Some(image.as_str()),
+            "og:image:width" => Some(width.as_str()),
+            "og:image:height" => Some(height.as_str()),
+            _ => wanted,
+        };
+        match wanted {
+            Some(wanted) if *value != wanted => {
+                problems.push(format!("`{key}` is `{value}`, not `{wanted}`"));
+            }
+            None if value.trim().is_empty() => problems.push(format!("`{key}` is empty")),
+            _ => {}
+        }
+    }
+    problems
+}
+
+/// A PNG's width and height in pixels, from its header; `None` if `bytes` isn't a PNG.
+fn png_size(bytes: &[u8]) -> Option<(u32, u32)> {
+    const SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
+    if !bytes.starts_with(SIGNATURE) || bytes.get(12..16) != Some(b"IHDR".as_slice()) {
+        return None;
+    }
+    let word = |at: usize| {
+        bytes
+            .get(at..at + 4)
+            .and_then(|word| word.try_into().ok())
+            .map(u32::from_be_bytes)
+    };
+    Some((word(16)?, word(20)?))
 }
 
 /// The stylesheets of [`PAGE_STYLES`] a built page of the guide doesn't link. A page that links
@@ -1161,6 +1301,91 @@ mod tests {
             problems,
             ["a `theme-color` meta for `(min-width: 9px)`, which the check can't read"]
         );
+    }
+
+    /// A page's head as `head.hbs` and mdBook write it, with the link preview's tags.
+    fn previewed(title: &str) -> String {
+        format!(
+            "<title>{title}</title>\
+             <meta property=\"og:type\" content=\"website\">\
+             <meta property=\"og:site_name\" content=\"FusionSpace HPR\">\
+             <meta property=\"og:title\" content=\"{title}\">\
+             <meta property=\"og:description\" content=\"A simulator.\">\
+             <meta property=\"og:image\" content=\"https://hpr.fusionspace.co/{}\">\
+             <meta property=\"og:image:width\" content=\"1200\">\
+             <meta property=\"og:image:height\" content=\"630\">\
+             <meta property=\"og:image:alt\" content=\"The card.\">\
+             <meta name=\"twitter:card\" content=\"summary_large_image\">",
+            CARD.0
+        )
+    }
+
+    #[test]
+    fn a_page_head_draws_the_link_preview() {
+        let ours = previewed("Getting started - FusionSpace HPR");
+        assert_eq!(preview_problems(&ours, (1200, 630)), Vec::<String>::new());
+        // mdBook's head alone draws no preview.
+        let problems = preview_problems("<title>Aerodynamics</title>", (1200, 630));
+        assert_eq!(problems.len(), PREVIEW.len(), "{problems:?}");
+        assert_eq!(
+            problems[0],
+            "no `<meta property=\"og:type\">` for the link preview"
+        );
+        assert_eq!(
+            problems[8],
+            "no `<meta name=\"twitter:card\">` for the link preview"
+        );
+        // Another page's title, an image by its path alone, and a card of another size.
+        let other = ours.replace(
+            "og:title\" content=\"Getting started",
+            "og:title\" content=\"Start here",
+        );
+        let relative = ours.replace("https://hpr.fusionspace.co/images/", "images/");
+        assert_eq!(
+            preview_problems(&other, (1200, 630)),
+            [
+                "`og:title` is `Start here - FusionSpace HPR`, not `Getting started - FusionSpace HPR`"
+            ]
+        );
+        assert_eq!(
+            preview_problems(&relative, (1200, 630)),
+            [format!(
+                "`og:image` is `{}`, not `https://hpr.fusionspace.co/{}`",
+                CARD.0, CARD.0
+            )]
+        );
+        assert_eq!(
+            preview_problems(&ours, (1280, 640)),
+            [
+                "`og:image:width` is `1200`, not `1280`",
+                "`og:image:height` is `630`, not `640`"
+            ]
+        );
+        // A tag given twice, an empty one, and X's small card.
+        let twice = format!("{ours}<meta property=\"og:type\" content=\"article\">");
+        assert_eq!(
+            preview_problems(&twice, (1200, 630)),
+            ["2 `<meta property=\"og:type\">` tags, where a preview takes one"]
+        );
+        let empty = ours.replace("content=\"The card.\"", "content=\" \"");
+        assert_eq!(
+            preview_problems(&empty, (1200, 630)),
+            ["`og:image:alt` is empty"]
+        );
+        let small = ours.replace("summary_large_image", "summary");
+        assert_eq!(
+            preview_problems(&small, (1200, 630)),
+            ["`twitter:card` is `summary`, not `summary_large_image`"]
+        );
+    }
+
+    #[test]
+    fn the_card_is_a_png_of_1200_by_630() {
+        let root = crate::designs::root().unwrap();
+        let card = fs::read(root.join(super::super::SOURCE).join(CARD.0)).unwrap();
+        assert_eq!(png_size(&card), Some((1200, 630)));
+        assert_eq!(png_size(b"GIF89a"), None);
+        assert_eq!(png_size(&card[..20]), None);
     }
 
     #[test]
