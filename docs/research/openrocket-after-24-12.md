@@ -61,7 +61,7 @@ says what its author meant to change; whether the merged code does that is check
   description says this moves the CP aft. #3233's text says a test's apogee time fell from 3.62 s to 3.35 s [S5].
 - **#3263** (merged 2026-09-09) splits the fin and body loads and puts each at its own CP (NACA 1307 charts 15
   and 16, planar-pressure equations supersonic), for trapezoidal fins with r/s ≤ 0.6 on a constant tube; other
-  fins keep #3220's factor. Subsonic CNa is unchanged and the CP moves "a few millimetres" from #3220's; against the
+  fins keep #3220's factor. Subsonic CNa is unchanged and the CP moves a few millimeters from #3220's; against the
   previous development build the CP moves aft about 51 mm (an ARC payload rocket, Mach 2), 46 mm (dual-parachute
   example) and about 100 mm (the simulation-extension examples, Mach 3) [S6]. Canted-fin roll forcing drops.
 - **Size, Inference.** The fin set's CNa grows by 1 + τ: +50% at a span of 0.5 caliber, +33% at 1, +20% at 2. On an
