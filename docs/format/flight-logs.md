@@ -719,13 +719,14 @@ on the pad, which put liftoff hours early (found while the checks were built). L
 last reading before apogee whose height above the pad is within 5% of the climb, apogee less the
 pad height.
 
-**The checks.** Each kind of reading has one check. A file that fails any of them fails the
+**The checks.** Each row below is one kind of check. A file that fails any of them fails the
 survey, listed among the files left unread. The bands are the earlier increments': the clock's
 from [M7.1c18](../decisions-and-roadmap.md#m7-1c18) (a course's Teensy logger), the altitude's
 from [M7.1c21](../decisions-and-roadmap.md#m7-1c21) (altimeters' other text), the
-accelerometer's from [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (FIP sheets); the overlap
-and the clock rate are new here. The pad's 50 kPa is the standard atmosphere's pressure 5.6 km
-(18,300 ft) up, above any launch site.
+accelerometer's from [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (FIP sheets); the overlap,
+the clock rate and the track's own speed are new checks here. The pad's 50 kPa is the standard
+atmosphere's pressure 5.6 km (18,300 ft) up, above any launch site. Here a *band* is the range
+of values a check accepts, and a *fix* is one position a GPS receiver reports.
 
 | Reading | Check | Band | A unit it refuses |
 |---|---|---|---|
@@ -735,6 +736,7 @@ and the clock rate are new here. The pad's 50 kPa is the standard atmosphere's p
 | A pressure | its reading on the pad | 50 to 110 kPa | hectopascals for pascals, 100 times off |
 | An altitude | its rise over the standard atmosphere's height of the file's pressure, another logger's rise, or the apogee the flyer states | 0.6 to 5/3 | feet for meters, 3.28 times off |
 | A vertical speed | the altitude's change between two readings over the time between them, against the logged speed, from liftoff to apogee where the speed tops 10 m/s (33 ft/s); their median | 0.6 to 5/3 | ft/s for m/s |
+| A GPS track's altitude | how fast the track's own vertical speed falls over the 5 s before its highest fix, in g, from a parabola fitted to those fixes ([below](#a-tracks-own-speed)) | 0.6 to 5/3 | feet for meters, 3.28 times off |
 | An accelerometer | its median magnitude over the recording, mostly at rest on the pad or under a parachute | 0.85 to 1.15 g | g for m/s², 9.8 times off; ft/s², 3.28 |
 | A latitude and a longitude | each on its own: the median size of its readings other than 0, past ±π/2 for a latitude and ±π for a longitude | | radians stated as degrees, which can't lie past them |
 
@@ -755,21 +757,87 @@ so is every rate of turn, and every other column no check holds, such as a batte
 humidity, a magnetometer and an orientation's quaternion. One board's accelerometer reads 0 at rest, with
 gravity taken out, and is kept too, as are words, packed fields and counts.
 
-**A track's own speed: not met.** The plan for this increment named a GPS track's own speed
-among the checks that hold a column's unit, but it holds none, so that part of
-[M7.1c22](../decisions-and-roadmap.md#m7-1c22)'s *done when* ("each column's unit held to a
-physical check (a pressure's standard atmosphere, 1 g at rest, a track's own speed)") is not met,
-as the amendment to
-[ADR-274, the plan for the last importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-records. Here a *fix* is one position the receiver reports, and a *band* is the range of values a
-check accepts.
+**What the 20 show.** Their mappings read 64 columns in a unit, keep 102 as written and leave 7
+out, and all 62 checks pass. The 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g). The 6
+altitudes held to their pressure rise 0.9559 to 1.0005 times the rise of its standard-atmosphere
+height, the 3 held to another logger 0.9008 to 0.9552 times its rise (all three a GPS receiver's
+altitude, two of them the same fixes with and without a header), and the 1 held to the flyer's
+stated apogee 1.0025 times. The 1 vertical speed gives 0.9709, and the 2 checks of a track's own
+speed 0.9925 g, one track in two files. The 10 accelerometer checks read 0.9600 to 1.0531 g. The
+other 27 are 13 pad pressures and 6 places, whose values would give a site away; 6 clocks beside
+another file's, overlapping 0.998 to 1.000 of the longer span; 1 clock rate of 1.000 times its
+logger's; and 1 cut of a file, its rows all the whole file's. The survey's report,
+[`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
+lists each file's checks, each to 4 decimals.
 
-- *What was measured.* The survey takes a track's ground speed from each fix to the next: the
-  distance along the Earth's surface between them (the great-circle distance) over the step of
-  the track's own clock, a fix the logger repeats over several rows counted once. Over the 4
-  tracks held by a latitude-and-longitude check (5 files, two of them the same fixes with and
-  without a header), each track's median lies 0.3460 to 7.3836 m/s (1.1352 to 24.2244 ft/s), a
-  spread of 21.34 times; each track's fastest step lies 24.8509 to 400.0430 m/s (81.5318 to
+#### A track's own speed
+
+A GPS receiver gives an altitude and a time but no speed this check could trust, and the check
+needs none: gravity is its ruler. In the last seconds before apogee a coasting rocket slows at
+g, 9.807 m/s² (32.2 ft/s²), plus a little drag, so a track's altitudes there, fitted with a
+parabola, must slow at about 1 g. In a wrong unit they slow 3.28 times too fast (feet stated as
+meters) or too slowly (meters stated as feet). The check holds a unit within a wide band; it
+doesn't measure drag, which a receiver's noise can hide.
+([ADR-277, a track's own speed](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0277-a-tracks-own-speed-held-by-its-vertical-speed.md)
+decided it.)
+
+- *The fit.* The check takes the track's highest fix as apogee and fits h = a + bτ + cτ², by
+  least squares, to the fixes in the 5 s before it, the highest included, τ being the time from
+  the fixes' mean. Then −2c is how fast the vertical speed falls, and the check divides it by g.
+  An altitude repeated over consecutive rows, as a logger writes rows faster than its receiver
+  updates, counts once, at its first row; so do two fixes at one altitude, which near apogee
+  moves the top a step early. Of several equal highest altitudes that aren't consecutive, the
+  last is the highest.
+- *Enough fixes, spread enough.* The check needs at least 4 fixes, one more than the parabola's
+  three terms, that set its curvature c about as well as 5 fixes 1 s apart. The measure is
+  [(XᵀX)⁻¹]_cc, the variance of c for each square meter of independent noise on a fix, at most
+  1/12 s⁻⁴: 5 fixes 1 s apart give 1/14, and 1/12 lets them come 3.8% closer together. The
+  reading's standard error is then at most 0.0589 g per meter of noise. With 3 m (9.8 ft) of
+  noise on each fix, a right unit reading 1.03 g lies 2.4 standard errors above the band's foot,
+  and the same fixes in feet stated as meters 3.0 past its top. Four fixes over the last 3 s, as
+  a receiver that lost its fix on the way up leaves, give 1/4 s⁻⁴, where noise would decide, so
+  such a track doesn't take the check.
+- *Why 5 s, and the band.* Drag's vertical share is ½ρC_DA/m · v · v_z: ρ the air's density,
+  C_D the drag coefficient, A the frontal area, m the mass, v the speed and v_z its vertical
+  part. It falls to 0 at apogee as v_z does. Take a 54 mm (2.1 in) rocket of 1.5 kg (3.3 lb),
+  C_D 0.5, in air of 1.1 kg/m³. Coasting straight up, it climbs at 50.8 m/s (167 ft/s) 5 s
+  before apogee, a little more than g × 5 s, and its drag adds 0.11 g there; carrying 100 m/s
+  (328 ft/s) across at apogee, it adds 0.33 g. Fitted to its fixes once a second, the parabola
+  reads 1.031 g straight up and 1.135 g carrying that speed across (the test
+  `a_coast_with_drag_reads_inside_the_band` pins both), where leaving the band's top takes
+  1.667 g. A longer window would let drag grow; a shorter one holds too few fixes once a second.
+  Drag only adds, so a right unit reads low only by noise or a receiver's lagging filter, which
+  fail the check rather than pass a wrong unit.
+- *What it assumes.* A coast of at least 5 s, which a rocket has if it climbs 123 m (402 ft) or
+  more after burnout, ½g × (5 s)². A motor still burning in the window would make the fit read
+  anything. The club's track climbs far past that.
+- *It doesn't hold the clock.* The window is read on the file's own clock, so a misread clock
+  changes which fixes it takes: read 10 times too short, it would take 50 s of fixes, the pad
+  and the boost among them, and the fit could land anywhere. The clock checks hold every held
+  file's clock, so the window is the right one.
+- *A worked example*, with invented numbers. A receiver reports once a second, and its fixes 5,
+  4, 3, 2 and 1 s before its highest lie ½gτ² below it, from 122.58 m (402.2 ft) at 5 s to
+  4.90 m (16.1 ft) at 1 s. The least-squares parabola through the six fixes, the highest and the
+  five before it, has c = −4.903 m/s², so −2c is 9.807 m/s², 1.000 g. Written in feet and mapped
+  in meters, the same fixes read 3.281 g; written in meters and mapped in feet, 0.305 g. Both
+  fail.
+- *Where it runs.* On the club's GPS track (2 files, the same fixes with and without a header),
+  which slows at 0.9925 g. That is a little under the 1 g a coast can't go below, within the
+  fit's noise. Another logger's rise holds the same altitude too. A track that the
+  latitude-and-longitude check holds, and whose GPS altitude could take this check, must take
+  it, or the survey fails. Of the other 3 of the 4 tracks, the radio telemetry's receiver lost
+  its fix on the way up, leaving 1 fix in the window, the highest itself, so another logger's
+  rise alone holds its GPS altitude. The other 2 have no altitude.
+
+#### A track's ground speed holds no unit
+
+The survey also measures each track's ground speed from each fix to the next: the distance along
+the Earth's surface between them (the great-circle distance) over the step of the track's own
+clock, a fix the logger repeats over several rows counted once.
+
+- *What was measured.* Over the 4 tracks held by a latitude-and-longitude check (5 files, two of
+  them the same fixes), each track's median lies 0.3460 to 7.3836 m/s (1.1352 to 24.2244 ft/s),
+  a spread of 21.34 times; each track's fastest step lies 24.8509 to 400.0430 m/s (81.5318 to
   1,312.4770 ft/s), 16.10 times. The medians span the whole recording, the pad's hours included,
   so a median can be a receiver's jitter as much as the wind's drift.
 - *Why no band holds a unit.* A clock misread by a factor of 10 (the checks table's power of ten)
@@ -778,24 +846,8 @@ check accepts.
   wind, and a launch may go on a calm day, so its speed has no floor (NFPA 1127 limits only the
   surface wind, to 20 mph (8.9 m/s)). Radians stated as degrees would read 57 times slower,
   which a band could tell apart on these 4 tracks, but a band fitted to 4 tracks is a sample,
-  not a bound.
-- *What holds a track's units instead.* Its degrees, by the latitude-and-longitude row of the
-  table, which needs no band; its clock, by the time to apogee of its own altitude or the clock
-  of a file from the same logger, as every held file has a clock check; and its altitude, where
-  it has one, by another logger's in the same flight. The one file with a longitude but no
-  latitude has no ground speed.
-
-**What the 20 show.** Their mappings read 64 columns in a unit, keep 102 as written and leave 7
-out, and all 60 checks pass. The 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g). The 6
-altitudes held to their pressure rise 0.9559 to 1.0005 times the rise of its standard-atmosphere
-height, the 3 held to another logger 0.9008 to 0.9552 times its rise (all three a GPS receiver's
-altitude, two of them the same fixes with and without a header), and the 1 held to the flyer's
-stated apogee 1.0025 times. The 1 vertical speed gives 0.9709. The 10 accelerometer checks read
-0.9600 to 1.0531 g. The other 27 are 13 pad pressures and 6 places, whose values would give a
-site away; 6 clocks beside another file's, overlapping 0.998 to 1.000 of the longer span; 1
-clock rate of 1.000 times its logger's; and 1 cut of a file, its rows all the whole file's. The survey's report,
-[`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md),
-lists each file's checks, each to 4 decimals.
+  not a bound. So a track's degrees are held by the latitude-and-longitude row of the table,
+  which needs no band.
 
 ### Binary records by a stated layout
 

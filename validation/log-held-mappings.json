@@ -46,6 +46,10 @@
           "check": "other_logger",
           "altitude": 3,
           "file": "bc7d96697d1315e1"
+        },
+        {
+          "check": "track_speed",
+          "altitude": 3
         }
       ]
     },
@@ -142,6 +146,10 @@
           "check": "other_logger",
           "altitude": 3,
           "file": "bc7d96697d1315e1"
+        },
+        {
+          "check": "track_speed",
+          "altitude": 3
         }
       ]
     },

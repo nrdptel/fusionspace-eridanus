@@ -342,23 +342,37 @@ showed, measured, and the decisions.
    team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
    one, in a probe while the checks were built, read with the sign opposite to the other
    loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
-5. **A track's own speed, which the plan named, holds no unit: that part of the *done when* is
-   not met, recorded.** The survey measures it (`cargo xtask logs`, the report's paragraph on a
-   track's own ground speed): a track's ground speed from each fix to the next the receiver
-   reports, the great-circle distance over the step of its own clock, a fix repeated over rows
-   counted once, over the whole recording, the pad's hours included, so a median can be a
-   receiver's jitter as much as the wind's drift. Over the 4 tracks held by a place check of a
-   latitude and a longitude (5 files, two of them the same fixes), the median lies 0.3460 to
-   7.3836 m/s, a spread of 21.34 times, and the fastest step 24.8509 to 400.0430 m/s, 16.10
-   times: both more than the 10 times a clock misread by a factor of 10 moves them, so no band on
-   these tracks refuses that misread on every one of them. As a track drifts with the wind, and
-   a launch may go on a calm day, its speed has no floor (NFPA 1127 limits only the surface
-   wind, to 20 mph, 8.9 m/s), so no band holds a clock on every flight. Radians stated as degrees
-   read 57 times slower, which a band could part on these 4 tracks alone, but a band fitted to
-   them is a sample, not a bound. So the track's units are held by its place, which needs no
-   band; its clock by the time to apogee of its own altitude or by the clock of a file of the
-   same logger; and its altitude, where it has one, by another logger's. A track's vertical
-   speed is its altitude's, held the same way.
+5. **A track's own speed holds its GPS altitude by its vertical speed; its ground speed holds no
+   unit** ([ADR-277](0277-a-tracks-own-speed-held-by-its-vertical-speed.md)). In the last
+   seconds before apogee a coasting rocket slows at g plus the vertical share of its drag,
+   ½ρC_DA/m · v · v_z, which falls to 0 at apogee as v_z does. A 54 mm rocket of 1.5 kg with
+   C_D 0.5 at ρ = 1.1 kg/m³ climbs at 50.8 m/s 5 s before apogee straight up, its drag adding
+   0.11 g there, and 0.33 g carrying 100 m/s across at apogee; a parabola fitted to its fixes
+   once a second reads 1.031 g and 1.135 g (a test pins both). The check takes the track's
+   highest fix as apogee, fits a parabola to the fixes in the 5 s before it, the highest
+   included, an altitude repeated over consecutive rows counted once, and holds its
+   deceleration over g to 0.6 to 5/3: an altitude in feet stated as meters reads 3.28 times too
+   high. It needs at least 4 fixes that set the curvature about as well as 5 fixes 1 s apart,
+   at most 1/12 s⁻⁴ of variance per square meter of noise, so that noise can't decide. It
+   doesn't hold the clock, as a misread clock changes which fixes the window takes; the clock
+   checks hold it. It assumes a coast of at least 5 s. The club's GPS track (2 files, the same
+   fixes) slows at 0.9925 g. The survey fails a track held by a place check whose GPS altitude
+   could take the check and takes none; the radio telemetry's receiver lost its fix on the way
+   up, leaving 1 fix in the window, the highest itself (the report prints the count), so its GPS
+   altitude is held by another logger's; the other two tracks have no altitude.
+   The survey also measures each track's ground speed from each fix to the next the receiver
+   reports (`cargo xtask logs`, the report's paragraph on a track's own speed): the
+   great-circle distance over the step of its own clock, a fix repeated over rows counted once,
+   over the whole recording, the pad's hours included, so a median can be a receiver's jitter
+   as much as the wind's drift. Over the 4 tracks held by a place check of a latitude and a
+   longitude (5 files, two of them the same fixes), the median lies 0.3460 to 7.3836 m/s, a
+   spread of 21.34 times, and the fastest step 24.8509 to 400.0430 m/s, 16.10 times: both more
+   than the 10 times a clock misread by a factor of 10 moves them, so no band on these tracks
+   refuses that misread on every one of them. As a track drifts with the wind, and a launch may
+   go on a calm day, its ground speed has no floor (NFPA 1127 limits only the surface wind, to
+   20 mph, 8.9 m/s), so no band holds a clock on every flight. Radians stated as degrees read 57
+   times slower, which a band could part on these 4 tracks alone, but a band fitted to them is
+   a sample, not a bound; so a track's degrees are held by its place, which needs no band.
 6. **The seven files that aren't logs**, each filed with its reason in the report: a flight
    computer's housekeeping (processor, memory, disk and network counters); a battery pack's (its
    cells' voltages, temperatures and current); two GPS tracks' coordinates copied from their map
@@ -371,12 +385,13 @@ showed, measured, and the decisions.
 
 **Consequences of the amendment.** The survey reads 1,048 of its 1,122 files. The 20 tables give
 3,976,354 rows. Their mappings read 64 columns in a unit, keep 102 as written and leave 7 out, and
-each of their 60 checks passes:
+each of their 62 checks passes:
 - the 12 times to apogee lie 0.8627 to 1.7105 times √(2h/g);
 - the 6 rises over the standard atmosphere's lie 0.9559 to 1.0005 times, the 3 over another
   logger's 0.9008 to 0.9552 times (two of them the same fixes with and without a header), and
   the 1 over the flyer's stated apogee 1.0025 times;
-- the vertical speed's 1 check gives 0.9709;
+- the vertical speed's 1 check gives 0.9709, and the 2 checks of a track's own speed 0.9925 g,
+  one track in two files;
 - the 10 accelerometers read 0.9600 to 1.0531 g;
 - the 6 clocks of a file beside overlap it by 0.998 to 1.000, and the recording with no flight
   steps at 1.000 times its logger's rate;
@@ -385,5 +400,5 @@ each of their 60 checks passes:
 
 A test for each check passes an invented flight read in its right unit and fails it read in a
 wrong one: seconds as milliseconds, hectopascals as pascals, meters as feet, m/s² as g and g as
-m/s², m/s as ft/s, and degrees as radians. Six files are labelled for M7.1c23, four of them
+m/s², m/s as ft/s, degrees as radians, and a track's meters as feet and feet as meters. Six files are labelled for M7.1c23, four of them
 unread.

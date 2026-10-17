@@ -1674,11 +1674,14 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M7.1c22 Tables by mapping, and files that aren't logs.** *Done when:* the 20 logs read,
       each column's unit held to a physical check (a pressure's standard atmosphere, 1 g at rest,
       a track's own speed); the 7 others filed as not logs, each with its reason in the report.
-      *Result (ADR-274):* the 20 read and the 7 filed; a track's own speed not met, recorded: it
-      holds no unit, as the 4 tracks' median ground speeds from fix to fix spread 21.34 times
-      (0.3460 to 7.3836 m/s), wider than the 10 times a clock misread by a factor of 10 would
-      shift them, and a track drifts with the wind, from calm up. A track's units are held by its
-      latitude-and-longitude check and the clock checks instead.
+      *Result (ADR-274, ADR-277):* met. The 20 read, all 62 checks passing, and the 7 filed. A
+      track's own speed holds the GPS altitude of the one track with a GPS altitude whose
+      receiver kept its fix to apogee, a second hold beside another logger's rise: its vertical
+      speed falls at 0.9925 g over the 5 s before its highest fix (2 files, the same fixes),
+      where a coasting rocket slows at g plus a little drag; the survey fails a track that could
+      take the check and takes none. A track's ground speed holds no unit, as the 4 tracks'
+      medians spread 21.34 times (0.3460 to 7.3836 m/s), wider than a clock 10 times off moves
+      them; their degrees are held by the latitude-and-longitude check.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

@@ -123,8 +123,35 @@ const LIFTOFF_SHARE: f64 = 0.05;
 /// all noise.
 const SPEED_FLOOR_M_S: f64 = 10.0;
 
+/// The track speed check's name, as the report prints it.
+const TRACK_SPEED: &str = "track speed";
+
 /// Standard gravity, m/s².
 const G0: f64 = 9.806_65;
+
+/// How long before a track's highest fix its climb's deceleration is taken, s. Coasting, a
+/// rocket's vertical deceleration is g plus drag's vertical share, ½ρC_DA/m · v · v_z, which
+/// falls to 0 at apogee as v_z does. A 54 mm rocket of 1.5 kg with C_D 0.5 at ρ = 1.1 kg/m³
+/// climbs at 50.8 m/s 5 s before apogee straight up, its drag adding 0.11 g there, and 0.33 g
+/// carrying 100 m/s across at apogee; a parabola fitted to its fixes once a second reads 1.031 g
+/// and 1.135 g (`a_coast_with_drag_reads_inside_the_band`), where leaving [`UNIT_BAND`] takes
+/// 1.667 g. A longer window lets drag grow; a shorter one holds too few fixes of a receiver that
+/// reports once a second to set the curvature ([`TRACK_C_VARIANCE`]).
+const TRACK_WINDOW_S: f64 = 5.0;
+
+/// The least fixes over [`TRACK_WINDOW_S`], the highest included, a parabola is fitted to: one
+/// more than its three terms.
+const TRACK_FIXES: usize = 4;
+
+/// How loosely the fixes may set the parabola's curvature c: [(XᵀX)⁻¹]_cc, the variance of c per
+/// square meter of independent noise on each fix, at most 1/12 s⁻⁴. That is a little looser than
+/// 5 fixes 1 s apart, 1/14 s⁻⁴, so that 5 fixes of a receiver once a second, up to 3.8 % closer
+/// together, take the check. The reading's standard error is then at most 2√(1/12)/g = 0.0589 g
+/// per meter of noise: with 3 m, a right unit reading 1.03 g lies 2.4 standard errors above the
+/// band's foot, and the same fixes in feet stated as meters 3.0 past its top. Fewer fixes or fixes
+/// closer together, as a receiver that lost its fix on the way up leaves, set c more loosely: 4
+/// fixes over 3 s give 1/4 s⁻⁴, where noise would decide.
+const TRACK_C_VARIANCE: f64 = 1.0 / 12.0;
 
 /// The Earth's mean radius, m: the IUGG's R₁ (Moritz, *Geodetic Reference System 1980*, 2000).
 const EARTH_RADIUS_M: f64 = 6_371_008.8;
@@ -209,6 +236,11 @@ enum Check {
     /// A vertical speed: an altitude's rate of change over it, from liftoff to apogee, the median,
     /// within [`UNIT_BAND`].
     SpeedOverHeight { speed: usize, height: usize },
+    /// A track's GPS altitude, by the track's own vertical speed: its deceleration over the
+    /// [`TRACK_WINDOW_S`] before its highest fix ([`track_deceleration_g`]), in g, within
+    /// [`UNIT_BAND`]. It doesn't hold the clock: read 10 times too short, the window would take
+    /// 50 s of fixes, the pad and the boost among them, and the fit could land anywhere.
+    TrackSpeed { altitude: usize },
 }
 
 impl Check {
@@ -225,6 +257,7 @@ impl Check {
             Self::Rest { .. } => "1 g at rest",
             Self::Place { .. } => "place",
             Self::SpeedOverHeight { .. } => "speed over height",
+            Self::TrackSpeed { .. } => TRACK_SPEED,
         }
     }
 
@@ -251,7 +284,8 @@ impl Check {
             Self::PadPressure { column } => vec![(*column, &[Quantity::Pressure])],
             Self::StandardAtmosphere { altitude, .. }
             | Self::OtherLogger { altitude, .. }
-            | Self::StatedApogee { altitude } => vec![(*altitude, HEIGHTS)],
+            | Self::StatedApogee { altitude }
+            | Self::TrackSpeed { altitude } => vec![(*altitude, HEIGHTS)],
             Self::Rest { columns } => columns
                 .iter()
                 .map(|c| (*c, &[Quantity::Acceleration][..]))
@@ -397,12 +431,13 @@ struct HeldFile {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct Checks {
     files: Vec<HeldFile>,
-    /// A track's own speed, measured; it holds no unit (ADR-274's amendment for M7.1c22).
+    /// A track's ground speed, measured: it holds no unit, so a track's own speed holds its
+    /// altitude by its vertical speed, the track speed check (ADR-274's amendment for M7.1c22).
     #[serde(default)]
     track_speeds: TrackSpeeds,
 }
 
-/// A track's own speed over the held tracks with a latitude and a longitude: its ground speed
+/// A track's ground speed over the held tracks with a latitude and a longitude: its speed
 /// between consecutive fixes, the great-circle distance over the track's own clock. Only
 /// aggregates, as most of the tracks are private.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
@@ -420,6 +455,23 @@ pub(super) struct TrackSpeeds {
     /// The least and the greatest of the tracks' fastest single steps, m/s.
     least_fastest_step_m_s: Option<f64>,
     most_fastest_step_m_s: Option<f64>,
+    /// Each GPS altitude of a track the place check holds that takes no track speed check
+    /// ([`untaken_tracks`]): one that could take it fails the survey.
+    #[serde(default)]
+    untaken: Vec<UntakenTrack>,
+}
+
+/// A track's GPS altitude with no track speed check, and why.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+struct UntakenTrack {
+    /// The file's id.
+    file: String,
+    /// The altitude's column, from 0.
+    column: usize,
+    /// Its fixes in the [`track_window`], the highest included.
+    fixes: usize,
+    /// Whether its window could take the check ([`track_deceleration_g`] gives a value).
+    could_take: bool,
 }
 
 impl Checks {
@@ -859,6 +911,10 @@ fn run(
             });
             (vec![*speed, *height], ratio_in(ratio, &UNIT_BAND))
         }
+        Check::TrackSpeed { altitude } => {
+            let ratio = track_deceleration_g(&heights(log, &name(*altitude)));
+            (vec![*altitude], ratio_in(ratio, &UNIT_BAND))
+        }
     };
     Outcome {
         check: check.name().to_owned(),
@@ -866,6 +922,71 @@ fn run(
         measured,
         passed,
     }
+}
+
+/// A track's fixes over the [`TRACK_WINDOW_S`] before its highest, the highest included, taken
+/// as apogee. An altitude repeated over consecutive rows counts once, at its first row, as a
+/// logger writes rows faster than its receiver updates; so do two fixes at one altitude, as a
+/// receiver rounding to whole meters gives near apogee, which moves the top a step early. The
+/// highest is the last of the greatest where several, not consecutive, tie.
+fn track_window(series: &[(f64, f64)]) -> Vec<(f64, f64)> {
+    let mut fixes: Vec<(f64, f64)> = Vec::new();
+    for (t, h) in series {
+        if fixes.last().is_none_or(|(_, last)| last != h) {
+            fixes.push((*t, *h));
+        }
+    }
+    let Some((top_s, _)) = fixes.iter().max_by(|a, b| a.1.total_cmp(&b.1)).copied() else {
+        return Vec::new();
+    };
+    fixes
+        .into_iter()
+        .filter(|(t, _)| (top_s - TRACK_WINDOW_S..=top_s).contains(t))
+        .collect()
+}
+
+/// A track's vertical deceleration over its [`track_window`], in g: the least-squares parabola
+/// h = a + bτ + cτ² through those fixes, τ the time from their mean, gives −2c, over [`G0`].
+/// `None` where the window can't take the check: fewer than [`TRACK_FIXES`] fixes, or fixes that
+/// set c more loosely than [`TRACK_C_VARIANCE`], as where a receiver lost its fix on the way up.
+fn track_deceleration_g(series: &[(f64, f64)]) -> Option<f64> {
+    let window = track_window(series);
+    if window.len() < TRACK_FIXES {
+        return None;
+    }
+    let mean_s = window.iter().map(|(t, _)| t).sum::<f64>() / window.len() as f64;
+    // The normal equations' sums: Στᵏ for k = 0..4, and Στᵏh for k = 0..2.
+    let mut s = [0.0; 5];
+    let mut y = [0.0; 3];
+    for (t, h) in &window {
+        let tau = t - mean_s;
+        for (k, sum) in s.iter_mut().enumerate() {
+            *sum += tau.powi(k as i32);
+        }
+        for (k, sum) in y.iter_mut().enumerate() {
+            *sum += h * tau.powi(k as i32);
+        }
+    }
+    let det = |m: [[f64; 3]; 3]| {
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+    };
+    let normal = [[s[0], s[1], s[2]], [s[1], s[2], s[3]], [s[2], s[3], s[4]]];
+    // [(XᵀX)⁻¹]_cc: the cofactor of the corner over the determinant; infinite or NaN where the
+    // fixes can't set c at all.
+    let variance = (s[0] * s[2] - s[1] * s[1]) / det(normal);
+    if variance.is_nan() || variance <= 0.0 || variance > TRACK_C_VARIANCE {
+        return None;
+    }
+    // Cramer's rule for c: the third column replaced by the right-hand side.
+    let mut for_c = normal;
+    for (row, value) in for_c.iter_mut().zip(y) {
+        row[2] = value;
+    }
+    let c = det(for_c) / det(normal);
+    let ratio = -2.0 * c / G0;
+    ratio.is_finite().then_some(ratio)
 }
 
 /// Every held file read and checked. A file's checks that name another held file run after that
@@ -897,6 +1018,7 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
     };
     let mut files = Vec::new();
     let mut tracks = Vec::new();
+    let mut untaken = Vec::new();
     for (stated, read, refused) in read_files {
         let mut file = HeldFile {
             id: stated.id.clone(),
@@ -935,6 +1057,7 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
                     )
                 })
                 .collect();
+            untaken.extend(untaken_tracks(stated, &file.outcomes, &log, &mapping));
             // A track's own speed, measured where its place check holds its degrees.
             tracks.extend(
                 stated
@@ -952,10 +1075,62 @@ pub(super) fn checks(samples: &[Sample]) -> Checks {
         files.push(file);
     }
     files.sort_by(|a, b| a.id.cmp(&b.id));
+    untaken.sort_by(|a, b| (&a.file, a.column).cmp(&(&b.file, b.column)));
     Checks {
         files,
-        track_speeds: track_speeds(&tracks),
+        track_speeds: TrackSpeeds {
+            untaken,
+            ..track_speeds(&tracks)
+        },
     }
+}
+
+/// A file's GPS altitudes read in a unit, of a track its place check of a latitude and a
+/// longitude holds, that take no track speed check; each with its fixes in the
+/// [`track_window`], and whether they could take one.
+fn untaken_tracks(
+    stated: &Stated,
+    outcomes: &[Outcome],
+    log: &FlightLog,
+    mapping: &Mapping,
+) -> Vec<UntakenTrack> {
+    let placed = stated.checks.iter().zip(outcomes).any(|(check, outcome)| {
+        outcome.passed
+            && matches!(
+                check,
+                Check::Place {
+                    latitude: Some(_),
+                    ..
+                }
+            )
+    });
+    if !placed {
+        return Vec::new();
+    }
+    mapping
+        .columns
+        .iter()
+        .enumerate()
+        .filter(|(index, column)| {
+            *index != mapping.clock
+                && !column.skip
+                && column.unit.is_some()
+                && column.quantity == Some(Quantity::GnssAltitude)
+                && !stated
+                    .checks
+                    .iter()
+                    .any(|c| matches!(c, Check::TrackSpeed { altitude } if altitude == index))
+        })
+        .map(|(index, column)| {
+            let series = heights(log, &column.name);
+            UntakenTrack {
+                file: stated.id.clone(),
+                column: index,
+                fixes: track_window(&series).len(),
+                could_take: track_deceleration_g(&series).is_some(),
+            }
+        })
+        .collect()
 }
 
 /// A track's ground speeds from each fix to the next the receiver reports, m/s: the
@@ -1045,11 +1220,13 @@ fn track_speeds(tracks: &[Vec<f64>]) -> TrackSpeeds {
             .map(rounded),
         least_fastest_step_m_s: extreme(fastest.iter().copied(), f64::min).map(rounded),
         most_fastest_step_m_s: extreme(fastest.iter().copied(), f64::max).map(rounded),
+        untaken: Vec::new(),
     }
 }
 
 /// The survey's failures: the mapping file's own, a held file with no mapping, a refusal, a unit
-/// stated but contradicted by the values' check, and a failed check. A mapping with no file can't
+/// stated but contradicted by the values' check, a failed check, and a track's GPS altitude that
+/// could take a track speed check and takes none ([`untaken_tracks`]). A mapping with no file can't
 /// be: each mapped id is reclassified to [`FAMILY`], and a reclassified file the survey doesn't
 /// meet stops it (a test holds the two lists equal).
 pub(super) fn unread(checks: &Checks, samples: &[Sample]) -> Vec<String> {
@@ -1096,6 +1273,13 @@ pub(super) fn unread(checks: &Checks, samples: &[Sample]) -> Vec<String> {
                 f.id, o.check, o.columns, o.measured
             ));
         }
+    }
+    for u in checks.track_speeds.untaken.iter().filter(|u| u.could_take) {
+        out.push(format!(
+            "  {} ({FAMILY}): its track's GPS altitude, column {}, has the fixes for a track speed \
+             check in the {TRACK_WINDOW_S} s before its highest, {}, but takes none",
+            u.file, u.column, u.fixes
+        ));
     }
     out
 }
@@ -1164,8 +1348,11 @@ pub(super) fn markdown(checks: &Checks) -> String {
          rise over the standard-atmosphere height's rise of the file's pressure; *other logger* \
          its rise over another logger's in the same flight; *stated apogee* its rise over the \
          apogee the flyer states; *speed over height*, a vertical speed's, is an altitude's \
-         change over it from liftoff to apogee: each within {:.1}–5/3, which no unit off by \
-         3.28 or more reaches; *1 g at rest* is the accelerometer's median magnitude over the \
+         change over it from liftoff to apogee; *track speed*, a track's GPS altitude's, is how \
+         fast the track's own vertical speed falls over the {TRACK_WINDOW_S} s before its \
+         highest fix, in g, from a parabola fitted to those fixes, as a rocket coasting to \
+         apogee slows at g and a little more from drag: each within {:.1}–5/3, which no unit off by 3.28 or more \
+         reaches; *1 g at rest* is the accelerometer's median magnitude over the \
          recording, in g, within {:.2}–{:.2}; and *place*, a track's, is whether the median size of \
          each column's readings other than 0 lies past ±π/2 for a latitude and ±π for a \
          longitude, which no place has in radians, its values not shown. A column with no unit \
@@ -1184,11 +1371,73 @@ pub(super) fn markdown(checks: &Checks) -> String {
         UNIT_BAND.start(),
         REST_BAND_G.start(),
         REST_BAND_G.end(),
-    ) + &track_paragraph(&checks.track_speeds)
+    ) + &track_paragraph(checks)
 }
 
-/// The report's paragraph on a track's own speed: what was measured, and why it holds no unit.
-fn track_paragraph(speeds: &TrackSpeeds) -> String {
+/// The report's paragraph on a track's own speed: the vertical speed's check, and the ground
+/// speed measured, and why it holds no unit.
+fn track_paragraph(checks: &Checks) -> String {
+    let speeds = &checks.track_speeds;
+    let passed = |o: &&Outcome| o.check == TRACK_SPEED && o.passed;
+    let files = checks
+        .files
+        .iter()
+        .filter(|f| f.outcomes.iter().any(|o| passed(&o)))
+        .count();
+    let readings: Vec<f64> = checks
+        .files
+        .iter()
+        .flat_map(|f| &f.outcomes)
+        .filter(passed)
+        .filter_map(|o| o.measured)
+        .collect();
+    let in_files = if files == 1 {
+        "1 file".to_owned()
+    } else {
+        format!("{files} files")
+    };
+    let runs = match (
+        extreme(readings.iter().copied(), f64::min),
+        extreme(readings.iter().copied(), f64::max),
+    ) {
+        (Some(least), Some(most)) if least == most => {
+            format!(" It passes in {in_files}, slowing at {least:.4} g.")
+        }
+        (Some(least), Some(most)) => {
+            format!(" It passes in {in_files}, slowing at {least:.4}–{most:.4} g.")
+        }
+        _ => " No file passes it.".to_owned(),
+    };
+    let short: Vec<String> = speeds
+        .untaken
+        .iter()
+        .filter(|u| !u.could_take)
+        .map(|u| u.fixes.to_string())
+        .collect();
+    let untaken = match short.as_slice() {
+        [] => String::new(),
+        [one] => format!(
+            " The other track with a GPS altitude has {one} {} there, too few or too close \
+             together to take it, and its altitude is held by its other checks.",
+            if one == "1" { "fix" } else { "fixes" }
+        ),
+        _ => format!(
+            " The {} other tracks with a GPS altitude have {} fixes there, too few or too close \
+             together to take it, and their altitudes are held by their other checks.",
+            short.len(),
+            short.join(", ")
+        ),
+    };
+    let vertical = format!(
+        "\nA track's own speed, which ADR-274's plan named among the checks, holds the track's \
+         GPS altitude by its vertical speed: the *track speed* check above. It takes the highest \
+         fix as apogee and needs {TRACK_FIXES} fixes or more in the {TRACK_WINDOW_S} s before \
+         it, the highest included, that set the parabola's curvature about as well as 5 fixes \
+         1 s apart; it holds a unit within a wide band, and doesn't measure drag.{runs} The \
+         survey fails a GPS altitude of a track a place check holds that could take the check \
+         and takes none.{untaken} It doesn't hold the clock, which the clock checks hold, as \
+         every held file's: read 10 times too short, the window would take 50 s of fixes.\n"
+    );
     let (Some(slowest), Some(fastest), Some(spread), Some(least_step), Some(most_step)) = (
         speeds.slowest_median_m_s,
         speeds.fastest_median_m_s,
@@ -1196,53 +1445,51 @@ fn track_paragraph(speeds: &TrackSpeeds) -> String {
         speeds.least_fastest_step_m_s,
         speeds.most_fastest_step_m_s,
     ) else {
-        return String::new();
+        return vertical;
     };
     // Radians stated as degrees read every distance, so every speed, 180/π times too small.
     let radians = fastest * std::f64::consts::PI / 180.0 < slowest;
     let step_spread = most_step / least_step;
-    format!(
-        "\nA track's own ground speed, which ADR-274's plan named among the checks as a track's \
-         own speed, holds no unit, so that part of M7.1c22's *done when* is not met. Over the {} \
-         tracks held by a place check of a latitude and a longitude ({} files, a file whose \
-         fixes are another's counted once), the median ground speed from each fix to the next \
-         the receiver reports, the great-circle distance over the step of the track's own clock, \
-         taken over the whole recording, the pad's hours included, so that a median can be a \
-         receiver's jitter as much as the wind's drift, lies {slowest:.4}–{fastest:.4} m/s, a \
-         spread of {spread:.2} times, {} the 10 times a clock misread by a factor of 10 moves \
-         it, so {}. Nor could a band hold a clock on every flight: a track drifts with the wind, \
-         and a launch may go on a calm day, so its speed has no floor (NFPA 1127 limits only \
-         the surface wind, to 20 mph, 8.9 m/s). Each track's fastest step lies \
-         {least_step:.4}–{most_step:.4} m/s, a spread of {step_spread:.2} times, so {}. Radians \
-         stated as degrees would read 57 times slower, {}; the place check holds a track's \
-         degrees with no band, and its clock is held by the clock checks, as every held file's \
-         is. A track's vertical speed is its altitude's, held by the time to apogee or another \
-         logger's.\n",
-        speeds.tracks,
-        speeds.files,
-        if spread > 10.0 {
-            "wider than"
-        } else {
-            "narrower than"
-        },
-        if spread > 10.0 {
-            "no band on these tracks refuses that misread on every one of them"
-        } else {
-            "a band on these tracks alone could refuse that misread"
-        },
-        if step_spread > 10.0 {
-            "a track's top speed holds no clock either"
-        } else {
-            "a band on these tracks alone could hold a clock by its top speed, but a band fitted \
-             to them is a sample, not a bound"
-        },
-        if radians {
-            "which a band could part on these tracks alone, but a band fitted to them is a \
-             sample, not a bound"
-        } else {
-            "which no band parts on these tracks"
-        },
-    )
+    vertical
+        + &format!(
+            "\nA track's ground speed holds no unit. Over the {} tracks held by a place check of \
+             a latitude and a longitude ({} files, a file whose fixes are another's counted \
+             once), the median ground speed from each fix to the next the receiver reports, the \
+             great-circle distance over the step of the track's own clock, taken over the whole \
+             recording, the pad's hours included, so that a median can be a receiver's jitter as \
+             much as the wind's drift, lies {slowest:.4}–{fastest:.4} m/s, a spread of \
+             {spread:.2} times, {} the 10 times a clock misread by a factor of 10 moves it, so \
+             {}. Nor could a band hold a clock on every flight: a track drifts with the wind, and \
+             a launch may go on a calm day, so its speed has no floor (NFPA 1127 limits only the \
+             surface wind, to 20 mph, 8.9 m/s). Each track's fastest step lies \
+             {least_step:.4}–{most_step:.4} m/s, a spread of {step_spread:.2} times, so {}. \
+             Radians stated as degrees would read 57 times slower, {}; the place check holds a \
+             track's degrees with no band.\n",
+            speeds.tracks,
+            speeds.files,
+            if spread > 10.0 {
+                "wider than"
+            } else {
+                "narrower than"
+            },
+            if spread > 10.0 {
+                "no band on these tracks refuses that misread on every one of them"
+            } else {
+                "a band on these tracks alone could refuse that misread"
+            },
+            if step_spread > 10.0 {
+                "a track's top speed holds no clock either"
+            } else {
+                "a band on these tracks alone could hold a clock by its top speed, but a band \
+                 fitted to them is a sample, not a bound"
+            },
+            if radians {
+                "which a band could part on these tracks alone, but a band fitted to them is a \
+                 sample, not a bound"
+            } else {
+                "which no band parts on these tracks"
+            },
+        )
 }
 
 #[cfg(test)]
@@ -1407,6 +1654,12 @@ mod tests {
                 },
                 with(3, "ft/s", 1.0),
             ),
+            // Meters stated as feet, and feet stated as meters.
+            (Check::TrackSpeed { altitude: 2 }, with(2, "ft", 1.0)),
+            (
+                Check::TrackSpeed { altitude: 2 },
+                with(2, "m", 1.0 / 0.3048),
+            ),
         ];
         for (check, (wrong, wrong_mapping)) in &cases {
             let held = [("other", right.clone())];
@@ -1442,6 +1695,188 @@ mod tests {
             (1.0..1.15).contains(&time.measured.unwrap_or(0.0)),
             "{time:?}"
         );
+        // The climb slows at 2 × 1,000 m / (15 s)² = 8.889 m/s², 0.9064 g.
+        let track = outcome(&Check::TrackSpeed { altitude: 2 }, &right, &mapping, &[]);
+        assert_eq!(track.measured, Some(0.9064));
+    }
+
+    /// A track's deceleration before its highest fix: a fix written over several rows counts
+    /// once, the highest is the last of several, and a track with too few fixes before it gives
+    /// none.
+    #[test]
+    fn a_tracks_vertical_speed_slows_at_g_before_its_top() {
+        // Fixes once a second, coasting to 1,000 m at 35 s at g, then down at 10 m/s.
+        let fix = |t: f64| {
+            if t <= 35.0 {
+                1_000.0 - G0 / 2.0 * (t - 35.0).powi(2)
+            } else {
+                1_000.0 - 10.0 * (t - 35.0)
+            }
+        };
+        let fixes: Vec<(f64, f64)> = (20..60)
+            .map(|k| (f64::from(k), fix(f64::from(k))))
+            .collect();
+        let ratio = track_deceleration_g(&fixes).map(rounded);
+        assert_eq!(ratio, Some(1.0));
+        // Rows 5 a second, each fix written until the next: the same fixes, the same ratio.
+        let rows: Vec<(f64, f64)> = (100..300)
+            .map(|k| {
+                let t = f64::from(k) * 0.2;
+                (t, fix(t.floor()))
+            })
+            .collect();
+        assert_eq!(track_deceleration_g(&rows).map(rounded), Some(1.0));
+        // Fixes kept at the given times only.
+        let only = |times: &[f64]| -> Vec<(f64, f64)> {
+            fixes
+                .iter()
+                .copied()
+                .filter(|(t, _)| *t < 26.0 || *t > 35.0 || times.contains(t))
+                .collect()
+        };
+        // 3 fixes in the 5 s before the highest, spread enough to set the curvature: too few.
+        assert_eq!(track_deceleration_g(&only(&[30.0, 32.0, 35.0])), None);
+        // 4 fixes over the last 3 s, as a receiver that lost its fix on the way up leaves: they
+        // set the curvature 3 times as loosely as the bound allows.
+        assert_eq!(track_deceleration_g(&only(&[32.0, 33.0, 34.0, 35.0])), None);
+        // 4 fixes 0.1 s apart at the top, as a receiver at 10 Hz that just regained its fix.
+        let fast: Vec<(f64, f64)> = [34.7, 34.8, 34.9, 35.0]
+            .iter()
+            .map(|t| (*t, fix(*t)))
+            .collect();
+        assert_eq!(track_deceleration_g(&fast), None);
+        // 5 fixes 0.97 s apart take the check, and 0.95 s apart don't: the bound is 5 fixes
+        // 0.962 s apart.
+        let spaced = |step: f64| -> Vec<(f64, f64)> {
+            (0..5)
+                .map(|k| {
+                    let t = 35.0 - step * f64::from(k);
+                    (t, fix(t))
+                })
+                .rev()
+                .collect()
+        };
+        assert_eq!(track_deceleration_g(&spaced(0.97)).map(rounded), Some(1.0));
+        assert_eq!(track_deceleration_g(&spaced(0.95)), None);
+        // A lone fix at the same height later: the last of the highest, with no climb before it.
+        let mut twice = fixes.clone();
+        twice.extend([(70.0, 1_000.0), (71.0, 500.0)]);
+        assert_eq!(track_deceleration_g(&twice), None);
+    }
+
+    /// A coast with drag, the window's own example: a 54 mm rocket of 1.5 kg, C_D 0.5, in air of
+    /// 1.1 kg/m³, its fixes once a second up to apogee, straight up and carrying 100 m/s across.
+    /// Drag slows the climb a little more than g, well inside the band.
+    #[test]
+    fn a_coast_with_drag_reads_inside_the_band() {
+        let k = 0.5 * 1.1 * 0.5 * std::f64::consts::PI * 0.027_f64.powi(2) / 1.5;
+        // The state (height, across, up), integrated back from apogee by RK4 in 1 ms steps.
+        let rate = |[_, vx, vz]: [f64; 3]| {
+            let v = vx.hypot(vz);
+            [vz, -k * v * vx, -G0 - k * v * vz]
+        };
+        let coast = |across: f64| {
+            let mut state = [1_000.0, across, 0.0];
+            let mut fixes = vec![(0.0, 1_000.0), (1.0, 995.0)];
+            let dt = -0.001;
+            for second in 1..=6 {
+                for _ in 0..1_000 {
+                    let step = |s: [f64; 3], r: [f64; 3], h: f64| {
+                        [s[0] + h * r[0], s[1] + h * r[1], s[2] + h * r[2]]
+                    };
+                    let a = rate(state);
+                    let b = rate(step(state, a, dt / 2.0));
+                    let c = rate(step(state, b, dt / 2.0));
+                    let d = rate(step(state, c, dt));
+                    for i in 0..3 {
+                        state[i] += dt / 6.0 * (a[i] + 2.0 * b[i] + 2.0 * c[i] + d[i]);
+                    }
+                }
+                fixes.push((-f64::from(second), state[0]));
+            }
+            fixes.sort_by(|a, b| a.0.total_cmp(&b.0));
+            track_deceleration_g(&fixes)
+        };
+        let up = coast(0.0).expect("6 fixes");
+        let across = coast(100.0).expect("6 fixes");
+        assert_eq!((up * 1e3).round() / 1e3, 1.031, "{up}");
+        assert_eq!((across * 1e3).round() / 1e3, 1.135, "{across}");
+        assert!(UNIT_BAND.contains(&up) && UNIT_BAND.contains(&across));
+    }
+
+    /// A track's GPS altitude that could take a track speed check and takes none fails the
+    /// survey; one that takes it, a track no place check holds, and an altitude left out are
+    /// passed over.
+    #[test]
+    fn a_track_with_the_fixes_for_its_speed_must_take_the_check() {
+        // An invented track once a second: a coast to 1,000 m at 35 s at g, then down at
+        // 10 m/s; a GPS altitude, and a second left out. (The reader refuses an altitude with
+        // no unit.)
+        let text: String = (0..60)
+            .map(|k| {
+                let t = f64::from(k);
+                let h = if t <= 35.0 {
+                    (1_000.0 - G0 / 2.0 * (t - 35.0).powi(2)).max(0.0)
+                } else {
+                    1_000.0 - 10.0 * (t - 35.0)
+                };
+                format!("{t},40.1,-100.2,{h},{h}\n")
+            })
+            .collect();
+        let stated = |checks: &str, latitude: &str| {
+            let json = format!(
+                r#"{{"about":"","mappings":[{{"id":"a","what":"","mapping":{{"header_line":null,"separator":",","decimal_comma":false,"clock":0,"columns":[{{"name":"t","quantity":null,"unit":"s"}},{{"name":"lat","quantity":"latitude","unit":"deg"}},{{"name":"lon","quantity":"longitude","unit":"deg"}},{{"name":"gps","quantity":"gnss_altitude","unit":"m"}},{{"name":"gps 2","quantity":"gnss_altitude","unit":"m","skip":true}}]}},"checks":{checks}}}]}}"#
+            );
+            let stated = parse(&json).expect("parses").remove(0);
+            let text = text.replace("40.1", latitude);
+            let mapping = resolve(&stated, &text).expect("resolves");
+            let log = hpr_flightdata::generic::read_with(&text, &mapping).expect("reads");
+            let outcomes: Vec<Outcome> = stated
+                .checks
+                .iter()
+                .map(|c| outcome(c, &log, &mapping, &[]))
+                .collect();
+            untaken_tracks(&stated, &outcomes, &log, &mapping)
+        };
+        let placed = r#"[{"check":"apogee_time","height":3},{"check":"place","latitude":1,"longitude":2},{"check":"stated_apogee","altitude":3}]"#;
+        let untaken = stated(placed, "40.1");
+        assert_eq!(
+            untaken,
+            vec![UntakenTrack {
+                file: "a".to_owned(),
+                column: 3,
+                fixes: 6,
+                could_take: true,
+            }]
+        );
+        let checks = Checks {
+            track_speeds: TrackSpeeds {
+                untaken,
+                ..TrackSpeeds::default()
+            },
+            ..Checks::default()
+        };
+        let failures = unread(&checks, &[]);
+        assert_eq!(failures.len(), 1, "{failures:?}");
+        assert!(failures[0].contains("but takes none"), "{failures:?}");
+        // Taken, or a track whose latitude radians could reach, which no place check holds.
+        let taken = r#"[{"check":"apogee_time","height":3},{"check":"place","latitude":1,"longitude":2},{"check":"stated_apogee","altitude":3},{"check":"track_speed","altitude":3}]"#;
+        assert!(stated(taken, "40.1").is_empty());
+        assert!(stated(placed, "0.7").is_empty());
+        // Too few fixes: listed, but no failure.
+        let short = Checks {
+            track_speeds: TrackSpeeds {
+                untaken: vec![UntakenTrack {
+                    file: "a".to_owned(),
+                    column: 3,
+                    fixes: 1,
+                    could_take: false,
+                }],
+                ..TrackSpeeds::default()
+            },
+            ..Checks::default()
+        };
+        assert!(unread(&short, &[]).is_empty());
     }
 
     #[test]
@@ -1764,6 +2199,26 @@ mod tests {
         .unwrap_err();
         assert!(
             message.contains("the speed over height check takes column 1"),
+            "{message}"
+        );
+        // A track's own speed holds its GPS altitude, but neither the clock nor a pressure.
+        let track = r#"[{"name":"t","quantity":null,"unit":"s"},{"name":"h","quantity":"gnss_altitude","unit":"m"}]"#;
+        let message = parse(&one(r#"[{"check":"track_speed","altitude":1}]"#, track)).unwrap_err();
+        assert!(message.contains("no check holds the clock"), "{message}");
+        assert!(
+            parse(&one(
+                r#"[{"check":"apogee_time","height":1},{"check":"track_speed","altitude":1}]"#,
+                track
+            ))
+            .is_ok()
+        );
+        let message = parse(&one(
+            r#"[{"check":"apogee_time","height":1},{"check":"track_speed","altitude":1}]"#,
+            columns,
+        ))
+        .unwrap_err();
+        assert!(
+            message.contains("the track speed check takes column 1"),
             "{message}"
         );
     }
