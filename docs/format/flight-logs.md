@@ -107,9 +107,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([tables a mapping holds to physics](#tables-a-mapping-holds-to-physics)).
 > Since [M7.1c23](../decisions-and-roadmap.md#m7-1c23) (the last binaries), an AltiMAX's own
 > `.ALS` file reads to the values of the Excel export beside it, its pressures and event codes
-> bit for bit and the rest to the export's 15 significant digits, every value, by two rules
-> fitted to that file ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore AIM's
-> `.xtra` file and the raw dump of its memory read to each other, value for value
+> bit for bit and the rest it compares to the export's 15 significant digits, every value, by
+> two rules fitted to that file ([the AltiMAX's `.ALS`](#the-altimaxs-als)), and an Entacore
+> AIM's `.xtra` file and the raw dump of its memory read to each other, value for value
 > ([the AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump)); no document describes either's
 > bytes, so each layout rests on one sample flight. Every sample log in a layout HPR Sim knows is
 > now read, except 3 damaged files. Other layouts are refused, not guessed at; those the roadmap
@@ -3203,7 +3203,7 @@ fitted to this file:
 | The clock, 5 ms or 25 ms a record summed in 64-bit floats | 25,334 | every one equal |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in); the check allows 42 mm (1.7 in), the height of half a pascal at the zero pressure |
+| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.35 in); the check allows 41.9 mm (1.65 in), the height of half a pascal at the zero pressure |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
@@ -3213,27 +3213,33 @@ significant digits; the export keeps 15, as Excel does.
 
 *Converting.* The export doesn't round a value to 15 digits once. Its numbers match arithmetic
 in 80-bit floating point, the format of an x86 processor's older floating-point unit, whose
-numbers carry 64 bits of precision against a double's 53: a model fitted to this file, as the
-software's code isn't public. In three steps, the export:
+numbers carry 64 bits of precision against a double's 53. That is a model fitted to this file,
+not taken from the software. In three steps, the model:
 
 1. guesses the value's power of ten from its power of two: the power of two's exponent times
-   log₁₀ 2, rounded down. The guess is one too low for some values; 100 to 128, for example, share
-   their power of two with 64 to 99;
+   log₁₀ 2, rounded down. The guess is one too low for some values: those from 100 to under 128
+   share their power of two, 2⁶, with those from 64 to under 100, so both get 10¹;
 2. scales the value by that power of ten to 18 digits, rounded to 64 bits. Where the guess was
    low, that makes 19 digits, and it divides them by 10, rounded to 64 bits again;
 3. rounds the result to a whole number, half to even, and that to 15 digits, upward when exactly
    halfway.
 
-Two clock values show why each step is needed. A clock summed from 5 ms steps in doubles often
-lands just under halfway between two 15-digit values, close enough that the 18 digits land on
-halfway, which then rounds up: 347 steps make 1.734 999 999 999 984 998 7 s, which the rule
-writes 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And at 122.005 s the clock
-is 122.005 000 000 015 499 495 s, which at 18 digits is …015 499 and just under half a unit more.
-Scaled straight to 18 digits it rounds down, to …499, and then to …015. The guess, one low there,
-gives 19 digits instead, …154 994.95, which rounds at the 64th bit to …154 995; divided by 10,
-that is …15 499.5, exactly half a unit, which rounds to …15 500 and then up, to …016, as the
-export writes it. With the power of ten known exactly, rounded first to each number of digits,
-this many of the 25,334 clock values differ from the export's:
+Two examples show what the steps do. A clock summed from 5 ms steps in doubles can land just
+under halfway between two 15-digit values, close enough that the 18 digits land on halfway,
+which then rounds up: 347 steps, for example, make 1.734 999 999 999 984 998 7 s, which the rule
+writes 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And the file's clock at
+122.005 s is 122.005 000 000 015 499 495 s, which at 18 digits is …015 499 and just under half a
+unit more. Scaled straight to 18 digits it rounds down, to …499, and then to …015. The guess,
+one low there, gives 19 digits instead, …154 994.95, which rounds at the 64th bit to …154 995;
+divided by 10, that is …15 499.5, exactly half a unit, which rounds to …15 500 and then up, to
+…016, as the export writes it.
+
+With the power of ten known exactly, rounded first to each number of digits and then half up to
+15, this many of the 25,334 clock values differ from the export's. Rounded once, 11 differ, the
+122.005 s row among them; rounded first to 18, the rule's own number, only that row, so it alone
+needs the guess and the first rounding to 64 bits. The rest of the model, half to even in step 3
+and the second rounding to 64 bits, is how 80-bit arithmetic rounds; no count in the report
+singles either out.
 
 | Rounded first to | 15 (once) | 16 | 17 | 18 | 19 | 20 |
 |---|---:|---:|---:|---:|---:|---:|

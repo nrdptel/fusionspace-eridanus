@@ -232,7 +232,7 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
 /// significands hold 64 bits, the format of an x86 processor's x87 unit.
 ///
 /// 1. The power of ten is guessed from the value's power of two E₂ as ⌊E₂ · log₁₀ 2⌋, which is
-///    one low for values such as 100 to 128.
+///    one low for some values, such as those from 100 to under 128.
 /// 2. The value is scaled by it to 18 digits and rounded to a 64-bit significand; where the guess
 ///    made it 19 digits, it is divided by 10 and rounded again.
 /// 3. It is rounded to a whole number, half to even, and that half up to 15 digits.
@@ -245,8 +245,9 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
 /// ...154 994.95, which rounds at the 64th bit to ...154 995, and divided by 10 is ...15 499.5,
 /// exactly half a unit, which rounds to ...15 500 and then up, to ...016, as the export writes it.
 ///
-/// `None` for zero, a value that isn't finite, or one outside the magnitudes whose arithmetic
-/// here is exact, about 10⁻¹⁴ to 10¹⁸.
+/// `None` for zero, a value that isn't finite, or one outside about 10⁻⁹ to 10¹⁸: under it, the
+/// power of ten, 10¹⁸ or more, no longer fits 64 bits, so an 80-bit unit would round it, which
+/// the rule doesn't model.
 fn export_digits(value: f64) -> Option<(i64, i32)> {
     conversion(value).map(|(digits, _)| digits)
 }
@@ -272,6 +273,10 @@ fn conversion(value: f64) -> Option<((i64, i32), bool)> {
     let guess = (f64::from(biased - 1023) * std::f64::consts::LOG10_2).floor() as i32;
     // Scaled by 10^k = 5^k × 2^k, exact, then rounded to 64 bits.
     let k = 17 - guess;
+    // 10^k fits 64 bits up to 10²⁷, 5²⁷ under 2⁶⁴.
+    if !(0..=27).contains(&k) {
+        return None;
+    }
     let (mut significand, mut exponent) = round_to_64_bits(
         m.checked_mul(5_u128.checked_pow(u32::try_from(k).ok()?)?)?,
         e + k,
@@ -1154,8 +1159,8 @@ mod tests {
             export_digits(row.next_down()),
             Some((122_005_000_000_015, -12))
         );
-        // The guess is one low for 100 to 128, where E₂ is 6, and right for 64 to 100 and from
-        // 128; one low for 0.001, where E₂ is −10, and right under it.
+        // The guess is one low from 100 to under 128, where E₂ is 6, and right from 64 to under
+        // 100 and from 128; one low for 0.001, where E₂ is −10, and right under it.
         for (value, divided) in [
             (64.0, false),
             (99.999, false),
@@ -1171,13 +1176,13 @@ mod tests {
         assert_eq!(export_digits(100.0), Some((100_000_000_000_000, -12)));
         assert_eq!(export_digits(64.0), Some((640_000_000_000_000, -13)));
         // Outside its magnitudes, it writes nothing, and a value it can't write differs.
-        for none in [0.0, 1e-16, 1e19, f64::NAN, f64::INFINITY] {
+        for none in [0.0, 1e-10, 1e19, f64::NAN, f64::INFINITY] {
             assert_eq!(export_digits(none), None, "{none}");
         }
-        assert_eq!(export_digits(1e-14), Some((100_000_000_000_000, -28)));
+        assert_eq!(export_digits(1e-9), Some((100_000_000_000_000, -23)));
         assert_eq!(export_digits(1e18), Some((100_000_000_000_000, 4)));
         let mut c = [0; 3];
-        tally(&mut c, 1e-16, 0.0);
+        tally(&mut c, 1e-10, 0.0);
         tally(&mut c, 0.0, 0.0);
         assert_eq!(c, [2, 1, u64::MAX]);
     }
