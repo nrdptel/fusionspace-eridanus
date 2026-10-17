@@ -16,8 +16,9 @@ listed here.
 | `../xtask/src/site/fusionspace-check.js` | The product system's page check (`product/web/check/fusionspace-check.js` at `1b88597`), unchanged, not served: the numbers the system's web rules set (the type scale, the reading scale, the widths) and the code that finds prose held narrower than its column and counts the characters of each line as drawn, which `cargo xtask site`'s page check runs | Apache-2.0 |
 | `hpr.css` | hpr-sim's additions: the page's frame (the header and the title block every page ends with), figures at their size, and fixes for mdBook's own defaults ([#383](https://github.com/nrdptel/fusionspace-eridanus/issues/383)) listed below the table | MIT OR Apache-2.0 |
 | `hpr.js` | hpr-sim's additions to mdBook's script: a click on the menu bar's lockup follows its link instead of mdBook's smooth scroll to the top; a window widened past 720 px opens the sidebar; the sidebar's `aria-hidden` and its links' focus follow whether it is drawn | MIT OR Apache-2.0 |
-| `head.hbs` | What mdBook adds to every page's head: `color-scheme: light dark`, and the browser bar's colors, Paper on a light system and Void on a dark one, ahead of mdBook's own white | MIT OR Apache-2.0 |
+| `head.hbs` | What mdBook adds to every page's head: `color-scheme: light dark`, and the browser bar's colors, Paper on a light system and Void on a dark one, ahead of mdBook's own white; and, on every page but mdBook's sidebar frame (`toc.html`, which has no title), the link preview a shared address draws, as Open Graph and X's card tags (`og:*` and `twitter:card`, a large image): the page's own title, the book's description from `book.toml`, and the card below by its whole address, `https://hpr.fusionspace.co/images/og-image-dark.png` | MIT OR Apache-2.0 |
 | `../docs/images/copy.svg` | The copy button's icon: the product system's copy icon (`product/icons/copy.svg` at `1b88597`), its `currentColor` stroke set to Void (`#0B0F1C`, the system's darkest ink) so `cargo xtask figures`, which accepts only the system's colors, passes it; `hpr.css` uses it only as a mask, so the button's own color draws it | The project owner's, all rights reserved, not under this repository's license (`THIRD-PARTY-NOTICES.md`) |
+| `../docs/images/og-image-dark.png` | The link preview's image: the brand kit's card for HPR, 1200 × 630 (`kit/projects/achernar/og-image-dark.png` at `1b88597`, the same file at `075d567`), unchanged. It sits in the guide's images, not here, as mdBook serves no image from `theme/` but the favicon; mdBook copies it to the site's `images/`. `cargo xtask site` compares it with the pinned revision like the files above, fails a site that doesn't serve it as committed, and fails a page whose head doesn't name it with its size | The project owner's, all rights reserved, not under this repository's license (`THIRD-PARTY-NOTICES.md`) |
 
 Since Rev B the product system's theme also fixes mdBook's own defaults where they break the
 system's rules ([ADR-250](../docs/decisions/0250-the-column-and-the-reading-scale.md)): the roles
@@ -50,7 +51,9 @@ ink or its clear space, no menu button, a sidebar the button or a drag doesn't p
 sidebar out of reach while shown, page arrows off the column's edges or naming no page, or a
 title block off the system's or not last; its file checks fail a page without the header, the
 lockup or the title block, and
-a page's head without the scheme and the bar's colors, a `fonts.css` that isn't the system's, a
+a page's head without the scheme and the bar's colors or the link preview's tags (`og:title`
+the page's own title, `og:image` the card by its whole address), a `fonts.css` that isn't the
+system's, a
 Font Awesome glyph, an icon that isn't the system's, a second `h1`, and a favicon that isn't
 `favicon.svg` and `favicon.png` as committed. Hover and most styles scripts set aren't read yet
 ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)).

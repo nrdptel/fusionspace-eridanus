@@ -33,6 +33,18 @@ adds a source.
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).
 
+- **The FusionSpace HPR link preview card** (`docs/images/og-image-dark.png`, the image every page
+  of the documentation site names in its Open Graph tags, served at
+  `https://hpr.fusionspace.co/images/og-image-dark.png`): `kit/projects/achernar/og-image-dark.png`
+  of [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product
+  system Rev E; the same file at `075d567`), made by its `tools/build/project.py` for
+  `FS-ACHERNAR · SW · TOOL 001` like the brand files above, unchanged, compared with that revision
+  by `cargo xtask site` when `refs/fusionspace-design` is checked out. Like the brand files above,
+  it is the project owner's, Neer Patel's, under fusionspace-design's `LICENSE` and
+  `TRADEMARKS.md`: all rights reserved, and **not** covered by this repository's MIT or Apache-2.0
+  license. A fork that isn't a FusionSpace project removes it (ADR-164): it replaces the file, the
+  tags in `theme/head.hbs` and `CARD` in `xtask/src/site/theme.rs`.
+
 - **The FusionSpace icons and favicon** (`theme/icons/*.svg`, drawn inline in the documentation
   site's menu bar, page arrows, search field, code buttons and status chips; `theme/favicon.svg` and
   `theme/favicon.png`, its favicon): `product/icons/` and `kit/web/favicon.svg` and
