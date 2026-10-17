@@ -1,6 +1,6 @@
 ---
 source: crates/hpr-flightdata/tests/entacore_raw.rs
-expression: "entacore_raw::read_xtra(&xtra(13).0).unwrap()"
+expression: "entacore_raw::read_xtra(&xtra(18).0).unwrap()"
 ---
 {
   "format": "entacore_xtra",
@@ -11,7 +11,7 @@ expression: "entacore_raw::read_xtra(&xtra(13).0).unwrap()"
   "stated": {
     "apogee_m": null,
     "ground_elevation_msl_m": null,
-    "samples": 13
+    "samples": 18
   },
   "time_s": [],
   "altitude_m": [],
@@ -318,6 +318,126 @@ expression: "entacore_raw::read_xtra(&xtra(13).0).unwrap()"
       "values": [
         18.0
       ]
+    },
+    {
+      "column": "Gyro X",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.46399998664855957
+      ],
+      "values": [
+        7.0
+      ]
+    },
+    {
+      "column": "Gyro Y",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.46399998664855957
+      ],
+      "values": [
+        -14.0
+      ]
+    },
+    {
+      "column": "Gyro Z",
+      "quantity": "angular_rate",
+      "time_s": [
+        0.46399998664855957
+      ],
+      "values": [
+        21.0
+      ]
+    },
+    {
+      "column": "Mag X",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.4649999737739563
+      ],
+      "values": [
+        0.0005000000237487257
+      ]
+    },
+    {
+      "column": "Mag Y",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.4649999737739563
+      ],
+      "values": [
+        -0.0002500000118743628
+      ]
+    },
+    {
+      "column": "Mag Z",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.4649999737739563
+      ],
+      "values": [
+        0.0010000000474974513
+      ]
+    },
+    {
+      "column": "quaternion 1",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.465999960899353
+      ],
+      "values": [
+        0.5
+      ]
+    },
+    {
+      "column": "quaternion 2",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.465999960899353
+      ],
+      "values": [
+        -0.25
+      ]
+    },
+    {
+      "column": "quaternion 3",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.465999960899353
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "quaternion 4",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.465999960899353
+      ],
+      "values": [
+        0.999969482421875
+      ]
+    },
+    {
+      "column": "battery 2 voltage",
+      "quantity": "voltage",
+      "time_s": [
+        0.46699994802474976
+      ],
+      "values": [
+        6.64675235748291
+      ]
+    },
+    {
+      "column": "B Voltage",
+      "quantity": "voltage",
+      "time_s": [
+        0.4679999351501465
+      ],
+      "values": [
+        0.4124999940395355
+      ]
     }
   ],
   "events": [
@@ -335,6 +455,6 @@ expression: "entacore_raw::read_xtra(&xtra(13).0).unwrap()"
     }
   ],
   "notes": [
-    "the times are the software's, summed in 32-bit floats, so they drift from the computer's own clock as they grow, behind it in the one sample; and that clock isn't the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
+    "the times are the software's, summed in 32-bit floats, so they drift from the computer's own clock as they grow, behind it in the one sample; and that clock isn't the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock, and over its climb these times run about 1.8 % short of the GPS's"
   ]
 }

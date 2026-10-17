@@ -215,7 +215,7 @@ fn refusals_name_the_byte() {
         message.contains("its voltage channel is 1, where the channels take turns and 5 follows 4")
     );
     let (offset, message) = refusal(&edit(at(5) + 21, 1));
-    assert_eq!(offset, at(5));
+    assert_eq!(offset, at(5) + 21);
     assert!(message.contains("last 8 bytes aren't zero"));
     // A channel past the fifth.
     let (_, message) = refusal(&edit(at(0), 6 << 3 | 0b001));
@@ -259,6 +259,14 @@ fn recognition() {
     let mut turned = bytes.clone();
     turned[at(1)] = 3 << 3 | 1;
     assert!(!altimax_als::recognizes(&turned));
+    // A short text log whose bytes happen to fit a record's kind and channel: its header's zero
+    // pressure, read as a number, is no pad's.
+    let text = b"Time (s),Altitude (ft)\n0.00,0\n1,-2\n2,15\n3,40\n4,60\n5,70\n";
+    assert!(!altimax_als::recognizes(text));
+    assert_ne!(import::detect(text), Some(LogFormat::AltimaxAls));
+    let mut far = bytes.clone();
+    far[4..8].copy_from_slice(&980_u32.to_le_bytes());
+    assert!(!altimax_als::recognizes(&far));
     let mut zeroed = bytes;
     zeroed[at(2) + 14] = 7;
     assert!(altimax_als::recognizes(&zeroed));
@@ -268,7 +276,7 @@ fn recognition() {
             offset,
             message,
         }) => {
-            assert_eq!(offset, at(2));
+            assert_eq!(offset, at(2) + 14);
             assert!(message.contains("last 8 bytes aren't zero"));
         }
         other => panic!("{other:?}"),

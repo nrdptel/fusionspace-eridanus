@@ -12,7 +12,7 @@ expression: "entacore_raw::read_dump(&dump()).unwrap()"
     "stated": {
       "apogee_m": null,
       "ground_elevation_msl_m": null,
-      "samples": 13
+      "samples": 18
     },
     "time_s": [],
     "altitude_m": [],
@@ -318,6 +318,126 @@ expression: "entacore_raw::read_dump(&dump()).unwrap()"
         ],
         "values": [
           18.0
+        ]
+      },
+      {
+        "column": "Gyro X",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          7.0
+        ]
+      },
+      {
+        "column": "Gyro Y",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          -14.0
+        ]
+      },
+      {
+        "column": "Gyro Z",
+        "quantity": "angular_rate",
+        "time_s": [
+          0.464
+        ],
+        "values": [
+          21.0
+        ]
+      },
+      {
+        "column": "Mag X",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          0.0005000000237487257
+        ]
+      },
+      {
+        "column": "Mag Y",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          -0.0002500000118743628
+        ]
+      },
+      {
+        "column": "Mag Z",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.465
+        ],
+        "values": [
+          0.0010000000474974513
+        ]
+      },
+      {
+        "column": "quaternion 1",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.5
+        ]
+      },
+      {
+        "column": "quaternion 2",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          -0.25
+        ]
+      },
+      {
+        "column": "quaternion 3",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "column": "quaternion 4",
+        "quantity": "unrecognized",
+        "time_s": [
+          0.466
+        ],
+        "values": [
+          0.999969482421875
+        ]
+      },
+      {
+        "column": "battery 2 voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.467
+        ],
+        "values": [
+          6.64675235748291
+        ]
+      },
+      {
+        "column": "B Voltage",
+        "quantity": "voltage",
+        "time_s": [
+          0.468
+        ],
+        "values": [
+          0.4124999940395355
         ]
       }
     ],

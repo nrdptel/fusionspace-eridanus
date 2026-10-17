@@ -28,7 +28,7 @@
 //! | 7, `0x06` | `temperature` | [`Quantity::Temperature`], °C + 273.15 K | i16 × 0.01 |
 //! | 17–20, `0x07`–`0x0a` | `A Voltage` … `D Voltage` | [`Quantity::Voltage`], V | u16 × 3.3 / 16,384 |
 //! | 16, `0x0d` | `Mag X`, `Mag Y`, `Mag Z` | [`Quantity::Unrecognized`], as written | i16 × 10⁻⁶ each |
-//! | 10, `0x0e` | `lat`, `long`, `GPS MSL`, `SVs`, `GPS flag` | degrees, degrees, [`Quantity::GnssAltitude`] m, [`Quantity::Number`], as written | i32 × 10⁻⁷, i32 × 10⁻⁷, i32 mm, a byte's bits 0–4, its bit 5 |
+//! | 10, `0x0e` | `lat`, `long`, `GPS MSL`, `SVs`, `GPS flag` | degrees, degrees, [`Quantity::GnssAltitude`] m, [`Quantity::Number`], as written | i32 × f32(10⁻⁷), i32 × f32(10⁻⁷), i32 mm as an f32 × f32(0.001), a byte's bits 0–4, its bit 5 |
 //! | 14, `0x12` | `GPS Time of Week`, `GPS week`, `GPS time flag 1`, `GPS time flag 2`, `GPS leap seconds` | as written (ms, as the CSV's), [`Quantity::Number`], as written, as written, [`Quantity::Number`] | u32, u16, a byte's bit 7, its bit 6, its bits 0–5 |
 //! | 13, `0x10` | `state`, `A on` … `D on`, `A cont` … `D cont` | [`Quantity::Number`] | a u16's top 4 bits (0, 1, 3, 5 read as 0, 1, 2, 3), bits 8–11, bits 7 to 4 |
 //! | 21, `0x15` | `quaternion 1` … `quaternion 4` | [`Quantity::Unrecognized`], as written | i16 / 32,768 each |
@@ -72,8 +72,9 @@
 //! floats, a tick at a time, so they fall behind the ticks as the sum grows: in the sample, by
 //! 2.40 s by the end of the recording, and by 0.9 % of the climb's time; and it leaves the dump's
 //! last record out. Neither file's clock is GPS time: over the sample's flight the computer's tick
-//! is 1.009 ms of the GPS's own clock, 1.021 on the pad, so its times run 0.9 % short in flight
-//! and 2.1 % on the pad.
+//! is 1.009 ms of the GPS's own clock, 1.021 on the pad, so the dump's times run 0.9 % short in
+//! flight and 2.1 % on the pad; the `.xtra`'s, behind the ticks as well, run about 1.8 % short
+//! over the climb (0.9910 ÷ 1.0087 = 0.982).
 //!
 //! **Held to the sample.** Each byte whose meaning the sample doesn't show is held to the one
 //! value it has in every sample record, and a file where it differs is refused, naming the byte:
@@ -359,8 +360,21 @@ fn le<const N: usize>(bytes: &[u8], at: usize) -> Option<[u8; N]> {
     bytes.get(at..at.checked_add(N)?)?.try_into().ok()
 }
 
-/// An `.xtra` kind's fields from its payload, or why one isn't held to the sample.
-fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
+/// An `.xtra` kind's fields from its payload, or the byte in it, and why, where one isn't held
+/// to the sample.
+fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, (usize, String)> {
+    let f64_at = |at: usize| {
+        f64::from_le_bytes([
+            data[at],
+            data[at + 1],
+            data[at + 2],
+            data[at + 3],
+            data[at + 4],
+            data[at + 5],
+            data[at + 6],
+            data[at + 7],
+        ])
+    };
     let f32_at = |at: usize| {
         f64::from(f32::from_le_bytes([
             data[at],
@@ -374,8 +388,8 @@ fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
     // Invariant: `data` is `kind.xtra_bytes` long, which each arm's offsets stay within.
     Ok(match kind.class {
         10 => vec![
-            f64::from_le_bytes(data[0..8].try_into().map_err(|_| "a GPS field")?),
-            f64::from_le_bytes(data[8..16].try_into().map_err(|_| "a GPS field")?),
+            f64_at(0),
+            f64_at(8),
             f32_at(16),
             f64::from(u32_at(20)),
             f64::from(data[24]),
@@ -383,19 +397,23 @@ fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
         13 => {
             for (at, name) in [(4, "first"), (12, "second"), (20, "third")] {
                 if u32_at(at) != 4 {
-                    return Err(format!(
-                        "the status's {name} set states {} bytes, where every sample record's \
-                         holds 4",
-                        u32_at(at)
+                    return Err((
+                        at,
+                        format!(
+                            "the status's {name} set states {} bytes, where every sample \
+                             record's holds 4",
+                            u32_at(at)
+                        ),
                     ));
                 }
             }
-            if data[24..28] != [0; 4] {
-                return Err(
-                    "the status's third set of four bytes isn't zero, as it is in every \
-                            sample record"
+            if let Some(at) = data[24..28].iter().position(|&b| b != 0) {
+                return Err((
+                    24 + at,
+                    "the status's third set of four bytes isn't zero, as it is in every sample \
+                     record"
                         .to_owned(),
-                );
+                ));
             }
             let mut values = vec![f64::from(u32_at(0))];
             values.extend(
@@ -414,12 +432,13 @@ fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
             f64::from(u32_at(8)),
         ],
         17..=20 => {
-            if data[0..2] != [0, 0] {
-                return Err(
-                    "an output line's two flag bytes aren't zero, as they are in every \
-                            sample record"
+            if let Some(at) = data[0..2].iter().position(|&b| b != 0) {
+                return Err((
+                    at,
+                    "an output line's two flag bytes aren't zero, as they are in every sample \
+                     record"
                         .to_owned(),
-                );
+                ));
             }
             vec![f32_at(2)]
         }
@@ -428,8 +447,8 @@ fn xtra_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
 }
 
 /// A raw kind's fields from its big-endian payload, converted as the software converts them, or
-/// why a bit isn't held to the sample.
-fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
+/// the byte in it, and why, where a bit isn't held to the sample.
+fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, (usize, String)> {
     // Invariant: `data` is `kind.raw_bytes` long, which each arm's offsets stay within.
     let i16_at = |k: usize| i16::from_be_bytes([data[2 * k], data[2 * k + 1]]);
     let u16_at = |k: usize| u16::from_be_bytes([data[2 * k], data[2 * k + 1]]);
@@ -453,10 +472,14 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
         ]))],
         0x04 | 0x05 => {
             let raw = u16_at(0);
+            // Bits 0–3 are in the second byte, big-endian.
             if raw & 0x000F != 0 {
-                return Err(format!(
-                    "a battery's bits 0–3 aren't zero ({raw:#06x}), as they are in every sample \
+                return Err((
+                    1,
+                    format!(
+                        "a battery's bits 0–3 aren't zero ({raw:#06x}), as they are in every sample \
                      record"
+                    ),
                 ));
             }
             // As the software: the 12-bit count times 3.3 V × 133/33 taken in single precision
@@ -470,9 +493,12 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
         0x07..=0x0a => {
             let raw = u16_at(0);
             if raw & 0xC000 != 0 {
-                return Err(format!(
-                    "an output line's bits 14–15 aren't zero ({raw:#06x}), as they are in every \
+                return Err((
+                    0,
+                    format!(
+                        "an output line's bits 14–15 aren't zero ({raw:#06x}), as they are in every \
                      sample record"
+                    ),
                 ));
             }
             vec![f64::from(f32::from(raw) * ((3.3_f64 / 16_384.0) as f32))]
@@ -483,9 +509,12 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
             };
             let flags = data[12];
             if flags & 0xC0 != 0 {
-                return Err(format!(
-                    "the GPS byte's bits 6–7 aren't zero ({flags:#04x}), as they are in every \
+                return Err((
+                    12,
+                    format!(
+                        "the GPS byte's bits 6–7 aren't zero ({flags:#04x}), as they are in every \
                      sample record"
+                    ),
                 ));
             }
             let degrees = f64::from(1e-7_f32);
@@ -502,14 +531,18 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
         0x10 => {
             let raw = u16_at(0);
             let Some((_, state)) = STATES.iter().find(|(top, _)| *top == raw >> 12) else {
-                return Err(format!(
-                    "the status's top 4 bits ({raw:#06x}) are no state the sample holds"
+                return Err((
+                    0,
+                    format!("the status's top 4 bits ({raw:#06x}) are no state the sample holds"),
                 ));
             };
             if raw & 0x000F != 0 {
-                return Err(format!(
-                    "the status's bits 0–3 aren't zero ({raw:#06x}), as they are in every sample \
+                return Err((
+                    1,
+                    format!(
+                        "the status's bits 0–3 aren't zero ({raw:#06x}), as they are in every sample \
                      record"
+                    ),
                 ));
             }
             let mut values = vec![*state];
@@ -528,7 +561,7 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, String> {
             ]
         }
         // Invariant: `KINDS` holds no other raw type.
-        other => return Err(format!("type {other:#04x} has no conversion")),
+        other => return Err((0, format!("type {other:#04x} has no conversion"))),
     })
 }
 
@@ -700,96 +733,106 @@ fn xtra_record(
     index: u64,
     seen: &mut Vec<i16>,
 ) -> Result<Option<Sample>, LogError> {
+    let record = index + 1;
     let start = *at;
-    let mut take = |n: usize| take(bytes, at, n);
-    let Some(class) = take(2).map(|b| i16::from_le_bytes([b[0], b[1]])) else {
+    let Some(class) = take(bytes, at, 2).map(|b| i16::from_le_bytes([b[0], b[1]])) else {
         return Ok(None);
     };
     let Some(kind) = KINDS.iter().find(|kind| kind.class == class) else {
         return Err(xtra_error(
             start,
-            format!("record {}: class {class}, which no sample holds", index + 1),
+            format!("record {record}: class {class}, which no sample holds"),
         ));
     };
     if !seen.contains(&class) {
-        let Some(info) = take(5) else {
+        let header = *at;
+        let Some(info) = take(bytes, at, 5) else {
             return Ok(None);
         };
         let version = u32::from_le_bytes([info[1], info[2], info[3], info[4]]);
         if info[0] != 1 {
             return Err(xtra_error(
-                start + 2,
+                header,
                 format!(
-                    "record {}: class {class}'s header opens with {}, where every sample's \
+                    "record {record}: class {class}'s header opens with {}, where every sample's \
                      opens with 1",
-                    index + 1,
                     info[0]
                 ),
             ));
         }
         if version != kind.version {
             return Err(xtra_error(
-                start + 2,
+                header + 1,
                 format!(
-                    "record {}: class {class}'s version is {version}, where the sample's is {}: \
-                     its fields may differ",
-                    index + 1,
+                    "record {record}: class {class}'s version is {version}, where the sample's \
+                     is {}: its fields may differ",
                     kind.version
                 ),
             ));
         }
         seen.push(class);
     }
-    let Some(id) = take(4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]])) else {
+    let id_at = *at;
+    let Some(id) = take(bytes, at, 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]])) else {
         return Ok(None);
     };
     if u64::from(id) != 2 * index {
         return Err(xtra_error(
-            start,
-            format!(
-                "record {}: its object id is {id}, not {}",
-                index + 1,
-                2 * index
-            ),
+            id_at,
+            format!("record {record}: its object id is {id}, not {}", 2 * index),
         ));
     }
     if index == 0 {
-        let Some(base) = take(5) else {
+        let header = *at;
+        let Some(base) = take(bytes, at, 5) else {
             return Ok(None);
         };
         if base != [1, 1, 0, 0, 0] {
             return Err(xtra_error(
-                start,
+                header,
                 "the first record's base header isn't the sample's".to_owned(),
             ));
         }
     }
-    let Some(base) = take(13) else {
+    let base_at = *at;
+    let Some(base) = take(bytes, at, 13) else {
         return Ok(None);
     };
     let base_id = u32::from_le_bytes([base[0], base[1], base[2], base[3]]);
     let first = f32::from_le_bytes([base[4], base[5], base[6], base[7]]);
     let time = f32::from_le_bytes([base[9], base[10], base[11], base[12]]);
-    if u64::from(base_id) != 2 * index + 1 || first != XTRA_BASE_FIRST || base[8] != 0 {
+    // The base's fields in turn: its id, the 3.3, the 0.
+    let fault = if u64::from(base_id) != 2 * index + 1 {
+        Some(0)
+    } else if first != XTRA_BASE_FIRST {
+        Some(4)
+    } else if base[8] != 0 {
+        Some(8)
+    } else {
+        None
+    };
+    if let Some(field) = fault {
         return Err(xtra_error(
-            start,
+            base_at + field,
             format!(
-                "record {}: its base isn't the sample's (an id one past the record's, {XTRA_BASE_FIRST} and 0)",
-                index + 1
+                "record {record}: its base isn't the sample's (an id one past the record's, \
+                 {XTRA_BASE_FIRST} and 0)"
             ),
         ));
     }
     if !time.is_finite() {
         return Err(xtra_error(
-            start,
-            format!("record {}: its time isn't a number", index + 1),
+            base_at + 9,
+            format!("record {record}: its time isn't a number"),
         ));
     }
-    let Some(data) = take(kind.xtra_bytes) else {
+    let data_at = *at;
+    let Some(data) = take(bytes, at, kind.xtra_bytes) else {
         return Ok(None);
     };
-    let values = xtra_values(kind, data)
-        .map_err(|message| xtra_error(start, format!("record {}: {message}", index + 1)))?;
+    let values = xtra_values(kind, data).map_err(|(field, message)| {
+        xtra_error(data_at + field, format!("record {record}: {message}"))
+    })?;
     Ok(Some(Sample {
         kind,
         time_s: f64::from(time),
@@ -816,7 +859,8 @@ pub fn read_xtra(bytes: &[u8]) -> Result<FlightLog, LogError> {
     notes.push(
         "the times are the software's, summed in 32-bit floats, so they drift from the \
          computer's own clock as they grow, behind it in the one sample; and that clock isn't \
-         the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
+         the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock, and \
+         over its climb these times run about 1.8 % short of the GPS's"
             .to_owned(),
     );
     Ok(build(LogFormat::EntacoreXtra, &samples, notes))
@@ -847,9 +891,10 @@ fn dump_error(offset: usize, message: String) -> LogError {
     }
 }
 
-/// One recording of a raw dump: where it starts, its samples.
+/// One recording of a raw dump: where it starts, the records walked in it, its samples.
 struct Recording {
     start: usize,
+    records: usize,
     samples: Vec<Sample>,
 }
 
@@ -895,6 +940,7 @@ fn dump_recordings(bytes: &[u8], limit: usize, held: bool) -> Result<Vec<Recordi
             }
             recordings.push(Recording {
                 start: at,
+                records: 0,
                 samples: Vec::new(),
             });
             ticks = 0;
@@ -915,16 +961,19 @@ fn dump_recordings(bytes: &[u8], limit: usize, held: bool) -> Result<Vec<Recordi
         };
         let values = match raw_values(kind, data) {
             Ok(values) => Some(values),
-            Err(message) if held => return Err(dump_error(at, message)),
+            Err((field, message)) if held => return Err(dump_error(at + 1 + field, message)),
             Err(_) => None,
         };
         // Invariant: the dump opens with a recording, so one is open.
-        if let (Some(recording), Some(values)) = (recordings.last_mut(), values) {
-            recording.samples.push(Sample {
-                kind,
-                time_s: ticks as f64 / 1_000.0,
-                values,
-            });
+        if let Some(recording) = recordings.last_mut() {
+            recording.records += 1;
+            if let Some(values) = values {
+                recording.samples.push(Sample {
+                    kind,
+                    time_s: ticks as f64 / 1_000.0,
+                    values,
+                });
+            }
         }
         read += 1;
         at += 1 + kind.raw_bytes;
@@ -938,10 +987,12 @@ fn dump_recordings(bytes: &[u8], limit: usize, held: bool) -> Result<Vec<Recordi
 pub fn recognizes_dump(bytes: &[u8]) -> bool {
     bytes.len() > DUMP_RECORDING_BYTES
         && dump_recordings(bytes, RECOGNIZED_RECORDS, false)
-            .is_ok_and(|recordings| recordings.iter().any(|r| !r.samples.is_empty()))
+            .is_ok_and(|recordings| recordings.iter().any(|r| r.records > 0))
 }
 
-/// Reads an AIM raw dump: each recording in it as a record of its own, in the dump's order.
+/// Reads an AIM raw dump: each recording in it as a record of its own, in the dump's order. A
+/// recording that holds no record, one opening straight after another, is a record with no
+/// channel, so that the records keep the dump's count.
 ///
 /// # Errors
 ///

@@ -68,8 +68,8 @@
 //! channel. The export's heights are the software's: the standard atmosphere's height of each
 //! pressure, less that of the zero pressure.
 //!
-//! **Recognition.** [`recognizes`] takes a file whose header states at least one record and
-//! whose first records, up to 1,000, are each a kind with bit 0 set and bit 1 clear and a voltage
+//! **Recognition.** [`recognizes`] takes a file whose header states at least one record and a
+//! zero pressure of 50,000 to 110,000 Pa, a pad's, and whose first records, up to 1,000, are each a kind with bit 0 set and bit 1 clear and a voltage
 //! channel one past the record before's (1 after 5). It doesn't read the eight zero bytes, so a
 //! file that differs only there is refused by [`read`], naming the byte, not left unrecognized.
 //!
@@ -122,6 +122,9 @@ const LAST_INDEX_AT: usize = 26;
 /// set (*AltiMAX G4 Manual*, p. 10).
 const FAST_STEP_S: f64 = 0.005;
 const SLOW_STEP_S: f64 = 0.025;
+
+/// Where a record's eight zero bytes start.
+const ZEROS_AT: usize = 14;
 
 /// The kind's bits: bit 0 always set, bit 1 never, bit 2 the slower step.
 const KIND_SET: u8 = 0b001;
@@ -186,7 +189,7 @@ fn record(bytes: &[u8], index: usize) -> Option<(Record, &[u8])> {
         accel_counts: i16::from_le_bytes([data[10], data[11]]),
         volt_count: u16::from_le_bytes([data[12], data[13]]),
     };
-    Some((record, &data[14..]))
+    Some((record, &data[ZEROS_AT..]))
 }
 
 /// The header's u32 at `at`.
@@ -209,48 +212,62 @@ fn stated_records(bytes: &[u8]) -> Option<usize> {
 /// The kind's bits and the channels' turns are the layout's pattern, which [`recognizes`] reads;
 /// the zero bytes are held to the sample, which only [`read`] checks, so that a file differing
 /// there is refused by name, not left unrecognized.
-fn fault(record: &Record, zeros: &[u8], before: Option<u8>, held: bool) -> Option<String> {
+fn fault(record: &Record, zeros: &[u8], before: Option<u8>, held: bool) -> Option<(usize, String)> {
     let channel = record.kind >> 3;
     if record.kind & KIND_SET == 0 || record.kind & KIND_CLEAR != 0 {
-        return Some(format!(
-            "its kind, {:#04x}, has bit 0 clear or bit 1 set, which no sample record has",
-            record.kind
+        return Some((
+            0,
+            format!(
+                "its kind, {:#04x}, has bit 0 clear or bit 1 set, which no sample record has",
+                record.kind
+            ),
         ));
     }
     if !(1..=VOLT_CHANNELS).contains(&channel) {
-        return Some(format!(
-            "its kind, {:#04x}, names voltage channel {channel}, where the channels are 1 to \
-             {VOLT_CHANNELS}",
-            record.kind
+        return Some((
+            0,
+            format!(
+                "its kind, {:#04x}, names voltage channel {channel}, where the channels are 1 \
+                 to {VOLT_CHANNELS}",
+                record.kind
+            ),
         ));
     }
     if let Some(before) = before {
         let next = before % VOLT_CHANNELS + 1;
         if channel != next {
-            return Some(format!(
-                "its voltage channel is {channel}, where the channels take turns and {next} \
-                 follows {before}"
+            return Some((
+                0,
+                format!(
+                    "its voltage channel is {channel}, where the channels take turns and {next} \
+                     follows {before}"
+                ),
             ));
         }
     }
-    if held && zeros.iter().any(|&byte| byte != 0) {
-        return Some(
+    if let Some(at) = zeros.iter().position(|&byte| byte != 0).filter(|_| held) {
+        return Some((
+            ZEROS_AT + at,
             "its last 8 bytes aren't zero, as they are in every sample record: the reader \
              doesn't know what they hold"
                 .to_owned(),
-        );
+        ));
     }
     None
 }
 
-/// Whether `bytes` are an AltiMAX `.ALS` file: a header stating at least one record, and the
-/// first records, up to 1,000, each with its kind's bit 0 set and bit 1 clear and its voltage
+/// Whether `bytes` are an AltiMAX `.ALS` file: a header stating at least one record and a zero
+/// pressure a pad's, 50,000 to 110,000 Pa, and the first records, up to 1,000, each with its kind's bit 0 set and bit 1 clear and its voltage
 /// channel the one after the record before's. The bytes held to the sample aren't read here:
 /// [`read`] refuses a file that differs there, naming the byte.
 pub fn recognizes(bytes: &[u8]) -> bool {
     let Some(stated) = stated_records(bytes) else {
         return false;
     };
+    // A pad's zero pressure: no text passes, as four printable bytes are at least 0x20202020.
+    if !header_u32(bytes, ZERO_PRESSURE_AT).is_some_and(|pa| PAD_PA.contains(&f64::from(pa))) {
+        return false;
+    }
     let mut before = None;
     for index in 0..stated.min(RECOGNIZED_RECORDS) {
         let Some((record, zeros)) = record(bytes, index) else {
@@ -301,9 +318,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         let Some((record, zeros)) = record(bytes, index) else {
             break;
         };
-        if let Some(message) = fault(&record, zeros, before, true) {
+        if let Some((at, message)) = fault(&record, zeros, before, true) {
             return Err(binary(
-                offset(index),
+                offset(index) + at,
                 format!("record {}: {message}", index + 1),
             ));
         }

@@ -1,5 +1,5 @@
 //! Entacore AIM XTRA's own files, the raw dump of its memory and the `.xtra` its software makes
-//! of it, read from invented bytes (M7.1c23): a made-up flight of 13 records, written once as the
+//! of it, read from invented bytes (M7.1c23): a made-up flight of 18 records, written once as the
 //! dump's big-endian raw values and once as the `.xtra`'s converted ones, so that the two readers
 //! must agree value for value, as the sample's files do. The values each test expects are worked
 //! by hand from the bytes.
@@ -115,6 +115,57 @@ fn flight() -> Vec<Record> {
             gps_time,
         ),
         (1, 0x03, vec![0x01, 0x7C, 0xDC], 4, f32s(&[97_500.0])),
+        // The kinds the flight above leaves out: the rates 100, −200 and 300 counts of
+        // 0.07 °/s; the field 500, −250 and 1,000 counts of 10⁻⁶; a quaternion's 16,384,
+        // −8,192, 0 and 32,767 of 32,768; the second battery's 2,047 steps; line B's 2,048.
+        (
+            1,
+            0x0c,
+            [100_i16, -200, 300]
+                .iter()
+                .flat_map(|v| v.to_be_bytes())
+                .collect(),
+            15,
+            f32s(&[100.0 * 0.07, -200.0 * 0.07, 300.0 * 0.07]),
+        ),
+        (
+            1,
+            0x0d,
+            [500_i16, -250, 1_000]
+                .iter()
+                .flat_map(|v| v.to_be_bytes())
+                .collect(),
+            16,
+            f32s(&[500.0 * 1e-6, -250.0 * 1e-6, 1_000.0 * 1e-6]),
+        ),
+        (
+            1,
+            0x15,
+            [16_384_i16, -8_192, 0, 32_767]
+                .iter()
+                .flat_map(|v| v.to_be_bytes())
+                .collect(),
+            21,
+            f32s(&[0.5, -0.25, 0.0, 32_767.0 / 32_768.0]),
+        ),
+        (
+            1,
+            0x05,
+            vec![0x7F, 0xF0],
+            6,
+            f32s(&[(2_047.0 * 13.299_999_237_060_547_f64 / 4_096.0) as f32]),
+        ),
+        (
+            1,
+            0x08,
+            vec![0x08, 0x00],
+            18,
+            [
+                vec![0, 0],
+                f32s(&[2_048.0_f32 * (3.3_f64 / 16_384.0) as f32]),
+            ]
+            .concat(),
+        ),
     ]
 }
 
@@ -245,7 +296,7 @@ fn a_dump_reads_in_units() {
     assert_eq!(log.format, LogFormat::EntacoreDump);
     assert_eq!(log.logger, "Entacore AIM XTRA");
     assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
-    assert_eq!(log.stated.samples, Some(13));
+    assert_eq!(log.stated.samples, Some(18));
 
     let pressure = channel(&log, "pressure");
     assert_eq!(pressure.quantity, Quantity::Pressure);
@@ -270,6 +321,46 @@ fn a_dump_reads_in_units() {
     assert_eq!(
         channel(&log, "A Voltage").values,
         [f64::from(3.3_f32) / 4.0]
+    );
+    // Each value as the software converts it, in 32-bit floats.
+    let gyro = channel(&log, "Gyro X");
+    assert_eq!(gyro.quantity, Quantity::AngularRate);
+    assert_eq!(gyro.values, [f64::from(100.0_f32 * 0.07)]);
+    assert_eq!(
+        channel(&log, "Gyro Z").values,
+        [f64::from(300.0_f32 * 0.07)]
+    );
+    assert_eq!(
+        channel(&log, "Gyro Y").values,
+        [f64::from(-200.0_f32 * 0.07)]
+    );
+    let mag = channel(&log, "Mag Y");
+    assert_eq!(mag.quantity, Quantity::Unrecognized);
+    assert_eq!(mag.values, [f64::from(-250.0_f32 * 1e-6)]);
+    assert_eq!(
+        channel(&log, "Mag Z").values,
+        [f64::from(1_000.0_f32 * 1e-6)]
+    );
+    assert_eq!(channel(&log, "quaternion 1").values, [0.5]);
+    assert_eq!(channel(&log, "quaternion 2").values, [-0.25]);
+    assert_eq!(
+        channel(&log, "quaternion 4").values,
+        [0.999_969_482_421_875]
+    );
+    // 2,047 steps: one step below the first battery's.
+    let second = channel(&log, "battery 2 voltage");
+    assert_eq!(second.quantity, Quantity::Voltage);
+    assert_eq!(
+        second.values,
+        [f64::from(
+            (2_047.0 * 13.299_999_237_060_547_f64 / 4_096.0) as f32
+        )]
+    );
+    assert!(second.values[0] < battery.values[0]);
+    // 2,048 of 16,384 steps: an eighth of f32(3.3).
+    assert_eq!(
+        channel(&log, "B Voltage").values,
+        [f64::from(3.3_f32) / 8.0]
     );
     assert_eq!(channel(&log, "state").values, [0.0, 1.0, 3.0]);
     assert_eq!(channel(&log, "C on").values, [0.0, 0.0, 1.0]);
@@ -297,7 +388,7 @@ fn a_dump_reads_in_units() {
 /// software summed; its notes say so.
 #[test]
 fn the_xtra_and_the_dump_agree_value_for_value() {
-    let (bytes, times) = xtra(13);
+    let (bytes, times) = xtra(18);
     assert!(entacore_raw::recognizes_xtra(&bytes));
     assert_eq!(import::detect(&bytes), Some(LogFormat::EntacoreXtra));
     let ours = import::read(&bytes).unwrap();
@@ -344,7 +435,7 @@ fn the_xtra_and_the_dump_agree_value_for_value() {
 #[test]
 fn snapshots() {
     insta::assert_json_snapshot!("dump", entacore_raw::read_dump(&dump()).unwrap());
-    insta::assert_json_snapshot!("xtra", entacore_raw::read_xtra(&xtra(13).0).unwrap());
+    insta::assert_json_snapshot!("xtra", entacore_raw::read_xtra(&xtra(18).0).unwrap());
 }
 
 /// A dump of two recordings: `read_dump` reads each, and the importer refuses it, naming where
@@ -391,20 +482,22 @@ fn dump_refusals_name_the_byte() {
     // bits, and a state number the sample doesn't hold.
     let battery = dump_at(2);
     assert_eq!(bytes[battery], 0x04);
-    assert!(
-        dump_refusal(&edit(battery + 2, 0x01))
-            .1
-            .contains("bits 0–3")
-    );
+    let (offset, message) = dump_refusal(&edit(battery + 2, 0x01));
+    assert_eq!(offset, battery + 2);
+    assert!(message.contains("bits 0–3"));
     let line = dump_at(8);
     assert_eq!(bytes[line], 0x07);
-    assert!(dump_refusal(&edit(line + 1, 0x50)).1.contains("bits 14–15"));
+    let (offset, message) = dump_refusal(&edit(line + 1, 0x50));
+    assert_eq!(offset, line + 1);
+    assert!(message.contains("bits 14–15"));
     let fix = dump_at(10);
     assert_eq!(bytes[fix], 0x0e);
-    assert!(dump_refusal(&edit(fix + 13, 0x69)).1.contains("bits 6–7"));
+    let (offset, message) = dump_refusal(&edit(fix + 13, 0x69));
+    assert_eq!(offset, fix + 13);
+    assert!(message.contains("bits 6–7"));
     let status = dump_at(4);
     assert_eq!(bytes[status], 0x10);
-    assert_eq!(dump_refusal(&edit(status + 2, 0xF1)).0, status);
+    assert_eq!(dump_refusal(&edit(status + 2, 0xF1)).0, status + 2);
     assert!(
         dump_refusal(&edit(status + 1, 0x20))
             .1
@@ -444,9 +537,9 @@ fn dump_refusals_name_the_byte() {
 /// The `.xtra`'s refusals, each naming its byte, and the notes of a cut or trailed file.
 #[test]
 fn xtra_refusals_and_notes() {
-    let (bytes, _) = xtra(13);
+    let (bytes, _) = xtra(18);
     let edit = |at: usize, byte: u8| {
-        let mut bytes = xtra(13).0;
+        let mut bytes = xtra(18).0;
         bytes[at] = byte;
         bytes
     };
@@ -460,7 +553,7 @@ fn xtra_refusals_and_notes() {
     assert_eq!(offset, XTRA_RECORDS_AT);
     assert!(message.contains("class 99, which no sample holds"));
     let (offset, message) = xtra_refusal(&edit(XTRA_RECORDS_AT + 3, 2));
-    assert_eq!(offset, XTRA_RECORDS_AT + 2);
+    assert_eq!(offset, XTRA_RECORDS_AT + 3);
     assert!(message.contains("class 4's version is 2, where the sample's is 1"));
     assert!(
         xtra_refusal(&edit(XTRA_RECORDS_AT + 2, 2))
@@ -515,16 +608,16 @@ fn xtra_refusals_and_notes() {
     assert_eq!(cut.stated.samples, Some(2));
     assert!(
         cut.notes[0]
-            .starts_with("the file ends inside record 3 of the 13 it states, 5 bytes into it")
+            .starts_with("the file ends inside record 3 of the 18 it states, 5 bytes into it")
     );
     let cut = entacore_raw::read_xtra(&bytes[..third]).unwrap();
     assert_eq!(
         cut.notes[0],
-        "the file ends after record 2 of the 13 it states: read those"
+        "the file ends after record 2 of the 18 it states: read those"
     );
     let trailed = [&bytes[..], &[0; 114]].concat();
     let log = entacore_raw::read_xtra(&trailed).unwrap();
-    assert_eq!(log.notes[0], "114 bytes after the 13 records aren't read");
+    assert_eq!(log.notes[0], "114 bytes after the 18 records aren't read");
     assert!(matches!(
         entacore_raw::read_xtra(&xtra(0).0[..XTRA_RECORDS_AT]),
         Err(LogError::NoData { .. })
@@ -589,12 +682,13 @@ fn a_held_byte_is_refused_by_name_through_the_importer() {
             offset,
             message,
         }) => {
-            assert_eq!(offset, battery);
+            // The type byte, then the u16 whose second byte holds bits 0–3.
+            assert_eq!(offset, battery + 2);
             assert!(message.contains("bits 0–3"));
         }
         other => panic!("{other:?}"),
     }
-    let mut xtra = xtra(13).0;
+    let mut xtra = xtra(18).0;
     let line = find_class(&xtra, 17);
     xtra[line] = 1;
     assert!(entacore_raw::recognizes_xtra(&xtra));
