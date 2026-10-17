@@ -306,6 +306,7 @@ until someone rewrites it in plainer words.
 | [ADR-275: Neer's 2026-10-14 plan: awareness and care on the sites][adr-275] | The docs site, and then fusionspace.co, get a thin banner under the page's strip and a line in the footer that change through the year: heritage and awareness months, health and mental health, accessibility, science and space days, and rocketry-safety reminders. One banner at a time, chosen in the reader's browser by date from a dated table where every row names its organizer's own page. A region-specific observance names its region, a solemn day stands alone, nothing looks up where the reader is, and with scripts off nothing shows. A help page lists checked crisis lines, as WHO's guidance on suicide prevention asks. The pattern goes into the product system first. A second increment adds what a banner can't do: a code of conduct, a page on getting involved (youth programs, clubs, mentoring) and a way to report a barrier to access. |  |
 | [ADR-276: Neer's 2026-10-16 plan: a flyer's own logger and GPX tracks in the analyzer][adr-276] | Release 0.2, the flight analyzer, must read a flyer's own altimeter or GPS tracker from the command line and Python, not only from Rust, and must read GPX tracks. [M7.1d1](#m7-1d1) reads GPX 1.0 and 1.1; [M7.1d2](#m7-1d2) lets `hpr analyze` and the Python package read a table by a column mapping and binary records by a record layout, as the library already does. |  |
 | [ADR-277: A track's own speed, held by its vertical speed before apogee][adr-277] | [M7.1c22](#m7-1c22)'s *done when* names a track's own speed among the physical checks that hold a mapped table's units. A track's ground speed holds none: the 4 tracks' medians spread 21.34 times. Its vertical speed does. In the 5 s before apogee a coasting rocket slows at g, plus a little drag, so a parabola fitted to a GPS track's fixes there must slow at 0.6 to 5/3 g. An altitude in feet stated as meters reads 3.28 times too high. The club's GPS track slows at 0.9925 g, so that part of the *done when* is met. |  |
+| [ADR-278: An evidence register: what backs each claim, and an open issue until a real sample does][adr-278] | The docs say honestly when a reader, model or check rests on invented samples, an assumption or another program alone, but nothing tracks finding the real evidence later: of the 24 distinct gaps the site stated on 2026-10-17, 12 had no issue, roadmap entry or research topic, 8 of them flight-log readers. Milestone [M2.10](#m2-10) adds `validation/evidence.toml`, one row per claim with the kind of evidence behind it and the kind wanted, and a check that fails when a page states such a gap without a row, or a row short of a real sample has no open `needs-sample` issue. A report counts the rows by kind on the site, with no combined score. |  |
 
 ## The roadmap
 
@@ -588,6 +589,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
 | <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
+| <a id="m2-10"></a>[M2.10][phase-1] | Evidence register | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1160,6 +1162,7 @@ is the milestone that added or will add that test.
 [adr-275]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0275-the-2026-10-14-awareness-and-care.md
 [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 [adr-277]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0277-a-tracks-own-speed-held-by-its-vertical-speed.md
+[adr-278]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
