@@ -1,5 +1,7 @@
 # RocketPy's solid motor model
 
+Re-checked 2026-10-17: 12 claims corrected, one measurement added (the own-relative mass gap).
+
 RocketPy v1.13.0 (MIT), commit `9bd6ad3`, read from `refs/rocketpy`; paths are relative to it.
 This is the reference for M1.3's comparison ("mass and inertia evolution matches RocketPy's
 SolidMotor for 3 motors within 1%"); the oracle is `validation/oracles/rocketpy/solid_motor.py`.
@@ -10,8 +12,10 @@ SolidMotor for 3 motors within 1%"); the oracle is `validation/oracles/rocketpy/
 `SolidMotor.__init__` (`rocketpy/motors/solid_motor.py:202`) calls `Motor.__init__`
 (`rocketpy/motors/motor.py:172`). That call builds the thrust curve, burn time, impulse and average
 thrust. SolidMotor then computes the grain mass (`solid_motor.py:361-366`) and solves the grain ODE
-(`solid_motor.py:368`, `evaluate_geometry`). Every other output is a lazily cached `Function` built
-by `funcify_method` (`rocketpy/mathutils/function.py:4248`, cache at `:4363`).
+(`solid_motor.py:368`, `evaluate_geometry`). Most other outputs are lazily cached `Function`s built
+by `funcify_method` (`rocketpy/mathutils/function.py:4248`, cache at `:4363`). `mass_flow_rate` is
+a property with its own cache (`solid_motor.py:431-452`); `total_impulse` is a cached float
+(`motor.py:419-429`).
 
 ## Thrust input
 
@@ -20,7 +24,8 @@ by `funcify_method` (`rocketpy/mathutils/function.py:4248`, cache at `:4363`).
   path goes through `import_rse` (`motor.py:1029`). Lists and arrays become `Function(source,
   interpolation=interpolation_method, extrapolation="zero")` (`motor.py:315-317`).
 - **Interpolation:** `interpolation_method` defaults to `"linear"` (`solid_motor.py:220`). The
-  other options are `"spline"` and `"akima"`.
+  docstring lists `"spline"` and `"akima"` too (`:307-310`); `Function` also accepts `"polynomial"`
+  and `"pchip"` (`function.py:3847-3853`).
 - **Callable or constant thrust** is sampled at 50 points over `burn_time` (`motor.py:325-326`).
 - **`burn_time`:** a float `b` means `(0, b)`, a pair is used as given (`rocketpy/tools.py:95-119`),
   and `None` means the first and last knot (`motor.py:363-381`).
@@ -41,7 +46,8 @@ by `funcify_method` (`rocketpy/mathutils/function.py:4248`, cache at `:4363`).
 - **Average thrust:** `F_avg = I / (t_out − t_start)` (`motor.py:346`). This is the knot span, not
   a threshold-based burn time.
 - **Exhaust velocity:** `v_e = I / m_p0` is constant (`solid_motor.py:401-418`).
-- **Mass flow rate:** `ṁ(t) = −F(t) / v_e`, on the thrust knots, linear, zero outside the burn
+- **Mass flow rate:** `ṁ(t) = −F(t) / v_e`, on the thrust knots, with the thrust's interpolation
+  (linear by default), zero outside the burn
   (`motor.py:483-524`). `SolidMotor.mass_flow_rate` is the same Function (`solid_motor.py:431-452`).
 - **Initial propellant mass** comes from the grain geometry, not from the file header:
   `m_p0 = N ρ π (R_o² − r_0²) h_0` (`solid_motor.py:361-366`, `:420-429`).
@@ -56,8 +62,8 @@ It overrides the base class integral `m_p0 + ∫ ṁ dt` (`motor.py:470-481`). B
 Measured on the committed fixture's 203-point grid, the largest `|m_p − m_p0(1 − I(t)/I)|` is
 1.1e-5, 5.3e-6 and 1.4e-4 kg for its three cases, which is 4.8e-5, 6.8e-6 and 5.4e-5 of `m_p0`.
 So hpr's impulse-fraction default reproduces SolidMotor's mass curve well inside 1%, if `m_p0` is the
-geometry mass. `total_mass = m_p + m_dry` (`motor.py:458-468`). `dry_mass` is required. If it is
-`None`, the `.eng` header's total minus propellant is used instead (`motor.py:403-417`).
+geometry mass. `total_mass = m_p + m_dry` (`motor.py:458-468`). The `dry_mass` argument is required but may be
+`None`; then the `.eng` (or `.rse`) header's total minus propellant is used (`motor.py:403-417`).
 
 ## Grain regression ODE (`solid_motor.py:487-632`)
 
@@ -121,28 +127,34 @@ the separation `s`, because the grain centers don't move.
 
 `nozzle_area = π r_e²` (`motor.py:284`). It enters only `pressure_thrust = (p_ref − p) A_e` and
 `vacuum_thrust = F + p_ref A_e`, and only when `reference_pressure` is set (`motor.py:1154-1191`).
-The rocket also uses it in the nozzle gyration tensor (`rocket.py:984-985`).
+The rocket's nozzle gyration tensor uses `nozzle_radius`, not the area (`rocket.py:984-985`).
 
 ## Function evaluation: what matters for a 1% match
 
 - **Algebra:** array Functions on identical knots combine pointwise into a new array Function
-  with the left operand's interpolation (`function.py:2621-2631`). `_FAST_MATH = False`
+  with the left operand's interpolation (`function.py:2620-2631`). `_FAST_MATH = False`
   (`function.py:36`), so operands on different knots would become lazy callables (`:2672-2705`).
   All mass, CoM and inertia outputs share the ODE knots (checked by comparing `x_array`s).
 - **Between knots,** values are linear interpolants of the products computed at the knots, not
-  the formulas evaluated at `t`. The error is small at 185 to 456 knots; see the mass gap above.
+  the formulas evaluated at `t`. The error is small at 726 to 1,083 knots (the fixture's cases);
+  see the mass gap above.
 - **Linear evaluation:** `bisect_left` picks the interval (`_calc/polation_1d.py:64`), so a knot
-  returns its exact value. Queries inside `[x_0, x_n]` inclusive interpolate; outside,
-  `"constant"` holds the end value and `"zero"` returns 0 (`polation_1d.py:613`, `:734`).
-- **Flight reads:** `Flight` uses `get_value_opt` for `thrust`, `I_11`, `I_33`, `mass_flow_rate`
-  and `propellant_mass` (`rocketpy/simulation/flight.py:1940-1956`), and only while
-  `t_start < t < t_out` (`:1936`, `:2365`, `:2553`). For array sources `__call__` returns the same
-  values.
+  returns its value to within one rounding (the first knot exactly). Queries inside `[x_0, x_n]`
+  inclusive interpolate; outside, `"constant"` holds the end value and `"zero"` returns 0
+  (`polation_1d.py:613`, `:734`).
+- **Flight reads:** with `equations_of_motion="solid_propulsion"`, `Flight.u_dot` uses
+  `get_value_opt` for `thrust`, `I_11`, `I_33`, `mass_flow_rate` and `propellant_mass`, and
+  differentiates `I_11` and `I_33` (`rocketpy/simulation/flight.py:1940-1956`, chosen at
+  `:1655-1660`). `u_dot`, the 3-DOF path and `u_dot_generalized` read thrust only while
+  `t_start < t < t_out` (`:1936`, `:2365`, `:2553`); `udot_rail1` reads it without a window test
+  (`:1855`), relying on zero extrapolation. For array sources `__call__` returns the same values.
 - **Default flight equations** (`equations_of_motion="standard"`, `flight.py:506`) never read the
   motor `I_11`. The rocket builds its inertia about its own dry CoM from `dry_I_*` (about the motor
   dry CoM) and `propellant_I_*` (about the propellant CoM) (`rocket.py:856-883`, `:928-947`).
 - **Comparing near burnout:** `m_p`, `I_p11` and `I_p33` go to 0, so compare them with an absolute
-  floor. Compare `total_mass`, `center_of_mass`, `I_11` and `I_33` relatively.
+  floor: relative to its own value, the impulse-fraction mass differs from RocketPy's by up to 69%
+  in the fixture's last milligrams (I175 at 2.487 s: 2.15e-6 against 6.90e-6 kg). Compare `total_mass`,
+  `center_of_mass`, `I_11` and `I_33` relatively.
 - **`GenericMotor`,** the impulse-fraction class, is different again. Its propellant mass is
   `integral_function()` sampled at 100 linspace points with default spline interpolation
   (`motor.py:470-481`, `function.py:3281`, `:3846`). Its propellant CoM is fixed at
@@ -157,10 +169,14 @@ The rocket also uses it in the nozzle gyration tensor (`rocket.py:984-985`).
    default to the header or catalog mass and flag a grain model that disagrees beyond a tolerance.
 2. **The dry-mass fallback mixes sources:** the header's total minus propellant, combined with
    the geometry's propellant (`motor.py:408-411`), gives a start mass that matches neither. The
-   header parse `split(" ")` (`motor.py:1145`) shifts fields when spaces repeat.
+   header parse `split(" ")` (`motor.py:1145`) raises on a doubled space between two of the last three
+   fields (`ValueError`) and on an all-tab header (`IndexError`); mixed tabs can pick the wrong
+   fields without an error.
 3. **A `0 0` first point breaks the impulse.** `import_eng` always prepends `(0, 0)`
    (`motor.py:1133`), so a file that already has one gets a duplicate knot. `thrust(0)` becomes
-   NaN and the total impulse becomes NaN, silently (reproduced). hpr must dedupe or reject.
+   NaN and the total impulse becomes NaN, silently at run time (reproduced), though the
+   `import_eng` docstring says a file must not contain the `0 0` point (`motor.py:1114`). hpr must
+   dedupe or reject.
 4. **The grain model is kinematic only.** The burn rate comes from `ṁ ∝ F`, not from a burn-rate
    law, so geometry changes CG and inertia but not `m(t)`. That is fine for hpr's "optional grain
    geometry", as long as the docs don't present it as ballistics.
@@ -176,5 +192,6 @@ The rocket also uses it in the nozzle gyration tensor (`rocket.py:984-985`).
 8. **`F_avg` uses the knot span** (`motor.py:346`), not a certification-style burn time, so it
    differs from the catalog average thrust.
 9. **The derived functions are coarse:** they are linear interpolants on the solver knots, held
-   constant after the terminal event, which fires about 2e-5 s before `t_out`. The effect is
-   negligible at 1%, but hpr's analytic evaluation differs from it at the 1e-4 level.
+   constant after the terminal event, which fired 2.6e-5 and 3.7e-5 s before `t_out` in two of the
+   three cases. The effect is negligible at 1%; hpr's analytic evaluation differs from it by under
+   1e-4 (7.9e-5 relative for total mass and inertias; `docs/physics/motor.md`).
