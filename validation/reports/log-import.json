@@ -3595,8 +3595,21 @@
           0
         ],
         "time_on_tie": 1,
+        "time_on_tie_rows": [
+          [
+            122.0050000000155,
+            0.000350381703168
+          ]
+        ],
         "voltage_by_doubles_differing": 31,
-        "time_rounded_once_differing": 11,
+        "time_by_digits_differing": [
+          11,
+          1245,
+          109,
+          1,
+          11,
+          11
+        ],
         "speed_not_compared": 16961,
         "events_equal": true,
         "events": 21,

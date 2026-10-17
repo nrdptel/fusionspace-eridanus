@@ -2672,8 +2672,8 @@ calibration the file carries, and a count with no source stays as written.
 > - **AltiMAX `.ALS`:** the one sample file has the PC software's Excel export beside it. Its
 >   pressures, event codes and voltage channels' numbers equal the export's, 101,336 values bit
 >   for bit; its acceleration, clock and voltages, the latter through the export's factors, equal
->   the export's 15 significant digits, written as the export writes a number, but one clock value
->   that lies under 4 % of a step of a double from a rounding tie. The voltages' factors and the
+>   the export's 15 significant digits, by two rules fitted to the sample for how the export
+>   rounds and multiplies, but one clock value that lies on the rule's rounding tie. The voltages' factors and the
 >   speed after apogee are the software's, not the file's.
 >   [Its section](#the-altimaxs-als) has the details.
 > - **AIM raw dump and `.xtra`:** one flight's dump and the `.xtra` the AIM software made of it,
@@ -3198,27 +3198,30 @@ it, and `cargo xtask logs --check` fails if any of these comparisons does:
 | Both pressures, the event code and the voltage channel's number, as stored | 101,336 | every one equal |
 | The acceleration, written as the export writes a number | 25,334 | every one equal |
 | The voltages, by the export's own factors, written so | 25,334 | every one equal |
-| The clock, 5 ms or 25 ms a record summed in 64-bit floats, written so | 25,334 | every one equal, one of them only a step of a float from the reader's sum, on a rounding tie |
+| The clock, 5 ms or 25 ms a record summed in 64-bit floats, written so | 25,334 | all equal but one, on the rule's rounding tie, which the next float up from the reader's sum matches |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
 | Each height, filtered and raw, against the standard atmosphere from the zero pressure | 2 × 25,334 | within 8.7 mm (0.34 in); the check allows 42 mm (1.7 in), the height of half a pascal at the zero pressure |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
-**How the export writes a number.** The export holds each value to 15 significant digits, as
-Excel does, but doesn't round it there once: it rounds the value to 18 digits and that half up
-to 15. Rounded once, 11 clock values would be one off in the 15th digit, each lying just under a
-tie at the 18th, as a sum of 5 ms steps in 64-bit floats often does: 347 steps make
-1.734 999 999 999 984 998 7 s, which the export writes 1.734 999 999 999 99. Its volts are the
-64-bit float nearest the count times the factor, worked exactly; the count times the factor's own
-float would put 31 one off. One clock value, at 122 s, lies 5 × 10⁻¹⁶ s under such a tie, under
-4 % of a step of a float there (1.4 × 10⁻¹⁴ s), so the last bit of the software's own running
-sum decides its 15th digit; the check counts a row that matches only a step away apart, and the
-sample has that one. The report prints all three counts.
+**How the export writes a number.** Two rules, fitted to the sample, reproduce the export's
+numbers. It holds each value to 15 significant digits, as Excel does, but not rounded there once:
+rounded first to 18 digits, and that half up to 15. Rounded once, 11 clock values differ in the
+15th digit; rounded first to 16, 17, 19 or 20 digits, 1,245, 109, 11 and 11; to 18, only the row
+on a tie below. The other 10 each lie just under a tie at the 18th digit, as a sum of 5 ms steps
+in 64-bit floats often does: 347 steps make 1.734 999 999 999 984 998 7 s, which the rule writes
+1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And the volts are the 64-bit float
+nearest the count times the factor, worked exactly: the count times the factor's own float puts
+31 off. The row on a tie, at 122.005 s, lies 3.5 × 10⁻⁴ of a step of a float (a step is
+1.4 × 10⁻¹⁴ s there) under the rule's tie, so the next float up matches: a one-bit difference
+between the reader's running sum and the software's would decide its 15th digit, and the file
+can't show whether there is one. The check counts such rows apart, without a cap. The report
+prints each count: *By doubles*, *First rounded to 15–20 digits* and *On a tie*.
 
 **Left out.** The voltages stay counts: the export turns them into volts by one factor for
-channels 1 and 5 and another for 2 to 4, 0.00314278884 and 0.00266754240 V a count, but no
-document states either, nor which channel is which. The export's speed after apogee, 16,961 rows,
+channels 1 and 5 and another for 2 to 4, 3.218 215 77 V over 1,024 and 5.463 126 83 V over
+2,048, but no document states either, nor which channel is which. The export's speed after apogee, 16,961 rows,
 is worked out by the software from the pressure, not stored, and isn't compared. The header's
 other bytes and the trailer aren't read. A record's last 8 bytes, zero in every sample record, are
 held to zero, and a file where they aren't is refused, naming the byte; so is one with a record
