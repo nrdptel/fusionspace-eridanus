@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- invented: two flights and a walk, no real data -->
+<gpx version="1.1" creator="invented-converter">
+ <trk><name>Flight</name><trkseg>
+  <trkpt lat="-33.8500000" lon="151.2000000"><ele>12.0</ele><time>2031-09-20T09:15:00</time></trkpt>
+  <trkpt lat="-33.8499900" lon="151.2000100"><ele>88.5</ele><time>2031-09-20T09:15:01</time></trkpt>
+  <trkpt lat="-33.8499700" lon="151.2000300"><ele>230.25</ele><time>2031-09-20T09:15:02.250000</time></trkpt>
+  <trkpt lat="-33.8499600" lon="151.2000500"><ele>301.0</ele><time></time></trkpt>
+  <trkpt lat="-33.8499400" lon="151.2000800"><ele>318.7</ele><time>2031-09-20T09:15:04.000125</time></trkpt>
+ </trkseg><trkseg></trkseg></trk>
+ <trk><name>Flight</name><trkseg>
+  <trkpt lat="-33.8510000" lon="151.1990000"><ele>11.5</ele><time>2031-09-20T08:02:10</time></trkpt>
+  <trkpt lat="-33.8509800" lon="151.1990200"><ele>64.0</ele><time>2031-09-20T08:02:11</time></trkpt>
+  <trkpt lat="-33.8509500" lon="151.1990500"><ele>131.5</ele><time>2031-09-20T08:02:12</time></trkpt>
+ </trkseg></trk>
+ <trk><trkseg>
+  <trkpt lat="-33.8510000" lon="151.1990000"/>
+  <trkpt lat="-33.8512000" lon="151.1985000"/>
+ </trkseg></trk>
+</gpx>

@@ -28,7 +28,8 @@ forbids = ["fusionspace-hpr-sim"]
 [dependencies]
 hpr-core.workspace = true
 hpr-atmos.workspace = true
-# KML's XML (M7.1c1); it refuses a document type declaration, so no entity can expand.
+# KML's and GPX's XML (M7.1c1, M7.1d1); it refuses a document type declaration, so no entity
+# can expand.
 roxmltree.workspace = true
 # The sheets and shared strings of `.xlsx` workbooks (M7.1c14), read as a stream.
 quick-xml.workspace = true
@@ -44,3 +45,5 @@ flate2.workspace = true
 [dev-dependencies]
 insta.workspace = true
 proptest.workspace = true
+# The GPX tests check that gpxpy's reading is of the samples' very bytes (M7.1d1).
+sha2.workspace = true

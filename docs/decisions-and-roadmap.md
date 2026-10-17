@@ -727,7 +727,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c22"></a>[M7.1c22][done-5] | Tables by mapping, and files that aren't logs | done |
 | <a id="m7-1c23"></a>[M7.1c23][done-5] | The last binaries; formats with no sample | done |
 | <a id="m7-1d"></a>[M7.1d][phase-5] | A flyer's own logger and GPX tracks | not yet done |
-| <a id="m7-1d1"></a>[M7.1d1][phase-5] | GPX tracks | not yet done |
+| <a id="m7-1d1"></a>[M7.1d1][done-5] | GPX tracks | done |
 | <a id="m7-1d2"></a>[M7.1d2][phase-5] | Your own logger from the command line and Python | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |

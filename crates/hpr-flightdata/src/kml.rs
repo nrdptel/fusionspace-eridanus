@@ -240,7 +240,36 @@ const DAY_NS: i64 = 86_400 * NS_PER_S;
 /// type declaration. A file with a document type declaration is recognized so that [`read`]
 /// refuses it by name, rather than the importer calling it a layout it doesn't know.
 pub(crate) fn recognizes(text: &str) -> bool {
+    root_is(text, "kml")
+}
+
+/// Whether the text's root element is `name`, unprefixed, after an optional byte-order mark, XML
+/// declaration, comments and document type declaration: KML's test, and GPX's
+/// ([`crate::gpx`]).
+pub(crate) fn root_is(text: &str, name: &str) -> bool {
+    prolog(text).is_some_and(|(root, _)| {
+        text[root..]
+            .strip_prefix('<')
+            .and_then(|after| after.strip_prefix(name))
+            .is_some_and(|after| {
+                after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
+            })
+    })
+}
+
+/// The byte offset of the document type declaration in the text's prolog, before its root
+/// element, so a refusal of it can name its line ([`crate::gpx`]); `None` if there is none.
+pub(crate) fn doctype_offset(text: &str) -> Option<usize> {
+    prolog(text).and_then(|(_, doctype)| doctype)
+}
+
+/// The text's prolog walked past an optional byte-order mark, XML declaration, comments and
+/// document type declaration, at most [`PROLOG_ITEMS`] of them: the byte offset where what
+/// follows them starts, and that of the document type declaration, if any. `None` if one of
+/// them doesn't close.
+fn prolog(text: &str) -> Option<(usize, Option<usize>)> {
     let mut rest = text.strip_prefix('\u{feff}').unwrap_or(text);
+    let mut doctype = None;
     for _ in 0..PROLOG_ITEMS {
         rest = rest.trim_start();
         let (open, close) = if rest.starts_with("<?") {
@@ -248,24 +277,17 @@ pub(crate) fn recognizes(text: &str) -> bool {
         } else if rest.starts_with("<!--") {
             ("<!--", "-->")
         } else if rest.starts_with("<!DOCTYPE") {
-            match doctype_length(rest) {
-                Some(length) => {
-                    rest = &rest[length..];
-                    continue;
-                }
-                None => return false,
-            }
+            let length = doctype_length(rest)?;
+            doctype = Some(text.len() - rest.len());
+            rest = &rest[length..];
+            continue;
         } else {
             break;
         };
-        match rest[open.len()..].find(close) {
-            Some(end) => rest = &rest[open.len() + end + close.len()..],
-            None => return false,
-        }
+        let end = rest[open.len()..].find(close)?;
+        rest = &rest[open.len() + end + close.len()..];
     }
-    rest.strip_prefix("<kml").is_some_and(|after| {
-        after.starts_with(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
-    })
+    Some((text.len() - rest.len(), doctype))
 }
 
 /// The length of a document type declaration at the start of the text, `<!DOCTYPE` to its closing
@@ -448,8 +470,9 @@ fn xml_error(failure: &XmlFailure) -> LogError {
 /// How deep the text nests its elements, counted without parsing it, and the 1-based line where
 /// the nesting first passes [`MAX_DEPTH`] (0 if it doesn't). Comments, CDATA sections, processing
 /// instructions and declarations change no depth; a `>` inside a quoted attribute value doesn't
-/// end its tag. Adapted from the `.ork` reader's count (`hpr_io::ork`), the same project's code.
-fn nesting(text: &str) -> (usize, usize) {
+/// end its tag. Adapted from the `.ork` reader's count (`hpr_io::ork`), the same project's code;
+/// GPX's reader counts with it too ([`crate::gpx`]).
+pub(crate) fn nesting(text: &str) -> (usize, usize) {
     let bytes = text.as_bytes();
     let mut index = 0;
     let mut depth = 0usize;
@@ -573,7 +596,7 @@ impl Mode {
 
 /// Which clock a point's time is on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Clock {
+pub(crate) enum Clock {
     /// A `when` with its zone: UTC.
     Utc,
     /// A `when` with no zone: a local time in a zone the file doesn't state.
@@ -737,7 +760,9 @@ fn decimal_ns(text: &str) -> Option<i64> {
     Some(if negative { -total } else { total })
 }
 
-/// A time of day, `HH:MM:SS` with optional decimals, as nanoseconds after midnight.
+/// A time of day, `HH:MM:SS` with optional decimals, as nanoseconds after midnight; each field
+/// two digits, with no sign. A second written 60, a leap second's, is read as the next minute's
+/// first, whatever the minute.
 fn time_of_day_ns(text: &str) -> Option<i64> {
     let mut parts = text.split(':');
     let (hours, minutes, seconds) = (parts.next()?, parts.next()?, parts.next()?);
@@ -749,6 +774,7 @@ fn time_of_day_ns(text: &str) -> Option<i64> {
             .chain(minutes.bytes())
             .all(|b| b.is_ascii_digit())
         || seconds.split('.').next().map(str::len) != Some(2)
+        || !seconds.bytes().take(2).all(|b| b.is_ascii_digit())
     {
         return None;
     }
@@ -761,8 +787,8 @@ fn time_of_day_ns(text: &str) -> Option<i64> {
 /// A `when` as nanoseconds since 1970-01-01T00:00:00 on its clock: `YYYY-MM-DDThh:mm:ss`, optional
 /// decimals, then `Z`, `±hh:mm` or nothing ([`Clock::Local`]). `None` for a date without a time
 /// of day (XML Schema's `date`, `gYearMonth`, `gYear`), which places no point in a flight, or for
-/// anything else.
-fn when_ns(text: &str) -> Option<(Clock, i64)> {
+/// anything else. GPX's reader reads its times with it too ([`crate::gpx`]).
+pub(crate) fn when_ns(text: &str) -> Option<(Clock, i64)> {
     let text = text.trim();
     let (date, rest) = text.split_once('T')?;
     let mut fields = date.split('-');
@@ -795,7 +821,8 @@ fn when_ns(text: &str) -> Option<(Clock, i64)> {
         }
         let hours: i64 = hours.parse().ok()?;
         let minutes: i64 = minutes.parse().ok()?;
-        if hours > 14 || minutes > 59 {
+        // XML Schema's zones run from −14:00 to +14:00.
+        if minutes > 59 || hours * 60 + minutes > 14 * 60 {
             return None;
         }
         (time, Clock::Utc, sign * (hours * 3_600 + minutes * 60))
@@ -2050,6 +2077,11 @@ mod tests {
                 Clock::Utc,
                 days_from_civil(2024, 2, 29) * DAY_NS,
             ),
+            (
+                "2026-05-23T10:15:00+14:00",
+                Clock::Utc,
+                base - 4 * hour + 900 * NS_PER_S,
+            ),
         ];
         for (text, clock, ns) in cases {
             assert_eq!(when_ns(text), Some((clock, ns)), "{text}");
@@ -2064,6 +2096,8 @@ mod tests {
             "2026-05-23T10:15Z",
             "2026-05-23T10:15:00+2:00",
             "2026-05-23T10:15:00+15:00",
+            "2026-05-23T10:15:00+14:01",
+            "2026-05-23T10:15:00-14:30",
             "2026-05-23 10:15:00Z",
             "26-05-23T10:15:00Z",
             "2026-05-23T10:15:00.Z",
@@ -2091,6 +2125,9 @@ mod tests {
             "1:00:00",
             "12:60:00",
             "12:00:61",
+            "12:00:+5",
+            "12:00:-0",
+            "12:00:+5.5",
             "12:00",
             "12:00:00:00",
         ] {

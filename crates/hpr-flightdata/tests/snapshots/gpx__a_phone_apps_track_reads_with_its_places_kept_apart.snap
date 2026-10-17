@@ -1,0 +1,410 @@
+---
+source: crates/hpr-flightdata/tests/gpx.rs
+expression: log
+---
+{
+  "format": "gpx",
+  "logger": "Invented Tracker App 2.3",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null,
+    "figures": [
+      {
+        "name": "waypoint Pad latitude",
+        "written": "35.2000120",
+        "quantity": "latitude",
+        "values": [
+          35.200012
+        ]
+      },
+      {
+        "name": "waypoint Pad longitude",
+        "written": "-97.1000340",
+        "quantity": "longitude",
+        "values": [
+          -97.100034
+        ]
+      },
+      {
+        "name": "waypoint Pad elevation",
+        "written": "401.8",
+        "quantity": "altitude",
+        "values": [
+          401.8
+        ]
+      },
+      {
+        "name": "waypoint Pad time",
+        "written": "2031-07-14T17:03:40Z",
+        "quantity": "duration",
+        "values": [
+          -24.0
+        ]
+      },
+      {
+        "name": "waypoint Landing latitude",
+        "written": "35.2021870",
+        "quantity": "latitude",
+        "values": [
+          35.202187
+        ]
+      },
+      {
+        "name": "waypoint Landing longitude",
+        "written": "-97.0987650",
+        "quantity": "longitude",
+        "values": [
+          -97.098765
+        ]
+      },
+      {
+        "name": "route Recovery walk point 1 latitude",
+        "written": "35.2000120",
+        "quantity": "latitude",
+        "values": [
+          35.200012
+        ]
+      },
+      {
+        "name": "route Recovery walk point 1 longitude",
+        "written": "-97.1000340",
+        "quantity": "longitude",
+        "values": [
+          -97.100034
+        ]
+      },
+      {
+        "name": "route Recovery walk point 2 latitude",
+        "written": "35.2010500",
+        "quantity": "latitude",
+        "values": [
+          35.20105
+        ]
+      },
+      {
+        "name": "route Recovery walk point 2 longitude",
+        "written": "-97.0994000",
+        "quantity": "longitude",
+        "values": [
+          -97.0994
+        ]
+      },
+      {
+        "name": "route Recovery walk point 3 latitude",
+        "written": "35.2021870",
+        "quantity": "latitude",
+        "values": [
+          35.202187
+        ]
+      },
+      {
+        "name": "route Recovery walk point 3 longitude",
+        "written": "-97.0987650",
+        "quantity": "longitude",
+        "values": [
+          -97.098765
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Flight 7 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        35.200012,
+        35.2000259,
+        35.2000406,
+        35.2000561,
+        35.2000724,
+        35.2000895,
+        35.2001074,
+        35.2001261,
+        35.2001456,
+        35.2001659,
+        35.200187,
+        35.2002089,
+        35.2002316,
+        35.2002551,
+        35.2002794,
+        35.2003045
+      ]
+    },
+    {
+      "column": "Flight 7 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        -97.100034,
+        -97.1000259,
+        -97.1000178,
+        -97.1000097,
+        -97.1000016,
+        -97.0999935,
+        -97.0999854,
+        -97.0999773,
+        -97.0999692,
+        -97.0999611,
+        -97.099953,
+        -97.0999449,
+        -97.0999368,
+        -97.0999287,
+        -97.0999206,
+        -97.0999125
+      ]
+    },
+    {
+      "column": "Flight 7 elevation",
+      "quantity": "altitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        402.0,
+        402.4,
+        448.7,
+        541.2,
+        640.5,
+        721.9,
+        784.3,
+        829.6,
+        858.0,
+        868.4,
+        861.2,
+        846.5,
+        null,
+        812.6,
+        795.1,
+        777.9
+      ]
+    },
+    {
+      "column": "Flight 7 satellites",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        11.0,
+        11.0,
+        10.0,
+        9.0,
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        10.0,
+        11.0,
+        11.0,
+        12.0,
+        12.0,
+        12.0,
+        11.0,
+        11.0
+      ]
+    },
+    {
+      "column": "Flight 7 HDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        0.8,
+        0.8,
+        1.1,
+        1.4,
+        1.6,
+        1.5,
+        1.3,
+        1.1,
+        1.0,
+        0.9,
+        0.9,
+        0.8,
+        0.8,
+        0.8,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "column": "Flight 7 VDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        1.2,
+        1.2,
+        1.7,
+        2.3,
+        2.6,
+        2.4,
+        2.0,
+        1.7,
+        1.5,
+        1.3,
+        1.3,
+        1.2,
+        1.2,
+        1.2,
+        1.3,
+        1.3
+      ]
+    },
+    {
+      "column": "Flight 7 PDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        1.4,
+        1.4,
+        2.0,
+        2.7,
+        3.1,
+        2.8,
+        2.4,
+        2.0,
+        1.8,
+        1.6,
+        1.6,
+        1.4,
+        1.4,
+        1.4,
+        1.6,
+        1.6
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "read as GPX 1.1, its `version`: 1 track, 1 segment with points, each read as a GPS track, 16 points",
+    "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state: they give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "the log's zero is `2031-07-14T17:04:04.000Z`, the first time the file gives a track point",
+    "waypoints and routes kept apart from the tracks, as figures the file states, as places marked or planned, not flown: 2 waypoints, 1 route, 5 places read",
+    "elements no reading uses, not read: `extensions` in 2 track points, `sym` in 1 waypoint"
+  ]
+}

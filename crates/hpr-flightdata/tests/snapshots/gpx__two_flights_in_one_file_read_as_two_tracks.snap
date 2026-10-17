@@ -1,0 +1,154 @@
+---
+source: crates/hpr-flightdata/tests/gpx.rs
+expression: log
+---
+{
+  "format": "gpx",
+  "logger": "invented-converter",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Flight segment 1 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.25,
+        null,
+        4.000125
+      ],
+      "values": [
+        -33.85,
+        -33.84999,
+        -33.84997,
+        -33.84996,
+        -33.84994
+      ]
+    },
+    {
+      "column": "Flight segment 1 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.25,
+        null,
+        4.000125
+      ],
+      "values": [
+        151.2,
+        151.20001,
+        151.20003,
+        151.20005,
+        151.20008
+      ]
+    },
+    {
+      "column": "Flight segment 1 elevation",
+      "quantity": "altitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.25,
+        null,
+        4.000125
+      ],
+      "values": [
+        12.0,
+        88.5,
+        230.25,
+        301.0,
+        318.7
+      ]
+    },
+    {
+      "column": "Flight latitude",
+      "quantity": "latitude",
+      "time_s": [
+        -4370.0,
+        -4369.0,
+        -4368.0
+      ],
+      "values": [
+        -33.851,
+        -33.85098,
+        -33.85095
+      ]
+    },
+    {
+      "column": "Flight longitude",
+      "quantity": "longitude",
+      "time_s": [
+        -4370.0,
+        -4369.0,
+        -4368.0
+      ],
+      "values": [
+        151.199,
+        151.19902,
+        151.19905
+      ]
+    },
+    {
+      "column": "Flight elevation",
+      "quantity": "altitude",
+      "time_s": [
+        -4370.0,
+        -4369.0,
+        -4368.0
+      ],
+      "values": [
+        11.5,
+        64.0,
+        131.5
+      ]
+    },
+    {
+      "column": "track latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        null
+      ],
+      "values": [
+        -33.851,
+        -33.8512
+      ]
+    },
+    {
+      "column": "track longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        null
+      ],
+      "values": [
+        151.199,
+        151.1985
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "read as GPX 1.1, its `version`: 3 tracks, 3 segments with points, each read as a GPS track, 10 points",
+    "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state: they give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "the log's zero is `2031-09-20T09:15:00`, the first time the file gives a track point",
+    "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say every time is: 7 of the file's times state none",
+    "track points with no `time` keep their places, their times gaps: 3 of 10",
+    "tracks and segments with no point, left out: 0 tracks with no segment, 1 segment with no point",
+    "elements with no value read as gaps: `time` in 1 track point"
+  ]
+}

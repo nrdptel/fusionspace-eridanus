@@ -322,6 +322,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c21 Altimeters' other text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c22 Tables by mapping, and files that aren't logs ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c23 The last binaries; formats with no sample ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1d1 GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1691,6 +1692,12 @@ One line per milestone or increment, in the order it was archived within its pha
       each other, or an amendment to ADR-274 records what the bytes show, the gap kept in the
       report and M7.1 left open while it lasts; the guide lists every format the roadmap names
       with no sample (CATS, Juno) as needing samples.
+  - **M7.1d** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.1d1 GPX tracks.** *Done when:* GPX 1.0 and 1.1 files read, each track
+      segment a GPS track (latitude, longitude, elevation of unstated datum, time), routes and
+      waypoints kept apart; every value of the invented samples equals gpxpy's
+      (`validation/oracles/gpx/`); a DTD or entity, a point off the globe and a time that goes
+      back refused by name (tests); the guide says GPX is read from invented samples only.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

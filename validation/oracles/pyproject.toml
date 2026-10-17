@@ -44,6 +44,9 @@ dependencies = [
     # `hpr_analysis::optimize::nsga2` is checked against (`validation/oracles/nsga2/pymoo_runs.py`).
     # It pulls in moocore (LGPL-2.1-or-later), run only, never linked or ported.
     "pymoo==0.6.2",
+    # The GPX reader (Apache-2.0), run as the outside reader `hpr_flightdata::gpx` is checked
+    # against on invented files (`validation/oracles/gpx/gpxpy_read.py`).
+    "gpxpy==1.6.2",
 ]
 
 [tool.uv]
