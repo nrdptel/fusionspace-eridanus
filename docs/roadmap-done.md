@@ -217,6 +217,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14a1 Envelope flags ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a2 Drag issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a3 Stability issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1205,6 +1206,20 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M1.14a3 Stability issue warnings** (ADR-180, ADR-181). *Done when:* #87, #120, #121 and #172
       each warn, by number, when a flight or design meets its Mach or geometry condition (#172's
       chosen in an ADR, as it states none), tested at its edge.
+- [x] **M2.10 Evidence register** (ADR-278). Each claim the site makes about what backs a reader,
+  model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
+  code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register
+  has a generated schema checked like the others; `cargo xtask evidence`, run by the gate and CI,
+  fails when a page states a gap in any phrase of a committed list without naming a row (a test
+  shows each phrase fires on a canary page, each of ADR-278's 24 table sentences is detected, and
+  a test pins the list's length and the row ids),
+  when a row's page anchor is gone, when a row short of its wanted kind has no open `needs-sample`
+  issue or its issue is closed, or when a `real` row lists no sample with its SHA-256 and test; the
+  gate's `refs` step fails when such a sample is missing, its hash differs or its test skipped;
+  each failure is pinned by a test that shows it fires; rows G1 to G24 of ADR-278's table exist,
+  each but G23 (at its wanted kind) short of it with an open issue; a docs page shows a committed report counting
+  rows by kind and surface, with no combined score, and the rows due a search (none yet, or the
+  last over 30 days old); each format page's sample request links its issue. Moves: honest trust.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,
