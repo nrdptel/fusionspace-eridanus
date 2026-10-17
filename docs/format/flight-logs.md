@@ -1717,7 +1717,7 @@ layout is published and another program reads it, so its reader was built from t
 checked on invented files against that program ([GPX](#gpx)). For the other two, CATS's and
 "Juno", no reader can be built and checked yet: a reader is built from samples, the bytes a
 logger wrote, best with the maker's own export of the same flight beside them. The
-table says what was found for each, and what a reader would need. The search, of makers' pages and
+table says what was found for each of the two, and what a reader would need. The search, of makers' pages and
 public repositories, is in
 [a research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/sample-logs-cats-juno.md),
 read on 2026-10-16.
@@ -2565,50 +2565,67 @@ rounded, at the sixth decimal.
 ### GPX
 
 GPX, the GPS Exchange Format, is the XML file GPS receivers, phone apps and mapping tools save
-and exchange tracks in. Topografix publishes its two versions as schemas, *GPX 1.0* and *GPX 1.1*
-(topografix.com/GPX/1/0/gpx.xsd and /1/1/gpx.xsd), with a manual for 1.0
-(topografix.com/gpx_manual.asp). HPR Sim reads both since
+and exchange tracks in. Topografix publishes its two versions as schemas,
+[GPX 1.0](https://www.topografix.com/GPX/1/0/gpx.xsd) and
+[GPX 1.1](https://www.topografix.com/GPX/1/1/gpx.xsd), with
+[a manual for 1.0](https://www.topografix.com/gpx_manual.asp). HPR Sim reads both since
 [M7.1d1](../decisions-and-roadmap.md#m7-1d1), by `hpr_flightdata::gpx`, written from those
 documents.
 
 > **How far to trust it.** No sample log in the collection is a GPX file, so the reader is checked
-> only on three invented files, against gpxpy 1.6.2, an outside GPX reader: all 392 values and
-> times of their tracks' channels (a gap matching a gap) and all 12 figures of their waypoints and
-> route points are equal to the last bit. Where a time states no zone, gpxpy leaves it unplaced,
-> and the check reads it as UTC, as the reader does. What a real tracker writes, and above all what its elevation is measured from, no
-> file has shown yet. A GPX file from a tracker or app flown on a rocket, with a barometric
-> altimeter's log of the same flight beside it, would show both: it can be offered in
+> only on three invented files, against gpxpy 1.6.2, an outside GPX reader: all 196 values of
+> their tracks' channels, each at its time (a gap matching a gap), and all 12 figures of their
+> waypoints and route points match gpxpy's as the same 64-bit numbers. The test is
+> `every_value_of_the_samples_equals_gpxpys` in `crates/hpr-flightdata/tests/gpx.rs`; gpxpy's
+> reading is written by `validation/oracles/gpx/gpxpy_read.py`. Where a time states no zone,
+> gpxpy gives it none, and the check reads it as UTC, as the reader does. The samples hold only
+> what both readers read alike: gpxpy also reads a number with an exponent, a point off the globe
+> and a time that goes back, which this reader refuses; it cuts a time to the microsecond; and
+> it refuses an `ele` of spaces only, which this reader reads as a gap. What a real tracker
+> writes, and above all what its elevation is measured from, no file has shown yet. A GPX file
+> from a tracker or app flown on a rocket, with a barometric altimeter's log of the same flight
+> beside it, would show both: it can be offered in
 > [an issue](https://github.com/nrdptel/fusionspace-eridanus/issues).
 
-- *Tracks.* A file holds tracks (`trk`), each of segments (`trkseg`), each of points (`trkpt`); a
-  receiver starts a new segment where it lost reception or was turned off. Each segment is read as a GPS track, its
-  channels named after its track, such as `Flight 7 latitude`, and numbered where the track has
-  several segments, such as `Rocket segment 2 speed`. A point gives its latitude and longitude in
-  degrees, its elevation in meters (`ele`), its time, and, where it states them, its satellite
-  count and dilutions of precision (`hdop`, `vdop`, `pdop`: how much the satellites' geometry
-  spreads the fix); in GPX 1.0, also its course in degrees from true north and its speed in meters
-  per second. A value a point leaves out, or leaves empty, such as `<ele/>`, is a gap. The rest,
-  such as `fix` and an app's own `extensions`, is counted in a note and not read.
-- *Elevation.* GPX 1.1's schema and GPX 1.0's manual give `ele` a unit, meters, but no datum: it may be above mean sea
-  level, above the WGS84 ellipsoid (the smooth shape GPS works positions out on, not sea level)
-  or from a barometer. So it is read as an altitude of unstated zero, not as a GPS altitude above
-  sea level, and only its rise from one point to another means what it says.
-- *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with an offset, such as
-  `08:30:00-04:00`, is moved to UTC; one with no zone is read as UTC, with a note. The record's
-  zero is the first time the file gives a track point (or, with none, a waypoint or route point). A point with no time keeps its place with
-  its time a gap. Within a track, times must go forward: one that goes back is refused, naming its
-  line, since such a track isn't one recording. Two tracks may run in any order, as a file
-  holding two flights does.
+- *Tracks.* A file holds tracks (`trk`), each of segments (`trkseg`), each of points (`trkpt`);
+  a receiver starts a new segment where it lost reception or was turned off. Each segment is
+  read as a GPS track, its channels named after its track, such as `Flight 7 latitude`, and
+  numbered where the track has several segments, such as `Rocket segment 2 speed`. A point
+  gives its latitude and longitude in degrees, its elevation in meters (`ele`) and its time.
+  Where it states them, it also gives its satellite count and its dilutions of precision,
+  horizontal, vertical and position (3-D) (`hdop`, `vdop`, `pdop`: how much the satellites'
+  geometry spreads the fix). In GPX 1.0 it can also give its course in degrees from true north
+  and its speed in meters per second. A value a point leaves out, or leaves empty, such as
+  `<ele/>`, is a gap. The rest, such as `fix` and an app's own `extensions`, is counted in a
+  note and not read.
+- *Elevation.* GPX 1.1's schema and GPX 1.0's manual give `ele` a unit, meters, but no
+  [vertical datum](../glossary.md#vertical-datum). GPX 1.1's schema says its coordinates are
+  WGS84's, but not that `ele` is a height above the WGS84 ellipsoid (the smooth shape GPS works
+  positions out on, not sea level). So `ele` may be above mean sea level, above the ellipsoid or
+  from a barometer. It is read as an altitude of unstated zero, not as a GPS altitude above sea
+  level, and only its rise from one point to another means what it says.
+- *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with
+  an offset, such as `08:30:00-04:00`, is moved to UTC; one with no zone is read as UTC, with a
+  note. A second written 60, a leap second's, is read as the next minute's first. The record's
+  zero is the first time the file gives a track point (or, with none, a waypoint or route
+  point). A point with no time keeps its place with its time a gap. Within a track, times must
+  go forward: one that goes back is refused, naming its line, since such a track isn't one
+  recording. Two tracks may run in any order, as a file holding two flights does.
 - *Waypoints and routes.* A waypoint (`wpt`) marks a place, such as the pad, and a route (`rte`)
   plans a path; neither was flown. They are kept apart from the tracks, as figures the file
   states, such as `waypoint Pad latitude`, so no reading takes them for the flight.
 - *Refused.* A document type declaration, and a reference to an entity XML doesn't define, such
-  as `&rocket;`, so that no entity can expand; a point off the globe, with a latitude outside −90° to 90° or a longitude outside −180°
-  to 180°; a value that isn't a plain decimal number, such as `1e3`; and a time that goes back
-  within a track. Each refusal names what it found and its line.
+  as `&rocket;`, so that no entity can expand (an entity is XML's named text, which a hostile
+  file can nest to make a few bytes expand to gigabytes); a point off the globe, with a latitude
+  outside −90° to 90° or a longitude outside −180° to 180°; a value that isn't a plain decimal
+  number, such as `1e3`; and a time that goes back within a track. Each refusal names what it
+  found and its line.
+- *Limits.* At most 256 segments, 1,000,000 track points and 10,000 waypoints and route points
+  are read; the rest are counted in a note and left out.
 
-For example, the first and the tenth point of the invented phone app's track, shortened (a test
-in the crate reads the file and checks every number below):
+For example, the first and the tenth point of the track in the invented sample
+`gpx-1.1-phone-app.gpx`, shortened (a test in the crate reads the file and checks every number
+below):
 
 ```text
 <trkpt lat="35.2000120" lon="-97.1000340">

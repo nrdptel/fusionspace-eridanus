@@ -38,7 +38,7 @@
 <trkseg>
 <trkpt lat="42.4302200" lon="-71.0997100">
 <ele>655.2</ele>
-<time>2031-08-02T08:30:06.5-04:00</time>
+<time>2031-08-02T14:30:06.5+02:00</time>
 <course>61.0</course>
 <speed>14.20</speed>
 <fix>2d</fix>
@@ -56,7 +56,7 @@
 <inv:accel>3.2</inv:accel>
 </trkpt>
 <trkpt lat="42.4303900" lon="-71.0994800">
-<time>2031-08-02T08:30:08.5-04:00</time>
+<time>2031-08-02T12:30:08.5Z</time>
 <course>64.1</course>
 <speed>11.30</speed>
 <fix>none</fix>

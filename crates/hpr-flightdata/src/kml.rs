@@ -760,7 +760,9 @@ fn decimal_ns(text: &str) -> Option<i64> {
     Some(if negative { -total } else { total })
 }
 
-/// A time of day, `HH:MM:SS` with optional decimals, as nanoseconds after midnight.
+/// A time of day, `HH:MM:SS` with optional decimals, as nanoseconds after midnight; each field
+/// two digits, with no sign. A second written 60, a leap second's, is read as the next minute's
+/// first, whatever the minute.
 fn time_of_day_ns(text: &str) -> Option<i64> {
     let mut parts = text.split(':');
     let (hours, minutes, seconds) = (parts.next()?, parts.next()?, parts.next()?);
@@ -772,6 +774,7 @@ fn time_of_day_ns(text: &str) -> Option<i64> {
             .chain(minutes.bytes())
             .all(|b| b.is_ascii_digit())
         || seconds.split('.').next().map(str::len) != Some(2)
+        || !seconds.bytes().take(2).all(|b| b.is_ascii_digit())
     {
         return None;
     }
@@ -818,7 +821,8 @@ pub(crate) fn when_ns(text: &str) -> Option<(Clock, i64)> {
         }
         let hours: i64 = hours.parse().ok()?;
         let minutes: i64 = minutes.parse().ok()?;
-        if hours > 14 || minutes > 59 {
+        // XML Schema's zones run from −14:00 to +14:00.
+        if minutes > 59 || hours * 60 + minutes > 14 * 60 {
             return None;
         }
         (time, Clock::Utc, sign * (hours * 3_600 + minutes * 60))
@@ -2073,6 +2077,11 @@ mod tests {
                 Clock::Utc,
                 days_from_civil(2024, 2, 29) * DAY_NS,
             ),
+            (
+                "2026-05-23T10:15:00+14:00",
+                Clock::Utc,
+                base - 4 * hour + 900 * NS_PER_S,
+            ),
         ];
         for (text, clock, ns) in cases {
             assert_eq!(when_ns(text), Some((clock, ns)), "{text}");
@@ -2087,6 +2096,8 @@ mod tests {
             "2026-05-23T10:15Z",
             "2026-05-23T10:15:00+2:00",
             "2026-05-23T10:15:00+15:00",
+            "2026-05-23T10:15:00+14:01",
+            "2026-05-23T10:15:00-14:30",
             "2026-05-23 10:15:00Z",
             "26-05-23T10:15:00Z",
             "2026-05-23T10:15:00.Z",
@@ -2114,6 +2125,9 @@ mod tests {
             "1:00:00",
             "12:60:00",
             "12:00:61",
+            "12:00:+5",
+            "12:00:-0",
+            "12:00:+5.5",
             "12:00",
             "12:00:00:00",
         ] {

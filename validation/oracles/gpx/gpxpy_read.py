@@ -14,11 +14,13 @@ flight. For each, in the file's order, this script writes gpxpy's reading to
 A point is its latitude, longitude and elevation, its time as whole microseconds since
 1970-01-01T00:00:00 UTC (gpxpy reads a time to the microsecond, and moves one with an offset to
 UTC; one with no zone it leaves naive, and this script reads it as UTC, as GPX 1.1's schema and
-GPX 1.0's manual say every time is), and, for track points, its satellite count, its three dilutions of precision and,
-in GPX 1.0, its course and speed; `null` where gpxpy read none. Floats are written by Python's
-`repr`, which round-trips a double exactly. The samples use only what both readers read alike: a
-time to the microsecond or coarser (gpxpy cuts finer digits), numbers with no exponent, and no
-value either reader refuses or drops.
+GPX 1.0's manual say every time is), and, for track points, its satellite count, its three
+dilutions of precision and, in GPX 1.0, its course and speed; `null` where gpxpy read none.
+Floats are written by Python's `repr`, which round-trips a double exactly. The samples use only
+what both readers read alike: a time to the microsecond or coarser (gpxpy cuts finer digits),
+numbers with no exponent, no `ele` of spaces only (gpxpy refuses one), and no value either
+reader refuses or drops (gpxpy reads a point off the globe and a time that goes back, which the
+reader refuses).
 
 Run from the repository root:
 

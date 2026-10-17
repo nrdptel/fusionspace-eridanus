@@ -69,13 +69,14 @@ schemas and GPX 1.0's manual settled five things the plan left open:
    (a decimal with no exponent, a whole satellite count), an element read twice in one point, a
    time that isn't a date and time, a GPX 1.0 `course` outside 0° to 360°. A GPX file is written
    by a program, so these mean a damaged file, not a reading to guess at. An empty element, such
-   as `<ele/>`, states nothing: it is a gap, counted in a note, as gpxpy reads it too. The
-   longitude may be 180, which GPX 1.1 leaves out and GPX 1.0 allows: it is −180's meridian.
+   as `<ele/>`, states nothing: it is a gap, counted in a note, as gpxpy reads it too (one of
+   spaces only is a gap too, which gpxpy refuses). The longitude may be 180, which GPX 1.1 leaves out and GPX 1.0 allows: it is −180's meridian.
 5. **More of a point is read**: the satellite count, the three dilutions of precision and GPX
    1.0's course and speed, each a channel where a point states it, each held to gpxpy's reading
    with the rest. gpxpy keeps a time to the microsecond and drops finer digits, so the samples
    write none finer.
 
-**Consequences of the amendment.** Three invented files, GPX 1.0 and 1.1, read to 392 values
-and times of their tracks' channels (a gap matching a gap) and 12 figures of their waypoints and
-route points, each equal to gpxpy 1.6.2's to the last bit. No reading uses a GPX track until M7.2 reads other loggers.
+**Consequences of the amendment.** Three invented files, GPX 1.0 and 1.1, read to 196 values
+of their tracks' channels, each at its time (a gap matching a gap), and 12 figures of their
+waypoints and route points, each equal to gpxpy 1.6.2's to the last bit. No reading uses a GPX
+track until M7.2 reads other loggers.

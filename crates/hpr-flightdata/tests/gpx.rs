@@ -245,7 +245,7 @@ fn every_value_of_the_samples_equals_gpxpys() {
     );
 
     let mut versions = HashSet::new();
-    let (mut values, mut figures_compared) = (0, 0);
+    let (mut values, mut times, mut figures_compared) = (0, 0, 0);
     for file in &oracle.files {
         let bytes = std::fs::read(samples().join(&file.file)).unwrap();
         let digest: String = Sha256::digest(&bytes)
@@ -284,7 +284,8 @@ fn every_value_of_the_samples_equals_gpxpys() {
                 );
             }
             assert_eq!(channel.values.len(), expected.len());
-            values += channel.values.len() + channel.time_s.len();
+            values += channel.values.len();
+            times += channel.time_s.len();
         }
 
         let ours: Vec<(&str, Option<Quantity>, &[f64])> = log
@@ -322,7 +323,7 @@ fn every_value_of_the_samples_equals_gpxpys() {
         versions,
         HashSet::from(["1.0".to_owned(), "1.1".to_owned()])
     );
-    assert_eq!((values, figures_compared), (392, 12));
+    assert_eq!((values, times, figures_compared), (196, 196, 12));
 }
 
 /// The phone app's GPX 1.1 track: its satellites and dilutions as channels, a point with no `ele`

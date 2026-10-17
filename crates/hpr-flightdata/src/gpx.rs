@@ -28,8 +28,8 @@
 //! coordinates are relative to the WGS84 datum", which could be read as heights above the WGS84
 //! ellipsoid, but it doesn't say so of `ele`, nor does the manual, and neither says whether a
 //! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. Its
-//! `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral Coordinated Time
-//! (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
+//! `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated
+//! Time (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
 //! `hdop`, `vdop` and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no
 //! fix". In GPX 1.0 a track point may also hold `course`, in "degrees, true", and `speed`, in
 //! "meters per second" (the manual); GPX 1.1 dropped both. A track segment "holds a list of Track
@@ -70,21 +70,24 @@
 //!
 //! **Times.** A point's time is its `time`, in UTC: one that states an offset from UTC, such as
 //! `-04:00`, is moved to UTC; one that states no zone is read as UTC, as GPX 1.1's schema and
-//! GPX 1.0's manual say every time is, with a note counting them. The log's zero is the first time the file gives a track
-//! point, or, with none, a waypoint or route point, and a note names it. A track point with no
-//! time keeps its place with its time a gap, `NaN`. Times within a track go forward, segment to
-//! segment: one that goes back is refused by name, as such a track isn't one recording. Two
-//! tracks may run in any order, as a file holding two flights does.
+//! GPX 1.0's manual say every time is, with a note counting them. The log's zero is the first
+//! time the file gives a track point, or, with none, a waypoint or route point, and a note names
+//! it. A track point with no time keeps its place with its time a gap, `NaN`. Times within a
+//! track go forward, segment to segment: one that goes back is refused by name, as such a track
+//! isn't one recording. Two tracks may run in any order, as a file holding two flights does. A
+//! second written 60, a leap second's, reads as the next minute's first, as in the KML reader;
+//! no sample holds one.
 //!
 //! **Refused by name.** A document type declaration, so that no entity can expand, and a reference
 //! to an entity XML doesn't define; a root that isn't `gpx`, or whose namespace or `version` isn't
 //! GPX 1.0's or 1.1's, or whose namespace and `version` disagree; a point with no `lat` or `lon`,
-//! or one off the globe; a value that isn't the schema's kind of number (`ele` and the rest are
-//! XML Schema `decimal`s, written with no exponent; `sat` is a whole number); a `course` outside
-//! 0° to 360°; a point holding one of the elements read twice; a `time` that isn't a date and
-//! time; and a time that goes back within a track. Each names what it found and its line: a
+//! or one off the globe (its latitude past ±90° or longitude past ±180°, once read to the nearest
+//! double); a value that isn't the schema's kind of number (`ele` and the rest are XML Schema
+//! `decimal`s, written with no exponent; `sat` is a whole number); a `course` outside 0° to
+//! 360°; a point holding one of the elements read twice; a `time` that isn't a date and time;
+//! and a time that goes back within a track. Each names what it found and its line: a
 //! point's, or the declaration's, the root's, or the line where the nesting passes the bound
-//! (the parser places no node count's refusal, which reads line 1).
+//! (a file of too many nodes is refused at line 1, as the parser gives that refusal no place).
 //!
 //! **Hostile input.** `roxmltree` parses the XML, with its default refusal of a document type
 //! declaration and a limit of [`MAX_NODES`] nodes. The parser descends the tree on the stack, so
@@ -102,7 +105,7 @@
 //!
 //! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use roxmltree::{Document, Node, ParsingOptions};
 
@@ -140,7 +143,8 @@ pub const MAX_NODES: u32 = 4_000_000;
 
 /// The deepest the XML may nest its elements, as the KML reader's bound ([`kml::MAX_DEPTH`]):
 /// `roxmltree` descends the tree on the stack, so the nesting is counted before the text is
-/// parsed. A track point's extensions nest about 7 deep.
+/// parsed. A track point's `extensions` sit 5 deep (`gpx`, `trk`, `trkseg`, `trkpt`,
+/// `extensions`), an app's own elements a few more.
 pub const MAX_DEPTH: usize = kml::MAX_DEPTH;
 
 /// The most names of elements not read that the note listing them names; the rest are counted.
@@ -423,6 +427,7 @@ struct Reader<'a, 'input> {
     empty_segments: usize,
     empty_tracks: usize,
     segments_left_out: usize,
+    segment_points_left_out: usize,
     points_left_out: usize,
     places_left_out: usize,
     no_fix: usize,
@@ -453,6 +458,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             empty_segments: 0,
             empty_tracks: 0,
             segments_left_out: 0,
+            segment_points_left_out: 0,
             points_left_out: 0,
             places_left_out: 0,
             no_fix: 0,
@@ -563,7 +569,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             }
             if self.segments.len() >= MAX_TRACKS {
                 self.segments_left_out += 1;
-                self.points_left_out += trkpts.len();
+                self.segment_points_left_out += trkpts.len();
                 continue;
             }
             let mut points = Vec::new();
@@ -860,31 +866,54 @@ impl<'a, 'input> Reader<'a, 'input> {
                 listed.join(", ")
             ));
         }
-        if self.segments_left_out + self.points_left_out + self.places_left_out > 0 {
+        let mut left_out = Vec::new();
+        if self.segments_left_out > 0 {
+            left_out.push(format!(
+                "{} past the {MAX_TRACKS} read, holding {}",
+                counted(self.segments_left_out, "segment"),
+                counted(self.segment_points_left_out, "track point")
+            ));
+        }
+        if self.points_left_out > 0 {
+            left_out.push(format!(
+                "{} past the {}",
+                counted(self.points_left_out, "track point"),
+                self.max_points
+            ));
+        }
+        if self.places_left_out > 0 {
+            left_out.push(format!(
+                "{} past the {MAX_PLACES}",
+                match self.places_left_out {
+                    1 => "1 waypoint or route point".to_owned(),
+                    n => format!("{n} waypoints and route points"),
+                }
+            ));
+        }
+        if !left_out.is_empty() {
             notes.push(format!(
-                "more than this reader reads, left out: {} segments past the {MAX_TRACKS} read, \
-                 {} track points past the {}, {} waypoints and route points past the \
-                 {MAX_PLACES}",
-                self.segments_left_out, self.points_left_out, self.max_points, self.places_left_out
+                "more than this reader reads, left out: {}",
+                left_out.join(", ")
             ));
         }
 
         let seconds = |stamp: Option<&Stamp>| match (stamp, zero_ns) {
-            // Within the reader's dates, 1678 to 2262, two times differ by less than 2⁶⁴ ns,
-            // and when they differ by less than 2⁵³ ns, 104 days, the difference converts exactly.
+            // Within the reader's dates, late 1677 to early 2262, two times differ by less than
+            // 2⁶⁴ ns, and when they differ by less than 2⁵³ ns, 104 days, the difference converts
+            // exactly.
             (Some(stamp), Some(zero)) => {
                 (i128::from(stamp.ns) - i128::from(zero)) as f64 / NS_PER_S as f64
             }
             _ => f64::NAN,
         };
-        let mut used = HashSet::new();
+        let mut names = Names::default();
         let mut channels = Vec::new();
         for segment in &self.segments {
             let base = match segment.number {
                 Some(number) => format!("{} segment {number}", segment.track),
                 None => segment.track.clone(),
             };
-            let name = unique(&mut used, base);
+            let name = names.unique(base);
             let time_s: Vec<f64> = segment
                 .points
                 .iter()
@@ -933,9 +962,9 @@ impl<'a, 'input> Reader<'a, 'input> {
         }
 
         let mut figures = Vec::new();
-        let mut used = HashSet::new();
+        let mut names = Names::default();
         for place in &self.places {
-            let label = unique(&mut used, place.label.clone());
+            let label = names.unique(place.label.clone());
             let point = &place.point;
             for (suffix, quantity, written) in [
                 ("latitude", Quantity::Latitude, &point.lat),
@@ -996,16 +1025,33 @@ fn counted(count: usize, one: &str) -> String {
     }
 }
 
-/// A name not yet used, gaining ` (2)`, ` (3)` … if it is; marks it used.
-fn unique(used: &mut HashSet<String>, name: String) -> String {
-    let mut candidate = name.clone();
-    let mut number = 1;
-    while used.contains(&candidate) {
-        number += 1;
-        candidate = format!("{name} ({number})");
+/// The names given so far, and for each name given twice the next number to try, so n repeats
+/// of one name cost n steps, not n².
+#[derive(Default)]
+struct Names {
+    used: HashSet<String>,
+    next: HashMap<String, usize>,
+}
+
+impl Names {
+    /// A name not yet used, gaining ` (2)`, ` (3)` … if it is; marks it used. A number below the
+    /// name's next was taken when it was passed, and a taken name stays taken, so starting there
+    /// gives the first free number.
+    fn unique(&mut self, name: String) -> String {
+        if !self.used.contains(&name) {
+            self.used.insert(name.clone());
+            return name;
+        }
+        let number = self.next.entry(name.clone()).or_insert(2);
+        loop {
+            let candidate = format!("{name} ({number})");
+            *number += 1;
+            if !self.used.contains(&candidate) {
+                self.used.insert(candidate.clone());
+                return candidate;
+            }
+        }
     }
-    used.insert(candidate.clone());
-    candidate
 }
 
 /// An element's text, its text and CDATA children joined.
@@ -1379,15 +1425,21 @@ mod tests {
         let text = format!("<gpx version=\"1.1\"><trk>{segments}</trk></gpx>");
         let log = read(&text).unwrap();
         assert_eq!(log.channels.len(), 2 * MAX_TRACKS);
-        assert!(note(&log).starts_with(&format!(
-            "more than this reader reads, left out: 1 segments past the {MAX_TRACKS} read, 1 \
-             track points past the {MAX_POINTS}"
-        )));
+        assert_eq!(
+            note(&log),
+            format!(
+                "more than this reader reads, left out: 1 segment past the {MAX_TRACKS} read, \
+                 holding 1 track point"
+            )
+        );
         // Track points: the cap lowered, as a million would make a slow test.
         let text = gpx(&"<trkpt lat=\"1\" lon=\"2\"/>".repeat(7));
         let log = read_within(&text, MAX_NODES, 5).unwrap();
         assert_eq!(log.channels[0].values.len(), 5);
-        assert!(note(&log).contains("2 track points past the 5"));
+        assert_eq!(
+            note(&log),
+            "more than this reader reads, left out: 2 track points past the 5"
+        );
         // Waypoints and route points, together.
         let places: String = (0..MAX_PLACES)
             .map(|_| "<wpt lat=\"1\" lon=\"2\"/>")
@@ -1399,9 +1451,13 @@ mod tests {
         );
         let log = read(&text).unwrap();
         assert_eq!(log.stated.figures.len(), 2 * MAX_PLACES);
-        assert!(note(&log).ends_with(&format!(
-            "1 waypoints and route points past the {MAX_PLACES}"
-        )));
+        assert_eq!(
+            note(&log),
+            format!(
+                "more than this reader reads, left out: 1 waypoint or route point past the \
+                 {MAX_PLACES}"
+            )
+        );
         // The names of elements not read: those past the cap are counted, not named.
         let names: String = (0..=MAX_UNREAD_NAMES).map(|n| format!("<x{n}/>")).collect();
         let log = read(&gpx(&format!(
@@ -1427,7 +1483,7 @@ mod tests {
         assert_eq!(decimal(" +1.5\n"), Some(1.5));
         assert_eq!(decimal("-.25"), Some(-0.25));
         assert_eq!(decimal("7."), Some(7.0));
-        assert_eq!(decimal("-0"), Some(-0.0));
+        assert!(decimal("-0").is_some_and(|zero| zero == 0.0 && zero.is_sign_negative()));
         for refused in ["", "+", "-.", "1e3", "inf", "0x10", "1 2", "١"] {
             assert_eq!(decimal(refused), None, "{refused}");
         }
@@ -1439,11 +1495,35 @@ mod tests {
 
     #[test]
     fn names_are_made_unique_by_number() {
-        let mut used = HashSet::new();
-        let names: Vec<String> = ["a", "a", "a (2)", "a"]
+        let mut names = Names::default();
+        let given: Vec<String> = ["a", "a", "a (2)", "a", "a (4)", "a", "a"]
             .into_iter()
-            .map(|name| unique(&mut used, name.to_owned()))
+            .map(|name| names.unique(name.to_owned()))
             .collect();
-        assert_eq!(names, ["a", "a (2)", "a (2) (2)", "a (3)"]);
+        assert_eq!(
+            given,
+            [
+                "a",
+                "a (2)",
+                "a (2) (2)",
+                "a (3)",
+                "a (4)",
+                "a (5)",
+                "a (6)"
+            ]
+        );
+        // Each repeat starts from the name's next number, not from 2, so naming the places' cap
+        // of one name takes as many steps as there are names.
+        assert_eq!(names.next.get("a"), Some(&7));
+        let places: String = (0..MAX_PLACES)
+            .map(|_| "<wpt lat=\"1\" lon=\"2\"><name>a</name></wpt>")
+            .collect();
+        let text = format!(
+            "<gpx version=\"1.1\">{places}<trk><trkseg><trkpt lat=\"1\" lon=\"2\"/></trkseg>\
+             </trk></gpx>"
+        );
+        let log = read(&text).unwrap();
+        let last = &log.stated.figures[log.stated.figures.len() - 1];
+        assert_eq!(last.name, format!("waypoint a ({MAX_PLACES}) longitude"));
     }
 }

@@ -3,7 +3,7 @@
  "files": [
   {
    "file": "gpx-1.0-tracker.gpx",
-   "sha256": "967f57932d76fa54e21f563c8527b8f4fde0f1b83536fca2fc74d5c83f7a9c18",
+   "sha256": "6e5b2680de50a82e6b31c4de4492b922ffcd8c84ed458542a7eda344f4abc4dc",
    "version": "1.0",
    "creator": "an invented GPS logger, firmware 0.9",
    "tracks": [

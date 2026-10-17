@@ -38,13 +38,14 @@
 //! five GPS logs: Featherweight's
 //! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]), NMEA 0183 ([`nmea`]), Missile
 //! Works' RTx tracker's `.rtx` file and its CSV and text exports ([`rtx`]) and GPX 1.0 and 1.1,
-//! checked on invented files only ([`gpx`]), every column kept as a channel on its own clock. A table from a logger no other reader knows is read by the units its
-//! header states, each held to the column's name and values, or by a column mapping the caller
-//! gives ([`generic`]). A zip archive of a flight's files is unpacked in
-//! memory, within a bound, and each file read on its own ([`archive`]); an Excel workbook's
-//! sheets are written out as text, each cell as the workbook stores it, and each sheet read on
-//! its own ([`workbook`]); a team flight computer's binary records are read by a layout the caller
-//! states, from a raw file ([`records`]) or a serial console's capture of them as base64
+//! checked on invented files only ([`gpx`]), every column kept as a channel on its own clock. A
+//! table from a logger no other reader knows is read by the units its header states, each held
+//! to the column's name and values, or by a column mapping the caller gives ([`generic`]). A zip
+//! archive of a flight's files is unpacked in memory, within a bound, and each file read on its
+//! own ([`archive`]); an Excel workbook's sheets are written out as text, each cell as the
+//! workbook stores it, and each sheet read on its own ([`workbook`]); a team flight computer's
+//! binary records are read by a layout the caller states, from a raw file ([`records`]) or a
+//! serial console's capture of them as base64
 //! ([`capture`]); the Blue Raven's USB download to a serial terminal, each line held to its
 //! CRC ([`blueraven_usb`]); a course's Teensy data logger, one sensor's reading a line
 //! ([`teensy`]); one team's radio telemetry packets, `255:…:254`, as its flight computer
