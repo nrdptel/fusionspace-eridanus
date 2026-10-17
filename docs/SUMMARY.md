@@ -92,6 +92,7 @@
 - [Flight metrics](physics/metrics.md)
 - [Fin flutter](physics/flutter.md)
 - [Flight-log readings](physics/log-readings.md)
+- [Synthetic flights](physics/synthetic-flights.md)
 
 # Numerical tools
 

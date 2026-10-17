@@ -1,0 +1,209 @@
+{
+  "about": "The synthetic flights' census (M7.2a, ADR-280), written by `cargo xtask synthetic`.",
+  "sets": [
+    {
+      "set": "tuning",
+      "seed": 2026101700,
+      "drawn": 200,
+      "flown": 200,
+      "other_model": 100,
+      "by_design": {
+        "rocketpy-bella-lui": 20,
+        "rocketpy-calisto-getting-started-motor-at-minus-1.255": 23,
+        "rocketpy-calisto-tests-motor-at-minus-1.373": 22,
+        "rocketpy-cavour": 20,
+        "rocketpy-genesis": 15,
+        "rocketpy-juno-iii": 19,
+        "rocketpy-lince": 28,
+        "rocketpy-ndrt-2020-nose-to-tail": 20,
+        "rocketpy-prometheus-2022-generic-motor": 15,
+        "rocketpy-valetudo": 18
+      },
+      "by_logger": {
+        "altos": 33,
+        "eggtimer": 39,
+        "gnss-tracker": 29,
+        "imu-500hz": 38,
+        "perfectflite": 31,
+        "rrc3": 30
+      },
+      "apogee_m": {
+        "min": 472.0,
+        "median": 2820.0,
+        "max": 4410.0
+      },
+      "top_mach": {
+        "min": 0.28,
+        "median": 0.751,
+        "max": 1.11
+      },
+      "top_speed_m_s": {
+        "min": 90.4,
+        "median": 246.0,
+        "max": 367.0
+      },
+      "flight_time_s": {
+        "min": 36.2,
+        "median": 170.0,
+        "max": 610.0
+      },
+      "wind_m_s": {
+        "min": 0.00514,
+        "median": 4.61,
+        "max": 8.88
+      },
+      "tilt_deg": {
+        "min": 0.143,
+        "median": 5.2,
+        "max": 9.93
+      },
+      "elevation_m": {
+        "min": 11.0,
+        "median": 802.0,
+        "max": 1500.0
+      },
+      "temperature_offset_k": {
+        "min": -14.6,
+        "median": -0.585,
+        "max": 14.9
+      },
+      "not_flown": []
+    },
+    {
+      "set": "a",
+      "seed": 2026101701,
+      "drawn": 1000,
+      "flown": 1000,
+      "other_model": 0,
+      "by_design": {
+        "rocketpy-bella-lui": 96,
+        "rocketpy-calisto-getting-started-motor-at-minus-1.255": 104,
+        "rocketpy-calisto-tests-motor-at-minus-1.373": 97,
+        "rocketpy-cavour": 92,
+        "rocketpy-genesis": 109,
+        "rocketpy-juno-iii": 95,
+        "rocketpy-lince": 87,
+        "rocketpy-ndrt-2020-nose-to-tail": 113,
+        "rocketpy-prometheus-2022-generic-motor": 101,
+        "rocketpy-valetudo": 106
+      },
+      "by_logger": {
+        "altos": 185,
+        "eggtimer": 181,
+        "gnss-tracker": 180,
+        "imu-500hz": 171,
+        "perfectflite": 144,
+        "rrc3": 139
+      },
+      "apogee_m": {
+        "min": 412.0,
+        "median": 2780.0,
+        "max": 4740.0
+      },
+      "top_mach": {
+        "min": 0.27,
+        "median": 0.737,
+        "max": 1.17
+      },
+      "top_speed_m_s": {
+        "min": 83.1,
+        "median": 244.0,
+        "max": 374.0
+      },
+      "flight_time_s": {
+        "min": 32.1,
+        "median": 160.0,
+        "max": 617.0
+      },
+      "wind_m_s": {
+        "min": 0.0289,
+        "median": 4.51,
+        "max": 8.93
+      },
+      "tilt_deg": {
+        "min": 0.0011,
+        "median": 4.84,
+        "max": 10.0
+      },
+      "elevation_m": {
+        "min": 0.169,
+        "median": 752.0,
+        "max": 1500.0
+      },
+      "temperature_offset_k": {
+        "min": -15.0,
+        "median": -0.012,
+        "max": 15.0
+      },
+      "not_flown": []
+    },
+    {
+      "set": "b",
+      "seed": 2026101702,
+      "drawn": 1000,
+      "flown": 1000,
+      "other_model": 1000,
+      "by_design": {
+        "rocketpy-bella-lui": 98,
+        "rocketpy-calisto-getting-started-motor-at-minus-1.255": 107,
+        "rocketpy-calisto-tests-motor-at-minus-1.373": 121,
+        "rocketpy-cavour": 97,
+        "rocketpy-genesis": 99,
+        "rocketpy-juno-iii": 97,
+        "rocketpy-lince": 103,
+        "rocketpy-ndrt-2020-nose-to-tail": 84,
+        "rocketpy-prometheus-2022-generic-motor": 98,
+        "rocketpy-valetudo": 96
+      },
+      "by_logger": {
+        "altos": 186,
+        "eggtimer": 169,
+        "gnss-tracker": 155,
+        "imu-500hz": 182,
+        "perfectflite": 132,
+        "rrc3": 176
+      },
+      "apogee_m": {
+        "min": 439.0,
+        "median": 2780.0,
+        "max": 4810.0
+      },
+      "top_mach": {
+        "min": 0.27,
+        "median": 0.746,
+        "max": 1.15
+      },
+      "top_speed_m_s": {
+        "min": 84.6,
+        "median": 246.0,
+        "max": 375.0
+      },
+      "flight_time_s": {
+        "min": 33.3,
+        "median": 171.0,
+        "max": 603.0
+      },
+      "wind_m_s": {
+        "min": 0.00837,
+        "median": 4.64,
+        "max": 8.9
+      },
+      "tilt_deg": {
+        "min": 0.0132,
+        "median": 5.19,
+        "max": 9.99
+      },
+      "elevation_m": {
+        "min": 4.2,
+        "median": 749.0,
+        "max": 1500.0
+      },
+      "temperature_offset_k": {
+        "min": -15.0,
+        "median": 0.0703,
+        "max": 15.0
+      },
+      "not_flown": []
+    }
+  ]
+}

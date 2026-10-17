@@ -23,3 +23,12 @@ wasm = true
 hpr-flightdata.workspace = true
 hpr-sim.workspace = true
 hpr-analysis.workspace = true
+# The synthetic flights (M7.2a): the designs, their motors and drag, the site's air and frame.
+hpr-aero.workspace = true
+hpr-atmos.workspace = true
+hpr-core.workspace = true
+hpr-design.workspace = true
+hpr-motor.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
