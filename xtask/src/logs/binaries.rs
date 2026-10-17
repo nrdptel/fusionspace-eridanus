@@ -228,8 +228,8 @@ fn digits_15(value: f64) -> Option<(i64, i32)> {
     Some((digits, exponent - 14))
 }
 
-/// A value's 15 significant digits as the AltiMAX export writes them: rounded to 18
-/// significant digits, then half up to 15; as [`digits_15`] gives them. Rounding once instead
+/// A value's 15 significant digits as the AltiMAX export writes them, by the rule fitted to its
+/// sample: rounded to 18 significant digits, then half up to 15; as [`digits_15`] gives them. Rounding once instead
 /// moves a value lying just under a tie at the 18th digit, as a clock summed in doubles often
 /// does: the sum of 347 steps of 5 ms is 1.734 999 999 999 984 998 7, which the export writes
 /// 1.734 999 999 999 99, not ...98.
@@ -898,8 +898,9 @@ pub(super) fn markdown(checks: &Checks) -> String {
              same flight beside it, read by the export's: *Records* and *Rows* count each; \
              *Stored* compares the values the file stores that the export writes unchanged, both \
              pressures, the event code and the voltage channel, bit for bit, as compared / \
-             differing. The rest are written as the export writes a value, its 18 significant \
-             digits rounded half up to 15, and compared with the export's 15, as compared / \
+             differing. The rest are written by the rule fitted to the sample for how the export \
+             writes a value, its 18 significant digits rounded half up to 15, and compared with \
+             the export's 15, as compared / \
              differing / the most, in units of the 15th digit: the acceleration; each voltage \
              channel's counts times the export's factor, {} on channels 1 and 5 and {} on 2 to \
              4, which no document states, as the double nearest the exact product; the clock, \
@@ -1066,7 +1067,7 @@ mod tests {
         );
     }
 
-    /// Each first rounding on the 347-step sum: 16 to 18 digits round its ...984 999 9 up, 15,
+    /// Each first rounding on the 347-step sum: 16 to 18 digits round its ...984 998 7 up, 15,
     /// 19 and 20 don't. And the distance from the rule's tie of the double just under it.
     #[test]
     fn first_roundings_and_a_ties_distance() {
@@ -1129,6 +1130,11 @@ mod tests {
         assert!(!clock_on_tie(under.next_down(), theirs));
         // A value the export writes the same is not on a tie.
         assert!(!clock_on_tie(theirs, theirs));
+        // From over the tie: the next double down writes the export's lower digits.
+        let lower = 122.005_000_000_015;
+        assert_ne!(export_digits(under.next_up()), digits_15(lower));
+        assert!(clock_on_tie(under.next_up(), lower));
+        assert!(!clock_on_tie(under.next_up().next_up(), lower));
     }
 
     #[test]

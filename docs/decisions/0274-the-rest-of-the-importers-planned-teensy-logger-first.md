@@ -426,7 +426,7 @@ decisions.
      digits and that half up to 15 (rounded once, 11 clock values differ in the 15th digit;
      first to 16, 17, 19 or 20 digits, 1,245, 109, 11 and 11; to 18, the row on a tie), and its
      volts are the 64-bit float nearest the exact product (the count times the factor's own float
-     puts 31 off). With both, every value matches but that clock row, at 122.005 s,
+     puts 31 off). With both, every value compared matches but that clock row, at 122.005 s,
      3.5 × 10⁻⁴ of a step of a float under the rule's tie, which the next float up matches: a
      one-bit difference between the reader's running sum and the software's would decide it, and
      the file can't show whether there is one. The check counts such rows apart (*On a tie* in

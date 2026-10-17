@@ -3209,8 +3209,9 @@ The [survey's report](#how-it-was-checked) prints these under the files' anonymi
 numbers. It holds each value to 15 significant digits, as Excel does, but not rounded there once:
 rounded first to 18 digits, and that half up to 15. Rounded once, 11 clock values differ in the
 15th digit; rounded first to 16, 17, 19 or 20 digits, 1,245, 109, 11 and 11; to 18, only the row
-on a tie below. The other 10 each lie just under a tie at the 18th digit, as a sum of 5 ms steps
-in 64-bit floats often does: 347 steps make 1.734 999 999 999 984 998 7 s, which the rule writes
+on a tie below. The other 10 each lie just under halfway between two 15-digit values, close
+enough that rounding to 18 digits lands on the halfway point, which then rounds up, as a sum of
+5 ms steps in 64-bit floats often does: 347 steps make 1.734 999 999 999 984 998 7 s, which the rule writes
 1.734 999 999 999 99 and rounding once 1.734 999 999 999 98. And the volts are the 64-bit float
 nearest the count times the factor, worked exactly: the count times the factor's own float puts
 31 off. The row on a tie, at 122.005 s, lies 3.5 × 10⁻⁴ of a step of a float (a step is
