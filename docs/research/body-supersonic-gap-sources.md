@@ -34,8 +34,8 @@ blunt tip acts only through the pressures behind it. No source found measures a 
   nothing the table resolves at Mach 1.5 and 2 (0.048 and 0.053 per degree both; its last digit is
   about ±2%), −1.7% at Mach 3 (0.060 to 0.059, one step in that digit) and −9.5% at Mach 4 (0.063
   to 0.057). M9 and M11 are closest to the Arcas Robin and agree at Mach 2 and 3, the only speeds
-  both were tested at, so the Mach 4 figure rests on M9 alone; shorter midsections show up to five
-  times the change (−9.1% on M5 at Mach 3).
+  both were tested at, so the Mach 4 figure rests on M9 alone; shorter midsections show more than
+  five times the change (−9.1% on M5 at Mach 3).
 - **A design manual's theory.** Mason and others (NSWC TR 81-156, 1981, p. 112): "blunting the
   nose up to a bluntness ratio of RN/Rref = .1 has a negligible effect" on `C_Nα`. Its figure, for
   blunted cones, is small-perturbation and second-order shock-expansion theory, the family of
