@@ -5494,15 +5494,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     if !unread.is_empty() {
         return Err(format!(
-            "{} file(s) of a family with a reader not read:\n{}",
+            "{} file(s) not read, or of a family with no reader:\n{}",
             unread.len(),
             unread.join("\n")
         ));
     }
     if check {
         println!(
-            "logs: the committed report reproduces, and every file of a family with a reader is \
-             read"
+            "logs: the committed report reproduces, every file's family has a reader, and every file \
+             of one is read"
         );
     }
     Ok(())
@@ -6473,7 +6473,7 @@ fn altimax_unread(files: &[AltimaxFile]) -> Vec<String> {
         .collect()
 }
 
-/// Reads every sample; the report, and the files of a family with a reader that weren't read.
+/// Reads every sample; the report, and the files that weren't read or whose family has no reader.
 fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>) {
     let mut families: BTreeMap<String, FamilyRow> = BTreeMap::new();
     let mut files = Vec::new();
@@ -6679,7 +6679,15 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             continue;
         }
         if sample.family == binaries::DUMP_FAMILY {
-            // A dump holds recordings: each read as a record of its own, all pinned together.
+            // A dump holds recordings: each read as a record of its own, all pinned together. The
+            // importer must take it too, so that a user's own file of the layout is read.
+            if hpr_flightdata::import::detect(&sample.bytes) != Some(LogFormat::EntacoreDump) {
+                unread.push(format!(
+                    "  {} ({}, {id}): the importer doesn't recognize it as an AIM dump",
+                    sample.path.display(),
+                    sample.family
+                ));
+            }
             let (outcome, record) = match hpr_flightdata::entacore_raw::read_dump(&sample.bytes) {
                 Ok(logs) => {
                     row.read += 1;

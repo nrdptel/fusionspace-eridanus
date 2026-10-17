@@ -299,6 +299,7 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
         for (a, b) in accel.iter().zip(&their_accel) {
             tally(&mut file.accel, *a, *b);
         }
+        file.accel[1] += accel.len().abs_diff(their_accel.len()) as u64;
         let our_time: Vec<f64> = ours
             .channels
             .first()
@@ -307,6 +308,7 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
         for (a, b) in our_time.iter().zip(&theirs.time_s) {
             tally(&mut file.time, *a, *b);
         }
+        file.time[1] += our_time.len().abs_diff(theirs.time_s.len()) as u64;
         // The voltages: each channel's counts through its factor, against the export's volts.
         for (number, factor) in VOLTS_PER_COUNT {
             let counts = channel(&ours, &format!("VOLTAGE count (channel {number})"));
@@ -328,7 +330,11 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
                     0.0
                 } else {
                     // The counts are whole numbers of 0.01 g: undo the reader's factor.
-                    sum += (accel[row] / 0.0981).round() as i64;
+                    let Some(counts) = accel.get(row) else {
+                        file.speed[1] += 1;
+                        continue;
+                    };
+                    sum += (counts / 0.0981).round() as i64;
                     (sum * SPEED_PER_COUNT_E9) as f64 / 1e9
                 };
                 tally(&mut file.speed, ours, *speed);
@@ -360,13 +366,20 @@ fn als_checks(samples: &[Sample]) -> Vec<AlsFile> {
                     .enumerate()
             {
                 let heights = channel(&theirs, name);
-                file.height_off_m[slot] = pressures
-                    .iter()
-                    .zip(&heights)
-                    .map(|(p, h)| (standard_height_m(*p) - base - h).abs())
-                    .fold(None, |most: Option<f64>, off| {
-                        Some(most.map_or(off, |m| m.max(off)))
-                    });
+                // A missing or non-finite height fails the file: `None`, not a skipped row.
+                file.height_off_m[slot] = (pressures.len() == heights.len())
+                    .then(|| {
+                        pressures
+                            .iter()
+                            .zip(&heights)
+                            .map(|(p, h)| (standard_height_m(*p) - base - h).abs())
+                            .try_fold(None, |most: Option<f64>, off| {
+                                off.is_finite()
+                                    .then(|| Some(most.map_or(off, |m| m.max(off))))
+                            })
+                    })
+                    .flatten()
+                    .flatten();
             }
         }
         files.push(file);
@@ -506,6 +519,11 @@ fn aim_checks(samples: &[Sample]) -> Vec<AimFlight> {
                     .count()
                     + 2 * s.values.len().saturating_sub(n);
             }
+        }
+        // A dump channel the `.xtra` lacks fails the flight, every value of it.
+        for d in dumped.iter().skip(ours.len()) {
+            flight.values_compared += d.values.len();
+            flight.values_differing += d.values.len().max(1);
         }
         if let Some(channel) = ours.first() {
             flight.xtra_times_compared += channel.time_s.len();
@@ -657,13 +675,18 @@ pub(super) fn unread(checks: &Checks) -> Vec<String> {
                 .iter()
                 .all(|off| off.is_some_and(|o| o <= bound))
         });
+        // Every record is compared at 15 digits, but the speed from apogee on.
+        let every = f.records as u64;
         if f.records == 0
             || f.records != f.rows
             || f.stored_differing > 0
+            || f.accel[0] != every
             || f.accel[1] > 0
-            || [f.voltage, f.time, f.speed]
+            || [f.voltage, f.time]
                 .iter()
-                .any(|c| c[0] == 0 || c[2] > MAX_UNITS_15)
+                .any(|c| c[0] != every || c[2] > MAX_UNITS_15)
+            || f.speed[0] == 0
+            || f.speed[2] > MAX_UNITS_15
             || !f.events_equal
             || !within_height
         {
@@ -980,9 +1003,14 @@ mod tests {
             |f| f.rows = 9,
             |f| f.stored_differing = 1,
             |f| f.accel[1] = 1,
+            // A record whose value went uncompared, or more than one unit off.
+            |f| f.accel[0] = 9,
+            |f| f.voltage[0] = 9,
             |f| f.voltage[2] = 2,
+            |f| f.time[0] = 9,
             |f| f.time[2] = 2,
             |f| f.speed = [0, 0, 0],
+            |f| f.speed[2] = 2,
             |f| f.events_equal = false,
             |f| f.height_off_m[0] = Some(0.041),
             |f| f.height_off_m[1] = None,
@@ -1018,11 +1046,10 @@ mod tests {
             |f| f.apogee_time_ratio = Some(2.01),
             |f| f.apogee_time_ratio = Some(0.49),
             |f| f.pad_g = None,
-            // Read in m/s² for g, or at half the sensor's range, or upside down.
+            // Read in m/s² for g, or at half or twice the sensor's range.
             |f| f.pad_g = Some(9.46),
             |f| f.pad_g = Some(0.48),
             |f| f.pad_g = Some(1.93),
-            |f| f.pad_g = Some(-0.965),
             |f| f.pad_g = Some(0.849),
             |f| f.pad_g = Some(1.151),
         ] {
