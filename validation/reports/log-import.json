@@ -3558,7 +3558,8 @@
         {
           "file": "419f0ec872abda2d",
           "column": 8,
-          "fixes": 1
+          "fixes": 1,
+          "could_take": false
         }
       ]
     }

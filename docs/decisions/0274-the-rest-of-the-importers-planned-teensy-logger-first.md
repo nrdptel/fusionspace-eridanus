@@ -342,21 +342,24 @@ showed, measured, and the decisions.
    team's board's two accelerometer axes read 0 at rest, with gravity taken out, and the axial
    one, in a probe while the checks were built, read with the sign opposite to the other
    loggers' in the rocket, so they are kept too. So are words, packed fields and counts.
-5. **A track's own speed holds its GPS altitude and its clock by its vertical speed; its ground
-   speed holds no unit** ([ADR-277](0277-a-tracks-own-speed-held-by-its-vertical-speed.md)). In the last seconds before apogee a coasting rocket slows at g plus
-   the vertical share of its drag, ½ρC_DA/m · v · v_z, which falls to 0 at apogee as v_z does.
-   A 54 mm rocket of 1.5 kg with C_D 0.5 at ρ = 1.1 kg/m³ climbs at 50.8 m/s 5 s before apogee
-   straight up, its drag adding 0.11 g there, and 0.33 g carrying 100 m/s across at apogee; a
-   parabola fitted to its fixes once a second reads 1.031 g and 1.135 g (a test pins both). The
-   check takes the track's highest fix as apogee, fits a parabola to the fixes in the 5 s before
-   it, the highest included, at least 4, an altitude repeated over consecutive rows counted
-   once, and holds its deceleration over g to 0.6 to 5/3: an altitude in feet stated as meters
-   reads 3.28 times too high, and a clock 10 times off moves it 100 times. The club's GPS track
-   (2 files, the same fixes) slows at 0.9925 g. The survey fails a track held by a place check
-   whose GPS altitude has the 4 fixes and takes no such check; the radio telemetry's receiver
-   lost its fix on the way up, leaving 1 fix in the window, the highest itself (the report
-   prints the count), so its GPS altitude is held by another logger's; the other two tracks
-   have no altitude.
+5. **A track's own speed holds its GPS altitude by its vertical speed; its ground speed holds no
+   unit** ([ADR-277](0277-a-tracks-own-speed-held-by-its-vertical-speed.md)). In the last
+   seconds before apogee a coasting rocket slows at g plus the vertical share of its drag,
+   ½ρC_DA/m · v · v_z, which falls to 0 at apogee as v_z does. A 54 mm rocket of 1.5 kg with
+   C_D 0.5 at ρ = 1.1 kg/m³ climbs at 50.8 m/s 5 s before apogee straight up, its drag adding
+   0.11 g there, and 0.33 g carrying 100 m/s across at apogee; a parabola fitted to its fixes
+   once a second reads 1.031 g and 1.135 g (a test pins both). The check takes the track's
+   highest fix as apogee, fits a parabola to the fixes in the 5 s before it, the highest
+   included, an altitude repeated over consecutive rows counted once, and holds its
+   deceleration over g to 0.6 to 5/3: an altitude in feet stated as meters reads 3.28 times too
+   high. It needs at least 4 fixes that set the curvature about as well as 5 fixes 1 s apart,
+   at most 1/12 s⁻⁴ of variance per square meter of noise, so that noise can't decide. It
+   doesn't hold the clock, as a misread clock changes which fixes the window takes; the clock
+   checks hold it. It assumes a coast of at least 5 s. The club's GPS track (2 files, the same
+   fixes) slows at 0.9925 g. The survey fails a track held by a place check whose GPS altitude
+   could take the check and takes none; the radio telemetry's receiver lost its fix on the way
+   up, leaving 1 fix in the window, the highest itself (the report prints the count), so its GPS
+   altitude is held by another logger's; the other two tracks have no altitude.
    The survey also measures each track's ground speed from each fix to the next the receiver
    reports (`cargo xtask logs`, the report's paragraph on a track's own speed): the
    great-circle distance over the step of its own clock, a fix repeated over rows counted once,
@@ -397,6 +400,5 @@ each of their 62 checks passes:
 
 A test for each check passes an invented flight read in its right unit and fails it read in a
 wrong one: seconds as milliseconds, hectopascals as pascals, meters as feet, m/s² as g and g as
-m/s², m/s as ft/s, degrees as radians, and a track's meters as feet and seconds as
-milliseconds. Six files are labelled for M7.1c23, four of them
+m/s², m/s as ft/s, degrees as radians, and a track's meters as feet and feet as meters. Six files are labelled for M7.1c23, four of them
 unread.

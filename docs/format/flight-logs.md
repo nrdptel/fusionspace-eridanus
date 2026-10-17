@@ -725,7 +725,8 @@ from [M7.1c18](../decisions-and-roadmap.md#m7-1c18) (a course's Teensy logger), 
 from [M7.1c21](../decisions-and-roadmap.md#m7-1c21) (altimeters' other text), the
 accelerometer's from [M7.1c20](../decisions-and-roadmap.md#m7-1c20) (FIP sheets); the overlap,
 the clock rate and the track's own speed are new checks here. The pad's 50 kPa is the standard
-atmosphere's pressure 5.6 km (18,300 ft) up, above any launch site.
+atmosphere's pressure 5.6 km (18,300 ft) up, above any launch site. Here a *band* is the range
+of values a check accepts, and a *fix* is one position a GPS receiver reports.
 
 | Reading | Check | Band | A unit it refuses |
 |---|---|---|---|
@@ -735,7 +736,7 @@ atmosphere's pressure 5.6 km (18,300 ft) up, above any launch site.
 | A pressure | its reading on the pad | 50 to 110 kPa | hectopascals for pascals, 100 times off |
 | An altitude | its rise over the standard atmosphere's height of the file's pressure, another logger's rise, or the apogee the flyer states | 0.6 to 5/3 | feet for meters, 3.28 times off |
 | A vertical speed | the altitude's change between two readings over the time between them, against the logged speed, from liftoff to apogee where the speed tops 10 m/s (33 ft/s); their median | 0.6 to 5/3 | ft/s for m/s |
-| A track's altitude, and the clock, by the track's own speed | how fast the track's vertical speed falls over the 5 s before its highest fix, in g, from a parabola fitted to those fixes ([below](#a-tracks-own-speed)) | 0.6 to 5/3 | feet for meters, 3.28 times off; a clock 10 times off, which moves it 100 times |
+| A GPS track's altitude | how fast the track's own vertical speed falls over the 5 s before its highest fix, in g, from a parabola fitted to those fixes ([below](#a-tracks-own-speed)) | 0.6 to 5/3 | feet for meters, 3.28 times off |
 | An accelerometer | its median magnitude over the recording, mostly at rest on the pad or under a parachute | 0.85 to 1.15 g | g for m/s², 9.8 times off; ft/s², 3.28 |
 | A latitude and a longitude | each on its own: the median size of its readings other than 0, past ±π/2 for a latitude and ±π for a longitude | | radians stated as degrees, which can't lie past them |
 
@@ -771,46 +772,68 @@ lists each file's checks, each to 4 decimals.
 
 #### A track's own speed
 
-A GPS track's own vertical speed holds the track's GPS altitude and its clock. In the last
-seconds before apogee a coasting rocket slows at g, plus the vertical share of its drag, which
-falls to 0 at apogee as the vertical speed does. The check takes the track's highest fix as
-apogee, fits a parabola, h = a + bτ + cτ² (τ the time from the fixes' mean), to the fixes in the
-5 s before it, the highest included, and takes how fast the vertical speed falls, −2c, over g.
-Here a *fix* is one position the receiver reports, and a *band* is the range of values a check
-accepts. It checks a unit within a wide band; it doesn't measure drag, which a receiver's noise
-can hide.
+A GPS receiver gives an altitude and a time but no speed this check could trust, and the check
+needs none: gravity is its ruler. In the last seconds before apogee a coasting rocket slows at
+g, 9.807 m/s² (32.2 ft/s²), plus a little drag, so a track's altitudes there, fitted with a
+parabola, must slow at about 1 g. In a wrong unit they slow 3.28 times too fast (feet stated as
+meters) or too slowly (meters stated as feet). The check holds a unit within a wide band; it
+doesn't measure drag, which a receiver's noise can hide.
 ([ADR-277, a track's own speed](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0277-a-tracks-own-speed-held-by-its-vertical-speed.md)
 decided it.)
 
-- *The fixes.* An altitude repeated over consecutive rows, as a logger writes rows faster than
-  its receiver updates, counts once, at its first row. Of several equal highest altitudes that
-  aren't consecutive, the last is the highest. The check needs 4 fixes in the window, one more
-  than the parabola's three terms; a receiver that reports once a second gives 5 or 6.
-- *Why 5 s.* Drag's vertical share is ½ρC_DA/m · v · v_z, with v the speed and v_z its vertical
-  part. Take a 54 mm (2.1 in) rocket of 1.5 kg (3.3 lb), with a drag coefficient C_D of 0.5, in
-  air of density ρ 1.1 kg/m³. Coasting straight up, it climbs at 50.8 m/s (167 ft/s) 5 s before
-  apogee, a little more than g × 5 s, and its drag adds 0.11 g there; carrying 100 m/s
+- *The fit.* The check takes the track's highest fix as apogee and fits h = a + bτ + cτ², by
+  least squares, to the fixes in the 5 s before it, the highest included, τ being the time from
+  the fixes' mean. Then −2c is how fast the vertical speed falls, and the check divides it by g.
+  An altitude repeated over consecutive rows, as a logger writes rows faster than its receiver
+  updates, counts once, at its first row; so do two fixes at one altitude, which near apogee
+  moves the top a step early. Of several equal highest altitudes that aren't consecutive, the
+  last is the highest.
+- *Enough fixes, spread enough.* The check needs at least 4 fixes, one more than the parabola's
+  three terms, that set its curvature c about as well as 5 fixes 1 s apart. The measure is
+  [(XᵀX)⁻¹]_cc, the variance of c for each square meter of independent noise on a fix, at most
+  1/12 s⁻⁴: 5 fixes 1 s apart give 1/14, and 1/12 lets them come 4% closer together. The
+  reading's standard error is then at most 0.0589 g per meter of noise. With 3 m (9.8 ft) of
+  noise on each fix, a right unit reading 1.03 g lies 2.4 standard errors above the band's foot,
+  and the same fixes in feet stated as meters 3.0 past its top. Four fixes over the last 3 s, as
+  a receiver that lost its fix on the way up leaves, give 1/4 s⁻⁴, where noise would decide, so
+  such a track doesn't take the check.
+- *Why 5 s, and the band.* Drag's vertical share is ½ρC_DA/m · v · v_z: ρ the air's density,
+  C_D the drag coefficient, A the frontal area, m the mass, v the speed and v_z its vertical
+  part. It falls to 0 at apogee as v_z does. Take a 54 mm (2.1 in) rocket of 1.5 kg (3.3 lb),
+  C_D 0.5, in air of 1.1 kg/m³. Coasting straight up, it climbs at 50.8 m/s (167 ft/s) 5 s
+  before apogee, a little more than g × 5 s, and its drag adds 0.11 g there; carrying 100 m/s
   (328 ft/s) across at apogee, it adds 0.33 g. Fitted to its fixes once a second, the parabola
-  reads 1.031 g straight up and 1.135 g carrying that speed across (a test pins both). Leaving the
-  band takes 2/3 g more over the window, 6 times this rocket's share at the start of a straight
-  climb's window. The share grows as a rocket's mass for its frontal area falls.
+  reads 1.031 g straight up and 1.135 g carrying that speed across (the test
+  `a_coast_with_drag_reads_inside_the_band` pins both), where leaving the band's top takes
+  1.667 g. A longer window would let drag grow; a shorter one holds too few fixes once a second.
+  Drag only adds, so a right unit reads low only by noise or a receiver's lagging filter, which
+  fail the check rather than pass a wrong unit.
+- *What it assumes.* A coast of at least 5 s, which a rocket has if it climbs 123 m (402 ft) or
+  more after burnout, ½g × (5 s)². A motor still burning in the window would make the fit read
+  anything. The club's track climbs far past that.
+- *It doesn't hold the clock.* The window is read on the file's own clock, so a misread clock
+  changes which fixes it takes: read 10 times too short, it would take 50 s of fixes, the pad
+  and the boost among them, and the fit could land anywhere. The clock checks hold every held
+  file's clock, so the window is the right one.
 - *A worked example*, with invented numbers. A receiver reports once a second, and its fixes 5,
   4, 3, 2 and 1 s before its highest lie ½gτ² below it, from 122.58 m (402.2 ft) at 5 s to
-  4.90 m (16.1 ft) at 1 s. The parabola through the six has c = −4.903 m/s², so −2c is
-  9.807 m/s², 1.000 g. Written in feet and mapped in meters, the same fixes read 3.281 g, and
-  fail; with a clock in seconds mapped as milliseconds, each second reads as 1 ms, and they read
-  1,000,000 g.
+  4.90 m (16.1 ft) at 1 s. The least-squares parabola through the six fixes, the highest and the
+  five before it, has c = −4.903 m/s², so −2c is 9.807 m/s², 1.000 g. Written in feet and mapped
+  in meters, the same fixes read 3.281 g; written in meters and mapped in feet, 0.305 g. Both
+  fail.
 - *Where it runs.* On the club's GPS track (2 files, the same fixes with and without a header),
-  which slows at 0.9925 g. The survey fails a track held by the latitude-and-longitude check
-  whose GPS altitude has 4 fixes in the window and takes no such check. Of the other 3 of the
-  4 tracks, the radio telemetry's receiver lost its fix on the way up, leaving 1 fix in the
-  window, the highest itself, so its GPS altitude is held by another logger's instead; the other
-  2 have no altitude.
+  which slows at 0.9925 g. That is a little under the 1 g a coast can't go below, within the
+  fit's noise. Another logger's rise holds the same altitude too. A track that the
+  latitude-and-longitude check holds, and whose GPS altitude could take this check, must take
+  it, or the survey fails. Of the other 3 of the 4 tracks, the radio telemetry's receiver lost
+  its fix on the way up, leaving 1 fix in the window, the highest itself, so another logger's
+  rise alone holds its GPS altitude. The other 2 have no altitude.
 
-**A track's ground speed holds no unit.** The survey also measures each track's ground speed
-from each fix to the next: the distance along the Earth's surface between them (the great-circle
-distance) over the step of the track's own clock, a fix the logger repeats over several rows
-counted once.
+#### A track's ground speed holds no unit
+
+The survey also measures each track's ground speed from each fix to the next: the distance along
+the Earth's surface between them (the great-circle distance) over the step of the track's own
+clock, a fix the logger repeats over several rows counted once.
 
 - *What was measured.* Over the 4 tracks held by a latitude-and-longitude check (5 files, two of
   them the same fixes), each track's median lies 0.3460 to 7.3836 m/s (1.1352 to 24.2244 ft/s),
