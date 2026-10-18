@@ -8,6 +8,7 @@ use hpr::hpr_flightdata::custom;
 use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::FlightLog as Record;
+use hpr::hpr_flightdata::readings;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -210,6 +211,17 @@ impl FlightLog {
     #[getter]
     fn notes(&self) -> Vec<String> {
         self.log.notes.clone()
+    }
+
+    /// The readings taken from the log on its own, as ``hpr analyze`` takes them: a dict of
+    /// ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration`` and ``landing``, each with
+    /// ``status`` ``"read"`` and its value, the bound its error stays within, the height track it
+    /// came from (``source``), whether it was measured or derived (``provenance``) and how it was
+    /// read (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``. Beside them,
+    /// how they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the
+    /// running median's ``median_window_s`` and ``peak_bound_m``, and ``pad_altitude_m``.
+    fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        to_python(py, &readings::read(&self.log))
     }
 
     /// The whole record as a dict of lists, gaps as ``None``: the document ``hpr analyze

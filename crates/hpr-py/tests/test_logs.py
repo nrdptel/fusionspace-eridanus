@@ -97,6 +97,61 @@ def test_an_own_loggers_files_read_as_the_command_reads_them(repo, hpr_cli):
     assert "4 channels" in repr(gps)
 
 
+def analyzed(hpr_cli, log, by=None, description=None):
+    """The document `hpr analyze --json` prints."""
+    args = [str(hpr_cli), "analyze", str(log), "--json"]
+    if by is not None:
+        args += [f"--{by}", str(description)]
+    run = subprocess.run(args, capture_output=True, text=True, check=False)
+    assert run.returncode == 0, run.stderr
+    return json.loads(run.stdout)
+
+
+READINGS = ["liftoff", "apogee", "max_speed", "max_acceleration", "landing"]
+METHOD = ["source", "sample_interval_s", "step_m", "median_window_s", "peak_bound_m", "pad_altitude_m"]
+
+
+def test_the_readings_are_the_commands(repo, hpr_cli):
+    logs = [(log, by, repo / OWN_LOGGER / name) for log, by, name in OWN_LOGS]
+    logs.append(("../synthetic-pnut.pf2", None, None))
+    for log, by, description in logs:
+        path = repo / OWN_LOGGER / log
+        read = (
+            hpr.FlightLog.read(path, **{by: description})
+            if by is not None
+            else hpr.FlightLog.read(path)
+        )
+        readings = read.readings()
+        document = analyzed(hpr_cli, path, by, description)
+        for name in READINGS:
+            assert readings[name] == document[name], f"{log}: {name}"
+        for name in METHOD:
+            assert readings[name] == document["method"][name], f"{log}: {name}"
+    # The invented flight's apogee is 1,345.7 ft above the pad, between samples: the reading,
+    # from the barometric altitude the mapping marks, is within its bound of it.
+    flight = hpr.FlightLog.read(
+        repo / OWN_LOGGER / "flight.csv", mapping=repo / OWN_LOGGER / "flight.mapping.json"
+    ).readings()
+    apogee = flight["apogee"]
+    assert apogee["status"] == "read"
+    assert (apogee["source"], apogee["provenance"], apogee["method"]) == (
+        "barometer",
+        "measured",
+        "highest_filtered",
+    )
+    assert abs(apogee["height_m"] - 1345.7 * 0.3048) <= apogee["bound_m"]
+    # A GPS tracker's altitude gives no reading: its receiver lags a climb.
+    gps = hpr.FlightLog.read(
+        repo / OWN_LOGGER / "gps-track.csv", mapping=repo / OWN_LOGGER / "gps-track.mapping.json"
+    ).readings()
+    assert gps["source"] == "gnss"
+    assert gps["apogee"] == {
+        "status": "withheld",
+        "reason": "receiver_lag",
+        "detail": gps["apogee"]["detail"],
+    }
+
+
 def test_a_log_read_by_its_own_reader_is_the_commands(repo, hpr_cli):
     path = repo / "validation/fixtures/logs/synthetic-pnut.pf2"
     read = hpr.FlightLog.read(path)
