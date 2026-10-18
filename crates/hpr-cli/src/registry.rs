@@ -91,7 +91,7 @@ pub fn availability(name: &str) -> Option<Availability> {
         }),
         "analyze" => Some(Availability::Available {
             reads: vec![
-                "a PerfectFlite `.pf2` flight log".to_owned(),
+                "a flight log in any layout HPR Sim reads, by its own reader".to_owned(),
                 "another logger's table by a column mapping".to_owned(),
                 "binary records or a console capture by a record layout".to_owned(),
             ],

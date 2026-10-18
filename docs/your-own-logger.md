@@ -10,7 +10,7 @@ such a file by the mapping or layout you write, into the same
 [record](format/flight-logs.md#the-record) every other log reads into: each column of numbers but
 the clock and those you skip a channel on the logger's clock, its values in SI units (degrees for
 angles) where your mapping or layout states a unit, and, where a mapping marks one, the barometric
-altitude above the pad as the primary track, the one the readings will be taken from. Every
+altitude above the pad as the primary track, the one the readings are taken from. Every
 example below reads one invented flight's files, its logger's and its GPS tracker's
 ([evidence row G11](evidence.md#g11)); it flew
 nowhere.
@@ -22,10 +22,11 @@ nowhere.
 > The tests read this page's files, and each sample log the project reads by a stated mapping or
 > layout where the samples are present (they are other people's, so CI reads this page's only),
 > from the command line, from Python and from the Rust library, and hold the three records equal,
-> channel by channel. The readings (liftoff, apogee, the top speed, landing) aren't taken from
-> these logs yet: they wait for [M7.2, readings on other loggers](decisions-and-roadmap.md#m7-2).
-> Until then, go by the logger's own figures, and check a unit against a known height, such as the
-> launch site's elevation from a GPS altitude, before trusting it.
+> channel by channel. The readings (liftoff, apogee, the top speed, landing) are taken from these
+> logs as from any other, each within a bound held on HPR Sim's synthetic flights
+> ([M7.2b, readings on every logger](decisions-and-roadmap.md#m7-2b)), but those bounds hold only
+> if the units are right. Check a unit against a known height, such as the launch site's elevation
+> from a GPS altitude, before trusting it, and go by the logger's own figures for a record.
 
 ## The logger
 
@@ -108,7 +109,7 @@ why. A column it can't read stays in the record, its numbers unconverted.
 Save the printed mapping to a file, `hpr analyze flight.csv --print-mapping > flight.mapping.json`,
 and give `Alt` what the header leaves out: its quantity, `altitude_above_ground`, and its unit,
 `ft`. Then mark it as the primary track, `"primary": 1`, its column counted from 0: the barometric
-altitude above the pad that the readings will be taken from. A mapping or layout file may be
+altitude above the pad that the readings are taken from. A mapping or layout file may be
 UTF-8, or UTF-16 with its byte-order mark, as Windows PowerShell 5.1 saves what `>` sends it. The
 file the folder holds:
 
@@ -206,10 +207,14 @@ More: https://hpr.fusionspace.co/your-own-logger.html
 <!-- cli: end -->
 
 The primary track, `Alt` in meters, holds every row; it is a channel too, beside the pressure
-and the acceleration, and the clock is each channel's `time_s`. The readings are withheld, each
-with the reason: they were set and tested on PerfectFlite's logs, and wait for
-[M7.2](decisions-and-roadmap.md#m7-2) on every other logger. `--json` prints the same as one JSON
-document. `--record` prints the whole record instead, every sample of every channel in SI units
+and the acceleration, and the clock is each channel's `time_s`. The readings come from it, each
+with the bound its error stays within
+([Flight-log readings](physics/log-readings.md#what-each-bound-holds)). The invented flight peaks
+at 1,345.7 ft between samples, within the apogee's bound of the reading. Two readings are withheld,
+each with the reason: the top speed, as a sample every 0.2 s is too few for its 0.5 s fit, and the
+top acceleration, which HPR Sim doesn't take from an accelerometer yet
+([M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c)). `--json` prints the same as
+one JSON document. `--record` prints the whole record instead, every sample of every channel in SI units
 (degrees for angles),
 as one JSON document whose
 [schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-record.schema.json)
@@ -277,7 +282,9 @@ note: 251 binary records read by the caller's layout, written out as a table and
 <!-- cli: end -->
 
 A name says a unit, not where the zero is, so `Alt (ft)` reads as an altitude of unstated zero,
-and the records have no primary track: a layout can't mark one yet. The serial console's capture
+and the records have no primary track: a layout can't mark one yet. So the readings come from the
+pressure, turned into a height by the 1976 standard atmosphere and zeroed on the pad, as the line
+`readings from the pressure` says. The serial console's capture
 holds the same records, read by the same layout with one more field, the block's name:
 `"block": "flight"`. A capture read by a layout that names no block is refused, its blocks listed.
 
@@ -354,6 +361,33 @@ The records' log has no samples on its primary track, as a layout marks none. Ea
 record as `hpr analyze --record` writes it, without its `tool`, a gap `None`. A mapping or a
 layout that fails raises `HprError` naming the field or the column, in the command line's words.
 
+`log.readings()` takes the readings, as `hpr analyze` does, and returns them as a dict: under
+`liftoff`, `apogee`, `max_speed`, `max_acceleration` and `landing`, each reading with its
+`status`, `"read"` or `"withheld"`. A reading read holds its value, its bound (`bound_m`,
+`bound_s` or `bound_m_s`), its `source`, its `provenance` and its `method`; one withheld holds its
+`reason` and a `detail` in words. Beside them, the track's `source`, `sample_interval_s` and
+`step_m`, the median's `median_window_s` and `peak_bound_m`, and `pad_altitude_m` say how they were
+taken. Each code is the one the JSON output uses
+([Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld)). The table's log, read
+above:
+
+<!-- python: example -->
+```python
+readings = log.readings()
+apogee = readings["apogee"]
+print(f"apogee {apogee['height_m']:.1f} m above the pad, within {apogee['bound_m']:.1f} m")
+print(f"from the {apogee['source']}, {apogee['provenance']}, by {apogee['method']}")
+speed = readings["max_speed"]
+print(f"top speed {speed['status']}: {speed['reason']}")
+```
+
+```text
+apogee 409.5 m above the pad, within 33.0 m
+from the barometer, measured, by highest_filtered
+top speed withheld: sampled_too_slowly
+```
+<!-- python: end -->
+
 ## A GPS tracker's table
 
 A table of GPS fixes, with no barometer, reads by a mapping too. The invented tracker writes its
@@ -399,7 +433,8 @@ so its mapping states them:
 ```
 
 A GPS altitude is above sea level as the receiver states it, not above the pad, so the mapping
-marks no primary track:
+marks no primary track, and the readings are withheld, each by name: a receiver's altitude lags a
+climb and overshoots its top, so no bound can be stated for it:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/gps-track.csv --mapping validation/fixtures/logs/own-logger/gps-track.mapping.json`; written by `cargo xtask cli`; do not edit -->
 
@@ -430,14 +465,12 @@ More: https://hpr.fusionspace.co/your-own-logger.html
 
 ## What it doesn't do yet
 
-- Take the readings from a log read by a mapping or a layout, or from any logger's but
-  PerfectFlite's: [M7.2](decisions-and-roadmap.md#m7-2) validates them on other loggers.
+- Take the top acceleration from a log's accelerometer, as from this logger's `Accel X`:
+  [M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c).
 - Mark a primary track in a record layout. A mapping marks one; binary records' altitude reads as
   one of unstated zero.
 - Read a table from an older Excel `.xls` workbook by a mapping: `--sheet` reads `.xlsx` only.
-- Read a log by its own reader from the command line for any logger but a PerfectFlite's `.pf2`:
-  Python reads by its reader each format the library tells from the file alone
-  ([the layouts read](format/flight-logs.md#the-layouts-read)), and `hpr analyze` reads another
-  logger's table or binary records by a mapping or a layout, but not, say, a Blue Raven's USB
-  download. Neither reads an `.xls` export, a zip archive's files, or a workbook's sheet but by
-  a mapping.
+- Read an `.xls` export, a zip archive's files, or a workbook's sheet but by a mapping, from the
+  command line or Python. Both read every other layout the library tells from the file alone by
+  its own reader ([the layouts read](format/flight-logs.md#the-layouts-read)), and another
+  logger's table or binary records by a mapping or a layout.

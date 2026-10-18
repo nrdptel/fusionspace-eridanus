@@ -1,7 +1,7 @@
 # ADR-281: Readings on every logger: one height track, a pad its samples can vouch for, and a top that must be a coast's (2026-10-18)
 
 - **Status:** accepted; ships [M7.2b][m7-2b] as [ADR-280][adr-280] planned it; retires [ADR-251][adr-251] §6 (readings on PerfectFlite logs only); meets [#646][i646] and [#702][i702]
-- **Summary:** The readings (liftoff, apogee, the top speed, landing) now come from every logger that records a barometric altitude or a pressure, each within a bound its error stayed inside on the synthetic flights' tuning set, logged at every rate from 500 to half a sample a second, at every step to 10 m or 100 Pa, and from cropped starts, or withheld with one of 23 named reasons. A GNSS track gives none. Three rules carry most of the weight. The pad is taken only as far as its samples can vouch that the rocket was still on it. A track whose heights are above the pad only by a column's word must start near its zero. A top that isn't a coast's is withheld: one the track fell from and climbed back to, or a spike that climbs in and falls out faster than physics allows. On the 1,058 records the sample logs hold, apogee is given on 594, liftoff on 555, the top speed on 354 and landing on 473, and every reason has a case.
+- **Summary:** The readings (liftoff, apogee, the top speed, landing) now come from every logger that records a barometric altitude or a pressure, each within a bound its error stayed inside on the synthetic flights' tuning set, logged at every rate from 500 to half a sample a second, at every step to 10 m (33 ft) or 100 Pa, and from cropped starts, or withheld with one of 23 named reasons. A GNSS track gives none. Three rules carry most of the weight. The pad is taken only as far as its samples can vouch that the rocket was still on it. A track whose heights are above the pad only by a column's word must start near its zero. A top that isn't a coast's is withheld: one the track fell from and climbed back to, or a spike that climbs in and falls out faster than physics allows. On the 1,058 records the sample logs hold, apogee is given on 594, liftoff on 555, the top speed on 354 and landing on 473, and every reason has a case.
 
 [m7-2b]: ../decisions-and-roadmap.md#m7-2b
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
@@ -100,9 +100,9 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
   right. The forum TeleMetrum log reads its coast's peak: the one-sample spike after the charge, which
   the import's raw peak took, is removed by the median. The Blue Raven breakup log is withheld by the
   spike check. Synthetic logs of both shapes are committed tests, because neither log can be.
-- A spike that climbs into the top no faster than a coast can is still read as the top. The check is
-  one-sided by design, so such a top is read high by at most `g Δ²` plus twice the noise and step,
-  16.4 m at 20 Hz on a PerfectFlite. No synthetic flight carries a charge's transient, so the bounds
+- A spike that climbs into the top no faster than a coast can, at most `g Δ²` plus twice the noise
+  and step in its last second (16.4 m at 20 Hz on a PerfectFlite), is still read as the top, however
+  high it stands: the check is one-sided by design. No synthetic flight carries a charge's transient, so the bounds
   were never held against one ([#761][i761]).
 - Some tops withheld as `disturbed_top` are the vehicle's own: a pressure dip in the coast's last
   4 s, or an early parachute followed by a charge at the top. The error is conservative, and how

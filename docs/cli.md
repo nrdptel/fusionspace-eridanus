@@ -276,7 +276,7 @@ only the files each command really reads. "Not yet" commands exit with
 | `hpr mc` | Fly a design many times, each flight's inputs scattered at random, and print how its apogee and landing spread; export every flight | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log, another logger's table by a column mapping, binary records or a console capture by a record layout | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, another logger's table by a column mapping, binary records or a console capture by a record layout | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
 
@@ -1588,36 +1588,41 @@ the rocket lifted off, how high it went, how fast it climbed, and when it landed
 the log. It takes no design file and runs no simulation, so it answers "what did my rocket do?"
 for anyone who flew one, whatever they designed it in.
 
-It reads PerfectFlite's `.pf2` logs by their own reader, the Pnut's, the StratoLogger's and the
-StratoLoggerCF's ([the format](format/pf2.md)), and another logger's file by a JSON file you
-write for it: a table by a column mapping, `--mapping`, and binary records, or a serial
-console's capture of them, by a record layout, `--layout`
-([Reading your own logger](your-own-logger.md) works one through). The library reads AltOS's CSV, the Featherweight
+It reads each layout HPR Sim knows by that layout's own reader, and another logger's file by a
+JSON file you write for it: a table by a column mapping, `--mapping`, and binary records, or a
+serial console's capture of them, by a record layout, `--layout`
+([Reading your own logger](your-own-logger.md) works one through). The readers cover
+PerfectFlite's `.pf2` logs, the Pnut's, the StratoLogger's and the StratoLoggerCF's
+([the format](format/pf2.md)), AltOS's CSV, the Featherweight
 Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, an Eggtimer TRS's terminal text,
 PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's
 SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne Fluctus's
 CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, an Eggtimer's download saved as RTF,
 the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight
-summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
-[M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers; formats no
-sample holds are [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-([evidence row G9](evidence.md#g9)). It
-has no
-check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
-0.9, about 300 m/s (984 ft/s), treat the top speed and the heights near it with care: the
-barometer's error can pull the top speed down too.
+summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)). An archive
+is refused: unpack it and give the log inside. Formats no sample holds are
+[listed as needing samples](format/flight-logs.md#formats-that-need-samples)
+([evidence row G9](evidence.md#g9)).
+
+Since [M7.2b](decisions-and-roadmap.md#m7-2b), readings on every logger, `hpr analyze` takes its
+readings from any log's barometric altitude or pressure, whichever logger wrote it, and states a
+bound on each. A GPS track gives none: a receiver's height lags and drops out too much to bound
+([the height track](physics/log-readings.md#the-height-track)). Near the speed of sound a
+barometer reads the air wrongly, so the top speed is withheld as `transonic` once the climb reaches
+227.7 m/s (747 ft/s), Mach 0.8 in the coldest air the bounds allow below 20 km (12 mi).
 
 ```bash
 hpr analyze flight.pf2
 ```
 
-Each reading is either a value that says where it came from, or `withheld` with the reason the log
-can't support it. The text output gives the reason as a sentence; the JSON output adds its code,
+Each reading is either a value that says where it came from and how far it may be off, or
+`withheld` with the reason the log can't support it. The text output gives the reason as a sentence; the JSON output adds its code,
 listed on [Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld). A log read with
 readings withheld still exits with 0; a file the simulator can't read exits with 1
-([Exit codes](#exit-codes)). A PerfectFlite has a barometer and no accelerometer, so the top
-acceleration is always withheld: working it out from the altitude would turn the altitude's one-foot
-steps into spikes of many g. What the file states about itself, such as the altimeter's own apogee,
+([Exit codes](#exit-codes)). The top acceleration comes only from an accelerometer: working it
+out from the altitude would turn the altitude's one-foot steps into spikes of many g. A PerfectFlite
+has none, so it is withheld as `no_accelerometer`; a log that has one has it withheld as
+`not_yet_taken` until [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the readings. What the file states about itself, such as the altimeter's own apogee,
 is printed beside the simulator's readings, never in their place. Heights are meters above the
 altimeter's reading on the pad, with feet in brackets; times are seconds on the log's clock.
 
@@ -2020,12 +2025,12 @@ you press Tab. Save it where your shell looks for completions:
   apogee. A dropped stage flies as a point under its devices' drag, so its landing is rough. It flies a
   `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
-- **One log format by its own reader.** `hpr analyze` reads PerfectFlite's `.pf2` by its reader,
-  and another logger's table or binary records by a mapping or a layout you write
-  ([Reading your own logger](your-own-logger.md)); the library reads the other layouts
-  [the layouts read](format/flight-logs.md) lists, and `hpr analyze` takes them by their readers,
-  with readings such as the drogue and main descent rates and the Mach number, with
-  [M7.2](decisions-and-roadmap.md#m7-2).
+- **The first readings only.** `hpr analyze` reads every layout
+  [the layouts read](format/flight-logs.md) lists, and your own logger's by a mapping or a layout
+  you write ([Reading your own logger](your-own-logger.md)), but gives only the first readings.
+  The top acceleration, burnout, the drogue and main descent rates and the Mach number come with
+  [M7.2c](decisions-and-roadmap.md#m7-2c), and an interval on each reading with
+  [M7.2e](decisions-and-roadmap.md#m7-2e).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
   OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
   RASAero's `.CDX1`

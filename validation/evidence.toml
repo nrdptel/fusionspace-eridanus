@@ -176,7 +176,7 @@ pages = [
 ]
 kind = "spec"
 wanted = "real"
-not_checked = "real logs of other loggers, for which the readings are withheld"
+not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them, and the bounds on flights kept apart from their tuning"
 issue = 663
 
 [[row.searched]]

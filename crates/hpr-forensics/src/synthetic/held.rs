@@ -461,7 +461,10 @@ mod tests {
             })
             .unwrap();
         let logs = logs(&flight, Set::Tuning.seed(), index).unwrap();
-        assert_eq!(logs.len(), 1 + grid().len());
+        assert_eq!(
+            logs.len(),
+            1 + grid().len() + CROPPED.len() * Crop::ALL.len()
+        );
         let results: Vec<(String, Vec<(Quantity, Outcome)>)> = logs
             .iter()
             .map(|(name, log)| (name.clone(), outcomes(&flight, log)))

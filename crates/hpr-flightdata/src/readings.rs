@@ -343,7 +343,8 @@ pub enum Reason {
     /// coast's, or it isn't a height.
     SlowerThanFreeCoast,
     /// The log has an accelerometer, from which HPR Sim doesn't take the reading yet (milestone
-    /// M7.2c).
+    /// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the
+    /// readings).
     NotYetTaken,
     /// The log's first samples can't rule out a rocket already more than [`LIFTOFF_ALLOWANCE_M`]
     /// up when it starts: it starts after liftoff, as a logger that records from launch writes
@@ -392,8 +393,10 @@ pub enum Provenance {
     Measured,
     /// Worked out from the track, such as a speed from the slope of its heights.
     Derived,
-    /// Measured, but at the sensor's range, so the true value may lie beyond it (milestone
-    /// M7.2c's top acceleration).
+    /// Measured, but at the sensor's range, so the true value may lie beyond it (the top
+    /// acceleration of milestone
+    /// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the
+    /// readings).
     Clipped,
 }
 }
@@ -1839,7 +1842,8 @@ mod tests {
     }
 
     /// Noise on the pad up to the allowance doesn't move liftoff earlier: at half a foot, the
-    /// rule before M7.2b, it read at the pad's last low sample, two seconds early.
+    /// rule before the readings were taken on every logger, it read at the pad's last low sample,
+    /// two seconds early.
     #[test]
     fn pad_noise_within_the_allowance_leaves_liftoff() {
         let mut noisy = log(40.0, |t| flight(10.0)(t - 5.0));
