@@ -4,7 +4,9 @@
 //! A tuning flight is checked on its own logger's log and, if that logger has a barometer, on
 //! the same barometer written again at every rate and step of [`GRID`]: from 500 samples a second
 //! to one every two seconds, and from no step to 10 m in height or 100 Pa in pressure, the range
-//! the readers' families span. A reading holds where its error is no larger than its bound;
+//! the readers' families span; and, as a logger that records from launch writes them, the two
+//! recordings of [`CROPPED`] cut to each start of [`Crop`]. A reading holds where its error is no
+//! larger than its bound;
 //! `cargo xtask synthetic` fails unless every reading given on the tuning set holds, and reports
 //! the worst share of its bound each reading's error reached, on each log, and the readings
 //! withheld, by reason.
@@ -43,6 +45,78 @@ pub const GRID_WRITTEN: [Written; 6] = [
     Written::PressureAlone { step_pa: 10.0 },
     Written::PressureAlone { step_pa: 100.0 },
 ];
+
+/// The recordings the check also cuts to each [`Crop`]: 20 samples a second, as most loggers that
+/// record from launch write, in whole feet as a PerfectFlite, an RRC3 or an Eggtimer, and as a
+/// pressure alone in 10 Pa steps as a Raven or an AltOS keeps its raw pressure.
+pub const CROPPED: [Recording; 2] = [
+    Recording {
+        climbing_hz: 20.0,
+        descending_hz: 20.0,
+        written: Written::Altitude { step_m: FOOT_M },
+    },
+    Recording {
+        climbing_hz: 20.0,
+        descending_hz: 20.0,
+        written: Written::PressureAlone { step_pa: 10.0 },
+    },
+];
+
+/// Where a logger that records from launch starts its log.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Crop {
+    /// 0.3 s before liftoff, as a Raven or an AltOS keeps a little of its pad.
+    BeforeLiftoff,
+    /// 0.1 s after liftoff, with nothing of the pad.
+    AfterLiftoff,
+    /// 0.5 s after liftoff, its first reading of the pad written first, as an RRC3 or an
+    /// Eggtimer writes its zero and then the climb from launch detection.
+    ZeroFirst,
+}
+
+impl Crop {
+    /// Every crop.
+    pub const ALL: [Self; 3] = [Self::BeforeLiftoff, Self::AfterLiftoff, Self::ZeroFirst];
+
+    /// Its name in the report.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::BeforeLiftoff => "from 0.3 s before liftoff",
+            Self::AfterLiftoff => "from 0.1 s after liftoff",
+            Self::ZeroFirst => "from 0.5 s after liftoff, its zero first",
+        }
+    }
+
+    /// `log` cut to start where this crop does, `liftoff_s` on the log's clock: every track
+    /// keeps its samples from then on, and a [`Crop::ZeroFirst`] puts each track's first sample
+    /// back an interval before its first kept one.
+    pub fn cut(self, log: &FlightLog, liftoff_s: f64) -> FlightLog {
+        let from_s = match self {
+            Self::BeforeLiftoff => liftoff_s - 0.3,
+            Self::AfterLiftoff => liftoff_s + 0.1,
+            Self::ZeroFirst => liftoff_s + 0.5,
+        };
+        let cut_track = |time_s: &[f64], values: &[f64]| -> (Vec<f64>, Vec<f64>) {
+            let first = time_s.partition_point(|t| *t < from_s);
+            let mut time: Vec<f64> = time_s[first..].to_vec();
+            let mut kept: Vec<f64> = values[first..].to_vec();
+            if let (Self::ZeroFirst, Some(&zero), [t0, t1, ..]) =
+                (self, values.first(), time.as_slice())
+            {
+                let back = t0 - (t1 - t0);
+                time.insert(0, back);
+                kept.insert(0, zero);
+            }
+            (time, kept)
+        };
+        let mut cut = log.clone();
+        (cut.time_s, cut.altitude_m) = cut_track(&log.time_s, &log.altitude_m);
+        for channel in &mut cut.channels {
+            (channel.time_s, channel.values) = cut_track(&channel.time_s, &channel.values);
+        }
+        cut
+    }
+}
 
 /// Every rate of [`GRID_RATES_HZ`] with every way of [`GRID_WRITTEN`], the same rate climbing
 /// and descending.
@@ -194,11 +268,12 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         ),
         (
             Quantity::FlightTime,
-            of(&read.landing, |l| {
-                given(
-                    l.flight_time_s - (events.landing_s - events.liftoff_s),
-                    l.flight_time_bound_s,
-                )
+            of(&read.landing, |l| match (l.flight_time_s, l.flight_time_bound_s) {
+                (Some(flight_time_s), Some(bound)) => {
+                    given(flight_time_s - (events.landing_s - events.liftoff_s), bound)
+                }
+                // A landing read on a log whose liftoff is withheld has no flight time.
+                _ => Outcome::Withheld(read.liftoff.reason().unwrap_or(Reason::Needs)),
             }),
         ),
         (
@@ -232,6 +307,15 @@ pub fn logs(
     for recording in grid() {
         if let Some(log) = barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)? {
             logs.push((name(&recording), log));
+        }
+    }
+    let liftoff_s = flight.draw.logger.pad_s + flight.truth.events.liftoff_s;
+    for recording in CROPPED {
+        if let Some(log) = barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)? {
+            for crop in Crop::ALL {
+                let name = format!("{}, {}", name(&recording), crop.name());
+                logs.push((name, crop.cut(&log, liftoff_s)));
+            }
         }
     }
     Ok(logs)

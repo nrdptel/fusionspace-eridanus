@@ -329,6 +329,8 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::ReceiverDropout => WithheldReason::ReceiverDropout,
                 Reason::SlowerThanFreeCoast => WithheldReason::SlowerThanFreeCoast,
                 Reason::NotYetTaken => WithheldReason::NotYetTaken,
+                Reason::ShortPad => WithheldReason::ShortPad,
+                Reason::ClockOutOfOrder => WithheldReason::ClockOutOfOrder,
                 _ => WithheldReason::Other,
             },
             detail: withheld.detail.clone(),
@@ -502,13 +504,15 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
     match &document.apogee {
         LogReading::Read(apogee) => {
             let mut value = format!(
-                "{} above the pad, within {}; at {:.2} s, within {:.2} s, {:.2} s after liftoff",
+                "{} above the pad, within {}; at {:.2} s, within {:.2} s",
                 meters(apogee.height_m),
                 meters(apogee.bound_m),
                 apogee.time_s,
                 apogee.time_bound_s,
-                apogee.time_after_liftoff_s
             );
+            if let Some(after) = apogee.time_after_liftoff_s {
+                value.push_str(&format!(", {after:.2} s after liftoff"));
+            }
             if apogee.is_floor {
                 value.push_str("; the log ends at its peak, so the rocket may have gone higher");
             }
@@ -548,17 +552,21 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
     lines.push(row(
         "landing",
         match &document.landing {
-            LogReading::Read(landing) => format!(
-                "{:.2} s, within {:.2} s; {:.2} s after liftoff, within {:.2} s; {:.2} s from \
-                 apogee, at {} on average, within {}",
-                landing.time_s,
-                landing.bound_s,
-                landing.flight_time_s,
-                landing.flight_time_bound_s,
-                landing.descent_time_s,
-                speed(landing.mean_descent_rate_m_s),
-                speed(landing.mean_descent_rate_bound_m_s)
-            ),
+            LogReading::Read(landing) => {
+                let mut value = format!("{:.2} s, within {:.2} s", landing.time_s, landing.bound_s);
+                if let (Some(flight), Some(bound)) =
+                    (landing.flight_time_s, landing.flight_time_bound_s)
+                {
+                    value.push_str(&format!("; {flight:.2} s after liftoff, within {bound:.2} s"));
+                }
+                value.push_str(&format!(
+                    "; {:.2} s from apogee, at {} on average, within {}",
+                    landing.descent_time_s,
+                    speed(landing.mean_descent_rate_m_s),
+                    speed(landing.mean_descent_rate_bound_m_s)
+                ));
+                value
+            }
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));

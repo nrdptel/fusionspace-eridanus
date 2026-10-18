@@ -1524,9 +1524,10 @@ pub enum WithheldReason {
     /// The track never climbs 3 m above the pad, or the liftoff allowance and a step if that is
     /// higher; or, for landing, falls too little past its step and noise to time the descent.
     NoClimb,
-    /// The pad, on the logger's own altitude, is more than 3 m from the logger's zero: the log
-    /// didn't start on the pad, or its heights aren't above the pad, as an altitude above sea
-    /// level mapped as one above the ground reads.
+    /// A track whose heights are above the pad only by a mapping's or a column's word starts
+    /// more than 19.9 m from its zero, more than the weather and the noise move a zero in an hour
+    /// on the pad: the log didn't start on the pad, or its heights aren't above the pad, as an
+    /// altitude above sea level mapped as one above the ground reads.
     StartsOffThePad,
     /// The log ends before the rocket is seen to land.
     EndsBeforeLanding,
@@ -1560,11 +1561,19 @@ pub enum WithheldReason {
     ReceiverLag,
     /// The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.
     ReceiverDropout,
-    /// The track slows before its top less than any coast does: its clock is in another unit,
-    /// such as milliseconds read as seconds, or it isn't a height.
+    /// The track loses no more than its noise and step in the 4 s before its top: its clock is
+    /// in another unit, such as milliseconds read as seconds, its top isn't a coast's, or it
+    /// isn't a height.
     SlowerThanFreeCoast,
     /// HPR Sim doesn't take this reading from the log's sensor yet.
     NotYetTaken,
+    /// The log's first samples can't rule out a rocket already more than 2 m up when it starts:
+    /// it starts after liftoff, as a logger that records from launch writes its zero and then the
+    /// climb, or holds too little of the pad to tell liftoff by. A track above the logger's own
+    /// zero still gives its heights from that zero.
+    ShortPad,
+    /// The height track's clock doesn't increase, so no time can be read off it.
+    ClockOutOfOrder,
     /// A reason this build of `hpr` doesn't name.
     Other,
 }
@@ -1635,8 +1644,8 @@ pub struct LiftoffReading {
 pub struct ApogeeReading {
     /// When, s.
     pub time_s: f64,
-    /// When, s after liftoff.
-    pub time_after_liftoff_s: f64,
+    /// When, s after liftoff; `null` when liftoff is withheld.
+    pub time_after_liftoff_s: Option<f64>,
     /// The bound on the time's error, s.
     pub time_bound_s: f64,
     /// The height above the pad, m.
@@ -1704,10 +1713,10 @@ pub struct LandingReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
-    /// From liftoff to landing, s.
-    pub flight_time_s: f64,
-    /// The bound on the flight time's error, s.
-    pub flight_time_bound_s: f64,
+    /// From liftoff to landing, s; `null` when liftoff is withheld.
+    pub flight_time_s: Option<f64>,
+    /// The bound on the flight time's error, s; `null` when liftoff is withheld.
+    pub flight_time_bound_s: Option<f64>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time

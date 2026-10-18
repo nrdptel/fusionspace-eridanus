@@ -35,6 +35,7 @@ use sha2::{Digest, Sha256};
 mod binaries;
 mod held;
 mod other_text;
+pub(crate) mod readings;
 
 pub const USAGE: &str = "  logs [--check] [--sheets DIR] [--surfaces DIR]
                            reads every flight-log sample under refs/ (the collection's
@@ -1024,6 +1025,9 @@ struct Report {
     /// How the Eggtimer files' filtered altitudes scale to `Alt` (M7.1c15).
     #[serde(default)]
     filter_scales: FilterScales,
+    /// Every record's readings, by family, and a case of each reason (M7.2b).
+    #[serde(default)]
+    readings: readings::Survey,
     /// The Excel workbooks, each sheet's outcome counted.
     workbook_checks: Vec<WorkbookFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
@@ -6660,6 +6664,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let mut unit_decisions: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
     let mut pfa_checks = PfaChecks::default();
     let held = held::checks(samples);
+    let mut gathering = readings::Gathering::default();
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
         let read_by = READ.iter().find(|(family, _, _)| *family == sample.family);
@@ -6746,6 +6751,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         records.push(match &sheet.log {
                             Ok(log) => {
                                 *loggers.entry(log.logger.clone()).or_default() += 1;
+                                gathering.add(&sample.family, &id, log);
                                 let json = serde_json::to_vec(log).unwrap_or_default();
                                 format!("{:?}:{}", log.format, &hex(&Sha256::digest(&json))[..16])
                             }
@@ -6787,6 +6793,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 Ok(log) => {
                     row.read += 1;
                     *loggers.entry(log.logger.clone()).or_default() += 1;
+                    gathering.add(&sample.family, &id, &log);
                     let record = match serde_json::to_vec(&log) {
                         Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
                         Err(_) => "unwritable".to_owned(),
@@ -6816,6 +6823,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 Some(record) => {
                     row.read += 1;
                     *loggers.entry("unknown".to_owned()).or_default() += 1;
+                    if let Some(log) = held::read_sample(sample) {
+                        gathering.add(&sample.family, &id, &log);
+                    }
                     (format!("{:?}", LogFormat::GenericTable), record.to_owned())
                 }
                 None => {
@@ -6834,6 +6844,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 Ok((log, _)) => {
                     row.read += 1;
                     *loggers.entry(log.logger.clone()).or_default() += 1;
+                    gathering.add(&sample.family, &id, &log);
                     let record = match serde_json::to_vec(&log) {
                         Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
                         Err(_) => "unwritable".to_owned(),
@@ -6871,6 +6882,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                     row.read += 1;
                     for log in &logs {
                         *loggers.entry(log.logger.clone()).or_default() += 1;
+                        gathering.add(&sample.family, &id, log);
                     }
                     let record = match serde_json::to_vec(&logs) {
                         Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
@@ -6899,6 +6911,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 Ok((log, ..)) => {
                     row.read += 1;
                     *loggers.entry(log.logger.clone()).or_default() += 1;
+                    gathering.add(&sample.family, &id, &log);
                     let record = match serde_json::to_vec(&log) {
                         Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
                         Err(_) => "unwritable".to_owned(),
@@ -6947,6 +6960,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                     ));
                 }
                 *loggers.entry(log.logger.clone()).or_default() += 1;
+                gathering.add(&sample.family, &id, &log);
                 if log.format == LogFormat::PerfectFlitePfa {
                     pfa_checks.add(&log);
                 }
@@ -7017,6 +7031,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         held_checks: held,
         binary_checks: binaries::checks(samples),
         filter_scales: filter_scales(samples),
+        readings: gathering.finish(),
         workbook_checks: workbook_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
@@ -7054,6 +7069,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // An `.ALS` whose values differ from its export's, or AIM files that don't decode to each
     // other or whose units fail the flight's physics, are as unread as a refusal.
     unread.extend(binaries::unread(&report.binary_checks));
+    // A reason of the readings with no case, in the corpus or invented, is a gap in the survey.
+    unread.extend(readings::unread(&report.readings));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {
@@ -8258,6 +8275,7 @@ fn markdown(report: &Report) -> String {
     out += &other_text::markdown(&report.other_text_checks);
     out += &held::markdown(&report.held_checks);
     out += &binaries::markdown(&report.binary_checks);
+    out += &readings::markdown(&report.readings);
     if !report.workbook_checks.is_empty() {
         let books = &report.workbook_checks;
         let mut totals: BTreeMap<&str, usize> = BTreeMap::new();

@@ -287,7 +287,7 @@ mod tests {
         assert!(!apogee.is_floor);
         assert_eq!(
             apogee.time_after_liftoff_s,
-            apogee.time_s - liftoff.time_s
+            Some(apogee.time_s - liftoff.time_s)
         );
         assert!((apogee.height_m - truth.apogee_m).abs() <= apogee.bound_m);
         // The pulse's third sample is the highest the file holds, and the median set it aside.
@@ -333,7 +333,7 @@ mod tests {
             landing.time_s,
             truth.landing_s
         );
-        assert_eq!(landing.flight_time_s, landing.time_s - liftoff.time_s);
+        assert_eq!(landing.flight_time_s, Some(landing.time_s - liftoff.time_s));
         assert_eq!(landing.descent_time_s, landing.time_s - apogee.time_s);
         // The mean rate: the true heights at the two readings' times, over the same span, to
         // within the heights' own bounds.

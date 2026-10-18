@@ -188,7 +188,6 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 
 liftoff           1.20 s, within 1.04 s
 apogee            409.5 m (1344 ft) above the pad, within 33.0 m (108 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
-                  highest sample 410.0 m (1345 ft) above the pad at 10.60 s, set aside by the median
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           48.60 s, within 2.23 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
@@ -259,7 +258,6 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 
 liftoff           1.20 s, within 1.05 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
-                  highest sample 410.1 m (1345 ft) above the pad at 10.60 s, set aside by the median
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
@@ -294,7 +292,6 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 
 liftoff           1.20 s, within 1.05 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
-                  highest sample 410.1 m (1345 ft) above the pad at 10.60 s, set aside by the median
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does

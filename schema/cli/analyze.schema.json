@@ -317,8 +317,11 @@
           "$ref": "#/$defs/ReadingSource"
         },
         "time_after_liftoff_s": {
-          "description": "When, s after liftoff.",
-          "type": "number",
+          "description": "When, s after liftoff; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
           "format": "double"
         },
         "time_bound_s": {
@@ -334,7 +337,6 @@
       },
       "required": [
         "time_s",
-        "time_after_liftoff_s",
         "time_bound_s",
         "height_m",
         "bound_m",
@@ -411,13 +413,19 @@
           "format": "double"
         },
         "flight_time_bound_s": {
-          "description": "The bound on the flight time's error, s.",
-          "type": "number",
+          "description": "The bound on the flight time's error, s; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
           "format": "double"
         },
         "flight_time_s": {
-          "description": "From liftoff to landing, s.",
-          "type": "number",
+          "description": "From liftoff to landing, s; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
           "format": "double"
         },
         "mean_descent_rate_bound_m_s": {
@@ -451,8 +459,6 @@
       "required": [
         "time_s",
         "bound_s",
-        "flight_time_s",
-        "flight_time_bound_s",
         "descent_time_s",
         "mean_descent_rate_m_s",
         "mean_descent_rate_bound_m_s",
@@ -1217,7 +1223,7 @@
           "const": "no_climb"
         },
         {
-          "description": "The pad, on the logger's own altitude, is more than 3 m from the logger's zero: the log\ndidn't start on the pad, or its heights aren't above the pad, as an altitude above sea\nlevel mapped as one above the ground reads.",
+          "description": "A track whose heights are above the pad only by a mapping's or a column's word starts\nmore than 19.9 m from its zero, more than the weather and the noise move a zero in an hour\non the pad: the log didn't start on the pad, or its heights aren't above the pad, as an\naltitude above sea level mapped as one above the ground reads.",
           "type": "string",
           "const": "starts_off_the_pad"
         },
@@ -1297,7 +1303,7 @@
           "const": "receiver_dropout"
         },
         {
-          "description": "The track slows before its top less than any coast does: its clock is in another unit,\nsuch as milliseconds read as seconds, or it isn't a height.",
+          "description": "The track loses no more than its noise and step in the 4 s before its top: its clock is\nin another unit, such as milliseconds read as seconds, its top isn't a coast's, or it\nisn't a height.",
           "type": "string",
           "const": "slower_than_free_coast"
         },
@@ -1305,6 +1311,16 @@
           "description": "HPR Sim doesn't take this reading from the log's sensor yet.",
           "type": "string",
           "const": "not_yet_taken"
+        },
+        {
+          "description": "The log's first samples can't rule out a rocket already more than 2 m up when it starts:\nit starts after liftoff, as a logger that records from launch writes its zero and then the\nclimb, or holds too little of the pad to tell liftoff by. A track above the logger's own\nzero still gives its heights from that zero.",
+          "type": "string",
+          "const": "short_pad"
+        },
+        {
+          "description": "The height track's clock doesn't increase, so no time can be read off it.",
+          "type": "string",
+          "const": "clock_out_of_order"
         },
         {
           "description": "A reason this build of `hpr` doesn't name.",

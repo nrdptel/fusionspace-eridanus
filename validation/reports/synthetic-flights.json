@@ -215,8 +215,8 @@
       "worst": {
         "flight": 24,
         "error": 0.345,
-        "bound": 0.669,
-        "share": 0.516
+        "bound": 0.686,
+        "share": 0.504
       }
     },
     {
@@ -266,9 +266,9 @@
       },
       "worst": {
         "flight": 81,
-        "error": -0.213,
-        "bound": 0.578,
-        "share": 0.369
+        "error": -0.217,
+        "bound": 0.598,
+        "share": 0.363
       }
     },
     {
@@ -279,10 +279,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 81,
-        "error": -0.516,
-        "bound": 1.25,
-        "share": 0.414
+        "flight": 66,
+        "error": -0.493,
+        "bound": 1.21,
+        "share": 0.409
       }
     },
     {
@@ -294,9 +294,9 @@
       },
       "worst": {
         "flight": 73,
-        "error": 0.56,
-        "bound": 0.996,
-        "share": 0.562
+        "error": 0.561,
+        "bound": 1.01,
+        "share": 0.556
       }
     },
     {
@@ -306,9 +306,9 @@
       "withheld": {},
       "worst": {
         "flight": 33,
-        "error": 0.385,
+        "error": 0.387,
         "bound": 0.643,
-        "share": 0.599
+        "share": 0.603
       }
     },
     {
@@ -357,10 +357,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 60,
-        "error": -0.211,
-        "bound": 0.544,
-        "share": 0.388
+        "flight": 105,
+        "error": -0.192,
+        "bound": 0.469,
+        "share": 0.408
       }
     },
     {
@@ -372,9 +372,9 @@
       },
       "worst": {
         "flight": 61,
-        "error": -0.509,
-        "bound": 1.11,
-        "share": 0.459
+        "error": -0.557,
+        "bound": 1.15,
+        "share": 0.483
       }
     },
     {
@@ -388,7 +388,7 @@
         "flight": 195,
         "error": -1.16,
         "bound": 1.95,
-        "share": 0.596
+        "share": 0.597
       }
     },
     {
@@ -399,8 +399,8 @@
       "worst": {
         "flight": 33,
         "error": 0.409,
-        "bound": 0.69,
-        "share": 0.593
+        "bound": 0.709,
+        "share": 0.577
       }
     },
     {
@@ -447,10 +447,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 105,
-        "error": -0.19,
-        "bound": 0.48,
-        "share": 0.395
+        "flight": 61,
+        "error": -0.219,
+        "bound": 0.519,
+        "share": 0.421
       }
     },
     {
@@ -460,9 +460,9 @@
       "withheld": {},
       "worst": {
         "flight": 61,
-        "error": -0.557,
-        "bound": 1.19,
-        "share": 0.47
+        "error": -0.611,
+        "bound": 1.27,
+        "share": 0.481
       }
     },
     {
@@ -483,10 +483,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 42,
-        "error": 0.923,
-        "bound": 1.57,
-        "share": 0.588
+        "flight": 195,
+        "error": 1.21,
+        "bound": 2.02,
+        "share": 0.597
       }
     },
     {
@@ -535,8 +535,8 @@
       "worst": {
         "flight": 84,
         "error": -3.67,
-        "bound": 6.69,
-        "share": 0.549
+        "bound": 8.51,
+        "share": 0.432
       }
     },
     {
@@ -546,9 +546,9 @@
       "withheld": {},
       "worst": {
         "flight": 33,
-        "error": -1.62,
-        "bound": 3.03,
-        "share": 0.536
+        "error": -1.85,
+        "bound": 3.87,
+        "share": 0.479
       }
     },
     {
@@ -559,8 +559,8 @@
       "worst": {
         "flight": 161,
         "error": 0.387,
-        "bound": 0.795,
-        "share": 0.486
+        "bound": 0.83,
+        "share": 0.466
       }
     },
     {
@@ -571,8 +571,8 @@
       "worst": {
         "flight": 33,
         "error": 0.395,
-        "bound": 0.657,
-        "share": 0.601
+        "bound": 0.665,
+        "share": 0.594
       }
     },
     {
@@ -621,10 +621,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 105,
-        "error": -0.184,
-        "bound": 0.458,
-        "share": 0.401
+        "flight": 61,
+        "error": -0.215,
+        "bound": 0.489,
+        "share": 0.439
       }
     },
     {
@@ -636,9 +636,9 @@
       },
       "worst": {
         "flight": 61,
-        "error": -0.529,
-        "bound": 1.13,
-        "share": 0.467
+        "error": -0.597,
+        "bound": 1.2,
+        "share": 0.499
       }
     },
     {
@@ -663,8 +663,8 @@
       "worst": {
         "flight": 42,
         "error": 0.483,
-        "bound": 0.776,
-        "share": 0.622
+        "bound": 0.871,
+        "share": 0.554
       }
     },
     {
@@ -674,9 +674,9 @@
       "withheld": {},
       "worst": {
         "flight": 43,
-        "error": -148.0,
+        "error": -149.0,
         "bound": 210.0,
-        "share": 0.703
+        "share": 0.708
       }
     },
     {
@@ -713,8 +713,8 @@
       "worst": {
         "flight": 61,
         "error": -0.277,
-        "bound": 0.552,
-        "share": 0.501
+        "bound": 0.584,
+        "share": 0.474
       }
     },
     {
@@ -725,8 +725,8 @@
       "worst": {
         "flight": 61,
         "error": -0.729,
-        "bound": 1.32,
-        "share": 0.552
+        "bound": 1.43,
+        "share": 0.51
       }
     },
     {
@@ -737,8 +737,8 @@
       "worst": {
         "flight": 195,
         "error": -1.15,
-        "bound": 2.02,
-        "share": 0.572
+        "bound": 2.03,
+        "share": 0.568
       }
     },
     {
@@ -749,8 +749,8 @@
       "worst": {
         "flight": 191,
         "error": 0.962,
-        "bound": 1.49,
-        "share": 0.644
+        "bound": 1.91,
+        "share": 0.505
       }
     },
     {
@@ -797,10 +797,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 164,
-        "error": -3.98,
-        "bound": 6.38,
-        "share": 0.625
+        "flight": 28,
+        "error": -0.967,
+        "bound": 1.78,
+        "share": 0.544
       }
     },
     {
@@ -809,10 +809,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 96,
-        "error": -1.84,
-        "bound": 3.1,
-        "share": 0.592
+        "flight": 149,
+        "error": -1.87,
+        "bound": 3.73,
+        "share": 0.5
       }
     },
     {
@@ -823,8 +823,8 @@
       "worst": {
         "flight": 161,
         "error": 0.403,
-        "bound": 0.8,
-        "share": 0.503
+        "bound": 0.832,
+        "share": 0.484
       }
     },
     {
@@ -833,10 +833,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 122,
-        "error": 0.387,
-        "bound": 0.659,
-        "share": 0.587
+        "flight": 195,
+        "error": 0.396,
+        "bound": 0.664,
+        "share": 0.597
       }
     },
     {
@@ -895,10 +895,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": -0.505,
-        "bound": 1.15,
-        "share": 0.439
+        "flight": 122,
+        "error": -0.532,
+        "bound": 1.2,
+        "share": 0.445
       }
     },
     {
@@ -970,9 +970,9 @@
       "withheld": {},
       "worst": {
         "flight": 13,
-        "error": -0.214,
-        "bound": 0.581,
-        "share": 0.369
+        "error": -0.234,
+        "bound": 0.607,
+        "share": 0.385
       }
     },
     {
@@ -996,7 +996,7 @@
         "flight": 195,
         "error": -1.15,
         "bound": 1.98,
-        "share": 0.582
+        "share": 0.581
       }
     },
     {
@@ -1006,9 +1006,9 @@
       "withheld": {},
       "worst": {
         "flight": 195,
-        "error": 0.926,
-        "bound": 1.58,
-        "share": 0.585
+        "error": 1.21,
+        "bound": 2.04,
+        "share": 0.592
       }
     },
     {
@@ -1057,8 +1057,8 @@
       "worst": {
         "flight": 159,
         "error": -3.83,
-        "bound": 6.98,
-        "share": 0.548
+        "bound": 8.88,
+        "share": 0.431
       }
     },
     {
@@ -1067,10 +1067,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": -1.74,
-        "bound": 3.31,
-        "share": 0.527
+        "flight": 40,
+        "error": -1.85,
+        "bound": 3.89,
+        "share": 0.477
       }
     },
     {
@@ -1081,8 +1081,8 @@
       "worst": {
         "flight": 161,
         "error": 0.388,
-        "bound": 0.795,
-        "share": 0.489
+        "bound": 0.829,
+        "share": 0.468
       }
     },
     {
@@ -1141,10 +1141,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 198,
-        "error": 2.61,
-        "bound": 5.26,
-        "share": 0.497
+        "flight": 13,
+        "error": -0.234,
+        "bound": 0.583,
+        "share": 0.402
       }
     },
     {
@@ -1153,10 +1153,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": -0.505,
-        "bound": 1.17,
-        "share": 0.431
+        "flight": 122,
+        "error": -0.532,
+        "bound": 1.22,
+        "share": 0.437
       }
     },
     {
@@ -1239,10 +1239,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": -0.655,
-        "bound": 1.38,
-        "share": 0.474
+        "flight": 96,
+        "error": -0.684,
+        "bound": 1.45,
+        "share": 0.473
       }
     },
     {
@@ -1253,8 +1253,8 @@
       "worst": {
         "flight": 171,
         "error": -1.15,
-        "bound": 1.95,
-        "share": 0.591
+        "bound": 1.96,
+        "share": 0.588
       }
     },
     {
@@ -1265,8 +1265,8 @@
       "worst": {
         "flight": 191,
         "error": 0.936,
-        "bound": 1.51,
-        "share": 0.62
+        "bound": 1.92,
+        "share": 0.487
       }
     },
     {
@@ -1313,10 +1313,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 15,
-        "error": -4.13,
-        "bound": 6.47,
-        "share": 0.638
+        "flight": 159,
+        "error": -4.4,
+        "bound": 8.17,
+        "share": 0.538
       }
     },
     {
@@ -1325,10 +1325,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": -1.82,
-        "bound": 3.11,
-        "share": 0.586
+        "flight": 159,
+        "error": -5.06,
+        "bound": 10.1,
+        "share": 0.502
       }
     },
     {
@@ -1339,8 +1339,8 @@
       "worst": {
         "flight": 161,
         "error": 0.402,
-        "bound": 0.802,
-        "share": 0.501
+        "bound": 0.834,
+        "share": 0.483
       }
     },
     {
@@ -1349,10 +1349,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 33,
-        "error": 0.387,
+        "flight": 78,
+        "error": 0.408,
         "bound": 0.739,
-        "share": 0.524
+        "share": 0.552
       }
     },
     {
@@ -1403,8 +1403,8 @@
       "worst": {
         "flight": 82,
         "error": -1.1,
-        "bound": 2.78,
-        "share": 0.397
+        "bound": 2.86,
+        "share": 0.386
       }
     },
     {
@@ -1415,10 +1415,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 33,
-        "error": -0.521,
+        "flight": 78,
+        "error": -0.526,
         "bound": 1.34,
-        "share": 0.389
+        "share": 0.392
       }
     },
     {
@@ -1441,10 +1441,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 78,
-        "error": 0.408,
-        "bound": 0.786,
-        "share": 0.519
+        "flight": 37,
+        "error": 0.431,
+        "bound": 0.848,
+        "share": 0.508
       }
     },
     {
@@ -1495,8 +1495,8 @@
       "worst": {
         "flight": 82,
         "error": -1.1,
-        "bound": 2.93,
-        "share": 0.375
+        "bound": 2.97,
+        "share": 0.371
       }
     },
     {
@@ -1524,7 +1524,7 @@
         "flight": 195,
         "error": -1.16,
         "bound": 1.99,
-        "share": 0.582
+        "share": 0.581
       }
     },
     {
@@ -1534,9 +1534,9 @@
       "withheld": {},
       "worst": {
         "flight": 195,
-        "error": 0.936,
-        "bound": 1.66,
-        "share": 0.563
+        "error": 1.19,
+        "bound": 2.12,
+        "share": 0.56
       }
     },
     {
@@ -1585,8 +1585,8 @@
       "worst": {
         "flight": 82,
         "error": -3.9,
-        "bound": 7.23,
-        "share": 0.539
+        "bound": 9.17,
+        "share": 0.425
       }
     },
     {
@@ -1596,9 +1596,9 @@
       "withheld": {},
       "worst": {
         "flight": 33,
-        "error": -1.62,
-        "bound": 3.22,
-        "share": 0.503
+        "error": -1.87,
+        "bound": 4.06,
+        "share": 0.461
       }
     },
     {
@@ -1609,8 +1609,8 @@
       "worst": {
         "flight": 161,
         "error": 0.387,
-        "bound": 0.796,
-        "share": 0.486
+        "bound": 0.83,
+        "share": 0.466
       }
     },
     {
@@ -1634,7 +1634,7 @@
         "flight": 43,
         "error": -149.0,
         "bound": 208.0,
-        "share": 0.716
+        "share": 0.717
       }
     },
     {
@@ -1673,8 +1673,8 @@
       "worst": {
         "flight": 82,
         "error": -1.1,
-        "bound": 2.86,
-        "share": 0.385
+        "bound": 2.96,
+        "share": 0.373
       }
     },
     {
@@ -1701,8 +1701,8 @@
       "worst": {
         "flight": 195,
         "error": -1.2,
-        "bound": 1.97,
-        "share": 0.61
+        "bound": 1.98,
+        "share": 0.609
       }
     },
     {
@@ -1711,10 +1711,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": 0.456,
-        "bound": 0.867,
-        "share": 0.526
+        "flight": 42,
+        "error": 0.429,
+        "bound": 0.872,
+        "share": 0.492
       }
     },
     {
@@ -1761,9 +1761,9 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 175,
-        "error": -1.18,
-        "bound": 2.97,
+        "flight": 105,
+        "error": -0.29,
+        "bound": 0.727,
         "share": 0.398
       }
     },
@@ -1775,8 +1775,8 @@
       "worst": {
         "flight": 191,
         "error": -0.655,
-        "bound": 1.55,
-        "share": 0.424
+        "bound": 1.67,
+        "share": 0.393
       }
     },
     {
@@ -1787,8 +1787,8 @@
       "worst": {
         "flight": 195,
         "error": -1.18,
-        "bound": 2.04,
-        "share": 0.58
+        "bound": 2.05,
+        "share": 0.577
       }
     },
     {
@@ -1797,10 +1797,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 191,
-        "error": 0.956,
-        "bound": 1.59,
-        "share": 0.602
+        "flight": 42,
+        "error": 0.979,
+        "bound": 2.04,
+        "share": 0.48
       }
     },
     {
@@ -1847,10 +1847,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 15,
-        "error": -4.04,
-        "bound": 6.56,
-        "share": 0.616
+        "flight": 70,
+        "error": -4.05,
+        "bound": 8.16,
+        "share": 0.497
       }
     },
     {
@@ -1859,10 +1859,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 15,
-        "error": -4.54,
-        "bound": 8.13,
-        "share": 0.559
+        "flight": 149,
+        "error": -1.83,
+        "bound": 3.93,
+        "share": 0.466
       }
     },
     {
@@ -1873,8 +1873,8 @@
       "worst": {
         "flight": 161,
         "error": 0.379,
-        "bound": 0.8,
-        "share": 0.474
+        "bound": 0.831,
+        "share": 0.456
       }
     },
     {
@@ -1898,7 +1898,7 @@
         "flight": 43,
         "error": -149.0,
         "bound": 208.0,
-        "share": 0.715
+        "share": 0.716
       }
     },
     {
@@ -1944,10 +1944,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 58,
-        "error": -1.07,
-        "bound": 3.93,
-        "share": 0.273
+        "flight": 29,
+        "error": -1.32,
+        "bound": 4.3,
+        "share": 0.306
       }
     },
     {
@@ -1982,10 +1982,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 195,
-        "error": -153.0,
-        "bound": 214.0,
-        "share": 0.711
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.714
       }
     },
     {
@@ -2031,10 +2031,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 159,
-        "error": -1.24,
-        "bound": 4.36,
-        "share": 0.285
+        "flight": 29,
+        "error": -1.32,
+        "bound": 4.51,
+        "share": 0.292
       }
     },
     {
@@ -2057,10 +2057,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 42,
-        "error": 0.879,
-        "bound": 1.96,
-        "share": 0.447
+        "flight": 195,
+        "error": 1.19,
+        "bound": 2.42,
+        "share": 0.49
       }
     },
     {
@@ -2102,10 +2102,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 175,
-        "error": -3.68,
-        "bound": 7.15,
-        "share": 0.515
+        "flight": 112,
+        "error": -3.19,
+        "bound": 7.36,
+        "share": 0.433
       }
     },
     {
@@ -2114,10 +2114,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 175,
-        "error": -4.25,
-        "bound": 9.12,
-        "share": 0.466
+        "flight": 112,
+        "error": -3.5,
+        "bound": 9.32,
+        "share": 0.375
       }
     },
     {
@@ -2128,8 +2128,8 @@
       "worst": {
         "flight": 161,
         "error": 0.387,
-        "bound": 0.805,
-        "share": 0.48
+        "bound": 0.84,
+        "share": 0.461
       }
     },
     {
@@ -2153,7 +2153,7 @@
         "flight": 43,
         "error": -149.0,
         "bound": 209.0,
-        "share": 0.712
+        "share": 0.715
       }
     },
     {
@@ -2199,10 +2199,10 @@
         "ends_before_landing": 1
       },
       "worst": {
-        "flight": 58,
-        "error": -1.07,
-        "bound": 4.01,
-        "share": 0.268
+        "flight": 29,
+        "error": -1.32,
+        "bound": 4.35,
+        "share": 0.303
       }
     },
     {
@@ -2225,10 +2225,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 151,
-        "error": 0.455,
-        "bound": 1.17,
-        "share": 0.388
+        "flight": 60,
+        "error": 0.43,
+        "bound": 1.16,
+        "share": 0.369
       }
     },
     {
@@ -2282,10 +2282,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 159,
-        "error": -1.44,
-        "bound": 4.72,
-        "share": 0.306
+        "flight": 104,
+        "error": -0.633,
+        "bound": 2.11,
+        "share": 0.3
       }
     },
     {
@@ -2308,8 +2308,8 @@
       "worst": {
         "flight": 191,
         "error": 0.956,
-        "bound": 1.89,
-        "share": 0.506
+        "bound": 2.3,
+        "share": 0.415
       }
     },
     {
@@ -2363,10 +2363,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 5,
-        "error": -4.36,
-        "bound": 8.87,
-        "share": 0.492
+        "flight": 58,
+        "error": -4.27,
+        "bound": 8.7,
+        "share": 0.491
       }
     },
     {
@@ -2387,10 +2387,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 193,
-        "error": -1.79,
+        "flight": 175,
+        "error": -0.831,
         "bound": 2.64,
-        "share": 0.678
+        "share": 0.314
       }
     },
     {
@@ -2402,7 +2402,7 @@
         "flight": 43,
         "error": -151.0,
         "bound": 219.0,
-        "share": 0.691
+        "share": 0.692
       }
     },
     {
@@ -2474,10 +2474,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 193,
-        "error": -1.79,
+        "flight": 108,
+        "error": -0.807,
         "bound": 2.69,
-        "share": 0.667
+        "share": 0.301
       }
     },
     {
@@ -2487,9 +2487,9 @@
       "withheld": {},
       "worst": {
         "flight": 43,
-        "error": -151.0,
+        "error": -152.0,
         "bound": 219.0,
-        "share": 0.689
+        "share": 0.691
       }
     },
     {
@@ -2557,8 +2557,8 @@
       "worst": {
         "flight": 33,
         "error": 0.837,
-        "bound": 3.56,
-        "share": 0.235
+        "bound": 4.02,
+        "share": 0.208
       }
     },
     {
@@ -2612,10 +2612,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 56,
-        "error": -4.13,
+        "flight": 159,
+        "error": -3.84,
         "bound": 12.6,
-        "share": 0.327
+        "share": 0.304
       }
     },
     {
@@ -2636,10 +2636,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 193,
-        "error": -1.79,
+        "flight": 108,
+        "error": -0.807,
         "bound": 2.65,
-        "share": 0.675
+        "share": 0.304
       }
     },
     {
@@ -2651,7 +2651,7 @@
         "flight": 43,
         "error": -151.0,
         "bound": 219.0,
-        "share": 0.69
+        "share": 0.692
       }
     },
     {
@@ -2678,10 +2678,8 @@
     {
       "log": "1 Hz, pressure alone in 1 Pa steps",
       "quantity": "landing",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -2692,10 +2690,8 @@
     {
       "log": "1 Hz, pressure alone in 1 Pa steps",
       "quantity": "flight_time",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
         "flight": 87,
         "error": 1.37,
@@ -2706,10 +2702,8 @@
     {
       "log": "1 Hz, pressure alone in 1 Pa steps",
       "quantity": "descent_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
         "flight": 161,
         "error": 0.37,
@@ -2806,8 +2800,8 @@
       "worst": {
         "flight": 33,
         "error": 0.837,
-        "bound": 3.52,
-        "share": 0.238
+        "bound": 3.95,
+        "share": 0.212
       }
     },
     {
@@ -2849,10 +2843,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 190,
-        "error": 0.964,
-        "bound": 2.23,
-        "share": 0.433
+        "flight": 87,
+        "error": 0.943,
+        "bound": 2.19,
+        "share": 0.431
       }
     },
     {
@@ -2863,8 +2857,8 @@
       "worst": {
         "flight": 58,
         "error": -4.07,
-        "bound": 12.2,
-        "share": 0.333
+        "bound": 14.4,
+        "share": 0.283
       }
     },
     {
@@ -2885,10 +2879,10 @@
       "given": 171,
       "withheld": {},
       "worst": {
-        "flight": 98,
-        "error": -2.43,
-        "bound": 4.64,
-        "share": 0.524
+        "flight": 193,
+        "error": -1.79,
+        "bound": 4.67,
+        "share": 0.384
       }
     },
     {
@@ -3372,9 +3366,9 @@
     {
       "log": "0.5 Hz, pressure alone in 100 Pa steps",
       "quantity": "landing",
-      "given": 169,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 2
+        "ends_before_landing": 1
       },
       "worst": {
         "flight": 190,
@@ -3386,9 +3380,9 @@
     {
       "log": "0.5 Hz, pressure alone in 100 Pa steps",
       "quantity": "flight_time",
-      "given": 169,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 2
+        "ends_before_landing": 1
       },
       "worst": {
         "flight": 190,
@@ -3400,9 +3394,9 @@
     {
       "log": "0.5 Hz, pressure alone in 100 Pa steps",
       "quantity": "descent_rate",
-      "given": 169,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 2
+        "ends_before_landing": 1
       },
       "worst": {
         "flight": 161,
@@ -3410,6 +3404,497 @@
         "bound": 0.983,
         "share": 0.389
       }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.437,
+        "bound": 0.788,
+        "share": 0.555
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.711
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.871,
+        "share": 0.427
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.42,
+        "bound": 20.8,
+        "share": 0.358
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 105,
+        "error": -0.24,
+        "bound": 0.586,
+        "share": 0.409
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": -0.621,
+        "bound": 1.4,
+        "share": 0.442
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.17,
+        "bound": 1.99,
+        "share": 0.587
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "liftoff",
+      "given": 135,
+      "withheld": {
+        "short_pad": 36
+      },
+      "worst": {
+        "flight": 78,
+        "error": 0.408,
+        "bound": 0.786,
+        "share": 0.519
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.715
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.871,
+        "share": 0.427
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.42,
+        "bound": 20.8,
+        "share": 0.358
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.92,
+        "share": 0.378
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "flight_time",
+      "given": 134,
+      "withheld": {
+        "ends_before_landing": 1,
+        "short_pad": 36
+      },
+      "worst": {
+        "flight": 33,
+        "error": -0.571,
+        "bound": 1.4,
+        "share": 0.407
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.99,
+        "share": 0.582
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "liftoff",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.715
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.871,
+        "share": 0.427
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.42,
+        "bound": 20.8,
+        "share": 0.358
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.92,
+        "share": 0.378
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "flight_time",
+      "given": 0,
+      "withheld": {
+        "ends_before_landing": 1,
+        "short_pad": 170
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.99,
+        "share": 0.582
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "liftoff",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 195,
+        "error": 0.486,
+        "bound": 0.877,
+        "share": 0.555
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "apogee_height",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 195,
+        "error": -153.0,
+        "bound": 216.0,
+        "share": 0.709
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "apogee_time",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 194,
+        "error": -0.321,
+        "bound": 0.975,
+        "share": 0.33
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 114,
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.78,
+        "bound": 21.0,
+        "share": 0.371
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "landing",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 105,
+        "error": -0.29,
+        "bound": 0.676,
+        "share": 0.429
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "flight_time",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 33,
+        "error": -0.721,
+        "bound": 1.56,
+        "share": 0.462
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
+      "quantity": "descent_rate",
+      "given": 168,
+      "withheld": {
+        "short_pad": 3
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.18,
+        "bound": 2.04,
+        "share": 0.58
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "liftoff",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "apogee_height",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "apogee_time",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "landing",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "flight_time",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
+      "quantity": "descent_rate",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "liftoff",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "apogee_height",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "apogee_time",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "landing",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "flight_time",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
+      "quantity": "descent_rate",
+      "given": 0,
+      "withheld": {
+        "short_pad": 171
+      },
+      "worst": null
     },
     {
       "log": "altos",
@@ -3566,10 +4051,10 @@
       "given": 39,
       "withheld": {},
       "worst": {
-        "flight": 67,
-        "error": 0.339,
-        "bound": 0.786,
-        "share": 0.432
+        "flight": 37,
+        "error": 0.431,
+        "bound": 0.848,
+        "share": 0.508
       }
     },
     {
@@ -3618,8 +4103,8 @@
       "worst": {
         "flight": 82,
         "error": -1.1,
-        "bound": 2.93,
-        "share": 0.375
+        "bound": 2.97,
+        "share": 0.371
       }
     },
     {
@@ -3628,10 +4113,10 @@
       "given": 39,
       "withheld": {},
       "worst": {
-        "flight": 82,
-        "error": -1.33,
-        "bound": 3.72,
-        "share": 0.359
+        "flight": 37,
+        "error": -0.531,
+        "bound": 1.49,
+        "share": 0.357
       }
     },
     {
@@ -3729,7 +4214,7 @@
         "flight": 195,
         "error": -1.16,
         "bound": 1.99,
-        "share": 0.582
+        "share": 0.581
       }
     },
     {
@@ -3740,8 +4225,8 @@
       "worst": {
         "flight": 36,
         "error": 0.395,
-        "bound": 0.86,
-        "share": 0.459
+        "bound": 0.945,
+        "share": 0.418
       }
     },
     {
@@ -3790,8 +4275,8 @@
       "worst": {
         "flight": 170,
         "error": -1.1,
-        "bound": 3.49,
-        "share": 0.316
+        "bound": 3.65,
+        "share": 0.302
       }
     },
     {
@@ -3802,8 +4287,8 @@
       "worst": {
         "flight": 36,
         "error": -0.6,
-        "bound": 1.62,
-        "share": 0.37
+        "bound": 1.75,
+        "share": 0.343
       }
     },
     {

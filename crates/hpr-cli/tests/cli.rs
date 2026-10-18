@@ -3878,7 +3878,7 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     assert_eq!(document["landing"]["time_s"], landing.time_s);
     assert_eq!(document["landing"]["bound_s"], landing.bound_s);
     assert_eq!(
-        document["landing"]["flight_time_bound_s"],
+        document["landing"]["flight_time_bound_s"].as_f64(),
         landing.flight_time_bound_s
     );
     assert_eq!(
@@ -3898,7 +3898,7 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "the logger states: apogee 390.4 m (1281 ft)",
         "readings from the logger's barometric altitude, sampled every 0.050 s in steps of \
          0.305 m, after a 0.30 s running median",
-        "liftoff           0.80 s, within 0.79 s",
+        "liftoff           0.80 s, within 0.81 s",
         "apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, \
          within 0.87 s, 9.47 s after liftoff",
         "set aside by the median",

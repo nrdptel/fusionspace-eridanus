@@ -1635,11 +1635,11 @@ readings from the logger's barometric altitude, sampled every 0.050 s in steps o
 4 channels: Altitude (altitude above ground), Velocity (speed), Temperature (F) (temperature), Voltage (voltage)
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
-liftoff           0.80 s, within 0.79 s
+liftoff           0.80 s, within 0.81 s
 apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, within 0.87 s, 9.47 s after liftoff
                   highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
 top speed         78.3 m/s (257 ft/s), within 20.5 m/s (67 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
-landing           45.80 s, within 2.07 s; 45.00 s after liftoff, within 2.86 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
+landing           45.80 s, within 2.10 s; 45.00 s after liftoff, within 2.91 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
