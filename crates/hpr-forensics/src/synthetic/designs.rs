@@ -249,9 +249,21 @@ mod tests {
         let files = DesignFiles::committed();
         for (k, design) in DESIGNS.iter().enumerate() {
             let rocket: serde_json::Value = serde_json::from_str(files.json(k).unwrap()).unwrap();
-            assert!(rocket.is_object(), "{}", design.name);
+            // Each file names its example: `rocketpy-cavour.json` is "RocketPy example: cavour".
+            let example = design.name.trim_start_matches("rocketpy-");
+            assert_eq!(
+                rocket["name"],
+                format!("RocketPy example: {example}"),
+                "{}",
+                design.name
+            );
         }
-        assert!(DesignFiles::new(vec![String::new(); 9]).is_err());
+        assert!(matches!(
+            DesignFiles::new(vec![String::new(); 9]),
+            Err(SyntheticError::Invalid {
+                what: "the design files aren't one for each of the ten designs"
+            })
+        ));
         assert!(files.json(DESIGNS.len()).is_none());
     }
 }

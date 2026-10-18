@@ -495,6 +495,47 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_truth_with_no_samples_or_a_time_that_isnt_a_number_has_no_sample_there() {
+        let sample = |time_s: f64, height_m: f64| TruthSample {
+            time_s,
+            height_m,
+            vertical_speed_m_s: 0.0,
+            axial_specific_force_m_s2: 0.0,
+            mach: 0.0,
+            dynamic_pressure_pa: 0.0,
+            position_enu_m: [0.0; 3],
+            velocity_enu_m_s: [0.0; 3],
+        };
+        let mut truth = Truth {
+            samples: vec![sample(0.0, 0.0), sample(1.0, 10.0)],
+            events: TruthEvents {
+                liftoff_s: 0.0,
+                rail_exit_s: 0.0,
+                burnout_s: 0.0,
+                apogee_s: 1.0,
+                apogee_m: 10.0,
+                charges: Vec::new(),
+                deployments: Vec::new(),
+                landing_s: 1.0,
+            },
+            pad_height_m: 0.0,
+            site_elevation_m: 0.0,
+            temperature_offset_k: 0.0,
+        };
+        assert_eq!(truth.at(0.25).unwrap().height_m, 2.5);
+        // Before the first sample the first holds; after the last, the last.
+        assert_eq!(truth.at(-1.0).unwrap().height_m, 0.0);
+        assert_eq!(truth.at(f64::INFINITY).unwrap().height_m, 10.0);
+        assert!(truth.at(f64::NAN).is_none());
+        truth.samples.clear();
+        assert!(truth.at(0.5).is_none());
+        assert!(matches!(
+            truth.pressure_pa(0.5),
+            Err(SyntheticError::Invalid { .. })
+        ));
+    }
+
+    #[test]
     fn a_tilted_curve_keeps_its_impulse_and_leans_the_way_asked() {
         let curve =
             ThrustCurve::new(vec![0.0, 0.1, 1.0, 2.0], vec![0.0, 1_000.0, 1_000.0, 0.0]).unwrap();

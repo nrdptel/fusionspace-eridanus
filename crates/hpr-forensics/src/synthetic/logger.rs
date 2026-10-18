@@ -387,8 +387,16 @@ fn check(draw: &LoggerDraw, truth: &Truth) -> Result<(), SyntheticError> {
     if truth.samples.iter().any(|s| !s.time_s.is_finite()) {
         return invalid("a truth sample at no finite time");
     }
+    // The clock writes a sample for every step it runs, so a log longer than a day, which no
+    // flight lasts, is refused rather than allocated.
+    if !(draw.pad_s + events.landing_s + draw.ground_s <= MAX_LOG_S) {
+        return invalid("a log longer than a day");
+    }
     Ok(())
 }
+
+/// The longest log a logger writes, s: a day.
+const MAX_LOG_S: f64 = 86_400.0;
 
 /// The truth at `t`, refused where there is none.
 fn truth_at(truth: &Truth, t: f64) -> Result<TruthSample, SyntheticError> {
@@ -1139,6 +1147,130 @@ mod tests {
     }
 
     #[test]
+    fn the_log_lines_up_with_the_truth_by_its_drawn_pad_span() {
+        // A climb at 10 m/s² from launch, its specific force rising 1 m/s² each second, logged
+        // 7 s before launch with every noise term off: each value is the truth's 7 s earlier on
+        // the log's clock, to its step. A log lined up by any other span is off by 125 m or more
+        // within 5 s of launch.
+        let mut truth = still(30.0, 0.0, 0.0, 0.0, 10.0);
+        for sample in &mut truth.samples {
+            sample.axial_specific_force_m_s2 = sample.time_s;
+        }
+        let pad_s = 7.0;
+        let draw = LoggerDraw {
+            pad_s,
+            gnss_omega_rad_s: 5.0,
+            ..quiet(Profile::Altos)
+        };
+        let log = log(&draw, &truth, SEED, 13).unwrap();
+        for (t, r) in pressure_residuals(&log, &truth, pad_s) {
+            assert!(r.abs() <= 0.5 + 1e-9, "{t}: {r}");
+        }
+        let a = channel(&log, Quantity::Acceleration);
+        for (&t, &v) in a.time_s.iter().zip(&a.values) {
+            let f = (t - pad_s).clamp(0.0, 30.0);
+            assert!((v - quantize(f, 0.049 * G)).abs() < 1e-9, "{t}: {v}");
+        }
+        // The fixes, lagging 0.4 m at 5 rad/s, each within five of its 3 m (9.8 ft) of noise.
+        let h = channel(&log, Quantity::GnssAltitude);
+        for (&t, &v) in h.time_s.iter().zip(&h.values) {
+            let z = truth.at(t - pad_s).unwrap().height_m;
+            assert!((v - truth.site_elevation_m - z).abs() < 15.0, "{t}: {v}");
+        }
+    }
+
+    #[test]
+    fn a_draw_or_truth_no_logger_could_write_is_refused_by_name() {
+        let truth = still(10.0, G, 0.0, 0.0, 0.0);
+        let refused = |draw: &LoggerDraw, truth: &Truth| match log(draw, truth, SEED, 1) {
+            Err(SyntheticError::Invalid { what }) => what,
+            other => panic!("{other:?}"),
+        };
+        let altos = quiet(Profile::Altos);
+        assert_eq!(
+            refused(
+                &LoggerDraw {
+                    pad_s: -1.0,
+                    ..altos
+                },
+                &truth
+            ),
+            "a logger's pad or ground span that isn't a finite length"
+        );
+        assert_eq!(
+            refused(
+                &LoggerDraw {
+                    ground_s: f64::NAN,
+                    ..altos
+                },
+                &truth
+            ),
+            "a logger's pad or ground span that isn't a finite length"
+        );
+        assert_eq!(
+            refused(
+                &LoggerDraw {
+                    gnss_rate_hz: 0.0,
+                    ..altos
+                },
+                &truth
+            ),
+            "a GNSS fix rate that isn't a positive number"
+        );
+        assert_eq!(
+            refused(
+                &LoggerDraw {
+                    slow_noise_tau_s: 0.0,
+                    ..altos
+                },
+                &truth
+            ),
+            "a slow noise time constant that isn't a positive number"
+        );
+        assert_eq!(
+            refused(
+                &LoggerDraw {
+                    ground_s: 1.0e6,
+                    ..altos
+                },
+                &truth
+            ),
+            "a log longer than a day"
+        );
+        let mut empty = truth.clone();
+        empty.samples.clear();
+        assert_eq!(
+            refused(&altos, &empty),
+            "a truth with no samples or an event at no finite time"
+        );
+        let mut late = truth.clone();
+        late.events.landing_s = f64::INFINITY;
+        assert_eq!(
+            refused(&altos, &late),
+            "a truth with no samples or an event at no finite time"
+        );
+        let mut unclocked = truth;
+        unclocked.samples[3].time_s = f64::NAN;
+        assert_eq!(
+            refused(&altos, &unclocked),
+            "a truth sample at no finite time"
+        );
+        // A barometer-only logger has no fix rate to refuse.
+        assert!(
+            log(
+                &LoggerDraw {
+                    gnss_rate_hz: 0.0,
+                    ..quiet(Profile::Rrc3)
+                },
+                &still(10.0, G, 0.0, 0.0, 0.0),
+                SEED,
+                1
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
     fn the_clock_runs_from_the_pad_to_the_ground_at_each_parts_rate() {
         // A 40 s flight with apogee at 10 s, logged 3 s before launch and 5 s after landing.
         let mut truth = still(40.0, G, 0.0, 0.0, 0.0);
@@ -1309,11 +1441,71 @@ mod tests {
 
     #[test]
     fn each_loggers_draw_stays_inside_its_parts_ranges() {
+        // Each part's stated terms, as the page and its sources give them, so that a changed
+        // constant fails here and not only the draws it bounds.
+        let stated_barometer = |profile| match profile {
+            Profile::PerfectFlite => Some(((0.0, 0.0), 100.0, 0.001)),
+            Profile::Rrc3 => Some(((2.3, 2.3), 100.0, 0.0025)),
+            Profile::Altos => Some(((2.4, 13.0), 100.0, 0.0025)),
+            Profile::Eggtimer | Profile::Imu500 => Some(((0.2, 6.6), 0.0, 0.0008)),
+            Profile::GnssTracker => None,
+        };
+        let stated_accelerometer = |profile| match profile {
+            Profile::Altos => Some(((0.005, 0.005), 0.049, 180.0, 0.10)),
+            Profile::Imu500 => Some(((0.000_16, 0.000_4), 64.0 / 65_536.0, 32.0, 0.03)),
+            _ => None,
+        };
+        // Every draw inside [lo, hi], and the least and greatest within 2% of the span of its
+        // ends.
+        let spans = |values: Vec<f64>, lo: f64, hi: f64| {
+            let least = values.iter().copied().fold(f64::INFINITY, f64::min);
+            let greatest = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            let slack = 0.02 * (hi - lo);
+            least >= lo && greatest <= hi && least <= lo + slack && greatest >= hi - slack
+        };
         let mut rng = SeededRng::for_stream(SEED, &[0]);
         for profile in Profile::ALL {
             let draws: Vec<LoggerDraw> = (0..2_000)
                 .map(|_| LoggerDraw::draw(&mut rng, profile))
                 .collect();
+            let column = |f: &dyn Fn(&LoggerDraw) -> f64| draws.iter().map(f).collect::<Vec<_>>();
+            assert_eq!(
+                profile
+                    .barometer()
+                    .map(|b| (b.white_pa, b.offset_pa, b.relative_gain)),
+                stated_barometer(profile),
+                "{profile:?}"
+            );
+            assert_eq!(
+                profile.accelerometer().map(|a| (
+                    a.density_g_per_root_hz,
+                    a.step_g,
+                    a.range_g,
+                    a.scale
+                )),
+                stated_accelerometer(profile),
+                "{profile:?}"
+            );
+            assert!(spans(column(&|d| d.slow_noise_tau_s), 0.65, 1.26));
+            assert!(spans(column(&|d| d.accel_bias_m_s2 / G), -0.05, 0.05));
+            assert!(spans(column(&|d| d.gnss_omega_rad_s), 0.25, 1.0));
+            if let Some(((white_lo, white_hi), offset, gain)) = stated_barometer(profile) {
+                assert!(spans(column(&|d| d.slow_noise_m), 0.24, 0.29));
+                assert!(column(&|d| d.fast_noise_m).iter().all(|&m| m == 0.5));
+                assert!(spans(column(&|d| d.gain), -gain, gain), "{profile:?}");
+                if offset > 0.0 {
+                    assert!(spans(column(&|d| d.offset_pa), -offset, offset));
+                }
+                if white_hi > white_lo {
+                    assert!(spans(column(&|d| d.white_pa), white_lo, white_hi));
+                }
+            }
+            if let Some(((lo, hi), _, _, scale)) = stated_accelerometer(profile) {
+                if hi > lo {
+                    assert!(spans(column(&|d| d.density_g_per_root_hz), lo, hi));
+                }
+                assert!(spans(column(&|d| d.accel_scale), -scale, scale));
+            }
             let all = |f: &dyn Fn(&LoggerDraw) -> bool| draws.iter().all(f);
             assert!(all(
                 &|d| (2.0..=10.0).contains(&d.pad_s) && (2.0..=10.0).contains(&d.ground_s)

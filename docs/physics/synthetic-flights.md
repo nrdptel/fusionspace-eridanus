@@ -1,7 +1,8 @@
 # Synthetic flights
 
 See the 2,200 simulated flights, each with a known truth and its logger's
-[flight log](../glossary.md#flight-log), on which readings and their 90% intervals are tested.
+[flight log](../glossary.md#flight-log), on which [readings](log-readings.md) and their 90%
+intervals are tested.
 
 ## In short
 
@@ -30,8 +31,8 @@ See the 2,200 simulated flights, each with a known truth and its logger's
   [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks that comparison
   ([evidence row G32](../evidence.md#g32)).
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, vibration, the
-  logger's own speed column, and flights at Mach 1.18 or faster: the fastest of the 2,200 stays
-  below it ([What it leaves out](#what-it-leaves-out)).
+  logger's own speed column, and flights at or above Mach 1.18, which none of the 2,200 reaches
+  ([What it leaves out](#what-it-leaves-out)).
 
 ## Why simulated flights
 
@@ -69,7 +70,7 @@ Three sets, each on its own seed, written down before any method was tuned:
 |---|---:|---:|---|
 | Tuning | 200 | 2026101700 | 100 of A's and 100 of B's, alternating |
 | A | 1,000 | 2026101701 | HPR Sim's |
-| B | 1,000 | 2026101702 | reshaped in three ways |
+| B | 1,000 | 2026101702 | its drag, wind and thrust reshaped |
 
 By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. Flight $k$
 of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and
@@ -269,9 +270,11 @@ to it: the offset as the residuals' mean, the drift as their slope, the white no
 within five standard errors, the fast and slow correlated noise's spreads and correlations, the
 gain on a 2 km (6,562 ft) climb, the port's $C_p\,q$ at a measured point, the pulse at 0.15 s,
 the accelerometer's scale, bias, spread (after apogee too) and clip, the GNSS lag and dropouts,
-and the log's span and rates. Each drawn term is checked again at half and at one and a half
-times its value, or with its sign or rate changed, and must then fail; the fixed 3 m (9.8 ft)
-GNSS noise is held to its value on each axis. These tests show the generator draws what it
+the log's span and rates, and its values lined up with the truth by the drawn pad span. Each
+drawn term is checked again changed, at half and one and a half times its value or with its
+sign, rate or span changed, and must then fail; each part's stated ranges are pinned to the
+values on this page, so a changed constant fails too. The fixed 3 m (9.8 ft) GNSS noise is held
+to its value on each axis. These tests show the generator draws what it
 says, not that the terms are right. The census, a file in the repository
 ([synthetic-flights.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md)),
 counts each set's flights by design and logger, and the ranges of eight quantities: apogee, top
@@ -305,6 +308,8 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
   opening is a sharp spike.
 - **Vibration.** The accelerometer's noise is the same through the boost as on the pad; a
   motor's vibration isn't drawn.
+- **A GNSS error that wanders.** Each fix's noise is drawn afresh, so an average of fixes is
+  quieter than a real receiver's, whose error drifts over seconds to minutes.
 - **A sharp port jump.** The port's error is read linearly between the tunnel's Mach numbers,
   0.1 apart near Mach 1, so its jump is spread over that much speed; a real port's may be
   sharper.
