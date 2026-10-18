@@ -23,7 +23,7 @@ Releases come in this order. A release is out once Neer, the project's owner, pu
 - **Release 0.3, accuracy and fault diagnosis.**
 - **Release 0.4, the competition kit.**
 - **Release 0.5, the app preview.** It is out once the project's own acceptance pass is done
-  ([ADR-282](decisions/0282-the-project-tests-each-ui-milestone-itself.md)) and any changes it turns
+  ([ADR-282](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0282-the-project-tests-each-ui-milestone-itself.md)) and any changes it turns
   up are made.
 - **Release 1.0, the app.** It is out, again, once its acceptance pass is done.
 - **Everything else on the roadmap that is software** comes after 1.0.

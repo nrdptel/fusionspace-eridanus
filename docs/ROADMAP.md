@@ -564,7 +564,8 @@ checklists for its platform, ADR-164.)
     probe);
   - a flight's settings snapshot feeds M6.8's settings check and its M7.1 record;
   - its acceptance pass runs under launch conditions: no network, two phones in their simulators
-    sharing by file and by QR code, and a full pad hold on the battery budget (ADR-282).
+    sharing by file and by QR code, and a full pad hold on the battery budget; its recording is
+    on the PR (ADR-282).
 
 ## Phase 8: Releases (ADR-162)
 
@@ -590,11 +591,12 @@ and at least one capability none of them has, checked against its docs with the 
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0
   and M9.2; the app opens a design or a log, flies, plots and replays it in 3D with the ghost, on
-  the desktop and the web; its acceptance pass is in its PR (ADR-282); and at least five flyers
-  outside the project have done its tasks, their times and problems in a report as aggregates (ADR-209 §10).
+  the desktop and the web; its acceptance pass and recording are in its PR (ADR-282); and at
+  least five flyers outside the project have done its tasks, their times and problems in a report
+  as aggregates (ADR-209 §10).
 - [ ] **M10.6 Release 1.0: the app.** *Done when:* the checklist holds after M10.5, M5.6a, M8.2,
-  M9.1, M5.6b, M8.1, M5.6c, M5.6d, M3.4 and M9.3, and its acceptance pass is in its PR
-  (ADR-282).
+  M9.1, M5.6b, M8.1, M5.6c, M5.6d, M3.4 and M9.3, and its acceptance pass and recording are in its
+  PR (ADR-282).
 ## Phase 9: The suite's new lines, one at a time after 1.0 (ADR-162 §4, ADR-163 §5)
 
 Neer's, 2026-10-04. Research: [propulsion](research/suite-propulsion.md),
