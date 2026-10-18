@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -134,26 +134,40 @@ jobs:
         with:
           name: cli-${{ matrix.os }}
           path: dist
-      # Homebrew is installed on GitHub's Ubuntu images but not on the path.
+      # Homebrew is installed on GitHub's x86-64 Ubuntu images but not on the path; the ARM image
+      # has none, so its installer runs, pinned to a commit of Homebrew/install.
       - if: runner.os == 'Linux'
-        run: echo /home/linuxbrew/.linuxbrew/bin >> "$GITHUB_PATH"
+        run: |
+          if [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+            installer=https://raw.githubusercontent.com/Homebrew/install/be041513824fd2666a0e93cf5c3b0ca3bb0eb4b6/install.sh
+            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$installer")"
+          fi
+          echo /home/linuxbrew/.linuxbrew/bin >> "$GITHUB_PATH"
       - run: scripts/release/smoke-homebrew.sh package-managers/fusionspace-hpr.rb dist
 
-  # `scoop install` of the manifest, pointed at this run's Windows archive
-  # (scripts/release/smoke-scoop.ps1).
+  # `scoop install` of the manifest, pointed at this run's Windows archive for the runner, x86-64
+  # or ARM (scripts/release/smoke-scoop.ps1).
   scoop:
-    name: scoop
+    name: scoop (${{ matrix.os }})
     needs: package-managers
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+      # The script serves the archive with Python's own web server.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v8
         with:
           name: package-managers
           path: package-managers
       - uses: actions/download-artifact@v8
         with:
-          name: cli-windows-latest
+          name: cli-${{ matrix.os }}
           path: dist
       - run: scripts/release/smoke-scoop.ps1 package-managers/fusionspace-hpr.json dist
         shell: pwsh
