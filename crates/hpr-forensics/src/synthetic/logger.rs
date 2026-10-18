@@ -1151,8 +1151,8 @@ mod tests {
     fn the_log_lines_up_with_the_truth_by_its_drawn_pad_span() {
         // A climb at 10 m/s² from launch, its specific force rising 1 m/s² each second, logged
         // 7 s before launch with every noise term off: each value is the truth's 7 s earlier on
-        // the log's clock, to its step. A log lined up by any other span is off by 125 m or more
-        // within 5 s of launch.
+        // the log's clock, to its step. A log lined up by the 2 s every other test uses is off by
+        // 125 m or more from launch; the pressure's half a step catches a shift of 0.05 s.
         let mut truth = still(30.0, 0.0, 0.0, 0.0, 10.0);
         for sample in &mut truth.samples {
             sample.axial_specific_force_m_s2 = sample.time_s;
