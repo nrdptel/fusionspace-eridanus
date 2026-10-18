@@ -226,7 +226,8 @@ pub const SLOW_NOISE_TAU_S: (f64, f64) = (0.65, 1.26);
 /// The residual accelerometer bias after the pad's zero is drawn from ±this, g: the top of the
 /// ±10–50 mg that sensor noise's *What this suggests* 1 calls a guess, as no source states one.
 pub const ACCEL_BIAS_G: f64 = 0.05;
-/// A GNSS fix's noise, 1σ along each axis, m (GNSS in boost §4's simulation).
+/// A GNSS fix's noise, 1σ along each axis, m: the filter's σ in GNSS in boost §4's simulation,
+/// which was fed noise-free fixes, taken as a receiver's noise (an assumption).
 pub const GNSS_NOISE_M: f64 = 3.0;
 
 /// What one flight's logger draws.
@@ -294,6 +295,8 @@ impl LoggerDraw {
         let accel_bias_m_s2 = between(rng, -ACCEL_BIAS_G, ACCEL_BIAS_G) * G;
         // 1 Hz by default, faster where set ([GNSS in boost] §1).
         let gnss_rate_hz = [1.0, 5.0, 10.0][(rng.uniform() * 3.0) as usize % 3];
+        // About the simulated filter's 0.47–0.69 rad/s (GNSS in boost §4), widened both ways: an
+        // assumption.
         let gnss_omega_rad_s = between(rng, 0.25, 1.0);
         let gnss_dropout_liftoff_s = between(rng, 0.0, 10.0);
         let gnss_dropout_burnout_s = between(rng, 0.0, 10.0);
@@ -908,28 +911,33 @@ mod tests {
         // On a climb the gain shows; on a still truth it doesn't.
         let truth = still(20.0, G, 0.0, 0.0, 10.0);
         let base = log(&quiet(Profile::Imu500), &truth, SEED, 3).unwrap();
-        let gained = log(
-            &LoggerDraw {
-                gain: 8.0e-4,
-                ..quiet(Profile::Imu500)
-            },
-            &truth,
-            SEED,
-            3,
-        )
-        .unwrap();
-        let pad = truth.pressure_pa(0.0).unwrap();
-        let (b, g) = (
-            channel(&base, Quantity::Pressure),
-            channel(&gained, Quantity::Pressure),
-        );
+        let b = channel(&base, Quantity::Pressure);
         let k = b.values.len() - 1;
+        let pad = truth.pressure_pa(0.0).unwrap();
         let change = truth.pressure_pa(b.time_s[k] - 2.0).unwrap() - pad;
-        let step = 2.0e-5 * ATMOSPHERE_PA;
-        assert!((g.values[k] - b.values[k] - 8.0e-4 * change).abs() <= step);
         assert!(change < -10_000.0, "the climb moves the pressure: {change}");
-        // With no gain drawn the difference is gone: the gain here is four of the part's steps.
-        assert!((8.0e-4 * change).abs() > 3.0 * step);
+        let step = 2.0e-5 * ATMOSPHERE_PA;
+        // The last sample's pressure with `gain` drawn, less the one with none, against the
+        // stated 0.08% of the change: within one of the part's steps.
+        let holds = |gain: f64| {
+            let gained = log(
+                &LoggerDraw {
+                    gain,
+                    ..quiet(Profile::Imu500)
+                },
+                &truth,
+                SEED,
+                3,
+            )
+            .unwrap();
+            let g = channel(&gained, Quantity::Pressure);
+            (g.values[k] - b.values[k] - 8.0e-4 * change).abs() <= step
+        };
+        assert!(holds(8.0e-4));
+        // About 8 steps of gain over the climb: none, half or half again reads off by 4 or more.
+        for changed in [0.0, 4.0e-4, 1.2e-3] {
+            assert!(!holds(changed), "{changed}");
+        }
     }
 
     #[test]
@@ -1358,7 +1366,7 @@ mod tests {
         assert!((height_of(Profile::Altos, p).unwrap() - 1_524.0).abs() < 0.5);
         assert!((height_of(Profile::Rrc3, p).unwrap() - 4_998.0 * FOOT_M).abs() < 0.5);
         // On a climb in standard air each barometer reads the truth's height above the pad, to its
-        // correlated noise (0.5 m), its step and, for the RRC3, its formula's 0.8 m in 2 km.
+        // correlated noise (0.5 m), its step and, for the RRC3, its formula's 0.83 m in 2 km.
         let truth = still(20.0, G, 0.0, 0.0, 10.0);
         for profile in [
             Profile::PerfectFlite,
