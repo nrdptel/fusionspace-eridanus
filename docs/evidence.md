@@ -61,7 +61,7 @@ the checks fetch into, with its hash in the register so every check reads the sa
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 31 rows, as of October 17, 2026.
+The register holds 32 rows, as of October 17, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -76,9 +76,10 @@ The register holds 31 rows, as of October 17, 2026.
 | Fin flutter | 0 | 1 | 0 | 0 | 0 | 1 |
 | The motor finder | 0 | 1 | 0 | 0 | 0 | 1 |
 | Design export | 1 | 0 | 0 | 0 | 0 | 1 |
-| All | 6 | 10 | 1 | 10 | 4 | 31 |
+| The synthetic flights | 0 | 0 | 0 | 1 | 0 | 1 |
+| All | 6 | 10 | 1 | 11 | 4 | 32 |
 
-**Short of what's wanted.** 30 of the 31 rows don't yet have the kind of evidence they want; each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 31 of the 32 rows don't yet have the kind of evidence they want; each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -115,6 +116,7 @@ The register holds 31 rows, as of October 17, 2026.
 | <a id="g29"></a>G29 | Aerodynamics | Faster than sound, a boattail's share of the body's force comes from the shock-expansion method, and a blunt tip flies it behind a Newtonian cap. **Not checked:** the boattail's share, unvalidated; a blunt tip, checked on a sphere-cone only. | spec | real | [#681](https://github.com/nrdptel/fusionspace-eridanus/issues/681) | 2026-10-17 |
 | <a id="g30"></a>G30 | Flight-log readers | The AltiMAX's Excel export keeps its voltages as the file states them. **Not checked:** the voltages, which nothing checks. | none | real | [#682](https://github.com/nrdptel/fusionspace-eridanus/issues/682) | 2026-10-17 |
 | <a id="g31"></a>G31 | Flight-log readers | An RRC3's Temperature and Voltages columns, which state no unit, are read in the units its manual pairs with the file's altitude unit. **Not checked:** the units, which are assumed; a file whose temperature or voltage can be checked against another record of the same flight. | reasoning | real | [#683](https://github.com/nrdptel/fusionspace-eridanus/issues/683) | 2026-10-17 |
+| <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 17, 2026: [G23](#g23).
 
@@ -150,6 +152,7 @@ The register holds 31 rows, as of October 17, 2026.
 - [G29](#g29), October 17, 2026: looked at NTRS for measured supersonic forces on boattailed and blunt-nosed bodies: NACA RM A52E22 (Dennis and Cunningham, 1952), NASA TM X-653 (1962), NASA TN D-916, and NACA RM E54B11 (Moskowitz and Jack, 1954), which the project already holds; found candidates, US government work, public use permitted: RM A52E22 tabulates lift, drag and moment against angle (tables V to VIII) for 3/4-power and 1/2-power blunt bodies of fineness 3 and 5 at Mach 2.75 to 5.00, blunt tips that are not sphere-cones; RM E54B11's table I gives pressure coefficients by meridian at 3° and 9° over four boattails at Mach 3.12, from which the boattail's own share of the normal force can be integrated, though the project uses it only for drag; TM X-653's blunted nose is another sphere-cone.
 - [G30](#g30), October 17, 2026: looked at GitHub code search for flight-log CSVs; CATS's EuRoC 2021 team data (github.com/catsystems/euroc21-team-data@ef54912c, GPL-3.0); Rocketronics' AltiMAX manuals, already held; the private collection's AltiMAX files, counted only; found a candidate: STA-CARL2/sta-carl2-altimax/sta-carl2-altimax.xls, a second real AltiMAX Excel export (9,940 rows, GPL-3.0, cache under refs/ only), its header and events in German (`ZEIT`, `RAMPE`), with an RRC3 and an Eggtimer log of the same flight; of its five voltage channels one holds about 8.2 V throughout, one stays near 0.5 V, and two fall from about 7.7 V to about 0.5 V within 0.1 s after the export's own pyro events (24.9 s and 123.1 s), while the RRC3 logs its drogue at 23.8 s, the AltiMAX's apogee time, and its main at 121.4 s; that checks the voltages' behavior and their tie to the flight, not a second measurement of the same battery. The private collection has one AltiMAX Excel export.
 - [G31](#g31), October 17, 2026: looked at GitHub code search for RRC3 exports ("Temperature Events Voltages" extension:csv); CATS's EuRoC 2021 team data (GPL-3.0); RocketPy-Team/RocketPaper (MIT); RocketPy's Juno III data; the private collection's RRC3 logs and the other loggers on their flights, counted only; found partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units, its altitude in meters and its pad temperature 36.1, read as °C by the pairing rule, but no other logger on that flight records temperature; RocketPaper@23d9271d's Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column, a real file that names the unit. In the private collection 90 RRC3 CSVs (copies included), 4 with bracketed units.
+- [G32](#g32), October 17, 2026: looked at the public logs the sensor noise note measured at rest (five Blue Raven flights, ten StratoLoggerCF, five AltOS, one RRC3, one team-built board) and the makers' datasheets it cites; found pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise; no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth.
 
 <!-- evidence: end -->
 

@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 48,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 49,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -408,17 +408,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   *Done when:* the C example and the Node test run in CI and reproduce a reference flight.
 ## Phase 5: Flight data and forensics
 
-M7.1 and M7.2 need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
-`hpr-sim` (`cargo xtask wasm-check`). M7.3 and M7.4, in `hpr-forensics`, compare a flight with its
-simulation. Formats, methods and log corpus come from Debrief (`docs/research/`).
-- [ ] **M7.2 Readings, reconstruction and ghost data.**
-  - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
-    rates per phase, flight time), each carrying its provenance: measured, derived, or clipped
-    when the sensor saturated. A reading the log cannot support is withheld with a reason.
-  - RTS/Kalman smoothing fusing baro, accel and GNSS; liftoff detection and time alignment.
-  - Two recordings of one flight read side by side, never averaged into one number; per-stage logs
-    assembled onto one timeline.
-  - A "ghost" data product: time-synced trajectories in a common frame, as JSON and CZML/glTF.
+M7.2's readings need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
+`hpr-sim`. Its synthetic flights, and M7.3 and M7.4, which compare a flight with its simulation,
+are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
+- [ ] **M7.2 Readings, reconstruction and ghost data** (ADR-280: in seven, below). Readings
+  with provenance or withheld; baro, accel and GNSS fused; ghost data.
 
   *Done when:*
   - On synthetic data (a simulated flight plus a noise model), the smoother recovers the truth
@@ -429,6 +423,20 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
+  - [ ] **M7.2b Readings on every logger.** *Done when:* each family with an altitude, pressure or
+    GNSS track takes the readings, within bounds held on the tuning set or withheld by name; #646
+    noted, tested both ways; method and provenance named; `cargo xtask logs` lists readings given and
+    withheld, a case per reason; `hpr analyze` and Python read each family.
+  - [ ] **M7.2c The rest of the readings.** *Done when:* top acceleration (clipped at the part's
+    range), burnout, each canopy's descent rate, flight time, as M7.2b's; tuning-set errors given.
+  - [ ] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its
+    stated error, coverage per state reported; trusting GNSS from liftoff fails; a health card.
+  - [ ] **M7.2e The 90% intervals.** *Done when:* ADR-257 §1–2's test passes, probes failing, on
+    both test sets for every reading given; intervals in the library, `hpr analyze` and Python.
+  - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
+    offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
+  - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
+    from each RocketPy flight log with an altitude or GNSS track.
 - [ ] **M7.3 A flight against its simulation.** Sim-versus-real residuals, then fitting Cd scale,
   mass, motor impulse scale and wind to a log (Levenberg–Marquardt plus a Bayesian option with
   uncertainty). The first milestone in `hpr-forensics`.

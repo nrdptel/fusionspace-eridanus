@@ -76,6 +76,7 @@ mod scoreboard;
 mod site;
 mod spelling;
 mod steps;
+mod synthetic;
 mod validate;
 mod wasm_check;
 mod workspace;
@@ -113,6 +114,7 @@ Commands:
 {ORK_EXPORT_FLIGHTS}
 {FIXTURE_FLIGHTS}
 {LOGS}
+{SYNTHETIC}
 {REAL_FLIGHTS}
 {RECORDS}
 {ROADMAP_CURRENT}
@@ -146,6 +148,7 @@ fn usage() -> String {
         .replace("{ORK_EXPORT_FLIGHTS}", ork_export_flights::USAGE)
         .replace("{FIXTURE_FLIGHTS}", fixture_flights::USAGE)
         .replace("{LOGS}", logs::USAGE)
+        .replace("{SYNTHETIC}", synthetic::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
@@ -182,6 +185,7 @@ fn main() -> ExitCode {
         Some("fixture-flights") => fixture_flights::run(&args.collect::<Vec<_>>()),
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
+        Some("synthetic") => synthetic::run(&args.collect::<Vec<_>>()),
         Some("records") => records::run(&args.collect::<Vec<_>>()),
         Some("roadmap-current") => roadmap::run_current(&args.collect::<Vec<_>>()),
         Some("motor-catalog") => motor_catalog::run(&args.collect::<Vec<_>>()),

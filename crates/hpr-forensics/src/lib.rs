@@ -10,5 +10,8 @@
 //! produced meet. Reading a log and working out what it says is [`hpr_flightdata`], which does not
 //! depend on the simulator, so that [analyzing a flight stands on its own][adr-046].
 //!
-//! Status: pre-alpha skeleton. Residuals and parameter identification are planned for milestone
-//! [M7.3][roadmap] of the roadmap, and fault diagnosis for [M7.4][roadmap].
+//! [`synthetic`] makes the flights whose truth is known, on which a log's readings and fits are
+//! tested ([M7.2a][roadmap], [ADR-280, the synthetic flights first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md)). Residuals and parameter identification are planned for
+//! milestone [M7.3][roadmap] of the roadmap, and fault diagnosis for [M7.4][roadmap].
+
+pub mod synthetic;

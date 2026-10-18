@@ -204,6 +204,9 @@ jobs:
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo run --locked --quiet --package xtask -- validate --check
+      # The synthetic flights' census (M7.2a, ADR-280): every flight flown again, held to the
+      # committed census to the three figures the platforms share.
+      - run: cargo run --locked --quiet --package xtask -- synthetic --check
       # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
       # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
       - if: matrix.os == 'ubuntu-latest'

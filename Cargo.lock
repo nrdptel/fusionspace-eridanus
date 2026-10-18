@@ -744,9 +744,17 @@ dependencies = [
 name = "fusionspace-hpr-forensics"
 version = "0.1.0"
 dependencies = [
+ "fusionspace-hpr-aero",
  "fusionspace-hpr-analysis",
+ "fusionspace-hpr-atmos",
+ "fusionspace-hpr-core",
+ "fusionspace-hpr-design",
  "fusionspace-hpr-flightdata",
+ "fusionspace-hpr-motor",
  "fusionspace-hpr-sim",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -2812,6 +2820,7 @@ dependencies = [
  "fusionspace-hpr-core",
  "fusionspace-hpr-design",
  "fusionspace-hpr-flightdata",
+ "fusionspace-hpr-forensics",
  "fusionspace-hpr-format",
  "fusionspace-hpr-io",
  "fusionspace-hpr-motor",

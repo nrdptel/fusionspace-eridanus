@@ -256,6 +256,7 @@ parachute descents sample, as part of that comparison, and nowhere else
 | [Flight metrics](physics/metrics.md) | ✓ the boost's peak, the margins of the page's finless rocket with a boattail (including where a margin is withheld) and the landing placement against hand calculations; max q and top Mach against a 1 ms record; the least margins against 1 ms steps and a scan of every step; the flight margin and the optimum delay against HPR Sim's own models and a flight with no recovery | no | no | no |
 | [Fin flutter](physics/flutter.md) | ✓ the scaling in thickness, stiffness and pressure, and the margin at max q against a 1 ms record | ✓ Martin's formula and both of his worked examples reproduced, with his verdicts against his figure 3 band; not compared with flutter data | no | no |
 | [Flight-log readings](physics/log-readings.md) | ✓ each reading of an invented flight within the bound its rounding and filter allow | no | partial: one public altimeter log's apogee, read at 1,010 ft against the 1,009 ft the altimeter's software states from the same trace; checked only where the log is fetched, not in CI | no |
+| [Synthetic flights](physics/synthetic-flights.md) | ✓ each noise term on a truth built for it, failing when changed | no: the terms are taken from datasheets and public logs, not yet compared with real logs' statistics | no | no |
 | [Interpolation](physics/interpolation.md) | ✓ | no | no | no |
 | [Quadrature](physics/quadrature.md) | ✓ | no | no | no |
 
