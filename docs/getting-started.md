@@ -66,7 +66,7 @@ into it. [How a release is built](releasing.md) lists the files and the checks e
 [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says what 0.1.0 does,
 how far to trust it, and its known gaps.
 
-Two cautions for the downloaded archives:
+Three cautions for the downloaded archives:
 
 - **macOS** may say it can't check `hpr` for malicious software, since the program isn't
   notarized by Apple. To allow it, run `xattr -d com.apple.quarantine hpr` in the folder you
@@ -80,6 +80,12 @@ Two cautions for the downloaded archives:
   `cargo install fusionspace-hpr-cli --locked` builds the command line ([What you need](#what-you-need)) and
   pip builds the Python package from source. Homebrew and cargo binstall install the same
   program on Linux, so the same floor applies to them.
+- **Windows:** release 0.2's `hpr.exe` runs on a clean Windows, since the C runtime is built
+  into it. Release 0.1.0's needs Microsoft's Visual C++ Redistributable, a free package of
+  runtime libraries: if Windows says `VCRUNTIME140.dll` was not found, install the
+  Redistributable for 0.1.0's x86-64 build with `winget install Microsoft.VCRedist.2015+.x64`.
+  With Scoop, `scoop bucket add extras` then `scoop install vcredist2022` does the same;
+  `extras` is Scoop's own bucket, separate from the `fusionspace` one above.
 
 ### What you need
 

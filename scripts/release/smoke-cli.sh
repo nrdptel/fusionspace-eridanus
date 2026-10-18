@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Unpacks a command-line archive made by scripts/release/archive.sh into an empty folder and checks
-# it as a user would get it: the license files are there, `hpr --version` names FusionSpace HPR and
+# it as a user would get it: the license files are there, a Windows `hpr.exe` needs no Visual C++
+# runtime (scripts/release/check_windows_runtime.py), `hpr --version` names FusionSpace HPR and
 # the workspace's version, `hpr motors show` reads the bundled catalog, and `hpr sim` flies a
 # committed design to the apogee docs/cli.md prints for it, within a meter.
 #
@@ -35,6 +36,13 @@ for file in "$hpr" README.md LICENSE-MIT LICENSE-APACHE THIRD-PARTY-NOTICES.md \
     exit 1
   fi
 done
+# A Windows program must run without the Visual C++ Redistributable (archive.sh links the C runtime
+# in), so it may not import VCRUNTIME140.dll or the like.
+case "$hpr" in
+  *.exe)
+    "$(command -v python3 || command -v python)" scripts/release/check_windows_runtime.py "$hpr"
+    ;;
+esac
 # The texts name the crates the binary links, clap among them.
 grep -q '^- clap ' "$dir/THIRD-PARTY-LICENSES.txt" ||
   { echo "smoke-cli: THIRD-PARTY-LICENSES.txt doesn't list clap" >&2; exit 1; }
