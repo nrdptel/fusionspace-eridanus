@@ -23,6 +23,21 @@ path = "src/main.rs"
 # The facade library is also called `hpr`; documenting both would collide in target/doc.
 doc = false
 
+# `cargo binstall fusionspace-hpr-cli` fetches the release's archive for the machine's target
+# (scripts/release/archive.sh's names and layout) instead of compiling, and compiles where a release
+# has no archive. Only this repository's archives: binstall's third-party build host is turned off.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/fusionspace-hpr-{ version }-{ target }{ archive-suffix }"
+bin-dir = "fusionspace-hpr-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+disabled-strategies = ["quick-install"]
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+
+[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]
+pkg-fmt = "zip"
+
 [lints]
 workspace = true
 
