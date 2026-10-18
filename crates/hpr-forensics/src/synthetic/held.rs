@@ -1,15 +1,15 @@
 //! The readings held to their bounds on the synthetic flights: each reading a log gives, against
-//! its flight's truth, beside the bound the reading states (M7.2b).
+//! its flight's truth, beside the bound the reading states ([M7.2b][m7-2b], the readings on every
+//! logger).
 //!
 //! A tuning flight is checked on its own logger's log and, if that logger has a barometer, on
-//! the same barometer written again at every rate and step of [`GRID`]: from 500 samples a second
-//! to one every two seconds, and from no step to 10 m in height or 100 Pa in pressure, the range
-//! the readers' families span; and, as a logger that records from launch writes them, the two
-//! recordings of [`CROPPED`] cut to each start of [`Crop`]. A reading holds where its error is no
-//! larger than its bound;
-//! `cargo xtask synthetic` fails unless every reading given on the tuning set holds, and reports
-//! the worst share of its bound each reading's error reached, on each log, and the readings
-//! withheld, by reason.
+//! the same barometer written again at every rate of [`GRID_RATES_HZ`] in every way of
+//! [`GRID_WRITTEN`]: from 500 samples a second to one every two seconds, and from no step to 10 m
+//! in height or 100 Pa in pressure, the range the readers' families span; and, as a logger that
+//! records from launch writes them, the two recordings of [`CROPPED`] cut to each start of
+//! [`Crop`]. A reading holds where its error is no larger than its bound; `cargo xtask synthetic`
+//! fails unless every reading given on the tuning set holds, and reports the worst share of its
+//! bound each reading's error reached, on each log, and the readings withheld, by reason.
 //!
 //! **The truths**, on the log's clock (the truth's time plus the seconds logged before launch):
 //! liftoff and landing are the truth's events, the center of mass starting along the rail and
@@ -17,6 +17,8 @@
 //! stood at launch; the top speed is the truth's highest vertical speed; the flight time is
 //! landing less liftoff; and the mean rate of descent is the center of mass's height at apogee
 //! above the ground over the time from apogee to landing.
+//!
+//! [m7-2b]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2b
 
 use std::collections::BTreeMap;
 
@@ -268,12 +270,14 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         ),
         (
             Quantity::FlightTime,
-            of(&read.landing, |l| match (l.flight_time_s, l.flight_time_bound_s) {
-                (Some(flight_time_s), Some(bound)) => {
-                    given(flight_time_s - (events.landing_s - events.liftoff_s), bound)
+            of(&read.landing, |l| {
+                match (l.flight_time_s, l.flight_time_bound_s) {
+                    (Some(flight_time_s), Some(bound)) => {
+                        given(flight_time_s - (events.landing_s - events.liftoff_s), bound)
+                    }
+                    // A landing read on a log whose liftoff is withheld has no flight time.
+                    _ => Outcome::Withheld(read.liftoff.reason().unwrap_or(Reason::Needs)),
                 }
-                // A landing read on a log whose liftoff is withheld has no flight time.
-                _ => Outcome::Withheld(read.liftoff.reason().unwrap_or(Reason::Needs)),
             }),
         ),
         (
@@ -305,13 +309,17 @@ pub fn logs(
         flight.log.clone(),
     )];
     for recording in grid() {
-        if let Some(log) = barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)? {
+        if let Some(log) =
+            barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)?
+        {
             logs.push((name(&recording), log));
         }
     }
     let liftoff_s = flight.draw.logger.pad_s + flight.truth.events.liftoff_s;
     for recording in CROPPED {
-        if let Some(log) = barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)? {
+        if let Some(log) =
+            barometer_log(&flight.draw.logger, &recording, &flight.truth, seed, index)?
+        {
             for crop in Crop::ALL {
                 let name = format!("{}, {}", name(&recording), crop.name());
                 logs.push((name, crop.cut(&log, liftoff_s)));
@@ -465,8 +473,7 @@ mod tests {
         // The same outcomes with one apogee's error past its bound.
         let mut missed = results;
         for (quantity, outcome) in &mut missed[0].1 {
-            if let (Quantity::ApogeeHeight, Outcome::Given { error, bound }) = (quantity, outcome)
-            {
+            if let (Quantity::ApogeeHeight, Outcome::Given { error, bound }) = (quantity, outcome) {
                 *error = 1.01 * *bound;
             }
         }

@@ -522,7 +522,10 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             // explain, the median set a pulse aside.
             let highest = &apogee.highest_sample;
             let explained = method.peak_bound_m.unwrap_or(0.0)
-                + method.step_m.unwrap_or(0.0).max(method.altitude_resolution_m)
+                + method
+                    .step_m
+                    .unwrap_or(0.0)
+                    .max(method.altitude_resolution_m)
                 + readings::NOISE_M;
             if highest.altitude_m - apogee.altitude_m > explained {
                 lines.push(row(
@@ -558,7 +561,9 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
                 if let (Some(flight), Some(bound)) =
                     (landing.flight_time_s, landing.flight_time_bound_s)
                 {
-                    value.push_str(&format!("; {flight:.2} s after liftoff, within {bound:.2} s"));
+                    value.push_str(&format!(
+                        "; {flight:.2} s after liftoff, within {bound:.2} s"
+                    ));
                 }
                 value.push_str(&format!(
                     "; {:.2} s from apogee, at {} on average, within {}",

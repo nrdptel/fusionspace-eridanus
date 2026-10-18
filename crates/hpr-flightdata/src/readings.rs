@@ -31,7 +31,11 @@
 //! - **liftoff** is the last sample before apogee within the pad's allowance: how far the filtered
 //!   pad strays from its median, at least [`LIFTOFF_ALLOWANCE_M`], and a step;
 //! - **apogee** is the filtered track's highest value, at the middle of the run of samples that
-//!   hold it (the track's step leaves a peak flat for a few samples);
+//!   hold it (the track's step leaves a peak flat for a few samples), unless that top isn't a
+//!   coast's ([`Reason::DisturbedTop`]): the track falls below a peak in the last
+//!   [`COAST_CHECK_S`] and climbs back to it, or climbs into the top faster than a coast slowing
+//!   at twice gravity and falls from it faster than a body at rest there ([`SPIKE_CHECK_S`]), as a
+//!   charge's transient does;
 //! - the **top speed** is the highest least-squares slope of the filtered track over
 //!   [`SPEED_WINDOW_S`] from liftoff to apogee: a speed HPR Sim derives, withheld where the
 //!   barometer's port may read the transonic flow ([`TRANSONIC_SPEED_M_S`]) and refused as
@@ -40,9 +44,9 @@
 //!   [`LANDING_HEIGHT_M`], that stays under it and [`LANDED_CEILING_M`]'s margin for
 //!   [`LANDED_FOR_S`], and no sooner, give or take a sample, than a fall from rest in vacuum would
 //!   lose that height, `√(2h/g)`: drag only slows a fall;
-//! - the **top acceleration** is left to milestone M7.2c: withheld when the log has no
-//!   accelerometer, as differencing a height twice turns its step into spikes of many g, and not
-//!   yet taken from one it has.
+//! - the **top acceleration** is left to milestone [M7.2c][m7-2c], the rest of the readings:
+//!   withheld when the log has no accelerometer, as differencing a height twice turns its step
+//!   into spikes of many g, and not yet taken from one it has.
 //!
 //! Before any reading, a log must be sampled no slower than [`MAX_INTERVAL_S`] and in steps no
 //! coarser than [`MAX_STEP_M`] (or [`MAX_PRESSURE_STEP_PA`]), the range the bounds were checked
@@ -69,6 +73,7 @@
 //! [page]: https://hpr.fusionspace.co/physics/log-readings.html
 //! [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 //! [ADR-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
+//! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
@@ -107,7 +112,7 @@ pub const LIFTOFF_HEIGHT_M: f64 = 3.0;
 /// The least the filtered track may sit above the pad and still be on it, m: four times the
 /// synthetic flights' fast correlated barometer noise (0.5 m, [ADR-280] §3), HPR Sim's choice.
 /// Where the pad's own samples reach further, the allowance is their reach. Liftoff read at half a
-/// foot above the pad, as before M7.2b, came up to 6 s early on a noisy 500 Hz barometer, the
+/// foot above the pad, as before the readings were taken on every logger, came up to 6 s early on a noisy 500 Hz barometer, the
 /// noise lifting the pad's last samples above it; with the pad's reach measured but the
 /// allowance at 1 m, 6.8 s early at half a sample a second on one tuning flight, against a 4.5 s
 /// bound, the noise moving the pad's last sample past the reach of the two before; at 2 m, never.
@@ -495,8 +500,9 @@ pub struct MaxSpeed {
     pub method: Method,
 }
 
-/// The top acceleration in the climb. No reading fills it yet: milestone M7.2c takes it from an
-/// accelerometer.
+/// The top acceleration in the climb. No reading fills it yet: milestone
+/// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the readings,
+/// takes it from an accelerometer.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MaxAcceleration {
     /// The acceleration, m/s².
@@ -1287,8 +1293,9 @@ fn arg_max(values: &[f64]) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-/// The top acceleration, withheld: milestone M7.2c takes it from an accelerometer, and none is
-/// taken from a height.
+/// The top acceleration, withheld: milestone
+/// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the readings,
+/// takes it from an accelerometer, and none is taken from a height.
 fn acceleration(log: &FlightLog) -> Reading<MaxAcceleration> {
     if log.channels_of(Quantity::Acceleration).next().is_some() {
         Reading::withheld(

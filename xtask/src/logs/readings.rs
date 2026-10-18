@@ -267,7 +267,9 @@ pub(super) fn markdown(survey: &Survey) -> String {
             "| `{}` | {} | {} | {} |\n",
             case.reason,
             case.records,
-            case.first.as_deref().map_or("none".to_owned(), |id| format!("`{id}`")),
+            case.first
+                .as_deref()
+                .map_or("none".to_owned(), |id| format!("`{id}`")),
             case.invented
                 .as_deref()
                 .map_or("none".to_owned(), |file| format!("`{file}`")),
@@ -309,7 +311,10 @@ mod tests {
             .filter(|name| name != "make.py")
             .collect();
         found.sort();
-        let mut listed: Vec<String> = INVENTED.iter().map(|(_, name)| (*name).to_owned()).collect();
+        let mut listed: Vec<String> = INVENTED
+            .iter()
+            .map(|(_, name)| (*name).to_owned())
+            .collect();
         listed.sort();
         assert_eq!(found, listed);
         let mut reasons: Vec<Reason> = INVENTED.iter().map(|(reason, _)| *reason).collect();
