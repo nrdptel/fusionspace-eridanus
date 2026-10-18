@@ -1,6 +1,6 @@
 # ADR-196: Neer's 2026-10-07 product guides: each product, illustrated (2026-10-07)
 
-- **Status:** accepted; amends [ADR-162, the suite and its releases][adr-162] §2 (the release checklist) and §3 (the queue), and [ADR-147, a roadmap of open work][adr-147] §6 (its budget)
+- **Status:** accepted; amends [ADR-162, the suite and its releases][adr-162] §2 (the release checklist) and §3 (the queue), and [ADR-147, a roadmap of open work][adr-147] §6 (its budget); §4's "Neer has read it" amended by [ADR-282, the project tests each UI milestone itself](0282-the-project-tests-each-ui-milestone-itself.md): a cold read
 - **Summary:** Each of the suite's products gets a guide on the docs site: a landing page and an illustrated tour that ends on a public real flight, in M0.7's format and checks. Every picture is made by a command CI reruns, never taken by hand: CLI output as terminal figures, plots from hpr, app screens from end-to-end tests, with phone and watch captures checked against the device's safe area. M0.8a writes the simulator's guide after M0.7a; from release 0.2 on, the release checklist requires that release's guide, read by Neer; each line after 1.0 ships its guide with its first milestone. The roadmap's budget rises to 40,500 bytes.
 
 **Context.** Later on October 7, 2026, after [ADR-195, the guides][adr-195], Neer added
