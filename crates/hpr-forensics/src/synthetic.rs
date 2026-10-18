@@ -62,8 +62,12 @@ impl Set {
     /// Every set.
     pub const ALL: [Self; 3] = [Self::Tuning, Self::A, Self::B];
 
-    /// Its seed, fixed on 2026-10-17 before any interval existed (ADR-280 §2). A seed changed
-    /// after a failure needs an ADR (ADR-257 §1).
+    /// Its seed, fixed on 2026-10-17 before any interval existed ([ADR-280][adr-280] §2, the
+    /// synthetic flights first). A seed changed after a failure needs a decision record of its
+    /// own ([ADR-257][adr-257] §1, calibrated intervals).
+    ///
+    /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+    /// [adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
     pub fn seed(self) -> u64 {
         match self {
             Self::Tuning => 2_026_101_700,

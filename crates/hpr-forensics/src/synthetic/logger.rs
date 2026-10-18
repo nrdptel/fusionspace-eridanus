@@ -4,7 +4,8 @@
 //! Rates are the makers' (`docs/research/altimeter-smoothing-methods.md` §2); parts, noise, ranges
 //! and steps are their datasheets' (`altimeter-sensor-noise.md` §2, §4–6); a logger turns pressure
 //! into height by the standard atmosphere and zeroes it on the pad
-//! (`altimeter-height-formulas.md`). Every range is ADR-280 §3's.
+//! (`altimeter-height-formulas.md`). Every range is
+//! [ADR-280, the synthetic flights first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md) §3's.
 
 use hpr_core::DVec3;
 use hpr_core::earth::Earth;

@@ -1,10 +1,7 @@
 # Synthetic flights
 
-See how FusionSpace HPR makes the simulated flights, each with its logger's
-[flight log](../glossary.md#flight-log) and a truth that is known, on which its readings and fits
-are tested, and what their noise holds and leaves out. The noise follows the makers' datasheets
-and the noise measured in a few public logs; it has not been checked against the statistics of
-real logs, and the flights are HPR Sim's own.
+See how FusionSpace HPR makes the simulated flights, each with a known truth and its logger's
+[flight log](../glossary.md#flight-log), on which its readings are tested.
 
 ## In short
 
@@ -21,8 +18,9 @@ real logs, and the flights are HPR Sim's own.
   ogive-cylinder through Mach 1 ([the Mach error note][mach]); the ejection pulse of Debrief's
   public Pnut log; the lag of hobby GNSS receivers in boost ([the GNSS note][gnss]); the NAR's
   [high-power safety code][hprcode] for the wind's limit.
-- **How well it is validated:** each noise term is pinned by a test that holds it to its stated
-  value on a truth built for that term alone, and fails when the term is changed. A flight drawn
+- **How well it is validated:** not against real logs: the noise follows datasheets and a few
+  public logs, and the flights are HPR Sim's own. Each noise term is pinned by a test that holds
+  it to its stated value on a truth built for that term alone, and fails when it is changed. A flight drawn
   again is the same to the bit. No test yet shows that the terms together look like a real log
   of the same family: [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks
   that comparison.
@@ -75,8 +73,8 @@ Set B flies a model that differs from HPR Sim's on purpose, so that a method can
 knowing HPR Sim's model:
 
 - **The drag** rises differently through Mach 1: the zero-lift drag is multiplied by
-  $1 + a\,e^{-((M-1)/0.2)^2} + bM$, with $a$ between −0.2 and 0.2 and $b$ between −0.05 and
-  0.05.
+  $1 + a\exp(-x^2) + bM$, where $x = (M - 1)/0.2$, with $a$ between −0.2 and 0.2 and $b$
+  between −0.05 and 0.05.
 - **The wind** grows with height as a power law, its exponent 0.14 to 0.20, the drawn speed at
   18.3 m (60 ft), after NASA/TM-2008-215633 §2.2.5.2. Set A's wind is the same at every height.
 - **The thrust curve** is tilted: its thrust times $1 + \tau(2t/t_b - 1)$, with $\tau$ between
