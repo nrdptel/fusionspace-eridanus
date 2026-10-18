@@ -27,16 +27,33 @@ Install a release, or gather what you need to build HPR Sim yourself.
 ### Install a release
 
 **Release 0.1.0 is out.** Each part installs without a copy of the repository; the rest of this
-page builds HPR Sim from the repository instead, which works too:
+page builds HPR Sim from the repository instead, which works too. Release 0.1 has files for Linux
+on x86-64, Macs with Apple silicon, and Windows on x86-64. From release 0.2 there are also files
+for Linux on 64-bit ARM and Windows on ARM. Intel Macs aren't built yet ([issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438)).
 
-- **The command line, `hpr`.** Download the archive for your system from
-  [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and put `hpr` on
-  your path. Release 0.1 has archives for Linux on x86-64, Macs with Apple silicon, and Windows
-  on x86-64; from release 0.2 there are also archives for Linux on 64-bit ARM and Windows on
-  ARM. Each is named `fusionspace-hpr-<version>-<system>`. Elsewhere, or with Rust
-  installed, `cargo install fusionspace-hpr-cli --locked` builds it. Either way the command is
-  `hpr`.
-  [The command line](cli.md) documents its commands.
+- **The command line, `hpr`.** A package manager installs it and keeps it up to date, or you
+  can download it yourself. Packages for winget and conda-forge are planned
+  ([issue #434](https://github.com/nrdptel/fusionspace-eridanus/issues/434)). Whichever way you
+  install it, the command is `hpr`, and `hpr --version` shows the install worked: it prints
+  `FusionSpace HPR` and the version. [The command line](cli.md) documents its commands.
+  - **Homebrew**, on a Mac with Apple silicon or on Linux on x86-64, and on Linux on 64-bit ARM
+    from release 0.2: `brew install nrdptel/tap/fusionspace-hpr`. Naming the tap in full adds
+    it, so there's no separate `brew tap` step. `brew upgrade` takes each new release.
+  - **Scoop**, on Windows on x86-64, and on Windows on ARM from release 0.2:
+    `scoop bucket add fusionspace https://github.com/nrdptel/scoop-bucket` once, then
+    `scoop install fusionspace/fusionspace-hpr`. `scoop update fusionspace-hpr` takes each new
+    release.
+  - **cargo binstall**, with Rust and [cargo-binstall](https://github.com/cargo-bins/cargo-binstall)
+    installed: `cargo binstall fusionspace-hpr-cli` downloads the release's archive instead of
+    compiling. Where it finds no archive, it compiles the crate, as `cargo install` does: for
+    releases before 0.2, whose crate on crates.io lacks the lines that point it at the archives,
+    and on an Intel Mac until [issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438).
+  - **By hand.** Download the archive for your system from
+    [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and
+    put `hpr` on your path. Each is named `fusionspace-hpr-<version>-<system>`, and the package
+    managers install the same files.
+  - **From source,** anywhere else, or with Rust installed:
+    `cargo install fusionspace-hpr-cli --locked` builds it.
 - **The Python package.** `pip install fusionspace-hpr` installs it, and it imports as
   `fusionspace.hpr`: `from fusionspace import hpr`. One wheel
   serves CPython 3.10 and later on each of those systems (3.11 on Windows on ARM, its oldest); elsewhere pip builds it from
@@ -53,14 +70,16 @@ Two cautions for the downloaded archives:
 
 - **macOS** may say it can't check `hpr` for malicious software, since the program isn't
   notarized by Apple. To allow it, run `xattr -d com.apple.quarantine hpr` in the folder you
-  unpacked it into.
+  unpacked it into. This applies to an archive downloaded in a web browser: Homebrew doesn't
+  mark a formula's download for that check, so an `hpr` it installs runs as it is.
 - **Linux** files are for x86-64 and need the GNU C library (glibc) 2.17 or later. Run
   `ldd --version`: its first line ends in your glibc's version. By their glibc that means RHEL and
   CentOS 7, Debian 8, Ubuntu 14.04 and anything newer; the release's checks run on a CentOS 7
   image, the others aren't run one by one. On an older glibc the program stops with
   `version 'GLIBC_2.xx' not found`. There, or on a distribution built on musl such as Alpine,
   `cargo install fusionspace-hpr-cli --locked` builds the command line ([What you need](#what-you-need)) and
-  pip builds the Python package from source.
+  pip builds the Python package from source. Homebrew and cargo binstall install the same
+  program on Linux, so the same floor applies to them.
 
 ### What you need
 

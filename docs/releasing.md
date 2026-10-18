@@ -37,6 +37,8 @@ entry: what it holds, what works, how far to trust it, and its known gaps.
 | `fusionspace-hpr-<version>-aarch64-pc-windows-msvc.zip` | the command line for Windows on ARM | the GitHub release |
 | `fusionspace_hpr-<version>-cp310-abi3-<platform>.whl` | the Python package, one wheel per platform, for CPython 3.10 and later (3.11 on Windows on ARM, its oldest); it imports as `fusionspace.hpr` | PyPI, as `fusionspace-hpr` |
 | `fusionspace_hpr-<version>.tar.gz` | the Python package's source; installing it compiles it, so it needs Rust | PyPI |
+| `fusionspace-hpr.rb` | the Homebrew formula for the Mac and Linux archives, from release 0.2; 0.1's was written afterwards by the same script and put in the tap by hand | the GitHub release, then [the tap](https://github.com/nrdptel/homebrew-tap) |
+| `fusionspace-hpr.json` | the Scoop manifest for the Windows archives, from release 0.2; 0.1's was written afterwards by the same script and put in the bucket by hand | the GitHub release, then [the bucket](https://github.com/nrdptel/scoop-bucket) |
 | 14 crates | `fusionspace-hpr`, the library's front door, the 12 `fusionspace-hpr-*` crates under it, and `fusionspace-hpr-cli`, the command line | crates.io |
 
 Each file is built and tested on the platform it is for, on that platform's own CPU
@@ -104,6 +106,14 @@ of the repository that provides the example design:
   `manylinux_2_17` tag. `scripts/release/smoke-manylinux.sh` runs the same smoke test inside
   pypa's manylinux2014 image, a CentOS 7 with glibc 2.17, installing the wheel with pip on
   CPython 3.10 and 3.13.
+- **The Homebrew formula** must pass `brew style` and `brew audit --strict`, then install with
+  `brew install` and pass its own `brew test` (`hpr --version` names the version), on a Mac
+  with Apple silicon and on Linux on x86-64 and on 64-bit ARM. Since the release it names doesn't exist yet, the install uses a copy whose addresses
+  point at the run's own archives, with the hashes as written (`scripts/release/smoke-homebrew.sh`).
+- **The Scoop manifest** must install with `scoop install` on Windows on x86-64 and on ARM,
+  each taking its own archive, the same way: a copy whose
+  addresses point at the run's own archive, served from the runner, with the hash and folder as
+  written. The installed `hpr --version` must name the version (`scripts/release/smoke-scoop.ps1`).
 - **The crates** must each package, and build from their packaged files alone
   (`cargo publish --workspace --dry-run`), and `scripts/release/publish-crates.sh --dry-run`
   must read crates.io's index as expected and print the order it would publish in.
@@ -117,8 +127,8 @@ suite and the validation cases do that, on every change ([Accuracy](accuracy.md)
 its `release` [environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments),
 a GitHub setting whose required reviewer is him; the workflow is started with *publish* ticked
 only with that setting in place. The crates then go to crates.io, the wheels and
-source package to PyPI, and the archives into a draft GitHub release; publishing the draft makes
-the version's tag.
+source package to PyPI, and the archives, the Homebrew formula and the Scoop manifest into a
+draft GitHub release; publishing the draft makes the version's tag.
 
 **The first publish of the crates takes about two hours, because crates.io paces new names.**
 It lets one account publish 5 new crates at once, then one every 10 minutes
@@ -144,6 +154,52 @@ entry on crates.io (the crate's Settings, then Trusted Publishing: owner `nrdpte
 [yanked](https://doc.rust-lang.org/cargo/commands/cargo-yank.html) (marked as not for new use), so a second run must not start over. The script asks crates.io's
 index which versions are there and skips those; if crates.io still answers that the limit is
 reached, it waits until the time crates.io names and tries again.
+
+## Homebrew, Scoop and cargo binstall
+
+**Each release brings its own Homebrew formula and Scoop manifest, and the tap and the bucket copy
+them from it.** A *formula* is the Ruby file that tells Homebrew where to download a program, its
+SHA-256 hash and how to install it; a *tap* is a Git repository of formulas outside Homebrew's own.
+Scoop's equivalents are a *manifest*, a JSON file, and a *bucket*, a repository of manifests.
+`scripts/release/package_managers.py` writes both files from the archives' names and hashes: an
+entry for each archive the release has, and none for a system it lacks. So release 0.1's formula
+refuses an Intel Mac rather than install a program it can't run. `cargo test -p xtask` runs the
+script on invented archives and compares the formula with the expected one byte for byte, and the
+manifest as parsed JSON, written with Unix line ends. The release attaches both files, and
+publishing the draft makes them the latest release's.
+
+**The formula and manifest checks hold up every publishing job, on purpose.** The crates, the
+Python package and the draft release all wait for them, so a release goes out on every channel or
+on none. The cost is that a new check in Homebrew's `brew audit` or `brew style`, or a change in
+Scoop, can stop a release that changed nothing here. Rerun the failed job if the cause was
+passing, such as a download that timed out; otherwise fix the generator or the formula it writes,
+and start the workflow again.
+
+The tap, [nrdptel/homebrew-tap](https://github.com/nrdptel/homebrew-tap), and the bucket,
+[nrdptel/scoop-bucket](https://github.com/nrdptel/scoop-bucket), each run a workflow once a day
+that downloads the latest release's file and commits it when it changed. A new release reaches
+`brew upgrade` and `scoop update` within a day, or at once if you run that workflow by hand from
+its repository's Actions tab (*Run workflow*). Each workflow reads the public release and pushes
+with its own repository's token, so neither repository holds a credential for the other, nor this
+one for them. Release 0.1 came out before the formula
+and manifest existed; the tap and the bucket were given files written by the same script from its
+archives.
+
+**GitHub turns off a public repository's scheduled workflows after 60 days with no activity.**
+Releases further apart than that leave the tap or the bucket on the old version, and GitHub shows
+the workflow as disabled. Turn it back on with *Enable workflow* on its Actions page, or
+`gh workflow enable homebrew-update.yml --repo nrdptel/homebrew-tap` (and `scoop-update.yml`,
+`nrdptel/scoop-bucket`), then run it once by hand.
+
+**`cargo binstall fusionspace-hpr-cli` reads where the archives are from the crate's own
+manifest** (`[package.metadata.binstall]` in `crates/hpr-cli/Cargo.toml`): the release's tag, the
+archive's name, and `hpr` in the folder inside it. binstall's fallback to QuickInstall, a
+third-party service that builds and hosts crates' programs, is turned off, so it takes only this
+repository's archives, or compiles. The crate on crates.io carries those lines
+from release 0.2; 0.1.0's doesn't, so binstall finds no archive for it.
+
+Packages for winget and conda-forge are planned
+([issue #434](https://github.com/nrdptel/fusionspace-eridanus/issues/434)).
 
 ## Checking a file yourself
 

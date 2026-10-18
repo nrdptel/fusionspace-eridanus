@@ -15,6 +15,9 @@
 //! - `scripts/release/publish-crates.sh` names every published crate once, each after the
 //!   workspace crates it depends on, as `cargo metadata` gives them (issue #372).
 //! - The glibc floor in `scripts/release/linux.sh` is the one the install pages state.
+//! - `scripts/release/package_managers.py` writes the Homebrew formula and the Scoop manifest for
+//!   exactly the archives a release has, and `cargo binstall`'s metadata names those archives
+//!   (issue #434).
 //! - The names a user meets are FusionSpace HPR's (ADR-199 §2, §4): every published crate is
 //!   `fusionspace-hpr` or `fusionspace-hpr-*` and keeps its library's Rust name, the Python package
 //!   is `fusionspace-hpr` imported as `fusionspace.hpr` under a namespace package, and the
@@ -594,5 +597,350 @@ mod tests {
                 .any(|line| line.starts_with("| Title | FusionSpace HPR · Sim: ")),
             "the landing page's title block names FusionSpace HPR · Sim"
         );
+    }
+
+    /// Python 3.10 or later (`write_text(newline=...)`), as `python3` or `python`.
+    fn python() -> Command {
+        let probe = ["-c", "import sys; sys.exit(sys.version_info < (3, 10))"];
+        for program in ["python3", "python"] {
+            let works = Command::new(program)
+                .args(probe)
+                .output()
+                .is_ok_and(|o| o.status.success());
+            if works {
+                return Command::new(program);
+            }
+        }
+        panic!(
+            "neither python3 nor python is Python 3.10 or later, which package_managers.py needs"
+        );
+    }
+
+    /// Runs scripts/release/package_managers.py on invented archives named `files`, each holding
+    /// its own name's target as its bytes. Returns its output and the folder it wrote into.
+    fn package_managers(
+        version: &str,
+        files: &[&str],
+    ) -> (std::process::Output, tempfile::TempDir) {
+        let dir = tempfile::tempdir().unwrap();
+        let archives = dir.path().join("archives");
+        fs::create_dir(&archives).unwrap();
+        for file in files {
+            let target = file
+                .trim_start_matches(&format!("fusionspace-hpr-{version}-"))
+                .trim_end_matches(".tar.gz")
+                .trim_end_matches(".zip");
+            fs::write(archives.join(file), target).unwrap();
+        }
+        let output = python()
+            .arg(root().join("scripts/release/package_managers.py"))
+            .args([
+                version.as_ref(),
+                archives.as_os_str(),
+                dir.path().join("out").as_os_str(),
+            ])
+            .output()
+            .unwrap();
+        (output, dir)
+    }
+
+    /// The formula, byte for byte, and the manifest, as parsed JSON with Unix line ends, for a
+    /// release with an archive for every target the script knows (issue #434): the five the
+    /// workflow builds and an Intel Mac's, which waits on issue #438. The wheels and the source
+    /// package beside the archives are left alone. Each sha256 is the invented archive's:
+    /// `shasum -a 256` gives the same.
+    #[test]
+    fn package_managers_write_the_formula_and_manifest_for_every_archive() {
+        let (output, dir) = package_managers(
+            "9.8.7",
+            &[
+                "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz",
+                "fusionspace-hpr-9.8.7-x86_64-apple-darwin.tar.gz",
+                "fusionspace-hpr-9.8.7-aarch64-unknown-linux-gnu.tar.gz",
+                "fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.tar.gz",
+                "fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip",
+                "fusionspace-hpr-9.8.7-aarch64-pc-windows-msvc.zip",
+                "fusionspace_hpr-9.8.7-cp310-abi3-win_amd64.whl",
+                "fusionspace_hpr-9.8.7.tar.gz",
+            ],
+        );
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let release = "https://github.com/nrdptel/fusionspace-eridanus/releases/download";
+        let formula = fs::read_to_string(dir.path().join("out/fusionspace-hpr.rb")).unwrap();
+        let expected = format!(
+            r##"# Written by scripts/release/package_managers.py in nrdptel/fusionspace-eridanus from the
+# release's archives; a release replaces it.
+class FusionspaceHpr < Formula
+  desc "Flight simulator for hobby and high-power rockets"
+  homepage "https://hpr.fusionspace.co"
+  license any_of: ["MIT", "Apache-2.0"]
+
+  on_macos do
+    on_arm do
+      url "{release}/v9.8.7/fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz"
+      sha256 "602526fe5d0720f8fb8f60272c924a754eb90c461381908e5d8a5f04f6e504c0"
+    end
+
+    on_intel do
+      url "{release}/v9.8.7/fusionspace-hpr-9.8.7-x86_64-apple-darwin.tar.gz"
+      sha256 "838636fb51c7c295f53ac0becfa66f4e7726c388af3fc9397e57c97f5f97c840"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "{release}/v9.8.7/fusionspace-hpr-9.8.7-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "86bf552cb29f61118330fb817bc3819ddbade898c26ec8c0a3c825f4bc5e2e27"
+    end
+
+    on_intel do
+      url "{release}/v9.8.7/fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "1bb87e07be9e52fc0dca53a1c0718fac23e8b4202b9c346e12f075762507a544"
+    end
+  end
+
+  def install
+    bin.install "hpr"
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{{bin}}/hpr --version")
+  end
+end
+"##
+        );
+        assert_eq!(formula, expected);
+
+        let manifest = fs::read_to_string(dir.path().join("out/fusionspace-hpr.json")).unwrap();
+        assert!(manifest.ends_with("}\n") && !manifest.contains('\r'));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+        let next = "fusionspace-hpr-$version";
+        let expected = serde_json::json!({
+            "version": "9.8.7",
+            "description": "Flight simulator for hobby and high-power rockets: the hpr command line.",
+            "homepage": "https://hpr.fusionspace.co",
+            "license": "MIT|Apache-2.0",
+            "architecture": {
+                "64bit": {
+                    "url": format!("{release}/v9.8.7/fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip"),
+                    "hash": "b8616d900e5165cdc066288852e6c1b100e78e5520260926a0f20f7e33f8e4f8",
+                    "extract_dir": "fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc"
+                },
+                "arm64": {
+                    "url": format!("{release}/v9.8.7/fusionspace-hpr-9.8.7-aarch64-pc-windows-msvc.zip"),
+                    "hash": "dcd7f6db8776003159f0f672ed64d6b4d00420d2152678c1592145b07bda7fb4",
+                    "extract_dir": "fusionspace-hpr-9.8.7-aarch64-pc-windows-msvc"
+                }
+            },
+            "bin": "hpr.exe",
+            "checkver": {"github": "https://github.com/nrdptel/fusionspace-eridanus"},
+            "autoupdate": {"architecture": {
+                "64bit": {
+                    "url": format!("{release}/v$version/{next}-x86_64-pc-windows-msvc.zip"),
+                    "extract_dir": format!("{next}-x86_64-pc-windows-msvc")
+                },
+                "arm64": {
+                    "url": format!("{release}/v$version/{next}-aarch64-pc-windows-msvc.zip"),
+                    "extract_dir": format!("{next}-aarch64-pc-windows-msvc")
+                }
+            }}
+        });
+        assert_eq!(manifest, expected);
+    }
+
+    /// Release 0.1's three archives: an operating system with one architecture's archive says
+    /// so, so Homebrew refuses the other rather than installing a program it can't run, and the
+    /// manifest has no `arm64` entry.
+    #[test]
+    fn package_managers_name_only_the_architectures_a_release_has() {
+        let (output, dir) = package_managers(
+            "0.1.0",
+            &[
+                "fusionspace-hpr-0.1.0-aarch64-apple-darwin.tar.gz",
+                "fusionspace-hpr-0.1.0-x86_64-unknown-linux-gnu.tar.gz",
+                "fusionspace-hpr-0.1.0-x86_64-pc-windows-msvc.zip",
+            ],
+        );
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let formula = fs::read_to_string(dir.path().join("out/fusionspace-hpr.rb")).unwrap();
+        for wanted in [
+            "  on_macos do\n    depends_on arch: :arm64\n\n    on_arm do\n",
+            "  on_linux do\n    depends_on arch: :x86_64\n\n    on_intel do\n",
+        ] {
+            assert!(
+                formula.contains(wanted),
+                "the formula lacks {wanted:?}:\n{formula}"
+            );
+        }
+        assert_eq!(formula.matches("    on_").count(), 2);
+        assert!(!formula.contains("  depends_on :"));
+        let manifest = fs::read_to_string(dir.path().join("out/fusionspace-hpr.json")).unwrap();
+        let manifest: serde_json::Value = serde_json::from_str(&manifest).unwrap();
+        let arches = manifest["architecture"].as_object().unwrap();
+        assert_eq!(arches.keys().collect::<Vec<_>>(), ["64bit"]);
+    }
+
+    /// An archive for a target neither file knows stops the script, as does a folder with no
+    /// archive for the version, so a release never ships a formula that quietly leaves one out.
+    #[test]
+    fn package_managers_refuse_an_unknown_target_and_an_empty_folder() {
+        let (output, _dir) = package_managers(
+            "9.8.7",
+            &[
+                "fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip",
+                "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz",
+                "fusionspace-hpr-9.8.7-riscv64gc-unknown-linux-gnu.tar.gz",
+            ],
+        );
+        assert!(!output.status.success());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("no formula or manifest entry for riscv64gc-unknown-linux-gnu"),
+            "{stderr}"
+        );
+
+        let (output, _dir) = package_managers(
+            "9.8.7",
+            &["fusionspace-hpr-9.8.6-x86_64-pc-windows-msvc.zip"],
+        );
+        assert!(!output.status.success());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("no fusionspace-hpr-9.8.7-<target> archives"),
+            "{stderr}"
+        );
+    }
+
+    /// A Linux or Mac archive packed as a .zip, or a Windows one as a .tar.gz, stops the script:
+    /// the formula and the manifest each take one kind, and a release packs no other.
+    #[test]
+    fn package_managers_refuse_an_archive_of_the_wrong_kind() {
+        for wrong in [
+            "fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.zip",
+            "fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.tar.gz",
+        ] {
+            let (output, _dir) = package_managers(
+                "9.8.7",
+                &[wrong, "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz"],
+            );
+            assert!(!output.status.success(), "{wrong} was taken");
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(stderr.contains("is a .zip on Windows only"), "{stderr}");
+        }
+    }
+
+    /// The version is the crate's, `9.8.7`, not the tag's `v9.8.7`, which would put `vv9.8.7`
+    /// in every URL.
+    #[test]
+    fn package_managers_refuse_a_version_that_is_not_a_release_version() {
+        for wrong in ["v9.8.7", "9.8", "9.8.7 ", ""] {
+            let (output, _dir) = package_managers(
+                wrong,
+                &[&format!(
+                    "fusionspace-hpr-{wrong}-aarch64-apple-darwin.tar.gz"
+                )],
+            );
+            assert!(!output.status.success(), "{wrong:?} was taken");
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(stderr.contains("isn't a release version"), "{stderr}");
+        }
+    }
+
+    /// A release with Mac archives only says `depends_on :macos`, and one with Linux archives
+    /// only says `depends_on :linux`, so Homebrew on the other system refuses the formula.
+    #[test]
+    fn package_managers_name_the_one_operating_system_a_formula_serves() {
+        for (system, archives) in [
+            (
+                "macos",
+                [
+                    "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz",
+                    "fusionspace-hpr-9.8.7-x86_64-apple-darwin.tar.gz",
+                ],
+            ),
+            (
+                "linux",
+                [
+                    "fusionspace-hpr-9.8.7-aarch64-unknown-linux-gnu.tar.gz",
+                    "fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.tar.gz",
+                ],
+            ),
+        ] {
+            let mut files = archives.to_vec();
+            files.push("fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip");
+            let (output, dir) = package_managers("9.8.7", &files);
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let formula = fs::read_to_string(dir.path().join("out/fusionspace-hpr.rb")).unwrap();
+            assert_eq!(formula.matches("  depends_on :").count(), 1, "{formula}");
+            assert!(
+                formula.contains(&format!("\n  depends_on :{system}\n")),
+                "{formula}"
+            );
+            assert!(formula.contains(&format!("  on_{system} do\n    on_arm do\n")));
+            assert!(!formula.contains("depends_on arch:"), "{formula}");
+        }
+    }
+
+    /// `cargo binstall fusionspace-hpr-cli` looks for the archives scripts/release/archive.sh
+    /// packs, under the release's tag, and finds `hpr` in the one folder each holds; Windows'
+    /// are .zip files. binstall's own build host is off, so it takes only this repository's.
+    #[test]
+    fn binstall_fetches_the_release_archives() {
+        let root = root();
+        let cli = read(&root.join("crates/hpr-cli/Cargo.toml"));
+        let binstall = &cli["package"]["metadata"]["binstall"];
+        let archive = "fusionspace-hpr-{ version }-{ target }";
+        assert_eq!(
+            binstall["pkg-url"].as_str(),
+            Some(
+                format!(
+                    "{{ repo }}/releases/download/v{{ version }}/{archive}{{ archive-suffix }}"
+                )
+                .as_str()
+            )
+        );
+        assert_eq!(
+            binstall["bin-dir"].as_str(),
+            Some(format!("{archive}/{{ bin }}{{ binary-ext }}").as_str())
+        );
+        assert_eq!(binstall["pkg-fmt"].as_str(), Some("tgz"));
+        assert_eq!(
+            binstall["disabled-strategies"]
+                .as_array()
+                .map(Vec::as_slice),
+            Some([Value::from("quick-install")].as_slice())
+        );
+        let overrides = binstall["overrides"].as_table().unwrap();
+        assert_eq!(
+            overrides.keys().collect::<Vec<_>>(),
+            ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+        );
+        for table in overrides.values() {
+            assert_eq!(table["pkg-fmt"].as_str(), Some("zip"));
+        }
+        let packer = fs::read_to_string(root.join("scripts/release/archive.sh")).unwrap();
+        for packs in [
+            "name=\"fusionspace-hpr-$version-$target\"",
+            "cp \"$built\" README.md \"$out/$name/\"",
+            "7z a -tzip \"$name.zip\" \"$name\"",
+            "tar -czf \"$name.tar.gz\" \"$name\"",
+        ] {
+            assert!(packer.contains(packs), "archive.sh no longer says {packs}");
+        }
+        // The release names its tag `v<version>`.
+        let workflow = fs::read_to_string(root.join(".github/workflows/release.yml")).unwrap();
+        assert!(workflow.contains("gh release create \"v$version\""));
     }
 }
