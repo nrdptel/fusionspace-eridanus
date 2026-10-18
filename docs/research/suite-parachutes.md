@@ -76,7 +76,9 @@ projected to nominal diameter
   ([forum thread](https://www.rocketryforum.com/threads/rocketman-parachutes-posted-decent-rates-not-matching-reality.179543/)).
 - Valkyrie's master list of vendor C_D with back-computed corrections
   ([PDF](https://www.valkyrierecoverysystems.com/uploads/1/1/9/5/119545746/hobby_parachute_cd_master_list.pdf));
-  Flanagan's measurements, 0.53 to 1.04 on model-rocket chutes, varying with loading and rigging
+  Firth's 15 flights, 0.53 to 1.04 on a 24 in flat chute
+  ([Apogee 662](https://www.apogeerockets.com/education/downloads/Newsletter662.pdf)), and Flanagan's
+  review of why values vary with loading and rigging
   ([Apogee 668](https://www.apogeerockets.com/education/downloads/Newsletter668.pdf)).
 - **The trap:** vendors quote C_D on nominal, projected or gore-length areas. Pin the reference
   area before comparing a coefficient.
