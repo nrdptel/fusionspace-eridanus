@@ -9,6 +9,8 @@
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
 [i646]: https://github.com/nrdptel/fusionspace-eridanus/issues/646
 [i702]: https://github.com/nrdptel/fusionspace-eridanus/issues/702
+[i761]: https://github.com/nrdptel/fusionspace-eridanus/issues/761
+[i762]: https://github.com/nrdptel/fusionspace-eridanus/issues/762
 [page]: ../physics/log-readings.md
 [anomalous]: ../research/anomalous-public-flights.md
 [heights]: ../research/altimeter-height-formulas.md
@@ -101,6 +103,9 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
 - A spike that climbs into the top no faster than a coast can is still read as the top. The check is
   one-sided by design, so such a top is read high by at most `g Δ²` plus twice the noise and step,
   16.4 m at 20 Hz on a PerfectFlite. No synthetic flight carries a charge's transient, so the bounds
-  were never held against one.
+  were never held against one ([#761][i761]).
+- Some tops withheld as `disturbed_top` are the vehicle's own: a pressure dip in the coast's last
+  4 s, or an early parachute followed by a charge at the top. The error is conservative, and how
+  many of the corpus's 76 are such tops isn't measured ([#762][i762]).
 - The bounds hold on the tuning set's six logger profiles. A logger noisier than they are, or a
   rocket slower off the pad than 2 g, can be read outside them; [the readings' page][page] says so.
