@@ -217,9 +217,9 @@ pub const CORRELATED_NOISE_PHI: f64 = 0.5;
 /// The rate at which it was measured, Hz.
 pub const CORRELATED_NOISE_RATE_HZ: f64 = 50.0;
 /// The slow correlated barometer noise, a first-order Gauss–Markov term of 0.24–0.29 m and time
-/// constant 0.65–1.26 s, as a BMP085's ten minutes at rest gave (sensor noise §3, [P1] Tables
-/// 1–2): the noise that a reading averaged over a second keeps, which the fast term alone
-/// leaves out.
+/// constant 0.65–1.26 s, as a BMP085's ten minutes at rest gave (sensor noise §3; Sabatini and
+/// Genovese, Sensors 13(11):15692, 2013, Tables 1–2): the noise that a reading averaged over a
+/// second keeps, which the fast term alone leaves out.
 pub const SLOW_NOISE_M: (f64, f64) = (0.24, 0.29);
 /// Its time constant's range, s.
 pub const SLOW_NOISE_TAU_S: (f64, f64) = (0.65, 1.26);
@@ -403,7 +403,7 @@ fn truth_at(truth: &Truth, t: f64) -> Result<TruthSample, SyntheticError> {
 /// # Errors
 ///
 /// [`SyntheticError`] for a pressure or a position the atmosphere or the frame can't take, and
-/// [`SyntheticError::Invalid`] for a draw or truth [`check`] refuses.
+/// [`SyntheticError::Invalid`] for a draw or truth that `check` refuses.
 pub fn log(
     draw: &LoggerDraw,
     truth: &Truth,
