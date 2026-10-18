@@ -1,8 +1,8 @@
 # Synthetic flights
 
-See the 2,200 simulated flights, each with a known truth and its logger's
-[flight log](../glossary.md#flight-log), on which [readings](log-readings.md) and their 90%
-intervals are tested.
+See the 2,200 simulated flights, with known truths and their loggers'
+[flight logs](../glossary.md#flight-log), on which [readings](log-readings.md) and 90% intervals
+will be tested.
 
 ## In short
 
@@ -95,8 +95,8 @@ knowing HPR Sim's model:
 |---|---|---|
 | design | one of the ten | the RocketPy designs, each with its example's parachutes; Cavour's has none, so it lands without one, as on a failed recovery |
 | total impulse | 0.94 to 1.06 times | twice the 2.5 to 3.1% spread of repeat certifications ([the dispersion note][sigmas] §2) |
-| burn time | 0.90 to 1.10 times | about the 10.7% spread of the one burn-time batch found, of small black-powder motors (§2) |
-| zero-lift drag | 0.8 to 1.2 times | twice OpenRocket's 10% default, near the 16% coast fits suggest (§4) |
+| burn time | 0.90 to 1.10 times | its half-width near the 10.7% spread (1σ) of the one burn-time batch found, of small black-powder motors (§2); drawn evenly, its own spread is 5.8%, narrower |
+| zero-lift drag | 0.8 to 1.2 times | twice OpenRocket's 10% default; drawn evenly, its spread is 11.5%, narrower than the 16% coast fits suggest (§4) |
 | wind | up to 20 mph (8.94 m/s), from any direction | the safety code's limit |
 | rail | 0° to 10° from vertical, toward any direction | inside the code's 20° |
 | site | 0 to 1,500 m (0 to 4,921 ft) above sea level | sea-level fields to the high deserts |
@@ -127,7 +127,8 @@ rate and step. Its log is tagged with that family's format, its logger named as 
 
 The height a profile writes is its pressure's height in the 1976 standard atmosphere, less the
 mean of its samples on the pad. The RRC3 uses the NOAA formula instead, as its maker's software
-does ([the height formulas note][heights]); the two differ by about 1 m (3.3 ft) in 2 km (6,562 ft).
+does ([the height formulas note][heights]); the two differ by about 0.8 m (2.7 ft) in 2 km
+(6,562 ft).
 
 ## The noise, term by term
 
@@ -153,17 +154,18 @@ A charge adds an eighth, the ejection pulse, at each charge's time.
 **What each profile's part gives.** An MS5607 zeroed on the pad holds ±1.0 mbar from 0 to 50 °C,
 stated over 700 to 1,100 mbar (§2): read as a gain, that is ±0.25% of the change from the pad,
 an inference, as the datasheet doesn't say how the error grows with the change. PerfectFlite
-names no part, so its profile takes an MS5607's offset, its maker's stated ±0.1% of the height
-as a gain (§1), and no white noise beyond the noise measured on real logs. Eggtimer and
-Featherweight name no part on most of their boards (§1), so the Eggtimer and 500 Hz IMU profiles
-take a Bosch BMP3xx or DPS310-class part, 0.2 to 6.6 Pa by its setting and ±0.08% relative
-(§2, §6): an assumption. The offset stays in the logged pressure, but a height zeroed on the pad
+names no part, so its profile takes an MS5607's offset, an assumption, its maker's stated ±0.1%
+of the height as a gain (§1), and no white noise beyond the noise measured on real logs.
+Eggtimer and Featherweight name no part on most of their boards (§1), so the Eggtimer and 500 Hz
+IMU profiles take a Bosch BMP3xx or DPS310-class part, 0.2 to 6.6 Pa by its setting and ±0.08%
+relative (§2, §6): an assumption. The offset stays in the logged pressure, but a height zeroed on the pad
 loses it; what is left after the zero is the gain and the drift.
 
 **The fast correlated noise** is a first-order autoregressive process, a red noise: each sample
 keeps part of the one before. On the pads of five Blue Raven logs at 50 Hz the spread is 0.43 to
-0.62 m (1.4 to 2.0 ft) and the correlation from one sample to the next 0.40 to 0.54
-([the sensor noise note][noise] §3), upper bounds that mix in wind and handling. The model takes
+0.62 m (1.4 to 2.0 ft), and in six windows on their pads and at rest the correlation from one
+sample to the next is 0.40 to 0.54 ([the sensor noise note][noise] §3), upper bounds that mix in
+wind and handling. The model takes
 0.5 m (1.6 ft) and 0.5 for every barometer, and adds each part's white noise. It is drawn as an
 Ornstein–Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
 between samples, whatever the logger's rate:
@@ -193,10 +195,12 @@ trace of the report's figure, to about ±0.01, at the port's distance behind the
 outside the table. One caliber back at Mach 1, $C_p = -0.08$. In the worked example
 below that reads 473 m (1,552 ft) too high, for a moment.
 
-**The ejection pulse** has the shape of the one on the public Pnut log that Debrief ships, in
-seven samples 0.05 s apart from the charge: the height reads 8 m (26.2 ft) low at the charge,
-16 m (52.5 ft) high 0.1 s after it, and 3 m (9.8 ft) low from 0.25 s, then true again. The shape
-is scaled by 0 to 2 per flight, and turned into pressure at the density where the charge fires.
+**The ejection pulse** has roughly the shape of the one on the public Pnut log that Debrief
+ships, in seven samples 0.05 s apart from the charge: the height reads 8 m (26.2 ft) low at the
+charge, 16 m (52.5 ft) high 0.1 s after it, and 3 m (9.8 ft) low from 0.25 s, then true again.
+The shape is scaled by 0 to 2 per flight, a range assumed, as one log gives one pulse, and turned
+into pressure at the density where the charge fires. No test yet compares it with real logs'
+pulses ([evidence row G32](../evidence.md#g32)).
 
 ### The acceleration
 
@@ -227,14 +231,17 @@ e = a/\omega_n^2
 $$
 
 where $\omega_n$ is the loop's natural frequency, drawn from 0.25 to 1.0 rad/s, with damping
-$1/\sqrt{2}$. No receiver's loop has been measured against a truth: about 0.5 rad/s is inferred
-from one flyer's report of a 440 m (1,444 ft) lag ([the GNSS note][gnss] §3–4), and the damping
-is the usual choice for such a loop, assumed ([evidence row G32](../evidence.md#g32)). At
+$1/\sqrt{2}$. No receiver's loop has been measured against a truth. About 0.5 rad/s is near the
+0.47 to 0.69 rad/s of the GNSS note's simulated filter, which fell 103 to 261 m (338 to 856 ft)
+behind in boosts of 5 to 15 g, an inference ([the GNSS note][gnss] §4); one flyer's report of a
+440 m (1,444 ft) lag, its acceleration not given, is of the same size (§3). The damping is the
+usual choice for such a loop, assumed ([evidence row G32](../evidence.md#g32)). At
 0.5 rad/s, a steady 50 m/s² would leave the fix 200 m (656 ft) behind; a 2 s boost ends long
 before the loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white
 noise, a fixed value, assumed. White noise flatters an average of fixes: a real receiver's error
-wanders slowly, so averaging shrinks it less than here. No fix is written for 0 to 10 s from liftoff
-and from burnout, each drawn per flight; the fixes written carry no flag that they lag.
+wanders slowly, so averaging shrinks it less than here. No fix is written for 0 to 10 s from
+liftoff and from burnout, each drawn per flight, as the GNSS note suggests, an assumption; the
+fixes written carry no flag that they lag.
 
 ### The clock
 
@@ -256,7 +263,7 @@ shoulder.
    the sign flips: $C_p = +0.03$ reads 1.9 kPa high, and the height low.
 5. **The noise beside it.** The fast correlated noise is 0.5 m (1.6 ft) at the pad, 6.01 Pa at
    sea-level density, and the slow 2.9 to 3.5 Pa; the white noise 2.4 to 13 Pa. Near Mach 1 the
-   port's error is about 840 times the fast correlated noise and 390 to 2,100 times the white,
+   port's error is about 840 times the fast correlated noise and 380 to 2,100 times the white,
    which is why a reading that leans on a barometer through Mach 1 must say so.
 
 ## Validation and limits
@@ -272,11 +279,12 @@ within five standard errors, the fast and slow correlated noise's spreads and co
 gain on a 2 km (6,562 ft) climb, the port's $C_p\,q$ at a measured point, the pulse at 0.15 s,
 the accelerometer's scale, bias, spread (after apogee too) and clip, the GNSS lag and dropouts,
 the log's span and rates, and its values lined up with the truth by the drawn pad span. Each
-drawn term is checked again changed, at half and one and a half times its value or with its
-sign, rate or span changed, and must then fail; each part's stated ranges are pinned to the
-values on this page, so a changed constant fails too. The fixed 3 m (9.8 ft) GNSS noise is held
-to its value on each axis. These tests show the generator draws what it
-says, not that the terms are right. The census, a file in the repository
+drawn term is checked again changed, and must then fail: the offset, drift and white noise at
+half and one and a half times their values, the others zeroed, halved, doubled or moved (the
+port to 3 calibers, the GNSS loop to 1 rad/s, the fix rate and the spans to other values). Each
+part's stated ranges are pinned to the values on this page, so a changed constant fails too.
+The fixed 3 m (9.8 ft) GNSS noise is held to its value on each axis. These tests show the
+generator draws what it says, not that the terms are right. The census, a file in the repository
 ([synthetic-flights.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md)),
 counts each set's flights by design and logger, and the ranges of eight quantities: apogee, top
 Mach number and speed, flight time, wind, rail angle, site elevation and the air's offset.

@@ -1358,7 +1358,7 @@ mod tests {
         assert!((height_of(Profile::Altos, p).unwrap() - 1_524.0).abs() < 0.5);
         assert!((height_of(Profile::Rrc3, p).unwrap() - 4_998.0 * FOOT_M).abs() < 0.5);
         // On a climb in standard air each barometer reads the truth's height above the pad, to its
-        // correlated noise (0.5 m), its step and, for the RRC3, its formula's 1 m in 2 km.
+        // correlated noise (0.5 m), its step and, for the RRC3, its formula's 0.8 m in 2 km.
         let truth = still(20.0, G, 0.0, 0.0, 10.0);
         for profile in [
             Profile::PerfectFlite,

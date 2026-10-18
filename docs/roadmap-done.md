@@ -1736,9 +1736,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - **M7.2** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
   - [x] **M7.2a The synthetic flights.** *Done when:* `hpr_forensics::synthetic` draws a tuning set
     of 200 and two test sets of 1,000 on fixed seeds by ADR-280 §2–3 (10 public designs; set B's drag,
-    wind and thrust reshaped), each flight's truth and its logger's log by cited noise terms; drawn
-    again, bit-identical; each noise term holds and fails mutated (tests); a committed census lists
-    the sets by design and logger, and each draw not flown.
+    wind and thrust reshaped), each flight's truth and its logger's log by noise terms each cited in
+    its doc comment and on a physics page; drawn again, bit-identical; each noise term holds and
+    fails mutated (tests); a committed census, held to the digits the platforms share, lists the
+    sets by design and logger, the ranges of apogee, top Mach number, wind and launch angle, and
+    each draw not flown, with its reason.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
