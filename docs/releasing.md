@@ -168,6 +168,15 @@ script on invented archives and compares the formula with the expected one byte 
 manifest as parsed JSON, written with Unix line ends. The release attaches both files, and
 publishing the draft makes them the latest release's.
 
+**Both state the program's license as `(MIT OR Apache-2.0) AND Apache-2.0`:** the project's two
+licenses, either at your option, and Apache-2.0 for OpenRocket's parts catalog, which the program
+carries ([ADR-187](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0187-the-release-workflow.md),
+the release workflow). It is the expression the Python package states. The formula writes it in
+Homebrew's form, `license all_of: [{ any_of: ["MIT", "Apache-2.0"] }, "Apache-2.0"]`. Scoop's own
+form has no parentheses to group a choice inside a requirement, so the manifest gives the SPDX
+expression as its license `identifier`, with a `url` to the README's license section. The
+manifest suggests no Visual C++ runtime, since from release 0.2 the Windows program needs none.
+
 **The formula and manifest checks hold up every publishing job, on purpose.** The crates, the
 Python package and the draft release all wait for them, so a release goes out on every channel or
 on none. The cost is that a new check in Homebrew's `brew audit` or `brew style`, or a change in

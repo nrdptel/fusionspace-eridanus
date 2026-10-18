@@ -25,6 +25,16 @@ from pathlib import Path
 REPO = "https://github.com/nrdptel/fusionspace-eridanus"
 HOMEPAGE = "https://hpr.fusionspace.co"
 DESCRIPTION = "Flight simulator for hobby and high-power rockets"
+# The program's license (ADR-187): the project's two licenses, either at the user's option, and
+# Apache-2.0 for OpenRocket's parts catalog, which `fusionspace-hpr-io` compiles into it. The
+# SPDX expression is the one that crate and the Python package state.
+LICENSE = "(MIT OR Apache-2.0) AND Apache-2.0"
+# Homebrew's form of it (its license guidelines: `all_of` must all be met, `any_of` is a choice).
+BREW_LICENSE = 'all_of: [{ any_of: ["MIT", "Apache-2.0"] }, "Apache-2.0"]'
+# Scoop's flat form has `|` for a choice and `,` for both, with no parentheses to group them, so the
+# manifest gives the SPDX expression as the identifier, which its schema allows, and links the
+# README's license section.
+SCOOP_LICENSE = {"identifier": LICENSE, "url": f"{REPO}#license"}
 
 # Each target the release workflow builds, as (operating system, architecture) in Homebrew's
 # words, or as the architecture key of Scoop's manifest.
@@ -89,7 +99,7 @@ def formula(version, found):
         f'  homepage "{HOMEPAGE}"',
         # No `version` line: Homebrew reads the version from the URLs, and `brew audit` refuses
         # one that repeats it.
-        '  license any_of: ["MIT", "Apache-2.0"]',
+        f"  license {BREW_LICENSE}",
     ]
     if len(by_os) == 1:
         lines += ["", f"  depends_on :{next(iter(by_os))}"]
@@ -142,11 +152,13 @@ def manifest(version, found):
         }
     if not architecture:
         return None
+    # No `suggest` of the Visual C++ runtime (Scoop's extras/vcredist2022): from release 0.2 the
+    # Windows program links the C runtime statically (archive.sh) and needs none.
     document = {
         "version": version,
         "description": f"{DESCRIPTION}: the hpr command line.",
         "homepage": HOMEPAGE,
-        "license": "MIT|Apache-2.0",
+        "license": SCOOP_LICENSE,
         "architecture": architecture,
         "bin": "hpr.exe",
         "checkver": {"github": REPO},

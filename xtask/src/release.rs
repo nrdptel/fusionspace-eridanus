@@ -677,7 +677,7 @@ mod tests {
 class FusionspaceHpr < Formula
   desc "Flight simulator for hobby and high-power rockets"
   homepage "https://hpr.fusionspace.co"
-  license any_of: ["MIT", "Apache-2.0"]
+  license all_of: [{{ any_of: ["MIT", "Apache-2.0"] }}, "Apache-2.0"]
 
   on_macos do
     on_arm do
@@ -723,7 +723,10 @@ end
             "version": "9.8.7",
             "description": "Flight simulator for hobby and high-power rockets: the hpr command line.",
             "homepage": "https://hpr.fusionspace.co",
-            "license": "MIT|Apache-2.0",
+            "license": {
+                "identifier": "(MIT OR Apache-2.0) AND Apache-2.0",
+                "url": "https://github.com/nrdptel/fusionspace-eridanus#license"
+            },
             "architecture": {
                 "64bit": {
                     "url": format!("{release}/v9.8.7/fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip"),
@@ -749,7 +752,16 @@ end
                 }
             }}
         });
+        // Nothing else: no `suggest` of the Visual C++ runtime, which the Windows program
+        // doesn't need from release 0.2 (it links the C runtime statically, archive.sh).
         assert_eq!(manifest, expected);
+        // The license is the one `fusionspace-hpr-io` states (ADR-187): the program compiles in
+        // OpenRocket's Apache-2.0 parts catalog through that crate.
+        let io = read(&root().join("crates/hpr-io/Cargo.toml"));
+        assert_eq!(
+            manifest["license"]["identifier"].as_str(),
+            io["package"]["license"].as_str()
+        );
     }
 
     /// Release 0.1's three archives: an operating system with one architecture's archive says
