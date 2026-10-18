@@ -276,7 +276,7 @@ only the files each command really reads. "Not yet" commands exit with
 | `hpr mc` | Fly a design many times, each flight's inputs scattered at random, and print how its apogee and landing spread; export every flight | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, another logger's table by a column mapping, binary records or a console capture by a record layout | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
 
@@ -1599,8 +1599,10 @@ PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV
 SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne Fluctus's
 CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, an Eggtimer's download saved as RTF,
 the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight
-summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)). An archive
-is refused: unpack it and give the log inside. Formats no sample holds are
+summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, binary records by a layout the caller states, a Blue Raven's USB download, a course's Teensy data logger, one team's radio telemetry packets, a Raven FIP export pasted below no header, an AltiMAX's `.xls` export, an AltiMAX's `.ALS` file, Entacore AIM's `.xtra` files and raw dumps, a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, AltOS's CSV re-saved by a spreadsheet or cut to its columns, and tables whose headers state too little, by a column mapping, and GPS tracks too ([the layouts read](format/flight-logs.md)). A
+workbook's sheets and a raw dump's recordings are read one at a time
+([A file of several records](#a-file-of-several-records)). A zip archive is refused: unpack it and
+give the log inside. Formats no sample holds are
 [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
 ([evidence row G9](evidence.md#g9)).
 
@@ -1664,23 +1666,104 @@ charge that fired a second after it. The readings are taken from the altitude af
 [running median](glossary.md#running-median), which sets that pulse aside.
 [Reading a flight log](reading-a-flight-log.md) explains each reading, and how far to trust it.
 
+#### A file of several records
+
+Some files hold more than one record, and `hpr analyze` reads one of them at a time, by its own
+reader. A spreadsheet's workbook holds sheets: an `.xlsx`, or an `.xls` written as one bare
+worksheet, as an AltiMAX altimeter's Excel export is. Excel's own `.xls`, a compound file of
+several streams, isn't read. An Entacore AIM raw dump can hold several recordings. With no
+choice given, `hpr analyze` reads the workbook's one sheet that reads as a log, or the dump's one
+recording. Where several sheets read, or none, or the dump holds several recordings, it refuses,
+exit code 1, and names the choices:
+
+- `--sheet N` reads the workbook's sheet `N`, counted from 0, as its layout's own reader reads it.
+  The JSON output's `log` object gives it as `sheet`.
+- `--recording N` reads the dump's recording `N`, counted from 0, given as `recording`. It takes
+  none of `--mapping`, `--layout`, `--fip-header` and `--sheet`.
+
+A sheet chosen for a dump, a recording chosen for a workbook, or either for a file of one record
+is refused, saying why. A table on a sheet no reader takes is read by a column mapping and
+`--sheet` ([below](#a-logger-of-your-own)).
+
+The invented workbook `two-flights.xlsx` has three sheets, "First", "Notes" and "Second", and the
+first and last read as logs. With no `--sheet`, `hpr analyze` refuses it: "2 of the
+workbook's 3 sheets read as logs, sheets 0 (First), 2 (Second): choose one". `--sheet 2` reads the
+second flight, made to peak at 548.0 m (1,798 ft) above the pad, and a note names the sheet:
+
+<!-- cli: example `hpr analyze validation/fixtures/logs/several/two-flights.xlsx --sheet 2`; written by `cargo xtask cli`; do not edit -->
+
+```text
+$ hpr analyze validation/fixtures/logs/several/two-flights.xlsx --sheet 2
+two-flights.xlsx: unknown
+no primary track: no barometric altitude above the pad
+readings from the barometric altitude channel, sampled every 0.200 s in steps of 0.020 m, after a 0.40 s running median
+1 channel: Baro Alt AGL (m) (altitude above ground)
+
+liftoff           1.20 s, within 1.04 s
+apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.98 s, 11.90 s after liftoff
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+landing           withheld: the log ends at 40.00 s, 280.8 m above the pad, before the altitude comes within 2.0 m of it and stays under 5.0 m for 1 s
+top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+
+How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
+reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
+rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
+standard; a reading the log can't support is withheld, with the reason. The top speed is derived
+from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
+nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
+decides.
+More: https://hpr.fusionspace.co/reading-a-flight-log.html
+note: read from the sheet "Second" of an Excel workbook, its cells as stored
+```
+
+<!-- cli: end -->
+
+#### A logger of your own
+
 A logger of your own is read by a file you write for it, each JSON with a schema
 ([JSON output](#json-output)):
 
 - `--print-mapping` prints what a table's header states, as a column mapping to edit, and reads
   nothing more; it is the same with `--json`, and not stamped with `tool`, so it reads back.
 - `--mapping FILE` reads a table by its column mapping, which can mark the column that is the
-  barometric altitude above the pad as the primary track; `--sheet N` names the `.xlsx`
-  workbook's sheet the table is on, from 0.
+  barometric altitude above the pad as the primary track; `--sheet N` names the workbook's sheet
+  the table is on, `.xlsx` or a bare `.xls`, from 0, and a workbook of one sheet needs none.
 - `--layout FILE` reads binary records, or the block of a serial console's capture the layout
-  names, by a record layout.
+  names, by a record layout. It takes no `--sheet`.
+- `--fip-header FILE` reads a Featherweight Raven's FIP export that lost its header line when it
+  was pasted into a workbook, under the header line the file states
+  ([below](#a-fip-export-below-no-header)). `--sheet N` picks the workbook's sheet, `.xlsx` or
+  a bare `.xls`; with none, the workbook must have only one. The rows saved as text read too.
 - `--record` prints the record the log reads into, every channel in SI units (degrees for
   angles), as one JSON document, in place of the readings.
 
-A mapping or a layout that doesn't follow its schema is refused, exit code 1, naming the field by
-its path in the JSON, such as `columns[1].unit`; one the log contradicts, such as a primary track
-on the clock's column, is refused naming the column. [Reading your own logger](your-own-logger.md) works one invented
+A log is read by one of `--mapping`, `--layout` and `--fip-header`, never two. The JSON output's
+`log` object names the file given, as `mapping`, `layout` or `fip_header`. A mapping or a layout
+that doesn't follow its schema is refused, exit code 1, naming the field by its path in the JSON,
+such as `columns[1].unit`; one the log contradicts, such as a primary track on the clock's column,
+is refused naming the column. [Reading your own logger](your-own-logger.md) works one invented
 logger through each.
+
+<a id="a-fip-export-below-no-header"></a>A FIP header file has two keys. `header` is the header
+line the Featherweight Interface Program writes for an export of the same channels: each
+channel's `Time@` clock, its value and its `bILBA` status cell. `pasted` lists the columns,
+counted from 1, that another table pasted over the export covers; leave it out when none are. A
+key the schema doesn't name is refused, naming it. For an invented export of three channels, the
+third's clock and value covered by a pasted table:
+
+```json
+{
+  "header": "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,Time@Baro (Atm),Baro (Atm),bILBA,Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)],bILBA",
+  "pasted": [7, 8]
+}
+```
+
+Its schema is
+[`analyze-fip-header.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-fip-header.schema.json).
+
+A log read under a stated header is marked as one read by your own description, as a mapping's
+is: its readings are only as right as that header
+([A FIP export pasted below no header](format/flight-logs.md#a-fip-export-pasted-below-no-header)).
 
 ### `hpr weather`
 
@@ -1894,10 +1977,12 @@ document's `help` lists what to do about the failure, the lines the text output 
 `help:`, and is empty when there is nothing to suggest. The sidecar of a CSV recording
 ([Exporting the recording](#exporting-the-recording)) has its own schema,
 [`sim-export-meta.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/sim-export-meta.schema.json).
-Two files `hpr analyze` reads have schemas too, with no `tool`, as a person writes them: the
+Three files `hpr analyze` reads have schemas too, with no `tool`, as a person writes them: the
 column mapping, [`analyze-mapping.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-mapping.schema.json),
-which `--print-mapping` prints, and the record layout,
-[`analyze-layout.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-layout.schema.json).
+which `--print-mapping` prints; the record layout,
+[`analyze-layout.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-layout.schema.json);
+and the FIP header,
+[`analyze-fip-header.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-fip-header.schema.json).
 
 Units are SI, and each field's name says its unit: `total_impulse_ns` is in newton-seconds and
 `diameter_m` in meters. The exceptions say so in their names too: `hpr sim` gives angles in

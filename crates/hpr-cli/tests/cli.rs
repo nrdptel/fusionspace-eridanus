@@ -4343,7 +4343,7 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
         "input",
     );
     assert!(
-        said_of(&document).contains("a sheet is named, and the file isn't an `.xlsx` workbook")
+        said_of(&document).contains("a sheet is named, and the file isn't an `.xlsx` or `.xls`")
     );
     for conflict in [
         vec!["--print-mapping", "--record"],

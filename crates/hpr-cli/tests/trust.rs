@@ -180,8 +180,8 @@ fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
         in_order(
             &note,
             &[
-                "The logger's own samples, read by HPR Sim in the units your mapping or layout \
-                 states, not simulated: as right as those units are.",
+                "The logger's own samples, read by HPR Sim in the units your mapping, layout or \
+                 FIP header states, not simulated: as right as those units are.",
                 "Each reading states the bound its error stayed within",
                 "Those bounds hold only if the units are right: check a unit against a known \
                  height,",

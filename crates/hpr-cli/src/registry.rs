@@ -92,8 +92,10 @@ pub fn availability(name: &str) -> Option<Availability> {
         "analyze" => Some(Availability::Available {
             reads: vec![
                 "a flight log in any layout HPR Sim reads, by its own reader".to_owned(),
+                "a workbook's sheet or a raw dump's recording, as chosen".to_owned(),
                 "another logger's table by a column mapping".to_owned(),
                 "binary records or a console capture by a record layout".to_owned(),
+                "a Raven FIP export below no header, by the header stated".to_owned(),
             ],
             writes: text_or_json(),
         }),

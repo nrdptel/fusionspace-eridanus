@@ -193,14 +193,14 @@ top speed         withheld: the track's samples come every 0.200 s, too far apar
 landing           48.60 s, within 2.23 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
-How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. Each reading states the bound its error stayed
-within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
-steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
-and go by the logger's own figures for a record.
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
+FIP header states, not simulated: as right as those units are. Each reading states the bound its
+error stayed within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a
+second and in steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't
+support is withheld, with the reason. The top speed is derived from the heights, and withheld from
+Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if the
+units are right: check a unit against a known height, such as the launch site's elevation from a GPS
+altitude, and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
@@ -224,8 +224,73 @@ lists its fields:
 hpr analyze flight.csv --mapping flight.mapping.json --record > flight.json
 ```
 
-A table on a sheet of an Excel `.xlsx` workbook is read the same way, its sheet named from 0 with
-`--sheet`, for `--print-mapping` and `--mapping` alike.
+A table on a sheet of a spreadsheet's workbook, an `.xlsx` or an `.xls` written as one bare
+worksheet, is read the same way, its sheet named from 0 with `--sheet`, for `--print-mapping` and
+`--mapping` alike; a workbook of one sheet needs none. A sheet one of the library's readers takes needs no mapping: `--sheet` alone
+reads it by that reader ([A file of several records](cli.md#a-file-of-several-records)).
+
+### A FIP export below no header
+
+A Featherweight Raven's FIP export, the CSV its Featherweight Interface Program writes, reads by
+its own reader, but only with its header line. Pasted into a workbook below no header, nothing
+names its columns, so you state that line in a JSON file, a FIP header, and give it with
+`--fip-header`
+([its schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-fip-header.schema.json)).
+It has two keys:
+
+- `header`, the header line the program writes for an export of the same channels: each
+  channel's `Time@` clock, its value and its `bILBA` status cell.
+- `pasted`, the columns, counted from 1, that another table pasted over the export covers. A
+  channel with a cell in them, in any row, is left out whole, with a note. Leave it out when no
+  table is pasted over.
+
+A key the schema doesn't name is refused, naming it. The invented workbook
+`validation/fixtures/logs/several/fip-below-no-header.xlsx` holds an export of three channels,
+its header line gone, of a flight made to peak at 273.5 m (897 ft) above the pad. Its FIP header
+states that line:
+
+<!-- quote: validation/fixtures/logs/several/fip-below-no-header.header.json -->
+```json
+{
+  "header": "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,Time@Baro (Atm),Baro (Atm),bILBA,Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)],bILBA"
+}
+```
+
+<!-- cli: example `hpr analyze validation/fixtures/logs/several/fip-below-no-header.xlsx --fip-header validation/fixtures/logs/several/fip-below-no-header.header.json`; written by `cargo xtask cli`; do not edit -->
+
+```text
+$ hpr analyze validation/fixtures/logs/several/fip-below-no-header.xlsx --fip-header validation/fixtures/logs/several/fip-below-no-header.header.json
+fip-below-no-header.xlsx: Featherweight Raven
+201 samples, from 0.00 s to 40.00 s
+readings from the logger's barometric altitude, sampled every 0.200 s in steps of 0.337 m, after a 0.40 s running median
+6 channels: Axial Accel (Gs) (acceleration), bILBA (number), Baro (Atm) (pressure), bILBA (number), [Altitude (Baro-Ft-AGL)] (altitude above ground), bILBA (number)
+
+liftoff           1.40 s, within 1.09 s
+apogee            273.0 m (896 ft) above the pad, within 23.9 m (78 ft); at 9.90 s, within 1.03 s, 8.50 s after liftoff
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+landing           37.40 s, within 1.46 s; 36.00 s after liftoff, within 2.55 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
+top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
+
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
+FIP header states, not simulated: as right as those units are. Each reading states the bound its
+error stayed within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a
+second and in steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't
+support is withheld, with the reason. The top speed is derived from the heights, and withheld from
+Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if the
+units are right: check a unit against a known height, such as the launch site's elevation from a GPS
+altitude, and go by the logger's own figures for a record.
+More: https://hpr.fusionspace.co/your-own-logger.html
+note: read under a header line the caller stated, the rows' own header missing
+```
+
+<!-- cli: end -->
+
+`--sheet N` picks the workbook's sheet, `.xlsx` or a bare `.xls`, counted from 0; with none,
+the workbook must have only one. The rows saved as text read too. A log is read by one of
+`--mapping`, `--layout` and `--fip-header`. The readings are marked as read by your own description, as a
+mapping's are: they are only as right as the header you state
+([A FIP export pasted below no header](format/flight-logs.md#a-fip-export-pasted-below-no-header)
+says how the rows are read).
 
 ## Binary records, by a record layout
 
@@ -267,14 +332,14 @@ top speed         withheld: the track's samples come every 0.200 s, too far apar
 landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
-How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. Each reading states the bound its error stayed
-within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
-steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
-and go by the logger's own figures for a record.
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
+FIP header states, not simulated: as right as those units are. Each reading states the bound its
+error stayed within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a
+second and in steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't
+support is withheld, with the reason. The top speed is derived from the heights, and withheld from
+Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if the
+units are right: check a unit against a known height, such as the launch site's elevation from a GPS
+altitude, and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
 ```
@@ -303,14 +368,14 @@ top speed         withheld: the track's samples come every 0.200 s, too far apar
 landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
-How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. Each reading states the bound its error stayed
-within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
-steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
-and go by the logger's own figures for a record.
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
+FIP header states, not simulated: as right as those units are. Each reading states the bound its
+error stayed within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a
+second and in steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't
+support is withheld, with the reason. The top speed is derived from the heights, and withheld from
+Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if the
+units are right: check a unit against a known height, such as the launch site's elevation from a GPS
+altitude, and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: read from the block `flight` of a console capture, line 2: 4016 bytes of base64 decoded
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
@@ -320,8 +385,8 @@ note: 251 binary records read by the caller's layout, written out as a table and
 
 ## From Python
 
-`FlightLog.read` reads a log by its format's own reader, a mapping or a layout, each a dict or the
-path of its JSON file, into the record the command line prints with `--record`.
+`FlightLog.read` reads a log by its format's own reader, a mapping, a layout or a FIP header, each
+a dict or the path of its JSON file, into the record the command line prints with `--record`.
 `FlightLog.header_mapping` gives what a table's header states, as a dict to edit. This reads the
 invented table by its header's mapping, edited in Python as above, then its records by their
 layout:
@@ -388,6 +453,34 @@ top speed withheld: sampled_too_slowly
 ```
 <!-- python: end -->
 
+`fip_header=` reads a FIP export below no header, a dict or the path of its JSON file, as the
+command line's `--fip-header` does. `sheet=` picks a workbook's sheet, from 0, for a mapping, a
+FIP header or the sheet's own reader, and `recording=` a raw dump's recording. The same
+combinations are refused as on the command line: one of `mapping=`, `layout=` and `fip_header=`;
+`recording=` with none of them and no `sheet=`; and `sheet=` not with `layout=`. This reads the
+invented FIP export above, then the second flight of the workbook in
+[A file of several records](cli.md#a-file-of-several-records):
+
+<!-- python: example -->
+```python
+folder = "validation/fixtures/logs/several"
+fip = hpr.FlightLog.read(
+    f"{folder}/fip-below-no-header.xlsx",
+    fip_header=f"{folder}/fip-below-no-header.header.json",
+)
+print(fip)
+print(fip.notes[0])
+second = hpr.FlightLog.read(f"{folder}/two-flights.xlsx", sheet=2)
+print(second.notes[0])
+```
+
+```text
+FlightLog(raven_fip_csv, 6 channels, 201 samples on the primary track)
+read under a header line the caller stated, the rows' own header missing
+read from the sheet "Second" of an Excel workbook, its cells as stored
+```
+<!-- python: end -->
+
 ## A GPS tracker's table
 
 A table of GPS fixes, with no barometer, reads by a mapping too. The invented tracker writes its
@@ -450,14 +543,14 @@ top speed         withheld: the log's only height is a GNSS receiver's, whose na
 landing           withheld: landing is found against the pad after apogee, and liftoff and apogee were withheld
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 
-How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. Each reading states the bound its error stayed
-within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
-steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
-and go by the logger's own figures for a record.
+How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
+FIP header states, not simulated: as right as those units are. Each reading states the bound its
+error stayed within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a
+second and in steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't
+support is withheld, with the reason. The top speed is derived from the heights, and withheld from
+Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if the
+units are right: check a unit against a known height, such as the launch site's elevation from a GPS
+altitude, and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
@@ -469,8 +562,10 @@ More: https://hpr.fusionspace.co/your-own-logger.html
   [M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c).
 - Mark a primary track in a record layout. A mapping marks one; binary records' altitude reads as
   one of unstated zero.
-- Read a table from an older Excel `.xls` workbook by a mapping: `--sheet` reads `.xlsx` only.
-- Read an `.xls` export, a zip archive's files, or a workbook's sheet but by a mapping, from the
-  command line or Python. Both read every other layout the library tells from the file alone by
-  its own reader ([the layouts read](format/flight-logs.md#the-layouts-read)), and another
-  logger's table or binary records by a mapping or a layout.
+- Read Excel's own `.xls`, a compound file of several streams, by a reader or a mapping. Only an
+  `.xls` written as one bare worksheet, as an AltiMAX altimeter's export is, reads; save any
+  other as `.xlsx` or CSV.
+- Read a zip archive's files, from the command line or Python: unpack it and give the log inside.
+  Both read every other layout the library tells from the file alone by its own reader
+  ([the layouts read](format/flight-logs.md#the-layouts-read)), a workbook's sheet or a raw dump's
+  recording as chosen, and another logger's table or binary records by a mapping or a layout.

@@ -31,9 +31,10 @@ table, and AltOS's CSV re-saved by a spreadsheet, its formulas kept as text, or 
 and tables whose headers state too little, by a column mapping you state, the sample tables'
 mappings each holding every unit to a physical check ([the layouts read](format/flight-logs.md)).
 `hpr analyze` and Python read each layout the library tells from the file alone by its own reader,
-and a table or binary records by a column mapping or a record layout
-([Reading your own logger](your-own-logger.md)), but not yet an `.xls` export, a zip archive's
-files, or a workbook's sheet but by a mapping. Since
+one sheet of a workbook or one recording of a raw dump at a time
+([below](#a-file-of-several-records)), and a table or binary records by a column mapping or a
+record layout ([Reading your own logger](your-own-logger.md)). A zip archive's files must be
+unpacked first. Since
 [M7.2b, readings on every logger](decisions-and-roadmap.md#m7-2b), the readings come from any
 logger's barometric altitude or pressure, each within a stated bound; a GPS track gives none.
 Formats no sample holds yet,
@@ -69,6 +70,25 @@ the bound its error stays within ("within …"), or as one JSON document with `-
 the fields. Another logger's table is read by a column mapping, `--mapping`, and its binary
 records by a record layout, `--layout`: each a JSON file you write, as
 [Reading your own logger](your-own-logger.md) works through on an invented logger.
+
+### A file of several records
+
+A spreadsheet's workbook, an `.xlsx` or an `.xls` written as one bare worksheet (as an AltiMAX
+altimeter's Excel export is), holds sheets, and an Entacore AIM raw dump can hold several recordings. `hpr analyze`
+reads one at a time, each by its own reader. With no choice given, it reads the workbook's one
+sheet that reads as a log, or the dump's one recording. Where there are several, or no sheet
+reads, it refuses and names them, a sheet by its number and name, such as `2 (Second)`. Choose
+one, counted from 0:
+
+```bash
+hpr analyze flight.xlsx --sheet 2
+hpr analyze flight.dump --recording 1
+```
+
+From Python, `FlightLog.read(path, sheet=2)` and `FlightLog.read(path, recording=1)` do the same.
+A Featherweight Raven's FIP export that lost its header line when it was pasted into a workbook is
+read under a header you state, `--fip-header`
+([Reading your own logger](your-own-logger.md#a-fip-export-below-no-header)).
 
 ## From a program
 

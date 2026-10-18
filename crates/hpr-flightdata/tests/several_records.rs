@@ -266,6 +266,21 @@ fn a_workbooks_sheet_is_read_as_chosen() {
     )]);
     let only = import::read_one(&one, None, None).unwrap();
     assert_eq!(only.channels[0].values, [0.0, 0.5]);
+
+    // By a column mapping, a workbook's one sheet is read with none named; of several, one must
+    // be named.
+    let (mapping, _) = custom::header_mapping(&one, None).unwrap();
+    assert_eq!(
+        custom::read_by_mapping(&one, &mapping, None).unwrap(),
+        custom::read_by_mapping(&one, &mapping, Some(0)).unwrap()
+    );
+    let several = custom::read_by_mapping(&bytes, &mapping, None).unwrap_err();
+    assert!(
+        several.to_string().contains(
+            r#"its sheets 0 "First", 1 "Notes", 2 "Second": name the sheet the table is on"#
+        ),
+        "{several}"
+    );
 }
 
 /// A file of one record takes no choice of sheet or recording.

@@ -173,13 +173,13 @@ pub(crate) fn log() -> String {
     )
 }
 
-/// `hpr analyze`'s note on a log read by the flyer's own column mapping or record layout
-/// (`docs/your-own-logger.md`): the logger's samples in the units the file states, so the
+/// `hpr analyze`'s note on a log read by the flyer's own column mapping, record layout or FIP
+/// header (`docs/your-own-logger.md`): the logger's samples in the units the file states, so the
 /// readings' bounds hold only if those are right.
 pub(crate) fn own_log() -> String {
     format!(
-        "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping or layout \
-         states, not simulated: as right as those units are. {} Those bounds hold only if the \
+        "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping, layout or \
+         FIP header states, not simulated: as right as those units are. {} Those bounds hold only if the \
          units are right: check a unit against a known height, such as the launch site's \
          elevation from a GPS altitude, and go by the logger's own figures for a \
          record.{MORE}{SITE}your-own-logger.html",

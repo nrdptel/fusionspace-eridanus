@@ -241,11 +241,11 @@ decided.
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | AltiMAX `.ALS` | Rocketronics AltiMAX, a flight as the altimeter writes it to its memory card | a header stating at least one record, then records of 22 bytes, the first up to 1,000 each holding a first byte with bit 0 set and bit 1 clear and its voltage channel the one after the record before's | `hpr_flightdata::altimax_als` ([below](#the-altimaxs-als)) |
 | Entacore AIM `.xtra` | Entacore AIM XTRA, a flight as the AIM software saves it | a Boost serialization archive's signature, `serialization::archive`, the top object's header the sample has, and a first record whose class is an AIM kind's | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)) |
-| Entacore AIM raw dump | the same flight computer's memory, as the AIM software downloads it before any conversion | a first byte `0x13`, a recording's opening, then the AIM's records, up to 1,000, or erased memory | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)); `import::read` takes a dump of one recording, and `entacore_raw::read_dump` each recording of several |
+| Entacore AIM raw dump | the same flight computer's memory, as the AIM software downloads it before any conversion | a first byte `0x13`, a recording's opening, then the AIM's records, up to 1,000, or erased memory | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)); `import::read` takes a dump of one recording, and `entacore_raw::read_dump` each recording of several; `import::read_one`, as `hpr analyze --recording` does, reads the one chosen |
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
-| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
-| Raven FIP rows below no header | a Raven FIP CSV pasted into a workbook with its header line missing | not recognized: read under the header line you state | `hpr_flightdata::raven::read_rows` ([below](#a-fip-export-pasted-below-no-header)) |
-| AltiMAX Excel export, `.xls` | Rocketronics AltiMAX, a flight as its PC software exports it to Excel | not by `import::read`, which refuses the `.xls` bytes: `xls::read` writes the worksheet out as text, whose header's first five names are `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]` | `hpr_flightdata::xls` and `hpr_flightdata::altimax` ([below](#the-altimaxs-excel-export)) |
+| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own; `import::read_one`, as `hpr analyze --sheet` does, reads the sheet chosen, or with none the one sheet that reads | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
+| Raven FIP rows below no header | a Raven FIP CSV pasted into a workbook with its header line missing | not recognized: read under the header line you state | `hpr_flightdata::raven::read_rows`, and `custom::read_by_fip_header` from a workbook's sheet, as `hpr analyze --fip-header` does ([below](#a-fip-export-pasted-below-no-header)) |
+| AltiMAX Excel export, `.xls` | Rocketronics AltiMAX, a flight as its PC software exports it to Excel | not by `import::read`, which refuses the `.xls` bytes: `xls::read` writes the worksheet out as text, whose header's first five names are `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]`; `import::read_one`, as `hpr analyze` does, reads it | `hpr_flightdata::xls` and `hpr_flightdata::altimax` ([below](#the-altimaxs-excel-export)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 | Binary records | a team's flight computer saving each sample as a fixed run of bytes, with no header | not recognized: read by the record layout you state | `hpr_flightdata::records` ([below](#binary-records-by-a-stated-layout)) |
 | Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
@@ -303,7 +303,8 @@ its files is read, when:
 The crate's tests build an archive of each kind and check its refusal, and two property tests
 feed random and damaged archives to the reader to show it refuses them or stays within the
 bound, and never crashes. Only the Rust library opens archives so far: `hpr analyze` and the Python
-package refuse one, and the command line asks for the log inside it.
+package refuse one, and the command line asks for the log inside it. A workbook, though built on
+a zip archive, they read one sheet at a time ([Excel workbooks](#excel-workbooks)).
 
 The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
 among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
@@ -321,9 +322,12 @@ states and the rest of their columns as written.
 ### Excel workbooks
 
 Some flyers keep a flight's log in an Excel workbook (`.xlsx`): the Blue Raven app's files pasted
-side by side as sheets, or a table whose header names its units. Only the Rust library reads a
-workbook's sheets on its own; `hpr analyze` and the Python package read a sheet only by a column
-mapping and the sheet's number ([Reading your own logger](../your-own-logger.md)). A workbook is a zip
+side by side as sheets, or a table whose header names its units. `hpr analyze` and the Python
+package read one sheet at a time: by its own reader, the sheet chosen with `--sheet N`
+(`sheet=` in Python), from 0, or with none the workbook's one sheet that reads as a log; or by a
+column mapping and the sheet's number
+([A file of several records](../cli.md#a-file-of-several-records)). In Rust,
+`hpr_flightdata::import::read_one` reads one sheet as they do. A workbook is a zip
 archive of XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so
 `hpr_flightdata::import::read` refuses one, as it does any archive. Instead,
 `hpr_flightdata::workbook::read` writes each worksheet's cells out as comma-separated text, one
@@ -1400,8 +1404,11 @@ channel after it one cell to the left. Without the header nothing names the colu
 `read_rows_around` reads a sheet another table was pasted over
 ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
 decided it, in its amendment for [M7.1c20, workbooks with a reading
-beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own,
-and neither do `hpr analyze` and the Python package.
+beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own.
+`custom::read_by_fip_header` reads it under a header stated in a JSON file, the header line and
+the pasted columns, from a workbook's sheet or the rows as text; `hpr analyze --fip-header FILE`
+and Python's `FlightLog.read(path, fip_header=...)` take that file
+([Reading your own logger](../your-own-logger.md#a-fip-export-below-no-header)).
 
 > **How far to trust it.** The header stated for both sample sheets is the one Debrief's public
 > sample of a Raven flight carries, the same 16 channels in the same order, and both sheets' rows
@@ -1485,9 +1492,11 @@ flight "to Excel as altitude values" (*AltiMAX G4 Manual*, Rocketronics, 2021, p
 export is an `.xls` file, the binary format of Excel before 2007, and an unusual one: a bare
 *worksheet stream*, its records end to end, not inside the container file (an OLE2 compound
 document) that Excel wraps its own `.xls` files in. `hpr_flightdata::xls::read` writes the
-worksheet out as text and reads it, here with `hpr_flightdata::altimax`; `import::read` refuses
-the `.xls` bytes and names `xls::read`. Only the Rust library reads it ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)).
+worksheet out as text and reads it, here with `hpr_flightdata::altimax`
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)). `import::read`
+refuses the `.xls` bytes and names `xls::read`. `import::read_one` reads its one sheet, and so do
+`hpr analyze` and Python's `FlightLog.read` with no option; `--sheet 0` (`sheet=0`) names it.
 
 > **How far to trust it.** The one sample file is read cell for cell: the survey's own decoding
 > and xlrd 2.0.2, an independent Python reader, agree with the text on all 278,685 cells. No
@@ -3422,7 +3431,10 @@ it, and an earlier copy of that `.xtra`, cut short. `hpr_flightdata::entacore_ra
 layouts. `import::read` takes an `.xtra` file, and a dump that holds one recording; the sample's
 holds ten, nine whose pressure shows no flight and then the flight. `import::read` refuses a dump
 of several, naming the byte where the second starts, and `entacore_raw::read_dump` reads each as
-a record of its own.
+a record of its own. `import::read_one` reads the one chosen, counted from 0, as
+`hpr analyze --recording N` and Python's `FlightLog.read(path, recording=N)` do; with none chosen,
+they read a dump of one recording and refuse one of several, saying how many it holds
+([A file of several records](../cli.md#a-file-of-several-records)).
 
 A dump is the memory's recordings end to end, then erased memory, bytes of `0xFF`. A recording
 opens with the byte `0x13` and 101 bytes that aren't read. After that, a byte from `0x80` to

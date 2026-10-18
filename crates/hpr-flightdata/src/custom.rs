@@ -144,14 +144,7 @@ pub fn read_by_fip_header(
     stated: &FipHeader,
     sheet: Option<usize>,
 ) -> Result<FlightLog, LogError> {
-    let sheets = if archive::is_archive(bytes) {
-        Some(workbook::sheets(bytes)?)
-    } else if xls::recognizes(bytes) {
-        Some(xls::sheets(bytes)?)
-    } else {
-        None
-    };
-    let text = match (sheets, sheet) {
+    let text = match (workbook_sheets(bytes).transpose()?, sheet) {
         (None, None) => import::decode(bytes).into_owned(),
         (None, Some(_)) => {
             return Err(LogError::Choice {
@@ -275,14 +268,15 @@ fn path(segments: &[&serde_path_to_error::Segment]) -> String {
 }
 
 /// What a table's header states, as a mapping to edit, with a note on each column it leaves
-/// kept as written, saying why ([`generic::header_reading`]). `sheet` names an `.xlsx`
-/// workbook's sheet, from 0; `None` for a text file.
+/// kept as written, saying why ([`generic::header_reading`]). `sheet` names a spreadsheet's
+/// workbook's sheet, `.xlsx` or `.xls`, from 0; `None` for a text file, or a workbook of one
+/// sheet.
 ///
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] for a table whose header doesn't name a clock with a unit of time;
-/// [`LogError::Mapping`] for a workbook with no sheet named, or a sheet it doesn't have, or a sheet
-/// named for a file that isn't a workbook.
+/// [`LogError::Mapping`] for a workbook of several sheets with none named, or a sheet it doesn't
+/// have, or a sheet named for a file that isn't a workbook.
 pub fn header_mapping(
     bytes: &[u8],
     sheet: Option<usize>,
@@ -291,7 +285,7 @@ pub fn header_mapping(
 }
 
 /// Reads a table by a mapping, as [`generic::read_with`] does: from a text file, or from the
-/// `.xlsx` workbook's sheet `sheet`, from 0.
+/// sheet `sheet`, from 0, of a spreadsheet's workbook, `.xlsx` or `.xls`, or its one sheet.
 ///
 /// # Errors
 ///
@@ -339,16 +333,23 @@ pub fn read_by_layout(bytes: &[u8], layout: &Layout) -> Result<FlightLog, LogErr
     }
 }
 
-/// The table's text: the file's, or a workbook's sheet's.
+/// A spreadsheet's workbook's sheets, `.xlsx` or `.xls`; `None` for a file that is neither.
+fn workbook_sheets(bytes: &[u8]) -> Option<Result<Vec<workbook::Sheet>, LogError>> {
+    if archive::is_archive(bytes) {
+        Some(workbook::sheets(bytes))
+    } else if xls::recognizes(bytes) {
+        Some(xls::sheets(bytes))
+    } else {
+        None
+    }
+}
+
+/// The table's text: the file's, or a sheet's of a spreadsheet's workbook, `.xlsx` or `.xls`:
+/// the sheet named, or the workbook's one sheet.
 fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogError> {
     let refused = |message: String| LogError::Mapping { message };
-    match sheet {
-        Some(sheet) => {
-            let sheets = workbook::sheets(bytes).map_err(|error| {
-                refused(format!(
-                    "a sheet is named, and the file isn't an `.xlsx` workbook that reads: {error}"
-                ))
-            })?;
+    match (workbook_sheets(bytes), sheet) {
+        (Some(Ok(sheets)), Some(sheet)) => {
             let count = sheets.len();
             sheets
                 .into_iter()
@@ -365,27 +366,33 @@ fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogErr
                     ))
                 })
         }
-        None => {
-            if bytes.starts_with(b"PK\x03\x04")
-                && let Ok(sheets) = workbook::sheets(bytes)
-            {
-                let names: Vec<String> = sheets
-                    .iter()
-                    .enumerate()
-                    .map(|(index, found)| format!("{index} {:?}", found.name))
-                    .collect();
-                return Err(refused(format!(
-                    "the file is an `.xlsx` workbook, its sheets {}: name the sheet the table is \
-                     on, from 0",
-                    if names.is_empty() {
-                        "none".to_owned()
-                    } else {
-                        names.join(", ")
-                    }
-                )));
-            }
-            Ok(import::decode(bytes))
+        (Some(Err(error)), Some(_)) => Err(refused(format!(
+            "a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook that reads: {error}"
+        ))),
+        (None, Some(_)) => Err(refused(
+            "a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook".to_owned(),
+        )),
+        (Some(Ok(mut sheets)), None) if sheets.len() == 1 => {
+            Ok(Cow::Owned(sheets.swap_remove(0).text))
         }
+        (Some(Ok(sheets)), None) => {
+            let names: Vec<String> = sheets
+                .iter()
+                .enumerate()
+                .map(|(index, found)| format!("{index} {:?}", found.name))
+                .collect();
+            Err(refused(format!(
+                "the file is a spreadsheet's workbook, its sheets {}: name the sheet the table is \
+                 on, from 0",
+                if names.is_empty() {
+                    "none".to_owned()
+                } else {
+                    names.join(", ")
+                }
+            )))
+        }
+        // An archive that isn't a workbook, read as the text it holds, as before workbooks were.
+        (Some(Err(_)) | None, None) => Ok(import::decode(bytes)),
     }
 }
 
@@ -680,7 +687,7 @@ t (ms),alt (ft),accel (g)
         let mapping = mapping_from_json(&mapping("1")).unwrap();
         let error = message(read_by_mapping(TABLE.as_bytes(), &mapping, Some(0)).unwrap_err());
         assert!(
-            error.starts_with("a sheet is named, and the file isn't an `.xlsx` workbook"),
+            error.starts_with("a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook"),
             "{error}"
         );
     }
