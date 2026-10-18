@@ -287,6 +287,38 @@ fn a_workbooks_sheet_is_read_as_chosen() {
     );
 }
 
+/// A workbook of many sheets with long names: the refusal lists the first 20, each name cut to
+/// 60 characters, and counts the rest, whether its sheets read by their own reader or by a
+/// mapping.
+#[test]
+fn a_refusal_lists_a_few_sheets_shortly() {
+    let table = sheet_data(&[
+        vec!["Time (s)".to_owned(), "Baro Alt AGL (m)".to_owned()],
+        vec!["0".to_owned(), "0".to_owned()],
+        vec!["0.1".to_owned(), "0.5".to_owned()],
+    ]);
+    let long = "🚀".repeat(70);
+    let names: Vec<String> = (0..25).map(|n| format!("{n:02}{long}")).collect();
+    let sheets: Vec<(&str, String)> = names.iter().map(|n| (n.as_str(), table.clone())).collect();
+    let bytes = workbook(&sheets);
+    let by_reader = choice(import::read_one(&bytes, None, None).unwrap_err());
+    let (mapping, _) = custom::header_mapping(&bytes, Some(0)).unwrap();
+    let by_mapping = custom::read_by_mapping(&bytes, &mapping, None)
+        .unwrap_err()
+        .to_string();
+    for message in [by_reader, by_mapping] {
+        assert!(message.contains("and 5 more"), "{message}");
+        assert!(
+            message.contains(&format!("19{}…", "🚀".repeat(58))),
+            "{message}"
+        );
+        assert!(
+            !message.contains("20🚀") && !message.contains(&"🚀".repeat(59)),
+            "{message}"
+        );
+    }
+}
+
 /// A file of one record takes no choice of sheet or recording.
 #[test]
 fn a_file_of_one_record_takes_no_choice() {

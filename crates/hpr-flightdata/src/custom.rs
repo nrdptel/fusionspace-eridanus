@@ -376,19 +376,14 @@ fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogErr
             Ok(Cow::Owned(sheets.swap_remove(0).text))
         }
         (Some(Ok(sheets)), None) => {
-            let names: Vec<String> = sheets
-                .iter()
-                .enumerate()
-                .map(|(index, found)| format!("{index} {:?}", found.name))
-                .collect();
+            let names = workbook::listed(
+                sheets.iter().map(|found| found.name.as_str()).enumerate(),
+                |index, name| format!("{index} {name:?}"),
+            );
             Err(refused(format!(
                 "the file is a spreadsheet's workbook, its sheets {}: name the sheet the table is \
                  on, from 0",
-                if names.is_empty() {
-                    "none".to_owned()
-                } else {
-                    names.join(", ")
-                }
+                if names.is_empty() { "none" } else { &names }
             )))
         }
         // An archive that isn't a workbook, read as the text it holds, as before workbooks were.

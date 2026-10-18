@@ -495,14 +495,15 @@ pub fn read_one(
                  a column mapping, with its sheet chosen"
             )),
             _ => {
-                let named: Vec<String> = reading
-                    .iter()
-                    .map(|(index, sheet)| format!("{index} ({})", sheet.name))
-                    .collect();
+                let named = workbook::listed(
+                    reading
+                        .iter()
+                        .map(|(index, sheet)| (*index, sheet.name.as_str())),
+                    |index, name| format!("{index} ({name})"),
+                );
                 choice(format!(
-                    "{} of the workbook's {count} sheets read as logs, sheets {}: choose one",
+                    "{} of the workbook's {count} sheets read as logs, sheets {named}: choose one",
                     reading.len(),
-                    named.join(", ")
                 ))
             }
         };
