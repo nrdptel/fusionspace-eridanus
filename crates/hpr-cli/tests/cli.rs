@@ -4326,7 +4326,10 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
     );
 
     let document = json_error(&["analyze", &path, "--sheet", "0"], 1, "input");
-    assert!(said_of(&document).starts_with("--sheet names the workbook's sheet"));
+    assert!(
+        said_of(&document).contains("the file holds one record, not a workbook's sheets"),
+        "{document:#}"
+    );
     let document = json_error(
         &[
             "analyze",
@@ -4346,11 +4349,130 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
         vec!["--print-mapping", "--record"],
         vec!["--mapping", "a.json", "--layout", "b.json"],
         vec!["--print-mapping", "--mapping", "a.json"],
+        vec!["--recording", "0", "--sheet", "0"],
+        vec!["--recording", "0", "--mapping", "a.json"],
+        vec!["--fip-header", "a.json", "--mapping", "b.json"],
+        vec!["--fip-header", "a.json", "--layout", "b.json"],
+        vec!["--sheet", "0", "--layout", "b.json"],
     ] {
         let mut args = vec!["analyze", path.as_str()];
         args.extend(conflict.iter().copied());
         assert_eq!(hpr(&args).status.code(), Some(2), "{args:?}");
     }
+}
+
+/// Files of several records, each built and pinned by `fusionspace-hpr-flightdata`'s tests: a
+/// workbook of two flights and a sheet of notes, an Entacore AIM dump of two recordings, and a
+/// Raven FIP export pasted into a workbook below no header, with the header stated for it.
+const SEVERAL: &str = "validation/fixtures/logs/several";
+
+/// A workbook's sheet and a dump's recording are read as chosen, and refused with no choice,
+/// naming what to choose; a choice the file doesn't hold is refused the same way.
+#[test]
+fn analyze_reads_the_sheet_or_recording_chosen() {
+    let book = repo_file(&format!("{SEVERAL}/two-flights.xlsx"));
+    let said_of_book = said(&json_error(&["analyze", &book], 1, "input"));
+    assert!(
+        said_of_book
+            .contains("2 of the workbook's 3 sheets read as logs, sheets 0 (First), 2 (Second)")
+            && said_of_book.contains("help: choose a workbook's sheet with --sheet N"),
+        "{said_of_book}"
+    );
+    // Each sheet's own flight: a coast to 273.5 m on the first, 548.0 m on the second.
+    for (sheet, top_m) in [(0, 273.5), (2, 548.0)] {
+        let document = json(
+            &["analyze", &book, "--sheet", &sheet.to_string()],
+            0,
+            "analyze.schema.json",
+        );
+        assert_eq!(document["log"]["sheet"], sheet);
+        assert_eq!(document["apogee"]["status"], "read");
+        let height_m = document["apogee"]["height_m"].as_f64().unwrap();
+        let bound_m = document["apogee"]["bound_m"].as_f64().unwrap();
+        assert!((height_m - top_m).abs() <= bound_m, "{document:#}");
+    }
+    let past = said(&json_error(&["analyze", &book, "--sheet", "3"], 1, "input"));
+    assert!(past.contains("has no sheet 3"), "{past}");
+    let notes = said(&json_error(&["analyze", &book, "--sheet", "1"], 1, "input"));
+    assert!(!notes.contains("choose a workbook's sheet"), "{notes}");
+
+    let dump = repo_file(&format!("{SEVERAL}/two-recordings.dump"));
+    let said_of_dump = said(&json_error(&["analyze", &dump], 1, "input"));
+    assert!(
+        said_of_dump.contains("the dump holds 2 recordings: choose one")
+            && said_of_dump.contains("a dump's recording with --recording N"),
+        "{said_of_dump}"
+    );
+    for recording in [0, 1] {
+        let document = json(
+            &[
+                "analyze",
+                &dump,
+                "--recording",
+                &recording.to_string(),
+                "--record",
+            ],
+            0,
+            "analyze-record.schema.json",
+        );
+        assert_eq!(document["format"], "entacore_dump", "{document:#}");
+        let note = document["notes"][0].as_str().unwrap();
+        assert!(
+            note.starts_with(&format!("recording {} of the dump's 2", recording + 1)),
+            "{note}"
+        );
+    }
+    let past = said(&json_error(
+        &["analyze", &dump, "--recording", "2"],
+        1,
+        "input",
+    ));
+    assert!(past.contains("has no recording 2"), "{past}");
+    let sheet = said(&json_error(&["analyze", &dump, "--sheet", "0"], 1, "input"));
+    assert!(sheet.contains("holds recordings, not sheets"), "{sheet}");
+}
+
+/// A FIP export below no header is read under the header stated for it, its altitude in the
+/// feet the header names; without it, the workbook holds no sheet any reader takes.
+#[test]
+fn analyze_reads_a_fip_export_under_its_stated_header() {
+    let sheet = repo_file(&format!("{SEVERAL}/fip-below-no-header.xlsx"));
+    let header = repo_file(&format!("{SEVERAL}/fip-below-no-header.header.json"));
+    let document = json(
+        &["analyze", &sheet, "--fip-header", &header],
+        0,
+        "analyze.schema.json",
+    );
+    assert_eq!(document["log"]["fip_header"], header.as_str());
+    assert_eq!(document["log"]["format"], "raven_fip_csv");
+    assert_eq!(document["apogee"]["status"], "read");
+    let height_m = document["apogee"]["height_m"].as_f64().unwrap();
+    let bound_m = document["apogee"]["bound_m"].as_f64().unwrap();
+    assert!((height_m - 273.5).abs() <= bound_m, "{document:#}");
+
+    let unread = said(&json_error(&["analyze", &sheet], 1, "input"));
+    assert!(
+        unread.contains("none of the workbook's 1 sheets reads as a log"),
+        "{unread}"
+    );
+    let past = said(&json_error(
+        &["analyze", &sheet, "--fip-header", &header, "--sheet", "1"],
+        1,
+        "input",
+    ));
+    assert!(
+        past.contains("has no sheet 1") && past.contains("help: choose the workbook's sheet"),
+        "{past}"
+    );
+    let folder = tempfile::tempdir().unwrap();
+    let typo = folder.path().join("typo.json");
+    std::fs::write(&typo, r#"{"header": "a", "pastd": [1]}"#).unwrap();
+    let said_of_typo = said(&json_error(
+        &["analyze", &sheet, "--fip-header", typo.to_str().unwrap()],
+        1,
+        "input",
+    ));
+    assert!(said_of_typo.contains("pastd"), "{said_of_typo}");
 }
 
 /// [`said`], for a test whose closure shadows it.

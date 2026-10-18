@@ -1423,9 +1423,15 @@ pub struct AnalyzedLog {
     /// The record layout file it was read by, as given (`--layout`); `null` for a log read
     /// otherwise.
     pub layout: Option<String>,
-    /// The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a
-    /// text file.
+    /// The FIP header file it was read under, as given (`--fip-header`); `null` for a log read
+    /// otherwise.
+    pub fip_header: Option<String>,
+    /// The workbook's sheet chosen, from 0 (`--sheet`); `null` for a file that isn't a
+    /// workbook, or a workbook read with none chosen, whose one sheet that reads is read and
+    /// named in the log's first note.
     pub sheet: Option<usize>,
+    /// The dump's recording chosen, from 0 (`--recording`); `null` for a file of one recording.
+    pub recording: Option<usize>,
     /// The logger, as the file names it; `unknown` for a log read by a mapping or a layout.
     pub logger: String,
     /// The logger's serial number, as the file states it.
@@ -1832,10 +1838,14 @@ pub fn schemas() -> Vec<(&'static str, String)> {
     schemas
 }
 
-/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping and record
-/// layout, by the file name it is published under: a person writes the file, so it names no tool.
+/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping, record layout
+/// and FIP header, by the file name it is published under: a person writes the file, so it names no tool.
 pub fn input_schemas() -> Vec<(&'static str, String)> {
     vec![
+        (
+            "analyze-fip-header.schema.json",
+            input_schema::<hpr::hpr_flightdata::custom::FipHeader>(),
+        ),
         (
             "analyze-layout.schema.json",
             input_schema::<hpr::hpr_flightdata::custom::Layout>(),

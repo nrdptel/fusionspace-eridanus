@@ -184,6 +184,13 @@
             "$ref": "#/$defs/AnalyzedChannel"
           }
         },
+        "fip_header": {
+          "description": "The FIP header file it was read under, as given (`--fip-header`); `null` for a log read\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "firmware": {
           "description": "The logger's firmware version, as the file states it.",
           "type": [
@@ -243,6 +250,15 @@
           "description": "The file, as given.",
           "type": "string"
         },
+        "recording": {
+          "description": "The dump's recording chosen, from 0 (`--recording`); `null` for a file of one recording.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
         "samples": {
           "description": "How many samples the primary track holds, the barometric altitude above the pad the\nreadings are taken from; 0 for a log that has none, such as a table read by a mapping\nthat marks none.",
           "type": "integer",
@@ -257,7 +273,7 @@
           ]
         },
         "sheet": {
-          "description": "The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a\ntext file.",
+          "description": "The workbook's sheet chosen, from 0 (`--sheet`); `null` for a file that isn't a\nworkbook, or a workbook read with none chosen, whose one sheet that reads is read and\nnamed in the log's first note.",
           "type": [
             "integer",
             "null"

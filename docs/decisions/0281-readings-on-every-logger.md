@@ -6,6 +6,7 @@
 [m7-2b]: ../decisions-and-roadmap.md#m7-2b
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
 [adr-251]: 0251-flight-log-importers-in-two-increments.md
+[adr-274]: 0274-the-rest-of-the-importers-planned-teensy-logger-first.md
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
 [i646]: https://github.com/nrdptel/fusionspace-eridanus/issues/646
 [i702]: https://github.com/nrdptel/fusionspace-eridanus/issues/702
@@ -80,7 +81,17 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    withholds a reading for its reason. Five stand in today: `bad_record`, `faster_than_free_fall`,
    `sampled_too_fast`, `starts_off_the_pad` and `step_too_coarse`.
 8. **Every surface.** `hpr analyze` reads every family with no design file, and Python's
-   `FlightLog.readings()` gives the same readings.
+   `FlightLog.read` and `FlightLog.readings()` read the same files into the same readings. Three
+   kinds of file hold more than one record, and until now only the survey read them: a workbook
+   of several sheets, an Entacore AIM raw dump of several recordings, and a Raven FIP export
+   pasted into a workbook below no header. Each is now read one record at a time
+   (`import::read_one`): `--sheet N` reads a sheet by its own format's reader, `.xlsx` or
+   `.xls`, `--recording N` a dump's recording, and `--fip-header FILE` the FIP rows under the
+   header line the flyer states, as [ADR-274][adr-274] decided. With no choice, a file of one
+   record that reads is read, and any other is refused, naming the sheets or recordings to
+   choose from. A zip archive stays a container: its files are logs of families already read,
+   and are given one by one once unpacked. Invented files of each kind, committed under
+   `validation/fixtures/logs/several/`, are read on both surfaces and refused both ways.
 
 **Rejected, with the measurement that ruled each out.**
 

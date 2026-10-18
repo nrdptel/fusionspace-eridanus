@@ -39,6 +39,8 @@ use crate::{Failure, Out};
 const MAPPING_SCHEMA: &str = "schema/cli/analyze-mapping.schema.json";
 /// The record layout's schema, as the help lines name it.
 const LAYOUT_SCHEMA: &str = "schema/cli/analyze-layout.schema.json";
+/// The FIP header file's schema, as the help lines name it.
+const FIP_HEADER_SCHEMA: &str = "schema/cli/analyze-fip-header.schema.json";
 
 /// `hpr analyze`'s arguments.
 #[derive(Debug, clap::Args)]
@@ -54,12 +56,32 @@ pub struct AnalyzeArgs {
     /// layout: a JSON file (schema/cli/analyze-layout.schema.json)
     #[arg(long, value_name = "FILE")]
     pub layout: Option<String>,
-    /// The sheet of an .xlsx workbook the table is on, from 0, for --mapping or --print-mapping
-    #[arg(long, value_name = "N", value_parser = crate::typed::number::<usize>())]
+    /// The sheet of a spreadsheet's workbook (.xlsx or .xls) to read, from 0: as its format's own
+    /// reader reads it, or by --mapping, --print-mapping or --fip-header. With none, a workbook's
+    /// one sheet that reads as a log
+    #[arg(
+        long,
+        value_name = "N",
+        value_parser = crate::typed::number::<usize>(),
+        conflicts_with = "layout"
+    )]
     pub sheet: Option<usize>,
+    /// The recording to read of a file that holds several, an Entacore AIM raw dump, from 0
+    #[arg(
+        long,
+        value_name = "N",
+        value_parser = crate::typed::number::<usize>(),
+        conflicts_with_all = ["mapping", "layout", "fip_header", "sheet"]
+    )]
+    pub recording: Option<usize>,
+    /// Read a Featherweight Raven's FIP export that lost its header line, pasted into a
+    /// workbook below none, under the header this JSON file states
+    /// (schema/cli/analyze-fip-header.schema.json)
+    #[arg(long, value_name = "FILE", conflicts_with_all = ["mapping", "layout"])]
+    pub fip_header: Option<String>,
     /// Print what the table's header states, as a column mapping to edit and give back with
     /// --mapping, and read nothing more
-    #[arg(long, conflicts_with_all = ["mapping", "layout", "record"])]
+    #[arg(long, conflicts_with_all = ["mapping", "layout", "record", "recording", "fip_header"])]
     pub print_mapping: bool,
     /// Print the record the log reads into, every channel in SI units (degrees for
     /// angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
@@ -69,12 +91,6 @@ pub struct AnalyzeArgs {
 
 /// Runs `hpr analyze`.
 pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
-    if args.sheet.is_some() && args.mapping.is_none() && !args.print_mapping {
-        return Err(Failure::helped(
-            "--sheet names the workbook's sheet a table is on, and no table is read by a mapping",
-            "give --sheet with --mapping or --print-mapping",
-        ));
-    }
     if args.print_mapping {
         return print_mapping(args, to);
     }
@@ -155,8 +171,8 @@ fn read_description<T>(
     })
 }
 
-/// Reads the flight log: by the mapping or the layout given, or else as a PerfectFlite `.pf2`,
-/// by its extension or its first line.
+/// Reads the flight log: by the mapping, the layout or the FIP header given, or else by its
+/// format's own reader, a workbook's sheet or a dump's recording as chosen.
 fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
     let path = args.log.as_str();
     if let Some(file) = &args.mapping {
@@ -179,18 +195,36 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
             )
         });
     }
+    if let Some(file) = &args.fip_header {
+        let stated = read_description(file, custom::fip_header_from_json, FIP_HEADER_SCHEMA)?;
+        let bytes = crate::read_file(path)?;
+        return custom::read_by_fip_header(&bytes, &stated, args.sheet).map_err(|error| {
+            let help = match &error {
+                LogError::Choice { .. } => {
+                    "choose the workbook's sheet the export is on with --sheet N, from 0".to_owned()
+                }
+                _ => format!(
+                    "check {file} against the export: the header line's columns, each channel's \
+                     clock, value and status, and the pasted columns"
+                ),
+            };
+            Failure::helped(format!("{path}: {error}"), help)
+        });
+    }
     let bytes = crate::read_file(path)?;
-    import::read(&bytes).map_err(|error| {
+    import::read_one(&bytes, args.sheet, args.recording).map_err(|error| {
         let help = match &error {
+            LogError::Choice { .. } => {
+                "choose a workbook's sheet with --sheet N, or a dump's recording with \
+                 --recording N, each from 0; a table on a sheet no reader takes is read by a \
+                 column mapping (--mapping) and --sheet"
+            }
             LogError::Unrecognized { .. } => {
                 "another logger's table is read by a column mapping (--mapping), and \
                  --print-mapping prints what its header states as one to edit; its binary \
                  records are read by a record layout (--layout)"
             }
-            LogError::Archive { .. } => {
-                "unpack the archive and give the log inside it; a workbook's .xlsx is read by a \
-                 column mapping (--mapping) and --sheet"
-            }
+            LogError::Archive { .. } => "unpack the archive and give the log inside it",
             LogError::Workbook { .. } => {
                 "save the sheet as CSV and read that by a column mapping (--mapping)"
             }
@@ -209,7 +243,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         kind: crate::trust::Kind::Measured,
         // A log read by the flyer's own description may hold no barometer at all, such as a GPS
         // tracker's table, and none of HPR Sim's readings.
-        trust: if args.mapping.is_some() || args.layout.is_some() {
+        trust: if args.mapping.is_some() || args.layout.is_some() || args.fip_header.is_some() {
             crate::trust::own_log()
         } else {
             crate::trust::log()
@@ -219,7 +253,9 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             format: log.format,
             mapping: args.mapping.clone(),
             layout: args.layout.clone(),
+            fip_header: args.fip_header.clone(),
             sheet: args.sheet,
+            recording: args.recording,
             logger: log.logger.clone(),
             serial_number: log.serial_number.clone(),
             firmware: log.firmware.clone(),
@@ -615,6 +651,8 @@ mod tests {
             mapping: None,
             layout: None,
             sheet: None,
+            recording: None,
+            fip_header: None,
             print_mapping: false,
             record: false,
         };

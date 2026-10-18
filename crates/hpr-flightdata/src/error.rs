@@ -61,6 +61,21 @@ pub enum LogError {
         /// What is wrong.
         message: String,
     },
+    /// A file that holds several records, a spreadsheet's sheets or a dump's recordings, read
+    /// with no choice of one where it holds no one record, or with a choice it doesn't take or
+    /// doesn't hold ([`import::read_one`](crate::import::read_one)).
+    #[error("{message}")]
+    Choice {
+        /// What is wrong, with the records the file holds.
+        message: String,
+    },
+    /// A header stated for a Raven FIP export that lost its own can't be read
+    /// ([`custom::fip_header_from_json`](crate::custom::fip_header_from_json)).
+    #[error("FIP header: {message}")]
+    FipHeader {
+        /// What is wrong.
+        message: String,
+    },
     /// The file states its values in a unit the reader doesn't know, such as a PerfectFlite file
     /// whose stated apogee carries no foot mark.
     #[error("{format} line {line}: {message}")]

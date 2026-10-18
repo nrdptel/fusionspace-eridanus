@@ -21,13 +21,15 @@ OWN_LOGS = [
 ]
 
 
-def printed_record(hpr_cli, log, by=None, description=None, sheet=None):
+def printed_record(hpr_cli, log, by=None, description=None, sheet=None, recording=None):
     """The record `hpr analyze --record` prints, without its `tool`."""
     args = [str(hpr_cli), "analyze", str(log), "--record"]
     if by is not None:
         args += [f"--{by}", str(description)]
     if sheet is not None:
         args += ["--sheet", str(sheet)]
+    if recording is not None:
+        args += ["--recording", str(recording)]
     run = subprocess.run(args, capture_output=True, text=True, check=False)
     assert run.returncode == 0, run.stderr
     assert run.stderr == ""
@@ -97,11 +99,13 @@ def test_an_own_loggers_files_read_as_the_command_reads_them(repo, hpr_cli):
     assert "4 channels" in repr(gps)
 
 
-def analyzed(hpr_cli, log, by=None, description=None):
+def analyzed(hpr_cli, log, by=None, description=None, sheet=None):
     """The document `hpr analyze --json` prints."""
     args = [str(hpr_cli), "analyze", str(log), "--json"]
     if by is not None:
         args += [f"--{by}", str(description)]
+    if sheet is not None:
+        args += ["--sheet", str(sheet)]
     run = subprocess.run(args, capture_output=True, text=True, check=False)
     assert run.returncode == 0, run.stderr
     return json.loads(run.stdout)
@@ -194,9 +198,15 @@ def test_a_mapping_or_layout_is_refused_naming_the_field(repo, tmp_path):
     layout["fields"][1]["kind"] = "float"
     with pytest.raises(hpr.HprError, match=r"`fields\[1\]\.kind`: unknown variant `float`"):
         hpr.FlightLog.read(repo / OWN_LOGGER / "flight.bin", layout=layout)
-    with pytest.raises(hpr.HprError, match="not both"):
+    with pytest.raises(hpr.HprError, match="not several"):
         hpr.FlightLog.read(path, mapping={}, layout={})
-    with pytest.raises(hpr.HprError, match="no table is read by a mapping"):
+    with pytest.raises(hpr.HprError, match="not several"):
+        hpr.FlightLog.read(path, mapping={}, fip_header={})
+    with pytest.raises(hpr.HprError, match="it takes no mapping, layout, FIP header or sheet"):
+        hpr.FlightLog.read(path, recording=0, sheet=0)
+    with pytest.raises(hpr.HprError, match="a layout reads binary records, not a sheet"):
+        hpr.FlightLog.read(path, layout={}, sheet=0)
+    with pytest.raises(hpr.HprError, match="the file holds one record, not a workbook's sheets"):
         hpr.FlightLog.read(path, sheet=0)
     with pytest.raises(hpr.HprError, match="a dict, or the path of its JSON file"):
         hpr.FlightLog.read(path, mapping=5)
@@ -259,3 +269,53 @@ def test_refs_mapped_tables_and_layout_files_read_the_same_on_every_surface(repo
             library,
             f"{what}, the command",
         )
+
+
+SEVERAL = "validation/fixtures/logs/several"
+
+
+def test_a_sheet_or_recording_reads_as_the_command_reads_it(repo, hpr_cli):
+    book = repo / SEVERAL / "two-flights.xlsx"
+    with pytest.raises(hpr.HprError, match=r"sheets 0 \(First\), 2 \(Second\): choose one"):
+        hpr.FlightLog.read(book)
+    for sheet in [0, 2]:
+        read = hpr.FlightLog.read(book, sheet=sheet)
+        what = f"{book.name} sheet {sheet}"
+        same_record(read.to_dict(), printed_record(hpr_cli, book, sheet=sheet), what)
+        document = analyzed(hpr_cli, book, sheet=sheet)
+        readings = read.readings()
+        for name in READINGS:
+            assert readings[name] == document[name], f"{what}: {name}"
+    with pytest.raises(hpr.HprError, match="has no sheet 3"):
+        hpr.FlightLog.read(book, sheet=3)
+
+    dump = repo / SEVERAL / "two-recordings.dump"
+    with pytest.raises(hpr.HprError, match="the dump holds 2 recordings: choose one"):
+        hpr.FlightLog.read(dump)
+    for recording in [0, 1]:
+        read = hpr.FlightLog.read(dump, recording=recording)
+        printed = printed_record(hpr_cli, dump, recording=recording)
+        same_record(read.to_dict(), printed, f"{dump.name} recording {recording}")
+        assert read.notes[0].startswith(f"recording {recording + 1} of the dump's 2")
+    with pytest.raises(hpr.HprError, match="has no recording 2"):
+        hpr.FlightLog.read(dump, recording=2)
+
+
+def test_a_fip_export_reads_under_its_stated_header_as_the_command_reads_it(repo, hpr_cli):
+    sheet = repo / SEVERAL / "fip-below-no-header.xlsx"
+    header = repo / SEVERAL / "fip-below-no-header.header.json"
+    by_file = hpr.FlightLog.read(sheet, fip_header=header)
+    by_dict = hpr.FlightLog.read(sheet, fip_header=json.loads(header.read_text()))
+    assert by_file.to_dict() == by_dict.to_dict()
+    printed = printed_record(hpr_cli, sheet, "fip-header", header)
+    same_record(by_file.to_dict(), printed, sheet.name)
+    assert by_file.format == "raven_fip_csv"
+    document = analyzed(hpr_cli, sheet, "fip-header", header)
+    readings = by_file.readings()
+    for name in READINGS:
+        assert readings[name] == document[name], f"{sheet.name}: {name}"
+    apogee = readings["apogee"]
+    assert apogee["status"] == "read"
+    assert abs(apogee["height_m"] - 273.5) <= apogee["bound_m"]
+    with pytest.raises(hpr.HprError, match="pastd"):
+        hpr.FlightLog.read(sheet, fip_header={"header": "a", "pastd": [1]})

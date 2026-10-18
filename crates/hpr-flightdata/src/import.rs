@@ -68,7 +68,7 @@ use crate::{
     altos_telem, altos_telem_csv, archive, arts2, arts2_raw, blueraven, blueraven_usb, capture,
     eggtimer, entacore, entacore_raw, fluctus, fwgps, fwsummary, generic, gpx, kml, marsa, nmea,
     packets, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
-    teensy, xls,
+    teensy, workbook, xls,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -422,6 +422,123 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
             })
         }
     }
+}
+
+/// Reads one record of a file that may hold several: the sheet `sheet` of a spreadsheet's workbook
+/// (`.xlsx` by [`workbook::read`], `.xls` by [`xls::read`]), each sheet read as a file of its own,
+/// or the recording `recording` of an Entacore AIM raw dump ([`entacore_raw::read_dump`]), each
+/// counted from 0. With no choice, the one sheet that reads as a log, or the dump's one recording.
+/// Any other file is read as [`read`] reads it, and takes neither choice.
+///
+/// ```
+/// use hpr_flightdata::import;
+///
+/// let csv = b"Time (s),Baro Alt AGL (m)\n0,0\n0.05,0.2\n";
+/// assert_eq!(import::read_one(csv, None, None)?, import::read(csv)?);
+/// assert!(import::read_one(csv, Some(0), None).is_err());
+/// # Ok::<(), hpr_flightdata::error::LogError>(())
+/// ```
+///
+/// # Errors
+///
+/// [`LogError::Choice`] for a choice the file doesn't take or doesn't hold, and for a workbook or
+/// a dump read with none that holds no one record: several sheets that read as logs, or none, or
+/// several recordings; the chosen sheet's own refusal; otherwise as [`read`].
+pub fn read_one(
+    bytes: &[u8],
+    sheet: Option<usize>,
+    recording: Option<usize>,
+) -> Result<FlightLog, LogError> {
+    let choice = |message: String| Err(LogError::Choice { message });
+    let sheets = if archive::is_archive(bytes) {
+        match workbook::read(bytes) {
+            Ok(sheets) => Some(sheets),
+            // A zip archive that isn't a workbook is refused as an archive.
+            Err(_) => return read(bytes),
+        }
+    } else if xls::recognizes(bytes) {
+        Some(xls::read(bytes)?)
+    } else {
+        None
+    };
+    if let Some(sheets) = sheets {
+        if recording.is_some() {
+            return choice(
+                "the file is a spreadsheet's workbook, which holds sheets, not recordings: \
+                 choose a sheet"
+                    .to_owned(),
+            );
+        }
+        let count = sheets.len();
+        if let Some(index) = sheet {
+            return match sheets.into_iter().nth(index) {
+                Some(chosen) => chosen.log,
+                None => choice(format!(
+                    "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
+                )),
+            };
+        }
+        let mut reading: Vec<(usize, workbook::SheetLog)> = sheets
+            .into_iter()
+            .enumerate()
+            .filter(|(_, sheet)| sheet.log.is_ok())
+            .collect();
+        return match reading.len() {
+            // Invariant: the one sheet's log is the `Ok` the filter kept.
+            1 => reading
+                .pop()
+                .map_or(Err(LogError::NoData { format: "workbook" }), |(_, one)| {
+                    one.log
+                }),
+            0 => choice(format!(
+                "none of the workbook's {count} sheets reads as a log: a table on one is read by \
+                 a column mapping, with its sheet chosen"
+            )),
+            _ => {
+                let named: Vec<String> = reading
+                    .iter()
+                    .map(|(index, sheet)| format!("{index} ({})", sheet.name))
+                    .collect();
+                choice(format!(
+                    "{} of the workbook's {count} sheets read as logs, sheets {}: choose one",
+                    reading.len(),
+                    named.join(", ")
+                ))
+            }
+        };
+    }
+    if detect(bytes) == Some(LogFormat::EntacoreDump) {
+        if sheet.is_some() {
+            return choice(
+                "the file is an Entacore AIM raw dump, which holds recordings, not sheets: \
+                 choose a recording"
+                    .to_owned(),
+            );
+        }
+        let mut recordings = entacore_raw::read_dump(bytes)?;
+        let count = recordings.len();
+        return match recording {
+            Some(index) if index < count => Ok(recordings.swap_remove(index)),
+            Some(index) => choice(format!(
+                "the dump holds {count} recordings, numbered from 0: it has no recording {index}"
+            )),
+            // Invariant: `read_dump` returns a recording or an error.
+            None if count == 1 => recordings.pop().ok_or(LogError::NoData {
+                format: "Entacore AIM raw dump",
+            }),
+            None => choice(format!(
+                "the dump holds {count} recordings: choose one, numbered from 0"
+            )),
+        };
+    }
+    if sheet.is_some() || recording.is_some() {
+        return choice(
+            "the file holds one record, not a workbook's sheets or a dump's recordings: choose \
+             neither"
+                .to_owned(),
+        );
+    }
+    read(bytes)
 }
 
 #[cfg(test)]
