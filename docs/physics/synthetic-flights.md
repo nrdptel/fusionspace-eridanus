@@ -30,8 +30,8 @@ See the 2,200 simulated flights, each with a known truth and its logger's
   [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks that comparison
   ([evidence row G32](../evidence.md#g32)).
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, vibration, the
-  logger's own speed column, and flights faster than Mach 1.18, the fastest of the 2,200
-  ([What it leaves out](#what-it-leaves-out)).
+  logger's own speed column, and flights at Mach 1.18 or faster: the fastest of the 2,200 stays
+  below it ([What it leaves out](#what-it-leaves-out)).
 
 ## Why simulated flights
 
@@ -107,8 +107,8 @@ real error in their heights: on a cold day a barometer reads high. The readings 
 The truth is the flight's center of mass, every 0.01 s, and its events: liftoff, rail exit,
 burnout, apogee, each charge and deployment, and landing. Its heights are above the ground; a
 reading's truth is the height above where the center of mass stood at liftoff. The specific
-force along the rocket's axis is what an accelerometer would feel; under a canopy the rocket is
-taken to hang vertically.
+force along the rocket's axis, at the nose tip where HPR Sim records the acceleration, is what
+an accelerometer would feel; under a canopy the rocket is taken to hang vertically.
 
 ### The loggers
 
@@ -230,9 +230,9 @@ $1/\sqrt{2}$. No receiver's loop has been measured against a truth: about 0.5 ra
 from one flyer's report of a 440 m (1,444 ft) lag ([the GNSS note][gnss] §3–4), and the damping
 is the usual choice for such a loop, assumed ([evidence row G32](../evidence.md#g32)). At
 0.5 rad/s, a steady 50 m/s² would leave the fix 200 m (656 ft) behind; a 2 s boost ends long
-before the loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white noise, a
-fixed value, assumed. White noise flatters an average of fixes: a real receiver's error wanders
-slowly, so averaging shrinks it less than here. No fix is written for 0 to 10 s from liftoff
+before the loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white
+noise, a fixed value, assumed. White noise flatters an average of fixes: a real receiver's error
+wanders slowly, so averaging shrinks it less than here. No fix is written for 0 to 10 s from liftoff
 and from burnout, each drawn per flight; the fixes written carry no flag that they lag.
 
 ### The clock
@@ -278,16 +278,17 @@ counts each set's flights by design and logger, and the ranges of eight quantiti
 Mach number and speed, flight time, wind, rail angle, site elevation and the air's offset.
 
 **What the census shows.** Every one of the 2,200 draws flew. Apogees above the pad run from 411
-to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to 1.18. Values are kept to
-three significant figures, the digits every platform shares, each range's ends rounded outward.
+to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to under 1.18. Values are kept
+to three significant figures, the digits every platform shares, each range's ends rounded
+outward.
 CI flies every flight again on macOS, Windows and Linux and holds the census to them.
 
 ### What it leaves out
 
-- **Fast flights.** The fastest of the 2,200 flights reaches Mach 1.18, so from there to the
-  Mach 3.5 that HPR Sim is built for
+- **Fast flights.** The fastest of the 2,200 flights stays below Mach 1.18 (the census rounds
+  its greatest up), so from there to the Mach 3.5 that HPR Sim is built for
   ([the operating envelope](../VALIDATION.md#operating-envelope)) there is no synthetic flight.
-  A reading checked here is checked only to Mach 1.18.
+  A reading checked here is checked only below Mach 1.18.
 - **The bay's vent lag.** A bay's pressure lags the outside air through its vent holes. In the
   Mach error note's invented flight, three invented bays vented by the makers' rules moved the
   apogee by at most 2.1 cm (0.07 ft), but lagged the height by 0.4 to 135 m (1.3 to 443 ft)
@@ -298,8 +299,8 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
 - **Clock drift.** The logger's clock is taken as exact.
 - **The logger's own speed column.** Each logger filters its own speed its own way, so the
   synthetic logs carry none.
-- **The rocket's attitude in the accelerometer.** Only the axial axis is logged, at the center
-  of mass rather than where the logger sits, and under a canopy the rocket hangs vertically. Each
+- **The rocket's attitude in the accelerometer.** Only the axial axis is logged, at the nose tip
+  rather than where the logger sits, and under a canopy the rocket hangs vertically. Each
   parachute opens at full size after its lag, as the RocketPy examples define them, so a main's
   opening is a sharp spike.
 - **Vibration.** The accelerometer's noise is the same through the boost as on the pad; a

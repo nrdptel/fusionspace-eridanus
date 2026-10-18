@@ -45,8 +45,9 @@ pub struct TruthSample {
     /// Its rate, m/s, up positive.
     pub vertical_speed_m_s: f64,
     /// The specific force along the rocket's axis, nose positive, m/s²: what an accelerometer
-    /// along the axis reads, gravity's reaction included (+9.8 m/s² standing on the pad). Under a
-    /// canopy the rocket is taken to hang along the vertical.
+    /// along the axis reads, gravity's reaction included (+9.8 m/s² standing on the pad), at the
+    /// nose tip, where the simulator records the acceleration. Under a canopy the rocket is taken
+    /// to hang along the vertical.
     pub axial_specific_force_m_s2: f64,
     /// The Mach number.
     pub mach: f64,
