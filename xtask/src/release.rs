@@ -959,70 +959,114 @@ end
         assert!(workflow.contains("gh release create \"v$version\""));
     }
 
-    /// A minimal PE32+ file whose import table names `imports` and whose delay-load table names
-    /// `delayed`: the headers, one section at RVA 0x1000 (file offset 0x200), and in it the import
-    /// descriptors (20 bytes each, the name's RVA at +12), the delay-load descriptors (32 bytes,
-    /// attribute 1 for RVAs, the name's RVA at +4), each list ended by a zero descriptor, then the
-    /// names. That is the layout Microsoft's PE format page gives, and all the checker reads.
-    fn pe_importing(imports: &[&str], delayed: &[&str]) -> Vec<u8> {
+    /// How [`pe`] lays a test program out; the default is an ordinary x86-64 program.
+    #[derive(Clone, Copy)]
+    struct Pe {
+        /// The optional header's magic: 0x20b for PE32+, 0x10b for 32-bit PE32.
+        magic: u16,
+        /// Each delay-load descriptor's attributes: 1 for RVAs, 0 for the old form's addresses.
+        delay_attributes: u32,
+        /// The DLL names in a second section, apart from the descriptors.
+        names_apart: bool,
+        /// SizeOfOptionalHeader; the section table follows the optional header.
+        optional_size: usize,
+        /// NumberOfRvaAndSizes, which may claim more directories than the header holds.
+        directories: u32,
+    }
+
+    impl Default for Pe {
+        fn default() -> Self {
+            Self {
+                magic: 0x20b,
+                delay_attributes: 1,
+                names_apart: false,
+                optional_size: 240,
+                directories: 16,
+            }
+        }
+    }
+
+    /// A minimal PE file whose import table names `imports` and whose delay-load table names
+    /// `delayed`: the headers, a section at RVA 0x1000 (file offset 0x200) holding the import
+    /// descriptors (20 bytes each, the name's RVA at +12) and the delay-load descriptors (32
+    /// bytes, the attributes at +0, the name's RVA at +4), each list ended by a zero descriptor,
+    /// then the names, in the same section or in a second one at RVA 0x2000. That is the layout
+    /// Microsoft's PE format page gives, and all the checker reads.
+    fn pe(imports: &[&str], delayed: &[&str], shape: Pe) -> Vec<u8> {
         fn put(file: &mut [u8], at: usize, bytes: &[u8]) {
             file[at..at + bytes.len()].copy_from_slice(bytes);
         }
-        const SECTION_RVA: usize = 0x1000;
+        fn le(value: usize) -> [u8; 4] {
+            u32::try_from(value).unwrap().to_le_bytes()
+        }
+        const FIRST_RVA: usize = 0x1000;
+        const SECOND_RVA: usize = 0x2000;
         const RAW: usize = 0x200;
         let delay_at = (imports.len() + 1) * 20;
-        let mut names_at = delay_at + (delayed.len() + 1) * 32;
-        let mut section = vec![0u8; names_at];
+        let mut first = vec![0u8; delay_at + (delayed.len() + 1) * 32];
+        let mut second = Vec::new();
         for (i, name) in imports.iter().chain(delayed).enumerate() {
-            let rva = u32::try_from(SECTION_RVA + names_at).unwrap().to_le_bytes();
+            let (names, base) = if shape.names_apart {
+                (&mut second, SECOND_RVA)
+            } else {
+                (&mut first, FIRST_RVA)
+            };
+            let rva = le(base + names.len());
+            names.extend_from_slice(name.as_bytes());
+            names.push(0);
             if i < imports.len() {
-                put(&mut section, i * 20 + 12, &rva);
+                put(&mut first, i * 20 + 12, &rva);
             } else {
                 let at = delay_at + (i - imports.len()) * 32;
-                put(&mut section, at, &1u32.to_le_bytes());
-                put(&mut section, at + 4, &rva);
+                put(&mut first, at, &shape.delay_attributes.to_le_bytes());
+                put(&mut first, at + 4, &rva);
             }
-            section.extend_from_slice(name.as_bytes());
-            section.push(0);
-            names_at = section.len();
         }
-        let size = u32::try_from(section.len()).unwrap();
         let mut file = vec![0u8; RAW];
         put(&mut file, 0, b"MZ");
         put(&mut file, 0x3c, &0x40u32.to_le_bytes());
         put(&mut file, 0x40, b"PE\0\0");
         put(&mut file, 0x44, &0x8664u16.to_le_bytes()); // x86-64
-        put(&mut file, 0x46, &1u16.to_le_bytes()); // one section
-        put(&mut file, 0x54, &240u16.to_le_bytes()); // PE32+ optional header's size
+        let sections: u16 = if shape.names_apart { 2 } else { 1 };
+        put(&mut file, 0x46, &sections.to_le_bytes());
+        let optional_size = u16::try_from(shape.optional_size).unwrap();
+        put(&mut file, 0x54, &optional_size.to_le_bytes());
         let optional = 0x58;
-        put(&mut file, optional, &0x20bu16.to_le_bytes()); // PE32+
+        put(&mut file, optional, &shape.magic.to_le_bytes());
         put(&mut file, optional + 24, &0x1_4000_0000u64.to_le_bytes()); // image base
-        put(&mut file, optional + 108, &16u32.to_le_bytes()); // data directories
+        put(&mut file, optional + 108, &shape.directories.to_le_bytes());
         let directory = |index: usize| optional + 112 + 8 * index;
-        let rva = u32::try_from(SECTION_RVA).unwrap();
-        put(&mut file, directory(1), &rva.to_le_bytes()); // imports
-        put(
-            &mut file,
-            directory(1) + 4,
-            &(u32::try_from(delay_at).unwrap()).to_le_bytes(),
-        );
+        put(&mut file, directory(1), &le(FIRST_RVA)); // imports
+        put(&mut file, directory(1) + 4, &le(delay_at));
         if !delayed.is_empty() {
-            let delay_rva = u32::try_from(SECTION_RVA + delay_at).unwrap();
-            put(&mut file, directory(13), &delay_rva.to_le_bytes()); // delay-load imports
-            put(&mut file, directory(13) + 4, &32u32.to_le_bytes());
+            put(&mut file, directory(13), &le(FIRST_RVA + delay_at)); // delay-load imports
+            put(&mut file, directory(13) + 4, &le(32));
         }
-        let header = optional + 240;
-        put(&mut file, header, b".idata\0\0");
-        put(&mut file, header + 8, &size.to_le_bytes());
-        put(&mut file, header + 12, &rva.to_le_bytes());
-        put(&mut file, header + 16, &size.to_le_bytes());
-        put(
-            &mut file,
-            header + 20,
-            &u32::try_from(RAW).unwrap().to_le_bytes(),
-        );
-        file.extend_from_slice(&section);
+        // The section table, written last, so it holds whatever bytes it shares with the
+        // directories a short optional header claims.
+        let table = optional + shape.optional_size;
+        let mut raw = RAW;
+        for (i, (body, rva)) in [(&first, FIRST_RVA), (&second, SECOND_RVA)]
+            .into_iter()
+            .take(sections.into())
+            .enumerate()
+        {
+            let header = table + 40 * i;
+            put(&mut file, header, b".idata\0\0");
+            put(&mut file, header + 8, &le(body.len()));
+            put(&mut file, header + 12, &le(rva));
+            put(&mut file, header + 16, &le(body.len()));
+            put(&mut file, header + 20, &le(raw));
+            raw += body.len();
+        }
+        file.extend_from_slice(&first);
+        file.extend_from_slice(&second);
         file
+    }
+
+    /// An ordinary x86-64 program importing `imports`, and delay-loading `delayed`.
+    fn pe_importing(imports: &[&str], delayed: &[&str]) -> Vec<u8> {
+        pe(imports, delayed, Pe::default())
     }
 
     /// Runs scripts/release/check_windows_runtime.py on `bytes` written to a file.
@@ -1056,6 +1100,21 @@ end
         ));
         assert!(passed, "{said}");
         assert!(said.contains("api-ms-win-crt-runtime-l1-1-0.dll"), "{said}");
+        // Windows' own msvcrt.dll isn't the Redistributable's.
+        let (passed, said) = windows_runtime(&pe_importing(&["KERNEL32.dll", "msvcrt.dll"], &[]));
+        assert!(passed, "{said}");
+        // Names kept in another section than the descriptors are read there.
+        let apart = Pe {
+            names_apart: true,
+            ..Pe::default()
+        };
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll"], &["VCRUNTIME140.dll"], apart));
+        assert!(!passed && said.contains("needs VCRUNTIME140.dll"), "{said}");
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll", "bcrypt.dll"], &[], apart));
+        assert!(
+            passed && said.contains("imports KERNEL32.dll, bcrypt.dll"),
+            "{said}"
+        );
         for (imports, delayed, named) in [
             (
                 &["KERNEL32.dll", "VCRUNTIME140.dll"][..],
@@ -1077,6 +1136,16 @@ end
                 &[][..],
                 "MSVCP140.dll",
             ),
+            (
+                &["KERNEL32.dll", "msvcr120.dll"][..],
+                &[][..],
+                "msvcr120.dll",
+            ),
+            (
+                &["KERNEL32.dll", "ucrtbased.dll"][..],
+                &[][..],
+                "ucrtbased.dll",
+            ),
         ] {
             let (passed, said) = windows_runtime(&pe_importing(imports, delayed));
             assert!(!passed, "{named} was taken: {said}");
@@ -1096,6 +1165,42 @@ end
         cut.truncate(0x210);
         let (passed, said) = windows_runtime(&cut);
         assert!(!passed && said.contains("not a Windows program"), "{said}");
+        // No 32-bit Windows target ships, so a PE32 file is refused, not read.
+        let pe32 = Pe {
+            magic: 0x10b,
+            ..Pe::default()
+        };
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll"], &[], pe32));
+        assert!(!passed && said.contains("not a 64-bit PE"), "{said}");
+        // The old delay-load form holds addresses, which the check doesn't read.
+        let old_form = Pe {
+            delay_attributes: 0,
+            ..Pe::default()
+        };
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll"], &["bcrypt.dll"], old_form));
+        assert!(!passed && said.contains("old delay-load form"), "{said}");
+    }
+
+    /// NumberOfRvaAndSizes counts only the directories SizeOfOptionalHeader holds: here it says
+    /// 16 in a header with room for 11, so the delay-load directory (13) would be read from the
+    /// section table that follows, and the check would chase a stray RVA.
+    #[test]
+    fn the_windows_runtime_check_reads_only_the_directories_the_header_holds() {
+        let short = Pe {
+            optional_size: 112 + 8 * 11,
+            ..Pe::default()
+        };
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll"], &[], short));
+        assert!(passed, "{said}");
+        let huge = Pe {
+            directories: u32::MAX,
+            ..Pe::default()
+        };
+        let (passed, said) = windows_runtime(&pe(&["KERNEL32.dll"], &["bcrypt.dll"], huge));
+        assert!(
+            passed && said.contains("imports KERNEL32.dll, bcrypt.dll"),
+            "{said}"
+        );
     }
 
     /// The release builds the Windows program with the C runtime linked in, for the Windows
@@ -1111,5 +1216,53 @@ end
         );
         let smoke = fs::read_to_string(root.join("scripts/release/smoke-cli.sh")).unwrap();
         assert!(smoke.contains("scripts/release/check_windows_runtime.py \"$hpr\""));
+    }
+
+    /// archive.sh's Windows branch, run by bash with `target` set: it exports the static C
+    /// runtime's flags, and refuses a RUSTFLAGS or CARGO_ENCODED_RUSTFLAGS that is set at all,
+    /// even empty, since cargo then ignores the target's flags. Unix only: on Windows `bash` may
+    /// be WSL's rather than Git's.
+    #[cfg(unix)]
+    #[test]
+    fn archive_refuses_any_rustflags_on_windows() {
+        let packer = fs::read_to_string(root().join("scripts/release/archive.sh")).unwrap();
+        let arm = packer
+            .split_once("\n  *-windows-msvc)\n")
+            .and_then(|(_, rest)| rest.split_once("\n    ;;\n"))
+            .map(|(body, _)| body)
+            .expect("archive.sh has a *-windows-msvc) branch");
+        let script = format!(
+            "set -euo pipefail\ntarget=x86_64-pc-windows-msvc\n{arm}\n\
+             printf %s \"$CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS\"\n"
+        );
+        let run = |set: &[(&str, &str)]| {
+            let mut bash = Command::new("bash");
+            bash.arg("-c")
+                .arg(&script)
+                .env_remove("RUSTFLAGS")
+                .env_remove("CARGO_ENCODED_RUSTFLAGS")
+                .env_remove("CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS");
+            for (key, value) in set {
+                bash.env(key, value);
+            }
+            bash.output().unwrap()
+        };
+        let output = run(&[]);
+        assert!(output.status.success(), "{output:?}");
+        assert_eq!(output.stdout, b"-C target-feature=+crt-static");
+        for set in [
+            ("RUSTFLAGS", ""),
+            ("RUSTFLAGS", "-D warnings"),
+            ("CARGO_ENCODED_RUSTFLAGS", ""),
+            ("CARGO_ENCODED_RUSTFLAGS", "-Dwarnings"),
+        ] {
+            let output = run(&[set]);
+            assert!(!output.status.success(), "{set:?} was taken");
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(
+                stderr.contains("would drop the static C runtime"),
+                "{stderr}"
+            );
+        }
     }
 }

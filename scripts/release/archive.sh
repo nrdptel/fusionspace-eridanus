@@ -25,10 +25,12 @@ case "$target" in *windows*) exe=".exe" ;; esac
 
 case "$target" in
   *-windows-msvc)
-    # Release 0.1.0's hpr.exe imported VCRUNTIME140.dll, which a clean Windows may lack. Set for
-    # this target only, as cargo reads `target.<triple>.rustflags`, so no other build changes. A
-    # RUSTFLAGS in the environment would replace it, so one stops the build instead.
-    if [ -n "${RUSTFLAGS:-}${CARGO_ENCODED_RUSTFLAGS:-}" ]; then
+    # Release 0.1.0's hpr.exe imported VCRUNTIME140.dll, which a clean Windows may lack. Set as
+    # `target.<triple>.rustflags` for the Windows target alone, so other systems' builds don't
+    # change; with no --target, cargo also applies it to this build's build scripts and
+    # proc-macros, which run on the same machine. RUSTFLAGS or CARGO_ENCODED_RUSTFLAGS in the
+    # environment, even empty, makes cargo ignore it, so either one stops the build instead.
+    if [ -n "${RUSTFLAGS+x}${CARGO_ENCODED_RUSTFLAGS+x}" ]; then
       echo "archive.sh: RUSTFLAGS would drop the static C runtime on $target; unset it" >&2
       exit 1
     fi

@@ -3,13 +3,17 @@
 Release 0.1.0's `hpr.exe` imported VCRUNTIME140.dll, so on a Windows without the Visual C++
 Redistributable it wouldn't start. From release 0.2 scripts/release/archive.sh links the C runtime
 in (`-C target-feature=+crt-static`), and this check, run by scripts/release/smoke-cli.sh on each
-Windows archive, fails if the program still imports a DLL that only the Redistributable installs:
-VCRUNTIME*, MSVCP* (the C++ library), CONCRT* or VCCORLIB*. The Universal C Runtime's
-`api-ms-win-crt-*` names are allowed: Windows 10 and later carry it.
+Windows archive, fails if the program still imports a DLL that only the Redistributable (or a
+Visual Studio install) provides: VCRUNTIME*, MSVCP* (the C++ library), MSVCR* (the C runtime
+before 2015), CONCRT*, VCCORLIB*, VCOMP* (OpenMP), VCAMP*, MFC*, or the debug UCRTBASED.dll.
+Windows' own msvcrt.dll and the Universal C Runtime's `api-ms-win-crt-*` names are allowed:
+Windows 10 and later carry them.
 
 It reads the program's import table and its delay-load import table as Microsoft's PE format page
 lays them out (https://learn.microsoft.com/windows/win32/debug/pe-format), prints each DLL named,
-and fails closed: on a file it can't read as a PE program, or one it reads no imports from.
+and fails closed: on a file it can't read as a 64-bit (PE32+) program, since no 32-bit Windows
+target ships; on the old delay-load form, which holds addresses rather than RVAs; and on a file it
+reads no imports from.
 
 Python 3 standard library only.
 
@@ -21,8 +25,12 @@ import struct
 import sys
 from pathlib import Path
 
-# The DLLs only the Visual C++ Redistributable installs.
-REDISTRIBUTABLE = re.compile(r"(vcruntime|msvcp|concrt|vccorlib)\d.*\.dll", re.IGNORECASE)
+# The DLLs only the Visual C++ Redistributable, or Visual Studio, installs. `msvcr` needs a digit
+# after it, so Windows' own msvcrt.dll isn't one.
+REDISTRIBUTABLE = re.compile(
+    r"(vcruntime|msvcp|msvcr|concrt|vccorlib|vcomp|vcamp|mfc)\d.*\.dll|ucrtbased\.dll",
+    re.IGNORECASE,
+)
 
 
 class Unreadable(Exception):
@@ -46,16 +54,14 @@ def imports(data):
     sections, optional_size = unpack("<H12xH", data, pe + 6)
     optional = pe + 24
     (magic,) = unpack("<H", data, optional)
-    if magic == 0x20B:  # PE32+
-        (image_base,) = unpack("<Q", data, optional + 24)
-        (count,) = unpack("<I", data, optional + 108)
-        directories = optional + 112
-    elif magic == 0x10B:  # PE32
-        (image_base,) = unpack("<I", data, optional + 28)
-        (count,) = unpack("<I", data, optional + 92)
-        directories = optional + 96
-    else:
-        raise Unreadable(f"optional header magic {magic:#x}")
+    if magic != 0x20B:  # PE32+; 0x10B is 32-bit PE32
+        raise Unreadable(f"not a 64-bit PE: optional header magic {magic:#x}")
+    if optional_size < 112:
+        raise Unreadable(f"an optional header of {optional_size} bytes holds no directories")
+    (count,) = unpack("<I", data, optional + 108)
+    directories = optional + 112
+    # Only the directories the header has room for; past it the section table begins.
+    count = min(count, (optional_size - 112) // 8)
     table = optional + optional_size
     spans = []
     for i in range(sections):
@@ -98,8 +104,11 @@ def imports(data):
             if not any(descriptor):
                 break
             attributes, dll = descriptor[0], descriptor[1]
-            # Attribute bit 0 clear is the old form, which holds addresses, not RVAs.
-            found.append(name(dll if attributes & 1 else dll - image_base))
+            # Attribute bit 0 clear is the old form, which holds addresses, not RVAs; a 64-bit
+            # linker doesn't write it.
+            if not attributes & 1:
+                raise Unreadable("the old delay-load form, which holds addresses")
+            found.append(name(dll))
             at += 32
     return found
 
