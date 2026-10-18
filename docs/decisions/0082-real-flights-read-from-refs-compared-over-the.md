@@ -1,6 +1,6 @@
 # ADR-082: Real flights read from refs, compared over the ascent, with checked explanations (2026-09-26)
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-10-18: Erebus 11 flies a commercial motor, and two logs have a second license
 - **Summary:** Real flights read from refs, compared over the ascent, with checked explanations
 
 **Context.** M2.3b compares hpr with real flights: at least six in the report, each with its
@@ -24,8 +24,9 @@ designs of M1.4 fly a substitute bundled curve (ADR-007), which says nothing abo
 2. **Seven flights:** the five with a public design already (Bella Lui, NDRT 2020, Prometheus,
    Juno III, Cavour), and Genesis and Lince, added to `rocket_mass.py` for this: COTS motors, in
    EuRoC 2023's classic file (their motors have no dry mass, like Cavour's). Left for later:
-   Astra and Andromeda (COTS, but EuRoC 2022's file is netCDF-4 and needs ADR-081's conversion);
-   Camões, Erebus 11, Halcyon and Hedy (their teams' own motors, outside rule 6's COTS scope);
+   Astra, Andromeda and Erebus 11 (COTS, but EuRoC 2022's file is netCDF-4 and needs ADR-081's
+   conversion; Erebus 11 by the amendment below); Camões, Halcyon and Hedy (their teams' own motors,
+   outside rule 6's COTS scope);
    Valetudo and Defiance (an apogee, no trace); Valkyrie (inputs only in a data file, ADR-007).
    Juno III also flies its team's motor, but its design was already public: hpr flies the thrust
    file like any other, and nothing of a research motor is modelled.
@@ -111,3 +112,18 @@ the target, is −12.20% on its team's drag, not investigated. These are consist
 proofs: the teams' drags and the reshape are estimates too. A log is a single flight, with its own
 sensor and filter; the numbers are those seven flights', not a bound. The report is not reproduced
 in CI, only held to itself there.
+
+**Amendment: Erebus 11's motor, and the Genesis and Lince logs' second license (2026-10-18).** §2
+listed Erebus 11 among the flights on a team's own motor. Its notebook in RocketPy's examples says
+"The rocket was equiped with a Cesaroni Motor Pro54, class K", and its thrust file
+(`data/rockets/erebus11/thrust_source.csv`, 113 points) integrates by the trapezoid rule to 2,418
+N·s over 3.657 s, against 2,437 N·s and 3.69 s for the Cesaroni 2437K660 on ThrustCurve.org, 0.8%
+and 0.9% apart. Of ThrustCurve's 32 Cesaroni 54 mm K motors, the 2398K590 is as close in impulse
+(0.9% below) but burns 11% longer, so the K660 is the match by impulse and burn time together (read
+2026-10-18). So it is a COTS flight, a K660, and waits with Astra and Andromeda on EuRoC 2022's
+netCDF-4 weather ([#478](https://github.com/nrdptel/fusionspace-eridanus/issues/478)); found by
+[#477](https://github.com/nrdptel/fusionspace-eridanus/issues/477). The Genesis and Lince logs that
+§2 added are also published, byte for byte, under GPL-3.0 in RocketPy-Team's euroc23-team-data; HPR
+Sim reads RocketPy's MIT copy from `refs/` and commits only statistics and digests, as
+`THIRD-PARTY-NOTICES.md` now records. Nothing flown changes: Erebus 11 was not in the report and is
+not yet.

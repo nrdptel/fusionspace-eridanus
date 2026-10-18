@@ -52,7 +52,7 @@ Rows counted from the CSVs; Andromeda's apogees are the index's and the notebook
 - **Erebus 11 is COTS.** Its notebook names a Cesaroni Pro54 K-class motor. Its thrust file
   integrates (trapezoid, 113 points) to 2,418 N·s over 3.657 s, and the Cesaroni 2437K660 is
   2,437 N·s and 3.69 s on [ThrustCurve](https://www.thrustcurve.org/): 0.8% apart (**Inference**:
-  a K660). ADR-082 and [accuracy](../accuracy.md) list Erebus 11 among the team-motor flights.
+  a K660). Since #477, ADR-082 and [accuracy](../accuracy.md) list it as COTS, waiting on weather.
 - **Andromeda flies a team test curve** of 9,867 N·s in place of the catalog 8429M2020's 8,429 N·s,
   17% more; whether the gap is real or a slip in the test file is open.
 - **Peak speed** (**Inference**, from 2 s slopes of the logs' height): Andromeda 283 m/s, Erebus
@@ -174,7 +174,7 @@ license would make flights public rather than add new ones.
   [euroc23-team-data](https://github.com/RocketPy-Team/euroc23-team-data) holds files with the same SHA-256 as the
   Genesis and Lince logs `hpr_validate::real_flight` reads (`genesis/flight_data_faraday.csv`, `lince/main_data.csv`),
   and Camões's and Halcyon's. Only statistics and digests are committed, so nothing committed changes;
-  `THIRD-PARTY-NOTICES.md` and ADR-082 should name GPL-3.0 for them.
+  `THIRD-PARTY-NOTICES.md` and ADR-082 name GPL-3.0 for the two flown logs since #477.
 - **Erebus 11's motor** is COTS (above): it waits for netCDF-4, not among the team-motor flights.
 - **RocketPy's paper** (Ceotto et al. 2021) is in *Journal of Aerospace Engineering* 34(6)
   ([doi](https://doi.org/10.1061/(ASCE)AS.1943-5525.0001331)); it covers Bella Lui, NDRT 2020 and Valetudo only.
@@ -188,7 +188,7 @@ license would make flights public rather than add new ones.
    and StratoLogger CSV readers (M7.1). Correct the collection catalog's license field for the UND flights.
 3. Two permissions are worth asking for, a maintainer's call: ESRA's license for its reports and
    score sheets, and DOFPro's named Creative Commons license.
-4. Record GPL-3.0 for the Genesis and Lince logs, and COTS for Erebus 11. Only UTRGV's flight may
+4. Record GPL-3.0 for the Genesis and Lince logs, and COTS for Erebus 11 (done, #477). Only UTRGV's flight may
    reach Mach 1; flights past it stay with M2.3c7.
 
 ## Open questions
