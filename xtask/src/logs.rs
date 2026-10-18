@@ -5492,7 +5492,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let (report, mut unread) = survey(&samples, sources);
     // A reason of the readings with no case, in the whole corpus or invented, is a gap in the
     // survey; a smaller survey, as a test's, needn't hold every case.
-    unread.extend(readings::unread(&report.readings));
+    unread.extend(readings::unread(&report.readings, &root));
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     let markdown = markdown(&report);
     if check {

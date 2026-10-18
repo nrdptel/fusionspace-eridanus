@@ -569,13 +569,13 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b): for each family,
 
 | Family | Records | Tracks | Liftoff | Apogee | Top speed | Top acceleration | Landing |
 |---|---:|---|---|---|---|---|---|
-| aerospacenu-fcb-csv | 20 | 20 barometer | 20 given | 20 given | 15 given, 5 `transonic` | 0 given, 20 `not_yet_taken` | 13 given, 7 `ends_before_landing` |
+| aerospacenu-fcb-csv | 20 | 20 barometer | 20 given | 17 given, 3 `disturbed_top` | 13 given, 3 `disturbed_top`, 4 `transonic` | 0 given, 20 `not_yet_taken` | 10 given, 3 `disturbed_top`, 7 `ends_before_landing` |
 | aerospacenu-gs-txt | 4 | 4 barometer | 4 given | 4 given | 0 given, 4 `sampled_too_slowly` | 0 given, 1 `no_accelerometer`, 3 `not_yet_taken` | 1 given, 3 `ends_before_landing` |
 | aerospacenu-sillygoose-txt | 14 | 14 barometer | 12 given, 1 `no_climb`, 1 `sampled_too_slowly` | 11 given, 1 `disturbed_top`, 1 `no_climb`, 1 `sampled_too_slowly` | 8 given, 1 `disturbed_top`, 1 `no_climb`, 1 `sampled_too_slowly`, 3 `transonic` | 0 given, 14 `not_yet_taken` | 7 given, 1 `disturbed_top`, 4 `ends_before_landing`, 1 `no_climb`, 1 `sampled_too_slowly` |
 | altimax-als | 1 | 1 pressure | 1 given | 1 given | 0 given, 1 `transonic` | 0 given, 1 `not_yet_taken` | 0 given, 1 `ends_before_landing` |
 | altimax-xls | 1 | 1 barometer | 1 given | 1 given | 0 given, 1 `transonic` | 0 given, 1 `not_yet_taken` | 0 given, 1 `ends_before_landing` |
 | altimetercloud-csv | 11 | 11 barometer | 11 given | 11 given | 11 given | 0 given, 11 `not_yet_taken` | 11 given |
-| altos-csv | 50 | 50 barometer | 34 given, 1 `no_climb`, 15 `short_pad` | 46 given, 3 `disturbed_top`, 1 `no_climb` | 20 given, 3 `disturbed_top`, 1 `no_climb`, 2 `noisy_speed`, 1 `sampled_too_slowly`, 23 `transonic` | 0 given, 50 `not_yet_taken` | 30 given, 3 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb` |
+| altos-csv | 50 | 50 barometer | 34 given, 1 `no_climb`, 15 `short_pad` | 45 given, 4 `disturbed_top`, 1 `no_climb` | 20 given, 4 `disturbed_top`, 1 `no_climb`, 2 `noisy_speed`, 1 `sampled_too_slowly`, 22 `transonic` | 0 given, 50 `not_yet_taken` | 29 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb` |
 | altos-eeprom | 14 | 1 gnss, 13 pressure | 6 given, 1 `receiver_dropout`, 7 `short_pad` | 5 given, 1 `disturbed_top`, 1 `receiver_lag`, 7 `short_pad` | 2 given, 1 `disturbed_top`, 1 `receiver_lag`, 7 `short_pad`, 3 `transonic` | 0 given, 3 `no_accelerometer`, 11 `not_yet_taken` | 4 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 7 `short_pad` |
 | altos-resaved-csv | 1 | 1 none | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `not_yet_taken` | 0 given, 1 `clock_out_of_order` |
 | altos-table-csv | 1 | 1 barometer | 0 given, 1 `short_pad` | 1 given | 1 given | 0 given, 1 `not_yet_taken` | 1 given |
@@ -583,14 +583,14 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b): for each family,
 | altos-telem-csv | 1 | 1 barometer | 1 given | 1 given | 0 given, 1 `sampled_too_slowly` | 0 given, 1 `not_yet_taken` | 0 given, 1 `ends_before_landing` |
 | arts2-csv | 4 | 4 barometer | 4 given | 4 given | 0 given, 4 `transonic` | 0 given, 4 `not_yet_taken` | 2 given, 2 `ends_before_landing` |
 | arts2-raw-csv | 3 | 3 none | 0 given, 3 `no_height_track` | 0 given, 3 `no_height_track` | 0 given, 3 `no_height_track` | 0 given, 3 `no_accelerometer` | 0 given, 3 `no_height_track` |
-| blueraven-csv | 89 | 49 barometer, 40 none | 48 given, 40 `no_height_track`, 1 `short_pad` | 47 given, 2 `disturbed_top`, 40 `no_height_track` | 23 given, 2 `disturbed_top`, 40 `no_height_track`, 1 `short_pad`, 23 `transonic` | 0 given, 45 `no_accelerometer`, 44 `not_yet_taken` | 38 given, 2 `disturbed_top`, 9 `ends_before_landing`, 40 `no_height_track` |
+| blueraven-csv | 89 | 49 barometer, 40 none | 48 given, 40 `no_height_track`, 1 `short_pad` | 46 given, 3 `disturbed_top`, 40 `no_height_track` | 23 given, 3 `disturbed_top`, 40 `no_height_track`, 23 `transonic` | 0 given, 45 `no_accelerometer`, 44 `not_yet_taken` | 38 given, 3 `disturbed_top`, 8 `ends_before_landing`, 40 `no_height_track` |
 | blueraven-summary-csv | 26 | 26 none | 0 given, 26 `no_height_track` | 0 given, 26 `no_height_track` | 0 given, 26 `no_height_track` | 0 given, 26 `no_accelerometer` | 0 given, 26 `no_height_track` |
 | blueraven-usb-txt | 2 | 1 none, 1 pressure | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` | 0 given, 1 `no_accelerometer`, 1 `not_yet_taken` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` |
 | console-capture | 3 | 3 pressure | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `not_yet_taken` | 0 given, 3 `short_pad` |
 | e80-imu-txt | 54 | 54 none | 0 given, 54 `no_height_track` | 0 given, 54 `no_height_track` | 0 given, 54 `no_height_track` | 0 given, 54 `no_accelerometer` | 0 given, 54 `no_height_track` |
-| eggtimer-csv | 44 | 44 barometer | 10 given, 34 `short_pad` | 37 given, 7 `disturbed_top` | 25 given, 7 `disturbed_top`, 2 `sampled_too_slowly`, 1 `short_pad`, 9 `transonic` | 0 given, 40 `no_accelerometer`, 4 `not_yet_taken` | 4 given, 7 `disturbed_top`, 33 `ends_before_landing` |
+| eggtimer-csv | 44 | 44 barometer | 10 given, 34 `short_pad` | 32 given, 12 `disturbed_top` | 24 given, 12 `disturbed_top`, 2 `sampled_too_slowly`, 1 `short_pad`, 5 `transonic` | 0 given, 40 `no_accelerometer`, 4 `not_yet_taken` | 3 given, 12 `disturbed_top`, 29 `ends_before_landing` |
 | eggtimer-rtf | 1 | 1 barometer | 0 given, 1 `short_pad` | 1 given | 1 given | 0 given, 1 `no_accelerometer` | 0 given, 1 `ends_before_landing` |
-| eggtimer-txt | 2 | 2 barometer | 2 given | 2 given | 1 given, 1 `sampled_too_slowly` | 0 given, 2 `no_accelerometer` | 2 given |
+| eggtimer-txt | 2 | 2 barometer | 2 given | 1 given, 1 `disturbed_top` | 1 given, 1 `disturbed_top` | 0 given, 2 `no_accelerometer` | 1 given, 1 `disturbed_top` |
 | entacore-aim-csv | 16 | 16 barometer | 16 given | 16 given | 1 given, 8 `sampled_too_slowly`, 7 `transonic` | 0 given, 16 `not_yet_taken` | 8 given, 8 `ends_before_landing` |
 | entacore-dump | 10 | 10 pressure | 1 given, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 10 `not_yet_taken` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` |
 | entacore-xtra | 2 | 2 pressure | 2 given | 0 given, 2 `disturbed_top` | 0 given, 2 `disturbed_top` | 0 given, 2 `not_yet_taken` | 0 given, 2 `disturbed_top` |
@@ -605,25 +605,25 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b): for each family,
 | missileworks-rtx | 5 | 5 gnss | 0 given, 5 `receiver_dropout` | 0 given, 5 `receiver_lag` | 0 given, 5 `receiver_lag` | 0 given, 5 `no_accelerometer` | 0 given, 5 `needs` |
 | nmea | 12 | 12 gnss | 0 given, 12 `receiver_dropout` | 0 given, 12 `receiver_lag` | 0 given, 12 `receiver_lag` | 0 given, 12 `no_accelerometer` | 0 given, 12 `needs` |
 | odf | 3 | 3 pressure | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `not_yet_taken` | 0 given, 3 `short_pad` |
-| perfectflite-csv | 15 | 15 barometer | 14 given, 1 `short_pad` | 15 given | 11 given, 4 `transonic` | 0 given, 15 `no_accelerometer` | 13 given, 2 `ends_before_landing` |
+| perfectflite-csv | 15 | 15 barometer | 14 given, 1 `short_pad` | 13 given, 2 `disturbed_top` | 10 given, 2 `disturbed_top`, 3 `transonic` | 0 given, 15 `no_accelerometer` | 11 given, 2 `disturbed_top`, 2 `ends_before_landing` |
 | perfectflite-txt | 6 | 6 barometer | 6 given | 5 given, 1 `disturbed_top` | 5 given, 1 `disturbed_top` | 0 given, 6 `no_accelerometer` | 5 given, 1 `disturbed_top` |
-| pf2 | 175 | 175 barometer | 167 given, 8 `short_pad` | 170 given, 5 `disturbed_top` | 120 given, 5 `disturbed_top`, 1 `implausible_speed`, 49 `transonic` | 0 given, 175 `no_accelerometer` | 155 given, 5 `disturbed_top`, 15 `ends_before_landing` |
+| pf2 | 175 | 175 barometer | 167 given, 8 `short_pad` | 160 given, 15 `disturbed_top` | 117 given, 15 `disturbed_top`, 1 `implausible_speed`, 42 `transonic` | 0 given, 175 `no_accelerometer` | 148 given, 15 `disturbed_top`, 12 `ends_before_landing` |
 | pfa | 25 | 25 barometer | 9 given, 15 `short_pad`, 1 `slower_than_free_coast` | 24 given, 1 `slower_than_free_coast` | 22 given, 2 `short_pad`, 1 `slower_than_free_coast` | 0 given, 25 `no_accelerometer` | 23 given, 1 `ends_before_landing`, 1 `slower_than_free_coast` |
 | phone-launch-csv | 27 | 7 barometer, 19 none, 1 pressure | 6 given, 19 `no_height_track`, 2 `short_pad` | 4 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad` | 0 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad`, 4 `transonic` | 0 given, 21 `no_accelerometer`, 6 `not_yet_taken` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` |
 | radio-packets-rtf | 2 | 2 pressure | 2 given | 2 given | 0 given, 2 `sampled_too_slowly` | 0 given, 2 `no_accelerometer` | 0 given, 2 `ends_before_landing` |
 | radio-packets-txt | 2 | 1 none, 1 pressure | 1 given, 1 `clock_out_of_order` | 1 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order`, 1 `sampled_too_slowly` | 0 given, 2 `no_accelerometer` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` |
-| raven-csv | 80 | 80 barometer | 80 given | 72 given, 8 `disturbed_top` | 34 given, 8 `disturbed_top`, 1 `sampled_too_slowly`, 37 `transonic` | 0 given, 80 `not_yet_taken` | 68 given, 8 `disturbed_top`, 4 `ends_before_landing` |
+| raven-csv | 80 | 80 barometer | 80 given | 71 given, 9 `disturbed_top` | 34 given, 9 `disturbed_top`, 1 `sampled_too_slowly`, 36 `transonic` | 0 given, 80 `not_yet_taken` | 67 given, 9 `disturbed_top`, 4 `ends_before_landing` |
 | raven-fip-sheet-xlsx | 2 | 2 barometer | 2 given | 1 given, 1 `disturbed_top` | 0 given, 1 `disturbed_top`, 1 `transonic` | 0 given, 2 `not_yet_taken` | 1 given, 1 `disturbed_top` |
 | raven-fipa | 57 | 57 pressure | 40 given, 17 `short_pad` | 37 given, 3 `disturbed_top`, 17 `short_pad` | 26 given, 3 `disturbed_top`, 17 `short_pad`, 11 `transonic` | 0 given, 57 `not_yet_taken` | 36 given, 3 `disturbed_top`, 1 `ends_before_landing`, 17 `short_pad` |
 | record-dump | 2 | 2 none | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_accelerometer` | 0 given, 2 `no_height_track` |
-| rrc3-csv | 51 | 51 barometer | 14 given, 37 `short_pad` | 47 given, 4 `disturbed_top` | 21 given, 4 `disturbed_top`, 26 `transonic` | 0 given, 51 `no_accelerometer` | 39 given, 4 `disturbed_top`, 8 `ends_before_landing` |
+| rrc3-csv | 51 | 51 barometer | 14 given, 37 `short_pad` | 42 given, 9 `disturbed_top` | 19 given, 9 `disturbed_top`, 23 `transonic` | 0 given, 51 `no_accelerometer` | 36 given, 9 `disturbed_top`, 6 `ends_before_landing` |
 | rrc3-rff | 6 | 6 pressure | 1 given, 5 `short_pad` | 0 given, 1 `disturbed_top`, 5 `short_pad` | 0 given, 1 `disturbed_top`, 5 `short_pad` | 0 given, 6 `no_accelerometer` | 0 given, 1 `disturbed_top`, 5 `short_pad` |
 | rtx-csv | 5 | 5 gnss | 0 given, 5 `receiver_dropout` | 0 given, 5 `receiver_lag` | 0 given, 5 `receiver_lag` | 0 given, 5 `no_accelerometer` | 0 given, 5 `needs` |
 | rtx-txt | 4 | 4 gnss | 0 given, 4 `receiver_dropout` | 0 given, 4 `receiver_lag` | 0 given, 4 `receiver_lag` | 0 given, 4 `no_accelerometer` | 0 given, 4 `needs` |
 | table-csv | 31 | 2 altitude_channel, 18 none, 11 pressure | 9 given, 3 `clock_out_of_order`, 4 `no_height_track`, 3 `short_pad`, 1 `slower_than_free_coast`, 11 `unstated_sensor` | 9 given, 3 `clock_out_of_order`, 4 `no_height_track`, 3 `short_pad`, 1 `slower_than_free_coast`, 11 `unstated_sensor` | 3 given, 3 `clock_out_of_order`, 4 `no_height_track`, 1 `sampled_too_slowly`, 3 `short_pad`, 1 `slower_than_free_coast`, 5 `transonic`, 11 `unstated_sensor` | 0 given, 13 `no_accelerometer`, 18 `not_yet_taken` | 6 given, 3 `clock_out_of_order`, 3 `ends_before_landing`, 4 `no_height_track`, 3 `short_pad`, 1 `slower_than_free_coast`, 11 `unstated_sensor` |
 | teensy-named-txt | 1 | 1 pressure | 1 given | 1 given | 1 given | 0 given, 1 `not_yet_taken` | 1 given |
 | teensy-tabs-txt | 7 | 7 pressure | 6 given, 1 `short_pad` | 6 given, 1 `short_pad` | 4 given, 1 `short_pad`, 2 `transonic` | 0 given, 7 `not_yet_taken` | 6 given, 1 `short_pad` |
-| workbook-xlsx | 21 | 5 barometer, 2 gnss, 14 none | 4 given, 9 `no_height_track`, 2 `receiver_dropout`, 1 `short_pad`, 5 `unstated_sensor` | 5 given, 9 `no_height_track`, 2 `receiver_lag`, 5 `unstated_sensor` | 2 given, 9 `no_height_track`, 2 `receiver_lag`, 3 `transonic`, 5 `unstated_sensor` | 0 given, 19 `no_accelerometer`, 2 `not_yet_taken` | 4 given, 1 `faster_than_free_fall`, 2 `needs`, 9 `no_height_track`, 5 `unstated_sensor` |
+| workbook-xlsx | 21 | 5 barometer, 2 gnss, 14 none | 4 given, 9 `no_height_track`, 2 `receiver_dropout`, 1 `short_pad`, 5 `unstated_sensor` | 4 given, 1 `disturbed_top`, 9 `no_height_track`, 2 `receiver_lag`, 5 `unstated_sensor` | 2 given, 1 `disturbed_top`, 9 `no_height_track`, 2 `receiver_lag`, 2 `transonic`, 5 `unstated_sensor` | 0 given, 19 `no_accelerometer`, 2 `not_yet_taken` | 4 given, 1 `disturbed_top`, 2 `needs`, 9 `no_height_track`, 5 `unstated_sensor` |
 
 Each reason with its case: the records the corpus withholds a reading of for it, and the first of their files by id; where the corpus has none, the invented sample under `validation/fixtures/logs/readings` that a test reads to it.
 
@@ -632,8 +632,8 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `too_short` | 2 | `7aa4d14482f6bb3c` | none |
 | `no_climb` | 10 | `7fbda1be54d9484a` | none |
 | `starts_off_the_pad` | 0 | none | `starts-off-the-pad.csv` |
-| `ends_before_landing` | 131 | `00d315962a4eccb3` | none |
-| `faster_than_free_fall` | 1 | `229efb1695f3277f` | none |
+| `ends_before_landing` | 121 | `00d315962a4eccb3` | none |
+| `faster_than_free_fall` | 0 | none | `faster-than-free-fall.csv` |
 | `implausible_speed` | 1 | `ab1df9652b1d33f6` | none |
 | `noisy_speed` | 3 | `630b393ef80b2ff6` | none |
 | `no_accelerometer` | 665 | `0040ac8c3e5af57b` | none |
@@ -642,16 +642,16 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `sampled_too_fast` | 0 | none | `sampled-too-fast.csv` |
 | `no_height_track` | 193 | `014c9d41c5a18328` | none |
 | `unstated_sensor` | 22 | `045f5b9ed473b800` | none |
-| `sampled_too_slowly` | 29 | `061c084cf2d6155c` | none |
+| `sampled_too_slowly` | 28 | `061c084cf2d6155c` | none |
 | `step_too_coarse` | 0 | none | `step-too-coarse.csv` |
-| `transonic` | 225 | `01dc90b45723df1e` | none |
+| `transonic` | 206 | `01dc90b45723df1e` | none |
 | `receiver_lag` | 108 | `055206ce7e9a2fae` | none |
 | `receiver_dropout` | 108 | `055206ce7e9a2fae` | none |
 | `slower_than_free_coast` | 4 | `027872c09dded351` | none |
 | `not_yet_taken` | 393 | `013c6fd5d14cb8a1` | none |
 | `short_pad` | 157 | `00d315962a4eccb3` | none |
 | `clock_out_of_order` | 6 | `4ea3b7a8a4d4119c` | none |
-| `disturbed_top` | 46 | `073f4a6678b4bb0b` | none |
+| `disturbed_top` | 76 | `073f4a6678b4bb0b` | none |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 

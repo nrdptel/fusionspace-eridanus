@@ -7,6 +7,8 @@ altitude above the ground, except the bad record, which no reader can make and s
 itself as JSON:
 
 - bad-record.record.json: a record whose primary clock repeats a time.
+- faster-than-free-fall.csv: a track that falls at 15 m/s for 3 s after apogee, then at 300 m/s to
+  the ground, sooner than a fall from rest at apogee could.
 - sampled-too-fast.csv: samples 0.1 ms apart, faster than any logger the readings were checked at.
 - starts-off-the-pad.csv: an altitude above sea level in a column that says it is above the ground.
 - step-too-coarse.csv: an altitude written in 20 m steps, coarser than the 10 m checked.
@@ -43,6 +45,19 @@ def height(t):
     return max(apogee_m - DESCENT_M_S * (c - coast_s), 0.0)
 
 
+def apogee_s():
+    """The time of apogee, s from power on."""
+    return LIFTOFF_S + BURN_S + BOOST_M_S2 * BURN_S / G
+
+
+def plunge(t):
+    """The height, m, with the descent at 300 m/s from 3 s after apogee."""
+    slow_s = apogee_s() + 3.0
+    if t <= slow_s:
+        return height(t)
+    return max(height(slow_s) - 300.0 * (t - slow_s), 0.0)
+
+
 def table(name, rows):
     lines = ["Time (s),Baro Alt AGL (m)"] + [f"{t:.4f},{h:.2f}" for t, h in rows]
     (HERE / name).write_text("\n".join(lines) + "\n")
@@ -52,6 +67,7 @@ def times(dt, end_s):
     return [k * dt for k in range(int(round(end_s / dt)) + 1)]
 
 
+table("faster-than-free-fall.csv", [(t, plunge(t)) for t in times(0.1, 30.0)])
 table("sampled-too-fast.csv", [(t, 0.0) for t in times(0.0001, 0.001)])
 table("starts-off-the-pad.csv", [(t, PAD_MSL_M + height(t)) for t in times(0.1, 60.0)])
 table(

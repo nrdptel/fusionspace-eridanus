@@ -18,8 +18,9 @@ pub(crate) const INVENTED_DIR: &str = "validation/fixtures/logs/readings";
 /// The invented sample of each reason the corpus has no case of, by file name under
 /// [`INVENTED_DIR`]: a log in a format the importer reads, or, for a record no reader can make,
 /// the record itself as JSON (`.record.json`). The folder's `make.py` writes them.
-pub(crate) const INVENTED: [(Reason, &str); 4] = [
+pub(crate) const INVENTED: [(Reason, &str); 5] = [
     (Reason::BadRecord, "bad-record.record.json"),
+    (Reason::FasterThanFreeFall, "faster-than-free-fall.csv"),
     (Reason::SampledTooFast, "sampled-too-fast.csv"),
     (Reason::StartsOffThePad, "starts-off-the-pad.csv"),
     (Reason::StepTooCoarse, "step-too-coarse.csv"),
@@ -180,21 +181,38 @@ impl Gathering {
     }
 }
 
-/// Each reason with neither a case in the corpus nor an invented sample, as the survey's unread
-/// lines: the done-when asks for a case of every reason.
-pub(super) fn unread(survey: &Survey) -> Vec<String> {
-    survey
-        .reasons
-        .iter()
-        .filter(|case| case.records == 0 && case.invented.is_none())
-        .map(|case| {
-            format!(
+/// Each reason with neither a case in the corpus nor an invented sample that reads to it, as the
+/// survey's unread lines: the done-when asks for a case of every reason. Each invented sample the
+/// survey lists is read from under `root` and must withhold a reading for its reason.
+pub(super) fn unread(survey: &Survey, root: &std::path::Path) -> Vec<String> {
+    let mut unread = Vec::new();
+    for case in survey.reasons.iter().filter(|case| case.records == 0) {
+        let Some(name) = &case.invented else {
+            unread.push(format!(
                 "  the readings' reason `{}` has no case in the corpus and no invented sample: \
                  add one under {INVENTED_DIR} and to `INVENTED`",
                 case.reason
-            )
-        })
-        .collect()
+            ));
+            continue;
+        };
+        let read = std::fs::read(root.join(INVENTED_DIR).join(name))
+            .map_err(|error| format!("{name}: {error}"))
+            .and_then(|bytes| invented_record(name, &bytes));
+        let reasons = match read {
+            Ok(log) => outcomes(&readings::read(&log)).map(|(_, reason)| reason.map(code)),
+            Err(error) => {
+                unread.push(format!("  the invented sample {error}"));
+                continue;
+            }
+        };
+        if !reasons.contains(&Some(case.reason.clone())) {
+            unread.push(format!(
+                "  the invented sample {name} doesn't withhold a reading for `{}`",
+                case.reason
+            ));
+        }
+    }
+    unread
 }
 
 /// The page's section on the readings.

@@ -193,6 +193,14 @@ pub const SPEED_NOISE_M_S: f64 = 5.0;
 /// coast doesn't fall and rise again: a track that falls more than that after a peak in those 4 s
 /// and then climbs to its top has a top that isn't the coast's ([`Reason::DisturbedTop`]).
 pub const COAST_CHECK_S: f64 = 4.0;
+/// How long either side of its top the track is checked for a spike, s: a second, or two samples
+/// of a slower track. A coast slowing at gravity and drag climbs no more than `g Δ²` in its last
+/// Δ, and nothing falls from its top faster than gravity pulls it, so a track that climbs into
+/// its top and falls from it faster than both holds a spike there ([`Reason::DisturbedTop`]), as
+/// a breakup's in a public Blue Raven log does, 1.2 km over the coast. A parachute open before
+/// apogee breaks only the first, a charge that lifts the bay's pressure at the top only the
+/// second, and their tops are read.
+pub const SPIKE_CHECK_S: f64 = 1.0;
 /// The fastest the day's pressure changes in the ordinary run of weather, Pa an hour: the
 /// National Weather Service's *pressure rising (falling) rapidly*, 0.06 inHg an hour or more
 /// (its glossary; the threshold of METAR's `PRESRR` and `PRESFR` remarks).
@@ -338,9 +346,11 @@ pub enum Reason {
     ShortPad,
     /// The height track's clock doesn't increase, so no time can be read off it.
     ClockOutOfOrder,
-    /// The track falls more than twice its noise and step below a peak in the last
-    /// [`COAST_CHECK_S`] before its top, then climbs to it: a coast doesn't, and a disturbance after
-    /// apogee does, such as a deployment's that lasts longer than the median takes out and stands
+    /// The track's top isn't a coast's: it falls more than twice its noise and step below a peak
+    /// in the last [`COAST_CHECK_S`] before its top, then climbs to it, or climbs into it faster
+    /// than a coast can and falls from it faster than gravity pulls a body at rest there
+    /// ([`SPIKE_CHECK_S`]). A transient after apogee
+    /// does either, such as a charge's that lasts longer than the median takes out and stands
     /// above the true top. Which is the apogee can't be told, so the apogee, the top speed and
     /// landing are withheld; liftoff is not.
     DisturbedTop,
@@ -815,7 +825,11 @@ pub fn read(log: &FlightLog) -> Readings {
     // How far the filtered pad reaches from its median, at least the allowance, which is all a
     // short pad, with no samples of it, has; liftoff is the last sample before apogee within that
     // and a step of the pad.
-    let pad_samples = if short_pad { &[][..] } else { &filtered[..on_pad] };
+    let pad_samples = if short_pad {
+        &[][..]
+    } else {
+        &filtered[..on_pad]
+    };
     let reach = pad_samples
         .iter()
         .filter(|h| h.is_finite())
@@ -887,7 +901,54 @@ pub fn read(log: &FlightLog) -> Readings {
             fall = (peak.0 - height, peak.1, index);
         }
     }
-    let disturbed = (fall.0 > least).then(|| {
+    // Nor does a coast climb into its top as fast as a spike does and fall from it as fast. Slowing
+    // at `a`, gravity and drag's upward share, a coast climbs `a Δ²/2` in its last Δ, and `a < 2g`
+    // while that share, `ρ |v| v_z / (2β)`, is under g: over the last second at sea level, for a
+    // ballistic coefficient β = m/(C_D A) over 24 kg/m² on a vertical coast and over 150 kg/m² at
+    // 120 m/s across, where a 29 mm rocket of 0.3 kg has about 800. And nothing falls from its top
+    // faster than gravity pulls it. The filtered top can trail the true one, but only while the
+    // track falls less than its noise and step twice over and the median's window, `w`, lets it:
+    // a fall from rest gathers at most `v = √(2g (2(N + s) + g w²/8))` by then, and from the
+    // windows' first sample to their last, `L`, falls no more than `v L + g L²/2`. A parachute
+    // open before apogee slows the climb harder than that, but not the fall; a charge that lifts
+    // the bay's pressure at the top drops the track faster, after the coast's own climb. A track
+    // that climbs and falls faster than both, past twice its noise and step, holds a spike at its
+    // top, and which is the apogee can't be told. Checked over [`SPIKE_CHECK_S`] either side of
+    // the top, or two samples.
+    let span_s = SPIKE_CHECK_S.max(2.0 * interval);
+    let back = time
+        .partition_point(|t| *t <= time[apogee_index] - span_s)
+        .saturating_sub(1);
+    let climbed = top - filtered[back];
+    let climb_s = time[apogee_index] - time[back];
+    let climb_most = STANDARD_GRAVITY_MPS2 * climb_s * climb_s + least;
+    let window_at =
+        |index: usize| time[(index + half).min(n - 1)] - time[index.saturating_sub(half)];
+    let held_m = least + STANDARD_GRAVITY_MPS2 * window_at(apogee_index).powi(2) / 8.0;
+    let gathered_m_s = (2.0 * STANDARD_GRAVITY_MPS2 * held_m).sqrt();
+    let falling = (run_end + 1..n)
+        .take_while(|&index| time[index] - time[run_end] <= span_s)
+        .find_map(|index| {
+            let fallen = top - filtered[index];
+            let over_s = time[(index + half).min(n - 1)] - time[apogee_index.saturating_sub(half)];
+            let most =
+                gathered_m_s * over_s + 0.5 * STANDARD_GRAVITY_MPS2 * over_s * over_s + least;
+            (fallen > most).then_some((fallen, index, most))
+        });
+    let spike = falling
+        .filter(|_| back >= first && climbed > climb_most)
+        .map(|(fallen, index, most)| {
+            format!(
+                "the track climbs {climbed:.1} m into its top at {:.2} s in {climb_s:.2} s, more \
+                 than the {climb_most:.1} m a coast slowing at twice gravity climbs, and falls \
+                 {fallen:.1} m from it by {:.2} s, more than the {most:.1} m a body at rest there \
+                 can fall, each past twice its noise and step: its top is a spike, such as a \
+                 charge's, so which is the apogee can't be told",
+                time[apogee_index], time[index]
+            )
+        });
+    let disturbed = spike.or_else(|| {
+        (fall.0 > least).then(|| {
         let (fallen, from, to) = fall;
         format!(
             "the track falls {fallen:.1} m from a peak at {:.2} s to {:.2} s, more than twice its \
@@ -896,6 +957,7 @@ pub fn read(log: &FlightLog) -> Readings {
              apogee can't be told",
             time[from], time[to], time[apogee_index]
         )
+    })
     });
 
     // Liftoff is read late by the time the rocket takes to climb out of the pad's reach, once
@@ -1317,10 +1379,7 @@ fn max_speed(
             "the climb is too short for a single fit of the speed",
         );
     };
-    let worst = speeds
-        .iter()
-        .map(|(_, v)| *v)
-        .fold(f64::INFINITY, f64::min);
+    let worst = speeds.iter().map(|(_, v)| *v).fold(f64::INFINITY, f64::min);
     if top > IMPLAUSIBLE_SPEED_M_S {
         return Reading::withheld(
             Reason::ImplausibleSpeed,
@@ -1462,8 +1521,8 @@ fn landing(
         + track.step_m
         + DRIFT_M_PER_S * (time[index] - time[0]);
     let bound_s = early_m / rate + 2.0 * local_interval(time, index);
-    let rate_bound =
-        (apex.height_bound_m + early_m + mean_rate * (apex.time_bound_s + bound_s)) / descent_time_s;
+    let rate_bound = (apex.height_bound_m + early_m + mean_rate * (apex.time_bound_s + bound_s))
+        / descent_time_s;
     Reading::Read(Landing {
         time_s: time[index],
         bound_s,
@@ -1573,7 +1632,11 @@ mod tests {
         assert_eq!(apogee.provenance, Provenance::Measured);
         let speed = readings.max_speed.value().unwrap();
         assert!((speed.speed_m_s - 4.0 * g).abs() <= speed.bound_m_s);
-        assert!((speed.time_s - 2.0).abs() <= 0.5 * SPEED_WINDOW_S, "{}", speed.time_s);
+        assert!(
+            (speed.time_s - 2.0).abs() <= 0.5 * SPEED_WINDOW_S,
+            "{}",
+            speed.time_s
+        );
         assert_eq!(speed.provenance, Provenance::Derived);
         assert_eq!(speed.method, Method::SteepestSlope);
         let landing = readings.landing.value().unwrap();
@@ -1670,7 +1733,10 @@ mod tests {
         );
         assert_eq!(apogee.time_after_liftoff_s, None);
         let landing = aloft.landing.value().unwrap();
-        assert_eq!((landing.flight_time_s, landing.flight_time_bound_s), (None, None));
+        assert_eq!(
+            (landing.flight_time_s, landing.flight_time_bound_s),
+            (None, None)
+        );
         // A mapped table that writes its zero, then the climb from 23.5 m up, as a logger that
         // records from launch does: its first sample says its heights stand on the pad, which
         // the median, lifted into the climb at the start, wouldn't.
@@ -1683,9 +1749,11 @@ mod tests {
         assert!(zero_first.apogee.value().is_some());
         // A track with no zero on the pad, as a pressure track, can't place it: every height
         // reading is withheld.
-        let pressure = as_channel(&log(30.0, |t| flight(10.0)(t + 2.0)), Quantity::Pressure, |h| {
-            101_325.0 - 12.0 * h
-        });
+        let pressure = as_channel(
+            &log(30.0, |t| flight(10.0)(t + 2.0)),
+            Quantity::Pressure,
+            |h| 101_325.0 - 12.0 * h,
+        );
         let pressure = read(&pressure);
         for reason_of in [
             pressure.liftoff.reason(),
@@ -1832,7 +1900,11 @@ mod tests {
                                 && withheld.detail.contains("to time the descent")
                         }
                     };
-                    assert!(lands, "{dt} s, {apogee_m} m, from {t0} s: {:?}", read.landing);
+                    assert!(
+                        lands,
+                        "{dt} s, {apogee_m} m, from {t0} s: {:?}",
+                        read.landing
+                    );
                 }
             }
         }
@@ -1867,8 +1939,8 @@ mod tests {
     }
 
     /// The pad is short where its samples can't rule out a rocket already past the allowance: a
-    /// PerfectFlite's track 1 m off its zero, on the pad for `pad_s`, then climbing at 10 g,
-    /// sampled at 1,000 Hz, stays within half the 4.61 m rise of its start until 0.217 s after
+    /// PerfectFlite's track 1 m off its zero, on the pad for `pad_s`, then climbing at 10 g for a
+    /// second and coasting at gravity, sampled at 1,000 Hz, stays within half the 4.61 m rise of its start until 0.217 s after
     /// liftoff. A rocket at 2 g moving at `v` at the start would climb the rise in that time unless
     /// `v ≤ (rise − g stay²)/stay`, so it may have climbed `v²/(4g)`: 1.70 m after a 0.17 s pad,
     /// within the 2 m allowance, so the pad is its samples' and the apogee's bound grows by that;
@@ -1879,21 +1951,22 @@ mod tests {
         let g = STANDARD_GRAVITY_MPS2;
         let climb = |pad_s: f64| {
             move |t: f64| {
-                let c = (t - pad_s).clamp(0.0, 3.0);
-                1.0 + 5.0 * g * c * c - 5.0 * g * (t - pad_s - 3.0).max(0.0).powi(2)
+                let c = (t - pad_s).clamp(0.0, 1.0);
+                let coast = (t - pad_s - 1.0).max(0.0);
+                1.0 + 5.0 * g * c * c + 10.0 * g * coast - 0.5 * g * coast * coast
             }
         };
-        let after = read(&log_every(0.001, 10.0, climb(0.17)));
+        let after = read(&log_every(0.001, 14.0, climb(0.17)));
         let step = after.step_m.unwrap();
         let rise = 2.0 * (LIFTOFF_ALLOWANCE_M + step);
         let lent = after.pad_altitude_m.unwrap() - 1.0;
         assert!(lent > 0.0 && lent <= rise / 8.0, "{lent}");
-        let before = read(&log_every(0.001, 10.0, climb(0.13)));
+        let before = read(&log_every(0.001, 14.0, climb(0.13)));
         assert_eq!(before.pad_altitude_m, Some(0.0));
 
         // The bound's share, against the same flight after a 2 s pad, whose samples rule it out;
         // the lent pad shortens the height, and its share of the bound, by under 3 mm.
-        let long = read(&log_every(0.001, 12.0, climb(2.0)));
+        let long = read(&log_every(0.001, 16.0, climb(2.0)));
         // The stay ends at the last sample within half the rise: the median of a rising track
         // is its sample.
         let stay = (0..)
@@ -1918,7 +1991,9 @@ mod tests {
     /// which the pad's start doesn't take for a climb, as a 1 m rise from the first sample did.
     #[test]
     fn a_noisy_slow_pad_is_still_a_pad() {
-        let wobble = [-0.19, -2.42, -0.06, -1.71, -0.9, -1.3, -0.4, -2.0, -1.1, -0.7];
+        let wobble = [
+            -0.19, -2.42, -0.06, -1.71, -0.9, -1.3, -0.4, -2.0, -1.1, -0.7,
+        ];
         let mut noisy = log_every(0.2, 40.0, |t| flight(10.0)(t - 2.0));
         for (height, noise) in noisy.altitude_m.iter_mut().zip(wobble.iter().cycle()) {
             *height += noise;
@@ -2007,8 +2082,10 @@ mod tests {
     /// A track whose step is coarser than the bounds were checked at is withheld, at the edge.
     #[test]
     fn a_coarse_step_is_withheld() {
+        // The flight ten times as high and √10 times as long, so it coasts at gravity still.
         let stepped = |step: f64| {
-            let mut log = log(30.0, |t| ((flight(10.0)(t) * 10.0) / step).round() * step);
+            let tall = |t: f64| 10.0 * flight(10.0)(t / 10f64.sqrt());
+            let mut log = log(60.0, |t| (tall(t) / step).round() * step);
             log.format = LogFormat::GenericTable;
             read(&log)
         };
@@ -2085,35 +2162,188 @@ mod tests {
         }
     }
 
-    /// A coast doesn't fall and rise again: a bump 20 m above the top, 0.6 s wide, a second after
-    /// apogee, once the track has fallen 10 m, as a deployment's disturbance stands, holds the
-    /// apogee, the top speed and landing back, by name; liftoff is read. The same flight with no
-    /// bump reads its apogee at the coast's top; a bump only 0.3 s after apogee, before the track
-    /// has fallen past its noise and step, isn't told from the top.
+    /// A coast doesn't fall and rise again, and nothing falls from its top faster than gravity
+    /// pulls it: a transient that stands above the coast's top, as a charge's does, holds the
+    /// apogee, the top speed and landing back, by name; liftoff is read. A step 20 m above the
+    /// top, 0.6 s wide, 0.3 s after apogee, before the track has fallen past twice its noise and
+    /// step (6.6 m), falls 29.0 m from its top in a sample, where a body at rest there falls at
+    /// most 20.9 m past the median's window and the noise; a climb at 12 m/s from 10 m below the
+    /// top to 26 m above it, then down at 10 m/s, falls no faster than that, but follows a fall of
+    /// 8.9 m. Each is caught by its own rule, and the same flight with neither reads its apogee at
+    /// the coast's top.
     #[test]
-    fn a_top_after_a_fall_is_withheld() {
+    fn a_transient_top_is_withheld() {
         let g = STANDARD_GRAVITY_MPS2;
-        let bumped = |at: f64| {
-            move |t: f64| {
-                let bump = if (at..at + 0.6).contains(&t) {
-                    10.0 * g + 20.0 - flight(10.0)(t)
-                } else {
-                    0.0
-                };
-                flight(10.0)(t) + bump
-            }
-        };
         let plain = read(&log(30.0, flight(10.0)));
         let apogee = plain.apogee.value().unwrap();
         assert!((apogee.time_s - 6.0).abs() <= apogee.time_bound_s);
 
-        let late = read(&log(30.0, bumped(7.0)));
-        assert!(late.liftoff.value().is_some());
-        for reason_of in [late.apogee.reason(), late.max_speed.reason(), late.landing.reason()] {
-            assert_eq!(reason_of, Some(Reason::DisturbedTop));
+        fn by<T: std::fmt::Debug>(reading: &Reading<T>, rule: &str) {
+            let Reading::Withheld(withheld) = reading else {
+                panic!("{reading:?}");
+            };
+            assert_eq!(withheld.reason, Reason::DisturbedTop);
+            assert!(withheld.detail.contains(rule), "{}", withheld.detail);
         }
-        let early = read(&log(30.0, bumped(6.3)));
-        assert!(early.apogee.value().is_some());
+        let withheld = |read: &Readings, rule: &str| {
+            assert!(read.liftoff.value().is_some());
+            by(&read.apogee, rule);
+            by(&read.max_speed, rule);
+            by(&read.landing, rule);
+        };
+        let stepped = |t: f64| {
+            if (6.3..6.9).contains(&t) {
+                10.0 * g + 20.0
+            } else {
+                flight(10.0)(t)
+            }
+        };
+        withheld(&read(&log(30.0, stepped)), "a body at rest there can fall");
+        let returning = |t: f64| {
+            if t < 7.0 {
+                flight(10.0)(t)
+            } else if t < 10.0 {
+                10.0 * g - 10.0 + 12.0 * (t - 7.0)
+            } else {
+                (10.0 * g + 26.0 - 10.0 * (t - 10.0)).max(0.0)
+            }
+        };
+        withheld(&read(&log(30.0, returning)), "then climbs to its top");
+    }
+
+    /// A top that is the vehicle's is read, whichever half of a spike follows it. A parachute open
+    /// before apogee slows the climb into the top, not the fall from it: a coast that opens its
+    /// chute at 40 m/s and stops at 40 m/s² climbs 20 m in its last second, more than a coast
+    /// slowing at twice gravity could, then falls at gravity to 8 m/s. A charge that lifts the
+    /// bay's pressure at the top drops the track after the coast's own climb: 50 m for half a
+    /// second from 0.4 s after the top.
+    #[test]
+    fn a_top_that_isnt_a_spike_is_read() {
+        let g = STANDARD_GRAVITY_MPS2;
+        // Off the pad at 1 s at 40 m/s² for 3 s (180 m, 120 m/s), a vacuum coast to 40 m/s, then
+        // 40 m/s² to the top 20 m higher, and down at gravity to 8 m/s.
+        let coast_s = 80.0 / g;
+        let opened_m = 180.0 + 120.0 * coast_s - 0.5 * g * coast_s * coast_s;
+        let (top_s, top_m) = (4.0 + coast_s + 1.0, opened_m + 20.0);
+        let chuted = move |t: f64| {
+            if t <= 1.0 {
+                0.0
+            } else if t < 4.0 {
+                20.0 * (t - 1.0).powi(2)
+            } else if t < 4.0 + coast_s {
+                let c = t - 4.0;
+                180.0 + 120.0 * c - 0.5 * g * c * c
+            } else if t < top_s {
+                let c = top_s - t;
+                top_m - 20.0 * c * c
+            } else {
+                let d = t - top_s;
+                let speeding = (8.0 / g).min(d);
+                (top_m - 0.5 * g * speeding * speeding - 8.0 * (d - speeding)).max(0.0)
+            }
+        };
+        let chute = read(&log(140.0, chuted));
+        let apogee = chute.apogee.value().unwrap();
+        assert!(
+            (apogee.height_m - top_m).abs() <= apogee.bound_m,
+            "{apogee:?}"
+        );
+        assert!(
+            (apogee.time_s - top_s).abs() <= apogee.time_bound_s,
+            "{apogee:?}"
+        );
+        assert!(chute.landing.value().is_some(), "{:?}", chute.landing);
+
+        let charged = read(&log(30.0, |t| {
+            let dropped = if (6.4..6.9).contains(&t) { 50.0 } else { 0.0 };
+            flight(10.0)(t) - dropped
+        }));
+        let apogee = charged.apogee.value().unwrap();
+        assert!(
+            (apogee.height_m - 10.0 * g).abs() <= apogee.bound_m,
+            "{apogee:?}"
+        );
+        assert!(
+            (apogee.time_s - 6.0).abs() <= apogee.time_bound_s,
+            "{apogee:?}"
+        );
+    }
+
+    /// A charge's transient, in the shapes of two public logs whose licenses keep them out of
+    /// the repository, with invented numbers: a telemetry logger that sends a sample a second on
+    /// the pad and after its charge and ten a second between, its charge at the top of a 914 m
+    /// coast, then one sample 130 m under the top and the next 150 m over it, reads the coast's
+    /// top, the spike taken out by the median; a breakup that reads a climb to 40% over the
+    /// coast's top within a second, mid-coast, and back in half a second, is withheld by name: it
+    /// falls 50.0 m in a sample from its top, where a body at rest there falls at most 13.6 m.
+    #[test]
+    fn a_charges_transient_reads_the_coast_or_is_withheld() {
+        let g = STANDARD_GRAVITY_MPS2;
+        // Off the pad at 300 s at 40 m/s² for 3 s (180 m, 120 m/s), a vacuum coast to the top
+        // at 315.23 s (913.9 m), then down at 30 m/s.
+        let (top_s, top_m) = (303.0 + 120.0 / g, 180.0 + 120.0 * 120.0 / (2.0 * g));
+        let flight = move |t: f64| {
+            if t <= 300.0 {
+                0.0
+            } else if t < 303.0 {
+                20.0 * (t - 300.0).powi(2)
+            } else if t < top_s {
+                let c = t - 303.0;
+                180.0 + 120.0 * c - 0.5 * g * c * c
+            } else {
+                (top_m - 30.0 * (t - top_s)).max(0.0)
+            }
+        };
+        let made = |time_s: Vec<f64>, height: &dyn Fn(usize, f64) -> f64| {
+            let mut made = log_every(1.0, 0.0, |_| 0.0);
+            made.altitude_m = time_s
+                .iter()
+                .enumerate()
+                .map(|(i, t)| height(i, *t))
+                .collect();
+            made.time_s = time_s;
+            made
+        };
+
+        let mut time_s: Vec<f64> = (0..=300).map(f64::from).collect();
+        time_s.extend((1..=153).map(|k| 300.0 + 0.1 * f64::from(k)));
+        let charge = time_s.len();
+        time_s.extend((1..=37).map(|k| 315.3 + f64::from(k)));
+        let telemetry = read(&made(time_s, &|i, t| match i.checked_sub(charge) {
+            Some(0) => top_m - 130.0,
+            Some(1) => top_m + 150.0,
+            _ => flight(t),
+        }));
+        let apogee = telemetry.apogee.value().unwrap();
+        assert!(
+            (apogee.height_m - top_m).abs() <= apogee.bound_m,
+            "{apogee:?}"
+        );
+        assert!(
+            (apogee.time_s - top_s).abs() <= apogee.time_bound_s,
+            "{apogee:?}"
+        );
+
+        let time_s: Vec<f64> = (0..=1200).map(|k| 295.0 + 0.05 * f64::from(k)).collect();
+        let breakup = read(&made(time_s, &|_, t| {
+            let over = 1.4 * top_m - flight(308.0);
+            let lift = if (308.0..309.0).contains(&t) {
+                over * (t - 308.0)
+            } else if (309.0..309.5).contains(&t) {
+                over * (1.0 - 2.0 * (t - 309.0))
+            } else {
+                0.0
+            };
+            flight(t) + lift
+        }));
+        assert!(breakup.liftoff.value().is_some());
+        for reason in [
+            breakup.apogee.reason(),
+            breakup.max_speed.reason(),
+            breakup.landing.reason(),
+        ] {
+            assert_eq!(reason, Some(Reason::DisturbedTop));
+        }
     }
 
     /// The top speed's guards, each on its own.
