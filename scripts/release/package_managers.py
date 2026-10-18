@@ -29,8 +29,14 @@ DESCRIPTION = "Flight simulator for hobby and high-power rockets"
 # Apache-2.0 for OpenRocket's parts catalog, which `fusionspace-hpr-io` compiles into it. The
 # SPDX expression is the one that crate and the Python package state.
 LICENSE = "(MIT OR Apache-2.0) AND Apache-2.0"
-# Homebrew's form of it (its license guidelines: `all_of` must all be met, `any_of` is a choice).
-BREW_LICENSE = 'all_of: [{ any_of: ["MIT", "Apache-2.0"] }, "Apache-2.0"]'
+# Homebrew's form of it (its license guidelines: `all_of` must all be met, `any_of` is a choice),
+# one term a line, as `brew style` asks of a nested declaration.
+BREW_LICENSE = [
+    "  license all_of: [",
+    '    { any_of: ["MIT", "Apache-2.0"] },',
+    '    "Apache-2.0",',
+    "  ]",
+]
 # Scoop's flat form has `|` for a choice and `,` for both, with no parentheses to group them, so the
 # manifest gives the SPDX expression as the identifier, which its schema allows, and links the
 # README's license section.
@@ -99,8 +105,8 @@ def formula(version, found):
         f'  homepage "{HOMEPAGE}"',
         # No `version` line: Homebrew reads the version from the URLs, and `brew audit` refuses
         # one that repeats it.
-        f"  license {BREW_LICENSE}",
     ]
+    lines += BREW_LICENSE
     if len(by_os) == 1:
         lines += ["", f"  depends_on :{next(iter(by_os))}"]
     for os_name in ("macos", "linux"):
