@@ -94,7 +94,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     in the text redraw each figure through `hpr-wasm`, offline, with the CLI's numbers (a test
     each); outside a model's range it grays out with the reason; scripts off keeps the static
     figure; M0.7a's two clipping checks run on the drawn figures at each input's least, default
-    and largest value; Neer has used each.
+    and largest value; its acceptance pass is in its PR (ADR-282).
   - [ ] **M0.7d The rest of the hobby,** after 1.0: certification, safety codes and waivers,
     construction, wiring, staging and air starts, linking out more than writing. *Done when:* as
     M0.7a; rule pages carry a source date, a stale-after date CI fails past, and "not legal
@@ -124,7 +124,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     nothing with scripts off; a test fails a row with no organizer's page, past its stale-after
     date, an unparsed window or a banner over 90 characters; the page check, on a date in each
     month, fails a clipped, overlapping or unlabeled banner at every width in both themes; a help
-    page lists checked crisis lines with their date; Neer has used it.
+    page lists checked crisis lines with their date; its acceptance pass is in its PR (ADR-282).
   - [ ] **M0.13b Beyond the banner.** *Done when:* a code of conduct with a way to reach the
     maintainer, a page on getting involved (youth programs, clubs, mentoring, each linked to its
     organizer), and an issue template for a barrier to access are in the repository and linked from
@@ -549,7 +549,7 @@ checklists for its platform, ADR-164.)
     bad edge (a test each), and a design check names the reloads that fit a case;
   - Charge's backup file imports with its logs intact, and each old site's URLs have a tested map
     into the app;
-  - Neer has used each screen.
+  - its acceptance pass, in its PR, reaches each screen (ADR-282).
 - [ ] **M9.7 Field equipment and frequencies** (ADR-194; Neer, 2026-10-07; VISION V47). A register
   of altimeters, trackers, radios, cameras, payloads and batteries, a settings snapshot with each
   flight, a pad-hold battery budget and a club frequency board across vendors; offline, shared
@@ -563,17 +563,18 @@ checklists for its platform, ADR-164.)
   - the battery budget uses each device's pad-state draw and errs short (a test and a mutation
     probe);
   - a flight's settings snapshot feeds M6.8's settings check and its M7.1 record;
-  - Neer has used it at a launch.
+  - its acceptance pass runs under launch conditions: no network, two phones in their simulators
+    sharing by file and by QR code, and a full pad hold on the battery budget (ADR-282).
 
 ## Phase 8: Releases (ADR-162)
 
 Each release is met when ADR-162 §2's checklist holds at a commit on `main` and its release steps
 are written in [`docs/releasing.md`](releasing.md); publishing and tags stay Neer's. From 0.2
 on, the checklist also needs the release's product guide, written by the release milestone in
-M0.8a's form and read by Neer (ADR-196): 0.2 the analyzer's; 0.3 updates the simulator's and the
-analyzer's; 0.4 the competition and field kits'; 0.5 and 1.0 the app's. Each guide has a *Compared
-with* section: named tools, measured comparisons from a report, the gaps, and at least one
-capability none of them has, checked against its docs with the date (ADR-209).
+M0.8a's form and passed by a cold read (ADR-196, ADR-282): 0.2 the analyzer's; 0.3 updates the
+simulator's and the analyzer's; 0.4 the competition and field kits'; 0.5 and 1.0 the app's. Each
+guide has a *Compared with* section: named tools, measured comparisons from a report, the gaps,
+and at least one capability none of them has, checked against its docs with the date (ADR-209).
 
 - [ ] **M10.2 Release 0.2: the flight analyzer.** *Done when:* the checklist holds after M7.1,
   M7.2 and M7.3; each archive's smoke test reads a log with no design file; and a fit or residual
@@ -589,10 +590,11 @@ capability none of them has, checked against its docs with the date (ADR-209).
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0
   and M9.2; the app opens a design or a log, flies, plots and replays it in 3D with the ghost, on
-  the desktop and the web; Neer has used it (ADR-144's UI rule); and at least five flyers outside
-  the project have done its tasks, their times and problems in a report as aggregates (ADR-209 §10).
+  the desktop and the web; its acceptance pass is in its PR (ADR-282); and at least five flyers
+  outside the project have done its tasks, their times and problems in a report as aggregates (ADR-209 §10).
 - [ ] **M10.6 Release 1.0: the app.** *Done when:* the checklist holds after M10.5, M5.6a, M8.2,
-  M9.1, M5.6b, M8.1, M5.6c, M5.6d, M3.4 and M9.3, and Neer has used it.
+  M9.1, M5.6b, M8.1, M5.6c, M5.6d, M3.4 and M9.3, and its acceptance pass is in its PR
+  (ADR-282).
 ## Phase 9: The suite's new lines, one at a time after 1.0 (ADR-162 §4, ADR-163 §5)
 
 Neer's, 2026-10-04. Research: [propulsion](research/suite-propulsion.md),

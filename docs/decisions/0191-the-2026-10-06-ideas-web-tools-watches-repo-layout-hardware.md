@@ -1,6 +1,6 @@
 # ADR-191: Neer's 2026-10-06 ideas: the four web tools, watches, the repo layout and the hardware line (2026-10-06)
 
-- **Status:** accepted; amends [ADR-162, the suite and its releases][adr-162] §1 and §6; §1's API contract and §5 amended by [ADR-192, the follow-up](0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md)
+- **Status:** accepted; amends [ADR-162, the suite and its releases][adr-162] §1 and §6; §1's API contract and §5 amended by [ADR-192, the follow-up](0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md); the maintainer's use before a site is turned off amended by [ADR-282, the project tests each UI milestone itself](0282-the-project-tests-each-ui-milestone-itself.md) (turning it off stays his)
 - **Summary:** the four FusionSpace web tools (Motor Finder, Charge, Window, Muster) are rebuilt as library code and app screens in M9.6, after mobile; Motor Finder's scraper stays a hosted service whose API hpr keeps reading. hpr stays one repository with several workspaces, split only by named triggers. Watches wait until after mobile, with the phone as hub. The hardware line is ordered by regulation, and active-control firmware or hardware waits for Neer's export-control answer.
 
 **Context.** On October 6, 2026, Neer added four ideas ([VISION](../VISION.md), that date):

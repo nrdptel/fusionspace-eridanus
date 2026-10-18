@@ -1,6 +1,6 @@
 # ADR-144: The 2026-10-03 planning review: leaner bookkeeping, issues, writing, guardrails and licensing records (2026-10-03)
 
-- **Status:** accepted
+- **Status:** accepted; the UI rule (the maintainer uses every UI milestone) amended by [ADR-282, the project tests each UI milestone itself](0282-the-project-tests-each-ui-milestone-itself.md)
 - **Summary:** The 2026-10-03 planning review: M0.5 leaner bookkeeping first, then M6.2d2 (one attempt), M4.5, M1.14, M6.2e, M6.3 on; M4.5 and M8.3 CAD interop added; issue labels and P-critical first; a writing standard; guardrails; licensing records
 
 **Context.** A 2026-10-03 review found bookkeeping files outgrowing the code. `DECISIONS.md` is
@@ -66,7 +66,8 @@ hand-edits up to 8 mirrored places.
    honest bounds (Wilks, Clopper–Pearson), failed runs counted. Automated assistant features never
    write numbers or make safety calls. Regulatory templates carry a source date, a stale-after date
    and "not legal advice". A known wrong number in shipped physics blocks new user-facing surfaces
-   until fixed. Neer uses every UI milestone before it counts as done. Clean room:
+   until fixed. Neer uses every UI milestone before it counts as done (*amended by ADR-282:* the
+   project's own acceptance pass replaces his use). Clean room:
    `MadhavMandala/mudline` is never read (its README says its aerodynamics transcribes RASAero II's
    decompiled binary); AltOS, AltosUI and orhelper are GPL, so interop goes through documented file
    formats and published docs only.
