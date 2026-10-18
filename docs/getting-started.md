@@ -29,14 +29,29 @@ Install a release, or gather what you need to build HPR Sim yourself.
 **Release 0.1.0 is out.** Each part installs without a copy of the repository; the rest of this
 page builds HPR Sim from the repository instead, which works too:
 
-- **The command line, `hpr`.** Download the archive for your system from
-  [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and put `hpr` on
-  your path. Release 0.1 has archives for Linux on x86-64, Macs with Apple silicon, and Windows
+- **The command line, `hpr`.** A package manager installs it and keeps it up to date, or you
+  can download it yourself. Either way the command is `hpr`, and
+  [the command line](cli.md) documents its commands.
+  - **Homebrew**, on a Mac with Apple silicon or on Linux:
+    `brew install nrdptel/tap/fusionspace-hpr`. Naming the formula in full, with its tap, is also
+    how Homebrew learns to trust it. `brew upgrade` takes each new release.
+  - **Scoop**, on Windows: `scoop bucket add fusionspace https://github.com/nrdptel/scoop-bucket`
+    once, then `scoop install fusionspace/fusionspace-hpr`. `scoop update fusionspace-hpr` takes
+    each new release.
+  - **cargo binstall**, with Rust and [cargo-binstall](https://github.com/cargo-bins/cargo-binstall)
+    installed: `cargo binstall fusionspace-hpr-cli` downloads the release's archive instead of
+    compiling. It finds the archives from release 0.2 on; 0.1.0 was published to crates.io
+    without the lines that point it there.
+  - **By hand.** Download the archive for your system from
+    [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and
+    put `hpr` on your path.
+
+  Release 0.1 has archives for Linux on x86-64, Macs with Apple silicon, and Windows
   on x86-64; from release 0.2 there are also archives for Linux on 64-bit ARM and Windows on
-  ARM. Each is named `fusionspace-hpr-<version>-<system>`. Elsewhere, or with Rust
-  installed, `cargo install fusionspace-hpr-cli --locked` builds it. Either way the command is
-  `hpr`.
-  [The command line](cli.md) documents its commands.
+  ARM. Each is named `fusionspace-hpr-<version>-<system>`, and the package managers install the
+  same files. Elsewhere, or with Rust installed, `cargo install fusionspace-hpr-cli --locked`
+  builds it. Packages for winget and conda-forge are planned
+  ([issue #434](https://github.com/nrdptel/fusionspace-eridanus/issues/434)).
 - **The Python package.** `pip install fusionspace-hpr` installs it, and it imports as
   `fusionspace.hpr`: `from fusionspace import hpr`. One wheel
   serves CPython 3.10 and later on each of those systems (3.11 on Windows on ARM, its oldest); elsewhere pip builds it from
