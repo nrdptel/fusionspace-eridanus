@@ -80,8 +80,8 @@ fn sheet_data(rows: &[Vec<String>]) -> String {
     data
 }
 
-/// An `.xlsx` workbook of the named sheets, its parts stored uncompressed and undated, so that
-/// its bytes are the same on every run.
+/// An `.xlsx` workbook of the named sheets, its parts stored uncompressed, at one date and with
+/// one set of permissions, so that its bytes are the same on every run and every system.
 #[cfg(test)]
 fn workbook(sheets: &[(&str, String)]) -> Vec<u8> {
     let mut list = String::new();
@@ -112,7 +112,11 @@ fn workbook(sheets: &[(&str, String)]) -> Vec<u8> {
         ),
     ));
     let mut zip = ZipWriter::new(Cursor::new(Vec::new()));
-    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
+    // Dated 1980-01-01, zip's earliest, whether or not another crate turns on its clock.
+    let options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Stored)
+        .last_modified_time(zip::DateTime::default())
+        .unix_permissions(0o644);
     for (name, text) in &parts {
         zip.start_file(name.as_str(), options).unwrap();
         zip.write_all(text.as_bytes()).unwrap();
