@@ -7,6 +7,10 @@ name: Release
 # published unless the dispatch asks for it, and then only after Neer approves the `release`
 # environment; the archives and packages are kept as the run's artifacts.
 #
+# The archives also make a Homebrew formula and a Scoop manifest (scripts/release/
+# package_managers.py, issue #434), each installed from this run's archives on the systems it
+# serves, and attached to the release; the tap and the bucket copy them from there.
+#
 # The Linux archive and wheel are linked for glibc 2.17 (scripts/release/linux.sh, issue #372),
 # checked for it with objdump, and smoke-tested again inside a manylinux2014 image with that glibc.
 #
@@ -82,6 +86,91 @@ jobs:
             dist/fusionspace-hpr-*.tar.gz
             dist/fusionspace-hpr-*.zip
           if-no-files-found: error
+
+  # The Homebrew formula and the Scoop manifest for the archives above, written from their names
+  # and hashes. The tap (nrdptel/homebrew-tap) and the bucket (nrdptel/scoop-bucket) each copy the
+  # latest release's file on a schedule, so no job here needs a credential for them.
+  package-managers:
+    name: package managers
+    needs: cli
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: cli-*
+          path: dist
+          merge-multiple: true
+      - run: |
+          version="$(cargo pkgid --manifest-path crates/hpr-cli/Cargo.toml | sed 's/.*[#@]//')"
+          python3 scripts/release/package_managers.py "$version" dist package-managers
+      - run: ruby -c package-managers/fusionspace-hpr.rb
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-managers
+          path: |
+            package-managers/fusionspace-hpr.rb
+            package-managers/fusionspace-hpr.json
+          if-no-files-found: error
+
+  # `brew style`, `brew audit`, then `brew install` and `brew test` of the formula, pointed at this
+  # run's archive for the runner (scripts/release/smoke-homebrew.sh).
+  homebrew:
+    name: homebrew (${{ matrix.os }})
+    needs: package-managers
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-managers
+          path: package-managers
+      - uses: actions/download-artifact@v8
+        with:
+          name: cli-${{ matrix.os }}
+          path: dist
+      # Homebrew is installed on GitHub's x86-64 Ubuntu images but not on the path; the ARM image
+      # has none, so its installer runs, pinned to a commit of Homebrew/install.
+      - if: runner.os == 'Linux'
+        run: |
+          if [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+            installer=https://raw.githubusercontent.com/Homebrew/install/be041513824fd2666a0e93cf5c3b0ca3bb0eb4b6/install.sh
+            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$installer")"
+          fi
+          echo /home/linuxbrew/.linuxbrew/bin >> "$GITHUB_PATH"
+      - run: scripts/release/smoke-homebrew.sh package-managers/fusionspace-hpr.rb dist
+
+  # `scoop install` of the manifest, pointed at this run's Windows archive for the runner, x86-64
+  # or ARM (scripts/release/smoke-scoop.ps1).
+  scoop:
+    name: scoop (${{ matrix.os }})
+    needs: package-managers
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      # The script serves the archive with Python's own web server.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-managers
+          path: package-managers
+      - uses: actions/download-artifact@v8
+        with:
+          name: cli-${{ matrix.os }}
+          path: dist
+      - run: scripts/release/smoke-scoop.ps1 package-managers/fusionspace-hpr.json dist
+        shell: pwsh
 
   # One abi3 wheel per operating system for CPython 3.10 and later, installed into fresh
   # environments on 3.10 and 3.13 and run (scripts/release/python.sh, smoke-python.sh).
@@ -175,7 +264,7 @@ jobs:
   publish-crates:
     name: publish crates
     if: github.event_name == 'workflow_dispatch' && inputs.publish
-    needs: [cli, wheel, sdist, crates]
+    needs: [cli, wheel, sdist, crates, homebrew, scoop]
     runs-on: ubuntu-latest
     environment: release
     timeout-minutes: 60
@@ -195,7 +284,7 @@ jobs:
   publish-pypi:
     name: publish to PyPI
     if: github.event_name == 'workflow_dispatch' && inputs.publish
-    needs: [cli, wheel, sdist, crates]
+    needs: [cli, wheel, sdist, crates, homebrew, scoop]
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -209,12 +298,12 @@ jobs:
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
 
-  # A draft release with the archives, wheels and source package; publishing the draft makes the
-  # tag, which stays Neer's click.
+  # A draft release with the archives, wheels and source package, and the Homebrew formula and
+  # Scoop manifest; publishing the draft makes the tag, which stays Neer's click.
   github-release:
     name: draft GitHub release
     if: github.event_name == 'workflow_dispatch' && inputs.publish
-    needs: [cli, wheel, sdist, crates]
+    needs: [cli, wheel, sdist, crates, homebrew, scoop]
     runs-on: ubuntu-latest
     environment: release
     permissions:

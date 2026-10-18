@@ -106,6 +106,9 @@ Release 0.1.0 is out:
 - **the command line:** the `fusionspace-hpr` archive for your system from
   [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), or
   `cargo install fusionspace-hpr-cli --locked`; either gives you the `hpr` command;
+- **the command line from a package manager:** `brew install nrdptel/tap/fusionspace-hpr` with
+  Homebrew, or Scoop on Windows
+  ([Install a release](https://hpr.fusionspace.co/getting-started.html#install-a-release));
 - **Python:** `pip install fusionspace-hpr`, then `from fusionspace import hpr`;
 - **a Rust program:** `cargo add fusionspace-hpr`, then `use hpr::…`.
 
