@@ -574,6 +574,11 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
 - **Loggers unlike the tuning set's.** The bounds hold on the tuning set's
   [six simulated logger profiles](synthetic-flights.md#the-loggers), at their noise. A logger
   noisier than they are, or a rocket slower off the pad than 2 g, can be read outside its bound.
+  A pad that drifts within the 2 m (6.6 ft) allowance, early one way and late the other, can read
+  liftoff outside its bound: a review measured up to 1.22 times the bound at ±2 m (6.6 ft) on a
+  synthetic climb
+  ([#773](https://github.com/nrdptel/fusionspace-eridanus/issues/773), the pad error's noise
+  budget).
 - **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
   pad. A rocket slower than that is read later than its liftoff bound, and may already be further
   up, when a log starts, than its pad's error allows.
