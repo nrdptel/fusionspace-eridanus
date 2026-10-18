@@ -1,59 +1,100 @@
 # Flight-log readings
 
-See which readings HPR Sim takes from a flight log alone, such as apogee and descent rate, and when
-it withholds one instead of guessing.
+See which readings HPR Sim takes from a flight log alone, the bound each states, and when it
+withholds one instead of guessing.
 
 ## In short
 
-- **What it models:** the readings taken from a [flight log](../glossary.md#flight-log) on its own,
-  with no design file and no simulation: liftoff, apogee and the time to it, the top speed in the
-  climb, landing, and the mean rate of descent. Each reading is a value that says where it came
-  from, or is **withheld** with the reason the log can't support it. It never guesses.
+- **What it models:** the readings taken from a [flight log](../glossary.md#flight-log) on its
+  own, with no design file and no simulation: liftoff, apogee and its time, the top speed in the
+  climb, landing, the flight time and the mean rate of descent. They come from any logger's height
+  track: its own barometric altitude, a pressure turned into a height by the 1976 standard
+  atmosphere, or an altitude kept in a column of its own. Each reading states a bound on its error
+  and where it came from, or is **withheld** with one of 23 reasons. It never guesses. A GNSS
+  (GPS) height gives no reading, and the top acceleration waits for
+  [M7.2c, the rest of the readings](../decisions-and-roadmap.md#m7-2c).
 - **Sources:** the [running median](../glossary.md#running-median) is the Hampel filter at
-  threshold zero, as Pearson and colleagues define it ([References](#references)). The thresholds
-  (a 3 m (9.8 ft) climb, landing within 2 m (6.6 ft), a 4,000 m/s (13,123 ft/s) ceiling, a 20% noise share) are those of Debrief, the
-  project owner's earlier flight-log analyzer, set on its collection of real logs rather than
-  taken from a published source. The landing check uses a fall from rest in vacuum: drag only
-  slows a fall, so no real descent is faster.
-- **How well it is validated:** against an invented flight whose every reading is known exactly,
-  each reading lands within the bound the log's rounding and the filter allow ([Checked
-  against](#checked-against)) ([evidence row G10](../evidence.md#g10)). On a real log, Debrief's
-  public Pnut file, FusionSpace HPR reads 1,010 ft where the altimeter's own software states 1,009
-  ft: one flight, and two readings of one pressure trace rather than a measurement of the height.
-  That log isn't committed, so this check runs only where it has been fetched, not in CI. The
-  private collection of logs Debrief was built on is read by the importer
-  ([M7.1a](../decisions-and-roadmap.md#m7-1a), [the layouts read](../format/flight-logs.md)), but
-  the readings aren't yet checked against it: that is [M7.2](../decisions-and-roadmap.md#m7-2)'s
-  work, on [the synthetic flights](synthetic-flights.md), whose truth is known, and then on real
-  logs.
-- **What it leaves out:** the drogue and main descent rates each on its own, Mach number,
-  dynamic pressure, burnout, and anything an accelerometer or GPS would give. It takes the
-  logger's altitude as the logger converted it, with no correction for the day's air, and has no
-  check for a barometer's errors near the speed of sound
+  threshold zero, as Pearson and colleagues define it. The landing's thresholds and the least
+  climb are those of Debrief, the project owner's earlier flight-log analyzer. The bounds' terms
+  come from the noise model of [the synthetic flights](synthetic-flights.md), the hypsometric
+  equation, the safety codes' 3:1 thrust to weight and the National Weather Service's rate for a
+  rapid change of pressure ([References](#references)). The rest are HPR Sim's choices, recorded in
+  [ADR-281, readings on every logger][adr-281].
+- **How well it is validated:** on the synthetic flights'
+  [tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds),
+  171 flights logged by a barometer, each logged again at 36 rates and steps and cut 6 ways as
+  loggers that record from launch cut them, every reading given stayed within its bound. The
+  largest share of its bound any error took was 0.717, on an apogee
+  ([Checked against](#checked-against)). The bounds were
+  tuned on those same flights, so this shows they are wide enough there, not on flights held
+  apart. On an invented PerfectFlite log, every reading lands within its bound and within the
+  tighter one its test works out ([evidence row G10](../evidence.md#g10)). A real log has no truth
+  beside it: the 1,058 records of the project's sample logs show which readings each logger
+  gives (an apogee from 593 of them), not how right they are.
+- **What it leaves out:** the top acceleration, burnout, each canopy's descent rate, the Mach
+  number and dynamic pressure; 90% intervals on the readings; loggers noisier than the tuning
+  set's [six simulated logger profiles](synthetic-flights.md#the-loggers) and rockets slower off
+  the pad than 2 g, either of which can be read outside its bound; air more than 15 K from
+  standard; and any correction for the day's air, which sits in the bound instead
   ([What it leaves out](#what-it-leaves-out)).
 
 ## The method
 
-Why the readings follow these rules, the filter applied first, and how each reading is taken or
-withheld.
+Why the readings follow these rules, the track they come from, the filter applied first, and how
+each reading is taken.
 
 ### Why these rules
 
 Code: `hpr_flightdata::readings`
-([API reference](../api/hpr_flightdata/readings/index.html)), on the command line
-[`hpr analyze`](../cli.md#hpr-analyze). It came with [M4.2d](../decisions-and-roadmap.md#m4-2d),
-the milestone that added `hpr analyze`; the choices below are recorded in [ADR-108][adr-108], the
-decision on how a log is read. The one log format read so far is
-[PerfectFlite's `.pf2`](../format/pf2.md).
+([API reference](../api/hpr_flightdata/readings/index.html)); on the command line
+[`hpr analyze`](../cli.md#hpr-analyze); from Python, `FlightLog.readings()`
+([Reading your own logger](../your-own-logger.md#from-python)). The readings came with
+[M4.2d](../decisions-and-roadmap.md#m4-2d), the milestone that added `hpr analyze`, on
+PerfectFlite's logs alone ([ADR-108][adr-108], the decision on how a log is read).
+[M7.2b, readings on every logger](../decisions-and-roadmap.md#m7-2b), takes them from every
+logger's height track and gives each a bound held on the synthetic flights
+([ADR-281][adr-281]).
 
-A barometric altimeter's altitude is a good record of a flight's heights, with two flaws a
-reading must survive. It moves in steps of its resolution, one foot for a PerfectFlite, so the top
-of the climb sits flat for several samples. And when the ejection charge fires, the pressure
-inside the electronics bay jumps, and for a tenth of a second the altitude swings tens of feet
-away from the truth. Take the highest sample as the apogee and you read that swing.
+A barometric altimeter's height track is a good record of a flight's heights, with flaws a
+reading must survive:
 
-So every height and time comes from the altitude after a running median, which removes the
-swing, and each reading has a rule that says when the log can't support it.
+- **Steps.** It moves in steps of its resolution, a foot for a PerfectFlite, so the top of the
+  climb sits flat for several samples.
+- **Pulses.** When the ejection charge fires, the pressure inside the electronics bay jumps, and
+  for a tenth of a second the height swings tens of feet away from the truth. Take the highest
+  sample as the apogee and you read that swing.
+- **Noise and drift.** The sensor's noise is correlated from one sample to the next, so it doesn't
+  average away quickly, and its zero drifts.
+- **The day's air.** A logger turns pressure into height by the standard atmosphere, so on a day
+  warmer or colder than standard every height is off by a share of itself.
+
+So every height and time comes from the track after a running median, which removes the pulse;
+each reading states a bound that covers the rest; and each has a rule that says when the log can't
+support it.
+
+### The height track
+
+Every reading of a height or a time comes from one track, the first of these the log holds. The
+code each reading names as its `source` says which:
+
+| `source` | the track | its zero |
+|---|---|---|
+| `barometer` | the logger's own barometric altitude, the record's primary track | the logger's zero, which it sets on the pad |
+| `pressure` | a pressure channel, turned into a height by the 1976 standard atmosphere, as every logger documented does it ([the height formulas note][formulas]) | the pad, found from the samples |
+| `altitude_channel` | a barometric altitude kept in a channel, above the ground or above sea level | the ground for the first; the pad, found from the samples, for the second |
+| `gnss` | a GNSS receiver's altitude | none: no reading is taken |
+
+A GNSS height gives no reading. A receiver's navigation filter lags a climb and overshoots its top
+by more than a barometer's bounds allow (`receiver_lag`), and its fix drops out or lags at liftoff
+(`receiver_dropout`). An altitude whose sensor the log doesn't state, such as a table's `Altitude`
+column read by its header, gives none either (`unstated_sensor`): a barometer's bounds can't be
+stated for it. A column mapping can mark such a column as the barometer's own track
+([Reading your own logger](../your-own-logger.md)).
+
+A track's **step** is the logger's resolution where its reader knows it, a foot for a PerfectFlite;
+otherwise it is the smallest gap between two of the track's values. A pressure's step becomes a
+step in height that grows as the air thins, $\Delta h = \Delta p/(\rho g)$, with $\rho$ the
+standard atmosphere's density at that height: 10 Pa is 0.83 m (2.7 ft) at sea level.
 
 ### The running median
 
@@ -92,76 +133,371 @@ Two properties make it the right tool here:
 Debrief uses the Hampel filter at $t = 4$ over the same window. FusionSpace HPR doesn't, because of
 what the public Pnut log shows. Around its ejection pulse the trace dips below itself just before
 the pulse and stays lower after it. Those samples sit in the pulse's own window and widen its scale
-$S_k$, and the Hampel filter keeps the pulse: its highest value is the pulse's 1,028 ft, against
-the 1,009 ft the altimeter states. After the running median, the apogee reads 1,010 ft. The
-invented flight below repeats that shape, so the tests show the difference where anyone can run
-them.
+$S_k$, and the Hampel filter keeps the pulse: its highest value is the pulse's 1,028 ft above the
+altimeter's zero, against the 1,009 ft apogee the altimeter states. After the running median, the
+apogee reads 1,010 ft above the zero, which is 1,009 ft above the pad. The invented flight below
+repeats that shape, so the tests show the difference where anyone can run them.
+
+### The pad and the climb
+
+The readings measure heights from the pad, so the pad must be found first, and only from samples
+taken before the rocket moved. Three rules do it, each with a number set from the noise:
+
+1. **The allowance.** The filtered track may sit up to 2 m (6.6 ft) from the pad and still be on
+   it, or as far as the pad's own filtered samples stray if that is more, plus one step. The 2 m
+   (6.6 ft) is four times the synthetic flights' fast correlated barometer noise, 0.5 m (1.6 ft), HPR
+   Sim's choice. Half a foot, the rule before
+   [M7.2b](../decisions-and-roadmap.md#m7-2b), read liftoff up to 6 s early on a noisy
+   500 Hz barometer, the noise lifting the pad's last samples above it; 1 m (3.3 ft) read one
+   tuning flight 6.8 s early, against a 4.5 s bound; 2 m (6.6 ft) never did.
+2. **The climb** begins at the first filtered sample twice the allowance and a step above where
+   the log starts: 4.61 m (15.1 ft) on a PerfectFlite, whose step is a foot. The pad's noise lifts
+   the filtered track by at most the allowance, from below at the start or from above at the climb,
+   so twice that is out of its reach.
+3. **The pad** is the median of the samples up to the last one within half that rise of the start,
+   before the climb: 2.30 m (7.6 ft) on a PerfectFlite. The median means that no one sample's jitter
+   sets the pad, and the half rise means the climb lends it few samples.
+
+**The pad's error.** A log that starts just before liftoff holds little of the pad, and a rocket
+may already be moving when its first sample is taken. A rocket that leaves the pad at $A = 2g$ or
+more, moving at $v$ when the log starts, climbs $v t + \tfrac12 A t^2$ in the time $t$ the track
+stays within half the rise of its start. That climb can't pass the rise $r$, the noise allowed at
+either end, so its samples bound $v$, and with it how far up the rocket may already be:
+
+$$
+\begin{aligned}
+v &\le (r - \tfrac12 A t^2)/t, \\
+e_{\mathrm{pad}} &= v^2/(2A)
+\end{aligned}
+$$
+
+That much enters the liftoff, apogee and landing bounds. The acceleration is the least the safety
+codes allow: the NAR's high-power code asks that a rocket weigh no more than a third of its motor's
+certified average thrust, and Tripoli's allows less than 3:1 only with an active stability system.
+Thrust three times the weight leaves twice gravity to climb with. The tuning set's slowest rocket
+averages 30 m/s² over its first 5 m (16 ft).
+
+On the public Pnut log, for example, the filtered track stays within 2.30 m (7.6 ft) of its start
+for 0.40 s. A rocket at $A = 19.6\,\mathrm{m/s^2}$ that climbed no more than the 4.61 m (15.1 ft) rise in
+that time was moving at no more than $(4.61 - 19.6 \times 0.40^2/2)/0.40$, or 7.60 m/s
+(24.9 ft/s), when the log started, so it can't have been more than $7.60^2/(2 \times 19.6)$, or
+1.47 m (4.8 ft), up. That is within the allowance, so the pad stands, and the 1.47 m (4.8 ft) is part of
+the apogee's 27.4 m (90 ft) bound.
+
+**A short pad.** Where the pad's error could pass the 2 m (6.6 ft) allowance, the pad is short
+(`short_pad`): the log starts after liftoff, as a logger that records from launch writes its zero
+and then the climb, or holds too little of the pad to tell liftoff by. What happens next depends on
+the track's zero:
+
+- **A zero set on the pad**, the logger's own altitude as its format's reader reads it: the
+  heights are read from that zero. Liftoff is withheld unless a sample before apogee sits
+  within the allowance of the zero, and so is the top speed if it peaks within 0.5 s of the log's
+  start, where a faster climb may have come before the first sample.
+- **A zero only a word vouches for**, a mapped table's altitude or a channel whose header calls
+  it above the ground ([#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646), a
+  wrong unit or a wrong zero in a mapping): such a zero may sit anywhere within 19.9 m (65 ft) of
+  the pad ([below](#before-any-reading)), and with no pad of samples, nothing places it better
+  than the first sample does. That sample reads `s` above the zero after a climb of up to the
+  pad's error `C`, so the zero stands between `s` below the pad and `C − s` above it. The heights
+  are read from it, as from a zero set on the pad, and the larger distance,
+  `max(|s|, min(19.9 m, C − s))`, enters the liftoff, apogee and landing bounds as the pad's
+  error. A log too sparse to bound the climb before it takes the whole 19.9 m (65 ft).
+- **Any other track**, a pressure or an altitude above sea level: no zero places the pad, so
+  every reading but the top acceleration is withheld.
 
 ### Each reading
 
-In the rules below, the **climb** begins at the first sample whose filtered altitude is 3 m (9.8 ft) above
-where the log starts. The **pad** is the median of the altitude before it first rises 1 m (3.3 ft), so no
-one sample's jitter sets it. This project chose 1 m (3.3 ft), a third of the 3 m (9.8 ft) climb. It is low so that a
-log starting just before liftoff counts few climbing samples as pad. A PerfectFlite
-zeroes its altitude on the pad, so a pad more than 3 m (9.8 ft) from zero means the log didn't start there.
+Each reading names its `method`, and its `provenance`: `measured` when it is read straight off the
+track, `derived` when it is worked out from it. A third, `clipped`, is kept for
+[M7.2c](../decisions-and-roadmap.md#m7-2c)'s top acceleration, for a value at its sensor's range.
 
-| reading | rule | where it comes from |
+| reading | rule | `method` | `provenance` |
+|---|---|---|---|
+| liftoff | the last sample before apogee whose filtered height is within the pad's allowance | `last_on_the_pad` | `measured` |
+| apogee | the filtered track's highest value; its time the middle of the run of samples that hold it | `highest_filtered` | `measured` |
+| time to apogee | apogee's time less liftoff's | | |
+| top speed | the steepest least-squares slope of the filtered track over 0.5 s, from liftoff to apogee | `steepest_slope` | `derived` |
+| landing | the first sample after apogee back within the pad's allowance that stays below it, 3 m (9.8 ft) and a step for a second, and no sooner than a fall from rest in vacuum could lose that height | `back_on_the_pad` | `measured` |
+| flight time | landing's time less liftoff's | | |
+| mean descent rate | the filtered height lost from apogee to landing, over the time taken | | |
+| top acceleration | withheld: `no_accelerometer`, or `not_yet_taken` on a log that has one | | |
+
+Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach, so
+it comes after the true liftoff by the time that climb took.
+
+The **top speed** is HPR Sim's own, worked out from the heights rather than read from a speed
+column a logger writes: every logger's track can give one, and its bound can be stated. A 0.5 s
+fit averages the barometer's correlated noise down to a few meters a second, and is short enough to
+keep most of the peak. It needs at least 5 samples in the fit, so a log sampled slower than every
+0.125 s has none (`sampled_too_slowly`). It is withheld at 227.7 m/s (747 ft/s) and above
+(`transonic`): Mach 0.8 in the coldest air the bounds allow below 20 km (12 mi), the standard
+atmosphere's 216.65 K less 15 K. From Mach 0.9 the
+pressure behind an ogive's shoulder jumps on its way to Mach 1.0 ([the Mach error note][mach] §1–2),
+so a speed derived from the heights there can be far off. Debrief's two refusals stay: a
+speed above 4,000 m/s (13,123 ft/s) (`implausible_speed`), and a climb whose speed swings below
+zero by more than 20% of its top (`noisy_speed`).
+
+**Landing** is the first sample within the pad's allowance, at least Debrief's 2 m (6.6 ft), that
+stays under the allowance and 3 m (9.8 ft) more, and a step, for Debrief's second. So it comes
+before touchdown by the time the last few meters took: about 0.4 s under a main at 6 m/s
+(20 ft/s) on a PerfectFlite's log. A barometer drifts during a flight, so the ground
+can read a little above or below the pad. The mean descent rate covers the drogue and the main
+together.
+
+The **top acceleration** is withheld rather than worked out from the heights. Differencing twice
+turns a track's steps into spikes: at 20 samples a second, a one-foot step differenced twice is
+$0.3048/0.05^2 = 122\,\mathrm{m/s^2}$, over 12 g. Taking it from an accelerometer is
+[M7.2c](../decisions-and-roadmap.md#m7-2c)'s work.
+
+## Bounds and refusals
+
+What each bound adds up, a worked example, the checks a log passes before any reading, and the
+reasons a reading is withheld.
+
+### What each bound holds
+
+Each reading states the bound its error stays within. A bound is a sum of terms, each the size of
+one error the synthetic flights draw, or measured on the log itself. Most of an apogee's bound is
+the day's air.
+
+- **Apogee height.** The day's air and the barometer's gain as shares of the height $h$, then the
+  noise, the pad's error, the drift since the log began, a step at the pad and one at the peak,
+  and the median's peak bound:
+
+  $$
+  \begin{aligned}
+  b_h &= (s_T + s_G)\, h + n + e_{\mathrm{pad}} \\
+  &\quad + d\, t_a + \Delta_0 + \Delta_a + b_{\mathrm{med}}
+  \end{aligned}
+  $$
+
+- **Apogee time.** The time the top of a coast takes to fall by the noise and a step,
+  $\sqrt{2 (n + \Delta_a)/g}$, and the longer interval either side of the peak's flat run.
+- **Liftoff.** The time a rocket at $A = 2g$ takes to climb the allowance and the pad's error,
+  once above the pad and once below, $\sqrt{4 (a + e_{\mathrm{pad}})/A}$, and the longer interval
+  either side of the sample, twice.
+- **Top speed.** The day's air and the gain as shares of the speed $v$; the port's error while the
+  rocket accelerates at $a_1$, $0.02\, v a_1/g$; the fit cutting the peak, $(a_1 + a_2)\, w/4$,
+  where $a_1$ and $a_2$ are the climb's change of speed before and after it, measured on the fits;
+  and the noise in a speed.
+- **Landing.** The time the descent takes to fall the allowance, the noise, the pad's error, the
+  logger's height above the ground, a step and the drift, at its rate near the ground taken slow by
+  a step and twice the noise; and the longer interval either side of the sample, twice.
+- **Flight time.** Liftoff's bound and landing's, added.
+- **Mean descent rate.** The apogee's height bound and the height landing is read early by, then
+  the rate times the apogee's and landing's time bounds, all over the descent time.
+
+Each term, and where its size comes from:
+
+| term | size | source |
 |---|---|---|
-| liftoff | the last sample before the climb whose filtered altitude is within half the altitude's resolution (half a foot) of the pad | the barometer |
-| apogee | the filtered altitude's highest value; its time the middle of the run of samples that hold it | the barometer |
-| time to apogee | apogee's time less liftoff's | the barometer |
-| top speed | the highest of the logger's own vertical speed from liftoff to apogee | the logger's speed column, which it works out from its barometer |
-| top acceleration | withheld when the log has no accelerometer | none |
-| landing | the first sample after apogee within 2 m (6.6 ft) of the pad that stays under 5 m (16 ft) for a second, and no sooner than a fall from rest in vacuum could lose that height | the barometer |
-| mean descent rate | the filtered height lost from apogee to landing, over the time taken | the barometer |
+| $s_T$, the day's air | 6.92% | a height read by the standard atmosphere is off by $\Delta T/T$ of itself over the layer it spans (the hypsometric equation); $\Delta T$ is the synthetic flights' 15 K range of air ([ADR-280][adr-280] §2), and $T$ no colder than the standard atmosphere's 216.65 K below 20 km (12 mi). Near the ground it is about 0.35% a kelvin |
+| $s_G$, the barometer's gain | 0.25% | an MS5607's ±1.0 mbar over the 400 mbar span its datasheet states it on, the widest of the synthetic flights' parts; reading that error as a gain is an inference ([ADR-280][adr-280] §3) |
+| $n$, the noise | 3 m (9.8 ft) | the fast and slow correlated noise, the part's white noise, the pad's median and the port's error at apogee's sideways speed, added and tuned on the tuning set |
+| $d$, the drift | 0.015 m/s (0.049 ft/s) | the synthetic flights' fastest drift, 3 Pa in 30 s ([ADR-280][adr-280] §3), at the density of air 5 km (3.1 mi) up, 0.74 kg/m³ |
+| $\Delta$, a step | the track's step | the rounding of the logger's numbers; a pressure's step at the height it is read at |
+| $b_{\mathrm{med}}$, the median's peak bound | 0.077 m (0.25 ft) at 20 samples a second | gravity's bend over the median's reach ([The running median](#the-running-median)) |
+| $e_{\mathrm{pad}}$, the pad's error | up to 2 m (6.6 ft) | how far up the rocket may be when the log starts ([The pad and the climb](#the-pad-and-the-climb)) |
+| $a$, the allowance | at least 2 m (6.6 ft), and a step | four times the fast correlated noise, HPR Sim's choice |
+| the logger above the ground | 3 m (9.8 ft) | a tall rocket's electronics bay on a rail, HPR Sim's choice: it lands lower than it started by as much |
+| the port, while accelerating | a pressure coefficient of 0.02 | the ogive-cylinder's measured −0.02 one caliber behind its shoulder below Mach 0.9 ([the Mach error note][mach] §1–2), the largest the synthetic flights draw |
+| $w$, the fit's width | 0.5 s | HPR Sim's choice; a fit cuts a peak by about $(a_1 + a_2)\, w/8$, and twice that is allowed |
+| the noise in a speed | 5 m/s (16 ft/s) | tuned on the tuning set |
 
-Liftoff is the last sample before the altitude shows the rocket moving: the filtered altitude was
-within half the altitude's resolution of the pad then, and passed it within the next sample.
+The two tuned terms, the 3 m (9.8 ft) and the 5 m/s (16 ft/s), were set on the same flights the bounds are held on
+([Checked against](#checked-against)).
 
-Landing is the first sample within 2 m (6.6 ft) of the pad, so it comes before touchdown by the time the
-last 2 m (6.6 ft) took: a third of a second under a main at 6 m/s (20 ft/s). A barometer drifts during a flight, so
-the ground can read a little above or below the pad. If it reads below, the landing is read
-while the trace is still falling; if it reads more than 2 m (6.6 ft) above, no landing is found. The mean descent rate covers the drogue and the main together.
-Splitting it into each leg's own rate is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
+### A worked example
 
-The top acceleration is withheld rather than worked out from the altitude. Differencing twice
-turns the altitude's one-foot steps into spikes: at 20 samples a second, one step differenced
-twice is $0.3048/0.05^2 = 122\,\mathrm{m/s^2}$, over 12 g.
+The invented PerfectFlite log that the command line's own example reads
+([`hpr analyze`](../cli.md#hpr-analyze) prints it) reads an apogee of 390.144 m (1,280 ft), 10.275 s into the
+log, on a track in one-foot steps sampled 20 times a second. Its filtered track stays within
+2.30 m (7.6 ft) of its start for 0.80 s, longer than the 0.69 s a rocket at rest would need to
+climb the 4.61 m (15.1 ft) rise at 2 g, so the pad's error is zero. The bound adds up so:
+
+| term | worked out | meters |
+|---|---:|---:|
+| the day's air | 0.06924 × 390.144 m | 27.01 |
+| the barometer's gain | 0.0025 × 390.144 m | 0.98 |
+| the noise | | 3.00 |
+| the pad's error | | 0.00 |
+| the drift | 0.015 m/s × 10.275 s | 0.15 |
+| a step at the pad, and one at the peak | 2 × 0.3048 m | 0.61 |
+| the median's peak bound | | 0.08 |
+| the bound | | 31.83 |
+
+`hpr analyze` prints it rounded up, as it prints every bound: "within 31.9 m (105 ft)". The flight's true apogee is 390.31 m
+(1,280.5 ft), so the reading is 0.17 m (0.56 ft) low: about a two-hundredth of its bound, as it
+should be on a log written from the true heights with no noise. About 85% of the bound is the day's
+air, which a real log can't rule out.
+
+### Before any reading
+
+A log passes four checks before any reading is taken from it. Each keeps the readings inside the
+range the bounds were checked over, or catches a track that isn't what it says:
+
+- **It is sampled no slower than every 2 s and no faster than every 2 ms**, the slowest and
+  fastest rates on the tuning set: half a sample a second (`sampled_too_slowly`) and 500 a second
+  (`sampled_too_fast`). A clock a part in a thousand faster than 500 a second still reads, as a
+  logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
+  second, is withheld as too fast.
+- **Its step is no coarser than 10 m (33 ft), or 100 Pa for a pressure** (`step_too_coarse`), the
+  coarsest checked on the tuning set. The coarsest the readers meet are a MARSA's 8.8 m (29 ft)
+  heights and an ARTS2's 92 Pa raw counts.
+- **Its clock increases** (`clock_out_of_order`). A reader keeps a channel's clock as the file
+  writes it, which can repeat or run back, as a GNSS receiver's fixes or a team's merged table do.
+- **Its climb slows as a coast does.** A coast loses $g t^2/2$ in the last $t$ before its top, 78.5 m
+  (257 ft) in 4 s, gravity slowing it and drag only adding. A track must lose more than twice its
+  noise and step in the 4 s before its top, 6.6 m (22 ft) on a PerfectFlite, or it is withheld
+  (`slower_than_free_coast`). The threshold isn't a coast's 78.5 m (257 ft), since a flight whose motor burns
+  into those 4 s loses less.
+
+**A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
+two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are
+withheld; liftoff is still given.
+
+- **A fall before the top.** A coast doesn't fall and rise again. A track that falls more than
+  twice its noise and step below a peak in the 4 s before its top, then climbs to that top, holds
+  a top that a disturbance after apogee made, such as a deployment's pressure bump that lasts
+  longer than the 0.3 s median takes out. A top such a bump holds after apogee can put the
+  apogee's time past its bound.
+- **A spike at the top.** A coast slows into its top at gravity and drag, and near the top drag
+  is smaller than gravity, so it climbs no more than $g \Delta^2$ in its last $\Delta$, as a body
+  slowing at twice gravity would. And nothing falls from its top faster than gravity pulls it. A
+  track that, within a second either side of its top, or two samples on a slower track, both
+  climbs into the top faster than that and falls from it faster than a body at rest there can,
+  each by more than twice its noise and step, holds a spike, such as a charge's. The fall allows
+  for the filtered top trailing the true one: the speed a fall from rest gathers within the
+  median's window and twice the noise and step, then gravity's fall from there.
+
+Drag's upward share stays under gravity over a last second for any ballistic coefficient (the
+mass over the drag coefficient times the frontal area) over 150 kg/m², even at 120 m/s (394 ft/s)
+across; a rocket 29 mm (1.1 in) across, of 0.3 kg, has about 800. That covers a 1 s span. On a slower track the span is two
+samples, up to 4 s at half a sample a second. There the argument holds only over about 380 kg/m²
+on a vertical coast, and about 700 kg/m² at 120 m/s (394 ft/s) across. Below that a coast can climb
+into its top faster than the check allows, so a good top that a charge then drops fast may be
+withheld. The check only withholds, so it never reads such a top wrong.
+
+On a PerfectFlite logging 20 times a second, twice the noise and step is 6.6 m (22 ft), so a coast
+climbs at most 16.42 m (54 ft) in its last second. In the tests, a step 20 m (66 ft) above a coast's
+top and 0.6 s wide falls 29.0 m (95 ft) from the filtered top in one sample, where a body at rest
+there falls at most 20.9 m (69 ft), so it is withheld.
+
+Either half of a spike alone is read, as a good top makes each. A parachute open before apogee
+slows the climb into the top harder than a coast does, but not the fall from it: the tests' chute,
+opened at 40 m/s (131 ft/s), climbs 20 m (66 ft) in its last second, then falls at gravity. A
+charge that raises the bay's pressure at the top drops the track fast, but only after the coast's
+own climb: 50 m (164 ft) for half a second in the tests. Both read their apogee within its bound.
+
+Two public logs of a charge's transient show both outcomes
+([#702](https://github.com/nrdptel/fusionspace-eridanus/issues/702), a transient read as the
+peak; [Public logs of faulty flights][faulty]). A TeleMetrum log from a forum thread, whose raw
+peak was one sample of a pressure spike after the charge, now reads the coast's peak: the median
+takes the one sample out. An MIT-licensed Blue Raven log of a breakup is withheld by the spike
+check. The tests rebuild both shapes with invented numbers.
+
+Another check guards a height that is above the pad only by a word. A column mapping can call a
+column an altitude above the ground, and a column's header can say so, but neither proves it. Such
+a track must start within 19.9 m (65 ft) of its zero (`starts_off_the_pad`): a logger zeroes on the
+pad, and its zero moves with the weather and the noise before launch. The 19.9 m (65 ft) is an
+hour on the pad at the National Weather Service's rate for *pressure rising rapidly* or *falling
+rapidly*, 0.06 inHg (203.2 Pa) an hour, and the 3 m (9.8 ft) noise. At sea level's density,
+1.225 kg/m³, an hour's 203.2 Pa is 16.9 m (55 ft) of height, and the noise makes up the rest. The
+hour is HPR Sim's choice.
+
+That check closes the first half of
+[#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646): an altitude above sea level
+mapped as one above the ground. Its second half, a clock in milliseconds read as seconds, is caught
+by the checks above: the samples come a thousand times too far apart, slower than every 2 s at any
+logger rate below 500 a second, and a track on such a clock loses less than a tenth of a millimeter
+in the 4 s before its top, where a coast loses 78.5 m (257 ft). A test holds both halves both ways: the wrong
+unit withheld by name, the same flight in its right unit read.
 
 ### When a reading is withheld
 
 A withheld reading has a code and a sentence with the log's own numbers. Only the readings that
-need the missing one go: a log that starts in the air loses its liftoff, and with it the time to
-apogee, the top speed, the landing and the mean descent rate, but keeps its apogee's height and
-time.
+need what is missing go: a log that starts in the air on the logger's own altitude loses its
+liftoff, and with it the flight time, but keeps its apogee, top speed and landing. There are 23
+reasons:
 
 | code | when | readings withheld |
 |---|---|---|
-| `too_short` | the log has fewer than 3 samples | all |
-| `no_climb` | the filtered altitude never climbs 3 m (9.8 ft) above where the log starts | all |
-| `starts_off_the_pad` | the pad is more than 3 m (9.8 ft) from the logger's zero | liftoff, and so the top speed and landing |
-| `ends_before_landing` | the log ends before the altitude comes within 2 m (6.6 ft) of the pad and stays under 5 m (16 ft) for a second | landing |
-| `faster_than_free_fall` | the altitude comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, $\sqrt{2h/g}$, allowing one step of the altitude's rounding in $h$ and a sample for the apogee's time | landing |
-| `no_speed_column` | the log has no speed column | the top speed |
-| `implausible_speed` | the speed column peaks above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
+| `too_short` | the track has fewer than 3 samples | all |
+| `no_climb` | the filtered track never climbs twice the allowance and a step above its start, or 3 m (9.8 ft) above the pad, or the allowance and a step if that is higher; or, for landing, falls too little past its step and noise to time the descent | all, or landing |
+| `starts_off_the_pad` | a track above the pad only by a mapping's or a column's word starts more than 19.9 m (65 ft) from its zero | all |
+| `short_pad` | the first samples can't rule out a rocket already more than 2 m (6.6 ft) up | liftoff, and a top speed at the log's start, on a track with a zero, the logger's own or a word's; all on any other track |
+| `ends_before_landing` | the log ends before the track is back within the pad's allowance and stays down for a second | landing |
+| `faster_than_free_fall` | the track comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, $\sqrt{2h/g}$, allowing a step in $h$ and a sample for the apogee's time | landing |
+| `implausible_speed` | the top speed is above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
 | `noisy_speed` | from liftoff to apogee the speed swings below zero by more than 20% of its top | the top speed |
-| `speed_peak_at_liftoff` | the speed peaks on the liftoff sample itself: a spike, not a climb | the top speed |
+| `transonic` | the top speed reaches 227.7 m/s (747 ft/s) | the top speed |
+| `sampled_too_slowly` | the samples come further apart than 2 s; or, for the top speed, than 0.125 s | all, or the top speed |
+| `sampled_too_fast` | the samples come more often than every 2 ms, 500 a second, the fastest rate the bounds were checked at | all |
+| `step_too_coarse` | the step is coarser than 10 m (33 ft) or 100 Pa | all |
+| `slower_than_free_coast` | the track loses no more than twice its noise and step in the 4 s before its top | all |
+| `disturbed_top` | the track falls more than twice its noise and step below a peak in the 4 s before its top, then climbs to that top; or, within a second either side, it climbs into its top faster than a coast and falls from it faster than a body at rest | apogee, the top speed, landing |
+| `clock_out_of_order` | the height track's clock doesn't increase | all |
+| `no_height_track` | the log holds no altitude, pressure or GNSS track | all |
+| `unstated_sensor` | the log's only height doesn't say whether a barometer or a GNSS receiver measured it | all |
+| `receiver_lag` | the only height is a GNSS receiver's, whose filter lags a climb and overshoots its top | apogee, the top speed |
+| `receiver_dropout` | the only height is a GNSS receiver's, whose fix drops out or lags at liftoff | liftoff |
+| `needs` | the reading needs another that was withheld, such as landing on a GNSS track | as the sentence says |
+| `bad_record` | the record breaks what every reader guarantees: tracks as long as their clocks, on finite times that increase. No file reader produces one; only a record built by hand in code can | all |
 | `no_accelerometer` | the log has no accelerometer | the top acceleration |
-| `needs` | the reading needs another that was withheld | as the sentence says |
-| `bad_record` | the record breaks what every reader guarantees: channels as long as the clock, and times that increase. No file reader produces one; only a record built by hand in code can | all |
-| `sampled_too_fast` | the samples come so often, more than about 6,700 a second, that the 0.3 s window would hold more than 1,000 either side, which would make the median slow | all |
+| `not_yet_taken` | the log has an accelerometer, from which HPR Sim doesn't take the reading yet | the top acceleration |
 
-"All" leaves out the top acceleration, which keeps its own reason, `no_accelerometer`, on a
-PerfectFlite log.
+"All" means liftoff, apogee, the top speed and landing, with the flight time and descent rate that
+need them. The top acceleration keeps its own reason, `no_accelerometer` or `not_yet_taken`.
 
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
 stopped before the rocket did.
 
 ## Validation and limits
 
-What the readings were checked against, and what they leave out.
+What the readings were checked against, how well they held, and what they leave out.
 
 ### Checked against
+
+**The synthetic flights' tuning set.** [The synthetic flights](synthetic-flights.md) are flights
+HPR Sim simulated, each with its truth and the log a simulated logger would write. Of the tuning
+set's 200 flights, 171 carry a barometer; the other 29, a GNSS tracker's, give no reading by rule.
+`cargo xtask synthetic` reads each of the 171 as its own logger wrote it, then again at every rate
+from 500 to half a sample a second and every step from none to 10 m (33 ft) or 1 to 100 Pa, 36 ways
+in all, and cut 6 ways as loggers that record from launch write them: 20 samples a second in feet
+or in 10 Pa steps, starting 0.3 s before liftoff, 0.1 s after, or 0.5 s after with the zero first.
+Every reading given stayed within its bound, and the check fails the build if one doesn't. The
+largest share of its bound any error took, from the
+[report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds)
+and its JSON:
+
+| reading | largest share of the bound | on the log | its error, against its bound |
+|---|---:|---|---|
+| liftoff | 0.603 | 500 samples a second, heights with no step | 0.387 s within 0.643 s |
+| apogee height | 0.717 | 20 samples a second, heights with no step | −149 m (−489 ft) within 208 m (682 ft) |
+| apogee time | 0.618 | 5 samples a second, heights with no step | −0.607 s within 0.982 s |
+| top speed | 0.544 | 20 samples a second, pressure in 100 Pa steps | 13.7 m/s (44.9 ft/s) within 25.1 m/s (82.3 ft/s) |
+| landing | 0.572 | 5 samples a second, pressure in 100 Pa steps | −3.89 s within 6.8 s |
+| flight time | 0.51 | 500 samples a second, pressure in 10 Pa steps | −0.729 s within 1.43 s |
+| descent rate | 0.609 | 20 samples a second, pressure in 1 Pa steps | −1.2 m/s (−3.9 ft/s) within 1.98 m/s (6.5 ft/s) |
+
+The same report counts each reading withheld, by reason. At 20 samples a second and faster, the top
+speed is withheld as `transonic` on 117 or 118 of the 171 flights, and at 5 samples a second and
+slower as
+`sampled_too_slowly` on all of them but the one withheld whole below. At half a sample a second, up to 14 flights end before their
+landing is seen, and in 10 m (33 ft) steps one flight's track is withheld whole as
+`step_too_coarse`. The logs written again are read as tables a column mapping states, so their
+heights are above the pad only by the mapping's word. Of the cuts, heights from 0.1 s after liftoff
+withhold liftoff as `short_pad` on 36 flights, and heights from 0.5 s after, the zero first, on all
+171. Both give the apogee on all 171, within its bound with the zero's possible error in it, at up
+to 0.695 and 0.674 of it. A pressure has no zero set on the pad, so a pressure cut after liftoff withholds every
+reading on all 171, and one from 0.3 s before liftoff on 3. No tuning flight is withheld as
+`disturbed_top` or `slower_than_free_coast`.
+
+The tuning set shows the bounds hold on the flights they were tuned on. It doesn't show how often
+they would hold on others, nor on real logs: the flights are HPR Sim's own, with a noise model
+taken from datasheets and a few public logs ([Synthetic flights](synthetic-flights.md#in-short)).
+The test sets, kept apart from any tuning, are for the 90% intervals of
+[M7.2e](../decisions-and-roadmap.md#m7-2e).
 
 **An invented flight.** The file
 [`synthetic-pnut.pf2`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/synthetic-pnut.pf2)
@@ -171,80 +507,108 @@ holds a flight made up for the tests. It sits on the pad for half a second, then
 feet per second, with an ejection pulse of the public log's shape a second after apogee. Every
 reading is known in closed form. The
 [tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-flightdata/src/synthetic.rs)
-hold each within the bound worked out beside it:
+hold each within its stated bound, and within a tighter one worked out beside it for this log
+([evidence row G10](../evidence.md#g10)):
 
-| reading | true | FusionSpace HPR reads | allowed |
-|---|---|---|---|
-| liftoff | 0.50 s | 0.55 s | from 0.50 s to 0.578 s, when the height first rounds to a foot |
-| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 0.23 m (0.75 ft): half a foot of rounding and the median's 0.077 m (0.25 ft) |
-| apogee time | 10.258 s | 10.275 s | one sample, 0.05 s: the middle of the flat run at the top |
-| time to apogee | 9.758 s | 9.725 s | follows from the two rows above; not tested on its own |
-| top speed | 80.0 m/s (262 ft/s) at 2.10 s | 79.9 m/s (262 ft/s) at 2.10 s | half a foot per second |
-| landing | 46.14 s, touchdown | 45.85 s | up to 0.38 s early: 2 m (6.6 ft) at 6 m/s (20 ft/s) is 0.33 s, and the test allows a sample more |
-| mean descent rate | 10.92 m/s (35.8 ft/s) over FusionSpace HPR's span, 10.275 s to 45.85 s | 10.92 m/s (35.8 ft/s) | the two heights' bounds over the span |
+| reading | true | HPR Sim reads | its bound | the test's tighter bound |
+|---|---|---|---:|---|
+| liftoff | 0.50 s | 0.80 s | 0.81 s | from 0.50 s to 0.814 s, once the rocket has climbed 2 m (6.6 ft), a foot and the half foot that rounds it up |
+| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 31.9 m (105 ft) | 0.23 m (0.75 ft): half a foot of rounding and the median's 0.077 m (0.25 ft) |
+| apogee time | 10.258 s | 10.275 s | 0.88 s | one sample, 0.05 s: the middle of the flat run at the top |
+| top speed | 80.0 m/s (262 ft/s) at 2.10 s | 78.3 m/s (257 ft/s) at 2.20 s | 20.6 m/s (68 ft/s) | no higher than the truth, and no lower by more than the fit's cut across burnout, 3.7 m/s (12 ft/s), and half a foot a second |
+| landing | 46.14 s, touchdown | 45.80 s | 2.11 s | up to 0.38 s early: 2 m (6.6 ft) at 6 m/s (20 ft/s) is 0.33 s, and a sample more |
+| flight time | 45.64 s | 45.00 s | 2.91 s | follows from liftoff and landing |
+| mean descent rate | 10.93 m/s (35.9 ft/s) over HPR Sim's span, 10.275 s to 45.80 s | 10.92 m/s (35.8 ft/s) | 2.1 m/s (6.9 ft/s) | the two heights' bounds over the span |
 
 The middle of the flat run at the top falls between two samples here, so the apogee time is
 10.275 s. [`hpr analyze`](../cli.md#hpr-analyze) prints times to two decimals, as 10.28 s and
-9.72 s after liftoff.
-
-The first sample of the flat run at the top would read the apogee over 0.2 s early; a test shows
-that too, so the rule of taking the run's middle is pinned.
-
-The file's highest sample is the pulse's, 400.5 m (1,314 ft). The Hampel filter keeps it, and the median
-sets it aside; a test holds both.
+9.47 s after liftoff. The first sample of the flat run at the top would read the apogee over 0.2 s
+early; a test shows that too, so the rule of taking the run's middle is pinned. The file's highest
+sample is the pulse's, 400.5 m (1,314 ft). The Hampel filter keeps it, and the median sets it
+aside; a test holds both.
 
 **A real flight.** Debrief ships a public PerfectFlite Pnut log, trimmed from a publicly shared
 flight. Its terms upstream are unclear, so it isn't committed here, and CI doesn't have it. Where
 it has been fetched (`cargo xtask refs fetch`), a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs) reads it and
-holds these numbers:
+holds the apogee above the altimeter's zero, the highest sample, the pad, and each reading with
+its bound:
 
-| | the altimeter states | FusionSpace HPR reads |
-|---|--:|---|
-| apogee | 1,009 ft | 1,010 ft (307.8 m) |
-| highest sample | | 1,028 ft, the ejection pulse, set aside |
-| top speed | | 257 ft/s (78.3 m/s) |
-| liftoff | | 0.15 s |
+| | the altimeter states | HPR Sim reads |
+|---|---|---|
+| apogee | 1,009 ft above the pad | 1,009 ft (307.5 m) above the pad, within 27.4 m (90 ft); 1,010 ft above the altimeter's zero, its pad a foot above it |
+| highest sample | | 1,028 ft above the zero, the ejection pulse, set aside |
+| top speed | | 264 ft/s (80.4 m/s), within 29.7 m/s (98 ft/s), derived from the heights |
+| liftoff | | 0.40 s, within 0.98 s |
+| landing | | 72.70 s, within 3.25 s |
 
-The altimeter's apogee comes from the same pressure trace, so the agreement shows that
-FusionSpace HPR reads the trace as the altimeter does, not that either is the true height.
+The altimeter's apogee comes from the same pressure trace, so the agreement shows that HPR Sim
+reads the trace as the altimeter does, not that either is the true height. A Featherweight Raven
+flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
 
-A Featherweight Raven flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
-The importer reads the Raven's file ([M7.1a](../decisions-and-roadmap.md#m7-1a)); taking these
-readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
+**The sample logs.** `cargo xtask logs` takes the readings from every record the project's sample
+logs hold, other flyers' files kept outside the repository, and counts each reading given or
+withheld, by logger family and by reason
+([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
+Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
+554, the top speed from 354 and landing from 472. Each of the 23 reasons has a case: for 19, the
+first file the survey withholds a reading of for it, by an anonymous id; for the four that none of
+the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
+`step_too_coarse`), an invented file under
+[`validation/fixtures/logs/readings/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/fixtures/logs/readings)
+that a test reads to its reason. The invented fall, for one, drops at 15 m/s (49 ft/s) for 3 s
+after apogee, then at 300 m/s (984 ft/s) to the ground. These counts show what each logger can give. They don't show how
+right a reading is: none of the sample logs has a truth beside it.
+
+Three reasons stand out. The top speed is withheld as `transonic` on 205 records: many of these
+flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from loggers whose files
+start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
+apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
 ### What it leaves out
 
-- **The day's air.** The altitude is the logger's own conversion of its pressure, which assumes a
+- **The day's air.** A logger's height is its own conversion of the pressure, which assumes a
   standard atmosphere. On a warm day a barometric altimeter reads low, 6.5% on a day 20 K warmer
   than standard ([Atmosphere](atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
-  FusionSpace HPR prints what the logger recorded and doesn't correct it.
-- **Fast flights.** Debrief stops trusting a barometer's altitude above Mach 0.9, about 300 m/s
-  (984 ft/s) near the ground
-  ([the readings note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md)).
-  FusionSpace HPR has no such check yet. On a flight that may have come that close to the speed of
-  sound, judged from its simulation or motor rather than from the log, the altitude near the top
-  speed may be off, and so may the top speed, which the logger works out from that altitude and
-  which can itself read low.
-- **Noise and wide pulses.** On a noisy trace the highest of the medians can read above the true
-  peak, and a pulse wider than half the window passes the median. Neither is flagged. Noise of a
-  foot or two can also trip `faster_than_free_fall` on a low flight that fell with little drag,
-  such as one whose recovery didn't deploy: its allowance covers the rounding, not noise.
-- **Each leg's descent rate, and deployment events.** One mean rate covers drogue and main.
-- **Mach number, dynamic pressure and burnout.** These need an atmosphere or an accelerometer
-  ([M7.2](../decisions-and-roadmap.md#m7-2)).
-- **Other loggers.** The readings are taken from PerfectFlite's logs only: on a record read from
-  another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
-  *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
-  there
-  ([evidence row G10](../evidence.md#g10)). A GPS log has no barometric track, and a raw download's barometer records pressures, not
-  altitudes, as a Blue Raven's USB download does, so every reading withholds on all three, on a Teensy data logger's file, which writes no altitude above the pad, on the radio packets, whose climbing value has no settled unit, on a table read by its header, whose header
-  doesn't say which column is a barometric altitude above the pad, and on a Featherweight
-  summary, which holds no samples. The AltiMAX's `.ALS` and Entacore AIM's `.xtra` files and raw
-  dumps, read since [M7.1c23, the last of the importers](../decisions-and-roadmap.md#m7-1c23),
-  hold pressures and no altitude above the pad, and, as on every logger's file but a
-  PerfectFlite's, every reading is withheld on them until
-  [M7.2](../decisions-and-roadmap.md#m7-2) validates them.
+  HPR Sim doesn't correct it: it widens the bound by 6.92% of the height instead, which covers air
+  up to 15 K from standard. On a day further off, a height can pass its bound.
+- **Loggers unlike the tuning set's.** The bounds hold on the tuning set's
+  [six simulated logger profiles](synthetic-flights.md#the-loggers), at their noise. A logger
+  noisier than they are, or a rocket slower off the pad than 2 g, can be read outside its bound.
+  A pad that drifts within the 2 m (6.6 ft) allowance, early one way and late the other, can read
+  liftoff outside its bound: a review measured up to 1.22 times the bound at ±2 m (6.6 ft) on a
+  synthetic climb. On a short pad, a zero only a word vouches for is placed by the first sample
+  unfiltered, so its error can be understated by that sample's noise, up to 3 m (9.8 ft)
+  ([#773](https://github.com/nrdptel/fusionspace-eridanus/issues/773), the pad error's noise
+  budget).
+- **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
+  pad. A rocket slower than that is read later than its liftoff bound, and may already be further
+  up, when a log starts, than its pad's error allows.
+- **Fast flights' top speeds.** The top speed is withheld from 227.7 m/s (747 ft/s). The heights
+  aren't checked for the port's error near the speed of sound; the apogee, read near the top where
+  the rocket is slow, stays within its bound on the tuning set, whose fastest flight reaches Mach
+  1.12.
+- **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
+  the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2;
+  a wider or taller one isn't covered.
+- **The rest of the readings.** The top acceleration, burnout, each canopy's descent rate and the
+  deployments wait for [M7.2c](../decisions-and-roadmap.md#m7-2c); the Mach number and dynamic
+  pressure need the flight's air or an accelerometer.
+- **Intervals.** A bound is a worst case held on the tuning set, not a 90% interval with a tested
+  chance of holding the truth. Those come with [M7.2e](../decisions-and-roadmap.md#m7-2e), checked
+  on the synthetic flights' test sets.
+- **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading: the
+  receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
+- **Disturbed tops, both ways.** A bump less than about a second after apogee, before the track
+  has fallen past its noise and step, can't be told from the top unless it is a spike, and its
+  time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
+  fast, is read as the top, since an early parachute and a charge make those shapes on a good
+  top: a spike that climbs in no faster than a coast, at most 16.42 m (54 ft) in its last second
+  at 20 samples a second, is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
+  withholds a good apogee; how many of the sample logs' 76 such tops are good isn't measured
+  ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The synthetic flights
+  model no charge's transient, so the bounds aren't tested against one
+  ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761)).
 
 ## Tests and references
 
@@ -252,21 +616,33 @@ The tests that pin the readings, and the sources they follow.
 
 ### Tests
 
+- `hpr_flightdata::readings`: a plain flight read within its bounds; the same flight read alike
+  from a pressure channel, an altitude channel above sea level and the logger's own track, and a
+  GNSS altitude withheld by name; each withheld code on a log built to trigger it, only the
+  readings that need it going; the pad's rules (a jitter in the first samples, noise up to the
+  allowance, a slow noisy pad, a pad short by its samples and one read from the logger's zero);
+  a vacuum fall rounded to feet landing at 10 to 100 samples a second and one at 1.3 g refused;
+  [#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646), a wrong unit or a wrong zero
+  in a mapping, both ways; a mapped track's short pad read from its zero within the allowance, its
+  apogee's bound grown by the distance, and withheld past it; a top held by a
+  fall or a spike withheld, each by its own rule, and a top with an early parachute or a later
+  charge read; the shapes of the two public logs of
+  [#702](https://github.com/nrdptel/fusionspace-eridanus/issues/702), with invented numbers; the
+  step and the clock at their edges; the top speed's guards, each on its own;
+  and a property test of the median's peak bound for every $K$ from 1 to 6 and every place the
+  peak can fall between samples.
 - `hpr_flightdata::synthetic`: the invented flight, its readings against the truth, and the
   Hampel filter keeping the pulse the median removes.
-- `hpr_flightdata::readings`: each withheld code on a log built to trigger it, and the top
-  speed's guards at their edges: for example, a 20% swing passes and 22.5% is refused. A vacuum
-  fall rounded to feet lands at 10 to 100 samples a second, wherever its apogee falls within a
-  foot and its liftoff between samples, and one at 1.3 g is refused. A clock too fine for the
-  window is refused at its edge. A jitter in the first samples leaves the pad where it is, a log that
-  starts just before liftoff keeps its pad, and a pad between two feet takes half a foot either
-  way. A property test holds the median's peak bound for every $K$ from 1
-  to 6 and every place the peak can fall between samples.
 - `hpr_flightdata::filter`: a pulse removed, a ramp untouched, the Hampel filter at zero equal to
   the median, and property tests that every output lies within its window and that the sliding
   median equals each window's own, bit for bit.
+- `cargo xtask synthetic --check`: every reading on the tuning set within its bound, at every rate,
+  step and cut, its report reproduced on every platform.
+- `cargo xtask logs` and its tests: each invented sample read to its reason, and, where the sample
+  logs are fetched, every record's readings counted and the report reproduced.
 - `crates/hpr-cli/tests/cli.rs`: `hpr analyze` on a log alone in a folder, its JSON checked against
-  the published schema; the public Pnut log, where fetched.
+  the published schema; the public Pnut log, where fetched. `crates/hpr-py/tests/test_logs.py`:
+  Python's `FlightLog.readings()` equal to what `hpr analyze` prints, on each invented log.
 
 ### References
 
@@ -275,7 +651,23 @@ The tests that pin the readings, and the sources they follow.
   `pearson-2015-generalized-hampel` in the
   [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
 - Debrief, `lib/analyze/index.ts` and `lib/parsers/perfectflite.ts` (MIT, the project owner's
-  own), for the thresholds and the format; notes in
-  [the readings note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md).
+  own), for the landing's thresholds, the least climb, the speed's refusals and the format; notes
+  in [the readings note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md).
+- The noise model and the range of air: [ADR-280, the synthetic flights first][adr-280] §2–3, and
+  [Synthetic flights](synthetic-flights.md#the-noise-term-by-term).
+- The port's error: [the Mach error note][mach] §1–2, from a wind-tunnel test of the static
+  pressure along an ogive-cylinder through Mach 1.
+- How loggers turn pressure into height: [the height formulas note][formulas].
+- The least acceleration off the pad: the NAR's high-power safety code (a rocket's liftoff weight
+  no more than a third of its motor's certified average thrust) and Tripoli's (below 3:1 only with
+  an active stability system).
+- The rate of the day's pressure change: the National Weather Service's glossary, *pressure rising
+  (falling) rapidly*, 0.06 inHg an hour or more, the threshold of METAR's `PRESRR` and `PRESFR`
+  remarks.
 
 [adr-108]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0108-a-flight-log-read-alone-perfectflites-pf2-first.md
+[adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+[adr-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
+[mach]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-mach-error.md
+[formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-height-formulas.md
+[faulty]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/anomalous-public-flights.md

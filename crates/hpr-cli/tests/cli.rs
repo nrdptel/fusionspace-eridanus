@@ -3846,48 +3846,71 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     assert_eq!(document["log"]["logger"], "PerfectFlite Pnut");
     assert_eq!(document["log"]["samples"], log.time_s.len());
     assert_eq!(document["stated"]["apogee_m"], log.stated.apogee_m.unwrap());
+    assert_eq!(document["method"]["source"], "barometer");
+    assert_eq!(document["method"]["step_m"], read.step_m.unwrap());
     let apogee = read.apogee.value().unwrap();
     assert_eq!(document["apogee"]["status"], "read");
+    assert_eq!(document["apogee"]["height_m"], apogee.height_m);
+    assert_eq!(document["apogee"]["bound_m"], apogee.bound_m);
     assert_eq!(document["apogee"]["altitude_m"], apogee.altitude_m);
     assert_eq!(document["apogee"]["time_s"], apogee.time_s);
+    assert_eq!(document["apogee"]["time_bound_s"], apogee.time_bound_s);
     assert_eq!(document["apogee"]["source"], "barometer");
+    assert_eq!(document["apogee"]["provenance"], "measured");
+    assert_eq!(document["apogee"]["method"], "highest_filtered");
     assert_eq!(
         document["apogee"]["highest_sample"]["altitude_m"],
         apogee.highest_sample.altitude_m
     );
     let liftoff = read.liftoff.value().unwrap();
     assert_eq!(document["liftoff"]["time_s"], liftoff.time_s);
+    assert_eq!(document["liftoff"]["bound_s"], liftoff.bound_s);
+    assert_eq!(document["liftoff"]["method"], "last_on_the_pad");
     let speed = read.max_speed.value().unwrap();
     assert_eq!(document["max_speed"]["speed_m_s"], speed.speed_m_s);
-    assert_eq!(
-        document["max_speed"]["source"],
-        "logger_speed_from_barometer"
-    );
+    assert_eq!(document["max_speed"]["bound_m_s"], speed.bound_m_s);
+    assert_eq!(document["max_speed"]["source"], "barometer");
+    assert_eq!(document["max_speed"]["provenance"], "derived");
+    assert_eq!(document["max_speed"]["method"], "steepest_slope");
     assert_eq!(document["max_acceleration"]["status"], "withheld");
     assert_eq!(document["max_acceleration"]["reason"], "no_accelerometer");
     let landing = read.landing.value().unwrap();
     assert_eq!(document["landing"]["time_s"], landing.time_s);
+    assert_eq!(document["landing"]["bound_s"], landing.bound_s);
+    assert_eq!(
+        document["landing"]["flight_time_bound_s"].as_f64(),
+        landing.flight_time_bound_s
+    );
     assert_eq!(
         document["landing"]["mean_descent_rate_m_s"],
         landing.mean_descent_rate_m_s
     );
+    assert_eq!(
+        document["landing"]["mean_descent_rate_bound_m_s"],
+        landing.mean_descent_rate_bound_m_s
+    );
+    assert_eq!(document["landing"]["method"], "back_on_the_pad");
 
-    // The text says the same, in meters and feet.
+    // The text says the same, in meters and feet, each reading with its bound rounded up.
     let printed = run(false);
     for expected in [
         "flight.pf2: PerfectFlite Pnut, serial 0, flight 1",
         "the logger states: apogee 390.4 m (1281 ft)",
-        "apogee            390.1 m (1280 ft) at 10.28 s",
+        "readings from the logger's barometric altitude, sampled every 0.050 s in steps of \
+         0.305 m, after a 0.30 s running median",
+        "liftoff           0.80 s, within 0.81 s",
+        "apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, \
+         within 0.88 s, 9.47 s after liftoff",
         "set aside by the median",
-        "top speed         79.9 m/s (262 ft/s) at 2.10 s",
-        "top acceleration  withheld: a PerfectFlite logger has no accelerometer",
+        "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s",
+        "top acceleration  withheld: the log has no accelerometer",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
 }
 
-/// What `hpr analyze` can't read is an input error that says why: a missing file, a file in
-/// another format, and a `.pf2` that goes wrong at a line.
+/// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no
+/// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 #[test]
 fn analyze_refuses_what_it_cannot_read() {
     let folder = tempfile::tempdir().unwrap();
@@ -3905,10 +3928,17 @@ fn analyze_refuses_what_it_cannot_read() {
     let design = repo_file("validation/fixtures/ork/pod-flights/pods-none.ork");
     let document = json_error(&["analyze", &design], 1, "input");
     assert!(
-        document["error"]["message"]
-            .as_str()
-            .unwrap()
-            .contains("reads PerfectFlite .pf2 logs on their own, and this isn't one"),
+        said(&document).contains("the file is in none of the layouts HPR Sim reads so far")
+            && said(&document).contains("is read by a column mapping (--mapping)"),
+        "{document:#}"
+    );
+
+    let archive = folder.path().join("logs.zip");
+    std::fs::write(&archive, b"PK\x03\x04 not a whole archive").unwrap();
+    let document = json_error(&["analyze", archive.to_str().unwrap()], 1, "input");
+    assert!(
+        said(&document).contains("zip archive")
+            && said(&document).contains("help: unpack the archive and give the log inside it"),
         "{document:#}"
     );
 
@@ -4047,8 +4077,29 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
             .map(|c| c["column"].as_str().unwrap())
             .collect();
         assert_eq!(listed, names, "{log}");
-        // The readings wait for M7.2 on every logger but PerfectFlite's.
-        assert_eq!(document["apogee"]["reason"], "not_validated_for_logger");
+        // The readings are the library's, from the barometer's altitude or the pressure, and none
+        // from a GPS tracker's: its receiver's altitude lags a climb.
+        let read = hpr::hpr_flightdata::readings::read(&library);
+        for (name, reading) in [
+            ("liftoff", serde_json::to_value(&read.liftoff)),
+            ("apogee", serde_json::to_value(&read.apogee)),
+            ("max_speed", serde_json::to_value(&read.max_speed)),
+            ("landing", serde_json::to_value(&read.landing)),
+        ] {
+            for (key, value) in reading.unwrap().as_object().unwrap() {
+                assert_eq!(&document[name][key], value, "{log} {name} {key}");
+            }
+        }
+        let (source, apogee) = match log {
+            "flight.csv" => ("barometer", "read"),
+            "gps-track.csv" => ("gnss", "withheld"),
+            _ => ("pressure", "read"),
+        };
+        assert_eq!(document["method"]["source"], source, "{log}");
+        assert_eq!(document["apogee"]["status"], apogee, "{log}");
+        if apogee == "withheld" {
+            assert_eq!(document["apogee"]["reason"], "receiver_lag", "{log}");
+        }
         // The same file as Windows PowerShell 5.1 writes `>` output, UTF-16 with its mark, and
         // as UTF-8 with a mark, reads the same record.
         let folder = tempfile::tempdir().unwrap();
@@ -4085,7 +4136,7 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
     ]);
     assert!(
         text.contains(
-            "no primary track: no barometric altitude above the pad\n4 channels: Lat \
+            "no primary track: each channel on its own clock\n4 channels: Lat \
              (latitude), Lon (longitude), GPS Alt (m) (GNSS altitude), Sats (number)\n"
         ),
         "{text}"
@@ -4275,7 +4326,10 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
     );
 
     let document = json_error(&["analyze", &path, "--sheet", "0"], 1, "input");
-    assert!(said_of(&document).starts_with("--sheet names the workbook's sheet"));
+    assert!(
+        said_of(&document).contains("the file holds one record, not a workbook's sheets"),
+        "{document:#}"
+    );
     let document = json_error(
         &[
             "analyze",
@@ -4289,17 +4343,137 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
         "input",
     );
     assert!(
-        said_of(&document).contains("a sheet is named, and the file isn't an `.xlsx` workbook")
+        said_of(&document).contains("a sheet is named, and the file isn't an `.xlsx` or `.xls`")
     );
     for conflict in [
         vec!["--print-mapping", "--record"],
         vec!["--mapping", "a.json", "--layout", "b.json"],
         vec!["--print-mapping", "--mapping", "a.json"],
+        vec!["--recording", "0", "--sheet", "0"],
+        vec!["--recording", "0", "--mapping", "a.json"],
+        vec!["--fip-header", "a.json", "--mapping", "b.json"],
+        vec!["--fip-header", "a.json", "--layout", "b.json"],
+        vec!["--sheet", "0", "--layout", "b.json"],
     ] {
         let mut args = vec!["analyze", path.as_str()];
         args.extend(conflict.iter().copied());
         assert_eq!(hpr(&args).status.code(), Some(2), "{args:?}");
     }
+}
+
+/// Files of several records, each built and pinned by `fusionspace-hpr-flightdata`'s tests: a
+/// workbook of two flights and a sheet of notes, an Entacore AIM dump of two recordings, and a
+/// Raven FIP export pasted into a workbook below no header, with the header stated for it.
+const SEVERAL: &str = "validation/fixtures/logs/several";
+
+/// A workbook's sheet and a dump's recording are read as chosen, and refused with no choice,
+/// naming what to choose; a choice the file doesn't hold is refused the same way.
+#[test]
+fn analyze_reads_the_sheet_or_recording_chosen() {
+    let book = repo_file(&format!("{SEVERAL}/two-flights.xlsx"));
+    let said_of_book = said(&json_error(&["analyze", &book], 1, "input"));
+    assert!(
+        said_of_book
+            .contains("2 of the workbook's 3 sheets read as logs, sheets 0 (First), 2 (Second)")
+            && said_of_book.contains("help: choose a workbook's sheet with --sheet N"),
+        "{said_of_book}"
+    );
+    // Each sheet's own flight: a coast to 273.5 m on the first, 548.0 m on the second.
+    for (sheet, top_m) in [(0, 273.5), (2, 548.0)] {
+        let document = json(
+            &["analyze", &book, "--sheet", &sheet.to_string()],
+            0,
+            "analyze.schema.json",
+        );
+        assert_eq!(document["log"]["sheet"], sheet);
+        assert_eq!(document["apogee"]["status"], "read");
+        let height_m = document["apogee"]["height_m"].as_f64().unwrap();
+        let bound_m = document["apogee"]["bound_m"].as_f64().unwrap();
+        assert!((height_m - top_m).abs() <= bound_m, "{document:#}");
+    }
+    let past = said(&json_error(&["analyze", &book, "--sheet", "3"], 1, "input"));
+    assert!(past.contains("has no sheet 3"), "{past}");
+    let notes = said(&json_error(&["analyze", &book, "--sheet", "1"], 1, "input"));
+    assert!(!notes.contains("choose a workbook's sheet"), "{notes}");
+
+    let dump = repo_file(&format!("{SEVERAL}/two-recordings.dump"));
+    let said_of_dump = said(&json_error(&["analyze", &dump], 1, "input"));
+    assert!(
+        said_of_dump.contains("the dump holds 2 recordings: choose one")
+            && said_of_dump.contains("a dump's recording with --recording N"),
+        "{said_of_dump}"
+    );
+    for recording in [0, 1] {
+        let document = json(
+            &[
+                "analyze",
+                &dump,
+                "--recording",
+                &recording.to_string(),
+                "--record",
+            ],
+            0,
+            "analyze-record.schema.json",
+        );
+        assert_eq!(document["format"], "entacore_dump", "{document:#}");
+        let note = document["notes"][0].as_str().unwrap();
+        assert!(
+            note.starts_with(&format!("recording {} of the dump's 2", recording + 1)),
+            "{note}"
+        );
+    }
+    let past = said(&json_error(
+        &["analyze", &dump, "--recording", "2"],
+        1,
+        "input",
+    ));
+    assert!(past.contains("has no recording 2"), "{past}");
+    let sheet = said(&json_error(&["analyze", &dump, "--sheet", "0"], 1, "input"));
+    assert!(sheet.contains("holds recordings, not sheets"), "{sheet}");
+}
+
+/// A FIP export below no header is read under the header stated for it, its altitude in the
+/// feet the header names; without it, the workbook holds no sheet any reader takes.
+#[test]
+fn analyze_reads_a_fip_export_under_its_stated_header() {
+    let sheet = repo_file(&format!("{SEVERAL}/fip-below-no-header.xlsx"));
+    let header = repo_file(&format!("{SEVERAL}/fip-below-no-header.header.json"));
+    let document = json(
+        &["analyze", &sheet, "--fip-header", &header],
+        0,
+        "analyze.schema.json",
+    );
+    assert_eq!(document["log"]["fip_header"], header.as_str());
+    assert_eq!(document["log"]["format"], "raven_fip_csv");
+    assert_eq!(document["apogee"]["status"], "read");
+    let height_m = document["apogee"]["height_m"].as_f64().unwrap();
+    let bound_m = document["apogee"]["bound_m"].as_f64().unwrap();
+    assert!((height_m - 273.5).abs() <= bound_m, "{document:#}");
+
+    let unread = said(&json_error(&["analyze", &sheet], 1, "input"));
+    assert!(
+        unread.contains("none of the layouts") && unread.contains("--fip-header"),
+        "{unread}"
+    );
+    let past = said(&json_error(
+        &["analyze", &sheet, "--fip-header", &header, "--sheet", "1"],
+        1,
+        "input",
+    ));
+    assert!(
+        past.contains("has no sheet 1")
+            && past.contains("help: --sheet N, from 0, chooses the sheet"),
+        "{past}"
+    );
+    let folder = tempfile::tempdir().unwrap();
+    let typo = folder.path().join("typo.json");
+    std::fs::write(&typo, r#"{"header": "a", "pastd": [1]}"#).unwrap();
+    let said_of_typo = said(&json_error(
+        &["analyze", &sheet, "--fip-header", typo.to_str().unwrap()],
+        1,
+        "input",
+    ));
+    assert!(said_of_typo.contains("pastd"), "{said_of_typo}");
 }
 
 /// [`said`], for a test whose closure shadows it.
@@ -4334,9 +4508,21 @@ fn analyze_reads_the_public_pnut_log_as_it_states() {
         feet(&document["apogee"]["highest_sample"]["altitude_m"]),
         1028.0
     );
-    assert_eq!(document["liftoff"]["time_s"], 0.15);
-    assert_eq!(feet(&document["max_speed"]["speed_m_s"]), 257.0);
+    assert_eq!(document["liftoff"]["time_s"], 0.4);
+    assert_eq!(feet(&document["max_speed"]["speed_m_s"]), 264.0);
     assert_eq!(document["landing"]["status"], "read");
+    // The bounds the readings page quotes, rounded up as the text prints them, and the pad a
+    // foot above the altimeter's zero.
+    let up = |value: &Value, places: i32| {
+        let scale = 10_f64.powi(places);
+        (value.as_f64().unwrap() * scale * (1.0 - 1e-9)).ceil() / scale
+    };
+    assert_eq!(up(&document["apogee"]["bound_m"], 1), 27.4);
+    assert_eq!(up(&document["max_speed"]["bound_m_s"], 1), 29.7);
+    assert_eq!(up(&document["liftoff"]["bound_s"], 2), 0.98);
+    assert_eq!(document["landing"]["time_s"], 72.7);
+    assert_eq!(up(&document["landing"]["bound_s"], 2), 3.25);
+    assert_eq!(feet(&document["method"]["pad_altitude_m"]), 1.0);
 
     // Debrief's Hampel filter, 0.3 s at threshold 4, keeps the pulse: its highest is the pulse's.
     let log = perfectflite::read(&std::fs::read_to_string(&path).unwrap()).unwrap();

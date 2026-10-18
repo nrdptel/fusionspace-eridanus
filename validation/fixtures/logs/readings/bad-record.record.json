@@ -1,0 +1,30 @@
+{
+  "format": "generic_table",
+  "logger": "invented",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    0.0,
+    0.05,
+    0.05,
+    0.1
+  ],
+  "altitude_m": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [],
+  "events": [],
+  "notes": []
+}

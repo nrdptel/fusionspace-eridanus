@@ -423,10 +423,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2b Readings on every logger.** *Done when:* each family with an altitude, pressure or
-    GNSS track takes the readings, within bounds held on the tuning set or withheld by name; #646
-    noted, tested both ways; method and provenance named; `cargo xtask logs` lists readings given and
-    withheld, a case per reason; `hpr analyze` and Python read each family.
   - [ ] **M7.2c The rest of the readings.** *Done when:* top acceleration (clipped at the part's
     range), burnout, each canopy's descent rate, flight time, as M7.2b's; tuning-set errors given.
   - [ ] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its

@@ -1,11 +1,12 @@
 //! `hpr analyze`: a flight log's readings, taken from the log alone, with no design file and no
 //! simulation (ADR-046).
 //!
-//! It reads the log with `hpr_flightdata`'s reader for its format and prints what
-//! `hpr_flightdata::readings` takes from it: liftoff, apogee, the top speed, the top acceleration
-//! and landing, each with where it came from, or withheld with the reason the log can't support
-//! it. What the file states about itself, such as the logger's own apogee, is printed beside
-//! them, never in place of them.
+//! It reads the log with `hpr_flightdata`'s reader for its format, whichever of the formats HPR
+//! Sim reads it is (`hpr_flightdata::import`), and prints what `hpr_flightdata::readings` takes
+//! from it: liftoff, apogee, the top speed, the top acceleration and landing, each with the track
+//! it came from, how it was read and the bound its error stays within, or withheld with the
+//! reason the log can't support it. What the file states about itself, such as the logger's own
+//! apogee, is printed beside them, never in place of them.
 //!
 //! A flyer's own logger is read by a file that says how ([ADR-276][adr-276]): a table by a
 //! column mapping (`--mapping`), binary records or a serial console's capture of them by a
@@ -19,29 +20,33 @@
 use std::path::Path;
 
 use hpr::hpr_flightdata::custom;
-use hpr::hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
-use hpr::hpr_flightdata::perfectflite;
-use hpr::hpr_flightdata::readings::{self, Reading, Readings, Reason, Source};
+use hpr::hpr_flightdata::error::LogError;
+use hpr::hpr_flightdata::import;
+use hpr::hpr_flightdata::log::{FlightLog, Quantity};
+use hpr::hpr_flightdata::readings::{self, Method, Provenance, Reading, Readings, Reason, Source};
 
 use crate::console::Level;
 use crate::output::{
     Analyze, AnalyzeMethod, AnalyzedChannel, AnalyzedLog, ApogeeReading, HighestSample,
-    LandingReading, LiftoffReading, LogFormatName, LogReading, LoggerStated,
-    MaxAccelerationReading, MaxSpeedReading, ReadingSource, WithheldReading, WithheldReason,
+    LandingReading, LiftoffReading, LogReading, LoggerStated, MaxAccelerationReading,
+    MaxSpeedReading, ReadingMethod, ReadingProvenance, ReadingSource, WithheldReading,
+    WithheldReason,
 };
-use crate::units::{gravities, meters, speed};
+use crate::units::{gravities, meters, meters_bound, seconds_bound, speed, speed_bound};
 use crate::{Failure, Out};
 
 /// The column mapping's schema, as the help lines name it.
 const MAPPING_SCHEMA: &str = "schema/cli/analyze-mapping.schema.json";
 /// The record layout's schema, as the help lines name it.
 const LAYOUT_SCHEMA: &str = "schema/cli/analyze-layout.schema.json";
+/// The FIP header file's schema, as the help lines name it.
+const FIP_HEADER_SCHEMA: &str = "schema/cli/analyze-fip-header.schema.json";
 
 /// `hpr analyze`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct AnalyzeArgs {
-    /// The flight log: a PerfectFlite .pf2, or another logger's file read by --mapping or
-    /// --layout
+    /// The flight log: a file in any format HPR Sim reads, or another logger's file read by
+    /// --mapping or --layout
     pub log: String,
     /// Read the log as a table, by this column mapping: a JSON file, as --print-mapping prints
     /// one (schema/cli/analyze-mapping.schema.json)
@@ -51,12 +56,32 @@ pub struct AnalyzeArgs {
     /// layout: a JSON file (schema/cli/analyze-layout.schema.json)
     #[arg(long, value_name = "FILE")]
     pub layout: Option<String>,
-    /// The sheet of an .xlsx workbook the table is on, from 0, for --mapping or --print-mapping
-    #[arg(long, value_name = "N", value_parser = crate::typed::number::<usize>())]
+    /// The sheet of a spreadsheet's workbook (.xlsx or .xls) to read, from 0: as its format's own
+    /// reader reads it, or by --mapping, --print-mapping or --fip-header. With none, a workbook's
+    /// one sheet that reads as a log
+    #[arg(
+        long,
+        value_name = "N",
+        value_parser = crate::typed::number::<usize>(),
+        conflicts_with = "layout"
+    )]
     pub sheet: Option<usize>,
+    /// The recording to read of a file that holds several, an Entacore AIM raw dump, from 0
+    #[arg(
+        long,
+        value_name = "N",
+        value_parser = crate::typed::number::<usize>(),
+        conflicts_with_all = ["mapping", "layout", "fip_header", "sheet"]
+    )]
+    pub recording: Option<usize>,
+    /// Read a Featherweight Raven's FIP export that lost its header line, pasted into a
+    /// workbook below none, under the header this JSON file states
+    /// (schema/cli/analyze-fip-header.schema.json)
+    #[arg(long, value_name = "FILE", conflicts_with_all = ["mapping", "layout"])]
+    pub fip_header: Option<String>,
     /// Print what the table's header states, as a column mapping to edit and give back with
     /// --mapping, and read nothing more
-    #[arg(long, conflicts_with_all = ["mapping", "layout", "record"])]
+    #[arg(long, conflicts_with_all = ["mapping", "layout", "record", "recording", "fip_header"])]
     pub print_mapping: bool,
     /// Print the record the log reads into, every channel in SI units (degrees for
     /// angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
@@ -66,12 +91,6 @@ pub struct AnalyzeArgs {
 
 /// Runs `hpr analyze`.
 pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
-    if args.sheet.is_some() && args.mapping.is_none() && !args.print_mapping {
-        return Err(Failure::helped(
-            "--sheet names the workbook's sheet a table is on, and no table is read by a mapping",
-            "give --sheet with --mapping or --print-mapping",
-        ));
-    }
     if args.print_mapping {
         return print_mapping(args, to);
     }
@@ -152,8 +171,8 @@ fn read_description<T>(
     })
 }
 
-/// Reads the flight log: by the mapping or the layout given, or else as a PerfectFlite `.pf2`,
-/// by its extension or its first line.
+/// Reads the flight log: by the mapping, the layout or the FIP header given, or else by its
+/// format's own reader, a workbook's sheet or a dump's recording as chosen.
 fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
     let path = args.log.as_str();
     if let Some(file) = &args.mapping {
@@ -176,38 +195,48 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
             )
         });
     }
-    let bytes = crate::read_file(path)?;
-    let unknown = || {
-        Failure::helped(
-            format!(
-                "{path}: hpr analyze reads PerfectFlite .pf2 logs on their own, and this isn't \
-                 one; another logger's table is read by a column mapping (--mapping), its binary \
-                 records by a record layout (--layout)"
-            ),
-            "give a .pf2 log that PerfectFlite's software saved; for another logger's table, \
-             --print-mapping prints what its header states as a mapping to edit",
-        )
-    };
-    // Only the comments of a `.pf2` can hold anything but ASCII, and hpr doesn't use them: a
-    // comment in another encoding mustn't refuse the flight.
-    let text = String::from_utf8_lossy(&bytes);
-    let pf2 = Path::new(path)
-        .extension()
-        .and_then(|extension| extension.to_str())
-        .is_some_and(|extension| extension.eq_ignore_ascii_case("pf2"));
-    let names_perfectflite = text
-        .lines()
-        .find(|line| !line.trim().is_empty())
-        .is_some_and(|line| line.to_ascii_lowercase().contains("perfectflite"));
-    if !(pf2 || names_perfectflite) {
-        return Err(unknown());
+    if let Some(file) = &args.fip_header {
+        let stated = read_description(file, custom::fip_header_from_json, FIP_HEADER_SCHEMA)?;
+        let bytes = crate::read_file(path)?;
+        return custom::read_by_fip_header(&bytes, &stated, args.sheet).map_err(|error| {
+            let help = match &error {
+                LogError::Choice { .. } => {
+                    "--sheet N, from 0, chooses the sheet the export is on, and only a \
+                     workbook has sheets"
+                        .to_owned()
+                }
+                _ => format!(
+                    "check {file} against the export: the header line's columns, each channel's \
+                     clock, value and status, and the pasted columns"
+                ),
+            };
+            Failure::helped(format!("{path}: {error}"), help)
+        });
     }
-    perfectflite::read(&text).map_err(|error| {
-        Failure::helped(
-            format!("{path}: {error}"),
-            "download the log from the altimeter again with PerfectFlite's software, and give \
-             that file as it was saved",
-        )
+    let bytes = crate::read_file(path)?;
+    import::read_one(&bytes, args.sheet, args.recording).map_err(|error| {
+        let help = match &error {
+            LogError::Choice { .. } => {
+                "choose a workbook's sheet with --sheet N, or a dump's recording with \
+                 --recording N, each from 0; a table on a sheet no reader takes is read by a \
+                 column mapping (--mapping) and --sheet"
+            }
+            LogError::Unrecognized { .. } => {
+                "another logger's table is read by a column mapping (--mapping), and \
+                 --print-mapping prints what its header states as one to edit; its binary \
+                 records are read by a record layout (--layout); a Raven FIP export pasted below \
+                 no header, by the header you state (--fip-header)"
+            }
+            LogError::Archive { .. } => "unpack the archive and give the log inside it",
+            LogError::Workbook { .. } => {
+                "save the sheet as CSV and read that by a column mapping (--mapping)"
+            }
+            _ => {
+                "download the log from the logger again with its maker's software, and give that \
+                 file as it was saved"
+            }
+        };
+        Failure::helped(format!("{path}: {error}"), help)
     })
 }
 
@@ -217,23 +246,19 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         kind: crate::trust::Kind::Measured,
         // A log read by the flyer's own description may hold no barometer at all, such as a GPS
         // tracker's table, and none of HPR Sim's readings.
-        trust: if args.mapping.is_some() || args.layout.is_some() {
+        trust: if args.mapping.is_some() || args.layout.is_some() || args.fip_header.is_some() {
             crate::trust::own_log()
         } else {
             crate::trust::log()
         },
         log: AnalyzedLog {
             path: args.log.clone(),
-            format: match log.format {
-                LogFormat::PerfectFlitePf2 => LogFormatName::PerfectFlitePf2,
-                LogFormat::GenericTable => LogFormatName::GenericTable,
-                LogFormat::BinaryRecords => LogFormatName::BinaryRecords,
-                LogFormat::ConsoleCapture => LogFormatName::ConsoleCapture,
-                _ => LogFormatName::Other,
-            },
+            format: log.format,
             mapping: args.mapping.clone(),
             layout: args.layout.clone(),
+            fip_header: args.fip_header.clone(),
             sheet: args.sheet,
+            recording: args.recording,
             logger: log.logger.clone(),
             serial_number: log.serial_number.clone(),
             firmware: log.firmware.clone(),
@@ -257,7 +282,9 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             ground_elevation_msl_m: log.stated.ground_elevation_msl_m,
         },
         method: AnalyzeMethod {
+            source: read.source.map(source),
             sample_interval_s: read.sample_interval_s,
+            step_m: read.step_m,
             median_window_s: read.median_window_s,
             peak_bound_m: read.peak_bound_m,
             altitude_resolution_m: log.format.altitude_resolution_m(),
@@ -265,11 +292,17 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         },
         liftoff: reading(&read.liftoff, |liftoff| LiftoffReading {
             time_s: liftoff.time_s,
+            bound_s: liftoff.bound_s,
             source: source(liftoff.source),
+            provenance: provenance(liftoff.provenance),
+            method: method(liftoff.method),
         }),
         apogee: reading(&read.apogee, |apogee| ApogeeReading {
             time_s: apogee.time_s,
             time_after_liftoff_s: apogee.time_after_liftoff_s,
+            time_bound_s: apogee.time_bound_s,
+            height_m: apogee.height_m,
+            bound_m: apogee.bound_m,
             altitude_m: apogee.altitude_m,
             is_floor: apogee.is_floor,
             highest_sample: HighestSample {
@@ -277,12 +310,17 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
                 altitude_m: apogee.highest_sample.altitude_m,
             },
             source: source(apogee.source),
+            provenance: provenance(apogee.provenance),
+            method: method(apogee.method),
         }),
         max_speed: reading(&read.max_speed, |speed| MaxSpeedReading {
             speed_m_s: speed.speed_m_s,
+            bound_m_s: speed.bound_m_s,
             time_s: speed.time_s,
-            altitude_m: speed.altitude_m,
+            height_m: speed.height_m,
             source: source(speed.source),
+            provenance: provenance(speed.provenance),
+            method: method(speed.method),
         }),
         max_acceleration: reading(&read.max_acceleration, |acceleration| {
             MaxAccelerationReading {
@@ -292,10 +330,15 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         }),
         landing: reading(&read.landing, |landing| LandingReading {
             time_s: landing.time_s,
+            bound_s: landing.bound_s,
             flight_time_s: landing.flight_time_s,
+            flight_time_bound_s: landing.flight_time_bound_s,
             descent_time_s: landing.descent_time_s,
             mean_descent_rate_m_s: landing.mean_descent_rate_m_s,
+            mean_descent_rate_bound_m_s: landing.mean_descent_rate_bound_m_s,
             source: source(landing.source),
+            provenance: provenance(landing.provenance),
+            method: method(landing.method),
         }),
     }
 }
@@ -310,15 +353,24 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::StartsOffThePad => WithheldReason::StartsOffThePad,
                 Reason::EndsBeforeLanding => WithheldReason::EndsBeforeLanding,
                 Reason::FasterThanFreeFall => WithheldReason::FasterThanFreeFall,
-                Reason::NoSpeedColumn => WithheldReason::NoSpeedColumn,
                 Reason::ImplausibleSpeed => WithheldReason::ImplausibleSpeed,
                 Reason::NoisySpeed => WithheldReason::NoisySpeed,
-                Reason::SpeedPeakAtLiftoff => WithheldReason::SpeedPeakAtLiftoff,
                 Reason::NoAccelerometer => WithheldReason::NoAccelerometer,
                 Reason::Needs => WithheldReason::Needs,
                 Reason::BadRecord => WithheldReason::BadRecord,
                 Reason::SampledTooFast => WithheldReason::SampledTooFast,
-                Reason::NotValidatedForLogger => WithheldReason::NotValidatedForLogger,
+                Reason::NoHeightTrack => WithheldReason::NoHeightTrack,
+                Reason::UnstatedSensor => WithheldReason::UnstatedSensor,
+                Reason::SampledTooSlowly => WithheldReason::SampledTooSlowly,
+                Reason::StepTooCoarse => WithheldReason::StepTooCoarse,
+                Reason::Transonic => WithheldReason::Transonic,
+                Reason::ReceiverLag => WithheldReason::ReceiverLag,
+                Reason::ReceiverDropout => WithheldReason::ReceiverDropout,
+                Reason::SlowerThanFreeCoast => WithheldReason::SlowerThanFreeCoast,
+                Reason::NotYetTaken => WithheldReason::NotYetTaken,
+                Reason::ShortPad => WithheldReason::ShortPad,
+                Reason::ClockOutOfOrder => WithheldReason::ClockOutOfOrder,
+                Reason::DisturbedTop => WithheldReason::DisturbedTop,
                 _ => WithheldReason::Other,
             },
             detail: withheld.detail.clone(),
@@ -329,8 +381,40 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
 fn source(source: Source) -> ReadingSource {
     match source {
         Source::Barometer => ReadingSource::Barometer,
-        Source::LoggerSpeedFromBarometer => ReadingSource::LoggerSpeedFromBarometer,
+        Source::Pressure => ReadingSource::Pressure,
+        Source::AltitudeChannel => ReadingSource::AltitudeChannel,
+        Source::Gnss => ReadingSource::Gnss,
         _ => ReadingSource::Other,
+    }
+}
+
+fn provenance(provenance: Provenance) -> ReadingProvenance {
+    match provenance {
+        Provenance::Measured => ReadingProvenance::Measured,
+        Provenance::Derived => ReadingProvenance::Derived,
+        Provenance::Clipped => ReadingProvenance::Clipped,
+        _ => ReadingProvenance::Other,
+    }
+}
+
+fn method(method: Method) -> ReadingMethod {
+    match method {
+        Method::LastOnThePad => ReadingMethod::LastOnThePad,
+        Method::HighestFiltered => ReadingMethod::HighestFiltered,
+        Method::SteepestSlope => ReadingMethod::SteepestSlope,
+        Method::BackOnThePad => ReadingMethod::BackOnThePad,
+        _ => ReadingMethod::Other,
+    }
+}
+
+/// The track a reading came from, in words.
+fn source_words(source: ReadingSource) -> &'static str {
+    match source {
+        ReadingSource::Barometer => "the logger's barometric altitude",
+        ReadingSource::Pressure => "the pressure, by the 1976 standard atmosphere",
+        ReadingSource::AltitudeChannel => "the barometric altitude channel",
+        ReadingSource::Gnss => "the GNSS altitude",
+        ReadingSource::Other => "another track",
     }
 }
 
@@ -363,20 +447,29 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     }
     let mut lines = vec![format!("{name}: {}", about.join(", "))];
     let method = &document.method;
-    lines.push(match (method.sample_interval_s, method.median_window_s) {
-        (Some(interval), Some(window)) => format!(
-            "{} samples every {interval:.3} s, from {:.2} s to {:.2} s; heights from the \
-             altitude after a {window:.2} s running median",
-            log.samples, log.first_time_s, log.last_time_s
-        ),
-        _ if log.samples == 0 => {
-            "no primary track: no barometric altitude above the pad".to_owned()
-        }
-        _ => format!(
+    lines.push(if log.samples == 0 {
+        "no primary track: each channel on its own clock".to_owned()
+    } else {
+        format!(
             "{} samples, from {:.2} s to {:.2} s",
             log.samples, log.first_time_s, log.last_time_s
-        ),
+        )
     });
+    if let (Some(source), Some(interval), Some(window)) = (
+        method.source,
+        method.sample_interval_s,
+        method.median_window_s,
+    ) {
+        let step = match method.step_m {
+            Some(step) if step > 0.0 => format!(" in steps of {step:.3} m"),
+            _ => String::new(),
+        };
+        lines.push(format!(
+            "readings from {}, sampled every {interval:.3} s{step}, after a {window:.2} s \
+             running median",
+            source_words(source)
+        ));
+    }
     let channels: Vec<String> = log
         .channels
         .iter()
@@ -404,70 +497,21 @@ fn text_lines(document: &Analyze) -> Vec<String> {
 
     let row = |name: &str, value: String| format!("{name:<18}{value}");
     let withheld = |reading: &WithheldReading| format!("withheld: {}", reading.detail);
-    // On a logger the readings aren't validated on, every reading is withheld for that one
-    // reason: said once.
-    let all = [
+    // The four readings of the height track withheld for one reason, as a log with no height
+    // track is: said once.
+    let heights = [
         withheld_of(&document.liftoff),
         withheld_of(&document.apogee),
         withheld_of(&document.max_speed),
-        withheld_of(&document.max_acceleration),
         withheld_of(&document.landing),
     ];
-    let unvalidated = |reading: &Option<&WithheldReading>| {
-        reading.is_some_and(|r| r.reason == WithheldReason::NotValidatedForLogger)
-    };
-    if let [Some(reading), ..] = all
-        && all.iter().all(unvalidated)
+    if let [Some(first), ..] = heights
+        && heights.iter().all(|reading| reading == &Some(first))
     {
-        lines.push(row("every reading", withheld(reading)));
-        return lines;
+        lines.push(row("readings", withheld(first)));
+    } else {
+        lines.extend(reading_rows(document, &row));
     }
-    lines.push(row(
-        "liftoff",
-        match &document.liftoff {
-            LogReading::Read(liftoff) => format!("{:.2} s", liftoff.time_s),
-            LogReading::Withheld(reading) => withheld(reading),
-        },
-    ));
-    match &document.apogee {
-        LogReading::Read(apogee) => {
-            let mut value = format!("{} at {:.2} s", meters(apogee.altitude_m), apogee.time_s);
-            if let Some(after) = apogee.time_after_liftoff_s {
-                value.push_str(&format!(", {after:.2} s after liftoff"));
-            }
-            if apogee.is_floor {
-                value.push_str("; the log ends at its peak, so the rocket may have gone higher");
-            }
-            lines.push(row("apogee", value));
-            // Above what the median's own rounding of the peak and the altitude's resolution
-            // explain, the median set a pulse aside.
-            let highest = &apogee.highest_sample;
-            let explained = method.peak_bound_m.unwrap_or(0.0) + method.altitude_resolution_m;
-            if highest.altitude_m - apogee.altitude_m > explained {
-                lines.push(row(
-                    "",
-                    format!(
-                        "highest sample {} at {:.2} s, set aside by the median",
-                        meters(highest.altitude_m),
-                        highest.time_s
-                    ),
-                ));
-            }
-        }
-        LogReading::Withheld(reading) => lines.push(row("apogee", withheld(reading))),
-    }
-    lines.push(row(
-        "top speed",
-        match &document.max_speed {
-            LogReading::Read(top) => format!(
-                "{} at {:.2} s, {} up: the logger's own, from its barometer",
-                speed(top.speed_m_s),
-                top.time_s,
-                meters(top.altitude_m)
-            ),
-            LogReading::Withheld(reading) => withheld(reading),
-        },
-    ));
     lines.push(row(
         "top acceleration",
         match &document.max_acceleration {
@@ -480,18 +524,100 @@ fn text_lines(document: &Analyze) -> Vec<String> {
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
+    lines
+}
+
+/// The rows of liftoff, apogee, the top speed and landing, each with the bound its error stays
+/// within, rounded up.
+fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec<String> {
+    let method = &document.method;
+    let withheld = |reading: &WithheldReading| format!("withheld: {}", reading.detail);
+    let mut lines = vec![row(
+        "liftoff",
+        match &document.liftoff {
+            LogReading::Read(liftoff) => {
+                format!(
+                    "{:.2} s, within {} s",
+                    liftoff.time_s,
+                    seconds_bound(liftoff.bound_s)
+                )
+            }
+            LogReading::Withheld(reading) => withheld(reading),
+        },
+    )];
+    match &document.apogee {
+        LogReading::Read(apogee) => {
+            let mut value = format!(
+                "{} above the pad, within {}; at {:.2} s, within {} s",
+                meters(apogee.height_m),
+                meters_bound(apogee.bound_m),
+                apogee.time_s,
+                seconds_bound(apogee.time_bound_s),
+            );
+            if let Some(after) = apogee.time_after_liftoff_s {
+                value.push_str(&format!(", {after:.2} s after liftoff"));
+            }
+            if apogee.is_floor {
+                value.push_str("; the log ends at its peak, so the rocket may have gone higher");
+            }
+            lines.push(row("apogee", value));
+            // Above what the median's own rounding of the peak, the track's step and its noise
+            // explain, the median set a pulse aside.
+            let highest = &apogee.highest_sample;
+            let explained = method.peak_bound_m.unwrap_or(0.0)
+                + method
+                    .step_m
+                    .unwrap_or(0.0)
+                    .max(method.altitude_resolution_m)
+                + readings::NOISE_M;
+            if highest.altitude_m - apogee.altitude_m > explained {
+                lines.push(row(
+                    "",
+                    format!(
+                        "highest sample {} above the pad at {:.2} s, set aside by the median",
+                        meters(highest.altitude_m - method.pad_altitude_m.unwrap_or(0.0)),
+                        highest.time_s
+                    ),
+                ));
+            }
+        }
+        LogReading::Withheld(reading) => lines.push(row("apogee", withheld(reading))),
+    }
+    lines.push(row(
+        "top speed",
+        match &document.max_speed {
+            LogReading::Read(top) => format!(
+                "{}, within {}, at {:.2} s, {} up: derived from the heights",
+                speed(top.speed_m_s),
+                speed_bound(top.bound_m_s),
+                top.time_s,
+                meters(top.height_m)
+            ),
+            LogReading::Withheld(reading) => withheld(reading),
+        },
+    ));
     lines.push(row(
         "landing",
         match &document.landing {
             LogReading::Read(landing) => {
                 let mut value = format!(
-                    "{:.2} s, {:.2} s after liftoff",
-                    landing.time_s, landing.flight_time_s
+                    "{:.2} s, within {} s",
+                    landing.time_s,
+                    seconds_bound(landing.bound_s)
                 );
+                if let (Some(flight), Some(bound)) =
+                    (landing.flight_time_s, landing.flight_time_bound_s)
+                {
+                    value.push_str(&format!(
+                        "; {flight:.2} s after liftoff, within {} s",
+                        seconds_bound(bound)
+                    ));
+                }
                 value.push_str(&format!(
-                    "; {:.2} s from apogee, at {} on average",
+                    "; {:.2} s from apogee, at {} on average, within {}",
                     landing.descent_time_s,
-                    speed(landing.mean_descent_rate_m_s)
+                    speed(landing.mean_descent_rate_m_s),
+                    speed_bound(landing.mean_descent_rate_bound_m_s)
                 ));
                 value
             }
@@ -531,12 +657,14 @@ mod tests {
     #[test]
     fn a_top_acceleration_gives_g() {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
-        let log = perfectflite::read(text).unwrap();
+        let log = hpr::hpr_flightdata::perfectflite::read(text).unwrap();
         let args = AnalyzeArgs {
             log: "synthetic-pnut.pf2".to_owned(),
             mapping: None,
             layout: None,
             sheet: None,
+            recording: None,
+            fip_header: None,
             print_mapping: false,
             record: false,
         };
@@ -554,8 +682,8 @@ mod tests {
         );
     }
 
-    /// Every reason and source the library has maps to the command's own, of the same name: a
-    /// library variant added without a mapping would reach the JSON as `other`.
+    /// Every reason, source, provenance and method the library has maps to the command's own, of
+    /// the same name: a library variant added without a mapping would reach the JSON as `other`.
     #[test]
     fn every_library_reason_and_source_has_its_own_name() {
         for reason in Reason::ALL.iter().copied() {
@@ -575,6 +703,22 @@ mod tests {
         for from in Source::ALL.iter().copied() {
             let mapped = source(from);
             assert_ne!(mapped, ReadingSource::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in Provenance::ALL.iter().copied() {
+            let mapped = provenance(from);
+            assert_ne!(mapped, ReadingProvenance::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in Method::ALL.iter().copied() {
+            let mapped = method(from);
+            assert_ne!(mapped, ReadingMethod::Other, "{from:?}");
             assert_eq!(
                 serde_json::to_value(mapped).unwrap(),
                 serde_json::to_value(from).unwrap()

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FipHeader",
+  "description": "A header stated for a Featherweight Raven's FIP export that lost its own when it was pasted\ninto a workbook below none ([ADR-274][adr-274]): the export's header line, and the columns a\ntable pasted over the export covers.\n\n[adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md",
+  "type": "object",
+  "properties": {
+    "header": {
+      "description": "The export's header line, as a FIP export of the same channels writes it: each channel's\n`Time@` clock, its value and its `bILBA` status, such as\n`Time@Baro (Atm),Baro (Atm),bILBA,...`.",
+      "type": "string"
+    },
+    "pasted": {
+      "description": "The columns, from 1, of a table pasted over the export, whose cells hide whether a\nchannel has a sample in their rows; none when left out.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "integer",
+        "format": "uint",
+        "minimum": 1
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "header"
+  ]
+}

@@ -9,6 +9,13 @@
 //! macOS, Windows and Linux. `--check` writes nothing, and fails unless the flights reproduce the
 //! committed census.
 //!
+//! It then holds the flight-log readings to their bounds (M7.2b): every tuning flight is logged by
+//! its own logger and again at every rate and step of `held`'s grid, each log is read by
+//! `hpr_flightdata::readings`, and each reading given is compared with the flight's truth. The
+//! report tallies, for each log and reading, how many were given, the largest share of its bound
+//! an error took, and how many were withheld, by reason. The command fails, writing nothing, if
+//! any reading's error passes its bound, or any log can't be written.
+//!
 //! The flights are flown on every core, each thread taking every `n`th index with a
 //! [`Flyer`] of its own; a flight is the same however many came before it on its thread (the
 //! module's tests), so the census doesn't depend on the number of threads. A flight that panics
@@ -24,14 +31,17 @@ use std::path::Path;
 
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
+use hpr_forensics::synthetic::held::{self, Outcome, Quantity, Tally};
 use hpr_forensics::synthetic::logger::Profile;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
 pub const USAGE: &str = "  synthetic [--check]
                            Fly the synthetic flights' three sets (ADR-280) and write their census
-                           to validation/reports/synthetic-flights.{json,md}. --check writes
-                           nothing and fails unless the flights reproduce the committed census.";
+                           to validation/reports/synthetic-flights.{json,md}, with the tuning
+                           set's flight-log readings held to their bounds. --check writes
+                           nothing and fails unless the flights reproduce the committed census.
+                           Either fails if a reading's error passes its bound.";
 
 /// The report's path under the repository, without its extension.
 const REPORT: &str = "validation/reports/synthetic-flights";
@@ -43,6 +53,9 @@ struct Report {
     about: String,
     /// Each set's census, in [`Set::ALL`]'s order.
     sets: Vec<SetCensus>,
+    /// The tuning set's flight-log readings against their bounds: each log and reading, in the
+    /// order [`held::tally`] gives them, to three significant figures.
+    readings: Vec<Tally>,
 }
 
 /// Runs the command.
@@ -56,14 +69,23 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
+    let tallies = read_logs(Set::Tuning.count(), &files)?;
+    let missed = misses(&tallies);
+    if !missed.is_empty() {
+        return Err(format!(
+            "a reading's error passes its bound on the tuning set:\n{}",
+            missed.join("\n")
+        ));
+    }
     let report = Report {
-        about:
-            "The synthetic flights' census (M7.2a, ADR-280), written by `cargo xtask synthetic`."
-                .to_owned(),
+        about: "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held \
+                to their bounds on the tuning set (M7.2b), written by `cargo xtask synthetic`."
+            .to_owned(),
         sets: Set::ALL
             .iter()
             .map(|&set| fly(set, set.count(), &files))
             .collect(),
+        readings: tallies.iter().map(rounded).collect(),
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let page = markdown(&report);
@@ -164,6 +186,87 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
         .map(|row| row.unwrap_or_else(|| Err("its thread panicked".to_owned())))
         .collect();
     census::from_rows(set, &rows)
+}
+
+/// One tuning flight's logs, each named, with each reading's outcome.
+type FlightOutcomes = (u64, Vec<(String, Vec<(Quantity, Outcome)>)>);
+
+/// Logs the first `count` tuning flights at every rate and step of `held`'s grid on every core,
+/// reads each log, and tallies the readings against their bounds. A flight that doesn't fly is
+/// the census's to report; a log that can't be written, or a panic, fails the command.
+fn read_logs(count: u64, files: &DesignFiles) -> Result<Vec<Tally>, String> {
+    let threads = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(16) as u64;
+    let set = Set::Tuning;
+    let mut flights: Vec<FlightOutcomes> = std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads)
+            .map(|start| {
+                let files = files.clone();
+                scope.spawn(move || -> Result<Vec<FlightOutcomes>, String> {
+                    let mut flyer = Flyer::new(files);
+                    let mut done = Vec::new();
+                    for index in (start..count).step_by(threads as usize) {
+                        let Ok(flight) = flyer.flight(set, index) else {
+                            continue;
+                        };
+                        let logs = held::logs(&flight, set.seed(), index)
+                            .map_err(|error| format!("tuning flight {index}: {error}"))?;
+                        let outcomes = logs
+                            .iter()
+                            .map(|(name, log)| (name.clone(), held::outcomes(&flight, log)))
+                            .collect();
+                        done.push((index, outcomes));
+                    }
+                    Ok(done)
+                })
+            })
+            .collect();
+        handles
+            .into_iter()
+            .map(|handle| match handle.join() {
+                Ok(done) => done,
+                Err(payload) => Err(format!(
+                    "reading the tuning flights' logs panicked: {}",
+                    panic_message(&*payload)
+                )),
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(|done| done.into_iter().flatten().collect())
+    })?;
+    flights.sort_by_key(|(index, _)| *index);
+    Ok(held::tally(&flights))
+}
+
+/// Each tally whose worst error passes its bound, in words.
+fn misses(tallies: &[Tally]) -> Vec<String> {
+    tallies
+        .iter()
+        .filter(|tally| !tally.holds())
+        .map(|tally| {
+            let worst = tally.worst.as_ref().map_or_else(String::new, |worst| {
+                format!(
+                    ": flight {}, error {} against a bound of {} {}",
+                    worst.flight,
+                    worst.error,
+                    worst.bound,
+                    tally.quantity.unit()
+                )
+            });
+            format!("{}, {}{worst}", tally.log, tally.quantity.name())
+        })
+        .collect()
+}
+
+/// A tally to three significant figures, as the report holds it.
+fn rounded(tally: &Tally) -> Tally {
+    let mut tally = tally.clone();
+    if let Some(worst) = &mut tally.worst {
+        worst.error = census::three_figures(worst.error);
+        worst.bound = census::three_figures(worst.bound);
+        worst.share = census::three_figures(worst.share);
+    }
+    tally
 }
 
 /// A panic's message, when it carries one.
@@ -333,12 +436,126 @@ fn markdown(report: &Report) -> String {
             let _ = writeln!(page, "| {set} | {} | {} | {reason} |", n.index, n.design);
         }
     }
+    readings_section(&mut page, &report.readings);
     page
+}
+
+/// The page's section on the flight-log readings held to their bounds.
+fn readings_section(page: &mut String, tallies: &[Tally]) {
+    page.push_str(
+        "\n## Readings within their bounds\n\n\
+         Each tuning flight logged by its own logger, then again at every rate and step of the \
+         grid, from 500 to half a sample a second and from no step to 100 Pa, and read by \
+         `hpr_flightdata::readings` (M7.2b). Each cell gives how many of the flights' readings \
+         were given, then the largest share of its bound an error took: 1 is the bound, and \
+         `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and \
+         its bound. What is method and what is measured: `docs/physics/log-readings.md`.\n\n",
+    );
+    let mut logs: Vec<&str> = Vec::new();
+    for tally in tallies {
+        if !logs.contains(&tally.log.as_str()) {
+            logs.push(&tally.log);
+        }
+    }
+    page.push_str("| Log |");
+    for quantity in Quantity::ALL {
+        let _ = write!(page, " {} |", quantity.name());
+    }
+    page.push_str("\n|---|");
+    for _ in Quantity::ALL {
+        page.push_str("---:|");
+    }
+    page.push('\n');
+    for log in &logs {
+        let _ = write!(page, "| {log} |");
+        for quantity in Quantity::ALL {
+            let cell = tallies
+                .iter()
+                .find(|tally| tally.log == *log && tally.quantity == quantity)
+                .map_or_else(
+                    || "none".to_owned(),
+                    |tally| match &tally.worst {
+                        Some(worst) => format!("{}, {}", tally.given, number(worst.share)),
+                        None => tally.given.to_string(),
+                    },
+                );
+            let _ = write!(page, " {cell} |");
+        }
+        page.push('\n');
+    }
+    page.push_str("\n### Readings withheld\n\n");
+    let withheld: Vec<(&Tally, String, u64)> = tallies
+        .iter()
+        .flat_map(|tally| {
+            tally.withheld.iter().map(move |(reason, count)| {
+                let code = serde_json::to_value(reason)
+                    .ok()
+                    .and_then(|value| value.as_str().map(str::to_owned))
+                    .unwrap_or_default();
+                (tally, code, *count)
+            })
+        })
+        .collect();
+    if withheld.is_empty() {
+        page.push_str("None was withheld.\n");
+    } else {
+        page.push_str("| Log | Reading | Reason | Flights |\n|---|---|---|---:|\n");
+        for (tally, code, count) in withheld {
+            let _ = writeln!(
+                page,
+                "| {} | {} | `{code}` | {count} |",
+                tally.log,
+                tally.quantity.name()
+            );
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_threaded_readings_are_the_readings_taken_in_order() {
+        let root = crate::designs::root().unwrap();
+        let files = design_files(&root).unwrap();
+        let mut flyer = Flyer::new(files.clone());
+        let flights: Vec<FlightOutcomes> = (0..3)
+            .map(|index| {
+                let flight = flyer.flight(Set::Tuning, index).unwrap();
+                let logs = held::logs(&flight, Set::Tuning.seed(), index).unwrap();
+                let outcomes = logs
+                    .iter()
+                    .map(|(name, log)| (name.clone(), held::outcomes(&flight, log)))
+                    .collect();
+                (index, outcomes)
+            })
+            .collect();
+        assert_eq!(read_logs(3, &files).unwrap(), held::tally(&flights));
+    }
+
+    /// A tally whose worst error passes its bound is named, with the flight, and fails the
+    /// command; one at its bound holds.
+    #[test]
+    fn a_reading_past_its_bound_is_named() {
+        let tally = |share: f64| Tally {
+            log: "20 Hz, altitude, no step".to_owned(),
+            quantity: Quantity::Landing,
+            given: 1,
+            withheld: std::collections::BTreeMap::new(),
+            worst: Some(held::Worst {
+                flight: 7,
+                error: -share,
+                bound: 1.0,
+                share,
+            }),
+        };
+        assert!(misses(&[tally(1.0)]).is_empty());
+        assert_eq!(
+            misses(&[tally(1.0), tally(1.5)]),
+            ["20 Hz, altitude, no step, landing: flight 7, error -1.5 against a bound of 1 s"]
+        );
+    }
 
     #[test]
     fn the_threaded_census_is_the_census_flown_in_order() {
@@ -360,6 +577,7 @@ mod tests {
         let page = markdown(&Report {
             about: String::new(),
             sets: vec![census::from_rows(Set::A, &rows)],
+            readings: Vec::new(),
         });
         assert!(page.contains("| A | 0 |"), "{page}");
         assert!(page.contains("first \\| second third |"), "{page}");
