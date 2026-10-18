@@ -389,7 +389,8 @@ fn check(draw: &LoggerDraw, truth: &Truth) -> Result<(), SyntheticError> {
     }
     // The clock writes a sample for every step it runs, so a log longer than a day, which no
     // flight lasts, is refused rather than allocated.
-    if !(draw.pad_s + events.landing_s + draw.ground_s <= MAX_LOG_S) {
+    let length_s = draw.pad_s + events.landing_s + draw.ground_s;
+    if length_s.is_nan() || length_s > MAX_LOG_S {
         return invalid("a log longer than a day");
     }
     Ok(())
