@@ -25,9 +25,10 @@
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
 //!   samples bound `v`, and with it how far up the rocket may already be, `v²/(2A)`: that much
 //!   enters the bounds. Where it could pass the allowance, the pad is short
-//!   ([`Reason::ShortPad`]): a track on the logger's own zero, or a channel's above the ground,
-//!   reads its heights from that zero, and any other withholds them. A track that is above the
-//!   pad only by a mapping's or a column's word must start within [`PAD_ZERO_M`] of its zero;
+//!   ([`Reason::ShortPad`]): a track on a zero, the logger's own or one only a mapping's or a
+//!   column's word vouches for, reads its heights from that zero, the zero's possible error
+//!   entering the bounds, and any other withholds them. A track that is above the pad only by a
+//!   word must start within [`PAD_ZERO_M`] of its zero;
 //! - **liftoff** is the last sample before apogee within the pad's allowance: how far the filtered
 //!   pad strays from its median, at least [`LIFTOFF_ALLOWANCE_M`], and a step;
 //! - **apogee** is the filtered track's highest value, at the middle of the run of samples that
@@ -455,7 +456,8 @@ pub struct Apogee {
     /// height's noise and step there, `√(2 (noise + step)/g)`, and the longest interval either
     /// side of the peak's flat run.
     pub time_bound_s: f64,
-    /// The filtered track there, m above the pad.
+    /// The filtered track there, m above the pad, or on a short pad above the track's zero, whose
+    /// possible error the bound holds.
     pub height_m: f64,
     /// The bound on the height's error, m: the day's air ([`TEMPERATURE_SHARE`]) and the
     /// barometer's gain ([`BAROMETER_GAIN`]) as shares of the height, then its noise
@@ -500,7 +502,8 @@ pub struct MaxSpeed {
     pub bound_m_s: f64,
     /// When, s on the track's clock: the middle of the fit.
     pub time_s: f64,
-    /// The filtered track then, m above the pad.
+    /// The filtered track then, m above the pad, or on a short pad above the track's zero, which
+    /// may be off the pad by as much as the apogee's bound allows for; no bound is given on it.
     pub height_m: f64,
     /// The track it came from.
     pub source: Source,

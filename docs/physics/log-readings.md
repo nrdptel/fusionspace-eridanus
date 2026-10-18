@@ -577,7 +577,8 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
   noisier than they are, or a rocket slower off the pad than 2 g, can be read outside its bound.
   A pad that drifts within the 2 m (6.6 ft) allowance, early one way and late the other, can read
   liftoff outside its bound: a review measured up to 1.22 times the bound at ±2 m (6.6 ft) on a
-  synthetic climb
+  synthetic climb. On a short pad, a zero only a word vouches for is placed by the first sample
+  unfiltered, so its error can be understated by that sample's noise, up to 3 m (9.8 ft)
   ([#773](https://github.com/nrdptel/fusionspace-eridanus/issues/773), the pad error's noise
   budget).
 - **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
