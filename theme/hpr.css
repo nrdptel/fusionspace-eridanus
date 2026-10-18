@@ -3,9 +3,10 @@
 /* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev D) doesn't set, because only
    this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
    (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
-   sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each).
-   The theme sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own
-   defaults, the type scale and the column. */
+   sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each),
+   and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it. The theme
+   sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own defaults, the
+   type scale and the column. */
 
 /* The copy button's icon: mdBook tints a black image with a filter to a gray of its own; here it
    is the system's copy icon (`product/icons/copy.svg`, drawn in Void for the figures check) as a
@@ -238,3 +239,30 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
 html:not(.js) #hpr-print { display: none; }
 #hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
 #hpr-print-cover .fs-btn:hover { color: var(--fs-on-action); background: var(--fs-action); border-color: var(--fs-action); }
+/* Cascadia Mono's fallback at its widths, from a monospace font one of these systems commonly
+   carries: Menlo (Apple systems), Courier New (Windows and Apple systems), DejaVu Sans Mono,
+   Liberation Mono or Noto Sans Mono (Linux), Cousine (ChromeOS) and Droid Sans Mono (Android).
+   fonts.css names `local('Menlo')`, which Chrome doesn't find (`local()` takes a font's full or
+   PostScript name, `Menlo Regular` or `Menlo-Regular`), and Consolas unscaled, at no weight. So a
+   page drawn before Cascadia Mono arrived set its titles, its status chip and its inline code in
+   other widths; on a slow load the status chip, which shares the row above the title with the
+   designation tag, rewrapped when the face came and moved the page's top by 32 px (#468, CLS 0.22
+   on the aerodynamics page). These rules add faces to that family. Where rules share a weight, the
+   browser takes the last whose font the system has, then earlier ones, down to fonts.css's own
+   face at 400. Each scales one font by its advance (the width every letter of a monospace font
+   shares) to Cascadia Mono's 1200/2048 em, read from the fonts' files: Menlo (macOS 27) and DejaVu
+   Sans Mono 2.37 1233/2048 (97.3236%); Courier New 5.00 (macOS 27), Liberation Mono 2.1.5, Cousine
+   1.241 and Droid Sans Mono 1.00 1229/2048 (97.6404%); Noto Sans Mono 2.014 600/1000 (97.6563%).
+   In Chrome a weight whose faces all fail goes to the next family in the stack, not to another
+   weight, so each 600 rule ends with its regular files (Droid Sans Mono has no bold; in Chrome on
+   macOS a bold drawn from a regular kept its advance). The page check measures this family against
+   Cascadia Mono at both weights in the browser that runs it, Chrome on macOS and on CI's Linux
+   runners; Windows, ChromeOS, Android, Safari and Firefox are not measured. */
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: local('Courier New'), local('CourierNewPSMT'); size-adjust: 97.6404%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Courier New Bold'), local('CourierNewPS-BoldMT'), local('Courier New'), local('CourierNewPSMT'); size-adjust: 97.6404%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: local('Noto Sans Mono Regular'), local('NotoSansMono-Regular'); size-adjust: 97.6563%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Noto Sans Mono Bold'), local('NotoSansMono-Bold'), local('Noto Sans Mono Regular'), local('NotoSansMono-Regular'); size-adjust: 97.6563%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: local('Liberation Mono'), local('LiberationMono'), local('Cousine Regular'), local('Cousine-Regular'), local('Droid Sans Mono'), local('DroidSansMono'); size-adjust: 97.6404%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Liberation Mono Bold'), local('LiberationMono-Bold'), local('Cousine Bold'), local('Cousine-Bold'), local('Liberation Mono'), local('LiberationMono'), local('Cousine Regular'), local('Cousine-Regular'), local('Droid Sans Mono'), local('DroidSansMono'); size-adjust: 97.6404%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: local('Menlo Regular'), local('Menlo-Regular'), local('DejaVu Sans Mono'), local('DejaVuSansMono'); size-adjust: 97.3236%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Menlo Bold'), local('Menlo-Bold'), local('DejaVu Sans Mono Bold'), local('DejaVuSansMono-Bold'), local('Menlo Regular'), local('Menlo-Regular'), local('DejaVu Sans Mono'), local('DejaVuSansMono'); size-adjust: 97.3236%; }

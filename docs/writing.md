@@ -350,8 +350,16 @@ beside the sidebar, and gutters off 16 or 32 px fail it too ([ADR-250](https://g
   across the note's top, set apart by a rule or a fill (a caution's in the caution fill, a
   warning's in the danger fill); the note inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
-  the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
-  script asks for when the menu bar's title is clicked;
+  the real font's size, so text doesn't jump when the real font arrives);
+- a page whose Cascadia Mono fallback (the family `'Cascadia Mono Fallback'`, drawn until Cascadia
+  Mono arrives) sets a line more than 0.1% longer or shorter than Cascadia Mono does, regular or
+  semibold. The site scales Menlo, DejaVu Sans Mono, Courier New, Liberation Mono, Cousine, Droid
+  Sans Mono and Noto Sans Mono to it, since all of a monospace font's letters share one width
+  ([#468](https://github.com/nrdptel/fusionspace-eridanus/issues/468)). The check measures the
+  font that the browser running it picks, so a machine checks only its own fonts; CI's Linux
+  runners check theirs. A page that declares no Cascadia Mono face, as most of the check's test
+  pages, is skipped;
+- a smooth scroll a script asks for when the menu bar's title is clicked;
 - an icon in the menu bar, the page arrows, the search field or a code block's buttons that isn't
   square at one of the system's icon sizes, 16, 20 or 24 px (the site draws them at 20 and
   24 px; a note's icon, 14 px as the system's note draws it, isn't read), and selected text not
