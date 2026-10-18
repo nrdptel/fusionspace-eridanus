@@ -169,9 +169,9 @@ opt-level = 3
 [profile.dev.package.zmij]
 opt-level = 3
 
-# The synthetic flights' loggers (`cargo xtask synthetic`) write each tuning flight 37 times over,
-# sample by sample, to hold the flight-log readings to their bounds: 23 CPU-seconds for 20 flights
-# unoptimized, 15.5 at opt-level 3. The committed report reproduces byte for byte either way
-# (M7.2b).
+# The synthetic flights' loggers (`cargo xtask synthetic`) write each tuning flight 43 times over,
+# sample by sample, to hold the flight-log readings to their bounds: at 37 writes, 23 CPU-seconds
+# for 20 flights unoptimized, 15.5 at opt-level 3. The committed report reproduces byte for byte
+# either way (M7.2b).
 [profile.dev.package.fusionspace-hpr-forensics]
 opt-level = 3

@@ -1,6 +1,6 @@
 # ADR-251: Flight log importers in two increments: the record every reader fills, a survey of the sample logs pinned by digest, and the PerfectFlite, AltOS and Raven readers first (2026-10-12)
 
-- **Status:** accepted; splits M7.1 into M7.1a and M7.1b, the parent's *done when* unchanged and M7.1b's; follows [ADR-046](0046-debrief-folded-in-and-flight-log-analysis-that.md) (no simulator in `hpr-flightdata`) and [ADR-151](0151-hpr-sim-fixtures-joins-the-reference-library-as.md) (aggregates only)
+- **Status:** accepted; splits M7.1 into M7.1a and M7.1b, the parent's *done when* unchanged and M7.1b's; §6's readings on PerfectFlite logs only superseded by ADR-281; follows [ADR-046](0046-debrief-folded-in-and-flight-log-analysis-that.md) (no simulator in `hpr-flightdata`) and [ADR-151](0151-hpr-sim-fixtures-joins-the-reference-library-as.md) (aggregates only)
 - **Summary:** The sample logs under `refs/` number about 1,000 distinct files in some 20 layouts, too many for one increment. M7.1a builds the flight record every reader fills (every column a channel on its own clock, the logger's events), a survey that reads every sample and writes a committed report of counts and anonymized ids, and readers for the PerfectFlite text exports, AltOS CSV and the Raven's FIP CSV; M7.1b reads the rest. A private or unlicensed log is pinned by a digest of what was read from it, never by a snapshot of its values.
 
 **Context.** M7.1's *done when*: "every sample file in refs imports, snapshot-tested, and the crate

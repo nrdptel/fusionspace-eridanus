@@ -112,10 +112,11 @@ pub const LIFTOFF_HEIGHT_M: f64 = 3.0;
 /// The least the filtered track may sit above the pad and still be on it, m: four times the
 /// synthetic flights' fast correlated barometer noise (0.5 m, [ADR-280] §3), HPR Sim's choice.
 /// Where the pad's own samples reach further, the allowance is their reach. Liftoff read at half a
-/// foot above the pad, as before the readings were taken on every logger, came up to 6 s early on a noisy 500 Hz barometer, the
-/// noise lifting the pad's last samples above it; with the pad's reach measured but the
-/// allowance at 1 m, 6.8 s early at half a sample a second on one tuning flight, against a 4.5 s
-/// bound, the noise moving the pad's last sample past the reach of the two before; at 2 m, never.
+/// foot above the pad, as before the readings were taken on every logger, came up to 6 s early on a
+/// noisy 500 Hz barometer, the noise lifting the pad's last samples above it; with the pad's reach
+/// measured but the allowance at 1 m, 6.8 s early at half a sample a second on one tuning flight,
+/// against a 4.5 s bound, the noise moving the pad's last sample past the reach of the two before;
+/// at 2 m, never.
 ///
 /// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 pub const LIFTOFF_ALLOWANCE_M: f64 = 2.0;
@@ -212,10 +213,11 @@ pub const SPIKE_CHECK_S: f64 = 1.0;
 pub const RAPID_PRESSURE_CHANGE_PA_PER_H: f64 = 0.06 * 3386.389;
 /// How far from its zero a track whose heights are above the pad only by a mapping's or a column's
 /// word may start and still be taken as a height above the pad, m: a logger zeroes on the pad, and
-/// its zero moves by the weather and its noise before launch. An hour on the pad at [`RAPID_PRESSURE_CHANGE_PA_PER_H`], at sea level's
-/// standard density, then [`NOISE_M`]: `203.2 / (1.225 · 9.807) + 3` = 19.9 m. The hour is HPR
-/// Sim's choice. A track that starts further off is withheld as [`Reason::StartsOffThePad`],
-/// as an altitude above sea level a column mapping calls one above the ground reads (#646).
+/// its zero moves by the weather and its noise before launch. An hour on the pad at
+/// [`RAPID_PRESSURE_CHANGE_PA_PER_H`], at sea level's standard density, then [`NOISE_M`]: `203.2 /
+/// (1.225 · 9.807) + 3` = 19.9 m. The hour is HPR Sim's choice. A track that starts further off is
+/// withheld as [`Reason::StartsOffThePad`], as an altitude above sea level a column mapping calls
+/// one above the ground reads (#646).
 pub const PAD_ZERO_M: f64 =
     RAPID_PRESSURE_CHANGE_PA_PER_H / (1.225 * STANDARD_GRAVITY_MPS2) + NOISE_M;
 
