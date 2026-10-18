@@ -112,9 +112,10 @@ From the 2026-10-10 planning review:
   term on 2026-09-23 (its PR #3327), applied only when a nozzle exit diameter is entered. Leaving it
   out errs low, the flattering side for a waiver; the term raises the apogee, so it grows the
   collection's +8.73% mean bias. Moves: that bias, and hpr-less-OpenRocket (HPR Sim's apogee minus
-  OpenRocket's) by the term's size, as 24.12 has none; OpenRocket's own term enters that difference
-  only if M2.3c3 sets an exit diameter on its newest release, as the diameter's default, 0, applies
-  none ([OpenRocket after 24.12](openrocket-after-24-12.md) §2). *Done when:* `hpr sim` prints both; the
+  OpenRocket's), which HPR Sim's term raises by its size, since OpenRocket 24.12 has no such term.
+  OpenRocket's own term, applied only when an exit diameter is set (the default, 0, applies none),
+  enters that difference only if M2.3c3 sets one on its newest release
+  ([OpenRocket after 24.12](openrocket-after-24-12.md) §2). *Done when:* `hpr sim` prints both; the
   fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
   that the bounded apogee is never below the other.
 - SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
