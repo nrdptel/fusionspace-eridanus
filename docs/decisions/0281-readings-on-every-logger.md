@@ -1,7 +1,7 @@
 # ADR-281: Readings on every logger: one height track, a pad its samples can vouch for, and a top that must be a coast's (2026-10-18)
 
 - **Status:** accepted; ships [M7.2b][m7-2b] as [ADR-280][adr-280] planned it; retires [ADR-251][adr-251] §6 (readings on PerfectFlite logs only); meets [#646][i646] and [#702][i702]
-- **Summary:** The readings (liftoff, apogee, the top speed, landing) now come from every logger that records a barometric altitude or a pressure, each within a bound its error stayed inside on the synthetic flights' tuning set, logged at every rate from 500 to half a sample a second, at every step to 10 m (33 ft) or 100 Pa, and from cropped starts, or withheld with one of 23 named reasons. A GNSS track gives none. Three rules carry most of the weight. The pad is taken only as far as its samples can vouch that the rocket was still on it. A track whose heights are above the pad only by a column's word must start near its zero. A top that isn't a coast's is withheld: one the track fell from and climbed back to, or a spike that climbs in and falls out faster than physics allows. On the 1,058 records the sample logs hold, apogee is given on 594, liftoff on 555, the top speed on 354 and landing on 473, and every reason has a case.
+- **Summary:** The readings (liftoff, apogee, the top speed, landing) now come from every logger that records a barometric altitude or a pressure, each within a bound its error stayed inside on the synthetic flights' tuning set, logged at every rate from 500 to half a sample a second, at every step to 10 m (33 ft) or 100 Pa, and from cropped starts, or withheld with one of 23 named reasons. A GNSS track gives none. Three rules carry most of the weight. The pad is taken only as far as its samples can vouch that the rocket was still on it. A track whose heights are above the pad only by a column's word must start near its zero. A top that isn't a coast's is withheld: one the track fell from and climbed back to, or a spike that climbs in and falls out faster than physics allows. On the 1,058 records the sample logs hold, apogee is given on 593, liftoff on 554, the top speed on 354 and landing on 472, and every reason has a case.
 
 [m7-2b]: ../decisions-and-roadmap.md#m7-2b
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
@@ -40,12 +40,16 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    log starts, would have climbed out of that band unless `v ≤ (rise − A t²/2)/t`. So the samples
    bound how far up it may already be, `v²/(2A)`, and that much enters the liftoff, apogee and
    landing bounds. Where it could pass the allowance, the pad is short (`short_pad`): a track on the
-   logger's own zero reads its heights from that zero, and any other withholds them.
+   logger's own zero reads its heights from that zero, and any other withholds them. A zero that
+   only a word vouches for is read from only under §3's rule.
 3. **A start near the zero (#646).** A track that is above the pad only by a column mapping's or a
    header's word must start within 19.9 m of its zero: an hour at the National Weather Service's
    *pressure rising rapidly* rate (0.06 inHg an hour) at sea level's density, plus the 3 m noise.
    Further off, it is withheld (`starts_off_the_pad`), as an altitude above sea level mapped as one
-   above the ground reads. The hour is HPR Sim's choice.
+   above the ground reads. The hour is HPR Sim's choice. Such a zero may be off by as much as the
+   track's start, so on a short pad the track reads from it only where its first sample is within
+   the 2 m allowance of it, and that distance enters the liftoff, apogee and landing bounds as the
+   pad's error. Further off, its readings are withheld (`short_pad`).
 4. **A top that is a coast's.** Three checks, each tested both ways.
    - *The clock (#646).* A coast loses `g t²/2` in the last `t` before its top, 78.5 m in 4 s. A track
      that loses no more than twice its noise and step is on a clock in another unit, such as
@@ -68,7 +72,10 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    it has a barometer, on the same barometer written again at 6 rates by 6 ways of writing it, and
    two recordings cropped to start 0.3 s before liftoff, 0.1 s after it, and 0.5 s after it behind
    the logger's zero, as a logger that records from launch writes them: 43 logs a flight. `cargo xtask synthetic` fails unless every reading given holds. The
-   worst share of its bound any reading reached is 0.717, an apogee at 20 Hz.
+   worst share of its bound any reading reached is 0.717, an apogee at 20 Hz. A log sampled faster
+   than 500 times a second, the fastest rate checked, has its readings withheld
+   (`sampled_too_fast`), as one slower than half a sample a second does (`sampled_too_slowly`); a
+   clock a part in a thousand faster, as a logger's rounding of its own may be, still reads.
 6. **Method and provenance.** Each reading names the track it came from, how it was read, and
    whether it was measured or derived. The heights and times are measured. The top speed is derived
    from them, and withheld from 227.7 m/s, Mach 0.8 in the coldest air the bounds allow below 20 km,
@@ -78,8 +85,8 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    and by reason, and names a case for every reason: the corpus's first record withheld for it,
    by anonymized id, or, where the corpus has none, an invented sample committed under
    `validation/fixtures/logs/readings/`. The survey reads each invented sample and fails unless it
-   withholds a reading for its reason. Five stand in today: `bad_record`, `faster_than_free_fall`,
-   `sampled_too_fast`, `starts_off_the_pad` and `step_too_coarse`.
+   withholds a reading for its reason. Four stand in today: `bad_record`, `faster_than_free_fall`,
+   `starts_off_the_pad` and `step_too_coarse`; the other 19 reasons have corpus cases.
 8. **Every surface.** `hpr analyze` reads every family with no design file, by its own reader or
    by the mapping, layout or FIP header the family needs, and Python's
    `FlightLog.read` and `FlightLog.readings()` read the same files into the same readings. Three
@@ -113,7 +120,7 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
   the import's raw peak took, is removed by the median. The Blue Raven breakup log is withheld by the
   spike check. Synthetic logs of both shapes are committed tests, because neither log can be.
 - A spike that climbs into the top no faster than a coast can, at most `g Δ²` plus twice the noise
-  and step in its last second (16.5 m at 20 Hz on a PerfectFlite), is still read as the top, however
+  and step in its last second (16.42 m at 20 Hz on a PerfectFlite), is still read as the top, however
   high it stands: the check is one-sided by design. No synthetic flight carries a charge's transient, so the bounds
   were never held against one ([#761][i761]).
 - Some tops withheld as `disturbed_top` are the vehicle's own: a pressure dip in the coast's last

@@ -5360,21 +5360,25 @@
         },
         "readings": {
           "apogee": {
-            "given": 71,
+            "given": 70,
             "withheld": {
-              "disturbed_top": 9
+              "disturbed_top": 9,
+              "sampled_too_fast": 1
             }
           },
           "landing": {
-            "given": 67,
+            "given": 66,
             "withheld": {
               "disturbed_top": 9,
-              "ends_before_landing": 4
+              "ends_before_landing": 4,
+              "sampled_too_fast": 1
             }
           },
           "liftoff": {
-            "given": 80,
-            "withheld": {}
+            "given": 79,
+            "withheld": {
+              "sampled_too_fast": 1
+            }
           },
           "max_acceleration": {
             "given": 0,
@@ -5386,8 +5390,9 @@
             "given": 34,
             "withheld": {
               "disturbed_top": 9,
+              "sampled_too_fast": 1,
               "sampled_too_slowly": 1,
-              "transonic": 36
+              "transonic": 35
             }
           }
         }
@@ -5914,9 +5919,9 @@
       },
       {
         "reason": "sampled_too_fast",
-        "records": 0,
-        "first": null,
-        "invented": "sampled-too-fast.csv"
+        "records": 1,
+        "first": "31f063cc173e6147",
+        "invented": null
       },
       {
         "reason": "no_height_track",
@@ -5944,7 +5949,7 @@
       },
       {
         "reason": "transonic",
-        "records": 206,
+        "records": 205,
         "first": "01dc90b45723df1e",
         "invented": null
       },

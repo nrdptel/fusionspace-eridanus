@@ -427,8 +427,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
 /// Reads one record of a file that may hold several: the sheet `sheet` of a spreadsheet's workbook
 /// (`.xlsx` by [`workbook::read`], `.xls` by [`xls::read`]), each sheet read as a file of its own,
 /// or the recording `recording` of an Entacore AIM raw dump ([`entacore_raw::read_dump`]), each
-/// counted from 0. With no choice, the one sheet that reads as a log, or the dump's one recording.
-/// Any other file is read as [`read`] reads it, and takes neither choice.
+/// counted from 0. With no choice, a workbook's one sheet, or of several the one that reads as a
+/// log, or the dump's one recording. Any other file is read as [`read`] reads it, and takes
+/// neither choice.
 ///
 /// ```
 /// use hpr_flightdata::import;
@@ -442,8 +443,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
 /// # Errors
 ///
 /// [`LogError::Choice`] for a choice the file doesn't take or doesn't hold, and for a workbook or
-/// a dump read with none that holds no one record: several sheets that read as logs, or none, or
-/// several recordings; the chosen sheet's own refusal; otherwise as [`read`].
+/// a dump read with none that holds no one record: of several sheets, more than one that reads as
+/// a log, or none, or several recordings; the chosen sheet's, or the one sheet's, own refusal; a
+/// workbook's own refusal, as [`workbook::read`]'s or [`xls::read`]'s; otherwise as [`read`].
 pub fn read_one(
     bytes: &[u8],
     sheet: Option<usize>,
@@ -453,8 +455,10 @@ pub fn read_one(
     let sheets = if archive::is_archive(bytes) {
         match workbook::read(bytes) {
             Ok(sheets) => Some(sheets),
-            // A zip archive that isn't a workbook is refused as an archive.
-            Err(_) => return read(bytes),
+            // A zip archive that isn't a workbook is refused as an archive; a workbook that
+            // fails is refused for its own fault.
+            Err(LogError::NotThisFormat { .. }) => return read(bytes),
+            Err(error) => return Err(error),
         }
     } else if xls::recognizes(bytes) {
         Some(xls::read(bytes)?)
@@ -477,6 +481,13 @@ pub fn read_one(
                     "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
                 )),
             };
+        }
+        // A workbook of one sheet is read as that sheet, its refusal its own.
+        if count == 1 {
+            return sheets
+                .into_iter()
+                .next()
+                .map_or(Err(LogError::NoData { format: "workbook" }), |one| one.log);
         }
         let mut reading: Vec<(usize, workbook::SheetLog)> = sheets
             .into_iter()

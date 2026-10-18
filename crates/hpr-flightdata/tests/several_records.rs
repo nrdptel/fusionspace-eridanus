@@ -359,4 +359,61 @@ fn a_fip_export_reads_under_its_stated_header() {
     // A key the file's schema doesn't name is refused, naming it.
     let typo = custom::fip_header_from_json(r#"{"header": "a", "pastd": [1]}"#).unwrap_err();
     assert!(typo.to_string().contains("pastd"), "{typo}");
+    // A header line or pasted columns the rows refuse are the FIP header's fault, said so.
+    for (header, pasted, said) in [
+        ("nonsense", vec![], "FIP header: the header stated"),
+        (
+            FIP_HEADER,
+            vec![0],
+            "FIP header: the pasted columns are numbered from 1",
+        ),
+    ] {
+        let stated = FipHeader {
+            header: header.to_owned(),
+            pasted,
+        };
+        match custom::read_by_fip_header(&bytes, &stated, None) {
+            Err(error @ LogError::FipHeader { .. }) => {
+                assert!(error.to_string().starts_with(said), "{error}");
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+}
+
+/// A workbook that fails is refused for its own fault, by the importer and by a mapping alike,
+/// and a workbook of one sheet that doesn't read is refused as that sheet is; a zip archive that
+/// isn't a workbook is refused as an archive.
+#[test]
+fn a_workbooks_own_refusal_is_kept() {
+    let broken = workbook(&[("Broken", "<row r=\"1\">".to_owned())]);
+    assert!(matches!(
+        import::read_one(&broken, None, None),
+        Err(LogError::Workbook { .. })
+    ));
+    let (mapping, _) = custom::header_mapping(&two_flights(), Some(0)).unwrap();
+    assert!(matches!(
+        custom::read_by_mapping(&broken, &mapping, None),
+        Err(LogError::Workbook { .. })
+    ));
+
+    let notes = workbook(&[("Notes", sheet_data(&[vec!["An invented day".to_owned()]]))]);
+    let refused = import::read_one(&notes, None, None).unwrap_err();
+    assert!(!matches!(refused, LogError::Choice { .. }), "{refused}");
+    assert_eq!(
+        refused.to_string(),
+        import::read_one(&notes, Some(0), None)
+            .unwrap_err()
+            .to_string()
+    );
+
+    let mut zip = ZipWriter::new(Cursor::new(Vec::new()));
+    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
+    zip.start_file("flight.csv", options).unwrap();
+    zip.write_all(b"Time (s),Baro Alt AGL (m)\n0,0\n").unwrap();
+    let archive = zip.finish().unwrap().into_inner();
+    assert!(matches!(
+        import::read_one(&archive, None, None),
+        Err(LogError::Archive { .. })
+    ));
 }

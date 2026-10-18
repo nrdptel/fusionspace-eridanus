@@ -168,7 +168,7 @@ found = "nothing usable for the listed formats: the CATS hits are the GPL-3.0 ca
 [[row]]
 id = "G10"
 surface = "The flight analyzer"
-claim = "The analyzer's readings are checked on an invented flight whose every reading is known, and on one real log by a test that runs only where the log is fetched"
+claim = "The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, where each of the 171 tuning flights with a barometer is logged 43 ways and every reading given stays within its bound (`cargo xtask synthetic`)"
 pages = [
   "reading-a-flight-log.md#reading-a-flight-log",
   "accuracy.md#accuracy",
@@ -176,7 +176,7 @@ pages = [
 ]
 kind = "spec"
 wanted = "real"
-not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them, and the bounds on flights kept apart from their tuning"
+not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; and loggers noisier than the tuning set's six simulated profiles"
 issue = 663
 
 [[row.searched]]

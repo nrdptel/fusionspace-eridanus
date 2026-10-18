@@ -92,10 +92,14 @@ use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 /// [`peak_bound_m`] low, 0.077 m at 20 Hz. The Pnut numbers are checked only where the log has been
 /// fetched into `refs/` (it isn't committed); CI checks an invented log of the same shape.
 pub const MEDIAN_WINDOW_S: f64 = 0.3;
-/// The most samples either side of its center the running median takes: HPR Sim's choice, the
-/// [`MEDIAN_WINDOW_S`] window at over 6 kHz, faster than any logger HPR Sim reads. A log sampled
-/// faster is withheld ([`Reason::SampledTooFast`]): the median's cost grows with its window.
+/// The most samples either side of its center the running median takes: the [`MEDIAN_WINDOW_S`]
+/// window at over 6 kHz, far faster than [`MIN_INTERVAL_S`] lets a log be read.
 pub const MAX_MEDIAN_HALF_WINDOW: usize = 1000;
+/// The fastest a log may be sampled, s: the fastest rate the bounds were checked at on the
+/// synthetic flights' tuning set, 500 samples a second, above which the readings are withheld
+/// ([`Reason::SampledTooFast`]). A clock a part in a thousand faster, as a logger's rounding of
+/// its own clock may be, still reads.
+pub const MIN_INTERVAL_S: f64 = 0.002;
 /// The slowest a log may be sampled, s: the slowest rate the bounds were checked at on the
 /// synthetic flights' tuning set, half a sample a second, below which the readings are withheld
 /// ([`Reason::SampledTooSlowly`]). It is about twice a radio's telemetry interval, and a
@@ -319,8 +323,8 @@ pub enum Reason {
     /// finite times that increase, and channels as long as their clocks. Only a record built by
     /// hand can.
     BadRecord,
-    /// The samples come so often that the [`MEDIAN_WINDOW_S`] window would hold more than
-    /// [`MAX_MEDIAN_HALF_WINDOW`] either side.
+    /// The samples come more often than [`MIN_INTERVAL_S`], faster than the bounds were checked
+    /// at.
     SampledTooFast,
     /// The log holds no altitude, pressure or GNSS track.
     NoHeightTrack,
@@ -680,20 +684,21 @@ pub fn read(log: &FlightLog) -> Readings {
         readings.sample_interval_s = Some(interval);
         return readings;
     }
-    let half = half_window(interval);
-    if half > MAX_MEDIAN_HALF_WINDOW {
+    if interval < MIN_INTERVAL_S * (1.0 - 1e-3) {
         let mut readings = every(
             source,
             Reason::SampledTooFast,
             &format!(
-                "the track's samples come every {interval:.3e} s, so a {MEDIAN_WINDOW_S} s running \
-                 median would take more than {MAX_MEDIAN_HALF_WINDOW} samples either side: faster \
-                 than any logger HPR Sim reads"
+                "the track's samples come every {interval:.3e} s, faster than the {MIN_INTERVAL_S} \
+                 s, 500 samples a second, the readings were checked at"
             ),
         );
         readings.sample_interval_s = Some(interval);
         return readings;
     }
+    let half = half_window(interval);
+    // Invariant: at MIN_INTERVAL_S the window holds 75 samples either side, far under the cap.
+    debug_assert!(half <= MAX_MEDIAN_HALF_WINDOW, "{half}");
     let coarse = match track.pressure_step_pa {
         Some(step) if step > MAX_PRESSURE_STEP_PA => Some(format!(
             "the track's pressure moves in steps of {step:.1} Pa, coarser than the \
@@ -811,13 +816,25 @@ pub fn read(log: &FlightLog) -> Readings {
         "the track stays within {:.1} m of its start for {stay_s:.2} s, so the rocket may have \
          climbed {pad_error_m:.1} m before the log starts, more than the pad's {:.0} m allowance: \
          the log starts after liftoff, as a logger that records from launch does, or holds too \
-         little of the pad to tell liftoff by",
+         little of the pad to tell liftoff by{}",
         0.5 * rise,
-        LIFTOFF_ALLOWANCE_M
+        LIFTOFF_ALLOWANCE_M,
+        if by_word {
+            format!(
+                "; its heights are above the pad only by a mapping's or a header's word, and its \
+                 first sample stands {measured_pad:.1} m from its zero, more than the allowance, \
+                 so the zero can't stand in for the pad"
+            )
+        } else {
+            String::new()
+        }
     );
-    // With no pad, a track whose heights stand on a zero set on the pad reads from that zero;
-    // one with no such zero, as a pressure track, can't place the pad.
-    if short_pad && !track.zeroed {
+    // With no pad, a track whose heights stand on a zero the logger set on the pad reads from
+    // that zero; one with no such zero, as a pressure track, can't place the pad. Nor can a
+    // track above the pad only by a word (#646), whose zero may be off by as much as its start,
+    // unless its first sample, within the allowance of that zero, says it stands on the pad.
+    let word_zero_off = by_word && measured_pad.abs() > LIFTOFF_ALLOWANCE_M;
+    if short_pad && (!track.zeroed || word_zero_off) {
         let mut withheld = every(source, Reason::ShortPad, &short_detail);
         withheld.sample_interval_s = readings.sample_interval_s;
         withheld.step_m = readings.step_m;
@@ -825,10 +842,11 @@ pub fn read(log: &FlightLog) -> Readings {
         withheld.peak_bound_m = readings.peak_bound_m;
         return withheld;
     }
-    // A short pad read from the logger's zero is as far off as the zero; a pad of samples, as
-    // far as the rocket may have climbed before them.
+    // A short pad read from the logger's zero is as far off as the zero: none for a zero the
+    // logger set on the pad, and a word's zero as far as the first sample stands from it. A pad
+    // of samples is as far off as the rocket may have climbed before them.
     let (pad, pad_error_m) = if short_pad {
-        (0.0, 0.0)
+        (0.0, if by_word { measured_pad.abs() } else { 0.0 })
     } else {
         (measured_pad, pad_error_m)
     };
@@ -1949,15 +1967,48 @@ mod tests {
         assert!((liftoff.time_s - 0.1).abs() < 1e-9, "{}", liftoff.time_s);
         let apogee = read.apogee.value().unwrap();
         assert!(apogee.time_after_liftoff_s.is_some());
+
+        // A mapped table's track is above the pad only by the mapping's word, and its zero may be
+        // as far off as its start (#646). Its first sample within the 2 m allowance of the zero
+        // says it stands on the pad, and its distance enters the bounds; further, as at a 15 m
+        // offset, which would put the apogee outside its bound, the readings are withheld.
+        let mapped = |offset_m: f64| {
+            let (flight, down) = hop(300.0, 0.1, 1.0);
+            let mut mapped = log(down + 3.0, move |t| offset_m + flight(t));
+            mapped.format = LogFormat::GenericTable;
+            super::read(&mapped)
+        };
+        let bound = |offset_m: f64| mapped(offset_m).apogee.value().unwrap().bound_m;
+        // The bound grows by the offset, and by the day's air's share of the 1.5 m more height.
+        let grown = bound(1.5) - bound(0.0);
+        assert!(
+            (1.5..1.5 * (1.0 + 1.1 * TEMPERATURE_SHARE)).contains(&grown),
+            "{grown}"
+        );
+        for offset_m in [2.5, 15.0] {
+            let got = mapped(offset_m);
+            assert_eq!(got.apogee.reason(), Some(Reason::ShortPad), "{offset_m}");
+            assert_eq!(got.landing.reason(), Some(Reason::ShortPad), "{offset_m}");
+            let Reading::Withheld(withheld) = &got.apogee else {
+                panic!("{:?}", got.apogee);
+            };
+            assert!(
+                withheld
+                    .detail
+                    .contains("only by a mapping's or a header's word"),
+                "{}",
+                withheld.detail
+            );
+        }
     }
 
     /// The pad is short where its samples can't rule out a rocket already past the allowance: a
     /// PerfectFlite's track 1 m off its zero, on the pad for `pad_s`, then climbing at 10 g for a
-    /// second and coasting at gravity, sampled at 1,000 Hz, stays within half the 4.61 m rise of its start until 0.217 s after
-    /// liftoff. A rocket at 2 g moving at `v` at the start would climb the rise in that time unless
+    /// second and coasting at gravity, sampled at 500 Hz, stays within half the 4.61 m rise of its
+    /// start until 0.216 s after liftoff. A rocket at 2 g moving at `v` at the start would climb the rise in that time unless
     /// `v ≤ (rise − g stay²)/stay`, so it may have climbed `v²/(4g)`: 1.70 m after a 0.17 s pad,
     /// within the 2 m allowance, so the pad is its samples' and the apogee's bound grows by that;
-    /// 2.49 m after 0.13 s, past it, so the pad is the zero. The climb's first samples lend the
+    /// 2.51 m after 0.13 s, past it, so the pad is the zero. The climb's first samples lend the
     /// median 26 mm, within the eighth of the rise a constant acceleration can lend it.
     #[test]
     fn the_pad_is_short_where_the_rocket_may_have_left_it() {
@@ -1969,27 +2020,30 @@ mod tests {
                 1.0 + 5.0 * g * c * c + 10.0 * g * coast - 0.5 * g * coast * coast
             }
         };
-        let after = read(&log_every(0.001, 14.0, climb(0.17)));
+        let after = read(&log_every(MIN_INTERVAL_S, 14.0, climb(0.17)));
         let step = after.step_m.unwrap();
         let rise = 2.0 * (LIFTOFF_ALLOWANCE_M + step);
         let lent = after.pad_altitude_m.unwrap() - 1.0;
         assert!(lent > 0.0 && lent <= rise / 8.0, "{lent}");
-        let before = read(&log_every(0.001, 14.0, climb(0.13)));
+        let before = read(&log_every(MIN_INTERVAL_S, 14.0, climb(0.13)));
         assert_eq!(before.pad_altitude_m, Some(0.0));
 
         // The bound's share, against the same flight after a 2 s pad, whose samples rule it out;
         // the lent pad shortens the height, and its share of the bound, by under 3 mm.
-        let long = read(&log_every(0.001, 16.0, climb(2.0)));
+        let long = read(&log_every(MIN_INTERVAL_S, 16.0, climb(2.0)));
         // The stay ends at the last sample within half the rise: the median of a rising track
         // is its sample.
         let stay = (0..)
-            .map(|k| f64::from(k) * 0.001)
+            .map(|k| f64::from(k) * MIN_INTERVAL_S)
             .take_while(|t| climb(0.17)(*t) <= 1.0 + 0.5 * rise)
             .last()
             .unwrap();
         let speed = (rise - g * stay * stay) / stay;
         let pad_error = speed * speed / (4.0 * g);
-        assert!((pad_error - 1.70).abs() < 0.01, "{pad_error}");
+        assert!(
+            (pad_error - 1.70).abs() < 0.01,
+            "pad error {pad_error}, stay {stay}"
+        );
         let bound = |read: &Readings| read.apogee.value().unwrap().bound_m;
         let drift = DRIFT_M_PER_S * (0.17 - 2.0);
         assert!(
@@ -2079,13 +2133,14 @@ mod tests {
             read(&millis).apogee.reason(),
             Some(Reason::SampledTooSlowly)
         );
-        // 2 kHz, so 0.5 s apart when misread: the climb takes 5,000 s, and loses nothing in the
-        // last 4 s before its top.
-        let fast = log_every(0.0005, 30.0, flight(10.0));
+        // 500 Hz, the fastest the readings take, so 2 s apart when misread, the slowest they
+        // take: the climb takes 1,000 times as long, and loses nothing in the last 4 s before its
+        // top.
+        let fast = log_every(MIN_INTERVAL_S, 30.0, flight(10.0));
         assert!(read(&fast).apogee.value().is_some());
         let mut fast_millis = fast;
-        for time in &mut fast_millis.time_s {
-            *time *= 1000.0;
+        for (index, time) in fast_millis.time_s.iter_mut().enumerate() {
+            *time = f64::from(u32::try_from(index).unwrap()) * 2.0;
         }
         let readings = read(&fast_millis);
         assert_eq!(readings.apogee.reason(), Some(Reason::SlowerThanFreeCoast));
@@ -2109,8 +2164,9 @@ mod tests {
         );
     }
 
-    /// A clock too fine for the median's window is withheld whole, saying so, at the edge: 0.3 s
-    /// is 1,000 samples either side at 0.15 ms, and 1,001 at 0.3/2002 s.
+    /// A clock faster than the bounds were checked at is withheld whole, saying so, at the edge:
+    /// 500 samples a second, and a part in a thousand faster, reads; 800 a second, as one sample
+    /// log's is, and two parts in a thousand faster than 500, don't.
     #[test]
     fn a_clock_too_fine_for_the_window_is_withheld() {
         let with_interval = |interval: f64| {
@@ -2120,7 +2176,7 @@ mod tests {
             }
             read(&log)
         };
-        for interval in [1e-30, 1e-6, MEDIAN_WINDOW_S / 2002.0] {
+        for interval in [1e-30, 1e-6, 0.001_25, MIN_INTERVAL_S * (1.0 - 2e-3)] {
             let read = with_interval(interval);
             assert_eq!(
                 read.apogee.reason(),
@@ -2130,11 +2186,16 @@ mod tests {
             assert_eq!(read.landing.reason(), Some(Reason::SampledTooFast));
             assert_eq!(read.sample_interval_s.map(|s| s > 0.0), Some(true));
         }
-        // At 0.15 ms the window is exactly 1,000 samples either side, and the log is read.
-        let read = with_interval(0.000_15);
-        assert_ne!(read.apogee.reason(), Some(Reason::SampledTooFast));
-        let window_s = read.median_window_s.unwrap();
-        assert!((window_s - 0.3).abs() < 1e-12, "{window_s}");
+        for interval in [MIN_INTERVAL_S, MIN_INTERVAL_S * (1.0 - 5e-4)] {
+            let read = with_interval(interval);
+            assert_ne!(
+                read.apogee.reason(),
+                Some(Reason::SampledTooFast),
+                "{interval}"
+            );
+            let window_s = read.median_window_s.unwrap();
+            assert!((window_s - 0.3).abs() < 1e-3, "{window_s}");
+        }
     }
 
     /// The window's half-width at a rounding tie doesn't turn on the interval's last bit.

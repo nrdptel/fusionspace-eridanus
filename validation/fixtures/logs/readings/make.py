@@ -9,7 +9,6 @@ itself as JSON:
 - bad-record.record.json: a record whose primary clock repeats a time.
 - faster-than-free-fall.csv: a track that falls at 15 m/s for 3 s after apogee, then at 300 m/s to
   the ground, sooner than a fall from rest at apogee could.
-- sampled-too-fast.csv: samples 0.1 ms apart, faster than any logger the readings were checked at.
 - starts-off-the-pad.csv: an altitude above sea level in a column that says it is above the ground.
 - step-too-coarse.csv: an altitude written in 20 m steps, coarser than the 10 m checked.
 
@@ -68,7 +67,6 @@ def times(dt, end_s):
 
 
 table("faster-than-free-fall.csv", [(t, plunge(t)) for t in times(0.1, 30.0)])
-table("sampled-too-fast.csv", [(t, 0.0) for t in times(0.0001, 0.001)])
 table("starts-off-the-pad.csv", [(t, PAD_MSL_M + height(t)) for t in times(0.1, 60.0)])
 table(
     "step-too-coarse.csv",

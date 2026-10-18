@@ -20,19 +20,23 @@ withholds one instead of guessing.
   equation, the safety codes' 3:1 thrust to weight and the National Weather Service's rate for a
   rapid change of pressure ([References](#references)). The rest are HPR Sim's choices, recorded in
   [ADR-281, readings on every logger][adr-281].
-- **How well it is validated:** on the synthetic flights' tuning set, 171 flights logged by a
-  barometer, each logged again at 36 rates and steps and cut 6 ways as loggers that record from
-  launch cut them, every reading given stayed within its bound. The largest share of its bound
-  any error took was 0.717, on an apogee ([Checked against](#checked-against)). The bounds were
+- **How well it is validated:** on the synthetic flights'
+  [tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds),
+  171 flights logged by a barometer, each logged again at 36 rates and steps and cut 6 ways as
+  loggers that record from launch cut them, every reading given stayed within its bound. The
+  largest share of its bound any error took was 0.717, on an apogee
+  ([Checked against](#checked-against)). The bounds were
   tuned on those same flights, so this shows they are wide enough there, not on flights held
   apart. On an invented PerfectFlite log, every reading lands within its bound and within the
   tighter one its test works out ([evidence row G10](../evidence.md#g10)). A real log has no truth
   beside it: the 1,058 records of the project's sample logs show which readings each logger
-  gives (an apogee from 594 of them), not how right they are.
+  gives (an apogee from 593 of them), not how right they are.
 - **What it leaves out:** the top acceleration, burnout, each canopy's descent rate, the Mach
-  number and dynamic pressure; 90% intervals on the readings; rockets slower off the pad than 2 g;
-  air more than 15 K from standard; and any correction for the day's air, which sits in the bound
-  instead ([What it leaves out](#what-it-leaves-out)).
+  number and dynamic pressure; 90% intervals on the readings; loggers noisier than the tuning
+  set's [six simulated logger profiles](synthetic-flights.md#the-loggers) and rockets slower off
+  the pad than 2 g, either of which can be read outside its bound; air more than 15 K from
+  standard; and any correction for the day's air, which sits in the bound instead
+  ([What it leaves out](#what-it-leaves-out)).
 
 ## The method
 
@@ -185,10 +189,17 @@ the apogee's 27.4 m (90 ft) bound.
 and then the climb, or holds too little of the pad to tell liftoff by. What happens next depends on
 the track's zero:
 
-- **A zero set on the pad**, the logger's own altitude or a channel named as above the ground:
-  the heights are read from that zero. Liftoff is withheld unless a sample before apogee sits
+- **A zero set on the pad**, the logger's own altitude as its format's reader reads it: the
+  heights are read from that zero. Liftoff is withheld unless a sample before apogee sits
   within the allowance of the zero, and so is the top speed if it peaks within 0.5 s of the log's
   start, where a faster climb may have come before the first sample.
+- **A zero only a word vouches for**, a mapped table's altitude or a channel whose header calls
+  it above the ground ([#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646), a
+  wrong unit or a wrong zero in a mapping): such a zero may be off by as much as the track's
+  start, up to 19.9 m (65 ft) ([below](#before-any-reading)). So the heights are read from it only
+  where the log's first sample is within the 2 m (6.6 ft) allowance of it, and that distance
+  enters the liftoff, apogee and landing bounds as the pad's error. Further off, every reading
+  but the top acceleration is withheld.
 - **Any other track**, a pressure or an altitude above sea level: no zero places the pad, so
   every reading but the top acceleration is withheld.
 
@@ -323,9 +334,11 @@ air, which a real log can't rule out.
 A log passes four checks before any reading is taken from it. Each keeps the readings inside the
 range the bounds were checked over, or catches a track that isn't what it says:
 
-- **It is sampled no slower than every 2 s**, the slowest rate on the tuning set, half a sample a
-  second (`sampled_too_slowly`), and no faster than the 0.3 s median can take with 1,000 samples
-  either side, about 6,700 a second (`sampled_too_fast`).
+- **It is sampled no slower than every 2 s and no faster than every 2 ms**, the slowest and
+  fastest rates on the tuning set: half a sample a second (`sampled_too_slowly`) and 500 a second
+  (`sampled_too_fast`). A clock a part in a thousand faster than 500 a second still reads, as a
+  logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
+  second, is withheld as too fast.
 - **Its step is no coarser than 10 m (33 ft), or 100 Pa for a pressure** (`step_too_coarse`), the
   coarsest checked on the tuning set. The coarsest the readers meet are a MARSA's 8.8 m (29 ft)
   heights and an ARTS2's 92 Pa raw counts.
@@ -355,8 +368,16 @@ withheld; liftoff is still given.
   for the filtered top trailing the true one: the speed a fall from rest gathers within the
   median's window and twice the noise and step, then gravity's fall from there.
 
+Drag's upward share stays under gravity over a last second for any ballistic coefficient (the
+mass over the drag coefficient times the frontal area) over 150 kg/m², even at 120 m/s (394 ft/s)
+across; a rocket 29 mm (1.1 in) across, of 0.3 kg, has about 800. That covers a 1 s span. On a slower track the span is two
+samples, up to 4 s at half a sample a second. There the argument holds only over about 380 kg/m²
+on a vertical coast, and about 700 kg/m² at 120 m/s (394 ft/s) across. Below that a coast can climb
+into its top faster than the check allows, so a good top that a charge then drops fast may be
+withheld. The check only withholds, so it never reads such a top wrong.
+
 On a PerfectFlite logging 20 times a second, twice the noise and step is 6.6 m (22 ft), so a coast
-climbs at most 16.5 m (54 ft) in its last second. In the tests, a step 20 m (66 ft) above a coast's
+climbs at most 16.42 m (54 ft) in its last second. In the tests, a step 20 m (66 ft) above a coast's
 top and 0.6 s wide falls 29.0 m (95 ft) from the filtered top in one sample, where a body at rest
 there falls at most 20.9 m (69 ft), so it is withheld.
 
@@ -402,14 +423,14 @@ reasons:
 | `too_short` | the track has fewer than 3 samples | all |
 | `no_climb` | the filtered track never climbs twice the allowance and a step above its start, or 3 m (9.8 ft) above the pad, or the allowance and a step if that is higher; or, for landing, falls too little past its step and noise to time the descent | all, or landing |
 | `starts_off_the_pad` | a track above the pad only by a mapping's or a column's word starts more than 19.9 m (65 ft) from its zero | all |
-| `short_pad` | the first samples can't rule out a rocket already more than 2 m (6.6 ft) up | liftoff, and a top speed at the log's start, on a zero set on the pad; all on any other track |
+| `short_pad` | the first samples can't rule out a rocket already more than 2 m (6.6 ft) up | liftoff, and a top speed at the log's start, on a zero set on the pad, or on a zero only a word vouches for whose first sample is within 2 m (6.6 ft) of it; all on any other track |
 | `ends_before_landing` | the log ends before the track is back within the pad's allowance and stays down for a second | landing |
 | `faster_than_free_fall` | the track comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, $\sqrt{2h/g}$, allowing a step in $h$ and a sample for the apogee's time | landing |
 | `implausible_speed` | the top speed is above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
 | `noisy_speed` | from liftoff to apogee the speed swings below zero by more than 20% of its top | the top speed |
 | `transonic` | the top speed reaches 227.7 m/s (747 ft/s) | the top speed |
 | `sampled_too_slowly` | the samples come further apart than 2 s; or, for the top speed, than 0.125 s | all, or the top speed |
-| `sampled_too_fast` | the 0.3 s median would take more than 1,000 samples either side | all |
+| `sampled_too_fast` | the samples come more often than every 2 ms, 500 a second, the fastest rate the bounds were checked at | all |
 | `step_too_coarse` | the step is coarser than 10 m (33 ft) or 100 Pa | all |
 | `slower_than_free_coast` | the track loses no more than twice its noise and step in the 4 s before its top | all |
 | `disturbed_top` | the track falls more than twice its noise and step below a peak in the 4 s before its top, then climbs to that top; or, within a second either side, it climbs into its top faster than a coast and falls from it faster than a body at rest | apogee, the top speed, landing |
@@ -462,8 +483,11 @@ speed is withheld as `transonic` on 117 or 118 of the 171 flights, and at 5 samp
 slower as
 `sampled_too_slowly` on all of them but the one withheld whole below. At half a sample a second, up to 14 flights end before their
 landing is seen, and in 10 m (33 ft) steps one flight's track is withheld whole as
-`step_too_coarse`. Of the cuts, heights from 0.1 s after liftoff withhold liftoff as `short_pad` on
-36 flights, and heights from 0.5 s after on all 171, while each still gives its apogee within its
+`step_too_coarse`. The logs written again are read as tables a column mapping states, so their
+heights are above the pad only by the mapping's word. Of the cuts, heights from 0.1 s after liftoff
+withhold liftoff as `short_pad` on 38 flights, and every reading on 5 of them, whose first sample
+stands more than the 2 m (6.6 ft) allowance from the zero. Heights from 0.5 s after, the zero
+first, withhold liftoff on all 171 and every reading on 2. Every apogee they give is within its
 bound. A pressure has no zero set on the pad, so a pressure cut after liftoff withholds every
 reading on all 171, and one from 0.3 s before liftoff on 3. No tuning flight is withheld as
 `disturbed_top` or `slower_than_free_coast`.
@@ -525,17 +549,17 @@ flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
 logs hold, other flyers' files kept outside the repository, and counts each reading given or
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
-Of the 1,058 records, summed over the report's families, an apogee is given from 594, liftoff from
-555, the top speed from 354 and landing from 473. Each of the 23 reasons has a case: the first file
-the survey withholds a reading of for it, by an anonymous id, or, for the five reasons that none
-of the sample logs triggers (`bad_record`, `faster_than_free_fall`, `sampled_too_fast`,
-`starts_off_the_pad` and `step_too_coarse`), an invented file under
+Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
+554, the top speed from 354 and landing from 472. Each of the 23 reasons has a case: for 19, the
+first file the survey withholds a reading of for it, by an anonymous id; for the four that none of
+the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
+`step_too_coarse`), an invented file under
 [`validation/fixtures/logs/readings/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/fixtures/logs/readings)
 that a test reads to its reason. The invented fall, for one, drops at 15 m/s (49 ft/s) for 3 s
 after apogee, then at 300 m/s (984 ft/s) to the ground. These counts show what each logger can give. They don't show how
 right a reading is: none of the sample logs has a truth beside it.
 
-Three reasons stand out. The top speed is withheld as `transonic` on 206 records: many of these
+Three reasons stand out. The top speed is withheld as `transonic` on 205 records: many of these
 flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from loggers whose files
 start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
 apogee, top speed and landing are withheld as `disturbed_top` on 76.
@@ -547,6 +571,9 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
   than standard ([Atmosphere](atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
   HPR Sim doesn't correct it: it widens the bound by 6.92% of the height instead, which covers air
   up to 15 K from standard. On a day further off, a height can pass its bound.
+- **Loggers unlike the tuning set's.** The bounds hold on the tuning set's
+  [six simulated logger profiles](synthetic-flights.md#the-loggers), at their noise. A logger
+  noisier than they are, or a rocket slower off the pad than 2 g, can be read outside its bound.
 - **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
   pad. A rocket slower than that is read later than its liftoff bound, and may already be further
   up, when a log starts, than its pad's error allows.
@@ -569,7 +596,7 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
   has fallen past its noise and step, can't be told from the top unless it is a spike, and its
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
   fast, is read as the top, since an early parachute and a charge make those shapes on a good
-  top: a spike that climbs in no faster than a coast, at most 16.5 m (54 ft) in its last second
+  top: a spike that climbs in no faster than a coast, at most 16.42 m (54 ft) in its last second
   at 20 samples a second, is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
   withholds a good apogee; how many of the sample logs' 76 such tops are good isn't measured
   ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The synthetic flights
@@ -588,7 +615,9 @@ The tests that pin the readings, and the sources they follow.
   readings that need it going; the pad's rules (a jitter in the first samples, noise up to the
   allowance, a slow noisy pad, a pad short by its samples and one read from the logger's zero);
   a vacuum fall rounded to feet landing at 10 to 100 samples a second and one at 1.3 g refused;
-  [#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646) both ways; a top held by a
+  [#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646), a wrong unit or a wrong zero
+  in a mapping, both ways; a mapped track's short pad read from its zero within the allowance, its
+  apogee's bound grown by the distance, and withheld past it; a top held by a
   fall or a spike withheld, each by its own rule, and a top with an early parachute or a later
   charge read; the shapes of the two public logs of
   [#702](https://github.com/nrdptel/fusionspace-eridanus/issues/702), with invented numbers; the

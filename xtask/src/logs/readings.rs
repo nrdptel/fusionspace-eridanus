@@ -18,10 +18,9 @@ pub(crate) const INVENTED_DIR: &str = "validation/fixtures/logs/readings";
 /// The invented sample of each reason the corpus has no case of, by file name under
 /// [`INVENTED_DIR`]: a log in a format the importer reads, or, for a record no reader can make,
 /// the record itself as JSON (`.record.json`). The folder's `make.py` writes them.
-pub(crate) const INVENTED: [(Reason, &str); 5] = [
+pub(crate) const INVENTED: [(Reason, &str); 4] = [
     (Reason::BadRecord, "bad-record.record.json"),
     (Reason::FasterThanFreeFall, "faster-than-free-fall.csv"),
-    (Reason::SampledTooFast, "sampled-too-fast.csv"),
     (Reason::StartsOffThePad, "starts-off-the-pad.csv"),
     (Reason::StepTooCoarse, "step-too-coarse.csv"),
 ];

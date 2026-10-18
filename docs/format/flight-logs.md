@@ -1390,7 +1390,9 @@ Two physical checks hold the units read, on the onboard log:
 
 **What is left out.** There is no [primary track](#the-record), as no packet writes an altitude
 above the pad in a unit that is settled. The GPS packets' values are kept as written. `hpr
-analyze` and the Python package don't read these files yet: the Rust library does.
+analyze` and the Python package read these files as the library does, and each reading is given
+within its bound or withheld for the reason the command prints
+([Flight-log readings](../physics/log-readings.md)).
 
 ### A FIP export pasted below no header
 

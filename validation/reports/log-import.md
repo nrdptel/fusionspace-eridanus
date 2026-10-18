@@ -612,7 +612,7 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b): for each family,
 | phone-launch-csv | 27 | 7 barometer, 19 none, 1 pressure | 6 given, 19 `no_height_track`, 2 `short_pad` | 4 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad` | 0 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad`, 4 `transonic` | 0 given, 21 `no_accelerometer`, 6 `not_yet_taken` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` |
 | radio-packets-rtf | 2 | 2 pressure | 2 given | 2 given | 0 given, 2 `sampled_too_slowly` | 0 given, 2 `no_accelerometer` | 0 given, 2 `ends_before_landing` |
 | radio-packets-txt | 2 | 1 none, 1 pressure | 1 given, 1 `clock_out_of_order` | 1 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order`, 1 `sampled_too_slowly` | 0 given, 2 `no_accelerometer` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` |
-| raven-csv | 80 | 80 barometer | 80 given | 71 given, 9 `disturbed_top` | 34 given, 9 `disturbed_top`, 1 `sampled_too_slowly`, 36 `transonic` | 0 given, 80 `not_yet_taken` | 67 given, 9 `disturbed_top`, 4 `ends_before_landing` |
+| raven-csv | 80 | 80 barometer | 79 given, 1 `sampled_too_fast` | 70 given, 9 `disturbed_top`, 1 `sampled_too_fast` | 34 given, 9 `disturbed_top`, 1 `sampled_too_fast`, 1 `sampled_too_slowly`, 35 `transonic` | 0 given, 80 `not_yet_taken` | 66 given, 9 `disturbed_top`, 4 `ends_before_landing`, 1 `sampled_too_fast` |
 | raven-fip-sheet-xlsx | 2 | 2 barometer | 2 given | 1 given, 1 `disturbed_top` | 0 given, 1 `disturbed_top`, 1 `transonic` | 0 given, 2 `not_yet_taken` | 1 given, 1 `disturbed_top` |
 | raven-fipa | 57 | 57 pressure | 40 given, 17 `short_pad` | 37 given, 3 `disturbed_top`, 17 `short_pad` | 26 given, 3 `disturbed_top`, 17 `short_pad`, 11 `transonic` | 0 given, 57 `not_yet_taken` | 36 given, 3 `disturbed_top`, 1 `ends_before_landing`, 17 `short_pad` |
 | record-dump | 2 | 2 none | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_accelerometer` | 0 given, 2 `no_height_track` |
@@ -639,12 +639,12 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `no_accelerometer` | 665 | `0040ac8c3e5af57b` | none |
 | `needs` | 108 | `055206ce7e9a2fae` | none |
 | `bad_record` | 0 | none | `bad-record.record.json` |
-| `sampled_too_fast` | 0 | none | `sampled-too-fast.csv` |
+| `sampled_too_fast` | 1 | `31f063cc173e6147` | none |
 | `no_height_track` | 193 | `014c9d41c5a18328` | none |
 | `unstated_sensor` | 22 | `045f5b9ed473b800` | none |
 | `sampled_too_slowly` | 28 | `061c084cf2d6155c` | none |
 | `step_too_coarse` | 0 | none | `step-too-coarse.csv` |
-| `transonic` | 206 | `01dc90b45723df1e` | none |
+| `transonic` | 205 | `01dc90b45723df1e` | none |
 | `receiver_lag` | 108 | `055206ce7e9a2fae` | none |
 | `receiver_dropout` | 108 | `055206ce7e9a2fae` | none |
 | `slower_than_free_coast` | 4 | `027872c09dded351` | none |

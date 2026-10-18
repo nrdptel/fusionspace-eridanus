@@ -4452,7 +4452,7 @@ fn analyze_reads_a_fip_export_under_its_stated_header() {
 
     let unread = said(&json_error(&["analyze", &sheet], 1, "input"));
     assert!(
-        unread.contains("none of the workbook's 1 sheets reads as a log"),
+        unread.contains("none of the layouts") && unread.contains("--fip-header"),
         "{unread}"
     );
     let past = said(&json_error(
@@ -4461,7 +4461,8 @@ fn analyze_reads_a_fip_export_under_its_stated_header() {
         "input",
     ));
     assert!(
-        past.contains("has no sheet 1") && past.contains("help: choose the workbook's sheet"),
+        past.contains("has no sheet 1")
+            && past.contains("help: --sheet N, from 0, chooses the sheet"),
         "{past}"
     );
     let folder = tempfile::tempdir().unwrap();

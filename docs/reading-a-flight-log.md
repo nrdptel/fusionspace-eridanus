@@ -41,21 +41,28 @@ Formats no sample holds yet,
 such as a CATS flight computer's, are [listed as needing
 samples](format/flight-logs.md#formats-that-need-samples) ([evidence row G9](evidence.md#g9)).
 
-> **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each
-> states a bound on its error, held on HPR Sim's synthetic flights: on 171 simulated flights, each
-> logged at every rate from 500 to half a sample a second, every reading stayed within its bound,
-> and the largest error took 0.717 of it. The bounds were tuned on those same flights, and no real
-> log has a truth beside it to test them. On one real flight, a public log that isn't committed
-> here and so isn't checked in CI, the analyzer reads the apogee as 1,009 ft above the pad, as the
-> altimeter states it: two readings of one pressure trace, not a measurement of the height
-> ([evidence row G10](evidence.md#g10)). Most of an apogee's bound is the day's air: a barometric
-> altimeter turns pressure into height by the standard atmosphere, so on a day 15 K from standard
-> its heights are off by up to 6.92%. The top speed is worked out from the heights and withheld
-> from 227.7 m/s (747 ft/s), where a barometer's port may read the flow over the nose. For a
-> record or a certification, the altimeter's own reading is the one to log. The rules behind each
-> reading are on [Flight-log readings](physics/log-readings.md), with what they were checked
-> against. A reading the log can't support is left out and says why, rather than printed as a
-> number.
+> **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each states
+> a bound on its error, held on HPR Sim's synthetic flights: on 171 simulated flights, each logged
+> at every rate from 500 to half a sample a second, every reading stayed within its bound, and the
+> largest error took 0.717 of it. The bounds were tuned on those same flights, and no real log has a
+> truth beside it to test them. They hold on [six simulated logger
+> profiles](physics/synthetic-flights.md#the-loggers) and on rockets leaving the pad at 2 g or more:
+> a noisier logger or a slower rocket can be read outside them. On one real flight, a public log
+> that isn't committed here and so isn't checked in CI, the analyzer reads the apogee as 1,009 ft
+> above the pad, as the altimeter states it: two readings of one pressure trace, not a measurement
+> of the height ([evidence row G10](evidence.md#g10)). Most of an apogee's bound is the day's air: a
+> barometric altimeter turns pressure into height by the standard atmosphere, so on a day 15 K from
+> standard its heights are off by up to 6.92%. The top speed is worked out from the heights and
+> withheld from 227.7 m/s (747 ft/s), Mach 0.8 in the coldest air the bounds allow ([the top
+> speed](physics/log-readings.md#each-reading)), where a barometer's port may read the flow over the
+> nose. A charge's spike that climbs into the top no faster than a coast can is read as the apogee,
+> however high it stands ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a
+> charge's transient at the top), and some tops withheld as `disturbed_top` are the rocket's own
+> ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a coast's own top
+> from a disturbed one). For a record or a certification, the altimeter's own reading is the one to
+> log. The rules behind each reading are on [Flight-log readings](physics/log-readings.md), with
+> what they were checked against. A reading the log can't support is left out and says why, rather
+> than printed as a number.
 
 ## From the command line
 
@@ -264,7 +271,18 @@ included, as a dict ([From Python](your-own-logger.md#from-python)).
   stated for it.
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).
 - Check the heights near the speed of sound: it withholds the top speed from 227.7 m/s
-  (747 ft/s), but not the heights read there.
+  (747 ft/s), Mach 0.8 in the coldest air the bounds allow
+  ([the top speed](physics/log-readings.md#each-reading)), but not the heights read there.
+- Hold its bounds beyond what they were checked on: six simulated logger profiles
+  ([the loggers](physics/synthetic-flights.md#the-loggers)) and rockets leaving the pad at 2 g or
+  more. A noisier logger or a slower rocket can be read outside its bound.
+- Tell a charge's spike from the top when the spike climbs into the top no faster than a coast
+  can: it is read as the apogee, however high it stands
+  ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a charge's transient at the
+  top).
+- Tell every disturbed top from the rocket's own: some tops withheld as `disturbed_top` are the
+  rocket's own ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a
+  coast's own top from a disturbed one).
 - Correct a barometric altitude for the day's air. The altitude is the altimeter's own
   conversion, which assumes a standard atmosphere
   ([Barometric altimeter](glossary.md#barometric-altimeter)); the bound allows for air up to 15 K

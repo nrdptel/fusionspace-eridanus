@@ -1279,7 +1279,7 @@
           "const": "bad_record"
         },
         {
-          "description": "The samples come so often that the 0.3 s median would hold more than 1,000 either side.",
+          "description": "The samples come more often than 500 a second, faster than the bounds were checked at.",
           "type": "string",
           "const": "sampled_too_fast"
         },

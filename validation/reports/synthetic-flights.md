@@ -101,8 +101,8 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | 0.5 Hz, pressure alone in 10 Pa steps | 171, 0.375 | 171, 0.631 | 171, 0.407 | 0 | 161, 0.476 | 161, 0.351 | 161, 0.426 |
 | 0.5 Hz, pressure alone in 100 Pa steps | 171, 0.275 | 171, 0.593 | 171, 0.272 | 0 | 170, 0.451 | 170, 0.312 | 170, 0.389 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 171, 0.555 | 171, 0.711 | 171, 0.427 | 54, 0.358 | 171, 0.409 | 171, 0.442 | 171, 0.587 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 135, 0.519 | 171, 0.715 | 171, 0.427 | 54, 0.358 | 170, 0.378 | 134, 0.407 | 170, 0.582 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 171, 0.715 | 171, 0.427 | 54, 0.358 | 170, 0.378 | 0 | 170, 0.582 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 133, 0.519 | 166, 0.712 | 166, 0.427 | 52, 0.358 | 165, 0.357 | 132, 0.377 | 165, 0.582 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 169, 0.713 | 169, 0.427 | 54, 0.358 | 168, 0.357 | 0 | 168, 0.578 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | 168, 0.555 | 168, 0.709 | 168, 0.33 | 54, 0.371 | 168, 0.429 | 168, 0.462 | 168, 0.58 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -209,18 +209,28 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | 0.5 Hz, pressure alone in 100 Pa steps | flight time | `ends_before_landing` | 1 |
 | 0.5 Hz, pressure alone in 100 Pa steps | descent rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | top speed | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | liftoff | `short_pad` | 36 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | top speed | `transonic` | 117 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | liftoff | `short_pad` | 38 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | apogee height | `short_pad` | 5 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | apogee time | `short_pad` | 5 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | top speed | `transonic` | 114 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | top speed | `short_pad` | 5 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | landing | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | landing | `short_pad` | 5 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | flight time | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | flight time | `short_pad` | 36 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | flight time | `short_pad` | 38 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | descent rate | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | descent rate | `short_pad` | 5 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | liftoff | `short_pad` | 171 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | top speed | `transonic` | 117 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | apogee height | `short_pad` | 2 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | apogee time | `short_pad` | 2 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | top speed | `transonic` | 115 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | top speed | `short_pad` | 2 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | landing | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | landing | `short_pad` | 2 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | flight time | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | flight time | `short_pad` | 170 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | descent rate | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | descent rate | `short_pad` | 2 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | liftoff | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | apogee height | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | apogee time | `short_pad` | 3 |

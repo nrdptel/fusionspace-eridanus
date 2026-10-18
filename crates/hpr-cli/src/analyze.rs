@@ -201,7 +201,9 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
         return custom::read_by_fip_header(&bytes, &stated, args.sheet).map_err(|error| {
             let help = match &error {
                 LogError::Choice { .. } => {
-                    "choose the workbook's sheet the export is on with --sheet N, from 0".to_owned()
+                    "--sheet N, from 0, chooses the sheet the export is on, and only a \
+                     workbook has sheets"
+                        .to_owned()
                 }
                 _ => format!(
                     "check {file} against the export: the header line's columns, each channel's \
@@ -222,7 +224,8 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
             LogError::Unrecognized { .. } => {
                 "another logger's table is read by a column mapping (--mapping), and \
                  --print-mapping prints what its header states as one to edit; its binary \
-                 records are read by a record layout (--layout)"
+                 records are read by a record layout (--layout); a Raven FIP export pasted below \
+                 no header, by the header you state (--fip-header)"
             }
             LogError::Archive { .. } => "unpack the archive and give the log inside it",
             LogError::Workbook { .. } => {

@@ -1549,7 +1549,7 @@ pub enum WithheldReason {
     Needs,
     /// The record breaks what every reader guarantees; only a record built by hand can.
     BadRecord,
-    /// The samples come so often that the 0.3 s median would hold more than 1,000 either side.
+    /// The samples come more often than 500 a second, faster than the bounds were checked at.
     SampledTooFast,
     /// The log holds no altitude, pressure or GNSS track.
     NoHeightTrack,

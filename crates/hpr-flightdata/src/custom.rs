@@ -118,6 +118,7 @@ pub struct FipHeader {
     /// The columns, from 1, of a table pasted over the export, whose cells hide whether a
     /// channel has a sample in their rows; none when left out.
     #[serde(default)]
+    #[schemars(inner(range(min = 1)))]
     pub pasted: Vec<usize>,
 }
 
@@ -174,7 +175,12 @@ pub fn read_by_fip_header(
                 .text
         }
     };
-    raven::read_rows_around(&stated.header, &text, &stated.pasted)
+    // The rows' reader words its refusals of a stated header as a mapping's; here they are the
+    // FIP header's.
+    raven::read_rows_around(&stated.header, &text, &stated.pasted).map_err(|error| match error {
+        LogError::Mapping { message } => LogError::FipHeader { message },
+        other => other,
+    })
 }
 
 /// A mapping's or a layout's file as text: UTF-8, a byte-order mark dropped, or UTF-16 with its
@@ -386,8 +392,10 @@ fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogErr
                 if names.is_empty() { "none" } else { &names }
             )))
         }
-        // An archive that isn't a workbook, read as the text it holds, as before workbooks were.
-        (Some(Err(_)) | None, None) => Ok(import::decode(bytes)),
+        // An archive that isn't a workbook, read as the text it holds, as before workbooks were;
+        // a workbook that fails is refused for its own fault.
+        (Some(Err(LogError::NotThisFormat { .. })) | None, None) => Ok(import::decode(bytes)),
+        (Some(Err(error)), None) => Err(error),
     }
 }
 
