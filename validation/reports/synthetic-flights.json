@@ -3494,38 +3494,34 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "liftoff",
-      "given": 133,
+      "given": 135,
       "withheld": {
-        "short_pad": 38
+        "short_pad": 36
       },
       "worst": {
-        "flight": 78,
-        "error": 0.408,
-        "bound": 0.786,
-        "share": 0.519
+        "flight": 33,
+        "error": 0.387,
+        "bound": 1.02,
+        "share": 0.381
       }
     },
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "apogee_height",
-      "given": 166,
-      "withheld": {
-        "short_pad": 5
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
-        "flight": 43,
-        "error": -149.0,
-        "bound": 209.0,
-        "share": 0.712
+        "flight": 195,
+        "error": -152.0,
+        "bound": 218.0,
+        "share": 0.695
       }
     },
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "apogee_time",
-      "given": 166,
-      "withheld": {
-        "short_pad": 5
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -3536,10 +3532,9 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "top_speed",
-      "given": 52,
+      "given": 54,
       "withheld": {
-        "transonic": 114,
-        "short_pad": 5
+        "transonic": 117
       },
       "worst": {
         "flight": 51,
@@ -3551,46 +3546,44 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "landing",
-      "given": 165,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 1,
-        "short_pad": 5
+        "ends_before_landing": 1
       },
       "worst": {
-        "flight": 82,
-        "error": -1.1,
-        "bound": 3.09,
-        "share": 0.357
+        "flight": 191,
+        "error": -0.199,
+        "bound": 0.732,
+        "share": 0.272
       }
     },
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "flight_time",
-      "given": 132,
+      "given": 134,
       "withheld": {
         "ends_before_landing": 1,
-        "short_pad": 38
+        "short_pad": 36
       },
       "worst": {
         "flight": 33,
         "error": -0.571,
-        "bound": 1.52,
-        "share": 0.377
+        "bound": 1.72,
+        "share": 0.332
       }
     },
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
       "quantity": "descent_rate",
-      "given": 165,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 1,
-        "short_pad": 5
+        "ends_before_landing": 1
       },
       "worst": {
         "flight": 195,
         "error": -1.16,
-        "bound": 1.99,
-        "share": 0.582
+        "bound": 2.08,
+        "share": 0.556
       }
     },
     {
@@ -3605,24 +3598,20 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
       "quantity": "apogee_height",
-      "given": 169,
-      "withheld": {
-        "short_pad": 2
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
-        "flight": 43,
-        "error": -149.0,
-        "bound": 209.0,
-        "share": 0.713
+        "flight": 195,
+        "error": -152.0,
+        "bound": 225.0,
+        "share": 0.674
       }
     },
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
       "quantity": "apogee_time",
-      "given": 169,
-      "withheld": {
-        "short_pad": 2
-      },
+      "given": 171,
+      "withheld": {},
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -3635,8 +3624,7 @@
       "quantity": "top_speed",
       "given": 54,
       "withheld": {
-        "transonic": 115,
-        "short_pad": 2
+        "transonic": 117
       },
       "worst": {
         "flight": 51,
@@ -3648,16 +3636,15 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
       "quantity": "landing",
-      "given": 168,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 1,
-        "short_pad": 2
+        "ends_before_landing": 1
       },
       "worst": {
-        "flight": 82,
-        "error": -1.1,
-        "bound": 3.09,
-        "share": 0.357
+        "flight": 118,
+        "error": 0.0468,
+        "bound": 0.269,
+        "share": 0.174
       }
     },
     {
@@ -3673,16 +3660,15 @@
     {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
       "quantity": "descent_rate",
-      "given": 168,
+      "given": 170,
       "withheld": {
-        "ends_before_landing": 1,
-        "short_pad": 2
+        "ends_before_landing": 1
       },
       "worst": {
         "flight": 195,
         "error": -1.16,
-        "bound": 2.01,
-        "share": 0.578
+        "bound": 2.25,
+        "share": 0.516
       }
     },
     {

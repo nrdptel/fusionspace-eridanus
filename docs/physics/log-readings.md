@@ -195,11 +195,13 @@ the track's zero:
   start, where a faster climb may have come before the first sample.
 - **A zero only a word vouches for**, a mapped table's altitude or a channel whose header calls
   it above the ground ([#646](https://github.com/nrdptel/fusionspace-eridanus/issues/646), a
-  wrong unit or a wrong zero in a mapping): such a zero may be off by as much as the track's
-  start, up to 19.9 m (65 ft) ([below](#before-any-reading)). So the heights are read from it only
-  where the log's first sample is within the 2 m (6.6 ft) allowance of it, and that distance
-  enters the liftoff, apogee and landing bounds as the pad's error. Further off, every reading
-  but the top acceleration is withheld.
+  wrong unit or a wrong zero in a mapping): such a zero may sit anywhere within 19.9 m (65 ft) of
+  the pad ([below](#before-any-reading)), and with no pad of samples, nothing places it better
+  than the first sample does. That sample reads `s` above the zero after a climb of up to the
+  pad's error `C`, so the zero stands between `s` below the pad and `C − s` above it. The heights
+  are read from it, as from a zero set on the pad, and the larger distance,
+  `max(|s|, min(19.9 m, C − s))`, enters the liftoff, apogee and landing bounds as the pad's
+  error. A log too sparse to bound the climb before it takes the whole 19.9 m (65 ft).
 - **Any other track**, a pressure or an altitude above sea level: no zero places the pad, so
   every reading but the top acceleration is withheld.
 
@@ -423,7 +425,7 @@ reasons:
 | `too_short` | the track has fewer than 3 samples | all |
 | `no_climb` | the filtered track never climbs twice the allowance and a step above its start, or 3 m (9.8 ft) above the pad, or the allowance and a step if that is higher; or, for landing, falls too little past its step and noise to time the descent | all, or landing |
 | `starts_off_the_pad` | a track above the pad only by a mapping's or a column's word starts more than 19.9 m (65 ft) from its zero | all |
-| `short_pad` | the first samples can't rule out a rocket already more than 2 m (6.6 ft) up | liftoff, and a top speed at the log's start, on a zero set on the pad, or on a zero only a word vouches for whose first sample is within 2 m (6.6 ft) of it; all on any other track |
+| `short_pad` | the first samples can't rule out a rocket already more than 2 m (6.6 ft) up | liftoff, and a top speed at the log's start, on a track with a zero, the logger's own or a word's; all on any other track |
 | `ends_before_landing` | the log ends before the track is back within the pad's allowance and stays down for a second | landing |
 | `faster_than_free_fall` | the track comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, $\sqrt{2h/g}$, allowing a step in $h$ and a sample for the apogee's time | landing |
 | `implausible_speed` | the top speed is above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
@@ -485,10 +487,9 @@ slower as
 landing is seen, and in 10 m (33 ft) steps one flight's track is withheld whole as
 `step_too_coarse`. The logs written again are read as tables a column mapping states, so their
 heights are above the pad only by the mapping's word. Of the cuts, heights from 0.1 s after liftoff
-withhold liftoff as `short_pad` on 38 flights, and every reading on 5 of them, whose first sample
-stands more than the 2 m (6.6 ft) allowance from the zero. Heights from 0.5 s after, the zero
-first, withhold liftoff on all 171 and every reading on 2. Every apogee they give is within its
-bound. A pressure has no zero set on the pad, so a pressure cut after liftoff withholds every
+withhold liftoff as `short_pad` on 36 flights, and heights from 0.5 s after, the zero first, on all
+171. Both give the apogee on all 171, within its bound with the zero's possible error in it, at up
+to 0.695 and 0.674 of it. A pressure has no zero set on the pad, so a pressure cut after liftoff withholds every
 reading on all 171, and one from 0.3 s before liftoff on 3. No tuning flight is withheld as
 `disturbed_top` or `slower_than_free_coast`.
 

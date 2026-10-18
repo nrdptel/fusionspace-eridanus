@@ -353,8 +353,9 @@ pub enum Reason {
     /// The log's first samples can't rule out a rocket already more than [`LIFTOFF_ALLOWANCE_M`]
     /// up when it starts: it starts after liftoff, as a logger that records from launch writes
     /// its zero and then the climb, or holds too little of the pad to tell liftoff by. A track on
-    /// the logger's own zero, or a channel's above the ground, still gives its heights from that
-    /// zero, and withholds liftoff unless a sample sits within the allowance of it.
+    /// the logger's own zero, or one a mapping or a header calls above the ground, still gives its
+    /// heights from that zero, with the zero's possible error in their bounds, and withholds
+    /// liftoff unless a sample sits within the allowance of it.
     ShortPad,
     /// The height track's clock doesn't increase, so no time can be read off it.
     ClockOutOfOrder,
@@ -816,25 +817,13 @@ pub fn read(log: &FlightLog) -> Readings {
         "the track stays within {:.1} m of its start for {stay_s:.2} s, so the rocket may have \
          climbed {pad_error_m:.1} m before the log starts, more than the pad's {:.0} m allowance: \
          the log starts after liftoff, as a logger that records from launch does, or holds too \
-         little of the pad to tell liftoff by{}",
+         little of the pad to tell liftoff by",
         0.5 * rise,
-        LIFTOFF_ALLOWANCE_M,
-        if by_word {
-            format!(
-                "; its heights are above the pad only by a mapping's or a header's word, and its \
-                 first sample stands {measured_pad:.1} m from its zero, more than the allowance, \
-                 so the zero can't stand in for the pad"
-            )
-        } else {
-            String::new()
-        }
+        LIFTOFF_ALLOWANCE_M
     );
-    // With no pad, a track whose heights stand on a zero the logger set on the pad reads from
-    // that zero; one with no such zero, as a pressure track, can't place the pad. Nor can a
-    // track above the pad only by a word (#646), whose zero may be off by as much as its start,
-    // unless its first sample, within the allowance of that zero, says it stands on the pad.
-    let word_zero_off = by_word && measured_pad.abs() > LIFTOFF_ALLOWANCE_M;
-    if short_pad && (!track.zeroed || word_zero_off) {
+    // With no pad, a track whose heights stand on a zero reads from that zero; one with no such
+    // zero, as a pressure track, can't place the pad.
+    if short_pad && !track.zeroed {
         let mut withheld = every(source, Reason::ShortPad, &short_detail);
         withheld.sample_interval_s = readings.sample_interval_s;
         withheld.step_m = readings.step_m;
@@ -842,11 +831,21 @@ pub fn read(log: &FlightLog) -> Readings {
         withheld.peak_bound_m = readings.peak_bound_m;
         return withheld;
     }
-    // A short pad read from the logger's zero is as far off as the zero: none for a zero the
-    // logger set on the pad, and a word's zero as far as the first sample stands from it. A pad
+    // A short pad read from a zero is as far off as the zero. A zero the logger set on the pad is
+    // the pad's. A word's zero (#646) sits within `PAD_ZERO_M` of the pad, as a zero set on the
+    // pad drifts, and the first sample reads `s` above it after a climb `c` of up to `pad_error_m`,
+    // so the zero stands `c − s` above the pad: as far as `s` below it, or, the rocket having
+    // climbed before the log, up to `pad_error_m − s` above it, no more than `PAD_ZERO_M`. A pad
     // of samples is as far off as the rocket may have climbed before them.
     let (pad, pad_error_m) = if short_pad {
-        (0.0, if by_word { measured_pad.abs() } else { 0.0 })
+        let zero_error_m = if by_word {
+            measured_pad
+                .abs()
+                .max((pad_error_m - measured_pad).min(PAD_ZERO_M))
+        } else {
+            0.0
+        };
+        (0.0, zero_error_m)
     } else {
         (measured_pad, pad_error_m)
     };
@@ -1968,38 +1967,65 @@ mod tests {
         let apogee = read.apogee.value().unwrap();
         assert!(apogee.time_after_liftoff_s.is_some());
 
-        // A mapped table's track is above the pad only by the mapping's word, and its zero may be
-        // as far off as its start (#646). Its first sample within the 2 m allowance of the zero
-        // says it stands on the pad, and its distance enters the bounds; further, as at a 15 m
-        // offset, which would put the apogee outside its bound, the readings are withheld.
-        let mapped = |offset_m: f64| {
-            let (flight, down) = hop(300.0, 0.1, 1.0);
+        // A mapped table's track is above the pad only by the mapping's word (#646). Its zero sits
+        // within 19.9 m of the pad, and with no pad to place, the first sample stands on it after
+        // a climb of up to the pad's error: each bound takes the most the zero can then be off. So
+        // the apogee, and liftoff and landing where given, hold whatever the zero's offset, from a
+        // log that starts on the pad, or up the climb with its zero set there. A 60 m hop keeps
+        // the bound's share for the day's air under the offsets, so each is seen.
+        let foot = crate::perfectflite::FOOT_M;
+        let truth_m = (60.0 / foot).round() * foot;
+        for (t0, offset_m) in [
+            (0.1, Some(0.0)),
+            (0.1, Some(1.5)),
+            (0.1, Some(15.0)),
+            (0.1, Some(-10.0)),
+            (-0.25, None),
+            (-0.5, None),
+        ] {
+            let (flight, down) = hop(60.0, t0, 1.0);
+            // With no offset given, the zero is where the log starts, up the climb.
+            let offset_m = offset_m.unwrap_or(-flight(0.0));
             let mut mapped = log(down + 3.0, move |t| offset_m + flight(t));
             mapped.format = LogFormat::GenericTable;
-            super::read(&mapped)
-        };
-        let bound = |offset_m: f64| mapped(offset_m).apogee.value().unwrap().bound_m;
-        // The bound grows by the offset, and by the day's air's share of the 1.5 m more height.
-        let grown = bound(1.5) - bound(0.0);
-        assert!(
-            (1.5..1.5 * (1.0 + 1.1 * TEMPERATURE_SHARE)).contains(&grown),
-            "{grown}"
-        );
-        for offset_m in [2.5, 15.0] {
-            let got = mapped(offset_m);
-            assert_eq!(got.apogee.reason(), Some(Reason::ShortPad), "{offset_m}");
-            assert_eq!(got.landing.reason(), Some(Reason::ShortPad), "{offset_m}");
-            let Reading::Withheld(withheld) = &got.apogee else {
-                panic!("{:?}", got.apogee);
-            };
+            let got = super::read(&mapped);
+            let apogee = got.apogee.value().unwrap();
             assert!(
-                withheld
-                    .detail
-                    .contains("only by a mapping's or a header's word"),
-                "{}",
-                withheld.detail
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{t0} {offset_m}: {} against {}",
+                apogee.height_m - truth_m,
+                apogee.bound_m
             );
+            if let Some(liftoff) = got.liftoff.value() {
+                assert!(
+                    (liftoff.time_s - t0).abs() <= liftoff.bound_s,
+                    "{t0} {offset_m}"
+                );
+            }
+            if let Some(landing) = got.landing.value() {
+                assert!(
+                    (landing.time_s - down).abs() <= landing.bound_s,
+                    "{t0} {offset_m}"
+                );
+            }
         }
+        // Taking the zero's error as the first sample's distance from it alone fails the zero set
+        // up the climb: the bound must allow for the climb before the log.
+        let (flight, down) = hop(60.0, -0.5, 1.0);
+        let start_m = flight(0.0);
+        let mut mapped = log(down + 3.0, |t| flight(t) - start_m);
+        mapped.format = LogFormat::GenericTable;
+        let apogee_bound = super::read(&mapped).apogee.value().unwrap().bound_m;
+        assert!(apogee_bound > start_m + NOISE_M, "{apogee_bound} {start_m}");
+        // Sampled at 5 Hz, the track leaves its start at once, so the rocket may have climbed any
+        // height before the log: the zero's error is the 19.9 m cap, and the bound stays finite.
+        let mut coarse = log_every(0.2, down + 3.0, move |t| flight(t) - start_m);
+        coarse.format = LogFormat::GenericTable;
+        let coarse_bound = super::read(&coarse).apogee.value().unwrap().bound_m;
+        assert!(
+            coarse_bound > PAD_ZERO_M && coarse_bound < truth_m,
+            "{coarse_bound}"
+        );
     }
 
     /// The pad is short where its samples can't rule out a rocket already past the allowance: a

@@ -1576,7 +1576,8 @@ pub enum WithheldReason {
     /// The log's first samples can't rule out a rocket already more than 2 m up when it starts:
     /// it starts after liftoff, as a logger that records from launch writes its zero and then the
     /// climb, or holds too little of the pad to tell liftoff by. A track above the logger's own
-    /// zero still gives its heights from that zero.
+    /// zero, or one a mapping or a header calls above the ground, still gives its heights from
+    /// that zero, with the zero's possible error in their bounds.
     ShortPad,
     /// The height track's clock doesn't increase, so no time can be read off it.
     ClockOutOfOrder,

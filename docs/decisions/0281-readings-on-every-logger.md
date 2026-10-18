@@ -39,17 +39,19 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    least the NAR and Tripoli codes' 3:1 thrust to weight leaves, and already moving at `v` when the
    log starts, would have climbed out of that band unless `v ≤ (rise − A t²/2)/t`. So the samples
    bound how far up it may already be, `v²/(2A)`, and that much enters the liftoff, apogee and
-   landing bounds. Where it could pass the allowance, the pad is short (`short_pad`): a track on the
-   logger's own zero reads its heights from that zero, and any other withholds them. A zero that
-   only a word vouches for is read from only under §3's rule.
+   landing bounds. Where it could pass the allowance, the pad is short (`short_pad`): a track on a
+   zero reads its heights from it, the logger's own zero as it stands and one only a word vouches
+   for under §3's rule, and any other withholds them.
 3. **A start near the zero (#646).** A track that is above the pad only by a column mapping's or a
    header's word must start within 19.9 m of its zero: an hour at the National Weather Service's
    *pressure rising rapidly* rate (0.06 inHg an hour) at sea level's density, plus the 3 m noise.
    Further off, it is withheld (`starts_off_the_pad`), as an altitude above sea level mapped as one
-   above the ground reads. The hour is HPR Sim's choice. Such a zero may be off by as much as the
-   track's start, so on a short pad the track reads from it only where its first sample is within
-   the 2 m allowance of it, and that distance enters the liftoff, apogee and landing bounds as the
-   pad's error. Further off, its readings are withheld (`short_pad`).
+   above the ground reads. The hour is HPR Sim's choice. On a short pad, nothing places such a
+   zero better than the first sample: it reads `s` above the zero after a climb of up to the pad's
+   error `C`, so the zero stands between `s` below the pad and `C − s` above it, and no more than
+   19.9 m from it. The track reads from the zero, and the larger distance,
+   `max(|s|, min(19.9 m, C − s))`, enters the liftoff, apogee and landing bounds as the pad's
+   error.
 4. **A top that is a coast's.** Three checks, each tested both ways.
    - *The clock (#646).* A coast loses `g t²/2` in the last `t` before its top, 78.5 m in 4 s. A track
      that loses no more than twice its noise and step is on a clock in another unit, such as
@@ -109,6 +111,7 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
 | End the pad 1 m above the start | read liftoff 5.3 s early on a tuning flight logged at half a sample a second |
 | A liftoff allowance of 1 m | 6.8 s early at half a sample a second on one tuning flight, against a 4.5 s bound |
 | No pad error in the bounds | apogees on the logs cropped to start after liftoff fell outside their bounds |
+| A word's zero off by its first sample's distance alone, read within the 2 m allowance | a zero set 0.5 s up a test climb has its first sample on it and stands 15.8 m above the pad (`a_short_pad_is_the_loggers_zero`) |
 | The coast check at its physical `g t²/2` | refused up to 29 of 171 genuine tuning flights on one kind of log |
 | A fast climb into the top alone | withheld 93 corpus tops, many falling only 1 to 8 m in the next second, as an early parachute does |
 | A fast fall from the top alone | of the 75 corpus tops it withheld, 26 climbed in at a coast's rate: a charge's spike down after a true top |
