@@ -136,7 +136,7 @@ bias ([accuracy](../accuracy.md#real-flights)).
    known mass, as [as-built-mass-growth](as-built-mass-growth.md) §4's six flights did with the teams' own tools.
 3. **NC State's 2025-26 catalog is the nearest thing to a public validation set**: OpenRocket file, motor, wind, rail
    angle and three logs per flight. It can only serve a model of commanded air brakes, or the one flight without
-   them, and its terms allow citing only. An air-brake case would test drag-device modelling, not the mass question.
+   them, and its terms allow citing only. An air-brake case would test drag-device modeling, not the mass question.
 4. **Notre Dame's and NC State's MIT logs could feed a flight-derived Cd** where the brakes stayed shut (the Huntsville
    2025 flight, the 2025-03-08 VDF), as in [flight-derived-cd](flight-derived-cd.md), if mass and motor are taken
    from the reports. For Notre Dame the reports are missing.
