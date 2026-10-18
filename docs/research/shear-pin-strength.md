@@ -24,16 +24,16 @@ areas (exact) and the printed values; the high end below is an inference from fe
   (×1.16 at 0 °C, dry), a fast break is stronger (+0% to +20%), and a damp pin is weaker (5% to 33%). The two that
   raise the force stack to about 64 / 106 / 160 lbf on the pitch area; that is a stack of separate figures.
 
-## 1. What Fetter 2025 uses (Rev 1.2, 23 Feb 2025; printed page numbers)
+## 1. What Fetter 2025 uses (Rev 1.2, 23 Feb 2025; printed page numbers, at the head of each page)
 
-- "The shear strength of Nylon is between 9600 and 10500 psi" (§6, p. 19). Table 6-1 (p. 19), credited to
+- "The shear strength of Nylon is between 9600 and 10500 psi" (§6, p. 18). Table 6-1 (p. 18), credited to
   Feretich, has columns Min 9,600 psi and Max 10,500 psi, both on the minor area: 2-56 0.0641 in (0.00323 in²),
   4-40 0.0813 in (0.00519 in²), 6-32 0.0997 in (0.00781 in²). Check: 0.003227 in² × 9,600 psi = 30.98 lbf.
-- Every later sizing uses Min: Table 9-1 (p. 40), 61.9 lbf for two 2-56; Table 17-2 (p. 79), 149.5 lbf for three
-  4-40 and 224.8 lbf for three 6-32. Eq. 16-1 (p. 70) multiplies the pin force by (1 + safety factor), "around 40%".
-- **Two slips, one inherited misprint.** Eq. 6-1 (p. 19) names 2-56's minor diameter, 0.0641 in, but computes with
+- Every later sizing uses Min: Table 9-1 (p. 39), 61.9 lbf for two 2-56; Table 17-2 (p. 78), 149.5 lbf for three
+  4-40 and 224.8 lbf for three 6-32. Eq. 16-1 (p. 69) multiplies the pin force by (1 + safety factor), "around 40%".
+- **Two slips, one inherited misprint.** Eq. 6-1 (p. 18) names 2-56's minor diameter, 0.0641 in, but computes with
   M2's 0.05942 in and prints 26.62 lbf; the table gives 30.98. Fetter calls Damerau's #2 result "very close" to the M2
-  row (p. 20), but Damerau's columns are #2 and #4: against 2-56 and 4-40 his two-pin means are 80% and 81% of Table
+  row (p. 19), but Damerau's columns are #2 and #4: against 2-56 and 4-40 his two-pin means are 80% and 81% of Table
   6-1. Table 6-2's five #2 values average 24.96 lbf, not 24.64, a misprint copied from Damerau's page.
 - Fetter [13] measures no pin force; his Table 6-2 reprints Damerau's. His ground tests bracket a charge, not a pin.
 
@@ -176,7 +176,7 @@ Read 2026-10-17; all cite only (copyrighted, no license). RF is The Rocketry For
    http://www.rocketmaterials.org/datastore/cord/Shear_Pins/index.php
 2. B. Feretich, "Shear Pin/Screw Calculations" (live page gone; archive of 2026-04-17): https://web.archive.org/web/
    20260417090259/http://feretich.com/Rocketry/Resources/shearPins.html
-3. DuPont, Zytel and Minlon Design Guide, Module II (1996-97), Tables 7 and 8 (p. 9), Figs. 4 and 5 (p. 31):
+3. DuPont, Zytel and Minlon Design Guide, Module II (1996-97), Table 7 (p. 9), Table 8 (p. 19), Figs. 4, 5 (p. 31):
    http://foremostplastic.com/wp-content/uploads/2015/04/DuPont-Module-II-Nylon.pdf
 4. Celanese, Zytel 101L NC010 data sheet, 2023:
    https://quickparts.com/wp-content/uploads/2023/04/zytel%C2%AE-101l-nc010-gb.pdf
@@ -192,7 +192,7 @@ Read 2026-10-17; all cite only (copyrighted, no license). RF is The Rocketry For
 11. American Fastener, internal threads class 2B: https://www.americanfastener.com/wp-content/uploads/2020/06/
     NUTS-INTERNAL-THREADS-%E2%80%93-CLASS-2B-AMERICAN-FASTENER.pdf
 12. Allied Titanium, UNC thread table: https://ns2.alliedtitanium.com/technical/threads/unc/UNC_Threads.pdf
-13. T. Fetter, *Using Black Powder for Parachute Deployment*, Rev 1.2, 2025, pp. 19, 20, 40, 70, 79.
+13. T. Fetter, *Using Black Powder for Parachute Deployment*, Rev 1.2, 2025, pp. 18, 19, 39, 69, 78.
 14. RF, Apr 2017: https://www.rocketryforum.com/threads/shear-pin-shear-force-higher-than-expected.140272/
 15. RF, Nov 2022, posts 1 and 7: https://www.rocketryforum.com/threads/nylon-shear-pin-testing.176101/
 16. ASTM D732-24, scope page: https://store.astm.org/d0732-24.html
