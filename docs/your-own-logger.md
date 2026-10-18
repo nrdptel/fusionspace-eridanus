@@ -183,15 +183,24 @@ measure its column's quantity.
 $ hpr analyze validation/fixtures/logs/own-logger/flight.csv --mapping validation/fixtures/logs/own-logger/flight.mapping.json
 flight.csv: read by the mapping flight.mapping.json
 251 samples, from 0.00 s to 50.00 s
+readings from the logger's barometric altitude, sampled every 0.200 s in steps of 0.030 m, after a 0.40 s running median
 3 channels: Alt (altitude above ground), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
+liftoff           1.20 s, within 1.04 s
+apogee            409.5 m (1344 ft) above the pad, within 33.0 m (108 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
+                  highest sample 410.0 m (1345 ft) above the pad at 10.60 s, set aside by the median
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+landing           48.60 s, within 2.23 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
-milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
-against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
-record.
+states, not simulated: as right as those units are. Each reading states the bound its error stayed
+within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
+steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
+withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
+where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
+right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
+and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
@@ -245,15 +254,24 @@ and little-endian is the default
 $ hpr analyze validation/fixtures/logs/own-logger/flight.bin --layout validation/fixtures/logs/own-logger/flight.layout.json
 flight.bin: read by the layout flight.layout.json
 no primary track: no barometric altitude above the pad
+readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200 s in steps of 0.093 m, after a 0.40 s running median
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
+liftoff           1.20 s, within 1.05 s
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
+                  highest sample 410.1 m (1345 ft) above the pad at 10.60 s, set aside by the median
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
-milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
-against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
-record.
+states, not simulated: as right as those units are. Each reading states the bound its error stayed
+within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
+steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
+withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
+where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
+right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
+and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
 ```
@@ -271,15 +289,24 @@ holds the same records, read by the same layout with one more field, the block's
 $ hpr analyze validation/fixtures/logs/own-logger/flight-capture.txt --layout validation/fixtures/logs/own-logger/flight-capture.layout.json
 flight-capture.txt: read by the layout flight-capture.layout.json
 no primary track: no barometric altitude above the pad
+readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200 s in steps of 0.093 m, after a 0.40 s running median
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
+liftoff           1.20 s, within 1.05 s
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
+                  highest sample 410.1 m (1345 ft) above the pad at 10.60 s, set aside by the median
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
-milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
-against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
-record.
+states, not simulated: as right as those units are. Each reading states the bound its error stayed
+within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
+steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
+withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
+where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
+right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
+and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: read from the block `flight` of a console capture, line 2: 4016 bytes of base64 decoded
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
@@ -385,13 +412,20 @@ gps-track.csv: read by the mapping gps-track.mapping.json
 no primary track: no barometric altitude above the pad
 4 channels: Lat (latitude), Lon (longitude), GPS Alt (m) (GNSS altitude), Sats (number)
 
-every reading     withheld: HPR Sim's readings were set and tested on PerfectFlite logs only; on this logger's they wait for roadmap milestone M7.2, which validates them on other loggers
+liftoff           withheld: the log's only height is a GNSS receiver's, whose fix drops out or lags at liftoff
+apogee            withheld: the log's only height is a GNSS receiver's, whose navigation filter lags a climb and overshoots its top by more than a barometer's bounds allow
+top speed         withheld: the log's only height is a GNSS receiver's, whose navigation filter lags a climb and overshoots its top by more than a barometer's bounds allow
+landing           withheld: landing is found against the pad after apogee, and liftoff and apogee were withheld
+top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping or layout
-states, not simulated: as right as those units are. HPR Sim takes no reading from it until roadmap
-milestone M7.2 validates them on other loggers; go by the logger's own figures, and check a unit
-against a known height, such as the launch site's elevation from a GPS altitude, before trusting the
-record.
+states, not simulated: as right as those units are. Each reading states the bound its error stayed
+within on HPR Sim's synthetic flights, logged at every rate from 500 to 0.5 samples a second and in
+steps up to 10 m or 100 Pa, in air within 15 K of standard; a reading the log can't support is
+withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
+where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
+right: check a unit against a known height, such as the launch site's elevation from a GPS altitude,
+and go by the logger's own figures for a record.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 

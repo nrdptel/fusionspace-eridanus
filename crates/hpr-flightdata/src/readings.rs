@@ -1,40 +1,70 @@
 //! The readings taken from a flight log on its own: liftoff, apogee, the top speed, landing and
 //! the descent, with no design file and no simulation.
 //!
-//! Each is a [`Reading`]: a value with where it came from, or [`Reading::Withheld`] with the reason
-//! the log can't support it. A reading is never guessed at; one the log can't support is left out
-//! and says why.
+//! Each is a [`Reading`]: a value with where it came from, how it was read and the bound its error
+//! stays within, or [`Reading::Withheld`] with the reason the log can't support it. A reading is
+//! never guessed at; one the log can't support is left out and says why.
 //!
-//! **Method.** Every reading of a height or a time comes from the altitude after a running median
-//! over [`MEDIAN_WINDOW_S`] ([`crate::filter::running_median`]), which takes out the pressure
-//! pulse an ejection charge punches into a barometric trace. Then:
+//! **The track.** Every reading of a height or a time comes from one height track, the first of
+//! these the log holds ([`Source`]): the logger's own barometric altitude (the record's primary
+//! track); a pressure, turned into a height by the 1976 standard atmosphere, as every logger
+//! documented does it (`docs/research/altimeter-height-formulas.md`); a barometric altitude kept
+//! in a channel, above the pad or above sea level; or a GNSS receiver's altitude. A channel's
+//! track is zeroed on the pad. A GNSS track gives no reading: a receiver's filter lags a climb and
+//! overshoots its top, and its fix drops out at liftoff ([`Reason::ReceiverLag`],
+//! [`Reason::ReceiverDropout`]).
 //!
-//! - the **climb** begins at the first sample [`LIFTOFF_HEIGHT_M`] above where the log starts;
-//! - the **pad** is the median of the altitude before it first rises [`PAD_RISE_M`], which must be
-//!   within [`LIFTOFF_HEIGHT_M`] of the logger's zero, as a logger that zeroes itself on the pad
-//!   records;
-//! - **liftoff** is the last sample before the climb within half the altitude's resolution of the
-//!   pad: the rocket had risen less than that then, and more within one sample after;
-//! - **apogee** is the filtered altitude's highest value, at the middle of the run of samples
-//!   that hold it (the altitude's resolution leaves a peak flat for a few samples);
-//! - the **top speed** is the highest of the logger's own vertical speed from liftoff to apogee,
-//!   refused as Debrief refuses one ([`IMPLAUSIBLE_SPEED_M_S`], [`ASCENT_NOISE_FRACTION`], and a
-//!   peak on the liftoff sample itself);
+//! **Method.** The track is first filtered by a running median over [`MEDIAN_WINDOW_S`]
+//! ([`crate::filter::running_median`]), which takes out the pressure pulse an ejection charge
+//! punches into a barometric trace. Then:
+//!
+//! - the **climb** begins at the first sample [`LIFTOFF_HEIGHT_M`] above where the log starts, or
+//!   [`LIFTOFF_ALLOWANCE_M`] and one step of the track above it if that is higher;
+//! - the **pad** is the median of the track before it first rises [`PAD_RISE_M`]; on the logger's
+//!   own altitude it must be within [`LIFTOFF_HEIGHT_M`] of the logger's zero, as a logger that
+//!   zeroes itself on the pad records;
+//! - **liftoff** is the last sample before the climb within [`LIFTOFF_ALLOWANCE_M`] of the pad, or
+//!   half the track's step if that is more: the barometer's noise reaches that far on the pad;
+//! - **apogee** is the filtered track's highest value, at the middle of the run of samples that
+//!   hold it (the track's step leaves a peak flat for a few samples);
+//! - the **top speed** is the highest least-squares slope of the filtered track over
+//!   [`SPEED_WINDOW_S`] from liftoff to apogee: a speed HPR Sim derives, withheld where the
+//!   barometer's port may read the transonic flow ([`TRANSONIC_SPEED_M_S`]) and refused as
+//!   Debrief refuses one ([`IMPLAUSIBLE_SPEED_M_S`], [`ASCENT_NOISE_FRACTION`]);
 //! - **landing** is the first sample after apogee below [`LANDING_HEIGHT_M`] above the pad that
 //!   stays under [`LANDED_CEILING_M`] for [`LANDED_FOR_S`], and no sooner, give or take a sample,
 //!   than a fall from rest in vacuum would lose that height, `√(2h/g)`: drag only slows a fall;
-//! - the **top acceleration** is withheld when the log has no accelerometer: differencing an
-//!   altitude twice turns its resolution into spikes of many g.
+//! - the **top acceleration** is left to milestone M7.2c: withheld when the log has no
+//!   accelerometer, as differencing a height twice turns its step into spikes of many g, and not
+//!   yet taken from one it has.
 //!
-//! The thresholds are Debrief's (`lib/analyze/index.ts`, MIT, the project owner's own), set on its
-//! corpus of flight logs rather than taken from a published source; the running median in place of
-//! Debrief's Hampel filter is HPR Sim's, for the reason on [`MEDIAN_WINDOW_S`].
+//! Before any reading, a log must be sampled no slower than [`MAX_INTERVAL_S`] and in steps no
+//! coarser than [`MAX_STEP_M`] (or [`MAX_PRESSURE_STEP_PA`]), the range the bounds were checked
+//! over; and its climb must slow as a coast does ([`COAST_CHECK_S`]), which a clock in the wrong
+//! unit, such as milliseconds read as seconds, can't.
+//!
+//! **Bounds.** Each reading states the bound its error stays within: the sum of the terms
+//! [`docs/physics/log-readings.md`][page] lists, each from the noise model of HPR Sim's synthetic
+//! flights ([ADR-280] §3) or measured on the log itself. Most of an apogee's bound is the day's
+//! air: a logger converts pressure by the standard atmosphere, so a day [`AIR_TEMPERATURE_SPREAD_K`]
+//! off standard moves its heights by up to [`TEMPERATURE_SHARE`] of themselves. On the synthetic
+//! flights' tuning set, logged at every rate and step from 500 to half a sample a second and from
+//! no step to 100 Pa, every reading given stayed within its bound (`cargo xtask synthetic`).
+//!
+//! The thresholds of the climb, the pad and landing are Debrief's (`lib/analyze/index.ts`, MIT, the
+//! project owner's own), set on its corpus of flight logs rather than taken from a published
+//! source; the running median in place of Debrief's Hampel filter, the liftoff allowance, the
+//! derived speed and the bounds are HPR Sim's.
+//!
+//! [page]: https://hpr.fusionspace.co/physics/log-readings.html
+//! [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 
+use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use serde::{Deserialize, Serialize};
 
 use crate::filter::{median, running_median};
-use crate::log::{FlightLog, LogFormat};
+use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 
 /// The running median's span, s: 0.3 s, Debrief's despiking window. Debrief runs a Hampel filter
 /// over it ([`crate::filter::hampel`], threshold 4); HPR Sim takes the plain median (threshold 0). On
@@ -50,23 +80,108 @@ pub const MEDIAN_WINDOW_S: f64 = 0.3;
 /// [`MEDIAN_WINDOW_S`] window at over 6 kHz, faster than any logger HPR Sim reads. A log sampled
 /// faster is withheld ([`Reason::SampledTooFast`]): the median's cost grows with its window.
 pub const MAX_MEDIAN_HALF_WINDOW: usize = 1000;
+/// The slowest a log may be sampled, s: the slowest rate the bounds were checked at on the
+/// synthetic flights' tuning set, half a sample a second, below which the readings are withheld
+/// ([`Reason::SampledTooSlowly`]). It is about twice a radio's telemetry interval, and a
+/// millisecond clock read as seconds is slower at any rate under 500 samples a second.
+pub const MAX_INTERVAL_S: f64 = 2.0;
+/// The coarsest step a height track may have, m: the coarsest checked on the tuning set, above
+/// the 8.8 m steps of the coarsest altitude track the readers read (MARSA's).
+pub const MAX_STEP_M: f64 = 10.0;
+/// The coarsest step a pressure track may have, Pa: the coarsest checked on the tuning set, above
+/// the 92 Pa steps of the coarsest pressure track the readers read (an ARTS2's raw counts).
+pub const MAX_PRESSURE_STEP_PA: f64 = 100.0;
 /// The climb above the pad that marks a flight, m (Debrief's 3 m).
 pub const LIFTOFF_HEIGHT_M: f64 = 3.0;
 /// The pad is the median of the samples before the altitude first rises this far above where the
 /// log starts, m: HPR Sim's choice, a third of [`LIFTOFF_HEIGHT_M`], so that a log which begins just
 /// before liftoff lends the pad few samples that are already climbing.
 pub const PAD_RISE_M: f64 = 1.0;
+/// The least the filtered track may sit above the pad and still be on it, m: four times the
+/// synthetic flights' fast correlated barometer noise (0.5 m, [ADR-280] §3), HPR Sim's choice.
+/// Where the pad's own samples reach further, the allowance is their reach. Liftoff read at half a
+/// foot above the pad, as before M7.2b, came up to 6 s early on a noisy 500 Hz barometer, the
+/// noise lifting the pad's last samples above it; with the pad's reach measured but a floor of
+/// 1 m, up to 1.1 s early on the tuning set, the slow correlated noise moving the pad's last
+/// samples past the reach of those before; at 2 m, never.
+///
+/// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+pub const LIFTOFF_ALLOWANCE_M: f64 = 2.0;
+/// The least mean acceleration a rocket leaves the pad with over its first meters, m/s², which
+/// sets how long it takes to climb out of the pad's noise and so how late liftoff can be read:
+/// twice gravity, as the safety codes' 3:1 thrust to weight leaves on the motor's average thrust
+/// (NAR's high-power code: liftoff weight no more than a third of the certified average thrust;
+/// Tripoli's: below 3:1 only with an active stability system). The tuning set's slowest rocket
+/// averages 30 m/s² over its first 5 m. A rocket slower off the pad is read later than the bound.
+pub const LIFTOFF_ACCELERATION_M_S2: f64 = 2.0 * STANDARD_GRAVITY_MPS2;
 /// How close to the pad the altitude must come to mark landing, m (Debrief's 2 m).
 pub const LANDING_HEIGHT_M: f64 = 2.0;
 /// The height above the pad the altitude must then stay under, m (Debrief's 5 m)…
 pub const LANDED_CEILING_M: f64 = 5.0;
 /// …and for how long, s (Debrief's 1 s).
 pub const LANDED_FOR_S: f64 = 1.0;
+/// How far above the ground the logger may sit on the pad, m: it lands lower than it started by
+/// as much, so its landing is read early by the time that height takes. HPR Sim's choice, a tall
+/// rocket's electronics bay on a rail.
+pub const PAD_ABOVE_GROUND_M: f64 = 3.0;
 /// A top speed above this is refused, m/s (Debrief's ceiling).
 pub const IMPLAUSIBLE_SPEED_M_S: f64 = 4000.0;
 /// A top speed is refused when the climb's most negative speed is more than this share of it: a
 /// trace swinging that far has no usable sign (Debrief's 20%).
 pub const ASCENT_NOISE_FRACTION: f64 = 0.2;
+/// The span of the least-squares fit the top speed is the slope of, s: HPR Sim's choice, long
+/// enough to average the barometer's correlated noise down to a few meters a second, short enough
+/// to keep most of the speed's peak.
+pub const SPEED_WINDOW_S: f64 = 0.5;
+/// The fewest samples the fit may take: the top speed is withheld on a log sampled slower than
+/// [`SPEED_WINDOW_S`] over this less one.
+pub const SPEED_MIN_SAMPLES: usize = 5;
+/// The Mach number from which a barometer's port may read the transonic flow over the nose: the
+/// ogive-cylinder's pressure coefficient behind its shoulder jumps between Mach 0.9 and 1.0
+/// (`docs/research/altimeter-mach-error.md` §1–2), and on the tuning set a speed derived from it
+/// was off by up to 850 m/s from Mach 0.9. HPR Sim's margin below it.
+pub const TRANSONIC_MACH: f64 = 0.8;
+/// The top speed at or above which it is withheld ([`Reason::Transonic`]), m/s:
+/// [`TRANSONIC_MACH`] times the speed of sound in the coldest air the bounds allow below 20 km, the
+/// standard atmosphere's 216.65 K less [`AIR_TEMPERATURE_SPREAD_K`]: `0.8 √(1.4 · 287.05 ·
+/// 201.65)` = 227.7 m/s.
+pub const TRANSONIC_SPEED_M_S: f64 = 227.736_107_633_374_67;
+/// The pressure coefficient a port one caliber behind the nose's shoulder reads below Mach 0.9,
+/// its size: the ogive-cylinder's measured −0.02 (`altimeter-mach-error.md` §1–2), the largest
+/// the synthetic flights draw. A climb's dynamic pressure rises with its speed, so the port's
+/// error lifts a speed derived while the rocket accelerates.
+pub const PORT_PRESSURE_COEFFICIENT: f64 = 0.02;
+/// How far the day's air may be from the 1976 standard atmosphere for the bounds to hold, K: the
+/// synthetic flights' range ([ADR-280] §2).
+///
+/// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+pub const AIR_TEMPERATURE_SPREAD_K: f64 = 15.0;
+/// The share of a barometric height its error from the day's air can reach: a height read by the
+/// standard atmosphere is `T_std/T` of the true one over the layer it spans (the hypsometric
+/// equation), so off by `ΔT/T_std` at most, `T_std` no colder than the standard atmosphere's
+/// 216.65 K below 20 km: 15/216.65 = 6.9%. About 0.35% a kelvin near the ground.
+pub const TEMPERATURE_SHARE: f64 = AIR_TEMPERATURE_SPREAD_K / 216.65;
+/// The share of a height a barometer's gain can be off after its pad zero: an MS5607's ±1.0 mbar
+/// over the 400 mbar its datasheet states it on (an inference), the widest of the synthetic
+/// flights' parts ([ADR-280] §3).
+///
+/// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+pub const BAROMETER_GAIN: f64 = 0.0025;
+/// The barometer's noise at a reading, m: what the fast and slow correlated noise, the part's
+/// white noise, the pad's own median and the port's error at apogee's sideways speed add to a
+/// height read off the filtered track, tuned on the tuning set.
+pub const NOISE_M: f64 = 3.0;
+/// The most a barometer's drift moves a height in a second, m: the synthetic flights' fastest
+/// drift, 3 Pa in 30 s ([ADR-280] §3), at the density of air 5 km up (0.74 kg/m³).
+///
+/// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+pub const DRIFT_M_PER_S: f64 = 0.015;
+/// What the barometer's noise adds to a derived speed, m/s, tuned on the tuning set.
+pub const SPEED_NOISE_M_S: f64 = 5.0;
+/// How long before apogee the climb's slowing is checked, s: a coast loses at least `g t²/2` in
+/// the last `t` before its top, gravity alone slowing it and drag only adding, so a track that
+/// loses less than half of that, past its noise and step, isn't a height on that clock.
+pub const COAST_CHECK_S: f64 = 4.0;
 
 /// A reading, or why the log can't support it.
 ///
@@ -87,6 +202,14 @@ impl<T> Reading<T> {
         match self {
             Self::Read(value) => Some(value),
             Self::Withheld(_) => None,
+        }
+    }
+
+    /// Why it was withheld, if it was.
+    pub fn reason(&self) -> Option<Reason> {
+        match self {
+            Self::Read(_) => None,
+            Self::Withheld(withheld) => Some(withheld.reason),
         }
     }
 
@@ -126,100 +249,177 @@ macro_rules! with_all {
 
 with_all! {
 /// The reason a reading was withheld.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Reason {
-    /// The log has fewer than three samples.
+    /// The track has fewer than three samples.
     TooShort,
-    /// The altitude never climbs [`LIFTOFF_HEIGHT_M`] above where the log starts.
+    /// The altitude never climbs [`LIFTOFF_HEIGHT_M`] above the pad, or the liftoff allowance and
+    /// a step if that is higher; or, for landing, falls too little past its step and noise for
+    /// the descent's rate to be measured.
     NoClimb,
     /// The pad, the median altitude before the first [`PAD_RISE_M`] of rise, is more than
-    /// [`LIFTOFF_HEIGHT_M`] from the logger's zero: the log didn't start on the pad.
+    /// [`LIFTOFF_HEIGHT_M`] from the logger's zero: the log didn't start on the pad, or its
+    /// heights aren't above the pad, such as an altitude above sea level a column mapping calls
+    /// one above the ground.
     StartsOffThePad,
     /// The log ends before the rocket is seen to land.
     EndsBeforeLanding,
     /// The altitude reaches the ground sooner than a fall from rest at apogee in vacuum could.
     FasterThanFreeFall,
-    /// The log has no speed column.
-    NoSpeedColumn,
     /// The top speed is above [`IMPLAUSIBLE_SPEED_M_S`].
     ImplausibleSpeed,
     /// The climb's speed swings negative by more than [`ASCENT_NOISE_FRACTION`] of its top.
     NoisySpeed,
-    /// The top speed falls on the liftoff sample itself: a spike, not a climb.
-    SpeedPeakAtLiftoff,
     /// The log has no accelerometer.
     NoAccelerometer,
     /// The reading needs another, which was withheld.
     Needs,
-    /// The record breaks what every reader guarantees: channels as long as the clock, and finite
-    /// times that increase. Only a record built by hand can.
+    /// The record breaks what every reader guarantees: channels as long as their clocks, and
+    /// finite times that increase. Only a record built by hand can.
     BadRecord,
     /// The samples come so often that the [`MEDIAN_WINDOW_S`] window would hold more than
     /// [`MAX_MEDIAN_HALF_WINDOW`] either side.
     SampledTooFast,
-    /// The readings' thresholds were set and tested on PerfectFlite logs only; on another
-    /// logger's they wait for milestone [M7.2], which validates them on other loggers, as
-    /// [ADR-251] decided. On AltOS logs, liftoff read from the barometer alone lands a median
-    /// 0.28 s and up to 1.8 s after the logger's own detection of boost.
-    ///
-    /// [M7.2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2
-    /// [ADR-251]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0251-flight-log-importers-in-two-increments.md
-    NotValidatedForLogger,
+    /// The log holds no altitude, pressure or GNSS track.
+    NoHeightTrack,
+    /// The log's only height is an altitude whose sensor it doesn't state, such as a table's
+    /// `Altitude` column read by its header: a barometer's bounds can't be stated for it.
+    UnstatedSensor,
+    /// The samples come further apart than [`MAX_INTERVAL_S`], or than the top speed's fit needs.
+    SampledTooSlowly,
+    /// The track's step is coarser than [`MAX_STEP_M`] or [`MAX_PRESSURE_STEP_PA`].
+    StepTooCoarse,
+    /// The top speed reaches [`TRANSONIC_SPEED_M_S`], where the barometer's port may read the
+    /// transonic flow over the nose.
+    Transonic,
+    /// The only height is a GNSS receiver's, whose filter lags a climb and overshoots its top.
+    ReceiverLag,
+    /// The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.
+    ReceiverDropout,
+    /// The track loses less height before apogee than a coast must ([`COAST_CHECK_S`]): its
+    /// clock is in another unit, such as milliseconds read as seconds, or it isn't a height.
+    SlowerThanFreeCoast,
+    /// The log has an accelerometer, from which HPR Sim doesn't take the reading yet (milestone
+    /// M7.2c).
+    NotYetTaken,
 }
 }
 
 with_all! {
-/// Where a reading's value came from.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+/// The track a reading was read from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Source {
-    /// The logger's barometric altitude, after the running median.
+    /// The logger's barometric altitude, the record's primary track, above the logger's zero.
     Barometer,
-    /// A speed column the logger computed from its own barometric altitude.
-    LoggerSpeedFromBarometer,
+    /// A pressure channel, turned into a height by the 1976 standard atmosphere and zeroed on
+    /// the pad.
+    Pressure,
+    /// A barometric altitude channel, above the ground or above sea level, zeroed on the pad.
+    AltitudeChannel,
+    /// A GNSS receiver's altitude.
+    Gnss,
+}
+}
+
+with_all! {
+/// Whether a reading was measured or derived.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Provenance {
+    /// Read straight off the track: a height or a time it holds.
+    Measured,
+    /// Worked out from the track, such as a speed from the slope of its heights.
+    Derived,
+    /// Measured, but at the sensor's range, so the true value may lie beyond it (milestone
+    /// M7.2c's top acceleration).
+    Clipped,
+}
+}
+
+with_all! {
+/// How a reading was taken from its track.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Method {
+    /// The last sample before apogee within the pad's allowance: [`LIFTOFF_ALLOWANCE_M`], or the
+    /// filtered pad's own reach if that is more, and a step.
+    LastOnThePad,
+    /// The filtered track's highest value, at the middle of its flat run.
+    HighestFiltered,
+    /// The highest least-squares slope of the filtered track over [`SPEED_WINDOW_S`].
+    SteepestSlope,
+    /// The first sample after apogee back within the pad's allowance, as liftoff's, that stays
+    /// down for [`LANDED_FOR_S`].
+    BackOnThePad,
 }
 }
 
 /// Liftoff.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Liftoff {
-    /// The last sample on the pad, s on the log's clock: the filtered altitude was within half
-    /// the altitude's resolution of the pad then, and rose past it within one sample interval
-    /// after.
+    /// The last sample on the pad, s on the track's clock: the filtered track was within the
+    /// pad's allowance then, and never again before apogee.
     pub time_s: f64,
-    /// Where it came from.
+    /// The bound on its error, s: the time to climb twice the allowance at
+    /// [`LIFTOFF_ACCELERATION_M_S2`], `√(4a/A)`, and the longer interval either side of the
+    /// sample, twice.
+    pub bound_s: f64,
+    /// The track it came from.
     pub source: Source,
+    /// Measured.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
 }
 
 /// The highest point.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Apogee {
-    /// When, s on the log's clock: the middle of the run of samples at the filtered altitude's
+    /// When, s on the track's clock: the middle of the run of samples at the filtered track's
     /// highest value.
     pub time_s: f64,
-    /// When, s after liftoff; `None` if liftoff was withheld.
-    pub time_after_liftoff_s: Option<f64>,
-    /// The filtered altitude there, m above the logger's zero.
+    /// When, s after liftoff.
+    pub time_after_liftoff_s: f64,
+    /// The bound on the time's error, s: the time the top of a coast takes to fall by the
+    /// height's noise and step there, `√(2 (noise + step)/g)`, and the longest interval either
+    /// side of the peak's flat run.
+    pub time_bound_s: f64,
+    /// The filtered track there, m above the pad.
+    pub height_m: f64,
+    /// The bound on the height's error, m: the day's air ([`TEMPERATURE_SHARE`]) and the
+    /// barometer's gain ([`BAROMETER_GAIN`]) as shares of the height, then its noise
+    /// ([`NOISE_M`]), drift ([`DRIFT_M_PER_S`]) since the log began, a step at the pad and one
+    /// at the peak, and the median's [`peak_bound_m`].
+    pub bound_m: f64,
+    /// The filtered track there, m above the track's own zero: the logger's, for its own
+    /// altitude; for a channel's, as the channel or the standard atmosphere gives it.
     pub altitude_m: f64,
     /// Whether the peak lies within half the median's window of the log's end, so the log may
-    /// have stopped before the rocket did: the altitude is then a floor.
+    /// have stopped before the rocket did: the height is then a floor.
     pub is_floor: bool,
-    /// The highest sample the log holds before the filter: above the apogee when the median set a
-    /// pulse aside.
+    /// The highest sample the track holds before the filter: above the apogee when the median
+    /// set a pulse aside.
     pub highest_sample: Sample,
-    /// Where it came from.
+    /// The track it came from.
     pub source: Source,
+    /// Measured.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
 }
 
-/// One sample of the altitude.
+/// One sample of the track.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Sample {
-    /// When, s on the log's clock.
+    /// When, s on the track's clock.
     pub time_s: f64,
-    /// The altitude, m above the logger's zero.
+    /// The height, m above the track's own zero.
     pub altitude_m: f64,
 }
 
@@ -228,15 +428,24 @@ pub struct Sample {
 pub struct MaxSpeed {
     /// The speed, m/s, up.
     pub speed_m_s: f64,
-    /// When, s on the log's clock.
+    /// The bound on its error, m/s: the day's air and the barometer's gain as shares of it; the
+    /// port's error while the rocket accelerates, [`PORT_PRESSURE_COEFFICIENT`] `v a/g`; the fit
+    /// cutting the peak, `(a₁ + a₂) w/4`, the climb's change of speed before and after it
+    /// measured on the fits; and [`SPEED_NOISE_M_S`].
+    pub bound_m_s: f64,
+    /// When, s on the track's clock: the middle of the fit.
     pub time_s: f64,
-    /// The filtered altitude then, m above the logger's zero.
-    pub altitude_m: f64,
-    /// Where it came from.
+    /// The filtered track then, m above the pad.
+    pub height_m: f64,
+    /// The track it came from.
     pub source: Source,
+    /// Derived.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
 }
 
-/// The top acceleration in the climb. No reader fills it yet: the one format read so far has no
+/// The top acceleration in the climb. No reading fills it yet: milestone M7.2c takes it from an
 /// accelerometer.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MaxAcceleration {
@@ -249,33 +458,54 @@ pub struct MaxAcceleration {
 /// Landing, and the descent before it.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Landing {
-    /// The first sample within [`LANDING_HEIGHT_M`] of the pad, s on the log's clock: before
-    /// touchdown by the time the last 2 m took.
+    /// The first sample after apogee back within the pad's allowance, at least
+    /// [`LANDING_HEIGHT_M`], s on the track's clock: before touchdown by the time the last meters
+    /// took.
     pub time_s: f64,
+    /// The bound on its error, s: the time the descent takes to fall the pad's allowance, the
+    /// barometer's noise and drift, a step and the logger's height on the pad
+    /// ([`PAD_ABOVE_GROUND_M`]), at its rate near the ground taken slow by its step and noise,
+    /// and the longer interval either side of the sample, twice.
+    pub bound_s: f64,
     /// From liftoff to landing, s.
     pub flight_time_s: f64,
+    /// The bound on the flight time's error, s: liftoff's and landing's.
+    pub flight_time_bound_s: f64,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time taken,
     /// drogue and main together.
     pub mean_descent_rate_m_s: f64,
-    /// Where it came from.
+    /// The bound on the rate's error, m/s: the apogee's height bound and the height landing is
+    /// read at, then the rate times the apogee's and landing's time bounds, over the descent time.
+    pub mean_descent_rate_bound_m_s: f64,
+    /// The track it came from.
     pub source: Source,
+    /// Measured: the time. The rate is derived from it and apogee.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
 }
 
 /// What was read from a flight log.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Readings {
-    /// The median interval between samples, s; `None` for a log too short to read, or withheld
-    /// whole as [`Reason::BadRecord`].
+    /// The track the readings came from; `None` if the log has none, or is withheld whole as
+    /// [`Reason::BadRecord`].
+    pub source: Option<Source>,
+    /// The median interval between the track's samples, s; `None` for a log too short to read.
     pub sample_interval_s: Option<f64>,
+    /// The track's step, m: the reader's for the logger's own altitude, else the smallest gap
+    /// between two of its values, a pressure's at the pad.
+    pub step_m: Option<f64>,
     /// The running median's span, s, whole samples of the interval: [`MEDIAN_WINDOW_S`] rounded.
     pub median_window_s: Option<f64>,
     /// How far below its true peak the running median can read a peak bent by gravity alone, m
     /// ([`peak_bound_m`]).
     pub peak_bound_m: Option<f64>,
-    /// The pad: the median of the altitude before it first rises [`PAD_RISE_M`], m above the
-    /// logger's zero; `None` when every reading is withheld, [`Reason::NoClimb`] included.
+    /// The pad: the median of the track before it first rises [`PAD_RISE_M`] above where it
+    /// starts, m on the track's own scale; `None` when every reading is withheld before it is
+    /// found.
     pub pad_altitude_m: Option<f64>,
     /// Liftoff.
     pub liftoff: Reading<Liftoff>,
@@ -289,35 +519,45 @@ pub struct Readings {
     pub landing: Reading<Landing>,
 }
 
-/// Takes the readings from a flight log: every reading withheld as
-/// [`Reason::NotValidatedForLogger`] for a logger other than a PerfectFlite.
-pub fn read(log: &FlightLog) -> Readings {
-    if !matches!(
-        log.format,
-        LogFormat::PerfectFlitePf2 | LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText
-    ) {
-        // The format isn't named: a table read by a mapping and one read by its header are one
-        // format, and the record can't tell which.
-        let detail = "HPR Sim's readings were set and tested on PerfectFlite logs only; on this \
-                      logger's they wait for roadmap milestone M7.2, which validates them on other \
-                      loggers"
-            .to_owned();
-        let reason = Reason::NotValidatedForLogger;
-        return Readings {
-            sample_interval_s: None,
-            median_window_s: None,
-            peak_bound_m: None,
-            pad_altitude_m: None,
-            liftoff: Reading::withheld(reason, &detail),
-            apogee: Reading::withheld(reason, &detail),
-            max_speed: Reading::withheld(reason, &detail),
-            max_acceleration: Reading::withheld(reason, &detail),
-            landing: Reading::withheld(reason, &detail),
-        };
+/// The height track the readings take.
+struct Track {
+    source: Source,
+    time_s: Vec<f64>,
+    /// Heights, m: above the logger's zero for its own altitude, else as the channel or the
+    /// standard atmosphere gives them; the readings measure from the pad.
+    height_m: Vec<f64>,
+    /// The step, m: at the pad's pressure for a pressure track.
+    step_m: f64,
+    /// A pressure track's step, Pa.
+    pressure_step_pa: Option<f64>,
+}
+
+impl Track {
+    /// The step at a height of the track, m: a pressure track's step in height grows as the air
+    /// thins, `Δh = Δp/(ρ g)`, the density from the standard atmosphere at that height.
+    fn step_at(&self, height_m: f64) -> f64 {
+        match self.pressure_step_pa {
+            Some(step_pa) => step_pa / (standard_density(height_m) * STANDARD_GRAVITY_MPS2),
+            None => self.step_m,
+        }
     }
-    let max_acceleration = no_accelerometer(log);
-    let every = |reason: Reason, detail: &str| Readings {
+}
+
+/// The 1976 standard atmosphere's density at a pressure altitude, kg/m³, its sea-level 1.225
+/// outside the model's range.
+fn standard_density(height_m: f64) -> f64 {
+    Ussa76::standard()
+        .sample(height_m)
+        .map_or(1.225, |sample| sample.air.density_kg_m3)
+}
+
+/// Takes the readings from a flight log.
+pub fn read(log: &FlightLog) -> Readings {
+    let max_acceleration = acceleration(log);
+    let every = |source: Option<Source>, reason: Reason, detail: &str| Readings {
+        source,
         sample_interval_s: None,
+        step_m: None,
         median_window_s: None,
         peak_bound_m: None,
         pad_altitude_m: None,
@@ -328,23 +568,59 @@ pub fn read(log: &FlightLog) -> Readings {
         landing: Reading::withheld(reason, detail),
     };
     if let Err(detail) = check_record(log) {
-        return every(Reason::BadRecord, &detail);
+        return every(None, Reason::BadRecord, &detail);
     }
-    let time = &log.time_s;
+    let track = match track(log) {
+        Ok(track) => track,
+        Err((reason, detail)) => return every(None, reason, &detail),
+    };
+    let source = Some(track.source);
+    if track.source == Source::Gnss {
+        let mut readings = every(
+            source,
+            Reason::ReceiverLag,
+            "the log's only height is a GNSS receiver's, whose navigation filter lags a climb and \
+             overshoots its top by more than a barometer's bounds allow",
+        );
+        readings.liftoff = Reading::withheld(
+            Reason::ReceiverDropout,
+            "the log's only height is a GNSS receiver's, whose fix drops out or lags at liftoff",
+        );
+        readings.landing = Reading::withheld(
+            Reason::Needs,
+            "landing is found against the pad after apogee, and liftoff and apogee were withheld",
+        );
+        return readings;
+    }
+    let time = &track.time_s;
     let n = time.len();
     let mut steps: Vec<f64> = time.windows(2).map(|pair| pair[1] - pair[0]).collect();
     let (Some(interval), true) = (median(&mut steps), n >= 3) else {
         return every(
+            source,
             Reason::TooShort,
-            &format!("the log has {n} samples, too few to take a reading from"),
+            &format!("the track has {n} samples, too few to take a reading from"),
         );
     };
+    if interval > MAX_INTERVAL_S {
+        let mut readings = every(
+            source,
+            Reason::SampledTooSlowly,
+            &format!(
+                "the track's samples come every {interval:.3} s, slower than the {MAX_INTERVAL_S} s \
+                 the readings were checked at; a clock in milliseconds read as seconds looks so"
+            ),
+        );
+        readings.sample_interval_s = Some(interval);
+        return readings;
+    }
     let half = half_window(interval);
     if half > MAX_MEDIAN_HALF_WINDOW {
         let mut readings = every(
+            source,
             Reason::SampledTooFast,
             &format!(
-                "the log's samples come every {interval:.3e} s, so a {MEDIAN_WINDOW_S} s running \
+                "the track's samples come every {interval:.3e} s, so a {MEDIAN_WINDOW_S} s running \
                  median would take more than {MAX_MEDIAN_HALF_WINDOW} samples either side: faster \
                  than any logger HPR Sim reads"
             ),
@@ -352,73 +628,98 @@ pub fn read(log: &FlightLog) -> Readings {
         readings.sample_interval_s = Some(interval);
         return readings;
     }
-    let filtered = running_median(&log.altitude_m, half);
+    let coarse = match track.pressure_step_pa {
+        Some(step) if step > MAX_PRESSURE_STEP_PA => Some(format!(
+            "the track's pressure moves in steps of {step:.1} Pa, coarser than the \
+             {MAX_PRESSURE_STEP_PA} Pa the readings were checked at"
+        )),
+        None if track.step_m > MAX_STEP_M => Some(format!(
+            "the track moves in steps of {:.2} m, coarser than the {MAX_STEP_M} m the readings \
+             were checked at",
+            track.step_m
+        )),
+        _ => None,
+    };
+    if let Some(detail) = coarse {
+        let mut readings = every(source, Reason::StepTooCoarse, &detail);
+        readings.sample_interval_s = Some(interval);
+        readings.step_m = Some(track.step_m);
+        return readings;
+    }
+    let step = track.step_m;
+    let filtered = running_median(&track.height_m, half);
     let bound = peak_bound_m(half, interval);
     #[expect(
         clippy::cast_precision_loss,
         reason = "a window of a few samples converts exactly"
     )]
     let window_s = 2.0 * half as f64 * interval;
-    let mut readings = every(Reason::TooShort, "");
+    let mut readings = every(source, Reason::TooShort, "");
     readings.sample_interval_s = Some(interval);
+    readings.step_m = Some(step);
     readings.median_window_s = Some(window_s);
     readings.peak_bound_m = Some(bound);
 
-    // The climb: the first sample 3 m above where the log starts.
-    let start = filtered[0];
-    let (Some(apogee_index), Some(climbed)) = (
-        arg_max(&filtered),
-        filtered.iter().position(|h| *h >= start + LIFTOFF_HEIGHT_M),
-    ) else {
-        let detail =
-            format!("the altitude never climbs {LIFTOFF_HEIGHT_M} m above where the log starts");
-        readings.liftoff = Reading::withheld(Reason::NoClimb, detail.clone());
-        readings.apogee = Reading::withheld(Reason::NoClimb, detail.clone());
-        readings.max_speed = Reading::withheld(Reason::NoClimb, detail.clone());
-        readings.landing = Reading::withheld(Reason::NoClimb, detail);
-        return readings;
-    };
-    // The pad: the median of the samples before the altitude first rises [`PAD_RISE_M`], so no
-    // one sample's jitter sets it.
-    let risen = filtered
-        .iter()
-        .position(|h| *h >= start + PAD_RISE_M)
-        .unwrap_or(climbed);
-    let mut before: Vec<f64> = log.altitude_m[..risen.max(1)]
+    // The pad: the median of the samples before the altitude first rises [`PAD_RISE_M`] above
+    // where the log starts, and never fewer than half the median's window and one, so that no one
+    // sample's jitter sets it.
+    let start = filtered
         .iter()
         .copied()
-        .filter(|h| h.is_finite())
-        .collect();
-    let pad = median(&mut before).unwrap_or(start);
-    readings.pad_altitude_m = Some(pad);
-    let top = filtered[apogee_index];
-
-    let liftoff_index = if pad.abs() > LIFTOFF_HEIGHT_M {
-        readings.liftoff = Reading::withheld(
-            Reason::StartsOffThePad,
-            format!(
-                "the log starts {pad:.2} m from the logger's zero, more than {LIFTOFF_HEIGHT_M} m: \
-                 it didn't start on the pad"
-            ),
-        );
-        None
-    } else {
-        // Back from the climb to the last sample on the pad, to within half the altitude's
-        // resolution.
-        let level = pad + 0.5 * log.format.altitude_resolution_m();
-        let index = filtered[..climbed]
-            .iter()
-            .rposition(|h| *h <= level)
-            .unwrap_or(0);
-        readings.liftoff = Reading::Read(Liftoff {
-            time_s: time[index],
-            source: Source::Barometer,
-        });
-        Some(index)
+        .find(|h| h.is_finite())
+        .unwrap_or(f64::NAN);
+    let Some(apogee_index) = arg_max(&filtered) else {
+        return no_climb(readings, LIFTOFF_HEIGHT_M);
     };
+    let risen = filtered[..apogee_index]
+        .iter()
+        .position(|h| *h >= start + PAD_RISE_M)
+        .unwrap_or(apogee_index)
+        .max(half + 1)
+        .min(n);
+    let pad_before = |end: usize| {
+        let mut before: Vec<f64> = track.height_m[..end]
+            .iter()
+            .copied()
+            .filter(|h| h.is_finite())
+            .collect();
+        median(&mut before).unwrap_or(start)
+    };
+    let pad = pad_before(risen);
+    readings.pad_altitude_m = Some(pad);
+    // How far the filtered pad reaches from its median, at least the allowance; liftoff is the
+    // last sample before apogee within that and a step of the pad.
+    let reach = filtered[..risen]
+        .iter()
+        .filter(|h| h.is_finite())
+        .map(|h| (h - pad).abs())
+        .fold(LIFTOFF_ALLOWANCE_M, f64::max);
+    let allowance = reach + step;
+    let climb_height = LIFTOFF_HEIGHT_M.max(allowance + step);
+    let top = filtered[apogee_index];
+    if top < pad + climb_height {
+        return no_climb(readings, climb_height);
+    }
+    if track.source == Source::Barometer && pad.abs() > LIFTOFF_HEIGHT_M {
+        let detail = format!(
+            "the log starts {pad:.2} m from the logger's zero, more than {LIFTOFF_HEIGHT_M} m: it \
+             didn't start on the pad, or its heights aren't above the pad (an altitude above sea \
+             level mapped as one above the ground reads so)"
+        );
+        readings.liftoff = Reading::withheld(Reason::StartsOffThePad, detail.clone());
+        readings.apogee = Reading::withheld(Reason::StartsOffThePad, detail.clone());
+        readings.max_speed = Reading::withheld(Reason::StartsOffThePad, detail.clone());
+        readings.landing = Reading::withheld(Reason::StartsOffThePad, detail);
+        return readings;
+    }
+    let level = pad + allowance;
+    let liftoff = filtered[..apogee_index]
+        .iter()
+        .rposition(|h| *h <= level)
+        .unwrap_or(0);
 
-    // The altitude's resolution leaves the peak flat over a run of samples: the apogee is the
-    // run's middle.
+    // The track's step leaves the peak flat over a run of samples: the apogee is the run's
+    // middle.
     let run_end = apogee_index
         + filtered[apogee_index..]
             .iter()
@@ -426,40 +727,202 @@ pub fn read(log: &FlightLog) -> Readings {
             .count()
         - 1;
     let apogee_s = 0.5 * (time[apogee_index] + time[run_end]);
-    let highest = arg_max(&log.altitude_m).unwrap_or(apogee_index);
+    let height = top - pad;
+
+    // A coast loses at least g t²/2 in the last t before its top: a track that loses less than
+    // half of that, past its noise and step, isn't a height on this clock.
+    let before_top = time[apogee_index] - COAST_CHECK_S;
+    if before_top > time[liftoff] {
+        let index = time.partition_point(|t| *t <= before_top).saturating_sub(1);
+        let lost = top - filtered[index];
+        let least = 0.25 * STANDARD_GRAVITY_MPS2 * COAST_CHECK_S * COAST_CHECK_S
+            - 2.0 * (NOISE_M + track.step_at(top));
+        if lost < least {
+            let detail = format!(
+                "the track loses {lost:.2} m in the {COAST_CHECK_S} s before its top, less than \
+                 the {least:.1} m any coast loses: its clock is in another unit, such as \
+                 milliseconds read as seconds, or it isn't a height"
+            );
+            let mut withheld = every(source, Reason::SlowerThanFreeCoast, &detail);
+            withheld.sample_interval_s = readings.sample_interval_s;
+            withheld.step_m = readings.step_m;
+            withheld.median_window_s = readings.median_window_s;
+            withheld.peak_bound_m = readings.peak_bound_m;
+            withheld.pad_altitude_m = readings.pad_altitude_m;
+            return withheld;
+        }
+    }
+
+    // Liftoff is read late by the time the rocket takes to climb out of the pad's reach, once
+    // above it and once below, at the least acceleration off the pad, and by a sample either side.
+    let liftoff_bound_s = (4.0 * allowance / LIFTOFF_ACCELERATION_M_S2).sqrt()
+        + 2.0 * local_interval(time, liftoff);
+    readings.liftoff = Reading::Read(Liftoff {
+        time_s: time[liftoff],
+        bound_s: liftoff_bound_s,
+        source: track.source,
+        provenance: Provenance::Measured,
+        method: Method::LastOnThePad,
+    });
+    let highest = arg_max(&track.height_m).unwrap_or(apogee_index);
+    let top_step = track.step_at(top);
+    let height_bound = (TEMPERATURE_SHARE + BAROMETER_GAIN) * height.abs()
+        + NOISE_M
+        + DRIFT_M_PER_S * (apogee_s - time[0])
+        + step
+        + top_step
+        + bound;
+    let time_bound = (2.0 * (NOISE_M + top_step) / STANDARD_GRAVITY_MPS2).sqrt()
+        + local_interval(time, apogee_index).max(local_interval(time, run_end));
     readings.apogee = Reading::Read(Apogee {
         time_s: apogee_s,
-        time_after_liftoff_s: liftoff_index.map(|index| apogee_s - time[index]),
+        time_after_liftoff_s: apogee_s - time[liftoff],
+        time_bound_s: time_bound,
+        height_m: height,
+        bound_m: height_bound,
         altitude_m: top,
         is_floor: run_end + half >= n - 1,
         highest_sample: Sample {
             time_s: time[highest],
-            altitude_m: log.altitude_m[highest],
+            altitude_m: track.height_m[highest],
         },
-        source: Source::Barometer,
+        source: track.source,
+        provenance: Provenance::Measured,
+        method: Method::HighestFiltered,
     });
-
-    let Some(liftoff) = liftoff_index else {
-        readings.max_speed = Reading::withheld(
-            Reason::Needs,
-            "the top speed is taken from liftoff to apogee, and liftoff was withheld",
-        );
-        readings.landing = Reading::withheld(
-            Reason::Needs,
-            "landing is found against the pad, and the log didn't start on it",
-        );
-        return readings;
-    };
-    readings.max_speed = max_speed(log, &filtered, liftoff, apogee_index);
-    readings.landing = landing(
+    readings.max_speed = max_speed(
         time,
         &filtered,
+        (liftoff, apogee_index),
         pad,
-        (apogee_index, apogee_s),
-        (liftoff, interval),
-        log.format.altitude_resolution_m(),
+        interval,
+        track.source,
+    );
+    readings.landing = landing(
+        &track,
+        &filtered,
+        pad,
+        &Apex {
+            index: apogee_index,
+            time_s: apogee_s,
+            height_bound_m: height_bound,
+            time_bound_s: time_bound,
+        },
+        (liftoff, liftoff_bound_s, allowance),
     );
     readings
+}
+
+/// The readings of a track that never climbs `climb_height` above the pad.
+fn no_climb(mut readings: Readings, climb_height: f64) -> Readings {
+    let detail = format!("the altitude never climbs {climb_height:.1} m above the pad");
+    readings.liftoff = Reading::withheld(Reason::NoClimb, detail.clone());
+    readings.apogee = Reading::withheld(Reason::NoClimb, detail.clone());
+    readings.max_speed = Reading::withheld(Reason::NoClimb, detail.clone());
+    readings.landing = Reading::withheld(Reason::NoClimb, detail);
+    readings
+}
+
+/// The longer of the two intervals either side of sample `index`: a logger that samples the pad
+/// slowly and the flight fast leaves its liftoff sample a pad's interval from the next.
+fn local_interval(time: &[f64], index: usize) -> f64 {
+    let gap = |a: usize, b: usize| match (time.get(a), time.get(b)) {
+        (Some(a), Some(b)) => b - a,
+        _ => 0.0,
+    };
+    gap(index.wrapping_sub(1), index).max(gap(index, index + 1))
+}
+
+/// The track the readings take, the first the log holds: the logger's own altitude, a pressure,
+/// a barometric altitude channel, a GNSS altitude; or why there is none.
+fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {
+    if !log.time_s.is_empty() {
+        let declared = log.format.altitude_resolution_m();
+        let step = if declared > 0.0 {
+            declared
+        } else {
+            smallest_step(&log.altitude_m)
+        };
+        return Ok(Track {
+            source: Source::Barometer,
+            time_s: log.time_s.clone(),
+            height_m: log.altitude_m.clone(),
+            step_m: step,
+            pressure_step_pa: None,
+        });
+    }
+    let first = |quantity: Quantity| log.channels_of(quantity).next();
+    if let Some(channel) = first(Quantity::Pressure) {
+        let air = Ussa76::standard();
+        let height_m: Vec<f64> = channel
+            .values
+            .iter()
+            .map(|p| air.pressure_altitude_m(*p).unwrap_or(f64::NAN))
+            .collect();
+        let step_pa = smallest_step(&channel.values);
+        // The step in height at the pad's pressure, dh/dp = −1/(ρg), the pad's density from the
+        // standard atmosphere at the track's first height.
+        let pad_m = height_m
+            .iter()
+            .copied()
+            .find(|h| h.is_finite())
+            .unwrap_or(0.0);
+        return Ok(Track {
+            source: Source::Pressure,
+            time_s: channel.time_s.clone(),
+            height_m,
+            step_m: step_pa / (standard_density(pad_m) * STANDARD_GRAVITY_MPS2),
+            pressure_step_pa: Some(step_pa),
+        });
+    }
+    let channel_track = |channel: &Channel, source: Source| Track {
+        source,
+        time_s: channel.time_s.clone(),
+        height_m: channel.values.clone(),
+        step_m: smallest_step(&channel.values),
+        pressure_step_pa: None,
+    };
+    if let Some(channel) =
+        first(Quantity::AltitudeAboveGround).or_else(|| first(Quantity::AltitudeMsl))
+    {
+        return Ok(channel_track(channel, Source::AltitudeChannel));
+    }
+    if let Some(channel) = first(Quantity::GnssAltitude) {
+        return Ok(channel_track(channel, Source::Gnss));
+    }
+    if let Some(channel) = first(Quantity::Altitude) {
+        // A GPX track's elevation is its receiver's: the format carries GNSS tracks.
+        if log.format == LogFormat::Gpx {
+            return Ok(channel_track(channel, Source::Gnss));
+        }
+        return Err((
+            Reason::UnstatedSensor,
+            format!(
+                "the log's only height, `{}`, doesn't say whether a barometer or a GNSS receiver \
+                 measured it; a column mapping can mark it as the barometer's primary track",
+                channel.column
+            ),
+        ));
+    }
+    Err((
+        Reason::NoHeightTrack,
+        "the log holds no altitude, pressure or GNSS track".to_owned(),
+    ))
+}
+
+/// The smallest gap between two of the track's distinct finite values, or 0 if it holds fewer
+/// than two: a track's step, as a track in steps passes every level between its lowest and its
+/// highest. Successive changes would miss it on a track sampled so slowly that every sample moves
+/// several steps.
+fn smallest_step(values: &[f64]) -> f64 {
+    let mut sorted: Vec<f64> = values.iter().copied().filter(|v| v.is_finite()).collect();
+    sorted.sort_by(f64::total_cmp);
+    sorted.dedup();
+    let smallest = sorted
+        .windows(2)
+        .map(|pair| pair[1] - pair[0])
+        .fold(f64::INFINITY, f64::min);
+    if smallest.is_finite() { smallest } else { 0.0 }
 }
 
 /// Whole samples either side of the running median's center: [`MEDIAN_WINDOW_S`] over two
@@ -492,7 +955,8 @@ pub fn peak_bound_m(half: usize, interval: f64) -> f64 {
 }
 
 /// Whether the record holds to what every reader guarantees: one time per altitude, each channel
-/// as long as the clock, and finite times that increase.
+/// as long as its clock, and finite times that increase, on the record's clock and each
+/// channel's.
 fn check_record(log: &FlightLog) -> Result<(), String> {
     let n = log.time_s.len();
     let channels = [
@@ -511,19 +975,36 @@ fn check_record(log: &FlightLog) -> Result<(), String> {
             ));
         }
     }
-    if let Some(index) = log
-        .time_s
+    increasing("the record's", &log.time_s)?;
+    for channel in &log.channels {
+        if channel.values.len() != channel.time_s.len() {
+            return Err(format!(
+                "channel `{}` has {} times and {} values: a reader gives a channel one value per \
+                 time",
+                channel.column,
+                channel.time_s.len(),
+                channel.values.len()
+            ));
+        }
+        increasing(&format!("channel `{}`'s", channel.column), &channel.time_s)?;
+    }
+    Ok(())
+}
+
+/// Whether `times` are finite and increase.
+fn increasing(whose: &str, times: &[f64]) -> Result<(), String> {
+    match times
         .windows(2)
         .position(|pair| !(pair[0].is_finite() && pair[1].is_finite() && pair[1] > pair[0]))
     {
-        return Err(format!(
-            "the record's times don't increase at sample {}: {} s, then {} s",
+        Some(index) => Err(format!(
+            "{whose} times don't increase at sample {}: {} s, then {} s",
             index + 1,
-            log.time_s[index],
-            log.time_s[index + 1]
-        ));
+            times[index],
+            times[index + 1]
+        )),
+        None => Ok(()),
     }
-    Ok(())
 }
 
 /// The index of the first greatest finite value.
@@ -542,46 +1023,115 @@ fn arg_max(values: &[f64]) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-/// The top acceleration, withheld: a PerfectFlite, the only logger the readings take, records
-/// none.
-fn no_accelerometer(_log: &FlightLog) -> Reading<MaxAcceleration> {
-    Reading::withheld(
-        Reason::NoAccelerometer,
-        "a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude \
-         twice to make one, as its one-foot steps would read as spikes of many g",
-    )
+/// The top acceleration, withheld: milestone M7.2c takes it from an accelerometer, and none is
+/// taken from a height.
+fn acceleration(log: &FlightLog) -> Reading<MaxAcceleration> {
+    if log.channels_of(Quantity::Acceleration).next().is_some() {
+        Reading::withheld(
+            Reason::NotYetTaken,
+            "HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap \
+             milestone M7.2c does",
+        )
+    } else {
+        Reading::withheld(
+            Reason::NoAccelerometer,
+            "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, \
+             as its steps would read as spikes of many g",
+        )
+    }
+}
+
+/// The least-squares slope of `heights` against `times` over the samples within half of
+/// [`SPEED_WINDOW_S`] of `times[center]`, skipping gaps; `None` with fewer than
+/// [`SPEED_MIN_SAMPLES`].
+fn slope(times: &[f64], heights: &[f64], center: usize) -> Option<f64> {
+    let t0 = times[center];
+    let reach = 0.5 * SPEED_WINDOW_S;
+    let from = times.partition_point(|t| *t < t0 - reach);
+    let to = times.partition_point(|t| *t <= t0 + reach);
+    let window = || {
+        times[from..to]
+            .iter()
+            .zip(&heights[from..to])
+            .filter(|(_, h)| h.is_finite())
+            .map(|(t, h)| (t - t0, *h))
+    };
+    let (count, sum_t, sum_h) = window().fold((0_usize, 0.0, 0.0), |(c, st, sh), (t, h)| {
+        (c + 1, st + t, sh + h)
+    });
+    if count < SPEED_MIN_SAMPLES {
+        return None;
+    }
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a window of at most a few thousand samples converts exactly"
+    )]
+    let count_f = count as f64;
+    let (mean_t, mean_h) = (sum_t / count_f, sum_h / count_f);
+    let (num, den) = window().fold((0.0, 0.0), |(num, den), (t, h)| {
+        (
+            num + (t - mean_t) * (h - mean_h),
+            den + (t - mean_t) * (t - mean_t),
+        )
+    });
+    (den > 0.0).then(|| num / den)
 }
 
 /// The top vertical speed from liftoff to apogee, or why it is withheld.
 fn max_speed(
-    log: &FlightLog,
+    time: &[f64],
     filtered: &[f64],
-    liftoff: usize,
-    apogee: usize,
+    (liftoff, apogee): (usize, usize),
+    pad: f64,
+    interval: f64,
+    source: Source,
 ) -> Reading<MaxSpeed> {
-    let Some(speed) = &log.vertical_speed_m_s else {
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a handful of samples converts exactly"
+    )]
+    let slowest = SPEED_WINDOW_S / (SPEED_MIN_SAMPLES - 1) as f64;
+    if interval > slowest {
         return Reading::withheld(
-            Reason::NoSpeedColumn,
-            "the log has no speed column, and HPR Sim doesn't difference the altitude to make one yet",
+            Reason::SampledTooSlowly,
+            format!(
+                "the track's samples come every {interval:.3} s, too far apart for a \
+                 {SPEED_WINDOW_S} s fit of {SPEED_MIN_SAMPLES} samples, which needs {slowest} s"
+            ),
         );
-    };
-    let Some(offset) = speed.get(liftoff..=apogee).and_then(arg_max) else {
-        return Reading::withheld(
-            Reason::NoSpeedColumn,
-            "the speed column has no value from liftoff to apogee",
-        );
-    };
-    let climb = &speed[liftoff..=apogee];
-    let (index, top) = (liftoff + offset, climb[offset]);
-    let worst = climb
+    }
+    let speeds: Vec<(usize, f64)> = (liftoff..=apogee)
+        .filter_map(|index| slope(time, filtered, index).map(|v| (index, v)))
+        .collect();
+    let Some(&(index, top)) = speeds
         .iter()
-        .copied()
-        .filter(|v| v.is_finite())
+        .fold(None, |best: Option<&(usize, f64)>, item| match best {
+            Some(b) if item.1 <= b.1 => best,
+            _ => Some(item),
+        })
+    else {
+        return Reading::withheld(
+            Reason::SampledTooSlowly,
+            "the climb is too short for a single fit of the speed",
+        );
+    };
+    let worst = speeds
+        .iter()
+        .map(|(_, v)| *v)
         .fold(f64::INFINITY, f64::min);
     if top > IMPLAUSIBLE_SPEED_M_S {
         return Reading::withheld(
             Reason::ImplausibleSpeed,
-            format!("the speed column peaks at {top:.1} m/s, above {IMPLAUSIBLE_SPEED_M_S} m/s"),
+            format!("the climb's speed peaks at {top:.1} m/s, above {IMPLAUSIBLE_SPEED_M_S} m/s"),
+        );
+    }
+    if top >= TRANSONIC_SPEED_M_S {
+        return Reading::withheld(
+            Reason::Transonic,
+            format!(
+                "the climb's speed reaches {top:.1} m/s, at or above {TRANSONIC_SPEED_M_S:.1} m/s, \
+                 where the barometer's port may read the transonic flow over the nose"
+            ),
         );
     }
     if top <= 0.0 || -worst > ASCENT_NOISE_FRACTION * top {
@@ -594,59 +1144,82 @@ fn max_speed(
             ),
         );
     }
-    if index == liftoff {
-        return Reading::withheld(
-            Reason::SpeedPeakAtLiftoff,
-            format!("the speed peaks at {top:.1} m/s on the liftoff sample itself: a spike"),
-        );
-    }
+    // The climb's change of speed either side of the top, from the fits a window away: a fit
+    // cuts a peak by about (a₁ + a₂) w/8; twice that is allowed.
+    let at = |t: f64| {
+        let target = time.partition_point(|s| *s < t).clamp(liftoff, apogee);
+        speeds
+            .iter()
+            .min_by_key(|(i, _)| (i.abs_diff(target), *i))
+            .map_or(top, |(_, v)| *v)
+    };
+    let rising = ((top - at(time[index] - SPEED_WINDOW_S)) / SPEED_WINDOW_S).max(0.0);
+    let falling = ((top - at(time[index] + SPEED_WINDOW_S)) / SPEED_WINDOW_S).max(0.0);
+    let bound_m_s = (TEMPERATURE_SHARE + BAROMETER_GAIN) * top
+        + PORT_PRESSURE_COEFFICIENT * top * rising / STANDARD_GRAVITY_MPS2
+        + 0.25 * (rising + falling) * SPEED_WINDOW_S
+        + SPEED_NOISE_M_S;
     Reading::Read(MaxSpeed {
         speed_m_s: top,
-        time_s: log.time_s[index],
-        altitude_m: filtered[index],
-        source: Source::LoggerSpeedFromBarometer,
+        bound_m_s,
+        time_s: time[index],
+        height_m: filtered[index] - pad,
+        source,
+        provenance: Provenance::Derived,
+        method: Method::SteepestSlope,
     })
+}
+
+/// Apogee, as landing needs it.
+struct Apex {
+    index: usize,
+    time_s: f64,
+    height_bound_m: f64,
+    time_bound_s: f64,
 }
 
 /// Landing and the descent, or why they are withheld.
 fn landing(
-    time: &[f64],
+    track: &Track,
     filtered: &[f64],
     pad: f64,
-    (apogee, apogee_s): (usize, f64),
-    (liftoff, interval): (usize, f64),
-    rounding: f64,
+    apex: &Apex,
+    (liftoff, liftoff_bound_s, allowance): (usize, f64, f64),
 ) -> Reading<Landing> {
+    let time = &track.time_s;
     let end = time[filtered.len() - 1];
-    let landed = (apogee + 1..filtered.len()).find(|&index| {
-        filtered[index] < pad + LANDING_HEIGHT_M
+    // Debrief's marks, raised to the pad's own reach and step where those are more, as the
+    // liftoff's is, so a coarse or noisy track flickering on the ground doesn't hold landing off.
+    let level = LANDING_HEIGHT_M.max(allowance);
+    let ceiling = level + (LANDED_CEILING_M - LANDING_HEIGHT_M) + track.step_m;
+    let landed = (apex.index + 1..filtered.len()).find(|&index| {
+        filtered[index] < pad + level
             && time[index] + LANDED_FOR_S <= end
             && filtered[index..]
                 .iter()
                 .zip(&time[index..])
                 .take_while(|(_, t)| **t <= time[index] + LANDED_FOR_S)
-                .all(|(h, _)| *h < pad + LANDED_CEILING_M)
+                .all(|(h, _)| *h < pad + ceiling)
     });
     let Some(index) = landed else {
         return Reading::withheld(
             Reason::EndsBeforeLanding,
             format!(
                 "the log ends at {end:.2} s, {:.1} m above the pad, before the altitude comes \
-                 within {LANDING_HEIGHT_M} m of it and stays under {LANDED_CEILING_M} m for \
-                 {LANDED_FOR_S} s",
+                 within {level:.1} m of it and stays under {ceiling:.1} m for {LANDED_FOR_S} s",
                 filtered[filtered.len() - 1] - pad
             ),
         );
     };
-    let descent_time_s = time[index] - apogee_s;
-    let drop = filtered[apogee] - filtered[index];
+    let descent_time_s = time[index] - apex.time_s;
+    let drop = filtered[apex.index] - filtered[index];
     // The quickest any fall from rest at apogee can lose that height: in vacuum. Both heights
-    // are rounded, so the drop can read up to one resolution long; and the apogee's time, the
-    // middle of its flat run, can sit about half a sample from the true one, so a sample is
-    // allowed. A test passes a vacuum fall in feet at 10 to 100 samples a second, wherever its
-    // apogee falls within a foot and its liftoff between samples, and fails without either.
-    let quickest = (2.0 * (drop - rounding).max(0.0) / STANDARD_GRAVITY_MPS2).sqrt();
-    if descent_time_s + interval < quickest {
+    // are stepped, so the drop can read up to one step long; and the apogee's time, the middle
+    // of its flat run, can sit about half a sample from the true one, so a sample is allowed. A
+    // test passes a vacuum fall in feet at 10 to 100 samples a second, wherever its apogee falls
+    // within a foot and its liftoff between samples, and fails without either.
+    let quickest = (2.0 * (drop - track.step_m).max(0.0) / STANDARD_GRAVITY_MPS2).sqrt();
+    if descent_time_s + local_interval(time, index) < quickest {
         return Reading::withheld(
             Reason::FasterThanFreeFall,
             format!(
@@ -655,12 +1228,50 @@ fn landing(
             ),
         );
     }
+    // The descent's rate near the ground, which sets how early the landing mark and the logger's
+    // height on the pad put it: over the last 5 s before landing, or back to where the track was
+    // four times its step and noise higher if that is longer, and taken a step and the noise at
+    // either end slow, as a stepped, noisy drop can read that much long.
+    let margin_m = track.step_m + 2.0 * NOISE_M;
+    let back = time
+        .partition_point(|t| *t < time[index] - 5.0)
+        .min(
+            (apex.index..index)
+                .rev()
+                .find(|&back| filtered[back] - filtered[index] >= 4.0 * margin_m)
+                .unwrap_or(apex.index),
+        )
+        .max(apex.index);
+    let rate = (filtered[back] - filtered[index] - margin_m) / (time[index] - time[back]);
+    if !(rate > 0.0) {
+        return Reading::withheld(
+            Reason::NoClimb,
+            format!(
+                "the track falls {drop:.1} m from apogee to landing, too little past its step and \
+                 noise ({margin_m:.1} m) to time the descent"
+            ),
+        );
+    }
+    let mean_rate = drop / descent_time_s;
+    let early_m = level
+        + NOISE_M
+        + PAD_ABOVE_GROUND_M
+        + track.step_m
+        + DRIFT_M_PER_S * (time[index] - time[0]);
+    let bound_s = early_m / rate + 2.0 * local_interval(time, index);
+    let rate_bound =
+        (apex.height_bound_m + early_m + mean_rate * (apex.time_bound_s + bound_s)) / descent_time_s;
     Reading::Read(Landing {
         time_s: time[index],
+        bound_s,
         flight_time_s: time[index] - time[liftoff],
+        flight_time_bound_s: liftoff_bound_s + bound_s,
         descent_time_s,
-        mean_descent_rate_m_s: drop / descent_time_s,
-        source: Source::Barometer,
+        mean_descent_rate_m_s: mean_rate,
+        mean_descent_rate_bound_m_s: rate_bound,
+        source: track.source,
+        provenance: Provenance::Measured,
+        method: Method::BackOnThePad,
     })
 }
 
@@ -671,18 +1282,18 @@ mod tests {
 
     const DT: f64 = 0.05;
 
-    /// A log sampled every 0.05 s to `end_s`, its height and speed from `flight`.
-    fn log(end_s: f64, flight: impl Fn(f64) -> (f64, f64)) -> FlightLog {
+    /// A log sampled every 0.05 s to `end_s`, its height from `flight`.
+    fn log(end_s: f64, flight: impl Fn(f64) -> f64) -> FlightLog {
         log_every(DT, end_s, flight)
     }
 
-    /// A log sampled every `dt` s to `end_s`, its height and speed from `flight`.
-    fn log_every(dt: f64, end_s: f64, flight: impl Fn(f64) -> (f64, f64)) -> FlightLog {
+    /// A log sampled every `dt` s to `end_s`, its height from `flight`.
+    fn log_every(dt: f64, end_s: f64, flight: impl Fn(f64) -> f64) -> FlightLog {
         let times: Vec<f64> = (0..)
             .map(|i| f64::from(i) * dt)
             .take_while(|t| *t <= end_s + 1e-9)
             .collect();
-        let (altitude_m, speed): (Vec<f64>, Vec<f64>) = times.iter().map(|t| flight(*t)).unzip();
+        let altitude_m: Vec<f64> = times.iter().map(|t| flight(*t)).collect();
         FlightLog {
             format: LogFormat::PerfectFlitePf2,
             logger: "PerfectFlite Pnut".to_owned(),
@@ -692,7 +1303,7 @@ mod tests {
             stated: Stated::default(),
             time_s: times,
             altitude_m,
-            vertical_speed_m_s: Some(speed),
+            vertical_speed_m_s: None,
             temperature_k: None,
             battery_v: None,
             channels: Vec::new(),
@@ -701,72 +1312,126 @@ mod tests {
         }
     }
 
-    #[test]
-    fn another_loggers_log_has_every_reading_withheld_until_m7_2() {
-        // The same clean flight a PerfectFlite's readings take, as an AltOS log.
-        let mut altos = log(30.0, flight(6.0));
-        assert!(read(&altos).apogee.value().is_some());
-        altos.format = LogFormat::AltosCsv;
-        let readings = read(&altos);
-        fn reason<T>(reading: &Reading<T>) -> Option<Reason> {
-            match reading {
-                Reading::Read(_) => None,
-                Reading::Withheld(withheld) => Some(withheld.reason),
-            }
-        }
-        for withheld in [
-            reason(&readings.liftoff),
-            reason(&readings.apogee),
-            reason(&readings.max_speed),
-            reason(&readings.max_acceleration),
-            reason(&readings.landing),
-        ] {
-            assert_eq!(withheld, Some(Reason::NotValidatedForLogger));
-        }
-        assert_eq!(readings.pad_altitude_m, None);
+    /// The same log with its track moved to a channel of `quantity`, the record's own emptied,
+    /// each height turned by `value`.
+    fn as_channel(log: &FlightLog, quantity: Quantity, value: impl Fn(f64) -> f64) -> FlightLog {
+        let mut moved = log.clone();
+        moved.format = LogFormat::GenericTable;
+        moved.channels = vec![Channel::new(
+            "track",
+            quantity,
+            log.time_s.clone(),
+            log.altitude_m.iter().map(|h| value(*h)).collect(),
+        )];
+        moved.time_s.clear();
+        moved.altitude_m.clear();
+        moved
     }
 
-    /// Up at 20 m/s from 1 s to 6 s (100 m), then down at `descent` m/s to the pad.
-    fn flight(descent: f64) -> impl Fn(f64) -> (f64, f64) {
+    /// A climb at 4 g from 1 s to 2 s (19.6 m, 39.2 m/s), a vacuum coast to apogee at 6 s
+    /// (98.1 m, `10 g` in meters), then down at `descent` m/s to the pad.
+    fn flight(descent: f64) -> impl Fn(f64) -> f64 {
+        let g = STANDARD_GRAVITY_MPS2;
         move |t| {
             if t <= 1.0 {
-                (0.0, 0.0)
+                0.0
+            } else if t < 2.0 {
+                2.0 * g * (t - 1.0).powi(2)
             } else if t < 6.0 {
-                (20.0 * (t - 1.0), 20.0)
+                let c = t - 2.0;
+                2.0 * g + 4.0 * g * c - 0.5 * g * c * c
             } else {
-                let h = 100.0 - descent * (t - 6.0);
-                if h > 0.0 { (h, -descent) } else { (0.0, 0.0) }
+                let h = 10.0 * g - descent * (t - 6.0);
+                h.max(0.0)
             }
         }
     }
 
-    fn reason<T>(reading: &Reading<T>) -> Option<Reason> {
-        match reading {
-            Reading::Read(_) => None,
-            Reading::Withheld(withheld) => Some(withheld.reason),
-        }
-    }
-
-    /// The test flight reads: liftoff at 1 s, apogee at 6 s, landing below 2 m.
+    /// The test flight reads: liftoff by the allowance's climb after 1 s, apogee at 6 s, the top
+    /// speed at 2 s, landing below 2 m, each within its bound.
     #[test]
     fn a_plain_flight_reads() {
-        let read = read(&log(20.0, flight(10.0)));
-        assert_eq!(read.liftoff.value().unwrap().time_s, 1.0);
-        // The peak is a corner, which the median takes a meter off: the fourth highest of the
-        // seven samples around it, 99 m, held from 5.95 s to 6.1 s.
-        let apogee = read.apogee.value().unwrap();
-        assert_eq!(apogee.altitude_m, 99.0);
-        assert!((apogee.time_s - 6.025).abs() < 1e-12, "{}", apogee.time_s);
-        assert_eq!(apogee.highest_sample.altitude_m, 100.0);
-        assert_eq!(read.max_speed.value().unwrap().speed_m_s, 20.0);
-        let landing = read.landing.value().unwrap();
-        // 100 m at 10 m/s from 6 s: below 2 m after 9.8 s, the sample after 15.8 s, at 1.5 m.
-        assert!((landing.time_s - 15.85).abs() < 1e-9, "{}", landing.time_s);
-        assert!((landing.mean_descent_rate_m_s - 97.5 / 9.825).abs() < 1e-9);
+        let readings = read(&log(30.0, flight(10.0)));
+        assert_eq!(readings.source, Some(Source::Barometer));
+        let liftoff = readings.liftoff.value().unwrap();
+        // 2 m above the pad at 1 + √(1/g) = 1.32 s: the last sample at or below it.
+        assert!((liftoff.time_s - 1.3).abs() < 1e-9, "{}", liftoff.time_s);
+        assert!(liftoff.time_s - 1.0 <= liftoff.bound_s);
+        let apogee = readings.apogee.value().unwrap();
+        let g = STANDARD_GRAVITY_MPS2;
+        assert!((apogee.time_s - 6.0).abs() <= apogee.time_bound_s);
+        assert!((apogee.height_m - 10.0 * g).abs() <= apogee.bound_m);
+        // The peak is a corner, the descent starting at once: the median takes 0.36 m off it.
+        assert!(
+            (apogee.height_m - 10.0 * g).abs() < 0.5,
+            "{}",
+            apogee.height_m
+        );
+        assert_eq!(apogee.provenance, Provenance::Measured);
+        let speed = readings.max_speed.value().unwrap();
+        assert!((speed.speed_m_s - 4.0 * g).abs() <= speed.bound_m_s);
+        assert!((speed.time_s - 2.0).abs() <= 0.5 * SPEED_WINDOW_S, "{}", speed.time_s);
+        assert_eq!(speed.provenance, Provenance::Derived);
+        assert_eq!(speed.method, Method::SteepestSlope);
+        let landing = readings.landing.value().unwrap();
+        // 98.1 m at 10 m/s from 6 s: down at 15.81 s.
+        let touchdown = 6.0 + g;
+        assert!((landing.time_s - touchdown).abs() <= landing.bound_s);
+        assert!(landing.time_s < touchdown);
+        let rate = 10.0 * g / (touchdown - 6.0);
+        assert!(
+            (landing.mean_descent_rate_m_s - rate).abs() <= landing.mean_descent_rate_bound_m_s
+        );
         assert_eq!(
-            reason(&read.max_acceleration),
+            readings.max_acceleration.reason(),
             Some(Reason::NoAccelerometer)
         );
+    }
+
+    /// The same flight reads alike from a pressure channel, a barometric altitude channel above
+    /// sea level and a primary track; a GNSS altitude gives no reading, by name.
+    #[test]
+    fn every_track_reads_but_gnss() {
+        let primary = log(30.0, flight(10.0));
+        let air = Ussa76::standard();
+        let site = 1200.0;
+        let pressure = as_channel(&primary, Quantity::Pressure, |h| {
+            air.sample(site + h).unwrap().air.pressure_pa
+        });
+        let msl = as_channel(&primary, Quantity::AltitudeMsl, |h| site + h);
+        let base = read(&primary);
+        let height = base.apogee.value().unwrap().height_m;
+        for (record, source) in [
+            (&pressure, Source::Pressure),
+            (&msl, Source::AltitudeChannel),
+        ] {
+            let readings = read(record);
+            assert_eq!(readings.source, Some(source));
+            let apogee = readings.apogee.value().unwrap();
+            assert_eq!(apogee.source, source);
+            // Geometric and geopotential heights differ by 0.02% here.
+            assert!(
+                (apogee.height_m - height).abs() < 0.05,
+                "{source:?}: {}",
+                apogee.height_m
+            );
+            assert!(readings.landing.value().is_some(), "{source:?}");
+            assert!(readings.liftoff.value().is_some(), "{source:?}");
+        }
+        let gnss = read(&as_channel(&primary, Quantity::GnssAltitude, |h| site + h));
+        assert_eq!(gnss.source, Some(Source::Gnss));
+        assert_eq!(gnss.liftoff.reason(), Some(Reason::ReceiverDropout));
+        assert_eq!(gnss.apogee.reason(), Some(Reason::ReceiverLag));
+        assert_eq!(gnss.max_speed.reason(), Some(Reason::ReceiverLag));
+        assert_eq!(gnss.landing.reason(), Some(Reason::Needs));
+        let mut gpx = as_channel(&primary, Quantity::Altitude, |h| site + h);
+        assert_eq!(read(&gpx).apogee.reason(), Some(Reason::UnstatedSensor));
+        gpx.format = LogFormat::Gpx;
+        assert_eq!(read(&gpx).apogee.reason(), Some(Reason::ReceiverLag));
+        let mut nothing = as_channel(&primary, Quantity::Temperature, |h| h);
+        assert_eq!(read(&nothing).apogee.reason(), Some(Reason::NoHeightTrack));
+        nothing.channels.clear();
+        assert_eq!(read(&nothing).landing.reason(), Some(Reason::NoHeightTrack));
     }
 
     /// Each withheld reading names the reason that fired, and only the readings that need it go.
@@ -774,47 +1439,65 @@ mod tests {
     fn each_refusal_names_its_reason() {
         let short = read(&log(0.05, flight(10.0)));
         for reason_of in [
-            reason(&short.liftoff),
-            reason(&short.apogee),
-            reason(&short.max_speed),
-            reason(&short.landing),
+            short.liftoff.reason(),
+            short.apogee.reason(),
+            short.max_speed.reason(),
+            short.landing.reason(),
         ] {
             assert_eq!(reason_of, Some(Reason::TooShort));
         }
 
-        let flat = read(&log(10.0, |_| (0.5, 0.0)));
-        assert_eq!(reason(&flat.apogee), Some(Reason::NoClimb));
-        assert_eq!(reason(&flat.landing), Some(Reason::NoClimb));
+        let flat = read(&log(10.0, |_| 0.5));
+        assert_eq!(flat.apogee.reason(), Some(Reason::NoClimb));
+        assert_eq!(flat.landing.reason(), Some(Reason::NoClimb));
 
-        // Starting 50 m up: no liftoff and no pad, so no top speed and no landing; apogee reads.
-        let aloft = read(&log(30.0, |t| flight(10.0)(t + 3.5)));
-        assert_eq!(reason(&aloft.liftoff), Some(Reason::StartsOffThePad));
-        assert_eq!(reason(&aloft.max_speed), Some(Reason::Needs));
-        assert_eq!(reason(&aloft.landing), Some(Reason::Needs));
-        assert_eq!(aloft.apogee.value().unwrap().time_after_liftoff_s, None);
+        // Starting 19.6 m up: off the pad, so nothing is pinned to it.
+        let aloft = read(&log(30.0, |t| flight(10.0)(t + 2.0)));
+        assert_eq!(aloft.liftoff.reason(), Some(Reason::StartsOffThePad));
+        assert_eq!(aloft.apogee.reason(), Some(Reason::StartsOffThePad));
+        assert_eq!(aloft.max_speed.reason(), Some(Reason::StartsOffThePad));
+        assert_eq!(aloft.landing.reason(), Some(Reason::StartsOffThePad));
 
         // A record a reader would never give: refused whole, and saying why.
         let mut short_speed = log(20.0, flight(10.0));
-        short_speed.vertical_speed_m_s.as_mut().unwrap().pop();
+        short_speed.vertical_speed_m_s = Some(vec![0.0; 3]);
         let refused = read(&short_speed);
-        assert_eq!(reason(&refused.apogee), Some(Reason::BadRecord));
-        assert_eq!(reason(&refused.landing), Some(Reason::BadRecord));
+        assert_eq!(refused.apogee.reason(), Some(Reason::BadRecord));
+        assert_eq!(refused.landing.reason(), Some(Reason::BadRecord));
         let mut repeated = log(20.0, flight(10.0));
         repeated.time_s[10] = repeated.time_s[9];
-        assert_eq!(reason(&read(&repeated).liftoff), Some(Reason::BadRecord));
+        assert_eq!(read(&repeated).liftoff.reason(), Some(Reason::BadRecord));
+        let mut channel_back = as_channel(&log(20.0, flight(10.0)), Quantity::Pressure, |h| {
+            101_325.0 - 12.0 * h
+        });
+        channel_back.channels[0].time_s[10] = 0.0;
+        assert_eq!(read(&channel_back).apogee.reason(), Some(Reason::BadRecord));
 
-        let cut = read(&log(12.0, flight(10.0)));
-        assert_eq!(reason(&cut.landing), Some(Reason::EndsBeforeLanding));
+        let cut = read(&log(8.0, flight(10.0)));
+        assert_eq!(cut.landing.reason(), Some(Reason::EndsBeforeLanding));
         assert!(cut.apogee.value().is_some());
 
-        // 100 m in 3 s: a vacuum fall from rest takes √(200/g) = 4.5 s.
-        let dropped = read(&log(20.0, flight(100.0 / 3.0)));
-        assert_eq!(reason(&dropped.landing), Some(Reason::FasterThanFreeFall));
+        // 98.1 m in 2.5 s: a vacuum fall from rest takes √(2 · 98.1/g) = 4.5 s.
+        let dropped = read(&log(20.0, flight(4.0 * STANDARD_GRAVITY_MPS2)));
+        assert_eq!(dropped.landing.reason(), Some(Reason::FasterThanFreeFall));
 
         // Still climbing at the end: the apogee is a floor.
         let climbing = read(&log(4.0, flight(10.0)));
         assert!(climbing.apogee.value().unwrap().is_floor);
-        assert_eq!(reason(&climbing.landing), Some(Reason::EndsBeforeLanding));
+        assert_eq!(climbing.landing.reason(), Some(Reason::EndsBeforeLanding));
+
+        // An accelerometer's top acceleration is left to M7.2c.
+        let mut accelerometer = log(30.0, flight(10.0));
+        accelerometer.channels.push(Channel::new(
+            "accel",
+            Quantity::Acceleration,
+            accelerometer.time_s.clone(),
+            vec![0.0; accelerometer.time_s.len()],
+        ));
+        assert_eq!(
+            read(&accelerometer).max_acceleration.reason(),
+            Some(Reason::NotYetTaken)
+        );
     }
 
     /// The pad is the median of everything before the climb: a jitter in the first samples
@@ -822,18 +1505,35 @@ mod tests {
     #[test]
     fn early_jitter_leaves_the_pad_where_it_is() {
         let foot = crate::perfectflite::FOOT_M;
-        let mut log = log(20.0, |t| flight(10.0)(t - 2.0));
+        let mut log = log(30.0, |t| flight(10.0)(t - 2.0));
         for (index, feet) in [0.0, -1.0, -1.0, 0.0].into_iter().enumerate() {
             log.altitude_m[index] = feet * foot;
         }
         let read = read(&log);
         assert_eq!(read.pad_altitude_m, Some(0.0));
-        assert_eq!(read.liftoff.value().unwrap().time_s, 3.0);
+        assert!((read.liftoff.value().unwrap().time_s - 3.3).abs() < 1e-9);
+    }
+
+    /// Noise on the pad up to the allowance doesn't move liftoff earlier: at half a foot, the
+    /// rule before M7.2b, it read at the pad's last low sample, two seconds early.
+    #[test]
+    fn pad_noise_within_the_allowance_leaves_liftoff() {
+        let mut noisy = log(40.0, |t| flight(10.0)(t - 5.0));
+        // The pad from 0 to 6 s, its last two seconds 1.5 m up, below the 2 m allowance.
+        for (time, height) in noisy.time_s.iter().zip(noisy.altitude_m.iter_mut()) {
+            if (4.0..=6.0).contains(time) {
+                *height = 1.5;
+            }
+        }
+        let readings = read(&noisy);
+        let liftoff = readings.liftoff.value().unwrap();
+        assert!((liftoff.time_s - 6.3).abs() < 1e-9, "{}", liftoff.time_s);
+        assert!(liftoff.time_s - 6.0 <= liftoff.bound_s);
     }
 
     /// A vacuum hop from `t0` to `apogee_m`, falling back at `fall_g` times gravity, its heights
     /// rounded to whole feet as a PerfectFlite writes them; and when it is back on the pad.
-    fn hop(apogee_m: f64, t0: f64, fall_g: f64) -> (impl Fn(f64) -> (f64, f64), f64) {
+    fn hop(apogee_m: f64, t0: f64, fall_g: f64) -> (impl Fn(f64) -> f64, f64) {
         let g = STANDARD_GRAVITY_MPS2;
         let foot = crate::perfectflite::FOOT_M;
         let v0 = (2.0 * g * apogee_m).sqrt();
@@ -841,25 +1541,24 @@ mod tests {
         let fall = fall_g * g;
         let down = top + (2.0 * apogee_m / fall).sqrt();
         let flight = move |t: f64| {
-            let (h, v) = if t <= t0 {
-                (0.0, 0.0)
+            let h = if t <= t0 {
+                0.0
             } else if t <= top {
-                (
-                    v0 * (t - t0) - 0.5 * g * (t - t0).powi(2),
-                    v0 - g * (t - t0),
-                )
+                v0 * (t - t0) - 0.5 * g * (t - t0).powi(2)
             } else if t < down {
-                (apogee_m - 0.5 * fall * (t - top).powi(2), -fall * (t - top))
+                apogee_m - 0.5 * fall * (t - top).powi(2)
             } else {
-                (0.0, 0.0)
+                0.0
             };
-            ((h / foot).round() * foot, v)
+            (h / foot).round() * foot
         };
         (flight, down)
     }
 
     /// The free-fall check passes a fall in vacuum wherever it falls between samples, with the
-    /// heights rounded to feet, at 10 to 100 samples a second, and refuses one at 1.3 g.
+    /// heights rounded to feet, at 10 to 100 samples a second, and refuses one at 1.3 g. A low hop
+    /// passes it and is then withheld, as it falls too little past its step and the noise for the
+    /// descent's rate to be measured; the higher ones land.
     #[test]
     fn a_vacuum_fall_lands_and_a_faster_one_is_refused() {
         let foot = crate::perfectflite::FOOT_M;
@@ -875,11 +1574,15 @@ mod tests {
                     let t0 = 1.0 + f64::from(step) * dt / 13.0;
                     let (flight, down) = hop(apogee_m, t0, 1.0);
                     let read = read(&log_every(dt, down + 3.0, flight));
-                    assert!(
-                        read.landing.value().is_some(),
-                        "{dt} s, {apogee_m} m, from {t0} s: {:?}",
-                        read.landing
-                    );
+                    let low = apogee_m < 30.0;
+                    let lands = match &read.landing {
+                        Reading::Read(_) => !low,
+                        Reading::Withheld(withheld) => {
+                            low && withheld.reason == Reason::NoClimb
+                                && withheld.detail.contains("to time the descent")
+                        }
+                    };
+                    assert!(lands, "{dt} s, {apogee_m} m, from {t0} s: {:?}", read.landing);
                 }
             }
         }
@@ -887,7 +1590,7 @@ mod tests {
             let (flight, down) = hop(apogee_m, 1.0, 1.3);
             let read = read(&log(down + 3.0, flight));
             assert_eq!(
-                reason(&read.landing),
+                read.landing.reason(),
                 Some(Reason::FasterThanFreeFall),
                 "{apogee_m} m"
             );
@@ -895,38 +1598,69 @@ mod tests {
     }
 
     /// A log that starts just before liftoff: the pad is read from before the first meter of
-    /// rise, so the climb's first samples don't lift it and liftoff stays at the sample it was.
-    /// Taken from before the 3 m climb instead, the pad would read 1.1 m and liftoff 0.35 s.
+    /// rise, so the climb's first samples don't lift it. Taken from before the 3 m climb instead,
+    /// the pad would read 1.1 m.
     #[test]
     fn a_short_pad_isnt_lifted_by_the_climb() {
-        let read = read(&log(5.0, |t| {
-            if t <= 0.1 {
-                (0.0, 0.0)
-            } else {
-                (5.0 * (t - 0.1), 5.0)
-            }
-        }));
+        let read = read(&log(5.0, |t| if t <= 0.1 { 0.0 } else { 5.0 * (t - 0.1) }));
         assert!((read.pad_altitude_m.unwrap() - 0.125).abs() < 1e-12);
-        assert!((read.liftoff.value().unwrap().time_s - 0.15).abs() < 1e-12);
     }
 
-    /// A pad whose median falls between two feet: a sample a foot up is still on the pad, as it
-    /// lies within half a foot of that median, so liftoff is the last sample before the climb,
-    /// at 1.05 s, not the 0.5 s where the altitude last read zero.
+    /// #646, both ways: a mapped altitude above sea level is refused as starting off the pad,
+    /// and a millisecond clock read as seconds as sampled too slowly, or, from a logger fast
+    /// enough to pass that, as slower than a coast; the same flights in their right units read.
     #[test]
-    fn a_pad_between_two_feet_takes_half_a_foot_either_way() {
-        let foot = crate::perfectflite::FOOT_M;
-        let read = read(&log(20.0, |t| {
-            if t < 0.525 {
-                (0.0, 0.0)
-            } else if t < 1.075 {
-                (foot, 0.0)
-            } else {
-                (foot + 20.0 * (t - 1.05), 20.0)
-            }
-        }));
-        assert_eq!(read.pad_altitude_m, Some(foot / 2.0));
-        assert_eq!(read.liftoff.value().unwrap().time_s, 21.0 * DT);
+    fn a_track_in_the_wrong_unit_is_refused() {
+        let right = log(30.0, flight(10.0));
+        assert!(read(&right).apogee.value().is_some());
+        let mut msl = right.clone();
+        msl.format = LogFormat::GenericTable;
+        for height in &mut msl.altitude_m {
+            *height += 1188.7;
+        }
+        let readings = read(&msl);
+        assert_eq!(readings.apogee.reason(), Some(Reason::StartsOffThePad));
+        let detail = match &readings.apogee {
+            Reading::Withheld(withheld) => withheld.detail.clone(),
+            Reading::Read(_) => String::new(),
+        };
+        assert!(detail.contains("above sea level"), "{detail}");
+
+        // 20 Hz in milliseconds read as seconds: samples 50 s apart.
+        let mut millis = right.clone();
+        for time in &mut millis.time_s {
+            *time *= 1000.0;
+        }
+        assert_eq!(
+            read(&millis).apogee.reason(),
+            Some(Reason::SampledTooSlowly)
+        );
+        // 2 kHz, so 0.5 s apart when misread: the climb takes 5,000 s, and loses nothing in the
+        // last 4 s before its top.
+        let fast = log_every(0.0005, 30.0, flight(10.0));
+        assert!(read(&fast).apogee.value().is_some());
+        let mut fast_millis = fast;
+        for time in &mut fast_millis.time_s {
+            *time *= 1000.0;
+        }
+        let readings = read(&fast_millis);
+        assert_eq!(readings.apogee.reason(), Some(Reason::SlowerThanFreeCoast));
+        assert_eq!(readings.liftoff.reason(), Some(Reason::SlowerThanFreeCoast));
+    }
+
+    /// A track whose step is coarser than the bounds were checked at is withheld, at the edge.
+    #[test]
+    fn a_coarse_step_is_withheld() {
+        let stepped = |step: f64| {
+            let mut log = log(30.0, |t| ((flight(10.0)(t) * 10.0) / step).round() * step);
+            log.format = LogFormat::GenericTable;
+            read(&log)
+        };
+        assert!(stepped(MAX_STEP_M).apogee.value().is_some());
+        assert_eq!(
+            stepped(MAX_STEP_M * 1.01).apogee.reason(),
+            Some(Reason::StepTooCoarse)
+        );
     }
 
     /// A clock too fine for the median's window is withheld whole, saying so, at the edge: 0.3 s
@@ -934,7 +1668,7 @@ mod tests {
     #[test]
     fn a_clock_too_fine_for_the_window_is_withheld() {
         let with_interval = |interval: f64| {
-            let mut log = log(20.0, flight(10.0));
+            let mut log = log(30.0, flight(10.0));
             for (index, time) in log.time_s.iter_mut().enumerate() {
                 *time = f64::from(u32::try_from(index).unwrap()) * interval;
             }
@@ -943,16 +1677,16 @@ mod tests {
         for interval in [1e-30, 1e-6, MEDIAN_WINDOW_S / 2002.0] {
             let read = with_interval(interval);
             assert_eq!(
-                reason(&read.apogee),
+                read.apogee.reason(),
                 Some(Reason::SampledTooFast),
                 "{interval}"
             );
-            assert_eq!(reason(&read.landing), Some(Reason::SampledTooFast));
+            assert_eq!(read.landing.reason(), Some(Reason::SampledTooFast));
             assert_eq!(read.sample_interval_s.map(|s| s > 0.0), Some(true));
         }
         // At 0.15 ms the window is exactly 1,000 samples either side, and the log is read.
         let read = with_interval(0.000_15);
-        assert_ne!(reason(&read.apogee), Some(Reason::SampledTooFast));
+        assert_ne!(read.apogee.reason(), Some(Reason::SampledTooFast));
         let window_s = read.median_window_s.unwrap();
         assert!((window_s - 0.3).abs() < 1e-12, "{window_s}");
     }
@@ -966,6 +1700,14 @@ mod tests {
         }
         assert_eq!(half_window(1.0), 1);
         assert!((peak_bound_m(3, 0.05) - 0.076_614).abs() < 1e-6);
+    }
+
+    /// The constants worked out from others say so.
+    #[test]
+    fn derived_constants_follow_their_formulas() {
+        let sound = (1.4 * 287.05 * (216.65 - AIR_TEMPERATURE_SPREAD_K)).sqrt();
+        assert!((TRANSONIC_SPEED_M_S - TRANSONIC_MACH * sound).abs() < 1e-9);
+        assert!((TEMPERATURE_SHARE - 0.069_236).abs() < 1e-6);
     }
 
     proptest::proptest! {
@@ -989,60 +1731,86 @@ mod tests {
 
     /// The top speed's guards, each on its own.
     #[test]
-    fn a_top_speed_is_refused_as_debrief_refuses_one() {
-        let mut no_column = log(20.0, flight(10.0));
-        no_column.vertical_speed_m_s = None;
-        assert_eq!(
-            reason(&read(&no_column).max_speed),
-            Some(Reason::NoSpeedColumn)
-        );
-
-        let speed_at = |t: f64, value: f64| {
-            let mut log = log(20.0, flight(10.0));
-            let index = (t / DT).round() as usize;
-            log.vertical_speed_m_s.as_mut().unwrap()[index] = value;
-            read(&log).max_speed
+    fn a_top_speed_is_refused_by_name() {
+        let g = STANDARD_GRAVITY_MPS2;
+        // A climb at `a` m/s² for 3 s from 1 s, then a vacuum coast and a 30 m/s descent.
+        let boost = |a: f64| {
+            move |t: f64| {
+                let v = a * 3.0;
+                let coast = v / g;
+                let top = 4.5 * a + 0.5 * v * coast;
+                if t <= 1.0 {
+                    0.0
+                } else if t < 4.0 {
+                    0.5 * a * (t - 1.0).powi(2)
+                } else if t < 4.0 + coast {
+                    let c = t - 4.0;
+                    4.5 * a + v * c - 0.5 * g * c * c
+                } else {
+                    (top - 30.0 * (t - 4.0 - coast)).max(0.0)
+                }
+            }
         };
-        assert_eq!(
-            reason(&speed_at(3.0, 4000.5)),
-            Some(Reason::ImplausibleSpeed)
-        );
-        assert!(speed_at(3.0, 4000.0).value().is_some());
-        // 20 m/s at the top: a swing to −4 m/s is 20%, and passes; −4.5 m/s doesn't.
-        assert!(speed_at(3.0, -4.0).value().is_some());
-        assert_eq!(reason(&speed_at(3.0, -4.5)), Some(Reason::NoisySpeed));
-        // Liftoff is the sample at 1.0 s: a peak there is a spike.
-        assert_eq!(
-            reason(&speed_at(1.0, 50.0)),
-            Some(Reason::SpeedPeakAtLiftoff)
-        );
-        assert_eq!(speed_at(1.05, 50.0).value().unwrap().speed_m_s, 50.0);
+        // 3 s at 70 m/s² is 210 m/s, under the transonic mark; at 80 m/s², 240 m/s, over it.
+        let below = read(&log(300.0, boost(70.0)));
+        let speed = below.max_speed.value().unwrap();
+        assert!((speed.speed_m_s - 210.0).abs() <= speed.bound_m_s);
+        assert!(speed.speed_m_s < TRANSONIC_SPEED_M_S);
+        let over = read(&log(300.0, boost(80.0)));
+        assert_eq!(over.max_speed.reason(), Some(Reason::Transonic));
+        assert!(over.apogee.value().is_some());
+        // 1,400 m/s² for 3 s: implausible, refused ahead of the transonic mark.
+        let absurd = read(&log(2000.0, boost(1400.0)));
+        assert_eq!(absurd.max_speed.reason(), Some(Reason::ImplausibleSpeed));
+        // A 30 m dip in the coast, down and back at 100 m/s: the climb's speed swings to about
+        // −60 m/s, over 20% of its top.
+        let dipped = read(&log(30.0, |t| {
+            let dip = if (3.0..3.3).contains(&t) {
+                100.0 * (t - 3.0)
+            } else if (3.3..3.6).contains(&t) {
+                100.0 * (3.6 - t)
+            } else {
+                0.0
+            };
+            flight(10.0)(t) - dip
+        }));
+        assert_eq!(dipped.max_speed.reason(), Some(Reason::NoisySpeed));
+        // Logged at 10 Hz the 0.5 s fit has 5 or 6 samples; at 8 Hz 5; at 7.7 Hz, too few.
+        let slow = |dt: f64| read(&log_every(dt, 30.0, flight(10.0))).max_speed;
+        assert!(slow(0.1).value().is_some());
+        assert!(slow(0.125).value().is_some());
+        assert_eq!(slow(0.13).reason(), Some(Reason::SampledTooSlowly));
     }
 
     /// `ALL` is built from the enum's own list, so it can't miss a variant; each is listed once,
     /// with its own code.
     #[test]
-    fn all_lists_every_reason_and_source_once() {
-        let codes = |json: Vec<serde_json::Value>| {
-            let mut codes: Vec<String> = json.iter().map(ToString::to_string).collect();
+    fn all_lists_every_variant_once() {
+        fn codes<T: Serialize>(all: &[T]) -> (usize, usize) {
+            let mut codes: Vec<String> = all
+                .iter()
+                .map(|value| serde_json::json!(value).to_string())
+                .collect();
             let listed = codes.len();
             codes.sort();
             codes.dedup();
             (listed, codes.len())
-        };
-        let reasons = Reason::ALL.iter().map(|r| serde_json::json!(r)).collect();
-        assert_eq!(codes(reasons), (14, 14));
-        let sources = Source::ALL.iter().map(|s| serde_json::json!(s)).collect();
-        assert_eq!(codes(sources), (2, 2));
+        }
+        assert_eq!(codes(Reason::ALL), (20, 20));
+        assert_eq!(codes(Source::ALL), (4, 4));
+        assert_eq!(codes(Provenance::ALL), (3, 3));
+        assert_eq!(codes(Method::ALL), (4, 4));
     }
 
     /// Serialized, a reading carries its status beside its fields.
     #[test]
     fn a_reading_serializes_with_its_status() {
-        let read = read(&log(20.0, flight(10.0)));
+        let read = read(&log(30.0, flight(10.0)));
         let json = serde_json::to_value(&read).unwrap();
         assert_eq!(json["apogee"]["status"], "read");
-        assert_eq!(json["apogee"]["altitude_m"], 99.0);
+        assert_eq!(json["apogee"]["source"], "barometer");
+        assert_eq!(json["apogee"]["provenance"], "measured");
+        assert_eq!(json["max_speed"]["provenance"], "derived");
         assert_eq!(json["max_acceleration"]["status"], "withheld");
         assert_eq!(json["max_acceleration"]["reason"], "no_accelerometer");
         let back: Readings = serde_json::from_value(json).unwrap();

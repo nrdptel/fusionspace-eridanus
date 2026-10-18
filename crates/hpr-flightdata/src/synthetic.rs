@@ -240,17 +240,21 @@ mod tests {
         assert!((read.sample_interval_s.unwrap() - DT).abs() < 1e-12);
         assert_eq!(read.pad_altitude_m, Some(0.0));
 
-        // Liftoff: the last sample at 0 ft. The rocket is at 0 m until 0.5 s, a sample, so the
-        // reading is no earlier; it rises past half a foot, and rounds to 1 ft,
-        // `√(2 · 0.1524 / 50)` = 0.078 s after liftoff, so the reading is no later.
+        // Liftoff: the last sample within the allowance of the pad, 2 m and the file's foot step,
+        // as the pad holds still. The rocket is at 0 m until 0.5 s, a sample, so the reading is
+        // no earlier; it rounds above the allowance once it has climbed it and half a foot,
+        // `√(2 · 2.4572 / 50)` = 0.314 s after liftoff, so the reading is no later, and within its
+        // bound.
         let liftoff = read.liftoff.value().unwrap();
         assert_eq!(liftoff.source, Source::Barometer);
-        let rounds_up = (2.0 * half_foot / BOOST_M_S2).sqrt();
+        let rounds_up =
+            (2.0 * (readings::LIFTOFF_ALLOWANCE_M + FOOT_M + half_foot) / BOOST_M_S2).sqrt();
         assert!(
             liftoff.time_s >= LIFTOFF_S && liftoff.time_s <= LIFTOFF_S + rounds_up,
             "{}",
             liftoff.time_s
         );
+        assert!(liftoff.time_s - LIFTOFF_S <= liftoff.bound_s);
 
         // Apogee: at most half a foot of rounding plus the median's bound, 0.077 m, either way.
         let apogee = read.apogee.value().unwrap();
@@ -283,19 +287,32 @@ mod tests {
         assert!(!apogee.is_floor);
         assert_eq!(
             apogee.time_after_liftoff_s,
-            Some(apogee.time_s - liftoff.time_s)
+            apogee.time_s - liftoff.time_s
         );
+        assert!((apogee.height_m - truth.apogee_m).abs() <= apogee.bound_m);
         // The pulse's third sample is the highest the file holds, and the median set it aside.
         let pulse_s = ((index(truth.apogee_s + PULSE_AFTER_APOGEE_S) + 2) as f64) * DT;
         assert!((apogee.highest_sample.time_s - pulse_s).abs() < 1e-9);
         assert!(apogee.highest_sample.altitude_m > apogee.altitude_m + 5.0);
 
-        // The top speed: burnout's 80 m/s, to half a foot per second.
+        // The top speed: burnout's 80 m/s, derived from the heights. The 0.5 s fit across the
+        // corner at burnout, 50 m/s² before it and gravity after, cuts the peak by about
+        // (50 + 9.8) · 0.5/8 = 3.7 m/s, so the reading is low, by less than that and the feet's
+        // steps, and within its bound. The fit slopes most a little after the corner, toward
+        // the gentler side: within half a fit of burnout.
         let speed = read.max_speed.value().unwrap();
-        assert_eq!(speed.source, Source::LoggerSpeedFromBarometer);
-        assert!((speed.speed_m_s - truth.burnout_speed_m_s).abs() <= half_foot);
+        assert_eq!(speed.source, Source::Barometer);
+        assert_eq!(speed.provenance, readings::Provenance::Derived);
+        let cut = (BOOST_M_S2 + G) * readings::SPEED_WINDOW_S / 8.0;
         assert!(
-            (speed.time_s - truth.burnout_s).abs() < 1e-9,
+            speed.speed_m_s <= truth.burnout_speed_m_s
+                && speed.speed_m_s >= truth.burnout_speed_m_s - cut - half_foot,
+            "{}",
+            speed.speed_m_s
+        );
+        assert!((speed.speed_m_s - truth.burnout_speed_m_s).abs() <= speed.bound_m_s);
+        assert!(
+            (speed.time_s - truth.burnout_s).abs() <= 0.5 * readings::SPEED_WINDOW_S,
             "{}",
             speed.time_s
         );

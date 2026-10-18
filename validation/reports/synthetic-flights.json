@@ -1,5 +1,5 @@
 {
-  "about": "The synthetic flights' census (M7.2a, ADR-280), written by `cargo xtask synthetic`.",
+  "about": "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held to their bounds on the tuning set (M7.2b), written by `cargo xtask synthetic`.",
   "sets": [
     {
       "set": "tuning",
@@ -204,6 +204,3619 @@
         "max": 15.0
       },
       "not_flown": []
+    }
+  ],
+  "readings": [
+    {
+      "log": "imu-500hz",
+      "quantity": "liftoff",
+      "given": 38,
+      "withheld": {},
+      "worst": {
+        "flight": 24,
+        "error": 0.345,
+        "bound": 0.669,
+        "share": 0.516
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "apogee_height",
+      "given": 38,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": 142.0,
+        "bound": 209.0,
+        "share": 0.682
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "apogee_time",
+      "given": 38,
+      "withheld": {},
+      "worst": {
+        "flight": 26,
+        "error": -0.228,
+        "bound": 0.806,
+        "share": 0.282
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "top_speed",
+      "given": 14,
+      "withheld": {
+        "transonic": 24
+      },
+      "worst": {
+        "flight": 127,
+        "error": -8.61,
+        "bound": 32.9,
+        "share": 0.262
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "landing",
+      "given": 37,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 81,
+        "error": -0.213,
+        "bound": 0.578,
+        "share": 0.369
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "flight_time",
+      "given": 37,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 81,
+        "error": -0.516,
+        "bound": 1.25,
+        "share": 0.414
+      }
+    },
+    {
+      "log": "imu-500hz",
+      "quantity": "descent_rate",
+      "given": 37,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 73,
+        "error": 0.56,
+        "bound": 0.996,
+        "share": 0.562
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.385,
+        "bound": 0.643,
+        "share": 0.599
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 208.0,
+        "share": 0.71
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 76,
+        "error": -0.431,
+        "bound": 0.784,
+        "share": 0.55
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 96,
+        "error": 7.24,
+        "bound": 24.5,
+        "share": 0.296
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 60,
+        "error": -0.211,
+        "bound": 0.544,
+        "share": 0.388
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 61,
+        "error": -0.509,
+        "bound": 1.11,
+        "share": 0.459
+      }
+    },
+    {
+      "log": "500 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.95,
+        "share": 0.596
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.409,
+        "bound": 0.69,
+        "share": 0.593
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -152.0,
+        "bound": 214.0,
+        "share": 0.708
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 76,
+        "error": -0.42,
+        "bound": 0.823,
+        "share": 0.511
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 96,
+        "error": 7.27,
+        "bound": 24.5,
+        "share": 0.296
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 105,
+        "error": -0.19,
+        "bound": 0.48,
+        "share": 0.395
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 61,
+        "error": -0.557,
+        "bound": 1.19,
+        "share": 0.47
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.97,
+        "share": 0.59
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 42,
+        "error": 0.923,
+        "bound": 1.57,
+        "share": 0.588
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 228.0,
+        "share": 0.655
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": -0.309,
+        "bound": 1.63,
+        "share": 0.19
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 96,
+        "error": 9.5,
+        "bound": 26.4,
+        "share": 0.359
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 84,
+        "error": -3.67,
+        "bound": 6.69,
+        "share": 0.549
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": -1.62,
+        "bound": 3.03,
+        "share": 0.536
+      }
+    },
+    {
+      "log": "500 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.387,
+        "bound": 0.795,
+        "share": 0.486
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.395,
+        "bound": 0.657,
+        "share": 0.601
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 208.0,
+        "share": 0.709
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 76,
+        "error": -0.419,
+        "bound": 0.799,
+        "share": 0.524
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 96,
+        "error": 7.23,
+        "bound": 24.5,
+        "share": 0.295
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 105,
+        "error": -0.184,
+        "bound": 0.458,
+        "share": 0.401
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 61,
+        "error": -0.529,
+        "bound": 1.13,
+        "share": 0.467
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.96,
+        "share": 0.594
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 42,
+        "error": 0.483,
+        "bound": 0.776,
+        "share": 0.622
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 210.0,
+        "share": 0.703
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 183,
+        "error": -0.332,
+        "bound": 0.943,
+        "share": 0.352
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 96,
+        "error": 7.22,
+        "bound": 24.4,
+        "share": 0.296
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 61,
+        "error": -0.277,
+        "bound": 0.552,
+        "share": 0.501
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 61,
+        "error": -0.729,
+        "bound": 1.32,
+        "share": 0.552
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.15,
+        "bound": 2.02,
+        "share": 0.572
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": 0.962,
+        "bound": 1.49,
+        "share": 0.644
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": 148.0,
+        "bound": 228.0,
+        "share": 0.648
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -0.897,
+        "bound": 1.76,
+        "share": 0.511
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 47,
+        "error": 5.76,
+        "bound": 18.6,
+        "share": 0.309
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 164,
+        "error": -3.98,
+        "bound": 6.38,
+        "share": 0.625
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 96,
+        "error": -1.84,
+        "bound": 3.1,
+        "share": 0.592
+      }
+    },
+    {
+      "log": "500 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.403,
+        "bound": 0.8,
+        "share": 0.503
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 122,
+        "error": 0.387,
+        "bound": 0.659,
+        "share": 0.587
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 208.0,
+        "share": 0.71
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 32,
+        "error": 0.379,
+        "bound": 0.792,
+        "share": 0.479
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 45,
+        "error": -8.09,
+        "bound": 24.6,
+        "share": 0.328
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 198,
+        "error": 2.61,
+        "bound": 5.25,
+        "share": 0.498
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -0.505,
+        "bound": 1.15,
+        "share": 0.439
+      }
+    },
+    {
+      "log": "100 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.15,
+        "bound": 1.95,
+        "share": 0.588
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 122,
+        "error": 0.407,
+        "bound": 0.706,
+        "share": 0.576
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 209.0,
+        "share": 0.707
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 50,
+        "error": -0.463,
+        "bound": 0.831,
+        "share": 0.557
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 45,
+        "error": -7.91,
+        "bound": 24.8,
+        "share": 0.319
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 13,
+        "error": -0.214,
+        "bound": 0.581,
+        "share": 0.369
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 122,
+        "error": -0.562,
+        "bound": 1.28,
+        "share": 0.44
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.15,
+        "bound": 1.98,
+        "share": 0.582
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.926,
+        "bound": 1.58,
+        "share": 0.585
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 228.0,
+        "share": 0.655
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": -0.416,
+        "bound": 1.64,
+        "share": 0.254
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 105,
+        "error": 6.78,
+        "bound": 19.1,
+        "share": 0.355
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 159,
+        "error": -3.83,
+        "bound": 6.98,
+        "share": 0.548
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -1.74,
+        "bound": 3.31,
+        "share": 0.527
+      }
+    },
+    {
+      "log": "100 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.388,
+        "bound": 0.795,
+        "share": 0.489
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.396,
+        "bound": 0.673,
+        "share": 0.589
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -148.0,
+        "bound": 208.0,
+        "share": 0.709
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 32,
+        "error": 0.379,
+        "bound": 0.807,
+        "share": 0.47
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 45,
+        "error": -8.1,
+        "bound": 24.6,
+        "share": 0.329
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 198,
+        "error": 2.61,
+        "bound": 5.26,
+        "share": 0.497
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -0.505,
+        "bound": 1.17,
+        "share": 0.431
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.15,
+        "bound": 1.96,
+        "share": 0.586
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 122,
+        "error": 0.467,
+        "bound": 0.785,
+        "share": 0.594
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 210.0,
+        "share": 0.707
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 19,
+        "error": -0.496,
+        "bound": 0.941,
+        "share": 0.527
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 45,
+        "error": -7.95,
+        "bound": 24.7,
+        "share": 0.322
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 96,
+        "error": -0.288,
+        "bound": 0.658,
+        "share": 0.437
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -0.655,
+        "bound": 1.38,
+        "share": 0.474
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 171,
+        "error": -1.15,
+        "bound": 1.95,
+        "share": 0.591
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": 0.936,
+        "bound": 1.51,
+        "share": 0.62
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": 148.0,
+        "bound": 228.0,
+        "share": 0.648
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 176,
+        "error": -0.598,
+        "bound": 1.9,
+        "share": 0.315
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 53,
+      "withheld": {
+        "transonic": 118
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.37,
+        "bound": 19.7,
+        "share": 0.374
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 15,
+        "error": -4.13,
+        "bound": 6.47,
+        "share": 0.638
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -1.82,
+        "bound": 3.11,
+        "share": 0.586
+      }
+    },
+    {
+      "log": "100 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.402,
+        "bound": 0.802,
+        "share": 0.501
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.387,
+        "bound": 0.739,
+        "share": 0.524
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 208.0,
+        "share": 0.717
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.832,
+        "share": 0.446
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.24,
+        "bound": 20.5,
+        "share": 0.352
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.78,
+        "share": 0.397
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 33,
+        "error": -0.521,
+        "bound": 1.34,
+        "share": 0.389
+      }
+    },
+    {
+      "log": "20 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.97,
+        "share": 0.586
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 78,
+        "error": 0.408,
+        "bound": 0.786,
+        "share": 0.519
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.715
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.871,
+        "share": 0.427
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.42,
+        "bound": 20.8,
+        "share": 0.358
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.93,
+        "share": 0.375
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 33,
+        "error": -0.571,
+        "bound": 1.41,
+        "share": 0.406
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.99,
+        "share": 0.582
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.936,
+        "bound": 1.66,
+        "share": 0.563
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 228.0,
+        "share": 0.655
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 85,
+        "error": -0.568,
+        "bound": 1.68,
+        "share": 0.338
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 53,
+      "withheld": {
+        "transonic": 118
+      },
+      "worst": {
+        "flight": 51,
+        "error": 11.5,
+        "bound": 23.2,
+        "share": 0.495
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 82,
+        "error": -3.9,
+        "bound": 7.23,
+        "share": 0.539
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": -1.62,
+        "bound": 3.22,
+        "share": 0.503
+      }
+    },
+    {
+      "log": "20 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.387,
+        "bound": 0.796,
+        "share": 0.486
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 78,
+        "error": 0.408,
+        "bound": 0.753,
+        "share": 0.542
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 208.0,
+        "share": 0.716
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.371,
+        "bound": 0.848,
+        "share": 0.438
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.25,
+        "bound": 20.6,
+        "share": 0.352
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.86,
+        "share": 0.385
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 33,
+        "error": -0.571,
+        "bound": 1.35,
+        "share": 0.422
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.2,
+        "bound": 1.97,
+        "share": 0.61
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": 0.456,
+        "bound": 0.867,
+        "share": 0.526
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 210.0,
+        "share": 0.709
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.321,
+        "bound": 0.975,
+        "share": 0.33
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 54,
+      "withheld": {
+        "transonic": 117
+      },
+      "worst": {
+        "flight": 51,
+        "error": 7.78,
+        "bound": 21.0,
+        "share": 0.371
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 175,
+        "error": -1.18,
+        "bound": 2.97,
+        "share": 0.398
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -0.655,
+        "bound": 1.55,
+        "share": 0.424
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.18,
+        "bound": 2.04,
+        "share": 0.58
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": 0.956,
+        "bound": 1.59,
+        "share": 0.602
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": 148.0,
+        "bound": 229.0,
+        "share": 0.647
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 103,
+        "error": -1.04,
+        "bound": 1.85,
+        "share": 0.562
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 53,
+      "withheld": {
+        "transonic": 118
+      },
+      "worst": {
+        "flight": 96,
+        "error": 13.7,
+        "bound": 25.1,
+        "share": 0.544
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 15,
+        "error": -4.04,
+        "bound": 6.56,
+        "share": 0.616
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 15,
+        "error": -4.54,
+        "bound": 8.13,
+        "share": 0.559
+      }
+    },
+    {
+      "log": "20 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.379,
+        "bound": 0.8,
+        "share": 0.474
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.386,
+        "bound": 1.04,
+        "share": 0.372
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 208.0,
+        "share": 0.715
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 2,
+        "error": -0.607,
+        "bound": 0.982,
+        "share": 0.618
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 118,
+        "error": 0.197,
+        "bound": 0.453,
+        "share": 0.434
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 58,
+        "error": -1.07,
+        "bound": 3.93,
+        "share": 0.273
+      }
+    },
+    {
+      "log": "5 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.23,
+        "bound": 2.05,
+        "share": 0.6
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.386,
+        "bound": 1.09,
+        "share": 0.356
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -153.0,
+        "bound": 214.0,
+        "share": 0.711
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 2,
+        "error": -0.607,
+        "bound": 1.02,
+        "share": 0.595
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 118,
+        "error": 0.197,
+        "bound": 0.457,
+        "share": 0.431
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 159,
+        "error": -1.24,
+        "bound": 4.36,
+        "share": 0.285
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.23,
+        "bound": 2.07,
+        "share": 0.594
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 42,
+        "error": 0.879,
+        "bound": 1.96,
+        "share": 0.447
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -165.0,
+        "bound": 251.0,
+        "share": 0.655
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 107,
+        "error": 0.316,
+        "bound": 1.83,
+        "share": 0.173
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 175,
+        "error": -3.68,
+        "bound": 7.15,
+        "share": 0.515
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 175,
+        "error": -4.25,
+        "bound": 9.12,
+        "share": 0.466
+      }
+    },
+    {
+      "log": "5 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.387,
+        "bound": 0.805,
+        "share": 0.48
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": 0.386,
+        "bound": 1.05,
+        "share": 0.367
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.712
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 2,
+        "error": -0.607,
+        "bound": 0.999,
+        "share": 0.608
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 118,
+        "error": 0.197,
+        "bound": 0.454,
+        "share": 0.433
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 58,
+        "error": -1.07,
+        "bound": 4.01,
+        "share": 0.268
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 195,
+        "error": -1.23,
+        "bound": 2.05,
+        "share": 0.598
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 151,
+        "error": 0.455,
+        "bound": 1.17,
+        "share": 0.388
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -153.0,
+        "bound": 216.0,
+        "share": 0.708
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 145,
+        "error": -0.458,
+        "bound": 1.12,
+        "share": 0.409
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 118,
+        "error": 0.197,
+        "bound": 0.464,
+        "share": 0.424
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 159,
+        "error": -1.44,
+        "bound": 4.72,
+        "share": 0.306
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.21,
+        "bound": 2.12,
+        "share": 0.573
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": 0.956,
+        "bound": 1.89,
+        "share": 0.506
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 73,
+        "error": 148.0,
+        "bound": 229.0,
+        "share": 0.646
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 163,
+        "error": 0.372,
+        "bound": 2.02,
+        "share": 0.184
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 58,
+        "error": -3.89,
+        "bound": 6.8,
+        "share": 0.572
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 5,
+        "error": -4.36,
+        "bound": 8.87,
+        "share": 0.492
+      }
+    },
+    {
+      "log": "5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.397,
+        "bound": 0.812,
+        "share": 0.489
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 2.64,
+        "share": 0.678
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -151.0,
+        "bound": 219.0,
+        "share": 0.691
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 153,
+        "error": 0.756,
+        "bound": 1.78,
+        "share": 0.424
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.07,
+        "share": 0.466
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 87,
+        "error": 1.37,
+        "bound": 4.7,
+        "share": 0.291
+      }
+    },
+    {
+      "log": "1 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 161,
+        "error": 0.37,
+        "bound": 0.726,
+        "share": 0.51
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 2.69,
+        "share": 0.667
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -151.0,
+        "bound": 219.0,
+        "share": 0.689
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 153,
+        "error": 0.756,
+        "bound": 1.82,
+        "share": 0.415
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.07,
+        "share": 0.465
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 87,
+        "error": 1.37,
+        "bound": 4.75,
+        "share": 0.288
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.37,
+        "bound": 0.731,
+        "share": 0.506
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.837,
+        "bound": 3.56,
+        "share": 0.235
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -159.0,
+        "bound": 244.0,
+        "share": 0.653
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 109,
+        "error": 0.781,
+        "bound": 2.63,
+        "share": 0.297
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.23,
+        "share": 0.433
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 56,
+        "error": -4.13,
+        "bound": 12.6,
+        "share": 0.327
+      }
+    },
+    {
+      "log": "1 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.376,
+        "bound": 0.867,
+        "share": 0.434
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 2.65,
+        "share": 0.675
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -151.0,
+        "bound": 219.0,
+        "share": 0.69
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 153,
+        "error": 0.756,
+        "bound": 1.8,
+        "share": 0.42
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.07,
+        "share": 0.466
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 87,
+        "error": 1.37,
+        "bound": 4.73,
+        "share": 0.29
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 170,
+      "withheld": {
+        "ends_before_landing": 1
+      },
+      "worst": {
+        "flight": 161,
+        "error": 0.37,
+        "bound": 0.728,
+        "share": 0.509
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 100,
+        "error": -0.807,
+        "bound": 2.77,
+        "share": 0.291
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -151.0,
+        "bound": 221.0,
+        "share": 0.686
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 153,
+        "error": 0.756,
+        "bound": 1.95,
+        "share": 0.388
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.08,
+        "share": 0.463
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 87,
+        "error": 1.37,
+        "bound": 4.85,
+        "share": 0.283
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.371,
+        "bound": 0.742,
+        "share": 0.499
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.837,
+        "bound": 3.52,
+        "share": 0.238
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -152.0,
+        "bound": 240.0,
+        "share": 0.634
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 62,
+        "error": 0.619,
+        "bound": 2.81,
+        "share": 0.22
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 190,
+        "error": 0.964,
+        "bound": 2.23,
+        "share": 0.433
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 58,
+        "error": -4.07,
+        "bound": 12.2,
+        "share": 0.333
+      }
+    },
+    {
+      "log": "1 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 0.374,
+        "bound": 0.878,
+        "share": 0.426
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 98,
+        "error": -2.43,
+        "bound": 4.64,
+        "share": 0.524
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 274.0,
+        "share": 0.636
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 157,
+        "error": 1.2,
+        "bound": 2.8,
+        "share": 0.428
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "landing",
+      "given": 157,
+      "withheld": {
+        "ends_before_landing": 14
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.11,
+        "share": 0.478
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "flight_time",
+      "given": 157,
+      "withheld": {
+        "ends_before_landing": 14
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 8.75,
+        "share": 0.357
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude, no step",
+      "quantity": "descent_rate",
+      "given": 157,
+      "withheld": {
+        "ends_before_landing": 14
+      },
+      "worst": {
+        "flight": 127,
+        "error": -1.57,
+        "bound": 3.32,
+        "share": 0.472
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 4.69,
+        "share": 0.382
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 275.0,
+        "share": 0.635
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 157,
+        "error": 1.2,
+        "bound": 2.82,
+        "share": 0.425
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "landing",
+      "given": 159,
+      "withheld": {
+        "ends_before_landing": 12
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.11,
+        "share": 0.477
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "flight_time",
+      "given": 159,
+      "withheld": {
+        "ends_before_landing": 12
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 8.8,
+        "share": 0.355
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 0.3048 m steps",
+      "quantity": "descent_rate",
+      "given": 159,
+      "withheld": {
+        "ends_before_landing": 12
+      },
+      "worst": {
+        "flight": 127,
+        "error": -1.57,
+        "bound": 3.35,
+        "share": 0.469
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "liftoff",
+      "given": 170,
+      "withheld": {
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 157,
+        "error": -1.54,
+        "bound": 5.56,
+        "share": 0.278
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "apogee_height",
+      "given": 170,
+      "withheld": {
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 294.0,
+        "share": 0.594
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "apogee_time",
+      "given": 170,
+      "withheld": {
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 16,
+        "error": 1.11,
+        "bound": 3.63,
+        "share": 0.305
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 170,
+        "step_too_coarse": 1
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "landing",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 1,
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.36,
+        "share": 0.451
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "flight_time",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 1,
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 9.92,
+        "share": 0.315
+      }
+    },
+    {
+      "log": "0.5 Hz, altitude in 10 m steps",
+      "quantity": "descent_rate",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 1,
+        "step_too_coarse": 1
+      },
+      "worst": {
+        "flight": 161,
+        "error": 0.372,
+        "bound": 0.988,
+        "share": 0.377
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 4.67,
+        "share": 0.384
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 275.0,
+        "share": 0.636
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 157,
+        "error": 1.2,
+        "bound": 2.8,
+        "share": 0.428
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "landing",
+      "given": 158,
+      "withheld": {
+        "ends_before_landing": 13
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.11,
+        "share": 0.478
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "flight_time",
+      "given": 158,
+      "withheld": {
+        "ends_before_landing": 13
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 8.76,
+        "share": 0.356
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 1 Pa steps",
+      "quantity": "descent_rate",
+      "given": 158,
+      "withheld": {
+        "ends_before_landing": 13
+      },
+      "worst": {
+        "flight": 127,
+        "error": -1.57,
+        "bound": 3.32,
+        "share": 0.472
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 193,
+        "error": -1.79,
+        "bound": 4.77,
+        "share": 0.375
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 276.0,
+        "share": 0.631
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 157,
+        "error": 1.2,
+        "bound": 2.94,
+        "share": 0.407
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "landing",
+      "given": 161,
+      "withheld": {
+        "ends_before_landing": 10
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.13,
+        "share": 0.476
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "flight_time",
+      "given": 161,
+      "withheld": {
+        "ends_before_landing": 10
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 8.89,
+        "share": 0.351
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 10 Pa steps",
+      "quantity": "descent_rate",
+      "given": 161,
+      "withheld": {
+        "ends_before_landing": 10
+      },
+      "worst": {
+        "flight": 43,
+        "error": -0.64,
+        "bound": 1.5,
+        "share": 0.426
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "liftoff",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 132,
+        "error": -1.52,
+        "bound": 5.53,
+        "share": 0.275
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_height",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -175.0,
+        "bound": 295.0,
+        "share": 0.593
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "apogee_time",
+      "given": 171,
+      "withheld": {},
+      "worst": {
+        "flight": 161,
+        "error": 1.05,
+        "bound": 3.87,
+        "share": 0.272
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "sampled_too_slowly": 171
+      },
+      "worst": null
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "landing",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 2
+      },
+      "worst": {
+        "flight": 190,
+        "error": 1.96,
+        "bound": 4.36,
+        "share": 0.451
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "flight_time",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 2
+      },
+      "worst": {
+        "flight": 190,
+        "error": 3.12,
+        "bound": 10.0,
+        "share": 0.312
+      }
+    },
+    {
+      "log": "0.5 Hz, pressure alone in 100 Pa steps",
+      "quantity": "descent_rate",
+      "given": 169,
+      "withheld": {
+        "ends_before_landing": 2
+      },
+      "worst": {
+        "flight": 161,
+        "error": 0.382,
+        "bound": 0.983,
+        "share": 0.389
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "liftoff",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 122,
+        "error": 0.387,
+        "bound": 0.672,
+        "share": 0.575
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "apogee_height",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 171,
+        "error": -147.0,
+        "bound": 212.0,
+        "share": 0.692
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "apogee_time",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 19,
+        "error": -0.446,
+        "bound": 0.803,
+        "share": 0.555
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "top_speed",
+      "given": 9,
+      "withheld": {
+        "transonic": 24
+      },
+      "worst": {
+        "flight": 45,
+        "error": -8.1,
+        "bound": 24.6,
+        "share": 0.329
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "landing",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 103,
+        "error": 0.135,
+        "bound": 0.251,
+        "share": 0.539
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "flight_time",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 129,
+        "error": -0.488,
+        "bound": 1.43,
+        "share": 0.342
+      }
+    },
+    {
+      "log": "altos",
+      "quantity": "descent_rate",
+      "given": 33,
+      "withheld": {},
+      "worst": {
+        "flight": 171,
+        "error": -1.14,
+        "bound": 1.92,
+        "share": 0.593
+      }
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "liftoff",
+      "given": 0,
+      "withheld": {
+        "receiver_dropout": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "apogee_height",
+      "given": 0,
+      "withheld": {
+        "receiver_lag": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "apogee_time",
+      "given": 0,
+      "withheld": {
+        "receiver_lag": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "top_speed",
+      "given": 0,
+      "withheld": {
+        "receiver_lag": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "landing",
+      "given": 0,
+      "withheld": {
+        "needs": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "flight_time",
+      "given": 0,
+      "withheld": {
+        "needs": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "gnss-tracker",
+      "quantity": "descent_rate",
+      "given": 0,
+      "withheld": {
+        "needs": 29
+      },
+      "worst": null
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "liftoff",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 67,
+        "error": 0.339,
+        "bound": 0.786,
+        "share": 0.432
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "apogee_height",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 39,
+        "error": -159.0,
+        "bound": 232.0,
+        "share": 0.687
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "apogee_time",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 197,
+        "error": -0.273,
+        "bound": 0.871,
+        "share": 0.313
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "top_speed",
+      "given": 14,
+      "withheld": {
+        "transonic": 25
+      },
+      "worst": {
+        "flight": 74,
+        "error": 6.17,
+        "bound": 21.5,
+        "share": 0.287
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "landing",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 82,
+        "error": -1.1,
+        "bound": 2.93,
+        "share": 0.375
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "flight_time",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 82,
+        "error": -1.33,
+        "bound": 3.72,
+        "share": 0.359
+      }
+    },
+    {
+      "log": "eggtimer",
+      "quantity": "descent_rate",
+      "given": 39,
+      "withheld": {},
+      "worst": {
+        "flight": 181,
+        "error": 0.562,
+        "bound": 1.03,
+        "share": 0.545
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "liftoff",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": 0.387,
+        "bound": 0.786,
+        "share": 0.493
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "apogee_height",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 43,
+        "error": -149.0,
+        "bound": 209.0,
+        "share": 0.715
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "apogee_time",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 192,
+        "error": -0.24,
+        "bound": 0.871,
+        "share": 0.276
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "top_speed",
+      "given": 10,
+      "withheld": {
+        "transonic": 21
+      },
+      "worst": {
+        "flight": 96,
+        "error": 6.15,
+        "bound": 20.1,
+        "share": 0.306
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "landing",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 191,
+        "error": -0.199,
+        "bound": 0.607,
+        "share": 0.328
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "flight_time",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 33,
+        "error": -0.571,
+        "bound": 1.41,
+        "share": 0.406
+      }
+    },
+    {
+      "log": "perfectflite",
+      "quantity": "descent_rate",
+      "given": 31,
+      "withheld": {},
+      "worst": {
+        "flight": 195,
+        "error": -1.16,
+        "bound": 1.99,
+        "share": 0.582
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "liftoff",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 36,
+        "error": 0.395,
+        "bound": 0.86,
+        "share": 0.459
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "apogee_height",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 113,
+        "error": -135.0,
+        "bound": 210.0,
+        "share": 0.642
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "apogee_time",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 194,
+        "error": -0.321,
+        "bound": 0.934,
+        "share": 0.344
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "top_speed",
+      "given": 7,
+      "withheld": {
+        "transonic": 23
+      },
+      "worst": {
+        "flight": 36,
+        "error": -3.34,
+        "bound": 17.2,
+        "share": 0.194
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "landing",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 170,
+        "error": -1.1,
+        "bound": 3.49,
+        "share": 0.316
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "flight_time",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 36,
+        "error": -0.6,
+        "bound": 1.62,
+        "share": 0.37
+      }
+    },
+    {
+      "log": "rrc3",
+      "quantity": "descent_rate",
+      "given": 30,
+      "withheld": {},
+      "worst": {
+        "flight": 113,
+        "error": -1.14,
+        "bound": 2.09,
+        "share": 0.546
+      }
     }
   ]
 }

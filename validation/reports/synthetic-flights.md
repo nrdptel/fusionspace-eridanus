@@ -56,3 +56,163 @@ Least / median / greatest.
 ## Draws not flown
 
 Every draw flew.
+
+## Readings within their bounds
+
+Each tuning flight logged by its own logger, then again at every rate and step of the grid, from 500 to half a sample a second and from no step to 100 Pa, and read by `hpr_flightdata::readings` (M7.2b). Each cell gives how many of the flights' readings were given, then the largest share of its bound an error took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and its bound. What is method and what is measured: `docs/physics/log-readings.md`.
+
+| Log | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| imu-500hz | 38, 0.516 | 38, 0.682 | 38, 0.282 | 14, 0.262 | 37, 0.369 | 37, 0.414 | 37, 0.562 |
+| 500 Hz, altitude, no step | 171, 0.599 | 171, 0.71 | 171, 0.55 | 54, 0.296 | 170, 0.388 | 170, 0.459 | 170, 0.596 |
+| 500 Hz, altitude in 0.3048 m steps | 171, 0.593 | 171, 0.708 | 171, 0.511 | 54, 0.296 | 171, 0.395 | 171, 0.47 | 171, 0.59 |
+| 500 Hz, altitude in 10 m steps | 171, 0.588 | 171, 0.655 | 171, 0.19 | 54, 0.359 | 171, 0.549 | 171, 0.536 | 171, 0.486 |
+| 500 Hz, pressure alone in 1 Pa steps | 171, 0.601 | 171, 0.709 | 171, 0.524 | 54, 0.295 | 170, 0.401 | 170, 0.467 | 170, 0.594 |
+| 500 Hz, pressure alone in 10 Pa steps | 171, 0.622 | 171, 0.703 | 171, 0.352 | 54, 0.296 | 171, 0.501 | 171, 0.552 | 171, 0.572 |
+| 500 Hz, pressure alone in 100 Pa steps | 171, 0.644 | 171, 0.648 | 171, 0.511 | 54, 0.309 | 171, 0.625 | 171, 0.592 | 171, 0.503 |
+| 100 Hz, altitude, no step | 171, 0.587 | 171, 0.71 | 171, 0.479 | 54, 0.328 | 171, 0.498 | 171, 0.439 | 171, 0.588 |
+| 100 Hz, altitude in 0.3048 m steps | 171, 0.576 | 171, 0.707 | 171, 0.557 | 54, 0.319 | 171, 0.369 | 171, 0.44 | 171, 0.582 |
+| 100 Hz, altitude in 10 m steps | 171, 0.585 | 171, 0.655 | 171, 0.254 | 54, 0.355 | 171, 0.548 | 171, 0.527 | 171, 0.489 |
+| 100 Hz, pressure alone in 1 Pa steps | 171, 0.589 | 171, 0.709 | 171, 0.47 | 54, 0.329 | 171, 0.497 | 171, 0.431 | 171, 0.586 |
+| 100 Hz, pressure alone in 10 Pa steps | 171, 0.594 | 171, 0.707 | 171, 0.527 | 54, 0.322 | 171, 0.437 | 171, 0.474 | 171, 0.591 |
+| 100 Hz, pressure alone in 100 Pa steps | 171, 0.62 | 171, 0.648 | 171, 0.315 | 53, 0.374 | 171, 0.638 | 171, 0.586 | 171, 0.501 |
+| 20 Hz, altitude, no step | 171, 0.524 | 171, 0.717 | 171, 0.446 | 54, 0.352 | 170, 0.397 | 170, 0.389 | 170, 0.586 |
+| 20 Hz, altitude in 0.3048 m steps | 171, 0.519 | 171, 0.715 | 171, 0.427 | 54, 0.358 | 170, 0.375 | 170, 0.406 | 170, 0.582 |
+| 20 Hz, altitude in 10 m steps | 171, 0.563 | 171, 0.655 | 171, 0.338 | 53, 0.495 | 171, 0.539 | 171, 0.503 | 171, 0.486 |
+| 20 Hz, pressure alone in 1 Pa steps | 171, 0.542 | 171, 0.716 | 171, 0.438 | 54, 0.352 | 170, 0.385 | 170, 0.422 | 170, 0.61 |
+| 20 Hz, pressure alone in 10 Pa steps | 171, 0.526 | 171, 0.709 | 171, 0.33 | 54, 0.371 | 171, 0.398 | 171, 0.424 | 171, 0.58 |
+| 20 Hz, pressure alone in 100 Pa steps | 171, 0.602 | 171, 0.647 | 171, 0.562 | 53, 0.544 | 171, 0.616 | 171, 0.559 | 171, 0.474 |
+| 5 Hz, altitude, no step | 171, 0.372 | 171, 0.715 | 171, 0.618 | 0 | 170, 0.434 | 170, 0.273 | 170, 0.6 |
+| 5 Hz, altitude in 0.3048 m steps | 171, 0.356 | 171, 0.711 | 171, 0.595 | 0 | 170, 0.431 | 170, 0.285 | 170, 0.594 |
+| 5 Hz, altitude in 10 m steps | 171, 0.447 | 171, 0.655 | 171, 0.173 | 0 | 171, 0.515 | 171, 0.466 | 171, 0.48 |
+| 5 Hz, pressure alone in 1 Pa steps | 171, 0.367 | 171, 0.712 | 171, 0.608 | 0 | 170, 0.433 | 170, 0.268 | 170, 0.598 |
+| 5 Hz, pressure alone in 10 Pa steps | 171, 0.388 | 171, 0.708 | 171, 0.409 | 0 | 171, 0.424 | 171, 0.306 | 171, 0.573 |
+| 5 Hz, pressure alone in 100 Pa steps | 171, 0.506 | 171, 0.646 | 171, 0.184 | 0 | 171, 0.572 | 171, 0.492 | 171, 0.489 |
+| 1 Hz, altitude, no step | 171, 0.678 | 171, 0.691 | 171, 0.424 | 0 | 170, 0.466 | 170, 0.291 | 170, 0.51 |
+| 1 Hz, altitude in 0.3048 m steps | 171, 0.667 | 171, 0.689 | 171, 0.415 | 0 | 171, 0.465 | 171, 0.288 | 171, 0.506 |
+| 1 Hz, altitude in 10 m steps | 171, 0.235 | 171, 0.653 | 171, 0.297 | 0 | 171, 0.433 | 171, 0.327 | 171, 0.434 |
+| 1 Hz, pressure alone in 1 Pa steps | 171, 0.675 | 171, 0.69 | 171, 0.42 | 0 | 170, 0.466 | 170, 0.29 | 170, 0.509 |
+| 1 Hz, pressure alone in 10 Pa steps | 171, 0.291 | 171, 0.686 | 171, 0.388 | 0 | 171, 0.463 | 171, 0.283 | 171, 0.499 |
+| 1 Hz, pressure alone in 100 Pa steps | 171, 0.238 | 171, 0.634 | 171, 0.22 | 0 | 171, 0.433 | 171, 0.333 | 171, 0.426 |
+| 0.5 Hz, altitude, no step | 171, 0.524 | 171, 0.636 | 171, 0.428 | 0 | 157, 0.478 | 157, 0.357 | 157, 0.472 |
+| 0.5 Hz, altitude in 0.3048 m steps | 171, 0.382 | 171, 0.635 | 171, 0.425 | 0 | 159, 0.477 | 159, 0.355 | 159, 0.469 |
+| 0.5 Hz, altitude in 10 m steps | 170, 0.278 | 170, 0.594 | 170, 0.305 | 0 | 169, 0.451 | 169, 0.315 | 169, 0.377 |
+| 0.5 Hz, pressure alone in 1 Pa steps | 171, 0.384 | 171, 0.636 | 171, 0.428 | 0 | 158, 0.478 | 158, 0.356 | 158, 0.472 |
+| 0.5 Hz, pressure alone in 10 Pa steps | 171, 0.375 | 171, 0.631 | 171, 0.407 | 0 | 161, 0.476 | 161, 0.351 | 161, 0.426 |
+| 0.5 Hz, pressure alone in 100 Pa steps | 171, 0.275 | 171, 0.593 | 171, 0.272 | 0 | 169, 0.451 | 169, 0.312 | 169, 0.389 |
+| altos | 33, 0.575 | 33, 0.692 | 33, 0.555 | 9, 0.329 | 33, 0.539 | 33, 0.342 | 33, 0.593 |
+| gnss-tracker | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| eggtimer | 39, 0.432 | 39, 0.687 | 39, 0.313 | 14, 0.287 | 39, 0.375 | 39, 0.359 | 39, 0.545 |
+| perfectflite | 31, 0.493 | 31, 0.715 | 31, 0.276 | 10, 0.306 | 31, 0.328 | 31, 0.406 | 31, 0.582 |
+| rrc3 | 30, 0.459 | 30, 0.642 | 30, 0.344 | 7, 0.194 | 30, 0.316 | 30, 0.37 | 30, 0.546 |
+
+### Readings withheld
+
+| Log | Reading | Reason | Flights |
+|---|---|---|---:|
+| imu-500hz | top speed | `transonic` | 24 |
+| imu-500hz | landing | `ends_before_landing` | 1 |
+| imu-500hz | flight time | `ends_before_landing` | 1 |
+| imu-500hz | descent rate | `ends_before_landing` | 1 |
+| 500 Hz, altitude, no step | top speed | `transonic` | 117 |
+| 500 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
+| 500 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
+| 500 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
+| 500 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
+| 500 Hz, altitude in 10 m steps | top speed | `transonic` | 117 |
+| 500 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
+| 500 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
+| 500 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
+| 500 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
+| 500 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
+| 500 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 117 |
+| 100 Hz, altitude, no step | top speed | `transonic` | 117 |
+| 100 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
+| 100 Hz, altitude in 10 m steps | top speed | `transonic` | 117 |
+| 100 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
+| 100 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
+| 100 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 118 |
+| 20 Hz, altitude, no step | top speed | `transonic` | 117 |
+| 20 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
+| 20 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
+| 20 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
+| 20 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 10 m steps | top speed | `transonic` | 118 |
+| 20 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
+| 20 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
+| 20 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
+| 20 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
+| 20 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
+| 20 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 118 |
+| 5 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
+| 5 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
+| 5 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
+| 5 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
+| 5 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
+| 5 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 1 |
+| 5 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 1 |
+| 5 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 1 |
+| 5 Hz, altitude in 10 m steps | top speed | `sampled_too_slowly` | 171 |
+| 5 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 5 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
+| 5 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
+| 5 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
+| 5 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 5 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
+| 1 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
+| 1 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
+| 1 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, altitude in 10 m steps | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
+| 1 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
+| 1 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
+| 1 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 1 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, altitude, no step | landing | `ends_before_landing` | 14 |
+| 0.5 Hz, altitude, no step | flight time | `ends_before_landing` | 14 |
+| 0.5 Hz, altitude, no step | descent rate | `ends_before_landing` | 14 |
+| 0.5 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 12 |
+| 0.5 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 12 |
+| 0.5 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 12 |
+| 0.5 Hz, altitude in 10 m steps | liftoff | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | apogee height | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | apogee time | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | top speed | `sampled_too_slowly` | 170 |
+| 0.5 Hz, altitude in 10 m steps | top speed | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | landing | `ends_before_landing` | 1 |
+| 0.5 Hz, altitude in 10 m steps | landing | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | flight time | `ends_before_landing` | 1 |
+| 0.5 Hz, altitude in 10 m steps | flight time | `step_too_coarse` | 1 |
+| 0.5 Hz, altitude in 10 m steps | descent rate | `ends_before_landing` | 1 |
+| 0.5 Hz, altitude in 10 m steps | descent rate | `step_too_coarse` | 1 |
+| 0.5 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 13 |
+| 0.5 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 13 |
+| 0.5 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 13 |
+| 0.5 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, pressure alone in 10 Pa steps | landing | `ends_before_landing` | 10 |
+| 0.5 Hz, pressure alone in 10 Pa steps | flight time | `ends_before_landing` | 10 |
+| 0.5 Hz, pressure alone in 10 Pa steps | descent rate | `ends_before_landing` | 10 |
+| 0.5 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
+| 0.5 Hz, pressure alone in 100 Pa steps | landing | `ends_before_landing` | 2 |
+| 0.5 Hz, pressure alone in 100 Pa steps | flight time | `ends_before_landing` | 2 |
+| 0.5 Hz, pressure alone in 100 Pa steps | descent rate | `ends_before_landing` | 2 |
+| altos | top speed | `transonic` | 24 |
+| gnss-tracker | liftoff | `receiver_dropout` | 29 |
+| gnss-tracker | apogee height | `receiver_lag` | 29 |
+| gnss-tracker | apogee time | `receiver_lag` | 29 |
+| gnss-tracker | top speed | `receiver_lag` | 29 |
+| gnss-tracker | landing | `needs` | 29 |
+| gnss-tracker | flight time | `needs` | 29 |
+| gnss-tracker | descent rate | `needs` | 29 |
+| eggtimer | top speed | `transonic` | 25 |
+| perfectflite | top speed | `transonic` | 21 |
+| rrc3 | top speed | `transonic` | 23 |

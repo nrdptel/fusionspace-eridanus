@@ -3846,48 +3846,71 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     assert_eq!(document["log"]["logger"], "PerfectFlite Pnut");
     assert_eq!(document["log"]["samples"], log.time_s.len());
     assert_eq!(document["stated"]["apogee_m"], log.stated.apogee_m.unwrap());
+    assert_eq!(document["method"]["source"], "barometer");
+    assert_eq!(document["method"]["step_m"], read.step_m.unwrap());
     let apogee = read.apogee.value().unwrap();
     assert_eq!(document["apogee"]["status"], "read");
+    assert_eq!(document["apogee"]["height_m"], apogee.height_m);
+    assert_eq!(document["apogee"]["bound_m"], apogee.bound_m);
     assert_eq!(document["apogee"]["altitude_m"], apogee.altitude_m);
     assert_eq!(document["apogee"]["time_s"], apogee.time_s);
+    assert_eq!(document["apogee"]["time_bound_s"], apogee.time_bound_s);
     assert_eq!(document["apogee"]["source"], "barometer");
+    assert_eq!(document["apogee"]["provenance"], "measured");
+    assert_eq!(document["apogee"]["method"], "highest_filtered");
     assert_eq!(
         document["apogee"]["highest_sample"]["altitude_m"],
         apogee.highest_sample.altitude_m
     );
     let liftoff = read.liftoff.value().unwrap();
     assert_eq!(document["liftoff"]["time_s"], liftoff.time_s);
+    assert_eq!(document["liftoff"]["bound_s"], liftoff.bound_s);
+    assert_eq!(document["liftoff"]["method"], "last_on_the_pad");
     let speed = read.max_speed.value().unwrap();
     assert_eq!(document["max_speed"]["speed_m_s"], speed.speed_m_s);
-    assert_eq!(
-        document["max_speed"]["source"],
-        "logger_speed_from_barometer"
-    );
+    assert_eq!(document["max_speed"]["bound_m_s"], speed.bound_m_s);
+    assert_eq!(document["max_speed"]["source"], "barometer");
+    assert_eq!(document["max_speed"]["provenance"], "derived");
+    assert_eq!(document["max_speed"]["method"], "steepest_slope");
     assert_eq!(document["max_acceleration"]["status"], "withheld");
     assert_eq!(document["max_acceleration"]["reason"], "no_accelerometer");
     let landing = read.landing.value().unwrap();
     assert_eq!(document["landing"]["time_s"], landing.time_s);
+    assert_eq!(document["landing"]["bound_s"], landing.bound_s);
+    assert_eq!(
+        document["landing"]["flight_time_bound_s"],
+        landing.flight_time_bound_s
+    );
     assert_eq!(
         document["landing"]["mean_descent_rate_m_s"],
         landing.mean_descent_rate_m_s
     );
+    assert_eq!(
+        document["landing"]["mean_descent_rate_bound_m_s"],
+        landing.mean_descent_rate_bound_m_s
+    );
+    assert_eq!(document["landing"]["method"], "back_on_the_pad");
 
-    // The text says the same, in meters and feet.
+    // The text says the same, in meters and feet, each reading with its bound.
     let printed = run(false);
     for expected in [
         "flight.pf2: PerfectFlite Pnut, serial 0, flight 1",
         "the logger states: apogee 390.4 m (1281 ft)",
-        "apogee            390.1 m (1280 ft) at 10.28 s",
+        "readings from the logger's barometric altitude, sampled every 0.050 s in steps of \
+         0.305 m, after a 0.30 s running median",
+        "liftoff           0.80 s, within 0.79 s",
+        "apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, \
+         within 0.87 s, 9.47 s after liftoff",
         "set aside by the median",
-        "top speed         79.9 m/s (262 ft/s) at 2.10 s",
-        "top acceleration  withheld: a PerfectFlite logger has no accelerometer",
+        "top speed         78.3 m/s (257 ft/s), within 20.5 m/s (67 ft/s), at 2.20 s",
+        "top acceleration  withheld: the log has no accelerometer",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
 }
 
-/// What `hpr analyze` can't read is an input error that says why: a missing file, a file in
-/// another format, and a `.pf2` that goes wrong at a line.
+/// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no
+/// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 #[test]
 fn analyze_refuses_what_it_cannot_read() {
     let folder = tempfile::tempdir().unwrap();
@@ -3905,10 +3928,17 @@ fn analyze_refuses_what_it_cannot_read() {
     let design = repo_file("validation/fixtures/ork/pod-flights/pods-none.ork");
     let document = json_error(&["analyze", &design], 1, "input");
     assert!(
-        document["error"]["message"]
-            .as_str()
-            .unwrap()
-            .contains("reads PerfectFlite .pf2 logs on their own, and this isn't one"),
+        said(&document).contains("the file is in none of the layouts HPR Sim reads so far")
+            && said(&document).contains("is read by a column mapping (--mapping)"),
+        "{document:#}"
+    );
+
+    let archive = folder.path().join("logs.zip");
+    std::fs::write(&archive, b"PK\x03\x04 not a whole archive").unwrap();
+    let document = json_error(&["analyze", archive.to_str().unwrap()], 1, "input");
+    assert!(
+        said(&document).contains("zip archive")
+            && said(&document).contains("help: unpack the archive and give the log inside it"),
         "{document:#}"
     );
 
@@ -4047,8 +4077,29 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
             .map(|c| c["column"].as_str().unwrap())
             .collect();
         assert_eq!(listed, names, "{log}");
-        // The readings wait for M7.2 on every logger but PerfectFlite's.
-        assert_eq!(document["apogee"]["reason"], "not_validated_for_logger");
+        // The readings are the library's, from the barometer's altitude or the pressure, and none
+        // from a GPS tracker's: its receiver's altitude lags a climb.
+        let read = hpr::hpr_flightdata::readings::read(&library);
+        for (name, reading) in [
+            ("liftoff", serde_json::to_value(&read.liftoff)),
+            ("apogee", serde_json::to_value(&read.apogee)),
+            ("max_speed", serde_json::to_value(&read.max_speed)),
+            ("landing", serde_json::to_value(&read.landing)),
+        ] {
+            for (key, value) in reading.unwrap().as_object().unwrap() {
+                assert_eq!(&document[name][key], value, "{log} {name} {key}");
+            }
+        }
+        let (source, apogee) = match log {
+            "flight.csv" => ("barometer", "read"),
+            "gps-track.csv" => ("gnss", "withheld"),
+            _ => ("pressure", "read"),
+        };
+        assert_eq!(document["method"]["source"], source, "{log}");
+        assert_eq!(document["apogee"]["status"], apogee, "{log}");
+        if apogee == "withheld" {
+            assert_eq!(document["apogee"]["reason"], "receiver_lag", "{log}");
+        }
         // The same file as Windows PowerShell 5.1 writes `>` output, UTF-16 with its mark, and
         // as UTF-8 with a mark, reads the same record.
         let folder = tempfile::tempdir().unwrap();
@@ -4334,8 +4385,8 @@ fn analyze_reads_the_public_pnut_log_as_it_states() {
         feet(&document["apogee"]["highest_sample"]["altitude_m"]),
         1028.0
     );
-    assert_eq!(document["liftoff"]["time_s"], 0.15);
-    assert_eq!(feet(&document["max_speed"]["speed_m_s"]), 257.0);
+    assert_eq!(document["liftoff"]["time_s"], 0.4);
+    assert_eq!(feet(&document["max_speed"]["speed_m_s"]), 264.0);
     assert_eq!(document["landing"]["status"], "read");
 
     // Debrief's Hampel filter, 0.3 s at threshold 4, keeps the pulse: its highest is the pulse's.

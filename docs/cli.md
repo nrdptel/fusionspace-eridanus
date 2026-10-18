@@ -1630,22 +1630,25 @@ from ([Reading a flight log](reading-a-flight-log.md) works through it). Its tru
 ```text
 $ hpr analyze validation/fixtures/logs/synthetic-pnut.pf2
 synthetic-pnut.pf2: PerfectFlite Pnut, serial 0, flight 1
-984 samples every 0.050 s, from 0.00 s to 49.15 s; heights from the altitude after a 0.30 s running median
+984 samples, from 0.00 s to 49.15 s
+readings from the logger's barometric altitude, sampled every 0.050 s in steps of 0.305 m, after a 0.30 s running median
 4 channels: Altitude (altitude above ground), Velocity (speed), Temperature (F) (temperature), Voltage (voltage)
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
-liftoff           0.55 s
-apogee            390.1 m (1280 ft) at 10.28 s, 9.72 s after liftoff
-                  highest sample 400.5 m (1314 ft) at 11.35 s, set aside by the median
-top speed         79.9 m/s (262 ft/s) at 2.10 s, 64.0 m (210 ft) up: the logger's own, from its barometer
-top acceleration  withheld: a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude twice to make one, as its one-foot steps would read as spikes of many g
-landing           45.85 s, 45.30 s after liftoff; 35.58 s from apogee, at 10.9 m/s (36 ft/s) on average
+liftoff           0.80 s, within 0.79 s
+apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, within 0.87 s, 9.47 s after liftoff
+                  highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
+top speed         78.3 m/s (257 ft/s), within 20.5 m/s (67 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
+landing           45.80 s, within 2.07 s; 45.00 s after liftoff, within 2.86 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
+top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 
-How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
-simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
-by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
-0.9, which can upset the top speed and the heights near it. For a record or a certification, the
-altimeter's own reading is the one to log, and the RSO decides.
+How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
+reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
+rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
+standard; a reading the log can't support is withheld, with the reason. The top speed is derived
+from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
+nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
+decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 

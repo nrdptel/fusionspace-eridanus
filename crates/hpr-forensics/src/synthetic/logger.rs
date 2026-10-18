@@ -78,6 +78,16 @@ impl Profile {
         }
     }
 
+    /// How its log is written: its rates and its barometer's step, `None` for a profile with no
+    /// barometer.
+    pub fn recording(self) -> Option<Recording> {
+        self.barometer().map(|baro| Recording {
+            climbing_hz: self.rate_hz(true),
+            descending_hz: self.rate_hz(false),
+            written: baro.written,
+        })
+    }
+
     /// The barometer's sample rate, Hz, climbing or not: PerfectFlite 20 Hz ([PF1] p. 47),
     /// RRC3 20 Hz ([MW1]), Eggtimer 20 Hz ([E1] p. 25), AltOS 100 Hz up and 10 down ([A1]
     /// p. 77), Blue Raven's 500 Hz set ([F2]).
@@ -101,7 +111,7 @@ impl Profile {
                 white_pa: (0.0, 0.0),
                 offset_pa: 100.0,
                 relative_gain: 1.0e-3,
-                logged: Logged::Feet,
+                written: Written::Altitude { step_m: FOOT_M },
             }),
             // An MS5607 at 2.3 Pa, logged in 10 Pa steps (sensor noise §6). Its ±1.0 mbar after
             // the pad's zero, over the 400 mbar the datasheet states it on (700–1100 mbar, §2
@@ -110,7 +120,7 @@ impl Profile {
                 white_pa: (2.3, 2.3),
                 offset_pa: 100.0,
                 relative_gain: MS5607_RELATIVE_GAIN,
-                logged: Logged::Pressure { step_pa: 10.0 },
+                written: Written::Pressure { step_pa: 10.0 },
             }),
             // An MS5607 at 2.4–13 Pa by its oversampling, logged to 1 Pa, its error after the
             // pad's zero as the RRC3's.
@@ -118,7 +128,7 @@ impl Profile {
                 white_pa: (2.4, 13.0),
                 offset_pa: 100.0,
                 relative_gain: MS5607_RELATIVE_GAIN,
-                logged: Logged::Pressure { step_pa: 1.0 },
+                written: Written::Pressure { step_pa: 1.0 },
             }),
             // A Bosch BMP-class part, 0.2–6.6 Pa by its setting, relative accuracy 0.03–0.08 hPa
             // per 100 hPa (sensor noise §2, §6).
@@ -126,14 +136,14 @@ impl Profile {
                 white_pa: (0.2, 6.6),
                 offset_pa: 0.0,
                 relative_gain: 8.0e-4,
-                logged: Logged::Feet,
+                written: Written::Altitude { step_m: FOOT_M },
             }),
             // The same part, logged in Blue Raven's 2 × 10⁻⁵ atm steps (its user's guide, p. 23).
             Self::Imu500 => Some(Barometer {
                 white_pa: (0.2, 6.6),
                 offset_pa: 0.0,
                 relative_gain: 8.0e-4,
-                logged: Logged::Pressure {
+                written: Written::Pressure {
                     step_pa: 2.0e-5 * ATMOSPHERE_PA,
                 },
             }),
@@ -170,13 +180,40 @@ impl Profile {
     }
 }
 
+/// How a log is written: the barometer's rates and how its reading is written. A profile's own
+/// is [`Profile::recording`]; the readings' check ([`super::held`]) writes each tuning flight
+/// again at other rates and steps.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Recording {
+    /// Samples a second while climbing, to the first sample past apogee.
+    pub climbing_hz: f64,
+    /// Samples a second after it.
+    pub descending_hz: f64,
+    /// How the barometer's reading is written.
+    pub written: Written,
+}
+
 /// How a barometer's reading is written.
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Logged {
-    /// As an altitude in whole feet.
-    Feet,
-    /// As a pressure in steps of `step_pa`, its altitude worked out beside it.
-    Pressure { step_pa: f64 },
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Written {
+    /// As the logger's altitude in steps of `step_m`, none if 0: the record's primary track, as
+    /// a PerfectFlite writes whole feet.
+    Altitude {
+        /// The step, m.
+        step_m: f64,
+    },
+    /// As a pressure in steps of `step_pa`, kept in a channel, its altitude worked out beside it
+    /// as the primary track.
+    Pressure {
+        /// The step, Pa.
+        step_pa: f64,
+    },
+    /// As a pressure in steps of `step_pa` alone, in a channel, as a raw download keeps it.
+    PressureAlone {
+        /// The step, Pa.
+        step_pa: f64,
+    },
 }
 
 /// A pressure sensor's stated terms.
@@ -189,7 +226,7 @@ struct Barometer {
     /// Its per-flight gain error on the pressure's change from the pad is drawn from ±this.
     relative_gain: f64,
     /// How it is written.
-    logged: Logged,
+    written: Written,
 }
 
 /// An accelerometer's stated terms.
@@ -328,22 +365,21 @@ impl LoggerDraw {
 }
 
 /// The logger's clock, s from its own zero, `pad_s` before launch to `ground_s` after landing.
-fn clock(draw: &LoggerDraw, truth: &Truth) -> Vec<f64> {
-    let profile = draw.profile;
+fn clock(recording: &Recording, draw: &LoggerDraw, truth: &Truth) -> Vec<f64> {
     let end = draw.pad_s + truth.events.landing_s + draw.ground_s;
     let apogee = draw.pad_s + truth.events.apogee_s;
     let mut times = Vec::new();
     let mut t = 0.0;
     let mut k = 0_u64;
     let mut base = 0.0;
-    let mut rate = profile.rate_hz(true);
+    let mut rate = recording.climbing_hz;
     while t <= end {
         times.push(t);
         k += 1;
         let next = base + k as f64 / rate;
-        if next > apogee && rate != profile.rate_hz(false) {
+        if next > apogee && rate != recording.descending_hz {
             // The rate changes at the first sample past apogee.
-            rate = profile.rate_hz(false);
+            rate = recording.descending_hz;
             base = next;
             k = 0;
             t = next;
@@ -422,13 +458,51 @@ pub fn log(
     seed: u64,
     index: u64,
 ) -> Result<FlightLog, SyntheticError> {
+    let recording = draw.profile.recording();
+    write(draw, recording.as_ref(), true, truth, seed, index)
+}
+
+/// The log `draw`'s barometer would write of `truth` at `recording`'s rates and step, with the
+/// same noise terms and streams, and nothing else: no accelerometer, no GNSS receiver. Tagged as a
+/// table read by a mapping ([`LogFormat::GenericTable`]), so that a reading takes the track's
+/// step from the track itself. `None` for a profile with no barometer.
+///
+/// # Errors
+///
+/// As [`log`].
+pub fn barometer_log(
+    draw: &LoggerDraw,
+    recording: &Recording,
+    truth: &Truth,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    if draw.profile.barometer().is_none() {
+        return Ok(None);
+    }
+    let mut log = write(draw, Some(recording), false, truth, seed, index)?;
+    log.format = LogFormat::GenericTable;
+    Ok(Some(log))
+}
+
+/// The log of `truth` its barometer writes at `recording`, and, `with_others`, its
+/// accelerometer and GNSS receiver as the profile has them.
+fn write(
+    draw: &LoggerDraw,
+    recording: Option<&Recording>,
+    with_others: bool,
+    truth: &Truth,
+    seed: u64,
+    index: u64,
+) -> Result<FlightLog, SyntheticError> {
     check(draw, truth)?;
     let profile = draw.profile;
     let mut channels = Vec::new();
     let mut time_s = Vec::new();
     let mut altitude_m = Vec::new();
-    if let Some(baro) = profile.barometer() {
-        let times = clock(draw, truth);
+    if let (Some(_), Some(recording)) = (profile.barometer(), recording) {
+        let written = recording.written;
+        let times = clock(recording, draw, truth);
         let sim = |t: f64| t - draw.pad_s;
         let air = truth.air()?;
         let pad_pa = truth.pressure_pa(0.0)?;
@@ -473,9 +547,11 @@ pub fn log(
                 + white[k]
                 + noise::port_error_pa(draw.port_calibers, state.mach, state.dynamic_pressure_pa)
                 - sample.air.density_kg_m3 * G * pulse_m;
-            pressures.push(match baro.logged {
-                Logged::Pressure { step_pa } => quantize(measured, step_pa),
-                Logged::Feet => measured,
+            pressures.push(match written {
+                Written::Pressure { step_pa } | Written::PressureAlone { step_pa } => {
+                    quantize(measured, step_pa)
+                }
+                Written::Altitude { .. } => measured,
             });
         }
         let heights = pressures
@@ -490,14 +566,17 @@ pub fn log(
             .map(|(_, h)| *h)
             .collect();
         let zero = on_pad.iter().sum::<f64>() / on_pad.len().max(1) as f64;
-        altitude_m = heights
-            .iter()
-            .map(|h| match baro.logged {
-                Logged::Feet => quantize(h - zero, FOOT_M),
-                Logged::Pressure { .. } => h - zero,
-            })
-            .collect();
-        if let Logged::Pressure { .. } = baro.logged {
+        let alone = matches!(written, Written::PressureAlone { .. });
+        if !alone {
+            altitude_m = heights
+                .iter()
+                .map(|h| match written {
+                    Written::Altitude { step_m } => quantize(h - zero, step_m),
+                    Written::Pressure { .. } | Written::PressureAlone { .. } => h - zero,
+                })
+                .collect();
+        }
+        if let Written::Pressure { .. } | Written::PressureAlone { .. } = written {
             channels.push(Channel::new(
                 "Pressure (synthetic)",
                 Quantity::Pressure,
@@ -505,7 +584,7 @@ pub fn log(
                 pressures,
             ));
         }
-        if let Some(accel) = profile.accelerometer() {
+        if let Some(accel) = profile.accelerometer().filter(|_| with_others) {
             let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
             // RMS from the density over the part's bandwidth, half the climbing rate it is
             // sampled at: σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that
@@ -531,9 +610,11 @@ pub fn log(
                 values,
             ));
         }
-        time_s = times;
+        if !alone {
+            time_s = times;
+        }
     }
-    if profile.gnss() {
+    if profile.gnss() && with_others {
         channels.extend(gnss(draw, truth, seed, index)?);
     }
     Ok(FlightLog {
@@ -1406,8 +1487,9 @@ mod tests {
                     "{profile:?}"
                 );
             }
-            match profile.barometer().map(|b| b.logged) {
-                Some(Logged::Feet) => {
+            match profile.barometer().map(|b| b.written) {
+                Some(Written::Altitude { step_m }) => {
+                    assert_eq!(step_m, FOOT_M);
                     assert!(
                         log.altitude_m
                             .iter()
@@ -1415,7 +1497,7 @@ mod tests {
                     );
                     assert_eq!(log.channels_of(Quantity::Pressure).count(), 0);
                 }
-                Some(Logged::Pressure { step_pa }) => {
+                Some(Written::Pressure { step_pa } | Written::PressureAlone { step_pa }) => {
                     let p = channel(log, Quantity::Pressure);
                     assert!(
                         p.values
