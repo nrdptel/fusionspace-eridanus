@@ -644,9 +644,11 @@ mod tests {
         (output, dir)
     }
 
-    /// The formula and the manifest for a release with every target the workflow builds, byte
-    /// for byte (issue #434). The wheels and the source package beside the archives are left
-    /// alone. Each sha256 is the invented archive's: `shasum -a 256` gives the same.
+    /// The formula, byte for byte, and the manifest, as parsed JSON with Unix line ends, for a
+    /// release with an archive for every target the script knows (issue #434): the five the
+    /// workflow builds and an Intel Mac's, which waits on issue #438. The wheels and the source
+    /// package beside the archives are left alone. Each sha256 is the invented archive's:
+    /// `shasum -a 256` gives the same.
     #[test]
     fn package_managers_write_the_formula_and_manifest_for_every_archive() {
         let (output, dir) = package_managers(
@@ -815,6 +817,80 @@ end
             stderr.contains("no fusionspace-hpr-9.8.7-<target> archives"),
             "{stderr}"
         );
+    }
+
+    /// A Linux or Mac archive packed as a .zip, or a Windows one as a .tar.gz, stops the script:
+    /// the formula and the manifest each take one kind, and a release packs no other.
+    #[test]
+    fn package_managers_refuse_an_archive_of_the_wrong_kind() {
+        for wrong in [
+            "fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.zip",
+            "fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.tar.gz",
+        ] {
+            let (output, _dir) = package_managers(
+                "9.8.7",
+                &[wrong, "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz"],
+            );
+            assert!(!output.status.success(), "{wrong} was taken");
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(stderr.contains("is a .zip on Windows only"), "{stderr}");
+        }
+    }
+
+    /// The version is the crate's, `9.8.7`, not the tag's `v9.8.7`, which would put `vv9.8.7`
+    /// in every URL.
+    #[test]
+    fn package_managers_refuse_a_version_that_is_not_a_release_version() {
+        for wrong in ["v9.8.7", "9.8", "9.8.7 ", ""] {
+            let (output, _dir) = package_managers(
+                wrong,
+                &[&format!(
+                    "fusionspace-hpr-{wrong}-aarch64-apple-darwin.tar.gz"
+                )],
+            );
+            assert!(!output.status.success(), "{wrong:?} was taken");
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(stderr.contains("isn't a release version"), "{stderr}");
+        }
+    }
+
+    /// A release with Mac archives only says `depends_on :macos`, and one with Linux archives
+    /// only says `depends_on :linux`, so Homebrew on the other system refuses the formula.
+    #[test]
+    fn package_managers_name_the_one_operating_system_a_formula_serves() {
+        for (system, archives) in [
+            (
+                "macos",
+                [
+                    "fusionspace-hpr-9.8.7-aarch64-apple-darwin.tar.gz",
+                    "fusionspace-hpr-9.8.7-x86_64-apple-darwin.tar.gz",
+                ],
+            ),
+            (
+                "linux",
+                [
+                    "fusionspace-hpr-9.8.7-aarch64-unknown-linux-gnu.tar.gz",
+                    "fusionspace-hpr-9.8.7-x86_64-unknown-linux-gnu.tar.gz",
+                ],
+            ),
+        ] {
+            let mut files = archives.to_vec();
+            files.push("fusionspace-hpr-9.8.7-x86_64-pc-windows-msvc.zip");
+            let (output, dir) = package_managers("9.8.7", &files);
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            let formula = fs::read_to_string(dir.path().join("out/fusionspace-hpr.rb")).unwrap();
+            assert_eq!(formula.matches("  depends_on :").count(), 1, "{formula}");
+            assert!(
+                formula.contains(&format!("\n  depends_on :{system}\n")),
+                "{formula}"
+            );
+            assert!(formula.contains(&format!("  on_{system} do\n    on_arm do\n")));
+            assert!(!formula.contains("depends_on arch:"), "{formula}");
+        }
     }
 
     /// `cargo binstall fusionspace-hpr-cli` looks for the archives scripts/release/archive.sh
