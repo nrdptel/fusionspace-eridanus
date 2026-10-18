@@ -754,8 +754,8 @@ Genesis and Lince were added to the public designs for this.
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda | their weather file is in a newer format that needs converting first ([ADR-082][adr-082]) |
-| Camões, Erebus 11, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([ADR-082][adr-082]) |
+| Astra, Andromeda, Erebus 11 | their weather file is in a newer format that needs converting first ([ADR-082][adr-082]); Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s |
+| Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([ADR-082][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([ADR-082][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([ADR-082][adr-082]) |
 
