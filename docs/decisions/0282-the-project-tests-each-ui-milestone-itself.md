@@ -69,8 +69,8 @@ look by him that informs but never blocks.
    screen", it now says the milestone's acceptance pass is in its PR (this record):
    [M0.7c][m0-7c], [M0.13a][m0-13a], [M9.6][m9-6], [M10.5][m10-5] and [M10.6][m10-6]. For
    [M9.7][m9-7], "at a launch" becomes a pass under launch conditions: no network, two phones in
-   their simulators sharing the register by file and by QR code, and a full pad hold on the battery
-   budget.
+   emulators sharing the register by file and by QR code read through an emulated camera, and the
+   battery budget run to the end of its longest stated pad hold.
 3. **Product guides.** From release 0.2, each release's guide passes the cold read in place of the
    maintainer's read ([ADR-196][adr-196] §4).
 4. **A look for the app and the field kit.** For [M9.7][m9-7], [M10.5][m10-5] and [M10.6][m10-6],
