@@ -2,8 +2,9 @@
 //! M7.2a, ADR-280) and writes their census to `validation/reports/synthetic-flights.json` and
 //! `.md`.
 //!
-//! The census counts each set's flights by design and by logger, the range each input and each
-//! outcome spans, and every draw that didn't fly, with its reason. Values are kept to three
+//! The census counts each set's flights by design and by logger, the ranges of eight quantities
+//! (apogee, top Mach number and speed, flight time, wind, rail angle, site elevation and the air's
+//! offset), and every draw that didn't fly, with its reason. Values are kept to three
 //! significant figures, the digits every platform shares, so CI's validate job holds the census on
 //! macOS, Windows and Linux. `--check` writes nothing, and fails unless the flights reproduce the
 //! committed census.

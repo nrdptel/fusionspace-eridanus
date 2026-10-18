@@ -114,8 +114,8 @@ checked on them.
    - **Acceleration:** the truth's axial specific force times 1 + *s*, plus a per-flight bias
      and white noise, clipped at the part's range and rounded to its step.
    - **GNSS:** the truth's position through a second-order lag of natural frequency 0.25–1.0
-     rad/s (about 0.5 rad/s measured in one flight), 3 m of noise, and a dropout of 0–10 s at
-     ignition and at burnout, the fix flagged valid throughout ([GNSS in boost][gnss] §3–4).
+     rad/s (about 0.5 rad/s, inferred from one flyer's reported lag), 3 m of noise, and a dropout
+     of 0–10 s from liftoff and from burnout, the fix flagged valid throughout ([GNSS in boost][gnss] §3–4).
    - **Clock:** the log starts 2–10 s before liftoff and ends 2–10 s after landing.
    - **Left out, said on the physics page:** the bay's vent lag (under 3 cm at apogee for any
      maker's rule, [Mach error][mach] §5), a temperature term (no source gives a bay's change in

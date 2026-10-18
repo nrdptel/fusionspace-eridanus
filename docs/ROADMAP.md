@@ -423,21 +423,16 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2a The synthetic flights.** *Done when:* `hpr_forensics::synthetic` draws a tuning set
-    of 200 and two test sets of 1,000 on fixed seeds by ADR-280 §2–3 (10 public designs; set B's drag,
-    wind and thrust reshaped), each flight's truth and its logger's log by cited noise terms; drawn
-    again, bit-identical; each noise term holds and fails mutated (tests); a committed census lists
-    the sets by design and logger, and each draw not flown.
   - [ ] **M7.2b Readings on every logger.** *Done when:* each family with an altitude, pressure or
     GNSS track takes the readings, within bounds held on the tuning set or withheld by name; #646
-    noted both ways; method and provenance named; `cargo xtask logs` lists readings given and
+    noted, tested both ways; method and provenance named; `cargo xtask logs` lists readings given and
     withheld, a case per reason; `hpr analyze` and Python read each family.
   - [ ] **M7.2c The rest of the readings.** *Done when:* top acceleration (clipped at the part's
     range), burnout, each canopy's descent rate, flight time, as M7.2b's; tuning-set errors given.
   - [ ] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its
     stated error, coverage per state reported; trusting GNSS from liftoff fails; a health card.
   - [ ] **M7.2e The 90% intervals.** *Done when:* ADR-257 §1–2's test passes, probes failing, on
-    both test sets for every reading; intervals in the library, `hpr analyze` and Python.
+    both test sets for every reading given; intervals in the library, `hpr analyze` and Python.
   - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,

@@ -207,8 +207,8 @@ pub const CORRELATED_NOISE_M: f64 = 0.5;
 pub const CORRELATED_NOISE_PHI: f64 = 0.5;
 /// The rate at which it was measured, Hz.
 pub const CORRELATED_NOISE_RATE_HZ: f64 = 50.0;
-/// The residual accelerometer bias after the pad's zero is drawn from ±this, g: the range sensor
-/// noise §6 proposes, as no source states one.
+/// The residual accelerometer bias after the pad's zero is drawn from ±this, g: the top of the
+/// ±10–50 mg that sensor noise's *What this suggests* 1 calls a guess, as no source states one.
 pub const ACCEL_BIAS_G: f64 = 0.05;
 /// A GNSS fix's noise, 1σ along each axis, m (GNSS in boost §4's simulation).
 pub const GNSS_NOISE_M: f64 = 3.0;
@@ -244,9 +244,9 @@ pub struct LoggerDraw {
     pub gnss_rate_hz: f64,
     /// Its loop's natural frequency, rad/s.
     pub gnss_omega_rad_s: f64,
-    /// Its dropout at ignition, s.
-    pub gnss_dropout_ignition_s: f64,
-    /// Its dropout at burnout, s.
+    /// Its dropout from liftoff, s.
+    pub gnss_dropout_liftoff_s: f64,
+    /// Its dropout from burnout, s.
     pub gnss_dropout_burnout_s: f64,
 }
 
@@ -273,7 +273,7 @@ impl LoggerDraw {
         // 1 Hz by default, faster where set ([GNSS in boost] §1).
         let gnss_rate_hz = [1.0, 5.0, 10.0][(rng.uniform() * 3.0) as usize % 3];
         let gnss_omega_rad_s = between(rng, 0.25, 1.0);
-        let gnss_dropout_ignition_s = between(rng, 0.0, 10.0);
+        let gnss_dropout_liftoff_s = between(rng, 0.0, 10.0);
         let gnss_dropout_burnout_s = between(rng, 0.0, 10.0);
         Self {
             profile,
@@ -290,7 +290,7 @@ impl LoggerDraw {
             accel_bias_m_s2,
             gnss_rate_hz,
             gnss_omega_rad_s,
-            gnss_dropout_ignition_s,
+            gnss_dropout_liftoff_s,
             gnss_dropout_burnout_s,
         }
     }
@@ -527,7 +527,7 @@ fn gnss(
             position[1] + GNSS_NOISE_M * rng.standard_normal(),
             position[2] + GNSS_NOISE_M * rng.standard_normal(),
         );
-        let dropped = (ignition..ignition + draw.gnss_dropout_ignition_s).contains(&t)
+        let dropped = (ignition..ignition + draw.gnss_dropout_liftoff_s).contains(&t)
             || (burnout..burnout + draw.gnss_dropout_burnout_s).contains(&t);
         if dropped {
             continue;
@@ -625,7 +625,7 @@ mod tests {
             accel_bias_m_s2: 0.0,
             gnss_rate_hz: 10.0,
             gnss_omega_rad_s: 0.5,
-            gnss_dropout_ignition_s: 0.0,
+            gnss_dropout_liftoff_s: 0.0,
             gnss_dropout_burnout_s: 0.0,
         }
     }
@@ -738,8 +738,8 @@ mod tests {
     #[test]
     fn the_correlated_noise_correlates_as_stated_at_the_loggers_rate() {
         let truth = still(300.0, G, 0.0, 0.0, 0.0);
-        let log = log(&quiet(Profile::Altos), &truth, SEED, 2).unwrap();
-        let r: Vec<f64> = pressure_residuals(&log, &truth, 2.0)
+        let slow = log(&quiet(Profile::Altos), &truth, SEED, 2).unwrap();
+        let r: Vec<f64> = pressure_residuals(&slow, &truth, 2.0)
             .iter()
             .map(|r| r.1)
             .collect();
@@ -750,6 +750,22 @@ mod tests {
         // the 1 Pa step. White noise of the same spread would correlate by 0.
         let expect = 0.5_f64.sqrt();
         assert!((num / den - expect).abs() < 0.03, "{}", num / den);
+        // At 500 Hz the same noise correlates by 0.5^(50/500) ≈ 0.933, less the 2.03 Pa step's
+        // share; a correlation fixed per sample, rather than by the time between them, would
+        // read 0.5 at every rate.
+        let fast = log(&quiet(Profile::Imu500), &truth, SEED, 2).unwrap();
+        let r: Vec<f64> = pressure_residuals(&fast, &truth, 2.0)
+            .iter()
+            .map(|r| r.1)
+            .collect();
+        let m = mean(&r);
+        let num: f64 = r.windows(2).map(|w| (w[0] - m) * (w[1] - m)).sum();
+        let den: f64 = r.iter().map(|v| (v - m) * (v - m)).sum();
+        assert!(
+            (num / den - 0.5_f64.powf(0.1)).abs() < 0.03,
+            "{}",
+            num / den
+        );
     }
 
     #[test]
@@ -777,6 +793,8 @@ mod tests {
         let step = 2.0e-5 * ATMOSPHERE_PA;
         assert!((g.values[k] - b.values[k] - 8.0e-4 * change).abs() <= step);
         assert!(change < -10_000.0, "the climb moves the pressure: {change}");
+        // With no gain drawn the difference is gone: the gain here is four of the part's steps.
+        assert!((8.0e-4 * change).abs() > 3.0 * step);
     }
 
     #[test]
@@ -873,16 +891,24 @@ mod tests {
                 .abs()
                 > 0.02 * G
         );
-        let spread = sd(&acceleration_until(
-            &log(&stated, &truth, SEED, 6).unwrap(),
-            2.0,
-            60.0,
-        ));
+        let spread_of = |draw: &LoggerDraw| {
+            sd(&acceleration_until(
+                &log(draw, &truth, SEED, 6).unwrap(),
+                2.0,
+                60.0,
+            ))
+        };
         let sigma = 0.005 * (1.57 * 50.0_f64).sqrt() * G;
+        let spread = spread_of(&stated);
         assert!(
             (spread - sigma).abs() < 0.1 * sigma,
             "{spread} against {sigma}"
         );
+        let doubled = spread_of(&LoggerDraw {
+            density_g_per_root_hz: 0.01,
+            ..stated
+        });
+        assert!((doubled - sigma).abs() > 0.5 * sigma, "{doubled}");
         // A 40 g load on a ±32 g part reads 32 g on every sample.
         let hard = still(10.0, 40.0 * G, 0.0, 0.0, 0.0);
         let clipped = log(&quiet(Profile::Imu500), &hard, SEED, 7).unwrap();
@@ -892,6 +918,17 @@ mod tests {
             values
                 .iter()
                 .all(|&v| (v - quantize(32.0 * G, 64.0 / 65_536.0 * G)).abs() < 1e-9)
+        );
+        // The ±180 g part reads the same 40 g load unclipped.
+        let high = acceleration_until(
+            &log(&quiet(Profile::Altos), &hard, SEED, 7).unwrap(),
+            2.0,
+            10.0,
+        );
+        assert!(!high.is_empty());
+        assert!(
+            high.iter()
+                .all(|&v| (v - quantize(40.0 * G, 0.049 * G)).abs() < 1e-9)
         );
     }
 
@@ -927,23 +964,32 @@ mod tests {
                 .abs()
                 > 30.0
         );
-        // A dropout of 4 s at ignition leaves no fix in it; none drawn leaves fixes there.
-        let fixes_in = |draw: &LoggerDraw| {
+        // A dropout of 4 s from liftoff, or from burnout at 20 s, leaves no fix in it; none drawn
+        // leaves the fixes there.
+        let mut truth = truth;
+        truth.events.burnout_s = 20.0;
+        let fixes_in = |draw: &LoggerDraw, from: f64| {
             let log = log(draw, &truth, SEED, 9).unwrap();
-            channel(&log, Quantity::Latitude)
-                .time_s
+            let times = &channel(&log, Quantity::Latitude).time_s;
+            times
                 .iter()
-                .filter(|t| (0.0..4.0).contains(&(**t - 2.0)))
+                .filter(|t| (from..from + 4.0).contains(&(**t - 2.0)))
                 .count()
         };
-        assert_eq!(
-            fixes_in(&LoggerDraw {
-                gnss_dropout_ignition_s: 4.0,
-                ..stated
-            }),
-            0
-        );
-        assert_eq!(fixes_in(&stated), 40);
+        let at_liftoff = LoggerDraw {
+            gnss_dropout_liftoff_s: 4.0,
+            ..stated
+        };
+        let at_burnout = LoggerDraw {
+            gnss_dropout_burnout_s: 4.0,
+            ..stated
+        };
+        assert_eq!(fixes_in(&at_liftoff, 0.0), 0);
+        assert_eq!(fixes_in(&at_liftoff, 20.0), 40);
+        assert_eq!(fixes_in(&at_burnout, 20.0), 0);
+        assert_eq!(fixes_in(&at_burnout, 0.0), 40);
+        assert_eq!(fixes_in(&stated, 0.0), 40);
+        assert_eq!(fixes_in(&stated, 20.0), 40);
     }
 
     #[test]
@@ -1085,7 +1131,7 @@ mod tests {
                 assert!(draws.iter().any(|d| d.gnss_rate_hz == rate));
             }
             assert!(all(&|d| (0.25..=1.0).contains(&d.gnss_omega_rad_s)));
-            assert!(all(&|d| (0.0..=10.0).contains(&d.gnss_dropout_ignition_s)));
+            assert!(all(&|d| (0.0..=10.0).contains(&d.gnss_dropout_liftoff_s)));
             assert!(all(&|d| (0.0..=10.0).contains(&d.gnss_dropout_burnout_s)));
             assert!(all(&|d| d.accel_bias_m_s2.abs() <= ACCEL_BIAS_G * G));
             match profile.barometer() {

@@ -22,17 +22,24 @@ pub struct Range {
     pub max: f64,
 }
 
-/// `x` to three significant figures.
+/// `x` to three significant figures, nearest.
 pub fn three_figures(x: f64) -> f64 {
+    to_three_figures(x, f64::round)
+}
+
+/// `x` to three significant figures, `rule` taking the scaled value to a whole number.
+fn to_three_figures(x: f64, rule: fn(f64) -> f64) -> f64 {
     if x == 0.0 || !x.is_finite() {
         return x;
     }
     let scale = 10_f64.powi(2 - x.abs().log10().floor() as i32);
-    (x * scale).round() / scale
+    rule(x * scale) / scale
 }
 
 impl Range {
-    /// The range of `values`, each to three significant figures; `None` if there are none.
+    /// The range of `values` to three significant figures, its ends rounded outward (the least
+    /// down, the greatest up) so that the range holds every value, and its median to the nearest;
+    /// `None` if there are none.
     fn of(mut values: Vec<f64>) -> Option<Self> {
         if values.is_empty() {
             return None;
@@ -45,9 +52,9 @@ impl Range {
             0.5 * (values[n / 2 - 1] + values[n / 2])
         };
         Some(Self {
-            min: three_figures(values[0]),
+            min: to_three_figures(values[0], f64::floor),
             median: three_figures(median),
-            max: three_figures(values[n - 1]),
+            max: to_three_figures(values[n - 1], f64::ceil),
         })
     }
 }
@@ -243,6 +250,12 @@ mod tests {
     fn a_range_has_its_least_median_and_greatest() {
         let r = Range::of(vec![3.0, 1.0, 2.0, 10.0]).unwrap();
         assert_eq!((r.min, r.median, r.max), (1.0, 2.5, 10.0));
+        // The ends round outward, so the range holds every value; the median to the nearest.
+        let r = Range::of(vec![1.174_9, 412.6, -14.62, 1.0]).unwrap();
+        assert_eq!((r.min, r.max), (-14.7, 413.0));
+        assert!(r.median <= 1.18 && r.median >= 1.08);
+        let r = Range::of(vec![1.174_9]).unwrap();
+        assert_eq!((r.min, r.median, r.max), (1.17, 1.17, 1.18));
         assert_eq!(Range::of(Vec::new()), None);
     }
 }

@@ -327,6 +327,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1d A flyer's own logger and GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1d1 GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1d2 Your own logger from the command line and Python ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2a The synthetic flights ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1732,6 +1733,12 @@ One line per milestone or increment, in the order it was archived within its pha
       mapping; the guide works one invented logger through both.
       Met (ADR-276 amended): 31 sample files (26 mapped, 5 laid out) and 4 invented ones read
       alike on all three; `hpr analyze --print-mapping`, `--mapping`, `--layout`, `--record`.
+- **M7.2** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.2a The synthetic flights.** *Done when:* `hpr_forensics::synthetic` draws a tuning set
+    of 200 and two test sets of 1,000 on fixed seeds by ADR-280 §2–3 (10 public designs; set B's drag,
+    wind and thrust reshaped), each flight's truth and its logger's log by cited noise terms; drawn
+    again, bit-identical; each noise term holds and fails mutated (tests); a committed census lists
+    the sets by design and logger, and each draw not flown.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

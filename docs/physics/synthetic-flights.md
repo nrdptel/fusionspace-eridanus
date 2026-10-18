@@ -5,7 +5,7 @@ See how FusionSpace HPR makes the simulated flights, each with a known truth and
 
 ## In short
 
-- **What it models:** 2,400 flights of the ten public RocketPy designs HPR Sim validates against,
+- **What it models:** 2,200 flights of the ten public RocketPy designs HPR Sim validates against,
   in three sets on fixed seeds. Each flight draws its motor, drag, wind, rail angle, site and air,
   and one of six simulated loggers, each like a family of real loggers that FusionSpace HPR reads.
   The logger writes what its sensors would: a pressure with an offset, a drift, correlated noise
@@ -14,18 +14,19 @@ See how FusionSpace HPR makes the simulated flights, each with a known truth and
   every 0.01 s, with its [dynamic pressure](../glossary.md#dynamic-pressure) and
   [Mach number](../glossary.md#mach-number).
 - **Sources:** the pressure sensors' and accelerometers' datasheets and the noise measured in
-  public logs ([the sensor noise note][noise]); a wind-tunnel test of the static pressure along an
+  public logs ([the sensor noise note][noise]), with some terms assumed where no source states
+  them ([The noise, term by term](#the-noise-term-by-term)); a wind-tunnel test of the static pressure along an
   ogive-cylinder through Mach 1 ([the Mach error note][mach]); the ejection pulse of Debrief's
   public Pnut log; the lag of hobby GNSS receivers in boost ([the GNSS note][gnss]); the NAR's
   [high-power safety code][hprcode] for the wind's limit.
 - **How well it is validated:** not against real logs: the noise follows datasheets and a few
-  public logs, and the flights are HPR Sim's own. Each noise term is pinned by a test that holds
-  it to its stated value on a truth built for that term alone, and fails when it is changed. A flight drawn
-  again is the same to the bit. No test yet shows that the terms together look like a real log
+  public logs, and the flights are HPR Sim's own. Each drawn noise term is pinned by a test that
+  holds it to its stated value on a truth built for the terms under test, and fails when it is
+  changed. A flight drawn again is the same to the bit, on one platform. No test yet shows that the terms together look like a real log
   of the same family: [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks
   that comparison.
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, the logger's own
-  speed column, and flights past Mach 1.17, the fastest of the ten designs
+  speed column, and flights past Mach 1.18, the fastest of the 2,200
   ([What it leaves out](#what-it-leaves-out)).
 
 ## Why simulated flights
@@ -35,17 +36,18 @@ that a reading takes it from, so the two agreeing shows they read the trace alik
 either is right ([Flight-log readings](log-readings.md#checked-against)). To learn how often a
 90% interval holds the truth, the truth must be known, on many flights.
 
-Each reading and fit states a 90% interval, and
+Each reading and fit is to state a 90% interval, and
 [ADR-257, calibrated intervals](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md)
 asks that each be tested on at least 1,000 flights whose truth is known: it must miss about 5%
-of the time on each side. The sets were fixed before any interval was written, so no interval
-can be tuned on the flights it is judged on
+of the time on each side. The sets were fixed before any interval was written, and by rule no
+interval is tuned on the flights it is judged on
 ([ADR-280, the synthetic flights first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md)).
 
 A simulated flight knows its truth, but a check on it is only as good as its noise. A model that
 adds white noise alone flatters an interval: real barometer noise is correlated from sample to
-sample, so its errors don't average away as fast ([the smoothing note][smoothing] §6). So each
-term here is drawn from a measurement or a datasheet, and the census and the tests say which.
+sample, so its errors don't average away as fast ([the smoothing note][smoothing] §6). So most
+terms here come from a measurement or a datasheet, and the few that no source states are said
+to be assumed where they are described.
 
 A check on these flights shows how well a method recovers HPR Sim's trajectory from noisy
 sensors. It doesn't show how well HPR Sim predicts a real flight: that is
@@ -65,9 +67,10 @@ Three sets, each on its own seed, written down before any method was tuned:
 | A | 1,000 | 2026101701 | HPR Sim's |
 | B | 1,000 | 2026101702 | reshaped in three ways |
 
-Anything fitted or tuned uses the tuning set; sets A and B only judge. Flight $k$ of a set draws
-each input from its own stream, keyed by the set's seed, $k$ and the input, so a set's first
-flights stay the same if it grows, and adding an input moves no other.
+By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. Flight $k$
+of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and
+logger) from its own stream, keyed by the set's seed, $k$ and the group, so a set's first
+flights stay the same if it grows, and an input added to one group moves no other group.
 
 Set B flies a model that differs from HPR Sim's on purpose, so that a method can't pass by
 knowing HPR Sim's model:
@@ -76,7 +79,8 @@ knowing HPR Sim's model:
   $1 + a\exp(-x^2) + bM$, where $x = (M - 1)/0.2$, with $a$ between −0.2 and 0.2 and $b$
   between −0.05 and 0.05.
 - **The wind** grows with height as a power law, its exponent 0.14 to 0.20, the drawn speed at
-  18.3 m (60 ft), after NASA/TM-2008-215633 §2.2.5.2. Set A's wind is the same at every height.
+  18.3 m (60 ft), after NASA/TM-2008-215633 §2.2.5.2. That report ties the larger exponents to
+  lighter winds; here the exponent is drawn on its own. Set A's wind is the same at every height.
 - **The thrust curve** is tilted: its thrust times $1 + \tau(2t/t_b - 1)$, with $\tau$ between
   −0.3 and 0.3, then scaled back to the same total impulse.
 
@@ -84,11 +88,11 @@ knowing HPR Sim's model:
 
 | Input | Range | Why |
 |---|---|---|
-| design | one of the ten | the RocketPy designs, each with its example's parachutes |
-| total impulse | 0.94 to 1.06 times | twice a motor's 3% spread ([the dispersion note][sigmas] §2) |
-| burn time | 0.90 to 1.10 times | about its 10.7% spread (the same) |
-| zero-lift drag | 0.8 to 1.2 times | twice the low end of the 10 to 16% spread (the same) |
-| wind | up to 20 mph (8.9 m/s), from any direction | the safety code's limit |
+| design | one of the ten | the RocketPy designs, each with its example's parachutes; Cavour's has none, so it lands without one, as on a failed recovery |
+| total impulse | 0.94 to 1.06 times | twice the 2.5 to 3.1% spread of repeat certifications ([the dispersion note][sigmas] §2) |
+| burn time | 0.90 to 1.10 times | about the 10.7% spread of the one burn-time batch found, of small black-powder motors (§2) |
+| zero-lift drag | 0.8 to 1.2 times | twice OpenRocket's 10% default, near the 16% coast fits suggest (§4) |
+| wind | up to 20 mph (8.94 m/s), from any direction | the safety code's limit |
 | rail | 0° to 10° from vertical, toward any direction | inside the code's 20° |
 | site | 0 to 1,500 m (0 to 4,921 ft) above sea level | sea-level fields to the high deserts |
 | air | the 1976 standard, −15 to +15 K | a day off standard |
@@ -97,8 +101,8 @@ The loggers convert pressure to height by the standard atmosphere, so a day off 
 real error in their heights: on a cold day a barometer reads high. The readings must carry it.
 
 The truth is the flight's center of mass, every 0.01 s, and its events: liftoff, rail exit,
-burnout, apogee, each charge and deployment, and landing. Heights are above the pad, where the
-center of mass stood at liftoff. The specific force along the rocket's axis is what an
+burnout, apogee, each charge and deployment, and landing. Its heights are above the ground; a
+reading's truth is the height above where the center of mass stood at liftoff. The specific force along the rocket's axis is what an
 accelerometer would feel; under a canopy the rocket is taken to hang vertically.
 
 ### The loggers
@@ -129,18 +133,24 @@ The logged pressure is the true pressure plus six terms, then rounded to the log
 
 | Term | What it is | Drawn per flight |
 |---|---|---|
-| offset | the sensor's absolute error | ±100 Pa for an MS5607 and the measured model; none for a Bosch part |
-| gain | an error proportional to the change from the pad | ±0.08% for a Bosch part |
+| offset | the sensor's absolute error | ±100 Pa for an MS5607 and PerfectFlite's; none for a Bosch-class part |
+| gain | an error proportional to the change from the pad | ±0.08% for a Bosch-class part |
 | drift | a slow change over the flight | 1 to 3 Pa over 30 to 300 s, either way |
-| correlated noise | the noise measured on real logs | 0.5 m (1.6 ft) at 50 Hz, correlation 0.5 |
-| white noise | the datasheet's | 2.3 Pa (RRC3), 2.4 to 13 Pa (AltOS), 0.2 to 6.6 Pa (Bosch) |
-| port error | the static port's error near Mach 1 | the port 1 to 5 calibers behind the nose |
+| correlated noise | the noise measured on real logs | 0.5 m (1.6 ft) at 50 Hz, correlation 0.5, on every barometer |
+| white noise | the datasheet's | 2.3 Pa (RRC3), 2.4 to 13 Pa (AltOS), 0.2 to 6.6 Pa (Bosch class); none for PerfectFlite |
+| port error | the static port's error near Mach 1 | the port 1 to 5 calibers behind the nose's shoulder, assumed |
 
-A charge adds a seventh, the ejection pulse, at each charge's time.
+A charge adds a seventh, the ejection pulse, at each charge's time. PerfectFlite names no part,
+so its profile is the noise measured on real logs alone. Eggtimer and Featherweight name no part
+on most of their boards ([the sensor noise note][noise] §1), so the Eggtimer and 500 Hz IMU
+profiles take a Bosch BMP3xx or DPS310-class part, 0.2 to 6.6 Pa by its setting (§6): an
+assumption.
 
 **The correlated noise** is a first-order autoregressive process, a red noise: each sample keeps
-part of the one before. On real logs at 50 Hz its spread is 0.5 m (1.6 ft) and the correlation
-from one sample to the next is 0.5 ([the sensor noise note][noise] §3). It is drawn as an
+part of the one before. On the pads of five Blue Raven logs at 50 Hz the spread is 0.43 to
+0.62 m (1.4 to 2.0 ft) and the correlation from one sample to the next 0.40 to 0.54
+([the sensor noise note][noise] §3), upper bounds that mix in wind and handling. The model takes
+0.5 m (1.6 ft) and 0.5 for every barometer, and adds each part's white noise. It is drawn as an
 Ornstein–Uhlenbeck process, so the correlation follows the time between samples, whatever the
 logger's rate:
 
@@ -156,21 +166,23 @@ times $\rho_\text{pad}\,g$: at a 500 m (1,640 ft) site in standard air, 0.5 m (1
 **The port error**, the static port's error where the pressure along the body changes near the
 speed of sound, comes from a wind-tunnel test of the static pressure along an ogive-cylinder
 from Mach 0.7 to 1.2 (Czarnecki and Monta, NASA TN D-3516, 1966, Fig. 5; [the Mach error
-note][mach] §1–2). The port reads $C_p\,q$ off the true pressure, $C_p$ read from the test's
-table at the port's distance behind the shoulder, in [calibers](../glossary.md#caliber), and the
-flight's Mach number, and held at its
-end values outside the table. One caliber back at Mach 1, $C_p = -0.08$. In the worked example
+note][mach] §1–2). The port reads $C_p\,q$ off the true pressure. $C_p$ is read from the note's
+trace of the report's figure, to about ±0.01, at the port's distance behind the shoulder, in
+[calibers](../glossary.md#caliber), and the flight's Mach number, and held at its end values
+outside the table. One caliber back at Mach 1, $C_p = -0.08$. In the worked example
 below that reads 473 m (1,552 ft) too high, for a moment.
 
 **The ejection pulse** has the shape of the one on Debrief's public Pnut log, in seven samples
 0.05 s apart from the charge: the height reads 8 m (26.2 ft) low at the charge, 16 m (52.5 ft)
 high 0.1 s after it, and 3 m (9.8 ft) low from 0.25 s, then true again. The shape is scaled by
-0 to 2 per flight, and turned into pressure at the pad's density.
+0 to 2 per flight, and turned into pressure at the density where the charge fires.
 
 ### The acceleration
 
 The logged acceleration is the truth's axial specific force times $1 + s$, plus a per-flight bias
-of up to 0.05 g and white noise, clipped at the part's range and rounded to its step:
+of up to 0.05 g and white noise, clipped at the part's range and rounded to its step. No source
+states a bias left after the pad's zero, so the 0.05 g is assumed ([the sensor noise note][noise],
+*What this suggests*):
 
 | Part | Noise density | Step | Range | Scale $s$ |
 |---|---:|---:|---:|---:|
@@ -179,8 +191,8 @@ of up to 0.05 g and white noise, clipped at the part's range and rounded to its 
 
 Each sample's noise is the density times $\sqrt{1.57 \cdot f_s/2}$, the noise bandwidth of a
 single-pole filter at half the sample rate $f_s$, an inference in [the sensor noise note][noise]
-§4. The AltOS profile's high-g part at 100 Hz has 44.3 mg (0.434 m/s²) per sample. Past 32 g the low-g part clips: the high-range part that
-takes over on a real IMU isn't modeled.
+§4. The AltOS profile's high-g part at 100 Hz has 44.3 mg (0.434 m/s²) per sample. Past 32 g
+the low-g part clips: the high-range part that takes over on a real IMU isn't modeled.
 
 ### The GNSS fix
 
@@ -191,12 +203,14 @@ $$
 e = a/\omega_n^2
 $$
 
-where $\omega_n$ is the loop's natural frequency, drawn from 0.25 to 1.0 rad/s (about 0.5
-measured in one flight, [the GNSS note][gnss] §3), with damping $1/\sqrt{2}$. At 0.5 rad/s, a
+where $\omega_n$ is the loop's natural frequency, drawn from 0.25 to 1.0 rad/s, with damping
+$1/\sqrt{2}$. No receiver's loop has been measured against a truth: about 0.5 rad/s is inferred
+from one flyer's report of a 440 m (1,444 ft) lag ([the GNSS note][gnss] §3–4), and the damping
+is the usual choice for such a loop, assumed. At 0.5 rad/s, a
 steady 50 m/s² would leave the fix 200 m (656 ft) behind; a 2 s boost ends long before the
-loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white noise. No fix is
-written for 0 to 10 s after ignition and after burnout, drawn per flight; the fixes written carry
-no flag that they lag.
+loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white noise, a
+fixed value, assumed. No fix is written for 0 to 10 s from liftoff and from burnout, each drawn
+per flight; the fixes written carry no flag that they lag.
 
 ### The clock
 
@@ -205,19 +219,19 @@ profile changes from 100 Hz to 10 Hz at its first sample after apogee.
 
 ### A worked example
 
-An AltOS-like logger flies through Mach 1 at 1,000 m (3,281 ft) above sea level on a standard day,
-its port one caliber behind the nose's shoulder.
+An AltOS-like logger, launched from a sea-level pad, flies through Mach 1 at 1,000 m (3,281 ft)
+on a standard day, its port one caliber behind the nose's shoulder.
 
-1. **The air.** The standard atmosphere there has $p = 89{,}875$ Pa and density 1.112 kg/m³.
-2. **The dynamic pressure** at Mach 1 is $q = 0.7\,p\,M^2 = 62{,}912$ Pa.
-3. **The port error** is $C_p\,q = -0.08 \times 62{,}912 = -5{,}033$ Pa: the port reads low.
-4. **The height it writes.** 84,842 Pa is 1,473 m (4,833 ft) in the standard atmosphere, so the
+1. **The air.** The standard atmosphere there has $p = 89{,}876$ Pa and density 1.112 kg/m³.
+2. **The dynamic pressure** at Mach 1 is $q = 0.7\,p\,M^2 = 62{,}913$ Pa.
+3. **The port error** is $C_p\,q = -0.08 \times 62{,}913 = -5{,}033$ Pa: the port reads low.
+4. **The height it writes.** 84,843 Pa is 1,473 m (4,833 ft) in the standard atmosphere, so the
    logger reads 473 m (1,552 ft) too high while the rocket is near Mach 1. Three calibers back
    the sign flips: $C_p = +0.03$ reads 1.9 kPa high, and the height low.
-5. **The noise beside it.** The correlated noise there is 0.5 m (1.6 ft), 5.45 Pa at the pad's
-   density on that site; the white noise 2.4 to 13 Pa. Near Mach 1 the port's error is about
-   900 times the noise, which is why a reading that leans on a barometer through Mach 1
-   must say so.
+5. **The noise beside it.** The correlated noise is 0.5 m (1.6 ft) at the pad, 6.01 Pa at
+   sea-level density; the white noise 2.4 to 13 Pa. Near Mach 1 the port's error is about 840
+   times the correlated noise and 390 to 2,100 times the white, which is why a reading that
+   leans on a barometer through Mach 1 must say so.
 
 ## Validation and limits
 
@@ -226,26 +240,31 @@ What the flights were checked against, and what they leave out.
 ### Checked against
 
 **Each noise term, on a truth built for it.** The tests build a truth that stands still, or climbs
-at a constant rate, with one term switched on, and hold the log to that term: the offset as the
+at a constant acceleration, with only the terms under test switched on, and hold the log to them: the offset as the
 residuals' mean, the drift as their slope, the spread to within five standard errors, the
 correlation at the logger's rate, the gain on a 2 km (6,562 ft) climb, the port's $C_p\,q$ at a
 measured point, the pulse at 0.15 s, the accelerometer's scale, bias, spread and clip, and the GNSS
-lag and dropouts. Each is checked again with the term changed, and must then fail. The
+lag and dropouts. Each drawn term is checked again changed, and must then fail; the fixed 3 m
+(9.8 ft) GNSS noise is held to its value. The
 [census](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md)
-counts each set's flights by design and logger, and the range of each input and outcome.
+counts each set's flights by design and logger, and the ranges of eight quantities: apogee, top
+Mach number and speed, flight time, wind, rail angle, site elevation and the air's offset.
 
-**What the census shows.** Every one of the 2,400 draws flew. Apogees above the pad run from 412
-to 4,810 m (1,352 to 15,781 ft), and top speeds from Mach 0.27 to 1.17. Values are kept to three
-significant figures, the digits every platform shares, and CI flies every flight again on macOS,
-Windows and Linux and holds the census to them.
+**What the census shows.** Every one of the 2,200 draws flew. Apogees above the pad run from 411
+to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to 1.18. Values are kept to
+three significant figures, the digits every platform shares, each range's ends rounded outward.
+CI flies every flight again on macOS, Windows and Linux and holds the census to them.
 
 ### What it leaves out
 
-- **Fast flights.** The ten designs top out at Mach 1.17, so the core band past that, to Mach
-  2.5, has no synthetic flight, nor does the extended band. A reading checked here is checked to
-  Mach 1.17.
-- **The bay's vent lag.** A bay's pressure lags the outside air through its vent holes; for any
-  maker's sizing rule it is under 3 cm (0.1 ft) at apogee ([the Mach error note][mach] §5).
+- **Fast flights.** The fastest of the 2,200 flights reaches Mach 1.18, so the core band past
+  that, to Mach 2.5, has no synthetic flight, nor does the extended band. A reading checked here
+  is checked to about Mach 1.18.
+- **The bay's vent lag.** A bay's pressure lags the outside air through its vent holes. In the
+  Mach error note's invented flight, three invented bays vented by the makers' rules moved the
+  apogee by at most 2.1 cm (0.07 ft), but lagged the height by 0.4 to 135 m (1.3 to 443 ft)
+  through Mach 0.9 to 1.07 ([the Mach error note][mach] §5, an inference; no hobby bay's lag has
+  been measured). Left out, the synthetic logs are cleaner in boost than a real one may be.
 - **A temperature term.** No source gives how far a bay's temperature changes in flight, so the
   sensor's temperature error isn't drawn.
 - **Clock drift.** The logger's clock is taken as exact.
@@ -265,13 +284,14 @@ The tests that pin the flights, and the sources they follow.
 ### Tests
 
 - `hpr_forensics::synthetic`: every draw inside its range and filling it, in every set; each
-  set on its own seed; a flight drawn again the same to the bit, whether flown alone or after
-  others that share its drag table.
-- `hpr_forensics::synthetic::noise`: the correlated noise's spread and correlation, at any
-  spacing; the port table at its measured points; the pulse's shape; the GNSS loop's steady
+  set on its own seed; one flight drawn again the same to the bit, whether flown alone or after
+  another that shares its drag table.
+- `hpr_forensics::synthetic::noise`: the correlated noise's spread and correlation, at 10, 50
+  and 100 Hz; the port table at its measured points; the pulse's shape; the GNSS loop's steady
   lag.
-- `hpr_forensics::synthetic::logger`: each pressure, acceleration and GNSS term held and
-  failing when changed; each profile's rate, step and channels; the height formulas.
+- `hpr_forensics::synthetic::logger`: each drawn pressure, acceleration and GNSS term held and
+  failing when changed, the correlation at 100 and 500 Hz, the GNSS noise's 3 m (9.8 ft); each
+  profile's rate, step and channels; the height formulas.
 - `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse.
 - `cargo xtask synthetic --check`, in CI on every platform: the census reproduced.
 

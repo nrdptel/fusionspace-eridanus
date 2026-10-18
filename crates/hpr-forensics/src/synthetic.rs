@@ -17,9 +17,9 @@
 //!
 //! **The sets.** [`Set::Tuning`], 200 flights, for anything fitted or tuned; [`Set::A`], 1,000
 //! flights of HPR Sim's model; [`Set::B`], 1,000 differing from it. Flight `k` of a set draws
-//! every input from its own stream, keyed by the set's seed, `k` and the input
-//! ([`SeededRng::for_stream`]), so a set's first flights don't change if it grows and no input
-//! moves when another is added.
+//! each group of inputs (its design, motor, drag, wind, rail, site, model and logger) from its
+//! own stream, keyed by the set's seed, `k` and the group ([`SeededRng::for_stream`]), so a set's
+//! first flights don't change if it grows, and an input added to one group moves no other group.
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
