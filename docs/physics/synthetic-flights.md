@@ -24,7 +24,7 @@ See how FusionSpace HPR makes the simulated flights, each with a known truth and
   holds it to its stated value on a truth built for the terms under test, and fails when it is
   changed. A flight drawn again is the same to the bit, on one platform. No test yet shows that the terms together look like a real log
   of the same family: [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks
-  that comparison.
+  that comparison ([evidence row G32](../evidence.md#g32)).
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, the logger's own
   speed column, and flights past Mach 1.18, the fastest of the 2,200
   ([What it leaves out](#what-it-leaves-out)).
@@ -182,7 +182,7 @@ high 0.1 s after it, and 3 m (9.8 ft) low from 0.25 s, then true again. The shap
 The logged acceleration is the truth's axial specific force times $1 + s$, plus a per-flight bias
 of up to 0.05 g and white noise, clipped at the part's range and rounded to its step. No source
 states a bias left after the pad's zero, so the 0.05 g is assumed ([the sensor noise note][noise],
-*What this suggests*):
+*What this suggests*; [evidence row G32](../evidence.md#g32)):
 
 | Part | Noise density | Step | Range | Scale $s$ |
 |---|---:|---:|---:|---:|
@@ -206,7 +206,7 @@ $$
 where $\omega_n$ is the loop's natural frequency, drawn from 0.25 to 1.0 rad/s, with damping
 $1/\sqrt{2}$. No receiver's loop has been measured against a truth: about 0.5 rad/s is inferred
 from one flyer's report of a 440 m (1,444 ft) lag ([the GNSS note][gnss] §3–4), and the damping
-is the usual choice for such a loop, assumed. At 0.5 rad/s, a
+is the usual choice for such a loop, assumed ([evidence row G32](../evidence.md#g32)). At 0.5 rad/s, a
 steady 50 m/s² would leave the fix 200 m (656 ft) behind; a 2 s boost ends long before the
 loop settles, so the lag peaks after burnout. Each axis has 3 m (9.8 ft) of white noise, a
 fixed value, assumed. No fix is written for 0 to 10 s from liftoff and from burnout, each drawn
