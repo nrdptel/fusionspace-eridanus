@@ -1995,7 +1995,9 @@
   // A monospace face's letters share one advance, so a matched fallback's line is as long as the
   // face's to well within FALLBACK_SHARE. Unscaled, the seven fonts theme/hpr.css scales are 2.4% to
   // 2.75% wider; Menlo at Courier New's scale is 0.3% wider, still caught (0.016% between Courier
-  // New's and Noto Sans Mono's scales is not, under a pixel on a 3,000 px line).
+  // New's and Noto Sans Mono's scales is not, under a pixel on a 3,000 px line). The line is set at
+  // 1000 px, so a browser that rounds each letter's advance to a whole pixel, as Chrome may on
+  // Linux, moves it by at most 0.09%, and the 0.3% is caught there too.
   // A page that declares no Cascadia Mono face, as most of the check's own canary pages, draws in
   // the system's fonts and has no fallback to hold.
   const FALLBACK_SHARE = 0.001;
@@ -2010,7 +2012,7 @@
         const span = doc.createElement('span');
         span.textContent = sample;
         span.style.cssText = 'position: absolute; left: 0; top: 0; visibility: hidden; '
-          + 'white-space: pre; letter-spacing: 0; font: ' + weight + " 100px '" + family
+          + 'white-space: pre; letter-spacing: 0; font: ' + weight + " 1000px '" + family
           + "', serif";
         doc.body.appendChild(span);
         const width = span.getBoundingClientRect().width;
