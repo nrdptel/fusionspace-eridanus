@@ -1,6 +1,6 @@
 # ADR-082: Real flights read from refs, compared over the ascent, with checked explanations (2026-09-26)
 
-- **Status:** accepted; amended 2026-10-18: Erebus 11 flies a commercial motor, and two logs have a second license
+- **Status:** accepted; amended 2026-10-18 (Erebus 11's motor; a second license for three logs)
 - **Summary:** Real flights read from refs, compared over the ascent, with checked explanations
 
 **Context.** M2.3b compares hpr with real flights: at least six in the report, each with its
@@ -113,17 +113,19 @@ proofs: the teams' drags and the reshape are estimates too. A log is a single fl
 sensor and filter; the numbers are those seven flights', not a bound. The report is not reproduced
 in CI, only held to itself there.
 
-**Amendment: Erebus 11's motor, and the Genesis and Lince logs' second license (2026-10-18).** §2
-listed Erebus 11 among the flights on a team's own motor. Its notebook in RocketPy's examples says
-"The rocket was equiped with a Cesaroni Motor Pro54, class K", and its thrust file
+**Amendment: Erebus 11's motor, and three logs' second license (2026-10-18).** §2 listed Erebus 11
+among the flights on a team's own motor. Its notebook in RocketPy's examples says "The rocket was
+equiped with a Cesaroni Motor Pro54, class K", and its thrust file
 (`data/rockets/erebus11/thrust_source.csv`, 113 points) integrates by the trapezoid rule to 2,418
 N·s over 3.657 s, against 2,437 N·s and 3.69 s for the Cesaroni 2437K660 on ThrustCurve.org, 0.8%
-and 0.9% apart. Of ThrustCurve's 32 Cesaroni 54 mm K motors, the 2398K590 is as close in impulse
-(0.9% below) but burns 11% longer, so the K660 is the match by impulse and burn time together (read
-2026-10-18). So it is a COTS flight, a K660, and waits with Astra and Andromeda on EuRoC 2022's
-netCDF-4 weather ([#478](https://github.com/nrdptel/fusionspace-eridanus/issues/478)); found by
+and 0.9% apart. Of ThrustCurve's 32 Cesaroni 54 mm K motors, the 2398K590 is nearly as close in
+impulse (0.9% below the thrust file's) but burns 11% longer than it, so the K660 is the match by
+impulse and burn time together (read 2026-10-18). So it is a COTS flight, most likely a K660, and
+waits with Astra and Andromeda on EuRoC 2022's netCDF-4 weather
+([#478](https://github.com/nrdptel/fusionspace-eridanus/issues/478)); recorded by
 [#477](https://github.com/nrdptel/fusionspace-eridanus/issues/477). The Genesis and Lince logs that
-§2 added are also published, byte for byte, under GPL-3.0 in RocketPy-Team's euroc23-team-data; HPR
-Sim reads RocketPy's MIT copy from `refs/` and commits only statistics and digests, as
-`THIRD-PARTY-NOTICES.md` now records. Nothing flown changes: Erebus 11 was not in the report and is
-not yet.
+§2 added are also published, byte for byte, under GPL-3.0 in RocketPy-Team's fork of CATS's
+euroc23-team-data, and Cavour's log holds the readings of a GPL-3.0 ground-station log there, its
+repeated rows dropped; HPR Sim reads RocketPy's MIT copies from `refs/` and commits only statistics
+and digests, as `THIRD-PARTY-NOTICES.md` now records. Nothing flown changes: Erebus 11 was not in
+the report and is not yet.
