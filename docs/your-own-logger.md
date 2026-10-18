@@ -187,10 +187,10 @@ flight.csv: read by the mapping flight.mapping.json
 readings from the logger's barometric altitude, sampled every 0.200 s in steps of 0.030 m, after a 0.40 s running median
 3 channels: Alt (altitude above ground), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-liftoff           1.20 s, within 1.04 s
-apogee            409.5 m (1344 ft) above the pad, within 33.0 m (108 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
+liftoff           1.20 s, within 1.05 s
+apogee            409.5 m (1344 ft) above the pad, within 33.1 m (109 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.23 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+landing           48.60 s, within 2.24 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
@@ -265,8 +265,8 @@ fip-below-no-header.xlsx: Featherweight Raven
 readings from the logger's barometric altitude, sampled every 0.200 s in steps of 0.337 m, after a 0.40 s running median
 6 channels: Axial Accel (Gs) (acceleration), bILBA (number), Baro (Atm) (pressure), bILBA (number), [Altitude (Baro-Ft-AGL)] (altitude above ground), bILBA (number)
 
-liftoff           1.40 s, within 1.09 s
-apogee            273.0 m (896 ft) above the pad, within 23.9 m (78 ft); at 9.90 s, within 1.03 s, 8.50 s after liftoff
+liftoff           1.40 s, within 1.10 s
+apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft); at 9.90 s, within 1.03 s, 8.50 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           37.40 s, within 1.46 s; 36.00 s after liftoff, within 2.55 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
@@ -322,14 +322,14 @@ and little-endian is the default
 ```text
 $ hpr analyze validation/fixtures/logs/own-logger/flight.bin --layout validation/fixtures/logs/own-logger/flight.layout.json
 flight.bin: read by the layout flight.layout.json
-no primary track: no barometric altitude above the pad
+no primary track: each channel on its own clock
 readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200 s in steps of 0.093 m, after a 0.40 s running median
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-liftoff           1.20 s, within 1.05 s
-apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
+liftoff           1.20 s, within 1.06 s
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.33 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
@@ -358,14 +358,14 @@ holds the same records, read by the same layout with one more field, the block's
 ```text
 $ hpr analyze validation/fixtures/logs/own-logger/flight-capture.txt --layout validation/fixtures/logs/own-logger/flight-capture.layout.json
 flight-capture.txt: read by the layout flight-capture.layout.json
-no primary track: no barometric altitude above the pad
+no primary track: each channel on its own clock
 readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200 s in steps of 0.093 m, after a 0.40 s running median
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
-liftoff           1.20 s, within 1.05 s
-apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 0.99 s, 9.40 s after liftoff
+liftoff           1.20 s, within 1.06 s
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.32 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.0 m/s (7 ft/s)
+landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.33 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
@@ -534,7 +534,7 @@ climb and overshoots its top, so no bound can be stated for it:
 ```text
 $ hpr analyze validation/fixtures/logs/own-logger/gps-track.csv --mapping validation/fixtures/logs/own-logger/gps-track.mapping.json
 gps-track.csv: read by the mapping gps-track.mapping.json
-no primary track: no barometric altitude above the pad
+no primary track: each channel on its own clock
 4 channels: Lat (latitude), Lon (longitude), GPS Alt (m) (GNSS altitude), Sats (number)
 
 liftoff           withheld: the log's only height is a GNSS receiver's, whose fix drops out or lags at liftoff

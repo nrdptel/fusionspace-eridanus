@@ -231,15 +231,15 @@ below is the one [`hpr analyze`](cli.md#hpr-analyze) prints for the same log.
 - **Apogee**, 390.1 m (1,280 ft) at 10.28 s, which is 10.275 s rounded: the top is flat over
   several samples, and the analyzer takes the middle. It is the top of the altitude after a 0.3 s
   [running median](glossary.md#running-median). It is 0.17 m (0.56 ft) below the true apogee, well
-  within its 31.8 m (104 ft) bound, most of which allows for the day's air.
+  within its 31.9 m (105 ft) bound, most of which allows for the day's air.
 - **The highest sample**, 400.5 m (1,314 ft), a second after apogee, is the ejection charge's
   pressure pulse, not the rocket. The median sets it aside.
-- **The top speed**, 78.3 m/s (257 ft/s) at 2.20 s, within 20.5 m/s (67 ft/s): worked out from
+- **The top speed**, 78.3 m/s (257 ft/s) at 2.20 s, within 20.6 m/s (68 ft/s): worked out from
   the heights, as the steepest slope of a 0.5 s fit, not read from the altimeter's speed column.
   The true speed at burnout is 80.0 m/s (262.5 ft/s); the fit across the corner at burnout reads it
   a little low.
 - **The top acceleration** is withheld: a PerfectFlite has no accelerometer.
-- **Landing**, 45.80 s, within 2.10 s: the first sample back within the pad's allowance. The
+- **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
   rocket touches down 0.34 s later, at 6 m/s (20 ft/s) under its main.
 - **The mean descent rate**, 10.9 m/s (36 ft/s), within 2.1 m/s (6.9 ft/s): the height lost from
   apogee to landing over the time taken, drogue and main together.

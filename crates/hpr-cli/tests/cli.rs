@@ -3891,7 +3891,7 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     );
     assert_eq!(document["landing"]["method"], "back_on_the_pad");
 
-    // The text says the same, in meters and feet, each reading with its bound.
+    // The text says the same, in meters and feet, each reading with its bound rounded up.
     let printed = run(false);
     for expected in [
         "flight.pf2: PerfectFlite Pnut, serial 0, flight 1",
@@ -3899,10 +3899,10 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "readings from the logger's barometric altitude, sampled every 0.050 s in steps of \
          0.305 m, after a 0.30 s running median",
         "liftoff           0.80 s, within 0.81 s",
-        "apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, \
-         within 0.87 s, 9.47 s after liftoff",
+        "apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, \
+         within 0.88 s, 9.47 s after liftoff",
         "set aside by the median",
-        "top speed         78.3 m/s (257 ft/s), within 20.5 m/s (67 ft/s), at 2.20 s",
+        "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s",
         "top acceleration  withheld: the log has no accelerometer",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
@@ -4136,7 +4136,7 @@ fn analyze_reads_an_own_loggers_files_by_their_mapping_or_layout() {
     ]);
     assert!(
         text.contains(
-            "no primary track: no barometric altitude above the pad\n4 channels: Lat \
+            "no primary track: each channel on its own clock\n4 channels: Lat \
              (latitude), Lon (longitude), GPS Alt (m) (GNSS altitude), Sats (number)\n"
         ),
         "{text}"
@@ -4510,6 +4510,18 @@ fn analyze_reads_the_public_pnut_log_as_it_states() {
     assert_eq!(document["liftoff"]["time_s"], 0.4);
     assert_eq!(feet(&document["max_speed"]["speed_m_s"]), 264.0);
     assert_eq!(document["landing"]["status"], "read");
+    // The bounds the readings page quotes, rounded up as the text prints them, and the pad a
+    // foot above the altimeter's zero.
+    let up = |value: &Value, places: i32| {
+        let scale = 10_f64.powi(places);
+        (value.as_f64().unwrap() * scale * (1.0 - 1e-9)).ceil() / scale
+    };
+    assert_eq!(up(&document["apogee"]["bound_m"], 1), 27.4);
+    assert_eq!(up(&document["max_speed"]["bound_m_s"], 1), 29.7);
+    assert_eq!(up(&document["liftoff"]["bound_s"], 2), 0.98);
+    assert_eq!(document["landing"]["time_s"], 72.7);
+    assert_eq!(up(&document["landing"]["bound_s"], 2), 3.25);
+    assert_eq!(feet(&document["method"]["pad_altitude_m"]), 1.0);
 
     // Debrief's Hampel filter, 0.3 s at threshold 4, keeps the pulse: its highest is the pulse's.
     let log = perfectflite::read(&std::fs::read_to_string(&path).unwrap()).unwrap();

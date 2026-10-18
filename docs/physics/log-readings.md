@@ -151,7 +151,7 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    the filtered track by at most the allowance, from below at the start or from above at the climb,
    so twice that is out of its reach.
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
-   before the climb: 2.30 m (7.5 ft) on a PerfectFlite. The median means that no one sample's jitter
+   before the climb: 2.30 m (7.6 ft) on a PerfectFlite. The median means that no one sample's jitter
    sets the pad, and the half rise means the climb lends it few samples.
 
 **The pad's error.** A log that starts just before liftoff holds little of the pad, and a rocket
@@ -173,7 +173,7 @@ certified average thrust, and Tripoli's allows less than 3:1 only with an active
 Thrust three times the weight leaves twice gravity to climb with. The tuning set's slowest rocket
 averages 30 m/s² over its first 5 m (16 ft).
 
-On the public Pnut log, for example, the filtered track stays within 2.30 m (7.5 ft) of its start
+On the public Pnut log, for example, the filtered track stays within 2.30 m (7.6 ft) of its start
 for 0.40 s. A rocket at $A = 19.6\,\mathrm{m/s^2}$ that climbed no more than the 4.61 m (15.1 ft) rise in
 that time was moving at no more than $(4.61 - 19.6 \times 0.40^2/2)/0.40$, or 7.60 m/s
 (24.9 ft/s), when the log started, so it can't have been more than $7.60^2/(2 \times 19.6)$, or
@@ -219,8 +219,8 @@ keep most of the peak. It needs at least 5 samples in the fit, so a log sampled 
 0.125 s has none (`sampled_too_slowly`). It is withheld at 227.7 m/s (747 ft/s) and above
 (`transonic`): Mach 0.8 in the coldest air the bounds allow below 20 km (12 mi), the standard
 atmosphere's 216.65 K less 15 K. From Mach 0.9 the
-pressure behind an ogive's shoulder jumps on its way to Mach 1.0 ([the Mach error note][mach] §1–2), and on the tuning
-set a speed derived there was off by up to 850 m/s (2,789 ft/s). Debrief's two refusals stay: a
+pressure behind an ogive's shoulder jumps on its way to Mach 1.0 ([the Mach error note][mach] §1–2),
+so a speed derived from the heights there can be far off. Debrief's two refusals stay: a
 speed above 4,000 m/s (13,123 ft/s) (`implausible_speed`), and a climb whose speed swings below
 zero by more than 20% of its top (`noisy_speed`).
 
@@ -299,7 +299,7 @@ The two tuned terms, the 3 m (9.8 ft) and the 5 m/s (16 ft/s), were set on the s
 The invented PerfectFlite log that the command line's own example reads
 ([`hpr analyze`](../cli.md#hpr-analyze) prints it) reads an apogee of 390.144 m (1,280 ft), 10.275 s into the
 log, on a track in one-foot steps sampled 20 times a second. Its filtered track stays within
-2.30 m (7.5 ft) of its start for 0.80 s, longer than the 0.69 s a rocket at rest would need to
+2.30 m (7.6 ft) of its start for 0.80 s, longer than the 0.69 s a rocket at rest would need to
 climb the 4.61 m (15.1 ft) rise at 2 g, so the pad's error is zero. The bound adds up so:
 
 | term | worked out | meters |
@@ -313,7 +313,7 @@ climb the 4.61 m (15.1 ft) rise at 2 g, so the pad's error is zero. The bound ad
 | the median's peak bound | | 0.08 |
 | the bound | | 31.83 |
 
-`hpr analyze` prints it as "within 31.8 m (104 ft)". The flight's true apogee is 390.31 m
+`hpr analyze` prints it rounded up, as it prints every bound: "within 31.9 m (105 ft)". The flight's true apogee is 390.31 m
 (1,280.5 ft), so the reading is 0.17 m (0.56 ft) low: about a two-hundredth of its bound, as it
 should be on a log written from the true heights with no noise. About 85% of the bound is the day's
 air, which a real log can't rule out.
@@ -331,10 +331,10 @@ range the bounds were checked over, or catches a track that isn't what it says:
   heights and an ARTS2's 92 Pa raw counts.
 - **Its clock increases** (`clock_out_of_order`). A reader keeps a channel's clock as the file
   writes it, which can repeat or run back, as a GNSS receiver's fixes or a team's merged table do.
-- **Its climb slows as a coast does.** A coast loses $g t^2/2$ in the last $t$ before its top, 78 m
-  (256 ft) in 4 s, gravity slowing it and drag only adding. A track must lose more than twice its
+- **Its climb slows as a coast does.** A coast loses $g t^2/2$ in the last $t$ before its top, 78.5 m
+  (257 ft) in 4 s, gravity slowing it and drag only adding. A track must lose more than twice its
   noise and step in the 4 s before its top, 6.6 m (22 ft) on a PerfectFlite, or it is withheld
-  (`slower_than_free_coast`). The threshold isn't a coast's 78 m (256 ft), since a flight whose motor burns
+  (`slower_than_free_coast`). The threshold isn't a coast's 78.5 m (257 ft), since a flight whose motor burns
   into those 4 s loses less.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
@@ -344,8 +344,8 @@ withheld; liftoff is still given.
 - **A fall before the top.** A coast doesn't fall and rise again. A track that falls more than
   twice its noise and step below a peak in the 4 s before its top, then climbs to that top, holds
   a top that a disturbance after apogee made, such as a deployment's pressure bump that lasts
-  longer than the 0.3 s median takes out. Sample logs showed such bumps holding a top 2 to 2.4 s
-  after apogee, which would have put the apogee's time past its bound.
+  longer than the 0.3 s median takes out. A top such a bump holds after apogee can put the
+  apogee's time past its bound.
 - **A spike at the top.** A coast slows into its top at gravity and drag, and near the top drag
   is smaller than gravity, so it climbs no more than $g \Delta^2$ in its last $\Delta$, as a body
   slowing at twice gravity would. And nothing falls from its top faster than gravity pulls it. A
@@ -356,7 +356,7 @@ withheld; liftoff is still given.
   median's window and twice the noise and step, then gravity's fall from there.
 
 On a PerfectFlite logging 20 times a second, twice the noise and step is 6.6 m (22 ft), so a coast
-climbs at most 16.4 m (54 ft) in its last second. In the tests, a step 20 m (66 ft) above a coast's
+climbs at most 16.5 m (54 ft) in its last second. In the tests, a step 20 m (66 ft) above a coast's
 top and 0.6 s wide falls 29.0 m (95 ft) from the filtered top in one sample, where a body at rest
 there falls at most 20.9 m (69 ft), so it is withheld.
 
@@ -387,7 +387,7 @@ That check closes the first half of
 mapped as one above the ground. Its second half, a clock in milliseconds read as seconds, is caught
 by the checks above: the samples come a thousand times too far apart, slower than every 2 s at any
 logger rate below 500 a second, and a track on such a clock loses less than a tenth of a millimeter
-in the 4 s before its top, where a coast loses 78 m (256 ft). A test holds both halves both ways: the wrong
+in the 4 s before its top, where a coast loses 78.5 m (257 ft). A test holds both halves both ways: the wrong
 unit withheld by name, the same flight in its right unit read.
 
 ### When a reading is withheld
@@ -460,7 +460,7 @@ and its JSON:
 The same report counts each reading withheld, by reason. At 20 samples a second and faster, the top
 speed is withheld as `transonic` on 117 or 118 of the 171 flights, and at 5 samples a second and
 slower as
-`sampled_too_slowly` on all of them. At half a sample a second, up to 14 flights end before their
+`sampled_too_slowly` on all of them but the one withheld whole below. At half a sample a second, up to 14 flights end before their
 landing is seen, and in 10 m (33 ft) steps one flight's track is withheld whole as
 `step_too_coarse`. Of the cuts, heights from 0.1 s after liftoff withhold liftoff as `short_pad` on
 36 flights, and heights from 0.5 s after on all 171, while each still gives its apogee within its
@@ -488,10 +488,10 @@ hold each within its stated bound, and within a tighter one worked out beside it
 | reading | true | HPR Sim reads | its bound | the test's tighter bound |
 |---|---|---|---:|---|
 | liftoff | 0.50 s | 0.80 s | 0.81 s | from 0.50 s to 0.814 s, once the rocket has climbed 2 m (6.6 ft), a foot and the half foot that rounds it up |
-| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 31.8 m (104 ft) | 0.23 m (0.75 ft): half a foot of rounding and the median's 0.077 m (0.25 ft) |
-| apogee time | 10.258 s | 10.275 s | 0.87 s | one sample, 0.05 s: the middle of the flat run at the top |
-| top speed | 80.0 m/s (262 ft/s) at 2.10 s | 78.3 m/s (257 ft/s) at 2.20 s | 20.5 m/s (67 ft/s) | no higher than the truth, and no lower by more than the fit's cut across burnout, 3.7 m/s (12 ft/s), and half a foot a second |
-| landing | 46.14 s, touchdown | 45.80 s | 2.10 s | up to 0.38 s early: 2 m (6.6 ft) at 6 m/s (20 ft/s) is 0.33 s, and a sample more |
+| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 31.9 m (105 ft) | 0.23 m (0.75 ft): half a foot of rounding and the median's 0.077 m (0.25 ft) |
+| apogee time | 10.258 s | 10.275 s | 0.88 s | one sample, 0.05 s: the middle of the flat run at the top |
+| top speed | 80.0 m/s (262 ft/s) at 2.10 s | 78.3 m/s (257 ft/s) at 2.20 s | 20.6 m/s (68 ft/s) | no higher than the truth, and no lower by more than the fit's cut across burnout, 3.7 m/s (12 ft/s), and half a foot a second |
+| landing | 46.14 s, touchdown | 45.80 s | 2.11 s | up to 0.38 s early: 2 m (6.6 ft) at 6 m/s (20 ft/s) is 0.33 s, and a sample more |
 | flight time | 45.64 s | 45.00 s | 2.91 s | follows from liftoff and landing |
 | mean descent rate | 10.93 m/s (35.9 ft/s) over HPR Sim's span, 10.275 s to 45.80 s | 10.92 m/s (35.8 ft/s) | 2.1 m/s (6.9 ft/s) | the two heights' bounds over the span |
 
@@ -506,13 +506,14 @@ aside; a test holds both.
 flight. Its terms upstream are unclear, so it isn't committed here, and CI doesn't have it. Where
 it has been fetched (`cargo xtask refs fetch`), a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs) reads it and
-holds the apogee above the altimeter's zero, the highest sample, the liftoff and the top speed:
+holds the apogee above the altimeter's zero, the highest sample, the pad, and each reading with
+its bound:
 
 | | the altimeter states | HPR Sim reads |
 |---|---|---|
 | apogee | 1,009 ft above the pad | 1,009 ft (307.5 m) above the pad, within 27.4 m (90 ft); 1,010 ft above the altimeter's zero, its pad a foot above it |
 | highest sample | | 1,028 ft above the zero, the ejection pulse, set aside |
-| top speed | | 264 ft/s (80.4 m/s), within 29.6 m/s (97 ft/s), derived from the heights |
+| top speed | | 264 ft/s (80.4 m/s), within 29.7 m/s (98 ft/s), derived from the heights |
 | liftoff | | 0.40 s, within 0.98 s |
 | landing | | 72.70 s, within 3.25 s |
 
@@ -535,7 +536,7 @@ after apogee, then at 300 m/s (984 ft/s) to the ground. These counts show what e
 right a reading is: none of the sample logs has a truth beside it.
 
 Three reasons stand out. The top speed is withheld as `transonic` on 206 records: many of these
-flights are fast. Liftoff is withheld as `short_pad` on 157, most of them from loggers whose files
+flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from loggers whose files
 start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
 apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
@@ -568,7 +569,7 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
   has fallen past its noise and step, can't be told from the top unless it is a spike, and its
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
   fast, is read as the top, since an early parachute and a charge make those shapes on a good
-  top: a spike that climbs in no faster than a coast, at most 16.4 m (54 ft) in its last second
+  top: a spike that climbs in no faster than a coast, at most 16.5 m (54 ft) in its last second
   at 20 samples a second, is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
   withholds a good apogee; how many of the sample logs' 76 such tops are good isn't measured
   ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The synthetic flights

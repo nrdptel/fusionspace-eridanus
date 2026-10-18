@@ -1643,10 +1643,10 @@ readings from the logger's barometric altitude, sampled every 0.050 s in steps o
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
 liftoff           0.80 s, within 0.81 s
-apogee            390.1 m (1280 ft) above the pad, within 31.8 m (104 ft); at 10.28 s, within 0.87 s, 9.47 s after liftoff
+apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, within 0.88 s, 9.47 s after liftoff
                   highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
-top speed         78.3 m/s (257 ft/s), within 20.5 m/s (67 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
-landing           45.80 s, within 2.10 s; 45.00 s after liftoff, within 2.91 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
+top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
+landing           45.80 s, within 2.11 s; 45.00 s after liftoff, within 2.91 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
@@ -1695,12 +1695,12 @@ second flight, made to peak at 548.0 m (1,798 ft) above the pad, and a note name
 ```text
 $ hpr analyze validation/fixtures/logs/several/two-flights.xlsx --sheet 2
 two-flights.xlsx: unknown
-no primary track: no barometric altitude above the pad
+no primary track: each channel on its own clock
 readings from the barometric altitude channel, sampled every 0.200 s in steps of 0.020 m, after a 0.40 s running median
 1 channel: Baro Alt AGL (m) (altitude above ground)
 
-liftoff           1.20 s, within 1.04 s
-apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.98 s, 11.90 s after liftoff
+liftoff           1.20 s, within 1.05 s
+apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           withheld: the log ends at 40.00 s, 280.8 m above the pad, before the altitude comes within 2.0 m of it and stays under 5.0 m for 1 s
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
@@ -1749,12 +1749,12 @@ line the Featherweight Interface Program writes for an export of the same channe
 channel's `Time@` clock, its value and its `bILBA` status cell. `pasted` lists the columns,
 counted from 1, that another table pasted over the export covers; leave it out when none are. A
 key the schema doesn't name is refused, naming it. For an invented export of three channels, the
-third's clock and value covered by a pasted table:
+first's clock and value covered by a pasted table, which leaves that channel out:
 
 ```json
 {
   "header": "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA,Time@Baro (Atm),Baro (Atm),bILBA,Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)],bILBA",
-  "pasted": [7, 8]
+  "pasted": [1, 2]
 }
 ```
 

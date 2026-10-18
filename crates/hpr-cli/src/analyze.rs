@@ -32,7 +32,7 @@ use crate::output::{
     MaxSpeedReading, ReadingMethod, ReadingProvenance, ReadingSource, WithheldReading,
     WithheldReason,
 };
-use crate::units::{gravities, meters, speed};
+use crate::units::{gravities, meters, meters_bound, seconds_bound, speed, speed_bound};
 use crate::{Failure, Out};
 
 /// The column mapping's schema, as the help lines name it.
@@ -445,7 +445,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     let mut lines = vec![format!("{name}: {}", about.join(", "))];
     let method = &document.method;
     lines.push(if log.samples == 0 {
-        "no primary track: no barometric altitude above the pad".to_owned()
+        "no primary track: each channel on its own clock".to_owned()
     } else {
         format!(
             "{} samples, from {:.2} s to {:.2} s",
@@ -525,7 +525,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
 }
 
 /// The rows of liftoff, apogee, the top speed and landing, each with the bound its error stays
-/// within.
+/// within, rounded up.
 fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec<String> {
     let method = &document.method;
     let withheld = |reading: &WithheldReading| format!("withheld: {}", reading.detail);
@@ -533,7 +533,11 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         "liftoff",
         match &document.liftoff {
             LogReading::Read(liftoff) => {
-                format!("{:.2} s, within {:.2} s", liftoff.time_s, liftoff.bound_s)
+                format!(
+                    "{:.2} s, within {} s",
+                    liftoff.time_s,
+                    seconds_bound(liftoff.bound_s)
+                )
             }
             LogReading::Withheld(reading) => withheld(reading),
         },
@@ -541,11 +545,11 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
     match &document.apogee {
         LogReading::Read(apogee) => {
             let mut value = format!(
-                "{} above the pad, within {}; at {:.2} s, within {:.2} s",
+                "{} above the pad, within {}; at {:.2} s, within {} s",
                 meters(apogee.height_m),
-                meters(apogee.bound_m),
+                meters_bound(apogee.bound_m),
                 apogee.time_s,
-                apogee.time_bound_s,
+                seconds_bound(apogee.time_bound_s),
             );
             if let Some(after) = apogee.time_after_liftoff_s {
                 value.push_str(&format!(", {after:.2} s after liftoff"));
@@ -582,7 +586,7 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             LogReading::Read(top) => format!(
                 "{}, within {}, at {:.2} s, {} up: derived from the heights",
                 speed(top.speed_m_s),
-                speed(top.bound_m_s),
+                speed_bound(top.bound_m_s),
                 top.time_s,
                 meters(top.height_m)
             ),
@@ -593,19 +597,24 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         "landing",
         match &document.landing {
             LogReading::Read(landing) => {
-                let mut value = format!("{:.2} s, within {:.2} s", landing.time_s, landing.bound_s);
+                let mut value = format!(
+                    "{:.2} s, within {} s",
+                    landing.time_s,
+                    seconds_bound(landing.bound_s)
+                );
                 if let (Some(flight), Some(bound)) =
                     (landing.flight_time_s, landing.flight_time_bound_s)
                 {
                     value.push_str(&format!(
-                        "; {flight:.2} s after liftoff, within {bound:.2} s"
+                        "; {flight:.2} s after liftoff, within {} s",
+                        seconds_bound(bound)
                     ));
                 }
                 value.push_str(&format!(
                     "; {:.2} s from apogee, at {} on average, within {}",
                     landing.descent_time_s,
                     speed(landing.mean_descent_rate_m_s),
-                    speed(landing.mean_descent_rate_bound_m_s)
+                    speed_bound(landing.mean_descent_rate_bound_m_s)
                 ));
                 value
             }

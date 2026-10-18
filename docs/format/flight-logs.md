@@ -2253,7 +2253,8 @@ sample logs:
   in two other sample files are read by
   [the packets' reader](#one-teams-radio-telemetry-packets), not this one.
 
-The readings come from these layouts' barometric altitude, as from every logger's
+Where one of these layouts holds a barometric altitude or a pressure, the readings come from it,
+as from every logger's; a file with neither gives none
 ([Flight-log readings](../physics/log-readings.md)).
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too

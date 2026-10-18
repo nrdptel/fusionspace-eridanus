@@ -47,7 +47,7 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    Further off, it is withheld (`starts_off_the_pad`), as an altitude above sea level mapped as one
    above the ground reads. The hour is HPR Sim's choice.
 4. **A top that is a coast's.** Three checks, each tested both ways.
-   - *The clock (#646).* A coast loses `g t²/2` in the last `t` before its top, 78 m in 4 s. A track
+   - *The clock (#646).* A coast loses `g t²/2` in the last `t` before its top, 78.5 m in 4 s. A track
      that loses no more than twice its noise and step is on a clock in another unit, such as
      milliseconds read as seconds, or isn't a height (`slower_than_free_coast`).
    - *A fall and a climb back.* A track that falls more than twice its noise and step below a peak in
@@ -80,7 +80,8 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
    `validation/fixtures/logs/readings/`. The survey reads each invented sample and fails unless it
    withholds a reading for its reason. Five stand in today: `bad_record`, `faster_than_free_fall`,
    `sampled_too_fast`, `starts_off_the_pad` and `step_too_coarse`.
-8. **Every surface.** `hpr analyze` reads every family with no design file, and Python's
+8. **Every surface.** `hpr analyze` reads every family with no design file, by its own reader or
+   by the mapping, layout or FIP header the family needs, and Python's
    `FlightLog.read` and `FlightLog.readings()` read the same files into the same readings. Three
    kinds of file hold more than one record, and until now only the survey read them: a workbook
    of several sheets, an Entacore AIM raw dump of several recordings, and a Raven FIP export
@@ -103,7 +104,7 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
 | No pad error in the bounds | apogees on the logs cropped to start after liftoff fell outside their bounds |
 | The coast check at its physical `g t²/2` | refused up to 29 of 171 genuine tuning flights on one kind of log |
 | A fast climb into the top alone | withheld 93 corpus tops, many falling only 1 to 8 m in the next second, as an early parachute does |
-| A fast fall from the top alone | 26 of its 75 corpus tops climbed in at a coast's rate: a charge's spike down after a true top |
+| A fast fall from the top alone | of the 75 corpus tops it withheld, 26 climbed in at a coast's rate: a charge's spike down after a true top |
 
 **Consequences.**
 
@@ -112,7 +113,7 @@ barometer, and a log that starts at launch, as many loggers write them, has no p
   the import's raw peak took, is removed by the median. The Blue Raven breakup log is withheld by the
   spike check. Synthetic logs of both shapes are committed tests, because neither log can be.
 - A spike that climbs into the top no faster than a coast can, at most `g Δ²` plus twice the noise
-  and step in its last second (16.4 m at 20 Hz on a PerfectFlite), is still read as the top, however
+  and step in its last second (16.5 m at 20 Hz on a PerfectFlite), is still read as the top, however
   high it stands: the check is one-sided by design. No synthetic flight carries a charge's transient, so the bounds
   were never held against one ([#761][i761]).
 - Some tops withheld as `disturbed_top` are the vehicle's own: a pressure dip in the coast's last

@@ -44,7 +44,7 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   rail (#242). Recovery omits canopy overshoot, opening-load factor, added mass and airframe drag;
   attitude freezes at deployment, streamer pleats unmodeled (+58% on Kidwell's), tumble reads +19%.
 - Log readings (M7.2b, ADR-281): bounds held only on the six synthetic logger profiles, none with a
-  charge's transient; a spike rising no faster than a coast (16.4 m in its last second at 20 Hz)
+  charge's transient; a spike rising no faster than a coast (16.5 m in its last second at 20 Hz)
   reads as the top (#761); some `disturbed_top` withholdings are true tops (#762); no reading from GNSS.
 - Reports pinned to six decimals or 1e-7 relative; no oracle runs in CI.
 - Export: State's Category IV rewrite (RIN 1400-AE73, interim final rule listed for 2026-09) may
