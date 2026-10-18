@@ -1,7 +1,7 @@
 # ADR-212: Measure against OpenRocket's newest release, not only 24.12 (2026-10-08)
 
-- **Status:** accepted; tightens [ADR-209, the best on the market, measured][adr-209] §7 and M10.3; adds M2.3c3
-- **Summary:** OpenRocket's development branch has merged changes since 24.12 that move its apogees: body-in-fin interference, a powered base-drag correction and thrust corrected for air pressure. Release 0.3's target, a held-out mean absolute apogee error below OpenRocket's, would be judged against a version flyers are about to leave. So the comparison follows OpenRocket's releases. A new milestone, M2.3c3, flies the private collection and the public comparison sets on OpenRocket's newest release after 24.12 beside 24.12, on the flights both fly, by the same scripts, each version named. Release 0.3 (M10.3) then needs HPR Sim's held-out error below 24.12's and below that of any OpenRocket release published before M2.7 is met, on the held-out flights all fly; with none, 24.12's alone, so no release waits for OpenRocket's. Nothing is built from OpenRocket's source.
+- **Status:** accepted; tightens [ADR-209, the best on the market, measured][adr-209] §7 and M10.3; adds M2.3c3; context corrected 2026-10-18: the powered base-drag and thrust-at-altitude corrections are off by default ([#624](https://github.com/nrdptel/fusionspace-eridanus/issues/624))
+- **Summary:** OpenRocket's development branch has merged changes since 24.12 that can move its apogees, body-in-fin interference among them. Two others, a powered base-drag correction and thrust corrected for air pressure, apply only when a nozzle exit diameter is entered, and the default, 0, applies neither. Release 0.3's target, a held-out mean absolute apogee error below OpenRocket's, would be judged against a version flyers are about to leave. So the comparison follows OpenRocket's releases. A new milestone, M2.3c3, flies the private collection and the public comparison sets on OpenRocket's newest release after 24.12 beside 24.12, on the flights both fly, by the same scripts, each version named. Release 0.3 (M10.3) then needs HPR Sim's held-out error below 24.12's and below that of any OpenRocket release published before M2.7 is met, on the held-out flights all fly; with none, 24.12's alone, so no release waits for OpenRocket's. Nothing is built from OpenRocket's source.
 
 [adr-143]: 0143-the-operating-envelope-and-a-stop-rule-for.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
@@ -14,9 +14,23 @@ pull-request titles and descriptions (never its source, which is GPL): since 24.
 branch (`unstable`) has merged body-in-fin interference in the normal-force slope, then the full
 NACA 1307 model (pull requests #3220, 2026-08-10, and #3263, 2026-09-09); a powered base-drag
 correction citing NACA RM L50I18 (#3244, 2026-08-25); thrust corrected for the air's pressure
-(#3327, 2026-09-23). Each moves its apogees; a supersonic center-of-pressure fix for
-low-aspect-ratio fins (#3279) was closed without merging. Its forum calls the coming release
-"26.xx"; no snapshot jar is published (its downloads page offers 24.12 only, read on 2026-10-08).
+(#3327, 2026-09-23). The interference changes can move its apogees: with the first of them a test's
+time to apogee fell from 3.62 s to 3.35 s (#3233, which restored #3220), and their size on a
+collection is not yet flown. The other two apply only when a nozzle exit diameter is entered in the
+motor chooser, and the default, 0, applies neither: "If this equals 0 (default value), powered base
+drag correction is not applied" (a comment by the author of OpenRocket's #3244, 2026-08-25); "if the
+nozzle exit area is 0 there is no correction" (the description of OpenRocket's #3327, whose exit
+area comes from that diameter). Both are absent from 24.12, the release the comparisons run, so they
+move nothing there; on a newer release they move an apogee only where a design file or a comparison
+script sets an exit diameter (corrected 2026-10-18,
+[#624](https://github.com/nrdptel/fusionspace-eridanus/issues/624)). [What OpenRocket changed after
+24.12](../research/openrocket-after-24-12.md), read on 2026-10-16, says so in its §2, and its §8
+lists 12 more merged changes that this list left out and that may move an apogee, among them its
+pull requests for the tangent-ogive zero (#2999), body friction (#3237) and the tumble rules (#3190,
+#3382). A supersonic center-of-pressure fix for low-aspect-ratio fins (#3279) was closed without
+merging. Its forum calls the coming release "26.xx"; no snapshot jar was published on 2026-10-08
+(its downloads page offered 24.12 only), though the note's §1 finds Linux development builds on the
+snap store dated 2026-10-07 and 2026-10-08.
 
 Today's gap on the private collection is HPR Sim's 13.96% mean absolute error against
 OpenRocket 24.12's 13.08%, 0.88 points worse, on 55 flights (M2.3c1, ADR-184). A target met
