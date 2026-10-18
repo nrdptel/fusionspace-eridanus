@@ -1504,7 +1504,7 @@ fn landing(
         )
         .max(apex.index);
     let rate = (filtered[back] - filtered[index] - margin_m) / (time[index] - time[back]);
-    if !(rate > 0.0) {
+    if rate.is_nan() || rate <= 0.0 {
         return Reading::withheld(
             Reason::NoClimb,
             format!(

@@ -144,7 +144,7 @@ pub fn name(recording: &Recording) -> String {
         )
     };
     let written = match recording.written {
-        Written::Altitude { step_m } if step_m == 0.0 => "altitude, no step".to_owned(),
+        Written::Altitude { step_m: 0.0 } => "altitude, no step".to_owned(),
         Written::Altitude { step_m } => format!("altitude in {step_m} m steps"),
         Written::Pressure { step_pa } => format!("pressure in {step_pa} Pa steps and altitude"),
         Written::PressureAlone { step_pa } => format!("pressure alone in {step_pa} Pa steps"),
@@ -356,9 +356,13 @@ impl Tally {
     }
 }
 
+/// A flight's outcomes: its index in its set, and each of its logs, named, with each quantity's
+/// outcome.
+pub type FlightOutcomes = (u64, Vec<(String, Vec<(Quantity, Outcome)>)>);
+
 /// The tallies of every flight's outcomes: `outcomes[k]` holds flight `flights[k]`'s logs, each
 /// named, with their outcomes. In the order logs are first met, then [`Quantity::ALL`]'s.
-pub fn tally(flights: &[(u64, Vec<(String, Vec<(Quantity, Outcome)>)>)]) -> Vec<Tally> {
+pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
     let mut order: Vec<String> = Vec::new();
     let mut tallies: BTreeMap<(String, Quantity), Tally> = BTreeMap::new();
     for (flight, logs) in flights {
