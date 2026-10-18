@@ -6,6 +6,8 @@
 #
 # On Linux the program is linked for the glibc floor in scripts/release/linux.sh (2.17), through
 # cargo-zigbuild and Zig, which uv fetches at their pinned versions; elsewhere cargo builds it.
+# On Windows the C runtime is linked in (`+crt-static`), so the program runs without the Visual C++
+# Redistributable; scripts/release/smoke-cli.sh checks its imports.
 #
 # Usage: scripts/release/archive.sh <output folder>
 
@@ -20,6 +22,20 @@ target="$(rustc -vV | sed -n 's/^host: //p')"
 name="fusionspace-hpr-$version-$target"
 exe=""
 case "$target" in *windows*) exe=".exe" ;; esac
+
+case "$target" in
+  *-windows-msvc)
+    # Release 0.1.0's hpr.exe imported VCRUNTIME140.dll, which a clean Windows may lack. Set for
+    # this target only, as cargo reads `target.<triple>.rustflags`, so no other build changes. A
+    # RUSTFLAGS in the environment would replace it, so one stops the build instead.
+    if [ -n "${RUSTFLAGS:-}${CARGO_ENCODED_RUSTFLAGS:-}" ]; then
+      echo "archive.sh: RUSTFLAGS would drop the static C runtime on $target; unset it" >&2
+      exit 1
+    fi
+    triple="$(printf '%s' "$target" | tr 'a-z-' 'A-Z_')"
+    export "CARGO_TARGET_${triple}_RUSTFLAGS=-C target-feature=+crt-static"
+    ;;
+esac
 
 case "$target" in
   *-linux-gnu)

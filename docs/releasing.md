@@ -100,6 +100,14 @@ of the repository that provides the example design:
   It must carry the four license files, the texts naming `pyo3`, the crate that binds Rust to
   Python, and the release's version, and the first example on the
   [Python](python.md) page must reach 1118.3 m (3669 ft), within a meter, as that page prints.
+- **The Windows archive's `hpr.exe`** must need no Visual C++ runtime, which a clean Windows may
+  lack: `scripts/release/check_windows_runtime.py` reads the program's import tables and fails
+  if one names `VCRUNTIME140.dll` or another DLL that only the Visual C++ Redistributable
+  installs. `scripts/release/archive.sh` links the C runtime into the Windows program
+  (`-C target-feature=+crt-static`, for the Windows targets only) from release 0.2; release
+  0.1.0's `hpr.exe` imported `VCRUNTIME140.dll`, and the check fails on it. The wheels keep the
+  C runtime as a DLL: every CPython for Windows installs `vcruntime140.dll` beside `python.exe`,
+  which has loaded it before the module.
 - **The Linux archive and wheel** are then checked against the glibc floor twice.
   `scripts/release/check-glibc.sh` reads each program and library in them with `objdump` and
   fails if one asks for a glibc function newer than 2.17, or if the wheel's name lacks the

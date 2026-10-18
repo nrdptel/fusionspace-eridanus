@@ -955,4 +955,158 @@ end
         let workflow = fs::read_to_string(root.join(".github/workflows/release.yml")).unwrap();
         assert!(workflow.contains("gh release create \"v$version\""));
     }
+
+    /// A minimal PE32+ file whose import table names `imports` and whose delay-load table names
+    /// `delayed`: the headers, one section at RVA 0x1000 (file offset 0x200), and in it the import
+    /// descriptors (20 bytes each, the name's RVA at +12), the delay-load descriptors (32 bytes,
+    /// attribute 1 for RVAs, the name's RVA at +4), each list ended by a zero descriptor, then the
+    /// names. That is the layout Microsoft's PE format page gives, and all the checker reads.
+    fn pe_importing(imports: &[&str], delayed: &[&str]) -> Vec<u8> {
+        fn put(file: &mut [u8], at: usize, bytes: &[u8]) {
+            file[at..at + bytes.len()].copy_from_slice(bytes);
+        }
+        const SECTION_RVA: usize = 0x1000;
+        const RAW: usize = 0x200;
+        let delay_at = (imports.len() + 1) * 20;
+        let mut names_at = delay_at + (delayed.len() + 1) * 32;
+        let mut section = vec![0u8; names_at];
+        for (i, name) in imports.iter().chain(delayed).enumerate() {
+            let rva = u32::try_from(SECTION_RVA + names_at).unwrap().to_le_bytes();
+            if i < imports.len() {
+                put(&mut section, i * 20 + 12, &rva);
+            } else {
+                let at = delay_at + (i - imports.len()) * 32;
+                put(&mut section, at, &1u32.to_le_bytes());
+                put(&mut section, at + 4, &rva);
+            }
+            section.extend_from_slice(name.as_bytes());
+            section.push(0);
+            names_at = section.len();
+        }
+        let size = u32::try_from(section.len()).unwrap();
+        let mut file = vec![0u8; RAW];
+        put(&mut file, 0, b"MZ");
+        put(&mut file, 0x3c, &0x40u32.to_le_bytes());
+        put(&mut file, 0x40, b"PE\0\0");
+        put(&mut file, 0x44, &0x8664u16.to_le_bytes()); // x86-64
+        put(&mut file, 0x46, &1u16.to_le_bytes()); // one section
+        put(&mut file, 0x54, &240u16.to_le_bytes()); // PE32+ optional header's size
+        let optional = 0x58;
+        put(&mut file, optional, &0x20bu16.to_le_bytes()); // PE32+
+        put(&mut file, optional + 24, &0x1_4000_0000u64.to_le_bytes()); // image base
+        put(&mut file, optional + 108, &16u32.to_le_bytes()); // data directories
+        let directory = |index: usize| optional + 112 + 8 * index;
+        let rva = u32::try_from(SECTION_RVA).unwrap();
+        put(&mut file, directory(1), &rva.to_le_bytes()); // imports
+        put(
+            &mut file,
+            directory(1) + 4,
+            &(u32::try_from(delay_at).unwrap()).to_le_bytes(),
+        );
+        if !delayed.is_empty() {
+            let delay_rva = u32::try_from(SECTION_RVA + delay_at).unwrap();
+            put(&mut file, directory(13), &delay_rva.to_le_bytes()); // delay-load imports
+            put(&mut file, directory(13) + 4, &32u32.to_le_bytes());
+        }
+        let header = optional + 240;
+        put(&mut file, header, b".idata\0\0");
+        put(&mut file, header + 8, &size.to_le_bytes());
+        put(&mut file, header + 12, &rva.to_le_bytes());
+        put(&mut file, header + 16, &size.to_le_bytes());
+        put(
+            &mut file,
+            header + 20,
+            &u32::try_from(RAW).unwrap().to_le_bytes(),
+        );
+        file.extend_from_slice(&section);
+        file
+    }
+
+    /// Runs scripts/release/check_windows_runtime.py on `bytes` written to a file.
+    fn windows_runtime(bytes: &[u8]) -> (bool, String) {
+        let dir = tempfile::tempdir().unwrap();
+        let exe = dir.path().join("hpr.exe");
+        fs::write(&exe, bytes).unwrap();
+        let output = python()
+            .arg(root().join("scripts/release/check_windows_runtime.py"))
+            .arg(&exe)
+            .output()
+            .unwrap();
+        let said = String::from_utf8_lossy(&output.stdout).into_owned()
+            + &String::from_utf8_lossy(&output.stderr);
+        (output.status.success(), said)
+    }
+
+    /// The Windows program must not need the Visual C++ runtime, which a clean Windows may lack:
+    /// release 0.1.0's `hpr.exe` imported VCRUNTIME140.dll. The check fails on that import,
+    /// whether linked or delay-loaded and in any case, and on the C++ runtime's MSVCP140.dll, and
+    /// passes the Universal C Runtime's api-ms-win-crt-* names, which Windows 10 and later carry.
+    #[test]
+    fn the_windows_runtime_check_refuses_the_visual_cpp_runtime() {
+        let (passed, said) = windows_runtime(&pe_importing(
+            &[
+                "KERNEL32.dll",
+                "api-ms-win-crt-runtime-l1-1-0.dll",
+                "bcrypt.dll",
+            ],
+            &[],
+        ));
+        assert!(passed, "{said}");
+        assert!(said.contains("api-ms-win-crt-runtime-l1-1-0.dll"), "{said}");
+        for (imports, delayed, named) in [
+            (
+                &["KERNEL32.dll", "VCRUNTIME140.dll"][..],
+                &[][..],
+                "VCRUNTIME140.dll",
+            ),
+            (
+                &["KERNEL32.dll", "vcruntime140.dll"][..],
+                &[][..],
+                "vcruntime140.dll",
+            ),
+            (
+                &["KERNEL32.dll"][..],
+                &["VCRUNTIME140_1.dll"][..],
+                "VCRUNTIME140_1.dll",
+            ),
+            (
+                &["KERNEL32.dll", "MSVCP140.dll"][..],
+                &[][..],
+                "MSVCP140.dll",
+            ),
+        ] {
+            let (passed, said) = windows_runtime(&pe_importing(imports, delayed));
+            assert!(!passed, "{named} was taken: {said}");
+            assert!(said.contains(&format!("needs {named}")), "{said}");
+        }
+    }
+
+    /// A file the check can't read, or one it reads no imports from, fails rather than passing
+    /// with nothing checked.
+    #[test]
+    fn the_windows_runtime_check_fails_closed() {
+        let (passed, said) = windows_runtime(b"#!/bin/sh\necho not a Windows program\n");
+        assert!(!passed && said.contains("not a Windows program"), "{said}");
+        let (passed, said) = windows_runtime(&pe_importing(&[], &[]));
+        assert!(!passed && said.contains("no imports"), "{said}");
+        let mut cut = pe_importing(&["KERNEL32.dll"], &[]);
+        cut.truncate(0x210);
+        let (passed, said) = windows_runtime(&cut);
+        assert!(!passed && said.contains("not a Windows program"), "{said}");
+    }
+
+    /// The release builds the Windows program with the C runtime linked in, for the Windows
+    /// targets only, and its smoke test runs the import check on every `.exe`.
+    #[test]
+    fn the_windows_archives_link_the_c_runtime_statically() {
+        let root = root();
+        let packer = fs::read_to_string(root.join("scripts/release/archive.sh")).unwrap();
+        assert!(
+            packer.contains("*-windows-msvc)")
+                && packer.contains("_RUSTFLAGS=-C target-feature=+crt-static\""),
+            "archive.sh no longer links the C runtime statically on Windows"
+        );
+        let smoke = fs::read_to_string(root.join("scripts/release/smoke-cli.sh")).unwrap();
+        assert!(smoke.contains("scripts/release/check_windows_runtime.py \"$hpr\""));
+    }
 }
