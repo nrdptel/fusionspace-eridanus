@@ -88,7 +88,8 @@ checked on them.
      differently; the wind a power law of height with exponent 0.14–0.20 and the drawn speed at
      18.3 m (NASA/TM-2008-215633 §2.2.5.2, as `PowerLawWind` cites); the thrust tilted by a factor
      1 + τ·(2*t*/*t*_b − 1), τ in −0.3–0.3, then rescaled to the same impulse.
-   - **The truth** is HPR Sim's flight to the ground: the center of mass's height above the pad,
+   - **The truth** is HPR Sim's flight to the ground: the center of mass's height above the ground
+     (a reading's truth taken from where it stood at liftoff),
      its vertical speed, the specific force along the rocket's axis, its position and Mach number,
      every 0.01 s, and its events. Under a canopy the rocket is taken to hang along the vertical.
 3. **M7.2a's loggers.** A flight draws one of six profiles, each like a family the readers read,
@@ -125,6 +126,13 @@ checked on them.
    synthetic flights ADR-257 §1 also asks for. A synthetic log is an `hpr_flightdata` record
    tagged with the format of the family its profile mimics, its logger named as synthetic, so
    that a reading checked on it is checked on that family's rate, step and record.
+
+**The roadmap's wording.** M7.2's bullets in the roadmap give way to the increments that carry
+them: the readings with their provenance (measured, derived or clipped) to M7.2b and M7.2c; the
+smoother, its liftoff detection and time alignment to M7.2d; two recordings never averaged, and
+per-stage logs, to M7.2f; the ghost product to M7.2g. Phase 5's opening now names
+`hpr-forensics` as the synthetic flights' home beside M7.3 and M7.4, and keeps ADR-046's rule
+that the readings need no design file or simulator.
 
 **Consequences.** Every later increment is checked on flights fixed now, before anything is
 tuned, so no check can be fitted to the flights it is judged on. The readings reach every logger
