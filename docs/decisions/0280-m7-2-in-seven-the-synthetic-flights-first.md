@@ -105,15 +105,23 @@ checked on them.
    | 500 Hz IMU | 500 Hz | Bosch BMP class | pressure, 2 × 10⁻⁵ atm steps | low-g, clipping at ±32 g | none |
    | GNSS tracker | 1, 5 or 10 Hz | none | GNSS position and altitude | none | yes |
 
-   - **Pressure:** the truth's pressure plus a per-flight offset, a drift, correlated noise and
-     the port's transonic error, rounded to the logged step. The noise is an AR(1) process,
-     σ = 0.5 m at 50 Hz with φ = 0.5 for the measured model, and at least the datasheet's white
-     noise otherwise; white noise alone flatters a 90% interval ([smoothing methods][smoothing]
-     §6). The port sits 1–5 calibers behind the nose's shoulder and reads Cp·q off true by the
+   - **Pressure:** the truth's pressure plus a per-flight offset, a gain on the change from the
+     pad, a drift, fast and slow correlated noise, each part's white noise and the port's
+     transonic error, rounded to the logged step. The fast noise is an AR(1) process, σ = 0.5 m
+     at 50 Hz with φ = 0.5, on every barometer; the slow one a first-order Gauss–Markov term of
+     σ 0.24–0.29 m and τ 0.65–1.26 s, measured on a BMP085 at rest ([sensor noise][noise] §3),
+     which a reading averaged over a second keeps. White noise alone flatters a 90% interval
+     ([smoothing methods][smoothing] §6). The pad's zero takes the offset out of the heights, so
+     the error left after it is the gain and the drift: an MS5607's ±1.0 mbar after the zero,
+     over the 400 mbar its datasheet states it on, is read as a gain of ±0.25% (an inference),
+     PerfectFlite's stated ±0.1% of the height as a gain of 0.1%, and a Bosch-class part's
+     relative accuracy as ±0.08% ([sensor noise][noise] §1–2). The port sits 1–5 calibers behind the nose's shoulder and reads Cp·q off true by the
      ogive-cylinder's measured Cp against Mach number ([Mach error][mach] §1–2). Each charge
      punches a pulse of the shape on the public Pnut log, scaled by 0–2.
    - **Acceleration:** the truth's axial specific force times 1 + *s*, plus a per-flight bias
-     and white noise, clipped at the part's range and rounded to its step.
+     and white noise, clipped at the part's range and rounded to its step. The noise is the
+     part's density over its bandwidth, half the rate it is sampled at while climbing, kept
+     after apogee when a logger writes fewer samples.
    - **GNSS:** the truth's position through a second-order lag of natural frequency 0.25–1.0
      rad/s (about 0.5 rad/s, inferred from one flyer's reported lag), 3 m of noise, and a dropout
      of 0–10 s from liftoff and from burnout, the fix flagged valid throughout ([GNSS in boost][gnss] §3–4).
@@ -125,7 +133,10 @@ checked on them.
    log and the simulator ([ADR-046][adr-046]); it serves [M7.3][m7-3]'s fits next, whose
    synthetic flights ADR-257 §1 also asks for. A synthetic log is an `hpr_flightdata` record
    tagged with the format of the family its profile mimics, its logger named as synthetic, so
-   that a reading checked on it is checked on that family's rate, step and record.
+   that a reading checked on it is checked on that family's rate, step and record. The crate is
+   published, and a published crate can't read files outside its own folder, so the ten design
+   files are handed to it by whoever flies the flights: `cargo xtask synthetic` reads them from
+   `validation/designs/`.
 
 **The roadmap's wording.** M7.2's bullets in the roadmap give way to the increments that carry
 them: the readings with their provenance (measured, derived or clipped) to M7.2b and M7.2c; the

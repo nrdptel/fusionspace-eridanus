@@ -24,7 +24,8 @@ it withholds one instead of guessing.
   private collection of logs Debrief was built on is read by the importer
   ([M7.1a](../decisions-and-roadmap.md#m7-1a), [the layouts read](../format/flight-logs.md)), but
   the readings aren't yet checked against it: that is [M7.2](../decisions-and-roadmap.md#m7-2)'s
-  work.
+  work, on [the synthetic flights](synthetic-flights.md), whose truth is known, and then on real
+  logs.
 - **What it leaves out:** the drogue and main descent rates each on its own, Mach number,
   dynamic pressure, burnout, and anything an accelerometer or GPS would give. It takes the
   logger's altitude as the logger converted it, with no correction for the day's air, and has no

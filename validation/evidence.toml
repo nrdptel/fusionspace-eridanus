@@ -534,7 +534,7 @@ found = "partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no u
 [[row]]
 id = "G32"
 surface = "The synthetic flights"
-claim = "The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's damping and noise, the dropouts and the port's place are assumed"
+claim = "The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred"
 pages = ["physics/synthetic-flights.md#in-short"]
 kind = "reasoning"
 wanted = "real"

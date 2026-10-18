@@ -17,7 +17,7 @@ use hpr_sim::recovery::{Device, DeviceDrag, Trigger};
 use hpr_sim::{Environment, EventKind, FlightEvent, Phase, Rail, SimError, Simulation};
 use serde::{Deserialize, Serialize};
 
-use super::designs::{DESIGNS, Opens};
+use super::designs::{DESIGNS, Design, DesignFiles, Opens};
 use super::{Draw, Model, SyntheticError};
 
 /// The truth's sample interval, s: a row every 0.01 s from launch, and one at each event.
@@ -73,7 +73,7 @@ pub struct TruthEvents {
     pub apogee_m: f64,
     /// Each parachute's charge, by the parachute's name, in the order they fired.
     pub charges: Vec<(String, f64)>,
-    /// Each parachute's opening, by name.
+    /// Each parachute's opening, by name, in the order they opened.
     pub deployments: Vec<(String, f64)>,
     /// The center of mass reached the ground.
     pub landing_s: f64,
@@ -97,15 +97,18 @@ pub struct Truth {
 
 impl Truth {
     /// The truth at `t` s since launch, read linearly between samples; before launch the rocket
-    /// stands on the pad, and after landing it lies still on its side.
-    pub fn at(&self, t: f64) -> TruthSample {
-        let first = self.samples[0];
-        let last = self.samples[self.samples.len() - 1];
+    /// stands on the pad, and after landing it lies still on its side. `None` for a truth with no
+    /// samples, or a `t` that isn't a number.
+    pub fn at(&self, t: f64) -> Option<TruthSample> {
+        let (first, last) = (*self.samples.first()?, *self.samples.last()?);
+        if t.is_nan() {
+            return None;
+        }
         if t <= first.time_s {
-            return TruthSample { time_s: t, ..first };
+            return Some(TruthSample { time_s: t, ..first });
         }
         if t > last.time_s {
-            return TruthSample {
+            return Some(TruthSample {
                 time_s: t,
                 height_m: last.height_m.max(0.0),
                 vertical_speed_m_s: 0.0,
@@ -114,7 +117,7 @@ impl Truth {
                 dynamic_pressure_pa: 0.0,
                 velocity_enu_m_s: [0.0; 3],
                 ..last
-            };
+            });
         }
         // `t` lies in (first, last], so the sample at or before it has one after it.
         let i = (self.samples.partition_point(|s| s.time_s <= t) - 1).min(self.samples.len() - 2);
@@ -122,7 +125,7 @@ impl Truth {
         let f = (t - a.time_s) / (b.time_s - a.time_s);
         let mix = |x: f64, y: f64| x + f * (y - x);
         let mix3 = |x: [f64; 3], y: [f64; 3]| [mix(x[0], y[0]), mix(x[1], y[1]), mix(x[2], y[2])];
-        TruthSample {
+        Some(TruthSample {
             time_s: t,
             height_m: mix(a.height_m, b.height_m),
             vertical_speed_m_s: mix(a.vertical_speed_m_s, b.vertical_speed_m_s),
@@ -134,18 +137,22 @@ impl Truth {
             dynamic_pressure_pa: mix(a.dynamic_pressure_pa, b.dynamic_pressure_pa),
             position_enu_m: mix3(a.position_enu_m, b.position_enu_m),
             velocity_enu_m_s: mix3(a.velocity_enu_m_s, b.velocity_enu_m_s),
-        }
+        })
     }
 
     /// The true static pressure at the center of mass `t` s since launch, Pa.
     ///
     /// # Errors
     ///
-    /// As [`Ussa76::sample`], for a height it can't take.
+    /// As [`Ussa76::sample`], for a height it can't take; [`SyntheticError::Invalid`] where
+    /// [`Truth::at`] has no truth.
     pub fn pressure_pa(&self, t: f64) -> Result<f64, SyntheticError> {
         let air = self.air()?;
+        let state = self.at(t).ok_or(SyntheticError::Invalid {
+            what: "a truth with no sample at that time",
+        })?;
         Ok(air
-            .sample(self.site_elevation_m + self.at(t).height_m)?
+            .sample(self.site_elevation_m + state.height_m)?
             .air
             .pressure_pa)
     }
@@ -167,19 +174,32 @@ impl Truth {
         self.events.apogee_m - self.pad_height_m
     }
 
-    /// The highest vertical speed, m/s, and when.
+    /// The highest vertical speed, m/s, and when; NaN if any sample's speed is NaN, so that a
+    /// census refuses the flight rather than ranking around it.
     pub fn top_speed(&self) -> (f64, f64) {
         self.samples
             .iter()
             .map(|s| (s.vertical_speed_m_s, s.time_s))
             .fold((f64::NEG_INFINITY, 0.0), |best, x| {
-                if x.0 > best.0 { x } else { best }
+                if x.0.is_nan() || best.0.is_nan() {
+                    (f64::NAN, x.1)
+                } else if x.0 > best.0 {
+                    x
+                } else {
+                    best
+                }
             })
     }
 
-    /// The highest Mach number.
+    /// The highest Mach number; NaN if any sample's is.
     pub fn top_mach(&self) -> f64 {
-        self.samples.iter().map(|s| s.mach).fold(0.0, f64::max)
+        self.samples.iter().map(|s| s.mach).fold(0.0, |best, m| {
+            if m.is_nan() || best.is_nan() {
+                f64::NAN
+            } else {
+                best.max(m)
+            }
+        })
     }
 }
 
@@ -231,10 +251,20 @@ pub fn tilted(curve: &ThrustCurve, tilt: f64) -> Result<ThrustCurve, SyntheticEr
     )?)
 }
 
+/// The draw's design, if its index names one.
+fn design_of(draw: &Draw) -> Result<&'static Design, SyntheticError> {
+    DESIGNS.get(draw.design).ok_or(SyntheticError::Invalid {
+        what: "a draw whose design isn't one of the ten",
+    })
+}
+
 /// The drawn rocket, its motor scaled and, in set B, its thrust tilted.
-fn rocket(draw: &Draw) -> Result<Rocket, SyntheticError> {
-    let design = &DESIGNS[draw.design];
-    let mut rocket: Rocket = serde_json::from_str(design.json)?;
+fn rocket(draw: &Draw, files: &DesignFiles) -> Result<Rocket, SyntheticError> {
+    let design = design_of(draw)?;
+    let json = files.json(draw.design).ok_or(SyntheticError::Invalid {
+        what: "no file for the draw's design",
+    })?;
+    let mut rocket: Rocket = serde_json::from_str(json)?;
     let configuration = rocket
         .configurations
         .iter_mut()
@@ -259,9 +289,9 @@ fn rocket(draw: &Draw) -> Result<Rocket, SyntheticError> {
 }
 
 /// The design's parachutes as HPR Sim's devices, each released by the next.
-fn devices(draw: &Draw) -> Vec<Device> {
-    let chutes = DESIGNS[draw.design].chutes;
-    chutes
+fn devices(draw: &Draw) -> Result<Vec<Device>, SyntheticError> {
+    let chutes = design_of(draw)?.chutes;
+    Ok(chutes
         .iter()
         .enumerate()
         .map(|(index, chute)| {
@@ -285,16 +315,16 @@ fn devices(draw: &Draw) -> Vec<Device> {
                 device
             }
         })
-        .collect()
+        .collect())
 }
 
-/// The inputs a draw flies from.
+/// The inputs a draw flies from, its design read from `files`.
 ///
 /// # Errors
 ///
 /// [`SyntheticError`] for a design that doesn't read, a motor the draw can't scale, or an
 /// environment out of its models' domains.
-pub fn inputs(draw: &Draw) -> Result<FlightInputs, SyntheticError> {
+pub fn inputs(draw: &Draw, files: &DesignFiles) -> Result<FlightInputs, SyntheticError> {
     let site = Geodetic::from_degrees(SITE_LATITUDE_DEG, SITE_LONGITUDE_DEG, draw.elevation_m)?;
     let air = AtmosphereModel::Standard(Ussa76::with_offset(
         draw.temperature_offset_k,
@@ -325,12 +355,12 @@ pub fn inputs(draw: &Draw) -> Result<FlightInputs, SyntheticError> {
         ..Rail::vertical(RAIL_LENGTH_M)
     };
     let mut inputs = FlightInputs::new(
-        rocket(draw)?,
-        DESIGNS[draw.design].configuration,
+        rocket(draw, files)?,
+        design_of(draw)?.configuration,
         environment,
         rail,
     );
-    inputs.recovery = devices(draw);
+    inputs.recovery = devices(draw)?;
     match draw.model {
         Model::Same => inputs.drag_scale = draw.drag_scale,
         Model::Other {
@@ -428,15 +458,17 @@ pub fn fly(
             .ok_or(SyntheticError::Flight { what })
     };
     let apogee = at(EventKind::Apogee, "no apogee")?;
-    let names = DESIGNS[draw.design].chutes;
+    let names = design_of(draw)?.chutes;
     let by_kind = |kind: fn(usize) -> EventKind| -> Vec<(String, f64)> {
-        (0..names.len())
+        let mut events: Vec<(String, f64)> = (0..names.len())
             .filter_map(|i| {
                 result
                     .event(kind(i))
                     .map(|e| (names[i].name.to_owned(), e.sample.time_s))
             })
-            .collect()
+            .collect();
+        events.sort_by(|a, b| a.1.total_cmp(&b.1));
+        events
     };
     let pad_height_m = samples.first().map_or(0.0, |s| s.height_m);
     Ok(Truth {
@@ -472,7 +504,7 @@ mod tests {
             assert!(relative < 1e-12, "tilt {tilt}: {relative}");
         }
         let progressive = tilted(&curve, 0.3).unwrap();
-        // Late thrust rises against early thrust: at 1.0 s over 0.1 s, the ratio 1.3/0.73.
+        // Late thrust rises against early thrust: at 1.0 s over 0.1 s, the ratio 1.0/0.73.
         let ratio = progressive.thrusts_n()[2] / progressive.thrusts_n()[1];
         assert!((ratio - (1.0 + 0.3 * 0.0) / (1.0 + 0.3 * (0.1 - 1.0))).abs() < 1e-12);
         assert!(ratio > 1.0);
@@ -481,7 +513,60 @@ mod tests {
     }
 
     #[test]
-    fn set_b_drag_reshapes_around_mach_one_and_set_a_keeps_hpr_sims() {
+    fn set_bs_three_reshapes_reach_its_flights_inputs_and_set_as_keep_hpr_sims() {
+        use crate::synthetic::{Set, draw};
+        let files = DesignFiles::committed();
+        let a = draw(Set::A, 0);
+        let b = draw(Set::B, 0);
+        let (ia, ib) = (inputs(&a, &files).unwrap(), inputs(&b, &files).unwrap());
+        // The drag: set B overrides HPR Sim's with its reshaped model, set A doesn't.
+        assert!(ia.drag.is_none());
+        assert!(matches!(ib.drag, Some(DragOverride::Model(_))));
+        // The wind: set A's is the same at every height, set B's grows with it.
+        let speed = |i: &FlightInputs, d: &Draw, above_m: f64| {
+            i.environment
+                .wind
+                .wind(d.elevation_m + above_m)
+                .unwrap()
+                .velocity_enu_m_s
+                .length()
+        };
+        assert!((speed(&ia, &a, 10.0) - speed(&ia, &a, 500.0)).abs() < 1e-12);
+        assert!(speed(&ib, &b, 500.0) > 1.2 * speed(&ib, &b, 10.0));
+        // The thrust: set B's curve is tilted from the scaled motor's, set A's is the scaled one.
+        let curve = |i: &FlightInputs| -> Vec<f64> {
+            let configuration = i
+                .rocket
+                .configurations
+                .iter()
+                .find(|c| c.id == "example")
+                .unwrap();
+            configuration.motors[0].motor.curve().thrusts_n().to_vec()
+        };
+        let Model::Other { thrust_tilt, .. } = b.model else {
+            panic!("set B flies its model")
+        };
+        let mut scaled = rocket(
+            &Draw {
+                model: Model::Same,
+                ..b
+            },
+            &files,
+        )
+        .unwrap();
+        let configuration = scaled
+            .configurations
+            .iter_mut()
+            .find(|c| c.id == "example")
+            .unwrap();
+        let plain = configuration.motors[0].motor.curve().clone();
+        let expect = tilted(&plain, thrust_tilt).unwrap();
+        assert_eq!(curve(&ib), expect.thrusts_n());
+        assert_ne!(curve(&ib), plain.thrusts_n());
+    }
+
+    #[test]
+    fn set_bs_drag_factor_reshapes_around_mach_one() {
         let flat = ReshapedDrag {
             scale: 1.1,
             bump: 0.0,

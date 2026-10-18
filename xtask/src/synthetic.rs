@@ -11,14 +11,19 @@
 //!
 //! The flights are flown on every core, each thread taking every `n`th index with a
 //! [`Flyer`] of its own; a flight is the same however many came before it on its thread (the
-//! module's tests), so the census doesn't depend on the number of threads.
+//! module's tests), so the census doesn't depend on the number of threads. A flight that panics
+//! is counted as not flown, with the panic's message, rather than lost with its thread.
+//!
+//! The designs' files are read from `validation/designs/` here: `hpr-forensics` is published
+//! and can't hold files outside its own folder.
 
 use std::fmt::Write as _;
 use std::fs;
+use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
 
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
-use hpr_forensics::synthetic::designs::DESIGNS;
+use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::logger::Profile;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
@@ -50,11 +55,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     }
     let root = crate::designs::root()?;
+    let files = design_files(&root)?;
     let report = Report {
         about:
             "The synthetic flights' census (M7.2a, ADR-280), written by `cargo xtask synthetic`."
                 .to_owned(),
-        sets: Set::ALL.iter().map(|&set| fly(set)).collect(),
+        sets: Set::ALL
+            .iter()
+            .map(|&set| fly(set, set.count(), &files))
+            .collect(),
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let page = markdown(&report);
@@ -94,9 +103,22 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Flies every flight of `set` on every core and takes its census.
-fn fly(set: Set) -> SetCensus {
-    let count = set.count();
+/// The designs' files under `root`, in [`DESIGNS`]' order.
+fn design_files(root: &Path) -> Result<DesignFiles, String> {
+    let files = DESIGNS
+        .iter()
+        .map(|design| {
+            let path = root
+                .join("validation/designs")
+                .join(format!("{}.json", design.name));
+            fs::read_to_string(&path).map_err(|error| format!("{}: {error}", path.display()))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    DesignFiles::new(files).map_err(|error| error.to_string())
+}
+
+/// Flies the first `count` flights of `set` on every core and takes their census.
+fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(16) as u64;
@@ -104,12 +126,22 @@ fn fly(set: Set) -> SetCensus {
     std::thread::scope(|scope| {
         let handles: Vec<_> = (0..threads)
             .map(|start| {
+                let files = files.clone();
                 scope.spawn(move || {
-                    let mut flyer = Flyer::new();
-                    (start..count)
-                        .step_by(threads as usize)
-                        .map(|index| (index, census::row(&mut flyer, set, index)))
-                        .collect::<Vec<_>>()
+                    let mut flyer = Flyer::new(files.clone());
+                    let mut done = Vec::new();
+                    for index in (start..count).step_by(threads as usize) {
+                        let row = panic::catch_unwind(AssertUnwindSafe(|| {
+                            census::row(&mut flyer, set, index)
+                        }))
+                        .unwrap_or_else(|payload| {
+                            // A panic may leave the flyer's cache half-built: start a new one.
+                            flyer = Flyer::new(files.clone());
+                            Err(format!("it panicked: {}", panic_message(&*payload)))
+                        });
+                        done.push((index, row));
+                    }
+                    done
                 })
             })
             .collect();
@@ -134,6 +166,15 @@ fn fly(set: Set) -> SetCensus {
     census::from_rows(set, &rows)
 }
 
+/// A panic's message, when it carries one.
+fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
+    payload
+        .downcast_ref::<&str>()
+        .map(|s| (*s).to_owned())
+        .or_else(|| payload.downcast_ref::<String>().cloned())
+        .unwrap_or_else(|| "no message".to_owned())
+}
+
 fn write(path: &Path, text: &str) -> Result<(), String> {
     fs::write(path, text).map_err(|error| format!("{}: {error}", path.display()))
 }
@@ -155,14 +196,13 @@ fn difference(path: &Path, committed: &str, made: &str) -> String {
     )
 }
 
-/// A number as the page shows it: up to three decimals, trailing zeros dropped.
+/// A number as the page shows it: the census's three significant figures, as the JSON holds
+/// them, and no sign on a zero.
 fn number(x: f64) -> String {
-    let text = format!("{x:.3}");
-    let text = text.trim_end_matches('0').trim_end_matches('.');
-    if text == "-0" {
+    if x == 0.0 {
         "0".to_owned()
     } else {
-        text.to_owned()
+        format!("{x}")
     }
 }
 
@@ -294,4 +334,43 @@ fn markdown(report: &Report) -> String {
         }
     }
     page
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_threaded_census_is_the_census_flown_in_order() {
+        let root = crate::designs::root().unwrap();
+        let files = design_files(&root).unwrap();
+        for set in Set::ALL {
+            assert_eq!(fly(set, 12, &files), census::census(set, 12, files.clone()));
+        }
+    }
+
+    #[test]
+    fn the_page_escapes_a_reasons_bars_and_line_breaks() {
+        let root = crate::designs::root().unwrap();
+        let files = design_files(&root).unwrap();
+        let rows = vec![
+            Err("first | second\nthird".to_owned()),
+            census::row(&mut Flyer::new(files), Set::A, 1),
+        ];
+        let page = markdown(&Report {
+            about: String::new(),
+            sets: vec![census::from_rows(Set::A, &rows)],
+        });
+        assert!(page.contains("| A | 0 |"), "{page}");
+        assert!(page.contains("first \\| second third |"), "{page}");
+    }
+
+    #[test]
+    fn a_number_reads_as_the_census_holds_it() {
+        assert_eq!(number(4_810.0), "4810");
+        assert_eq!(number(0.269), "0.269");
+        assert_eq!(number(-14.6), "-14.6");
+        assert_eq!(number(-0.0), "0");
+        assert_eq!(number(0.000_123), "0.000123");
+    }
 }

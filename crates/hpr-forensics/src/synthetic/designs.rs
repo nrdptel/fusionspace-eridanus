@@ -9,22 +9,26 @@
 
 use std::f64::consts::PI;
 
+use serde::Serialize;
+
+use super::SyntheticError;
+
 /// The inch, m.
 const INCH_M: f64 = 0.0254;
 /// The foot, m.
 const FOOT_M: f64 = 0.3048;
 
 /// What opens a parachute.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub enum Opens {
     /// At apogee.
     Apogee,
-    /// Descending through this height above the pad, m, or at apogee if apogee is lower.
+    /// Descending through this height above the launch site, m, or at apogee if apogee is lower.
     Below(f64),
 }
 
 /// One parachute, by its drag area.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub struct Chute {
     /// The example's name for it.
     pub name: &'static str,
@@ -37,12 +41,10 @@ pub struct Chute {
 }
 
 /// A design the flights draw from.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub struct Design {
     /// Its file's stem under `validation/designs/`.
     pub name: &'static str,
-    /// The file's JSON, an `hpr_design::Rocket`.
-    pub json: &'static str,
     /// The configuration that flies.
     pub configuration: &'static str,
     /// Its parachutes in the order they open; each releases the one before, as RocketPy's
@@ -71,7 +73,6 @@ const CALISTO: &[Chute] = &[
 pub const DESIGNS: [Design; 10] = [
     Design {
         name: "rocketpy-bella-lui",
-        json: include_str!("../../../../validation/designs/rocketpy-bella-lui.json"),
         configuration: "example",
         // `rocket_mass.py:305-306`.
         chutes: &[Chute {
@@ -83,30 +84,22 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-calisto-getting-started-motor-at-minus-1.255",
-        json: include_str!(
-            "../../../../validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json"
-        ),
         configuration: "example",
         chutes: CALISTO,
     },
     Design {
         name: "rocketpy-calisto-tests-motor-at-minus-1.373",
-        json: include_str!(
-            "../../../../validation/designs/rocketpy-calisto-tests-motor-at-minus-1.373.json"
-        ),
         configuration: "example",
         chutes: CALISTO,
     },
     Design {
         name: "rocketpy-cavour",
-        json: include_str!("../../../../validation/designs/rocketpy-cavour.json"),
         configuration: "example",
         // The example has no parachute (`rocket_mass.py:482-485`): a flight whose recovery failed.
         chutes: &[],
     },
     Design {
         name: "rocketpy-genesis",
-        json: include_str!("../../../../validation/designs/rocketpy-genesis.json"),
         configuration: "example",
         // `rocket_mass.py:582-585`.
         chutes: &[
@@ -126,7 +119,6 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-juno-iii",
-        json: include_str!("../../../../validation/designs/rocketpy-juno-iii.json"),
         configuration: "example",
         // `rocket_mass.py:476-477`.
         chutes: &[Chute {
@@ -138,7 +130,6 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-lince",
-        json: include_str!("../../../../validation/designs/rocketpy-lince.json"),
         configuration: "example",
         // `rocket_mass.py:639-640`: one main, at apogee, with no lag.
         chutes: &[Chute {
@@ -150,7 +141,6 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-ndrt-2020-nose-to-tail",
-        json: include_str!("../../../../validation/designs/rocketpy-ndrt-2020-nose-to-tail.json"),
         configuration: "example",
         // `rocket_mass.py:360-365`: a 24 in drogue of C_D 1.5 and a 120 in main of C_D 2.2.
         chutes: &[
@@ -170,9 +160,6 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-prometheus-2022-generic-motor",
-        json: include_str!(
-            "../../../../validation/designs/rocketpy-prometheus-2022-generic-motor.json"
-        ),
         configuration: "example",
         // `rocket_mass.py:688-689`, with RocketPy's default lag of none.
         chutes: &[
@@ -192,7 +179,6 @@ pub const DESIGNS: [Design; 10] = [
     },
     Design {
         name: "rocketpy-valetudo",
-        json: include_str!("../../../../validation/designs/rocketpy-valetudo.json"),
         configuration: "example",
         // `rocket_mass.py:417-418`.
         chutes: &[Chute {
@@ -203,3 +189,69 @@ pub const DESIGNS: [Design; 10] = [
         }],
     },
 ];
+
+/// The text of each design's file, in [`DESIGNS`]'s order, as the caller reads it from
+/// `validation/designs/<name>.json`. The library does no I/O, and a published crate can't embed a
+/// file outside its own folder, so the files come from whoever flies the flights.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DesignFiles(Vec<String>);
+
+impl DesignFiles {
+    /// The files' text, `files[k]` that of `DESIGNS[k]`.
+    ///
+    /// # Errors
+    ///
+    /// [`SyntheticError::Invalid`] unless there is one file for each design.
+    pub fn new(files: Vec<String>) -> Result<Self, SyntheticError> {
+        if files.len() == DESIGNS.len() {
+            Ok(Self(files))
+        } else {
+            Err(SyntheticError::Invalid {
+                what: "the design files aren't one for each of the ten designs",
+            })
+        }
+    }
+
+    /// The file of design `design`, an index into [`DESIGNS`].
+    pub fn json(&self, design: usize) -> Option<&str> {
+        self.0.get(design).map(String::as_str)
+    }
+
+    /// The files as the repository holds them, for the tests.
+    #[cfg(test)]
+    pub(crate) fn committed() -> Self {
+        macro_rules! files {
+            ($($name:literal),* $(,)?) => {
+                vec![$(include_str!(concat!("../../../../validation/designs/", $name, ".json")).to_owned()),*]
+            };
+        }
+        Self(files![
+            "rocketpy-bella-lui",
+            "rocketpy-calisto-getting-started-motor-at-minus-1.255",
+            "rocketpy-calisto-tests-motor-at-minus-1.373",
+            "rocketpy-cavour",
+            "rocketpy-genesis",
+            "rocketpy-juno-iii",
+            "rocketpy-lince",
+            "rocketpy-ndrt-2020-nose-to-tail",
+            "rocketpy-prometheus-2022-generic-motor",
+            "rocketpy-valetudo",
+        ])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_committed_files_are_the_designs_in_order() {
+        let files = DesignFiles::committed();
+        for (k, design) in DESIGNS.iter().enumerate() {
+            let rocket: serde_json::Value = serde_json::from_str(files.json(k).unwrap()).unwrap();
+            assert!(rocket.is_object(), "{}", design.name);
+        }
+        assert!(DesignFiles::new(vec![String::new(); 9]).is_err());
+        assert!(files.json(DESIGNS.len()).is_none());
+    }
+}

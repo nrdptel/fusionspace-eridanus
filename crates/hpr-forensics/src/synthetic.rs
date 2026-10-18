@@ -39,7 +39,7 @@ use hpr_flightdata::log::FlightLog;
 use hpr_sim::Simulation;
 use serde::{Deserialize, Serialize};
 
-use designs::DESIGNS;
+use designs::{DESIGNS, DesignFiles};
 use logger::{LoggerDraw, Profile};
 use noise::between;
 use truth::Truth;
@@ -172,6 +172,7 @@ enum Key {
     BaroWhite = 10,
     Accel = 11,
     Gnss = 12,
+    BaroSlow = 13,
 }
 
 /// Flight `index`'s stream for `key`.
@@ -273,6 +274,12 @@ pub enum SyntheticError {
         /// The missing event.
         what: &'static str,
     },
+    /// An input no flight or logger can have.
+    #[error("{what}")]
+    Invalid {
+        /// What was wrong.
+        what: &'static str,
+    },
 }
 
 /// A synthetic flight: what it drew, its truth and its logger's log.
@@ -288,15 +295,19 @@ pub struct Flight {
 
 /// Flies synthetic flights, sharing each design's supersonic drag table across its flights (it
 /// takes about 0.2 s to build, `docs/perf.md`).
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Flyer {
+    files: DesignFiles,
     nominal: BTreeMap<usize, Simulation>,
 }
 
 impl Flyer {
-    /// A flyer with no tables built yet.
-    pub fn new() -> Self {
-        Self::default()
+    /// A flyer of the designs in `files`, with no tables built yet.
+    pub fn new(files: DesignFiles) -> Self {
+        Self {
+            files,
+            nominal: BTreeMap::new(),
+        }
     }
 
     /// Flight `index` of `set`.
@@ -307,7 +318,7 @@ impl Flyer {
     /// these, it doesn't skip them.
     pub fn flight(&mut self, set: Set, index: u64) -> Result<Flight, SyntheticError> {
         let draw = draw(set, index);
-        let inputs = truth::inputs(&draw)?;
+        let inputs = truth::inputs(&draw, &self.files)?;
         let mut simulation = inputs.simulation()?;
         let shared = match self.nominal.get(&draw.design) {
             Some(nominal) => simulation.share_supersonic_table(nominal.aero()),
@@ -432,15 +443,21 @@ mod tests {
         let first = 0;
         let design = draw(Set::B, first).design;
         let second = (1..).find(|&k| draw(Set::B, k).design == design).unwrap();
-        let mut flyer = Flyer::new();
+        let mut flyer = Flyer::new(DesignFiles::committed());
         let earlier = flyer.flight(Set::B, first).unwrap();
         let after = flyer.flight(Set::B, second).unwrap();
-        let alone = Flyer::new().flight(Set::B, second).unwrap();
+        let alone = Flyer::new(DesignFiles::committed())
+            .flight(Set::B, second)
+            .unwrap();
         let text = |flight: &Flight| serde_json::to_string(flight).unwrap();
         assert_eq!(text(&after), text(&alone));
         assert_eq!(
             text(&earlier),
-            text(&Flyer::new().flight(Set::B, first).unwrap())
+            text(
+                &Flyer::new(DesignFiles::committed())
+                    .flight(Set::B, first)
+                    .unwrap()
+            )
         );
         let bits = |flight: &Flight| -> Vec<u64> {
             let channels = flight.log.channels.iter().flat_map(|c| c.values.iter());

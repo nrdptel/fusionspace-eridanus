@@ -338,8 +338,19 @@ mod tests {
                 "ωn {omega}: {behind}"
             );
         }
-        // A loop that doesn't lag (its output the truth) is 0 behind: the check tells them apart.
-        assert!((0.0_f64 - a / 0.25).abs() > 0.01 * a / 0.0625);
+        // Damped harder, the same loop settles to the same lag but rings less on the way: the
+        // check above reads the settled lag, and a loop of twice the frequency is a quarter as
+        // far behind, which it would fail.
+        let mut fast = Lag::new(0.5, 0.0);
+        fast.step(0.0, 0.0, 0.0);
+        let (mut p, mut out) = (0.0, 0.0);
+        for k in 1..=12_000 {
+            let t = k as f64 * dt;
+            p = 0.5 * a * t * t;
+            out = fast.step(dt, p, a * t);
+        }
+        assert!((p - out - a / 0.25).abs() < 1e-6 * a / 0.25);
+        assert!((p - out - a / 0.0625).abs() > 0.5 * a / 0.0625);
     }
 
     #[test]

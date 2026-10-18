@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::designs::DESIGNS;
+use super::designs::{DESIGNS, DesignFiles};
 use super::{Flight, Flyer, Model, Set};
 
 /// The least, middle and greatest of a quantity over a set's flights.
@@ -24,16 +24,37 @@ pub struct Range {
 
 /// `x` to three significant figures, nearest.
 pub fn three_figures(x: f64) -> f64 {
-    to_three_figures(x, f64::round)
+    to_three_figures(x, Toward::Nearest)
 }
 
-/// `x` to three significant figures, `rule` taking the scaled value to a whole number.
-fn to_three_figures(x: f64, rule: fn(f64) -> f64) -> f64 {
+/// Which way [`to_three_figures`] rounds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Toward {
+    Nearest,
+    Down,
+    Up,
+}
+
+/// `x` to three significant figures. Rounded down or up, the result is stepped once more if the
+/// division by the scale left it a hair on the wrong side of `x`, so a range's ends hold every
+/// value exactly.
+fn to_three_figures(x: f64, toward: Toward) -> f64 {
     if x == 0.0 || !x.is_finite() {
         return x;
     }
     let scale = 10_f64.powi(2 - x.abs().log10().floor() as i32);
-    rule(x * scale) / scale
+    let scaled = x * scale;
+    let whole = match toward {
+        Toward::Nearest => scaled.round(),
+        Toward::Down => scaled.floor(),
+        Toward::Up => scaled.ceil(),
+    };
+    let rounded = whole / scale;
+    match toward {
+        Toward::Down if rounded > x => (whole - 1.0) / scale,
+        Toward::Up if rounded < x => (whole + 1.0) / scale,
+        _ => rounded,
+    }
 }
 
 impl Range {
@@ -52,9 +73,9 @@ impl Range {
             0.5 * (values[n / 2 - 1] + values[n / 2])
         };
         Some(Self {
-            min: to_three_figures(values[0], f64::floor),
+            min: to_three_figures(values[0], Toward::Down),
             median: three_figures(median),
-            max: to_three_figures(values[n - 1], f64::ceil),
+            max: to_three_figures(values[n - 1], Toward::Up),
         })
     }
 }
@@ -136,12 +157,13 @@ pub struct Row {
 }
 
 impl Row {
-    /// A flight's row.
-    pub fn of(flight: &Flight) -> Self {
+    /// A flight's row; a reason instead if any of its numbers isn't finite, so that a census
+    /// counts the flight as not flown rather than ranking around a NaN.
+    pub fn of(flight: &Flight) -> Result<Self, String> {
         let draw = &flight.draw;
         let truth = &flight.truth;
-        Self {
-            design: DESIGNS[draw.design].name.to_owned(),
+        let row = Self {
+            design: design_name(draw.design).to_owned(),
             logger: draw.logger.profile.name().to_owned(),
             other_model: matches!(draw.model, Model::Other { .. }),
             apogee_m: truth.apogee_above_pad_m(),
@@ -152,16 +174,36 @@ impl Row {
             tilt_deg: draw.tilt_rad.to_degrees(),
             elevation_m: draw.elevation_m,
             temperature_offset_k: draw.temperature_offset_k,
+        };
+        let numbers = [
+            row.apogee_m,
+            row.top_mach,
+            row.top_speed_m_s,
+            row.flight_time_s,
+            row.wind_m_s,
+            row.tilt_deg,
+            row.elevation_m,
+            row.temperature_offset_k,
+        ];
+        if numbers.iter().all(|x| x.is_finite()) {
+            Ok(row)
+        } else {
+            Err("a number in its row isn't finite".to_owned())
         }
     }
+}
+
+/// Design `design`'s name, or a placeholder for an index that names none.
+fn design_name(design: usize) -> &'static str {
+    DESIGNS.get(design).map_or("not one of the ten", |d| d.name)
 }
 
 /// Flight `index` of `set` as a census row, or why it didn't fly.
 pub fn row(flyer: &mut Flyer, set: Set, index: u64) -> Result<Row, String> {
     flyer
         .flight(set, index)
-        .map(|flight| Row::of(&flight))
         .map_err(|error| error.to_string())
+        .and_then(|flight| Row::of(&flight))
 }
 
 /// The census of `set` from every flight's row, `rows[k]` flight `k`'s.
@@ -195,7 +237,7 @@ pub fn from_rows(set: Set, rows: &[Result<Row, String>]) -> SetCensus {
                 let index = index as u64;
                 not_flown.push(NotFlown {
                     index,
-                    design: DESIGNS[super::draw(set, index).design].name.to_owned(),
+                    design: design_name(super::draw(set, index).design).to_owned(),
                     reason: reason.clone(),
                 });
             }
@@ -226,8 +268,8 @@ pub fn from_rows(set: Set, rows: &[Result<Row, String>]) -> SetCensus {
 /// Flies the first `count` flights of `set` one after another and counts what came of them;
 /// `cargo xtask synthetic` flies whole sets on several threads and gives each flight's row to
 /// [`from_rows`] in order, which comes to the same.
-pub fn census(set: Set, count: u64) -> SetCensus {
-    let mut flyer = Flyer::new();
+pub fn census(set: Set, count: u64, files: DesignFiles) -> SetCensus {
+    let mut flyer = Flyer::new(files);
     let rows: Vec<_> = (0..count)
         .map(|index| row(&mut flyer, set, index))
         .collect();
@@ -237,6 +279,62 @@ pub fn census(set: Set, count: u64) -> SetCensus {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn a_row(design: &str, logger: &str, other_model: bool, apogee_m: f64) -> Row {
+        Row {
+            design: design.to_owned(),
+            logger: logger.to_owned(),
+            other_model,
+            apogee_m,
+            top_mach: 0.5,
+            top_speed_m_s: 170.0,
+            flight_time_s: 100.0,
+            wind_m_s: 3.0,
+            tilt_deg: 5.0,
+            elevation_m: 200.0,
+            temperature_offset_k: 0.0,
+        }
+    }
+
+    #[test]
+    fn a_census_counts_the_flown_rows_and_names_each_draw_not_flown() {
+        let rows = vec![
+            Ok(a_row("x", "altos", false, 1_000.0)),
+            Err("it hit a wall".to_owned()),
+            Ok(a_row("y", "altos", true, 3_000.0)),
+            Ok(a_row("x", "rrc3", true, 2_000.0)),
+            Err("its row isn't finite".to_owned()),
+        ];
+        let census = from_rows(Set::B, &rows);
+        assert_eq!((census.drawn, census.flown, census.other_model), (5, 3, 2));
+        assert_eq!(census.by_design.get("x"), Some(&2));
+        assert_eq!(census.by_design.get("y"), Some(&1));
+        assert_eq!(census.by_logger.get("altos"), Some(&2));
+        assert_eq!(census.by_logger.get("rrc3"), Some(&1));
+        let apogee = census.apogee_m.unwrap();
+        assert_eq!(
+            (apogee.min, apogee.median, apogee.max),
+            (1_000.0, 2_000.0, 3_000.0)
+        );
+        // Each draw not flown keeps its own index, its drawn design and its reason.
+        let missing: Vec<_> = census
+            .not_flown
+            .iter()
+            .map(|n| (n.index, n.design.as_str(), n.reason.as_str()))
+            .collect();
+        let name = |index| DESIGNS[super::super::draw(Set::B, index).design].name;
+        assert_eq!(
+            missing,
+            [
+                (1, name(1), "it hit a wall"),
+                (4, name(4), "its row isn't finite")
+            ]
+        );
+        // With nothing flown, every range is empty.
+        let none = from_rows(Set::A, &[Err("no".to_owned())]);
+        assert_eq!((none.drawn, none.flown), (1, 0));
+        assert!(none.apogee_m.is_none() && none.top_mach.is_none());
+    }
 
     #[test]
     fn three_figures_rounds_to_three_significant_digits() {

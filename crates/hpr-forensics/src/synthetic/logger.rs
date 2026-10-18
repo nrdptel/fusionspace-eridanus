@@ -16,7 +16,7 @@ use hpr_flightdata::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
 use serde::{Deserialize, Serialize};
 
 use super::noise::{self, Lag, between, ornstein_uhlenbeck, quantize, tau_for};
-use super::truth::{SITE_LATITUDE_DEG, SITE_LONGITUDE_DEG, TRUTH_STEP_S, Truth};
+use super::truth::{SITE_LATITUDE_DEG, SITE_LONGITUDE_DEG, TRUTH_STEP_S, Truth, TruthSample};
 use super::{Key, SyntheticError, stream};
 
 /// The foot, m.
@@ -94,26 +94,30 @@ impl Profile {
     /// The pressure sensor.
     fn barometer(self) -> Option<Barometer> {
         match self {
-            // PerfectFlite names no part: the noise measured at rest in public logs, and the
-            // MS5607's offset (sensor noise §3, §6).
+            // PerfectFlite names no part: the noise measured at rest in public logs, the
+            // MS5607's offset (sensor noise §3, §6), and its stated ±0.1% of the height, read as
+            // a gain on the pressure's change (§1, "Steps and accuracy").
             Self::PerfectFlite => Some(Barometer {
                 white_pa: (0.0, 0.0),
                 offset_pa: 100.0,
-                relative_gain: 0.0,
+                relative_gain: 1.0e-3,
                 logged: Logged::Feet,
             }),
-            // An MS5607 at 2.3 Pa, logged in 10 Pa steps (sensor noise §6).
+            // An MS5607 at 2.3 Pa, logged in 10 Pa steps (sensor noise §6). Its ±1.0 mbar after
+            // the pad's zero, over the 400 mbar the datasheet states it on (700–1100 mbar, §2
+            // note †), is read as a gain of ±0.25% on the change from the pad (an inference).
             Self::Rrc3 => Some(Barometer {
                 white_pa: (2.3, 2.3),
                 offset_pa: 100.0,
-                relative_gain: 0.0,
+                relative_gain: MS5607_RELATIVE_GAIN,
                 logged: Logged::Pressure { step_pa: 10.0 },
             }),
-            // An MS5607 at 2.4–13 Pa by its oversampling, logged to 1 Pa.
+            // An MS5607 at 2.4–13 Pa by its oversampling, logged to 1 Pa, its error after the
+            // pad's zero as the RRC3's.
             Self::Altos => Some(Barometer {
                 white_pa: (2.4, 13.0),
                 offset_pa: 100.0,
-                relative_gain: 0.0,
+                relative_gain: MS5607_RELATIVE_GAIN,
                 logged: Logged::Pressure { step_pa: 1.0 },
             }),
             // A Bosch BMP-class part, 0.2–6.6 Pa by its setting, relative accuracy 0.03–0.08 hPa
@@ -201,12 +205,24 @@ struct Accelerometer {
     scale: f64,
 }
 
-/// The correlated barometer noise: 0.5 m at 50 Hz, lag-one correlation 0.5 (sensor noise §3, §6).
+/// The MS5607's error after a zero at one pressure, ±1.0 mbar over 0–50 °C, read over the
+/// 400 mbar (700–1100 mbar) its datasheet states the figure on as a gain on the pressure's change
+/// from the pad (sensor noise §2 note †, §6; an inference).
+pub const MS5607_RELATIVE_GAIN: f64 = 100.0 / 40_000.0;
+/// The fast correlated barometer noise: 0.5 m at 50 Hz, lag-one correlation 0.5, as on the pads of
+/// five Blue Raven logs (sensor noise §3, §6).
 pub const CORRELATED_NOISE_M: f64 = 0.5;
 /// The correlated noise's lag-one correlation at [`CORRELATED_NOISE_RATE_HZ`].
 pub const CORRELATED_NOISE_PHI: f64 = 0.5;
 /// The rate at which it was measured, Hz.
 pub const CORRELATED_NOISE_RATE_HZ: f64 = 50.0;
+/// The slow correlated barometer noise, a first-order Gauss–Markov term of 0.24–0.29 m and time
+/// constant 0.65–1.26 s, as a BMP085's ten minutes at rest gave (sensor noise §3, [P1] Tables
+/// 1–2): the noise that a reading averaged over a second keeps, which the fast term alone
+/// leaves out.
+pub const SLOW_NOISE_M: (f64, f64) = (0.24, 0.29);
+/// Its time constant's range, s.
+pub const SLOW_NOISE_TAU_S: (f64, f64) = (0.65, 1.26);
 /// The residual accelerometer bias after the pad's zero is drawn from ±this, g: the top of the
 /// ±10–50 mg that sensor noise's *What this suggests* 1 calls a guess, as no source states one.
 pub const ACCEL_BIAS_G: f64 = 0.05;
@@ -240,6 +256,12 @@ pub struct LoggerDraw {
     pub accel_scale: f64,
     /// Its residual bias, m/s².
     pub accel_bias_m_s2: f64,
+    /// The barometer's fast correlated noise, 1σ at the pad, m.
+    pub fast_noise_m: f64,
+    /// Its slow correlated noise, 1σ at the pad, m.
+    pub slow_noise_m: f64,
+    /// The slow noise's time constant, s.
+    pub slow_noise_tau_s: f64,
     /// The GNSS receiver's fix rate, Hz.
     pub gnss_rate_hz: f64,
     /// Its loop's natural frequency, rad/s.
@@ -275,6 +297,9 @@ impl LoggerDraw {
         let gnss_omega_rad_s = between(rng, 0.25, 1.0);
         let gnss_dropout_liftoff_s = between(rng, 0.0, 10.0);
         let gnss_dropout_burnout_s = between(rng, 0.0, 10.0);
+        let fast_noise_m = baro.map_or(0.0, |_| CORRELATED_NOISE_M);
+        let slow_noise_m = baro.map_or(0.0, |_| between(rng, SLOW_NOISE_M.0, SLOW_NOISE_M.1));
+        let slow_noise_tau_s = between(rng, SLOW_NOISE_TAU_S.0, SLOW_NOISE_TAU_S.1);
         Self {
             profile,
             pad_s,
@@ -288,6 +313,9 @@ impl LoggerDraw {
             density_g_per_root_hz: density,
             accel_scale,
             accel_bias_m_s2,
+            fast_noise_m,
+            slow_noise_m,
+            slow_noise_tau_s,
             gnss_rate_hz,
             gnss_omega_rad_s,
             gnss_dropout_liftoff_s,
@@ -332,18 +360,57 @@ fn height_of(profile: Profile, pressure_pa: f64) -> Result<f64, SyntheticError> 
     })
 }
 
+/// Refuses a draw or a truth no logger could write: a clock that doesn't run forward, a truth
+/// with no samples or a time that isn't finite.
+fn check(draw: &LoggerDraw, truth: &Truth) -> Result<(), SyntheticError> {
+    let invalid = |what| Err(SyntheticError::Invalid { what });
+    let spans = [draw.pad_s, draw.ground_s];
+    if spans.iter().any(|s| !s.is_finite() || *s < 0.0) {
+        return invalid("a logger's pad or ground span that isn't a finite length");
+    }
+    if draw.profile.gnss() && !(draw.gnss_rate_hz.is_finite() && draw.gnss_rate_hz > 0.0) {
+        return invalid("a GNSS fix rate that isn't a positive number");
+    }
+    if !(draw.slow_noise_tau_s.is_finite() && draw.slow_noise_tau_s > 0.0) {
+        return invalid("a slow noise time constant that isn't a positive number");
+    }
+    let events = &truth.events;
+    let times = [
+        events.liftoff_s,
+        events.burnout_s,
+        events.apogee_s,
+        events.landing_s,
+    ];
+    if truth.samples.is_empty() || times.iter().any(|t| !t.is_finite()) {
+        return invalid("a truth with no samples or an event at no finite time");
+    }
+    if truth.samples.iter().any(|s| !s.time_s.is_finite()) {
+        return invalid("a truth sample at no finite time");
+    }
+    Ok(())
+}
+
+/// The truth at `t`, refused where there is none.
+fn truth_at(truth: &Truth, t: f64) -> Result<TruthSample, SyntheticError> {
+    truth.at(t).ok_or(SyntheticError::Invalid {
+        what: "a truth with no sample at that time",
+    })
+}
+
 /// The log `draw`'s logger writes of `truth`, with noise drawn from `seed`'s streams for flight
 /// `index`.
 ///
 /// # Errors
 ///
-/// [`SyntheticError`] for a pressure or a position the atmosphere or the frame can't take.
+/// [`SyntheticError`] for a pressure or a position the atmosphere or the frame can't take, and
+/// [`SyntheticError::Invalid`] for a draw or truth [`check`] refuses.
 pub fn log(
     draw: &LoggerDraw,
     truth: &Truth,
     seed: u64,
     index: u64,
 ) -> Result<FlightLog, SyntheticError> {
+    check(draw, truth)?;
     let profile = draw.profile;
     let mut channels = Vec::new();
     let mut time_s = Vec::new();
@@ -354,13 +421,18 @@ pub fn log(
         let air = truth.air()?;
         let pad_pa = truth.pressure_pa(0.0)?;
         let pad_density = air.sample(truth.site_elevation_m)?.air.density_kg_m3;
-        let correlated_pa = CORRELATED_NOISE_M * pad_density * G;
         let tau = tau_for(CORRELATED_NOISE_PHI, CORRELATED_NOISE_RATE_HZ);
-        let correlated = ornstein_uhlenbeck(
+        let fast = ornstein_uhlenbeck(
             &mut stream(seed, index, Key::BaroCorrelated),
             &times,
-            correlated_pa,
+            draw.fast_noise_m * pad_density * G,
             tau,
+        );
+        let slow = ornstein_uhlenbeck(
+            &mut stream(seed, index, Key::BaroSlow),
+            &times,
+            draw.slow_noise_m * pad_density * G,
+            draw.slow_noise_tau_s,
         );
         let white = noise::white(
             &mut stream(seed, index, Key::BaroWhite),
@@ -370,7 +442,7 @@ pub fn log(
         let mut pressures = Vec::with_capacity(times.len());
         for (k, &t_log) in times.iter().enumerate() {
             let t = sim(t_log);
-            let state = truth.at(t);
+            let state = truth_at(truth, t)?;
             let h = truth.site_elevation_m + state.height_m;
             let sample = air.sample(h)?;
             let p = sample.air.pressure_pa;
@@ -384,7 +456,8 @@ pub fn log(
                 + draw.offset_pa
                 + draw.gain * (p - pad_pa)
                 + draw.drift_pa_s * t_log
-                + correlated[k]
+                + fast[k]
+                + slow[k]
                 + white[k]
                 + noise::port_error_pa(draw.port_calibers, state.mach, state.dynamic_pressure_pa)
                 - sample.air.density_kg_m3 * G * pulse_m;
@@ -422,23 +495,23 @@ pub fn log(
         }
         if let Some(accel) = profile.accelerometer() {
             let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
-            let apogee = draw.pad_s + truth.events.apogee_s;
+            // RMS from the density over the part's bandwidth, half the climbing rate it is
+            // sampled at: σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that
+            // writes fewer samples after apogee keeps the part's bandwidth, so its noise.
+            let bandwidth_hz = profile.rate_hz(true) / 2.0;
+            let sigma = draw.density_g_per_root_hz * (1.57 * bandwidth_hz).sqrt() * G;
+            let range = accel.range_g * G;
             let values = times
                 .iter()
                 .enumerate()
                 .map(|(k, &t_log)| {
-                    // RMS from the density over the logger's bandwidth, half its rate:
-                    // σ = density × √(1.57 × bandwidth) (sensor noise §4).
-                    let rate = profile.rate_hz(t_log <= apogee);
-                    let sigma = draw.density_g_per_root_hz * (1.57 * rate / 2.0).sqrt() * G;
-                    let f = truth.at(sim(t_log)).axial_specific_force_m_s2;
+                    let f = truth_at(truth, sim(t_log))?.axial_specific_force_m_s2;
                     let read = (1.0 + draw.accel_scale) * f
                         + draw.accel_bias_m_s2
                         + sigma * accel_noise[k];
-                    let range = accel.range_g * G;
-                    quantize(read.clamp(-range, range), accel.step_g * G)
+                    Ok(quantize(read.clamp(-range, range), accel.step_g * G))
                 })
-                .collect();
+                .collect::<Result<Vec<_>, SyntheticError>>()?;
             channels.push(Channel::new(
                 "Axial acceleration (synthetic)",
                 Quantity::Acceleration,
@@ -489,7 +562,7 @@ fn gnss(
     let earth = Earth::wgs84(site)?;
     let mut rng = stream(seed, index, Key::Gnss);
     let end = draw.pad_s + truth.events.landing_s + draw.ground_s;
-    let start = truth.at(0.0);
+    let start = truth_at(truth, 0.0)?;
     let mut lags: Vec<Lag> = (0..3)
         .map(|axis| {
             let mut lag = Lag::new(draw.gnss_omega_rad_s, start.position_enu_m[axis]);
@@ -516,7 +589,7 @@ fn gnss(
         while now < t {
             let dt = (t - now).min(TRUTH_STEP_S);
             now += dt;
-            let state = truth.at(now);
+            let state = truth_at(truth, now)?;
             for (axis, lag) in lags.iter_mut().enumerate() {
                 lag.step(dt, state.position_enu_m[axis], state.velocity_enu_m_s[axis]);
             }
@@ -623,6 +696,9 @@ mod tests {
             density_g_per_root_hz: 0.0,
             accel_scale: 0.0,
             accel_bias_m_s2: 0.0,
+            fast_noise_m: 0.0,
+            slow_noise_m: 0.0,
+            slow_noise_tau_s: 1.0,
             gnss_rate_hz: 10.0,
             gnss_omega_rad_s: 0.5,
             gnss_dropout_liftoff_s: 0.0,
@@ -665,10 +741,8 @@ mod tests {
         (x.iter().map(|v| (v - m) * (v - m)).sum::<f64>() / (x.len() - 1) as f64).sqrt()
     }
 
-    /// Whether a barometer's residuals on a still truth hold `stated`'s offset, drift and noise:
-    /// the drift as the least-squares slope against time, the offset as the mean less it, and
-    /// the spread as the correlated and white noise together, each within five standard errors.
-    fn holds_barometer(residuals: &[(f64, f64)], stated: &LoggerDraw, pad_density: f64) -> bool {
+    /// The residuals' least-squares slope against time, and their mean and spread about it.
+    fn line_fit(residuals: &[(f64, f64)]) -> (f64, f64, f64) {
         let t: Vec<f64> = residuals.iter().map(|r| r.0).collect();
         let r: Vec<f64> = residuals.iter().map(|r| r.1).collect();
         let (tm, rm) = (mean(&t), mean(&r));
@@ -680,65 +754,56 @@ mod tests {
             .sum::<f64>()
             / stt;
         let detrended: Vec<f64> = t.iter().zip(&r).map(|(x, y)| y - slope * x).collect();
-        let correlated = CORRELATED_NOISE_M * pad_density * G;
-        let sigma = (correlated * correlated + stated.white_pa * stated.white_pa).sqrt();
-        // Correlated noise widens a mean's error: at most √((1 + φ)/(1 − φ)) with φ ≤ 0.95 here.
-        let n = r.len() as f64;
-        let inflate = (1.95_f64 / 0.05).sqrt();
-        let mean_error = sigma * inflate / n.sqrt();
-        let slope_error = sigma * inflate / stt.sqrt();
-        let sd_error = sigma * inflate / (2.0 * n).sqrt();
-        (slope - stated.drift_pa_s).abs() < 5.0 * slope_error
-            && (mean(&detrended) - stated.offset_pa).abs() < 5.0 * mean_error
-            && (sd(&detrended) - sigma).abs() < 5.0 * sd_error
+        (slope, mean(&detrended), sd(&detrended))
+    }
+
+    /// The lag-`k` autocorrelation of `x`.
+    fn autocorrelation(x: &[f64], k: usize) -> f64 {
+        let m = mean(x);
+        let num: f64 = x.iter().zip(&x[k..]).map(|(a, b)| (a - m) * (b - m)).sum();
+        let den: f64 = x.iter().map(|v| (v - m) * (v - m)).sum();
+        num / den
     }
 
     #[test]
-    fn a_barometers_offset_drift_and_noise_hold_and_each_mutation_fails() {
+    fn a_barometers_offset_drift_and_white_noise_each_hold_alone_and_fail_at_half_and_half_again() {
+        // 300 s at AltOS's 100 Hz, every other term off: each term is all the residual holds,
+        // but for the 1 Pa step (0.29 Pa of spread).
         let truth = still(300.0, G, 0.0, 0.0, 0.0);
-        let density = truth
-            .air()
-            .unwrap()
-            .sample(500.0)
-            .unwrap()
-            .air
-            .density_kg_m3;
-        let stated = LoggerDraw {
-            white_pa: 2.4,
-            offset_pa: 80.0,
-            drift_pa_s: 0.02,
-            ..quiet(Profile::Altos)
-        };
-        let residuals = |draw: &LoggerDraw| {
+        let fit = |draw: &LoggerDraw| {
             let log = log(draw, &truth, SEED, 1).unwrap();
-            pressure_residuals(&log, &truth, draw.pad_s)
+            line_fit(&pressure_residuals(&log, &truth, draw.pad_s))
         };
-        assert!(holds_barometer(&residuals(&stated), &stated, density));
-        for mutated in [
-            LoggerDraw {
-                offset_pa: 0.0,
-                ..stated
-            },
-            LoggerDraw {
-                drift_pa_s: 0.0,
-                ..stated
-            },
-            LoggerDraw {
-                white_pa: 12.0,
-                ..stated
-            },
-        ] {
-            assert!(
-                !holds_barometer(&residuals(&mutated), &stated, density),
-                "{mutated:?}"
-            );
+        let quiet = quiet(Profile::Altos);
+        for factor in [1.0, 0.5, 1.5] {
+            let (_, offset, _) = fit(&LoggerDraw {
+                offset_pa: 80.0 * factor,
+                ..quiet
+            });
+            let (drift, _, _) = fit(&LoggerDraw {
+                drift_pa_s: 0.02 * factor,
+                ..quiet
+            });
+            let (_, _, white) = fit(&LoggerDraw {
+                white_pa: 13.0 * factor,
+                ..quiet
+            });
+            // 30,000 samples: a mean to 0.5 Pa, a slope to the step's share, a spread to 0.41%.
+            let held = (offset - 80.0).abs() < 0.5
+                && (drift - 0.02).abs() < 1e-4
+                && (white - 13.0).abs() < 5.0 * 0.0041 * 13.0;
+            assert_eq!(held, factor == 1.0, "{factor}: {offset} {drift} {white}");
         }
     }
 
     #[test]
     fn the_correlated_noise_correlates_as_stated_at_the_loggers_rate() {
         let truth = still(300.0, G, 0.0, 0.0, 0.0);
-        let slow = log(&quiet(Profile::Altos), &truth, SEED, 2).unwrap();
+        let fast_only = |profile| LoggerDraw {
+            fast_noise_m: CORRELATED_NOISE_M,
+            ..quiet(profile)
+        };
+        let slow = log(&fast_only(Profile::Altos), &truth, SEED, 2).unwrap();
         let r: Vec<f64> = pressure_residuals(&slow, &truth, 2.0)
             .iter()
             .map(|r| r.1)
@@ -753,7 +818,7 @@ mod tests {
         // At 500 Hz the same noise correlates by 0.5^(50/500) ≈ 0.933, less the 2.03 Pa step's
         // share; a correlation fixed per sample, rather than by the time between them, would
         // read 0.5 at every rate.
-        let fast = log(&quiet(Profile::Imu500), &truth, SEED, 2).unwrap();
+        let fast = log(&fast_only(Profile::Imu500), &truth, SEED, 2).unwrap();
         let r: Vec<f64> = pressure_residuals(&fast, &truth, 2.0)
             .iter()
             .map(|r| r.1)
@@ -766,6 +831,67 @@ mod tests {
             "{}",
             num / den
         );
+    }
+
+    #[test]
+    fn the_fast_and_slow_noise_hold_their_spreads_and_time_constants_and_fail_changed() {
+        let truth = still(300.0, G, 0.0, 0.0, 0.0);
+        let density = truth
+            .air()
+            .unwrap()
+            .sample(500.0)
+            .unwrap()
+            .air
+            .density_kg_m3;
+        let residuals = |draw: &LoggerDraw, truth: &Truth| -> Vec<f64> {
+            let log = log(draw, truth, SEED, 12).unwrap();
+            pressure_residuals(&log, truth, draw.pad_s)
+                .iter()
+                .map(|r| r.1)
+                .collect()
+        };
+        // The fast term at 100 Hz: 30,000 samples correlated by 0.707 hold its spread to about 1%.
+        let fast = |m: f64| {
+            sd(&residuals(
+                &LoggerDraw {
+                    fast_noise_m: m,
+                    ..quiet(Profile::Altos)
+                },
+                &truth,
+            ))
+        };
+        let stated = CORRELATED_NOISE_M * density * G;
+        assert!(
+            (fast(CORRELATED_NOISE_M) - stated).abs() < 0.05 * stated,
+            "{}",
+            fast(CORRELATED_NOISE_M)
+        );
+        assert!((fast(0.5 * CORRELATED_NOISE_M) - stated).abs() > 0.3 * stated);
+        // The slow term over 3,000 s at AltOS's 10 Hz (its rate after apogee, here at launch): its
+        // correlation one second apart is e^(−1/τ), 0.368 at τ = 1 s, to about 0.03 over some
+        // 1,500 time constants, and its spread to about 2%.
+        let mut long = still(3_000.0, G, 0.0, 0.0, 0.0);
+        long.events.apogee_s = 0.0;
+        let slow = |m: f64, tau: f64| {
+            let draw = LoggerDraw {
+                slow_noise_m: m,
+                slow_noise_tau_s: tau,
+                ..quiet(Profile::Altos)
+            };
+            let r = residuals(&draw, &long);
+            (sd(&r), autocorrelation(&r, 10))
+        };
+        let stated = 0.27 * density * G;
+        let (spread, one_second) = slow(0.27, 1.0);
+        assert!(
+            (spread - stated).abs() < 0.1 * stated,
+            "{spread} against {stated}"
+        );
+        assert!((one_second - (-1.0_f64).exp()).abs() < 0.1, "{one_second}");
+        let (halved, _) = slow(0.135, 1.0);
+        assert!((halved - stated).abs() > 0.3 * stated);
+        let (_, quicker) = slow(0.27, 0.5);
+        assert!((quicker - (-1.0_f64).exp()).abs() > 0.15, "{quicker}");
     }
 
     #[test]
@@ -909,6 +1035,26 @@ mod tests {
             ..stated
         });
         assert!((doubled - sigma).abs() > 0.5 * sigma, "{doubled}");
+        // Past apogee (here from launch) AltOS logs at 10 Hz, but its part keeps the 50 Hz
+        // bandwidth of the climb and so its noise; a σ taken from the descent's rate reads √10
+        // lower (0.31σ measured, the step's scatter included).
+        let mut descending = still(600.0, f, 0.0, 0.0, 0.0);
+        descending.events.apogee_s = 0.0;
+        let descent_log = log(&stated, &descending, SEED, 6).unwrap();
+        let a = channel(&descent_log, Quantity::Acceleration);
+        let after: Vec<f64> = a
+            .time_s
+            .iter()
+            .zip(&a.values)
+            .filter(|(t, _)| **t > 3.0 && **t - 2.0 < 600.0)
+            .map(|(_, v)| *v)
+            .collect();
+        assert!(after.len() > 5_000, "{}", after.len());
+        let descent = sd(&after);
+        assert!(
+            (descent - sigma).abs() < 0.1 * sigma,
+            "{descent} against {sigma}"
+        );
         // A 40 g load on a ±32 g part reads 32 g on every sample.
         let hard = still(10.0, 40.0 * G, 0.0, 0.0, 0.0);
         let clipped = log(&quiet(Profile::Imu500), &hard, SEED, 7).unwrap();
@@ -944,7 +1090,7 @@ mod tests {
                 .iter()
                 .zip(&h.values)
                 .filter(|(t, _)| (**t - 2.0) > 25.0 && (**t - 2.0) < 40.0)
-                .map(|(t, v)| truth.at(t - 2.0).height_m + truth.site_elevation_m - v)
+                .map(|(t, v)| truth.at(t - 2.0).unwrap().height_m + truth.site_elevation_m - v)
                 .collect();
             mean(&lags)
         };
@@ -993,6 +1139,56 @@ mod tests {
     }
 
     #[test]
+    fn the_clock_runs_from_the_pad_to_the_ground_at_each_parts_rate() {
+        // A 40 s flight with apogee at 10 s, logged 3 s before launch and 5 s after landing.
+        let mut truth = still(40.0, G, 0.0, 0.0, 0.0);
+        truth.events.apogee_s = 10.0;
+        let end = 3.0 + 40.0 + 5.0;
+        // The log's own clock, or its fixes' for a GNSS receiver.
+        let spans = |draw: &LoggerDraw| {
+            let log = log(draw, &truth, SEED, 12).unwrap();
+            if draw.profile == Profile::GnssTracker {
+                channel(&log, Quantity::Latitude).time_s.clone()
+            } else {
+                log.time_s
+            }
+        };
+        let steps = |times: &[f64]| times.windows(2).map(|w| w[1] - w[0]).collect::<Vec<_>>();
+        let span = |profile| LoggerDraw {
+            pad_s: 3.0,
+            ground_s: 5.0,
+            ..quiet(profile)
+        };
+        // PerfectFlite logs at 20 Hz throughout; its first sample is at its own zero and its
+        // last within one sample of the end.
+        let times = spans(&span(Profile::PerfectFlite));
+        assert_eq!(times[0], 0.0);
+        assert!(steps(&times).iter().all(|d| (d - 0.05).abs() < 1e-9));
+        let last = times[times.len() - 1];
+        assert!(last <= end && last > end - 0.05, "{last}");
+        // AltOS logs at 100 Hz to the first sample past apogee, then at 10 Hz.
+        let times = spans(&span(Profile::Altos));
+        let apogee = 3.0 + 10.0;
+        for (w, d) in times.windows(2).zip(steps(&times)) {
+            let expect = if w[0] <= apogee { 0.01 } else { 0.1 };
+            assert!((d - expect).abs() < 1e-9, "{} to {}", w[0], w[1]);
+        }
+        let last = times[times.len() - 1];
+        assert!(last <= end && last > end - 0.1, "{last}");
+        // A GNSS receiver fixes at its drawn rate, 1, 5 or 10 Hz, over the same span.
+        for rate in [1.0, 5.0, 10.0] {
+            let times = spans(&LoggerDraw {
+                gnss_rate_hz: rate,
+                ..span(Profile::GnssTracker)
+            });
+            assert_eq!(times[0], 0.0);
+            assert!(steps(&times).iter().all(|d| (d - 1.0 / rate).abs() < 1e-9));
+            let last = times[times.len() - 1];
+            assert!(last <= end && last > end - 1.0 / rate, "{rate}: {last}");
+        }
+    }
+
+    #[test]
     fn gnss_fixes_scatter_three_meters_on_each_axis() {
         let truth = still(120.0, G, 0.0, 0.0, 0.0);
         let log = log(&quiet(Profile::GnssTracker), &truth, SEED, 10).unwrap();
@@ -1003,14 +1199,20 @@ mod tests {
             .iter()
             .map(|v| v - truth.site_elevation_m)
             .collect();
-        // A degree of latitude is about 111 km at 35° N.
+        // A degree of latitude is about 110.94 km at 35° N on WGS84, and a degree of longitude
+        // 91.29 km.
         let north: Vec<f64> = lat
             .values
             .iter()
-            .map(|v| (v - SITE_LATITUDE_DEG) * 110_950.0)
+            .map(|v| (v - SITE_LATITUDE_DEG) * 110_940.0)
+            .collect();
+        let east: Vec<f64> = channel(&log, Quantity::Longitude)
+            .values
+            .iter()
+            .map(|v| (v - SITE_LONGITUDE_DEG) * 91_290.0)
             .collect();
         // About 1,200 fixes: the spread's standard error is about 0.06 m.
-        for axis in [&up, &north] {
+        for axis in [&up, &north, &east] {
             assert!((sd(axis) - GNSS_NOISE_M).abs() < 0.3, "{}", sd(axis));
             assert!(mean(axis).abs() < 0.5, "{}", mean(axis));
         }
@@ -1037,7 +1239,7 @@ mod tests {
                 .time_s
                 .iter()
                 .zip(&log.altitude_m)
-                .map(|(t, h)| (h - truth.at(t - 2.0).height_m).abs())
+                .map(|(t, h)| (h - truth.at(t - 2.0).unwrap().height_m).abs())
                 .fold(0.0, f64::max);
             assert!(worst < 4.0, "{profile:?}: {worst}");
             assert!(log.altitude_m.iter().copied().fold(0.0, f64::max) > 1_900.0);
@@ -1046,7 +1248,7 @@ mod tests {
 
     #[test]
     fn each_logger_writes_its_familys_rate_step_and_channels() {
-        let mut flyer = Flyer::new();
+        let mut flyer = Flyer::new(crate::synthetic::designs::DesignFiles::committed());
         for profile in Profile::ALL {
             let index = (0..)
                 .find(|&k| draw(Set::Tuning, k).logger.profile == profile)
@@ -1134,15 +1336,24 @@ mod tests {
             assert!(all(&|d| (0.0..=10.0).contains(&d.gnss_dropout_liftoff_s)));
             assert!(all(&|d| (0.0..=10.0).contains(&d.gnss_dropout_burnout_s)));
             assert!(all(&|d| d.accel_bias_m_s2.abs() <= ACCEL_BIAS_G * G));
+            assert!(all(
+                &|d| (SLOW_NOISE_TAU_S.0..=SLOW_NOISE_TAU_S.1).contains(&d.slow_noise_tau_s)
+            ));
             match profile.barometer() {
                 Some(b) => {
                     assert!(all(&|d| (b.white_pa.0..=b.white_pa.1).contains(&d.white_pa)));
                     assert!(all(&|d| d.offset_pa.abs() <= b.offset_pa));
                     assert!(all(&|d| d.gain.abs() <= b.relative_gain));
+                    assert!(all(&|d| d.fast_noise_m == CORRELATED_NOISE_M));
+                    assert!(all(
+                        &|d| (SLOW_NOISE_M.0..=SLOW_NOISE_M.1).contains(&d.slow_noise_m)
+                    ));
                 }
                 None => assert!(all(&|d| d.white_pa == 0.0
                     && d.offset_pa == 0.0
-                    && d.gain == 0.0)),
+                    && d.gain == 0.0
+                    && d.fast_noise_m == 0.0
+                    && d.slow_noise_m == 0.0)),
             }
             match profile.accelerometer() {
                 Some(a) => {
@@ -1159,7 +1370,7 @@ mod tests {
 
     #[test]
     fn altos_logs_100_hz_to_apogee_and_10_hz_after() {
-        let mut flyer = Flyer::new();
+        let mut flyer = Flyer::new(crate::synthetic::designs::DesignFiles::committed());
         let index = (0..)
             .find(|&k| draw(Set::A, k).logger.profile == Profile::Altos)
             .unwrap();

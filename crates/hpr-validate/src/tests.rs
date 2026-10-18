@@ -2484,6 +2484,11 @@ fn the_validated_range_is_the_fastest_public_reference() {
         ["by_mach", "finish_mach", "mach"],
         "guide-rocket-drag.json: hpr's model alone; a reference's key belongs above"
     );
+    assert_eq!(
+        mach_keys(&read("synthetic-flights.json")),
+        ["top_mach"],
+        "synthetic-flights.json: hpr's flights alone; a reference's key belongs above"
+    );
     for name in [
         "openrocket-export-flights.json",
         "ork-cli-flights.json",
