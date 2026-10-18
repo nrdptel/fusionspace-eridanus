@@ -19,7 +19,7 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
 > named [below](#units-no-source-states). In the four layouts read since
 > [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written
-> (the file's number stored unchanged, with no SI value made from it), so many of their columns keep the file's own numbers, and no reading is taken from them yet.
+> (the file's number stored unchanged, with no SI value made from it), so many of their columns keep the file's own numbers, and the readings come only from a height or pressure whose unit was read.
 > The two raw downloads read since [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the Raven's
 > `.FIPa` and the RRC3's `.rff`, match their makers' exports of the same flights in every sample,
 > wherever an export sits beside them; 7 of their 63 sample files have none, and are unchecked
@@ -134,10 +134,16 @@ for channel in &log.channels {
 }
 ```
 
-[`hpr analyze`](../cli.md#hpr-analyze), the command line, and Python read PerfectFlite's `.pf2`
-only so far. The readings `hpr analyze` prints (liftoff, apogee and the rest) were set and tested
-on PerfectFlite logs, so the library withholds them on another logger's record, with that reason,
-until [M7.2](../decisions-and-roadmap.md#m7-2) validates them there.
+[`hpr analyze`](../cli.md#hpr-analyze), the command line, and Python read each layout
+`import::read` recognizes by its own reader, and a table or binary records by a column mapping or
+a record layout ([Reading your own logger](../your-own-logger.md)). Since
+[M7.2b, readings on every logger](../decisions-and-roadmap.md#m7-2b), the readings (liftoff,
+apogee, the top speed and landing) come from any record's height track: the logger's own
+barometric altitude, a pressure turned into a height by the 1976 standard atmosphere, or an
+altitude channel, each reading within a stated bound or withheld with its reason. A GNSS height
+gives none ([Flight-log readings](../physics/log-readings.md#the-height-track)). The survey's
+report counts the readings each family gives and withholds
+([how it was checked](#how-it-was-checked)).
 
 Written for [M7.1a](../decisions-and-roadmap.md#m7-1a) (the record, the survey of the sample
 logs, and the PerfectFlite, AltOS and Raven readers), as
@@ -235,11 +241,11 @@ decided.
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | AltiMAX `.ALS` | Rocketronics AltiMAX, a flight as the altimeter writes it to its memory card | a header stating at least one record, then records of 22 bytes, the first up to 1,000 each holding a first byte with bit 0 set and bit 1 clear and its voltage channel the one after the record before's | `hpr_flightdata::altimax_als` ([below](#the-altimaxs-als)) |
 | Entacore AIM `.xtra` | Entacore AIM XTRA, a flight as the AIM software saves it | a Boost serialization archive's signature, `serialization::archive`, the top object's header the sample has, and a first record whose class is an AIM kind's | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)) |
-| Entacore AIM raw dump | the same flight computer's memory, as the AIM software downloads it before any conversion | a first byte `0x13`, a recording's opening, then the AIM's records, up to 1,000, or erased memory | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)); `import::read` takes a dump of one recording, and `entacore_raw::read_dump` each recording of several |
+| Entacore AIM raw dump | the same flight computer's memory, as the AIM software downloads it before any conversion | a first byte `0x13`, a recording's opening, then the AIM's records, up to 1,000, or erased memory | `hpr_flightdata::entacore_raw` ([below](#the-aims-xtra-and-raw-dump)); `import::read` takes a dump of one recording, and `entacore_raw::read_dump` each recording of several; `import::read_one`, as `hpr analyze --recording` does, reads the one chosen |
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
-| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
-| Raven FIP rows below no header | a Raven FIP CSV pasted into a workbook with its header line missing | not recognized: read under the header line you state | `hpr_flightdata::raven::read_rows` ([below](#a-fip-export-pasted-below-no-header)) |
-| AltiMAX Excel export, `.xls` | Rocketronics AltiMAX, a flight as its PC software exports it to Excel | not by `import::read`, which refuses the `.xls` bytes: `xls::read` writes the worksheet out as text, whose header's first five names are `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]` | `hpr_flightdata::xls` and `hpr_flightdata::altimax` ([below](#the-altimaxs-excel-export)) |
+| Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own; `import::read_one`, as `hpr analyze --sheet` does, reads the sheet chosen, or with none the one sheet that reads | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
+| Raven FIP rows below no header | a Raven FIP CSV pasted into a workbook with its header line missing | not recognized: read under the header line you state | `hpr_flightdata::raven::read_rows`, and `custom::read_by_fip_header` from a workbook's sheet, as `hpr analyze --fip-header` does ([below](#a-fip-export-pasted-below-no-header)) |
+| AltiMAX Excel export, `.xls` | Rocketronics AltiMAX, a flight as its PC software exports it to Excel | not by `import::read`, which refuses the `.xls` bytes: `xls::read` writes the worksheet out as text, whose header's first five names are `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]`; `import::read_one`, as `hpr analyze` does, reads it | `hpr_flightdata::xls` and `hpr_flightdata::altimax` ([below](#the-altimaxs-excel-export)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 | Binary records | a team's flight computer saving each sample as a fixed run of bytes, with no header | not recognized: read by the record layout you state | `hpr_flightdata::records` ([below](#binary-records-by-a-stated-layout)) |
 | Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
@@ -296,8 +302,9 @@ its files is read, when:
 
 The crate's tests build an archive of each kind and check its refusal, and two property tests
 feed random and damaged archives to the reader to show it refuses them or stays within the
-bound, and never crashes. Only the Rust library opens archives so far: `hpr analyze` reads a
-`.pf2` file, not a zip.
+bound, and never crashes. Only the Rust library opens archives so far: `hpr analyze` and the Python
+package refuse one, and the command line asks for the log inside it. A workbook, though built on
+a zip archive, they read one sheet at a time ([Excel workbooks](#excel-workbooks)).
 
 The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
 among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
@@ -315,8 +322,12 @@ states and the rest of their columns as written.
 ### Excel workbooks
 
 Some flyers keep a flight's log in an Excel workbook (`.xlsx`): the Blue Raven app's files pasted
-side by side as sheets, or a table whose header names its units. Only the Rust library reads
-workbooks so far; `hpr analyze` and the Python package don't open them. A workbook is a zip
+side by side as sheets, or a table whose header names its units. `hpr analyze` and the Python
+package read one sheet at a time: by its own reader, the sheet chosen with `--sheet N`
+(`sheet=` in Python), from 0, or with none the workbook's one sheet that reads as a log; or by a
+column mapping and the sheet's number
+([A file of several records](../cli.md#a-file-of-several-records)). In Rust,
+`hpr_flightdata::import::read_one` reads one sheet as they do. A workbook is a zip
 archive of XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so
 `hpr_flightdata::import::read` refuses one, as it does any archive. Instead,
 `hpr_flightdata::workbook::read` writes each worksheet's cells out as comma-separated text, one
@@ -452,8 +463,9 @@ That row is `Acc` 700 and `Prs` 799 counts and `Dig` 16, at 0.1 s; the note says
 seconds because its average step, from −0.3 s to 0.7 s over ten steps, is 0.1, the 10 Hz interval.
 
 Checked: all 54 sample files read, pinned by the [survey](#how-it-was-checked). Left out:
-converting the counts, which needs the software's calibration values, and events from `Dig`; the
-readings of [M7.2](../decisions-and-roadmap.md#m7-2) need an altitude this record doesn't hold.
+converting the counts, which needs the software's calibration values, and events from `Dig`. With
+no altitude or pressure in a unit, the record gives no reading (`no_height_track`,
+[Flight-log readings](../physics/log-readings.md#when-a-reading-is-withheld)).
 
 ### AltOS telemetry
 
@@ -559,8 +571,10 @@ on it
 > values and 11 of text. No maker stands behind these units: a wrong unit whose values stay
 > inside the bounds below is read in it, and milliseconds headed as seconds pass the clock's
 > check above about 17 rows a second. The table that writes its altitude and speed in both feet
-> and meters agrees with itself to 4.5 × 10⁻¹³ m. No readings are taken from these records until
-> [M7.2](../decisions-and-roadmap.md#m7-2).
+> and meters agrees with itself to 4.5 × 10⁻¹³ m. The readings come from a pressure, or from an
+> altitude whose header says it is above the ground or above sea level; one headed only `Altitude`
+> says nothing of its sensor, so it gives none (`unstated_sensor`), unless a column mapping marks
+> it as the barometer's ([Flight-log readings](../physics/log-readings.md#the-height-track)).
 
 **The header** is the first line within 64 that isn't blank, a `#` comment or `sep=`, split at
 `,`, `;`, a tab or `|`, whichever gives the most cells. One column must be the clock: a time word
@@ -954,7 +968,8 @@ a marker inside a block or two blocks of one name are refused, naming the line.
 > the table too, 1,237,425 fields in all.
 
 **What is left out.** No [primary track](#the-record), as for any table read by its header.
-`hpr analyze` and the Python package don't read these files yet: the Rust library does. A
+`hpr analyze` and the Python package read these files only by the layout you state
+([Reading your own logger](../your-own-logger.md)). A
 record's layout can't be found from its bytes alone: a file whose layout no one states stays
 unread. A capture's other blocks, such as the saved state a `params` block holds, are decoded but
 not read.
@@ -1132,9 +1147,9 @@ channels, the gyroscopes' and accelerometers' included, describes the TeleMega's
 in the files says why, so the reading keeps the values as written, and the
 [survey's report](#how-it-was-checked) prints these measures.
 
-**What is left out.** No altitude is made from the pressure, and the two sets aren't joined by
-their sync code. `hpr analyze` and the Python package don't read these files yet: the Rust library
-does.
+**What is left out.** The record makes no altitude from the pressure, though the
+[readings](../physics/log-readings.md#the-height-track) turn it into a height by the 1976
+standard atmosphere, and the two sets aren't joined by their sync code.
 
 ### A course's Teensy data logger
 
@@ -1153,9 +1168,9 @@ which decided it). `import::read` reads both with `hpr_flightdata::teensy`.
 > the file stating it passes a physical check on every file ([below](#how-the-teensy-files-were-checked)).
 > The gyroscope, the magnetometer, the high-g accelerometer of the older layout and the analog
 > inputs are kept as written, because no check settles their units. Those values aren't
-> converted, so they can't be wrong in SI; they simply aren't in SI. No readings, such as the
-> apogee, are taken from these files yet: they come with
-> [M7.2](../decisions-and-roadmap.md#m7-2).
+> converted, so they can't be wrong in SI; they simply aren't in SI. The readings, such as the
+> apogee, come from the barometer's pressure, turned into a height by the 1976 standard atmosphere
+> ([Flight-log readings](../physics/log-readings.md#the-height-track)).
 
 **The older layout** separates its fields by tabs. Seven tags come round in a cycle, each line
 with its own time. These invented lines are from the crate's test file, the tabs shown as
@@ -1266,8 +1281,7 @@ in its stated g, is 0.996 times its main one during the boost, which agrees with
 the report prints this as a measure, not a check.
 
 **What is left out.** There is no [primary track](#the-record), as neither layout writes an
-altitude above the pad. `hpr analyze` and the Python package don't read these files yet: the Rust
-library does.
+altitude above the pad; the readings take the pressure instead.
 
 ### One team's radio telemetry packets
 
@@ -1287,8 +1301,9 @@ which decided it). `import::read` reads all three forms with `hpr_flightdata::pa
 > a value is right: the two physical checks below, a pressure band and a time to apogee within a
 > factor of 2, are what hold the units. The clock is read in milliseconds and one value
 > in hectopascals, each held to the flight's physics; the other values are kept as written,
-> because nothing settles their units. No readings, such as the apogee, are taken from these
-> files yet: they come with [M7.2](../decisions-and-roadmap.md#m7-2).
+> because nothing settles their units. The readings, such as the apogee, come from the pressure,
+> turned into a height by the 1976 standard atmosphere
+> ([Flight-log readings](../physics/log-readings.md#the-height-track)).
 
 **A packet** separates its fields by colons, or by commas in the exports. These invented lines
 are from the crate's test files:
@@ -1375,7 +1390,9 @@ Two physical checks hold the units read, on the onboard log:
 
 **What is left out.** There is no [primary track](#the-record), as no packet writes an altitude
 above the pad in a unit that is settled. The GPS packets' values are kept as written. `hpr
-analyze` and the Python package don't read these files yet: the Rust library does.
+analyze` and the Python package read these files as the library does, and each reading is given
+within its bound or withheld for the reason the command prints
+([Flight-log readings](../physics/log-readings.md)).
 
 ### A FIP export pasted below no header
 
@@ -1389,8 +1406,11 @@ channel after it one cell to the left. Without the header nothing names the colu
 `read_rows_around` reads a sheet another table was pasted over
 ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md),
 decided it, in its amendment for [M7.1c20, workbooks with a reading
-beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own,
-and neither do `hpr analyze` and the Python package.
+beside](../decisions-and-roadmap.md#m7-1c20)). `import::read` doesn't read such a workbook on its own.
+`custom::read_by_fip_header` reads it under a header stated in a JSON file, the header line and
+the pasted columns, from a workbook's sheet or the rows as text; `hpr analyze --fip-header FILE`
+and Python's `FlightLog.read(path, fip_header=...)` take that file
+([Reading your own logger](../your-own-logger.md#a-fip-export-below-no-header)).
 
 > **How far to trust it.** The header stated for both sample sheets is the one Debrief's public
 > sample of a Raven flight carries, the same 16 channels in the same order, and both sheets' rows
@@ -1474,9 +1494,11 @@ flight "to Excel as altitude values" (*AltiMAX G4 Manual*, Rocketronics, 2021, p
 export is an `.xls` file, the binary format of Excel before 2007, and an unusual one: a bare
 *worksheet stream*, its records end to end, not inside the container file (an OLE2 compound
 document) that Excel wraps its own `.xls` files in. `hpr_flightdata::xls::read` writes the
-worksheet out as text and reads it, here with `hpr_flightdata::altimax`; `import::read` refuses
-the `.xls` bytes and names `xls::read`. Only the Rust library reads it ([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)).
+worksheet out as text and reads it, here with `hpr_flightdata::altimax`
+([ADR-274, the Teensy logger and the rest of the importers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
+decided it, in its amendment for [M7.1c20](../decisions-and-roadmap.md#m7-1c20)). `import::read`
+refuses the `.xls` bytes and names `xls::read`. `import::read_one` reads its one sheet, and so do
+`hpr analyze` and Python's `FlightLog.read` with no option; `--sheet 0` (`sheet=0`) names it.
 
 > **How far to trust it.** The one sample file is read cell for cell: the survey's own decoding
 > and xlrd 2.0.2, an independent Python reader, agree with the text on all 278,685 cells. No
@@ -1763,7 +1785,8 @@ Every reader fills the same record, `FlightLog`, in SI units:
   record's `stated.figures`, its name and value as written.
 - **The primary track:** the barometric altitude above the pad (AGL, above ground level) on the
   logger's clock, with the barometer's vertical speed, the temperature and the battery voltage
-  where they share that clock. The [readings](../physics/log-readings.md) are taken from it. A
+  where they share that clock. The [readings](../physics/log-readings.md#the-height-track) take
+  it first, and a pressure or an altitude channel where it is empty. A
   log with no barometer, such as a [GPS log](#gps-logs), has an empty primary track, and so does
   a [raw download](#raw-downloads), whose barometer's readings are pressures, not altitudes, and
   an [AltOS export a spreadsheet re-saved](#altoss-csv-after-a-spreadsheet) with its `height`
@@ -2232,8 +2255,9 @@ sample logs:
   in two other sample files are read by
   [the packets' reader](#one-teams-radio-telemetry-packets), not this one.
 
-The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
-`.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
+Where one of these layouts holds a barometric altitude or a pressure, the readings come from it,
+as from every logger's; a file with neither gives none
+([Flight-log readings](../physics/log-readings.md)).
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
 low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on
@@ -2331,8 +2355,8 @@ compared. These two are kept as written in every file, never guessed:
 
 A name the reader doesn't know is kept as written too, and so is a known figure whose cells
 aren't the numbers it needs, such as a direction with two components; each has a note. A zero is
-kept as the file states it: what a zero means is a reading, which comes with
-[M7.2](../decisions-and-roadmap.md#m7-2). The [survey's report](#how-it-was-checked) counts
+kept as the file states it: what a zero means is a reading, which HPR Sim doesn't take from a
+summary. The [survey's report](#how-it-was-checked) counts
 each figure kept as written by the catalog's family. The main's descent rate, for one, is kept
 in 23 files filed as `blueraven-summary-csv` and 13 filed as `featherweight-summary-csv`.
 
@@ -2392,8 +2416,9 @@ A GPS tracker or a flight computer's GPS receiver logs where the rocket was: a l
 longitude in degrees, an altitude above sea level, and figures of the *fix* (the receiver's
 solution of its position), such as how many satellites it used. These logs have no barometer, so
 a GPS log's record has an empty [primary track](#the-record) and keeps everything as channels,
-with a note; the [readings](../physics/log-readings.md), set on a barometer's altitude, withhold
-on it until [M7.2](../decisions-and-roadmap.md#m7-2), the milestone that reads other loggers.
+with a note. The [readings](../physics/log-readings.md#the-height-track) withhold on it, each by
+name: a receiver's altitude lags a climb and overshoots its top, and its fix drops out at liftoff,
+so no bound can be stated for it.
 
 > **How far to trust it.** Positions, heights and times are read as the file writes them; HPR
 > Sim claims no accuracy for a GPS fix, and a GPS altitude is above sea level, not above the
@@ -2484,8 +2509,8 @@ exports by `hpr_flightdata::rtx`. Neither manual describes the files: what follo
 from the 5 `.rtx` files among the sample logs and the 13 exports beside them (8 CSV and text, 5
 KML), with no other program's source read
 ([ADR-267, reading the RTx before the other layouts](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)).
-Like every GPS log here, an RTx file feeds no reading yet: the readings wait for a barometer's
-track (see [GPS logs](#gps-logs)).
+Like every GPS log here, an RTx file feeds no reading: the readings need a barometer's track
+(see [GPS logs](#gps-logs)).
 
 > **How far to trust it.** In 4 of the 5 sample `.rtx` files every field the reader converts
 > agrees with mDACS's own exports on every fix they hold (all but the last), positions written
@@ -2868,8 +2893,9 @@ second, within 10% and two pairs, or the file is refused.
 Neither file holds an altitude: the altitudes in the FIP's and mDACS's exports are those programs'
 conversions of the pressure. So each record has an empty [primary track](#the-record), with a
 note, as a [GPS log](#gps-logs) and the Blue Raven's high-rate file have, and its channels hold
-everything, the pressure among them. Working an altitude out of the pressure is a reading, which
-comes with [M7.2](../decisions-and-roadmap.md#m7-2). From the Raven's settings block, the ground's
+everything, the pressure among them. The [readings](../physics/log-readings.md#the-height-track)
+turn that pressure into a height by the 1976 standard atmosphere and zero it on the pad. From the
+Raven's settings block, the ground's
 elevation becomes the launch site's, and its flight number and firmware are kept as stated.
 
 ### Checked against the makers' exports
@@ -3408,7 +3434,10 @@ it, and an earlier copy of that `.xtra`, cut short. `hpr_flightdata::entacore_ra
 layouts. `import::read` takes an `.xtra` file, and a dump that holds one recording; the sample's
 holds ten, nine whose pressure shows no flight and then the flight. `import::read` refuses a dump
 of several, naming the byte where the second starts, and `entacore_raw::read_dump` reads each as
-a record of its own.
+a record of its own. `import::read_one` reads the one chosen, counted from 0, as
+`hpr analyze --recording N` and Python's `FlightLog.read(path, recording=N)` do; with none chosen,
+they read a dump of one recording and refuse one of several, saying how many it holds
+([A file of several records](../cli.md#a-file-of-several-records)).
 
 A dump is the memory's recordings end to end, then erased memory, bytes of `0xFF`. A recording
 opens with the byte `0x13` and 101 bytes that aren't read. After that, a byte from `0x80` to
@@ -3520,7 +3549,10 @@ when they hold to theirs. Of the other 70, 67 aren't logs and 3 are damaged (bel
 layout HPR Sim reads is left unread: since
 [M7.1c23](../decisions-and-roadmap.md#m7-1c23), the last of the importers that
 [ADR-274](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md)
-plans, `cargo xtask logs --check` fails on one.
+plans, `cargo xtask logs --check` fails on one. Since
+[M7.2b, readings on every logger](../decisions-and-roadmap.md#m7-2b), it also takes the readings
+from every record it reads, and counts each reading given and withheld, by family and by reason,
+with a case for each reason ([Flight-log readings](../physics/log-readings.md#checked-against)).
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, held to

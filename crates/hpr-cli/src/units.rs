@@ -135,6 +135,40 @@ pub(crate) fn speed(value: f64) -> String {
     format!("{} m/s ({})", fixed(value, 1), feet_per_second(value))
 }
 
+/// `value` rounded up to `decimals` places, for a bound: a printed bound never claims less error
+/// than the reading has. A part in 10⁹ is let go, so that a bound stored a hair over its exact
+/// value, such as 0.98 s, isn't printed a step higher.
+pub(crate) fn rounded_up(value: f64, decimals: i32) -> f64 {
+    let scale = 10_f64.powi(decimals);
+    let scaled = value * scale;
+    (scaled - scaled.abs() * 1e-9).ceil() / scale
+}
+
+/// A bound on a height in meters, rounded up to a tenth, with whole feet rounded up:
+/// `27.4 m (90 ft)`.
+pub(crate) fn meters_bound(value: f64) -> String {
+    format!(
+        "{} m ({} ft)",
+        fixed(rounded_up(value, 1), 1),
+        fixed(rounded_up(value / FOOT_M, 0), 0)
+    )
+}
+
+/// A bound on a speed in meters per second, rounded up to a tenth, with whole feet per second
+/// rounded up: `29.7 m/s (98 ft/s)`.
+pub(crate) fn speed_bound(value: f64) -> String {
+    format!(
+        "{} m/s ({} ft/s)",
+        fixed(rounded_up(value, 1), 1),
+        fixed(rounded_up(value / FOOT_M, 0), 0)
+    )
+}
+
+/// A bound on a time in seconds, rounded up to a hundredth: `0.98`.
+pub(crate) fn seconds_bound(value: f64) -> String {
+    fixed(rounded_up(value, 2), 2)
+}
+
 /// The digits of a bearing from true north, `090`, as the product system's `data.md` (*Maps*)
 /// writes one, before its `° T`: turned into `[0, 360)`, the whole degrees padded to three
 /// digits, and `decimals` places. A value that rounds to 360 is written as 0.
@@ -173,6 +207,24 @@ pub(crate) fn typed_bearing(degrees: f64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A bound rounds up, never to nearest; one stored a hair over its value stays at it.
+    #[test]
+    fn bounds_round_up() {
+        for (value, decimals, expected) in [
+            (29.602, 1, 29.7),
+            (27.3547, 1, 27.4),
+            (20.0, 1, 20.0),
+            (0.98, 2, 0.98),
+            (0.1 + 0.2, 1, 0.3),
+            (3.2501, 2, 3.26),
+        ] {
+            assert_eq!(rounded_up(value, decimals), expected, "{value}");
+        }
+        assert_eq!(speed_bound(29.602), "29.7 m/s (98 ft/s)");
+        assert_eq!(meters_bound(27.3547), "27.4 m (90 ft)");
+        assert_eq!(seconds_bound(3.2501), "3.26");
+    }
 
     #[test]
     fn bearings_are_three_digits_from_true_north() {

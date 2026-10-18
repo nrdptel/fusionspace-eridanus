@@ -4,7 +4,7 @@
 
 use hpr_flightdata::error::LogError;
 use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
-use hpr_flightdata::{import, xls};
+use hpr_flightdata::{custom, import, xls};
 
 /// A record: its id, its data's length and its data.
 fn record(id: u16, data: &[u8]) -> Vec<u8> {
@@ -195,4 +195,44 @@ fn a_later_versions_cell_is_refused_by_name() {
         Err(LogError::Workbook { message }) => assert!(message.contains("RK"), "{message}"),
         other => panic!("expected a workbook refusal, got {other:?}"),
     }
+}
+
+/// The importer reads the export's one sheet with no sheet chosen, and the sheet chosen, and
+/// refuses a sheet past the last, naming the choice (M7.2b); a table on an `.xls` sheet that no
+/// reader takes reads by a column mapping, its one sheet with none named or named.
+#[test]
+fn a_sheet_is_read_as_chosen_and_a_table_by_a_mapping() {
+    let bytes = export();
+    assert_eq!(import::read_one(&bytes, None, None).unwrap(), read());
+    assert_eq!(import::read_one(&bytes, Some(0), None).unwrap(), read());
+    match import::read_one(&bytes, Some(1), None) {
+        Err(LogError::Choice { message }) => {
+            assert!(
+                message.contains("has 1 sheets, numbered from 0"),
+                "{message}"
+            );
+        }
+        other => panic!("expected a choice, got {other:?}"),
+    }
+
+    let mut table = record(0x0809, &[0x00, 0x00, 0x10, 0x00, 0xbb, 0x0d]);
+    table.extend(label(0, 0, "Time (s)"));
+    table.extend(label(0, 1, "Height (m)"));
+    for (row, (t, h)) in [(0.0, 0.0), (0.5, 4.0), (1.0, 15.0)]
+        .into_iter()
+        .enumerate()
+    {
+        table.extend(number(row as u16 + 1, 0, t));
+        table.extend(number(row as u16 + 1, 1, h));
+    }
+    table.extend(record(0x000a, &[]));
+    let (mapping, _) = custom::header_mapping(&table, None).unwrap();
+    assert_eq!(mapping, custom::header_mapping(&table, Some(0)).unwrap().0);
+    let log = custom::read_by_mapping(&table, &mapping, None).unwrap();
+    assert_eq!(
+        log,
+        custom::read_by_mapping(&table, &mapping, Some(0)).unwrap()
+    );
+    assert_eq!(log.channels[0].time_s, [0.0, 0.5, 1.0]);
+    assert_eq!(log.channels[0].values, [0.0, 4.0, 15.0]);
 }

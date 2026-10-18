@@ -118,7 +118,7 @@ fn cases(folder: &Path) -> Vec<Case> {
         // A file that isn't a flight log.
         case(
             &["analyze", &repo("Cargo.toml")],
-            "give a .pf2 log that PerfectFlite's software saved",
+            "another logger's table is read by a column mapping (--mapping)",
         ),
         // A forecast hour past what the model's run reaches.
         case(

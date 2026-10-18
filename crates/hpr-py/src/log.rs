@@ -1,6 +1,7 @@
 //! `FlightLog`: a flight log read into one record, by its format's own reader or by the column
 //! mapping or record layout a flyer writes for their own logger, as `hpr analyze` reads it
-//! (`hpr_flightdata::custom`, M7.1d2).
+//! (`hpr_flightdata::custom`, M7.1d2); a workbook's sheet or a dump's recording as chosen, and a
+//! Raven FIP export that lost its header line under the header stated for it (M7.2b).
 
 use std::path::{Path, PathBuf};
 
@@ -8,6 +9,7 @@ use hpr::hpr_flightdata::custom;
 use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::FlightLog as Record;
+use hpr::hpr_flightdata::readings;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -28,7 +30,7 @@ fn read_bytes(path: &Path) -> PyResult<Vec<u8>> {
     std::fs::read(path).map_err(|e| error(format!("{}: {e}", path.display())))
 }
 
-/// A mapping's or a layout's JSON: a dict's, or a file's at a path.
+/// A mapping's, a layout's or a FIP header's JSON: a dict's, or a file's at a path.
 fn description_json(py: Python<'_>, given: &Bound<'_, PyAny>) -> PyResult<String> {
     if given.is_instance_of::<PyDict>() {
         // Indented, so that a refusal's line and column point into the dict's own lines; NaN
@@ -42,13 +44,14 @@ fn description_json(py: Python<'_>, given: &Bound<'_, PyAny>) -> PyResult<String
             .and_then(|text| text.extract::<String>())
             .map_err(|refused| {
                 error(format!(
-                    "a mapping or a layout given as a dict must be one JSON can hold: {refused}"
+                    "a mapping, a layout or a FIP header given as a dict must be one JSON can \
+                     hold: {refused}"
                 ))
             });
     }
-    let path: PathBuf = given
-        .extract()
-        .map_err(|_| error("a mapping or a layout is a dict, or the path of its JSON file"))?;
+    let path: PathBuf = given.extract().map_err(|_| {
+        error("a mapping, a layout or a FIP header is a dict, or the path of its JSON file")
+    })?;
     custom::json_text(&read_bytes(&path)?).ok_or_else(|| {
         error(format!(
             "{}: not UTF-8 or UTF-16 text, as a JSON file is",
@@ -76,38 +79,64 @@ impl FlightLog {
     /// table's, or a record layout, binary records' or a serial console's capture of them. A
     /// mapping or a layout is a dict, or the path of its JSON file, as the schemas
     /// ``schema/cli/analyze-mapping.schema.json`` and ``analyze-layout.schema.json`` describe;
-    /// ``FlightLog.header_mapping`` gives the mapping a table's header states. ``sheet`` names the
-    /// ``.xlsx`` workbook's sheet a mapped table is on, from 0. Raises ``HprError`` naming the field
-    /// a mapping or layout fails, or why the log doesn't read.
+    /// ``FlightLog.header_mapping`` gives the mapping a table's header states. ``sheet`` names a
+    /// spreadsheet's workbook's sheet (``.xlsx`` or ``.xls``), from 0, to read by its format's
+    /// own reader, a mapping or a FIP header; with none, the workbook's one sheet that reads as a
+    /// log. ``recording`` names an Entacore AIM raw dump's recording, from 0. ``fip_header`` reads
+    /// a Featherweight Raven's FIP export that lost its header line under the header it states, a
+    /// dict or a JSON file's path (``schema/cli/analyze-fip-header.schema.json``). Raises
+    /// ``HprError`` naming the field a mapping, layout or header fails, the choice a file of
+    /// several records needs, or why the log doesn't read.
     #[staticmethod]
-    #[pyo3(signature = (path, *, mapping = None, layout = None, sheet = None))]
+    #[pyo3(signature = (
+        path, *, mapping = None, layout = None, sheet = None, recording = None, fip_header = None
+    ))]
     fn read(
         py: Python<'_>,
         path: PathBuf,
         mapping: Option<&Bound<'_, PyAny>>,
         layout: Option<&Bound<'_, PyAny>>,
         sheet: Option<usize>,
+        recording: Option<usize>,
+        fip_header: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<Self> {
-        if sheet.is_some() && mapping.is_none() {
+        // The options `hpr analyze` refuses together, refused the same way.
+        let described = usize::from(mapping.is_some())
+            + usize::from(layout.is_some())
+            + usize::from(fip_header.is_some());
+        if described > 1 {
             return Err(error(
-                "sheet names the workbook's sheet a table is on, and no table is read by a mapping",
+                "a log is read by one of a mapping, a layout and a FIP header, not several",
             ));
         }
-        let log = match (mapping, layout) {
-            (Some(_), Some(_)) => {
-                return Err(error("a log is read by a mapping or by a layout, not both"));
-            }
-            (Some(mapping), None) => {
+        if recording.is_some() && (described > 0 || sheet.is_some()) {
+            return Err(error(
+                "recording names a dump's recording, read by its own reader: it takes no \
+                 mapping, layout, FIP header or sheet",
+            ));
+        }
+        if sheet.is_some() && layout.is_some() {
+            return Err(error(
+                "sheet names a workbook's sheet, and a layout reads binary records, not a sheet",
+            ));
+        }
+        let log = match (mapping, layout, fip_header) {
+            (Some(mapping), ..) => {
                 let mapping =
                     custom::mapping_from_json(&description_json(py, mapping)?).map_err(error)?;
                 custom::read_by_mapping(&read_bytes(&path)?, &mapping, sheet)
             }
-            (None, Some(layout)) => {
+            (None, Some(layout), _) => {
                 let layout =
                     custom::layout_from_json(&description_json(py, layout)?).map_err(error)?;
                 custom::read_by_layout(&read_bytes(&path)?, &layout)
             }
-            (None, None) => import::read(&read_bytes(&path)?),
+            (None, None, Some(header)) => {
+                let stated =
+                    custom::fip_header_from_json(&description_json(py, header)?).map_err(error)?;
+                custom::read_by_fip_header(&read_bytes(&path)?, &stated, sheet)
+            }
+            (None, None, None) => import::read_one(&read_bytes(&path)?, sheet, recording),
         };
         Ok(Self {
             log: log.map_err(|refused| on(&path, refused))?,
@@ -210,6 +239,17 @@ impl FlightLog {
     #[getter]
     fn notes(&self) -> Vec<String> {
         self.log.notes.clone()
+    }
+
+    /// The readings taken from the log on its own, as ``hpr analyze`` takes them: a dict of
+    /// ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration`` and ``landing``, each with
+    /// ``status`` ``"read"`` and its value, the bound its error stays within, the height track it
+    /// came from (``source``), whether it was measured or derived (``provenance``) and how it was
+    /// read (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``. Beside them,
+    /// how they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the
+    /// running median's ``median_window_s`` and ``peak_bound_m``, and ``pad_altitude_m``.
+    fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        to_python(py, &readings::read(&self.log))
     }
 
     /// The whole record as a dict of lists, gaps as ``None``: the document ``hpr analyze
