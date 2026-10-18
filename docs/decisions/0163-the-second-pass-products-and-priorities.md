@@ -1,6 +1,6 @@
 # ADR-163: The second pass: six products, the analyzer before the accuracy campaign, and what each release must hold (2026-10-04)
 
-- **Status:** accepted
+- **Status:** accepted; the maintainer's use of 0.5 and 1.0 (§2) amended by [ADR-282, the project tests each UI milestone itself](0282-the-project-tests-each-ui-milestone-itself.md)
 - **Summary:** amends ADR-162 §1 to §4 after a review of the whole project, its 95 open issues, the work left, its users and its competitors. The six products are defined by who uses them; the competition kit is a product and avionics starts as a test bench for any flight computer. Release 0.1 adds Monte Carlo from the CLI and Python, an apogee check on the logged flights, and named issue fixes. 0.2 becomes the flight analyzer (logs, a flight against its simulation, drag fitted from logs), ahead of the accuracy campaign it feeds; 0.3 is accuracy and fault diagnosis; 0.4 the competition kit, with RASAero and RocketPy files and ejection-charge sizing; 0.5 an app preview whose center is the 3D ghost replay; 1.0 the app with the editor. After 1.0: the motor designer, the recovery designer, pad day on a phone, then avionics
 
 **Context.** A 2026-10-04 review, the same evening as [ADR-162][adr-162], covered the whole
