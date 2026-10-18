@@ -20,7 +20,7 @@ no flight the project lacks. Larger sets carry no usable license, so they can on
 - **A college course archive (DOFPro):** 39 barometric flights on 7 OpenRocket designs, under a
   Creative Commons license it never names.
 
-Two record fixes turned up: two of HPR Sim's seven logs are byte-identical to files in a GPL-3.0
+Two record fixes turned up: three of HPR Sim's seven logs are byte-identical to files in a GPL-3.0
 repository, and Erebus 11 flew a COTS Cesaroni motor, not the team motor the records listed.
 
 ## Usable now: MIT, design and measured flight, COTS motor
@@ -170,11 +170,11 @@ license would make flights public rather than add new ones.
 
 ## Record fixes found on the way
 
-- **Two flown logs are GPL-3.0 files.** RocketPy-Team's GPL-3.0
+- **Three flown logs are GPL-3.0 files.** RocketPy-Team's GPL-3.0
   [euroc23-team-data](https://github.com/RocketPy-Team/euroc23-team-data) holds files with the same SHA-256 as the
   Genesis and Lince logs `hpr_validate::real_flight` reads (`genesis/flight_data_faraday.csv`, `lince/main_data.csv`),
   and Camões's and Halcyon's. Only statistics and digests are committed, so nothing committed changes;
-  `THIRD-PARTY-NOTICES.md` and the ADR on real flights now name GPL-3.0 for the two flown ones.
+  Cavour's too, a later check found. `THIRD-PARTY-NOTICES.md` and the ADR on real flights now name all three.
 - **Erebus 11's motor** is COTS (above): it waits for netCDF-4, not among the team-motor flights.
 - **RocketPy's paper** (Ceotto et al. 2021) is in *Journal of Aerospace Engineering* 34(6)
   ([doi](https://doi.org/10.1061/(ASCE)AS.1943-5525.0001331)); it covers Bella Lui, NDRT 2020 and Valetudo only.
