@@ -248,8 +248,9 @@ above sea level, a geometric height, on a standard day, its port one caliber beh
 shoulder.
 
 1. **The air.** The standard atmosphere there has $p = 89{,}876$ Pa and density 1.112 kg/m³.
-2. **The dynamic pressure** at Mach 1 is $q = 0.7\,p\,M^2 = 62{,}913$ Pa.
-3. **The port error** is $C_p\,q = -0.08 \times 62{,}913 = -5{,}033$ Pa: the port reads low.
+2. **The dynamic pressure** at Mach 1 is $q = 0.7\,p\,M^2$, which is 62,913 Pa.
+3. **The port error** is $C_p\,q$, here $-0.08 \times 62{,}913$, which is −5,033 Pa: the port
+   reads low.
 4. **The height it writes.** 84,843 Pa is 1,473 m (4,833 ft) in the standard atmosphere, so the
    logger reads 473 m (1,552 ft) too high while the rocket is near Mach 1. Three calibers back
    the sign flips: $C_p = +0.03$ reads 1.9 kPa high, and the height low.
