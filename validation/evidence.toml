@@ -530,3 +530,18 @@ issue = 683
 on = "2026-10-17"
 looked = "GitHub code search for RRC3 exports (\"Temperature Events Voltages\" extension:csv); CATS's EuRoC 2021 team data (GPL-3.0); RocketPy-Team/RocketPaper (MIT); RocketPy's Juno III data; the private collection's RRC3 logs and the other loggers on their flights, counted only"
 found = "partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units, its altitude in meters and its pad temperature 36.1, read as °C by the pairing rule, but no other logger on that flight records temperature; RocketPaper@23d9271d's Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column, a real file that names the unit. In the private collection 90 RRC3 CSVs (copies included), 4 with bracketed units"
+
+[[row]]
+id = "G32"
+surface = "The synthetic flights"
+claim = "The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred"
+pages = ["physics/synthetic-flights.md#in-short"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses"
+issue = 725
+
+[[row.searched]]
+on = "2026-10-17"
+looked = "the public logs the sensor noise note measured at rest (five Blue Raven flights, ten StratoLoggerCF, five AltOS, one RRC3, one team-built board) and the makers' datasheets it cites"
+found = "pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise; no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth"

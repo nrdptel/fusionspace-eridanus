@@ -60,6 +60,26 @@ pub struct FlightLog {
     pub notes: Vec<String>,
 }
 
+impl Channel {
+    /// A channel from its column's name, its quantity, and each sample's time and value, in SI.
+    ///
+    /// Readers build channels as they read a file; this is for records made another way, such as
+    /// a synthetic flight's log (`hpr_forensics::synthetic`).
+    pub fn new(
+        column: impl Into<String>,
+        quantity: Quantity,
+        time_s: Vec<f64>,
+        values: Vec<f64>,
+    ) -> Self {
+        Self {
+            column: column.into(),
+            quantity,
+            time_s,
+            values,
+        }
+    }
+}
+
 impl FlightLog {
     /// The channels measuring a quantity, in the file's order.
     pub fn channels_of(&self, quantity: Quantity) -> impl Iterator<Item = &Channel> {
