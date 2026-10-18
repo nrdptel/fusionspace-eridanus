@@ -9,39 +9,46 @@
 //! these the log holds ([`Source`]): the logger's own barometric altitude (the record's primary
 //! track); a pressure, turned into a height by the 1976 standard atmosphere, as every logger
 //! documented does it (`docs/research/altimeter-height-formulas.md`); a barometric altitude kept
-//! in a channel, above the pad or above sea level; or a GNSS receiver's altitude. A channel's
-//! track is zeroed on the pad. A GNSS track gives no reading: a receiver's filter lags a climb and
-//! overshoots its top, and its fix drops out at liftoff ([`Reason::ReceiverLag`],
-//! [`Reason::ReceiverDropout`]).
+//! in a channel, above the pad or above sea level; or a GNSS receiver's altitude. A GNSS track
+//! gives no reading: a receiver's filter lags a climb and overshoots its top, and its fix drops
+//! out at liftoff ([`Reason::ReceiverLag`], [`Reason::ReceiverDropout`]).
 //!
 //! **Method.** The track is first filtered by a running median over [`MEDIAN_WINDOW_S`]
 //! ([`crate::filter::running_median`]), which takes out the pressure pulse an ejection charge
 //! punches into a barometric trace. Then:
 //!
-//! - the **climb** begins at the first sample [`LIFTOFF_HEIGHT_M`] above where the log starts, or
-//!   [`LIFTOFF_ALLOWANCE_M`] and one step of the track above it if that is higher;
-//! - the **pad** is the median of the track before it first rises [`PAD_RISE_M`]; on the logger's
-//!   own altitude it must be within [`LIFTOFF_HEIGHT_M`] of the logger's zero, as a logger that
-//!   zeroes itself on the pad records;
-//! - **liftoff** is the last sample before the climb within [`LIFTOFF_ALLOWANCE_M`] of the pad, or
-//!   half the track's step if that is more: the barometer's noise reaches that far on the pad;
+//! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
+//!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
+//!   track, from below at the start or from above at the climb;
+//! - the **pad** is the median of the samples to the last within half that of the start before
+//!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
+//!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
+//!   samples bound `v`, and with it how far up the rocket may already be, `v²/(2A)`: that much
+//!   enters the bounds. Where it could pass the allowance, the pad is short
+//!   ([`Reason::ShortPad`]): a track on the logger's own zero, or a channel's above the ground,
+//!   reads its heights from that zero, and any other withholds them. A track that is above the
+//!   pad only by a mapping's or a column's word must start within [`PAD_ZERO_M`] of its zero;
+//! - **liftoff** is the last sample before apogee within the pad's allowance: how far the filtered
+//!   pad strays from its median, at least [`LIFTOFF_ALLOWANCE_M`], and a step;
 //! - **apogee** is the filtered track's highest value, at the middle of the run of samples that
 //!   hold it (the track's step leaves a peak flat for a few samples);
 //! - the **top speed** is the highest least-squares slope of the filtered track over
 //!   [`SPEED_WINDOW_S`] from liftoff to apogee: a speed HPR Sim derives, withheld where the
 //!   barometer's port may read the transonic flow ([`TRANSONIC_SPEED_M_S`]) and refused as
 //!   Debrief refuses one ([`IMPLAUSIBLE_SPEED_M_S`], [`ASCENT_NOISE_FRACTION`]);
-//! - **landing** is the first sample after apogee below [`LANDING_HEIGHT_M`] above the pad that
-//!   stays under [`LANDED_CEILING_M`] for [`LANDED_FOR_S`], and no sooner, give or take a sample,
-//!   than a fall from rest in vacuum would lose that height, `√(2h/g)`: drag only slows a fall;
+//! - **landing** is the first sample after apogee back within the pad's allowance, at least
+//!   [`LANDING_HEIGHT_M`], that stays under it and [`LANDED_CEILING_M`]'s margin for
+//!   [`LANDED_FOR_S`], and no sooner, give or take a sample, than a fall from rest in vacuum would
+//!   lose that height, `√(2h/g)`: drag only slows a fall;
 //! - the **top acceleration** is left to milestone M7.2c: withheld when the log has no
 //!   accelerometer, as differencing a height twice turns its step into spikes of many g, and not
 //!   yet taken from one it has.
 //!
 //! Before any reading, a log must be sampled no slower than [`MAX_INTERVAL_S`] and in steps no
 //! coarser than [`MAX_STEP_M`] (or [`MAX_PRESSURE_STEP_PA`]), the range the bounds were checked
-//! over; and its climb must slow as a coast does ([`COAST_CHECK_S`]), which a clock in the wrong
-//! unit, such as milliseconds read as seconds, can't.
+//! over, on a clock that increases ([`Reason::ClockOutOfOrder`]); and its climb must lose more than
+//! its noise and step in the [`COAST_CHECK_S`] before its top, as a coast does and as a clock in
+//! the wrong unit, such as milliseconds read as seconds, can't.
 //!
 //! **Bounds.** Each reading states the bound its error stays within: the sum of the terms
 //! [`docs/physics/log-readings.md`][page] lists, each from the noise model of HPR Sim's synthetic
@@ -49,15 +56,19 @@
 //! air: a logger converts pressure by the standard atmosphere, so a day [`AIR_TEMPERATURE_SPREAD_K`]
 //! off standard moves its heights by up to [`TEMPERATURE_SHARE`] of themselves. On the synthetic
 //! flights' tuning set, logged at every rate and step from 500 to half a sample a second and from
-//! no step to 100 Pa, every reading given stayed within its bound (`cargo xtask synthetic`).
+//! no step to 100 Pa, and started as loggers that record from launch start, from 0.3 s before
+//! liftoff to 0.5 s after it, every reading given stayed within its bound (`cargo xtask
+//! synthetic`).
 //!
-//! The thresholds of the climb, the pad and landing are Debrief's (`lib/analyze/index.ts`, MIT, the
-//! project owner's own), set on its corpus of flight logs rather than taken from a published
-//! source; the running median in place of Debrief's Hampel filter, the liftoff allowance, the
-//! derived speed and the bounds are HPR Sim's.
+//! The landing's thresholds and the least climb, [`LIFTOFF_HEIGHT_M`], are Debrief's
+//! (`lib/analyze/index.ts`, MIT, the project owner's own), set on its corpus of flight logs rather
+//! than taken from a published source; the running median in place of Debrief's Hampel filter,
+//! the climb's mark, the pad and its error, the liftoff allowance, the derived speed and the
+//! bounds are HPR Sim's ([ADR-281]).
 //!
 //! [page]: https://hpr.fusionspace.co/physics/log-readings.html
 //! [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+//! [ADR-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
 
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
@@ -97,9 +108,9 @@ pub const LIFTOFF_HEIGHT_M: f64 = 3.0;
 /// synthetic flights' fast correlated barometer noise (0.5 m, [ADR-280] §3), HPR Sim's choice.
 /// Where the pad's own samples reach further, the allowance is their reach. Liftoff read at half a
 /// foot above the pad, as before M7.2b, came up to 6 s early on a noisy 500 Hz barometer, the
-/// noise lifting the pad's last samples above it; with the pad's reach measured but a floor of
-/// 1 m, up to 1.1 s early on the tuning set, the slow correlated noise moving the pad's last
-/// samples past the reach of those before; at 2 m, never.
+/// noise lifting the pad's last samples above it; with the pad's reach measured but the
+/// allowance at 1 m, 6.8 s early at half a sample a second on one tuning flight, against a 4.5 s
+/// bound, the noise moving the pad's last sample past the reach of the two before; at 2 m, never.
 ///
 /// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 pub const LIFTOFF_ALLOWANCE_M: f64 = 2.0;
@@ -108,7 +119,8 @@ pub const LIFTOFF_ALLOWANCE_M: f64 = 2.0;
 /// twice gravity, as the safety codes' 3:1 thrust to weight leaves on the motor's average thrust
 /// (NAR's high-power code: liftoff weight no more than a third of the certified average thrust;
 /// Tripoli's: below 3:1 only with an active stability system). The tuning set's slowest rocket
-/// averages 30 m/s² over its first 5 m. A rocket slower off the pad is read later than the bound.
+/// averages 30 m/s² over its first 5 m. A rocket slower off the pad is read later than the bound,
+/// and may already be further up, when a log starts, than its pad's error allows.
 pub const LIFTOFF_ACCELERATION_M_S2: f64 = 2.0 * STANDARD_GRAVITY_MPS2;
 /// How close to the pad the altitude must come to mark landing, m (Debrief's 2 m).
 pub const LANDING_HEIGHT_M: f64 = 2.0;
@@ -174,11 +186,12 @@ pub const NOISE_M: f64 = 3.0;
 pub const DRIFT_M_PER_S: f64 = 0.015;
 /// What the barometer's noise adds to a derived speed, m/s, tuned on the tuning set.
 pub const SPEED_NOISE_M_S: f64 = 5.0;
-/// How long before apogee the track's fall is checked, s. A coast loses `g t²/2` in the last `t`
-/// before its top, 78 m in 4 s, gravity slowing it and drag only adding; a track on a clock read
-/// a thousand times too slow, as milliseconds read as seconds, loses about 80 µm. A track must
-/// lose more than twice its noise and step: a flight whose motor burns close to apogee loses less
-/// than a coast does, as little as 20 m among the sample logs HPR Sim reads (M7.2b).
+/// How long before its top the track is checked, s. A coast loses `g t²/2` in the last `t` before
+/// its top, 78 m in 4 s, gravity slowing it and drag only adding, and a flight whose motor burns
+/// into those 4 s less; a track on a clock read a thousand times too slow, as milliseconds read as
+/// seconds, loses about 80 µm, so a track must lose more than twice its noise and step. And a
+/// coast doesn't fall and rise again: a track that falls more than that after a peak in those 4 s
+/// and then climbs to its top has a top that isn't the coast's ([`Reason::DisturbedTop`]).
 pub const COAST_CHECK_S: f64 = 4.0;
 /// The fastest the day's pressure changes in the ordinary run of weather, Pa an hour: the
 /// National Weather Service's *pressure rising (falling) rapidly*, 0.06 inHg an hour or more
@@ -325,6 +338,12 @@ pub enum Reason {
     ShortPad,
     /// The height track's clock doesn't increase, so no time can be read off it.
     ClockOutOfOrder,
+    /// The track falls more than twice its noise and step below a peak in the last
+    /// [`COAST_CHECK_S`] before its top, then climbs to it: a coast doesn't, and a disturbance after
+    /// apogee does, such as a deployment's that lasts longer than the median takes out and stands
+    /// above the true top. Which is the apogee can't be told, so the apogee, the top speed and
+    /// landing are withheld; liftoff is not.
+    DisturbedTop,
 }
 }
 
@@ -829,17 +848,17 @@ pub fn read(log: &FlightLog) -> Readings {
     // A coast loses g t²/2 in the last t before its top, and a track on a clock a thousand times
     // too slow next to nothing: a track must lose more than twice its noise and step.
     let before_top = time[apogee_index] - COAST_CHECK_S;
+    let least = 2.0 * (NOISE_M + track.step_at(top));
     if before_top > time[first] {
         let index = time.partition_point(|t| *t <= before_top).saturating_sub(1);
         let lost = top - filtered[index];
-        let least = 2.0 * (NOISE_M + track.step_at(top));
         if lost <= least {
             let coast = 0.5 * STANDARD_GRAVITY_MPS2 * COAST_CHECK_S * COAST_CHECK_S;
             let detail = format!(
                 "the track loses {lost:.2} m in the {COAST_CHECK_S} s before its top, no more than \
                  twice its noise and step ({least:.1} m), where a coast loses {coast:.0} m: its \
-                 clock is in another unit, such as milliseconds read as seconds, its top isn't a \
-                 coast's, or it isn't a height"
+                 clock is in another unit, such as milliseconds read as seconds, or it isn't a \
+                 height"
             );
             let mut withheld = every(source, Reason::SlowerThanFreeCoast, &detail);
             withheld.sample_interval_s = readings.sample_interval_s;
@@ -850,6 +869,34 @@ pub fn read(log: &FlightLog) -> Readings {
             return withheld;
         }
     }
+    // A coast doesn't fall and rise again: a track that falls more than twice its noise and step
+    // below a peak in the last [`COAST_CHECK_S`] before its top, then climbs to it, holds a top
+    // that isn't the coast's, as a deployment's disturbance after apogee does when it lasts longer
+    // than the median takes out. Which is the apogee can't be told.
+    let window = time
+        .partition_point(|t| *t < before_top)
+        .max(first)
+        .min(apogee_index);
+    let mut peak = (f64::NEG_INFINITY, window);
+    let mut fall = (0.0, window, window);
+    for (index, height) in filtered.iter().enumerate().take(apogee_index).skip(window) {
+        if *height > peak.0 {
+            peak = (*height, index);
+        }
+        if peak.0 - height > fall.0 {
+            fall = (peak.0 - height, peak.1, index);
+        }
+    }
+    let disturbed = (fall.0 > least).then(|| {
+        let (fallen, from, to) = fall;
+        format!(
+            "the track falls {fallen:.1} m from a peak at {:.2} s to {:.2} s, more than twice its \
+             noise and step ({least:.1} m), then climbs to its top at {:.2} s: a coast doesn't, \
+             and a disturbance after apogee, such as the deployment's, does, so which is the \
+             apogee can't be told",
+            time[from], time[to], time[apogee_index]
+        )
+    });
 
     // Liftoff is read late by the time the rocket takes to climb out of the pad's reach, once
     // above it and once below, at the least acceleration off the pad, and by a sample either side.
@@ -875,6 +922,12 @@ pub fn read(log: &FlightLog) -> Readings {
             ),
         ),
     };
+    if let Some(detail) = disturbed {
+        readings.apogee = Reading::withheld(Reason::DisturbedTop, detail.clone());
+        readings.max_speed = Reading::withheld(Reason::DisturbedTop, detail.clone());
+        readings.landing = Reading::withheld(Reason::DisturbedTop, detail);
+        return readings;
+    }
     let highest = arg_max(&track.height_m).unwrap_or(apogee_index);
     let top_step = track.step_at(top);
     let height_bound = (TEMPERATURE_SHARE + BAROMETER_GAIN) * height.abs()
@@ -2032,6 +2085,37 @@ mod tests {
         }
     }
 
+    /// A coast doesn't fall and rise again: a bump 20 m above the top, 0.6 s wide, a second after
+    /// apogee, once the track has fallen 10 m, as a deployment's disturbance stands, holds the
+    /// apogee, the top speed and landing back, by name; liftoff is read. The same flight with no
+    /// bump reads its apogee at the coast's top; a bump only 0.3 s after apogee, before the track
+    /// has fallen past its noise and step, isn't told from the top.
+    #[test]
+    fn a_top_after_a_fall_is_withheld() {
+        let g = STANDARD_GRAVITY_MPS2;
+        let bumped = |at: f64| {
+            move |t: f64| {
+                let bump = if (at..at + 0.6).contains(&t) {
+                    10.0 * g + 20.0 - flight(10.0)(t)
+                } else {
+                    0.0
+                };
+                flight(10.0)(t) + bump
+            }
+        };
+        let plain = read(&log(30.0, flight(10.0)));
+        let apogee = plain.apogee.value().unwrap();
+        assert!((apogee.time_s - 6.0).abs() <= apogee.time_bound_s);
+
+        let late = read(&log(30.0, bumped(7.0)));
+        assert!(late.liftoff.value().is_some());
+        for reason_of in [late.apogee.reason(), late.max_speed.reason(), late.landing.reason()] {
+            assert_eq!(reason_of, Some(Reason::DisturbedTop));
+        }
+        let early = read(&log(30.0, bumped(6.3)));
+        assert!(early.apogee.value().is_some());
+    }
+
     /// The top speed's guards, each on its own.
     #[test]
     fn a_top_speed_is_refused_by_name() {
@@ -2065,17 +2149,17 @@ mod tests {
         // 1,400 m/s² for 3 s: implausible, refused ahead of the transonic mark.
         let absurd = read(&log(2000.0, boost(1400.0)));
         assert_eq!(absurd.max_speed.reason(), Some(Reason::ImplausibleSpeed));
-        // A 30 m dip in the coast, down and back at 100 m/s: the climb's speed swings to about
-        // −60 m/s, over 20% of its top.
-        let dipped = read(&log(30.0, |t| {
-            let dip = if (3.0..3.3).contains(&t) {
-                100.0 * (t - 3.0)
-            } else if (3.3..3.6).contains(&t) {
-                100.0 * (3.6 - t)
+        // A 60 m dip in the coast 4.4 s before the top, down and back at 200 m/s, where the
+        // coast climbs at 43 m/s: the climb's speed swings past −42 m/s, 20% of its top.
+        let dipped = read(&log(300.0, |t| {
+            let dip = if (21.0..21.3).contains(&t) {
+                200.0 * (t - 21.0)
+            } else if (21.3..21.6).contains(&t) {
+                200.0 * (21.6 - t)
             } else {
                 0.0
             };
-            flight(10.0)(t) - dip
+            boost(70.0)(t) - dip
         }));
         assert_eq!(dipped.max_speed.reason(), Some(Reason::NoisySpeed));
         // Logged at 10 Hz the 0.5 s fit has 5 or 6 samples; at 8 Hz 5; at 7.7 Hz, too few.
@@ -2099,7 +2183,7 @@ mod tests {
             codes.dedup();
             (listed, codes.len())
         }
-        assert_eq!(codes(Reason::ALL), (22, 22));
+        assert_eq!(codes(Reason::ALL), (23, 23));
         assert_eq!(codes(Source::ALL), (4, 4));
         assert_eq!(codes(Provenance::ALL), (3, 3));
         assert_eq!(codes(Method::ALL), (4, 4));

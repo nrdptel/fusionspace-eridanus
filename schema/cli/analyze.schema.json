@@ -1323,6 +1323,11 @@
           "const": "clock_out_of_order"
         },
         {
+          "description": "The track falls past its noise and step below a peak in the 4 s before its top, then\nclimbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,\nso which is the apogee can't be told.",
+          "type": "string",
+          "const": "disturbed_top"
+        },
+        {
           "description": "A reason this build of `hpr` doesn't name.",
           "type": "string",
           "const": "other"

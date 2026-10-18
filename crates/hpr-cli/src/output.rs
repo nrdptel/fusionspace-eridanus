@@ -1574,6 +1574,10 @@ pub enum WithheldReason {
     ShortPad,
     /// The height track's clock doesn't increase, so no time can be read off it.
     ClockOutOfOrder,
+    /// The track falls past its noise and step below a peak in the 4 s before its top, then
+    /// climbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,
+    /// so which is the apogee can't be told.
+    DisturbedTop,
     /// A reason this build of `hpr` doesn't name.
     Other,
 }

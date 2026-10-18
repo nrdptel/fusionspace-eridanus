@@ -5489,7 +5489,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if let Some(dir) = surfaces_dir {
         return write_surfaces(&root, &samples, Path::new(&dir));
     }
-    let (report, unread) = survey(&samples, sources);
+    let (report, mut unread) = survey(&samples, sources);
+    // A reason of the readings with no case, in the whole corpus or invented, is a gap in the
+    // survey; a smaller survey, as a test's, needn't hold every case.
+    unread.extend(readings::unread(&report.readings));
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     let markdown = markdown(&report);
     if check {
@@ -7069,8 +7072,6 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     // An `.ALS` whose values differ from its export's, or AIM files that don't decode to each
     // other or whose units fail the flight's physics, are as unread as a refusal.
     unread.extend(binaries::unread(&report.binary_checks));
-    // A reason of the readings with no case, in the corpus or invented, is a gap in the survey.
-    unread.extend(readings::unread(&report.readings));
     // A raw file must match an export beside it wherever one is: a decoding that differs from
     // the maker's own is as unread as a refusal.
     for (family, checks) in &report.raw_checks {

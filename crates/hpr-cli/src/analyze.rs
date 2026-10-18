@@ -331,6 +331,7 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::NotYetTaken => WithheldReason::NotYetTaken,
                 Reason::ShortPad => WithheldReason::ShortPad,
                 Reason::ClockOutOfOrder => WithheldReason::ClockOutOfOrder,
+                Reason::DisturbedTop => WithheldReason::DisturbedTop,
                 _ => WithheldReason::Other,
             },
             detail: withheld.detail.clone(),

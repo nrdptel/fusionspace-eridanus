@@ -3749,15 +3749,17 @@
         },
         "readings": {
           "apogee": {
-            "given": 12,
+            "given": 11,
             "withheld": {
+              "disturbed_top": 1,
               "no_climb": 1,
               "sampled_too_slowly": 1
             }
           },
           "landing": {
-            "given": 8,
+            "given": 7,
             "withheld": {
+              "disturbed_top": 1,
               "ends_before_landing": 4,
               "no_climb": 1,
               "sampled_too_slowly": 1
@@ -3777,8 +3779,9 @@
             }
           },
           "max_speed": {
-            "given": 9,
+            "given": 8,
             "withheld": {
+              "disturbed_top": 1,
               "no_climb": 1,
               "sampled_too_slowly": 1,
               "transonic": 3
@@ -3891,15 +3894,17 @@
         },
         "readings": {
           "apogee": {
-            "given": 49,
+            "given": 46,
             "withheld": {
+              "disturbed_top": 3,
               "no_climb": 1
             }
           },
           "landing": {
-            "given": 31,
+            "given": 30,
             "withheld": {
-              "ends_before_landing": 18,
+              "disturbed_top": 3,
+              "ends_before_landing": 16,
               "no_climb": 1
             }
           },
@@ -3919,10 +3924,11 @@
           "max_speed": {
             "given": 20,
             "withheld": {
+              "disturbed_top": 3,
               "no_climb": 1,
-              "noisy_speed": 3,
+              "noisy_speed": 2,
               "sampled_too_slowly": 1,
-              "transonic": 25
+              "transonic": 23
             }
           }
         }
@@ -3935,15 +3941,17 @@
         },
         "readings": {
           "apogee": {
-            "given": 6,
+            "given": 5,
             "withheld": {
+              "disturbed_top": 1,
               "receiver_lag": 1,
               "short_pad": 7
             }
           },
           "landing": {
-            "given": 5,
+            "given": 4,
             "withheld": {
+              "disturbed_top": 1,
               "ends_before_landing": 1,
               "needs": 1,
               "short_pad": 7
@@ -3966,9 +3974,10 @@
           "max_speed": {
             "given": 2,
             "withheld": {
+              "disturbed_top": 1,
               "receiver_lag": 1,
               "short_pad": 7,
-              "transonic": 4
+              "transonic": 3
             }
           }
         }
@@ -4191,14 +4200,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 49,
+            "given": 47,
             "withheld": {
+              "disturbed_top": 2,
               "no_height_track": 40
             }
           },
           "landing": {
-            "given": 40,
+            "given": 38,
             "withheld": {
+              "disturbed_top": 2,
               "ends_before_landing": 9,
               "no_height_track": 40
             }
@@ -4218,11 +4229,12 @@
             }
           },
           "max_speed": {
-            "given": 24,
+            "given": 23,
             "withheld": {
+              "disturbed_top": 2,
               "no_height_track": 40,
               "short_pad": 1,
-              "transonic": 24
+              "transonic": 23
             }
           }
         }
@@ -4392,13 +4404,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 44,
-            "withheld": {}
+            "given": 37,
+            "withheld": {
+              "disturbed_top": 7
+            }
           },
           "landing": {
-            "given": 5,
+            "given": 4,
             "withheld": {
-              "ends_before_landing": 39
+              "disturbed_top": 7,
+              "ends_before_landing": 33
             }
           },
           "liftoff": {
@@ -4417,10 +4432,10 @@
           "max_speed": {
             "given": 25,
             "withheld": {
-              "noisy_speed": 2,
-              "sampled_too_slowly": 3,
+              "disturbed_top": 7,
+              "sampled_too_slowly": 2,
               "short_pad": 1,
-              "transonic": 13
+              "transonic": 9
             }
           }
         }
@@ -4533,8 +4548,9 @@
         },
         "readings": {
           "apogee": {
-            "given": 1,
+            "given": 0,
             "withheld": {
+              "disturbed_top": 1,
               "no_climb": 8,
               "slower_than_free_coast": 1
             }
@@ -4542,7 +4558,7 @@
           "landing": {
             "given": 0,
             "withheld": {
-              "ends_before_landing": 1,
+              "disturbed_top": 1,
               "no_climb": 8,
               "slower_than_free_coast": 1
             }
@@ -4563,8 +4579,8 @@
           "max_speed": {
             "given": 0,
             "withheld": {
+              "disturbed_top": 1,
               "no_climb": 8,
-              "sampled_too_slowly": 1,
               "slower_than_free_coast": 1
             }
           }
@@ -4577,13 +4593,15 @@
         },
         "readings": {
           "apogee": {
-            "given": 2,
-            "withheld": {}
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
           },
           "landing": {
             "given": 0,
             "withheld": {
-              "ends_before_landing": 2
+              "disturbed_top": 2
             }
           },
           "liftoff": {
@@ -4599,7 +4617,7 @@
           "max_speed": {
             "given": 0,
             "withheld": {
-              "sampled_too_slowly": 2
+              "disturbed_top": 2
             }
           }
         }
@@ -4649,13 +4667,15 @@
         },
         "readings": {
           "apogee": {
-            "given": 6,
-            "withheld": {}
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
           },
           "landing": {
-            "given": 5,
+            "given": 3,
             "withheld": {
-              "ends_before_landing": 1
+              "disturbed_top": 3
             }
           },
           "liftoff": {
@@ -4671,7 +4691,8 @@
           "max_speed": {
             "given": 2,
             "withheld": {
-              "noisy_speed": 4
+              "disturbed_top": 3,
+              "noisy_speed": 1
             }
           }
         }
@@ -5085,12 +5106,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 6,
-            "withheld": {}
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
           },
           "landing": {
-            "given": 6,
-            "withheld": {}
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
           },
           "liftoff": {
             "given": 6,
@@ -5105,7 +5130,7 @@
           "max_speed": {
             "given": 5,
             "withheld": {
-              "transonic": 1
+              "disturbed_top": 1
             }
           }
         }
@@ -5117,13 +5142,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 175,
-            "withheld": {}
+            "given": 170,
+            "withheld": {
+              "disturbed_top": 5
+            }
           },
           "landing": {
-            "given": 159,
+            "given": 155,
             "withheld": {
-              "ends_before_landing": 16
+              "disturbed_top": 5,
+              "ends_before_landing": 15
             }
           },
           "liftoff": {
@@ -5139,11 +5167,11 @@
             }
           },
           "max_speed": {
-            "given": 121,
+            "given": 120,
             "withheld": {
-              "implausible_speed": 2,
-              "noisy_speed": 1,
-              "transonic": 51
+              "disturbed_top": 5,
+              "implausible_speed": 1,
+              "transonic": 49
             }
           }
         }
@@ -5198,16 +5226,18 @@
         },
         "readings": {
           "apogee": {
-            "given": 7,
+            "given": 4,
             "withheld": {
+              "disturbed_top": 3,
               "no_height_track": 19,
               "short_pad": 1
             }
           },
           "landing": {
-            "given": 5,
+            "given": 3,
             "withheld": {
-              "ends_before_landing": 2,
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
               "no_height_track": 19,
               "short_pad": 1
             }
@@ -5229,9 +5259,10 @@
           "max_speed": {
             "given": 0,
             "withheld": {
+              "disturbed_top": 3,
               "no_height_track": 19,
               "short_pad": 1,
-              "transonic": 7
+              "transonic": 4
             }
           }
         }
@@ -5318,13 +5349,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 80,
-            "withheld": {}
+            "given": 72,
+            "withheld": {
+              "disturbed_top": 8
+            }
           },
           "landing": {
-            "given": 73,
+            "given": 68,
             "withheld": {
-              "ends_before_landing": 7
+              "disturbed_top": 8,
+              "ends_before_landing": 4
             }
           },
           "liftoff": {
@@ -5338,11 +5372,11 @@
             }
           },
           "max_speed": {
-            "given": 35,
+            "given": 34,
             "withheld": {
-              "noisy_speed": 3,
+              "disturbed_top": 8,
               "sampled_too_slowly": 1,
-              "transonic": 41
+              "transonic": 37
             }
           }
         }
@@ -5354,13 +5388,15 @@
         },
         "readings": {
           "apogee": {
-            "given": 2,
-            "withheld": {}
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
           },
           "landing": {
             "given": 1,
             "withheld": {
-              "ends_before_landing": 1
+              "disturbed_top": 1
             }
           },
           "liftoff": {
@@ -5376,7 +5412,7 @@
           "max_speed": {
             "given": 0,
             "withheld": {
-              "noisy_speed": 1,
+              "disturbed_top": 1,
               "transonic": 1
             }
           }
@@ -5389,14 +5425,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 40,
+            "given": 37,
             "withheld": {
+              "disturbed_top": 3,
               "short_pad": 17
             }
           },
           "landing": {
-            "given": 39,
+            "given": 36,
             "withheld": {
+              "disturbed_top": 3,
               "ends_before_landing": 1,
               "short_pad": 17
             }
@@ -5414,9 +5452,9 @@
             }
           },
           "max_speed": {
-            "given": 27,
+            "given": 26,
             "withheld": {
-              "noisy_speed": 2,
+              "disturbed_top": 3,
               "short_pad": 17,
               "transonic": 11
             }
@@ -5468,13 +5506,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 51,
-            "withheld": {}
+            "given": 47,
+            "withheld": {
+              "disturbed_top": 4
+            }
           },
           "landing": {
             "given": 39,
             "withheld": {
-              "ends_before_landing": 12
+              "disturbed_top": 4,
+              "ends_before_landing": 8
             }
           },
           "liftoff": {
@@ -5490,9 +5531,10 @@
             }
           },
           "max_speed": {
-            "given": 22,
+            "given": 21,
             "withheld": {
-              "transonic": 29
+              "disturbed_top": 4,
+              "transonic": 26
             }
           }
         }
@@ -5504,15 +5546,16 @@
         },
         "readings": {
           "apogee": {
-            "given": 1,
+            "given": 0,
             "withheld": {
+              "disturbed_top": 1,
               "short_pad": 5
             }
           },
           "landing": {
             "given": 0,
             "withheld": {
-              "ends_before_landing": 1,
+              "disturbed_top": 1,
               "short_pad": 5
             }
           },
@@ -5531,8 +5574,8 @@
           "max_speed": {
             "given": 0,
             "withheld": {
-              "short_pad": 5,
-              "transonic": 1
+              "disturbed_top": 1,
+              "short_pad": 5
             }
           }
         }
@@ -5816,7 +5859,7 @@
       },
       {
         "reason": "ends_before_landing",
-        "records": 154,
+        "records": 131,
         "first": "00d315962a4eccb3",
         "invented": null
       },
@@ -5828,14 +5871,14 @@
       },
       {
         "reason": "implausible_speed",
-        "records": 2,
-        "first": "8488c731a24fc6cd",
+        "records": 1,
+        "first": "ab1df9652b1d33f6",
         "invented": null
       },
       {
         "reason": "noisy_speed",
-        "records": 16,
-        "first": "0bc847e6d3d9a9ee",
+        "records": 3,
+        "first": "630b393ef80b2ff6",
         "invented": null
       },
       {
@@ -5876,7 +5919,7 @@
       },
       {
         "reason": "sampled_too_slowly",
-        "records": 33,
+        "records": 29,
         "first": "061c084cf2d6155c",
         "invented": null
       },
@@ -5888,7 +5931,7 @@
       },
       {
         "reason": "transonic",
-        "records": 247,
+        "records": 225,
         "first": "01dc90b45723df1e",
         "invented": null
       },
@@ -5926,6 +5969,12 @@
         "reason": "clock_out_of_order",
         "records": 6,
         "first": "4ea3b7a8a4d4119c",
+        "invented": null
+      },
+      {
+        "reason": "disturbed_top",
+        "records": 46,
+        "first": "073f4a6678b4bb0b",
         "invented": null
       }
     ]
