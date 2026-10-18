@@ -101,13 +101,18 @@ of the repository that provides the example design:
   Python, and the release's version, and the first example on the
   [Python](python.md) page must reach 1118.3 m (3669 ft), within a meter, as that page prints.
 - **The Windows archive's `hpr.exe`** must need no Visual C++ runtime, which a clean Windows may
-  lack: `scripts/release/check_windows_runtime.py` reads the program's import tables and fails
-  if one names `VCRUNTIME140.dll` or another DLL that only the Visual C++ Redistributable
-  installs. `scripts/release/archive.sh` links the C runtime into the Windows program
-  (`-C target-feature=+crt-static`, for the Windows targets only) from release 0.2; release
-  0.1.0's `hpr.exe` imported `VCRUNTIME140.dll`, and the check fails on it. The wheels keep the
-  C runtime as a DLL: every CPython for Windows installs `vcruntime140.dll` beside `python.exe`,
-  which has loaded it before the module.
+  lack. `scripts/release/check_windows_runtime.py` reads the program's import tables and fails if
+  one names `VCRUNTIME140.dll` or another DLL that only Microsoft's Visual C++ Redistributable
+  installs.
+  - From release 0.2, `scripts/release/archive.sh` links the C runtime into the Windows program
+    (`-C target-feature=+crt-static`, for the Windows targets only).
+  - Release 0.1.0's `hpr.exe` imported `VCRUNTIME140.dll`. Run once by hand on the published
+    0.1.0 program, the check exits with an error naming that DLL. That was a one-off
+    measurement; the repository's tests run the check on small invented programs instead.
+  - The wheels keep the C runtime as a DLL, and their imports aren't checked. python.org's
+    Windows installer puts `vcruntime140.dll` beside `python.exe` (CPython's
+    `Tools/msi/exe/exe_files.wxs`, and `PC/layout` for its other packages), and `python.exe` has
+    loaded it before it loads the module.
 - **The Linux archive and wheel** are then checked against the glibc floor twice.
   `scripts/release/check-glibc.sh` reads each program and library in them with `objdump` and
   fails if one asks for a glibc function newer than 2.17, or if the wheel's name lacks the
@@ -176,15 +181,19 @@ script on invented archives and compares the formula with the expected one byte 
 manifest as parsed JSON, written with Unix line ends. The release attaches both files, and
 publishing the draft makes them the latest release's.
 
-**Both state the program's license as `(MIT OR Apache-2.0) AND Apache-2.0`:** the project's two
-licenses, either at your option, and Apache-2.0 for OpenRocket's parts catalog, which the program
-carries ([ADR-187](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0187-the-release-workflow.md),
-the release workflow). It is the expression the Python package states. The formula writes it in
-Homebrew's form, `license all_of: [{ any_of: ["MIT", "Apache-2.0"] }, "Apache-2.0"]`, one term a
-line as `brew style` asks. Scoop's own
-form has no parentheses to group a choice inside a requirement, so the manifest gives the SPDX
-expression as its license `identifier`, with a `url` to the README's license section. The
-manifest suggests no Visual C++ runtime, since from release 0.2 the Windows program needs none.
+**The formula and the manifest both state the program's license as
+`(MIT OR Apache-2.0) AND Apache-2.0`:** the project's two licenses, either at your option, and
+Apache-2.0 for OpenRocket's parts catalog, which the program carries
+([the release workflow's decision record (ADR-187)](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0187-the-release-workflow.md)).
+That is an SPDX license expression, the standard way to write which licenses apply, and the one
+the Python package states. The formula writes it in Homebrew's form,
+`license all_of: [{ any_of: ["MIT", "Apache-2.0"] }, "Apache-2.0"]`, one term a line, as
+`brew style`, Homebrew's checker for a formula's layout, asks. Scoop's own form has no
+parentheses to group a choice inside a requirement, so the manifest gives the SPDX expression as
+its license `identifier`, with a `url` to the README's license section.
+
+**The manifest suggests no Visual C++ runtime,** since from release 0.2 the Windows program needs
+none.
 
 **The formula and manifest checks hold up every publishing job, on purpose.** The crates, the
 Python package and the draft release all wait for them, so a release goes out on every channel or
