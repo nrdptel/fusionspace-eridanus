@@ -239,7 +239,8 @@ $1/\sqrt{2}$. No receiver's loop has been measured against a truth. About 0.5 ra
 behind in boosts of 5 to 15 g, an inference ([the GNSS note][gnss] §4); one flyer's report of a
 440 m (1,444 ft) lag, its acceleration not given, is larger than any of the simulated lags
 (§3). Drawn evenly, two in three loops lie above 0.5 rad/s and lag less than 0.5 rad/s would:
-the draws err toward a fix more accurate than a real receiver's. The damping is the usual choice for such a loop, assumed
+the draws err toward a fix more accurate than a real receiver's. The damping is the usual choice
+for such a loop, assumed
 ([evidence row G32](../evidence.md#g32)). At 0.5 rad/s, a steady 50 m/s² would leave the fix
 200 m (656 ft) behind; a 2 s boost ends long before the loop settles, so the lag peaks after
 burnout. Each axis has 3 m (9.8 ft) of white
