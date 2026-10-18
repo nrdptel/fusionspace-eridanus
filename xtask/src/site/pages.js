@@ -1641,6 +1641,7 @@
     }
     probeHeader(win, doc, note);
     probeNoScript(win, doc, note);
+    probeFallbacks(win, doc, note);
     probeTitleBlock(win, doc, note);
     probeArrows(win, doc, note);
     probeSheets(win, doc, note);
@@ -1984,6 +1985,42 @@
         });
       });
       if (!words) note('arrows', sel, 'name', 'an arrow alone, no page named');
+    }
+  }
+
+  // Cascadia Mono's fallback face draws at the face's own widths, at both weights the pages set it
+  // in (#468; `theme/hpr.css`). A page is drawn in the fallback until the face arrives; a
+  // fallback this system can't find, or one at other widths, can rewrap the titles, the status
+  // chip and inline code when it does, which moved a long page's top by 32 px on a slow load.
+  // A monospace face's letters share one advance, so a matched fallback's line is as long as the
+  // face's to well within FALLBACK_SHARE. Unscaled, the seven fonts theme/hpr.css scales are 2.4% to
+  // 2.75% wider; Menlo at Courier New's scale is 0.3% wider, still caught (0.016% between Courier
+  // New's and Noto Sans Mono's scales is not, under a pixel on a 3,000 px line).
+  // A page that declares no Cascadia Mono face, as most of the check's own canary pages, draws in
+  // the system's fonts and has no fallback to hold.
+  const FALLBACK_SHARE = 0.001;
+  function probeFallbacks(win, doc, note) {
+    const declared = Array.from(doc.fonts).some(function (f) {
+      return f.family.replace(/^["']|["']$/g, '') === 'Cascadia Mono';
+    });
+    if (!declared) return;
+    const sample = 'FS-ACHERNAR SW TOOL 001 0123456789 MWil.,:;()';
+    for (const weight of [400, 600]) {
+      const widths = ['Cascadia Mono', 'Cascadia Mono Fallback'].map(function (family) {
+        const span = doc.createElement('span');
+        span.textContent = sample;
+        span.style.cssText = 'position: absolute; left: 0; top: 0; visibility: hidden; '
+          + 'white-space: pre; letter-spacing: 0; font: ' + weight + " 100px '" + family
+          + "', serif";
+        doc.body.appendChild(span);
+        const width = span.getBoundingClientRect().width;
+        span.remove();
+        return width;
+      });
+      if (Math.abs(widths[1] - widths[0]) > widths[0] * FALLBACK_SHARE) {
+        note('type', "'Cascadia Mono Fallback' " + weight, 'width', Math.round(widths[1] * 10) / 10
+          + ' px against Cascadia Mono ' + Math.round(widths[0] * 10) / 10 + ' px');
+      }
     }
   }
 

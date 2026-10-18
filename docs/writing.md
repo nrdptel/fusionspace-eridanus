@@ -350,7 +350,11 @@ beside the sidebar, and gutters off 16 or 32 px fail it too ([ADR-250](https://g
   across the note's top, set apart by a rule or a fill (a caution's in the caution fill, a
   warning's in the danger fill); the note inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
-  the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
+  the real font's size, so text doesn't jump when the real font arrives), Cascadia Mono's
+  stand-in drawn at other widths than Cascadia Mono in the browser running the check, regular or
+  semibold (the site scales Menlo, DejaVu Sans Mono, Courier New, Liberation Mono, Cousine,
+  Droid Sans Mono and Noto Sans Mono to it;
+  [#468](https://github.com/nrdptel/fusionspace-eridanus/issues/468)), and a smooth scroll a
   script asks for when the menu bar's title is clicked;
 - an icon in the menu bar, the page arrows, the search field or a code block's buttons that isn't
   square at one of the system's icon sizes, 16, 20 or 24 px (the site draws them at 20 and

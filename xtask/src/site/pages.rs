@@ -72,9 +72,10 @@
 //!     times the reading scale's factor inside `.content` on a page that declares the scale
 //!     (`--fs-text`; ×1 up to 1,024 px wide, ×1.125 from 1,600 px, linear between, read from the
 //!     window's width, not the page), capitals only at Cascadia Mono 12/16 and 14/20 (scaled
-//!     the same), no weight under 400, tabular figures
-//!     in Archivo, and each family's metric-matched fallback (the system's `fonts.css`) second
-//!     in its stack. A superscript or subscript may be off the scale, never under 12 px. The
+//!     the same), no weight under 400, tabular figures in Archivo, and each family's
+//!     metric-matched fallback (the system's `fonts.css`) second in its stack; Cascadia Mono's
+//!     fallback must draw at the face's widths, at 400 and 600, in the browser that runs the
+//!     check (#468). A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
 //!   - **prose narrower than its column** (`foundations.md`, *Type*; ADR-250): each paragraph,
@@ -454,8 +455,9 @@ enum Kind {
     /// scroll a script asks for (#383).
     Motion,
     /// Text off the system's type scale, Archivo without tabular figures, a family without its
-    /// metric-matched fallback second, or navigation not in Cascadia Mono 14 px with the current
-    /// page underlined 2 px (#384).
+    /// metric-matched fallback second, Cascadia Mono's fallback at other widths than the face's
+    /// (#468), or navigation not in Cascadia Mono 14 px with the current page underlined 2 px
+    /// (#384).
     Type,
     /// Prose held narrower than the box that holds it, by a max-width, a width or margins set to
     /// auto (#384, ADR-250).
@@ -1099,8 +1101,27 @@ macro_rules! switch_frame {
     };
 }
 
+/// Cascadia Mono's two faces from the built site's files, and its fallback family's faces at 400
+/// and 600 from the sources given, for the fallback canaries (#468): the page check holds the
+/// fallback to the face's widths only on a page that declares the face.
+macro_rules! mono_faces {
+    ($regular:literal, $bold:literal) => {
+        concat!(
+            "<style>@font-face { font-family: 'Cascadia Mono'; font-weight: 400; src: \
+             url('../fonts/CascadiaMono-Regular.woff2') format('woff2'); } @font-face { \
+             font-family: 'Cascadia Mono'; font-weight: 600; src: \
+             url('../fonts/CascadiaMono-SemiBold.woff2') format('woff2'); } @font-face { \
+             font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: ",
+            $regular,
+            "; } @font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: ",
+            $bold,
+            "; }</style>"
+        )
+    };
+}
+
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 178] = [
+const CANARIES: [Canary; 181] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1352,6 +1373,50 @@ const CANARIES: [Canary; 178] = [
         what: "a label in Archivo with no metric-matched fallback second in its stack",
         expect: &[Kind::Type],
         inside: "<p style=\"font-family: 'Archivo', sans-serif\">A label without its fallback</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-fallback-matched.html",
+        what: "Cascadia Mono with fallback faces at its own widths, at 400 and 600, which must pass",
+        expect: &[],
+        inside: concat!(
+            mono_faces!(
+                "url('../fonts/CascadiaMono-Regular.woff2')",
+                "url('../fonts/CascadiaMono-SemiBold.woff2')"
+            ),
+            "<p>A page whose fallback is matched</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-type-fallback-width.html",
+        what: "Cascadia Mono's fallback face at weight 400 drawn at a system font's own widths, \
+               unscaled, 2.4% to 2.75% wider than the face, so a nearly full line can rewrap \
+               when the face arrives (#468)",
+        expect: &[Kind::Type],
+        inside: concat!(
+            mono_faces!(
+                "local('Menlo Regular'), local('DejaVu Sans Mono'), local('Liberation Mono'), \
+                 local('Courier New')",
+                "url('../fonts/CascadiaMono-SemiBold.woff2')"
+            ),
+            "<p>A page whose fallback is unscaled</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-type-fallback-bold.html",
+        what: "Cascadia Mono's fallback face at weight 600, the titles' and the status chip's, \
+               drawn at a system font's own widths, unscaled (#468)",
+        expect: &[Kind::Type],
+        inside: concat!(
+            mono_faces!(
+                "url('../fonts/CascadiaMono-Regular.woff2')",
+                "local('Menlo Bold'), local('DejaVu Sans Mono Bold'), local('Liberation Mono \
+                 Bold'), local('Courier New Bold')"
+            ),
+            "<p>A page whose bold fallback is unscaled</p>"
+        ),
         after: "",
     },
     Canary {
