@@ -338,8 +338,8 @@ pub enum Reason {
     ReceiverLag,
     /// The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.
     ReceiverDropout,
-    /// The track loses no more than its noise and step in the [`COAST_CHECK_S`] before its top:
-    /// its clock is in another unit, such as milliseconds read as seconds, its top isn't a
+    /// The track loses no more than twice its noise and step in the [`COAST_CHECK_S`] before its
+    /// top: its clock is in another unit, such as milliseconds read as seconds, its top isn't a
     /// coast's, or it isn't a height.
     SlowerThanFreeCoast,
     /// The log has an accelerometer, from which HPR Sim doesn't take the reading yet (milestone
