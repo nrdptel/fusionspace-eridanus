@@ -140,8 +140,8 @@ fn in_order(note: &str, parts: &[&str]) {
 }
 
 /// `hpr analyze` ends with how far to trust a log's readings (issue #395, ADR-213): measured,
-/// what HPR Sim's readings were checked on, and the altimeter's own reading to log; `--json`
-/// carries it as `trust`, beside `kind: "measured"`.
+/// what HPR Sim's readings and their bounds were checked on, and the altimeter's own reading to
+/// log; `--json` carries it as `trust`, beside `kind: "measured"`.
 #[test]
 fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
     let log = repo_file("validation/fixtures/logs/synthetic-pnut.pf2");
@@ -150,10 +150,11 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
     in_order(
         &note,
         &[
-            "Measured by the altimeter's barometer, from its own log, read by HPR Sim, not \
-             simulated.",
-            "checked on an invented log whose every number is known, and once by hand on a real \
-             one, not in the automatic tests;",
+            "Measured by the logger, read by HPR Sim from its log, not simulated.",
+            "Each reading states the bound its error stayed within on HPR Sim's synthetic \
+             flights, logged at every rate from 500 to 0.5 samples a second and in steps up to 10 \
+             m or 100 Pa, in air within 15 K of standard;",
+            "withheld from Mach 0.8,",
             "the altimeter's own reading is the one to log, and the RSO decides.",
         ],
     );
@@ -164,8 +165,7 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
 }
 
 /// A log read by the flyer's own mapping or layout ends with its own note: the logger's samples
-/// in the units the file states, which may hold no barometer at all (a GPS tracker's table), and
-/// no readings until M7.2.
+/// in the units the file states, and readings whose bounds hold only if those units are right.
 #[test]
 fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
     let folder = "validation/fixtures/logs/own-logger";
@@ -180,13 +180,15 @@ fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
         in_order(
             &note,
             &[
-                "The logger's own samples, read by HPR Sim in the units your mapping or layout \
-                 states, not simulated: as right as those units are.",
-                "until roadmap milestone M7.2 validates them on other loggers;",
-                "check a unit against a known height,",
+                "The logger's own samples, read by HPR Sim in the units your mapping, layout or \
+                 FIP header states, not simulated: as right as those units are.",
+                "Each reading states the bound its error stayed within",
+                "Those bounds hold only if the units are right: check a unit against a known \
+                 height,",
             ],
         );
-        assert!(!note.contains("barometer"), "{note}");
+        // A GPS tracker's table has no barometer: the note doesn't say one measured it.
+        assert!(!note.contains("altimeter's barometer"), "{note}");
         let (json, _) = run(&["analyze", &log, by, &file, "--json"]);
         let document: Value = serde_json::from_str(&json).unwrap();
         assert_eq!(document["kind"], "measured");

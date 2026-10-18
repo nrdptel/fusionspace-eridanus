@@ -484,6 +484,14 @@ impl Checks {
     }
 }
 
+/// The record of a sample of the family, read by its stated mapping, if it reads.
+pub(super) fn read_sample(sample: &Sample) -> Option<FlightLog> {
+    let stated = stated().ok()?;
+    let id = id_of(&sample.bytes);
+    let stated = stated.iter().find(|s| s.id == id)?;
+    read(stated, &sample.bytes).ok().map(|(log, _)| log)
+}
+
 fn id_of(bytes: &[u8]) -> String {
     hex(&Sha256::digest(bytes))[..16].to_owned()
 }

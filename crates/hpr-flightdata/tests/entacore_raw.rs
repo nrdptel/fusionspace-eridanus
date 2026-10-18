@@ -439,8 +439,15 @@ fn snapshots() {
 }
 
 /// A dump of two recordings: `read_dump` reads each, and the importer refuses it, naming where
-/// the second starts.
+/// the second starts; `read_one` reads the one chosen, and refuses no choice, a recording past
+/// the last, and a sheet. Its committed copy, `validation/fixtures/logs/several/two-recordings.dump`,
+/// which the command line's and Python's tests read, is held to these bytes;
+/// `HPR_WRITE_SEVERAL_RECORDS=1` writes it again.
 #[test]
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a test that writes its own fixture when asked, as `cargo xtask` outputs are"
+)]
 fn a_dump_of_two_recordings() {
     let one = dump();
     let data = &one[..one.len() - 16];
@@ -461,6 +468,27 @@ fn a_dump_of_two_recordings() {
         }
         other => panic!("{other:?}"),
     }
+    let choice = |sheet, recording| match import::read_one(&bytes, sheet, recording) {
+        Err(LogError::Choice { message }) => message,
+        other => panic!("{other:?}"),
+    };
+    assert!(choice(None, None).contains("holds 2 recordings: choose one"));
+    assert!(choice(None, Some(2)).contains("has no recording 2"));
+    assert!(choice(Some(0), None).contains("holds recordings, not sheets"));
+    for (index, log) in logs.iter().enumerate() {
+        assert_eq!(&import::read_one(&bytes, None, Some(index)).unwrap(), log);
+    }
+
+    if std::env::var_os("HPR_WRITE_SEVERAL_RECORDS").is_some() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../validation/fixtures/logs/several/two-recordings.dump");
+        std::fs::write(&path, &bytes).unwrap();
+    }
+    let committed = include_bytes!("../../../validation/fixtures/logs/several/two-recordings.dump");
+    assert!(
+        committed[..] == bytes[..],
+        "the committed dump is stale: run this test with `HPR_WRITE_SEVERAL_RECORDS=1`, then again"
+    );
 }
 
 /// The dump's refusals, each naming its byte.

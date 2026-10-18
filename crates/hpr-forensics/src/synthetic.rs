@@ -28,6 +28,7 @@
 
 pub mod census;
 pub mod designs;
+pub mod held;
 pub mod logger;
 pub mod noise;
 pub mod truth;

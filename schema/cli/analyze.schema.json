@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Analyze",
-  "description": "`hpr analyze`: a flight log's readings, taken from the log alone, with no design file and no\nsimulation. Heights are meters above the logger's own zero, which a PerfectFlite takes on the\npad; times are seconds on the log's clock.",
+  "description": "`hpr analyze`: a flight log's readings, taken from the log alone, with no design file and no\nsimulation. Heights are meters above the pad, altitudes meters on the height track's own\nscale (above the logger's zero for its own altitude); times are seconds on the log's clock.\nEach reading states the bound its error stays within.",
   "type": "object",
   "properties": {
     "apogee": {
@@ -84,7 +84,7 @@
   ],
   "$defs": {
     "AnalyzeMethod": {
-      "description": "How the readings were taken. Every field but `altitude_resolution_m` is `null` for a log too\nshort to read, or one withheld whole as `bad_record`; all but it and `sample_interval_s` for\none withheld as `sampled_too_fast`; and `pad_altitude_m` for one withheld as `no_climb`.",
+      "description": "How the readings were taken. `source` is `null` for a log with no height track, or one\nwithheld whole as `bad_record`; the other fields but `altitude_resolution_m` are `null` too\nfor a track too short to read, a GNSS track, or one withheld whole for its sampling or its\nstep, but for the interval or the step that withheld it; and `pad_altitude_m` for one\nwithheld as `no_climb`.",
       "type": "object",
       "properties": {
         "altitude_resolution_m": {
@@ -101,7 +101,7 @@
           "format": "double"
         },
         "pad_altitude_m": {
-          "description": "The pad: the median of the altitude before it first rises 1 m, m.",
+          "description": "The pad, on the track's own scale: the median of the track before it first rises 1 m,\nm.",
           "type": [
             "number",
             "null"
@@ -117,7 +117,26 @@
           "format": "double"
         },
         "sample_interval_s": {
-          "description": "The median interval between samples, s.",
+          "description": "The median interval between the track's samples, s.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "source": {
+          "description": "The height track the readings were taken from.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingSource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "step_m": {
+          "description": "The track's step, m: the format's stated resolution, else the smallest gap between two of\nits values; at the pad for a pressure track, whose step in height grows with height.",
           "type": [
             "number",
             "null"
@@ -165,6 +184,13 @@
             "$ref": "#/$defs/AnalyzedChannel"
           }
         },
+        "fip_header": {
+          "description": "The FIP header file it was read under, as given (`--fip-header`); `null` for a log read\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "firmware": {
           "description": "The logger's firmware version, as the file states it.",
           "type": [
@@ -188,7 +214,7 @@
         },
         "format": {
           "description": "Its format.",
-          "$ref": "#/$defs/LogFormatName"
+          "$ref": "#/$defs/LogFormat"
         },
         "last_time_s": {
           "description": "The primary track's last sample's time, s; 0 for a log that has none.",
@@ -224,6 +250,15 @@
           "description": "The file, as given.",
           "type": "string"
         },
+        "recording": {
+          "description": "The dump's recording chosen, from 0 (`--recording`); `null` for a file of one recording.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
         "samples": {
           "description": "How many samples the primary track holds, the barometric altitude above the pad the\nreadings are taken from; 0 for a log that has none, such as a table read by a mapping\nthat marks none.",
           "type": "integer",
@@ -238,7 +273,7 @@
           ]
         },
         "sheet": {
-          "description": "The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a\ntext file.",
+          "description": "The workbook's sheet chosen, from 0 (`--sheet`); `null` for a file that isn't a\nworkbook, or a workbook read with none chosen, whose one sheet that reads is read and\nnamed in the log's first note.",
           "type": [
             "integer",
             "null"
@@ -263,28 +298,51 @@
       "type": "object",
       "properties": {
         "altitude_m": {
-          "description": "The filtered altitude there, m.",
+          "description": "The filtered track there, on its own scale, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "bound_m": {
+          "description": "The bound on the height's error, m: most of it the day's air, which moves a barometric\nheight by up to 6.9% of itself.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_m": {
+          "description": "The height above the pad, m.",
           "type": "number",
           "format": "double"
         },
         "highest_sample": {
-          "description": "The highest sample the log holds before the filter: above the apogee when the median set\na pulse aside.",
+          "description": "The highest sample the track holds before the filter: above the apogee when the median\nset a pulse aside.",
           "$ref": "#/$defs/HighestSample"
         },
         "is_floor": {
-          "description": "Whether the log may have ended before the peak, so the altitude is a floor.",
+          "description": "Whether the log may have ended before the peak, so the height is a floor.",
           "type": "boolean"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
         },
         "source": {
           "description": "Where it came from.",
           "$ref": "#/$defs/ReadingSource"
         },
         "time_after_liftoff_s": {
-          "description": "When, s after liftoff; `null` if liftoff was withheld.",
+          "description": "When, s after liftoff; `null` when liftoff is withheld.",
           "type": [
             "number",
             "null"
           ],
+          "format": "double"
+        },
+        "time_bound_s": {
+          "description": "The bound on the time's error, s.",
+          "type": "number",
           "format": "double"
         },
         "time_s": {
@@ -295,18 +353,23 @@
       },
       "required": [
         "time_s",
+        "time_bound_s",
+        "height_m",
+        "bound_m",
         "altitude_m",
         "is_floor",
         "highest_sample",
-        "source"
+        "source",
+        "provenance",
+        "method"
       ]
     },
     "HighestSample": {
-      "description": "The highest sample of the altitude.",
+      "description": "The highest sample of the track.",
       "type": "object",
       "properties": {
         "altitude_m": {
-          "description": "The altitude, m.",
+          "description": "The track's value, on its own scale, m.",
           "type": "number",
           "format": "double"
         },
@@ -355,13 +418,34 @@
       "description": "Landing, and the descent before it.",
       "type": "object",
       "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
         "descent_time_s": {
           "description": "From apogee to landing, s.",
           "type": "number",
           "format": "double"
         },
+        "flight_time_bound_s": {
+          "description": "The bound on the flight time's error, s; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
         "flight_time_s": {
-          "description": "From liftoff to landing, s.",
+          "description": "From liftoff to landing, s; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "mean_descent_rate_bound_m_s": {
+          "description": "The bound on the mean rate's error, m/s.",
           "type": "number",
           "format": "double"
         },
@@ -370,70 +454,312 @@
           "type": "number",
           "format": "double"
         },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
         "source": {
           "description": "Where it came from.",
           "$ref": "#/$defs/ReadingSource"
         },
         "time_s": {
-          "description": "The first sample within 2 m of the pad that stays under 5 m for a second, s: before\ntouchdown by the time the last 2 m took.",
+          "description": "The first sample after apogee back within the pad's allowance that stays down for 1 s,\ns: before touchdown by the time the last meters took.",
           "type": "number",
           "format": "double"
         }
       },
       "required": [
         "time_s",
-        "flight_time_s",
+        "bound_s",
         "descent_time_s",
         "mean_descent_rate_m_s",
-        "source"
+        "mean_descent_rate_bound_m_s",
+        "source",
+        "provenance",
+        "method"
       ]
     },
     "LiftoffReading": {
       "description": "Liftoff.",
       "type": "object",
       "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
         "source": {
           "description": "Where it came from.",
           "$ref": "#/$defs/ReadingSource"
         },
         "time_s": {
-          "description": "The last sample on the pad, s: the rocket had risen less than the altitude's resolution\nthen, and rose past it within one sample interval after.",
+          "description": "The last sample before apogee within the pad's allowance, s.",
           "type": "number",
           "format": "double"
         }
       },
       "required": [
         "time_s",
-        "source"
+        "bound_s",
+        "source",
+        "provenance",
+        "method"
       ]
     },
-    "LogFormatName": {
-      "description": "A flight log's format.",
+    "LogFormat": {
+      "description": "A flight log's file format.",
       "oneOf": [
         {
-          "description": "PerfectFlite's `.pf2`: the Pnut, the StratoLogger and the StratoLoggerCF.",
+          "description": "PerfectFlite's `.pf2`, as its software writes a Pnut's, a StratoLogger's or a\nStratoLoggerCF's flights.",
           "type": "string",
           "const": "perfect_flite_pf2"
         },
         {
-          "description": "A table read by a column mapping (`--mapping`).",
+          "description": "PerfectFlite's comma-separated export: a header row such as `Time, Altitude, Velocity,\nTemperature (F), Voltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_csv"
+        },
+        {
+          "description": "PerfectFlite's tab-separated text export: a header row such as `Time Altitude Temp.\nVoltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_text"
+        },
+        {
+          "description": "AltOS's CSV, as AltosUI exports a TeleMetrum's, TeleMega's, EasyMega's or EasyMini's\nflight: a `#version,serial,flight,…` header, then rows in SI.",
+          "type": "string",
+          "const": "altos_csv"
+        },
+        {
+          "description": "The Featherweight Raven's FIP CSV, as the Featherweight Interface Program exports it: each\nchannel its own `Time@` column, its values, and a status column.",
+          "type": "string",
+          "const": "raven_fip_csv"
+        },
+        {
+          "description": "Missile Works' mDACS export of an RRC3's flight: a header row `Time, Altitude, Pressure,\nVelocity, Temperature, Events, Voltages`, then rows on one clock.",
+          "type": "string",
+          "const": "rrc3_csv"
+        },
+        {
+          "description": "An Eggtimer's flight data, as its own download writes it: a header row such as `T, Alt,\nVRaw, VFilt`, then rows on one clock.",
+          "type": "string",
+          "const": "eggtimer_csv"
+        },
+        {
+          "description": "The Featherweight Blue Raven's CSV, as its phone app exports a flight: a low-rate file of\nits barometric and inertial figures, or a high-rate file of its inertial sensors, each\nwith a header row such as `Year,Month,Day,Time,Flight_Time_(s),…`.",
+          "type": "string",
+          "const": "blue_raven_csv"
+        },
+        {
+          "description": "A Featherweight GPS tracker's CSV, as its ground station's app or software writes it: the\ntracker's log, with a header row such as `UTCTIME,UNIXTIME,ALT,LAT,LON,#SATS,…`, or the\nground station's, such as `TRACKER,DATE,TIME,LAT,LON,ALT,…`. Positions only, no barometer.",
+          "type": "string",
+          "const": "featherweight_gps_csv"
+        },
+        {
+          "description": "A KML file (OGC 07-147r2) holding a GPS track as a path or a `gx:Track`, as AltOS, Missile\nWorks' RTx, Big Red Bee's BeeLine, fw2kml and others write it. Positions only.",
+          "type": "string",
+          "const": "kml"
+        },
+        {
+          "description": "A GPS receiver's NMEA 0183 sentences as it wrote them, such as `$GPGGA,…*hh`. Positions\nonly.",
+          "type": "string",
+          "const": "nmea0183"
+        },
+        {
+          "description": "PerfectFlite's older `.pfa`, as its software saves an Alt15K/WD's flight: `Ground:`,\n`Apogee:` and `NumSamps:` lines, then `**!!Data:` and one altitude a line.",
+          "type": "string",
+          "const": "perfect_flite_pfa"
+        },
+        {
+          "description": "An Eggtimer TRS's flight as its terminal download prints it: the flight settings and the\nflight summary, then the table the CSV download writes.",
+          "type": "string",
+          "const": "eggtimer_text"
+        },
+        {
+          "description": "AltimeterCloud's CSV of a Rocketry Ltd Nano V1's or Mercury's flight, as a flight page on\naltimetercloud.com hands it back: a header row such as `Time(ms),Altitude(m),…`.",
+          "type": "string",
+          "const": "altimeter_cloud_csv"
+        },
+        {
+          "description": "Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`\ncolumn.",
+          "type": "string",
+          "const": "entacore_aim_csv"
+        },
+        {
+          "description": "AerospaceNU's SillyGoose flight computer's log, as the board writes it: tab-separated\ntext under a header such as `timestampMs pressurePa tempK …`.",
+          "type": "string",
+          "const": "silly_goose_text"
+        },
+        {
+          "description": "Silicdyne's Fluctus flight computer's CSV: a `sep=;` line, then a semicolon-separated\ntable whose names carry their units, such as `time (ms);baro-altitude (m);…`.",
+          "type": "string",
+          "const": "fluctus_csv"
+        },
+        {
+          "description": "Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then\ncomma-separated rows from launch.",
+          "type": "string",
+          "const": "arts2_csv"
+        },
+        {
+          "description": "AerospaceNU's flight computer board's CSV, as the club's tools write a flight: a header\nrow opening `,packetType,timestamp_ms,…` or `,timestamp_s,…`, then one row a sample.",
+          "type": "string",
+          "const": "aerospace_nu_fcb_csv"
+        },
+        {
+          "description": "AerospaceNU's ground station's text, as it parses the flight computer board's downlink: a\n`RUN START` line, then one packet a line, `HH:MM:SS.ffffff: <packet> {…}`.",
+          "type": "string",
+          "const": "aerospace_nu_ground_station_text"
+        },
+        {
+          "description": "A phone app's `launch….csv`: a header row opening `Seconds,Timestamp,AltitudeMSLGPS,…`,\nthen one row a sample. The app isn't named in its files.",
+          "type": "string",
+          "const": "phone_launch_csv"
+        },
+        {
+          "description": "An Eggtimer TRS's terminal download, as [`LogFormat::EggtimerText`] reads it, saved inside\nan RTF document.",
+          "type": "string",
+          "const": "eggtimer_rtf"
+        },
+        {
+          "description": "The Featherweight Raven's raw download, `.FIPa`, as the Featherweight Interface Program\nsaves the altimeter's memory: a text header, then checksummed binary frames.",
+          "type": "string",
+          "const": "raven_fipa"
+        },
+        {
+          "description": "Missile Works' RRC3 raw flight file, `.rff`, as mDACS saves a download: a .NET\n`BinaryFormatter` stream holding the altimeter's 16-bit words.",
+          "type": "string",
+          "const": "rrc3_rff"
+        },
+        {
+          "description": "A Featherweight summary, as the Featherweight UI app exports a Blue Raven's or a GPS\ntracker's flight beside its data: one `name,value` row a figure, such as `Max\nAltitude,2500.25 feet`, and no samples.",
+          "type": "string",
+          "const": "featherweight_summary_csv"
+        },
+        {
+          "description": "AED Electronics' R-DAS raw data, as its Windows software exports a flight to text: a\n`*** Configuration ***` section, then a table of the converters' counts.",
+          "type": "string",
+          "const": "rdas_text"
+        },
+        {
+          "description": "AltOS radio telemetry, as AltosUI saves the packets a TeleDongle hears to a `.telem`\nfile: one `TELEM` line a packet, its bytes in hexadecimal.",
+          "type": "string",
+          "const": "altos_telemetry"
+        },
+        {
+          "description": "AltOS's raw flight download, as AltosUI saves a flight computer's memory to an `.eeprom`\nfile: a JSON object of the board's configuration then the memory in hexadecimal, or, from\nolder versions, the configuration as the board prints it then one record a line.",
+          "type": "string",
+          "const": "altos_eeprom"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's flight as its PC software saves it to an `.odf` file: the board's\nsettings and calibration, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_odf"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's raw data, as its PC software exports a flight: a\n`MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_raw_csv"
+        },
+        {
+          "description": "Missile Works' RTx/GPS tracker's fixes, as mDACS saves a download to an `.rtx` file: a\n.NET `BinaryFormatter` stream of one `List<Int32>`, each slot a 16-bit word mapped modulo\n10⁹. Positions only.",
+          "type": "string",
+          "const": "rtx_raw"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to CSV: a `UTC Time,Latitude,Longitude,Altitude,…`\nheader, then one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_csv"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to text: a tab-separated `UTC Lat Lon Alt …` header,\nthen one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_text"
+        },
+        {
+          "description": "A table of samples from a logger no other reader knows, read by what its header states: a\nheader row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,\nthen one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.",
           "type": "string",
           "const": "generic_table"
         },
         {
-          "description": "A file of binary records read by a record layout (`--layout`).",
+          "description": "A file of binary records end to end, each a run of fields, read by a layout the caller\nstates, since the file states none ([`crate::records`]).",
           "type": "string",
           "const": "binary_records"
         },
         {
-          "description": "A serial console's capture of binary records as base64, a block of it read by a record\nlayout (`--layout`).",
+          "description": "A serial console's capture of a flight computer's shell, its memory dumped as base64\nbetween marker lines such as `----++++//[[( data start )]]\\\\++++----`, each block's\nrecords read by a layout the caller states ([`crate::capture`]).",
           "type": "string",
           "const": "console_capture"
         },
         {
-          "description": "A format this build of `hpr` doesn't name.",
+          "description": "The Featherweight Blue Raven's flight data as its USB port downloads it to a serial\nterminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC\n([`crate::blueraven_usb`]).",
           "type": "string",
-          "const": "other"
+          "const": "blue_raven_usb"
+        },
+        {
+          "description": "A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,\nthen its values, such as `Alt`, the clock, `P` and a pressure, `MSL` and an altitude\n([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_tabs"
+        },
+        {
+          "description": "A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg\nC, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_named"
+        },
+        {
+          "description": "One team's radio telemetry packets as text, one `255:…:254` packet a line, such as\n`255:T:11:PP:100150:950.12:21.50:3.25:254`: the flight computer's own log, or what a\nreceiver heard ([`crate::packets`]).",
+          "type": "string",
+          "const": "radio_packet_text"
+        },
+        {
+          "description": "The same packets in an RTF document a spreadsheet saved as CSV, one `255,…,254` packet a\nline ([`crate::packets::read_rtf`]).",
+          "type": "string",
+          "const": "radio_packet_rtf"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight as its PC software exports it to an `.xls` worksheet\n([`crate::xls`]), read as a table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`\n([`crate::altimax`]).",
+          "type": "string",
+          "const": "altimax_xls"
+        },
+        {
+          "description": "A MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as\n`<BARO_ZERO 0> 790`, then a row a sample of the time, the altitude in feet and the\nacceleration in g, such as `0.1,-29.0,8.65`; the `.dat` the altimeter's software saves, or\na spreadsheet's re-save of it ([`crate::marsa`]).",
+          "type": "string",
+          "const": "marsa"
+        },
+        {
+          "description": "AltOS's radio telemetry decoded to a table, one row a packet under a header of the\npacket's fields, `serial,tick,ptype,state,…,height,crc` ([`crate::altos_telem_csv`]).",
+          "type": "string",
+          "const": "altos_telemetry_csv"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight's `.ALS` file: a header, then a record of 22 bytes a\nsample, its pressures, acceleration, event and one voltage channel's count\n([`crate::altimax_als`]).",
+          "type": "string",
+          "const": "altimax_als"
+        },
+        {
+          "description": "Entacore AIM XTRA, a flight as its software saves it to an `.xtra` file, a Boost binary\narchive of one record a sensor group's sample ([`crate::entacore_raw`]).",
+          "type": "string",
+          "const": "entacore_xtra"
+        },
+        {
+          "description": "Entacore AIM XTRA, one recording of its memory as its software downloads it, raw: a\ntype byte and big-endian fields a record, between bytes that count the clock's ticks\n([`crate::entacore_raw::read_dump`]).",
+          "type": "string",
+          "const": "entacore_dump"
+        },
+        {
+          "description": "A GPX file, the GPS Exchange Format, version 1.0 or 1.1 as Topografix publishes it: its\ntracks' points, each segment a GPS track ([`crate::gpx`]). Positions only.",
+          "type": "string",
+          "const": "gpx"
         }
       ]
     },
@@ -645,13 +971,26 @@
       ]
     },
     "MaxSpeedReading": {
-      "description": "The top vertical speed from liftoff to apogee.",
+      "description": "The top vertical speed from liftoff to apogee, derived from the height track.",
       "type": "object",
       "properties": {
-        "altitude_m": {
-          "description": "The filtered altitude then, m.",
+        "bound_m_s": {
+          "description": "The bound on its error, m/s.",
           "type": "number",
           "format": "double"
+        },
+        "height_m": {
+          "description": "The height above the pad then, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Derived from the track.",
+          "$ref": "#/$defs/ReadingProvenance"
         },
         "source": {
           "description": "Where it came from.",
@@ -670,9 +1009,12 @@
       },
       "required": [
         "speed_m_s",
+        "bound_m_s",
         "time_s",
-        "altitude_m",
-        "source"
+        "height_m",
+        "source",
+        "provenance",
+        "method"
       ]
     },
     "Quantity": {
@@ -780,18 +1122,83 @@
         }
       ]
     },
-    "ReadingSource": {
-      "description": "Where a reading's value came from.",
+    "ReadingMethod": {
+      "description": "How a reading was read off the track.",
       "oneOf": [
         {
-          "description": "The logger's barometric altitude, after the running median.",
+          "description": "The last sample before apogee within the pad's allowance.",
+          "type": "string",
+          "const": "last_on_the_pad"
+        },
+        {
+          "description": "The filtered track's highest value, at the middle of the run that holds it.",
+          "type": "string",
+          "const": "highest_filtered"
+        },
+        {
+          "description": "The steepest least-squares slope of the filtered track over 0.5 s.",
+          "type": "string",
+          "const": "steepest_slope"
+        },
+        {
+          "description": "The first sample after apogee back within the pad's allowance that stays down for 1 s.",
+          "type": "string",
+          "const": "back_on_the_pad"
+        },
+        {
+          "description": "A method this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingProvenance": {
+      "description": "Whether a reading was measured on the track, derived from it, or clipped by it.",
+      "oneOf": [
+        {
+          "description": "A time or height read off the filtered track.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "Worked out from the track, such as a speed from its slope.",
+          "type": "string",
+          "const": "derived"
+        },
+        {
+          "description": "Measured, but at the sensor's range, so the true value may lie beyond it.",
+          "type": "string",
+          "const": "clipped"
+        },
+        {
+          "description": "A provenance this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingSource": {
+      "description": "The height track a reading came from.",
+      "oneOf": [
+        {
+          "description": "The logger's own barometric altitude, the record's primary track.",
           "type": "string",
           "const": "barometer"
         },
         {
-          "description": "A speed column the logger computed from its own barometric altitude.",
+          "description": "A pressure channel, turned into a height by the 1976 standard atmosphere.",
           "type": "string",
-          "const": "logger_speed_from_barometer"
+          "const": "pressure"
+        },
+        {
+          "description": "A barometric altitude kept in a channel, above the pad or above sea level.",
+          "type": "string",
+          "const": "altitude_channel"
+        },
+        {
+          "description": "A GNSS receiver's altitude: no reading is taken from it.",
+          "type": "string",
+          "const": "gnss"
         },
         {
           "description": "A source this build of `hpr` doesn't name.",
@@ -822,17 +1229,17 @@
       "description": "The reason a reading was withheld.",
       "oneOf": [
         {
-          "description": "The log has fewer than three samples.",
+          "description": "The height track has fewer than three samples.",
           "type": "string",
           "const": "too_short"
         },
         {
-          "description": "The altitude never climbs 3 m above where the log starts.",
+          "description": "The track never climbs 3 m above the pad, or the liftoff allowance and a step if that is\nhigher; or, for landing, falls too little past its step and noise to time the descent.",
           "type": "string",
           "const": "no_climb"
         },
         {
-          "description": "The pad, the median altitude before the first meter of rise, is more than 3 m from the\nlogger's zero: the log didn't start on the pad.",
+          "description": "A track whose heights are above the pad only by a mapping's or a column's word starts\nmore than 19.9 m from its zero, more than the weather and the noise move a zero in an hour\non the pad: the log didn't start on the pad, or its heights aren't above the pad, as an\naltitude above sea level mapped as one above the ground reads.",
           "type": "string",
           "const": "starts_off_the_pad"
         },
@@ -842,14 +1249,9 @@
           "const": "ends_before_landing"
         },
         {
-          "description": "The altitude reaches the ground sooner than a fall from rest at apogee in vacuum could.",
+          "description": "The track reaches the ground sooner than a fall from rest at apogee in vacuum could.",
           "type": "string",
           "const": "faster_than_free_fall"
-        },
-        {
-          "description": "The log has no speed column.",
-          "type": "string",
-          "const": "no_speed_column"
         },
         {
           "description": "The top speed is above 4,000 m/s.",
@@ -860,11 +1262,6 @@
           "description": "The climb's speed swings negative by more than 20% of its top.",
           "type": "string",
           "const": "noisy_speed"
-        },
-        {
-          "description": "The top speed falls on the liftoff sample itself.",
-          "type": "string",
-          "const": "speed_peak_at_liftoff"
         },
         {
           "description": "The log has no accelerometer.",
@@ -882,14 +1279,69 @@
           "const": "bad_record"
         },
         {
-          "description": "The samples come so often that the 0.3 s median would hold more than 1,000 either side.",
+          "description": "The samples come more often than 500 a second, faster than the bounds were checked at.",
           "type": "string",
           "const": "sampled_too_fast"
         },
         {
-          "description": "The readings were tested on PerfectFlite logs only; another logger's wait for M7.2.",
+          "description": "The log holds no altitude, pressure or GNSS track.",
           "type": "string",
-          "const": "not_validated_for_logger"
+          "const": "no_height_track"
+        },
+        {
+          "description": "The log's only height doesn't say whether a barometer or a GNSS receiver measured it.",
+          "type": "string",
+          "const": "unstated_sensor"
+        },
+        {
+          "description": "The track is sampled more slowly than the readings were checked at, 2 s between samples,\nor, for the top speed, too slowly for its fit.",
+          "type": "string",
+          "const": "sampled_too_slowly"
+        },
+        {
+          "description": "The track moves in steps coarser than the readings were checked at: 10 m, or 100 Pa.",
+          "type": "string",
+          "const": "step_too_coarse"
+        },
+        {
+          "description": "The climb reaches Mach 0.8 in the coldest air the bounds allow, where the barometer's port\nmay read the transonic flow over the nose.",
+          "type": "string",
+          "const": "transonic"
+        },
+        {
+          "description": "The only height is a GNSS receiver's, whose filter lags a climb and overshoots its top.",
+          "type": "string",
+          "const": "receiver_lag"
+        },
+        {
+          "description": "The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.",
+          "type": "string",
+          "const": "receiver_dropout"
+        },
+        {
+          "description": "The track loses no more than its noise and step in the 4 s before its top: its clock is\nin another unit, such as milliseconds read as seconds, its top isn't a coast's, or it\nisn't a height.",
+          "type": "string",
+          "const": "slower_than_free_coast"
+        },
+        {
+          "description": "HPR Sim doesn't take this reading from the log's sensor yet.",
+          "type": "string",
+          "const": "not_yet_taken"
+        },
+        {
+          "description": "The log's first samples can't rule out a rocket already more than 2 m up when it starts:\nit starts after liftoff, as a logger that records from launch writes its zero and then the\nclimb, or holds too little of the pad to tell liftoff by. A track above the logger's own\nzero, or one a mapping or a header calls above the ground, still gives its heights from\nthat zero, with the zero's possible error in their bounds.",
+          "type": "string",
+          "const": "short_pad"
+        },
+        {
+          "description": "The height track's clock doesn't increase, so no time can be read off it.",
+          "type": "string",
+          "const": "clock_out_of_order"
+        },
+        {
+          "description": "The track falls past its noise and step below a peak in the 4 s before its top, then\nclimbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,\nso which is the apogee can't be told.",
+          "type": "string",
+          "const": "disturbed_top"
         },
         {
           "description": "A reason this build of `hpr` doesn't name.",

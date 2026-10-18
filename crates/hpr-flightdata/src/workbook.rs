@@ -1348,6 +1348,27 @@ pub(crate) fn shortened(name: &str) -> String {
     }
 }
 
+/// The most sheets [`listed`] names.
+pub(crate) const MOST_LISTED: usize = 20;
+
+/// Sheets for an error that asks for one to be chosen: each as `describe` writes it from its index
+/// and its name, cut to 60 characters, at most [`MOST_LISTED`] of them and then how many more,
+/// so a hostile workbook's many sheets aren't copied whole.
+pub(crate) fn listed<'a>(
+    sheets: impl ExactSizeIterator<Item = (usize, &'a str)>,
+    describe: impl Fn(usize, &str) -> String,
+) -> String {
+    let count = sheets.len();
+    let mut named: Vec<String> = sheets
+        .take(MOST_LISTED)
+        .map(|(index, name)| describe(index, &shortened(name)))
+        .collect();
+    if count > MOST_LISTED {
+        named.push(format!("and {} more", count - MOST_LISTED));
+    }
+    named.join(", ")
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Write};

@@ -3671,6 +3671,2332 @@
       "7a71bfeb7d7b1ee4: Eggtimer CSV line 1: `Filt_Alt` isn't a filter of `Alt`: it is 99.934 times `Alt` by a least-squares fit, outside the 0.1 to 2 a filter of the altitude can be, so the file's numbers can't be trusted; a file whose decimal points were taken out writes `12.34` as `1234`, 100 times over"
     ]
   },
+  "readings": {
+    "families": {
+      "aerospacenu-fcb-csv": {
+        "records": 20,
+        "tracks": {
+          "barometer": 20
+        },
+        "readings": {
+          "apogee": {
+            "given": 17,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
+          "landing": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 7
+            }
+          },
+          "liftoff": {
+            "given": 20,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 20
+            }
+          },
+          "max_speed": {
+            "given": 13,
+            "withheld": {
+              "disturbed_top": 3,
+              "transonic": 4
+            }
+          }
+        }
+      },
+      "aerospacenu-gs-txt": {
+        "records": 4,
+        "tracks": {
+          "barometer": 4
+        },
+        "readings": {
+          "apogee": {
+            "given": 4,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 3
+            }
+          },
+          "liftoff": {
+            "given": 4,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 1,
+              "not_yet_taken": 3
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 4
+            }
+          }
+        }
+      },
+      "aerospacenu-sillygoose-txt": {
+        "records": 14,
+        "tracks": {
+          "barometer": 14
+        },
+        "readings": {
+          "apogee": {
+            "given": 11,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "landing": {
+            "given": 7,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 4,
+              "no_climb": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "liftoff": {
+            "given": 12,
+            "withheld": {
+              "no_climb": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 14
+            }
+          },
+          "max_speed": {
+            "given": 8,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 1,
+              "sampled_too_slowly": 1,
+              "transonic": 3
+            }
+          }
+        }
+      },
+      "altimax-als": {
+        "records": 1,
+        "tracks": {
+          "pressure": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "transonic": 1
+            }
+          }
+        }
+      },
+      "altimax-xls": {
+        "records": 1,
+        "tracks": {
+          "barometer": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "transonic": 1
+            }
+          }
+        }
+      },
+      "altimetercloud-csv": {
+        "records": 11,
+        "tracks": {
+          "barometer": 11
+        },
+        "readings": {
+          "apogee": {
+            "given": 11,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 11,
+            "withheld": {}
+          },
+          "liftoff": {
+            "given": 11,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 11
+            }
+          },
+          "max_speed": {
+            "given": 11,
+            "withheld": {}
+          }
+        }
+      },
+      "altos-csv": {
+        "records": 50,
+        "tracks": {
+          "barometer": 50
+        },
+        "readings": {
+          "apogee": {
+            "given": 45,
+            "withheld": {
+              "disturbed_top": 4,
+              "no_climb": 1
+            }
+          },
+          "landing": {
+            "given": 29,
+            "withheld": {
+              "disturbed_top": 4,
+              "ends_before_landing": 16,
+              "no_climb": 1
+            }
+          },
+          "liftoff": {
+            "given": 34,
+            "withheld": {
+              "no_climb": 1,
+              "short_pad": 15
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 50
+            }
+          },
+          "max_speed": {
+            "given": 20,
+            "withheld": {
+              "disturbed_top": 4,
+              "no_climb": 1,
+              "noisy_speed": 2,
+              "sampled_too_slowly": 1,
+              "transonic": 22
+            }
+          }
+        }
+      },
+      "altos-eeprom": {
+        "records": 14,
+        "tracks": {
+          "gnss": 1,
+          "pressure": 13
+        },
+        "readings": {
+          "apogee": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1,
+              "receiver_lag": 1,
+              "short_pad": 7
+            }
+          },
+          "landing": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 1,
+              "needs": 1,
+              "short_pad": 7
+            }
+          },
+          "liftoff": {
+            "given": 6,
+            "withheld": {
+              "receiver_dropout": 1,
+              "short_pad": 7
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 3,
+              "not_yet_taken": 11
+            }
+          },
+          "max_speed": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 1,
+              "receiver_lag": 1,
+              "short_pad": 7,
+              "transonic": 3
+            }
+          }
+        }
+      },
+      "altos-resaved-csv": {
+        "records": 1,
+        "tracks": {
+          "none": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          }
+        }
+      },
+      "altos-table-csv": {
+        "records": 1,
+        "tracks": {
+          "barometer": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {}
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 1,
+            "withheld": {}
+          }
+        }
+      },
+      "altos-telem": {
+        "records": 2,
+        "tracks": {
+          "barometer": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 2,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 2
+            }
+          }
+        }
+      },
+      "altos-telem-csv": {
+        "records": 1,
+        "tracks": {
+          "barometer": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 1
+            }
+          }
+        }
+      },
+      "arts2-csv": {
+        "records": 4,
+        "tracks": {
+          "barometer": 4
+        },
+        "readings": {
+          "apogee": {
+            "given": 4,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 2,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "liftoff": {
+            "given": 4,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 4
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "transonic": 4
+            }
+          }
+        }
+      },
+      "arts2-raw-csv": {
+        "records": 3,
+        "tracks": {
+          "none": 3
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 3
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          }
+        }
+      },
+      "blueraven-csv": {
+        "records": 89,
+        "tracks": {
+          "barometer": 49,
+          "none": 40
+        },
+        "readings": {
+          "apogee": {
+            "given": 46,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 40
+            }
+          },
+          "landing": {
+            "given": 38,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 8,
+              "no_height_track": 40
+            }
+          },
+          "liftoff": {
+            "given": 48,
+            "withheld": {
+              "no_height_track": 40,
+              "short_pad": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 45,
+              "not_yet_taken": 44
+            }
+          },
+          "max_speed": {
+            "given": 23,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 40,
+              "transonic": 23
+            }
+          }
+        }
+      },
+      "blueraven-summary-csv": {
+        "records": 26,
+        "tracks": {
+          "none": 26
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 26
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          }
+        }
+      },
+      "blueraven-usb-txt": {
+        "records": 2,
+        "tracks": {
+          "none": 1,
+          "pressure": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 1,
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          }
+        }
+      },
+      "console-capture": {
+        "records": 3,
+        "tracks": {
+          "pressure": 3
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 3
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          }
+        }
+      },
+      "e80-imu-txt": {
+        "records": 54,
+        "tracks": {
+          "none": 54
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 54
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          }
+        }
+      },
+      "eggtimer-csv": {
+        "records": 44,
+        "tracks": {
+          "barometer": 44
+        },
+        "readings": {
+          "apogee": {
+            "given": 32,
+            "withheld": {
+              "disturbed_top": 12
+            }
+          },
+          "landing": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 12,
+              "ends_before_landing": 29
+            }
+          },
+          "liftoff": {
+            "given": 10,
+            "withheld": {
+              "short_pad": 34
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 40,
+              "not_yet_taken": 4
+            }
+          },
+          "max_speed": {
+            "given": 24,
+            "withheld": {
+              "disturbed_top": 12,
+              "sampled_too_slowly": 2,
+              "short_pad": 1,
+              "transonic": 5
+            }
+          }
+        }
+      },
+      "eggtimer-rtf": {
+        "records": 1,
+        "tracks": {
+          "barometer": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 1
+            }
+          },
+          "max_speed": {
+            "given": 1,
+            "withheld": {}
+          }
+        }
+      },
+      "eggtimer-txt": {
+        "records": 2,
+        "tracks": {
+          "barometer": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 2
+            }
+          },
+          "max_speed": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          }
+        }
+      },
+      "entacore-aim-csv": {
+        "records": 16,
+        "tracks": {
+          "barometer": 16
+        },
+        "readings": {
+          "apogee": {
+            "given": 16,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 8,
+            "withheld": {
+              "ends_before_landing": 8
+            }
+          },
+          "liftoff": {
+            "given": 16,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 16
+            }
+          },
+          "max_speed": {
+            "given": 1,
+            "withheld": {
+              "sampled_too_slowly": 8,
+              "transonic": 7
+            }
+          }
+        }
+      },
+      "entacore-dump": {
+        "records": 10,
+        "tracks": {
+          "pressure": 10
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 10
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          }
+        }
+      },
+      "entacore-xtra": {
+        "records": 2,
+        "tracks": {
+          "pressure": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          }
+        }
+      },
+      "featherweight-summary-csv": {
+        "records": 25,
+        "tracks": {
+          "none": 25
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 25
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          }
+        }
+      },
+      "fluctus-csv": {
+        "records": 6,
+        "tracks": {
+          "barometer": 6
+        },
+        "readings": {
+          "apogee": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
+          "landing": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
+          "liftoff": {
+            "given": 6,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 6
+            }
+          },
+          "max_speed": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 3,
+              "noisy_speed": 1
+            }
+          }
+        }
+      },
+      "fwgps-csv": {
+        "records": 40,
+        "tracks": {
+          "gnss": 40
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 40
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 40
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 40
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 40
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 40
+            }
+          }
+        }
+      },
+      "held-table": {
+        "records": 20,
+        "tracks": {
+          "altitude_channel": 1,
+          "gnss": 3,
+          "none": 7,
+          "pressure": 9
+        },
+        "readings": {
+          "apogee": {
+            "given": 10,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "no_height_track": 6,
+              "receiver_lag": 3
+            }
+          },
+          "landing": {
+            "given": 7,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 3,
+              "needs": 3,
+              "no_height_track": 6
+            }
+          },
+          "liftoff": {
+            "given": 10,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "no_height_track": 6,
+              "receiver_dropout": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 13,
+              "not_yet_taken": 7
+            }
+          },
+          "max_speed": {
+            "given": 2,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "no_height_track": 6,
+              "receiver_lag": 3,
+              "sampled_too_slowly": 4,
+              "transonic": 4
+            }
+          }
+        }
+      },
+      "kml": {
+        "records": 43,
+        "tracks": {
+          "altitude_channel": 4,
+          "gnss": 36,
+          "none": 3
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3,
+              "receiver_lag": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 36,
+              "no_height_track": 3,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3,
+              "receiver_dropout": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 43
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3,
+              "receiver_lag": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          }
+        }
+      },
+      "kml-map": {
+        "records": 1,
+        "tracks": {
+          "none": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 1
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          }
+        }
+      },
+      "mapped-table-csv": {
+        "records": 6,
+        "tracks": {
+          "none": 6
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 4,
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          }
+        }
+      },
+      "marsa-dat": {
+        "records": 2,
+        "tracks": {
+          "barometer": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 2,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 2,
+            "withheld": {}
+          }
+        }
+      },
+      "missileworks-rtx": {
+        "records": 5,
+        "tracks": {
+          "gnss": 5
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 5
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 5
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          }
+        }
+      },
+      "nmea": {
+        "records": 12,
+        "tracks": {
+          "gnss": 12
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 12
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 12
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 12
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 12
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 12
+            }
+          }
+        }
+      },
+      "odf": {
+        "records": 3,
+        "tracks": {
+          "pressure": 3
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 3
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          }
+        }
+      },
+      "perfectflite-csv": {
+        "records": 15,
+        "tracks": {
+          "barometer": 15
+        },
+        "readings": {
+          "apogee": {
+            "given": 13,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
+          "landing": {
+            "given": 11,
+            "withheld": {
+              "disturbed_top": 2,
+              "ends_before_landing": 2
+            }
+          },
+          "liftoff": {
+            "given": 14,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 15
+            }
+          },
+          "max_speed": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 2,
+              "transonic": 3
+            }
+          }
+        }
+      },
+      "perfectflite-txt": {
+        "records": 6,
+        "tracks": {
+          "barometer": 6
+        },
+        "readings": {
+          "apogee": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "landing": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "liftoff": {
+            "given": 6,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 6
+            }
+          },
+          "max_speed": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          }
+        }
+      },
+      "pf2": {
+        "records": 175,
+        "tracks": {
+          "barometer": 175
+        },
+        "readings": {
+          "apogee": {
+            "given": 160,
+            "withheld": {
+              "disturbed_top": 15
+            }
+          },
+          "landing": {
+            "given": 148,
+            "withheld": {
+              "disturbed_top": 15,
+              "ends_before_landing": 12
+            }
+          },
+          "liftoff": {
+            "given": 167,
+            "withheld": {
+              "short_pad": 8
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 175
+            }
+          },
+          "max_speed": {
+            "given": 117,
+            "withheld": {
+              "disturbed_top": 15,
+              "implausible_speed": 1,
+              "transonic": 42
+            }
+          }
+        }
+      },
+      "pfa": {
+        "records": 25,
+        "tracks": {
+          "barometer": 25
+        },
+        "readings": {
+          "apogee": {
+            "given": 24,
+            "withheld": {
+              "slower_than_free_coast": 1
+            }
+          },
+          "landing": {
+            "given": 23,
+            "withheld": {
+              "ends_before_landing": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "liftoff": {
+            "given": 9,
+            "withheld": {
+              "short_pad": 15,
+              "slower_than_free_coast": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 25
+            }
+          },
+          "max_speed": {
+            "given": 22,
+            "withheld": {
+              "short_pad": 2,
+              "slower_than_free_coast": 1
+            }
+          }
+        }
+      },
+      "phone-launch-csv": {
+        "records": 27,
+        "tracks": {
+          "barometer": 7,
+          "none": 19,
+          "pressure": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 19,
+              "short_pad": 1
+            }
+          },
+          "landing": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "no_height_track": 19,
+              "short_pad": 1
+            }
+          },
+          "liftoff": {
+            "given": 6,
+            "withheld": {
+              "no_height_track": 19,
+              "short_pad": 2
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 21,
+              "not_yet_taken": 6
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 19,
+              "short_pad": 1,
+              "transonic": 4
+            }
+          }
+        }
+      },
+      "radio-packets-rtf": {
+        "records": 2,
+        "tracks": {
+          "pressure": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 2,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 2
+            }
+          }
+        }
+      },
+      "radio-packets-txt": {
+        "records": 2,
+        "tracks": {
+          "none": 1,
+          "pressure": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 1
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "sampled_too_slowly": 1
+            }
+          }
+        }
+      },
+      "raven-csv": {
+        "records": 80,
+        "tracks": {
+          "barometer": 80
+        },
+        "readings": {
+          "apogee": {
+            "given": 70,
+            "withheld": {
+              "disturbed_top": 9,
+              "sampled_too_fast": 1
+            }
+          },
+          "landing": {
+            "given": 66,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 4,
+              "sampled_too_fast": 1
+            }
+          },
+          "liftoff": {
+            "given": 79,
+            "withheld": {
+              "sampled_too_fast": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 80
+            }
+          },
+          "max_speed": {
+            "given": 34,
+            "withheld": {
+              "disturbed_top": 9,
+              "sampled_too_fast": 1,
+              "sampled_too_slowly": 1,
+              "transonic": 35
+            }
+          }
+        }
+      },
+      "raven-fip-sheet-xlsx": {
+        "records": 2,
+        "tracks": {
+          "barometer": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "liftoff": {
+            "given": 2,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "transonic": 1
+            }
+          }
+        }
+      },
+      "raven-fipa": {
+        "records": 57,
+        "tracks": {
+          "pressure": 57
+        },
+        "readings": {
+          "apogee": {
+            "given": 37,
+            "withheld": {
+              "disturbed_top": 3,
+              "short_pad": 17
+            }
+          },
+          "landing": {
+            "given": 36,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "short_pad": 17
+            }
+          },
+          "liftoff": {
+            "given": 40,
+            "withheld": {
+              "short_pad": 17
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 57
+            }
+          },
+          "max_speed": {
+            "given": 26,
+            "withheld": {
+              "disturbed_top": 3,
+              "short_pad": 17,
+              "transonic": 11
+            }
+          }
+        }
+      },
+      "record-dump": {
+        "records": 2,
+        "tracks": {
+          "none": 2
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 2
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          }
+        }
+      },
+      "rrc3-csv": {
+        "records": 51,
+        "tracks": {
+          "barometer": 51
+        },
+        "readings": {
+          "apogee": {
+            "given": 42,
+            "withheld": {
+              "disturbed_top": 9
+            }
+          },
+          "landing": {
+            "given": 36,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 6
+            }
+          },
+          "liftoff": {
+            "given": 14,
+            "withheld": {
+              "short_pad": 37
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 51
+            }
+          },
+          "max_speed": {
+            "given": 19,
+            "withheld": {
+              "disturbed_top": 9,
+              "transonic": 23
+            }
+          }
+        }
+      },
+      "rrc3-rff": {
+        "records": 6,
+        "tracks": {
+          "pressure": 6
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {
+              "short_pad": 5
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 6
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          }
+        }
+      },
+      "rtx-csv": {
+        "records": 5,
+        "tracks": {
+          "gnss": 5
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 5
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 5
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          }
+        }
+      },
+      "rtx-txt": {
+        "records": 4,
+        "tracks": {
+          "gnss": 4
+        },
+        "readings": {
+          "apogee": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 4
+            }
+          },
+          "landing": {
+            "given": 0,
+            "withheld": {
+              "needs": 4
+            }
+          },
+          "liftoff": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 4
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 4
+            }
+          },
+          "max_speed": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 4
+            }
+          }
+        }
+      },
+      "table-csv": {
+        "records": 31,
+        "tracks": {
+          "altitude_channel": 2,
+          "none": 18,
+          "pressure": 11
+        },
+        "readings": {
+          "apogee": {
+            "given": 9,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "no_height_track": 4,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
+          "landing": {
+            "given": 6,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "ends_before_landing": 3,
+              "no_height_track": 4,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
+          "liftoff": {
+            "given": 9,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "no_height_track": 4,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 13,
+              "not_yet_taken": 18
+            }
+          },
+          "max_speed": {
+            "given": 3,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "no_height_track": 4,
+              "sampled_too_slowly": 1,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "transonic": 5,
+              "unstated_sensor": 11
+            }
+          }
+        }
+      },
+      "teensy-named-txt": {
+        "records": 1,
+        "tracks": {
+          "pressure": 1
+        },
+        "readings": {
+          "apogee": {
+            "given": 1,
+            "withheld": {}
+          },
+          "landing": {
+            "given": 1,
+            "withheld": {}
+          },
+          "liftoff": {
+            "given": 1,
+            "withheld": {}
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 1
+            }
+          },
+          "max_speed": {
+            "given": 1,
+            "withheld": {}
+          }
+        }
+      },
+      "teensy-tabs-txt": {
+        "records": 7,
+        "tracks": {
+          "pressure": 7
+        },
+        "readings": {
+          "apogee": {
+            "given": 6,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "landing": {
+            "given": 6,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "liftoff": {
+            "given": 6,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "not_yet_taken": 7
+            }
+          },
+          "max_speed": {
+            "given": 4,
+            "withheld": {
+              "short_pad": 1,
+              "transonic": 2
+            }
+          }
+        }
+      },
+      "workbook-xlsx": {
+        "records": 21,
+        "tracks": {
+          "barometer": 5,
+          "gnss": 2,
+          "none": 14
+        },
+        "readings": {
+          "apogee": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_height_track": 9,
+              "receiver_lag": 2,
+              "unstated_sensor": 5
+            }
+          },
+          "landing": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 1,
+              "needs": 2,
+              "no_height_track": 9,
+              "unstated_sensor": 5
+            }
+          },
+          "liftoff": {
+            "given": 4,
+            "withheld": {
+              "no_height_track": 9,
+              "receiver_dropout": 2,
+              "short_pad": 1,
+              "unstated_sensor": 5
+            }
+          },
+          "max_acceleration": {
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 19,
+              "not_yet_taken": 2
+            }
+          },
+          "max_speed": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_height_track": 9,
+              "receiver_lag": 2,
+              "transonic": 2,
+              "unstated_sensor": 5
+            }
+          }
+        }
+      }
+    },
+    "reasons": [
+      {
+        "reason": "too_short",
+        "records": 2,
+        "first": "7aa4d14482f6bb3c",
+        "invented": null
+      },
+      {
+        "reason": "no_climb",
+        "records": 10,
+        "first": "7fbda1be54d9484a",
+        "invented": null
+      },
+      {
+        "reason": "starts_off_the_pad",
+        "records": 0,
+        "first": null,
+        "invented": "starts-off-the-pad.csv"
+      },
+      {
+        "reason": "ends_before_landing",
+        "records": 121,
+        "first": "00d315962a4eccb3",
+        "invented": null
+      },
+      {
+        "reason": "faster_than_free_fall",
+        "records": 0,
+        "first": null,
+        "invented": "faster-than-free-fall.csv"
+      },
+      {
+        "reason": "implausible_speed",
+        "records": 1,
+        "first": "ab1df9652b1d33f6",
+        "invented": null
+      },
+      {
+        "reason": "noisy_speed",
+        "records": 3,
+        "first": "630b393ef80b2ff6",
+        "invented": null
+      },
+      {
+        "reason": "no_accelerometer",
+        "records": 665,
+        "first": "0040ac8c3e5af57b",
+        "invented": null
+      },
+      {
+        "reason": "needs",
+        "records": 108,
+        "first": "055206ce7e9a2fae",
+        "invented": null
+      },
+      {
+        "reason": "bad_record",
+        "records": 0,
+        "first": null,
+        "invented": "bad-record.record.json"
+      },
+      {
+        "reason": "sampled_too_fast",
+        "records": 1,
+        "first": "31f063cc173e6147",
+        "invented": null
+      },
+      {
+        "reason": "no_height_track",
+        "records": 193,
+        "first": "014c9d41c5a18328",
+        "invented": null
+      },
+      {
+        "reason": "unstated_sensor",
+        "records": 22,
+        "first": "045f5b9ed473b800",
+        "invented": null
+      },
+      {
+        "reason": "sampled_too_slowly",
+        "records": 28,
+        "first": "061c084cf2d6155c",
+        "invented": null
+      },
+      {
+        "reason": "step_too_coarse",
+        "records": 0,
+        "first": null,
+        "invented": "step-too-coarse.csv"
+      },
+      {
+        "reason": "transonic",
+        "records": 205,
+        "first": "01dc90b45723df1e",
+        "invented": null
+      },
+      {
+        "reason": "receiver_lag",
+        "records": 108,
+        "first": "055206ce7e9a2fae",
+        "invented": null
+      },
+      {
+        "reason": "receiver_dropout",
+        "records": 108,
+        "first": "055206ce7e9a2fae",
+        "invented": null
+      },
+      {
+        "reason": "slower_than_free_coast",
+        "records": 4,
+        "first": "027872c09dded351",
+        "invented": null
+      },
+      {
+        "reason": "not_yet_taken",
+        "records": 393,
+        "first": "013c6fd5d14cb8a1",
+        "invented": null
+      },
+      {
+        "reason": "short_pad",
+        "records": 157,
+        "first": "00d315962a4eccb3",
+        "invented": null
+      },
+      {
+        "reason": "clock_out_of_order",
+        "records": 6,
+        "first": "4ea3b7a8a4d4119c",
+        "invented": null
+      },
+      {
+        "reason": "disturbed_top",
+        "records": 76,
+        "first": "073f4a6678b4bb0b",
+        "invented": null
+      }
+    ]
+  },
   "workbook_checks": [
     {
       "id": "02cf95e874f824f7",

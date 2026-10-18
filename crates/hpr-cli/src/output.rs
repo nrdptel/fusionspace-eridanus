@@ -1381,8 +1381,9 @@ impl DropReason {
 }
 
 /// `hpr analyze`: a flight log's readings, taken from the log alone, with no design file and no
-/// simulation. Heights are meters above the logger's own zero, which a PerfectFlite takes on the
-/// pad; times are seconds on the log's clock.
+/// simulation. Heights are meters above the pad, altitudes meters on the height track's own
+/// scale (above the logger's zero for its own altitude); times are seconds on the log's clock.
+/// Each reading states the bound its error stays within.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct Analyze {
     /// What kind of result this is: every reading is measured, from the log.
@@ -1415,16 +1416,22 @@ pub struct AnalyzedLog {
     /// The file, as given.
     pub path: String,
     /// Its format.
-    pub format: LogFormatName,
+    pub format: hpr::hpr_flightdata::log::LogFormat,
     /// The column mapping file it was read by, as given (`--mapping`); `null` for a log read by
     /// its format's own reader.
     pub mapping: Option<String>,
     /// The record layout file it was read by, as given (`--layout`); `null` for a log read
     /// otherwise.
     pub layout: Option<String>,
-    /// The `.xlsx` workbook's sheet the table was read from, from 0 (`--sheet`); `null` for a
-    /// text file.
+    /// The FIP header file it was read under, as given (`--fip-header`); `null` for a log read
+    /// otherwise.
+    pub fip_header: Option<String>,
+    /// The workbook's sheet chosen, from 0 (`--sheet`); `null` for a file that isn't a
+    /// workbook, or a workbook read with none chosen, whose one sheet that reads is read and
+    /// named in the log's first note.
     pub sheet: Option<usize>,
+    /// The dump's recording chosen, from 0 (`--recording`); `null` for a file of one recording.
+    pub recording: Option<usize>,
     /// The logger, as the file names it; `unknown` for a log read by a mapping or a layout.
     pub logger: String,
     /// The logger's serial number, as the file states it.
@@ -1460,23 +1467,6 @@ pub struct AnalyzedChannel {
     pub samples: usize,
 }
 
-/// A flight log's format.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum LogFormatName {
-    /// PerfectFlite's `.pf2`: the Pnut, the StratoLogger and the StratoLoggerCF.
-    PerfectFlitePf2,
-    /// A table read by a column mapping (`--mapping`).
-    GenericTable,
-    /// A file of binary records read by a record layout (`--layout`).
-    BinaryRecords,
-    /// A serial console's capture of binary records as base64, a block of it read by a record
-    /// layout (`--layout`).
-    ConsoleCapture,
-    /// A format this build of `hpr` doesn't name.
-    Other,
-}
-
 /// What a flight log states about the flight.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct LoggerStated {
@@ -1487,20 +1477,28 @@ pub struct LoggerStated {
     pub ground_elevation_msl_m: Option<f64>,
 }
 
-/// How the readings were taken. Every field but `altitude_resolution_m` is `null` for a log too
-/// short to read, or one withheld whole as `bad_record`; all but it and `sample_interval_s` for
-/// one withheld as `sampled_too_fast`; and `pad_altitude_m` for one withheld as `no_climb`.
+/// How the readings were taken. `source` is `null` for a log with no height track, or one
+/// withheld whole as `bad_record`; the other fields but `altitude_resolution_m` are `null` too
+/// for a track too short to read, a GNSS track, or one withheld whole for its sampling or its
+/// step, but for the interval or the step that withheld it; and `pad_altitude_m` for one
+/// withheld as `no_climb`.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct AnalyzeMethod {
-    /// The median interval between samples, s.
+    /// The height track the readings were taken from.
+    pub source: Option<ReadingSource>,
+    /// The median interval between the track's samples, s.
     pub sample_interval_s: Option<f64>,
+    /// The track's step, m: the format's stated resolution, else the smallest gap between two of
+    /// its values; at the pad for a pressure track, whose step in height grows with height.
+    pub step_m: Option<f64>,
     /// The running median's span, s: every height and time is read from the altitude after it.
     pub median_window_s: Option<f64>,
     /// How far below its true peak the running median can read a peak bent by gravity alone, m.
     pub peak_bound_m: Option<f64>,
     /// The altitude's resolution in the log's format, m: a PerfectFlite writes whole feet.
     pub altitude_resolution_m: f64,
-    /// The pad: the median of the altitude before it first rises 1 m, m.
+    /// The pad, on the track's own scale: the median of the track before it first rises 1 m,
+    /// m.
     pub pad_altitude_m: Option<f64>,
 }
 
@@ -1527,59 +1525,129 @@ pub struct WithheldReading {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum WithheldReason {
-    /// The log has fewer than three samples.
+    /// The height track has fewer than three samples.
     TooShort,
-    /// The altitude never climbs 3 m above where the log starts.
+    /// The track never climbs 3 m above the pad, or the liftoff allowance and a step if that is
+    /// higher; or, for landing, falls too little past its step and noise to time the descent.
     NoClimb,
-    /// The pad, the median altitude before the first meter of rise, is more than 3 m from the
-    /// logger's zero: the log didn't start on the pad.
+    /// A track whose heights are above the pad only by a mapping's or a column's word starts
+    /// more than 19.9 m from its zero, more than the weather and the noise move a zero in an hour
+    /// on the pad: the log didn't start on the pad, or its heights aren't above the pad, as an
+    /// altitude above sea level mapped as one above the ground reads.
     StartsOffThePad,
     /// The log ends before the rocket is seen to land.
     EndsBeforeLanding,
-    /// The altitude reaches the ground sooner than a fall from rest at apogee in vacuum could.
+    /// The track reaches the ground sooner than a fall from rest at apogee in vacuum could.
     FasterThanFreeFall,
-    /// The log has no speed column.
-    NoSpeedColumn,
     /// The top speed is above 4,000 m/s.
     ImplausibleSpeed,
     /// The climb's speed swings negative by more than 20% of its top.
     NoisySpeed,
-    /// The top speed falls on the liftoff sample itself.
-    SpeedPeakAtLiftoff,
     /// The log has no accelerometer.
     NoAccelerometer,
     /// The reading needs another, which was withheld.
     Needs,
     /// The record breaks what every reader guarantees; only a record built by hand can.
     BadRecord,
-    /// The samples come so often that the 0.3 s median would hold more than 1,000 either side.
+    /// The samples come more often than 500 a second, faster than the bounds were checked at.
     SampledTooFast,
-    /// The readings were tested on PerfectFlite logs only; another logger's wait for M7.2.
-    NotValidatedForLogger,
+    /// The log holds no altitude, pressure or GNSS track.
+    NoHeightTrack,
+    /// The log's only height doesn't say whether a barometer or a GNSS receiver measured it.
+    UnstatedSensor,
+    /// The track is sampled more slowly than the readings were checked at, 2 s between samples,
+    /// or, for the top speed, too slowly for its fit.
+    SampledTooSlowly,
+    /// The track moves in steps coarser than the readings were checked at: 10 m, or 100 Pa.
+    StepTooCoarse,
+    /// The climb reaches Mach 0.8 in the coldest air the bounds allow, where the barometer's port
+    /// may read the transonic flow over the nose.
+    Transonic,
+    /// The only height is a GNSS receiver's, whose filter lags a climb and overshoots its top.
+    ReceiverLag,
+    /// The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.
+    ReceiverDropout,
+    /// The track loses no more than its noise and step in the 4 s before its top: its clock is
+    /// in another unit, such as milliseconds read as seconds, its top isn't a coast's, or it
+    /// isn't a height.
+    SlowerThanFreeCoast,
+    /// HPR Sim doesn't take this reading from the log's sensor yet.
+    NotYetTaken,
+    /// The log's first samples can't rule out a rocket already more than 2 m up when it starts:
+    /// it starts after liftoff, as a logger that records from launch writes its zero and then the
+    /// climb, or holds too little of the pad to tell liftoff by. A track above the logger's own
+    /// zero, or one a mapping or a header calls above the ground, still gives its heights from
+    /// that zero, with the zero's possible error in their bounds.
+    ShortPad,
+    /// The height track's clock doesn't increase, so no time can be read off it.
+    ClockOutOfOrder,
+    /// The track falls past its noise and step below a peak in the 4 s before its top, then
+    /// climbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,
+    /// so which is the apogee can't be told.
+    DisturbedTop,
     /// A reason this build of `hpr` doesn't name.
     Other,
 }
 
-/// Where a reading's value came from.
+/// The height track a reading came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ReadingSource {
-    /// The logger's barometric altitude, after the running median.
+    /// The logger's own barometric altitude, the record's primary track.
     Barometer,
-    /// A speed column the logger computed from its own barometric altitude.
-    LoggerSpeedFromBarometer,
+    /// A pressure channel, turned into a height by the 1976 standard atmosphere.
+    Pressure,
+    /// A barometric altitude kept in a channel, above the pad or above sea level.
+    AltitudeChannel,
+    /// A GNSS receiver's altitude: no reading is taken from it.
+    Gnss,
     /// A source this build of `hpr` doesn't name.
+    Other,
+}
+
+/// Whether a reading was measured on the track, derived from it, or clipped by it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ReadingProvenance {
+    /// A time or height read off the filtered track.
+    Measured,
+    /// Worked out from the track, such as a speed from its slope.
+    Derived,
+    /// Measured, but at the sensor's range, so the true value may lie beyond it.
+    Clipped,
+    /// A provenance this build of `hpr` doesn't name.
+    Other,
+}
+
+/// How a reading was read off the track.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ReadingMethod {
+    /// The last sample before apogee within the pad's allowance.
+    LastOnThePad,
+    /// The filtered track's highest value, at the middle of the run that holds it.
+    HighestFiltered,
+    /// The steepest least-squares slope of the filtered track over 0.5 s.
+    SteepestSlope,
+    /// The first sample after apogee back within the pad's allowance that stays down for 1 s.
+    BackOnThePad,
+    /// A method this build of `hpr` doesn't name.
     Other,
 }
 
 /// Liftoff.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct LiftoffReading {
-    /// The last sample on the pad, s: the rocket had risen less than the altitude's resolution
-    /// then, and rose past it within one sample interval after.
+    /// The last sample before apogee within the pad's allowance, s.
     pub time_s: f64,
+    /// The bound on its error, s.
+    pub bound_s: f64,
     /// Where it came from.
     pub source: ReadingSource,
+    /// Measured on the track.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
 }
 
 /// The highest point.
@@ -1587,39 +1655,56 @@ pub struct LiftoffReading {
 pub struct ApogeeReading {
     /// When, s.
     pub time_s: f64,
-    /// When, s after liftoff; `null` if liftoff was withheld.
+    /// When, s after liftoff; `null` when liftoff is withheld.
     pub time_after_liftoff_s: Option<f64>,
-    /// The filtered altitude there, m.
+    /// The bound on the time's error, s.
+    pub time_bound_s: f64,
+    /// The height above the pad, m.
+    pub height_m: f64,
+    /// The bound on the height's error, m: most of it the day's air, which moves a barometric
+    /// height by up to 6.9% of itself.
+    pub bound_m: f64,
+    /// The filtered track there, on its own scale, m.
     pub altitude_m: f64,
-    /// Whether the log may have ended before the peak, so the altitude is a floor.
+    /// Whether the log may have ended before the peak, so the height is a floor.
     pub is_floor: bool,
-    /// The highest sample the log holds before the filter: above the apogee when the median set
-    /// a pulse aside.
+    /// The highest sample the track holds before the filter: above the apogee when the median
+    /// set a pulse aside.
     pub highest_sample: HighestSample,
     /// Where it came from.
     pub source: ReadingSource,
+    /// Measured on the track.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
 }
 
-/// The highest sample of the altitude.
+/// The highest sample of the track.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct HighestSample {
     /// When, s.
     pub time_s: f64,
-    /// The altitude, m.
+    /// The track's value, on its own scale, m.
     pub altitude_m: f64,
 }
 
-/// The top vertical speed from liftoff to apogee.
+/// The top vertical speed from liftoff to apogee, derived from the height track.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct MaxSpeedReading {
     /// The speed, m/s, up.
     pub speed_m_s: f64,
+    /// The bound on its error, m/s.
+    pub bound_m_s: f64,
     /// When, s.
     pub time_s: f64,
-    /// The filtered altitude then, m.
-    pub altitude_m: f64,
+    /// The height above the pad then, m.
+    pub height_m: f64,
     /// Where it came from.
     pub source: ReadingSource,
+    /// Derived from the track.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
 }
 
 /// The top acceleration.
@@ -1634,18 +1719,28 @@ pub struct MaxAccelerationReading {
 /// Landing, and the descent before it.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct LandingReading {
-    /// The first sample within 2 m of the pad that stays under 5 m for a second, s: before
-    /// touchdown by the time the last 2 m took.
+    /// The first sample after apogee back within the pad's allowance that stays down for 1 s,
+    /// s: before touchdown by the time the last meters took.
     pub time_s: f64,
-    /// From liftoff to landing, s.
-    pub flight_time_s: f64,
+    /// The bound on its error, s.
+    pub bound_s: f64,
+    /// From liftoff to landing, s; `null` when liftoff is withheld.
+    pub flight_time_s: Option<f64>,
+    /// The bound on the flight time's error, s; `null` when liftoff is withheld.
+    pub flight_time_bound_s: Option<f64>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time
     /// taken, drogue and main together.
     pub mean_descent_rate_m_s: f64,
+    /// The bound on the mean rate's error, m/s.
+    pub mean_descent_rate_bound_m_s: f64,
     /// Where it came from.
     pub source: ReadingSource,
+    /// Measured on the track.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
 }
 
 /// `hpr completions`: a shell completion script.
@@ -1744,10 +1839,14 @@ pub fn schemas() -> Vec<(&'static str, String)> {
     schemas
 }
 
-/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping and record
-/// layout, by the file name it is published under: a person writes the file, so it names no tool.
+/// The JSON Schema of each file a command reads, `hpr analyze`'s column mapping, record layout
+/// and FIP header, by the file name it is published under: a person writes the file, so it names no tool.
 pub fn input_schemas() -> Vec<(&'static str, String)> {
     vec![
+        (
+            "analyze-fip-header.schema.json",
+            input_schema::<hpr::hpr_flightdata::custom::FipHeader>(),
+        ),
         (
             "analyze-layout.schema.json",
             input_schema::<hpr::hpr_flightdata::custom::Layout>(),

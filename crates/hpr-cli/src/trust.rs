@@ -146,28 +146,44 @@ pub(crate) fn reanalysis() -> String {
     )
 }
 
-/// `hpr analyze`'s note: readings of an altimeter's log (`docs/reading-a-flight-log.md`).
-pub(crate) fn log() -> String {
+/// What `hpr analyze`'s notes say the readings' bounds were checked on, from the readings' own
+/// limits (`hpr_flightdata::readings`).
+fn readings_checked() -> String {
+    use hpr::hpr_flightdata::readings::{
+        AIR_TEMPERATURE_SPREAD_K, MAX_INTERVAL_S, MAX_PRESSURE_STEP_PA, MAX_STEP_M, TRANSONIC_MACH,
+    };
     format!(
-        "{LABEL} Measured by the altimeter's barometer, from its own log, read by HPR Sim, not \
-         simulated. HPR Sim's readings are checked on an invented log whose every number is \
-         known, and once by hand on a real one, not in the automatic tests; nothing yet checks a \
-         barometer's errors near Mach 0.9, which can upset the top speed and the heights near \
-         it. For a record or a certification, the altimeter's own reading is the one to log, and \
-         the RSO decides.{MORE}{SITE}reading-a-flight-log.html"
+        "Each reading states the bound its error stayed within on HPR Sim's synthetic flights, \
+         logged at every rate from 500 to {} samples a second and in steps up to {MAX_STEP_M} m \
+         or {MAX_PRESSURE_STEP_PA} Pa, in air within {AIR_TEMPERATURE_SPREAD_K} K of standard; \
+         a reading the log can't support is withheld, with the reason. The top speed is derived \
+         from the heights, and withheld from Mach {TRANSONIC_MACH}, where a barometer's port \
+         may read the flow over the nose.",
+        1.0 / MAX_INTERVAL_S
     )
 }
 
-/// `hpr analyze`'s note on a log read by the flyer's own column mapping or record layout
-/// (`docs/your-own-logger.md`): the logger's samples in the units the file states, which may be
-/// a GPS tracker's with no barometer, and no readings until M7.2.
+/// `hpr analyze`'s note: readings of a logger's log (`docs/reading-a-flight-log.md`).
+pub(crate) fn log() -> String {
+    format!(
+        "{LABEL} Measured by the logger, read by HPR Sim from its log, not simulated. {} For a \
+         record or a certification, the altimeter's own reading is the one to log, and the RSO \
+         decides.{MORE}{SITE}reading-a-flight-log.html",
+        readings_checked()
+    )
+}
+
+/// `hpr analyze`'s note on a log read by the flyer's own column mapping, record layout or FIP
+/// header (`docs/your-own-logger.md`): the logger's samples in the units the file states, so the
+/// readings' bounds hold only if those are right.
 pub(crate) fn own_log() -> String {
     format!(
-        "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping or layout \
-         states, not simulated: as right as those units are. HPR Sim takes no reading from it \
-         until roadmap milestone M7.2 validates them on other loggers; go by the logger's own \
-         figures, and check a unit against a known height, such as the launch site's elevation \
-         from a GPS altitude, before trusting the record.{MORE}{SITE}your-own-logger.html"
+        "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping, layout or \
+         FIP header states, not simulated: as right as those units are. {} Those bounds hold only if the \
+         units are right: check a unit against a known height, such as the launch site's \
+         elevation from a GPS altitude, and go by the logger's own figures for a \
+         record.{MORE}{SITE}your-own-logger.html",
+        readings_checked()
     )
 }
 

@@ -14,6 +14,10 @@
 //! - **A layout file** is a [`Layout`]: each field of a record, its name stating its unit as a
 //!   table's header does, the byte order, and for a serial console's capture, the block the
 //!   records are in. Its schema is [`schema/cli/analyze-layout.schema.json`][layout-schema].
+//! - **A FIP header file** is a [`FipHeader`]: the header line a Featherweight Raven's FIP export
+//!   lost when it was pasted into a workbook below none, and the columns a table pasted over it
+//!   covers ([ADR-274][adr-274]), read by [`read_by_fip_header`]. Its schema is
+//!   [`schema/cli/analyze-fip-header.schema.json`][fip-header-schema].
 //!
 //! **Refusals.** A file is refused naming the field it fails by its path in the JSON, such as
 //! `columns[2].unit`, with its line and column, and a key the schema doesn't name is refused
@@ -25,10 +29,12 @@
 //! workbook stores them ([`workbook::sheets`]), when the caller names the sheet, from 0. A
 //! workbook read with no sheet named is refused, its sheets listed, rather than one picked.
 //!
+//! [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
 //! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 //! [m7-1d2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-1d2
 //! [mapping-schema]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-mapping.schema.json
 //! [layout-schema]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-layout.schema.json
+//! [fip-header-schema]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-fip-header.schema.json
 
 use std::borrow::Cow;
 
@@ -42,7 +48,7 @@ use crate::generic::{self, Mapping};
 use crate::import;
 use crate::log::FlightLog;
 use crate::records::{self, ByteOrder, Field, RecordLayout};
-use crate::workbook;
+use crate::{archive, raven, workbook, xls};
 
 /// The most bytes a mapping or a layout file may hold, 1 MiB: [`generic::MAX_COLUMNS`] columns
 /// or fields, each with a name of hundreds of characters, take a few tens of kilobytes.
@@ -95,6 +101,86 @@ pub fn mapping_from_json(text: &str) -> Result<Mapping, LogError> {
 /// [`LogError::Layout`] as [`mapping_from_json`] says for a mapping.
 pub fn layout_from_json(text: &str) -> Result<Layout, LogError> {
     from_json(text, "layout").map_err(|message| LogError::Layout { message })
+}
+
+/// A header stated for a Featherweight Raven's FIP export that lost its own when it was pasted
+/// into a workbook below none ([ADR-274][adr-274]): the export's header line, and the columns a
+/// table pasted over the export covers.
+///
+/// [adr-274]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0274-the-rest-of-the-importers-planned-teensy-logger-first.md
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct FipHeader {
+    /// The export's header line, as a FIP export of the same channels writes it: each channel's
+    /// `Time@` clock, its value and its `bILBA` status, such as
+    /// `Time@Baro (Atm),Baro (Atm),bILBA,...`.
+    pub header: String,
+    /// The columns, from 1, of a table pasted over the export, whose cells hide whether a
+    /// channel has a sample in their rows; none when left out.
+    #[serde(default)]
+    #[schemars(inner(range(min = 1)))]
+    pub pasted: Vec<usize>,
+}
+
+/// Reads a FIP header file's JSON.
+///
+/// # Errors
+///
+/// [`LogError::FipHeader`] as [`mapping_from_json`] says for a mapping.
+pub fn fip_header_from_json(text: &str) -> Result<FipHeader, LogError> {
+    from_json(text, "FIP header").map_err(|message| LogError::FipHeader { message })
+}
+
+/// Reads a Raven FIP export under the header stated for it ([`raven::read_rows_around`]): the
+/// file as text, or the sheet `sheet` of a spreadsheet's workbook, from 0, its cells as the
+/// workbook stores them; with no sheet chosen, a workbook's one sheet.
+///
+/// # Errors
+///
+/// [`LogError::Choice`] for a sheet chosen of a file that isn't a workbook, a sheet the workbook
+/// doesn't hold, or none chosen of a workbook of several; a workbook's refusal; otherwise as
+/// [`raven::read_rows_around`].
+pub fn read_by_fip_header(
+    bytes: &[u8],
+    stated: &FipHeader,
+    sheet: Option<usize>,
+) -> Result<FlightLog, LogError> {
+    let text = match (workbook_sheets(bytes).transpose()?, sheet) {
+        (None, None) => import::decode(bytes).into_owned(),
+        (None, Some(_)) => {
+            return Err(LogError::Choice {
+                message: "the file isn't a spreadsheet's workbook, so it has no sheet to choose"
+                    .to_owned(),
+            });
+        }
+        (Some(sheets), chosen) => {
+            let count = sheets.len();
+            let index = match chosen {
+                Some(index) => index,
+                None if count == 1 => 0,
+                None => {
+                    return Err(LogError::Choice {
+                        message: format!("the workbook has {count} sheets: choose one, from 0"),
+                    });
+                }
+            };
+            sheets
+                .into_iter()
+                .nth(index)
+                .ok_or(LogError::Choice {
+                    message: format!(
+                        "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
+                    ),
+                })?
+                .text
+        }
+    };
+    // The rows' reader words its refusals of a stated header as a mapping's; here they are the
+    // FIP header's.
+    raven::read_rows_around(&stated.header, &text, &stated.pasted).map_err(|error| match error {
+        LogError::Mapping { message } => LogError::FipHeader { message },
+        other => other,
+    })
 }
 
 /// A mapping's or a layout's file as text: UTF-8, a byte-order mark dropped, or UTF-16 with its
@@ -188,14 +274,15 @@ fn path(segments: &[&serde_path_to_error::Segment]) -> String {
 }
 
 /// What a table's header states, as a mapping to edit, with a note on each column it leaves
-/// kept as written, saying why ([`generic::header_reading`]). `sheet` names an `.xlsx`
-/// workbook's sheet, from 0; `None` for a text file.
+/// kept as written, saying why ([`generic::header_reading`]). `sheet` names a spreadsheet's
+/// workbook's sheet, `.xlsx` or `.xls`, from 0; `None` for a text file, or a workbook of one
+/// sheet.
 ///
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] for a table whose header doesn't name a clock with a unit of time;
-/// [`LogError::Mapping`] for a workbook with no sheet named, or a sheet it doesn't have, or a sheet
-/// named for a file that isn't a workbook.
+/// [`LogError::Mapping`] for a workbook of several sheets with none named, or a sheet it doesn't
+/// have, or a sheet named for a file that isn't a workbook.
 pub fn header_mapping(
     bytes: &[u8],
     sheet: Option<usize>,
@@ -204,7 +291,7 @@ pub fn header_mapping(
 }
 
 /// Reads a table by a mapping, as [`generic::read_with`] does: from a text file, or from the
-/// `.xlsx` workbook's sheet `sheet`, from 0.
+/// sheet `sheet`, from 0, of a spreadsheet's workbook, `.xlsx` or `.xls`, or its one sheet.
 ///
 /// # Errors
 ///
@@ -252,16 +339,23 @@ pub fn read_by_layout(bytes: &[u8], layout: &Layout) -> Result<FlightLog, LogErr
     }
 }
 
-/// The table's text: the file's, or a workbook's sheet's.
+/// A spreadsheet's workbook's sheets, `.xlsx` or `.xls`; `None` for a file that is neither.
+fn workbook_sheets(bytes: &[u8]) -> Option<Result<Vec<workbook::Sheet>, LogError>> {
+    if archive::is_archive(bytes) {
+        Some(workbook::sheets(bytes))
+    } else if xls::recognizes(bytes) {
+        Some(xls::sheets(bytes))
+    } else {
+        None
+    }
+}
+
+/// The table's text: the file's, or a sheet's of a spreadsheet's workbook, `.xlsx` or `.xls`:
+/// the sheet named, or the workbook's one sheet.
 fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogError> {
     let refused = |message: String| LogError::Mapping { message };
-    match sheet {
-        Some(sheet) => {
-            let sheets = workbook::sheets(bytes).map_err(|error| {
-                refused(format!(
-                    "a sheet is named, and the file isn't an `.xlsx` workbook that reads: {error}"
-                ))
-            })?;
+    match (workbook_sheets(bytes), sheet) {
+        (Some(Ok(sheets)), Some(sheet)) => {
             let count = sheets.len();
             sheets
                 .into_iter()
@@ -278,27 +372,30 @@ fn table_text(bytes: &[u8], sheet: Option<usize>) -> Result<Cow<'_, str>, LogErr
                     ))
                 })
         }
-        None => {
-            if bytes.starts_with(b"PK\x03\x04")
-                && let Ok(sheets) = workbook::sheets(bytes)
-            {
-                let names: Vec<String> = sheets
-                    .iter()
-                    .enumerate()
-                    .map(|(index, found)| format!("{index} {:?}", found.name))
-                    .collect();
-                return Err(refused(format!(
-                    "the file is an `.xlsx` workbook, its sheets {}: name the sheet the table is \
-                     on, from 0",
-                    if names.is_empty() {
-                        "none".to_owned()
-                    } else {
-                        names.join(", ")
-                    }
-                )));
-            }
-            Ok(import::decode(bytes))
+        (Some(Err(error)), Some(_)) => Err(refused(format!(
+            "a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook that reads: {error}"
+        ))),
+        (None, Some(_)) => Err(refused(
+            "a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook".to_owned(),
+        )),
+        (Some(Ok(mut sheets)), None) if sheets.len() == 1 => {
+            Ok(Cow::Owned(sheets.swap_remove(0).text))
         }
+        (Some(Ok(sheets)), None) => {
+            let names = workbook::listed(
+                sheets.iter().map(|found| found.name.as_str()).enumerate(),
+                |index, name| format!("{index} {name:?}"),
+            );
+            Err(refused(format!(
+                "the file is a spreadsheet's workbook, its sheets {}: name the sheet the table is \
+                 on, from 0",
+                if names.is_empty() { "none" } else { &names }
+            )))
+        }
+        // An archive that isn't a workbook, read as the text it holds, as before workbooks were;
+        // a workbook that fails is refused for its own fault.
+        (Some(Err(LogError::NotThisFormat { .. })) | None, None) => Ok(import::decode(bytes)),
+        (Some(Err(error)), None) => Err(error),
     }
 }
 
@@ -593,7 +690,7 @@ t (ms),alt (ft),accel (g)
         let mapping = mapping_from_json(&mapping("1")).unwrap();
         let error = message(read_by_mapping(TABLE.as_bytes(), &mapping, Some(0)).unwrap_err());
         assert!(
-            error.starts_with("a sheet is named, and the file isn't an `.xlsx` workbook"),
+            error.starts_with("a sheet is named, and the file isn't an `.xlsx` or `.xls` workbook"),
             "{error}"
         );
     }

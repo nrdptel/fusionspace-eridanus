@@ -332,11 +332,11 @@ You don't have to take these numbers on trust. Four ways to test them:
   pressure and turn it into height with the standard atmosphere, so on a day warmer or colder than
   standard they read off by roughly 3 to 4% of the height for every 10 °C of difference. Give the
   simulator the day's temperature too: `Ussa76::with_offset` shifts the standard atmosphere, and
-  `Environment::new` takes it. The simulator reads a PerfectFlite altimeter's log
-  ([Reading a flight log](reading-a-flight-log.md)), and its library reads AltOS's and the
-  Raven's logs into the same record ([the layouts read](format/flight-logs.md)); readings from
-  those come with [M7.2](decisions-and-roadmap.md#m7-2), and comparing one with a simulation with
-  [M7.3](decisions-and-roadmap.md#m7-3).
+  `Environment::new` takes it. The analyzer, `hpr analyze`, reads your altimeter's log, in any of
+  [the layouts it reads](format/flight-logs.md), and from its barometric altitude or pressure takes
+  its apogee, liftoff, top speed and landing, each within a stated bound or withheld by name
+  ([Reading a flight log](reading-a-flight-log.md)). A GPS track alone gives no readings.
+  Comparing a log with a simulation comes with [M7.3](decisions-and-roadmap.md#m7-3).
 - **Compare with another simulator, by hand.** Enter the same rocket, motor, rail and wind in
   OpenRocket or RocketPy, and compare the apogee. Give both the same surface finish and rail
   guides: for this rocket, the OpenRocket file's finish and launch lugs take HPR Sim's drag
