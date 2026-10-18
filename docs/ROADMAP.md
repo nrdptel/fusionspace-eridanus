@@ -94,7 +94,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     in the text redraw each figure through `hpr-wasm`, offline, with the CLI's numbers (a test
     each); outside a model's range it grays out with the reason; scripts off keeps the static
     figure; M0.7a's two clipping checks run on the drawn figures at each input's least, default
-    and largest value; its acceptance pass is in its PR (ADR-282).
+    and largest value; its acceptance pass, in its PR, redraws each figure (ADR-282).
   - [ ] **M0.7d The rest of the hobby,** after 1.0: certification, safety codes and waivers,
     construction, wiring, staging and air starts, linking out more than writing. *Done when:* as
     M0.7a; rule pages carry a source date, a stale-after date CI fails past, and "not legal
@@ -563,9 +563,9 @@ checklists for its platform, ADR-164.)
   - the battery budget uses each device's pad-state draw and errs short (a test and a mutation
     probe);
   - a flight's settings snapshot feeds M6.8's settings check and its M7.1 record;
-  - its acceptance pass runs under launch conditions: no network, two phones in their simulators
-    sharing by file and by QR code, and a full pad hold on the battery budget; its recording is
-    on the PR (ADR-282).
+  - its acceptance pass runs under launch conditions: no network, two phones in emulators sharing
+    by file and by QR code read through an emulated camera, and the battery budget run to the end
+    of its longest stated pad hold; its recording is on the PR (ADR-282).
 
 ## Phase 8: Releases (ADR-162)
 
