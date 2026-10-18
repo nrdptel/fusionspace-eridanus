@@ -87,7 +87,8 @@ def formula(version, found):
         "class FusionspaceHpr < Formula",
         f'  desc "{DESCRIPTION}"',
         f'  homepage "{HOMEPAGE}"',
-        f'  version "{version}"',
+        # No `version` line: Homebrew reads the version from the URLs, and `brew audit` refuses
+        # one that repeats it.
         '  license any_of: ["MIT", "Apache-2.0"]',
     ]
     if len(by_os) == 1:

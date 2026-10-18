@@ -675,7 +675,6 @@ mod tests {
 class FusionspaceHpr < Formula
   desc "Flight simulator for hobby and high-power rockets"
   homepage "https://hpr.fusionspace.co"
-  version "9.8.7"
   license any_of: ["MIT", "Apache-2.0"]
 
   on_macos do
