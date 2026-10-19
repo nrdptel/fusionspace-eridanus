@@ -92,49 +92,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))
     );
     println!(
-        "burnout           {}",
-        show(&read.burnout, |burnout| if burnout.is_floor {
-            // A floor: burnout came no sooner than this, less its bound.
-            format!(
-                "no sooner than {:.2} s less {:.2} s, source: {}",
-                burnout.time_s,
-                burnout.bound_s,
-                code(burnout.source)
-            )
-        } else {
-            format!("{:.2} s, source: {}", burnout.time_s, code(burnout.source))
-        })
-    );
-    println!(
         "landing           {}",
         show(&read.landing, |landing| format!(
             "{:.2} s; down from apogee at {:.1} m/s on average",
             landing.time_s, landing.mean_descent_rate_m_s
         ))
-    );
-    println!(
-        "flight time       {}",
-        show(&read.flight_time, |flight| format!(
-            "{:.2} s",
-            flight.time_s
-        ))
-    );
-    println!(
-        "drogue            {}",
-        show(&read.drogue_descent, |leg| format!(
-            "{:.1} m/s",
-            leg.rate_m_s
-        ))
-    );
-    println!(
-        "main              {}",
-        show(&read.main_descent, |leg| match &leg.opening {
-            Some(opening) => format!(
-                "{:.1} m/s, opened at {:.2} s, {:.0} m up",
-                leg.rate_m_s, opening.time_s, opening.height_m
-            ),
-            None => format!("{:.1} m/s", leg.rate_m_s),
-        })
     );
     Ok(())
 }

@@ -746,7 +746,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-2a"></a>[M7.2a][done-5] | The synthetic flights, each with its truth and its logger's log | done |
 | <a id="m7-2b"></a>[M7.2b][done-5] | The readings on every logger | done |
-| <a id="m7-2c"></a>[M7.2c][done-5] | The rest of the readings | done |
+| <a id="m7-2c"></a>[M7.2c][phase-5] | The rest of the readings | not yet done |
 | <a id="m7-2d"></a>[M7.2d][phase-5] | Reconstructing the flight: a smoother over the barometer, accelerometer and GNSS | not yet done |
 | <a id="m7-2e"></a>[M7.2e][phase-5] | 90% intervals on the readings, tested on the synthetic flights | not yet done |
 | <a id="m7-2f"></a>[M7.2f][phase-5] | Two recordings of one flight, and stages | not yet done |

@@ -443,6 +443,8 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
+  - [ ] **M7.2c The rest of the readings.** *Done when:* top acceleration (clipped at the part's
+    range), burnout, each canopy's descent rate, flight time, as M7.2b's; tuning-set errors given.
   - [ ] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its
     stated error, coverage per state reported; trusting GNSS from liftoff fails; a health card.
   - [ ] **M7.2e The 90% intervals.** *Done when:* ADR-257 §1–2's test passes, probes failing, on

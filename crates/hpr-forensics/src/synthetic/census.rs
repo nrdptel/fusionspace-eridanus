@@ -27,32 +27,6 @@ pub fn three_figures(x: f64) -> f64 {
     to_three_figures(x, Toward::Nearest)
 }
 
-/// `x` rounded at the decimal place of `spread`'s third significant figure: a mean given no finer
-/// than the spread of the values it is taken over. A mean near zero is a small number, so three
-/// figures of its own would show a few of its values moved by a platform's arithmetic; three of the
-/// spread are the digits every platform shares. With `spread` zero or not finite, `x` to three
-/// significant figures of its own; a zero is never −0.
-pub fn at_the_figures_of(x: f64, spread: f64) -> f64 {
-    if spread == 0.0 || !spread.is_finite() || !x.is_finite() {
-        return three_figures(x);
-    }
-    #[expect(
-        clippy::cast_possible_truncation,
-        reason = "the decimal exponent of a finite, nonzero f64 lies within ±400"
-    )]
-    let place = 2 - spread.abs().log10().floor() as i32;
-    let rounded = if place >= 0 {
-        // Rust's own decimal formatting rounds the exact binary value, the same on every
-        // platform, and parses back to the nearest f64 of the printed digits.
-        let digits = usize::try_from(place).unwrap_or(0);
-        format!("{x:.digits$}").parse().unwrap_or(x)
-    } else {
-        let step = 10_f64.powi(-place);
-        (x / step).round() * step
-    };
-    if rounded == 0.0 { 0.0 } else { rounded }
-}
-
 /// Which way [`to_three_figures`] rounds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Toward {
@@ -368,20 +342,6 @@ mod tests {
         assert_eq!(three_figures(0.012_345), 0.0123);
         assert_eq!(three_figures(-8.886), -8.89);
         assert_eq!(three_figures(0.0), 0.0);
-    }
-
-    /// A mean is rounded where its spread's third figure lies: the tuning set's apogee time,
-    /// 0.0401 s on one platform and 0.0398 s on another, a spread of 1.2 s, is 0.04 s on both.
-    #[test]
-    fn a_mean_takes_its_spreads_figures() {
-        assert_eq!(at_the_figures_of(0.0401, 1.2), 0.04);
-        assert_eq!(at_the_figures_of(0.0398, 1.2), 0.04);
-        assert_eq!(at_the_figures_of(-0.0118, 0.0943), -0.0118);
-        assert_eq!(at_the_figures_of(0.659, 13.6), 0.7);
-        assert_eq!(at_the_figures_of(1234.0, 5678.0), 1230.0);
-        let zero = at_the_figures_of(-0.0329, 12.4);
-        assert!(zero == 0.0 && zero.is_sign_positive(), "{zero}");
-        assert_eq!(at_the_figures_of(0.012_345, 0.0), 0.0123);
     }
 
     #[test]

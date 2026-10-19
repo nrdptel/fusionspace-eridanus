@@ -94,7 +94,7 @@ pub(crate) fn code(reason: Reason) -> String {
 }
 
 /// Every reading of `read`, by name, with why it was withheld if it was.
-pub(crate) fn outcomes(read: &Readings) -> [(&'static str, Option<Reason>); 9] {
+pub(crate) fn outcomes(read: &Readings) -> [(&'static str, Option<Reason>); 5] {
     fn reason<T>(reading: &Reading<T>) -> Option<Reason> {
         reading.reason()
     }
@@ -102,38 +102,10 @@ pub(crate) fn outcomes(read: &Readings) -> [(&'static str, Option<Reason>); 9] {
         ("liftoff", reason(&read.liftoff)),
         ("apogee", reason(&read.apogee)),
         ("max_speed", reason(&read.max_speed)),
-        ("landing", reason(&read.landing)),
-        ("flight_time", reason(&read.flight_time)),
         ("max_acceleration", reason(&read.max_acceleration)),
-        ("burnout", reason(&read.burnout)),
-        ("drogue_descent", reason(&read.drogue_descent)),
-        ("main_descent", reason(&read.main_descent)),
+        ("landing", reason(&read.landing)),
     ]
 }
-
-/// The survey's two tables of readings, each a title and its readings by name and heading: the
-/// height track's, then the accelerometer's and the canopies', so neither runs wider than a page.
-const TABLES: [(&str, &[(&str, &str)]); 2] = [
-    (
-        "The height track's readings",
-        &[
-            ("liftoff", "Liftoff"),
-            ("apogee", "Apogee"),
-            ("max_speed", "Top speed"),
-            ("landing", "Landing"),
-            ("flight_time", "Flight time"),
-        ],
-    ),
-    (
-        "The accelerometer's readings and the canopies'",
-        &[
-            ("max_acceleration", "Top acceleration"),
-            ("burnout", "Burnout"),
-            ("drogue_descent", "Drogue descent"),
-            ("main_descent", "Main descent"),
-        ],
-    ),
-];
 
 impl Gathering {
     /// Reads `log`, a record of file `id` of `family`, and counts its readings.
@@ -246,10 +218,12 @@ pub(super) fn unread(survey: &Survey, root: &std::path::Path) -> Vec<String> {
 pub(super) fn markdown(survey: &Survey) -> String {
     let mut out = String::from(
         "\n## Readings\n\n\
-         Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each family, \
-         its records by the height track the readings took, then each reading given, and \
-         withheld by reason. A file that holds several records, a workbook's sheets or a dump's \
-         recordings, counts each.\n",
+         Every record read, taken by `hpr_flightdata::readings` (M7.2b): for each family, its \
+         records by the height track the readings took, then each reading given, and withheld \
+         by reason. A file that holds several records, a workbook's sheets or a dump's \
+         recordings, counts each.\n\n\
+         | Family | Records | Tracks | Liftoff | Apogee | Top speed | Top acceleration | Landing |\n\
+         |---|---:|---|---|---|---|---|---|\n",
     );
     let cell = |counts: Option<&ReadingCounts>| {
         let Some(counts) = counts else {
@@ -264,37 +238,22 @@ pub(super) fn markdown(survey: &Survey) -> String {
         );
         parts.join(", ")
     };
-    for (title, readings) in TABLES {
-        out += &format!("\n### {title}\n\n| Family | Records |");
-        if title == TABLES[0].0 {
-            out += " Tracks |";
-        }
-        for (_, heading) in readings {
-            out += &format!(" {heading} |");
-        }
-        out += "\n|---|---:|";
-        if title == TABLES[0].0 {
-            out += "---|";
-        }
-        for _ in readings {
-            out += "---|";
-        }
-        out += "\n";
-        for (family, row) in &survey.families {
-            out += &format!("| {family} | {} |", row.records);
-            if title == TABLES[0].0 {
-                let tracks: Vec<String> = row
-                    .tracks
-                    .iter()
-                    .map(|(track, n)| format!("{n} {track}"))
-                    .collect();
-                out += &format!(" {} |", tracks.join(", "));
-            }
-            for (name, _) in readings {
-                out += &format!(" {} |", cell(row.readings.get(*name)));
-            }
-            out += "\n";
-        }
+    for (family, row) in &survey.families {
+        let tracks: Vec<String> = row
+            .tracks
+            .iter()
+            .map(|(track, n)| format!("{n} {track}"))
+            .collect();
+        out += &format!(
+            "| {family} | {} | {} | {} | {} | {} | {} | {} |\n",
+            row.records,
+            tracks.join(", "),
+            cell(row.readings.get("liftoff")),
+            cell(row.readings.get("apogee")),
+            cell(row.readings.get("max_speed")),
+            cell(row.readings.get("max_acceleration")),
+            cell(row.readings.get("landing")),
+        );
     }
     out += &format!(
         "\nEach reason with its case: the records the corpus withholds a reading of for it, and \

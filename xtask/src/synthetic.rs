@@ -31,7 +31,7 @@ use std::path::Path;
 
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
-use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
+use hpr_forensics::synthetic::held::{self, Outcome, Quantity, Tally};
 use hpr_forensics::synthetic::logger::Profile;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
@@ -56,47 +56,6 @@ struct Report {
     /// The tuning set's flight-log readings against their bounds: each log and reading, in the
     /// order [`held::tally`] gives them, to three significant figures.
     readings: Vec<Tally>,
-    /// The tuning set's errors, each reading's over every log, in the order [`held::errors`]
-    /// gives them, to three significant figures.
-    errors: Vec<Errors>,
-    /// The tuning set's top accelerations against their parts' ranges.
-    tops: Tops,
-}
-
-/// The tuning set's top accelerations against the ranges their parts clip at: whether a top
-/// read as clipped was one, or a plateau read as flat.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Tops {
-    /// How many flights' true tops reach their part's range.
-    reaching: u64,
-    /// The flight whose true top came nearest its part's range; `None` if no logger has an
-    /// accelerometer.
-    nearest: Option<Top>,
-    /// Each top read as clipped, a floor, by flight and log, in the flights' order.
-    clipped: Vec<Clipped>,
-}
-
-/// A tuning flight's true top acceleration against its part's range.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Top {
-    /// The flight's index in the tuning set.
-    flight: u64,
-    /// Its logger's profile.
-    profile: String,
-    /// The truth's top over the range its part clips at, to three significant figures: 1
-    /// reaches it.
-    share: f64,
-}
-
-/// A top acceleration read as clipped.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Clipped {
-    /// The flight's index in the tuning set.
-    flight: u64,
-    /// Its logger's profile.
-    profile: String,
-    /// The log it was read from.
-    log: String,
 }
 
 /// Runs the command.
@@ -110,8 +69,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
-    let (flights, each) = read_logs(Set::Tuning.count(), &files)?;
-    let tallies = held::tally(&flights);
+    let tallies = read_logs(Set::Tuning.count(), &files)?;
     let missed = misses(&tallies);
     if !missed.is_empty() {
         return Err(format!(
@@ -121,16 +79,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let report = Report {
         about: "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held \
-                to their bounds on the tuning set, with their errors (M7.2b, M7.2c), written by \
-                `cargo xtask synthetic`."
+                to their bounds on the tuning set (M7.2b), written by `cargo xtask synthetic`."
             .to_owned(),
         sets: Set::ALL
             .iter()
             .map(|&set| fly(set, set.count(), &files))
             .collect(),
         readings: tallies.iter().map(rounded).collect(),
-        errors: held::errors(&flights).iter().map(rounded_errors).collect(),
-        tops: tops(&flights, &each),
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let page = markdown(&report);
@@ -236,50 +191,35 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
 /// One tuning flight's logs, each named, with each reading's outcome.
 type FlightOutcomes = (u64, Vec<(String, Vec<(Quantity, Outcome)>)>);
 
-/// One tuning flight's index, its logger's profile, and its true top over its part's range
-/// ([`held::top_over_range`]).
-type FlightTop = (u64, &'static str, Option<f64>);
-
 /// Logs the first `count` tuning flights at every rate and step of `held`'s grid on every core,
-/// reads each log, and gives each reading's outcome, and each flight's top against its part's
-/// range, in the flights' order. A flight that doesn't fly is the census's to report; a log that
-/// can't be written, or a panic, fails the command.
-fn read_logs(
-    count: u64,
-    files: &DesignFiles,
-) -> Result<(Vec<FlightOutcomes>, Vec<FlightTop>), String> {
+/// reads each log, and tallies the readings against their bounds. A flight that doesn't fly is
+/// the census's to report; a log that can't be written, or a panic, fails the command.
+fn read_logs(count: u64, files: &DesignFiles) -> Result<Vec<Tally>, String> {
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(16) as u64;
     let set = Set::Tuning;
-    let mut flights: Vec<(FlightOutcomes, FlightTop)> = std::thread::scope(|scope| {
+    let mut flights: Vec<FlightOutcomes> = std::thread::scope(|scope| {
         let handles: Vec<_> = (0..threads)
             .map(|start| {
                 let files = files.clone();
-                scope.spawn(
-                    move || -> Result<Vec<(FlightOutcomes, FlightTop)>, String> {
-                        let mut flyer = Flyer::new(files);
-                        let mut done = Vec::new();
-                        for index in (start..count).step_by(threads as usize) {
-                            let Ok(flight) = flyer.flight(set, index) else {
-                                continue;
-                            };
-                            let logs = held::logs(&flight, set.seed(), index)
-                                .map_err(|error| format!("tuning flight {index}: {error}"))?;
-                            let outcomes = logs
-                                .iter()
-                                .map(|(name, log)| (name.clone(), held::outcomes(&flight, log)))
-                                .collect();
-                            let top = (
-                                index,
-                                flight.draw.logger.profile.name(),
-                                held::top_over_range(&flight),
-                            );
-                            done.push(((index, outcomes), top));
-                        }
-                        Ok(done)
-                    },
-                )
+                scope.spawn(move || -> Result<Vec<FlightOutcomes>, String> {
+                    let mut flyer = Flyer::new(files);
+                    let mut done = Vec::new();
+                    for index in (start..count).step_by(threads as usize) {
+                        let Ok(flight) = flyer.flight(set, index) else {
+                            continue;
+                        };
+                        let logs = held::logs(&flight, set.seed(), index)
+                            .map_err(|error| format!("tuning flight {index}: {error}"))?;
+                        let outcomes = logs
+                            .iter()
+                            .map(|(name, log)| (name.clone(), held::outcomes(&flight, log)))
+                            .collect();
+                        done.push((index, outcomes));
+                    }
+                    Ok(done)
+                })
             })
             .collect();
         handles
@@ -294,53 +234,8 @@ fn read_logs(
             .collect::<Result<Vec<_>, _>>()
             .map(|done| done.into_iter().flatten().collect())
     })?;
-    flights.sort_by_key(|((index, _), _)| *index);
-    Ok(flights.into_iter().unzip())
-}
-
-/// The tuning set's top accelerations against their parts' ranges, from `flights`' outcomes and
-/// `each` flight's top.
-fn tops(flights: &[FlightOutcomes], each: &[FlightTop]) -> Tops {
-    let profile = |flight: u64| {
-        each.iter()
-            .find(|(index, _, _)| *index == flight)
-            .map_or("unknown", |(_, profile, _)| *profile)
-            .to_owned()
-    };
-    let shares = each
-        .iter()
-        .filter_map(|(flight, profile, share)| share.map(|share| (*flight, *profile, share)));
-    let reaching = shares.clone().filter(|(_, _, share)| *share >= 1.0).count() as u64;
-    let nearest = shares
-        .max_by(|a, b| a.2.total_cmp(&b.2))
-        .map(|(flight, profile, share)| Top {
-            flight,
-            profile: profile.to_owned(),
-            share: census::three_figures(share),
-        });
-    let clipped = flights
-        .iter()
-        .flat_map(|(flight, logs)| {
-            logs.iter()
-                .filter(|(_, results)| {
-                    results.iter().any(|(quantity, outcome)| {
-                        *quantity == Quantity::TopAcceleration
-                            && matches!(outcome, Outcome::Floor { .. })
-                    })
-                })
-                .map(move |(log, _)| (*flight, log.clone()))
-        })
-        .map(|(flight, log)| Clipped {
-            flight,
-            profile: profile(flight),
-            log,
-        })
-        .collect();
-    Tops {
-        reaching,
-        nearest,
-        clipped,
-    }
+    flights.sort_by_key(|(index, _)| *index);
+    Ok(held::tally(&flights))
 }
 
 /// Each tally whose worst error passes its bound, in words.
@@ -372,21 +267,6 @@ fn rounded(tally: &Tally) -> Tally {
         worst.share = census::three_figures(worst.share);
     }
     tally
-}
-
-/// A reading's errors as the report holds them: the least, the most and the mean bound to three
-/// significant figures, and the mean error at the figures of the largest error
-/// ([`census::at_the_figures_of`]), the digits every platform shares.
-fn rounded_errors(errors: &Errors) -> Errors {
-    let mut errors = errors.clone();
-    if let Some(spread) = &mut errors.spread {
-        spread.least_error = census::three_figures(spread.least_error);
-        spread.most_error = census::three_figures(spread.most_error);
-        let largest = spread.least_error.abs().max(spread.most_error.abs());
-        spread.mean_error = census::at_the_figures_of(spread.mean_error, largest);
-        spread.mean_bound = census::three_figures(spread.mean_bound);
-    }
-    errors
 }
 
 /// A panic's message, when it carries one.
@@ -557,94 +437,7 @@ fn markdown(report: &Report) -> String {
         }
     }
     readings_section(&mut page, &report.readings);
-    errors_section(&mut page, &report.errors, &report.tops);
     page
-}
-
-/// How many of [`Quantity::ALL`]'s readings, from its start, are the height track's.
-const HEIGHT_READINGS: usize = 7;
-
-/// The page's section on the readings' errors over the tuning set, and the top accelerations
-/// against their parts' ranges.
-fn errors_section(page: &mut String, errors: &[Errors], tops: &Tops) {
-    page.push_str(
-        "\n## Errors on the tuning set\n\n\
-         Each reading's errors, the reading less the truth, over every tuning flight and every \
-         log above together, beside the mean bound the readings stated. Each error is held to its \
-         own reading's bound, which differs from flight to flight and log to log, so the least or \
-         the most may pass the mean bound; the mean is for scale, and is given at the decimal \
-         place of the larger of the least and the most to three figures, the digits every \
-         platform shares. A floor, a burnout from the \
-         speed's peak or a clipped top acceleration, is apart: it holds while it is no more than \
-         its bound above the truth, and may lie any amount below it.\n\n\
-         | Reading | Given | Mean error | Least | Most | Mean bound |\n\
-         |---|---:|---:|---:|---:|---:|\n",
-    );
-    for row in errors {
-        let name = if row.floor {
-            format!("{}, a floor", row.quantity.name())
-        } else {
-            row.quantity.name().to_owned()
-        };
-        let unit = row.quantity.unit();
-        match &row.spread {
-            Some(spread) => {
-                let _ = writeln!(
-                    page,
-                    "| {name} | {} | {} {unit} | {} {unit} | {} {unit} | {} {unit} |",
-                    row.given,
-                    number(spread.mean_error),
-                    number(spread.least_error),
-                    number(spread.most_error),
-                    number(spread.mean_bound),
-                );
-            }
-            None => {
-                let _ = writeln!(page, "| {name} | {} | none finite | | | |", row.given);
-            }
-        }
-    }
-    tops_paragraph(page, tops);
-}
-
-/// The paragraph on the top accelerations against their parts' ranges.
-fn tops_paragraph(page: &mut String, tops: &Tops) {
-    let Some(nearest) = &tops.nearest else {
-        page.push_str("\nNo tuning flight's logger has an accelerometer.\n");
-        return;
-    };
-    let reach = match tops.reaching {
-        0 => "No tuning flight's true top acceleration reaches the range its part clips at"
-            .to_owned(),
-        1 => {
-            "1 tuning flight's true top acceleration reaches the range its part clips at".to_owned()
-        }
-        n => format!(
-            "{n} tuning flights' true top accelerations reach the range their part clips at"
-        ),
-    };
-    let _ = write!(
-        page,
-        "\n{reach}: the nearest, flight {}'s on its {} logger, comes to {} of it. ",
-        nearest.flight,
-        nearest.profile,
-        number(nearest.share)
-    );
-    if tops.clipped.is_empty() {
-        page.push_str("No top was read as clipped.\n");
-    } else {
-        let each: Vec<String> = tops
-            .clipped
-            .iter()
-            .map(|c| format!("flight {} ({}), {}", c.flight, c.profile, c.log))
-            .collect();
-        let _ = writeln!(
-            page,
-            "Tops read as clipped, each a floor, at the range or flat at the top: {}; {}.",
-            tops.clipped.len(),
-            each.join("; ")
-        );
-    }
 }
 
 /// The page's section on the flight-log readings held to their bounds.
@@ -652,10 +445,8 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
     page.push_str(
         "\n## Readings within their bounds\n\n\
          Each tuning flight logged by its own logger, then again at every rate and step of the \
-         grid, from 500 to half a sample a second and from no step to 100 Pa, with its own \
-         logger's accelerometer at 500, 100 and 20 Hz, and cropped as loggers start their logs, \
-         and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how many of the \
-         flights' readings \
+         grid, from 500 to half a sample a second and from no step to 100 Pa, and read by \
+         `hpr_flightdata::readings` (M7.2b). Each cell gives how many of the flights' readings \
          were given, then the largest share of its bound an error took: 1 is the bound, and \
          `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and \
          its bound. What is method and what is measured: `docs/physics/log-readings.md`.\n\n",
@@ -666,63 +457,43 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
             logs.push(&tally.log);
         }
     }
-    // Two tables, the height track's readings and then the accelerometer's and the canopies',
-    // so neither runs wider than a page.
-    let (heights, rest) = Quantity::ALL.split_at(HEIGHT_READINGS);
-    for (title, quantities) in [
-        ("The height track's readings", heights),
-        ("The accelerometer's readings and the canopies'", rest),
-    ] {
-        let _ = write!(page, "### {title}\n\n| Log |");
-        for quantity in quantities {
-            let _ = write!(page, " {} |", quantity.name());
-        }
-        page.push_str("\n|---|");
-        for _ in quantities {
-            page.push_str("---:|");
-        }
-        page.push('\n');
-        for log in &logs {
-            let _ = write!(page, "| {log} |");
-            for quantity in quantities {
-                let cell = tallies
-                    .iter()
-                    .find(|tally| tally.log == *log && tally.quantity == *quantity)
-                    .map_or_else(
-                        || "none".to_owned(),
-                        |tally| match &tally.worst {
-                            Some(worst) => format!("{}, {}", tally.given, number(worst.share)),
-                            None => tally.given.to_string(),
-                        },
-                    );
-                let _ = write!(page, " {cell} |");
-            }
-            page.push('\n');
+    page.push_str("| Log |");
+    for quantity in Quantity::ALL {
+        let _ = write!(page, " {} |", quantity.name());
+    }
+    page.push_str("\n|---|");
+    for _ in Quantity::ALL {
+        page.push_str("---:|");
+    }
+    page.push('\n');
+    for log in &logs {
+        let _ = write!(page, "| {log} |");
+        for quantity in Quantity::ALL {
+            let cell = tallies
+                .iter()
+                .find(|tally| tally.log == *log && tally.quantity == quantity)
+                .map_or_else(
+                    || "none".to_owned(),
+                    |tally| match &tally.worst {
+                        Some(worst) => format!("{}, {}", tally.given, number(worst.share)),
+                        None => tally.given.to_string(),
+                    },
+                );
+            let _ = write!(page, " {cell} |");
         }
         page.push('\n');
     }
-    page.push_str(
-        "### Readings withheld\n\n\
-         Each reading withheld, by reason; beside them, a drogue or a main's opening that the \
-         truth has none of, on a flight that came down under one canopy or none, as none to \
-         read.\n\n",
-    );
+    page.push_str("\n### Readings withheld\n\n");
     let withheld: Vec<(&Tally, String, u64)> = tallies
         .iter()
         .flat_map(|tally| {
-            let absent =
-                (tally.absent > 0).then(|| (tally, "none to read".to_owned(), tally.absent));
-            tally
-                .withheld
-                .iter()
-                .map(move |(reason, count)| {
-                    let code = serde_json::to_value(reason)
-                        .ok()
-                        .and_then(|value| value.as_str().map(str::to_owned))
-                        .unwrap_or_default();
-                    (tally, format!("`{code}`"), *count)
-                })
-                .chain(absent)
+            tally.withheld.iter().map(move |(reason, count)| {
+                let code = serde_json::to_value(reason)
+                    .ok()
+                    .and_then(|value| value.as_str().map(str::to_owned))
+                    .unwrap_or_default();
+                (tally, code, *count)
+            })
         })
         .collect();
     if withheld.is_empty() {
@@ -732,7 +503,7 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
         for (tally, code, count) in withheld {
             let _ = writeln!(
                 page,
-                "| {} | {} | {code} | {count} |",
+                "| {} | {} | `{code}` | {count} |",
                 tally.log,
                 tally.quantity.name()
             );
@@ -749,7 +520,7 @@ mod tests {
         let root = crate::designs::root().unwrap();
         let files = design_files(&root).unwrap();
         let mut flyer = Flyer::new(files.clone());
-        let (flights, tops): (Vec<FlightOutcomes>, Vec<FlightTop>) = (0..3)
+        let flights: Vec<FlightOutcomes> = (0..3)
             .map(|index| {
                 let flight = flyer.flight(Set::Tuning, index).unwrap();
                 let logs = held::logs(&flight, Set::Tuning.seed(), index).unwrap();
@@ -757,15 +528,10 @@ mod tests {
                     .iter()
                     .map(|(name, log)| (name.clone(), held::outcomes(&flight, log)))
                     .collect();
-                let top = (
-                    index,
-                    flight.draw.logger.profile.name(),
-                    held::top_over_range(&flight),
-                );
-                ((index, outcomes), top)
+                (index, outcomes)
             })
-            .unzip();
-        assert_eq!(read_logs(3, &files).unwrap(), (flights, tops));
+            .collect();
+        assert_eq!(read_logs(3, &files).unwrap(), held::tally(&flights));
     }
 
     /// A tally whose worst error passes its bound is named, with the flight, and fails the
@@ -777,7 +543,6 @@ mod tests {
             quantity: Quantity::Landing,
             given: 1,
             withheld: std::collections::BTreeMap::new(),
-            absent: 0,
             worst: Some(held::Worst {
                 flight: 7,
                 error: -share,
@@ -813,102 +578,9 @@ mod tests {
             about: String::new(),
             sets: vec![census::from_rows(Set::A, &rows)],
             readings: Vec::new(),
-            errors: Vec::new(),
-            tops: Tops {
-                reaching: 0,
-                nearest: None,
-                clipped: Vec::new(),
-            },
         });
         assert!(page.contains("| A | 0 |"), "{page}");
         assert!(page.contains("first \\| second third |"), "{page}");
-    }
-
-    /// The tops: a share of 1 reaches the range, the nearest is the largest share, and each
-    /// clipped top is named by its flight's profile and its log; with none, the page says so.
-    #[test]
-    fn the_tops_name_the_nearest_and_each_clipped() {
-        let floor = Outcome::Floor {
-            error: -1.0,
-            bound: 2.0,
-        };
-        let given = Outcome::Given {
-            error: 0.5,
-            bound: 2.0,
-        };
-        let flights: Vec<FlightOutcomes> = vec![
-            (
-                0,
-                vec![
-                    ("altos".to_owned(), vec![(Quantity::TopAcceleration, given)]),
-                    (
-                        "its accelerometer at 20 Hz".to_owned(),
-                        vec![
-                            (Quantity::TopAcceleration, floor),
-                            (Quantity::Burnout, floor),
-                        ],
-                    ),
-                ],
-            ),
-            (
-                1,
-                vec![("rrc3".to_owned(), vec![(Quantity::Burnout, floor)])],
-            ),
-            (
-                2,
-                vec![(
-                    "imu-500hz".to_owned(),
-                    vec![(Quantity::TopAcceleration, given)],
-                )],
-            ),
-        ];
-        let each: Vec<FlightTop> = vec![
-            (0, "altos", Some(0.25)),
-            (1, "rrc3", None),
-            (2, "imu-500hz", Some(1.0)),
-        ];
-        let made = tops(&flights, &each);
-        assert_eq!(made.reaching, 1);
-        let nearest = made.nearest.as_ref().unwrap();
-        assert_eq!((nearest.flight, nearest.share), (2, 1.0));
-        assert_eq!(
-            made.clipped,
-            [Clipped {
-                flight: 0,
-                profile: "altos".to_owned(),
-                log: "its accelerometer at 20 Hz".to_owned(),
-            }]
-        );
-        let mut page = String::new();
-        tops_paragraph(&mut page, &made);
-        assert!(
-            page.contains("1 tuning flight's true top acceleration reaches"),
-            "{page}"
-        );
-        assert!(
-            page.contains("flight 0 (altos), its accelerometer at 20 Hz"),
-            "{page}"
-        );
-        let none = tops(&flights, &[(0, "altos", Some(0.25))]);
-        let mut page = String::new();
-        tops_paragraph(&mut page, &none);
-        assert!(
-            page.contains("No tuning flight's true top acceleration reaches"),
-            "{page}"
-        );
-        let mut page = String::new();
-        tops_paragraph(&mut page, &tops(&[], &[]));
-        assert!(
-            page.contains("No tuning flight's logger has an accelerometer"),
-            "{page}"
-        );
-    }
-
-    /// The height track's readings are the first of [`Quantity::ALL`], the table's split.
-    #[test]
-    fn the_first_table_holds_the_height_tracks_readings() {
-        assert_eq!(Quantity::ALL[HEIGHT_READINGS - 1], Quantity::DescentRate);
-        assert_eq!(Quantity::ALL[HEIGHT_READINGS], Quantity::TopAcceleration);
     }
 
     #[test]
