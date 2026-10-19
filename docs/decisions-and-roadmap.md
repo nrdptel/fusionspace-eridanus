@@ -312,6 +312,7 @@ until someone rewrites it in plainer words.
 | [ADR-281: Readings on every logger: one height track, a pad its samples can vouch for, and a top that must be a coast's][adr-281] | The readings (liftoff, apogee, the top speed, landing) now come from every logger that records a barometric altitude or a pressure, each within a bound its error stayed inside on the synthetic flights' tuning set, logged at every rate from 500 to half a sample a second, at every step to 10 m (33 ft) or 100 Pa, and from cropped starts, or withheld with one of 23 named reasons. A GNSS track gives none. Three rules carry most of the weight. The pad is taken only as far as its samples can vouch that the rocket was still on it. A track whose heights are above the pad only by a column's word must start near its zero. A top that isn't a coast's is withheld: one the track fell from and climbed back to, or a spike that climbs in and falls out faster than physics allows. On the 1,058 records the sample logs hold, apogee is given on 593, liftoff on 554, the top speed on 354 and landing on 472, and every reason has a case. |  |
 | [ADR-282: The project tests each UI milestone itself][adr-282] | No milestone waits on the maintainer's use any more. A milestone that adds or changes something a user sees counts as done once its PR records the project's own acceptance pass: user tasks written before the work and done end to end on the built product by a reviewer that didn't build it, every screen captured at its real size and shape and checked for clipping, and a cold reader's run through the guide. The app and the field kit also post a short recording for the maintainer to look at, which informs but never blocks. Turning off his sites, publishing, tags and finding [M10.5](#m10-5)'s outside flyers stay his. |  |
 | [ADR-283: The rest of the readings: an axial accelerometer settled by three witnesses, burnout where the thrust's fall ends, and the main found back from landing at the ground's density][adr-283] | The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee), and is a floor where the part clipped. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor at the top speed's time. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, every tuning flight with a barometer that came down under two canopies had its main's opening found, and no main was named on a flight under one, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 184, burnout on 435, the drogue's descent on 267 and the main's on 459, and every new reason has a case. |  |
+| [ADR-284: The maintainer's own voice on every page][adr-284] | The project's pages read as if they came off a template, not from a person. [M0.14](#m0-14) rewrites what people read (the README, the docs site, fusionspace.co, the design system's writing rules and README, `hpr`'s own messages and the repositories' About text) in the maintainer's plain voice, with a voice section in the writing guide and a `cargo xtask voice` check. Decision records, the archive and tools due to be replaced stay as they are. |  |
 
 ## The roadmap
 
@@ -460,6 +461,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
 | <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
 | <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
+| <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
+| <a id="m0-14a"></a>[M0.14a][phase-0] | The guide and the check | not yet done |
+| <a id="m0-14b"></a>[M0.14b][phase-0] | The front doors | not yet done |
+| <a id="m0-14c"></a>[M0.14c][phase-0] | The rest of the site | not yet done |
+| <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1181,6 +1187,7 @@ is the milestone that added or will add that test.
 [adr-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
 [adr-282]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0282-the-project-tests-each-ui-milestone-itself.md
 [adr-283]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0283-the-rest-of-the-readings.md
+[adr-284]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0284-the-maintainers-own-voice.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
