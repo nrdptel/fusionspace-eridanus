@@ -136,6 +136,9 @@ checkable items.
 - **2026-10-16, a flyer's own logger and GPX tracks** ([ADR-276, own loggers and GPX in the analyzer](decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md)).
   Neer decided the flight analyzer reads a flyer's own altimeter or GPS tracker from the command
   line and Python, not only from Rust, and reads GPX tracks, before release 0.2.
+- **2026-10-18, the maintainer's own voice** ([ADR-284, the maintainer's own voice](decisions/0284-the-maintainers-own-voice.md)).
+  Neer decided that everything people read, from the README and the docs to fusionspace.co and the
+  GitHub pages, should sound like him, written plainly, and asked for it to be done carefully.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
@@ -213,6 +216,7 @@ Decisions Neer confirmed at kickoff:
 | V52 | A design from purchasable parts in minutes: search the catalog, build from it, and get a parts list to buy from; a catalog of hpr's own beyond OpenRocket's, every value with its source and date, parachutes with their drag and its range, motor hardware, rail buttons and recovery hardware ([parts catalog](research/parts-catalog.md)) | M5.6a to M5.6d, M9.1, ADR-197 |
 | V53 | Awareness and care: a banner and a footer line through the year (heritage and awareness months, health, access, science and space, rocketry safety) from a dated, sourced table, regions named, solemn days alone, a checked help page; then a code of conduct, a page on getting involved and a way to report a barrier ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)) | M0.13a, M0.13b, ADR-275 |
 | V54 | A flyer's own altimeter or GPS tracker read from the command line and Python by a column mapping or record layout, and GPX tracks read | M7.1d1, M7.1d2, ADR-276 |
+| V55 | Everything people read (the README, the docs site, the program's messages, fusionspace.co, the design system's writing rules and the repositories' About text) sounds like the maintainer wrote it, plainly, not a template | M0.14, ADR-284 |
 
 ## North stars
 
