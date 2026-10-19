@@ -445,12 +445,14 @@ record as `hpr analyze --record` writes it, without its `tool`, a gap `None`. A 
 layout that fails raises `HprError` naming the field or the column, in the command line's words.
 
 `log.readings()` takes the readings, as `hpr analyze` does, and returns them as a dict: under
-`liftoff`, `apogee`, `max_speed`, `max_acceleration` and `landing`, each reading with its
-`status`, `"read"` or `"withheld"`. A reading read holds its value, its bound (`bound_m`,
-`bound_s` or `bound_m_s`), its `source`, its `provenance` and its `method`; one withheld holds its
-`reason` and a `detail` in words. Beside them, the track's `source`, `sample_interval_s` and
-`step_m`, the median's `median_window_s` and `peak_bound_m`, and `pad_altitude_m` say how they were
-taken. Each code is the one the JSON output uses
+`liftoff`, `apogee`, `max_speed`, `max_acceleration`, `burnout`, `landing`, `flight_time`,
+`drogue_descent` and `main_descent`, each reading with its `status`, `"read"` or `"withheld"`. A
+reading read holds its value, its bound (`bound_m` for a height, `bound_s` for a time,
+`bound_m_s` for a speed or a descent rate, `bound_m_s2` for the top acceleration), its `source`,
+its `provenance` and its `method`; one withheld holds its `reason` and a `detail` in words.
+Beside them, the track's `source`, `sample_interval_s` and `step_m`, the median's
+`median_window_s` and `peak_bound_m`, `pad_altitude_m`, and the `accelerometer` read, if any, say
+how they were taken. Each code is the one the JSON output uses
 ([Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld)). The table's log, read
 above:
 

@@ -8243,10 +8243,10 @@
       "floor": false,
       "given": 259,
       "spread": {
-        "mean_error": -0.00683,
+        "mean_error": -0.00699,
         "least_error": -0.0943,
         "most_error": 0.0544,
-        "mean_bound": 0.653
+        "mean_bound": 0.65
       }
     },
     {

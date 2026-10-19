@@ -136,6 +136,7 @@ METHOD = [
 def test_the_readings_are_the_commands(repo, hpr_cli):
     logs = [(log, by, repo / OWN_LOGGER / name) for log, by, name in OWN_LOGS]
     logs.append(("../synthetic-pnut.pf2", None, None))
+    logs.append(("../accelerometer/axial.csv", None, None))
     for log, by, description in logs:
         path = repo / OWN_LOGGER / log
         read = (
@@ -172,6 +173,23 @@ def test_the_readings_are_the_commands(repo, hpr_cli):
         "reason": "receiver_lag",
         "detail": gps["apogee"]["detail"],
     }
+    # The invented log with an axial accelerometer: its motor's thrust ends 3.45 s into the log,
+    # and the top and burnout are read from the accelerometer, the top a measured value.
+    axial = hpr.FlightLog.read(repo / "validation/fixtures/logs/accelerometer/axial.csv").readings()
+    top = axial["max_acceleration"]
+    assert (top["status"], top["source"], top["method"], top["is_floor"]) == (
+        "read",
+        "accelerometer",
+        "highest_reading",
+        False,
+    )
+    burnout = axial["burnout"]
+    assert (burnout["status"], burnout["source"], burnout["method"]) == (
+        "read",
+        "accelerometer",
+        "least_after_thrust",
+    )
+    assert abs(burnout["time_s"] - 3.45) <= burnout["bound_s"]
 
 
 def test_a_log_read_by_its_own_reader_is_the_commands(repo, hpr_cli):

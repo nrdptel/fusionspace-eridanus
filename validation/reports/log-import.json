@@ -4054,12 +4054,12 @@
             }
           },
           "burnout": {
-            "given": 34,
+            "given": 38,
             "withheld": {
               "disturbed_top": 4,
               "no_climb": 1,
               "sampled_too_slowly": 1,
-              "transonic": 10
+              "transonic": 6
             }
           },
           "drogue_descent": {
@@ -4905,12 +4905,12 @@
             }
           },
           "burnout": {
-            "given": 24,
+            "given": 26,
             "withheld": {
               "disturbed_top": 12,
               "sampled_too_slowly": 2,
               "short_pad": 1,
-              "transonic": 5
+              "transonic": 3
             }
           },
           "drogue_descent": {
@@ -6518,12 +6518,12 @@
             }
           },
           "burnout": {
-            "given": 65,
+            "given": 67,
             "withheld": {
               "disturbed_top": 9,
               "sampled_too_fast": 1,
               "sampled_too_slowly": 1,
-              "transonic": 4
+              "transonic": 2
             }
           },
           "drogue_descent": {
@@ -6567,10 +6567,10 @@
             }
           },
           "max_acceleration": {
-            "given": 62,
+            "given": 64,
             "withheld": {
               "disturbed_top": 9,
-              "gravity_unstated": 8,
+              "gravity_unstated": 6,
               "sampled_too_fast": 1
             }
           },
@@ -6661,11 +6661,11 @@
             }
           },
           "burnout": {
-            "given": 35,
+            "given": 36,
             "withheld": {
               "disturbed_top": 3,
               "short_pad": 17,
-              "transonic": 2
+              "transonic": 1
             }
           },
           "drogue_descent": {
@@ -6708,10 +6708,10 @@
             }
           },
           "max_acceleration": {
-            "given": 32,
+            "given": 34,
             "withheld": {
               "disturbed_top": 3,
-              "gravity_unstated": 5,
+              "gravity_unstated": 3,
               "short_pad": 17
             }
           },
@@ -7504,7 +7504,7 @@
       },
       {
         "reason": "gravity_unstated",
-        "records": 14,
+        "records": 10,
         "first": "3126596d71a32b10",
         "invented": null
       },

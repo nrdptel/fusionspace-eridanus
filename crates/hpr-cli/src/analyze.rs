@@ -35,7 +35,9 @@ use crate::output::{
     MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingMethod, ReadingProvenance,
     ReadingSource, WithheldReading, WithheldReason,
 };
-use crate::units::{gravities, meters, meters_bound, seconds_bound, speed, speed_bound};
+use crate::units::{
+    acceleration_bound, gravities, meters, meters_bound, seconds_bound, speed, speed_bound,
+};
 use crate::{Failure, Out};
 
 /// The column mapping's schema, as the help lines name it.
@@ -342,6 +344,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
                 bound_m_s2: acceleration.bound_m_s2,
                 time_s: acceleration.time_s,
                 range_m_s2: acceleration.range_m_s2,
+                is_floor: acceleration.is_floor,
                 source: source(acceleration.source),
                 provenance: provenance(acceleration.provenance),
                 method: method(acceleration.method),
@@ -602,10 +605,10 @@ fn text_lines(document: &Analyze) -> Vec<String> {
         match &document.max_acceleration {
             LogReading::Read(top) => {
                 let mut value = format!(
-                    "{:.1} m/s² ({}), within {:.1} m/s², at {:.2} s",
+                    "{:.1} m/s² ({}), within {} m/s², at {:.2} s",
                     top.acceleration_m_s2,
                     gravities(top.acceleration_m_s2),
-                    top.bound_m_s2.max(0.05),
+                    acceleration_bound(top.bound_m_s2),
                     top.time_s
                 );
                 if top.provenance == ReadingProvenance::Clipped {
@@ -614,8 +617,8 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             "; clipped at the part's range of {}, so the top may have been higher",
                             gravities(range)
                         ),
-                        None => "; held flat at its top, so it was clipped and the top may have \
-                                 been higher"
+                        None => "; held flat at its top, so it may have been clipped, and the top \
+                                 may have been higher"
                             .to_owned(),
                     });
                 }
@@ -859,8 +862,9 @@ mod tests {
     use super::*;
 
     /// A top acceleration reads in g too, standard gravity, in brackets after the m/s² (issue
-    /// #392). No log format read so far records one, so the reading is set by hand on a real
-    /// log's document, at a value where a rounded 9.81 m/s² would print another tenth.
+    /// #392), and its bound rounded up. The reading is set by hand on a log with no
+    /// accelerometer, at a value where a rounded 9.81 m/s² would print another tenth and a bound
+    /// rounded to the nearest a tenth less.
     #[test]
     fn a_top_acceleration_gives_g() {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
@@ -881,6 +885,7 @@ mod tests {
             bound_m_s2: 101.04,
             time_s: 0.75,
             range_m_s2: None,
+            is_floor: false,
             source: ReadingSource::Accelerometer,
             provenance: ReadingProvenance::Measured,
             method: ReadingMethod::HighestReading,
@@ -888,7 +893,7 @@ mod tests {
         let lines = text_lines(&document);
         assert!(
             lines.iter().any(|line| line
-                == "top acceleration  1000.0 m/s² (102.0 g), within 101.0 m/s², at 0.75 s"),
+                == "top acceleration  1000.0 m/s² (102.0 g), within 101.1 m/s², at 0.75 s"),
             "{lines:#?}"
         );
     }

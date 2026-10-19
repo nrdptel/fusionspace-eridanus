@@ -23,7 +23,7 @@
 use std::collections::BTreeMap;
 
 use hpr_flightdata::log::FlightLog;
-use hpr_flightdata::readings::{self, Provenance, Reading, Reason};
+use hpr_flightdata::readings::{self, Reading, Reason};
 use serde::{Deserialize, Serialize};
 
 use super::logger::{Recording, Written, accelerometer_log, barometer_log};
@@ -291,9 +291,10 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
                 let opened = pad_s + events.deployments[n - 1].1;
                 given(opening.time_s - opened, opening.bound_s)
             }
-            // A main named where the flight opened one canopy, or none, is a miss.
+            // A main named where the flight opened one canopy, or none, is a miss; so is one
+            // canopy read where the flight opened two, as its main's leg then holds the drogue's.
             (Some(opening), _) => given(f64::INFINITY, opening.bound_s),
-            (None, n) if n >= 2 => Outcome::Withheld(Reason::OneCanopy),
+            (None, n) if n >= 2 => given(f64::INFINITY, 0.0),
             (None, _) => Outcome::Absent,
         },
         Reading::Withheld(withheld) => Outcome::Withheld(withheld.reason),
@@ -356,7 +357,7 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
             Quantity::TopAcceleration,
             of(&read.max_acceleration, |a| {
                 floor_or_given(
-                    a.provenance == Provenance::Clipped,
+                    a.is_floor,
                     a.acceleration_m_s2 - top_acceleration,
                     a.bound_m_s2,
                 )
@@ -516,8 +517,10 @@ pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
                 match *outcome {
                     Outcome::Given { error, bound } | Outcome::Floor { error, bound } => {
                         tally.given += 1;
-                        // A floor errs only above the truth.
+                        // A floor errs only above the truth; a NaN, which `max` would take to 0, is
+                        // never a hold.
                         let size = match outcome {
+                            Outcome::Floor { .. } if error.is_nan() => f64::INFINITY,
                             Outcome::Floor { .. } => error.max(0.0),
                             _ => error.abs(),
                         };
@@ -731,6 +734,28 @@ mod tests {
         assert_eq!(unique.len(), GRID_RATES_HZ.len() * GRID_WRITTEN.len());
         assert!(names.contains(&"20 Hz, altitude in 0.3048 m steps".to_owned()));
         assert!(names.contains(&"0.5 Hz, pressure alone in 100 Pa steps".to_owned()));
+    }
+
+    /// A floor holds while its error is no more than its bound above the truth, however far below;
+    /// a NaN error, which `max` would take to 0, never holds, a floor's or a reading's.
+    #[test]
+    fn a_floor_holds_one_side_and_never_on_nan() {
+        let floor = |error: f64| Outcome::Floor { error, bound: 1.0 };
+        let holds = |outcome: Outcome| {
+            tally(&[(
+                0,
+                vec![("a".to_owned(), vec![(Quantity::Burnout, outcome)])],
+            )])[0]
+                .holds()
+        };
+        assert!(holds(floor(-100.0)));
+        assert!(holds(floor(1.0)));
+        assert!(!holds(floor(1.01)));
+        assert!(!holds(floor(f64::NAN)));
+        assert!(!holds(Outcome::Given {
+            error: f64::NAN,
+            bound: 1.0
+        }));
     }
 
     /// A flight's top acceleration is the truth's over its logger's accelerometer range, and a

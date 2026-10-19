@@ -1316,6 +1316,10 @@
           "type": "number",
           "format": "double"
         },
+        "is_floor": {
+          "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is.",
+          "type": "boolean"
+        },
         "method": {
           "description": "How it was read.",
           "$ref": "#/$defs/ReadingMethod"
@@ -1346,6 +1350,7 @@
         "acceleration_m_s2",
         "bound_m_s2",
         "time_s",
+        "is_floor",
         "source",
         "provenance",
         "method"

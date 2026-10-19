@@ -637,7 +637,7 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | altimax-als | 1 | 1 given | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | altimax-xls | 1 | 1 given | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | altimetercloud-csv | 11 | 0 given, 11 `axis_unstated` | 11 given | 0 given, 11 `one_canopy` | 11 given |
-| altos-csv | 50 | 45 given, 4 `disturbed_top`, 1 `no_climb` | 34 given, 4 `disturbed_top`, 1 `no_climb`, 1 `sampled_too_slowly`, 10 `transonic` | 19 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 8 `one_canopy`, 1 `sampled_too_slowly`, 1 `short_leg` | 27 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 1 `sampled_too_slowly`, 1 `short_leg` |
+| altos-csv | 50 | 45 given, 4 `disturbed_top`, 1 `no_climb` | 38 given, 4 `disturbed_top`, 1 `no_climb`, 1 `sampled_too_slowly`, 6 `transonic` | 19 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 8 `one_canopy`, 1 `sampled_too_slowly`, 1 `short_leg` | 27 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 1 `sampled_too_slowly`, 1 `short_leg` |
 | altos-eeprom | 14 | 5 given, 1 `disturbed_top`, 3 `no_accelerometer`, 5 `short_pad` | 5 given, 1 `disturbed_top`, 1 `receiver_lag`, 7 `short_pad` | 1 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 2 `one_canopy`, 1 `short_leg`, 7 `short_pad` | 4 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 7 `short_pad` |
 | altos-resaved-csv | 1 | 0 given, 1 `axis_unstated` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` |
 | altos-table-csv | 1 | 1 given | 1 given | 0 given, 1 `one_canopy` | 1 given |
@@ -650,7 +650,7 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | blueraven-usb-txt | 2 | 0 given, 1 `axis_unstated`, 1 `no_accelerometer` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` | 0 given, 1 `no_height_track`, 1 `slower_than_free_coast` |
 | console-capture | 3 | 0 given, 3 `axis_unstated` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` |
 | e80-imu-txt | 54 | 0 given, 54 `no_accelerometer` | 0 given, 54 `no_height_track` | 0 given, 54 `no_height_track` | 0 given, 54 `no_height_track` |
-| eggtimer-csv | 44 | 2 given, 2 `disturbed_top`, 40 `no_accelerometer` | 24 given, 12 `disturbed_top`, 2 `sampled_too_slowly`, 1 `short_pad`, 5 `transonic` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` |
+| eggtimer-csv | 44 | 2 given, 2 `disturbed_top`, 40 `no_accelerometer` | 26 given, 12 `disturbed_top`, 2 `sampled_too_slowly`, 1 `short_pad`, 3 `transonic` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` |
 | eggtimer-rtf | 1 | 0 given, 1 `no_accelerometer` | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | eggtimer-txt | 2 | 0 given, 2 `no_accelerometer` | 1 given, 1 `disturbed_top` | 0 given, 1 `disturbed_top`, 1 `sampled_too_slowly` | 0 given, 1 `disturbed_top`, 1 `sampled_too_slowly` |
 | entacore-aim-csv | 16 | 15 given, 1 `clock_out_of_order` | 9 given, 7 `sampled_too_slowly` | 8 given, 8 `ends_before_landing` | 8 given, 8 `ends_before_landing` |
@@ -674,9 +674,9 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | phone-launch-csv | 27 | 0 given, 6 `axis_unstated`, 21 `no_accelerometer` | 0 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad`, 4 `transonic` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` |
 | radio-packets-rtf | 2 | 0 given, 2 `no_accelerometer` | 0 given, 2 `sampled_too_slowly` | 0 given, 2 `ends_before_landing` | 0 given, 2 `ends_before_landing` |
 | radio-packets-txt | 2 | 0 given, 2 `no_accelerometer` | 0 given, 1 `clock_out_of_order`, 1 `sampled_too_slowly` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` |
-| raven-csv | 80 | 62 given, 9 `disturbed_top`, 8 `gravity_unstated`, 1 `sampled_too_fast` | 65 given, 9 `disturbed_top`, 1 `sampled_too_fast`, 1 `sampled_too_slowly`, 4 `transonic` | 32 given, 9 `disturbed_top`, 4 `ends_before_landing`, 33 `one_canopy`, 1 `sampled_too_fast`, 1 `short_leg` | 66 given, 9 `disturbed_top`, 4 `ends_before_landing`, 1 `sampled_too_fast` |
+| raven-csv | 80 | 64 given, 9 `disturbed_top`, 6 `gravity_unstated`, 1 `sampled_too_fast` | 67 given, 9 `disturbed_top`, 1 `sampled_too_fast`, 1 `sampled_too_slowly`, 2 `transonic` | 32 given, 9 `disturbed_top`, 4 `ends_before_landing`, 33 `one_canopy`, 1 `sampled_too_fast`, 1 `short_leg` | 66 given, 9 `disturbed_top`, 4 `ends_before_landing`, 1 `sampled_too_fast` |
 | raven-fip-sheet-xlsx | 2 | 1 given, 1 `disturbed_top` | 1 given, 1 `disturbed_top` | 0 given, 1 `disturbed_top`, 1 `one_canopy` | 1 given, 1 `disturbed_top` |
-| raven-fipa | 57 | 32 given, 3 `disturbed_top`, 5 `gravity_unstated`, 17 `short_pad` | 35 given, 3 `disturbed_top`, 17 `short_pad`, 2 `transonic` | 11 given, 3 `disturbed_top`, 1 `ends_before_landing`, 25 `one_canopy`, 17 `short_pad` | 36 given, 3 `disturbed_top`, 1 `ends_before_landing`, 17 `short_pad` |
+| raven-fipa | 57 | 34 given, 3 `disturbed_top`, 3 `gravity_unstated`, 17 `short_pad` | 36 given, 3 `disturbed_top`, 17 `short_pad`, 1 `transonic` | 11 given, 3 `disturbed_top`, 1 `ends_before_landing`, 25 `one_canopy`, 17 `short_pad` | 36 given, 3 `disturbed_top`, 1 `ends_before_landing`, 17 `short_pad` |
 | record-dump | 2 | 0 given, 2 `no_accelerometer` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` |
 | rrc3-csv | 51 | 0 given, 51 `no_accelerometer` | 19 given, 9 `disturbed_top`, 23 `transonic` | 32 given, 9 `disturbed_top`, 6 `ends_before_landing`, 4 `one_canopy` | 36 given, 9 `disturbed_top`, 6 `ends_before_landing` |
 | rrc3-rff | 6 | 0 given, 6 `no_accelerometer` | 0 given, 1 `disturbed_top`, 5 `short_pad` | 0 given, 1 `disturbed_top`, 5 `short_pad` | 0 given, 1 `disturbed_top`, 5 `short_pad` |
@@ -714,7 +714,7 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `clock_out_of_order` | 7 | `4ea3b7a8a4d4119c` | none |
 | `disturbed_top` | 76 | `073f4a6678b4bb0b` | none |
 | `axis_unstated` | 136 | `02edef1d0ad13443` | none |
-| `gravity_unstated` | 14 | `3126596d71a32b10` | none |
+| `gravity_unstated` | 10 | `3126596d71a32b10` | none |
 | `one_canopy` | 185 | `0040ac8c3e5af57b` | none |
 | `short_leg` | 11 | `17f790bd96cb9241` | none |
 

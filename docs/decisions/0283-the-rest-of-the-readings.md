@@ -1,7 +1,7 @@
 # ADR-283: The rest of the readings: an axial accelerometer settled by three witnesses, burnout where the thrust's fall ends, and the main found back from landing at the ground's density (2026-10-18)
 
 - **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set)
-- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee), and is a floor where the part clipped. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor at the top speed's time. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, every tuning flight with a barometer that came down under two canopies had its main's opening found, and no main was named on a flight under one, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 180, burnout on 430, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
+- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee), and is a floor where the part clipped. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor at the top speed's time. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, every tuning flight with a barometer that came down under two canopies had its main's opening found, and no main was named on a flight under one, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 184, burnout on 439, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
 
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
@@ -11,6 +11,7 @@
 [i779]: https://github.com/nrdptel/fusionspace-eridanus/issues/779
 [i780]: https://github.com/nrdptel/fusionspace-eridanus/issues/780
 [i781]: https://github.com/nrdptel/fusionspace-eridanus/issues/781
+[i787]: https://github.com/nrdptel/fusionspace-eridanus/issues/787
 
 **Context.** ADR-280's M7.2c row asks for the top acceleration from the accelerometer, marked clipped
 at the part's stated range; burnout, measured from the accelerometer or derived from the speed's
@@ -28,8 +29,12 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    the family says its readings hold gravity and the part's range where it states one; any other
    column that names the axis is read with neither. A board's three axes don't say which lies along
    the rocket, and their magnitude never falls below zero at burnout: `axis_unstated`. A part
-   mounted nose down is turned over where its largest reading before apogee is negative. A sample
-   that repeats the time before it is left out, the first kept, as AltOS's primary track keeps it.
+   mounted nose down is turned over where the cleaned trace's (§3) first reading past 2 g is
+   negative: a pad reads 1 g or 0 either way up and a rocket leaves it at 3 g or more, so that
+   reading is the thrust's, while a canopy's shock may be the largest. A sample that isn't a
+   number is left out, and so is one that repeats the time before it, the first kept, as AltOS's
+   primary track keeps it. A part sampled faster than every 0.002 s, the tuning set's fastest, is
+   `sampled_too_fast`.
 2. **Gravity by three witnesses,** each within 0.25 g: the family's word; the pad, read off the
    accelerometer itself as the steady level before the thrust lifts it by 1 g, no later than
    liftoff's latest time by the heights (about 1 g holds gravity, about 0 doesn't); and the coast's
@@ -37,16 +42,21 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    (about 0 holds gravity, about −1 g doesn't). A pad or coast that reads neither says nothing.
    Gravity is settled when one witness or more says and none disagrees; otherwise
    `gravity_unstated`.
-3. **The top acceleration** is the highest specific force from the log's start to apogee. Its
-   bound adds a tenth of it for the part's scale, 0.05 g of bias, how far the pad strays from its
+3. **The thrust and the top acceleration.** The turn-over, the thrust's end and burnout are found
+   on a cleaned trace: a Hampel filter over 0.1 s at five robust standard deviations (Pearson et
+   al., 2015), HPR Sim's choice, which takes out a charge's shock or one bad sample and keeps a
+   step. The thrust ends where the cleaned trace's 0.05 s mean falls through zero after its first
+   reading past 2 g. The top acceleration is the highest specific force from the log's start to
+   there, or to apogee with no such reading, read off the samples themselves. Its bound adds a tenth of it for the part's scale, 0.05 g of bias, how far the pad strays from its
    level, `g (1 − cos 20°)` for a part that zeroed gravity on a tilted rail, five times the noise
    measured within 0.5 s of it, a step, and the jump to a neighboring sample. It is clipped where it
    reaches the part's stated range, within two steps and 0.25 g, or holds flat at its top over
    Debrief's run, flat meaning within Debrief's tolerance narrowed to half the part's noise where
-   that is less, never below half a step. A clipped top is a floor.
-4. **Burnout** is where the thrust's fall ends: the least specific force after it falls through
-   zero, on a 0.05 s mean. Its reading is the first sample within twice the averaged noise bound of
-   the least, less half the window; its bound their span, an interval and the window. With no
+   that is less, never below half a step. A clipped top is a floor, marked `is_floor`.
+4. **Burnout** is where the thrust's fall ends: the least of the cleaned trace's 0.05 s mean,
+   `2h + 1` samples, after it falls through zero. Its reading is the first sample within twice the
+   averaged noise bound of the least, less half the window; its bound their span, an interval and
+   the window's `2h` intervals. With no
    climb back of four noise bounds before apogee, or a least within three of zero, the
    accelerometer gives none, and burnout is the top speed's time: a floor, as a rocket gains speed
    only while the thrust beats drag and weight.
@@ -68,8 +78,9 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    reading's errors over every log, the mean, the least and the most, beside the mean bound, are
    in the [report][report].
 
-**Rejected, with the measurement that ruled each out.** Each was measured once, on this
-milestone's work, with the rule put back in the code; no check reruns them.
+**Rejected, with the measurement that ruled each out.** Each was measured once, when the rule was
+chosen, with the rule put back in the code; no check reruns the counts, while the unit test named
+in a row fails with its rule put back.
 
 | Rule | Ruled out by |
 |---|---|
@@ -77,6 +88,9 @@ milestone's work, with the rule put back in the code; no check reruns them.
 | Flat within the part's whole noise | still 17 such tops, on smooth thrust crests read at 20 Hz |
 | The pad as the samples before liftoff less its bound | no pad on most Raven logs, which start about 0.5 s before liftoff against a liftoff bound near 0.9 s: 69 of the 80 Raven CSV records were withheld as `gravity_unstated` |
 | The family's word and the pad alone | the Raven's family doesn't say, and its logs that start in the thrust have no pad; the coast settles them |
+| Turning the trace over where the climb's largest reading is negative | a canopy's shock past the thrust turned a trace over: `a_spike_neither_tops_nor_turns_the_trace` |
+| The top searched to apogee | a charge's or a canopy's shock in the coast was taken for the top: the same test |
+| The thrust's end and burnout found on the samples, uncleaned | one sample of −60 g in the thrust moved burnout off its bound: the same test |
 | Refusing an accelerometer clock that repeats a time | withheld 48 of the 50 AltOS CSV records as `clock_out_of_order` |
 | Debrief's burnout mark, the first reading at or below zero | comes before burnout by as long as the thrust takes to tail off below the drag |
 | The reading at the first near-least sample, uncorrected for the mean | took up to 0.778 of its bound on the tuning set's accelerometer logs, against 0.433 corrected |
@@ -90,6 +104,8 @@ milestone's work, with the rule put back in the code; no check reruns them.
   20 Hz is quieter than half its 49 mg step, 19.8 mg by the synthetic flights' noise model, and
   writes a thrust's plateau as one value, so a plateau as long as Debrief's run reads as flat: 4
   tuning-set tops, all on it, all floors, which can't flatter it.
+- Burnout's averaged noise is the samples' over √(2h + 1), as if each sample's noise were its
+  own; a part whose noise runs from sample to sample would read a bound too narrow ([#787][i787]).
 - The coast witness assumes the drag in the last second before apogee's earliest time is under
   0.25 g. A rocket still fast at apogee, arcing over, reads its drag there; the witness then says
   nothing, or, past 0.75 g, could disagree with a family's word and withhold the reading.

@@ -176,7 +176,7 @@ pages = [
 ]
 kind = "spec"
 wanted = "real"
-not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a part held at its stated range, which no tuning flight reaches; and a canopy's filling time, as the synthetic canopies open at once"
+not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a part held at its stated range, which no tuning flight reaches; a thrust's plateau that a quiet part writes as one value, read as clipped and so given only as a floor; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once"
 issue = 663
 
 [[row.searched]]

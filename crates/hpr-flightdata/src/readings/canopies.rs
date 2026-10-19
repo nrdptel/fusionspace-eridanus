@@ -21,14 +21,15 @@
 //!
 //! **Its bound.** A fit centered half a window before the opening sees the drogue's descent alone,
 //! faster than the mark, so the run starts no sooner than half a window and a sample before the
-//! opening. After the opening the main slows the descent as drag does a falling body,
-//! `dv/dt = −g (v²/v_m² − 1)`, from any speed to the mark `v₁` within
+//! opening. After the opening the main slows the descent as quadratic drag does a falling body,
+//! `dv/dt = −g (v²/v_m² − 1)` (J. R. Taylor, *Classical Mechanics*, 2005, §2.4), from any speed
+//! to the mark `v₁` within
 //! `τ = (v_m / 2g) ln((v₁ + v_m)/(v₁ − v_m))`, where `v_m` is the main's rate at the opening's
 //! height: the rate near the ground grown by `exp(h/2H)`, since a canopy's rate goes as the air's
 //! density to the −½ and the troposphere's density scale height `H` is no less than
 //! [`DENSITY_SCALE_HEIGHT_M`]. So the run starts no later than `τ`, half a window and a sample
-//! after the opening; the bound adds a second interval as margin. A canopy's filling time isn't in it: the synthetic flights open each canopy
-//! at once.
+//! after the opening; the bound adds a second interval as margin. A canopy's filling time isn't
+//! in it: the synthetic flights open each canopy at once.
 //!
 //! **Each leg's rate** is the filtered height it loses over the time it takes: the drogue's from
 //! apogee to the main's opening, the main's from there to landing, or from apogee when the descent
@@ -104,7 +105,8 @@ pub(super) fn read(
     // Each rate at the ground's density: a canopy's rate goes as the density to the −½, so one
     // canopy falls faster up high, and from a high apogee would pass the mark as a drogue does.
     // Scaled by the troposphere's least scale height, it is if anything slowed with height, to
-    // 21.5 km up on a day 15 K cold (docs/physics/log-readings.md, what it leaves out).
+    // 21.3 km above a sea-level pad on a day 15 K cold, 17.7 km above a pad 1,500 m up
+    // (docs/physics/log-readings.md, what it leaves out).
     let rate = |k: usize| {
         slope_over(time, filtered, k, window_s)
             .map(|v| -v * (-(filtered[k] - pad).max(0.0) / (2.0 * DENSITY_SCALE_HEIGHT_M)).exp())

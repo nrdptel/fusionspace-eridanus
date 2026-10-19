@@ -634,7 +634,7 @@ Each reading's errors, the reading less the truth, over every tuning flight and 
 | descent rate | 7154 | -0.0329 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
 | top acceleration | 280 | 0.659 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
 | top acceleration, a floor | 4 | -4.49 m/s² | -7.55 m/s² | -1.58 m/s² | 12.7 m/s² |
-| burnout | 259 | -0.00683 s | -0.0943 s | 0.0544 s | 0.653 s |
+| burnout | 259 | -0.00699 s | -0.0943 s | 0.0544 s | 0.65 s |
 | burnout, a floor | 1237 | -0.242 s | -1.33 s | 0.718 s | 1.3 s |
 | drogue rate | 2827 | 0.0378 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
 | main opening | 2827 | 0.725 s | -0.778 s | 5.3 s | 2.04 s |

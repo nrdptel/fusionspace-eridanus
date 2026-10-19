@@ -3938,6 +3938,65 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     }
 }
 
+/// The invented log with an axial accelerometer (M7.2c): `hpr analyze` reads its top acceleration
+/// and burnout from the accelerometer, the library's readings, in JSON and in text.
+#[test]
+fn analyze_reads_an_axial_accelerometer() {
+    use hpr::hpr_flightdata::{import, readings};
+
+    const AXIAL_LOG: &str = "validation/fixtures/logs/accelerometer/axial.csv";
+    let run = |json: bool| {
+        let mut command = assert_cmd::cargo::cargo_bin_cmd!("hpr");
+        command.current_dir(root()).args(["analyze", AXIAL_LOG]);
+        if json {
+            command.arg("--json");
+        }
+        let output = command.output().unwrap();
+        assert_eq!(output.status.code(), Some(0), "{output:?}");
+        assert!(output.stderr.is_empty(), "{}", text(&output.stderr));
+        text(&output.stdout)
+    };
+    let document: Value = serde_json::from_str(&run(true)).unwrap();
+    validate("analyze.schema.json", &document);
+
+    let log = import::read(&std::fs::read(root().join(AXIAL_LOG)).unwrap()).unwrap();
+    let read = readings::read(&log);
+    let accelerometer = &document["method"]["accelerometer"];
+    assert_eq!(accelerometer["column"], "Axial accel (g)");
+    assert_eq!(accelerometer["gravity"], "in");
+    assert_eq!(accelerometer["turned_over"], false);
+    let top = read.max_acceleration.value().unwrap();
+    assert_eq!(document["max_acceleration"]["status"], "read");
+    assert_eq!(
+        document["max_acceleration"]["acceleration_m_s2"],
+        top.acceleration_m_s2
+    );
+    assert_eq!(document["max_acceleration"]["bound_m_s2"], top.bound_m_s2);
+    assert_eq!(document["max_acceleration"]["time_s"], top.time_s);
+    assert_eq!(document["max_acceleration"]["is_floor"], false);
+    assert_eq!(document["max_acceleration"]["source"], "accelerometer");
+    assert_eq!(document["max_acceleration"]["provenance"], "measured");
+    assert_eq!(document["max_acceleration"]["method"], "highest_reading");
+    let burnout = read.burnout.value().unwrap();
+    assert_eq!(document["burnout"]["status"], "read");
+    assert_eq!(document["burnout"]["time_s"], burnout.time_s);
+    assert_eq!(document["burnout"]["bound_s"], burnout.bound_s);
+    assert_eq!(document["burnout"]["is_floor"], false);
+    assert_eq!(document["burnout"]["source"], "accelerometer");
+    assert_eq!(document["burnout"]["provenance"], "measured");
+    assert_eq!(document["burnout"]["method"], "least_after_thrust");
+
+    // The invented motor's thrust ends 3.45 s into the log, and its specific force tops out near
+    // 6.7 g, gravity in (`make.py` beside the log).
+    let printed = run(false);
+    for expected in [
+        "top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s",
+        "burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer",
+    ] {
+        assert!(printed.contains(expected), "{expected:?} in\n{printed}");
+    }
+}
+
 /// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no
 /// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 #[test]

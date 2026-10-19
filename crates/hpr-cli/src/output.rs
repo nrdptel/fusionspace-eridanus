@@ -1783,6 +1783,9 @@ pub struct MaxAccelerationReading {
     pub time_s: f64,
     /// The range of the part its family states, m/s²; `null` where it doesn't.
     pub range_m_s2: Option<f64>,
+    /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
+    /// any amount. A clipped top is.
+    pub is_floor: bool,
     /// The accelerometer.
     pub source: ReadingSource,
     /// Measured, or clipped: at the part's range, or held flat at its top.

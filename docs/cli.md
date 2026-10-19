@@ -1625,9 +1625,11 @@ readings withheld still exits with 0; a file the simulator can't read exits with
 readings, it also gives the flight time, the descent under each canopy with the main's opening, and
 the top acceleration and burnout. The top acceleration comes only from an accelerometer along the
 rocket's axis, printed in m/s² and g and marked where the part clipped: working it out from the
-altitude would turn the altitude's one-foot steps into spikes of many g. A PerfectFlite has none,
+altitude would turn the altitude's one-foot steps into spikes of many g. It is what the part
+reads, the [specific force](glossary.md#specific-force), with gravity's 1 g in, where
+`hpr sim`'s `max_acceleration_m_s2` is the rocket's own acceleration. A PerfectFlite has none,
 so it is withheld as `no_accelerometer`, and burnout is printed as no sooner than the top speed's
-time less its bound, a floor ([Flight-log readings](physics/log-readings.md#the-accelerometer)). What the file states about itself, such as the altimeter's own apogee,
+time less its bound, a [floor](glossary.md#floor) ([Flight-log readings](physics/log-readings.md#the-accelerometer)). What the file states about itself, such as the altimeter's own apogee,
 is printed beside the simulator's readings, never in their place. Heights are meters above the
 altimeter's reading on the pad, with feet in brackets; times are seconds on the log's clock.
 

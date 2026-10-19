@@ -251,8 +251,9 @@ pub const ACCEL_SCALE_SHARE: f64 = 0.10;
 /// 10–50 mg the sensor-noise note calls a guess, as no source states one.
 pub const ACCEL_BIAS_M_S2: f64 = 0.05 * STANDARD_GRAVITY_MPS2;
 /// The most a rail stands from vertical, degrees: the NAR's and Tripoli's high-power safety
-/// codes allow 20° (the NAR's model rocket code allows 30°). A logger that zeroes its accelerometer on the pad takes out `g cos θ`, so standard
-/// gravity put back is off by up to `g (1 − cos 20°)`, 0.06 g.
+/// codes allow 20° (the NAR's model rocket code allows 30°). A logger that zeroes its
+/// accelerometer on the pad takes out `g cos θ`, so standard gravity put back is off by up to
+/// `g (1 − cos 20°)`, 0.06 g.
 pub const RAIL_TILT_DEG: f64 = 20.0;
 /// How near 1 g, or 0, an accelerometer's pad must read, or its coast to apogee 0 or −1 g, to
 /// settle whether gravity is in its readings, g: a 20° rail's 0.06 g, a part's zero offset and the
@@ -268,6 +269,16 @@ pub const ACCEL_NOISE_SIGMAS: f64 = 5.0;
 pub const BURNOUT_MEAN_S: f64 = 0.05;
 /// The span either side of the top acceleration its noise is measured over, s.
 pub const NOISE_SPAN_S: f64 = 0.5;
+/// The window of the Hampel filter the accelerometer's trace is cleaned with before the thrust's
+/// start and end and burnout are found on it, s: a spike narrower than half of it, a charge's
+/// shock or one bad sample, is taken out, while a step or a steady run, as the thrust's rise and
+/// fall are, is kept as it was. HPR Sim's choice; the top is still read off the samples.
+pub const SPIKE_WINDOW_S: f64 = 0.1;
+/// The Hampel filter's threshold, in robust standard deviations of its window (R. K. Pearson et
+/// al., *The Class of Generalized Hampel Filters*, EUSIPCO 2015, §2, `t`): five, as
+/// [`ACCEL_NOISE_SIGMAS`] holds the noise, so it takes out what noise alone reaches about once
+/// in 1.7 million samples. HPR Sim's choice.
+pub const SPIKE_THRESHOLD: f64 = 5.0;
 /// The least samples of an accelerometer's pad, or its coast, that settle its gravity.
 pub const PAD_MIN_SAMPLES: usize = 3;
 /// The span of the coast before apogee's earliest time whose median reading settles an
@@ -647,6 +658,9 @@ pub struct MaxAcceleration {
     pub time_s: f64,
     /// The range of the part its family states, m/s², `None` where it doesn't.
     pub range_m_s2: Option<f64>,
+    /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
+    /// any amount. A clipped top is.
+    pub is_floor: bool,
     /// The accelerometer.
     pub source: Source,
     /// Measured, or clipped: at the part's stated range, less two steps and

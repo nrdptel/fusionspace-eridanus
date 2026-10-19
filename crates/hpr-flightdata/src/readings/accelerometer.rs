@@ -2,44 +2,58 @@
 //! the rest of the readings), and burnout from the speed's peak where the accelerometer gives
 //! none.
 //!
-//! **The channel.** Only an accelerometer along the rocket's axis is read, as its family names
-//! it ([`family`]): a board's three axes don't say which lies along the axis, and their magnitude
-//! never falls below zero at burnout. Its readings are turned over where its largest reading
-//! before apogee is negative, as a part mounted nose down writes the thrust, and gravity's 1 g is
-//! put back where the logger took it out. Three witnesses say whether it did, each within
-//! [`GRAVITY_TOLERANCE_G`]: the family's word; the pad, where about 1 g holds gravity and about 0
-//! doesn't; and the coast's last [`COAST_SPAN_S`] before apogee, where a rocket falls freely but
-//! for a small drag, so about 0 holds gravity and about −1 g doesn't. The pad is read off the
-//! accelerometer itself, the steady reading before the thrust lifts it by half
+//! **The channel.** Only an accelerometer along the rocket's axis is read, as its family names it
+//! ([`family`]): a board's three axes don't say which lies along the axis, and their magnitude
+//! never falls below zero at burnout. A sample that isn't a number is left out, and a clock faster
+//! than [`MIN_INTERVAL_S`], the fastest the bounds were checked at, withholds both readings
+//! ([`Reason::SampledTooFast`]).
+//!
+//! **The thrust, on a cleaned trace.** Where the thrust starts and ends, and burnout, are found on
+//! the trace cleaned by a Hampel filter over [`SPIKE_WINDOW_S`] at [`SPIKE_THRESHOLD`]
+//! ([`hampel`]), which takes out a spike narrower than half its window, a charge's shock or one
+//! bad sample, and keeps a step or a steady run as it was. The readings are turned over where the
+//! cleaned trace's first excursion past [`LIFTOFF_ACCELERATION_M_S2`] is negative: a pad reads 1 g
+//! or 0 either way up, and a rocket leaves it at 3 g or more, so the first such excursion is the
+//! thrust's, as a part mounted nose down writes it, while a canopy's shock later, however large,
+//! is not. Gravity's 1 g is put back where the logger took it out. Three witnesses say whether it
+//! did, each within [`GRAVITY_TOLERANCE_G`]: the family's word; the pad, where about 1 g holds
+//! gravity and about 0 doesn't; and the coast's last [`COAST_SPAN_S`] before apogee, where a
+//! rocket falls freely but for a small drag, so about 0 holds gravity and about −1 g doesn't. The
+//! pad is read off the accelerometer itself, the steady reading before the thrust lifts it by half
 //! [`LIFTOFF_ACCELERATION_M_S2`], if that comes no later than liftoff's latest time by the
 //! heights; a pad or a coast that reads neither, such as a log that starts in the thrust, says
-//! nothing. Gravity is settled when one witness or more says and none disagrees; otherwise
-//! nothing is read ([`Reason::GravityUnstated`]). A sample that repeats the time before it is left
-//! out, as the primary track leaves it ([`first_at_each_time`]).
+//! nothing. Gravity is settled when one witness or more says and none disagrees; otherwise nothing
+//! is read ([`Reason::GravityUnstated`]). A sample that repeats the time before it is left out, as
+//! the primary track leaves it ([`first_at_each_time`]).
 //!
-//! **The top acceleration** is the highest reading from the log's start to apogee: the thrust
-//! less the drag, over the mass, in the climb. It is clipped where it reaches the part's range,
-//! as the family states it, or holds flat at its top for [`FLAT_TOP_SAMPLES`] samples or
-//! [`FLAT_TOP_S`], within [`FLAT_TOP_SHARE`] of it or [`FLAT_TOP_M_S2`], as Debrief tells a part
-//! that clipped (`lib/analyze/index.ts`, MIT, the project owner's own); HPR Sim narrows that to
-//! half the part's noise where it is quieter, never below half a step ([`flat_top`]).
+//! **The top acceleration** is the highest reading from the log's start to the end of the thrust,
+//! where the cleaned trace's mean over [`BURNOUT_MEAN_S`] falls through zero after its first
+//! reading past [`LIFTOFF_ACCELERATION_M_S2`] (or apogee, with no such rise): the thrust less the
+//! drag, over the mass. A charge or a canopy's shock in the coast comes after it, and isn't taken
+//! for the top. The top is read off the samples, not the cleaned trace. It is clipped where it
+//! reaches the part's range, as the family states it, or holds flat at its top for
+//! [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], within [`FLAT_TOP_SHARE`] of it or
+//! [`FLAT_TOP_M_S2`], as Debrief tells a part that clipped (`lib/analyze/index.ts`, MIT, the
+//! project owner's own); HPR Sim narrows that to half the part's noise where it is quieter, never
+//! below half a step ([`flat_top`]).
 //!
 //! **Burnout.** In the climb an accelerometer reads `(T − D)/m`: positive while the thrust beats
 //! the drag, below zero once it doesn't, and after burnout `−D/m`, which eases as the coast slows.
 //! So the reading falls through zero as the thrust tails off, and is least at burnout, where the
 //! thrust's fall ends and the drag's easing begins; the fall through zero, Debrief's mark, comes
-//! before it, by as long as the thrust takes to tail off below the drag. The trace is first
+//! before it, by as long as the thrust takes to tail off below the drag. The cleaned trace is
 //! averaged over [`BURNOUT_MEAN_S`] in whole samples, an odd count, which cuts the noise by the
-//! square root of the samples averaged and reads the least late by up to half the window. With
-//! `N` five times the averaged trace's noise ([`noise`], from the top acceleration to a second past
+//! square root of the samples averaged and reads the least late by up to half the window. With `N`
+//! five times the averaged trace's noise ([`noise`], from the top acceleration to a second past
 //! the fall through zero) and a step, an averaged sample lies within `N` of its truth but about
-//! once in 1.7 million, so the samples next to burnout read within `2N` of the least. The thrust falls steeply and the coast's drag eases slowly, so
-//! burnout lies near the first such sample: the reading is the first, less half the window, and
-//! its bound the span of those samples, an interval, as a part's filter spreads a thrust cut off
-//! at once over about a sample, and the window, or two intervals if that is more. The search runs
-//! from the fall through zero until the averaged trace climbs `4N` above its least so far, as the
-//! coast's easing drag lifts it. If it never does before apogee, or the least lies within `3N` of
-//! zero, too little drag to see, the accelerometer gives no burnout.
+//! once in 1.7 million, so the samples next to burnout read within `2N` of the least. The thrust
+//! falls steeply and the coast's drag eases slowly, so burnout lies near the first such sample:
+//! the reading is the first, less half the window, and its bound the span of those samples, an
+//! interval, as a part's filter spreads a thrust cut off at once over about a sample, and the
+//! window's `2h` intervals, or two intervals if that is more. The search runs from the fall
+//! through zero until the averaged trace climbs `4N` above its least so far, as the coast's easing
+//! drag lifts it. If it never does before apogee, or the least lies within `3N` of zero, too
+//! little drag to see, the accelerometer gives no burnout.
 //!
 //! **From the speed's peak.** A rocket gains speed only while the thrust beats the drag and its
 //! weight, and after burnout its speed up falls at least as fast as gravity pulls it, so the top
@@ -53,11 +67,12 @@
 use super::{
     ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, BURNOUT_MEAN_S, Burnout,
     COAST_SPAN_S, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES, FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G,
-    Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2, MaxAcceleration, Method, NOISE_SPAN_S,
-    PAD_MIN_SAMPLES, Provenance, RAIL_TILT_DEG, Reading, Readings, Reason, SPEED_NOISE_M_S,
-    SPEED_WINDOW_S, STANDARD_GRAVITY_MPS2, Source, Withheld, clocked, local_interval, median,
-    smallest_step,
+    Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2, MIN_INTERVAL_S, MaxAcceleration, Method,
+    NOISE_SPAN_S, PAD_MIN_SAMPLES, Provenance, RAIL_TILT_DEG, Reading, Readings, Reason,
+    SPEED_NOISE_M_S, SPEED_WINDOW_S, SPIKE_THRESHOLD, SPIKE_WINDOW_S, STANDARD_GRAVITY_MPS2,
+    Source, Withheld, clocked, local_interval, median, smallest_step,
 };
+use crate::filter::hampel;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 
 /// The column the synthetic flights' loggers write their axial accelerometer under
@@ -200,6 +215,13 @@ pub(super) fn read(
         Ok(clocked) => clocked,
         Err((reason, detail)) => return withheld(reason, detail),
     };
+    // A sample that isn't a number is no reading: it is left out, the samples beside it kept.
+    let (time, raw): (Vec<f64>, Vec<f64>) = time
+        .iter()
+        .zip(&raw)
+        .filter(|(_, value)| value.is_finite())
+        .map(|(t, value)| (*t, *value))
+        .unzip();
     let apogee_s = match &heights.apogee {
         Reading::Read(apogee) => apogee.time_s,
         Reading::Withheld(Withheld { reason, detail }) => {
@@ -211,9 +233,7 @@ pub(super) fn read(
             );
         }
     };
-    let boost: Vec<usize> = (0..time.len())
-        .filter(|&k| time[k] <= apogee_s && raw[k].is_finite())
-        .collect();
+    let boost: Vec<usize> = (0..time.len()).filter(|&k| time[k] <= apogee_s).collect();
     if boost.len() < 3 {
         return withheld(
             Reason::TooShort,
@@ -223,13 +243,39 @@ pub(super) fn read(
             ),
         );
     }
-    // Turned over where the climb's largest reading is negative.
-    let largest = boost
+    // The climb's interval: a logger may sample its pad or its descent at another rate.
+    let mut steps: Vec<f64> = boost
+        .windows(2)
+        .map(|pair| time[pair[1]] - time[pair[0]])
+        .collect();
+    let interval = median(&mut steps).unwrap_or(0.0);
+    if interval < MIN_INTERVAL_S * (1.0 - 1e-3) {
+        return withheld(
+            Reason::SampledTooFast,
+            format!(
+                "the accelerometer's samples come every {interval:.3e} s, faster than the \
+                 {MIN_INTERVAL_S} s its readings were checked at"
+            ),
+        );
+    }
+    // The trace with its spikes taken out, to find the thrust's start and end and burnout on: a
+    // charge's shock or one bad sample would otherwise turn the trace over or end the thrust.
+    let clean = hampel(&raw, half_window(SPIKE_WINDOW_S, interval), SPIKE_THRESHOLD);
+    // Turned over where the thrust reads negative: the cleaned trace's first excursion past
+    // [`LIFTOFF_ACCELERATION_M_S2`] is the thrust's, as a pad reads 1 g or 0 either way up and a
+    // rocket leaves it at 3 g or more; failing one, the climb's largest cleaned reading.
+    let first = boost
         .iter()
         .copied()
-        .max_by(|a, b| raw[*a].abs().total_cmp(&raw[*b].abs()))
-        .unwrap_or(boost[0]);
-    let sign = if raw[largest] < 0.0 { -1.0 } else { 1.0 };
+        .find(|&k| clean[k].abs() >= LIFTOFF_ACCELERATION_M_S2);
+    let largest = first.unwrap_or_else(|| {
+        boost
+            .iter()
+            .copied()
+            .max_by(|a, b| clean[*a].abs().total_cmp(&clean[*b].abs()))
+            .unwrap_or(boost[0])
+    });
+    let sign = if clean[largest] < 0.0 { -1.0 } else { 1.0 };
     let g = STANDARD_GRAVITY_MPS2;
     let tolerance = GRAVITY_TOLERANCE_G * g;
     // The pad, on the accelerometer's own trace: a rocket at rest reads a steady level, which
@@ -240,8 +286,8 @@ pub(super) fn read(
         Reading::Read(liftoff) => {
             let mut start: Vec<f64> = raw.iter().take(PAD_MIN_SAMPLES).map(|v| sign * v).collect();
             let level = median(&mut start).unwrap_or(f64::NAN);
-            let rise =
-                (0..time.len()).find(|&k| sign * raw[k] - level > 0.5 * LIFTOFF_ACCELERATION_M_S2);
+            let rise = (0..time.len())
+                .find(|&k| sign * clean[k] - level > 0.5 * LIFTOFF_ACCELERATION_M_S2);
             match rise {
                 Some(rise)
                     if rise >= PAD_MIN_SAMPLES
@@ -338,8 +384,7 @@ pub(super) fn read(
         Gravity::Out => g,
     };
     let f: Vec<f64> = raw.iter().map(|v| sign * v + gravity_m_s2).collect();
-    let mut steps: Vec<f64> = time.windows(2).map(|pair| pair[1] - pair[0]).collect();
-    let interval = median(&mut steps).unwrap_or(0.0);
+    let f_clean: Vec<f64> = clean.iter().map(|v| sign * v + gravity_m_s2).collect();
     let step = smallest_step(&raw);
     let accelerometer = Accelerometer {
         column: channel.column.clone(),
@@ -349,7 +394,22 @@ pub(super) fn read(
         sample_interval_s: interval,
         step_m_s2: step,
     };
-    let top_index = boost
+    // The thrust: from its first cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
+    // cleaned trace's mean falls through zero. The top is searched up to there, so a charge or a
+    // canopy's shock in the coast isn't taken for it; with no such rise, up to apogee.
+    let mean = running_mean(&f_clean, half_window(BURNOUT_MEAN_S, interval));
+    let end = boost.last().copied().unwrap_or(0);
+    let crossing = boost
+        .iter()
+        .copied()
+        .find(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2)
+        .and_then(|rise| (rise + 1..=end).find(|&k| mean[k] <= 0.0));
+    let thrust: Vec<usize> = boost
+        .iter()
+        .copied()
+        .filter(|&k| crossing.is_none_or(|crossing| k <= crossing))
+        .collect();
+    let top_index = thrust
         .iter()
         .copied()
         .max_by(|a, b| f[*a].total_cmp(&f[*b]).then(b.cmp(a)))
@@ -387,12 +447,13 @@ pub(super) fn read(
         + jump;
     let range_m_s2 = stated.range_g.map(|range| range * g);
     let at_range = range_m_s2.is_some_and(|range| top >= range - 2.0 * step - tolerance);
-    let flat = flat_top(&f, &boost, top, interval, noise_m_s2, step);
+    let flat = flat_top(&f, &thrust, top, interval, noise_m_s2, step);
     let max_acceleration = Reading::Read(MaxAcceleration {
         acceleration_m_s2: top,
         bound_m_s2,
         time_s: time[top_index],
         range_m_s2,
+        is_floor: at_range || flat,
         source: Source::Accelerometer,
         provenance: if at_range || flat {
             Provenance::Clipped
@@ -401,7 +462,7 @@ pub(super) fn read(
         },
         method: Method::HighestReading,
     });
-    let burnout = match burnout(&time, &f, &boost, top_index, step) {
+    let burnout = match burnout(&time, &f, &mean, end, top_index, step, interval) {
         Ok((time_s, bound_s)) => Reading::Read(Burnout {
             time_s,
             bound_s,
@@ -464,37 +525,25 @@ fn flat_top(
     longest >= least
 }
 
-/// Burnout from the accelerometer: its time and bound, or why the accelerometer gives none.
-fn burnout(
-    time: &[f64],
-    f: &[f64],
-    boost: &[usize],
-    top_index: usize,
-    step: f64,
-) -> Result<(f64, f64), String> {
-    let Some(end) = boost.last().copied() else {
-        return Err("the accelerometer has no samples before apogee".to_owned());
-    };
-    // The trace averaged over [`BURNOUT_MEAN_S`], `2h + 1` samples, which cuts its noise by
-    // √(2h + 1) and spreads burnout over the window.
-    let mut steps: Vec<f64> = time[top_index..=end]
-        .windows(2)
-        .map(|pair| pair[1] - pair[0])
-        .collect();
-    let interval = median(&mut steps).unwrap_or(0.0);
+/// The samples either side of a window `span_s` long holds, at `interval`: half the span in
+/// intervals, rounded, at an interval no shorter than [`MIN_INTERVAL_S`].
+fn half_window(span_s: f64, interval: f64) -> usize {
     #[expect(
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss,
-        reason = "a positive count of samples, rounded"
+        reason = "a positive count of samples, rounded: at MIN_INTERVAL_S a span of a second holds \
+                  250 either side"
     )]
-    let h = if interval > 0.0 {
-        (0.5 * BURNOUT_MEAN_S / interval).round() as usize
-    } else {
-        0
-    };
-    let mean: Vec<f64> = (0..=end)
+    let half = (0.5 * span_s / interval.max(MIN_INTERVAL_S)).round() as usize;
+    half
+}
+
+/// The mean of `values` over `half` samples either side of each, the window cut short at the ends.
+fn running_mean(values: &[f64], half: usize) -> Vec<f64> {
+    let last = values.len().saturating_sub(1);
+    (0..values.len())
         .map(|k| {
-            let window = &f[k.saturating_sub(h)..=(k + h).min(end)];
+            let window = &values[k.saturating_sub(half)..=k.saturating_add(half).min(last)];
             #[expect(
                 clippy::cast_precision_loss,
                 reason = "a window of a few samples converts exactly"
@@ -502,7 +551,24 @@ fn burnout(
             let count = window.len() as f64;
             window.iter().sum::<f64>() / count
         })
-        .collect();
+        .collect()
+}
+
+/// Burnout from the accelerometer: its time and bound, or why the accelerometer gives none. `f`
+/// is the trace, `mean` its cleaned twin averaged over [`BURNOUT_MEAN_S`] at `interval`, `end` the
+/// last sample before apogee and `top_index` the top acceleration's.
+fn burnout(
+    time: &[f64],
+    f: &[f64],
+    mean: &[f64],
+    end: usize,
+    top_index: usize,
+    step: f64,
+    interval: f64,
+) -> Result<(f64, f64), String> {
+    // The trace averaged over [`BURNOUT_MEAN_S`], `2h + 1` samples, which cuts its noise by
+    // √(2h + 1) and spreads burnout over the window.
+    let h = half_window(BURNOUT_MEAN_S, interval);
     let Some(crossing) = (top_index + 1..=end).find(|&k| mean[k] <= 0.0) else {
         return Err(
             "the accelerometer never reads below zero between its top and apogee, so it shows \
@@ -548,7 +614,12 @@ fn burnout(
     let near: Vec<usize> = (crossing..stop)
         .filter(|&k| mean[k] <= least.0 + 2.0 * n)
         .collect();
-    let (first, last) = (near[0], near[near.len() - 1]);
+    // Never empty: the least's own sample lies in `crossing..stop` and within `2N` of itself.
+    let (Some(&first), Some(&last)) = (near.first(), near.last()) else {
+        return Err(
+            "the accelerometer's least reading after the thrust can't be placed".to_owned(),
+        );
+    };
     // The averaged trace's least lies from two intervals before the first such sample, one for
     // the sample next to it and one for the part's filter, which spreads a thrust cut off at once
     // over about a sample, to an interval after the last; burnout lies within half the average's
@@ -953,6 +1024,185 @@ mod tests {
         assert!(burnout.is_floor);
         assert_eq!(burnout.provenance, Provenance::Derived);
         assert!(burnout.time_s - 4.0 <= burnout.bound_s, "{burnout:?}");
+    }
+
+    /// A charge's shock in the coast, larger than the thrust, isn't taken for the top, and one
+    /// sample of −60 g in the thrust neither turns the trace over nor moves burnout.
+    #[test]
+    fn a_spike_neither_tops_nor_turns_the_trace() {
+        let base = |k: usize, t: f64| specific_force(t) + jitter(k, 0.3);
+        // A 12 g shock for 30 ms at 7.5 s, half a second before apogee.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                if (7.5..7.53).contains(&t) {
+                    12.0 * G
+                } else {
+                    base(k, t)
+                }
+            },
+        ));
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!(top.time_s < 4.1, "{top:?}");
+        assert!(!readings.accelerometer.as_ref().unwrap().turned_over);
+        // A canopy's shock of −20 g for 0.2 s at 7 s, too long for the filter: the thrust's 6 g
+        // still comes first, so the trace isn't turned over.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                if (7.0..7.2).contains(&t) {
+                    -20.0 * G
+                } else {
+                    base(k, t)
+                }
+            },
+        ));
+        assert!(!readings.accelerometer.as_ref().unwrap().turned_over);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        // One sample of −60 g at 3.3 s, in the thrust.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                if (t - 3.3).abs() < 1e-9 {
+                    -60.0 * G
+                } else {
+                    base(k, t)
+                }
+            },
+        ));
+        assert!(!readings.accelerometer.as_ref().unwrap().turned_over);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        let burnout = readings.burnout.value().unwrap();
+        assert!(!burnout.is_floor, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+    }
+
+    /// A sample that isn't a number is left out, and the readings stand without it.
+    #[test]
+    fn a_sample_that_is_no_number_is_left_out() {
+        for bad in [f64::NAN, f64::NEG_INFINITY, f64::INFINITY] {
+            let readings = read_all(&log(
+                LogFormat::GenericTable,
+                "Axial accel",
+                0.01,
+                |k, t| {
+                    if (t - 3.8).abs() < 1e-9 {
+                        bad
+                    } else {
+                        specific_force(t) + jitter(k, 0.3)
+                    }
+                },
+            ));
+            let top = readings.max_acceleration.value().unwrap();
+            assert!(
+                (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+                "{bad}: {top:?}"
+            );
+            let burnout = readings.burnout.value().unwrap();
+            assert!(!burnout.is_floor, "{bad}: {burnout:?}");
+            assert!(
+                (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+                "{bad}: {burnout:?}"
+            );
+        }
+    }
+
+    /// An accelerometer sampled faster than its readings were checked at is withheld, as a height
+    /// track is, and burnout falls back to the top speed.
+    #[test]
+    fn an_accelerometer_sampled_too_fast_is_withheld() {
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.001,
+            |_, t| specific_force(t),
+        ));
+        assert_eq!(
+            readings.max_acceleration.reason(),
+            Some(Reason::SampledTooFast)
+        );
+        assert!(readings.accelerometer.is_none());
+        assert!(readings.burnout.value().unwrap().is_floor);
+    }
+
+    /// A top that reaches the part's range in one sample, with no flat run, is clipped by the
+    /// range alone: the same trace with no range stated is measured.
+    #[test]
+    fn a_top_reaching_the_range_in_one_sample_is_clipped() {
+        // Peaking at 200 g at 3.5 s, Fluctus's stated range.
+        let peak = |t: f64| {
+            if t < 3.0 {
+                G
+            } else {
+                39.8 * (specific_force(t) - G) + G
+            }
+        };
+        let fluctus = read_all(&log(
+            LogFormat::FluctusCsv,
+            "vert-accel (m/s2)",
+            0.01,
+            |_, t| peak(t),
+        ));
+        let top = fluctus.max_acceleration.value().unwrap();
+        assert_eq!(top.provenance, Provenance::Clipped, "{top:?}");
+        let unstated = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |_, t| peak(t),
+        ));
+        let top = unstated.max_acceleration.value().unwrap();
+        assert_eq!(top.provenance, Provenance::Measured, "{top:?}");
+    }
+
+    /// Burnout's refusals, each by its own words: a coast that never climbs back from its least
+    /// before apogee, and a least too near zero to tell from the noise.
+    #[test]
+    fn burnout_refuses_a_coast_it_cant_tell() {
+        let dt = 0.01;
+        let time: Vec<f64> = (0..=790).map(|i| f64::from(i) * dt).collect();
+        let try_burnout = |drag_g: f64, back: bool| {
+            let f: Vec<f64> = time
+                .iter()
+                .enumerate()
+                .map(|(k, &t)| {
+                    let coast = if back && t >= 7.5 { G } else { -drag_g * G };
+                    (if t < 4.0 { specific_force(t) } else { coast }) + jitter(k, 0.3)
+                })
+                .collect();
+            let mean = running_mean(&f, half_window(BURNOUT_MEAN_S, dt));
+            let top = (0..f.len()).max_by(|a, b| f[*a].total_cmp(&f[*b])).unwrap();
+            burnout(&time, &f, &mean, time.len() - 1, top, 0.0, dt)
+        };
+        // A steady drag to the log's end: no climb back.
+        let error = try_burnout(0.6, false).unwrap_err();
+        assert!(error.contains("doesn't climb"), "{error}");
+        // A drag of 0.02 g, then the canopy's 1 g: back, but the least is within 3N of zero.
+        let error = try_burnout(0.02, true).unwrap_err();
+        assert!(error.contains("too little drag"), "{error}");
+        // The same at 0.6 g reads.
+        assert!(try_burnout(0.6, true).is_ok());
     }
 
     /// The noise of a straight line is 0; of uniform noise, its σ within a few percent.
