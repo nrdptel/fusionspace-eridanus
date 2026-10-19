@@ -236,7 +236,7 @@ There are nine methods:
 | landing | the first sample after apogee back within the pad's allowance that stays below it, 3 m (9.8 ft) and a step for a second, and no sooner than a fall from rest in vacuum could lose that height | `back_on_the_pad` | `measured` |
 | flight time | landing's time less liftoff's | `liftoff_to_landing` | `measured` |
 | mean descent rate | the filtered height lost from apogee to landing, over the time taken, part of landing's reading | | |
-| top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time, gravity in | `highest_reading` | `measured`, or `clipped` |
+| top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time (the log's start if liftoff is withheld), gravity in | `highest_reading` | `measured`, or `clipped` |
 | burnout | from the accelerometer: where its reading is least after it falls through zero, the end of the thrust's fall | `least_after_thrust` | `measured` |
 | | without it: no sooner than the top speed's time, a floor | `speed_peak` | `derived` |
 | drogue descent | the filtered height lost from apogee to the main's opening, over the time taken | `leg_chord` | `derived` |
@@ -363,8 +363,9 @@ step: a part at its range writes one value, while a thrust's plateau read by a q
 scatters by its noise. Tried when the rule was chosen, Debrief's tolerance alone called 82 of the
 tuning set's 284 tops clipped, though none reaches its part's range ([ADR-283][adr-283]). A
 clipped top is a [**floor**](../glossary.md#floor): the truth is no lower than the reading less its
-bound, and may be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped`, and gives the part's
-range as `range_m_s2` where the family states one; `hpr analyze` says the top may have been higher.
+bound, and may be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped`, and
+gives the part's range as `range_m_s2` where the family states one; `hpr analyze` says the top may
+have been higher.
 
 **Burnout from the accelerometer.** In the climb the reading is $(T - D)/m$, the thrust $T$ less the
 drag $D$ over the mass $m$: above zero while the thrust beats the drag, below zero once it doesn't,
@@ -446,8 +447,8 @@ height, with $H = RT/(g - RL)$ for air's gas constant $R$ and the temperature $T
 the bounds allow, the tropopause's 216.65 K less 15 K, $H$ is 7,289 m (23,914 ft), taken down to
 7,000 m (22,966 ft). In the troposphere a canopy's rate grows with height by no more than
 $\exp(h/2H)$ at the least $H$, so the scaling can only slow a rate read high up, never quicken it,
-and one canopy doesn't read as two. Compared at each rate's own density, when the rule was chosen, a
-tuning flight that opened one canopy at apogee was named a main.
+and one canopy doesn't read as two. When the rule was chosen, comparing each rate at its own
+density named a main on a tuning flight that had opened one canopy at apogee.
 
 **A drogue, or one canopy.** A drogue came before the main if the descent from apogee to the
 opening fell faster than 1.4 times the main's rate, by its median, as Debrief asks; and, HPR Sim
