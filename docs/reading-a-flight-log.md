@@ -62,8 +62,12 @@ samples](format/flight-logs.md#formats-that-need-samples) ([evidence row G9](evi
 > however high it stands ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a
 > charge's transient at the top), and some tops withheld as `disturbed_top` are the rocket's own
 > ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a coast's own top
-> from a disturbed one). For a record or a certification, the altimeter's own reading is the one to
-> log. The rules behind each reading are on [Flight-log readings](physics/log-readings.md), with
+> from a disturbed one). The main's opening leaves out a canopy's filling time
+> ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)), a fall under no canopy is
+> read as one canopy's ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)), and a
+> board's three axes give no top acceleration
+> ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). For a record or a
+> certification, the altimeter's own reading is the one to log. The rules behind each reading are on [Flight-log readings](physics/log-readings.md), with
 > what they were checked against. A reading the log can't support is left out and says why, rather
 > than printed as a number.
 
@@ -295,7 +299,10 @@ below is the one [`hpr analyze`](cli.md#hpr-analyze) prints for the same log.
 - **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With
   no accelerometer, burnout is the top speed's time, a floor. A rocket gains speed only while its
   thrust beats the drag and its weight, so the motor burned out no sooner than that time less the
-  bound, and may have burned on after it by any amount. The true burnout is 2.10 s.
+  bound, and may have burned on after it by any amount. The true burnout is 2.10 s. The floor is
+  loose by design: on the synthetic flights' tuning set the top speed's time came on average
+  0.24 s before the true burnout, from 1.33 s before it to 0.72 s after, and the floor lies its
+  bound, about 1.3 s, earlier still ([Checked against](physics/log-readings.md#checked-against)).
 - **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
   rocket touches down 0.34 s later, at 6 m/s (20 ft/s) under its main.
 - **The flight time**, 45.00 s, within 2.91 s: landing's time less liftoff's. The true flight time
