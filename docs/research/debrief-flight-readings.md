@@ -7,7 +7,7 @@ rediscovered. **How far to trust it:** numbers attributed to "the corpus" were m
 against private flight logs, so they are stated as figures without naming the flights.
 
 Debrief is `nrdptel/fusionspace-debrief`, Neer's own MIT-licensed browser flight-log analyzer, now
-sunset (ADR-046). Everything below was read at commit `9e72db8`; paths are relative to that
+sunset (ADR-046). Everything below was read at commit `06b5272`; paths are relative to that
 repository and to the local mirror `refs/fusionspace-debrief`, which `cargo xtask refs fetch`
 brings down. A citation of the form `:2194-2205` continues the file named just before it.
 **Debrief's claims are leads**: nothing here has been re-derived in Rust, and every number hpr

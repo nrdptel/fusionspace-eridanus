@@ -2,7 +2,7 @@
 
 Loft (`nrdptel/fusionspace-loft`, MIT, Neer's own) was the TypeScript predecessor. This file records
 what it modeled, where it was wrong or weak, the format quirks it found, the tests worth porting,
-and the process mistakes to avoid. It covers Loft at `64f51ef1b3`; evidence paths are relative to
+and the process mistakes to avoid. It covers Loft at `553da8298a`; evidence paths are relative to
 `refs/fusionspace-loft`. Private-corpus facts appear only as counts and error statistics.
 
 **Rules.** Each `L` row names its milestones (the first owns the tests) and the tests to write.
