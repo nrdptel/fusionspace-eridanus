@@ -278,7 +278,7 @@ landing           37.40 s, within 1.46 s; 27.50 s from apogee, at 9.9 m/s (32 ft
 flight time       36.00 s, within 2.55 s
 drogue descent    withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 16.0 m/s up to the main's opening, the mark 1.6 times the rate near the ground, 10.0 m/s, or 3 m/s more if that is more, and on median faster than 1.4 times that rate: the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one, and the main's descent is the whole descent's, from apogee
 main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), from apogee at 9.90 s to landing at 37.40 s, 273.0 m (896 ft) to 0.7 m (2 ft) up
-top acceleration  withheld: the accelerometer `Axial Accel (Gs)`: the log holds no pad to tell by; the log holds no coast to apogee to tell by; its thrust says neither: as written, it never reads past 2 g either way up from liftoff's earliest time to apogee: none of them says which way up it reads
+top acceleration  withheld: the accelerometer `Axial Accel (Gs)`: no pad is read to tell by; no coast to apogee is read to tell by; its thrust says neither: as written, it never reads past 2 g either way up from liftoff's earliest time (the log's start where liftoff is withheld) to apogee: none of them says which way up it reads
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or

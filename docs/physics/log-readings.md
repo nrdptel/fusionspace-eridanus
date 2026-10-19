@@ -316,7 +316,8 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
 - **the coast,** the last 1 s before apogee's earliest time, read only where a coast was flown:
   after liftoff's latest time, after the trace first moves from its pad, and before an apogee the
   log doesn't end at. Coasting, a part reads the drag's pull back, $-D/m$, or $-D/m - 1\,g$ where
-  gravity is taken out, so never above 0 nose up, and the mirror nose down. So 0.75 g or more below
+  gravity is taken out, so never above 0 nose up while it coasts, its thrust ended and no canopy
+  open, and the mirror nose down. So 0.75 g or more below
   0 says nose up and 0.75 g or more above it nose down, as a drag only pushes the reading further.
   Nearer 0 says nothing;
 - **the thrust,** on the cleaned trace, found as the burns are (both below), from liftoff's
@@ -325,12 +326,16 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
   a knock's rebound before the thrust: then it says nothing. Where no span holds that long, the
   sign every span shares says, a short burn's; spans both ways, or none, say nothing.
 
-The way is settled when at least one witness says and none disagrees. Otherwise the top
+The way is settled when the pad or the thrust says and no witness disagrees. The coast alone
+settles nothing: its second can hold a weak thrust still burning or a canopy opened early,
+either of which reads the other way, so it can only disagree. Otherwise the top
 acceleration and burnout from the accelerometer are withheld (`direction_unstated`), and burnout
 comes from the top speed. So are they where the trace, turned and with gravity put back, never
 passes 2 g, as a rocket leaving the pad does: it shows no thrust. The thrust's witness reads the
 trace as written, so on a log that takes gravity out a thrust under about 3 g reads under 2 g and
-says nothing, and the pad or the coast decides. A knock on the pad before liftoff's earliest time
+says nothing, and the pad decides; where the pad says nothing too, as on a log that takes gravity
+out, both readings are withheld, as on three AltOS CSV records of the sample logs whose short
+burn comes before a heavy drag. A knock on the pad before liftoff's earliest time
 isn't searched, and a canopy's shock, however large, comes after the thrust.
 
 On the tests' short burn, gravity in, the part reads 40 g for 0.3 s, then a drag of −8 g easing to
@@ -960,8 +965,8 @@ logs hold, other flyers' files kept outside the repository, and counts each read
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
-554, the top speed from 354, landing from 472, the flight time from 406, burnout from 437, the top
-acceleration from 182, the drogue's descent from 267 and the main's from 459. Each of the 27
+554, the top speed from 354, landing from 472, the flight time from 406, burnout from 434, the top
+acceleration from 179, the drogue's descent from 267 and the main's from 459. Each of the 27
 reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and

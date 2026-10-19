@@ -27,7 +27,9 @@
 //! the burns are (below), unless a span the other way comes before it, as a short burn before a
 //! heavy drag or a knock's rebound does; where none holds that long, the way every span shares, a
 //! short burn's. A pad or a coast near 0, or spans both ways or none, say nothing. The way is
-//! settled when one witness or more says and none disagrees; otherwise, or where the trace so
+//! settled when the pad or the thrust says and no witness disagrees: a coast's second can hold a
+//! weak thrust still burning or a canopy opened early, either of which reads the other way, so a
+//! coast alone settles nothing, though it can disagree; otherwise, or where the trace so
 //! turned, gravity put back, never passes [`LIFTOFF_ACCELERATION_M_S2`] and so shows no thrust,
 //! both readings are withheld ([`Reason::DirectionUnstated`]).
 //!
@@ -387,7 +389,7 @@ pub(super) fn read(
             };
             let level = |name: &str, level: Option<f64>, held: &str, out: &str| {
                 level.map_or_else(
-                    || format!("the log holds no {name} to tell by"),
+                    || format!("no {name} is read to tell by"),
                     |level| {
                         format!(
                             "its {name} reads {:.2} g ({held} holds gravity, {out} doesn't)",
@@ -438,11 +440,17 @@ pub(super) fn read(
             Reason::DirectionUnstated,
             format!(
                 "the accelerometer `{}`, read {} as its {} say{} and with gravity put back, never \
-                 reads past {:.0} g from liftoff's earliest time to apogee, as a rocket leaving \
-                 the pad does: it shows no thrust to read the top or burnout from",
+                 reads past {:.0} g from liftoff's earliest time (the log's start where liftoff \
+                 is withheld) to apogee, as a rocket leaving the pad does: it shows no thrust to \
+                 read the top or burnout from",
                 channel.column,
                 way.words(),
-                by.join(" and "),
+                match by.split_last() {
+                    Some((last, rest)) if !rest.is_empty() => {
+                        format!("{} and {last}", rest.join(", "))
+                    }
+                    _ => by.join(""),
+                },
                 if by.len() == 1 { "s" } else { "" },
                 LIFTOFF_ACCELERATION_M_S2 / g
             ),
@@ -894,7 +902,7 @@ fn thrust_witness(
     match (up.len(), down.len()) {
         (0, 0) => neither(format!(
             "as written, it never reads past {past} either way up from liftoff's earliest time \
-             to apogee"
+             (the log's start where liftoff is withheld) to apogee"
         )),
         (spans, 0) | (0, spans) => {
             let way = if down.is_empty() { Way::Up } else { Way::Down };
@@ -928,13 +936,16 @@ fn thrust_witness(
 ///   [`GRAVITY_TOLERANCE_G`] of 1 g says nose up, of −1 g nose down, and of 0 nothing;
 /// - the coast's last [`COAST_SPAN_S`] before apogee's earliest time, its median `coast`, where
 ///   one was flown: in a coast a part reads `−D/m` nose up where it holds gravity and
-///   `−D/m − g` where it doesn't, never above 0, and the mirror nose down, so a coast at 1 g
+///   `−D/m − g` where it doesn't, never above 0 while it coasts with its thrust ended and no
+///   canopy open, and the mirror nose down, so a coast at 1 g
 ///   less the tolerance or more below 0 says nose up, as far above 0 nose down, a drag only
 ///   pushing it further, and one nearer 0 nothing;
 /// - the thrust ([`thrust_witness`]).
 ///
-/// Settled when one witness or more says and none disagrees, as gravity is: the way and the
-/// witnesses that said it, or the words that say what each said.
+/// Settled when the pad or the thrust says and no witness disagrees: the way and the witnesses
+/// that said it, or the words that say what each said. The coast can only disagree: its second
+/// can hold a weak thrust still burning or a canopy opened early, either of which reads the
+/// other way, so a coast alone settles nothing.
 fn direction(
     pad: Option<f64>,
     coast: Option<f64>,
@@ -968,14 +979,16 @@ fn direction(
     .iter()
     .filter_map(|(way, by)| way.map(|way| (way, *by)))
     .collect();
+    // A coast alone settles nothing: only the pad or the thrust can.
+    let settles = said.iter().any(|(_, by)| *by != WayBy::Coast);
     match said.first() {
-        Some(&(way, _)) if said.iter().all(|(each, _)| *each == way) => {
+        Some(&(way, _)) if settles && said.iter().all(|(each, _)| *each == way) => {
             Ok((way, said.iter().map(|(_, by)| *by).collect()))
         }
         _ => {
             let level = |name: &str, level: Option<f64>, said: Option<Way>, marks: &str| {
                 level.map_or_else(
-                    || format!("the log holds no {name} to tell by"),
+                    || format!("no {name} is read to tell by"),
                     |level| {
                         format!(
                             "its {name} reads {:.2} g as written, which says {} ({marks})",
@@ -1003,6 +1016,10 @@ fn direction(
                 thrust.words,
                 if said.is_empty() {
                     "none of them says which way up it reads"
+                } else if !settles {
+                    "the coast alone says, and a coast's second can hold a weak thrust still \
+                     burning or a canopy opened early, so it doesn't settle which way up it reads \
+                     on its own"
                 } else {
                     "they disagree on which way up it reads"
                 }
@@ -1989,14 +2006,20 @@ mod tests {
 
     /// A short burn before a heavy drag ([`short_burn`]): the drag's span holds past 2 g for
     /// [`BURN_LEAST_S`] and the burn's doesn't, but the burn's comes first, so the thrust says
-    /// nothing; the pad, at 1 g, says nose up where gravity is in, and the coast, at −1 g, where
-    /// AltOS takes it out. Either way the top is the burn's 40 g, not the drag's.
+    /// nothing; the pad, at 1 g, says nose up where gravity is in, and the top is the burn's
+    /// 40 g, not the drag's. Where AltOS takes gravity out, its pad's 0 says nothing and the
+    /// coast's −1 g alone settles nothing: withheld, never turned over.
     #[test]
     fn a_short_burn_before_a_heavy_drag_reads_nose_up() {
-        for (format, column, out_m_s2) in [
-            (LogFormat::GenericTable, "Axial accel", 0.0),
-            (LogFormat::AltosCsv, "acceleration", G),
-        ] {
+        let without = read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+            short_burn(t) - G + jitter(k, 0.3)
+        }));
+        let Reading::Withheld(Withheld { reason, detail }) = &without.max_acceleration else {
+            panic!("{:?}", without.max_acceleration);
+        };
+        assert_eq!(*reason, Reason::DirectionUnstated);
+        assert!(detail.contains("the coast alone says"), "{detail}");
+        for (format, column, out_m_s2) in [(LogFormat::GenericTable, "Axial accel", 0.0)] {
             let readings = read_all(&log(format, column, 0.01, |k, t| {
                 short_burn(t) - out_m_s2 + jitter(k, 0.3)
             }));
@@ -2023,10 +2046,21 @@ mod tests {
     }
 
     /// The same short burn and drag on a part mounted nose down: the pad's −1 g says so where
-    /// gravity is in, and the coast's +1 g where it is out; the top is the burn's 40 g.
+    /// gravity is in, and the top is the burn's 40 g. Where gravity is out, the coast's +1 g
+    /// alone settles nothing: withheld.
     #[test]
     fn a_short_burn_read_nose_down_reads_alike() {
-        for out_m_s2 in [0.0, G] {
+        let without = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| -(short_burn(t) - G) + jitter(k, 0.3),
+        ));
+        assert_eq!(
+            without.max_acceleration.reason(),
+            Some(Reason::DirectionUnstated)
+        );
+        for out_m_s2 in [0.0] {
             let readings = read_all(&log(
                 LogFormat::GenericTable,
                 "Axial accel",
@@ -2079,11 +2113,12 @@ mod tests {
 
     /// A thrust of 2.5 g, a thrust-to-weight of about 2.5, on AltOS, which takes gravity out:
     /// as written it reads 1.5 g, under 2 g, so the thrust says nothing, and the pad's 0 says
-    /// nothing either; the coast's −1 g, less the drag, says nose up. Where the drag after
-    /// burnout is heavy, −1.5 g, the coast reads past −2 g for over [`BURN_LEAST_S`] as written,
-    /// so the thrust says nose down, against the coast: withheld. Never turned over.
+    /// nothing either; the coast's −1 g, less the drag, says nose up, but a coast alone settles
+    /// nothing: withheld. Where the drag after burnout is heavy, −1.5 g, the coast reads past
+    /// −2 g for over [`BURN_LEAST_S`] as written, so the thrust says nose down, against the
+    /// coast: withheld. Never turned over.
     #[test]
-    fn a_weak_thrust_without_gravity_is_settled_by_the_coast() {
+    fn a_weak_thrust_without_gravity_is_withheld_not_turned() {
         let weak = |drag_g: f64| {
             move |t: f64| {
                 if t < 3.0 {
@@ -2101,21 +2136,15 @@ mod tests {
         let readings = read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
             light(t) - G + jitter(k, 0.3)
         }));
-        let accelerometer = readings.accelerometer.as_ref().unwrap();
-        assert!(!accelerometer.turned_over, "{accelerometer:?}");
-        assert_eq!(accelerometer.gravity, Gravity::Out);
-        let top = readings.max_acceleration.value().unwrap();
-        assert!(
-            (top.acceleration_m_s2 - 2.5 * G).abs() <= top.bound_m_s2,
-            "{top:?}"
-        );
-        assert!((3.0..4.5).contains(&top.time_s), "{top:?}");
+        let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(*reason, Reason::DirectionUnstated);
+        assert!(detail.contains("which says nose up"), "{detail}");
+        assert!(detail.contains("the coast alone says"), "{detail}");
         let burnout = readings.burnout.value().unwrap();
-        assert_eq!(burnout.method, Method::LeastAfterThrust, "{burnout:?}");
-        assert!(
-            (burnout.time_s - 4.5).abs() <= burnout.bound_s,
-            "{burnout:?}"
-        );
+        assert_eq!(burnout.method, Method::SpeedPeak, "{burnout:?}");
+        assert!(burnout.is_floor);
         let heavy = weak(1.5);
         let readings = read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
             heavy(t) - G + jitter(k, 0.3)
@@ -2126,6 +2155,63 @@ mod tests {
         assert_eq!(*reason, Reason::DirectionUnstated);
         assert!(detail.contains("which says nose up"), "{detail}");
         assert!(detail.contains("its thrust says nose down"), "{detail}");
+    }
+
+    /// A coast alone settles nothing, as its second can hold what reads the other way: on a
+    /// part that holds gravity, nose up on a pad tilted to read 0.5 g, which says nothing, a
+    /// 40 g burn of 0.3 s before a heavy drag leaves the thrust saying nothing, and a canopy
+    /// opened early reads 1 g through the coast's second; on AltOS, which takes gravity out, a
+    /// 2.5 g thrust, under 2 g as written, still burns into that second. Either coast says nose
+    /// down; both are withheld, never turned over.
+    #[test]
+    fn a_lone_coast_settles_nothing() {
+        let canopy = |t: f64| {
+            if t < 3.0 {
+                0.5 * G
+            } else if t < 3.3 {
+                40.0 * G
+            } else if t < 4.5 {
+                -8.0 * G + 5.1 * G * (t - 3.3) / 1.2
+            } else if t < 6.0 {
+                -2.9 * G * (6.0 - t) / 1.5
+            } else {
+                G
+            }
+        };
+        let burning = |t: f64| {
+            if t < 3.0 {
+                G
+            } else if t < 7.5 {
+                2.5 * G
+            } else if t < 8.0 {
+                -0.3 * G
+            } else {
+                G
+            }
+        };
+        for (case, readings) in [
+            (
+                "a canopy opened early",
+                read_all(&log(
+                    LogFormat::GenericTable,
+                    "Axial accel",
+                    0.01,
+                    |k, t| canopy(t) + jitter(k, 0.3),
+                )),
+            ),
+            (
+                "a thrust still burning",
+                read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+                    burning(t) - G + jitter(k, 0.3)
+                })),
+            ),
+        ] {
+            let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+                panic!("{case}: {:?}", readings.max_acceleration);
+            };
+            assert_eq!(*reason, Reason::DirectionUnstated, "{case}");
+            assert!(detail.contains("the coast alone says"), "{case}: {detail}");
+        }
     }
 
     /// An accelerometer whose clock runs late against the heights', its thrust starting at 7.6 s
@@ -2242,8 +2328,8 @@ mod tests {
 
     /// The pad and the coast say by their levels as written, each within 0.25 g: the pad 1 g
     /// nose up, −1 g nose down, 0 nothing; the coast −0.75 g or less nose up, 0.75 g or more
-    /// nose down, a drag only pushing it further. Settled when one says or more and none
-    /// disagrees.
+    /// nose down, a drag only pushing it further. Settled when the pad or the thrust says and
+    /// none disagrees; the coast alone settles nothing, but can disagree.
     #[test]
     fn the_pad_and_the_coast_say_by_their_levels() {
         let silent = ThrustWitness {
@@ -2266,12 +2352,24 @@ mod tests {
         assert_eq!(way(Some(-1.0), None, &silent), Ok(Way::Down));
         assert!(way(Some(1.26), None, &silent).is_err());
         assert!(way(Some(0.0), None, &silent).is_err());
-        assert_eq!(way(None, Some(-1.0), &silent), Ok(Way::Up));
-        assert_eq!(way(None, Some(-0.76), &silent), Ok(Way::Up));
-        assert_eq!(way(None, Some(-3.0), &silent), Ok(Way::Up));
-        assert_eq!(way(None, Some(1.3), &silent), Ok(Way::Down));
-        assert!(way(None, Some(-0.74), &silent).is_err());
-        assert!(way(None, Some(0.0), &silent).is_err());
+        for coast in [-1.0, -0.76, -3.0, 1.3, -0.74, 0.0] {
+            assert!(way(None, Some(coast), &silent).is_err(), "{coast}");
+        }
+        assert!(
+            direction(None, Some(-G), &silent)
+                .unwrap_err()
+                .ends_with("so it doesn't settle which way up it reads on its own"),
+        );
+        assert_eq!(way(None, Some(-1.0), &up), Ok(Way::Up));
+        assert_eq!(way(None, Some(-0.76), &up), Ok(Way::Up));
+        assert_eq!(way(None, Some(-3.0), &up), Ok(Way::Up));
+        assert!(way(None, Some(-0.76), &down).is_err());
+        assert_eq!(way(None, Some(-0.74), &down), Ok(Way::Down));
+        assert_eq!(way(None, Some(1.3), &down), Ok(Way::Down));
+        assert!(way(None, Some(0.76), &up).is_err());
+        assert_eq!(way(None, Some(0.74), &up), Ok(Way::Up));
+        assert_eq!(way(Some(1.0), Some(-1.0), &silent), Ok(Way::Up));
+        assert_eq!(way(Some(-1.0), Some(1.0), &silent), Ok(Way::Down));
         assert!(way(None, None, &silent).is_err());
         assert_eq!(way(None, None, &down), Ok(Way::Down));
         assert_eq!(
@@ -2283,10 +2381,7 @@ mod tests {
         assert!(way(None, Some(-1.0), &down).is_err());
         // The words say what each witness said, and whether none said or two disagree.
         let none = direction(None, None, &silent).unwrap_err();
-        assert!(
-            none.starts_with("the log holds no pad to tell by"),
-            "{none}"
-        );
+        assert!(none.starts_with("no pad is read to tell by"), "{none}");
         assert!(
             none.ends_with("none of them says which way up it reads"),
             "{none}"
