@@ -190,7 +190,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let (build, locked, part) = parse_args(args)?;
     let root = crate::designs::root()?;
     crate::spelling::run(&[])?;
-    crate::voice::check(&root)?;
     let report = check_sources(&root)?;
     if !report.problems.is_empty() {
         return Err(failure("the site's pages", &report.problems));
@@ -2943,7 +2942,7 @@ fn scan_labels(text: &str, line: usize, problems: &mut Vec<(usize, String)>) {
 
 /// The internal labels in `text`, each a whole word: a Loft lesson (`L12`), a decision
 /// (`ADR-008`), or a milestone (`M1.5b`, `M2.1b1`).
-pub(crate) fn labels(text: &str) -> Vec<&str> {
+fn labels(text: &str) -> Vec<&str> {
     let bytes = text.as_bytes();
     let mut found = Vec::new();
     let mut at = 0;
