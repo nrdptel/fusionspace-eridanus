@@ -279,7 +279,8 @@ main              6.0 m/s, opened at 21.40 s, 148 m up
 The log is of a flight invented for the tests
 ([the flight](physics/log-readings.md#checked-against)): 80 m/s (262 ft/s) at burnout, 2.1 s after
 the start of the log, and a coast with no drag to 390.3 m (1,280.5 ft) at 10.26 s. Each bound
-below is the one [`hpr analyze`](cli.md#hpr-analyze) prints for the same log.
+below is the one [`hpr analyze`](cli.md#hpr-analyze) prints for the same log; its feet are
+converted here, where `hpr analyze` rounds them up.
 
 - **Liftoff**, 0.80 s, within 0.81 s: the last sample before the altitude climbs out of the pad's
   noise allowance, at least 2 m (6.6 ft) and a step. The rocket left the pad at 0.50 s; it took 0.30 s to

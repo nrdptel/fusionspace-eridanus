@@ -236,7 +236,7 @@ There are nine methods:
 | landing | the first sample after apogee back within the pad's allowance that stays below it, 3 m (9.8 ft) and a step for a second, and no sooner than a fall from rest in vacuum could lose that height | `back_on_the_pad` | `measured` |
 | flight time | landing's time less liftoff's | `liftoff_to_landing` | `measured` |
 | mean descent rate | the filtered height lost from apogee to landing, over the time taken, part of landing's reading | | |
-| top acceleration | the axial accelerometer's highest reading from the log's start to apogee, gravity in | `highest_reading` | `measured`, or `clipped` |
+| top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time, gravity in | `highest_reading` | `measured`, or `clipped` |
 | burnout | from the accelerometer: where its reading is least after it falls through zero, the end of the thrust's fall | `least_after_thrust` | `measured` |
 | | without it: no sooner than the top speed's time, a floor | `speed_peak` | `derived` |
 | drogue descent | the filtered height lost from apogee to the main's opening, over the time taken | `leg_chord` | `derived` |
@@ -323,8 +323,8 @@ acceleration is withheld (`gravity_unstated`), and burnout comes from the top sp
 allows a 20° rail's 0.06 g, a part's zero offset and the small drag near apogee, HPR Sim's choice.
 The pad is read off the accelerometer rather than as the samples before liftoff's earliest time by
 the heights: most Raven logs start about 0.5 s before liftoff, against a liftoff bound near 0.9 s,
-and that rule withheld 69 of the 80 Raven CSV records. The coast settles the Raven's logs that start
-in the thrust, whose family doesn't say ([ADR-283][adr-283]).
+and that rule, tried when this one was chosen, withheld 69 of the 80 Raven CSV records. The coast
+settles the Raven's logs that start in the thrust, whose family doesn't say ([ADR-283][adr-283]).
 
 **The top acceleration** is the highest specific force while the motor burns. A burn runs from a
 cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero,
@@ -360,10 +360,10 @@ stated range, within two steps and 0.25 g, or holds flat at its top for 4 sample
 whichever is more samples, as Debrief tells a part that clipped. Flat means within Debrief's 0.3% of
 the top or 0.25 m/s², narrowed to half the part's noise where that is less, and never below half a
 step: a part at its range writes one value, while a thrust's plateau read by a quiet part still
-scatters by its noise. Debrief's tolerance alone called 82 of the tuning set's 284 tops clipped,
-though none reaches its part's range ([ADR-283][adr-283]). A clipped top is a
-[**floor**](../glossary.md#floor): the truth is no lower than the reading less its bound, and may be
-higher by any amount. The JSON marks it `is_floor`, its provenance `clipped`, and gives the part's
+scatters by its noise. Tried when the rule was chosen, Debrief's tolerance alone called 82 of the
+tuning set's 284 tops clipped, though none reaches its part's range ([ADR-283][adr-283]). A
+clipped top is a [**floor**](../glossary.md#floor): the truth is no lower than the reading less its
+bound, and may be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped`, and gives the part's
 range as `range_m_s2` where the family states one; `hpr analyze` says the top may have been higher.
 
 **Burnout from the accelerometer.** In the climb the reading is $(T - D)/m$, the thrust $T$ less the
@@ -386,8 +386,9 @@ eases slowly, so burnout lies near the first of them. The reading is that first 
 the window, $h$ intervals, since the average reads the least late by that much. Its bound is the
 span of those samples, an interval, and the window's $2h$ intervals, at least two intervals. If the
 averaged trace never climbs $4N$ back above its least before apogee, or the least lies within $3N$
-of zero, too little drag to see, the accelerometer gives no burnout. Nor does it after more than
-one burn: the tuning set's flights burn once, so it holds no bound for the end of a second.
+of zero, too little drag to see, the accelerometer gives no burnout. Nor does it after more than one
+burn: the tuning set's ten designs each fly one motor in one stage, so it holds no bound for the end
+of a second.
 
 On the same trace, sampled 100 times a second with a noise $\sigma$ of 0.087 m/s², the thrust falls
 through zero to −0.6 g at burnout, 4.1 s, and the drag eases to nothing by apogee, 8 s. Averaged
@@ -424,9 +425,10 @@ Walking back from landing, the run of samples whose rate stays within 1.6 times 
 These marks are Debrief's, set on its own logs.
 
 HPR Sim walks on the rate's running median over 2 s, or twice the fit where that is longer, so a
-spike of the fit's noise on a long leg doesn't end the walk, while a step, the opening, stays
-where it is. On the raw rate, the walk missed the drogue on 2 of the 87 tuning flights that came
-down under two canopies: a noise spike on a 125 s main leg stopped it 125 s after the opening.
+spike of the fit's noise on a long leg doesn't end the walk, while a step, the opening, stays where
+it is. On the raw rate, tried when the rule was chosen, the walk missed the drogue on 2 of the 87
+tuning flights that came down under two canopies: a noise spike on a 125 s main leg stopped it 125 s
+after the opening.
 
 **At the ground's density.** A canopy falls at the speed where its drag balances the weight,
 $v = \sqrt{2mg/(\rho C_D S)}$ (the [descent rate](../glossary.md#descent-rate)), so its rate goes as
@@ -443,9 +445,9 @@ atmosphere, whose temperature falls by $L$, 6.5 K/km, the density falls as $\exp
 height, with $H = RT/(g - RL)$ for air's gas constant $R$ and the temperature $T$. At the coldest
 the bounds allow, the tropopause's 216.65 K less 15 K, $H$ is 7,289 m (23,914 ft), taken down to
 7,000 m (22,966 ft). In the troposphere a canopy's rate grows with height by no more than
-$\exp(h/2H)$ at the least $H$, so the scaling can only slow a rate read high up, never quicken
-it, and one canopy doesn't read as two. Compared at each rate's own density, a tuning flight that
-opened one canopy at apogee was named a main.
+$\exp(h/2H)$ at the least $H$, so the scaling can only slow a rate read high up, never quicken it,
+and one canopy doesn't read as two. Compared at each rate's own density, when the rule was chosen, a
+tuning flight that opened one canopy at apogee was named a main.
 
 **A drogue, or one canopy.** A drogue came before the main if the descent from apogee to the
 opening fell faster than 1.4 times the main's rate, by its median, as Debrief asks; and, HPR Sim
@@ -767,8 +769,9 @@ The report also gives each reading's errors over every tuning flight and every l
 beside the mean bound the readings stated
 ([Errors on the tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)).
 An error is the reading less the truth. A floor, a burnout from the top speed or a clipped top
-acceleration, is counted apart, as it may lie any amount below the truth. A mean is given to the
-decimal place of its largest error's third figure, the digits every platform shares:
+acceleration, is counted apart, as it may lie any amount below the truth. The least, the most and
+the mean bound are to three figures, nearest; a mean is given to the decimal place of its largest
+error's third figure, the digits every platform shares:
 
 | reading | given | mean error | least | most | mean bound |
 |---|---:|---:|---:|---:|---:|
@@ -781,15 +784,15 @@ decimal place of its largest error's third figure, the digits every platform sha
 | main opening | 2,827 | 0.73 s | −0.778 s | 5.3 s | 2.04 s |
 | main rate | 5,391 | 0.04 m/s (0.13 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
 
-Burnout from the accelerometer lands within 0.0943 s of the truth, against a mean bound of
-0.651 s. A floor from the top speed comes 0.24 s before burnout on average, as a speed's peak
-should, and up to 0.718 s after it, within its bound, where the fit places the peak late. The
-main's opening is read late on average, by 0.73 s; its bound holds the time a canopy takes to
-slow the fall and half the fit. No tuning flight's true top acceleration reaches the range its part
-clips at: the nearest comes to 0.492 of it, the report says. The 4 tops read as clipped all the
-same, each a floor, are all on the ADXL375 read at 20 Hz, whose noise there, 19.8 mg by the
-synthetic flights' noise model, is under half its 49 mg step: it writes a thrust's plateau as one
-value, so a plateau as long as Debrief's run reads as flat ([ADR-283][adr-283]).
+Burnout from the accelerometer lands within 0.0943 s of the truth, against a mean bound of 0.651 s.
+A floor from the top speed comes 0.24 s before burnout on average, as a speed's peak should, and up
+to 0.718 s after it, within its bound. The main's opening is read late on average, by 0.73 s; its
+bound holds the time a canopy takes to slow the fall and half the fit. No tuning flight's true top
+acceleration reaches the range its part clips at: the nearest comes to 0.492 of it, the report says.
+The 4 tops read as clipped all the same, each a floor, are all on the ADXL375 read at 20 Hz. That is
+consistent with its noise there, 19.8 mg by the synthetic flights' noise model, being under half its
+49 mg step, so that it writes most of a thrust's plateau as one value, but no test pins a quiet part
+that reads as clipped ([ADR-283][adr-283]).
 
 On their own logs, the main's opening was found on each of the 87 tuning flights with a barometer
 that came down under two canopies, and on no log was a main named on a flight that opened one
@@ -946,11 +949,11 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   height measured straight up, which puts the limits low, not high. The tuning set's apogees reach
   4,420 m (14,500 ft), so it can't show this.
 - **More than one burn.** An air start's or a sustainer's second burn is searched for the top, but
-  the tuning set's flights burn once, so its bound isn't checked on one, and burnout then comes from
-  the speed's peak, a floor. A second burn that holds past 2 g for less than 0.5 s is taken for a
-  shock, so its top is missed and burnout is the first burn's end; a shock that holds there longer
-  reads as a burn. Where liftoff is withheld, a knock on the pad wider than the cleaning takes out
-  joins the burn, and can be taken for the top
+  the tuning set's ten designs each fly one motor in one stage, so its bound isn't checked on one,
+  and burnout then comes from the speed's peak, a floor. A second burn that holds past 2 g for less
+  than 0.5 s is taken for a shock, so its top is missed and burnout is the first burn's end; a shock
+  that holds there longer reads as a burn. Where liftoff is withheld, a knock on the pad wider than
+  the cleaning takes out joins the burn, and can be taken for the top
   ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that reads above zero
   all through the coast, as a part that zeroed off its pad's level can, never ends its burn, so its
   top is searched to apogee and its burnout comes from the speed's peak.
