@@ -573,7 +573,8 @@ format is the logger maker's. `hpr analyze` reads one and prints what it says, w
 A reading that holds one way only: the truth is no lower (or, for a time, no sooner) than the
 reading less its bound, and may lie beyond it by any amount. `hpr analyze` gives a floor where the
 log can't show the other side: a top acceleration held at the part's range, an apogee close to
-the log's end, or burnout taken from the top speed's time, before which it can't have come. The JSON marks one `is_floor`. See
+the log's end, or burnout taken from the top speed's time less its bound, before which it can't
+have come. The JSON marks one `is_floor`. See
 [Flight-log readings](physics/log-readings.md#the-accelerometer).
 
 ### Flutter

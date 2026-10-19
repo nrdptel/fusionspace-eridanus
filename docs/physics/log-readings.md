@@ -569,7 +569,7 @@ Each term, and where its size comes from:
 | the port, while accelerating | a pressure coefficient of 0.02 | the ogive-cylinder's measured −0.02 one caliber behind its shoulder below Mach 0.9 ([the Mach error note][mach] §1–2), the largest the synthetic flights draw |
 | $w$, the fit's width | 0.5 s | HPR Sim's choice; a fit cuts a peak by about $(a_1 + a_2)\, w/8$, and twice that is allowed |
 | the noise in a speed | 5 m/s (16 ft/s) | tuned on the tuning set |
-| $s_A$, the accelerometer's scale | 10% | the ADXL375 accelerometer chip's ±10% sensitivity (its datasheet, p. 3, in the [sensor noise note][noise]), the widest of the synthetic flights' parts ([the acceleration](synthetic-flights.md#the-acceleration)) |
+| $s_A$, the accelerometer's scale | 10% | the ADXL375 accelerometer chip's ±10% sensitivity (its datasheet, p. 3, in the [sensor noise note][noise], read once and not re-read against the sheet), the widest of the synthetic flights' parts ([the acceleration](synthetic-flights.md#the-acceleration)) |
 | $\beta$, the accelerometer's bias | 0.05 g | the bias the synthetic flights leave after the pad's zero, the top of the 0.01 to 0.05 g the [sensor noise note][noise] calls a guess, as no source states one |
 | a tilted rail | 0.06 g, $g(1 - \cos 20^\circ)$ | the 20° from vertical the NAR's and Tripoli's high-power safety codes allow a rail (the NAR's model rocket code allows 30°, 0.13 g): a part that zeroes on the pad takes out $g \cos\theta$ |
 | the accelerometer's noise | 5σ | measured on the log, within 0.5 s of the top, or from the top to a second past the fall through zero for burnout; a normal noise passes it, either way, about once in 1.7 million samples |
@@ -769,8 +769,10 @@ and its JSON:
 The report also gives each reading's errors over every tuning flight and every log together,
 beside the mean bound the readings stated
 ([Errors on the tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)).
-An error is the reading less the truth. A floor, a burnout from the top speed or a clipped top
-acceleration, is counted apart, as it may lie any amount below the truth. The least, the most and
+An error is the reading less the truth. Each error is held to its own reading's bound, which
+differs from flight to flight and log to log, so the least or the most may pass the mean bound; the
+mean is for scale. A floor, a burnout from the top speed or a clipped top acceleration, is counted
+apart, as it may lie any amount below the truth. The least, the most and
 the mean bound are to three figures, nearest; a mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 
@@ -795,9 +797,9 @@ consistent with its noise there, 19.8 mg by the synthetic flights' noise model, 
 49 mg step, so that it writes most of a thrust's plateau as one value, but no test pins a quiet part
 that reads as clipped ([ADR-283][adr-283]).
 
-On their own logs, the main's opening was found on each of the 87 tuning flights with a barometer
-that came down under two canopies, and on no log was a main named on a flight that opened one
-canopy or none: those are counted as none to read. On logs sampled once a second or slower, the
+On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within
+its bound, and on no log was a main named on a flight that opened one canopy or none: those are
+counted as none to read. On logs sampled once a second or slower, the
 canopies are read only where coarse steps widen the descent's fit enough to hold 5 samples;
 elsewhere they are withheld, most as `sampled_too_slowly`, some as `ends_before_landing` (up to 14
 of 171 at half a sample a second) and one as `step_too_coarse`.
