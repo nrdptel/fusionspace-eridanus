@@ -3,12 +3,12 @@
 - **Status:** accepted
 - **Summary:** M10.1b fixes five issues. The bundled motor catalog is written from its 32 public-domain curve files alone by `cargo xtask motor-catalog`, every figure the file's own (#295). `.hprz` attachment names are compared after canonical decomposition as well as case folding (#252). Open-Meteo and NOMADS write a site's coordinates to 5 decimals so a radians round trip keeps the cache key (#272). Three pages' accuracy figures are the report's, and the site's number trace now checks them (#298). A pytest pins Python's `recovery=True` flight to `hpr sim`'s bit for bit (#308).
 
-**Context.** ADR-185 split release 0.1 (M10.1) in four; M10.1b holds the five issues that touch
-the motor data, the network cache, the docs' accuracy figures, the Python binding and the `.hprz`
+**Context.** ADR-185 split release 0.1 (M10.1) in four; M10.1b holds the five issues that touch the
+motor data, the network cache, the docs' accuracy figures, the Python binding and the `.hprz`
 container. The largest is #295: `crates/hpr-motor/data/thrustcurve/catalog.json` held each bundled
-motor's statistics as ThrustCurve.org's API states them, and ThrustCurve.org grants no license
-for them and reserves copyright. The 32
-curve files are marked public domain, and their headers carry most of the same facts.
+motor's statistics as ThrustCurve.org's API states them, and ThrustCurve.org grants no license for
+them and reserves copyright. The 32 curve files are marked public domain, and their headers carry
+most of the same facts.
 
 **Decision.**
 
@@ -56,9 +56,9 @@ N3300R's length 1046 to 1060 mm. In the examples, the two-stage sustainer lights
 
 **Consequences.**
 
-- The catalog no longer depends on terms nobody stated, and every figure in it can be rebuilt from
-  committed files. The check against ThrustCurve.org's stated figures (Loft lesson L42) now runs only
-  where the gitignored capture is present.
+- The catalog no longer depends on records ThrustCurve.org grants no license for, and every figure
+  in it can be rebuilt from committed files. The check against ThrustCurve.org's stated figures
+  (Loft lesson L42) now runs only where the gitignored capture is present.
 - `hpr motors` labels its figures as worked out from the file, not as ThrustCurve.org's.
 - `.hprz` files with two spellings of one name, which unpacked as one on macOS, are now refused.
 - Breaking, as 0.x allows: `hpr motors show --json` loses its `stated` block, and the index's

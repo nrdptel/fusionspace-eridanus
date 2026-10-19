@@ -14,9 +14,9 @@ check that OpenRocket flies the very curves hpr is given for it.
 
 OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
 method names are the public API `javap` prints for the jar. The database's contents come from
-ThrustCurve.org by way of OpenRocket; their terms are unstated, so the record is written only under
-the gitignored `corpus-out/`, and so are the embedded curves' numbers, which belong to the designs'
-owners.
+ThrustCurve.org by way of OpenRocket; ThrustCurve.org grants no license for them and reserves
+copyright, so the record is written only under the gitignored `corpus-out/`, and so are the
+embedded curves' numbers, which belong to the designs' owners.
 
 Run from the repository root with the oracle environment and Java 17 (see `automatic_radius.py`):
 

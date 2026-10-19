@@ -36,7 +36,8 @@ curve it flies.
    `--jar` the jar's example designs. It finds and opens them as `mass.py` does, retrying a design
    OpenRocket refuses for a leading comment without it. The record goes to the
    gitignored `corpus-out/openrocket-motors.json` and is never committed. The database comes from
-   ThrustCurve.org through OpenRocket, with unstated terms, and the embedded curves belong to the
+   ThrustCurve.org, which grants no license for its records and reserves copyright, through
+   OpenRocket, whose database states no terms, and the embedded curves belong to the
    designs' owners. Only counts are published. OpenRocket is run, never read.
 2. **`hpr-io` takes supplied curves, by digest only.**
    - `SuppliedCurves` maps a digest to a solid motor and its `CaseSize`. It refuses a case that is

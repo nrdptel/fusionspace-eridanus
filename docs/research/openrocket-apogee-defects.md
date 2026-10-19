@@ -150,7 +150,8 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 ## 6. What this suggests
 
 - **Terms.** OpenRocket is GPL-3.0; only issue, pull-request and forum text is cited, nothing copied. The motor
-  database's curves come from ThrustCurve with unstated terms: cite impulses only.
+  database's curves come from ThrustCurve.org, which grants no license for its records and reserves
+  copyright: cite impulses only.
 - **M2.9's OpenRocket cells.** No open defect has an own-report size above 0.5% of apogee, so the list ADR-246 asks
   for holds only unsized rows: #3391 (supersonic flights, OpenRocket high), #3318 (pending fix, OpenRocket high on
   stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
