@@ -49,7 +49,7 @@ backlog; what rocketeers ask for; the competitors; and the work left. What it fo
 - **What 0.1 would expose.** No issue is `P-critical`. These would mislead or break a first
   user:
   - a `.ork` part's drag override read but never applied ([#165][i165]);
-  - the bundled catalog's statistics under unstated terms ([#295][i295]);
+  - the bundled catalog's statistics, which ThrustCurve.org grants no license for ([#295][i295]);
   - `.hprz` names colliding on macOS ([#252][i252]);
   - offline weather lookups missing their cache ([#272][i272]);
   - stale accuracy figures ([#298][i298]);
