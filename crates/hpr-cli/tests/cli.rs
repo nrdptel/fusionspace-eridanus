@@ -3877,31 +3877,10 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     let landing = read.landing.value().unwrap();
     assert_eq!(document["landing"]["time_s"], landing.time_s);
     assert_eq!(document["landing"]["bound_s"], landing.bound_s);
-    let flight = read.flight_time.value().unwrap();
-    assert_eq!(document["flight_time"]["time_s"], flight.time_s);
-    assert_eq!(document["flight_time"]["bound_s"], flight.bound_s);
-    assert_eq!(document["flight_time"]["method"], "liftoff_to_landing");
-    let burnout = read.burnout.value().unwrap();
-    assert_eq!(document["burnout"]["time_s"], burnout.time_s);
-    assert_eq!(document["burnout"]["is_floor"], true);
-    assert_eq!(document["burnout"]["method"], "speed_peak");
-    assert!(document["method"]["accelerometer"].is_null());
-    let main = read.main_descent.value().unwrap();
-    let opening = main.opening.unwrap();
-    assert_eq!(document["main_descent"]["rate_m_s"], main.rate_m_s);
     assert_eq!(
-        document["main_descent"]["opening"]["time_s"],
-        opening.time_s
+        document["landing"]["flight_time_bound_s"].as_f64(),
+        landing.flight_time_bound_s
     );
-    assert_eq!(
-        document["main_descent"]["opening"]["bound_s"],
-        opening.bound_s
-    );
-    assert_eq!(document["main_descent"]["method"], "leg_chord");
-    let drogue = read.drogue_descent.value().unwrap();
-    assert_eq!(document["drogue_descent"]["rate_m_s"], drogue.rate_m_s);
-    assert_eq!(document["drogue_descent"]["to_s"], opening.time_s);
-    assert!(document["drogue_descent"]["opening"].is_null());
     assert_eq!(
         document["landing"]["mean_descent_rate_m_s"],
         landing.mean_descent_rate_m_s
@@ -3925,73 +3904,6 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "set aside by the median",
         "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s",
         "top acceleration  withheld: the log has no accelerometer",
-        "flight time       45.00 s, within 2.91 s",
-        "drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to \
-         the main's opening at 21.40 s",
-        "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at \
-         21.40 s, within 1.06 s, to landing at 45.80 s",
-        "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
-         liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by \
-         any amount",
-    ] {
-        assert!(printed.contains(expected), "{expected:?} in\n{printed}");
-    }
-}
-
-/// The invented log with an axial accelerometer (M7.2c): `hpr analyze` reads its top acceleration
-/// and burnout from the accelerometer, the library's readings, in JSON and in text.
-#[test]
-fn analyze_reads_an_axial_accelerometer() {
-    use hpr::hpr_flightdata::{import, readings};
-
-    const AXIAL_LOG: &str = "validation/fixtures/logs/accelerometer/axial.csv";
-    let run = |json: bool| {
-        let mut command = assert_cmd::cargo::cargo_bin_cmd!("hpr");
-        command.current_dir(root()).args(["analyze", AXIAL_LOG]);
-        if json {
-            command.arg("--json");
-        }
-        let output = command.output().unwrap();
-        assert_eq!(output.status.code(), Some(0), "{output:?}");
-        assert!(output.stderr.is_empty(), "{}", text(&output.stderr));
-        text(&output.stdout)
-    };
-    let document: Value = serde_json::from_str(&run(true)).unwrap();
-    validate("analyze.schema.json", &document);
-
-    let log = import::read(&std::fs::read(root().join(AXIAL_LOG)).unwrap()).unwrap();
-    let read = readings::read(&log);
-    let accelerometer = &document["method"]["accelerometer"];
-    assert_eq!(accelerometer["column"], "Axial accel (g)");
-    assert_eq!(accelerometer["gravity"], "in");
-    assert_eq!(accelerometer["turned_over"], false);
-    let top = read.max_acceleration.value().unwrap();
-    assert_eq!(document["max_acceleration"]["status"], "read");
-    assert_eq!(
-        document["max_acceleration"]["acceleration_m_s2"],
-        top.acceleration_m_s2
-    );
-    assert_eq!(document["max_acceleration"]["bound_m_s2"], top.bound_m_s2);
-    assert_eq!(document["max_acceleration"]["time_s"], top.time_s);
-    assert_eq!(document["max_acceleration"]["is_floor"], false);
-    assert_eq!(document["max_acceleration"]["source"], "accelerometer");
-    assert_eq!(document["max_acceleration"]["provenance"], "measured");
-    assert_eq!(document["max_acceleration"]["method"], "highest_reading");
-    let burnout = read.burnout.value().unwrap();
-    assert_eq!(document["burnout"]["status"], "read");
-    assert_eq!(document["burnout"]["time_s"], burnout.time_s);
-    assert_eq!(document["burnout"]["bound_s"], burnout.bound_s);
-    assert_eq!(document["burnout"]["is_floor"], false);
-    assert_eq!(document["burnout"]["source"], "accelerometer");
-    assert_eq!(document["burnout"]["provenance"], "measured");
-    assert_eq!(document["burnout"]["method"], "least_after_thrust");
-
-    // The invented motor's thrust ends 3.45 s into the log, and its specific force tops out near
-    // 6.7 g, gravity in (`make.py` beside the log).
-    let printed = run(false);
-    for expected in [
-        "top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s",
-        "burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }

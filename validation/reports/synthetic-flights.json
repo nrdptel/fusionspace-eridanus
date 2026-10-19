@@ -1,5 +1,5 @@
 {
-  "about": "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held to their bounds on the tuning set, with their errors (M7.2b, M7.2c), written by `cargo xtask synthetic`.",
+  "about": "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held to their bounds on the tuning set (M7.2b), written by `cargo xtask synthetic`.",
   "sets": [
     {
       "set": "tuning",
@@ -212,7 +212,6 @@
       "quantity": "liftoff",
       "given": 38,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 24,
         "error": 0.345,
@@ -225,7 +224,6 @@
       "quantity": "apogee_height",
       "given": 38,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 142.0,
@@ -238,7 +236,6 @@
       "quantity": "apogee_time",
       "given": 38,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 26,
         "error": -0.228,
@@ -253,7 +250,6 @@
       "withheld": {
         "transonic": 24
       },
-      "absent": 0,
       "worst": {
         "flight": 127,
         "error": -8.61,
@@ -268,7 +264,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 81,
         "error": -0.217,
@@ -283,7 +278,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 66,
         "error": -0.493,
@@ -298,7 +292,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 0.561,
@@ -307,82 +300,10 @@
       }
     },
     {
-      "log": "imu-500hz",
-      "quantity": "top_acceleration",
-      "given": 38,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 81,
-        "error": 2.21,
-        "bound": 7.85,
-        "share": 0.282
-      }
-    },
-    {
-      "log": "imu-500hz",
-      "quantity": "burnout",
-      "given": 38,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 31,
-        "error": 0.00603,
-        "bound": 0.07,
-        "share": 0.0861
-      }
-    },
-    {
-      "log": "imu-500hz",
-      "quantity": "drogue_rate",
-      "given": 16,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 21,
-      "worst": {
-        "flight": 73,
-        "error": 0.893,
-        "bound": 1.36,
-        "share": 0.655
-      }
-    },
-    {
-      "log": "imu-500hz",
-      "quantity": "main_opening",
-      "given": 16,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 21,
-      "worst": {
-        "flight": 4,
-        "error": 0.482,
-        "bound": 0.829,
-        "share": 0.582
-      }
-    },
-    {
-      "log": "imu-500hz",
-      "quantity": "main_rate",
-      "given": 37,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 127,
-        "error": -1.0,
-        "bound": 1.62,
-        "share": 0.621
-      }
-    },
-    {
       "log": "500 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.387,
@@ -395,7 +316,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -148.0,
@@ -408,7 +328,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 76,
         "error": -0.431,
@@ -423,7 +342,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 7.24,
@@ -438,7 +356,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 105,
         "error": -0.192,
@@ -453,7 +370,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.557,
@@ -468,7 +384,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -477,81 +392,10 @@
       }
     },
     {
-      "log": "500 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0539,
-        "bound": 1.27,
-        "share": 0.0424
-      }
-    },
-    {
-      "log": "500 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.92,
-        "bound": 1.34,
-        "share": 0.684
-      }
-    },
-    {
-      "log": "500 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 158,
-        "error": 0.517,
-        "bound": 0.824,
-        "share": 0.628
-      }
-    },
-    {
-      "log": "500 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.67,
-        "share": 0.7
-      }
-    },
-    {
       "log": "500 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.409,
@@ -564,7 +408,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -152.0,
@@ -577,7 +420,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 76,
         "error": -0.42,
@@ -592,7 +434,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 7.27,
@@ -605,7 +446,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.219,
@@ -618,7 +458,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.611,
@@ -631,7 +470,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -640,75 +478,10 @@
       }
     },
     {
-      "log": "500 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0539,
-        "bound": 1.27,
-        "share": 0.0424
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.919,
-        "bound": 1.35,
-        "share": 0.681
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 158,
-        "error": 0.519,
-        "bound": 0.824,
-        "share": 0.63
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.699
-      }
-    },
-    {
       "log": "500 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 1.21,
@@ -721,7 +494,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -734,7 +506,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": -0.309,
@@ -749,7 +520,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 9.5,
@@ -762,7 +532,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 84,
         "error": -3.67,
@@ -775,7 +544,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -1.85,
@@ -788,7 +556,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.387,
@@ -797,75 +564,10 @@
       }
     },
     {
-      "log": "500 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0719,
-        "bound": 1.27,
-        "share": 0.0566
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.968,
-        "bound": 1.5,
-        "share": 0.645
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 22,
-        "error": 2.18,
-        "bound": 3.83,
-        "share": 0.57
-      }
-    },
-    {
-      "log": "500 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.43,
-        "bound": 8.4,
-        "share": 0.646
-      }
-    },
-    {
       "log": "500 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.395,
@@ -878,7 +580,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -148.0,
@@ -891,7 +592,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 76,
         "error": -0.419,
@@ -906,7 +606,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 7.23,
@@ -921,7 +620,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.215,
@@ -936,7 +634,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.597,
@@ -951,7 +648,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -960,81 +656,10 @@
       }
     },
     {
-      "log": "500 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0539,
-        "bound": 1.27,
-        "share": 0.0424
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.92,
-        "bound": 1.35,
-        "share": 0.684
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 158,
-        "error": 0.517,
-        "bound": 0.824,
-        "share": 0.628
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.699
-      }
-    },
-    {
       "log": "500 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 42,
         "error": 0.483,
@@ -1047,7 +672,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -1060,7 +684,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 183,
         "error": -0.332,
@@ -1075,7 +698,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 7.22,
@@ -1088,7 +710,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.277,
@@ -1101,7 +722,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 61,
         "error": -0.729,
@@ -1114,7 +734,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.15,
@@ -1123,75 +742,10 @@
       }
     },
     {
-      "log": "500 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0559,
-        "bound": 1.27,
-        "share": 0.044
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.919,
-        "bound": 1.36,
-        "share": 0.675
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 130,
-        "error": 0.575,
-        "bound": 0.91,
-        "share": 0.631
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.69,
-        "share": 0.69
-      }
-    },
-    {
       "log": "500 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": 0.962,
@@ -1204,7 +758,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 148.0,
@@ -1217,7 +770,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 193,
         "error": -0.897,
@@ -1232,7 +784,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 47,
         "error": 5.76,
@@ -1245,7 +796,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 28,
         "error": -0.967,
@@ -1258,7 +808,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 149,
         "error": -1.87,
@@ -1271,7 +820,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.403,
@@ -1280,75 +828,10 @@
       }
     },
     {
-      "log": "500 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "500 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 149,
-        "error": 0.0539,
-        "bound": 1.27,
-        "share": 0.0424
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 73,
-        "error": 0.932,
-        "bound": 1.54,
-        "share": 0.607
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 160,
-        "error": 1.91,
-        "bound": 3.41,
-        "share": 0.56
-      }
-    },
-    {
-      "log": "500 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.43,
-        "bound": 8.45,
-        "share": 0.643
-      }
-    },
-    {
       "log": "100 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.396,
@@ -1361,7 +844,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -148.0,
@@ -1374,7 +856,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 32,
         "error": 0.379,
@@ -1389,7 +870,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 45,
         "error": -8.09,
@@ -1402,7 +882,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 198,
         "error": 2.61,
@@ -1415,7 +894,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": -0.532,
@@ -1428,7 +906,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.15,
@@ -1437,81 +914,10 @@
       }
     },
     {
-      "log": "100 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 159,
-        "error": 0.0148,
-        "bound": 1.28,
-        "share": 0.0115
-      }
-    },
-    {
-      "log": "100 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "short_leg": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.926,
-        "bound": 1.35,
-        "share": 0.688
-      }
-    },
-    {
-      "log": "100 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "short_leg": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 160,
-        "error": 0.528,
-        "bound": 0.844,
-        "share": 0.626
-      }
-    },
-    {
-      "log": "100 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "short_leg": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.695
-      }
-    },
-    {
       "log": "100 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": 0.407,
@@ -1524,7 +930,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -148.0,
@@ -1537,7 +942,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 50,
         "error": -0.463,
@@ -1552,7 +956,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 45,
         "error": -7.91,
@@ -1565,7 +968,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 13,
         "error": -0.234,
@@ -1578,7 +980,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": -0.562,
@@ -1591,7 +992,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.15,
@@ -1600,75 +1000,10 @@
       }
     },
     {
-      "log": "100 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 159,
-        "error": 0.0148,
-        "bound": 1.28,
-        "share": 0.0115
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.925,
-        "bound": 1.35,
-        "share": 0.685
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 160,
-        "error": 0.528,
-        "bound": 0.845,
-        "share": 0.625
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.694
-      }
-    },
-    {
       "log": "100 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 1.21,
@@ -1681,7 +1016,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -1694,7 +1028,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": -0.416,
@@ -1709,7 +1042,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 105,
         "error": 6.78,
@@ -1722,7 +1054,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 159,
         "error": -3.83,
@@ -1735,7 +1066,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 40,
         "error": -1.85,
@@ -1748,7 +1078,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.388,
@@ -1757,75 +1086,10 @@
       }
     },
     {
-      "log": "100 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 159,
-        "error": 0.0448,
-        "bound": 1.28,
-        "share": 0.035
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.969,
-        "bound": 1.5,
-        "share": 0.645
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 158,
-        "error": 2.03,
-        "bound": 3.61,
-        "share": 0.562
-      }
-    },
-    {
-      "log": "100 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.13,
-        "bound": 8.39,
-        "share": 0.611
-      }
-    },
-    {
       "log": "100 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.396,
@@ -1838,7 +1102,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -148.0,
@@ -1851,7 +1114,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 32,
         "error": 0.379,
@@ -1866,7 +1128,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 45,
         "error": -8.1,
@@ -1879,7 +1140,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 13,
         "error": -0.234,
@@ -1892,7 +1152,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": -0.532,
@@ -1905,7 +1164,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.15,
@@ -1914,75 +1172,10 @@
       }
     },
     {
-      "log": "100 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 159,
-        "error": 0.0148,
-        "bound": 1.28,
-        "share": 0.0115
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.926,
-        "bound": 1.35,
-        "share": 0.687
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 160,
-        "error": 0.538,
-        "bound": 0.843,
-        "share": 0.639
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.694
-      }
-    },
-    {
       "log": "100 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": 0.467,
@@ -1995,7 +1188,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2008,7 +1200,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 19,
         "error": -0.496,
@@ -2023,7 +1214,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 45,
         "error": -7.95,
@@ -2036,7 +1226,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": -0.288,
@@ -2049,7 +1238,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": -0.684,
@@ -2062,7 +1250,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 171,
         "error": -1.15,
@@ -2071,75 +1258,10 @@
       }
     },
     {
-      "log": "100 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 159,
-        "error": 0.0148,
-        "bound": 1.28,
-        "share": 0.0115
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.928,
-        "bound": 1.36,
-        "share": 0.68
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 106,
-        "error": 0.525,
-        "bound": 0.838,
-        "share": 0.626
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.69,
-        "share": 0.69
-      }
-    },
-    {
       "log": "100 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": 0.936,
@@ -2152,7 +1274,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 148.0,
@@ -2165,7 +1286,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 176,
         "error": -0.598,
@@ -2180,7 +1300,6 @@
       "withheld": {
         "transonic": 118
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.37,
@@ -2193,7 +1312,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 159,
         "error": -4.4,
@@ -2206,7 +1324,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 159,
         "error": -5.06,
@@ -2219,7 +1336,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.402,
@@ -2228,75 +1344,10 @@
       }
     },
     {
-      "log": "100 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "100 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 53,
-      "withheld": {
-        "transonic": 118
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.159,
-        "bound": 1.28,
-        "share": 0.125
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 73,
-        "error": 0.93,
-        "bound": 1.54,
-        "share": 0.606
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 164,
-        "error": 1.94,
-        "bound": 3.42,
-        "share": 0.568
-      }
-    },
-    {
-      "log": "100 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.44,
-        "bound": 8.46,
-        "share": 0.643
-      }
-    },
-    {
       "log": "20 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 78,
         "error": 0.408,
@@ -2309,7 +1360,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2322,7 +1372,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -2337,7 +1386,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.24,
@@ -2352,7 +1400,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 82,
         "error": -1.1,
@@ -2367,7 +1414,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 78,
         "error": -0.526,
@@ -2382,7 +1428,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -2391,81 +1436,10 @@
       }
     },
     {
-      "log": "20 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.34,
-        "share": 0.692
-      }
-    },
-    {
-      "log": "20 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 1.02,
-        "share": 0.619
-      }
-    },
-    {
-      "log": "20 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.696
-      }
-    },
-    {
       "log": "20 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 37,
         "error": 0.431,
@@ -2478,7 +1452,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2491,7 +1464,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -2506,7 +1478,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.42,
@@ -2521,7 +1492,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 82,
         "error": -1.1,
@@ -2536,7 +1506,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.571,
@@ -2551,7 +1520,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -2560,81 +1528,10 @@
       }
     },
     {
-      "log": "20 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.689
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 1.01,
-        "share": 0.624
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.693
-      }
-    },
-    {
       "log": "20 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 1.19,
@@ -2647,7 +1544,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2660,7 +1556,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 85,
         "error": -0.568,
@@ -2675,7 +1570,6 @@
       "withheld": {
         "transonic": 118
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 11.5,
@@ -2688,7 +1582,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 82,
         "error": -3.9,
@@ -2701,7 +1594,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -1.87,
@@ -2714,7 +1606,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.387,
@@ -2723,75 +1614,10 @@
       }
     },
     {
-      "log": "20 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 53,
-      "withheld": {
-        "transonic": 118
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 158,
-        "error": 0.3,
-        "bound": 1.32,
-        "share": 0.228
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 1,
-        "error": -0.933,
-        "bound": 1.52,
-        "share": 0.615
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 159,
-        "error": 2.2,
-        "bound": 3.94,
-        "share": 0.56
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.17,
-        "bound": 8.45,
-        "share": 0.611
-      }
-    },
-    {
       "log": "20 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 78,
         "error": 0.408,
@@ -2804,7 +1630,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2817,7 +1642,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -2832,7 +1656,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.25,
@@ -2847,7 +1670,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 82,
         "error": -1.1,
@@ -2862,7 +1684,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.571,
@@ -2877,7 +1698,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.2,
@@ -2886,81 +1706,10 @@
       }
     },
     {
-      "log": "20 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.692
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 88,
-        "error": 0.667,
-        "bound": 1.13,
-        "share": 0.593
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.67,
-        "share": 0.694
-      }
-    },
-    {
       "log": "20 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 42,
         "error": 0.429,
@@ -2973,7 +1722,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -2986,7 +1734,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.321,
@@ -3001,7 +1748,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.78,
@@ -3014,7 +1760,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 105,
         "error": -0.29,
@@ -3027,7 +1772,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": -0.655,
@@ -3040,7 +1784,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.18,
@@ -3049,75 +1792,10 @@
       }
     },
     {
-      "log": "20 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.935,
-        "bound": 1.36,
-        "share": 0.687
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 0.987,
-        "share": 0.642
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.69,
-        "share": 0.691
-      }
-    },
-    {
       "log": "20 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 42,
         "error": 0.979,
@@ -3130,7 +1808,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 148.0,
@@ -3143,7 +1820,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 103,
         "error": -1.04,
@@ -3158,7 +1834,6 @@
       "withheld": {
         "transonic": 118
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 13.7,
@@ -3171,7 +1846,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 70,
         "error": -4.05,
@@ -3184,7 +1858,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 149,
         "error": -1.83,
@@ -3197,7 +1870,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.379,
@@ -3206,75 +1878,10 @@
       }
     },
     {
-      "log": "20 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 53,
-      "withheld": {
-        "transonic": 118
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 28,
-        "error": 0.718,
-        "bound": 1.32,
-        "share": 0.544
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 73,
-        "error": 0.936,
-        "bound": 1.54,
-        "share": 0.609
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 159,
-        "error": 2.0,
-        "bound": 3.58,
-        "share": 0.56
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.42,
-        "bound": 8.44,
-        "share": 0.643
-      }
-    },
-    {
       "log": "5 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.386,
@@ -3287,7 +1894,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -3300,7 +1906,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 2,
         "error": -0.607,
@@ -3315,7 +1920,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -3325,7 +1929,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 118,
         "error": 0.197,
@@ -3340,7 +1943,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 29,
         "error": -1.32,
@@ -3355,7 +1957,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.23,
@@ -3364,76 +1965,10 @@
       }
     },
     {
-      "log": "5 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.691
-      }
-    },
-    {
-      "log": "5 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 101,
-        "error": 0.676,
-        "bound": 1.2,
-        "share": 0.563
-      }
-    },
-    {
-      "log": "5 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.67,
-        "share": 0.7
-      }
-    },
-    {
       "log": "5 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.386,
@@ -3446,7 +1981,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -3459,7 +1993,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 2,
         "error": -0.607,
@@ -3474,7 +2007,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -3484,7 +2016,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 118,
         "error": 0.197,
@@ -3499,7 +2030,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 29,
         "error": -1.32,
@@ -3514,7 +2044,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.23,
@@ -3523,76 +2052,10 @@
       }
     },
     {
-      "log": "5 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.93,
-        "bound": 1.35,
-        "share": 0.687
-      }
-    },
-    {
-      "log": "5 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 101,
-        "error": 0.676,
-        "bound": 1.2,
-        "share": 0.563
-      }
-    },
-    {
-      "log": "5 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.698
-      }
-    },
-    {
       "log": "5 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 1.19,
@@ -3605,7 +2068,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -165.0,
@@ -3618,7 +2080,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 107,
         "error": 0.316,
@@ -3633,7 +2094,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -3641,7 +2101,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 112,
         "error": -3.19,
@@ -3654,7 +2113,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 112,
         "error": -3.5,
@@ -3667,7 +2125,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.387,
@@ -3676,70 +2133,10 @@
       }
     },
     {
-      "log": "5 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 1,
-        "error": -0.948,
-        "bound": 1.52,
-        "share": 0.625
-      }
-    },
-    {
-      "log": "5 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 15,
-        "error": 2.36,
-        "bound": 4.25,
-        "share": 0.555
-      }
-    },
-    {
-      "log": "5 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.47,
-        "bound": 8.39,
-        "share": 0.652
-      }
-    },
-    {
       "log": "5 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.386,
@@ -3752,7 +2149,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -3765,7 +2161,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 2,
         "error": -0.607,
@@ -3780,7 +2175,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -3790,7 +2184,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 118,
         "error": 0.197,
@@ -3805,7 +2198,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 29,
         "error": -1.32,
@@ -3820,7 +2212,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.23,
@@ -3829,76 +2220,10 @@
       }
     },
     {
-      "log": "5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.93,
-        "bound": 1.35,
-        "share": 0.69
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 101,
-        "error": 0.676,
-        "bound": 1.2,
-        "share": 0.563
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.67,
-        "share": 0.699
-      }
-    },
-    {
       "log": "5 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 60,
         "error": 0.43,
@@ -3911,7 +2236,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -153.0,
@@ -3924,7 +2248,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 145,
         "error": -0.458,
@@ -3939,7 +2262,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -3947,7 +2269,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 118,
         "error": 0.197,
@@ -3960,7 +2281,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 104,
         "error": -0.633,
@@ -3973,7 +2293,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.21,
@@ -3982,70 +2301,10 @@
       }
     },
     {
-      "log": "5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.932,
-        "bound": 1.37,
-        "share": 0.682
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 73,
-        "error": 0.677,
-        "bound": 1.18,
-        "share": 0.574
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.18,
-        "bound": 1.69,
-        "share": 0.696
-      }
-    },
-    {
       "log": "5 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": 0.956,
@@ -4058,7 +2317,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 73,
         "error": 148.0,
@@ -4071,7 +2329,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 163,
         "error": 0.372,
@@ -4086,7 +2343,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4094,7 +2350,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 58,
         "error": -3.89,
@@ -4107,7 +2362,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 58,
         "error": -4.27,
@@ -4120,7 +2374,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.397,
@@ -4129,70 +2382,10 @@
       }
     },
     {
-      "log": "5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 73,
-        "error": 0.936,
-        "bound": 1.54,
-        "share": 0.608
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 56,
-        "error": 2.15,
-        "bound": 3.86,
-        "share": 0.558
-      }
-    },
-    {
-      "log": "5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.41,
-        "bound": 8.43,
-        "share": 0.642
-      }
-    },
-    {
       "log": "1 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 175,
         "error": -0.831,
@@ -4205,7 +2398,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -151.0,
@@ -4218,7 +2410,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 153,
         "error": 0.756,
@@ -4233,7 +2424,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4243,7 +2433,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -4258,7 +2447,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 87,
         "error": 1.37,
@@ -4273,7 +2461,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.37,
@@ -4282,64 +2469,10 @@
       }
     },
     {
-      "log": "1 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "1 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 108,
         "error": -0.807,
@@ -4352,7 +2485,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -152.0,
@@ -4365,7 +2497,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 153,
         "error": 0.756,
@@ -4380,7 +2511,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4388,7 +2518,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -4401,7 +2530,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 87,
         "error": 1.37,
@@ -4414,7 +2542,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.37,
@@ -4423,61 +2550,10 @@
       }
     },
     {
-      "log": "1 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "1 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.837,
@@ -4490,7 +2566,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -159.0,
@@ -4503,7 +2578,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 109,
         "error": 0.781,
@@ -4518,7 +2592,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4526,7 +2599,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -4539,7 +2611,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 159,
         "error": -3.84,
@@ -4552,7 +2623,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.376,
@@ -4561,76 +2631,10 @@
       }
     },
     {
-      "log": "1 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 75,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 20,
-      "worst": {
-        "flight": 43,
-        "error": -0.898,
-        "bound": 1.59,
-        "share": 0.565
-      }
-    },
-    {
-      "log": "1 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 75,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 20,
-      "worst": {
-        "flight": 175,
-        "error": 3.47,
-        "bound": 6.31,
-        "share": 0.55
-      }
-    },
-    {
-      "log": "1 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 95,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 161,
-        "error": 0.373,
-        "bound": 0.653,
-        "share": 0.572
-      }
-    },
-    {
       "log": "1 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 108,
         "error": -0.807,
@@ -4643,7 +2647,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -151.0,
@@ -4656,7 +2659,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 153,
         "error": 0.756,
@@ -4671,7 +2673,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4679,7 +2680,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -4692,7 +2692,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 87,
         "error": 1.37,
@@ -4705,7 +2704,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.37,
@@ -4714,61 +2712,10 @@
       }
     },
     {
-      "log": "1 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "1 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 100,
         "error": -0.807,
@@ -4781,7 +2728,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -151.0,
@@ -4794,7 +2740,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 153,
         "error": 0.756,
@@ -4809,7 +2754,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4817,7 +2761,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 0.964,
@@ -4830,7 +2773,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 87,
         "error": 1.37,
@@ -4843,7 +2785,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.371,
@@ -4852,61 +2793,10 @@
       }
     },
     {
-      "log": "1 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "1 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.837,
@@ -4919,7 +2809,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -152.0,
@@ -4932,7 +2821,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 62,
         "error": 0.619,
@@ -4947,7 +2835,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -4955,7 +2842,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 87,
         "error": 0.943,
@@ -4968,7 +2854,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 58,
         "error": -4.07,
@@ -4981,7 +2866,6 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.374,
@@ -4990,76 +2874,10 @@
       }
     },
     {
-      "log": "1 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "1 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 75,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 20,
-      "worst": {
-        "flight": 43,
-        "error": -0.993,
-        "bound": 1.61,
-        "share": 0.617
-      }
-    },
-    {
-      "log": "1 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 75,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 20,
-      "worst": {
-        "flight": 4,
-        "error": 2.97,
-        "bound": 5.57,
-        "share": 0.534
-      }
-    },
-    {
-      "log": "1 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 95,
-      "withheld": {
-        "sampled_too_slowly": 76
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 161,
-        "error": 0.366,
-        "bound": 0.659,
-        "share": 0.555
-      }
-    },
-    {
       "log": "0.5 Hz, altitude, no step",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 193,
         "error": -1.79,
@@ -5072,7 +2890,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5085,7 +2902,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 157,
         "error": 1.2,
@@ -5100,7 +2916,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5110,7 +2925,6 @@
       "withheld": {
         "ends_before_landing": 14
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5125,7 +2939,6 @@
       "withheld": {
         "ends_before_landing": 14
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5140,7 +2953,6 @@
       "withheld": {
         "ends_before_landing": 14
       },
-      "absent": 0,
       "worst": {
         "flight": 127,
         "error": -1.57,
@@ -5149,64 +2961,10 @@
       }
     },
     {
-      "log": "0.5 Hz, altitude, no step",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude, no step",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude, no step",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 14,
-        "sampled_too_slowly": 157
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude, no step",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 14,
-        "sampled_too_slowly": 157
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude, no step",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 14,
-        "sampled_too_slowly": 157
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "0.5 Hz, altitude in 0.3048 m steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 193,
         "error": -1.79,
@@ -5219,7 +2977,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5232,7 +2989,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 157,
         "error": 1.2,
@@ -5247,7 +3003,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5257,7 +3012,6 @@
       "withheld": {
         "ends_before_landing": 12
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5272,7 +3026,6 @@
       "withheld": {
         "ends_before_landing": 12
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5287,7 +3040,6 @@
       "withheld": {
         "ends_before_landing": 12
       },
-      "absent": 0,
       "worst": {
         "flight": 127,
         "error": -1.57,
@@ -5296,66 +3048,12 @@
       }
     },
     {
-      "log": "0.5 Hz, altitude in 0.3048 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 0.3048 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 0.3048 m steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 12,
-        "sampled_too_slowly": 159
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 12,
-        "sampled_too_slowly": 159
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 0.3048 m steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 12,
-        "sampled_too_slowly": 159
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "0.5 Hz, altitude in 10 m steps",
       "quantity": "liftoff",
       "given": 170,
       "withheld": {
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 157,
         "error": -1.54,
@@ -5370,7 +3068,6 @@
       "withheld": {
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5385,7 +3082,6 @@
       "withheld": {
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 16,
         "error": 1.11,
@@ -5401,7 +3097,6 @@
         "sampled_too_slowly": 170,
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5412,7 +3107,6 @@
         "ends_before_landing": 1,
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5428,7 +3122,6 @@
         "ends_before_landing": 1,
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5444,7 +3137,6 @@
         "ends_before_landing": 1,
         "step_too_coarse": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.372,
@@ -5453,83 +3145,10 @@
       }
     },
     {
-      "log": "0.5 Hz, altitude in 10 m steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 10 m steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 170,
-        "step_too_coarse": 1
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, altitude in 10 m steps",
-      "quantity": "drogue_rate",
-      "given": 47,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 122,
-        "step_too_coarse": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 1,
-        "error": -0.996,
-        "bound": 1.88,
-        "share": 0.53
-      }
-    },
-    {
-      "log": "0.5 Hz, altitude in 10 m steps",
-      "quantity": "main_opening",
-      "given": 47,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 122,
-        "step_too_coarse": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 84,
-        "error": 5.3,
-        "bound": 9.04,
-        "share": 0.586
-      }
-    },
-    {
-      "log": "0.5 Hz, altitude in 10 m steps",
-      "quantity": "main_rate",
-      "given": 47,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 122,
-        "step_too_coarse": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 73,
-        "error": 0.307,
-        "bound": 0.581,
-        "share": 0.528
-      }
-    },
-    {
       "log": "0.5 Hz, pressure alone in 1 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 193,
         "error": -1.79,
@@ -5542,7 +3161,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5555,7 +3173,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 157,
         "error": 1.2,
@@ -5570,7 +3187,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5580,7 +3196,6 @@
       "withheld": {
         "ends_before_landing": 13
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5595,7 +3210,6 @@
       "withheld": {
         "ends_before_landing": 13
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5610,7 +3224,6 @@
       "withheld": {
         "ends_before_landing": 13
       },
-      "absent": 0,
       "worst": {
         "flight": 127,
         "error": -1.57,
@@ -5619,64 +3232,10 @@
       }
     },
     {
-      "log": "0.5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 13,
-        "sampled_too_slowly": 158
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 13,
-        "sampled_too_slowly": 158
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 1 Pa steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 13,
-        "sampled_too_slowly": 158
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "0.5 Hz, pressure alone in 10 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 193,
         "error": -1.79,
@@ -5689,7 +3248,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5702,7 +3260,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 157,
         "error": 1.2,
@@ -5717,7 +3274,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5727,7 +3283,6 @@
       "withheld": {
         "ends_before_landing": 10
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5742,7 +3297,6 @@
       "withheld": {
         "ends_before_landing": 10
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5757,7 +3311,6 @@
       "withheld": {
         "ends_before_landing": 10
       },
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -0.64,
@@ -5766,64 +3319,10 @@
       }
     },
     {
-      "log": "0.5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 10,
-        "sampled_too_slowly": 161
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 10,
-        "sampled_too_slowly": 161
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 10 Pa steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 10,
-        "sampled_too_slowly": 161
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
       "log": "0.5 Hz, pressure alone in 100 Pa steps",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 132,
         "error": -1.52,
@@ -5836,7 +3335,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -175.0,
@@ -5849,7 +3347,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 1.05,
@@ -5864,7 +3361,6 @@
       "withheld": {
         "sampled_too_slowly": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -5874,7 +3370,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 1.96,
@@ -5889,7 +3384,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 190,
         "error": 3.12,
@@ -5904,7 +3398,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 161,
         "error": 0.382,
@@ -5913,576 +3406,10 @@
       }
     },
     {
-      "log": "0.5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "sampled_too_slowly": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "0.5 Hz, pressure alone in 100 Pa steps",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "ends_before_landing": 1,
-        "sampled_too_slowly": 170
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "liftoff",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 122,
-        "error": 0.387,
-        "bound": 0.672,
-        "share": 0.575
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "apogee_height",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -147.0,
-        "bound": 212.0,
-        "share": 0.692
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "apogee_time",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 19,
-        "error": -0.446,
-        "bound": 0.803,
-        "share": 0.555
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "top_speed",
-      "given": 23,
-      "withheld": {
-        "transonic": 48
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 45,
-        "error": -8.1,
-        "bound": 24.6,
-        "share": 0.329
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "landing",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 103,
-        "error": 0.135,
-        "bound": 0.251,
-        "share": 0.539
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "flight_time",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 66,
-        "error": -0.493,
-        "bound": 1.21,
-        "share": 0.409
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "descent_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.14,
-        "bound": 1.92,
-        "share": 0.593
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "top_acceleration",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 193,
-        "error": -12.2,
-        "bound": 21.1,
-        "share": 0.576
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "burnout",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 31,
-        "error": 0.00603,
-        "bound": 0.07,
-        "share": 0.0861
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "drogue_rate",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 148,
-        "error": -0.868,
-        "bound": 1.32,
-        "share": 0.656
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "main_opening",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 169,
-        "error": 0.613,
-        "bound": 1.0,
-        "share": 0.613
-      }
-    },
-    {
-      "log": "its accelerometer at 500 Hz",
-      "quantity": "main_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.1,
-        "bound": 1.62,
-        "share": 0.679
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "liftoff",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 122,
-        "error": 0.387,
-        "bound": 0.672,
-        "share": 0.575
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "apogee_height",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -147.0,
-        "bound": 212.0,
-        "share": 0.692
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "apogee_time",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 19,
-        "error": -0.446,
-        "bound": 0.803,
-        "share": 0.555
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "top_speed",
-      "given": 23,
-      "withheld": {
-        "transonic": 48
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 45,
-        "error": -8.1,
-        "bound": 24.6,
-        "share": 0.329
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "landing",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 103,
-        "error": 0.135,
-        "bound": 0.251,
-        "share": 0.539
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "flight_time",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 66,
-        "error": -0.493,
-        "bound": 1.21,
-        "share": 0.409
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "descent_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.14,
-        "bound": 1.92,
-        "share": 0.593
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "top_acceleration",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 193,
-        "error": -12.2,
-        "bound": 17.8,
-        "share": 0.686
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "burnout",
-      "given": 70,
-      "withheld": {
-        "transonic": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 31,
-        "error": 0.012,
-        "bound": 0.07,
-        "share": 0.172
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "drogue_rate",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 148,
-        "error": -0.868,
-        "bound": 1.32,
-        "share": 0.656
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "main_opening",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 169,
-        "error": 0.613,
-        "bound": 1.0,
-        "share": 0.613
-      }
-    },
-    {
-      "log": "its accelerometer at 100 Hz",
-      "quantity": "main_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.1,
-        "bound": 1.62,
-        "share": 0.679
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "liftoff",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 122,
-        "error": 0.387,
-        "bound": 0.672,
-        "share": 0.575
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "apogee_height",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -147.0,
-        "bound": 212.0,
-        "share": 0.692
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "apogee_time",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 19,
-        "error": -0.446,
-        "bound": 0.803,
-        "share": 0.555
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "top_speed",
-      "given": 23,
-      "withheld": {
-        "transonic": 48
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 45,
-        "error": -8.1,
-        "bound": 24.6,
-        "share": 0.329
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "landing",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 103,
-        "error": 0.135,
-        "bound": 0.251,
-        "share": 0.539
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "flight_time",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 66,
-        "error": -0.493,
-        "bound": 1.21,
-        "share": 0.409
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "descent_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.14,
-        "bound": 1.92,
-        "share": 0.593
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "top_acceleration",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 193,
-        "error": -13.6,
-        "bound": 19.1,
-        "share": 0.715
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "burnout",
-      "given": 71,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 190,
-        "error": 0.0393,
-        "bound": 0.15,
-        "share": 0.262
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "drogue_rate",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 148,
-        "error": -0.868,
-        "bound": 1.32,
-        "share": 0.656
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "main_opening",
-      "given": 36,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 34,
-      "worst": {
-        "flight": 169,
-        "error": 0.613,
-        "bound": 1.0,
-        "share": 0.613
-      }
-    },
-    {
-      "log": "its accelerometer at 20 Hz",
-      "quantity": "main_rate",
-      "given": 70,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.1,
-        "bound": 1.62,
-        "share": 0.679
-      }
-    },
-    {
       "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
       "quantity": "liftoff",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.437,
@@ -6495,7 +3422,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -6508,7 +3434,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -6523,7 +3448,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.42,
@@ -6536,7 +3460,6 @@
       "quantity": "landing",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 105,
         "error": -0.24,
@@ -6549,7 +3472,6 @@
       "quantity": "flight_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.621,
@@ -6562,76 +3484,11 @@
       "quantity": "descent_rate",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.17,
         "bound": 1.99,
         "share": 0.587
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.689
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {},
-      "absent": 84,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 1.01,
-        "share": 0.624
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff",
-      "quantity": "main_rate",
-      "given": 171,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.68,
-        "share": 0.7
       }
     },
     {
@@ -6641,7 +3498,6 @@
       "withheld": {
         "short_pad": 36
       },
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.387,
@@ -6654,7 +3510,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -152.0,
@@ -6667,7 +3522,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -6682,7 +3536,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.42,
@@ -6697,7 +3550,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": -0.199,
@@ -6713,7 +3565,6 @@
         "ends_before_landing": 1,
         "short_pad": 36
       },
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.571,
@@ -6728,82 +3579,11 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
         "bound": 2.08,
         "share": 0.556
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.689
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 1.01,
-        "share": 0.624
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.693
       }
     },
     {
@@ -6813,7 +3593,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -6821,7 +3600,6 @@
       "quantity": "apogee_height",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -152.0,
@@ -6834,7 +3612,6 @@
       "quantity": "apogee_time",
       "given": 171,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.371,
@@ -6849,7 +3626,6 @@
       "withheld": {
         "transonic": 117
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.42,
@@ -6864,7 +3640,6 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 118,
         "error": 0.0468,
@@ -6877,9 +3652,9 @@
       "quantity": "flight_time",
       "given": 0,
       "withheld": {
-        "short_pad": 171
+        "ends_before_landing": 1,
+        "short_pad": 170
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -6889,82 +3664,11 @@
       "withheld": {
         "ends_before_landing": 1
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
         "bound": 2.25,
         "share": 0.516
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 117
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "drogue_rate",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.689
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "main_opening",
-      "given": 87,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 83,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 1.01,
-        "share": 0.624
-      }
-    },
-    {
-      "log": "20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "main_rate",
-      "given": 170,
-      "withheld": {
-        "ends_before_landing": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.693
       }
     },
     {
@@ -6974,7 +3678,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": 0.486,
@@ -6989,7 +3692,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -153.0,
@@ -7004,7 +3706,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.321,
@@ -7020,7 +3721,6 @@
         "transonic": 114,
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 51,
         "error": 7.78,
@@ -7035,7 +3735,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 105,
         "error": -0.29,
@@ -7050,7 +3749,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.721,
@@ -7065,7 +3763,6 @@
       "withheld": {
         "short_pad": 3
       },
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.18,
@@ -7074,84 +3771,12 @@
       }
     },
     {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
-      "quantity": "burnout",
-      "given": 54,
-      "withheld": {
-        "transonic": 114,
-        "short_pad": 3
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 51,
-        "error": 0.0893,
-        "bound": 1.32,
-        "share": 0.0677
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
-      "quantity": "drogue_rate",
-      "given": 86,
-      "withheld": {
-        "short_pad": 3
-      },
-      "absent": 82,
-      "worst": {
-        "flight": 43,
-        "error": -0.935,
-        "bound": 1.36,
-        "share": 0.687
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
-      "quantity": "main_opening",
-      "given": 86,
-      "withheld": {
-        "short_pad": 3
-      },
-      "absent": 82,
-      "worst": {
-        "flight": 38,
-        "error": 0.634,
-        "bound": 0.987,
-        "share": 0.642
-      }
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff",
-      "quantity": "main_rate",
-      "given": 168,
-      "withheld": {
-        "short_pad": 3
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.17,
-        "bound": 1.69,
-        "share": 0.691
-      }
-    },
-    {
       "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
       "quantity": "liftoff",
       "given": 0,
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7161,7 +3786,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7171,7 +3795,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7181,7 +3804,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7191,7 +3813,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7201,7 +3822,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7211,57 +3831,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7271,7 +3840,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7281,7 +3849,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7291,7 +3858,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7301,7 +3867,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7311,7 +3876,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7321,7 +3885,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7331,57 +3894,6 @@
       "withheld": {
         "short_pad": 171
       },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "short_pad": 171
-      },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7389,7 +3901,6 @@
       "quantity": "liftoff",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 122,
         "error": 0.387,
@@ -7402,7 +3913,6 @@
       "quantity": "apogee_height",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 171,
         "error": -147.0,
@@ -7415,7 +3925,6 @@
       "quantity": "apogee_time",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 19,
         "error": -0.446,
@@ -7430,7 +3939,6 @@
       "withheld": {
         "transonic": 24
       },
-      "absent": 0,
       "worst": {
         "flight": 45,
         "error": -8.1,
@@ -7443,7 +3951,6 @@
       "quantity": "landing",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 103,
         "error": 0.135,
@@ -7456,7 +3963,6 @@
       "quantity": "flight_time",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 129,
         "error": -0.488,
@@ -7469,79 +3975,11 @@
       "quantity": "descent_rate",
       "given": 33,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 171,
         "error": -1.14,
         "bound": 1.92,
         "share": 0.593
-      }
-    },
-    {
-      "log": "altos",
-      "quantity": "top_acceleration",
-      "given": 33,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 193,
-        "error": -12.2,
-        "bound": 17.8,
-        "share": 0.686
-      }
-    },
-    {
-      "log": "altos",
-      "quantity": "burnout",
-      "given": 32,
-      "withheld": {
-        "transonic": 1
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 153,
-        "error": -0.0354,
-        "bound": 0.53,
-        "share": 0.0669
-      }
-    },
-    {
-      "log": "altos",
-      "quantity": "drogue_rate",
-      "given": 20,
-      "withheld": {},
-      "absent": 13,
-      "worst": {
-        "flight": 148,
-        "error": -0.868,
-        "bound": 1.32,
-        "share": 0.656
-      }
-    },
-    {
-      "log": "altos",
-      "quantity": "main_opening",
-      "given": 20,
-      "withheld": {},
-      "absent": 13,
-      "worst": {
-        "flight": 169,
-        "error": 0.613,
-        "bound": 1.0,
-        "share": 0.613
-      }
-    },
-    {
-      "log": "altos",
-      "quantity": "main_rate",
-      "given": 33,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 171,
-        "error": -1.1,
-        "bound": 1.62,
-        "share": 0.679
       }
     },
     {
@@ -7551,7 +3989,6 @@
       "withheld": {
         "receiver_dropout": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7561,7 +3998,6 @@
       "withheld": {
         "receiver_lag": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7571,7 +4007,6 @@
       "withheld": {
         "receiver_lag": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7581,7 +4016,6 @@
       "withheld": {
         "receiver_lag": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7591,7 +4025,6 @@
       "withheld": {
         "needs": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7599,9 +4032,8 @@
       "quantity": "flight_time",
       "given": 0,
       "withheld": {
-        "receiver_dropout": 29
+        "needs": 29
       },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7611,57 +4043,6 @@
       "withheld": {
         "needs": 29
       },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "gnss-tracker",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 29
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "gnss-tracker",
-      "quantity": "burnout",
-      "given": 0,
-      "withheld": {
-        "receiver_lag": 29
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "gnss-tracker",
-      "quantity": "drogue_rate",
-      "given": 0,
-      "withheld": {
-        "needs": 29
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "gnss-tracker",
-      "quantity": "main_opening",
-      "given": 0,
-      "withheld": {
-        "needs": 29
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "gnss-tracker",
-      "quantity": "main_rate",
-      "given": 0,
-      "withheld": {
-        "needs": 29
-      },
-      "absent": 0,
       "worst": null
     },
     {
@@ -7669,7 +4050,6 @@
       "quantity": "liftoff",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 37,
         "error": 0.431,
@@ -7682,7 +4062,6 @@
       "quantity": "apogee_height",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 39,
         "error": -159.0,
@@ -7695,7 +4074,6 @@
       "quantity": "apogee_time",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 197,
         "error": -0.273,
@@ -7710,7 +4088,6 @@
       "withheld": {
         "transonic": 25
       },
-      "absent": 0,
       "worst": {
         "flight": 74,
         "error": 6.17,
@@ -7723,7 +4100,6 @@
       "quantity": "landing",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 82,
         "error": -1.1,
@@ -7736,7 +4112,6 @@
       "quantity": "flight_time",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 37,
         "error": -0.531,
@@ -7749,7 +4124,6 @@
       "quantity": "descent_rate",
       "given": 39,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 181,
         "error": 0.562,
@@ -7758,75 +4132,10 @@
       }
     },
     {
-      "log": "eggtimer",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 39
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "eggtimer",
-      "quantity": "burnout",
-      "given": 14,
-      "withheld": {
-        "transonic": 25
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 15,
-        "error": -0.186,
-        "bound": 1.32,
-        "share": 0.0
-      }
-    },
-    {
-      "log": "eggtimer",
-      "quantity": "drogue_rate",
-      "given": 23,
-      "withheld": {},
-      "absent": 16,
-      "worst": {
-        "flight": 181,
-        "error": 0.873,
-        "bound": 1.36,
-        "share": 0.64
-      }
-    },
-    {
-      "log": "eggtimer",
-      "quantity": "main_opening",
-      "given": 23,
-      "withheld": {},
-      "absent": 16,
-      "worst": {
-        "flight": 88,
-        "error": 0.667,
-        "bound": 1.12,
-        "share": 0.593
-      }
-    },
-    {
-      "log": "eggtimer",
-      "quantity": "main_rate",
-      "given": 39,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 39,
-        "error": -5.3,
-        "bound": 7.81,
-        "share": 0.679
-      }
-    },
-    {
       "log": "perfectflite",
       "quantity": "liftoff",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": 0.387,
@@ -7839,7 +4148,6 @@
       "quantity": "apogee_height",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 43,
         "error": -149.0,
@@ -7852,7 +4160,6 @@
       "quantity": "apogee_time",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 192,
         "error": -0.24,
@@ -7867,7 +4174,6 @@
       "withheld": {
         "transonic": 21
       },
-      "absent": 0,
       "worst": {
         "flight": 96,
         "error": 6.15,
@@ -7880,7 +4186,6 @@
       "quantity": "landing",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 191,
         "error": -0.199,
@@ -7893,7 +4198,6 @@
       "quantity": "flight_time",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 33,
         "error": -0.571,
@@ -7906,7 +4210,6 @@
       "quantity": "descent_rate",
       "given": 31,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 195,
         "error": -1.16,
@@ -7915,75 +4218,10 @@
       }
     },
     {
-      "log": "perfectflite",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 31
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "perfectflite",
-      "quantity": "burnout",
-      "given": 10,
-      "withheld": {
-        "transonic": 21
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 22,
-        "error": -0.136,
-        "bound": 1.32,
-        "share": 0.0
-      }
-    },
-    {
-      "log": "perfectflite",
-      "quantity": "drogue_rate",
-      "given": 11,
-      "withheld": {},
-      "absent": 20,
-      "worst": {
-        "flight": 43,
-        "error": -0.931,
-        "bound": 1.35,
-        "share": 0.689
-      }
-    },
-    {
-      "log": "perfectflite",
-      "quantity": "main_opening",
-      "given": 11,
-      "withheld": {},
-      "absent": 20,
-      "worst": {
-        "flight": 84,
-        "error": 0.497,
-        "bound": 0.956,
-        "share": 0.519
-      }
-    },
-    {
-      "log": "perfectflite",
-      "quantity": "main_rate",
-      "given": 31,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 195,
-        "error": -1.16,
-        "bound": 1.68,
-        "share": 0.693
-      }
-    },
-    {
       "log": "rrc3",
       "quantity": "liftoff",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 36,
         "error": 0.395,
@@ -7996,7 +4234,6 @@
       "quantity": "apogee_height",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 113,
         "error": -135.0,
@@ -8009,7 +4246,6 @@
       "quantity": "apogee_time",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 194,
         "error": -0.321,
@@ -8024,7 +4260,6 @@
       "withheld": {
         "transonic": 23
       },
-      "absent": 0,
       "worst": {
         "flight": 36,
         "error": -3.34,
@@ -8037,7 +4272,6 @@
       "quantity": "landing",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 170,
         "error": -1.1,
@@ -8050,7 +4284,6 @@
       "quantity": "flight_time",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 36,
         "error": -0.6,
@@ -8063,263 +4296,12 @@
       "quantity": "descent_rate",
       "given": 30,
       "withheld": {},
-      "absent": 0,
       "worst": {
         "flight": 113,
         "error": -1.14,
         "bound": 2.09,
         "share": 0.546
       }
-    },
-    {
-      "log": "rrc3",
-      "quantity": "top_acceleration",
-      "given": 0,
-      "withheld": {
-        "no_accelerometer": 30
-      },
-      "absent": 0,
-      "worst": null
-    },
-    {
-      "log": "rrc3",
-      "quantity": "burnout",
-      "given": 7,
-      "withheld": {
-        "transonic": 23
-      },
-      "absent": 0,
-      "worst": {
-        "flight": 36,
-        "error": -0.137,
-        "bound": 1.32,
-        "share": 0.0
-      }
-    },
-    {
-      "log": "rrc3",
-      "quantity": "drogue_rate",
-      "given": 17,
-      "withheld": {},
-      "absent": 13,
-      "worst": {
-        "flight": 116,
-        "error": 1.2,
-        "bound": 2.0,
-        "share": 0.599
-      }
-    },
-    {
-      "log": "rrc3",
-      "quantity": "main_opening",
-      "given": 17,
-      "withheld": {},
-      "absent": 13,
-      "worst": {
-        "flight": 176,
-        "error": 0.632,
-        "bound": 1.17,
-        "share": 0.539
-      }
-    },
-    {
-      "log": "rrc3",
-      "quantity": "main_rate",
-      "given": 30,
-      "withheld": {},
-      "absent": 0,
-      "worst": {
-        "flight": 113,
-        "error": -1.08,
-        "bound": 1.73,
-        "share": 0.625
-      }
     }
-  ],
-  "errors": [
-    {
-      "quantity": "liftoff",
-      "floor": false,
-      "given": 7013,
-      "spread": {
-        "mean_error": 0.12,
-        "least_error": -1.79,
-        "most_error": 1.21,
-        "mean_bound": 2.03
-      }
-    },
-    {
-      "quantity": "apogee_height",
-      "floor": false,
-      "given": 7220,
-      "spread": {
-        "mean_error": 0.0,
-        "least_error": -179.0,
-        "most_error": 202.0,
-        "mean_bound": 200.0
-      }
-    },
-    {
-      "quantity": "apogee_time",
-      "floor": false,
-      "given": 7220,
-      "spread": {
-        "mean_error": 0.04,
-        "least_error": -1.04,
-        "most_error": 1.2,
-        "mean_bound": 1.54
-      }
-    },
-    {
-      "quantity": "top_speed",
-      "floor": false,
-      "given": 1308,
-      "spread": {
-        "mean_error": 2.2,
-        "least_error": -9.5,
-        "most_error": 28.2,
-        "mean_bound": 38.6
-      }
-    },
-    {
-      "quantity": "landing",
-      "floor": false,
-      "given": 7154,
-      "spread": {
-        "mean_error": -0.6,
-        "least_error": -4.4,
-        "most_error": 2.61,
-        "mean_bound": 3.84
-      }
-    },
-    {
-      "quantity": "flight_time",
-      "floor": false,
-      "given": 6948,
-      "spread": {
-        "mean_error": -0.74,
-        "least_error": -5.06,
-        "most_error": 3.15,
-        "mean_bound": 5.83
-      }
-    },
-    {
-      "quantity": "descent_rate",
-      "floor": false,
-      "given": 7154,
-      "spread": {
-        "mean_error": 0.0,
-        "least_error": -12.4,
-        "most_error": 5.66,
-        "mean_bound": 4.09
-      }
-    },
-    {
-      "quantity": "top_acceleration",
-      "floor": false,
-      "given": 280,
-      "spread": {
-        "mean_error": 0.7,
-        "least_error": -13.6,
-        "most_error": 13.0,
-        "mean_bound": 16.6
-      }
-    },
-    {
-      "quantity": "top_acceleration",
-      "floor": true,
-      "given": 4,
-      "spread": {
-        "mean_error": -4.49,
-        "least_error": -7.55,
-        "most_error": -1.58,
-        "mean_bound": 12.7
-      }
-    },
-    {
-      "quantity": "burnout",
-      "floor": false,
-      "given": 262,
-      "spread": {
-        "mean_error": -0.0118,
-        "least_error": -0.0943,
-        "most_error": 0.0476,
-        "mean_bound": 0.651
-      }
-    },
-    {
-      "quantity": "burnout",
-      "floor": true,
-      "given": 1236,
-      "spread": {
-        "mean_error": -0.24,
-        "least_error": -1.33,
-        "most_error": 0.718,
-        "mean_bound": 1.3
-      }
-    },
-    {
-      "quantity": "drogue_rate",
-      "floor": false,
-      "given": 2827,
-      "spread": {
-        "mean_error": 0.04,
-        "least_error": -1.61,
-        "most_error": 1.35,
-        "mean_bound": 1.79
-      }
-    },
-    {
-      "quantity": "main_opening",
-      "floor": false,
-      "given": 2827,
-      "spread": {
-        "mean_error": 0.73,
-        "least_error": -0.778,
-        "most_error": 5.3,
-        "mean_bound": 2.04
-      }
-    },
-    {
-      "quantity": "main_rate",
-      "floor": false,
-      "given": 5391,
-      "spread": {
-        "mean_error": 0.04,
-        "least_error": -5.47,
-        "most_error": 4.83,
-        "mean_bound": 1.71
-      }
-    }
-  ],
-  "tops": {
-    "reaching": 0,
-    "nearest": {
-      "flight": 57,
-      "profile": "imu-500hz",
-      "share": 0.492
-    },
-    "clipped": [
-      {
-        "flight": 78,
-        "profile": "altos",
-        "log": "its accelerometer at 20 Hz"
-      },
-      {
-        "flight": 122,
-        "profile": "altos",
-        "log": "its accelerometer at 20 Hz"
-      },
-      {
-        "flight": 144,
-        "profile": "altos",
-        "log": "its accelerometer at 20 Hz"
-      },
-      {
-        "flight": 161,
-        "profile": "altos",
-        "log": "its accelerometer at 20 Hz"
-      }
-    ]
-  }
+  ]
 }
