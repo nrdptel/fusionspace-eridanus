@@ -180,7 +180,7 @@ impl CanopyType {
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum StreamerModel {
-    /// J. Carruthers and A. Filippone, "Aerodynamic Drag of Streamers and Flags", *Journal of
+    /// A. C. Carruthers and A. Filippone, "Aerodynamic Drag of Streamers and Flags", *Journal of
     /// Aircraft* 42(4), 2005, pp. 976-982, on the planform area, from wind-tunnel tests of cotton
     /// streamers at `AR` 3.3 to 30 and 6 to 18.9 m/s. It fits one power curve per planform area:
     ///
@@ -3168,7 +3168,7 @@ mod tests {
             assert!(filippone > measured_m_s, "{material}: {filippone}");
             assert!(open_rocket > filippone, "{material}: {open_rocket}");
             if pleated {
-                // Pleats more than double the drag: measured C_D 0.341 against 0.161 flat.
+                // Pleats more than double the drag: measured C_D 0.338 against 0.155 flat.
                 assert!(
                     (filippone / measured_m_s - 1.0) < 0.75,
                     "{material}: {filippone} against {measured_m_s}"
