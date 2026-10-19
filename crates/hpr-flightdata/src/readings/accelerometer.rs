@@ -28,10 +28,11 @@
 //!
 //! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
 //! [`LIFTOFF_ACCELERATION_M_S2`] to where the cleaned trace's mean over [`BURNOUT_MEAN_S`] next
-//! falls through zero, or apogee if it doesn't, a later one only if it holds past
-//! [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], as a shock doesn't; searched from liftoff's
-//! earliest time by the heights, as a rocket at rest reads 1 g and anything more before it moves is
-//! a knock on the pad; with no burn, from there to apogee. In a burn the reading is the thrust less
+//! falls through zero, or apogee if it doesn't, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for
+//! [`BURN_LEAST_S`], as a shock doesn't, or the first such span where none does; searched from
+//! liftoff's earliest time by the heights, as a rocket at rest reads 1 g and anything more before
+//! it moves is a knock on the pad, or from the log's start where liftoff is withheld; with no
+//! burn, from there to apogee. In a burn the reading is the thrust less
 //! the drag, over the mass. A charge or a canopy's shock in a coast lies outside the burns, and
 //! isn't taken for the top. The top is read off the samples, not the cleaned trace. It is clipped
 //! where it reaches the part's range, as the family states it, or holds flat at its top for
@@ -401,8 +402,9 @@ pub(super) fn read(
         step_m_s2: step,
     };
     // The burns: each from a cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
-    // cleaned trace's mean next falls through zero, or apogee if it doesn't; a later one only if
-    // it holds past there for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't. They
+    // cleaned trace's mean next falls through zero, or apogee if it doesn't, that holds past there
+    // for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't, or the first such span
+    // where none does. They
     // are searched from liftoff's earliest time by the heights: a rocket at rest reads 1 g, so
     // anything more before it moves is the pad's, a knock or a bump. The top is searched over the
     // burns, so a shock in a coast isn't taken for it, nor a bump on the pad; with no burn, from
@@ -416,6 +418,7 @@ pub(super) fn read(
         }
         Reading::Withheld(_) => 0,
     };
+    let mut spans: Vec<(usize, usize)> = Vec::new();
     let mut burns: Vec<(usize, usize)> = Vec::new();
     let mut next = from;
     while let Some(rise) = (next..=end).find(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2) {
@@ -429,13 +432,18 @@ pub(super) fn read(
             .filter(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2)
             .count() as f64
             * interval;
-        if burns.is_empty() || held_s >= BURN_LEAST_S {
+        spans.push(span);
+        if held_s >= BURN_LEAST_S {
             burns.push(span);
         }
         match fall {
             Some(fall) => next = fall + 1,
             None => break,
         }
+    }
+    // A motor that holds past there for less, a short burn's, is the first such span.
+    if burns.is_empty() {
+        burns.extend(spans.first());
     }
     let thrust: Vec<usize> = if burns.is_empty() {
         (from..=end).collect()
@@ -1259,6 +1267,63 @@ mod tests {
             (burnout.time_s - 4.1).abs() <= burnout.bound_s,
             "{burnout:?}"
         );
+    }
+
+    /// A span past 2 g that holds there for less than [`BURN_LEAST_S`] is no burn, as a knock on
+    /// the pad with its rebound isn't, unless no span holds that long: then the first is the
+    /// burn, a short motor's.
+    #[test]
+    fn a_burn_holds_past_two_g_or_is_the_only_one() {
+        // A knock to 4 g and its rebound to −2 g, 0.15 s each, at 2.5 s, before the thrust.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                let value = if (2.5..2.65).contains(&t) {
+                    4.0 * G
+                } else if (2.65..2.8).contains(&t) {
+                    -2.0 * G
+                } else {
+                    specific_force(t)
+                };
+                value + jitter(k, 0.3)
+            },
+        ));
+        let burnout = readings.burnout.value().unwrap();
+        assert!(!burnout.is_floor, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+        // A motor that burns 0.3 s at 6 g, and a canopy's shock at 10 g for 0.4 s at 7 s.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                let value = if t < 3.0 {
+                    G
+                } else if t < 3.3 {
+                    6.0 * G
+                } else if t < 3.4 {
+                    6.0 * G - 6.6 * G * (t - 3.3) / 0.1
+                } else if (7.0..7.4).contains(&t) {
+                    10.0 * G
+                } else if t < 8.0 {
+                    -0.6 * G * (8.0 - t) / 4.6
+                } else {
+                    G
+                };
+                value + jitter(k, 0.3)
+            },
+        ));
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!(top.time_s < 3.4, "{top:?}");
     }
 
     /// A bump on the pad, wider than the cleaning takes out and higher than the thrust, comes

@@ -279,11 +279,13 @@ pub const SPIKE_WINDOW_S: f64 = 0.1;
 /// [`ACCEL_NOISE_SIGMAS`] holds the noise, so it takes out what noise alone reaches about once
 /// in 1.7 million samples. HPR Sim's choice.
 pub const SPIKE_THRESHOLD: f64 = 5.0;
-/// The least time a later burn holds the cleaned accelerometer trace past
-/// [`LIFTOFF_ACCELERATION_M_S2`], s: a span after the first burn that holds there for less is
-/// taken for a shock, a canopy's or a charge's, not a burn. Measured once, when the rule was
-/// chosen, on the sample logs: every such span within 3 s of apogee held for at most 0.47 s, and
-/// every longer one came more than 3 s before apogee, as a second burn would. HPR Sim's choice
+/// The least time a burn holds the cleaned accelerometer trace past
+/// [`LIFTOFF_ACCELERATION_M_S2`], s: a span that holds there for less is taken for a shock, a
+/// canopy's or a charge's, or a knock, not a burn, unless no span holds that long, when the first
+/// is the burn, a short one. Measured once, when the rule was chosen, on the sample logs: of the
+/// spans after the first, every one that started within 3 s of apogee held for at most 0.47 s,
+/// and every longer one started more than 3 s before it; nothing beside those logs says which of
+/// the longer ones are burns. HPR Sim's choice
 /// ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)).
 pub const BURN_LEAST_S: f64 = 0.5;
 /// The least samples of an accelerometer's pad, or its coast, that settle its gravity.

@@ -47,18 +47,19 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    a cleaned trace: a Hampel filter over 0.1 s at five robust standard deviations (Pearson et al.,
    2015), HPR Sim's choice, which takes out a charge's shock or one bad sample and keeps a step. A
    burn runs from a cleaned reading past 2 g to where the cleaned trace's 0.05 s mean next falls
-   through zero, or to apogee, a later one only if it holds past 2 g for 0.5 s in all, as a shock
-   doesn't (measured once, when the rule was chosen, on the sample logs: every such span within 3 s
-   of apogee held for at most 0.47 s, and every longer one came more than 3 s before apogee;
-   [#789][i789]); the burns are searched from liftoff's earliest time by the heights, as a rocket at
-   rest reads 1 g. The top acceleration is the highest specific force over the burns, or from there
-   to apogee with none, read off the samples themselves. Its bound adds a tenth of it for the part's
-   scale, 0.05 g of bias, how far the pad strays from its level, `g (1 − cos 20°)` for a part that
-   zeroed gravity on a tilted rail, five times the noise measured within 0.5 s of it, a step, and
-   the jump to a neighboring sample. It is clipped where it reaches the part's stated range, within
-   two steps and 0.25 g, or holds flat at its top over Debrief's run, flat meaning within Debrief's
-   tolerance narrowed to half the part's noise where that is less, never below half a step. A
-   clipped top is a floor, marked `is_floor`.
+   through zero, or to apogee, that holds past 2 g for 0.5 s in all, as a shock or a knock doesn't,
+   or the first such span where none does (measured once, when the rule was chosen, on the sample
+   logs: of the spans after the first, every one that started within 3 s of apogee held for at most
+   0.47 s, and every longer one started more than 3 s before it; [#789][i789]); the burns are
+   searched from liftoff's earliest time by the heights, as a rocket at rest reads 1 g, or the log's
+   start where liftoff is withheld. The top acceleration is the highest specific force over the
+   burns, or from there to apogee with none, read off the samples themselves. Its bound adds a tenth
+   of it for the part's scale, 0.05 g of bias, how far the pad strays from its level,
+   `g (1 − cos 20°)` for a part that zeroed gravity on a tilted rail, five times the noise measured
+   within 0.5 s of it, a step, and the jump to a neighboring sample. It is clipped where it reaches
+   the part's stated range, within two steps and 0.25 g, or holds flat at its top over Debrief's
+   run, flat meaning within Debrief's tolerance narrowed to half the part's noise where that is
+   less, never below half a step. A clipped top is a floor, marked `is_floor`.
 4. **Burnout** is where the thrust's fall ends: the least of the cleaned trace's 0.05 s mean,
    `2h + 1` samples, after it falls through zero. Its reading is the first sample within twice the
    averaged noise bound of the least, less half the window; its bound their span, an interval and
@@ -98,11 +99,12 @@ in a row fails with its rule put back.
 | The top searched to apogee | a charge's or a canopy's shock in the coast was taken for the top: the same test |
 | The top searched to the first burn's end | missed a second burn's top: `a_second_burn_is_searched_for_the_top_and_leaves_burnout_to_the_speed` |
 | Every later span past 2 g a burn | took a canopy's shock for a burn, and it for the top: the same second-burn test |
+| The first span past 2 g a burn at any length | a knock and its rebound before the thrust read as a first burn, the thrust as a second: `a_burn_holds_past_two_g_or_is_the_only_one` |
 | The top searched from the log's start | a knock on the pad before liftoff was taken for the top: `a_bump_on_the_pad_isnt_the_top` |
 | The thrust's end and burnout found on the samples, uncleaned | one sample of −60 g in the thrust moved burnout off its bound: the same test |
 | Refusing an accelerometer clock that repeats a time | withheld 48 of the 50 AltOS CSV records as `clock_out_of_order` |
 | Debrief's burnout mark, the first reading at or below zero | comes before burnout by as long as the thrust takes to tail off below the drag |
-| The reading at the first near-least sample, uncorrected for the mean | took up to 0.778 of its bound on the tuning set's accelerometer logs, against 0.433 corrected |
+| The reading at the first near-least sample, uncorrected for the mean | took up to 0.6 of its bound on the tuning set's accelerometer logs, against 0.262 corrected |
 | The walk on the raw rate | missed the drogue on 2 of the 87 two-canopy flights: a noise spike on a 125 s main leg stopped the walk 125 s after the opening |
 | The walk at each rate's own density | named a main on a tuning flight that opened one canopy at apogee: its rate high up passed the mark |
 

@@ -328,15 +328,17 @@ in the thrust, whose family doesn't say ([ADR-283][adr-283]).
 
 **The top acceleration** is the highest specific force while the motor burns. A burn runs from a
 cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero,
-or to apogee where it doesn't. A later burn counts only if the cleaned trace holds past 2 g for 0.5
-s in all, as a canopy's or a charge's shock doesn't. Measured once, when the rule was chosen, on the
-sample logs, every such span within 3 s of apogee held there for at most 0.47 s, and every one that
-held longer came more than 3 s before apogee, as a second burn would; the 0.5 s is HPR Sim's choice.
-The burns are searched from liftoff's earliest time by the heights: a rocket at rest reads 1 g, so
-anything more before it moves is a knock or a bump on the pad. With no burn, the top is searched
-from there to apogee. A charge or a canopy's shock in a coast lies outside the burns, so it isn't
-taken for the top; a second burn, an air start's or a sustainer's, is searched too. Its bound adds
-the part's own errors, the noise around the top and what a peak between samples can hide:
+or to apogee where it doesn't. A span counts as a burn only if the cleaned trace holds past 2 g for
+0.5 s in all, as a canopy's or a charge's shock or a knock doesn't; where none does, the first span
+is the burn, a short motor's. Measured once, when the rule was chosen, on the sample logs: of the
+spans after the first, every one that started within 3 s of apogee held past 2 g for at most 0.47 s,
+and every longer one started more than 3 s before it, though nothing beside those logs says which of
+the longer ones are burns. The 0.5 s is HPR Sim's choice. The burns are searched from liftoff's
+earliest time by the heights, or from the log's start where liftoff is withheld: a rocket at rest
+reads 1 g, so anything more before it moves is a knock or a bump on the pad. With no burn, the top
+is searched from there to apogee. A charge or a canopy's shock in a coast lies outside the burns, so
+it isn't taken for the top; a second burn, an air start's or a sustainer's, is searched too. Its
+bound adds the part's own errors, the noise around the top and what a peak between samples can hide:
 
 $$
 \begin{aligned}
@@ -946,11 +948,13 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   the tuning set's flights burn once, so its bound isn't checked on one, and burnout then comes from
   the speed's peak, a floor. A second burn that holds past 2 g for less than 0.5 s is taken for a
   shock, so its top is missed and burnout is the first burn's end; a shock that holds there longer
-  reads as a burn ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that
-  reads above zero all through the coast, as a part that zeroed off its pad's level can, never ends
-  its burn, so its top is searched to apogee and its burnout comes from the speed's peak.
-- **Noise that runs from sample to sample.** Averaging $n$ samples cuts the noise by $\sqrt n$
-  only where each sample's noise is its own. A part whose noise runs on, as its own low-pass
+  reads as a burn. Where liftoff is withheld, a knock on the pad wider than the cleaning takes out
+  joins the burn, and can be taken for the top
+  ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that reads above zero
+  all through the coast, as a part that zeroed off its pad's level can, never ends its burn, so its
+  top is searched to apogee and its burnout comes from the speed's peak.
+- **Noise that runs from sample to sample.** Averaging $n$ samples cuts the noise by $\sqrt n$ only
+  where each sample's noise is its own. A part whose noise runs on, as its own low-pass
   filter or a slow drift makes it, keeps more of it through the average, so $N$ comes out too
   small and burnout's bound too narrow. The synthetic flights draw each sample's noise apart, so
   they can't show this ([#787](https://github.com/nrdptel/fusionspace-eridanus/issues/787)).
