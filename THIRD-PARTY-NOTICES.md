@@ -374,11 +374,11 @@ adds a source.
   > ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
   > OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-- **fusionspace-loft** (MIT, the project owner's own), `fixtures/demo-*.ork` at `64f51ef1b3`: seven
+- **fusionspace-loft** (MIT, the project owner's own), `fixtures/demo-*.ork` at `553da8298a`: seven
   hand-made demonstration designs, copied unchanged into `validation/fixtures/ork/loft-demo/` as
   the public files `hpr_io::ork`'s snapshot test reads (M3.1d1, snapshots of public designs).
 - **fusionspace-debrief** (MIT, the project owner's own), `lib/parsers/perfectflite.ts` and
-  `lib/analyze/index.ts` at `9e72db8`: the layout and units of PerfectFlite's `.pf2` in
+  `lib/analyze/index.ts` at `06b5272`: the layout and units of PerfectFlite's `.pf2` in
   `hpr_flightdata::perfectflite`, and the corpus-set thresholds `hpr_flightdata::readings` takes
   (a 3 m climb for liftoff, landing below 2 m and staying under 5 m for a second, the 4,000 m/s and
   20% guards on a peak speed), as its documentation says. Also `lib/parsers/altusmetrum.ts` and

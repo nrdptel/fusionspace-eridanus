@@ -9,7 +9,7 @@ on a private corpus of 61 logs, unless hpr's readers have since measured more, w
 is given. Readings off a parsed flight: [the readings note](debrief-flight-readings.md).
 
 Debrief is `nrdptel/fusionspace-debrief`, the maintainer's own MIT-licensed browser flight-log
-analyzer, now sunset (ADR-046), read at commit `9e72db8` (mirror `refs/fusionspace-debrief`, from
+analyzer, now sunset (ADR-046), read at commit `06b5272` (mirror `refs/fusionspace-debrief`, from
 `cargo xtask refs fetch`); `:463-469` continues the file named just before it. **Debrief's claims
 are leads**: hpr's readers (`crates/hpr-flightdata/`, cited by file name) re-measure them, and
 where the two disagree, hpr's reading is the one to use.

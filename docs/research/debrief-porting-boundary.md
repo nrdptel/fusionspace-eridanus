@@ -7,7 +7,7 @@ the mirror. **How far to trust it:** every claim below was read in the source on
 the file and line given, rather than taken from a summary.
 
 Debrief is `nrdptel/fusionspace-debrief`, Neer's own MIT-licensed flight-log analyzer, now sunset
-(ADR-046), mirrored read-only into `refs/fusionspace-debrief` at commit `9e72db8` by `cargo xtask
+(ADR-046), mirrored read-only into `refs/fusionspace-debrief` at commit `06b5272` by `cargo xtask
 refs fetch`. Being MIT and Neer's own, its code may be ported with a note in
 `THIRD-PARTY-NOTICES.md`, the same footing as Loft. The formats themselves are
 [the formats note](debrief-log-formats.md); the reading methods are
