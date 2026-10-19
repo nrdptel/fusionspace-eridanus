@@ -2019,30 +2019,29 @@ mod tests {
         };
         assert_eq!(*reason, Reason::DirectionUnstated);
         assert!(detail.contains("the coast alone says"), "{detail}");
-        for (format, column, out_m_s2) in [(LogFormat::GenericTable, "Axial accel", 0.0)] {
-            let readings = read_all(&log(format, column, 0.01, |k, t| {
-                short_burn(t) - out_m_s2 + jitter(k, 0.3)
-            }));
-            let accelerometer = readings.accelerometer.as_ref();
-            assert!(
-                accelerometer.is_some_and(|a| !a.turned_over),
-                "{column}: {accelerometer:?}, {:?}",
-                readings.max_acceleration
-            );
-            let top = readings.max_acceleration.value().unwrap();
-            assert!(
-                (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
-                "{column}: {top:?}"
-            );
-            assert!((3.0..3.3).contains(&top.time_s), "{column}: {top:?}");
-            assert_eq!(top.provenance, Provenance::Measured, "{column}");
-            assert!(!top.is_floor, "{column}: {top:?}");
-            let burnout = readings.burnout.value().unwrap();
-            assert!(
-                (burnout.time_s - 3.3).abs() <= burnout.bound_s,
-                "{column}: {burnout:?}"
-            );
-        }
+        let (format, column, out_m_s2) = (LogFormat::GenericTable, "Axial accel", 0.0);
+        let readings = read_all(&log(format, column, 0.01, |k, t| {
+            short_burn(t) - out_m_s2 + jitter(k, 0.3)
+        }));
+        let accelerometer = readings.accelerometer.as_ref();
+        assert!(
+            accelerometer.is_some_and(|a| !a.turned_over),
+            "{column}: {accelerometer:?}, {:?}",
+            readings.max_acceleration
+        );
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
+            "{column}: {top:?}"
+        );
+        assert!((3.0..3.3).contains(&top.time_s), "{column}: {top:?}");
+        assert_eq!(top.provenance, Provenance::Measured, "{column}");
+        assert!(!top.is_floor, "{column}: {top:?}");
+        let burnout = readings.burnout.value().unwrap();
+        assert!(
+            (burnout.time_s - 3.3).abs() <= burnout.bound_s,
+            "{column}: {burnout:?}"
+        );
     }
 
     /// The same short burn and drag on a part mounted nose down: the pad's −1 g says so where
@@ -2060,26 +2059,25 @@ mod tests {
             without.max_acceleration.reason(),
             Some(Reason::DirectionUnstated)
         );
-        for out_m_s2 in [0.0] {
-            let readings = read_all(&log(
-                LogFormat::GenericTable,
-                "Axial accel",
-                0.01,
-                |k, t| -(short_burn(t) - out_m_s2) + jitter(k, 0.3),
-            ));
-            let accelerometer = readings.accelerometer.as_ref();
-            assert!(
-                accelerometer.is_some_and(|a| a.turned_over),
-                "out {out_m_s2}: {accelerometer:?}, {:?}",
-                readings.max_acceleration
-            );
-            let top = readings.max_acceleration.value().unwrap();
-            assert!(
-                (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
-                "out {out_m_s2}: {top:?}"
-            );
-            assert!(!top.is_floor, "out {out_m_s2}: {top:?}");
-        }
+        let out_m_s2 = 0.0;
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| -(short_burn(t) - out_m_s2) + jitter(k, 0.3),
+        ));
+        let accelerometer = readings.accelerometer.as_ref();
+        assert!(
+            accelerometer.is_some_and(|a| a.turned_over),
+            "out {out_m_s2}: {accelerometer:?}, {:?}",
+            readings.max_acceleration
+        );
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
+            "out {out_m_s2}: {top:?}"
+        );
+        assert!(!top.is_floor, "out {out_m_s2}: {top:?}");
     }
 
     /// A pad that reads 1 g, nose up with gravity in, before a thrust that reads −6 g, nose
