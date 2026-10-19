@@ -103,19 +103,21 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   style); "In short" counts only before a comma, not as the label of a model page's box; and
   "this section" counts only at a sentence's start.
   Minimizers leave out "just" before a word of place or time and "how quickly", which measure
-  something here. First person leaves out quoted words, and a capital I after a word that makes
+  something here. Quoted words aren't read for hedges, minimizers, signposts, first person or the
+  register; the stock list reads them. First person leaves out a capital I after a word that makes
   it a numeral or a name ("Type I", "Saturn I") or before "is" or a motor word ("where I is the
   inertia", "an I motor").
 - *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
   1.0; stacked hedges, minimizers and signposts 0.1; first person on a reference page 0 (the
   model and format pages, the command line and the glossary). The sentence limit comes from the
-  guide's target, and equals it at 20 words a sentence. The rest were set against the pages as they stood on 2026-10-19 and against
-  the survey's exemplars, and the guide gives each one's reason.
-- *The list.* 41 entries in 9 groups, each citing the published lists that name it, or the
+  guide's target, and equals it at 20 words a sentence. The rest were set against the pages as they stood on 2026-10-19, and the
+  guide gives each one's reason.
+- *The list.* 41 entries in 9 groups, each citing the published lists that name it (style
+  guides, studies, and Wikipedia's pages on word choice and on signs of generated writing), or the
   design system's writing rules (rechecked against them on 2026-10-19), with a test that fails without it and none on a model
   page. Off it for a technical sense in this project: robust, deploy, streamline, boost and powerful (a more
-  powerful motor). The noun "leverage" (a lever arm), "utilization" and the authors Garner and
-  Foster are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
+  powerful motor). The noun "leverage" (a lever arm), "utilization", and the bare "garner"
+  and "foster" (also surnames) are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
   up" were dropped. No source names the first two, though the kind is named and its named forms
   ("research has shown", "experts declare", "experts argue") are on the list. The last two are
   recommended, not warned against: Google's word list suggests "to summarize" in place of

@@ -138,8 +138,8 @@ rotation), with variable mass: aerodynamics from subsonic to supersonic, the sta
 a measured one, winds that change with height, staging, clusters and air starts, and recovery with
 drift."
 
-*After*: "It flies a rocket in six degrees of freedom, three of position and three of rotation, with
-its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is the
+*After*: "It flies a rocket in six degrees of freedom (6-DOF), three of position and three of rotation,
+with its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is the
 standard atmosphere or a measured one, with winds that change with height. It covers staging,
 clusters and air starts, and recovery with drift."
 
@@ -210,7 +210,12 @@ limit. A page over one is where to look first; it doesn't fail the build.
 | Stacked hedges | a sentence holding two or more hedges | 0.1 |
 | Minimizers | simply, just, easy, easily, quick, quickly | 0.1 |
 | Signposts | "in this section", "as mentioned", "let's", "in short," and the like | 0.1 |
-| First person on a reference page | "I", "me" or "my" on a model, format, command or glossary page | 0 |
+| First person on a reference page | "I", "me", "my" and their forms (I'm, mine, myself) on a model, format, command or glossary page | 0 |
+
+Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before a word of
+place or time ("just below") and "how quick" or "how quickly", which measure something here.
+Quoted words aren't read for hedges, minimizers, signposts or first person, though the stock list
+reads them.
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
 over 25 words, at about 20 words a sentence. That's 0.5 per 100 words. On a page of shorter
@@ -244,7 +249,8 @@ editing a page; the site's build runs the check too. Give it paths, such as
 and prints the report. That's how fusionspace.co's pages and the design system's get checked.
 
 Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups,
-each named by a published style guide or study, or by the design system's own writing rules:
+each named by a published list (a style guide, a study, or Wikipedia's pages on word choice and on
+signs of generated writing) or by the design system's own writing rules:
 
 - puffery: `seamless`, `cutting-edge`
 - inflated words: `pivotal`, `testament`
@@ -256,8 +262,7 @@ each named by a published style guide or study, or by the design system's own wr
 - recaps: `in conclusion`
 - chat residue: `I hope this helps`
 
-The list leaves out words that have a technical sense in this project, even if no page uses them
-yet: robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor).
+The list leaves out words that have a technical sense in this project: robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor).
 Terms such as `magic bytes` and `seamless tube` pass. The list is in
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.

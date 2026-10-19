@@ -17,7 +17,8 @@
 //! cites the published lists that name it, and a test fails without it. A word with a technical
 //! sense in this project stays off the list, or keeps only its other forms: "robust", "deploy",
 //! "streamline", "boost" and "powerful" (a more powerful motor) are off it, and "leverage" (a
-//! lever arm), "utilization", and "Garner" and "Foster" (authors) are left out of their entries
+//! lever arm), "utilization", and the bare "garner" and "foster" (also surnames) are left out of
+//! their entries
 //! (`docs/research/plain-voice-docs.md`).
 //!
 //! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]) and writes the
@@ -310,7 +311,7 @@ const STOCK: &[Stock] = &[
         forms: &["leverages", "leveraged", "leveraging"],
         kind: Kind::BuzzVerb,
         allowed: &[],
-        sources: &[2, 3, 4, 5, 6],
+        sources: &[2, 3, 5, 6],
     },
     Stock {
         forms: &["utilize", "utilizes", "utilized", "utilizing"],
@@ -1483,11 +1484,12 @@ fn report(pages: &[Page]) -> String {
         "# How the pages read\n\n\
          `cargo xtask voice` writes this report from the pages. A test fails when the two \
          disagree, so run it after editing a page. [The writing guide's voice \
-         section](../../docs/writing.md#voice) says what each column counts and why, and sets \
-         the limits.\n\n\
+         section](../../docs/writing.md#voice) says what the pattern columns count and why, and \
+         sets the limits.\n\n\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
-         a rate at or under it; a rate over its limit is in bold. Only a stock phrase fails the \
-         build.\n\n\
+         a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
+         of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
+         inside a target it misses. Only a stock phrase fails the build.\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.len()
     );
@@ -1529,20 +1531,14 @@ fn report(pages: &[Page]) -> String {
     rule.push_str("---:|---:|---:|---:|");
     let _ = writeln!(out, "{header}\n{rule}");
     for page in pages {
-        let mean = if page.sentences == 0 {
-            0.0
-        } else {
-            page.sentence_words as f64 / page.sentences as f64
-        };
-        let share = if page.sentences == 0 {
-            0.0
-        } else {
-            page.long as f64 * 100.0 / page.sentences as f64
-        };
+        // Rounded up in whole numbers, as the rates are: tenths of a word, whole percent.
+        let mean_tenths = (page.sentence_words * 10).div_ceil(page.sentences.max(1));
+        let share = (page.long * 100).div_ceil(page.sentences.max(1));
+        let mean = format!("{}.{}", mean_tenths / 10, mean_tenths % 10);
         let kind = if page.reference { " (`ref`)" } else { "" };
         let _ = write!(
             out,
-            "| `{}`{kind} | {} | {mean:.1} | {share:.0}% |",
+            "| `{}`{kind} | {} | {mean} | {share}% |",
             page.path, page.words
         );
         for pattern in Pattern::ALL {
@@ -1902,6 +1898,33 @@ mod tests {
             ..speaking
         };
         assert_eq!(Pattern::FirstPersonOnReference.count(&elsewhere), None);
+    }
+
+    #[test]
+    fn sentence_mean_and_share_are_shown_rounded_up() {
+        let row = |sentence_words, sentences, long| {
+            let page = Page {
+                path: "p.md".to_string(),
+                words: 100,
+                sentences,
+                sentence_words,
+                long,
+                ..Page::default()
+            };
+            let text = report(&[page]);
+            let line = text
+                .lines()
+                .find(|l| l.starts_with("| `p.md`"))
+                .map(str::to_string);
+            line.unwrap_or_default()
+        };
+        // 20.01 words a sentence shows 20.1, past the target, and 1 long in 101 shows 1%.
+        assert!(row(2021, 101, 1).starts_with("| `p.md` | 100 | 20.1 | 1% |"));
+        // Exact values stay as they are.
+        assert!(row(60, 3, 0).starts_with("| `p.md` | 100 | 20.0 | 0% |"));
+        assert!(row(0, 0, 0).starts_with("| `p.md` | 100 | 0.0 | 0% |"));
+        // 9.1% of sentences over 25 words shows 10%, not inside "fewer than 10%".
+        assert!(row(220, 11, 1).starts_with("| `p.md` | 100 | 20.0 | 10% |"));
     }
 
     #[test]
