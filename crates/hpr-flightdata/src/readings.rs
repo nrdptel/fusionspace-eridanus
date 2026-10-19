@@ -1,11 +1,13 @@
-//! The readings taken from a flight log on its own: liftoff, apogee, the top speed, landing and
-//! the descent, with no design file and no simulation.
+//! The readings taken from a flight log on its own: liftoff, apogee, the top speed, the top
+//! acceleration, burnout, landing, the flight time and the descent under each canopy, with no
+//! design file and no simulation.
 //!
 //! Each is a [`Reading`]: a value with where it came from, how it was read and the bound its error
 //! stays within, or [`Reading::Withheld`] with the reason the log can't support it. A reading is
 //! never guessed at; one the log can't support is left out and says why.
 //!
-//! **The track.** Every reading of a height or a time comes from one height track, the first of
+//! **The track.** Every reading of a height or a time but the accelerometer's comes from one
+//! height track, the first of
 //! these the log holds ([`Source`]): the logger's own barometric altitude (the record's primary
 //! track); a pressure, turned into a height by the 1976 standard atmosphere, as every logger
 //! documented does it (`docs/research/altimeter-height-formulas.md`); a barometric altitude kept
@@ -45,9 +47,15 @@
 //!   [`LANDING_HEIGHT_M`], that stays under it and [`LANDED_CEILING_M`]'s margin for
 //!   [`LANDED_FOR_S`], and no sooner, give or take a sample, than a fall from rest in vacuum would
 //!   lose that height, `√(2h/g)`: drag only slows a fall;
-//! - the **top acceleration** is left to milestone [M7.2c][m7-2c], the rest of the readings:
-//!   withheld when the log has no accelerometer, as differencing a height twice turns its step
-//!   into spikes of many g, and not yet taken from one it has.
+//! - the **flight time** is landing's time less liftoff's;
+//! - the **descent under each canopy** is read back from landing, as Debrief reads it: the main's
+//!   rate near the ground, the run of samples back from landing that stays near it, and its first
+//!   sample the main's opening; the drogue's leg from apogee to there, if the descent before it
+//!   fell fast enough to tell it apart ([`Descent`], [`Opening`], [M7.2c][m7-2c]);
+//! - the **top acceleration** and **burnout** come from an accelerometer along the rocket's axis
+//!   ([`MaxAcceleration`], [`Burnout`]), burnout as a floor from the top speed's time where the
+//!   log has none; a log with no accelerometer gives no top acceleration, as differencing a height
+//!   twice turns its step into spikes of many g.
 //!
 //! Before any reading, a log must be sampled no slower than [`MAX_INTERVAL_S`] and in steps no
 //! coarser than [`MAX_STEP_M`] (or [`MAX_PRESSURE_STEP_PA`]), the range the bounds were checked
@@ -61,19 +69,21 @@
 //! air: a logger converts pressure by the standard atmosphere, so a day [`AIR_TEMPERATURE_SPREAD_K`]
 //! off standard moves its heights by up to [`TEMPERATURE_SHARE`] of themselves. On the synthetic
 //! flights' tuning set, logged at every rate and step from 500 to half a sample a second and from
-//! no step to 100 Pa, and started as loggers that record from launch start, from 0.3 s before
-//! liftoff to 0.5 s after it, every reading given stayed within its bound (`cargo xtask
-//! synthetic`).
+//! no step to 100 Pa, their accelerometers at 500, 100 and 20 Hz, and started as loggers that
+//! record from launch start, from 0.3 s before liftoff to 0.5 s after it, every reading given
+//! stayed within its bound (`cargo xtask synthetic`).
 //!
 //! The landing's thresholds and the least climb, [`LIFTOFF_HEIGHT_M`], are Debrief's
 //! (`lib/analyze/index.ts`, MIT, the project owner's own), set on its corpus of flight logs rather
 //! than taken from a published source; the running median in place of Debrief's Hampel filter,
 //! the climb's mark, the pad and its error, the liftoff allowance, the derived speed and the
-//! bounds are HPR Sim's ([ADR-281]).
+//! bounds are HPR Sim's ([ADR-281]); so are burnout's method and the canopies' and the top
+//! acceleration's bounds ([ADR-283]).
 //!
 //! [page]: https://hpr.fusionspace.co/physics/log-readings.html
 //! [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 //! [ADR-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
+//! [ADR-283]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0283-the-rest-of-the-readings.md
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
 use hpr_atmos::Ussa76;
@@ -82,6 +92,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::filter::{median, running_median};
 use crate::log::{Channel, FlightLog, LogFormat, Quantity};
+
+mod accelerometer;
+mod canopies;
+
+pub use accelerometer::{SYNTHETIC_COLUMN, SYNTHETIC_LOWER_RANGE_COLUMN};
 
 /// The running median's span, s: 0.3 s, Debrief's despiking window. Debrief runs a Hampel filter
 /// over it ([`crate::filter::hampel`], threshold 4); HPR Sim takes the plain median (threshold 0). On
@@ -226,6 +241,101 @@ pub const RAPID_PRESSURE_CHANGE_PA_PER_H: f64 = 0.06 * 3386.389;
 pub const PAD_ZERO_M: f64 =
     RAPID_PRESSURE_CHANGE_PA_PER_H / (1.225 * STANDARD_GRAVITY_MPS2) + NOISE_M;
 
+/// The axial accelerometer's scale error, a share of its reading: the ADXL375's ±10% sensitivity
+/// ([ADR-280] §3, the datasheet's p. 3), the widest of the parts the synthetic flights' loggers
+/// model.
+///
+/// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+pub const ACCEL_SCALE_SHARE: f64 = 0.10;
+/// Its residual bias after the pad's zero, m/s²: the synthetic flights' 0.05 g, the top of the
+/// 10–50 mg the sensor-noise note calls a guess, as no source states one.
+pub const ACCEL_BIAS_M_S2: f64 = 0.05 * STANDARD_GRAVITY_MPS2;
+/// The most a rail stands from vertical, degrees: the NAR's and Tripoli's high-power safety
+/// codes allow 20° (the NAR's model rocket code allows 30°). A logger that zeroes its
+/// accelerometer on the pad takes out `g cos θ`, so standard gravity put back is off by up to
+/// `g (1 − cos 20°)`, 0.06 g.
+pub const RAIL_TILT_DEG: f64 = 20.0;
+/// How near 1 g, or 0, an accelerometer's pad must read, or its coast to apogee 0 or −1 g, to
+/// settle whether gravity is in its readings, g: a 20° rail's 0.06 g, a part's zero offset and the
+/// small drag near apogee, HPR Sim's choice. Also how far below its part's range a top
+/// acceleration is taken as clipped, with two steps.
+pub const GRAVITY_TOLERANCE_G: f64 = 0.25;
+/// The noise bound on one accelerometer sample, in its measured σ: five, which a normal noise
+/// passes, either way, about once in 1.7 million samples.
+pub const ACCEL_NOISE_SIGMAS: f64 = 5.0;
+/// The span the accelerometer's trace is averaged over to find burnout, s: `2h + 1` samples, `h`
+/// half the span in intervals, rounded half away from zero, a tie that a clock's float times leave
+/// a hair short included, so 27 at 500 Hz, 7 at 100 Hz and 3 at 20 Hz.
+pub const BURNOUT_MEAN_S: f64 = 0.05;
+/// The span either side of the top acceleration its noise is measured over, s.
+pub const NOISE_SPAN_S: f64 = 0.5;
+/// The window of the Hampel filter the accelerometer's trace is cleaned with before the thrust's
+/// start and end and burnout are found on it, s: a spike narrower than half of it, a charge's
+/// shock or one bad sample, is taken out, while a step or a steady run, as the thrust's rise and
+/// fall are, is kept as it was. HPR Sim's choice; the top is still read off the samples.
+pub const SPIKE_WINDOW_S: f64 = 0.1;
+/// The Hampel filter's threshold, in robust standard deviations of its window (R. K. Pearson et
+/// al., *The Class of Generalized Hampel Filters*, EUSIPCO 2015, §2, `t`): five, as
+/// [`ACCEL_NOISE_SIGMAS`] holds the noise, so it takes out what noise alone reaches about once
+/// in 1.7 million samples. HPR Sim's choice.
+pub const SPIKE_THRESHOLD: f64 = 5.0;
+/// The least time a burn holds the cleaned accelerometer trace past
+/// [`LIFTOFF_ACCELERATION_M_S2`], s: a span that holds there for less is taken for a shock, a
+/// canopy's or a charge's, or a knock, not a burn, unless no span holds that long, when the first
+/// is the burn, a short one. Measured once, when the rule was chosen, on the sample logs: of the
+/// spans after the first, every one that started within 3 s of apogee held for at most 0.47 s,
+/// and every longer one started more than 3 s before it; nothing beside those logs says which of
+/// the longer ones are burns. HPR Sim's choice
+/// ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)).
+pub const BURN_LEAST_S: f64 = 0.5;
+/// The least samples of an accelerometer's pad, or its coast, that settle its gravity.
+pub const PAD_MIN_SAMPLES: usize = 3;
+/// The span of the coast before apogee's earliest time whose median reading settles an
+/// accelerometer's gravity, s: near apogee a rocket falls freely but for a drag its slow speed
+/// makes small, so a part that holds gravity reads about 0 and one that takes it out about −1 g.
+pub const COAST_SPAN_S: f64 = 1.0;
+/// A top acceleration held flat over this many samples is clipped: Debrief's.
+pub const FLAT_TOP_SAMPLES: usize = 4;
+/// Or over this long, s, if that is more samples: Debrief's.
+pub const FLAT_TOP_S: f64 = 0.05;
+/// Flat: within this share of the top, Debrief's.
+pub const FLAT_TOP_SHARE: f64 = 0.003;
+/// Or within this, m/s², if that is more: Debrief's.
+pub const FLAT_TOP_M_S2: f64 = 0.25;
+/// The span of the least-squares fit of the descent's rate, s: a canopy's rate changes slowly,
+/// so a fit twice the climb's averages the noise down; it needs [`SPEED_MIN_SAMPLES`], so a log
+/// sampled slower than every 0.25 s gives no canopy's rate.
+pub const DESCENT_WINDOW_S: f64 = 1.0;
+/// The steps of the track a fit of the descent's rate holds at the least: a fit across one step
+/// reads a spike, and one across four is off by about a quarter of the rate, which the run's
+/// [`MAIN_TOLERANCE_SHARE`] leaves room for. HPR Sim's choice.
+pub const DESCENT_FIT_STEPS: f64 = 4.0;
+/// The longest fit of the descent's rate, s: a track whose steps need more is too coarse to tell
+/// the main's opening by. HPR Sim's choice.
+pub const DESCENT_WINDOW_MAX_S: f64 = 10.0;
+/// The main's rate is the median over this long before landing, or the fit's span if that is
+/// longer, s: Debrief's.
+pub const DESCENT_TAIL_S: f64 = 2.0;
+/// Its last half is left out, s; and a main opening sooner than this after apogee is none:
+/// Debrief's.
+pub const DESCENT_GUARD_S: f64 = 0.5;
+/// The run back from landing stays within this share of the main's rate: Debrief's.
+pub const MAIN_TOLERANCE_SHARE: f64 = 1.6;
+/// Or within this much more, m/s, if that is more: Debrief's.
+pub const MAIN_TOLERANCE_M_S: f64 = 3.0;
+/// A drogue's leg falls faster than this many times the main's rate, by its median: Debrief's.
+pub const DROGUE_RATIO: f64 = 1.4;
+/// A leg of the descent loses more than this, m: Debrief's.
+pub const LEG_LEAST_M: f64 = 3.0;
+/// And more than this share of its top's height: Debrief's.
+pub const LEG_LEAST_SHARE: f64 = 0.1;
+/// The least density scale height of the troposphere, m: the 1976 standard atmosphere's
+/// `R T/(g − R L)`, with its 6.5 K/km lapse `L`, at its coldest, the tropopause's 216.65 K less
+/// [`AIR_TEMPERATURE_SPREAD_K`], is 7,289 m, taken down to 7,000 m. A canopy's rate goes as the
+/// density to the −½, so it grows by no more than `exp(h/2H)` over `h` of height in the
+/// troposphere.
+pub const DENSITY_SCALE_HEIGHT_M: f64 = 7_000.0;
+
 /// A reading, or why the log can't support it.
 ///
 /// Serialized, the status goes in beside the reading's own fields (`"status": "read"`), so `T`
@@ -347,10 +457,6 @@ pub enum Reason {
     /// top: its clock is in another unit, such as milliseconds read as seconds, its top isn't a
     /// coast's, or it isn't a height.
     SlowerThanFreeCoast,
-    /// The log has an accelerometer, from which HPR Sim doesn't take the reading yet (milestone
-    /// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the
-    /// readings).
-    NotYetTaken,
     /// The log's first samples can't rule out a rocket already more than [`LIFTOFF_ALLOWANCE_M`]
     /// up when it starts: it starts after liftoff, as a logger that records from launch writes
     /// its zero and then the climb, or holds too little of the pad to tell liftoff by. A track on
@@ -368,6 +474,33 @@ pub enum Reason {
     /// above the true top. Which is the apogee can't be told, so the apogee, the top speed and
     /// landing are withheld; liftoff is not.
     DisturbedTop,
+    /// The log's accelerometers don't say which of them lies along the rocket's axis, such as a
+    /// board's three axes, a phone's or a table's column read by its header: the top
+    /// acceleration and a burnout from the accelerometer need the axial one.
+    AxisUnstated,
+    /// The axial accelerometer's readings may or may not hold gravity's 1 g, and nothing settles
+    /// which: its family doesn't say, and neither its pad (about 1 g or 0) nor its coast to
+    /// apogee (about 0 or −1 g) reads either level, or what they say disagrees.
+    GravityUnstated,
+    /// Which way up the axial accelerometer reads, nose up or nose down, isn't settled, or its
+    /// trace shows no thrust. Of its three witnesses, each on the trace as written, none says or
+    /// two disagree: the pad (about 1 g nose up, about −1 g nose down), the coast to apogee
+    /// (−0.75 g or less nose up, 0.75 g or more nose down) and the thrust (its first span past
+    /// [`LIFTOFF_ACCELERATION_M_S2`] to hold there for [`BURN_LEAST_S`], unless a span the other
+    /// way comes first). Or, turned as they settle and gravity put back, the trace never passes
+    /// [`LIFTOFF_ACCELERATION_M_S2`] from liftoff's earliest time to apogee.
+    DirectionUnstated,
+    /// The descent shows no drogue's leg. Walked back from landing, its rate at the ground's
+    /// density never passes the main's mark, [`MAIN_TOLERANCE_SHARE`] times the rate near the
+    /// ground or [`MAIN_TOLERANCE_M_S`] more if that is more, in the [`DESCENT_TAIL_S`] before
+    /// the main's leg, or the descent before that leg isn't, on median, [`DROGUE_RATIO`] times
+    /// that rate. The rocket came down under one canopy, or under a drogue no faster than the
+    /// mark, which reads as one: the main's descent is then the whole descent's, from apogee to
+    /// landing, and there is no drogue's.
+    OneCanopy,
+    /// A leg of the descent loses too little height, under [`LEG_LEAST_M`] or
+    /// [`LEG_LEAST_SHARE`] of its top's height, or lasts too little, for its rate to be read.
+    ShortLeg,
 }
 }
 
@@ -386,6 +519,8 @@ pub enum Source {
     AltitudeChannel,
     /// A GNSS receiver's altitude.
     Gnss,
+    /// The accelerometer along the rocket's axis.
+    Accelerometer,
 }
 }
 
@@ -399,10 +534,9 @@ pub enum Provenance {
     Measured,
     /// Worked out from the track, such as a speed from the slope of its heights.
     Derived,
-    /// Measured, but at the sensor's range, so the true value may lie beyond it (the top
-    /// acceleration of milestone
-    /// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the
-    /// readings).
+    /// Measured, but at the sensor's range, so the true value may lie beyond it: a top
+    /// acceleration at the part's stated range, or held flat at its top as a part that clipped
+    /// holds it.
     Clipped,
 }
 }
@@ -423,6 +557,18 @@ pub enum Method {
     /// The first sample after apogee back within the pad's allowance, as liftoff's, that stays
     /// down for [`LANDED_FOR_S`].
     BackOnThePad,
+    /// The axial accelerometer's highest reading before apogee.
+    HighestReading,
+    /// The first sample next to the axial accelerometer's least reading after it falls below
+    /// zero: the end of the thrust's fall, where the coast's drag begins to ease.
+    LeastAfterThrust,
+    /// The top speed's time, a floor: burnout came no sooner than it less its bound.
+    SpeedPeak,
+    /// Landing's time less liftoff's.
+    LiftoffToLanding,
+    /// The height a leg of the descent loses over the time it takes, the main's leg found back
+    /// from landing as the run of samples descending near the main's rate.
+    LegChord,
 }
 }
 
@@ -513,15 +659,188 @@ pub struct MaxSpeed {
     pub method: Method,
 }
 
-/// The top acceleration in the climb. No reading fills it yet: milestone
-/// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the readings,
-/// takes it from an accelerometer.
+/// The top acceleration in the climb, as the axial accelerometer reads it.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MaxAcceleration {
-    /// The acceleration, m/s².
+    /// The acceleration, m/s², along the rocket's axis, nose up positive, gravity's reaction in it
+    /// as an accelerometer reads it: +1 g standing on the pad, the thrust less the drag over the
+    /// mass in the climb. Less 9.81 m/s² it is the rocket's own acceleration up on a vertical
+    /// climb. A channel written with gravity taken out has it put back.
     pub acceleration_m_s2: f64,
-    /// When, s on the log's clock.
+    /// The bound on its error, m/s²: the part's scale ([`ACCEL_SCALE_SHARE`]) as a share of it,
+    /// its residual bias ([`ACCEL_BIAS_M_S2`]), gravity's share a tilted rail takes from a channel
+    /// zeroed on the pad ([`RAIL_TILT_DEG`]), five times the noise measured around the top, a
+    /// step, and the change to the next sample either side, which a peak between them can hide.
+    /// When it is clipped, the true top is no lower than the reading less the bound, and may be
+    /// higher by any amount.
+    pub bound_m_s2: f64,
+    /// When, s on the accelerometer's clock.
     pub time_s: f64,
+    /// The range of the part its family states, m/s², `None` where it doesn't.
+    pub range_m_s2: Option<f64>,
+    /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
+    /// any amount. A clipped top is ([`clip`](Self::clip)), and so is one whose burn the
+    /// accelerometer ends in, its thrust never falling through zero on the channel before apogee:
+    /// that one is measured, its [`clip`](Self::clip) `None`.
+    pub is_floor: bool,
+    /// Why it is clipped, where it is: at the part's stated range, or held flat at its top below
+    /// it or with no range stated; `None` where it isn't.
+    pub clip: Option<Clip>,
+    /// The accelerometer.
+    pub source: Source,
+    /// Clipped where [`clip`](Self::clip) says why; otherwise measured.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
+}
+
+with_all! {
+/// Why a top acceleration is clipped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Clip {
+    /// It reaches the part's range as its family states it, less two steps and
+    /// [`GRAVITY_TOLERANCE_G`]: the part read no more.
+    Range,
+    /// It holds flat at its top for [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], as Debrief
+    /// tells a part that clipped, short of any range the family states or with none stated: the
+    /// part may have clipped, at a range other than the one stated.
+    Flat,
+}
+}
+
+/// Burnout: when the motor stopped pushing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Burnout {
+    /// When, s on the clock of the track it came from.
+    pub time_s: f64,
+    /// The bound on its error, s. From the accelerometer: the span of the samples within twice
+    /// the noise of the least reading and an interval, or two intervals if that is more. From the
+    /// speed's peak, a floor:
+    /// the time a coast slowing at g takes to lose twice [`SPEED_NOISE_M_S`], half the speed's
+    /// fit and an interval, by which the peak can read late.
+    pub bound_s: f64,
+    /// When, s after liftoff: the burn's length; `None` when liftoff is withheld.
+    pub time_after_liftoff_s: Option<f64>,
+    /// Whether the time is a floor: burnout came no sooner than it, less its bound, and may have
+    /// come later by any amount, as a motor whose thrust tails off below the drag and the weight
+    /// keeps burning after the rocket stops gaining speed.
+    pub is_floor: bool,
+    /// The accelerometer, or the height track the speed came from.
+    pub source: Source,
+    /// Measured from the accelerometer; derived from the speed's peak.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
+}
+
+/// The flight time, liftoff to landing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct FlightTime {
+    /// From liftoff to landing, s.
+    pub time_s: f64,
+    /// The bound on its error, s: liftoff's and landing's.
+    pub bound_s: f64,
+    /// The track it came from.
+    pub source: Source,
+    /// Measured: two times on the track.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
+}
+
+/// The descent under one canopy: a leg of the descent, from apogee or the main's opening to the
+/// main's opening or landing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Descent {
+    /// The mean rate of descent over the leg, m/s, down positive: the filtered height lost over
+    /// the time taken.
+    pub rate_m_s: f64,
+    /// The bound on the rate's error, m/s: the day's air and the barometer's gain as shares of
+    /// the height lost, the noise and a step at either end, the drift over the leg, and from
+    /// apogee the median's [`peak_bound_m`], over the leg's time.
+    pub bound_m_s: f64,
+    /// Where the leg starts, s on the track's clock: apogee, or the main's opening.
+    pub from_s: f64,
+    /// Where it ends: the main's opening, or landing.
+    pub to_s: f64,
+    /// The filtered track's height at its start, m above the pad.
+    pub from_height_m: f64,
+    /// At its end.
+    pub to_height_m: f64,
+    /// The main's opening, found back from landing, for the main's leg after a drogue's; `None`
+    /// for a drogue's leg or a descent under one canopy.
+    pub opening: Option<Opening>,
+    /// The track it came from.
+    pub source: Source,
+    /// Derived from the heights.
+    pub provenance: Provenance,
+    /// How it was read.
+    pub method: Method,
+}
+
+/// The main's opening, found back from landing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Opening {
+    /// The first sample of the run back from landing whose rate of descent stays near the main's,
+    /// s on the track's clock.
+    pub time_s: f64,
+    /// The bound on its error, s: the time the main takes to slow the drogue's descent to the
+    /// run's mark, worked out from the rate the main settles to; half the rate's fit; and two
+    /// intervals.
+    pub bound_s: f64,
+    /// The filtered track's height then, m above the pad.
+    pub height_m: f64,
+}
+
+/// The axial accelerometer the top acceleration and burnout came from, and how its readings were
+/// taken.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Accelerometer {
+    /// The channel's column, as the file writes it.
+    pub column: String,
+    /// Whether its readings hold gravity's 1 g, as an accelerometer's do, or were written with it
+    /// taken out; it is put back for the readings.
+    pub gravity: Gravity,
+    /// How that was settled.
+    pub gravity_by: GravityBy,
+    /// Whether its readings were turned over, as a part mounted nose down writes the climb's
+    /// thrust negative: its largest reading before apogee is negative.
+    pub turned_over: bool,
+    /// The median interval between its samples, s.
+    pub sample_interval_s: f64,
+    /// Its step, m/s²: the smallest gap between two of its values.
+    pub step_m_s2: f64,
+}
+
+with_all! {
+/// Whether an accelerometer's readings hold gravity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Gravity {
+    /// They hold it, as the part reads: +1 g on the pad.
+    In,
+    /// The logger took it out, as its reading on the pad: 0 there.
+    Out,
+}
+}
+
+with_all! {
+/// How an accelerometer's [`Gravity`] was settled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum GravityBy {
+    /// Its family says so, and its pad and its coast, where they say, agree.
+    Family,
+    /// Its pad: about 1 g, or about 0, where its family doesn't say; its coast, where it says,
+    /// agrees.
+    Pad,
+    /// Its coast to apogee: about 0, or about −1 g, where neither its family nor its pad says.
+    Coast,
+}
 }
 
 /// Landing, and the descent before it.
@@ -536,11 +855,6 @@ pub struct Landing {
     /// ([`PAD_ABOVE_GROUND_M`]), at its rate near the ground taken slow by its step and noise,
     /// and the longer interval either side of the sample, twice.
     pub bound_s: f64,
-    /// From liftoff to landing, s; `None` when liftoff is withheld.
-    pub flight_time_s: Option<f64>,
-    /// The bound on the flight time's error, s: liftoff's and landing's; `None` when liftoff is
-    /// withheld.
-    pub flight_time_bound_s: Option<f64>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time taken,
@@ -583,10 +897,22 @@ pub struct Readings {
     pub apogee: Reading<Apogee>,
     /// The top vertical speed from liftoff to apogee.
     pub max_speed: Reading<MaxSpeed>,
-    /// The top acceleration.
+    /// The top acceleration, from the axial accelerometer.
     pub max_acceleration: Reading<MaxAcceleration>,
+    /// Burnout, from the axial accelerometer or the speed's peak.
+    pub burnout: Reading<Burnout>,
     /// Landing, and the descent before it.
     pub landing: Reading<Landing>,
+    /// The flight time, liftoff to landing.
+    pub flight_time: Reading<FlightTime>,
+    /// The descent under the drogue: from apogee to the main's opening.
+    pub drogue_descent: Reading<Descent>,
+    /// The descent under the main, the canopy the rocket landed under: from the main's opening,
+    /// or from apogee when the descent shows one canopy, to landing.
+    pub main_descent: Reading<Descent>,
+    /// The axial accelerometer the top acceleration and burnout came from; `None` when the log
+    /// has none, or none settled.
+    pub accelerometer: Option<Accelerometer>,
 }
 
 /// The height track the readings take.
@@ -627,7 +953,50 @@ fn standard_density(height_m: f64) -> f64 {
 
 /// Takes the readings from a flight log.
 pub fn read(log: &FlightLog) -> Readings {
-    let max_acceleration = acceleration(log);
+    let mut readings = heights(log);
+    // A canopy's descent is read once landing is; withheld, it is withheld as landing is.
+    if let Reading::Withheld(withheld) = &readings.landing {
+        readings.drogue_descent = Reading::Withheld(withheld.clone());
+        readings.main_descent = Reading::Withheld(withheld.clone());
+    }
+    readings.flight_time = flight_time(&readings);
+    let (accelerometer, max_acceleration, burnout) = accelerometer::read(log, &readings);
+    readings.accelerometer = accelerometer;
+    readings.max_acceleration = max_acceleration;
+    readings.burnout = burnout;
+    readings
+}
+
+/// The flight time, from liftoff and landing; withheld as the first of them withheld is.
+fn flight_time(readings: &Readings) -> Reading<FlightTime> {
+    match (&readings.liftoff, &readings.landing) {
+        (Reading::Read(liftoff), Reading::Read(landing)) => Reading::Read(FlightTime {
+            time_s: landing.time_s - liftoff.time_s,
+            bound_s: liftoff.bound_s + landing.bound_s,
+            source: landing.source,
+            provenance: Provenance::Measured,
+            method: Method::LiftoffToLanding,
+        }),
+        (Reading::Withheld(withheld), _) => Reading::withheld(
+            withheld.reason,
+            format!(
+                "the flight time needs liftoff, which is withheld: {}",
+                withheld.detail
+            ),
+        ),
+        (_, Reading::Withheld(withheld)) => Reading::withheld(
+            withheld.reason,
+            format!(
+                "the flight time needs landing, which is withheld: {}",
+                withheld.detail
+            ),
+        ),
+    }
+}
+
+/// The readings of the height track: liftoff, apogee, the top speed, landing and the descent
+/// under each canopy. The top acceleration, burnout and the flight time are left for [`read`].
+fn heights(log: &FlightLog) -> Readings {
     let every = |source: Option<Source>, reason: Reason, detail: &str| Readings {
         source,
         sample_interval_s: None,
@@ -638,8 +1007,13 @@ pub fn read(log: &FlightLog) -> Readings {
         liftoff: Reading::withheld(reason, detail),
         apogee: Reading::withheld(reason, detail),
         max_speed: Reading::withheld(reason, detail),
-        max_acceleration: max_acceleration.clone(),
+        max_acceleration: Reading::withheld(reason, detail),
+        burnout: Reading::withheld(reason, detail),
         landing: Reading::withheld(reason, detail),
+        flight_time: Reading::withheld(reason, detail),
+        drogue_descent: Reading::withheld(reason, detail),
+        main_descent: Reading::withheld(reason, detail),
+        accelerometer: None,
     };
     if let Err(detail) = check_record(log) {
         return every(None, Reason::BadRecord, &detail);
@@ -801,7 +1175,7 @@ pub fn read(log: &FlightLog) -> Readings {
     let by_word = match track.source {
         Source::Barometer => mapped,
         Source::AltitudeChannel => track.zeroed,
-        Source::Pressure | Source::Gnss => false,
+        Source::Pressure | Source::Gnss | Source::Accelerometer => false,
     };
     if by_word && measured_pad.abs() > PAD_ZERO_M {
         let detail = format!(
@@ -1068,18 +1442,18 @@ pub fn read(log: &FlightLog) -> Readings {
             ),
         );
     }
-    readings.landing = landing(
-        &track,
-        &filtered,
-        pad,
-        &Apex {
-            index: apogee_index,
-            time_s: apogee_s,
-            height_bound_m: height_bound,
-            time_bound_s: time_bound,
-        },
-        (lifted, allowance, pad_error_m),
-    );
+    let apex = Apex {
+        index: apogee_index,
+        time_s: apogee_s,
+        height_bound_m: height_bound,
+        time_bound_s: time_bound,
+    };
+    readings.landing = landing(&track, &filtered, pad, &apex, (allowance, pad_error_m));
+    if let Reading::Read(landed) = &readings.landing {
+        let index = time.partition_point(|t| *t < landed.time_s);
+        (readings.drogue_descent, readings.main_descent) =
+            canopies::read(&track, &filtered, pad, &apex, index, bound);
+    }
     readings
 }
 
@@ -1318,31 +1692,18 @@ fn arg_max(values: &[f64]) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-/// The top acceleration, withheld: milestone
-/// [M7.2c](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c), the rest of the readings,
-/// takes it from an accelerometer, and none is taken from a height.
-fn acceleration(log: &FlightLog) -> Reading<MaxAcceleration> {
-    if log.channels_of(Quantity::Acceleration).next().is_some() {
-        Reading::withheld(
-            Reason::NotYetTaken,
-            "HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap \
-             milestone M7.2c does",
-        )
-    } else {
-        Reading::withheld(
-            Reason::NoAccelerometer,
-            "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, \
-             as its steps would read as spikes of many g",
-        )
-    }
-}
-
 /// The least-squares slope of `heights` against `times` over the samples within half of
 /// [`SPEED_WINDOW_S`] of `times[center]`, skipping gaps; `None` with fewer than
 /// [`SPEED_MIN_SAMPLES`].
 fn slope(times: &[f64], heights: &[f64], center: usize) -> Option<f64> {
+    slope_over(times, heights, center, SPEED_WINDOW_S)
+}
+
+/// The least-squares slope of `heights` against `times` over the samples within half of
+/// `window_s` of `times[center]`, skipping gaps; `None` with fewer than [`SPEED_MIN_SAMPLES`].
+fn slope_over(times: &[f64], heights: &[f64], center: usize, window_s: f64) -> Option<f64> {
     let t0 = times[center];
-    let reach = 0.5 * SPEED_WINDOW_S;
+    let reach = 0.5 * window_s;
     let from = times.partition_point(|t| *t < t0 - reach);
     let to = times.partition_point(|t| *t <= t0 + reach);
     let window = || {
@@ -1477,7 +1838,7 @@ fn landing(
     filtered: &[f64],
     pad: f64,
     apex: &Apex,
-    (lifted, allowance, pad_error_m): (Option<(usize, f64)>, f64, f64),
+    (allowance, pad_error_m): (f64, f64),
 ) -> Reading<Landing> {
     let time = &track.time_s;
     let end = time[filtered.len() - 1];
@@ -1558,8 +1919,6 @@ fn landing(
     Reading::Read(Landing {
         time_s: time[index],
         bound_s,
-        flight_time_s: lifted.map(|(liftoff, _)| time[index] - time[liftoff]),
-        flight_time_bound_s: lifted.map(|(_, liftoff_bound_s)| liftoff_bound_s + bound_s),
         descent_time_s,
         mean_descent_rate_m_s: mean_rate,
         mean_descent_rate_bound_m_s: rate_bound,
@@ -1764,11 +2123,8 @@ mod tests {
             apogee.height_m
         );
         assert_eq!(apogee.time_after_liftoff_s, None);
-        let landing = aloft.landing.value().unwrap();
-        assert_eq!(
-            (landing.flight_time_s, landing.flight_time_bound_s),
-            (None, None)
-        );
+        assert!(aloft.landing.value().is_some());
+        assert_eq!(aloft.flight_time.reason(), Some(Reason::ShortPad));
         // A mapped table that writes its zero, then the climb from 23.5 m up, as a logger that
         // records from launch does: its first sample says its heights stand on the pad, which
         // the median, lifted into the climb at the start, wouldn't.
@@ -1833,7 +2189,7 @@ mod tests {
         assert!(climbing.apogee.value().unwrap().is_floor);
         assert_eq!(climbing.landing.reason(), Some(Reason::EndsBeforeLanding));
 
-        // An accelerometer's top acceleration is left to M7.2c.
+        // An accelerometer that doesn't say it lies along the axis gives no top acceleration.
         let mut accelerometer = log(30.0, flight(10.0));
         accelerometer.channels.push(Channel::new(
             "accel",
@@ -1843,7 +2199,7 @@ mod tests {
         ));
         assert_eq!(
             read(&accelerometer).max_acceleration.reason(),
-            Some(Reason::NotYetTaken)
+            Some(Reason::AxisUnstated)
         );
     }
 
@@ -2516,10 +2872,13 @@ mod tests {
             codes.dedup();
             (listed, codes.len())
         }
-        assert_eq!(codes(Reason::ALL), (23, 23));
-        assert_eq!(codes(Source::ALL), (4, 4));
+        assert_eq!(codes(Reason::ALL), (27, 27));
+        assert_eq!(codes(Source::ALL), (5, 5));
         assert_eq!(codes(Provenance::ALL), (3, 3));
-        assert_eq!(codes(Method::ALL), (4, 4));
+        assert_eq!(codes(Method::ALL), (9, 9));
+        assert_eq!(codes(Gravity::ALL), (2, 2));
+        assert_eq!(codes(GravityBy::ALL), (3, 3));
+        assert_eq!(codes(Clip::ALL), (2, 2));
     }
 
     /// Serialized, a reading carries its status beside its fields.

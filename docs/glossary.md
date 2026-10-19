@@ -568,6 +568,19 @@ row per sample, each with its time and what the logger measured then, such as it
 format is the logger maker's. `hpr analyze` reads one and prints what it says, with no design file
 ([Reading a flight log](reading-a-flight-log.md)).
 
+### Floor
+
+A reading that holds one way only. It has two numbers: the reading, where the rule lands, and the
+floor itself, that reading less its bound. The truth is at or above the floor (or, for a time, at
+or after it), and may lie beyond it by any amount. For burnout taken from the top speed on the
+invented PerfectFlite flight, the reading is the top speed's time, 2.20 s, which the JSON gives as
+`time_s`, and the floor is 2.20 s less its 1.32 s bound, 0.88 s, which `hpr analyze` prints as
+"no sooner than 0.88 s". The errors the tuning set reports for a floor are the reading's, not the
+floor's. `hpr analyze` gives a floor where the log can't show the other side: a top acceleration
+clipped at the part's range or held flat at its top, or one whose thrust the accelerometer shows
+no end to; an apogee close to the log's end; or burnout taken from the top speed. The JSON marks
+one `is_floor`. See [Flight-log readings](physics/log-readings.md#each-reading).
+
 ### Flutter
 
 A fin shaking itself apart: above a certain speed, the air's push twists the fin, the twist changes
@@ -1161,6 +1174,17 @@ sometimes humidity, as from a weather balloon (a [radiosonde](#radiosonde)) or a
 the [standard atmosphere](#standard-atmosphere), which carries on above its top level. Flights
 above a few kilometers need one, because an offset to the standard for field conditions holds all
 the way up. See [Atmosphere](physics/atmosphere.md#sounding-and-forecast-profiles).
+
+
+### Specific force
+
+What an accelerometer reads: every force on the rocket but gravity, over its mass, in m/s² or g.
+Standing on the pad it reads +1 g, the pad's push against gravity; in the climb, the thrust less
+the drag over the mass; coasting, the drag's pull back, below zero; falling in vacuum, 0. Less 1 g,
+the specific force along the axis of a rocket climbing straight up is its own acceleration.
+`hpr analyze`'s top acceleration is a specific force, with the 1 g in; `hpr sim`'s
+`max_acceleration_m_s2` is the rocket's own acceleration. See
+[Flight-log readings](physics/log-readings.md#the-accelerometer).
 
 
 ### Specific impulse

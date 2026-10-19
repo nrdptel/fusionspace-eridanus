@@ -141,9 +141,18 @@ a record layout ([Reading your own logger](../your-own-logger.md)). Since
 apogee, the top speed and landing) come from any record's height track: the logger's own
 barometric altitude, a pressure turned into a height by the 1976 standard atmosphere, or an
 altitude channel, each reading within a stated bound or withheld with its reason. A GNSS height
-gives none ([Flight-log readings](../physics/log-readings.md#the-height-track)). The survey's
-report counts the readings each family gives and withholds
-([how it was checked](#how-it-was-checked)).
+gives none ([Flight-log readings](../physics/log-readings.md#the-height-track)). Since
+[M7.2c, the rest of the readings](../decisions-and-roadmap.md#m7-2c), the same track gives the
+flight time and each canopy's descent, and an accelerometer column the reader names as the
+rocket's axis gives the top acceleration and burnout: AltOS's `acceleration` (not from an EasyMini
+or a TeleMini, which have no accelerometer: the column is then the barometer's estimate, told by
+the file having neither an inertial unit's columns nor a GPS receiver's), the Raven's and Blue
+Raven's `Axial Accel (Gs)`, the Eggtimer's `Accel`, the ARTS2's `Acc`, among others. A board's
+three axes don't say which lies along the rocket, so they give neither. Nor does an axial column
+whose pad, coast and thrust don't settle which way up it reads, or that shows no thrust
+(`direction_unstated`), as on six records of the sample logs, three AltOS CSV, two Entacore AIM
+CSV and a Raven CSV ([the accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's report counts
+the readings each family gives and withholds ([how it was checked](#how-it-was-checked)).
 
 Written for [M7.1a](../decisions-and-roadmap.md#m7-1a) (the record, the survey of the sample
 logs, and the PerfectFlite, AltOS and Raven readers), as

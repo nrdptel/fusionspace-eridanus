@@ -23,10 +23,13 @@
 use std::collections::BTreeMap;
 
 use hpr_flightdata::log::FlightLog;
-use hpr_flightdata::readings::{self, Reading, Reason};
+use hpr_flightdata::readings::{self, Clip, Reading, Reason};
 use serde::{Deserialize, Serialize};
 
-use super::logger::{Recording, Written, barometer_log};
+use super::logger::{
+    LOWER_RANGE_G, Recording, Written, accelerometer_log, accelerometer_log_set_lower,
+    barometer_log,
+};
 use super::{Flight, SyntheticError};
 
 /// The foot, m.
@@ -47,6 +50,11 @@ pub const GRID_WRITTEN: [Written; 6] = [
     Written::PressureAlone { step_pa: 10.0 },
     Written::PressureAlone { step_pa: 100.0 },
 ];
+
+/// The rates, samples a second, the check writes each accelerometer at again: Blue Raven's 500, a
+/// Raven's axial 400 and AltOS's 100 lie within them, and 20 is the slowest a logger's accelerometer
+/// is written at among the families read.
+pub const ACCELEROMETER_RATES_HZ: [f64; 3] = [500.0, 100.0, 20.0];
 
 /// The recordings the check also cuts to each [`Crop`]: 20 samples a second, as most loggers that
 /// record from launch write, in whole feet as a PerfectFlite, an RRC3 or an Eggtimer, and as a
@@ -172,11 +180,21 @@ pub enum Quantity {
     FlightTime,
     /// The mean rate of descent from apogee to landing.
     DescentRate,
+    /// The top acceleration, from the axial accelerometer.
+    TopAcceleration,
+    /// Burnout's time.
+    Burnout,
+    /// The rate of descent under the drogue.
+    DrogueRate,
+    /// The main's opening, found back from landing.
+    MainOpening,
+    /// The rate of descent under the main.
+    MainRate,
 }
 
 impl Quantity {
     /// Every quantity, in the report's order.
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 12] = [
         Self::Liftoff,
         Self::ApogeeHeight,
         Self::ApogeeTime,
@@ -184,6 +202,11 @@ impl Quantity {
         Self::Landing,
         Self::FlightTime,
         Self::DescentRate,
+        Self::TopAcceleration,
+        Self::Burnout,
+        Self::DrogueRate,
+        Self::MainOpening,
+        Self::MainRate,
     ];
 
     /// Its name in the report.
@@ -196,6 +219,11 @@ impl Quantity {
             Self::Landing => "landing",
             Self::FlightTime => "flight time",
             Self::DescentRate => "descent rate",
+            Self::TopAcceleration => "top acceleration",
+            Self::Burnout => "burnout",
+            Self::DrogueRate => "drogue rate",
+            Self::MainOpening => "main opening",
+            Self::MainRate => "main rate",
         }
     }
 
@@ -203,7 +231,8 @@ impl Quantity {
     pub fn unit(self) -> &'static str {
         match self {
             Self::ApogeeHeight => "m",
-            Self::TopSpeed | Self::DescentRate => "m/s",
+            Self::TopSpeed | Self::DescentRate | Self::DrogueRate | Self::MainRate => "m/s",
+            Self::TopAcceleration => "m/s²",
             _ => "s",
         }
     }
@@ -219,8 +248,22 @@ pub enum Outcome {
         /// The bound it states.
         bound: f64,
     },
+    /// Given as a floor: the truth is no lower than the reading less its bound, and may be higher
+    /// by any amount, as a clipped top acceleration or a burnout from the speed's peak states.
+    Floor {
+        /// The reading less the truth: it holds while this is no more than the bound.
+        error: f64,
+        /// The bound it states.
+        bound: f64,
+        /// Why a top acceleration is clipped, where it is; `None` for any other floor, such as a
+        /// burnout from the speed's peak or a top whose thrust the accelerometer shows no end to.
+        clip: Option<Clip>,
+    },
     /// Withheld, for this reason.
     Withheld(Reason),
+    /// Not read where the truth has none to read: a drogue, or a main's opening after one, on a
+    /// flight that came down under one canopy or none.
+    Absent,
 }
 
 /// Each reading `log` gives of `flight`, against the truth.
@@ -237,6 +280,39 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         }
     }
     let descent_rate = events.apogee_m / (events.landing_s - events.apogee_s);
+    // The truth on the log's clock.
+    let height = |t_log: f64| truth.at(t_log - pad_s).map_or(f64::NAN, |x| x.height_m);
+    let chord = |from_s: f64, to_s: f64| (height(from_s) - height(to_s)) / (to_s - from_s);
+    let top_acceleration = top_specific_force(flight);
+    let floor_or_given = |is_floor: bool, error: f64, bound: f64, clip: Option<Clip>| {
+        if is_floor {
+            Outcome::Floor { error, bound, clip }
+        } else {
+            Outcome::Given { error, bound }
+        }
+    };
+    let main_opening = match &read.main_descent {
+        Reading::Read(main) => match (&main.opening, events.deployments.len()) {
+            (Some(opening), n) if n >= 2 => {
+                let opened = pad_s + events.deployments[n - 1].1;
+                given(opening.time_s - opened, opening.bound_s)
+            }
+            // A main named where the flight opened one canopy, or none, is a miss; so is one
+            // canopy read where the flight opened two, as its main's leg then holds the drogue's.
+            (Some(opening), _) => given(f64::INFINITY, opening.bound_s),
+            (None, n) if n >= 2 => given(f64::INFINITY, 0.0),
+            (None, _) => Outcome::Absent,
+        },
+        Reading::Withheld(withheld) => Outcome::Withheld(withheld.reason),
+    };
+    let two_canopies = events.deployments.len() >= 2;
+    let drogue_rate = match &read.drogue_descent {
+        Reading::Read(d) => given(d.rate_m_s - chord(d.from_s, d.to_s), d.bound_m_s),
+        Reading::Withheld(withheld) if withheld.reason == Reason::OneCanopy && !two_canopies => {
+            Outcome::Absent
+        }
+        Reading::Withheld(withheld) => Outcome::Withheld(withheld.reason),
+    };
     vec![
         (
             Quantity::Liftoff,
@@ -270,14 +346,8 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         ),
         (
             Quantity::FlightTime,
-            of(&read.landing, |l| {
-                match (l.flight_time_s, l.flight_time_bound_s) {
-                    (Some(flight_time_s), Some(bound)) => {
-                        given(flight_time_s - (events.landing_s - events.liftoff_s), bound)
-                    }
-                    // A landing read on a log whose liftoff is withheld has no flight time.
-                    _ => Outcome::Withheld(read.liftoff.reason().unwrap_or(Reason::Needs)),
-                }
+            of(&read.flight_time, |f| {
+                given(f.time_s - (events.landing_s - events.liftoff_s), f.bound_s)
             }),
         ),
         (
@@ -289,12 +359,87 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
                 )
             }),
         ),
+        (
+            Quantity::TopAcceleration,
+            of(&read.max_acceleration, |a| {
+                floor_or_given(
+                    a.is_floor,
+                    a.acceleration_m_s2 - top_acceleration,
+                    a.bound_m_s2,
+                    a.clip,
+                )
+            }),
+        ),
+        (
+            Quantity::Burnout,
+            of(&read.burnout, |b| {
+                floor_or_given(
+                    b.is_floor,
+                    b.time_s - (pad_s + events.burnout_s),
+                    b.bound_s,
+                    None,
+                )
+            }),
+        ),
+        (Quantity::DrogueRate, drogue_rate),
+        (Quantity::MainOpening, main_opening),
+        (
+            Quantity::MainRate,
+            of(&read.main_descent, |d| {
+                given(d.rate_m_s - chord(d.from_s, d.to_s), d.bound_m_s)
+            }),
+        ),
     ]
 }
 
-/// The logs flight `index` is checked on: its own logger's, named by its profile, and its
-/// barometer's at each of [`grid`]'s recordings, named by [`name`]; a logger with no barometer
-/// gives only its own.
+/// The truth's highest specific force along the axis from liftoff to apogee, m/s²: the top
+/// acceleration a reading is checked against.
+fn top_specific_force(flight: &Flight) -> f64 {
+    let events = &flight.truth.events;
+    flight
+        .truth
+        .samples
+        .iter()
+        .filter(|x| x.time_s >= events.liftoff_s && x.time_s <= events.apogee_s)
+        .map(|x| x.axial_specific_force_m_s2)
+        .fold(f64::NEG_INFINITY, f64::max)
+}
+
+/// How near flight's top acceleration came to the range its logger's accelerometer clips at: the
+/// truth's top over the range, which a part reaches at 1; `None` for a logger with no
+/// accelerometer.
+pub fn top_over_range(flight: &Flight) -> Option<f64> {
+    flight
+        .draw
+        .logger
+        .profile
+        .accelerometer_range_m_s2()
+        .map(|range| top_specific_force(flight) / range)
+}
+
+/// As [`top_over_range`], against the lower range its logger's accelerometer is set to on the
+/// log [`accelerometer_log_set_lower`] writes; `None` for a part with no such setting.
+pub fn top_over_lower_range(flight: &Flight) -> Option<f64> {
+    flight
+        .draw
+        .logger
+        .profile
+        .accelerometer_lower_range_m_s2()
+        .map(|range| top_specific_force(flight) / range)
+}
+
+/// The name in the report of the log [`accelerometer_log_set_lower`] writes.
+pub fn lower_range_name() -> String {
+    format!("its accelerometer set to ±{LOWER_RANGE_G} g")
+}
+
+/// The logs flight `index` is checked on: its own logger's, named by its profile; its
+/// barometer's at each of [`grid`]'s recordings, named by [`name`]; its own logger's log with the
+/// accelerometer at each of [`ACCELEROMETER_RATES_HZ`], and with it set to the lower range its
+/// part offers, named by [`lower_range_name`], so that some tops clip at the range and the rest
+/// don't; and its barometer's at each of [`CROPPED`]'s recordings, cut each [`Crop`] way. A
+/// logger with no barometer gives no grid's or crop's, one with no accelerometer no
+/// accelerometer's, and one whose part has no lower setting no lower range's.
 ///
 /// # Errors
 ///
@@ -314,6 +459,17 @@ pub fn logs(
         {
             logs.push((name(&recording), log));
         }
+    }
+    for rate_hz in ACCELEROMETER_RATES_HZ {
+        if let Some(log) =
+            accelerometer_log(&flight.draw.logger, rate_hz, &flight.truth, seed, index)?
+        {
+            logs.push((format!("its accelerometer at {rate_hz} Hz"), log));
+        }
+    }
+    if let Some(log) = accelerometer_log_set_lower(&flight.draw.logger, &flight.truth, seed, index)?
+    {
+        logs.push((lower_range_name(), log));
     }
     let liftoff_s = flight.draw.logger.pad_s + flight.truth.events.liftoff_s;
     for recording in CROPPED {
@@ -353,6 +509,9 @@ pub struct Tally {
     pub given: u64,
     /// How many withheld it, by reason.
     pub withheld: BTreeMap<Reason, u64>,
+    /// How many had none to read: a drogue on a flight under one canopy.
+    #[serde(default)]
+    pub absent: u64,
     /// The flight whose error was the largest share of its bound; `None` if none gave it.
     pub worst: Option<Worst>,
 }
@@ -386,15 +545,23 @@ pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
                         quantity: *quantity,
                         given: 0,
                         withheld: BTreeMap::new(),
+                        absent: 0,
                         worst: None,
                     });
                 match *outcome {
-                    Outcome::Given { error, bound } => {
+                    Outcome::Given { error, bound } | Outcome::Floor { error, bound, .. } => {
                         tally.given += 1;
+                        // A floor errs only above the truth; a NaN, which `max` would take to 0, is
+                        // never a hold.
+                        let size = match outcome {
+                            Outcome::Floor { .. } if error.is_nan() => f64::INFINITY,
+                            Outcome::Floor { .. } => error.max(0.0),
+                            _ => error.abs(),
+                        };
                         // A bound of 0 holds only an exact reading; NaN is never a hold.
                         let share = if bound > 0.0 {
-                            error.abs() / bound
-                        } else if error == 0.0 {
+                            size / bound
+                        } else if size == 0.0 {
                             0.0
                         } else {
                             f64::INFINITY
@@ -412,6 +579,7 @@ pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
                     Outcome::Withheld(reason) => {
                         *tally.withheld.entry(reason).or_insert(0) += 1;
                     }
+                    Outcome::Absent => tally.absent += 1,
                 }
             }
         }
@@ -427,11 +595,169 @@ pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
         .collect()
 }
 
+/// The errors one reading gave over a set, every log of it together: a floor's apart from the
+/// same reading's measured.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Errors {
+    /// The reading.
+    pub quantity: Quantity,
+    /// Whether these were given as floors.
+    pub floor: bool,
+    /// How many readings were given.
+    pub given: u64,
+    /// The finite errors' spread, the reading less the truth; `None` if none was finite.
+    pub spread: Option<Spread>,
+}
+
+/// The spread of a reading's finite errors.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Spread {
+    /// The mean error.
+    pub mean_error: f64,
+    /// The least error, with its sign.
+    pub least_error: f64,
+    /// The most error, with its sign.
+    pub most_error: f64,
+    /// The mean bound the readings stated.
+    pub mean_bound: f64,
+}
+
+/// The errors of every reading given in `flights`, every log together, in [`Quantity::ALL`]'s
+/// order, each reading's measured before its floors. An error of infinite size, such as a main
+/// named on a flight that opened one canopy, is counted in `given` and left out of the spread;
+/// the bound's check fails on it.
+pub fn errors(flights: &[FlightOutcomes]) -> Vec<Errors> {
+    #[derive(Default)]
+    struct Sum {
+        given: u64,
+        finite: u64,
+        error: f64,
+        bound: f64,
+        least: Option<f64>,
+        most: Option<f64>,
+    }
+    let mut sums: BTreeMap<(Quantity, bool), Sum> = BTreeMap::new();
+    for (_, logs) in flights {
+        for (_, results) in logs {
+            for (quantity, outcome) in results {
+                let (error, bound, floor) = match *outcome {
+                    Outcome::Given { error, bound } => (error, bound, false),
+                    Outcome::Floor { error, bound, .. } => (error, bound, true),
+                    Outcome::Withheld(_) | Outcome::Absent => continue,
+                };
+                let sum = sums.entry((*quantity, floor)).or_default();
+                sum.given += 1;
+                if error.is_finite() && bound.is_finite() {
+                    sum.finite += 1;
+                    sum.error += error;
+                    sum.bound += bound;
+                    sum.least = Some(sum.least.map_or(error, |least| least.min(error)));
+                    sum.most = Some(sum.most.map_or(error, |most| most.max(error)));
+                }
+            }
+        }
+    }
+    sums.into_iter()
+        .map(|((quantity, floor), sum)| {
+            #[expect(
+                clippy::cast_precision_loss,
+                reason = "a count of readings converts exactly"
+            )]
+            let count = sum.finite as f64;
+            Errors {
+                quantity,
+                floor,
+                given: sum.given,
+                spread: sum.least.zip(sum.most).map(|(least, most)| Spread {
+                    mean_error: sum.error / count,
+                    least_error: least,
+                    most_error: most,
+                    mean_bound: sum.bound / count,
+                }),
+            }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::synthetic::designs::DesignFiles;
     use crate::synthetic::{Flyer, Set};
+
+    /// The errors keep a floor apart from the same reading measured, count an infinite miss
+    /// without letting it into the spread, and come in [`Quantity::ALL`]'s order.
+    #[test]
+    fn the_errors_keep_floors_apart() {
+        let mut sorted = Quantity::ALL;
+        sorted.sort();
+        assert_eq!(sorted, Quantity::ALL, "the errors' map orders by `Ord`");
+        let given = |error: f64| Outcome::Given { error, bound: 1.0 };
+        let flights: Vec<FlightOutcomes> = vec![
+            (
+                0,
+                vec![(
+                    "a".to_owned(),
+                    vec![
+                        (Quantity::MainRate, given(0.5)),
+                        (Quantity::Burnout, given(-0.25)),
+                        (Quantity::MainOpening, given(f64::INFINITY)),
+                    ],
+                )],
+            ),
+            (
+                1,
+                vec![(
+                    "b".to_owned(),
+                    vec![
+                        (
+                            Quantity::Burnout,
+                            Outcome::Floor {
+                                error: -0.75,
+                                bound: 2.0,
+                                clip: None,
+                            },
+                        ),
+                        (Quantity::Burnout, given(0.75)),
+                        (Quantity::Liftoff, Outcome::Withheld(Reason::TooShort)),
+                        (Quantity::DrogueRate, Outcome::Absent),
+                    ],
+                )],
+            ),
+        ];
+        // None to read is counted apart, neither given nor withheld.
+        let drogue = tally(&flights)
+            .into_iter()
+            .find(|t| t.quantity == Quantity::DrogueRate)
+            .unwrap();
+        assert_eq!((drogue.given, drogue.absent), (0, 1));
+        assert!(drogue.withheld.is_empty());
+        let errors = errors(&flights);
+        let rows: Vec<(Quantity, bool, u64)> = errors
+            .iter()
+            .map(|row| (row.quantity, row.floor, row.given))
+            .collect();
+        assert_eq!(
+            rows,
+            [
+                (Quantity::Burnout, false, 2),
+                (Quantity::Burnout, true, 1),
+                (Quantity::MainOpening, false, 1),
+                (Quantity::MainRate, false, 1),
+            ]
+        );
+        assert_eq!(
+            errors[0].spread,
+            Some(Spread {
+                mean_error: 0.25,
+                least_error: -0.25,
+                most_error: 0.75,
+                mean_bound: 1.0
+            })
+        );
+        assert_eq!(errors[1].spread.map(|s| s.mean_bound), Some(2.0));
+        assert_eq!(errors[2].spread, None);
+    }
 
     /// The grid spans every rate and way of writing, each once, and names each apart.
     #[test]
@@ -443,6 +769,107 @@ mod tests {
         assert_eq!(unique.len(), GRID_RATES_HZ.len() * GRID_WRITTEN.len());
         assert!(names.contains(&"20 Hz, altitude in 0.3048 m steps".to_owned()));
         assert!(names.contains(&"0.5 Hz, pressure alone in 100 Pa steps".to_owned()));
+    }
+
+    /// A floor holds while its error is no more than its bound above the truth, however far below;
+    /// a NaN error, which `max` would take to 0, never holds, a floor's or a reading's.
+    #[test]
+    fn a_floor_holds_one_side_and_never_on_nan() {
+        let floor = |error: f64| Outcome::Floor {
+            error,
+            bound: 1.0,
+            clip: None,
+        };
+        let holds = |outcome: Outcome| {
+            tally(&[(
+                0,
+                vec![("a".to_owned(), vec![(Quantity::Burnout, outcome)])],
+            )])[0]
+                .holds()
+        };
+        assert!(holds(floor(-100.0)));
+        assert!(holds(floor(1.0)));
+        assert!(!holds(floor(1.01)));
+        assert!(!holds(floor(f64::NAN)));
+        assert!(!holds(Outcome::Given {
+            error: f64::NAN,
+            bound: 1.0
+        }));
+    }
+
+    /// A flight's top acceleration is the truth's over its logger's accelerometer range, and a
+    /// logger with none has no share.
+    #[test]
+    fn a_top_is_measured_against_its_parts_range() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let mut flights = (0..40).filter_map(|k| flyer.flight(Set::Tuning, k).ok());
+        let with = flights
+            .by_ref()
+            .find(|f| f.draw.logger.profile.accelerometer_range_m_s2().is_some())
+            .unwrap();
+        let range = with.draw.logger.profile.accelerometer_range_m_s2().unwrap();
+        let share = top_over_range(&with).unwrap();
+        assert_eq!(share, top_specific_force(&with) / range);
+        // A climb's top acceleration is some g, short of the 32 g and 180 g parts' ranges.
+        assert!(share > 0.0 && share < 1.0, "{share}");
+        let without = flights
+            .find(|f| f.draw.logger.profile.accelerometer_range_m_s2().is_none())
+            .unwrap();
+        assert_eq!(top_over_range(&without), None);
+    }
+
+    /// The IMU-like logger's part set to its lower range: the readings state the range it clips
+    /// at, and a true top past it reads as clipped at the range, a floor that holds; a part with
+    /// no lower setting writes no such log.
+    #[test]
+    fn a_part_set_to_its_lower_range_clips_there() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let mut flights = (0..).filter_map(|k| flyer.flight(Set::Tuning, k).ok().map(|f| (k, f)));
+        let (index, imu) = flights
+            .by_ref()
+            .take(40)
+            .find(|(_, f)| top_over_lower_range(f).is_some_and(|share| share > 1.1))
+            .unwrap();
+        let lower = imu.draw.logger.profile.accelerometer_lower_range_m_s2();
+        assert_eq!(
+            lower,
+            Some(LOWER_RANGE_G * hpr_core::gravity::STANDARD_GRAVITY_MPS2)
+        );
+        let log =
+            accelerometer_log_set_lower(&imu.draw.logger, &imu.truth, Set::Tuning.seed(), index)
+                .unwrap()
+                .unwrap();
+        let read = readings::read(&log);
+        let top = read.max_acceleration.value().unwrap();
+        assert_eq!(top.range_m_s2, lower, "{top:?}");
+        assert_eq!(top.clip, Some(Clip::Range), "{top:?}");
+        assert!(top.is_floor, "{top:?}");
+        let outcome = outcomes(&imu, &log)
+            .into_iter()
+            .find(|(quantity, _)| *quantity == Quantity::TopAcceleration)
+            .map(|(_, outcome)| outcome);
+        let Some(Outcome::Floor { error, bound, clip }) = outcome else {
+            panic!("{outcome:?}");
+        };
+        assert_eq!(clip, Some(Clip::Range));
+        assert!(error < 0.0 && error <= bound, "{error}, {bound}");
+        let (index, altos) = flights
+            .take(40)
+            .find(|(_, f)| {
+                f.draw.logger.profile.accelerometer_range_m_s2().is_some()
+                    && top_over_lower_range(f).is_none()
+            })
+            .unwrap();
+        assert!(
+            accelerometer_log_set_lower(
+                &altos.draw.logger,
+                &altos.truth,
+                Set::Tuning.seed(),
+                index
+            )
+            .unwrap()
+            .is_none()
+        );
     }
 
     /// A tuning flight's readings hold on its own log and every grid log; a reading pushed past
@@ -461,9 +888,26 @@ mod tests {
             })
             .unwrap();
         let logs = logs(&flight, Set::Tuning.seed(), index).unwrap();
+        let accelerometers = if flight
+            .log
+            .channels
+            .iter()
+            .any(|channel| channel.quantity == hpr_flightdata::log::Quantity::Acceleration)
+        {
+            ACCELEROMETER_RATES_HZ.len()
+        } else {
+            0
+        } + usize::from(
+            flight
+                .draw
+                .logger
+                .profile
+                .accelerometer_lower_range_m_s2()
+                .is_some(),
+        );
         assert_eq!(
             logs.len(),
-            1 + grid().len() + CROPPED.len() * Crop::ALL.len()
+            1 + grid().len() + accelerometers + CROPPED.len() * Crop::ALL.len()
         );
         let results: Vec<(String, Vec<(Quantity, Outcome)>)> = logs
             .iter()
