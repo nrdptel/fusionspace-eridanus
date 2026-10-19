@@ -264,8 +264,8 @@ pub const GRAVITY_TOLERANCE_G: f64 = 0.25;
 /// passes, either way, about once in 1.7 million samples.
 pub const ACCEL_NOISE_SIGMAS: f64 = 5.0;
 /// The span the accelerometer's trace is averaged over to find burnout, s: `2h + 1` samples, `h`
-/// half the span in intervals, rounded half away from zero, so 27 at 500 Hz, 7 at 100 Hz and 3 at
-/// 20 Hz.
+/// half the span in intervals, rounded half away from zero, a tie that a clock's float times leave
+/// a hair short included, so 27 at 500 Hz, 7 at 100 Hz and 3 at 20 Hz.
 pub const BURNOUT_MEAN_S: f64 = 0.05;
 /// The span either side of the top acceleration its noise is measured over, s.
 pub const NOISE_SPAN_S: f64 = 0.5;
@@ -279,6 +279,13 @@ pub const SPIKE_WINDOW_S: f64 = 0.1;
 /// [`ACCEL_NOISE_SIGMAS`] holds the noise, so it takes out what noise alone reaches about once
 /// in 1.7 million samples. HPR Sim's choice.
 pub const SPIKE_THRESHOLD: f64 = 5.0;
+/// The least time a later burn holds the cleaned accelerometer trace past
+/// [`LIFTOFF_ACCELERATION_M_S2`], s: a span after the first burn that holds there for less is
+/// taken for a shock, a canopy's or a charge's, not a burn. Measured once, when the rule was
+/// chosen, on the sample logs: every such span within 3 s of apogee held for at most 0.47 s, and
+/// every longer one came more than 3 s before apogee, as a second burn would. HPR Sim's choice
+/// ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)).
+pub const BURN_LEAST_S: f64 = 0.5;
 /// The least samples of an accelerometer's pad, or its coast, that settle its gravity.
 pub const PAD_MIN_SAMPLES: usize = 3;
 /// The span of the coast before apogee's earliest time whose median reading settles an

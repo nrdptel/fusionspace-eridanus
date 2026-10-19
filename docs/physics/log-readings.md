@@ -326,11 +326,17 @@ the heights: most Raven logs start about 0.5 s before liftoff, against a liftoff
 and that rule withheld 69 of the 80 Raven CSV records. The coast settles the Raven's logs that start
 in the thrust, whose family doesn't say ([ADR-283][adr-283]).
 
-**The top acceleration** is the highest specific force while the motor burns: from the log's start
-to the thrust's end, where the cleaned trace, averaged over 0.05 s, falls through zero after its
-first reading past 2 g, or to apogee where there is no such reading. A charge or a canopy's shock
-comes after the thrust's end, so it isn't taken for the top. Its bound adds the part's own errors,
-the noise around the top and what a peak between samples can hide:
+**The top acceleration** is the highest specific force while the motor burns. A burn runs from a
+cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero,
+or to apogee where it doesn't. A later burn counts only if the cleaned trace holds past 2 g for 0.5
+s in all, as a canopy's or a charge's shock doesn't. Measured once, when the rule was chosen, on the
+sample logs, every such span within 3 s of apogee held there for at most 0.47 s, and every one that
+held longer came more than 3 s before apogee, as a second burn would; the 0.5 s is HPR Sim's choice.
+The burns are searched from liftoff's earliest time by the heights: a rocket at rest reads 1 g, so
+anything more before it moves is a knock or a bump on the pad. With no burn, the top is searched
+from there to apogee. A charge or a canopy's shock in a coast lies outside the burns, so it isn't
+taken for the top; a second burn, an air start's or a sustainer's, is searched too. Its bound adds
+the part's own errors, the noise around the top and what a peak between samples can hide:
 
 $$
 \begin{aligned}
@@ -378,7 +384,8 @@ eases slowly, so burnout lies near the first of them. The reading is that first 
 the window, $h$ intervals, since the average reads the least late by that much. Its bound is the
 span of those samples, an interval, and the window's $2h$ intervals, at least two intervals. If the
 averaged trace never climbs $4N$ back above its least before apogee, or the least lies within $3N$
-of zero, too little drag to see, the accelerometer gives no burnout.
+of zero, too little drag to see, the accelerometer gives no burnout. Nor does it after more than
+one burn: the tuning set's flights burn once, so it holds no bound for the end of a second.
 
 On the same trace, sampled 100 times a second with a noise $\sigma$ of 0.087 m/s², the thrust falls
 through zero to −0.6 g at burnout, 4.1 s, and the drag eases to nothing by apogee, 8 s. Averaged
@@ -388,7 +395,7 @@ and the window's 0.06 s the bound is about 0.3 s. The reading falls within a sam
 s.
 
 **Burnout from the top speed.** A rocket gains speed only while the thrust beats the drag and its
-weight, so the top speed comes at or before burnout. Where the accelerometer gives no burnout, or
+weight, so the top speed comes at or before burnout, the last burn's end. Where the accelerometer gives no burnout, or
 the log has none, burnout is the top speed's time, a floor: it came no sooner than that less its
 bound, and may have come later by any amount, as a motor whose thrust tails off below the drag and
 the weight burns on after the rocket stops gaining speed. The bound is the time a coast slowing at
@@ -765,14 +772,14 @@ acceleration, is counted apart, as it may lie any amount below the truth:
 | flight time | 6,948 | −0.738 s | −5.06 s | 3.15 s | 5.83 s |
 | top acceleration | 280 | 0.659 m/s² | −13.6 m/s² | 13 m/s² | 16.6 m/s² |
 | top acceleration, a floor | 4 | −4.49 m/s² | −7.55 m/s² | −1.58 m/s² | 12.7 m/s² |
-| burnout, from the accelerometer | 259 | −0.00683 s | −0.0943 s | 0.0544 s | 0.653 s |
-| burnout, a floor | 1,237 | −0.242 s | −1.33 s | 0.718 s | 1.3 s |
+| burnout, from the accelerometer | 262 | −0.0118 s | −0.0943 s | 0.0476 s | 0.651 s |
+| burnout, a floor | 1,236 | −0.242 s | −1.33 s | 0.718 s | 1.3 s |
 | drogue rate | 2,827 | 0.0378 m/s (0.124 ft/s) | −1.61 m/s (−5.28 ft/s) | 1.35 m/s (4.43 ft/s) | 1.79 m/s (5.87 ft/s) |
 | main opening | 2,827 | 0.725 s | −0.778 s | 5.3 s | 2.04 s |
 | main rate | 5,391 | 0.043 m/s (0.141 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
 
 Burnout from the accelerometer lands within 0.0943 s of the truth, against a mean bound of
-0.653 s. A floor from the top speed comes 0.242 s before burnout on average, as a speed's peak
+0.651 s. A floor from the top speed comes 0.242 s before burnout on average, as a speed's peak
 should, and up to 0.718 s after it, within its bound, where the fit places the peak late. The
 main's opening is read late on average, by 0.725 s; its bound holds the time a canopy takes to
 slow the fall and half the fit. No tuning flight's true top acceleration reaches the range its part
@@ -829,7 +836,7 @@ hold each within its stated bound, and within a tighter one worked out beside it
 | mean descent rate | 10.93 m/s (35.9 ft/s) over HPR Sim's span, 10.275 s to 45.80 s | 10.92 m/s (35.8 ft/s) | 2.1 m/s (6.9 ft/s) | the two heights' bounds over the span |
 | burnout | 2.10 s | no sooner than 0.88 s: the top speed's time, 2.20 s, less its bound | 1.32 s | none tighter: a floor, no more than its bound after the truth |
 | drogue rate | 21.74 m/s (71.3 ft/s) over HPR Sim's span, 10.275 s to 21.40 s, the fall from rest at apogee in it | 21.7 m/s (71 ft/s) | 2.2 m/s (7.2 ft/s) | the two heights' bounds over the span |
-| main opening | 21.14 s, 150 m (492 ft) up | 21.40 s, 148.4 m (487 ft) up | 1.06 s | no sooner than the truth, and no later by more than half the 1 s fit and a sample, 0.55 s |
+| main opening | 21.14 s, 150 m (492 ft) up | 21.40 s, 148.4 m (487 ft) up | 1.06 s | on this log, whose drogue falls far faster than the mark: no sooner than the truth, and no later by more than half the 1 s fit and a sample, 0.55 s |
 | main rate | 6.0 m/s (20 ft/s) | 6.0 m/s (20 ft/s) | 0.8 m/s (2.6 ft/s) | the two heights' bounds over the span |
 
 The middle of the flat run at the top falls between two samples here, so the apogee time is
@@ -863,7 +870,7 @@ logs hold, other flyers' files kept outside the repository, and counts each read
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
-554, the top speed from 354, landing from 472, the flight time from 406, burnout from 439, the top
+554, the top speed from 354, landing from 472, the flight time from 406, burnout from 435, the top
 acceleration from 184, the drogue's descent from 267 and the main's from 459. Each of the 26
 reasons has a case: for 22, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
@@ -924,17 +931,24 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   canopy's `main_descent`: the rate alone doesn't tell a canopy from none. The tuning set's flights
   of Cavour, a design with no parachute, read that way
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
-- **A descent from far above the tropopause.** The scaling to the ground's density slows a rate
-  read high up, never quickens it, while the density from the pad up falls no faster than
-  $\exp(-h/H)$. Through the troposphere it falls slower, as its scale height is at least 7,289 m
-  (23,914 ft); above it, about 11 km (36,000 ft) up, the scale height is about 6,340 m
-  (20,800 ft), 5,903 m (19,367 ft) on a day 15 K cold. From a pad at sea level, the 1976
-  standard atmosphere's density stays above $\exp(-h/H)$ to 34.6 km (113,500 ft) up, but on a day
-  15 K cold only to 21.3 km (69,900 ft); from a pad 1,500 m (4,921 ft) up, to 28.3 km (92,800 ft)
-  and 17.7 km (58,100 ft) above it. A canopy from higher could read faster than it falls near
-  the ground, and one canopy as two. The heights are the standard's geopotential heights, a
-  little less than a height measured straight up, which puts the limits low, not high.
-  The tuning set's apogees reach 4,420 m (14,500 ft), so it can't show this.
+- **A descent from far above the tropopause.** The scaling to the ground's density slows a rate read
+  high up, never quickens it, while the density from the pad up falls no faster than $\exp(-h/H)$.
+  Through the troposphere it falls slower, as its scale height is at least 7,289 m (23,914 ft);
+  above it, about 11 km (36,000 ft) up, the scale height is about 6,340 m (20,800 ft), 5,903 m
+  (19,367 ft) on a day 15 K cold. From a pad at sea level, the 1976 standard atmosphere's density
+  stays above $\exp(-h/H)$ to 34.6 km (113,500 ft) up, but on a day 15 K cold only to 21.3 km
+  (69,900 ft); from a pad 1,500 m (4,921 ft) up, to 28.3 km (92,800 ft) and 17.7 km (58,100 ft)
+  above it, each rounded down. A canopy from higher could read faster than it falls near the ground,
+  and one canopy as two. The heights are the standard's geopotential heights, a little less than a
+  height measured straight up, which puts the limits low, not high. The tuning set's apogees reach
+  4,420 m (14,500 ft), so it can't show this.
+- **More than one burn.** An air start's or a sustainer's second burn is searched for the top, but
+  the tuning set's flights burn once, so its bound isn't checked on one, and burnout then comes from
+  the speed's peak, a floor. A second burn that holds past 2 g for less than 0.5 s is taken for a
+  shock, so its top is missed and burnout is the first burn's end; a shock that holds there longer
+  reads as a burn ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that
+  reads above zero all through the coast, as a part that zeroed off its pad's level can, never ends
+  its burn, so its top is searched to apogee and its burnout comes from the speed's peak.
 - **Noise that runs from sample to sample.** Averaging $n$ samples cuts the noise by $\sqrt n$
   only where each sample's noise is its own. A part whose noise runs on, as its own low-pass
   filter or a slow drift makes it, keeps more of it through the average, so $N$ comes out too

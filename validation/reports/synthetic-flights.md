@@ -160,7 +160,7 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | 0.5 Hz, pressure alone in 100 Pa steps | 0 | 0 | 0 | 0 | 0 |
 | its accelerometer at 500 Hz | 71, 0.576 | 71, 0.0861 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
 | its accelerometer at 100 Hz | 71, 0.686 | 70, 0.172 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
-| its accelerometer at 20 Hz | 71, 0.715 | 69, 0.433 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
+| its accelerometer at 20 Hz | 71, 0.715 | 71, 0.262 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 171, 0.7 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
@@ -511,7 +511,6 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | its accelerometer at 20 Hz | landing | `ends_before_landing` | 1 |
 | its accelerometer at 20 Hz | flight time | `ends_before_landing` | 1 |
 | its accelerometer at 20 Hz | descent rate | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | burnout | `transonic` | 2 |
 | its accelerometer at 20 Hz | drogue rate | `ends_before_landing` | 1 |
 | its accelerometer at 20 Hz | drogue rate | none to read | 34 |
 | its accelerometer at 20 Hz | main opening | `ends_before_landing` | 1 |
@@ -634,8 +633,8 @@ Each reading's errors, the reading less the truth, over every tuning flight and 
 | descent rate | 7154 | -0.0329 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
 | top acceleration | 280 | 0.659 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
 | top acceleration, a floor | 4 | -4.49 m/s² | -7.55 m/s² | -1.58 m/s² | 12.7 m/s² |
-| burnout | 259 | -0.00699 s | -0.0943 s | 0.0544 s | 0.65 s |
-| burnout, a floor | 1237 | -0.242 s | -1.33 s | 0.718 s | 1.3 s |
+| burnout | 262 | -0.0118 s | -0.0943 s | 0.0476 s | 0.651 s |
+| burnout, a floor | 1236 | -0.242 s | -1.33 s | 0.718 s | 1.3 s |
 | drogue rate | 2827 | 0.0378 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
 | main opening | 2827 | 0.725 s | -0.778 s | 5.3 s | 2.04 s |
 | main rate | 5391 | 0.043 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |

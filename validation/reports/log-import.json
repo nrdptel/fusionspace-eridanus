@@ -4054,12 +4054,12 @@
             }
           },
           "burnout": {
-            "given": 38,
+            "given": 35,
             "withheld": {
               "disturbed_top": 4,
               "no_climb": 1,
               "sampled_too_slowly": 1,
-              "transonic": 6
+              "transonic": 9
             }
           },
           "drogue_descent": {
@@ -6518,12 +6518,12 @@
             }
           },
           "burnout": {
-            "given": 67,
+            "given": 66,
             "withheld": {
               "disturbed_top": 9,
               "sampled_too_fast": 1,
               "sampled_too_slowly": 1,
-              "transonic": 2
+              "transonic": 3
             }
           },
           "drogue_descent": {

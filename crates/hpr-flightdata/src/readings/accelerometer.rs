@@ -26,12 +26,15 @@
 //! is read ([`Reason::GravityUnstated`]). A sample that repeats the time before it is left out, as
 //! the primary track leaves it ([`first_at_each_time`]).
 //!
-//! **The top acceleration** is the highest reading from the log's start to the end of the thrust,
-//! where the cleaned trace's mean over [`BURNOUT_MEAN_S`] falls through zero after its first
-//! reading past [`LIFTOFF_ACCELERATION_M_S2`] (or apogee, with no such rise): the thrust less the
-//! drag, over the mass. A charge or a canopy's shock in the coast comes after it, and isn't taken
-//! for the top. The top is read off the samples, not the cleaned trace. It is clipped where it
-//! reaches the part's range, as the family states it, or holds flat at its top for
+//! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
+//! [`LIFTOFF_ACCELERATION_M_S2`] to where the cleaned trace's mean over [`BURNOUT_MEAN_S`] next
+//! falls through zero, or apogee if it doesn't, a later one only if it holds past
+//! [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], as a shock doesn't; searched from liftoff's
+//! earliest time by the heights, as a rocket at rest reads 1 g and anything more before it moves is
+//! a knock on the pad; with no burn, from there to apogee. In a burn the reading is the thrust less
+//! the drag, over the mass. A charge or a canopy's shock in a coast lies outside the burns, and
+//! isn't taken for the top. The top is read off the samples, not the cleaned trace. It is clipped
+//! where it reaches the part's range, as the family states it, or holds flat at its top for
 //! [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], within [`FLAT_TOP_SHARE`] of it or
 //! [`FLAT_TOP_M_S2`], as Debrief tells a part that clipped (`lib/analyze/index.ts`, MIT, the
 //! project owner's own); HPR Sim narrows that to half the part's noise where it is quieter, never
@@ -53,24 +56,27 @@
 //! window's `2h` intervals, or two intervals if that is more. The search runs from the fall
 //! through zero until the averaged trace climbs `4N` above its least so far, as the coast's easing
 //! drag lifts it. If it never does before apogee, or the least lies within `3N` of zero, too
-//! little drag to see, the accelerometer gives no burnout.
+//! little drag to see, the accelerometer gives no burnout; nor after more than one burn, an air
+//! start's or a sustainer's, as the tuning set's flights burn once.
 //!
 //! **From the speed's peak.** A rocket gains speed only while the thrust beats the drag and its
 //! weight, and after burnout its speed up falls at least as fast as gravity pulls it, so the top
-//! speed comes at or before burnout. Burnout from it is a floor: no sooner than the peak's time,
-//! less the time a coast slowing at g takes to lose twice [`SPEED_NOISE_M_S`], by which the fit's
-//! noise can place the peak late, half the fit and an interval. How far before burnout it falls
-//! on the tuning flights is in the synthetic flights' report, as the floor's errors.
+//! speed comes at or before burnout, the last burn's end. Burnout from it is a floor: no sooner
+//! than the peak's time, less the time a coast slowing at g takes to lose twice
+//! [`SPEED_NOISE_M_S`], by which the fit's noise can place the peak late, half the fit and an
+//! interval. How far before burnout it falls on the tuning flights is in the synthetic flights'
+//! report, as the floor's errors.
 //!
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
 use super::{
-    ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, BURNOUT_MEAN_S, Burnout,
-    COAST_SPAN_S, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES, FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G,
-    Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2, MIN_INTERVAL_S, MaxAcceleration, Method,
-    NOISE_SPAN_S, PAD_MIN_SAMPLES, Provenance, RAIL_TILT_DEG, Reading, Readings, Reason,
-    SPEED_NOISE_M_S, SPEED_WINDOW_S, SPIKE_THRESHOLD, SPIKE_WINDOW_S, STANDARD_GRAVITY_MPS2,
-    Source, Withheld, clocked, local_interval, median, smallest_step,
+    ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, BURN_LEAST_S,
+    BURNOUT_MEAN_S, Burnout, COAST_SPAN_S, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES,
+    FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G, Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2,
+    MIN_INTERVAL_S, MaxAcceleration, Method, NOISE_SPAN_S, PAD_MIN_SAMPLES, Provenance,
+    RAIL_TILT_DEG, Reading, Readings, Reason, SPEED_NOISE_M_S, SPEED_WINDOW_S, SPIKE_THRESHOLD,
+    SPIKE_WINDOW_S, STANDARD_GRAVITY_MPS2, Source, Withheld, clocked, local_interval, median,
+    smallest_step,
 };
 use crate::filter::hampel;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity};
@@ -394,26 +400,53 @@ pub(super) fn read(
         sample_interval_s: interval,
         step_m_s2: step,
     };
-    // The thrust: from its first cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
-    // cleaned trace's mean falls through zero. The top is searched up to there, so a charge or a
-    // canopy's shock in the coast isn't taken for it; with no such rise, up to apogee.
+    // The burns: each from a cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
+    // cleaned trace's mean next falls through zero, or apogee if it doesn't; a later one only if
+    // it holds past there for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't. They
+    // are searched from liftoff's earliest time by the heights: a rocket at rest reads 1 g, so
+    // anything more before it moves is the pad's, a knock or a bump. The top is searched over the
+    // burns, so a shock in a coast isn't taken for it, nor a bump on the pad; with no burn, from
+    // there to apogee.
     let mean = running_mean(&f_clean, half_window(BURNOUT_MEAN_S, interval));
     let end = boost.last().copied().unwrap_or(0);
-    let crossing = boost
-        .iter()
-        .copied()
-        .find(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2)
-        .and_then(|rise| (rise + 1..=end).find(|&k| mean[k] <= 0.0));
-    let thrust: Vec<usize> = boost
-        .iter()
-        .copied()
-        .filter(|&k| crossing.is_none_or(|crossing| k <= crossing))
-        .collect();
+    let from = match &heights.liftoff {
+        Reading::Read(liftoff) => {
+            let earliest = liftoff.time_s - liftoff.bound_s;
+            time[..=end].partition_point(|t| *t < earliest).min(end)
+        }
+        Reading::Withheld(_) => 0,
+    };
+    let mut burns: Vec<(usize, usize)> = Vec::new();
+    let mut next = from;
+    while let Some(rise) = (next..=end).find(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2) {
+        let fall = (rise + 1..=end).find(|&k| mean[k] <= 0.0);
+        let span = (rise, fall.unwrap_or(end));
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "a count of samples converts exactly"
+        )]
+        let held_s = (span.0..=span.1)
+            .filter(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2)
+            .count() as f64
+            * interval;
+        if burns.is_empty() || held_s >= BURN_LEAST_S {
+            burns.push(span);
+        }
+        match fall {
+            Some(fall) => next = fall + 1,
+            None => break,
+        }
+    }
+    let thrust: Vec<usize> = if burns.is_empty() {
+        (from..=end).collect()
+    } else {
+        burns.iter().flat_map(|&(rise, fall)| rise..=fall).collect()
+    };
     let top_index = thrust
         .iter()
         .copied()
         .max_by(|a, b| f[*a].total_cmp(&f[*b]).then(b.cmp(a)))
-        .unwrap_or(boost[0]);
+        .unwrap_or(from);
     let top = f[top_index];
     let around: Vec<f64> = boost
         .iter()
@@ -462,7 +495,20 @@ pub(super) fn read(
         },
         method: Method::HighestReading,
     });
-    let burnout = match burnout(&time, &f, &mean, end, top_index, step, interval) {
+    // Burnout is the thrust's end. After more than one burn the tuning set, whose flights burn
+    // once, holds no bound for it; burnout from the speed's peak, which comes no later than the
+    // last burn's end, stands instead.
+    let read = match burns.as_slice() {
+        [_, .., (rise, _)] => Err(format!(
+            "the accelerometer shows {} burns, the last rising past {:.0} g at {:.2} s: burnout \
+             is read from a flight that burns once",
+            burns.len(),
+            LIFTOFF_ACCELERATION_M_S2 / g,
+            time[*rise]
+        )),
+        _ => burnout(&time, &f, &mean, end, top_index, step, interval),
+    };
+    let burnout = match read {
         Ok((time_s, bound_s)) => Reading::Read(Burnout {
             time_s,
             bound_s,
@@ -525,8 +571,13 @@ fn flat_top(
     longest >= least
 }
 
+/// How far above a tie a count of intervals is lifted before it is rounded: a median interval
+/// read off a clock's float times can fall a few parts in 10¹⁶ short, as 0.05 s does at 20 Hz,
+/// and would round 0.5 to 0, not 1.
+const TIE_SHARE: f64 = 1e-9;
+
 /// The samples either side of a window `span_s` long holds, at `interval`: half the span in
-/// intervals, rounded, at an interval no shorter than [`MIN_INTERVAL_S`].
+/// intervals, rounded, a tie up, at an interval no shorter than [`MIN_INTERVAL_S`].
 fn half_window(span_s: f64, interval: f64) -> usize {
     #[expect(
         clippy::cast_possible_truncation,
@@ -534,7 +585,7 @@ fn half_window(span_s: f64, interval: f64) -> usize {
         reason = "a positive count of samples, rounded: at MIN_INTERVAL_S a span of a second holds \
                   250 either side"
     )]
-    let half = (0.5 * span_s / interval.max(MIN_INTERVAL_S)).round() as usize;
+    let half = (0.5 * span_s / interval.max(MIN_INTERVAL_S) * (1.0 + TIE_SHARE)).round() as usize;
     half
 }
 
@@ -1144,6 +1195,114 @@ mod tests {
         );
         assert!(readings.accelerometer.is_none());
         assert!(readings.burnout.value().unwrap().is_floor);
+        // 160,000 samples 1e-7 s apart, a clock that once overflowed the burnout window's count
+        // and averaged for seconds: refused before either.
+        let mut fast = log(LogFormat::GenericTable, "Axial accel", 0.01, |_, t| {
+            specific_force(t)
+        });
+        let time_s: Vec<f64> = (0..160_000).map(|i| 3.0 + f64::from(i) * 1e-7).collect();
+        let values = time_s.iter().map(|t| specific_force(*t)).collect();
+        fast.channels = vec![Channel::new(
+            "Axial accel",
+            Quantity::Acceleration,
+            time_s,
+            values,
+        )];
+        assert_eq!(
+            read_all(&fast).max_acceleration.reason(),
+            Some(Reason::SampledTooFast)
+        );
+    }
+
+    /// A second burn, an air start's or a sustainer's, is searched for the top, and as the tuning
+    /// set's flights burn once, the accelerometer gives no burnout: the speed's peak, no later
+    /// than the last burn's end, gives it as a floor. A pulse in the coast that holds past 2 g for
+    /// less than [`BURN_LEAST_S`], as a canopy's shock does, is no burn.
+    #[test]
+    fn a_second_burn_is_searched_for_the_top_and_leaves_burnout_to_the_speed() {
+        let with = |from: f64, to: f64, peak_g: f64| {
+            read_all(&log(
+                LogFormat::GenericTable,
+                "Axial accel",
+                0.01,
+                |k, t| {
+                    let value = if (from..to).contains(&t) {
+                        peak_g * G * ((t - from) / 0.05).min((to - t) / 0.05).min(1.0)
+                    } else {
+                        specific_force(t)
+                    };
+                    value + jitter(k, 0.3)
+                },
+            ))
+        };
+        // A sustainer's burn at 8 g from 5 s to 6.5 s, in the coast.
+        let readings = with(5.0, 6.5, 8.0);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 8.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!((5.0..6.5).contains(&top.time_s), "{top:?}");
+        let burnout = readings.burnout.value().unwrap();
+        assert!(burnout.is_floor, "{burnout:?}");
+        assert_eq!(burnout.method, Method::SpeedPeak);
+        // A canopy's shock at 10 g for 0.4 s, from 7 s: the top and burnout are the burn's.
+        let readings = with(7.0, 7.4, 10.0);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        let burnout = readings.burnout.value().unwrap();
+        assert!(!burnout.is_floor, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+    }
+
+    /// A bump on the pad, wider than the cleaning takes out and higher than the thrust, comes
+    /// before liftoff's earliest time and isn't the top: a rocket at rest reads 1 g.
+    #[test]
+    fn a_bump_on_the_pad_isnt_the_top() {
+        // A knock to 7 g over 0.3 s at 1 s, two seconds before liftoff.
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                let value = if (1.0..1.3).contains(&t) {
+                    G + 6.0 * G * (std::f64::consts::PI * (t - 1.0) / 0.3).sin()
+                } else {
+                    specific_force(t)
+                };
+                value + jitter(k, 0.3)
+            },
+        ));
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!(top.time_s >= 3.0, "{top:?}");
+        let burnout = readings.burnout.value().unwrap();
+        assert!(!burnout.is_floor, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+    }
+
+    /// A count of intervals a few parts in 10¹⁶ short of a tie, as a median interval of 20 Hz
+    /// float times can be, rounds up as the tie itself does.
+    #[test]
+    fn a_window_on_a_tie_rounds_up() {
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.05), 1);
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.050_000_000_000_000_71), 1);
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.01), 3);
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.010_000_000_000_000_2), 3);
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.002), 13);
+        assert_eq!(half_window(BURNOUT_MEAN_S, 0.002_000_000_000_000_002), 13);
     }
 
     /// A top that reaches the part's range in one sample, with no flat run, is clipped by the

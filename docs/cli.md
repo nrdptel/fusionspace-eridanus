@@ -1679,8 +1679,10 @@ charge that fired a second after it. The readings are taken from the altitude af
 
 A log with an accelerometer along the rocket's axis gives the top acceleration and burnout from
 it. This invented log, written by the `make.py` beside it, is of a 2 kg rocket whose motor pushes
-120 N, a tenth more at its crest, and stops 3.45 s into the log; its accelerometer writes, in g,
-what the part reads, gravity in:
+120 N, a tenth more at its crest, from 2 s into the log, and stops at 3.45 s; its accelerometer
+writes, in g, what the part reads, gravity in. A table of columns doesn't name its logger, so the
+first line says `unknown`, and with no primary track the heights come from its altitude column and
+the accelerometer is read on its own clock:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/accelerometer/axial.csv`; written by `cargo xtask cli`; do not edit -->
 
@@ -1715,7 +1717,9 @@ More: https://hpr.fusionspace.co/reading-a-flight-log.html
 
 The top acceleration, 6.7 g, is the specific force, gravity's 1 g in: the rocket itself sped up at
 about 5.7 g. Burnout, 3.45 s within 0.07 s, is where the thrust's fall ends, the end of the
-motor's burn ([Flight-log readings](physics/log-readings.md#the-accelerometer)).
+motor's burn ([Flight-log readings](physics/log-readings.md#the-accelerometer)). Liftoff is read
+at 2.30 s, within 0.67 s, later than the motor's start, so burnout's 1.15 s after liftoff is less
+than the motor's 1.45 s burn: its time on the log's clock is the one to compare.
 
 #### A file of several records
 

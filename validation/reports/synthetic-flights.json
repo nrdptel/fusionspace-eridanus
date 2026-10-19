@@ -6422,16 +6422,14 @@
     {
       "log": "its accelerometer at 20 Hz",
       "quantity": "burnout",
-      "given": 69,
-      "withheld": {
-        "transonic": 2
-      },
+      "given": 71,
+      "withheld": {},
       "absent": 0,
       "worst": {
-        "flight": 175,
-        "error": 0.0433,
-        "bound": 0.1,
-        "share": 0.433
+        "flight": 190,
+        "error": 0.0393,
+        "bound": 0.15,
+        "share": 0.262
       }
     },
     {
@@ -8241,18 +8239,18 @@
     {
       "quantity": "burnout",
       "floor": false,
-      "given": 259,
+      "given": 262,
       "spread": {
-        "mean_error": -0.00699,
+        "mean_error": -0.0118,
         "least_error": -0.0943,
-        "most_error": 0.0544,
-        "mean_bound": 0.65
+        "most_error": 0.0476,
+        "mean_bound": 0.651
       }
     },
     {
       "quantity": "burnout",
       "floor": true,
-      "given": 1237,
+      "given": 1236,
       "spread": {
         "mean_error": -0.242,
         "least_error": -1.33,
