@@ -116,8 +116,10 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   page. Off it for a technical sense in this project: robust, deploy, streamline, boost and powerful (a more
   powerful motor). The noun "leverage" (a lever arm), "utilization" and the authors Garner and
   Foster are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
-  up" were dropped: no source warns against them. Google's word list suggests "to summarize" in place
-  of "tl;dr", and the federal plain-language guidelines list both as transitions. Those guidelines
+  up" were dropped. No source names the first two, though the kind is named and its named forms
+  ("research has shown", "experts declare", "experts argue") are on the list. The last two are
+  recommended, not warned against: Google's word list suggests "to summarize" in place of
+  "tl;dr", and the federal plain-language guidelines list both as transitions. Those guidelines
   list "in conclusion" as a transition too; it stays on the list, from the Wikipedia page, because
   the guide asks for no recaps. The note's "let me know" and "Certainly!" are left off as
   ordinary speech ("certainly" is on two pages).

@@ -213,19 +213,21 @@ limit. A page over one is where to look first; it doesn't fail the build.
 | First person on a reference page | "I", "me" or "my" on a model, format, command or glossary page | 0 |
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
-over 25 words, at about 20 words a sentence, is 0.5 per 100 words. On a page of shorter sentences
-the limit is stricter than 10%, so the report prints each page's share too. A bold-label limit of
-0.5 still allows a list of ten options on a 2,000-word page, but not a bold label on every item of
-every list. Labels get one every 200 words, because each one sends the reader off to look it up.
+over 25 words, at about 20 words a sentence. That's 0.5 per 100 words. On a page of shorter
+sentences the limit is stricter than 10%, so the report prints each page's share too. A bold-label
+limit of 0.5 still allows a list of ten options on a 2,000-word page, but not a bold label on
+every item of every list. Labels get one every 200 words, because each one sends the reader off to
+look it up.
 
 Hedges get 1.0, because a single hedge is often the honest word. That's about the top of the
 range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a mostly
-different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words: a
-second hedge, a word that calls a step easy and a sentence that points at the section or back at
-earlier text each give the reader little, so one should be rare enough to be a choice. First person on a reference page gets 0,
-because the program is the subject there. The limits were set against these pages as they stood
-on October 19, 2026, when most of them were over the sentence and bold-label limits;
-the report gives the current counts.
+different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words. Each
+adds little: a second hedge, a word that calls a step easy, a sentence that points back at the
+page. Use one only on purpose.
+
+First person on a reference page gets 0, because the program is the subject there. The limits were
+set against these pages as they stood on October 19, 2026, when most of them were over the
+sentence and bold-label limits. The report gives the current counts.
 
 Who's talking has no limit, and the report prints it per page: "I", "we", "you" and contractions
 per 100 words. For scale, the survey found 1.0 to 3.5 contractions per 100 words on most personal
@@ -254,16 +256,22 @@ each named by a published style guide or study, or by the design system's own wr
 - recaps: `in conclusion`
 - chat residue: `I hope this helps`
 
-Words with a technical sense in this project stay off it, whether or not a page uses them yet:
-robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
+The list leaves out words that have a technical sense in this project, even if no page uses them
+yet: robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor).
+Terms such as `magic bytes` and `seamless tube` pass. The list is in
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates
-and `docs/`. It leaves out the decision records and the done-work archive, which are history; the records
-pages and the roadmap they're written from, which are the plan; the research notes, which keep their wording
-until they're next edited; and the site's table of contents, which is links. It counts
-what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
+and `docs/`. It leaves out:
+
+- the decision records and the done-work archive, which are history;
+- the records pages, written from the decision records and the roadmap, and the roadmap itself,
+  the open work;
+- the research notes, which keep their wording until they're next edited;
+- the site's table of contents, which is links.
+
+It counts what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
 against these rules too.
 
 ### Measured, not gated
