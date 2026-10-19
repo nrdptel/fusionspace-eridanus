@@ -374,13 +374,16 @@ fn rounded(tally: &Tally) -> Tally {
     tally
 }
 
-/// A reading's errors to three significant figures, as the report holds them.
+/// A reading's errors as the report holds them: the least, the most and the mean bound to three
+/// significant figures, and the mean error at the figures of the largest error
+/// ([`census::at_the_figures_of`]), the digits every platform shares.
 fn rounded_errors(errors: &Errors) -> Errors {
     let mut errors = errors.clone();
     if let Some(spread) = &mut errors.spread {
-        spread.mean_error = census::three_figures(spread.mean_error);
         spread.least_error = census::three_figures(spread.least_error);
         spread.most_error = census::three_figures(spread.most_error);
+        let largest = spread.least_error.abs().max(spread.most_error.abs());
+        spread.mean_error = census::at_the_figures_of(spread.mean_error, largest);
         spread.mean_bound = census::three_figures(spread.mean_bound);
     }
     errors
@@ -569,7 +572,9 @@ fn errors_section(page: &mut String, errors: &[Errors], tops: &Tops) {
          Each reading's errors, the reading less the truth, over every tuning flight and every \
          log above together, beside the mean bound the readings stated. Each error is held to its \
          own reading's bound, which differs from flight to flight and log to log, so the least or \
-         the most may pass the mean bound; the mean is for scale. A floor, a burnout from the \
+         the most may pass the mean bound; the mean is for scale, and is given at the decimal \
+         place of the larger of the least and the most to three figures, the digits every \
+         platform shares. A floor, a burnout from the \
          speed's peak or a clipped top acceleration, is apart: it holds while it is no more than \
          its bound above the truth, and may lie any amount below it.\n\n\
          | Reading | Given | Mean error | Least | Most | Mean bound |\n\

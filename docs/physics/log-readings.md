@@ -767,23 +767,24 @@ The report also gives each reading's errors over every tuning flight and every l
 beside the mean bound the readings stated
 ([Errors on the tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)).
 An error is the reading less the truth. A floor, a burnout from the top speed or a clipped top
-acceleration, is counted apart, as it may lie any amount below the truth:
+acceleration, is counted apart, as it may lie any amount below the truth. A mean is given to the
+decimal place of its largest error's third figure, the digits every platform shares:
 
 | reading | given | mean error | least | most | mean bound |
 |---|---:|---:|---:|---:|---:|
-| flight time | 6,948 | −0.738 s | −5.06 s | 3.15 s | 5.83 s |
-| top acceleration | 280 | 0.659 m/s² | −13.6 m/s² | 13 m/s² | 16.6 m/s² |
+| flight time | 6,948 | −0.74 s | −5.06 s | 3.15 s | 5.83 s |
+| top acceleration | 280 | 0.7 m/s² | −13.6 m/s² | 13 m/s² | 16.6 m/s² |
 | top acceleration, a floor | 4 | −4.49 m/s² | −7.55 m/s² | −1.58 m/s² | 12.7 m/s² |
 | burnout, from the accelerometer | 262 | −0.0118 s | −0.0943 s | 0.0476 s | 0.651 s |
-| burnout, a floor | 1,236 | −0.242 s | −1.33 s | 0.718 s | 1.3 s |
-| drogue rate | 2,827 | 0.0378 m/s (0.124 ft/s) | −1.61 m/s (−5.28 ft/s) | 1.35 m/s (4.43 ft/s) | 1.79 m/s (5.87 ft/s) |
-| main opening | 2,827 | 0.725 s | −0.778 s | 5.3 s | 2.04 s |
-| main rate | 5,391 | 0.043 m/s (0.141 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
+| burnout, a floor | 1,236 | −0.24 s | −1.33 s | 0.718 s | 1.3 s |
+| drogue rate | 2,827 | 0.04 m/s (0.13 ft/s) | −1.61 m/s (−5.28 ft/s) | 1.35 m/s (4.43 ft/s) | 1.79 m/s (5.87 ft/s) |
+| main opening | 2,827 | 0.73 s | −0.778 s | 5.3 s | 2.04 s |
+| main rate | 5,391 | 0.04 m/s (0.13 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
 
 Burnout from the accelerometer lands within 0.0943 s of the truth, against a mean bound of
-0.651 s. A floor from the top speed comes 0.242 s before burnout on average, as a speed's peak
+0.651 s. A floor from the top speed comes 0.24 s before burnout on average, as a speed's peak
 should, and up to 0.718 s after it, within its bound, where the fit places the peak late. The
-main's opening is read late on average, by 0.725 s; its bound holds the time a canopy takes to
+main's opening is read late on average, by 0.73 s; its bound holds the time a canopy takes to
 slow the fall and half the fit. No tuning flight's true top acceleration reaches the range its part
 clips at: the nearest comes to 0.492 of it, the report says. The 4 tops read as clipped all the
 same, each a floor, are all on the ADXL375 read at 20 Hz, whose noise there, 19.8 mg by the

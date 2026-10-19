@@ -8142,7 +8142,7 @@
       "floor": false,
       "given": 7013,
       "spread": {
-        "mean_error": 0.123,
+        "mean_error": 0.12,
         "least_error": -1.79,
         "most_error": 1.21,
         "mean_bound": 2.03
@@ -8153,7 +8153,7 @@
       "floor": false,
       "given": 7220,
       "spread": {
-        "mean_error": 0.214,
+        "mean_error": 0.0,
         "least_error": -179.0,
         "most_error": 202.0,
         "mean_bound": 200.0
@@ -8164,7 +8164,7 @@
       "floor": false,
       "given": 7220,
       "spread": {
-        "mean_error": 0.0401,
+        "mean_error": 0.04,
         "least_error": -1.04,
         "most_error": 1.2,
         "mean_bound": 1.54
@@ -8186,7 +8186,7 @@
       "floor": false,
       "given": 7154,
       "spread": {
-        "mean_error": -0.603,
+        "mean_error": -0.6,
         "least_error": -4.4,
         "most_error": 2.61,
         "mean_bound": 3.84
@@ -8197,7 +8197,7 @@
       "floor": false,
       "given": 6948,
       "spread": {
-        "mean_error": -0.738,
+        "mean_error": -0.74,
         "least_error": -5.06,
         "most_error": 3.15,
         "mean_bound": 5.83
@@ -8208,7 +8208,7 @@
       "floor": false,
       "given": 7154,
       "spread": {
-        "mean_error": -0.0329,
+        "mean_error": 0.0,
         "least_error": -12.4,
         "most_error": 5.66,
         "mean_bound": 4.09
@@ -8219,7 +8219,7 @@
       "floor": false,
       "given": 280,
       "spread": {
-        "mean_error": 0.659,
+        "mean_error": 0.7,
         "least_error": -13.6,
         "most_error": 13.0,
         "mean_bound": 16.6
@@ -8252,7 +8252,7 @@
       "floor": true,
       "given": 1236,
       "spread": {
-        "mean_error": -0.242,
+        "mean_error": -0.24,
         "least_error": -1.33,
         "most_error": 0.718,
         "mean_bound": 1.3
@@ -8263,7 +8263,7 @@
       "floor": false,
       "given": 2827,
       "spread": {
-        "mean_error": 0.0378,
+        "mean_error": 0.04,
         "least_error": -1.61,
         "most_error": 1.35,
         "mean_bound": 1.79
@@ -8274,7 +8274,7 @@
       "floor": false,
       "given": 2827,
       "spread": {
-        "mean_error": 0.725,
+        "mean_error": 0.73,
         "least_error": -0.778,
         "most_error": 5.3,
         "mean_bound": 2.04
@@ -8285,7 +8285,7 @@
       "floor": false,
       "given": 5391,
       "spread": {
-        "mean_error": 0.043,
+        "mean_error": 0.04,
         "least_error": -5.47,
         "most_error": 4.83,
         "mean_bound": 1.71

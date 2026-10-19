@@ -620,23 +620,23 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 
 ## Errors on the tuning set
 
-Each reading's errors, the reading less the truth, over every tuning flight and every log above together, beside the mean bound the readings stated. Each error is held to its own reading's bound, which differs from flight to flight and log to log, so the least or the most may pass the mean bound; the mean is for scale. A floor, a burnout from the speed's peak or a clipped top acceleration, is apart: it holds while it is no more than its bound above the truth, and may lie any amount below it.
+Each reading's errors, the reading less the truth, over every tuning flight and every log above together, beside the mean bound the readings stated. Each error is held to its own reading's bound, which differs from flight to flight and log to log, so the least or the most may pass the mean bound; the mean is for scale, and is given at the decimal place of the larger of the least and the most to three figures, the digits every platform shares. A floor, a burnout from the speed's peak or a clipped top acceleration, is apart: it holds while it is no more than its bound above the truth, and may lie any amount below it.
 
 | Reading | Given | Mean error | Least | Most | Mean bound |
 |---|---:|---:|---:|---:|---:|
-| liftoff | 7013 | 0.123 s | -1.79 s | 1.21 s | 2.03 s |
-| apogee height | 7220 | 0.214 m | -179 m | 202 m | 200 m |
-| apogee time | 7220 | 0.0401 s | -1.04 s | 1.2 s | 1.54 s |
+| liftoff | 7013 | 0.12 s | -1.79 s | 1.21 s | 2.03 s |
+| apogee height | 7220 | 0 m | -179 m | 202 m | 200 m |
+| apogee time | 7220 | 0.04 s | -1.04 s | 1.2 s | 1.54 s |
 | top speed | 1308 | 2.2 m/s | -9.5 m/s | 28.2 m/s | 38.6 m/s |
-| landing | 7154 | -0.603 s | -4.4 s | 2.61 s | 3.84 s |
-| flight time | 6948 | -0.738 s | -5.06 s | 3.15 s | 5.83 s |
-| descent rate | 7154 | -0.0329 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
-| top acceleration | 280 | 0.659 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
+| landing | 7154 | -0.6 s | -4.4 s | 2.61 s | 3.84 s |
+| flight time | 6948 | -0.74 s | -5.06 s | 3.15 s | 5.83 s |
+| descent rate | 7154 | 0 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
+| top acceleration | 280 | 0.7 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
 | top acceleration, a floor | 4 | -4.49 m/s² | -7.55 m/s² | -1.58 m/s² | 12.7 m/s² |
 | burnout | 262 | -0.0118 s | -0.0943 s | 0.0476 s | 0.651 s |
-| burnout, a floor | 1236 | -0.242 s | -1.33 s | 0.718 s | 1.3 s |
-| drogue rate | 2827 | 0.0378 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
-| main opening | 2827 | 0.725 s | -0.778 s | 5.3 s | 2.04 s |
-| main rate | 5391 | 0.043 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |
+| burnout, a floor | 1236 | -0.24 s | -1.33 s | 0.718 s | 1.3 s |
+| drogue rate | 2827 | 0.04 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
+| main opening | 2827 | 0.73 s | -0.778 s | 5.3 s | 2.04 s |
+| main rate | 5391 | 0.04 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |
 
 No tuning flight's true top acceleration reaches the range its part clips at: the nearest, flight 57's on its imu-500hz logger, comes to 0.492 of it. Tops read as clipped, each a floor, at the range or flat at the top: 4; flight 78 (altos), its accelerometer at 20 Hz; flight 122 (altos), its accelerometer at 20 Hz; flight 144 (altos), its accelerometer at 20 Hz; flight 161 (altos), its accelerometer at 20 Hz.
