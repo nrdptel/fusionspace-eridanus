@@ -1404,10 +1404,18 @@ pub struct Analyze {
     pub apogee: LogReading<ApogeeReading>,
     /// The top vertical speed from liftoff to apogee.
     pub max_speed: LogReading<MaxSpeedReading>,
-    /// The top acceleration.
+    /// The top acceleration, from the axial accelerometer.
     pub max_acceleration: LogReading<MaxAccelerationReading>,
+    /// Burnout, from the axial accelerometer or the speed's peak.
+    pub burnout: LogReading<BurnoutReading>,
     /// Landing, and the descent before it.
     pub landing: LogReading<LandingReading>,
+    /// The flight time, liftoff to landing.
+    pub flight_time: LogReading<FlightTimeReading>,
+    /// The descent under the drogue: from apogee to the main's opening.
+    pub drogue_descent: LogReading<DescentReading>,
+    /// The descent under the main, the canopy the rocket landed under.
+    pub main_descent: LogReading<DescentReading>,
 }
 
 /// The log `hpr analyze` read.
@@ -1482,7 +1490,7 @@ pub struct LoggerStated {
 /// for a track too short to read, a GNSS track, or one withheld whole for its sampling or its
 /// step, but for the interval or the step that withheld it; and `pad_altitude_m` for one
 /// withheld as `no_climb`.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct AnalyzeMethod {
     /// The height track the readings were taken from.
     pub source: Option<ReadingSource>,
@@ -1500,6 +1508,9 @@ pub struct AnalyzeMethod {
     /// The pad, on the track's own scale: the median of the track before it first rises 1 m,
     /// m.
     pub pad_altitude_m: Option<f64>,
+    /// The axial accelerometer the top acceleration and burnout came from; `null` when the log
+    /// has none, or none settled.
+    pub accelerometer: Option<AnalyzedAccelerometer>,
 }
 
 /// A reading, or why the log can't support it.
@@ -1571,8 +1582,6 @@ pub enum WithheldReason {
     /// in another unit, such as milliseconds read as seconds, its top isn't a coast's, or it
     /// isn't a height.
     SlowerThanFreeCoast,
-    /// HPR Sim doesn't take this reading from the log's sensor yet.
-    NotYetTaken,
     /// The log's first samples can't rule out a rocket already more than 2 m up when it starts:
     /// it starts after liftoff, as a logger that records from launch writes its zero and then the
     /// climb, or holds too little of the pad to tell liftoff by. A track above the logger's own
@@ -1585,6 +1594,18 @@ pub enum WithheldReason {
     /// climbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,
     /// so which is the apogee can't be told.
     DisturbedTop,
+    /// The log's accelerometers don't say which lies along the rocket's axis, such as a board's
+    /// three axes: the top acceleration and a burnout from the accelerometer need the axial one.
+    AxisUnstated,
+    /// The axial accelerometer's readings may or may not hold gravity's 1 g, and none of its
+    /// family, its pad and its coast to apogee settles which, or they disagree.
+    GravityUnstated,
+    /// The descent's rate never changes enough to tell a second canopy: the rocket came down
+    /// under one, or under two whose rates are closer than 1.4 to one. There is no drogue's.
+    OneCanopy,
+    /// A leg of the descent loses too little height, under 3 m or a tenth of its top's height,
+    /// for its rate to be read.
+    ShortLeg,
     /// A reason this build of `hpr` doesn't name.
     Other,
 }
@@ -1601,6 +1622,8 @@ pub enum ReadingSource {
     AltitudeChannel,
     /// A GNSS receiver's altitude: no reading is taken from it.
     Gnss,
+    /// The accelerometer along the rocket's axis.
+    Accelerometer,
     /// A source this build of `hpr` doesn't name.
     Other,
 }
@@ -1619,6 +1642,34 @@ pub enum ReadingProvenance {
     Other,
 }
 
+/// Whether an accelerometer's readings hold gravity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum AccelerometerGravity {
+    /// They hold it: the part reads +1 g standing on the pad.
+    In,
+    /// They were written with it taken out: the part reads 0 on the pad.
+    Out,
+    /// A word this build of `hpr` doesn't name.
+    Other,
+}
+
+/// How an accelerometer's gravity was settled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum GravitySettledBy {
+    /// By its family's word, which its pad and its coast agree with where they say.
+    Family,
+    /// By its pad, which reads near 1 g or near 0, where its family doesn't say; its coast, where
+    /// it says, agrees.
+    Pad,
+    /// By its coast to apogee, which reads near 0 or near −1 g, where neither its family nor its
+    /// pad says.
+    Coast,
+    /// A way this build of `hpr` doesn't name.
+    Other,
+}
+
 /// How a reading was read off the track.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -1631,6 +1682,17 @@ pub enum ReadingMethod {
     SteepestSlope,
     /// The first sample after apogee back within the pad's allowance that stays down for 1 s.
     BackOnThePad,
+    /// The axial accelerometer's highest reading before apogee.
+    HighestReading,
+    /// The first sample next to the axial accelerometer's least reading after it falls below
+    /// zero: the end of the thrust's fall.
+    LeastAfterThrust,
+    /// The top speed's time: burnout comes no sooner.
+    SpeedPeak,
+    /// Landing's time less liftoff's.
+    LiftoffToLanding,
+    /// The height a leg of the descent loses over the time it takes.
+    LegChord,
     /// A method this build of `hpr` doesn't name.
     Other,
 }
@@ -1707,13 +1769,119 @@ pub struct MaxSpeedReading {
     pub method: ReadingMethod,
 }
 
-/// The top acceleration.
+/// The top acceleration, from the axial accelerometer.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct MaxAccelerationReading {
-    /// The acceleration, m/s².
+    /// The acceleration, m/s², along the rocket's axis as an accelerometer reads it: +1 g
+    /// standing on the pad, the thrust less the drag over the mass in the climb; less 9.81 m/s²,
+    /// the rocket's own acceleration up on a vertical climb.
     pub acceleration_m_s2: f64,
-    /// When, s.
+    /// The bound on its error, m/s². When it is clipped, the true top is no lower than the
+    /// reading less the bound, and may be higher by any amount.
+    pub bound_m_s2: f64,
+    /// When, s on the accelerometer's clock.
     pub time_s: f64,
+    /// The range of the part its family states, m/s²; `null` where it doesn't.
+    pub range_m_s2: Option<f64>,
+    /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
+    /// any amount. A clipped top is.
+    pub is_floor: bool,
+    /// The accelerometer.
+    pub source: ReadingSource,
+    /// Measured, or clipped: at the part's range, or held flat at its top.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
+}
+
+/// Burnout: when the motor stopped pushing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct BurnoutReading {
+    /// When, s on the clock of the track it came from.
+    pub time_s: f64,
+    /// The bound on its error, s.
+    pub bound_s: f64,
+    /// When, s after liftoff: the burn's length; `null` when liftoff is withheld.
+    pub time_after_liftoff_s: Option<f64>,
+    /// Whether the time is a floor: burnout came no sooner than it, less its bound, and may
+    /// have come later by any amount. A burnout from the speed's peak is.
+    pub is_floor: bool,
+    /// The accelerometer, or the height track the speed came from.
+    pub source: ReadingSource,
+    /// Measured from the accelerometer; derived from the speed's peak.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
+}
+
+/// The flight time, liftoff to landing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct FlightTimeReading {
+    /// From liftoff to landing, s.
+    pub time_s: f64,
+    /// The bound on its error, s: liftoff's and landing's.
+    pub bound_s: f64,
+    /// Where it came from.
+    pub source: ReadingSource,
+    /// Measured on the track.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
+}
+
+/// The descent under one canopy.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct DescentReading {
+    /// The mean rate of descent over the leg, m/s, down positive.
+    pub rate_m_s: f64,
+    /// The bound on its error, m/s.
+    pub bound_m_s: f64,
+    /// Where the leg starts, s: apogee, or the main's opening.
+    pub from_s: f64,
+    /// Where it ends, s: the main's opening, or landing.
+    pub to_s: f64,
+    /// The height at its start, m above the pad.
+    pub from_height_m: f64,
+    /// The height at its end, m above the pad.
+    pub to_height_m: f64,
+    /// The main's opening, found back from landing, for the main's leg after a drogue's; `null`
+    /// for a drogue's leg or a descent under one canopy.
+    pub opening: Option<OpeningReading>,
+    /// Where it came from.
+    pub source: ReadingSource,
+    /// Derived from the heights.
+    pub provenance: ReadingProvenance,
+    /// How it was read.
+    pub method: ReadingMethod,
+}
+
+/// The main's opening, found back from landing.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct OpeningReading {
+    /// When, s: the first sample of the run back from landing whose rate stays near the main's.
+    pub time_s: f64,
+    /// The bound on its error, s.
+    pub bound_s: f64,
+    /// The height then, m above the pad.
+    pub height_m: f64,
+}
+
+/// The axial accelerometer the top acceleration and burnout came from.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct AnalyzedAccelerometer {
+    /// The channel's column, as the file writes it.
+    pub column: String,
+    /// Whether its readings hold gravity's 1 g, or were written with it taken out; it is put
+    /// back for the readings.
+    pub gravity: AccelerometerGravity,
+    /// How that was settled.
+    pub gravity_by: GravitySettledBy,
+    /// Whether its readings were turned over, as a part mounted nose down writes the thrust.
+    pub turned_over: bool,
+    /// The median interval between its samples, s.
+    pub sample_interval_s: f64,
+    /// Its step, m/s².
+    pub step_m_s2: f64,
 }
 
 /// Landing, and the descent before it.
@@ -1724,10 +1892,6 @@ pub struct LandingReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
-    /// From liftoff to landing, s; `null` when liftoff is withheld.
-    pub flight_time_s: Option<f64>,
-    /// The bound on the flight time's error, s; `null` when liftoff is withheld.
-    pub flight_time_bound_s: Option<f64>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time
