@@ -20,8 +20,8 @@
 //!
 //! Every answer goes through the [`Client`], so it is cached ([`crate::thrustcurve::TTL_S`], a
 //! day) and, offline, read from the cache alone: a motor found once is found again with no
-//! network. Nothing is bundled: ThrustCurve states no license for its records, and each file
-//! carries its own ([`DataFile::license`]), which the caller shows.
+//! network. Nothing is bundled: ThrustCurve grants no license for its records and reserves
+//! copyright, and each file carries its own ([`DataFile::license`]), which the caller shows.
 //!
 //! > **How far to trust it.** The curve is the file a contributor uploaded, as ThrustCurve serves
 //! > it; which file is taken is the rule above, not a judgment of which is right. A name is matched
