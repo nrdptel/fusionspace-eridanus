@@ -11,33 +11,44 @@
 //! **The thrust, on a cleaned trace.** Where the thrust starts and ends, and burnout, are found on
 //! the trace cleaned by a Hampel filter over [`SPIKE_WINDOW_S`] at [`SPIKE_THRESHOLD`]
 //! ([`hampel`]), which takes out a spike narrower than half its window, a charge's shock or one
-//! bad sample, and keeps a step or a steady run as it was. The readings are turned over where the
-//! thrust reads negative: the first span of the cleaned trace, either way up, from liftoff's
+//! bad sample, and keeps a step or a steady run as it was.
+//!
+//! **Which way up, by three witnesses** ([`direction`]), each read on the trace as written, each
+//! from physics that holds whether or not the part takes gravity out, within
+//! [`GRAVITY_TOLERANCE_G`]. The pad: a part at rest reads 1 g nose up and −1 g nose down where it
+//! holds gravity, and 0 either way where it doesn't; it is read as gravity's pad is (below), but
+//! ends where the trace first moves from it either way. The coast's last [`COAST_SPAN_S`] before
+//! apogee's earliest time: a part reads `−D/m` there, or `−D/m − g` without gravity, never above
+//! 0 nose up and never below it nose down, so 1 g less the tolerance or more below 0 says nose up
+//! and as far above it nose down, a drag only pushing it further; it is read only where a coast
+//! was flown, from after liftoff's latest time and before an apogee the log doesn't end at. The
+//! thrust ([`thrust_witness`]): the first span of the cleaned trace, either way up, from liftoff's
 //! earliest time, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], found as
-//! the burns are (below), or, where none holds that long, every such span, if they all go one
-//! way ([`thrust_sign`]). A pad reads 1 g or 0 either way up, and a rocket leaves it at 3 g or
-//! more, so that span is the thrust's, as a part mounted nose down writes it, while a knock on
-//! the pad, either way, holds too briefly, and a canopy's shock later, however large, comes after
-//! it. Spans both ways where none holds, or none, withhold both readings
-//! ([`Reason::DirectionUnstated`]). Gravity's 1 g is put back where the logger took it out. Three witnesses say whether it
-//! did, each within [`GRAVITY_TOLERANCE_G`]: the family's word; the pad, where about 1 g holds
-//! gravity and about 0 doesn't; and the coast's last [`COAST_SPAN_S`] before apogee, where a
-//! rocket falls freely but for a small drag, so about 0 holds gravity and about −1 g doesn't. The
-//! pad is read off the accelerometer itself, the steady reading before the thrust lifts it by half
-//! [`LIFTOFF_ACCELERATION_M_S2`], if that comes no later than liftoff's latest time by the
-//! heights; a pad or a coast that reads neither, such as a log that starts in the thrust, says
-//! nothing. Gravity is settled when one witness or more says and none disagrees; otherwise nothing
-//! is read ([`Reason::GravityUnstated`]). A sample that repeats the time before it is left out, as
-//! the primary track leaves it ([`first_at_each_time`]).
+//! the burns are (below), unless a span the other way comes before it, as a short burn before a
+//! heavy drag or a knock's rebound does; where none holds that long, the way every span shares, a
+//! short burn's. A pad or a coast near 0, or spans both ways or none, say nothing. The way is
+//! settled when one witness or more says and none disagrees; otherwise, or where the trace so
+//! turned, gravity put back, never passes [`LIFTOFF_ACCELERATION_M_S2`] and so shows no thrust,
+//! both readings are withheld ([`Reason::DirectionUnstated`]).
+//!
+//! **Gravity.** Its 1 g is put back where the logger took it out. Three witnesses, on the trace
+//! turned, say whether it did, each within [`GRAVITY_TOLERANCE_G`]: the family's word; the pad,
+//! where about 1 g holds gravity and about 0 doesn't; and the coast's last [`COAST_SPAN_S`] before
+//! apogee, where a rocket falls freely but for a small drag, so about 0 holds gravity and about
+//! −1 g doesn't. The pad is read off the accelerometer itself, the steady reading before the
+//! thrust lifts it by half [`LIFTOFF_ACCELERATION_M_S2`], if that comes no later than liftoff's
+//! latest time by the heights; a pad or a coast that reads neither, such as a log that starts in
+//! the thrust, says nothing. Gravity is settled when one witness or more says and none disagrees;
+//! otherwise nothing is read ([`Reason::GravityUnstated`]). A sample that repeats the time before
+//! it is left out, as the primary track leaves it ([`first_at_each_time`]).
 //!
 //! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
 //! [`LIFTOFF_ACCELERATION_M_S2`] to where the cleaned trace's mean over [`BURNOUT_MEAN_S`] next
 //! falls through zero, or apogee if it doesn't, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for
 //! [`BURN_LEAST_S`], as a shock doesn't, or the first such span where none does; searched from
 //! liftoff's earliest time by the heights, as a rocket at rest reads 1 g and anything more before
-//! it moves is a knock on the pad, or from the log's start where liftoff is withheld; with no
-//! burn, from there to apogee. In a burn the reading is the thrust less
-//! the drag, over the mass. A charge or a canopy's shock in a coast lies outside the burns, and
+//! it moves is a knock on the pad, or from the log's start where liftoff is withheld. In a burn
+//! the reading is the thrust less the drag, over the mass. A charge or a canopy's shock in a coast lies outside the burns, and
 //! isn't taken for the top. The top is read off the samples, not the cleaned trace. It is clipped,
 //! two causes kept apart ([`Clip`]), where it reaches the part's range, as the family states it,
 //! or else holds flat at its top for [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], within
@@ -78,9 +89,9 @@
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
 use super::{
-    ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, BURN_LEAST_S,
+    ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, Apogee, BURN_LEAST_S,
     BURNOUT_MEAN_S, Burnout, COAST_SPAN_S, Clip, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES,
-    FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G, Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2,
+    FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G, Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2, Liftoff,
     MIN_INTERVAL_S, MaxAcceleration, Method, NOISE_SPAN_S, PAD_MIN_SAMPLES, Provenance,
     RAIL_TILT_DEG, Reading, Readings, Reason, SPEED_NOISE_M_S, SPEED_WINDOW_S, SPIKE_THRESHOLD,
     SPIKE_WINDOW_S, STANDARD_GRAVITY_MPS2, Source, Withheld, clocked, local_interval, median,
@@ -291,42 +302,49 @@ pub(super) fn read(
         time[..=end].partition_point(|t| *t < earliest_s).min(end)
     });
     let half_mean = half_window(BURNOUT_MEAN_S, interval);
-    // Turned over where the thrust reads negative, the thrust found as the burns are (below), on
-    // the cleaned trace as written, either way up.
-    let sign = match thrust_sign(&clean, from, end, half_mean, interval) {
-        Ok(sign) => sign,
+    // Which way up the part reads, by three witnesses on the trace as written, before it is
+    // turned: the pad, the coast to apogee and the thrust ([`direction`]). The pad ends where
+    // the trace first moves from it either way. The coast is read only where one was flown:
+    // after liftoff's latest time by the heights and after the trace first moves from its pad,
+    // as a coast follows the thrust, and before an apogee the log doesn't end at, as a log that
+    // ends in the climb shows no coast; otherwise the second before apogee's earliest time may
+    // be the pad's or the thrust's.
+    let either_way = |moved: f64| moved.abs() > 0.5 * LIFTOFF_ACCELERATION_M_S2;
+    let moved = first_move(&raw, &clean, either_way);
+    let flown = match (&heights.liftoff, &heights.apogee) {
+        (Reading::Read(liftoff), Reading::Read(apogee)) => {
+            let start_s = apogee.time_s - apogee.time_bound_s - COAST_SPAN_S;
+            !apogee.is_floor
+                && start_s >= liftoff.time_s + liftoff.bound_s
+                && moved.is_some_and(|moved| time[moved] <= start_s)
+        }
+        _ => false,
+    };
+    let (way, said_by) = match direction(
+        pad_level(&time, &raw, &clean, &heights.liftoff, either_way),
+        coast_level(&time, &raw, &boost, &heights.apogee).filter(|_| flown),
+        &thrust_witness(&time, &clean, from, end, half_mean, interval),
+    ) {
+        Ok(settled) => settled,
         Err(detail) => {
             return withheld(
                 Reason::DirectionUnstated,
-                format!("the accelerometer `{}` {detail}", channel.column),
+                format!("the accelerometer `{}`: {detail}", channel.column),
             );
         }
     };
+    let sign = way.sign();
+    let turned: Vec<f64> = raw.iter().map(|v| sign * v).collect();
+    let turned_clean: Vec<f64> = clean.iter().map(|v| sign * v).collect();
     let g = STANDARD_GRAVITY_MPS2;
     let tolerance = GRAVITY_TOLERANCE_G * g;
-    // The pad, on the accelerometer's own trace: a rocket at rest reads a steady level, which
-    // the thrust lifts by [`LIFTOFF_ACCELERATION_M_S2`] or more once the rocket moves. So the pad
-    // is the samples from the start until the first that reads half that above the start's
-    // level, if that comes no later than liftoff's latest time by the heights.
-    let pad = match &heights.liftoff {
-        Reading::Read(liftoff) => {
-            let mut start: Vec<f64> = raw.iter().take(PAD_MIN_SAMPLES).map(|v| sign * v).collect();
-            let level = median(&mut start).unwrap_or(f64::NAN);
-            let rise = (0..time.len())
-                .find(|&k| sign * clean[k] - level > 0.5 * LIFTOFF_ACCELERATION_M_S2);
-            match rise {
-                Some(rise)
-                    if rise >= PAD_MIN_SAMPLES
-                        && time[rise] <= liftoff.time_s + liftoff.bound_s =>
-                {
-                    let mut on_pad: Vec<f64> = raw[..rise].iter().map(|v| sign * v).collect();
-                    median(&mut on_pad)
-                }
-                _ => None,
-            }
-        }
-        Reading::Withheld(_) => None,
-    };
+    // The pad, on the accelerometer's own trace turned: a rocket at rest reads a steady level,
+    // which the thrust lifts by [`LIFTOFF_ACCELERATION_M_S2`] or more once the rocket moves. So
+    // the pad is the samples from the start until the first that reads half that above the
+    // start's level, if that comes no later than liftoff's latest time by the heights.
+    let pad = pad_level(&time, &turned, &turned_clean, &heights.liftoff, |moved| {
+        moved > 0.5 * LIFTOFF_ACCELERATION_M_S2
+    });
     // A pad within the tolerance of 1 g holds gravity, of 0 doesn't; one that reads neither,
     // such as a log that starts in the thrust, says nothing.
     let by_pad = pad.and_then(|pad| {
@@ -340,22 +358,7 @@ pub(super) fn read(
     });
     // The coast's last [`COAST_SPAN_S`] before apogee's earliest time: about 0 holds gravity,
     // about −1 g doesn't; still under thrust, or anything else, it says nothing.
-    let coast = match &heights.apogee {
-        Reading::Read(apogee) => {
-            let end = apogee.time_s - apogee.time_bound_s;
-            let mut readings: Vec<f64> = boost
-                .iter()
-                .filter(|&&k| time[k] >= end - COAST_SPAN_S && time[k] <= end)
-                .map(|&k| sign * raw[k])
-                .collect();
-            if readings.len() >= PAD_MIN_SAMPLES {
-                median(&mut readings)
-            } else {
-                None
-            }
-        }
-        Reading::Withheld(_) => None,
-    };
+    let coast = coast_level(&time, &turned, &boost, &heights.apogee);
     let by_coast = coast.and_then(|coast| {
         if coast.abs() <= tolerance {
             Some(Gravity::In)
@@ -409,8 +412,8 @@ pub(super) fn read(
         Gravity::In => 0.0,
         Gravity::Out => g,
     };
-    let f: Vec<f64> = raw.iter().map(|v| sign * v + gravity_m_s2).collect();
-    let f_clean: Vec<f64> = clean.iter().map(|v| sign * v + gravity_m_s2).collect();
+    let f: Vec<f64> = turned.iter().map(|v| v + gravity_m_s2).collect();
+    let f_clean: Vec<f64> = turned_clean.iter().map(|v| v + gravity_m_s2).collect();
     let step = smallest_step(&raw);
     let accelerometer = Accelerometer {
         column: channel.column.clone(),
@@ -426,6 +429,25 @@ pub(super) fn read(
     // searched over the burns, so a shock in a coast isn't taken for it, nor a bump on the pad.
     let mean = running_mean(&f_clean, half_mean);
     let spans = spans(&f_clean, &mean, from, end, interval);
+    // A trace so turned, gravity put back, that never passes [`LIFTOFF_ACCELERATION_M_S2`]
+    // shows no thrust, as a rocket leaving the pad does, and no top to read: which way up the
+    // witnesses settled is then borne out by nothing.
+    if spans.is_empty() {
+        let by: Vec<&str> = said_by.iter().map(|by| by.words()).collect();
+        return withheld(
+            Reason::DirectionUnstated,
+            format!(
+                "the accelerometer `{}`, read {} as its {} say{} and with gravity put back, never \
+                 reads past {:.0} g from liftoff's earliest time to apogee, as a rocket leaving \
+                 the pad does: it shows no thrust to read the top or burnout from",
+                channel.column,
+                way.words(),
+                by.join(" and "),
+                if by.len() == 1 { "s" } else { "" },
+                LIFTOFF_ACCELERATION_M_S2 / g
+            ),
+        );
+    }
     let mut burns: Vec<Span> = spans
         .iter()
         .copied()
@@ -437,17 +459,12 @@ pub(super) fn read(
     }
     // Whether the thrust ends on the channel: the last burn's mean falls through zero before
     // apogee. Where it doesn't, the accelerometer ends in the thrust, or the thrust runs on to
-    // apogee, so the top may lie past the samples. Never without a burn: the thrust's direction
-    // was found on one.
+    // apogee, so the top may lie past the samples.
     let ended = burns.last().is_some_and(|burn| burn.falls);
-    let thrust: Vec<usize> = if burns.is_empty() {
-        (from..=end).collect()
-    } else {
-        burns
-            .iter()
-            .flat_map(|burn| burn.rise..=burn.fall)
-            .collect()
-    };
+    let thrust: Vec<usize> = burns
+        .iter()
+        .flat_map(|burn| burn.rise..=burn.fall)
+        .collect();
     let top_index = thrust
         .iter()
         .copied()
@@ -687,55 +704,310 @@ fn spans(values: &[f64], mean: &[f64], from: usize, end: usize, interval: f64) -
     spans
 }
 
-/// Which way up the accelerometer reads, +1 nose up or −1 nose down, from its cleaned trace
-/// `clean` as written, its samples `from` to `end` at `interval`, averaged over `half` samples
-/// either side to end a span: the sign of the first span, either way up, that holds past
-/// [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], as a thrust does and a knock on the pad
-/// doesn't, whichever way it reads; where none holds that long, the sign every span shares, a
-/// short burn's. A pad reads 1 g or 0 either way up and a rocket leaves it at 3 g or more, so a
-/// thrust passes 2 g either way. Where spans go both ways and none holds, or none passes 2 g, the
-/// thrust can't be told, and the words say why.
-fn thrust_sign(
+/// Which way up an accelerometer reads: nose up, as the rocket's axis points in the climb, or
+/// nose down, as a part mounted the other way writes it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Way {
+    Up,
+    Down,
+}
+
+impl Way {
+    /// The sign that turns a reading written this way up to nose up.
+    fn sign(self) -> f64 {
+        match self {
+            Self::Up => 1.0,
+            Self::Down => -1.0,
+        }
+    }
+
+    /// The other way up.
+    fn other(self) -> Self {
+        match self {
+            Self::Up => Self::Down,
+            Self::Down => Self::Up,
+        }
+    }
+
+    fn words(self) -> &'static str {
+        match self {
+            Self::Up => "nose up",
+            Self::Down => "nose down",
+        }
+    }
+}
+
+/// A witness to which way up an accelerometer reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum WayBy {
+    Pad,
+    Coast,
+    Thrust,
+}
+
+impl WayBy {
+    fn words(self) -> &'static str {
+        match self {
+            Self::Pad => "pad",
+            Self::Coast => "coast to apogee",
+            Self::Thrust => "thrust",
+        }
+    }
+}
+
+/// What the thrust says of which way up the part reads, `None` for nothing, and the words that
+/// say why.
+#[derive(Debug, Clone, PartialEq)]
+struct ThrustWitness {
+    way: Option<Way>,
+    words: String,
+}
+
+/// The first sample of `clean`, the cleaned twin of `values`, that `moved` says has left the
+/// start's level, the median of the first [`PAD_MIN_SAMPLES`] of `values`, by how far it lies
+/// from it; `None` if none does.
+fn first_move(values: &[f64], clean: &[f64], moved: impl Fn(f64) -> bool) -> Option<usize> {
+    let mut start: Vec<f64> = values.iter().take(PAD_MIN_SAMPLES).copied().collect();
+    let level = median(&mut start).unwrap_or(f64::NAN);
+    (0..clean.len()).find(|&k| moved(clean[k] - level))
+}
+
+/// The steady level of `values` on the pad, as the median of the samples from the start to the
+/// [`first_move`] that `moved` says, if that sample is the [`PAD_MIN_SAMPLES`]th or later and
+/// comes no later than liftoff's latest time by the heights; `None` otherwise, or where liftoff
+/// is withheld. A log that starts in the thrust has no pad before its latest time.
+fn pad_level(
+    time: &[f64],
+    values: &[f64],
+    clean: &[f64],
+    liftoff: &Reading<Liftoff>,
+    moved: impl Fn(f64) -> bool,
+) -> Option<f64> {
+    let Reading::Read(liftoff) = liftoff else {
+        return None;
+    };
+    let rise = first_move(values, clean, moved)?;
+    if rise >= PAD_MIN_SAMPLES && time[rise] <= liftoff.time_s + liftoff.bound_s {
+        median(&mut values[..rise].to_vec())
+    } else {
+        None
+    }
+}
+
+/// The median of `values` over the climb's samples `boost` in the last [`COAST_SPAN_S`] before
+/// apogee's earliest time, if [`PAD_MIN_SAMPLES`] or more lie there; `None` where apogee is
+/// withheld.
+fn coast_level(
+    time: &[f64],
+    values: &[f64],
+    boost: &[usize],
+    apogee: &Reading<Apogee>,
+) -> Option<f64> {
+    let Reading::Read(apogee) = apogee else {
+        return None;
+    };
+    let end = apogee.time_s - apogee.time_bound_s;
+    let mut readings: Vec<f64> = boost
+        .iter()
+        .filter(|&&k| time[k] >= end - COAST_SPAN_S && time[k] <= end)
+        .map(|&k| values[k])
+        .collect();
+    if readings.len() >= PAD_MIN_SAMPLES {
+        median(&mut readings)
+    } else {
+        None
+    }
+}
+
+/// The thrust's witness to which way up the accelerometer reads, from its cleaned trace `clean`
+/// as written, its samples `from` (liftoff's earliest time) to `end` (apogee) at `interval`,
+/// averaged over `half` samples either side to end a span, its times `time`. The first span,
+/// either way up, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], as a
+/// thrust does and a knock on the pad doesn't, says its way, unless a span the other way comes
+/// before it, as a short burn before a heavy drag or a knock's rebound does: then it says
+/// nothing. Where no span holds that long, the way every span shares says, a short burn's; spans
+/// both ways, or none, say nothing. Read as written, a thrust under 3 g on a part that takes
+/// gravity out reads under 2 g, and says nothing: the pad or the coast must say.
+fn thrust_witness(
+    time: &[f64],
     clean: &[f64],
     from: usize,
     end: usize,
     half: usize,
     interval: f64,
-) -> Result<f64, String> {
-    let walk = |sign: f64| {
-        let values: Vec<f64> = clean.iter().map(|v| sign * v).collect();
+) -> ThrustWitness {
+    let walk = |way: Way| {
+        let values: Vec<f64> = clean.iter().map(|v| way.sign() * v).collect();
         let mean = running_mean(&values, half);
         spans(&values, &mean, from, end, interval)
     };
-    let (up, down) = (walk(1.0), walk(-1.0));
+    let (up, down) = (walk(Way::Up), walk(Way::Down));
     let held = |spans: &[Span]| {
         spans
             .iter()
             .find(|span| span.held_s >= BURN_LEAST_S)
             .map(|span| span.rise)
     };
-    match (held(&up), held(&down)) {
-        (Some(up), Some(down)) => Ok(if down < up { -1.0 } else { 1.0 }),
-        (Some(_), None) => Ok(1.0),
-        (None, Some(_)) => Ok(-1.0),
-        (None, None) => match (up.is_empty(), down.is_empty()) {
-            (false, true) => Ok(1.0),
-            (true, false) => Ok(-1.0),
-            (false, false) => Err(format!(
-                "reads past {:.0} g both ways up, {} times nose up and {} nose down, and never \
-                 for {BURN_LEAST_S} s, as a thrust holds: which way up it reads, and so the \
-                 thrust, can't be told from a knock",
-                LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2,
-                up.len(),
-                down.len()
+    let first_held = match (held(&up), held(&down)) {
+        (Some(up), Some(down)) if down < up => Some((Way::Down, down)),
+        (Some(up), _) => Some((Way::Up, up)),
+        (None, Some(down)) => Some((Way::Down, down)),
+        (None, None) => None,
+    };
+    let past = format!("{:.0} g", LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2);
+    let says = |way: Way, words: String| ThrustWitness {
+        way: Some(way),
+        words: format!("its thrust says {}: {words}", way.words()),
+    };
+    let neither = |words: String| ThrustWitness {
+        way: None,
+        words: format!("its thrust says neither: {words}"),
+    };
+    if let Some((way, rise)) = first_held {
+        let other = match way {
+            Way::Up => &down,
+            Way::Down => &up,
+        };
+        return match other.first().filter(|span| span.rise < rise) {
+            Some(before) => neither(format!(
+                "the first span past {past} to hold there for {BURN_LEAST_S} s, {} from {:.2} s, \
+                 comes after one {} from {:.2} s, as a drag after a short burn or a knock's \
+                 rebound may",
+                way.words(),
+                time[rise],
+                way.other().words(),
+                time[before.rise]
             )),
-            (true, true) => Err(format!(
-                "never reads past {:.0} g either way up from liftoff's earliest time to apogee, \
-                 as a rocket leaving the pad does: which way up it reads, and so the thrust, \
-                 can't be told",
-                LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2
-            )),
-        },
+            None => says(
+                way,
+                format!(
+                    "the first span past {past} to hold there for {BURN_LEAST_S} s, from {:.2} s",
+                    time[rise]
+                ),
+            ),
+        };
+    }
+    let count = |spans: usize| match spans {
+        1 => "1 span".to_owned(),
+        spans => format!("{spans} spans"),
+    };
+    match (up.len(), down.len()) {
+        (0, 0) => neither(format!(
+            "as written, it never reads past {past} either way up from liftoff's earliest time \
+             to apogee"
+        )),
+        (spans, 0) | (0, spans) => {
+            let way = if down.is_empty() { Way::Up } else { Way::Down };
+            says(
+                way,
+                format!(
+                    "no span past {past} holds there for {BURN_LEAST_S} s, and its {} {}, as a \
+                     short burn's does",
+                    count(spans),
+                    if spans == 1 {
+                        "reads so"
+                    } else {
+                        "all read so"
+                    }
+                ),
+            )
+        }
+        (up, down) => neither(format!(
+            "it reads past {past} both ways up, in {} nose up and {} nose down, and never for \
+             {BURN_LEAST_S} s, as a thrust holds",
+            count(up),
+            count(down)
+        )),
+    }
+}
+
+/// Which way up the accelerometer reads, by three witnesses, each on its trace as written and
+/// each from physics that holds whether or not the part takes gravity out:
+/// - the pad, its steady level `pad` before the thrust: at rest a part reads 1 g nose up and
+///   −1 g nose down where it holds gravity, and 0 either way where it doesn't, so a pad within
+///   [`GRAVITY_TOLERANCE_G`] of 1 g says nose up, of −1 g nose down, and of 0 nothing;
+/// - the coast's last [`COAST_SPAN_S`] before apogee's earliest time, its median `coast`, where
+///   one was flown: in a coast a part reads `−D/m` nose up where it holds gravity and
+///   `−D/m − g` where it doesn't, never above 0, and the mirror nose down, so a coast at 1 g
+///   less the tolerance or more below 0 says nose up, as far above 0 nose down, a drag only
+///   pushing it further, and one nearer 0 nothing;
+/// - the thrust ([`thrust_witness`]).
+///
+/// Settled when one witness or more says and none disagrees, as gravity is: the way and the
+/// witnesses that said it, or the words that say what each said.
+fn direction(
+    pad: Option<f64>,
+    coast: Option<f64>,
+    thrust: &ThrustWitness,
+) -> Result<(Way, Vec<WayBy>), String> {
+    let g = STANDARD_GRAVITY_MPS2;
+    let tolerance = GRAVITY_TOLERANCE_G * g;
+    let by_pad = pad.and_then(|pad| {
+        if (pad - g).abs() <= tolerance {
+            Some(Way::Up)
+        } else if (pad + g).abs() <= tolerance {
+            Some(Way::Down)
+        } else {
+            None
+        }
+    });
+    let by_coast = coast.and_then(|coast| {
+        if coast <= -(g - tolerance) {
+            Some(Way::Up)
+        } else if coast >= g - tolerance {
+            Some(Way::Down)
+        } else {
+            None
+        }
+    });
+    let said: Vec<(Way, WayBy)> = [
+        (by_pad, WayBy::Pad),
+        (by_coast, WayBy::Coast),
+        (thrust.way, WayBy::Thrust),
+    ]
+    .iter()
+    .filter_map(|(way, by)| way.map(|way| (way, *by)))
+    .collect();
+    match said.first() {
+        Some(&(way, _)) if said.iter().all(|(each, _)| *each == way) => {
+            Ok((way, said.iter().map(|(_, by)| *by).collect()))
+        }
+        _ => {
+            let level = |name: &str, level: Option<f64>, said: Option<Way>, marks: &str| {
+                level.map_or_else(
+                    || format!("the log holds no {name} to tell by"),
+                    |level| {
+                        format!(
+                            "its {name} reads {:.2} g as written, which says {} ({marks})",
+                            level / g,
+                            said.map_or("neither", Way::words)
+                        )
+                    },
+                )
+            };
+            let near = 1.0 - GRAVITY_TOLERANCE_G;
+            Err(format!(
+                "{}; {}; {}: {}",
+                level(
+                    "pad",
+                    pad,
+                    by_pad,
+                    "about 1 g says nose up, about −1 g nose down"
+                ),
+                level(
+                    "coast to apogee",
+                    coast,
+                    by_coast,
+                    &format!("−{near} g or less says nose up, {near} g or more nose down")
+                ),
+                thrust.words,
+                if said.is_empty() {
+                    "none of them says which way up it reads"
+                } else {
+                    "they disagree on which way up it reads"
+                }
+            ))
+        }
     }
 }
 
@@ -1555,10 +1827,13 @@ mod tests {
         assert!(try_burnout(0.6, true).is_ok());
     }
 
-    /// Which way up a part reads can't be told where its trace never passes 2 g from liftoff's
-    /// earliest time to apogee, or passes it both ways up and never holds there for
-    /// [`BURN_LEAST_S`]: the top and the accelerometer's burnout are withheld as
-    /// [`Reason::DirectionUnstated`], and burnout falls back to the top speed's floor.
+    /// Three traces that show no thrust, each withheld as [`Reason::DirectionUnstated`], burnout
+    /// falling back to the top speed's floor, the words saying why. One reads 1 g throughout: it
+    /// never moves from its pad, so neither the pad nor the coast after a thrust says, and nor
+    /// does the thrust. One passes 2 g both ways up and never holds there for [`BURN_LEAST_S`],
+    /// so the thrust says nothing, and its pad's 1 g, nose up, and its coast's 1 g, nose down,
+    /// disagree. One dips on the pad, so its pad's 1 g says nose up, then pushes at 1.8 g: so
+    /// turned, the trace never passes 2 g, as a rocket leaving the pad does.
     #[test]
     fn a_trace_that_shows_no_thrust_either_way_up_is_withheld() {
         let pulse = |t: f64, at: f64| {
@@ -1568,13 +1843,32 @@ mod tests {
                 0.0
             }
         };
-        for (case, trace) in [
-            ("flat", Box::new(|_: f64| G) as Box<dyn Fn(f64) -> f64>),
+        let weak = |t: f64| {
+            if (1.0..1.3).contains(&t) {
+                -3.0 * G
+            } else if t < 3.0 {
+                G
+            } else if t < 4.5 {
+                1.8 * G
+            } else if t < 8.0 {
+                -0.2 * G * (8.0 - t) / 3.5
+            } else {
+                G
+            }
+        };
+        for (case, words, trace) in [
+            (
+                "flat",
+                "none of them says",
+                Box::new(|_: f64| G) as Box<dyn Fn(f64) -> f64>,
+            ),
             (
                 "both ways",
+                "which says nose down",
                 // 5 g for 0.2 s in the thrust, then −5 g for 0.2 s in the coast.
                 Box::new(move |t: f64| G + pulse(t, 3.4) - 1.5 * pulse(t, 5.0)),
             ),
+            ("weak", "shows no thrust", Box::new(weak)),
         ] {
             let readings = read_all(&log(
                 LogFormat::GenericTable,
@@ -1582,20 +1876,21 @@ mod tests {
                 0.01,
                 |k, t| trace(t) + jitter(k, 0.3),
             ));
-            assert_eq!(
-                readings.max_acceleration.reason(),
-                Some(Reason::DirectionUnstated),
-                "{case}"
-            );
+            let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+                panic!("{case}: {:?}", readings.max_acceleration);
+            };
+            assert_eq!(*reason, Reason::DirectionUnstated, "{case}");
+            assert!(detail.contains(words), "{case}: {detail}");
             let burnout = readings.burnout.value().unwrap();
             assert_eq!(burnout.method, Method::SpeedPeak, "{case}");
             assert!(burnout.is_floor, "{case}");
         }
     }
 
-    /// A dip on the pad, to −3 g over 0.3 s at 1 s, doesn't turn the trace over: it never holds
-    /// past 2 g for [`BURN_LEAST_S`], and the thrust after it does. So on a column that holds
-    /// gravity and on AltOS's, which takes it out, the top and burnout are the thrust's.
+    /// A dip on the pad, to −3 g over 0.3 s at 1 s, doesn't turn the trace over: it comes before
+    /// liftoff's earliest time, so the thrust, which holds past 2 g for [`BURN_LEAST_S`], says
+    /// nose up, as the pad's 1 g does on a column that holds gravity and the coast's −1 g on
+    /// AltOS's, which takes it out. The top and burnout are the thrust's.
     #[test]
     fn a_dip_on_the_pad_doesnt_turn_the_trace_over() {
         let dipped = |t: f64| {
@@ -1630,9 +1925,9 @@ mod tests {
     }
 
     /// A knock on the pad with its rebound first, −2.5 g for 0.15 s at 2.5 s and then 4 g for
-    /// 0.15 s, inside liftoff's bound: neither holds past 2 g for [`BURN_LEAST_S`], so the trace
-    /// isn't turned over, and the top and burnout are the thrust's, neither before liftoff's
-    /// earliest time.
+    /// 0.15 s, inside liftoff's bound: the rebound comes before the thrust's span, so the thrust
+    /// says nothing, and the pad's 1 g says nose up. The trace isn't turned over, and the top and
+    /// burnout are the thrust's, neither before liftoff's earliest time.
     #[test]
     fn a_knock_with_its_rebound_first_doesnt_turn_the_trace_over() {
         let readings = read_all(&log(
@@ -1674,10 +1969,344 @@ mod tests {
         );
     }
 
+    /// A short burn, 40 g from 3.0 s to 3.3 s, then a heavy drag, −8 g easing to −2.9 g by 4.5 s
+    /// and to nothing by 6 s, gravity in: the specific force along the axis, nose up.
+    fn short_burn(t: f64) -> f64 {
+        if t < 3.0 {
+            G
+        } else if t < 3.3 {
+            40.0 * G
+        } else if t < 4.5 {
+            -8.0 * G + 5.1 * G * (t - 3.3) / 1.2
+        } else if t < 6.0 {
+            -2.9 * G * (6.0 - t) / 1.5
+        } else if t < 8.0 {
+            0.0
+        } else {
+            G
+        }
+    }
+
+    /// A short burn before a heavy drag ([`short_burn`]): the drag's span holds past 2 g for
+    /// [`BURN_LEAST_S`] and the burn's doesn't, but the burn's comes first, so the thrust says
+    /// nothing; the pad, at 1 g, says nose up where gravity is in, and the coast, at −1 g, where
+    /// AltOS takes it out. Either way the top is the burn's 40 g, not the drag's.
+    #[test]
+    fn a_short_burn_before_a_heavy_drag_reads_nose_up() {
+        for (format, column, out_m_s2) in [
+            (LogFormat::GenericTable, "Axial accel", 0.0),
+            (LogFormat::AltosCsv, "acceleration", G),
+        ] {
+            let readings = read_all(&log(format, column, 0.01, |k, t| {
+                short_burn(t) - out_m_s2 + jitter(k, 0.3)
+            }));
+            let accelerometer = readings.accelerometer.as_ref();
+            assert!(
+                accelerometer.is_some_and(|a| !a.turned_over),
+                "{column}: {accelerometer:?}, {:?}",
+                readings.max_acceleration
+            );
+            let top = readings.max_acceleration.value().unwrap();
+            assert!(
+                (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
+                "{column}: {top:?}"
+            );
+            assert!((3.0..3.3).contains(&top.time_s), "{column}: {top:?}");
+            assert_eq!(top.provenance, Provenance::Measured, "{column}");
+            assert!(!top.is_floor, "{column}: {top:?}");
+            let burnout = readings.burnout.value().unwrap();
+            assert!(
+                (burnout.time_s - 3.3).abs() <= burnout.bound_s,
+                "{column}: {burnout:?}"
+            );
+        }
+    }
+
+    /// The same short burn and drag on a part mounted nose down: the pad's −1 g says so where
+    /// gravity is in, and the coast's +1 g where it is out; the top is the burn's 40 g.
+    #[test]
+    fn a_short_burn_read_nose_down_reads_alike() {
+        for out_m_s2 in [0.0, G] {
+            let readings = read_all(&log(
+                LogFormat::GenericTable,
+                "Axial accel",
+                0.01,
+                |k, t| -(short_burn(t) - out_m_s2) + jitter(k, 0.3),
+            ));
+            let accelerometer = readings.accelerometer.as_ref();
+            assert!(
+                accelerometer.is_some_and(|a| a.turned_over),
+                "out {out_m_s2}: {accelerometer:?}, {:?}",
+                readings.max_acceleration
+            );
+            let top = readings.max_acceleration.value().unwrap();
+            assert!(
+                (top.acceleration_m_s2 - 40.0 * G).abs() <= top.bound_m_s2,
+                "out {out_m_s2}: {top:?}"
+            );
+            assert!(!top.is_floor, "out {out_m_s2}: {top:?}");
+        }
+    }
+
+    /// A pad that reads 1 g, nose up with gravity in, before a thrust that reads −6 g, nose
+    /// down: the witnesses disagree, so the top and the accelerometer's burnout are withheld,
+    /// the words naming each witness, and burnout comes from the top speed.
+    #[test]
+    fn a_pad_that_disagrees_with_the_thrust_is_withheld() {
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| if t < 3.0 { G } else { -specific_force(t) } + jitter(k, 0.3),
+        ));
+        let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(*reason, Reason::DirectionUnstated);
+        for words in [
+            "its pad reads 1.00 g as written, which says nose up",
+            "its coast to apogee reads",
+            "its thrust says nose down",
+            "they disagree",
+        ] {
+            assert!(detail.contains(words), "{words}: {detail}");
+        }
+        assert!(readings.accelerometer.is_none());
+        let burnout = readings.burnout.value().unwrap();
+        assert_eq!(burnout.method, Method::SpeedPeak);
+        assert!(burnout.is_floor);
+    }
+
+    /// A thrust of 2.5 g, a thrust-to-weight of about 2.5, on AltOS, which takes gravity out:
+    /// as written it reads 1.5 g, under 2 g, so the thrust says nothing, and the pad's 0 says
+    /// nothing either; the coast's −1 g, less the drag, says nose up. Where the drag after
+    /// burnout is heavy, −1.5 g, the coast reads past −2 g for over [`BURN_LEAST_S`] as written,
+    /// so the thrust says nose down, against the coast: withheld. Never turned over.
+    #[test]
+    fn a_weak_thrust_without_gravity_is_settled_by_the_coast() {
+        let weak = |drag_g: f64| {
+            move |t: f64| {
+                if t < 3.0 {
+                    G
+                } else if t < 4.5 {
+                    2.5 * G
+                } else if t < 8.0 {
+                    -drag_g * G * (8.0 - t) / 3.5
+                } else {
+                    G
+                }
+            }
+        };
+        let light = weak(0.4);
+        let readings = read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+            light(t) - G + jitter(k, 0.3)
+        }));
+        let accelerometer = readings.accelerometer.as_ref().unwrap();
+        assert!(!accelerometer.turned_over, "{accelerometer:?}");
+        assert_eq!(accelerometer.gravity, Gravity::Out);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 2.5 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!((3.0..4.5).contains(&top.time_s), "{top:?}");
+        let burnout = readings.burnout.value().unwrap();
+        assert_eq!(burnout.method, Method::LeastAfterThrust, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.5).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+        let heavy = weak(1.5);
+        let readings = read_all(&log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+            heavy(t) - G + jitter(k, 0.3)
+        }));
+        let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(*reason, Reason::DirectionUnstated);
+        assert!(detail.contains("which says nose up"), "{detail}");
+        assert!(detail.contains("its thrust says nose down"), "{detail}");
+    }
+
+    /// An accelerometer whose clock runs late against the heights', its thrust starting at 7.6 s
+    /// where the heights put apogee at 8 s: the second before apogee's earliest time is still its
+    /// pad, at 1 g, and comes before the trace first moves, so it isn't read as a coast, which
+    /// would say nose down. The thrust, cut off at apogee, says nose up, a short burn's; the top
+    /// is the thrust's, a floor, as it doesn't end before apogee.
+    #[test]
+    fn a_coast_before_the_trace_moves_says_nothing() {
+        let readings = read_all(&log(
+            LogFormat::EntacoreAimCsv,
+            "acceleration",
+            0.01,
+            |k, t| if t < 7.6 { G } else { 6.0 * G } + jitter(k, 0.3),
+        ));
+        let accelerometer = readings.accelerometer.as_ref();
+        assert!(
+            accelerometer.is_some_and(|a| !a.turned_over),
+            "{accelerometer:?}, {:?}",
+            readings.max_acceleration
+        );
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(top.is_floor, "{top:?}");
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+    }
+
+    /// The thrust's witness, each way it says or doesn't, on traces sampled every 0.01 s: a held
+    /// span with nothing the other way before it says its way; one after a span the other way
+    /// says nothing; with none held, spans one way say it and spans both ways or none nothing;
+    /// a span before liftoff's earliest time isn't searched.
+    #[test]
+    fn the_thrust_witness_says_its_way_or_nothing() {
+        let dt = 0.01;
+        let time: Vec<f64> = (0..=600).map(|i| f64::from(i) * dt).collect();
+        let witness = |from_s: f64, trace: &dyn Fn(f64) -> f64| {
+            let clean: Vec<f64> = time.iter().map(|t| trace(*t)).collect();
+            let from = time.partition_point(|t| *t < from_s);
+            thrust_witness(
+                &time,
+                &clean,
+                from,
+                time.len() - 1,
+                half_window(BURNOUT_MEAN_S, dt),
+                dt,
+            )
+        };
+        // A pulse of `g` g from `at` s for `long` s.
+        let pulse = |t: f64, at: f64, long: f64, g: f64| {
+            if (at..at + long).contains(&t) {
+                g * G
+            } else {
+                0.0
+            }
+        };
+        let thrust = move |t: f64| G + pulse(t, 1.0, 1.0, 4.0) - pulse(t, 2.0, 2.0, 1.5);
+        let short_then_drag = move |t: f64| pulse(t, 1.0, 0.3, 40.0) - pulse(t, 1.3, 1.0, 8.0);
+        let short = move |t: f64| pulse(t, 1.0, 0.3, 6.0) - pulse(t, 1.3, 2.0, 0.5);
+        let both = move |t: f64| pulse(t, 1.0, 0.2, 5.0) - pulse(t, 3.0, 0.2, 5.0);
+        let knocked = move |t: f64| -pulse(t, 0.5, 0.15, 3.5) + thrust(t);
+        // A case's name, liftoff's earliest time, its trace, the way it says and its words.
+        type Case<'a> = (&'a str, f64, &'a dyn Fn(f64) -> f64, Option<Way>, &'a str);
+        let cases: [Case; 9] = [
+            ("held", 0.0, &thrust, Some(Way::Up), "to hold there"),
+            (
+                "held, down",
+                0.0,
+                &|t| -thrust(t),
+                Some(Way::Down),
+                "to hold",
+            ),
+            (
+                "drag after a short burn",
+                0.0,
+                &short_then_drag,
+                None,
+                "comes after one nose up",
+            ),
+            (
+                "mirrored",
+                0.0,
+                &|t| -short_then_drag(t),
+                None,
+                "comes after one nose down",
+            ),
+            ("short only", 0.0, &short, Some(Way::Up), "1 span reads so"),
+            (
+                "short, down",
+                0.0,
+                &|t| -short(t),
+                Some(Way::Down),
+                "1 span reads so",
+            ),
+            ("both ways", 0.0, &both, None, "both ways up"),
+            ("flat", 0.0, &|_| G, None, "never reads past"),
+            (
+                "knock before the search",
+                0.8,
+                &knocked,
+                Some(Way::Up),
+                "from 1.00 s",
+            ),
+        ];
+        for (case, from_s, trace, way, words) in cases {
+            let said = witness(from_s, trace);
+            assert_eq!(said.way, way, "{case}: {said:?}");
+            assert!(said.words.contains(words), "{case}: {said:?}");
+        }
+        // The knock searched: its rebound comes before the thrust, which then says nothing.
+        assert_eq!(witness(0.0, &knocked).way, None);
+    }
+
+    /// The pad and the coast say by their levels as written, each within 0.25 g: the pad 1 g
+    /// nose up, −1 g nose down, 0 nothing; the coast −0.75 g or less nose up, 0.75 g or more
+    /// nose down, a drag only pushing it further. Settled when one says or more and none
+    /// disagrees.
+    #[test]
+    fn the_pad_and_the_coast_say_by_their_levels() {
+        let silent = ThrustWitness {
+            way: None,
+            words: "its thrust says neither".to_owned(),
+        };
+        let up = ThrustWitness {
+            way: Some(Way::Up),
+            words: "its thrust says nose up".to_owned(),
+        };
+        let down = ThrustWitness {
+            way: Some(Way::Down),
+            words: "its thrust says nose down".to_owned(),
+        };
+        let way = |pad: Option<f64>, coast: Option<f64>, thrust: &ThrustWitness| {
+            direction(pad.map(|g| g * G), coast.map(|g| g * G), thrust).map(|(way, _)| way)
+        };
+        assert_eq!(way(Some(1.0), None, &silent), Ok(Way::Up));
+        assert_eq!(way(Some(1.24), None, &silent), Ok(Way::Up));
+        assert_eq!(way(Some(-1.0), None, &silent), Ok(Way::Down));
+        assert!(way(Some(1.26), None, &silent).is_err());
+        assert!(way(Some(0.0), None, &silent).is_err());
+        assert_eq!(way(None, Some(-1.0), &silent), Ok(Way::Up));
+        assert_eq!(way(None, Some(-0.76), &silent), Ok(Way::Up));
+        assert_eq!(way(None, Some(-3.0), &silent), Ok(Way::Up));
+        assert_eq!(way(None, Some(1.3), &silent), Ok(Way::Down));
+        assert!(way(None, Some(-0.74), &silent).is_err());
+        assert!(way(None, Some(0.0), &silent).is_err());
+        assert!(way(None, None, &silent).is_err());
+        assert_eq!(way(None, None, &down), Ok(Way::Down));
+        assert_eq!(
+            direction(Some(G), Some(-G), &up),
+            Ok((Way::Up, vec![WayBy::Pad, WayBy::Coast, WayBy::Thrust]))
+        );
+        assert!(way(Some(1.0), Some(1.0), &silent).is_err());
+        assert!(way(Some(1.0), None, &down).is_err());
+        assert!(way(None, Some(-1.0), &down).is_err());
+        // The words say what each witness said, and whether none said or two disagree.
+        let none = direction(None, None, &silent).unwrap_err();
+        assert!(
+            none.starts_with("the log holds no pad to tell by"),
+            "{none}"
+        );
+        assert!(
+            none.ends_with("none of them says which way up it reads"),
+            "{none}"
+        );
+        let split = direction(Some(G), Some(G), &silent).unwrap_err();
+        for words in [
+            "its pad reads 1.00 g as written, which says nose up",
+            "its coast to apogee reads 1.00 g as written, which says nose down",
+            "they disagree on which way up it reads",
+        ] {
+            assert!(split.contains(words), "{words}: {split}");
+        }
+    }
+
     /// An accelerometer that ends in the thrust, still rising from 3 g to 6 g, gives its top as a
     /// floor: the thrust never falls through zero on the channel, so the top may have been
     /// higher, and burnout isn't read off it. So whether the whole log ends at 3.7 s or only the
-    /// accelerometer does.
+    /// accelerometer does; and where the whole log ends at 6 s, at 12 g, its apogee a floor at
+    /// its end: the second before that apogee's earliest time is the thrust's, not a coast, and
+    /// would say nose down.
     #[test]
     fn an_accelerometer_that_ends_in_the_thrust_gives_its_top_as_a_floor() {
         let rising = |t: f64| {
@@ -1687,11 +2316,11 @@ mod tests {
                 3.0 * G + 3.0 * G * (t - 3.0)
             }
         };
-        for whole in [true, false] {
+        for (end_s, whole) in [(3.7, true), (3.7, false), (6.0, true)] {
             let mut log = log(LogFormat::GenericTable, "Axial accel", 0.01, |k, t| {
                 rising(t) + jitter(k, 0.3)
             });
-            let cut = |time_s: &[f64]| time_s.partition_point(|t| *t <= 3.7 + 1e-9);
+            let cut = |time_s: &[f64]| time_s.partition_point(|t| *t <= end_s + 1e-9);
             let channel = &mut log.channels[0];
             let kept = cut(&channel.time_s);
             channel.time_s.truncate(kept);
@@ -1702,20 +2331,22 @@ mod tests {
                 log.altitude_m.truncate(kept);
             }
             let readings = read_all(&log);
-            let top = readings.max_acceleration.value().unwrap();
-            assert!(top.is_floor, "whole {whole}: {top:?}");
-            assert_eq!(top.provenance, Provenance::Measured, "whole {whole}");
+            let case = format!("to {end_s} s, whole {whole}");
+            let top = readings.max_acceleration.value();
+            let top = top.unwrap_or_else(|| panic!("{case}: {:?}", readings.max_acceleration));
+            assert!(top.is_floor, "{case}: {top:?}");
+            assert_eq!(top.provenance, Provenance::Measured, "{case}");
             // The reading less its bound lies below the thrust where the channel ends.
             assert!(
-                top.acceleration_m_s2 - top.bound_m_s2 <= rising(3.7),
-                "whole {whole}: {top:?}"
+                top.acceleration_m_s2 - top.bound_m_s2 <= rising(end_s),
+                "{case}: {top:?}"
             );
             assert!(
                 readings
                     .burnout
                     .value()
                     .is_none_or(|burnout| burnout.method != Method::LeastAfterThrust),
-                "whole {whole}: {:?}",
+                "{case}: {:?}",
                 readings.burnout
             );
         }

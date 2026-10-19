@@ -304,16 +304,40 @@ pad. So is the top acceleration: it holds the 1 g, where `hpr sim`'s `max_accele
 rocket's own acceleration, from the equations of motion. Less 1 g, the top acceleration is the
 rocket's own acceleration up on a vertical climb.
 
-**Which way up.** A part mounted nose down writes the thrust negative. A pad reads 1 g or 0 either
-way up, and a rocket leaves it at 3 g or more, so the thrust passes 2 g whichever way up the part
-reads. Which way up is found on the cleaned trace, as the burns are (both below), from liftoff's
-earliest time: the first span, in either sign, that holds past 2 g for 0.5 s is the thrust's, and
-where it is negative the readings are turned over. A knock on the pad, either way, holds too
-briefly, and a canopy's shock later, however large, comes after the thrust. Where no span holds
-that long, the sign every span shares is the thrust's, a short burn's. Where spans go both ways and
-none holds, or none passes 2 g, which way up can't be told: the top acceleration and burnout from
-the accelerometer are withheld (`direction_unstated`), and burnout comes from the top speed. One of
-the sample logs is withheld so.
+**Which way up, by three witnesses.** A part mounted nose down writes the thrust negative, and its
+readings are turned over. Which way up is settled as gravity is (below), by three witnesses. Each
+is read on the trace as written, before it is turned, and each rests on physics that holds whether
+or not the logger takes gravity out. Each reads within 0.25 g of its level:
+
+- **the pad,** the steady level before the trace first moves 1 g from it, either way, if that comes
+  no later than liftoff's latest time by the heights. At rest a part that holds gravity reads +1 g
+  nose up and −1 g nose down; one that takes it out reads 0 either way. So about 1 g says nose up,
+  about −1 g nose down, and about 0 says nothing;
+- **the coast,** the last 1 s before apogee's earliest time, read only where a coast was flown:
+  after liftoff's latest time, after the trace first moves from its pad, and before an apogee the
+  log doesn't end at. Coasting, a part reads the drag's pull back, $-D/m$, or $-D/m - 1\,g$ where
+  gravity is taken out, so never above 0 nose up, and the mirror nose down. So 0.75 g or more below
+  0 says nose up and 0.75 g or more above it nose down, as a drag only pushes the reading further.
+  Nearer 0 says nothing;
+- **the thrust,** on the cleaned trace, found as the burns are (both below), from liftoff's
+  earliest time. The first span, in either sign, that holds past 2 g for 0.5 s says its sign,
+  unless a span of the other sign comes before it, as a short burn's does before a heavy drag's or
+  a knock's rebound before the thrust: then it says nothing. Where no span holds that long, the
+  sign every span shares says, a short burn's; spans both ways, or none, say nothing.
+
+The way is settled when at least one witness says and none disagrees. Otherwise the top
+acceleration and burnout from the accelerometer are withheld (`direction_unstated`), and burnout
+comes from the top speed. So are they where the trace, turned and with gravity put back, never
+passes 2 g, as a rocket leaving the pad does: it shows no thrust. The thrust's witness reads the
+trace as written, so on a log that takes gravity out a thrust under about 3 g reads under 2 g and
+says nothing, and the pad or the coast decides. A knock on the pad before liftoff's earliest time
+isn't searched, and a canopy's shock, however large, comes after the thrust.
+
+On the tests' short burn, gravity in, the part reads 40 g for 0.3 s, then a drag of −8 g easing to
+nothing by 6 s. The drag's span holds past 2 g for about 1.7 s and the burn's for 0.3 s, but the
+burn's comes first, so the thrust says nothing; the pad's 1 g says nose up, and the top reads 40 g.
+Turned by the drag's span alone, as an earlier rule turned it, the top read 7.9 g. Two of the
+sample logs are withheld as `direction_unstated`.
 
 A sample that isn't a number or has no time is left out, and so is one that repeats the time of the
 last kept, the first kept, as the height track keeps AltOS's rows that share a time. A part sampled
@@ -356,8 +380,8 @@ spans after the first, every one that started within 3 s of apogee held past 2 g
 and every longer one started more than 3 s before it, though nothing beside those logs says which of
 the longer ones are burns. The 0.5 s is HPR Sim's choice. The burns are searched from liftoff's
 earliest time by the heights, or from the log's start where liftoff is withheld: a rocket at rest
-reads 1 g, so anything more before it moves is a knock or a bump on the pad. With no burn, the top
-is searched from there to apogee. A charge or a canopy's shock in a coast lies outside the burns, so
+reads 1 g, so anything more before it moves is a knock or a bump on the pad. A charge or a canopy's
+shock in a coast lies outside the burns, so
 it isn't taken for the top; a second burn, an air start's or a sustainer's, is searched too. No top
 or burnout earlier than liftoff's earliest time is given. Its bound adds the part's own errors, the
 noise around the top and what a peak between samples can hide:
@@ -485,7 +509,7 @@ canopy's rate grows with height by no more than $\exp(h/2H)$ at the least $H$, s
 only slow a rate read high up, never quicken it, and one canopy doesn't read as two. A surface
 inversion, air that warms with height, is the exception, as $L$ is negative there and $H$ shrinks: at 260 K, warming by 20 K/km, $H$ is about 4,800 m
 (15,748 ft). Over an inversion 300 m (984 ft) deep, a canopy's rate then grows by 3.2% from the
-ground to its top, and the scaling at 7,000 m (22,966 ft) takes out 2.2%, so a rate read there is
+ground to its top, and the scaling, with $H$ at 7,000 m (22,966 ft), takes out 2.1%, so a rate read there is
 about 1% quicker than near the ground: small beside the mark's 1.6. When the rule was chosen,
 comparing each rate at its own density named a main on a tuning flight that had opened one canopy at
 apogee.
@@ -763,7 +787,7 @@ reasons:
 | `no_accelerometer` | the log has no accelerometer | the top acceleration; burnout comes from the top speed's time |
 | `axis_unstated` | the log's accelerometers don't say which lies along the rocket's axis, such as a board's three axes or a table's column read by its header | the top acceleration; burnout comes from the top speed's time |
 | `gravity_unstated` | the axial accelerometer's readings may or may not hold gravity's 1 g, and neither its family, nor its pad, nor its coast to apogee settles which, or they disagree | the top acceleration; burnout comes from the top speed's time |
-| `direction_unstated` | which way up the axial accelerometer reads can't be told: from liftoff's earliest time to apogee its cleaned trace never passes 2 g either way up, or passes it both ways and never holds there for 0.5 s, as a thrust does and a knock on the pad doesn't | the top acceleration and burnout from the accelerometer; burnout comes from the top speed's time |
+| `direction_unstated` | which way up the axial accelerometer reads isn't settled: of its pad (about 1 g nose up, about −1 g nose down), its coast to apogee (−0.75 g or less nose up, 0.75 g or more nose down) and its thrust (the first span past 2 g to hold there for 0.5 s, unless a span the other way comes first), none says or two disagree; or, turned as they settle and gravity put back, the trace never passes 2 g from liftoff's earliest time to apogee, so shows no thrust | the top acceleration and burnout from the accelerometer; burnout comes from the top speed's time |
 | `one_canopy` | the descent shows no drogue's leg: at the ground's density, its rate in the 2 s before the main's leg never passes the main's mark, 1.6 times the rate near the ground or 3 m/s (9.8 ft/s) more if that is more, or the descent before that leg doesn't fall, on median, faster than 1.4 times that rate. A drogue no faster than the mark reads as one canopy, whatever its ratio to the main, and so does a rocket under one canopy or none | the drogue's descent; the main's is read from apogee, the whole descent's |
 | `short_leg` | a leg of the descent loses no more than 3 m (9.8 ft) or a tenth of its top's height; or the whole descent loses too little, or falls too slowly near the ground, to time a leg by | that leg's descent; or both |
 
@@ -936,8 +960,8 @@ logs hold, other flyers' files kept outside the repository, and counts each read
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
-554, the top speed from 354, landing from 472, the flight time from 406, burnout from 435, the top
-acceleration from 183, the drogue's descent from 267 and the main's from 459. Each of the 27
+554, the top speed from 354, landing from 472, the flight time from 406, burnout from 437, the top
+acceleration from 182, the drogue's descent from 267 and the main's from 459. Each of the 27
 reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
@@ -954,8 +978,10 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
 The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
 on 665 records, as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
-along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 1, whose accelerometer
-never passes 2 g either way up. The drogue's descent is withheld as `short_leg` on 11, and as
+along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 2. On one, nothing
+says which way up the accelerometer reads: it never passes 2 g either way, and the log holds no pad
+or coast to tell by. On the other, the coast reads near +1 g, nose down, against a pad and a thrust
+that say nose up. The drogue's descent is withheld as `short_leg` on 11, and as
 `one_canopy` on 185, where the descent showed no drogue's leg; with no truth beside the logs, that
 doesn't say how each rocket came down.
 
@@ -977,8 +1003,9 @@ doesn't say how each rocket came down.
   budget).
 - **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
   pad. A rocket slower than that is read later than its liftoff bound, and may already be further
-  up, when a log starts, than its pad's error allows. An accelerometer that never reads past 2 g
-  can't say which way up it reads, and gives no top acceleration (`direction_unstated`).
+  up, when a log starts, than its pad's error allows. An accelerometer whose trace, turned and with
+  gravity put back, never reads past 2 g shows no thrust, and gives no top acceleration
+  (`direction_unstated`).
 - **Fast flights' top speeds.** The top speed is withheld from 227.7 m/s (747 ft/s), and so is a
   burnout taken from its time where no accelerometer gives one. The heights
   aren't checked for the port's error near the speed of sound; the apogee, read near the top where
@@ -1078,7 +1105,12 @@ The tests that pin the readings, and the sources they follow.
 - `hpr_flightdata::readings::accelerometer`: a noisy axial trace's top and burnout read within
   their bounds, burnout within a sample of the thrust's end; a part mounted nose down, with
   gravity taken out, read alike; a dip, and a knock with its rebound first, on the pad not
-  turning the trace over; a top held at the part's range marked clipped at the range, the truth
+  turning the trace over; a short burn before a heavy drag read nose up, gravity in and out, and
+  nose down when mirrored; a pad that disagrees with the thrust withheld; a weak thrust on a log
+  without gravity settled by its coast, or withheld where a heavy drag's span disagrees; a coast
+  before the trace moves, or in a log that ends in the thrust, saying nothing; three traces that
+  show no thrust withheld, each by its own words; the thrust's witness and the pad's and the
+  coast's levels, each way they say; a top held at the part's range marked clipped at the range, the truth
   above the reading less its bound, and a quiet plateau not; an accelerometer that ends in the
   thrust giving its top as a floor and no burnout; gravity left unsettled withholding the
   top acceleration and sending burnout to the top speed's floor; the coast settling gravity where the log holds no pad; a repeated time keeping its

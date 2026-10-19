@@ -58,7 +58,8 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   under no canopy reads as one canopy's
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780), no canopy told from one);
   the coast witness assumes under 0.25 g of drag in the last second before apogee; an
-  accelerometer that never passes 2 g gives no top acceleration (`direction_unstated`).
+  accelerometer whose pad, coast and thrust don't settle which way up it reads, or that shows no
+  thrust, gives no top acceleration (`direction_unstated`).
 - Reports pinned to six decimals or 1e-7 relative; no oracle runs in CI.
 - Export: State's Category IV rewrite (RIN 1400-AE73, interim final rule listed for 2026-09) may
   redefine the hobby-rocket exclusion; re-read it when published (`export-control.md`, ADR-192).

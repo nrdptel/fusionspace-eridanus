@@ -482,10 +482,13 @@ pub enum Reason {
     /// which: its family doesn't say, and neither its pad (about 1 g or 0) nor its coast to
     /// apogee (about 0 or −1 g) reads either level, or what they say disagrees.
     GravityUnstated,
-    /// Which way up the axial accelerometer reads, nose up or nose down, can't be told, and so
-    /// neither can its thrust: from liftoff's earliest time to apogee its cleaned trace never
-    /// passes [`LIFTOFF_ACCELERATION_M_S2`] either way up, or passes it both ways and never holds
-    /// there for [`BURN_LEAST_S`], as a thrust does and a knock on the pad doesn't.
+    /// Which way up the axial accelerometer reads, nose up or nose down, isn't settled, or its
+    /// trace shows no thrust. Of its three witnesses, each on the trace as written, none says or
+    /// two disagree: the pad (about 1 g nose up, about −1 g nose down), the coast to apogee
+    /// (−0.75 g or less nose up, 0.75 g or more nose down) and the thrust (its first span past
+    /// [`LIFTOFF_ACCELERATION_M_S2`] to hold there for [`BURN_LEAST_S`], unless a span the other
+    /// way comes first). Or, turned as they settle and gravity put back, the trace never passes
+    /// [`LIFTOFF_ACCELERATION_M_S2`] from liftoff's earliest time to apogee.
     DirectionUnstated,
     /// The descent shows no drogue's leg. Walked back from landing, its rate at the ground's
     /// density never passes the main's mark, [`MAIN_TOLERANCE_SHARE`] times the rate near the

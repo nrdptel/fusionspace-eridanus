@@ -1638,7 +1638,8 @@ A top acceleration can be a floor too. Where the part clipped, its line says "cl
 part's range of …" if the top reached the range the logger's family states, or "held flat at its
 top, so it may have been clipped" if it held flat below that range or none is stated. Where the
 accelerometer shows no end to the thrust, the line says that. The JSON marks each `is_floor`, and
-gives the clip's cause in `clip`, `range` or `flat`, or `null` for a thrust with no end.
+gives the clip's cause in `clip`, `range` or `flat`; `clip` is `null` for a top that did not clip
+and for a thrust with no end.
 
 What the file states about itself, such as the altimeter's own apogee, is printed beside the
 simulator's readings, never in their place. Heights are meters above the altimeter's reading on

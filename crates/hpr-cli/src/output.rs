@@ -1600,10 +1600,12 @@ pub enum WithheldReason {
     /// The axial accelerometer's readings may or may not hold gravity's 1 g, and none of its
     /// family, its pad and its coast to apogee settles which, or they disagree.
     GravityUnstated,
-    /// Which way up the axial accelerometer reads can't be told, and so neither can its thrust:
-    /// from liftoff's earliest time to apogee it never reads past 2 g either way up, or reads
-    /// past 2 g both ways and never holds there for 0.5 s, as a thrust does and a knock on the
-    /// pad doesn't.
+    /// Which way up the axial accelerometer reads isn't settled, or it shows no thrust. Of its
+    /// three witnesses, each on the trace as written, none says or two disagree: the pad (about
+    /// 1 g nose up, about −1 g nose down), the coast to apogee (−0.75 g or less nose up, 0.75 g
+    /// or more nose down) and the thrust (its first span past 2 g to hold there for 0.5 s,
+    /// unless a span the other way comes first). Or, turned as they settle and gravity put back,
+    /// it never reads past 2 g from liftoff's earliest time to apogee.
     DirectionUnstated,
     /// The descent shows no drogue's leg: at the ground's density its rate never passes the
     /// main's mark, 1.6 times its rate near the ground or 3 m/s more if that is more, in the 2 s
