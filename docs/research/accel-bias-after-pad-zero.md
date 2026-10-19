@@ -21,9 +21,9 @@ Read 2026-10-19.
   time to apogee, so a scale error drops out. A 20 mg offset held 20 s is 3.9 m/s and 39 m at apogee.
 - **It moves from flight to flight.** Within one Altus unit it scatters with sd 20 mg (24 flights, 5 units), of
   which the export's ±25 mg rounding is about 14 mg; units sharing a flight spread a median 24 mg (9 flights) (§3).
-- **Four of five supersonic Blue Raven logs read +21 to +35 m/s fast near apogee** (about 4% of peak speed). The gap
-  builds in boost and then holds, so it is not an offset; a TeleMega on one of those flights reads −2.8 m/s. The
-  cause is unknown (§4).
+- **Four of five supersonic Blue Raven logs read +21 to +35 m/s fast near apogee** (about 4% of peak speed). Read
+  against the baro it seemed to build in boost; against a TeleMega on one flight it grows through the coast
+  ([accel-scale-at-boost-logs](accel-scale-at-boost-logs.md) §4). The cause is unknown (§4).
 - **Quiet readings don't predict the flight offset.** Altus pad means (10–27 rows) do not correlate with it
   (r = −0.07); every Blue Raven high-rate pad reads 5–8 mg short of 1 g; landing rests are too noisy (§3).
 
@@ -128,8 +128,8 @@ is already +21 to +34 m/s by mid-coast and changes by about 11 m/s at most to ap
 the device's filter. Two Blue Ravens on one of these flights agree within 15 mg, and a TeleMega on another reads
 −2.8 m/s, which clears the baro. Three of the four
 peak at 22–25 g, below the 32 g switch to the high-range part [F1] p. 24, and subsonic flights to 61 g show no
-step. The fifth log (peak about 1,080 m/s) shows none. A gain acting only in boost (about 4%) or vibration
-rectification would fit; neither is bounded by these logs.
+step. The fifth log (peak about 1,080 m/s) shows none. Against the TeleMega, the gap grows through the coast
+([accel-scale-at-boost-logs](accel-scale-at-boost-logs.md) §4): a coast gain or vibration rectification would fit.
 
 ## 5. Published gaps between an accelerometer and a reference
 
