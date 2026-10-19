@@ -1705,13 +1705,14 @@ mod tests {
 
     #[test]
     fn sentences_end_at_stops_not_abbreviations() {
-        let text = "Use a margin, e.g. two calibers. A. C. Carruthers measured 1.5 m. \
-                    It works (mostly). Done! Is it? yes it is.";
+        let text = "Use a margin, e.g. two calibers. Compare it vs. OpenRocket in Fig. 3. \
+                    A. C. Carruthers measured 1.5 m. It works (mostly). Done! Is it? yes it is.";
         let found = sentences(text);
         assert_eq!(
             found,
             [
                 "Use a margin, e.g. two calibers.",
+                "Compare it vs. OpenRocket in Fig. 3.",
                 "A. C. Carruthers measured 1.5 m.",
                 "It works (mostly).",
                 "Done!",
