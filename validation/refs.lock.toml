@@ -463,7 +463,7 @@ mode = "fetched"
 # stated on it: cite it, never redistribute it.
 [[file]]
 name = "carruthers-filippone-2005-streamer-drag"
-title = "J. Carruthers and A. Filippone, Aerodynamic Drag of Streamers and Flags, J. Aircraft 42(4), 2005 (author post-print)"
+title = "A. C. Carruthers and A. Filippone, Aerodynamic Drag of Streamers and Flags, J. Aircraft 42(4), 2005 (author post-print)"
 url = "https://pure.manchester.ac.uk/ws/files/29884977/POST-PEER-REVIEW-NON-PUBLISHERS.PDF"
 sha256 = "a4194f88d2fb9ab5ceaac3e4c00fbf2f0e1b00167b7f87e13ca271eaf78fdb1a"
 dest = "refs/papers/carruthers-filippone-2005-streamer-drag.pdf"
