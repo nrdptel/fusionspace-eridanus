@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 50,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 51,000 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -131,16 +131,21 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 
-- [ ] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55).
+- [ ] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55). Each
+  rewriting increment's PR shows every changed page before and after, and its cold reader checks
+  each page against each voice rule, every finding fixed or filed (ADR-284 §7).
   - [ ] **M0.14a The guide and the check.** *Done when:* `writing.md`'s voice section, each rule
-    with a before-and-after pair from a real page, is in the design system's rules (a merged PR);
-    `cargo xtask voice` writes a per-page report and fails only on its stock-phrase list (a test
-    and a mutation probe each); the PR, issue and commit templates cite the section.
-  - [ ] **M0.14b The front doors.** *Done when:* the README, the docs landing page, each guide's
-    opening, fusionspace.co, the design repo's README and the repos' About text pass `xtask voice`
-    and an acceptance pass (ADR-282).
+    with a before-and-after pair from a real page and limits per 100 words for each counted
+    pattern, is in the design system's rules (a merged PR); `cargo xtask voice` reads any path,
+    commits its per-page report, and fails only on its stock-phrase list of at least 30 entries
+    (a test failing without each, none hitting `docs/physics/`); `.github` gains a PR template and
+    issue templates citing the section.
+  - [ ] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the guides'
+    landing pages, fusionspace.co, the design repo's README, the profile README and ADR-284 §5's
+    About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
   - [ ] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
-    passes `xtask voice` in CI, the report's total below M0.14a's, and an acceptance pass.
+    passes `xtask voice` in CI, within its limits and `writing.md`'s sentence targets, with an
+    acceptance pass.
   - [ ] **M0.14d The program's words.** *Done when:* `hpr`'s help, warnings and errors, the Python
     docs and each crate's top-level docs pass `xtask voice` and an acceptance pass; a snapshot
     pins each `--help`.

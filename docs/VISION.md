@@ -138,7 +138,7 @@ checkable items.
   line and Python, not only from Rust, and reads GPX tracks, before release 0.2.
 - **2026-10-18, the maintainer's own voice** ([ADR-284, the maintainer's own voice](decisions/0284-the-maintainers-own-voice.md)).
   Neer decided that everything people read, from the README and the docs to fusionspace.co and the
-  GitHub pages, should sound like him, written plainly, and asked for it to get full attention.
+  GitHub pages, should sound like him, written plainly, and asked for it to be done carefully.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
