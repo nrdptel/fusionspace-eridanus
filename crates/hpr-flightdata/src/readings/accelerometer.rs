@@ -26,7 +26,10 @@
 //! earliest time, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], found as
 //! the burns are (below), unless a span the other way comes before it, as a short burn before a
 //! heavy drag or a knock's rebound does; where none holds that long, the way every span shares, a
-//! short burn's. A pad or a coast near 0, or spans both ways or none, say nothing. The way is
+//! short burn's. As the thrust is what lifts the rocket, the span that says must rise by
+//! liftoff's latest time, or, where liftoff is withheld as a log that starts in the climb has
+//! it, within [`BURN_LEAST_S`] of the log's start; one that rises later is a drag after a weak
+//! thrust, or a second burn. A pad or a coast near 0, or spans both ways or none, say nothing. The way is
 //! settled when the pad or the thrust says and no witness disagrees: a coast's second can hold a
 //! weak thrust still burning or a canopy opened early, either of which reads the other way, so a
 //! coast alone settles nothing, though it can disagree; otherwise, or where the trace so
@@ -313,11 +316,17 @@ pub(super) fn read(
     // be the pad's or the thrust's.
     let either_way = |moved: f64| moved.abs() > 0.5 * LIFTOFF_ACCELERATION_M_S2;
     let moved = first_move(&raw, &clean, either_way);
-    let flown = match (&heights.liftoff, &heights.apogee) {
-        (Reading::Read(liftoff), Reading::Read(apogee)) => {
+    // Where liftoff is withheld, as a log that starts in the climb has it, the log's start
+    // stands for liftoff's latest time.
+    let flown = match &heights.apogee {
+        Reading::Read(apogee) => {
             let start_s = apogee.time_s - apogee.time_bound_s - COAST_SPAN_S;
+            let lifted_s = heights
+                .liftoff
+                .value()
+                .map_or(time[0], |liftoff| liftoff.time_s + liftoff.bound_s);
             !apogee.is_floor
-                && start_s >= liftoff.time_s + liftoff.bound_s
+                && start_s >= lifted_s
                 && moved.is_some_and(|moved| time[moved] <= start_s)
         }
         _ => false,
@@ -325,7 +334,21 @@ pub(super) fn read(
     let (way, said_by) = match direction(
         pad_level(&time, &raw, &clean, &heights.liftoff, either_way),
         coast_level(&time, &raw, &boost, &heights.apogee).filter(|_| flown),
-        &thrust_witness(&time, &clean, from, end, half_mean, interval),
+        &thrust_witness(
+            &time,
+            &clean,
+            from,
+            end,
+            half_mean,
+            interval,
+            heights.liftoff.value().map_or(
+                (
+                    time[0] + BURN_LEAST_S,
+                    "the log's start by 0.5 s, liftoff withheld",
+                ),
+                |liftoff| (liftoff.time_s + liftoff.bound_s, "liftoff's latest time"),
+            ),
+        ),
     ) {
         Ok(settled) => settled,
         Err(detail) => {
@@ -834,8 +857,13 @@ fn coast_level(
 /// thrust does and a knock on the pad doesn't, says its way, unless a span the other way comes
 /// before it, as a short burn before a heavy drag or a knock's rebound does: then it says
 /// nothing. Where no span holds that long, the way every span shares says, a short burn's; spans
-/// both ways, or none, say nothing. Read as written, a thrust under 3 g on a part that takes
-/// gravity out reads under 2 g, and says nothing: the pad or the coast must say.
+/// both ways, or none, say nothing. The thrust is what lifts the rocket, so the span that says
+/// must rise by `lifted`'s time: liftoff's latest time by the heights, or, where liftoff is
+/// withheld as a log that starts in the climb has it, [`BURN_LEAST_S`] after the log's start,
+/// where its thrust is; `lifted`'s words name which. A span that rises later is a drag after a
+/// thrust too weak to pass 2 g as written, or a second burn, and says nothing. Read as written, a
+/// thrust under 3 g on a part that takes gravity out reads under 2 g, and says nothing: the pad
+/// must say.
 fn thrust_witness(
     time: &[f64],
     clean: &[f64],
@@ -843,6 +871,7 @@ fn thrust_witness(
     end: usize,
     half: usize,
     interval: f64,
+    lifted: (f64, &str),
 ) -> ThrustWitness {
     let walk = |way: Way| {
         let values: Vec<f64> = clean.iter().map(|v| way.sign() * v).collect();
@@ -871,6 +900,22 @@ fn thrust_witness(
         way: None,
         words: format!("its thrust says neither: {words}"),
     };
+    // The span that would say rises by liftoff's latest time, as the thrust that lifts the
+    // rocket does, or says nothing.
+    let (lifted_s, lifted_by) = lifted;
+    let lifts = |way: Way, rise: usize, words: String| {
+        if time[rise] <= lifted_s {
+            says(way, words)
+        } else {
+            neither(format!(
+                "its span that would say {}, from {:.2} s, rises after {lifted_by}, \
+                 {lifted_s:.2} s, as a drag after a thrust too weak to read past {past} or a \
+                 second burn does, not the thrust that lifts the rocket",
+                way.words(),
+                time[rise]
+            ))
+        }
+    };
     if let Some((way, rise)) = first_held {
         let other = match way {
             Way::Up => &down,
@@ -886,8 +931,9 @@ fn thrust_witness(
                 way.other().words(),
                 time[before.rise]
             )),
-            None => says(
+            None => lifts(
                 way,
+                rise,
                 format!(
                     "the first span past {past} to hold there for {BURN_LEAST_S} s, from {:.2} s",
                     time[rise]
@@ -905,9 +951,14 @@ fn thrust_witness(
              (the log's start where liftoff is withheld) to apogee"
         )),
         (spans, 0) | (0, spans) => {
-            let way = if down.is_empty() { Way::Up } else { Way::Down };
-            says(
+            let (way, first) = if down.is_empty() {
+                (Way::Up, &up[0])
+            } else {
+                (Way::Down, &down[0])
+            };
+            lifts(
                 way,
+                first.rise,
                 format!(
                     "no span past {past} holds there for {BURN_LEAST_S} s, and its {} {}, as a \
                      short burn's does",
@@ -2112,9 +2163,9 @@ mod tests {
     /// A thrust of 2.5 g, a thrust-to-weight of about 2.5, on AltOS, which takes gravity out:
     /// as written it reads 1.5 g, under 2 g, so the thrust says nothing, and the pad's 0 says
     /// nothing either; the coast's −1 g, less the drag, says nose up, but a coast alone settles
-    /// nothing: withheld. Where the drag after burnout is heavy, −1.5 g, the coast reads past
-    /// −2 g for over [`BURN_LEAST_S`] as written, so the thrust says nose down, against the
-    /// coast: withheld. Never turned over.
+    /// nothing: withheld. Where the drag after burnout is heavy, −1.5 g, it reads past −2 g for
+    /// over [`BURN_LEAST_S`] as written, but rises after liftoff's latest time, so it isn't the
+    /// thrust and says nothing: withheld again. Never turned over.
     #[test]
     fn a_weak_thrust_without_gravity_is_withheld_not_turned() {
         let weak = |drag_g: f64| {
@@ -2152,7 +2203,52 @@ mod tests {
         };
         assert_eq!(*reason, Reason::DirectionUnstated);
         assert!(detail.contains("which says nose up"), "{detail}");
-        assert!(detail.contains("its thrust says nose down"), "{detail}");
+        assert!(
+            detail.contains("rises after liftoff's latest time"),
+            "{detail}"
+        );
+        assert!(detail.contains("the coast alone says"), "{detail}");
+    }
+
+    /// A thrust of 2.5 g on AltOS, which takes gravity out, reads 1.5 g as written, under 2 g;
+    /// the drag after it, 1.5 g easing to apogee, reads past −2 g as written for over
+    /// [`BURN_LEAST_S`]. With the log cut short of apogee no coast is read, and the pad's 0 says
+    /// nothing, so were the drag taken for the thrust the trace would be turned over and the
+    /// drag read as a 3.5 g top: its span rises after liftoff's latest time, so it says
+    /// nothing, and the top is withheld at every cut, never turned over.
+    #[test]
+    fn a_drag_after_a_weak_thrust_isnt_the_thrust() {
+        let weak = |t: f64| {
+            if t < 3.0 {
+                G
+            } else if t < 4.5 {
+                2.5 * G
+            } else if t < 8.0 {
+                -1.5 * G * (8.0 - t) / 3.5
+            } else {
+                G
+            }
+        };
+        for end_s in [5.6, 6.5, 7.0, 7.5] {
+            let mut log = log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+                weak(t) - G + jitter(k, 0.3)
+            });
+            let cut = |time_s: &[f64]| time_s.partition_point(|t| *t <= end_s + 1e-9);
+            let channel = &mut log.channels[0];
+            let kept = cut(&channel.time_s);
+            channel.time_s.truncate(kept);
+            channel.values.truncate(kept);
+            let kept = cut(&log.time_s);
+            log.time_s.truncate(kept);
+            log.altitude_m.truncate(kept);
+            let readings = read_all(&log);
+            assert_eq!(
+                readings.max_acceleration.reason(),
+                Some(Reason::DirectionUnstated),
+                "to {end_s} s: {:?}",
+                readings.max_acceleration
+            );
+        }
     }
 
     /// A coast alone settles nothing, as its second can hold what reads the other way: on a
@@ -2215,8 +2311,9 @@ mod tests {
     /// An accelerometer whose clock runs late against the heights', its thrust starting at 7.6 s
     /// where the heights put apogee at 8 s: the second before apogee's earliest time is still its
     /// pad, at 1 g, and comes before the trace first moves, so it isn't read as a coast, which
-    /// would say nose down. The thrust, cut off at apogee, says nose up, a short burn's; the top
-    /// is the thrust's, a floor, as it doesn't end before apogee.
+    /// would say nose down. Its thrust rises after liftoff's latest time by the heights, so it
+    /// isn't the thrust that lifted the rocket on their clock and says nothing either: withheld,
+    /// never turned over.
     #[test]
     fn a_coast_before_the_trace_moves_says_nothing() {
         let readings = read_all(&log(
@@ -2225,17 +2322,14 @@ mod tests {
             0.01,
             |k, t| if t < 7.6 { G } else { 6.0 * G } + jitter(k, 0.3),
         ));
-        let accelerometer = readings.accelerometer.as_ref();
+        let Reading::Withheld(Withheld { reason, detail }) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(*reason, Reason::DirectionUnstated);
+        assert!(detail.contains("no coast to apogee is read"), "{detail}");
         assert!(
-            accelerometer.is_some_and(|a| !a.turned_over),
-            "{accelerometer:?}, {:?}",
-            readings.max_acceleration
-        );
-        let top = readings.max_acceleration.value().unwrap();
-        assert!(top.is_floor, "{top:?}");
-        assert!(
-            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
-            "{top:?}"
+            detail.contains("rises after liftoff's latest time"),
+            "{detail}"
         );
     }
 
@@ -2257,6 +2351,7 @@ mod tests {
                 time.len() - 1,
                 half_window(BURNOUT_MEAN_S, dt),
                 dt,
+                (1.2, "liftoff's latest time"),
             )
         };
         // A pulse of `g` g from `at` s for `long` s.
@@ -2322,6 +2417,38 @@ mod tests {
         }
         // The knock searched: its rebound comes before the thrust, which then says nothing.
         assert_eq!(witness(0.0, &knocked).way, None);
+        // A thrust under 2 g as written, then a drag that holds past 2 g the other way: the
+        // drag's span rises after liftoff's latest time, 1.2 s here, so it says nothing.
+        let weak_then_drag = move |t: f64| pulse(t, 1.0, 1.5, 1.5) - pulse(t, 2.5, 1.5, 2.5);
+        let said = witness(0.0, &weak_then_drag);
+        assert_eq!(said.way, None, "{said:?}");
+        assert!(
+            said.words
+                .contains("from 2.50 s, rises after liftoff's latest time, 1.20 s"),
+            "{said:?}"
+        );
+        // With liftoff withheld, as a log that starts in the climb has it, the thrust's span
+        // rises within 0.5 s of the log's start or says nothing.
+        let started = |at_s: f64| {
+            let clean: Vec<f64> = time.iter().map(|t| thrust(*t + 1.0 - at_s)).collect();
+            thrust_witness(
+                &time,
+                &clean,
+                0,
+                time.len() - 1,
+                half_window(BURNOUT_MEAN_S, dt),
+                dt,
+                (BURN_LEAST_S, "the log's start by 0.5 s, liftoff withheld"),
+            )
+        };
+        assert_eq!(started(0.2).way, Some(Way::Up), "{:?}", started(0.2));
+        let late = started(1.0);
+        assert_eq!(late.way, None, "{late:?}");
+        assert!(
+            late.words
+                .contains("rises after the log's start by 0.5 s, liftoff withheld"),
+            "{late:?}"
+        );
     }
 
     /// The pad and the coast say by their levels as written, each within 0.25 g: the pad 1 g

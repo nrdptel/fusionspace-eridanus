@@ -314,8 +314,8 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
   nose up and −1 g nose down; one that takes it out reads 0 either way. So about 1 g says nose up,
   about −1 g nose down, and about 0 says nothing;
 - **the coast,** the last 1 s before apogee's earliest time, read only where a coast was flown:
-  after liftoff's latest time, after the trace first moves from its pad, and before an apogee the
-  log doesn't end at. Coasting, a part reads the drag's pull back, $-D/m$, or $-D/m - 1\,g$ where
+  after liftoff's latest time (the log's start, where liftoff is withheld), after the trace first
+  moves from its pad, and before an apogee the log doesn't end at. Coasting, a part reads the drag's pull back, $-D/m$, or $-D/m - 1\,g$ where
   gravity is taken out, so never above 0 nose up while it coasts, its thrust ended and no canopy
   open, and the mirror nose down. So 0.75 g or more below
   0 says nose up and 0.75 g or more above it nose down, as a drag only pushes the reading further.
@@ -324,7 +324,11 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
   earliest time. The first span, in either sign, that holds past 2 g for 0.5 s says its sign,
   unless a span of the other sign comes before it, as a short burn's does before a heavy drag's or
   a knock's rebound before the thrust: then it says nothing. Where no span holds that long, the
-  sign every span shares says, a short burn's; spans both ways, or none, say nothing.
+  sign every span shares says, a short burn's; spans both ways, or none, say nothing. As the
+  thrust is what lifts the rocket, the span that says must rise by liftoff's latest time, or,
+  where liftoff is withheld because the log starts in the climb, within 0.5 s of the log's
+  start. One that rises later is a drag after a thrust too weak to read past 2 g, or a second
+  burn, and says nothing.
 
 The way is settled when the pad or the thrust says and no witness disagrees. The coast alone
 settles nothing: its second can hold a weak thrust still burning or a canopy opened early,
@@ -966,7 +970,7 @@ withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
 554, the top speed from 354, landing from 472, the flight time from 406, burnout from 434, the top
-acceleration from 179, the drogue's descent from 267 and the main's from 459. Each of the 27
+acceleration from 178, the drogue's descent from 267 and the main's from 459. Each of the 27
 reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and

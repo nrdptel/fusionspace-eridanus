@@ -653,7 +653,7 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | eggtimer-csv | 44 | 2 given, 2 `disturbed_top`, 40 `no_accelerometer` | 26 given, 12 `disturbed_top`, 2 `sampled_too_slowly`, 1 `short_pad`, 3 `transonic` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` | 0 given, 12 `disturbed_top`, 29 `ends_before_landing`, 3 `sampled_too_slowly` |
 | eggtimer-rtf | 1 | 0 given, 1 `no_accelerometer` | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | eggtimer-txt | 2 | 0 given, 2 `no_accelerometer` | 1 given, 1 `disturbed_top` | 0 given, 1 `disturbed_top`, 1 `sampled_too_slowly` | 0 given, 1 `disturbed_top`, 1 `sampled_too_slowly` |
-| entacore-aim-csv | 16 | 14 given, 1 `clock_out_of_order`, 1 `direction_unstated` | 9 given, 7 `sampled_too_slowly` | 8 given, 8 `ends_before_landing` | 8 given, 8 `ends_before_landing` |
+| entacore-aim-csv | 16 | 13 given, 1 `clock_out_of_order`, 2 `direction_unstated` | 9 given, 7 `sampled_too_slowly` | 8 given, 8 `ends_before_landing` | 8 given, 8 `ends_before_landing` |
 | entacore-dump | 10 | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` | 0 given, 1 `disturbed_top`, 8 `no_climb`, 1 `slower_than_free_coast` |
 | entacore-xtra | 2 | 0 given, 2 `disturbed_top` | 0 given, 2 `disturbed_top` | 0 given, 2 `disturbed_top` | 0 given, 2 `disturbed_top` |
 | featherweight-summary-csv | 25 | 0 given, 25 `no_accelerometer` | 0 given, 25 `no_height_track` | 0 given, 25 `no_height_track` | 0 given, 25 `no_height_track` |
@@ -715,7 +715,7 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `disturbed_top` | 76 | `073f4a6678b4bb0b` | none |
 | `axis_unstated` | 136 | `02edef1d0ad13443` | none |
 | `gravity_unstated` | 10 | `3126596d71a32b10` | none |
-| `direction_unstated` | 5 | `4ed6012a31b4a214` | none |
+| `direction_unstated` | 6 | `4ed6012a31b4a214` | none |
 | `one_canopy` | 185 | `0040ac8c3e5af57b` | none |
 | `short_leg` | 11 | `17f790bd96cb9241` | none |
 

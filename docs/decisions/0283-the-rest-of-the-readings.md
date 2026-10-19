@@ -1,7 +1,7 @@
 # ADR-283: The rest of the readings: an axial accelerometer settled by three witnesses, burnout where the thrust's fall ends, and the main found back from landing at the ground's density (2026-10-18)
 
 - **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set); amended 2026-10-19 for M7.2c
-- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee) and which way up it reads by three more (the pad, the coast and the thrust, each as written), and is a floor where the part clipped, at its stated range or held flat, or where the accelerometer shows no end to the thrust. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor: the top speed's time less its bound. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within its bound, and no main was named on a flight under one canopy, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 179, burnout on 434, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
+- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee) and which way up it reads by three more (the pad, the coast and the thrust, each as written), and is a floor where the part clipped, at its stated range or held flat, or where the accelerometer shows no end to the thrust. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor: the top speed's time less its bound. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within its bound, and no main was named on a flight under one canopy, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 178, burnout on 434, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
 
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
@@ -149,7 +149,12 @@ that only held flat, and that no tuning flight tested clipping at a range. The r
    and nearer 0 nothing. The thrust: the first span of
    the cleaned trace, in either sign, that holds past 2 g for 0.5 s, searched from liftoff's
    earliest time as the burns are (§3), says its sign unless a span of the other sign comes
-   before it; where none holds that long, the sign every span shares, a short burn's. The way is
+   before it; where none holds that long, the sign every span shares, a short burn's. As the
+   thrust is what lifts the rocket, the span that says must rise by liftoff's latest time, or,
+   where liftoff is withheld as a log that starts in the climb has it, within 0.5 s of the log's
+   start; a later one is a drag after a thrust too weak to read past 2 g as written, or a second
+   burn, and says nothing (`a_drag_after_a_weak_thrust_isnt_the_thrust`, a log cut before
+   apogee, whose drag would otherwise read as a 3.5 g top over a 2.5 g thrust). The way is
    settled when the pad or the thrust says and no witness disagrees: the coast alone settles
    nothing, as its second can hold a weak thrust still burning or a canopy opened early, either
    of which reads the other way, so it can only disagree. Otherwise, or where the trace so
@@ -170,8 +175,10 @@ that only held flat, and that no tuning flight tested clipping at a range. The r
    AltOS takes gravity out, so their pads say nothing, and their short burns come before a heavy
    drag, so their thrusts say nothing, leaving their coasts alone; one Raven CSV record whose
    coast reads near +1 g, against a pad and a thrust that say nose up, is withheld; and one
-   Entacore AIM CSV record (`f5df1597457a39ea`) stays withheld, as nothing says. The top
-   acceleration is given on 179 records, not 184, and burnout on 434, not 435.
+   Entacore AIM CSV record (`f5df1597457a39ea`) stays withheld, as nothing says, and another,
+   whose accelerometer's thrust rises after liftoff's latest time by its heights, a clock running
+   late against theirs, is withheld. The top acceleration is given on 178 records, not 184, and
+   burnout on 434, not 435.
 2. **A thrust with no end (§3, §4).** A top whose last burn never falls through zero before the
    accelerometer's samples end or apogee is a floor, `measured`: the log, or the accelerometer
    alone, may stop while the motor still pushes. Burnout isn't read off it, and comes from the top
