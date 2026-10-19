@@ -12,8 +12,9 @@ reads a page once and knows what it says and how far to trust it.
 
 > **How far to trust it.** This page is rules, not results. The build holds some of them on every
 > change: `cargo xtask spelling` reads each page's words and names, and counts its exceptions on
-> every run; `cargo xtask guides` reads every number in a guide's text from a committed report;
-> `cargo xtask site` counts each page's sheets, fails one outside two to six, fails a
+> every run; `cargo xtask voice` fails a stock phrase and counts the voice section's patterns
+> against its limits; `cargo xtask guides` reads every number in a guide's text from a committed
+> report; `cargo xtask site` counts each page's sheets, fails one outside two to six, fails a
 > trust note or an alert off its shape, and fails a hyphen for a minus sign or a column of numbers
 > not right-aligned. Reviews hold the rest. Where this page and a check
 > disagree, the check is what the build enforces, and the gap is a bug to report.
@@ -21,7 +22,8 @@ reads a page once and knows what it says and how far to trust it.
 ## The rules
 
 1. **Bottom line first.** The first sentence of a page, a section or a paragraph says what it
-   concludes. The detail and the reasoning come after.
+   concludes. The detail and the reasoning come after. On a page where a person is talking, the
+   reasoning is in the maintainer's own words ([Voice](#voice)).
 2. **One idea a sentence.** Aim for about 20 words a sentence on average. A sentence over 25
    words is flagged for a second look; it is not forbidden.
 3. **Short paragraphs.** Five sentences at most.
@@ -85,6 +87,192 @@ build does and notes any long enough to risk a phone's column.
   `mass_kg`, `hpr sim`; a quoted reading keeps its unit in words, "a top speed of 355 m/s
   (1,165 ft/s)". Doc comments and terminal output keep plain Unicode, `F = ½ ρ v² C_D A`, which
   reads better there than LaTeX source. A dollar sign that isn't math is written `\$`.
+
+## Voice
+
+Write as one person explaining their own work to another flyer: plain words, short sentences,
+each thing said once. These pages are one maintainer's project, and they should read that way. A
+read-through on October 18, 2026 found them correct but generic. Bullets opened with a bold label,
+lists of three all looked alike and caveats were stacked on caveats. Pages opened with
+"FusionSpace HPR is a ..." where a person would say why they built it
+([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0284-the-maintainers-own-voice.md)).
+Each rule here comes from that read-through or from
+[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md).
+Each shows a passage from these pages as it stood on October 19, 2026, then the same passage in
+this voice.
+
+### Where "I" goes
+
+Use "I" where a person is talking: the README, the landing pages, the pages that say why
+something exists, the guides and the release notes. It's one person's project, so there's no
+company "we". The bottom line still comes first ([rule 1](#the-rules)), and the why follows it,
+in the maintainer's words. Reference pages stay impersonal: a model's equations, a file format, a
+command's options, the glossary. There the program is the subject, and "you" gives the steps, as
+it does in a tutorial or a how-to.
+
+*Before*, in [the README](https://github.com/nrdptel/fusionspace-eridanus/blob/main/README.md):
+"FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power rockets,
+written in Rust, that you use as a library, from the command line or from Python."
+
+*After*: "FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power
+rockets. I write it in Rust, and you can use it as a library, from the command line or from Python."
+
+### Plain words
+
+Use the plain word. Leave out the words that tell a reader something is "easy" or "quick": what's
+"quick" for you may not be for them. Never use a stock phrase; the check holds a list of them and
+fails the build on one ([the check](#the-check)).
+
+*Before*, in [Pick a motor](pick-a-motor.md): "Flying a few more motors is quick: change `--motor`
+and `--delay` and run again."
+
+*After*: "To fly more motors, change `--motor` and `--delay` and run it again."
+
+### Short sentences
+
+Aim for about 20 words a sentence ([rule 2](#the-rules)), and use contractions where you'd say
+them: "isn't", "doesn't", "it's". A sentence that carries five things is better as a few
+sentences, or as a list.
+
+*Before*, in the README: "Flight in six degrees of freedom (6-DOF: three of position, three of
+rotation), with variable mass: aerodynamics from subsonic to supersonic, the standard atmosphere or
+a measured one, winds that change with height, staging, clusters and air starts, and recovery with
+drift."
+
+*After*: "It flies a rocket in six degrees of freedom, three of position and three of rotation, with
+its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is the
+standard atmosphere or a measured one, with winds that change with height. It covers staging,
+clusters and air starts, and recovery with drift."
+
+### Say it once
+
+Say a thing once, where it belongs. Don't announce what a section covers, point back to what was
+said ("as mentioned"), or recap it at the end (`In summary`). The heading and the first sentence
+already say what a section is about.
+
+*Before*, in [the OpenRocket format page](format/ork.md): "This section compares HPR Sim's whole
+flights with OpenRocket 24.12's on the 54 configurations of OpenRocket's example designs that HPR
+Sim can fly, in 15 of the examples."
+
+*After*: "HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations. They're
+the configurations of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples."
+
+### Paragraphs and lists
+
+Write a thought as a paragraph. Use a list for what really is a list: steps, options, parts. Give
+a list as many items as there are, not three of the same shape because three sounds finished. A
+bold label opens an item only where a reader scans for it, as in a list of options or a model
+page's *In short* box, whose items still count toward the limit. A line that opens with a bold
+label reads like a form.
+
+*Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
+0.2 goes on here."
+
+*After*: "Version 0.1.0 came out on October 8, 2026, and I'm working on 0.2 here."
+
+### Labels
+
+Say what a thing is before its label, and use a label (a milestone or a decision number) only
+where the reader needs to follow it. A sentence that opens with one sends the reader to look it
+up before they know why.
+
+*Before*, in [Accuracy](accuracy.md): "Neither set is held out: both were seen during development,
+so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted
+before their logs are read."
+
+*After*: "Neither set is held out. Both were seen during development, so neither is a blind test.
+That waits for flights predicted before their logs are read, which is planned work ([held-out
+flights](decisions-and-roadmap.md#m2-7))."
+
+### Honest, once
+
+Honesty stays exactly as strict ([rule 8](#the-rules)): what was checked, against what, and where
+it stops. Say it once and plainly, like someone who checked. Put a hedge on the claim it
+qualifies, not on every clause around it.
+
+*Before*, in [the simulator's tour](simulator-tour.md): "Here the drag may read high, so the apogee
+may read low: for a field's ceiling, the side that flatters ([Trusting a
+simulation](trusting-a-simulation.md#which-miss-flatters))."
+
+*After*: "Here the drag may read high. If it does, the apogee reads low, the side that flatters a
+field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters))."
+
+### The limits
+
+`cargo xtask voice` counts these on each page, per 100 words, and its report marks a page over a
+limit. A page over one is where to look first; it doesn't fail the build.
+
+| Counted | What it counts | Limit per 100 words |
+|---|---|---:|
+| Bold-label items | a list item that opens with bold text | 0.5 |
+| Labels | a milestone, decision or lesson number, linked or not | 0.5 |
+| Sentences over 25 words | in paragraphs and list items | 0.5 |
+| Hedges | may, might, could, possibly, perhaps, probably, likely, seems, appears and the like | 1.0 |
+| Stacked hedges | a sentence holding two or more hedges | 0.1 |
+| Minimizers | simply, just, easy, easily, quick, quickly | 0.1 |
+| Signposts | "in this section", "as mentioned", "let's", "in short," and the like | 0.1 |
+| First person on a reference page | "I", "me" or "my" on a model, format, command or glossary page | 0 |
+
+The sentence limit is the target this guide already set: fewer than 10% of sentences over 25
+words, at about 20 words a sentence. A bold-label limit of 0.5 still allows a list of ten options
+on a 2,000-word page, but not a bold label on every item of every list. Labels get one every 200
+words.
+
+Hedges get 1.0, because a single hedge is often the honest word. That's about the top of the
+range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a somewhat
+different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words. The limits were set against these pages as
+they stood on October 19, 2026, when most of them were over the sentence and bold-label limits;
+the report gives the current counts.
+
+Who's talking has no limit, and the report prints it per page: "I", "we", "you" and contractions
+per 100 words. For scale, the survey found 1.0 to 3.5 contractions per 100 words on most personal
+pages and 0 to 0.25 on reference pages. One author wrote about 3 "I" per 100 words on a blog and
+none on the project's reference pages.
+
+### The check
+
+`cargo xtask voice` reads this repository's pages, writes
+[the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md)
+and fails on a stock phrase. A test fails when the report and the pages disagree, so run it after
+editing a page; the site's build runs the check too. Give it paths, such as
+`cargo xtask voice ../fusionspace-site/site`, and it reads those instead (Markdown, HTML or text)
+and prints the report. That's how fusionspace.co's pages and the design system's get checked.
+
+Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups,
+each named by a published style guide or study, or by the design system's own writing rules:
+
+- puffery: `seamless`, `cutting-edge`
+- inflated words: `pivotal`, `testament`
+- words that spread with generated text: `delve`, `showcase`
+- buzz verbs: `leverages`, `utilize`
+- note-that phrases: `please note`
+- vague sources: `research has shown`
+- wordy phrases: `in order to`, `a number of`
+- recaps: `in conclusion`
+- chat residue: `I hope this helps`
+
+Words with a technical sense here stay off it: robust, deploy, streamline, boost and powerful (a
+more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
+[`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
+each entry with its sources and a test that fails without it.
+
+It reads the README, the changelog, the contributing guide, the pull request and issue templates
+and `docs/`. It leaves out the decision records, the records pages, the roadmap they're written
+from and the done-work archive, which are history; the research notes, which keep their wording
+until they're next edited; and the site's table of contents, which is links. It counts
+what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
+against these rules too.
+
+### Measured, not gated
+
+Readability is measured, not used to fail a build: the counts show where to look, and a person
+decides what to change. The site also holds a model page's
+*In short* box to its shape: four bulleted items, each opening with its label in bold (what it
+models, its sources, how well it is validated, what it leaves out). A cap of about 150 words on
+the box was planned and isn't built yet.
+
+The targets for user pages are at most 20 words a sentence on average and fewer than 10% of
+sentences over 25 words. The report prints both for every page.
 
 ## The FusionSpace rules
 
@@ -578,21 +766,6 @@ for early so that text doesn't move when they arrive, two more than the product 
 (with its two, CLS reached 0.17 on two pages); the theme switch placed before
 the page is first drawn; and the print page's cover.
 
-## Measured, not gated
-
-Readability will be measured, not used to fail a build. A planned `cargo xtask` report will
-print, for each page, the average sentence length, the share of sentences over 25 words, and how many
-internal labels it holds per 100 words. The report will show where to look; a person decides
-what to change.
-
-One hard check is planned, and may land in the bookkeeping clean-up
-([M0.5 milestone](decisions-and-roadmap.md#m0-5)). A model page's *In short* box, the bulleted
-summary that opens it (what it models, its sources, how well it is validated, what it leaves
-out), will hold at most about 150 words and five bullets.
-
-The targets for user pages, measured at Neer's next review: at most 20 words a sentence on
-average, and fewer than 10% of sentences over 25 words.
-
 ## Where this comes from
 
 The rules follow the UK Government Digital Service's
@@ -600,3 +773,7 @@ The rules follow the UK Government Digital Service's
 Datadog and GitLab run with the [Vale](https://vale.sh/) linter. The page kinds are Daniele
 Procida's [Diátaxis](https://diataxis.fr/) framework. The decision to adopt them is in the
 [2026-10-03 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
+The voice rules come from
+[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md):
+the style guides and studies that name stock phrases, and 28 pages from nine sources of technical
+writing that read as if one person wrote them.

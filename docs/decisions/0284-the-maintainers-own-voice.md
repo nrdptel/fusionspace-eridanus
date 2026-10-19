@@ -1,6 +1,6 @@
 # ADR-284: The maintainer's own voice on every page (2026-10-18)
 
-- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget)
+- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget); amended 2026-10-19 for M0.14a
 - **Summary:** The project's pages read as if they came off a template, not from a person. M0.14 rewrites what people read (the README, the docs site, fusionspace.co, the design system's writing rules and README, `hpr`'s own messages and the repositories' About text) in the maintainer's plain voice, with a voice section in the writing guide and a `cargo xtask voice` check. Decision records, the archive and tools due to be replaced stay as they are.
 
 [m0-14]: ../decisions-and-roadmap.md#m0-14
@@ -88,3 +88,40 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   guide a reviewer, and the cold read covers the rest.
 - New pages keep drifting back to the old habits unless the guide and the check are in place
   first, which is why M0.14a comes before the rewrites.
+
+**Amendment for M0.14a, the guide and the check (2026-10-19).** Building them settled what §3 and
+§4 left open:
+
+- *The rules.* [The writing guide](../writing.md#voice)'s voice section holds seven, each with a
+  before-and-after pair from the project's own pages: where "I" goes (§2), plain words, short
+  sentences, say it once, paragraphs and lists, labels, and honest once. It takes the place of
+  the guide's "Measured, not gated" section, which becomes its last part, because the guide
+  already holds six sheets, the most a page may.
+- *What it counts.* Labels are counted linked or not, wider than §4's "bare labels": the site
+  already fails a bare label on its pages, and a linked one still sends the reader to look it up.
+  Signposts have no "this page" form, since a page opens by saying what it covers (the house
+  style); "In short" counts only before a comma, not as the label of a model page's box; and
+  "this section" counts only at a sentence's start.
+  Minimizers leave out "just" before a word of place or time and "how quickly", which measure
+  something here. First person leaves out quoted words, and a capital I after a word that makes
+  it a numeral or a name ("Type I", "Saturn I") or before "is" or a motor word ("where I is the
+  inertia", "an I motor").
+- *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
+  1.0; stacked hedges, minimizers and signposts 0.1; first person on a reference page 0 (the
+  model and format pages, the command line and the glossary). The sentence limit restates the
+  guide's target. The rest were set against the pages as they stood on 2026-10-19 and against
+  the survey's exemplars, and the guide gives each one's reason.
+- *The list.* 41 entries in 9 groups, each citing the published lists that name it, or the
+  design system's writing rules (rechecked against them on 2026-10-19), with a test that fails without it and none on a model
+  page. Off it for a technical sense here: robust, deploy, streamline, boost and powerful (a more
+  powerful motor). The noun "leverage" (a lever arm), "utilization" and the authors Garner and
+  Foster are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
+  up" were dropped: no source names them.
+- *What it reads.* With no path: the README, the changelog, the contributing guide, the pull
+  request and issue templates and `docs/`, less the decision records, the records pages, the
+  roadmap they're written from, the done-work archive, the research notes and the site's table
+  of contents. Its report is `validation/reports/voice.md`; a test holds the report to the
+  pages, and `cargo xtask site` fails on a stock phrase.
+- *The design system.* Its writing rules take the same section
+  ([fusionspace-design#7](https://github.com/nrdptel/fusionspace-design/pull/7)). This
+  repository's pin of the design system stays where it was: moving it reopens the design audit.
