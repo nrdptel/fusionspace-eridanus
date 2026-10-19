@@ -23,16 +23,21 @@ use hpr::hpr_flightdata::custom;
 use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::{FlightLog, Quantity};
-use hpr::hpr_flightdata::readings::{self, Method, Provenance, Reading, Readings, Reason, Source};
+use hpr::hpr_flightdata::readings::{
+    self, Clip, Descent, Gravity, GravityBy, Method, Provenance, Reading, Readings, Reason, Source,
+};
 
 use crate::console::Level;
 use crate::output::{
-    Analyze, AnalyzeMethod, AnalyzedChannel, AnalyzedLog, ApogeeReading, HighestSample,
-    LandingReading, LiftoffReading, LogReading, LoggerStated, MaxAccelerationReading,
-    MaxSpeedReading, ReadingMethod, ReadingProvenance, ReadingSource, WithheldReading,
-    WithheldReason,
+    AccelerometerGravity, Analyze, AnalyzeMethod, AnalyzedAccelerometer, AnalyzedChannel,
+    AnalyzedLog, ApogeeReading, BurnoutReading, DescentReading, FlightTimeReading,
+    GravitySettledBy, HighestSample, LandingReading, LiftoffReading, LogReading, LoggerStated,
+    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingMethod,
+    ReadingProvenance, ReadingSource, WithheldReading, WithheldReason,
 };
-use crate::units::{gravities, meters, meters_bound, seconds_bound, speed, speed_bound};
+use crate::units::{
+    acceleration_bound, gravities, meters, meters_bound, seconds_bound, speed, speed_bound,
+};
 use crate::{Failure, Out};
 
 /// The column mapping's schema, as the help lines name it.
@@ -289,6 +294,17 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             peak_bound_m: read.peak_bound_m,
             altitude_resolution_m: log.format.altitude_resolution_m(),
             pad_altitude_m: read.pad_altitude_m,
+            accelerometer: read
+                .accelerometer
+                .as_ref()
+                .map(|accelerometer| AnalyzedAccelerometer {
+                    column: accelerometer.column.clone(),
+                    gravity: gravity(accelerometer.gravity),
+                    gravity_by: gravity_by(accelerometer.gravity_by),
+                    turned_over: accelerometer.turned_over,
+                    sample_interval_s: accelerometer.sample_interval_s,
+                    step_m_s2: accelerometer.step_m_s2,
+                }),
         },
         liftoff: reading(&read.liftoff, |liftoff| LiftoffReading {
             time_s: liftoff.time_s,
@@ -325,14 +341,28 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         max_acceleration: reading(&read.max_acceleration, |acceleration| {
             MaxAccelerationReading {
                 acceleration_m_s2: acceleration.acceleration_m_s2,
+                bound_m_s2: acceleration.bound_m_s2,
                 time_s: acceleration.time_s,
+                range_m_s2: acceleration.range_m_s2,
+                is_floor: acceleration.is_floor,
+                clip: acceleration.clip.map(clip),
+                source: source(acceleration.source),
+                provenance: provenance(acceleration.provenance),
+                method: method(acceleration.method),
             }
+        }),
+        burnout: reading(&read.burnout, |burnout| BurnoutReading {
+            time_s: burnout.time_s,
+            bound_s: burnout.bound_s,
+            time_after_liftoff_s: burnout.time_after_liftoff_s,
+            is_floor: burnout.is_floor,
+            source: source(burnout.source),
+            provenance: provenance(burnout.provenance),
+            method: method(burnout.method),
         }),
         landing: reading(&read.landing, |landing| LandingReading {
             time_s: landing.time_s,
             bound_s: landing.bound_s,
-            flight_time_s: landing.flight_time_s,
-            flight_time_bound_s: landing.flight_time_bound_s,
             descent_time_s: landing.descent_time_s,
             mean_descent_rate_m_s: landing.mean_descent_rate_m_s,
             mean_descent_rate_bound_m_s: landing.mean_descent_rate_bound_m_s,
@@ -340,6 +370,51 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             provenance: provenance(landing.provenance),
             method: method(landing.method),
         }),
+        flight_time: reading(&read.flight_time, |flight| FlightTimeReading {
+            time_s: flight.time_s,
+            bound_s: flight.bound_s,
+            source: source(flight.source),
+            provenance: provenance(flight.provenance),
+            method: method(flight.method),
+        }),
+        drogue_descent: reading(&read.drogue_descent, descent),
+        main_descent: reading(&read.main_descent, descent),
+    }
+}
+
+fn gravity(gravity: Gravity) -> AccelerometerGravity {
+    match gravity {
+        Gravity::In => AccelerometerGravity::In,
+        Gravity::Out => AccelerometerGravity::Out,
+        _ => AccelerometerGravity::Other,
+    }
+}
+
+fn gravity_by(by: GravityBy) -> GravitySettledBy {
+    match by {
+        GravityBy::Family => GravitySettledBy::Family,
+        GravityBy::Pad => GravitySettledBy::Pad,
+        GravityBy::Coast => GravitySettledBy::Coast,
+        _ => GravitySettledBy::Other,
+    }
+}
+
+fn descent(descent: &Descent) -> DescentReading {
+    DescentReading {
+        rate_m_s: descent.rate_m_s,
+        bound_m_s: descent.bound_m_s,
+        from_s: descent.from_s,
+        to_s: descent.to_s,
+        from_height_m: descent.from_height_m,
+        to_height_m: descent.to_height_m,
+        opening: descent.opening.map(|opening| OpeningReading {
+            time_s: opening.time_s,
+            bound_s: opening.bound_s,
+            height_m: opening.height_m,
+        }),
+        source: source(descent.source),
+        provenance: provenance(descent.provenance),
+        method: method(descent.method),
     }
 }
 
@@ -367,10 +442,14 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::ReceiverLag => WithheldReason::ReceiverLag,
                 Reason::ReceiverDropout => WithheldReason::ReceiverDropout,
                 Reason::SlowerThanFreeCoast => WithheldReason::SlowerThanFreeCoast,
-                Reason::NotYetTaken => WithheldReason::NotYetTaken,
                 Reason::ShortPad => WithheldReason::ShortPad,
                 Reason::ClockOutOfOrder => WithheldReason::ClockOutOfOrder,
                 Reason::DisturbedTop => WithheldReason::DisturbedTop,
+                Reason::AxisUnstated => WithheldReason::AxisUnstated,
+                Reason::GravityUnstated => WithheldReason::GravityUnstated,
+                Reason::DirectionUnstated => WithheldReason::DirectionUnstated,
+                Reason::OneCanopy => WithheldReason::OneCanopy,
+                Reason::ShortLeg => WithheldReason::ShortLeg,
                 _ => WithheldReason::Other,
             },
             detail: withheld.detail.clone(),
@@ -384,6 +463,7 @@ fn source(source: Source) -> ReadingSource {
         Source::Pressure => ReadingSource::Pressure,
         Source::AltitudeChannel => ReadingSource::AltitudeChannel,
         Source::Gnss => ReadingSource::Gnss,
+        Source::Accelerometer => ReadingSource::Accelerometer,
         _ => ReadingSource::Other,
     }
 }
@@ -397,12 +477,25 @@ fn provenance(provenance: Provenance) -> ReadingProvenance {
     }
 }
 
+fn clip(clip: Clip) -> ReadingClip {
+    match clip {
+        Clip::Range => ReadingClip::Range,
+        Clip::Flat => ReadingClip::Flat,
+        _ => ReadingClip::Other,
+    }
+}
+
 fn method(method: Method) -> ReadingMethod {
     match method {
         Method::LastOnThePad => ReadingMethod::LastOnThePad,
         Method::HighestFiltered => ReadingMethod::HighestFiltered,
         Method::SteepestSlope => ReadingMethod::SteepestSlope,
         Method::BackOnThePad => ReadingMethod::BackOnThePad,
+        Method::HighestReading => ReadingMethod::HighestReading,
+        Method::LeastAfterThrust => ReadingMethod::LeastAfterThrust,
+        Method::SpeedPeak => ReadingMethod::SpeedPeak,
+        Method::LiftoffToLanding => ReadingMethod::LiftoffToLanding,
+        Method::LegChord => ReadingMethod::LegChord,
         _ => ReadingMethod::Other,
     }
 }
@@ -414,6 +507,7 @@ fn source_words(source: ReadingSource) -> &'static str {
         ReadingSource::Pressure => "the pressure, by the 1976 standard atmosphere",
         ReadingSource::AltitudeChannel => "the barometric altitude channel",
         ReadingSource::Gnss => "the GNSS altitude",
+        ReadingSource::Accelerometer => "the accelerometer",
         ReadingSource::Other => "another track",
     }
 }
@@ -505,9 +599,13 @@ fn text_lines(document: &Analyze) -> Vec<String> {
         withheld_of(&document.max_speed),
         withheld_of(&document.landing),
     ];
-    if let [Some(first), ..] = heights
-        && heights.iter().all(|reading| reading == &Some(first))
-    {
+    // The flight time and each canopy's descent come from the heights alone, so they go unsaid
+    // with them; burnout from the speed's peak too, unless the accelerometer gives another reason.
+    let collapsed = match heights {
+        [Some(first), ..] if heights.iter().all(|reading| reading == &Some(first)) => Some(first),
+        _ => None,
+    };
+    if let Some(first) = collapsed {
         lines.push(row("readings", withheld(first)));
     } else {
         lines.extend(reading_rows(document, &row));
@@ -515,16 +613,122 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     lines.push(row(
         "top acceleration",
         match &document.max_acceleration {
-            LogReading::Read(top) => format!(
-                "{:.1} m/s² ({}) at {:.2} s",
-                top.acceleration_m_s2,
-                gravities(top.acceleration_m_s2),
-                top.time_s
-            ),
+            LogReading::Read(top) => {
+                let mut value = format!(
+                    "{:.1} m/s² ({}), within {} m/s², at {:.2} s",
+                    top.acceleration_m_s2,
+                    gravities(top.acceleration_m_s2),
+                    acceleration_bound(top.bound_m_s2),
+                    top.time_s
+                );
+                // Why the top is a floor: each cause in its own words.
+                value.push_str(&match (top.clip, top.range_m_s2) {
+                    (Some(ReadingClip::Range), Some(range)) => format!(
+                        "; clipped at the part's range of {}, so the top may have been higher",
+                        gravities(range)
+                    ),
+                    (Some(ReadingClip::Flat), _) => "; held flat at its top, so it may have been \
+                                                     clipped, and the top may have been higher"
+                        .to_owned(),
+                    (Some(_), _) => "; clipped, so the top may have been higher".to_owned(),
+                    (None, _) if top.is_floor => "; the accelerometer holds the thrust only \
+                                                  in part, with no start or no end to it, so \
+                                                  the top may have been higher"
+                        .to_owned(),
+                    (None, _) => String::new(),
+                });
+                value
+            }
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
+    match (&document.burnout, collapsed) {
+        (LogReading::Withheld(burnout), Some(first)) if burnout.reason == first.reason => {}
+        (burnout, _) => lines.push(row(
+            "burnout",
+            match burnout {
+                LogReading::Read(burnout) => {
+                    if burnout.is_floor {
+                        // A floor: no sooner than the time less its bound, rounded down so the
+                        // printed time is as early as the bound allows; later by any amount.
+                        let earliest = ((burnout.time_s - burnout.bound_s) * 100.0).floor() / 100.0;
+                        let after = burnout
+                            .time_after_liftoff_s
+                            .map(|after| format!(" ({after:.2} s after liftoff)"))
+                            .unwrap_or_default();
+                        format!(
+                            "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \
+                             less its bound, {} s; derived from the heights, and may have come \
+                             later by any amount",
+                            burnout.time_s,
+                            seconds_bound(burnout.bound_s)
+                        )
+                    } else {
+                        let after = burnout
+                            .time_after_liftoff_s
+                            .map(|after| format!(", {after:.2} s after liftoff"))
+                            .unwrap_or_default();
+                        format!(
+                            "{:.2} s, within {} s{after}: from the accelerometer",
+                            burnout.time_s,
+                            seconds_bound(burnout.bound_s)
+                        )
+                    }
+                }
+                LogReading::Withheld(reading) => withheld_after(
+                    reading,
+                    &[
+                        (
+                            "the top acceleration",
+                            withheld_of(&document.max_acceleration),
+                        ),
+                        ("the top speed", withheld_of(&document.max_speed)),
+                    ],
+                ),
+            },
+        )),
+    }
     lines
+}
+
+/// A withheld reading's words, with what a row above already says left to it: a detail the
+/// same as one above's is that reading's, and one that ends or starts with it points up.
+fn withheld_after(reading: &WithheldReading, above: &[(&str, Option<&WithheldReading>)]) -> String {
+    let mut detail = reading.detail.clone();
+    for (name, earlier) in above {
+        let Some(earlier) = earlier else { continue };
+        if detail == earlier.detail {
+            return format!("withheld, as {name} is");
+        }
+        if let Some(head) = detail.strip_suffix(&format!("withheld: {}", earlier.detail)) {
+            detail = format!("{head}withheld above");
+        }
+        if let Some(tail) = detail.strip_prefix(&format!("{}; and ", earlier.detail)) {
+            detail = format!("as for {name}; and {tail}");
+        }
+    }
+    format!("withheld: {detail}")
+}
+
+/// A canopy's descent: its rate and the leg it was read over, from apogee or the main's opening
+/// (found back from landing, so with its own bound) to the main's opening or landing.
+fn descent_row(leg: &DescentReading, to: &str) -> String {
+    let from = match &leg.opening {
+        Some(opening) => format!(
+            "the main's opening at {:.2} s, within {} s,",
+            opening.time_s,
+            seconds_bound(opening.bound_s)
+        ),
+        None => format!("apogee at {:.2} s", leg.from_s),
+    };
+    format!(
+        "{}, within {}, from {from} to {to} at {:.2} s, {} to {} up",
+        speed(leg.rate_m_s),
+        speed_bound(leg.bound_m_s),
+        leg.to_s,
+        meters(leg.from_height_m),
+        meters(leg.to_height_m)
+    )
 }
 
 /// The rows of liftoff, apogee, the top speed and landing, each with the bound its error stays
@@ -605,14 +809,6 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
                     landing.time_s,
                     seconds_bound(landing.bound_s)
                 );
-                if let (Some(flight), Some(bound)) =
-                    (landing.flight_time_s, landing.flight_time_bound_s)
-                {
-                    value.push_str(&format!(
-                        "; {flight:.2} s after liftoff, within {} s",
-                        seconds_bound(bound)
-                    ));
-                }
                 value.push_str(&format!(
                     "; {:.2} s from apogee, at {} on average, within {}",
                     landing.descent_time_s,
@@ -622,6 +818,35 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
                 value
             }
             LogReading::Withheld(reading) => withheld(reading),
+        },
+    ));
+    let above = [
+        ("liftoff", withheld_of(&document.liftoff)),
+        ("landing", withheld_of(&document.landing)),
+    ];
+    lines.push(row(
+        "flight time",
+        match &document.flight_time {
+            LogReading::Read(flight) => format!(
+                "{:.2} s, within {} s",
+                flight.time_s,
+                seconds_bound(flight.bound_s)
+            ),
+            LogReading::Withheld(reading) => withheld_after(reading, &above),
+        },
+    ));
+    lines.push(row(
+        "drogue descent",
+        match &document.drogue_descent {
+            LogReading::Read(leg) => descent_row(leg, "the main's opening"),
+            LogReading::Withheld(reading) => withheld_after(reading, &above),
+        },
+    ));
+    lines.push(row(
+        "main descent",
+        match &document.main_descent {
+            LogReading::Read(leg) => descent_row(leg, "landing"),
+            LogReading::Withheld(reading) => withheld_after(reading, &above),
         },
     ));
     lines
@@ -652,8 +877,9 @@ mod tests {
     use super::*;
 
     /// A top acceleration reads in g too, standard gravity, in brackets after the m/s² (issue
-    /// #392). No log format read so far records one, so the reading is set by hand on a real
-    /// log's document, at a value where a rounded 9.81 m/s² would print another tenth.
+    /// #392), and its bound rounded up. The reading is set by hand on a log with no
+    /// accelerometer, at a value where a rounded 9.81 m/s² would print another tenth and a bound
+    /// rounded to the nearest a tenth less.
     #[test]
     fn a_top_acceleration_gives_g() {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
@@ -671,13 +897,19 @@ mod tests {
         let mut document = document(&args, &log, &readings::read(&log));
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {
             acceleration_m_s2: 1000.0,
+            bound_m_s2: 101.04,
             time_s: 0.75,
+            range_m_s2: None,
+            is_floor: false,
+            clip: None,
+            source: ReadingSource::Accelerometer,
+            provenance: ReadingProvenance::Measured,
+            method: ReadingMethod::HighestReading,
         });
         let lines = text_lines(&document);
         assert!(
-            lines
-                .iter()
-                .any(|line| line == "top acceleration  1000.0 m/s² (102.0 g) at 0.75 s"),
+            lines.iter().any(|line| line
+                == "top acceleration  1000.0 m/s² (102.0 g), within 101.1 m/s², at 0.75 s"),
             "{lines:#?}"
         );
     }
@@ -719,6 +951,30 @@ mod tests {
         for from in Method::ALL.iter().copied() {
             let mapped = method(from);
             assert_ne!(mapped, ReadingMethod::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in Gravity::ALL.iter().copied() {
+            let mapped = gravity(from);
+            assert_ne!(mapped, AccelerometerGravity::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in GravityBy::ALL.iter().copied() {
+            let mapped = gravity_by(from);
+            assert_ne!(mapped, GravitySettledBy::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in Clip::ALL.iter().copied() {
+            let mapped = clip(from);
+            assert_ne!(mapped, ReadingClip::Other, "{from:?}");
             assert_eq!(
                 serde_json::to_value(mapped).unwrap(),
                 serde_json::to_value(from).unwrap()

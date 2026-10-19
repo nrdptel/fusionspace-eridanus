@@ -159,19 +159,36 @@ impl Profile {
                 density_g_per_root_hz: (0.005, 0.005),
                 step_g: 0.049,
                 range_g: 180.0,
+                lower_range_g: None,
                 scale: 0.10,
             }),
             // A low-g IMU axis: 160–400 µg/√Hz ([D3], [D9]), ±32 g as Blue Raven's parts ([F3]
             // p. 24) on 16 bits, scale ±3% ([D9]); past 32 g it clips, as the high-range part
-            // that takes over isn't modeled.
+            // that takes over isn't modeled. Such a part offers ±8 g too, as the BMX160 ([D8]
+            // p. 8) and the MPU-6000 ([D9] p. 13) do, on the same 16 bits.
             Self::Imu500 => Some(Accelerometer {
                 density_g_per_root_hz: (0.000_16, 0.000_4),
                 step_g: 64.0 / 65_536.0,
                 range_g: 32.0,
+                lower_range_g: Some(LOWER_RANGE_G),
                 scale: 0.03,
             }),
             _ => None,
         }
+    }
+
+    /// The range its accelerometer clips at, m/s²; `None` with no accelerometer.
+    pub fn accelerometer_range_m_s2(self) -> Option<f64> {
+        self.accelerometer().map(|accel| accel.range_g * G)
+    }
+
+    /// The lower range its accelerometer can be set to, m/s², which
+    /// [`accelerometer_log_set_lower`] logs it at; `None` with no accelerometer or no such
+    /// setting.
+    pub fn accelerometer_lower_range_m_s2(self) -> Option<f64> {
+        self.accelerometer()
+            .and_then(|accel| accel.lower_range_g)
+            .map(|range_g| range_g * G)
     }
 
     /// Whether it has a GNSS receiver.
@@ -238,9 +255,19 @@ struct Accelerometer {
     step_g: f64,
     /// It clips at ±this, g.
     range_g: f64,
+    /// A lower full scale the part can be set to, g, on the same bits; `None` for a part with
+    /// none.
+    lower_range_g: Option<f64>,
     /// Its per-flight scale error is drawn from ±this.
     scale: f64,
 }
+
+/// The lower full scale a low-g IMU axis is set to in [`accelerometer_log_set_lower`], g: ±8 g,
+/// as the BMX160 and the MPU-6000 offer, which most of the IMU-like logger's tuning flights' tops
+/// pass and the rest don't, as the synthetic flights' report counts. The readings know it by its
+/// column,
+/// [`hpr_flightdata::readings::SYNTHETIC_LOWER_RANGE_COLUMN`], whose family states it.
+pub const LOWER_RANGE_G: f64 = 8.0;
 
 /// The MS5607's error after a zero at one pressure, ±1.0 mbar over 0–50 °C, read over the
 /// 400 mbar (700–1100 mbar) its datasheet states the figure on as a gain on the pressure's change
@@ -485,6 +512,143 @@ pub fn barometer_log(
     Ok(Some(log))
 }
 
+/// The accelerometer's channel at `times`, the part sampled at `rate_hz` while climbing, under
+/// the synthetic flights' column.
+fn accelerometer_channel(
+    draw: &LoggerDraw,
+    accel: &Accelerometer,
+    rate_hz: f64,
+    times: &[f64],
+    truth: &Truth,
+    (seed, index): (u64, u64),
+) -> Result<Channel, SyntheticError> {
+    accelerometer_channel_under(
+        hpr_flightdata::readings::SYNTHETIC_COLUMN,
+        draw,
+        accel,
+        rate_hz,
+        times,
+        truth,
+        (seed, index),
+    )
+}
+
+/// The accelerometer's channel under `column`, as [`accelerometer_channel`].
+fn accelerometer_channel_under(
+    column: &str,
+    draw: &LoggerDraw,
+    accel: &Accelerometer,
+    rate_hz: f64,
+    times: &[f64],
+    truth: &Truth,
+    (seed, index): (u64, u64),
+) -> Result<Channel, SyntheticError> {
+    let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
+    // RMS from the density over the part's bandwidth, half the climbing rate it is sampled at:
+    // σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that writes fewer samples
+    // after apogee keeps the part's bandwidth, so its noise.
+    let bandwidth_hz = rate_hz / 2.0;
+    let sigma = draw.density_g_per_root_hz * (1.57 * bandwidth_hz).sqrt() * G;
+    let range = accel.range_g * G;
+    let values = times
+        .iter()
+        .enumerate()
+        .map(|(k, &t_log)| {
+            let f = truth_at(truth, t_log - draw.pad_s)?.axial_specific_force_m_s2;
+            let read = (1.0 + draw.accel_scale) * f + draw.accel_bias_m_s2 + sigma * accel_noise[k];
+            Ok(quantize(read.clamp(-range, range), accel.step_g * G))
+        })
+        .collect::<Result<Vec<_>, SyntheticError>>()?;
+    Ok(Channel::new(
+        column,
+        Quantity::Acceleration,
+        times.to_vec(),
+        values,
+    ))
+}
+
+/// The log `draw`'s logger writes of `truth`, its accelerometer set to the lower full scale its
+/// part offers ([`Profile::accelerometer_lower_range_m_s2`]): the same part, noise terms and
+/// streams on the same clock, clipping at the lower range, as the BMX160 holds its maximum code
+/// past it (sensor noise §5, its datasheet p. 32), in steps of the part's 16 bits over it, under
+/// [`hpr_flightdata::readings::SYNTHETIC_LOWER_RANGE_COLUMN`]. `None` for a part with no such
+/// setting.
+///
+/// # Errors
+///
+/// As [`log`].
+pub fn accelerometer_log_set_lower(
+    draw: &LoggerDraw,
+    truth: &Truth,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    let Some((accel, lower_g)) = draw
+        .profile
+        .accelerometer()
+        .and_then(|accel| accel.lower_range_g.map(|lower_g| (accel, lower_g)))
+    else {
+        return Ok(None);
+    };
+    let set = Accelerometer {
+        range_g: lower_g,
+        // The part's bits over the range it is set to: its step over its own range, scaled.
+        step_g: accel.step_g * lower_g / accel.range_g,
+        ..accel
+    };
+    let mut log = log(draw, truth, seed, index)?;
+    for kept in &mut log.channels {
+        if kept.quantity == Quantity::Acceleration {
+            *kept = accelerometer_channel_under(
+                hpr_flightdata::readings::SYNTHETIC_LOWER_RANGE_COLUMN,
+                draw,
+                &set,
+                draw.profile.rate_hz(true),
+                &kept.time_s,
+                truth,
+                (seed, index),
+            )?;
+        }
+    }
+    Ok(Some(log))
+}
+
+/// The log `draw`'s logger writes of `truth`, its accelerometer sampled at `rate_hz` on its own
+/// clock in place of the barometer's: the same part, noise terms and streams, its noise grown
+/// with the rate's bandwidth. `None` for a profile with no accelerometer.
+///
+/// # Errors
+///
+/// As [`log`].
+pub fn accelerometer_log(
+    draw: &LoggerDraw,
+    rate_hz: f64,
+    truth: &Truth,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    let Some(accel) = draw.profile.accelerometer() else {
+        return Ok(None);
+    };
+    let mut log = log(draw, truth, seed, index)?;
+    let times = clock(
+        &Recording {
+            climbing_hz: rate_hz,
+            descending_hz: rate_hz,
+            written: Written::Altitude { step_m: 0.0 },
+        },
+        draw,
+        truth,
+    );
+    let channel = accelerometer_channel(draw, &accel, rate_hz, &times, truth, (seed, index))?;
+    for kept in &mut log.channels {
+        if kept.quantity == Quantity::Acceleration {
+            *kept = channel.clone();
+        }
+    }
+    Ok(Some(log))
+}
+
 /// The log of `truth` its barometer writes at `recording`, and, `with_others`, its
 /// accelerometer and GNSS receiver as the profile has them.
 fn write(
@@ -585,30 +749,14 @@ fn write(
             ));
         }
         if let Some(accel) = profile.accelerometer().filter(|_| with_others) {
-            let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
-            // RMS from the density over the part's bandwidth, half the climbing rate it is
-            // sampled at: σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that
-            // writes fewer samples after apogee keeps the part's bandwidth, so its noise.
-            let bandwidth_hz = profile.rate_hz(true) / 2.0;
-            let sigma = draw.density_g_per_root_hz * (1.57 * bandwidth_hz).sqrt() * G;
-            let range = accel.range_g * G;
-            let values = times
-                .iter()
-                .enumerate()
-                .map(|(k, &t_log)| {
-                    let f = truth_at(truth, sim(t_log))?.axial_specific_force_m_s2;
-                    let read = (1.0 + draw.accel_scale) * f
-                        + draw.accel_bias_m_s2
-                        + sigma * accel_noise[k];
-                    Ok(quantize(read.clamp(-range, range), accel.step_g * G))
-                })
-                .collect::<Result<Vec<_>, SyntheticError>>()?;
-            channels.push(Channel::new(
-                "Axial acceleration (synthetic)",
-                Quantity::Acceleration,
-                times.clone(),
-                values,
-            ));
+            channels.push(accelerometer_channel(
+                draw,
+                &accel,
+                profile.rate_hz(true),
+                &times,
+                truth,
+                (seed, index),
+            )?);
         }
         if !alone {
             time_s = times;

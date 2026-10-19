@@ -68,7 +68,7 @@ The register holds 32 rows, as of October 17, 2026.
 | Surface | Code to code | Spec | Calibration | Reasoning | None | Rows |
 |---|---:|---:|---:|---:|---:|---:|
 | Flight-log readers | 3 | 2 | 0 | 3 | 3 | 11 |
-| The flight analyzer | 0 | 2 | 0 | 0 | 0 | 2 |
+| The flight analyzer | 0 | 1 | 1 | 0 | 0 | 2 |
 | Flight models | 0 | 1 | 0 | 3 | 1 | 5 |
 | Aerodynamics | 2 | 2 | 0 | 2 | 0 | 6 |
 | `.ork` import | 0 | 1 | 0 | 1 | 0 | 2 |
@@ -77,7 +77,7 @@ The register holds 32 rows, as of October 17, 2026.
 | The motor finder | 0 | 1 | 0 | 0 | 0 | 1 |
 | Design export | 1 | 0 | 0 | 0 | 0 | 1 |
 | The synthetic flights | 0 | 0 | 0 | 1 | 0 | 1 |
-| All | 6 | 10 | 1 | 11 | 4 | 32 |
+| All | 6 | 9 | 2 | 11 | 4 | 32 |
 
 **Short of what's wanted.** 31 of the 32 rows don't yet have the kind of evidence they want; each has an open issue labeled `needs-sample`, linked in its row below.
 
@@ -94,7 +94,7 @@ The register holds 32 rows, as of October 17, 2026.
 | <a id="g7"></a>G7 | Flight-log readers | Featherweight summaries are checked on their maximum and pad altitude only. **Not checked:** the speeds, accelerations, times and the rest, converted from the unit the file writes and checked against nothing. | none | real | [#660](https://github.com/nrdptel/fusionspace-eridanus/issues/660) | 2026-10-17 |
 | <a id="g8"></a>G8 | Flight-log readers | GPS heights are kept in the unit the file writes: a phone app's altitude as written, KML heights the least sure. **Not checked:** each height's unit and what it is measured from, beside a barometric log of the same flight. | reasoning | real | [#661](https://github.com/nrdptel/fusionspace-eridanus/issues/661) | 2026-10-17 |
 | <a id="g9"></a>G9 | Flight-log readers | Formats with no sample on terms that let their bytes be tested (CATS's and the others listed) have no reader of their own. **Not checked:** the formats the list names, of which no sample can be tested on its terms. | none | real | [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) | 2026-10-17 |
-| <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, where each of the 171 tuning flights with a barometer is logged 43 ways and every reading given stays within its bound (`cargo xtask synthetic`). **Not checked:** the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; and loggers noisier than the tuning set's six simulated profiles. | spec | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-17 |
+| <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, the flights their bounds were tuned on, where each of the 171 tuning flights with a barometer is logged 43 ways, the 71 with an accelerometer 3 more and the 500 Hz IMU's 38 once more with its part set to ±8 g, which 28 of their tops reach, and every reading given stays within its bound (`cargo xtask synthetic`). **Not checked:** the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a high-g part held at its stated range, which no tuning flight reaches, where the low-g part set to ±8 g is; a thrust's plateau read as held flat and so given only as a floor, consistent with a quiet part writing it as one value; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once. | calibration | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-17 |
 | <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | 2026-10-17 |
 | <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | 2026-10-17 |
 | <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | 2026-10-17 |

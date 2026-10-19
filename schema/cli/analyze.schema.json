@@ -8,13 +8,25 @@
       "description": "The highest point.",
       "$ref": "#/$defs/LogReading2"
     },
+    "burnout": {
+      "description": "Burnout, from the axial accelerometer or the speed's peak.",
+      "$ref": "#/$defs/LogReading5"
+    },
+    "drogue_descent": {
+      "description": "The descent under the drogue: from apogee to the main's opening.",
+      "$ref": "#/$defs/LogReading8"
+    },
+    "flight_time": {
+      "description": "The flight time, liftoff to landing.",
+      "$ref": "#/$defs/LogReading7"
+    },
     "kind": {
       "description": "What kind of result this is: every reading is measured, from the log.",
       "$ref": "#/$defs/Kind"
     },
     "landing": {
       "description": "Landing, and the descent before it.",
-      "$ref": "#/$defs/LogReading5"
+      "$ref": "#/$defs/LogReading6"
     },
     "liftoff": {
       "description": "Liftoff.",
@@ -24,8 +36,12 @@
       "description": "The log read.",
       "$ref": "#/$defs/AnalyzedLog"
     },
+    "main_descent": {
+      "description": "The descent under the main, the canopy the rocket landed under.",
+      "$ref": "#/$defs/LogReading8"
+    },
     "max_acceleration": {
-      "description": "The top acceleration.",
+      "description": "The top acceleration, from the axial accelerometer.",
       "$ref": "#/$defs/LogReading4"
     },
     "max_speed": {
@@ -80,13 +96,48 @@
     "apogee",
     "max_speed",
     "max_acceleration",
-    "landing"
+    "burnout",
+    "landing",
+    "flight_time",
+    "drogue_descent",
+    "main_descent"
   ],
   "$defs": {
+    "AccelerometerGravity": {
+      "description": "Whether an accelerometer's readings hold gravity.",
+      "oneOf": [
+        {
+          "description": "They hold it: the part reads +1 g standing on the pad.",
+          "type": "string",
+          "const": "in"
+        },
+        {
+          "description": "They were written with it taken out: the part reads 0 on the pad.",
+          "type": "string",
+          "const": "out"
+        },
+        {
+          "description": "A word this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
     "AnalyzeMethod": {
       "description": "How the readings were taken. `source` is `null` for a log with no height track, or one\nwithheld whole as `bad_record`; the other fields but `altitude_resolution_m` are `null` too\nfor a track too short to read, a GNSS track, or one withheld whole for its sampling or its\nstep, but for the interval or the step that withheld it; and `pad_altitude_m` for one\nwithheld as `no_climb`.",
       "type": "object",
       "properties": {
+        "accelerometer": {
+          "description": "The axial accelerometer the top acceleration and burnout came from; `null` when the log\nhas none, or none settled.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnalyzedAccelerometer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "altitude_resolution_m": {
           "description": "The altitude's resolution in the log's format, m: a PerfectFlite writes whole feet.",
           "type": "number",
@@ -146,6 +197,46 @@
       },
       "required": [
         "altitude_resolution_m"
+      ]
+    },
+    "AnalyzedAccelerometer": {
+      "description": "The axial accelerometer the top acceleration and burnout came from.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "The channel's column, as the file writes it.",
+          "type": "string"
+        },
+        "gravity": {
+          "description": "Whether its readings hold gravity's 1 g, or were written with it taken out; it is put\nback for the readings.",
+          "$ref": "#/$defs/AccelerometerGravity"
+        },
+        "gravity_by": {
+          "description": "How that was settled.",
+          "$ref": "#/$defs/GravitySettledBy"
+        },
+        "sample_interval_s": {
+          "description": "The median interval between its samples, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "step_m_s2": {
+          "description": "Its step, m/s².",
+          "type": "number",
+          "format": "double"
+        },
+        "turned_over": {
+          "description": "Whether its readings were turned over, as a part mounted nose down writes the thrust.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "column",
+        "gravity",
+        "gravity_by",
+        "turned_over",
+        "sample_interval_s",
+        "step_m_s2"
       ]
     },
     "AnalyzedChannel": {
@@ -364,6 +455,184 @@
         "method"
       ]
     },
+    "BurnoutReading": {
+      "description": "Burnout: when the motor stopped pushing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "is_floor": {
+          "description": "Whether the time is a floor: burnout came no sooner than it, less its bound, and may\nhave come later by any amount. A burnout from the speed's peak is.",
+          "type": "boolean"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured from the accelerometer; derived from the speed's peak.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "The accelerometer, or the height track the speed came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_after_liftoff_s": {
+          "description": "When, s after liftoff: the burn's length; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s on the clock of the track it came from.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "is_floor",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "DescentReading": {
+      "description": "The descent under one canopy.",
+      "type": "object",
+      "properties": {
+        "bound_m_s": {
+          "description": "The bound on its error, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "from_height_m": {
+          "description": "The height at its start, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "from_s": {
+          "description": "Where the leg starts, s: apogee, or the main's opening.",
+          "type": "number",
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "opening": {
+          "description": "The main's opening, found back from landing, for the main's leg after a drogue's; `null`\nfor a drogue's leg or a descent under one canopy.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OpeningReading"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "description": "Derived from the heights.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "rate_m_s": {
+          "description": "The mean rate of descent over the leg, m/s, down positive.",
+          "type": "number",
+          "format": "double"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "to_height_m": {
+          "description": "The height at its end, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "to_s": {
+          "description": "Where it ends, s: the main's opening, or landing.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "rate_m_s",
+        "bound_m_s",
+        "from_s",
+        "to_s",
+        "from_height_m",
+        "to_height_m",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "FlightTimeReading": {
+      "description": "The flight time, liftoff to landing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s: liftoff's and landing's.",
+          "type": "number",
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "From liftoff to landing, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "GravitySettledBy": {
+      "description": "How an accelerometer's gravity was settled.",
+      "oneOf": [
+        {
+          "description": "By its family's word, which its pad and its coast agree with where they say.",
+          "type": "string",
+          "const": "family"
+        },
+        {
+          "description": "By its pad, which reads near 1 g or near 0, where its family doesn't say; its coast, where\nit says, agrees.",
+          "type": "string",
+          "const": "pad"
+        },
+        {
+          "description": "By its coast to apogee, which reads near 0 or near −1 g, where neither its family nor its\npad says.",
+          "type": "string",
+          "const": "coast"
+        },
+        {
+          "description": "A way this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
     "HighestSample": {
       "description": "The highest sample of the track.",
       "type": "object",
@@ -426,22 +695,6 @@
         "descent_time_s": {
           "description": "From apogee to landing, s.",
           "type": "number",
-          "format": "double"
-        },
-        "flight_time_bound_s": {
-          "description": "The bound on the flight time's error, s; `null` when liftoff is withheld.",
-          "type": [
-            "number",
-            "null"
-          ],
-          "format": "double"
-        },
-        "flight_time_s": {
-          "description": "From liftoff to landing, s; `null` when liftoff is withheld.",
-          "type": [
-            "number",
-            "null"
-          ],
           "format": "double"
         },
         "mean_descent_rate_bound_m_s": {
@@ -907,7 +1160,106 @@
               "const": "read"
             }
           },
+          "$ref": "#/$defs/BurnoutReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading6": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
           "$ref": "#/$defs/LandingReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading7": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/FlightTimeReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading8": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/DescentReading",
           "required": [
             "status"
           ]
@@ -951,23 +1303,68 @@
       }
     },
     "MaxAccelerationReading": {
-      "description": "The top acceleration.",
+      "description": "The top acceleration, from the axial accelerometer.",
       "type": "object",
       "properties": {
         "acceleration_m_s2": {
-          "description": "The acceleration, m/s².",
+          "description": "The acceleration, m/s², along the rocket's axis as an accelerometer reads it: +1 g\nstanding on the pad, the thrust less the drag over the mass in the climb; less 9.81 m/s²,\nthe rocket's own acceleration up on a vertical climb.",
           "type": "number",
           "format": "double"
         },
+        "bound_m_s2": {
+          "description": "The bound on its error, m/s². When it is clipped, the true top is no lower than the\nreading less the bound, and may be higher by any amount.",
+          "type": "number",
+          "format": "double"
+        },
+        "clip": {
+          "description": "Why it is clipped: at the part's stated range, or held flat at its top below it or with\nno range stated; `null` where it isn't.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingClip"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_floor": {
+          "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is, and so is one whose thrust the accelerometer shows no end to,\nnever falling through zero on the channel before apogee: that one is measured, its `clip`\n`null`.",
+          "type": "boolean"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Clipped where `clip` says why; otherwise measured.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "range_m_s2": {
+          "description": "The range of the part its family states, m/s²; `null` where it doesn't.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "source": {
+          "description": "The accelerometer.",
+          "$ref": "#/$defs/ReadingSource"
+        },
         "time_s": {
-          "description": "When, s.",
+          "description": "When, s on the accelerometer's clock.",
           "type": "number",
           "format": "double"
         }
       },
       "required": [
         "acceleration_m_s2",
-        "time_s"
+        "bound_m_s2",
+        "time_s",
+        "is_floor",
+        "source",
+        "provenance",
+        "method"
       ]
     },
     "MaxSpeedReading": {
@@ -1015,6 +1412,32 @@
         "source",
         "provenance",
         "method"
+      ]
+    },
+    "OpeningReading": {
+      "description": "The main's opening, found back from landing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_m": {
+          "description": "The height then, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s: the first sample of the run back from landing whose rate stays near the main's.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "height_m"
       ]
     },
     "Quantity": {
@@ -1122,6 +1545,26 @@
         }
       ]
     },
+    "ReadingClip": {
+      "description": "Why a top acceleration is clipped.",
+      "oneOf": [
+        {
+          "description": "It reaches the part's range as its family states it, within two steps and 0.25 g: the\npart read no more.",
+          "type": "string",
+          "const": "range"
+        },
+        {
+          "description": "It holds flat at its top, as a part that clipped holds it, short of any range the family\nstates or with none stated: the part may have clipped, at a range other than the one\nstated.",
+          "type": "string",
+          "const": "flat"
+        },
+        {
+          "description": "A cause this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
     "ReadingMethod": {
       "description": "How a reading was read off the track.",
       "oneOf": [
@@ -1144,6 +1587,31 @@
           "description": "The first sample after apogee back within the pad's allowance that stays down for 1 s.",
           "type": "string",
           "const": "back_on_the_pad"
+        },
+        {
+          "description": "The axial accelerometer's highest reading before apogee.",
+          "type": "string",
+          "const": "highest_reading"
+        },
+        {
+          "description": "The first sample next to the axial accelerometer's least reading after it falls below\nzero: the end of the thrust's fall.",
+          "type": "string",
+          "const": "least_after_thrust"
+        },
+        {
+          "description": "The top speed's time, a floor: burnout came no sooner than it less its bound.",
+          "type": "string",
+          "const": "speed_peak"
+        },
+        {
+          "description": "Landing's time less liftoff's.",
+          "type": "string",
+          "const": "liftoff_to_landing"
+        },
+        {
+          "description": "The height a leg of the descent loses over the time it takes.",
+          "type": "string",
+          "const": "leg_chord"
         },
         {
           "description": "A method this build of `hpr` doesn't name.",
@@ -1199,6 +1667,11 @@
           "description": "A GNSS receiver's altitude: no reading is taken from it.",
           "type": "string",
           "const": "gnss"
+        },
+        {
+          "description": "The accelerometer along the rocket's axis.",
+          "type": "string",
+          "const": "accelerometer"
         },
         {
           "description": "A source this build of `hpr` doesn't name.",
@@ -1324,11 +1797,6 @@
           "const": "slower_than_free_coast"
         },
         {
-          "description": "HPR Sim doesn't take this reading from the log's sensor yet.",
-          "type": "string",
-          "const": "not_yet_taken"
-        },
-        {
           "description": "The log's first samples can't rule out a rocket already more than 2 m up when it starts:\nit starts after liftoff, as a logger that records from launch writes its zero and then the\nclimb, or holds too little of the pad to tell liftoff by. A track above the logger's own\nzero, or one a mapping or a header calls above the ground, still gives its heights from\nthat zero, with the zero's possible error in their bounds.",
           "type": "string",
           "const": "short_pad"
@@ -1342,6 +1810,31 @@
           "description": "The track falls past its noise and step below a peak in the 4 s before its top, then\nclimbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,\nso which is the apogee can't be told.",
           "type": "string",
           "const": "disturbed_top"
+        },
+        {
+          "description": "The log's accelerometers don't say which lies along the rocket's axis, such as a board's\nthree axes: the top acceleration and a burnout from the accelerometer need the axial one.",
+          "type": "string",
+          "const": "axis_unstated"
+        },
+        {
+          "description": "The axial accelerometer's readings may or may not hold gravity's 1 g, and none of its\nfamily, its pad and its coast to apogee settles which, or they disagree.",
+          "type": "string",
+          "const": "gravity_unstated"
+        },
+        {
+          "description": "Which way up the axial accelerometer reads isn't settled, or it shows no thrust. Of its\nthree witnesses, each on the trace as written, none says or two disagree: the pad (about\n1 g nose up, about −1 g nose down), the coast to apogee (−0.75 g or less nose up, 0.75 g\nor more nose down) and the thrust (its first span past 2 g to hold there for 0.5 s,\nunless a span the other way comes first). Or, turned as they settle and gravity put back,\nit never reads past 2 g from liftoff's earliest time to apogee.",
+          "type": "string",
+          "const": "direction_unstated"
+        },
+        {
+          "description": "The descent shows no drogue's leg: at the ground's density its rate never passes the\nmain's mark, 1.6 times its rate near the ground or 3 m/s more if that is more, in the 2 s\nbefore the main's leg, or the descent before that leg isn't, on median, 1.4 times that\nrate. The rocket came down under one canopy, or under a drogue no faster than the mark,\nwhich reads as one: the main's descent is then the whole descent's, from apogee. There is\nno drogue's.",
+          "type": "string",
+          "const": "one_canopy"
+        },
+        {
+          "description": "A leg of the descent loses too little height, under 3 m or a tenth of its top's height,\nfor its rate to be read.",
+          "type": "string",
+          "const": "short_leg"
         },
         {
           "description": "A reason this build of `hpr` doesn't name.",
