@@ -10,8 +10,9 @@ ThrustCurve's API (`/api/v1`, an OpenAPI 2 spec under the ISC licence; its page 
 endpoints take a query string by GET or a JSON body by POST, and no key or header) has a search,
 whose records carry ThrustCurve's 24-hex-digit `motorId`, and a download, whose files come
 base64-encoded with their format (`RASP` or `RockSim`), source (`cert`, `mfr`, `user`) and licence
-(`PD`, `free`, `other`, or absent). Its spec says "only fields with values will be returned". The
-API grants no license for its data, and the site reserves copyright. Errors come back as HTTP 200
+(`PD`, `free`, `other`, or absent). Its spec says "only fields with values will be returned".
+ThrustCurve.org grants no license for the API's data, and its site reserves copyright (the
+Swagger file's ISC license covers the API, not the records). Errors come back as HTTP 200
 with an `error` field, on the answer or on a search criterion; an unknown motor id downloads as an
 empty list. On 2026-10-01 a search by maker with `maxResults=5000` returned AeroTech's 307 records,
 Cesaroni Technology's 296 and Loki Research's 60, each whole (`matches` equal to the records

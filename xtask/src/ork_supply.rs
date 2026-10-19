@@ -16,7 +16,8 @@
 //! - follows every configuration the bundled catalog alone leaves without a curve, and says what
 //!   became of it: flown, held back for another reason, or still without a curve, and why.
 //!
-//! The record lives under the gitignored `corpus-out/`: the database's terms are unstated and the
+//! The record lives under the gitignored `corpus-out/`: the database's curves come from
+//! ThrustCurve.org, which grants no license for its records and reserves copyright, and the
 //! embedded curves belong to the designs' owners, so only counts leave this machine.
 
 use std::collections::{BTreeMap, BTreeSet};
