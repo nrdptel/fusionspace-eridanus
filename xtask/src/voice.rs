@@ -1715,6 +1715,14 @@ mod tests {
             false,
         );
         assert_eq!(html.stock[0].line, 3);
+        // One paragraph of many marks, each shifting the text against the source, with a hit on
+        // each of its lines after the first.
+        let lines: Vec<String> = (0..40)
+            .map(|k| format!("**a** {}", if k == 0 { "c" } else { "delve" }))
+            .collect();
+        let many = markdown(&lines.join("\n"));
+        let found: Vec<usize> = many.stock.iter().map(|hit| hit.line).collect();
+        assert_eq!(found, (2..=40).collect::<Vec<_>>());
     }
 
     #[test]
