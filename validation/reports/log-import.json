@@ -3685,6 +3685,29 @@
               "disturbed_top": 3
             }
           },
+          "burnout": {
+            "given": 13,
+            "withheld": {
+              "disturbed_top": 3,
+              "transonic": 4
+            }
+          },
+          "drogue_descent": {
+            "given": 7,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 7,
+              "one_canopy": 2,
+              "short_leg": 1
+            }
+          },
+          "flight_time": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 7
+            }
+          },
           "landing": {
             "given": 10,
             "withheld": {
@@ -3696,10 +3719,17 @@
             "given": 20,
             "withheld": {}
           },
+          "main_descent": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 7
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 20
+              "axis_unstated": 20
             }
           },
           "max_speed": {
@@ -3721,6 +3751,24 @@
             "given": 4,
             "withheld": {}
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 4
+            }
+          },
+          "drogue_descent": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 3
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 3
+            }
+          },
           "landing": {
             "given": 1,
             "withheld": {
@@ -3731,11 +3779,17 @@
             "given": 4,
             "withheld": {}
           },
+          "main_descent": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 3
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 1,
-              "not_yet_taken": 3
+              "axis_unstated": 3,
+              "no_accelerometer": 1
             }
           },
           "max_speed": {
@@ -3760,6 +3814,34 @@
               "sampled_too_slowly": 1
             }
           },
+          "burnout": {
+            "given": 8,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 1,
+              "sampled_too_slowly": 1,
+              "transonic": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 4,
+              "no_climb": 1,
+              "one_canopy": 2,
+              "sampled_too_slowly": 1
+            }
+          },
+          "flight_time": {
+            "given": 7,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 4,
+              "no_climb": 1,
+              "sampled_too_slowly": 1
+            }
+          },
           "landing": {
             "given": 7,
             "withheld": {
@@ -3776,10 +3858,19 @@
               "sampled_too_slowly": 1
             }
           },
+          "main_descent": {
+            "given": 7,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 4,
+              "no_climb": 1,
+              "sampled_too_slowly": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 14
+              "axis_unstated": 14
             }
           },
           "max_speed": {
@@ -3803,6 +3894,22 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -3813,11 +3920,15 @@
             "given": 1,
             "withheld": {}
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 1
+              "ends_before_landing": 1
             }
+          },
+          "max_acceleration": {
+            "given": 1,
+            "withheld": {}
           },
           "max_speed": {
             "given": 0,
@@ -3837,6 +3948,22 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -3847,11 +3974,15 @@
             "given": 1,
             "withheld": {}
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 1
+              "ends_before_landing": 1
             }
+          },
+          "max_acceleration": {
+            "given": 1,
+            "withheld": {}
           },
           "max_speed": {
             "given": 0,
@@ -3871,6 +4002,20 @@
             "given": 11,
             "withheld": {}
           },
+          "burnout": {
+            "given": 11,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "one_canopy": 11
+            }
+          },
+          "flight_time": {
+            "given": 11,
+            "withheld": {}
+          },
           "landing": {
             "given": 11,
             "withheld": {}
@@ -3879,10 +4024,14 @@
             "given": 11,
             "withheld": {}
           },
+          "main_descent": {
+            "given": 11,
+            "withheld": {}
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 11
+              "axis_unstated": 11
             }
           },
           "max_speed": {
@@ -3904,6 +4053,35 @@
               "no_climb": 1
             }
           },
+          "burnout": {
+            "given": 35,
+            "withheld": {
+              "disturbed_top": 4,
+              "no_climb": 1,
+              "sampled_too_slowly": 1,
+              "transonic": 9
+            }
+          },
+          "drogue_descent": {
+            "given": 19,
+            "withheld": {
+              "disturbed_top": 4,
+              "ends_before_landing": 16,
+              "no_climb": 1,
+              "one_canopy": 8,
+              "sampled_too_slowly": 1,
+              "short_leg": 1
+            }
+          },
+          "flight_time": {
+            "given": 18,
+            "withheld": {
+              "disturbed_top": 4,
+              "ends_before_landing": 12,
+              "no_climb": 1,
+              "short_pad": 15
+            }
+          },
           "landing": {
             "given": 29,
             "withheld": {
@@ -3919,10 +4097,21 @@
               "short_pad": 15
             }
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 27,
             "withheld": {
-              "not_yet_taken": 50
+              "disturbed_top": 4,
+              "ends_before_landing": 16,
+              "no_climb": 1,
+              "sampled_too_slowly": 1,
+              "short_leg": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 45,
+            "withheld": {
+              "disturbed_top": 4,
+              "no_climb": 1
             }
           },
           "max_speed": {
@@ -3952,6 +4141,34 @@
               "short_pad": 7
             }
           },
+          "burnout": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1,
+              "receiver_lag": 1,
+              "short_pad": 7
+            }
+          },
+          "drogue_descent": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 1,
+              "needs": 1,
+              "one_canopy": 2,
+              "short_leg": 1,
+              "short_pad": 7
+            }
+          },
+          "flight_time": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 1,
+              "receiver_dropout": 1,
+              "short_pad": 7
+            }
+          },
           "landing": {
             "given": 4,
             "withheld": {
@@ -3968,11 +4185,21 @@
               "short_pad": 7
             }
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 4,
             "withheld": {
+              "disturbed_top": 1,
+              "ends_before_landing": 1,
+              "needs": 1,
+              "short_pad": 7
+            }
+          },
+          "max_acceleration": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1,
               "no_accelerometer": 3,
-              "not_yet_taken": 11
+              "short_pad": 5
             }
           },
           "max_speed": {
@@ -3998,6 +4225,24 @@
               "clock_out_of_order": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4010,10 +4255,16 @@
               "clock_out_of_order": 1
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 1
+              "axis_unstated": 1
             }
           },
           "max_speed": {
@@ -4034,6 +4285,22 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "one_canopy": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
           "landing": {
             "given": 1,
             "withheld": {}
@@ -4044,11 +4311,13 @@
               "short_pad": 1
             }
           },
+          "main_descent": {
+            "given": 1,
+            "withheld": {}
+          },
           "max_acceleration": {
-            "given": 0,
-            "withheld": {
-              "not_yet_taken": 1
-            }
+            "given": 1,
+            "withheld": {}
           },
           "max_speed": {
             "given": 1,
@@ -4066,6 +4335,23 @@
             "given": 2,
             "withheld": {}
           },
+          "burnout": {
+            "given": 2,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
           "landing": {
             "given": 1,
             "withheld": {
@@ -4076,11 +4362,16 @@
             "given": 2,
             "withheld": {}
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 2
+              "ends_before_landing": 1,
+              "sampled_too_slowly": 1
             }
+          },
+          "max_acceleration": {
+            "given": 2,
+            "withheld": {}
           },
           "max_speed": {
             "given": 0,
@@ -4100,6 +4391,22 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4110,11 +4417,15 @@
             "given": 1,
             "withheld": {}
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 1
+              "ends_before_landing": 1
             }
+          },
+          "max_acceleration": {
+            "given": 1,
+            "withheld": {}
           },
           "max_speed": {
             "given": 0,
@@ -4134,6 +4445,22 @@
             "given": 4,
             "withheld": {}
           },
+          "burnout": {
+            "given": 4,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 2,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "flight_time": {
+            "given": 2,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
           "landing": {
             "given": 2,
             "withheld": {
@@ -4144,11 +4471,15 @@
             "given": 4,
             "withheld": {}
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 2,
             "withheld": {
-              "not_yet_taken": 4
+              "ends_before_landing": 2
             }
+          },
+          "max_acceleration": {
+            "given": 4,
+            "withheld": {}
           },
           "max_speed": {
             "given": 0,
@@ -4170,6 +4501,24 @@
               "no_height_track": 3
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4177,6 +4526,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 3
@@ -4210,6 +4565,33 @@
               "no_height_track": 40
             }
           },
+          "burnout": {
+            "given": 23,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 40,
+              "transonic": 23
+            }
+          },
+          "drogue_descent": {
+            "given": 29,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 8,
+              "no_height_track": 40,
+              "one_canopy": 7,
+              "short_leg": 2
+            }
+          },
+          "flight_time": {
+            "given": 38,
+            "withheld": {
+              "disturbed_top": 2,
+              "ends_before_landing": 8,
+              "no_height_track": 40,
+              "short_pad": 1
+            }
+          },
           "landing": {
             "given": 38,
             "withheld": {
@@ -4225,11 +4607,21 @@
               "short_pad": 1
             }
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 36,
             "withheld": {
-              "no_accelerometer": 45,
-              "not_yet_taken": 44
+              "disturbed_top": 3,
+              "ends_before_landing": 8,
+              "no_height_track": 40,
+              "short_leg": 2
+            }
+          },
+          "max_acceleration": {
+            "given": 3,
+            "withheld": {
+              "axis_unstated": 40,
+              "gravity_unstated": 1,
+              "no_accelerometer": 45
             }
           },
           "max_speed": {
@@ -4254,6 +4646,24 @@
               "no_height_track": 26
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4261,6 +4671,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 26
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 26
@@ -4294,6 +4710,27 @@
               "slower_than_free_coast": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4308,11 +4745,18 @@
               "slower_than_free_coast": 1
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1,
+              "slower_than_free_coast": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 1,
-              "not_yet_taken": 1
+              "axis_unstated": 1,
+              "no_accelerometer": 1
             }
           },
           "max_speed": {
@@ -4336,6 +4780,24 @@
               "short_pad": 3
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4348,10 +4810,16 @@
               "short_pad": 3
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 3
+              "axis_unstated": 3
             }
           },
           "max_speed": {
@@ -4374,6 +4842,24 @@
               "no_height_track": 54
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4381,6 +4867,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 54
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 54
@@ -4412,6 +4904,31 @@
               "disturbed_top": 12
             }
           },
+          "burnout": {
+            "given": 26,
+            "withheld": {
+              "disturbed_top": 12,
+              "sampled_too_slowly": 2,
+              "short_pad": 1,
+              "transonic": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 12,
+              "ends_before_landing": 29,
+              "sampled_too_slowly": 3
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 4,
+              "ends_before_landing": 5,
+              "short_pad": 34
+            }
+          },
           "landing": {
             "given": 3,
             "withheld": {
@@ -4425,11 +4942,19 @@
               "short_pad": 34
             }
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 40,
-              "not_yet_taken": 4
+              "disturbed_top": 12,
+              "ends_before_landing": 29,
+              "sampled_too_slowly": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 2,
+              "no_accelerometer": 40
             }
           },
           "max_speed": {
@@ -4453,6 +4978,22 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4463,6 +5004,12 @@
             "given": 0,
             "withheld": {
               "short_pad": 1
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 1
             }
           },
           "max_acceleration": {
@@ -4489,6 +5036,25 @@
               "disturbed_top": 1
             }
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
           "landing": {
             "given": 1,
             "withheld": {
@@ -4498,6 +5064,13 @@
           "liftoff": {
             "given": 2,
             "withheld": {}
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "sampled_too_slowly": 1
+            }
           },
           "max_acceleration": {
             "given": 0,
@@ -4523,6 +5096,24 @@
             "given": 16,
             "withheld": {}
           },
+          "burnout": {
+            "given": 9,
+            "withheld": {
+              "sampled_too_slowly": 7
+            }
+          },
+          "drogue_descent": {
+            "given": 8,
+            "withheld": {
+              "ends_before_landing": 8
+            }
+          },
+          "flight_time": {
+            "given": 8,
+            "withheld": {
+              "ends_before_landing": 8
+            }
+          },
           "landing": {
             "given": 8,
             "withheld": {
@@ -4533,10 +5124,16 @@
             "given": 16,
             "withheld": {}
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 8,
             "withheld": {
-              "not_yet_taken": 16
+              "ends_before_landing": 8
+            }
+          },
+          "max_acceleration": {
+            "given": 15,
+            "withheld": {
+              "clock_out_of_order": 1
             }
           },
           "max_speed": {
@@ -4562,6 +5159,30 @@
               "slower_than_free_coast": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4577,10 +5198,20 @@
               "slower_than_free_coast": 1
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 10
+              "disturbed_top": 1,
+              "no_climb": 8,
+              "slower_than_free_coast": 1
             }
           },
           "max_speed": {
@@ -4605,6 +5236,24 @@
               "disturbed_top": 2
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4615,10 +5264,16 @@
             "given": 2,
             "withheld": {}
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 2
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 2
+              "disturbed_top": 2
             }
           },
           "max_speed": {
@@ -4641,6 +5296,24 @@
               "no_height_track": 25
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4648,6 +5321,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 25
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 25
@@ -4679,6 +5358,24 @@
               "disturbed_top": 3
             }
           },
+          "burnout": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
+          "flight_time": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
+            }
+          },
           "landing": {
             "given": 3,
             "withheld": {
@@ -4689,10 +5386,16 @@
             "given": 6,
             "withheld": {}
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 3,
             "withheld": {
-              "not_yet_taken": 6
+              "disturbed_top": 3
+            }
+          },
+          "max_acceleration": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3
             }
           },
           "max_speed": {
@@ -4716,6 +5419,24 @@
               "receiver_lag": 40
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 40
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 40
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 40
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4726,6 +5447,12 @@
             "given": 0,
             "withheld": {
               "receiver_dropout": 40
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 40
             }
           },
           "max_acceleration": {
@@ -4759,6 +5486,37 @@
               "receiver_lag": 3
             }
           },
+          "burnout": {
+            "given": 2,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "no_height_track": 6,
+              "receiver_lag": 3,
+              "sampled_too_slowly": 4,
+              "transonic": 4
+            }
+          },
+          "drogue_descent": {
+            "given": 2,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 3,
+              "needs": 3,
+              "no_height_track": 6,
+              "one_canopy": 2,
+              "sampled_too_slowly": 2,
+              "short_leg": 1
+            }
+          },
+          "flight_time": {
+            "given": 7,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 3,
+              "no_height_track": 6,
+              "receiver_dropout": 3
+            }
+          },
           "landing": {
             "given": 7,
             "withheld": {
@@ -4776,11 +5534,22 @@
               "receiver_dropout": 3
             }
           },
+          "main_descent": {
+            "given": 4,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 3,
+              "needs": 3,
+              "no_height_track": 6,
+              "sampled_too_slowly": 2,
+              "short_leg": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 13,
-              "not_yet_taken": 7
+              "axis_unstated": 7,
+              "no_accelerometer": 13
             }
           },
           "max_speed": {
@@ -4812,6 +5581,33 @@
               "too_short": 2
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3,
+              "receiver_lag": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 36,
+              "no_height_track": 3,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 3,
+              "receiver_dropout": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4826,6 +5622,15 @@
             "withheld": {
               "no_height_track": 3,
               "receiver_dropout": 36,
+              "short_pad": 2,
+              "too_short": 2
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 36,
+              "no_height_track": 3,
               "short_pad": 2,
               "too_short": 2
             }
@@ -4859,6 +5664,24 @@
               "no_height_track": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4866,6 +5689,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 1
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 1
@@ -4897,6 +5726,24 @@
               "unstated_sensor": 6
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4909,11 +5756,17 @@
               "unstated_sensor": 6
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "unstated_sensor": 6
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 4,
-              "not_yet_taken": 2
+              "axis_unstated": 2,
+              "no_accelerometer": 4
             }
           },
           "max_speed": {
@@ -4934,6 +5787,22 @@
             "given": 2,
             "withheld": {}
           },
+          "burnout": {
+            "given": 2,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4944,11 +5813,15 @@
             "given": 2,
             "withheld": {}
           },
-          "max_acceleration": {
+          "main_descent": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 2
+              "ends_before_landing": 2
             }
+          },
+          "max_acceleration": {
+            "given": 2,
+            "withheld": {}
           },
           "max_speed": {
             "given": 2,
@@ -4968,6 +5841,24 @@
               "receiver_lag": 5
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 5
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -4978,6 +5869,12 @@
             "given": 0,
             "withheld": {
               "receiver_dropout": 5
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
             }
           },
           "max_acceleration": {
@@ -5006,6 +5903,24 @@
               "receiver_lag": 12
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 12
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 12
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 12
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5016,6 +5931,12 @@
             "given": 0,
             "withheld": {
               "receiver_dropout": 12
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 12
             }
           },
           "max_acceleration": {
@@ -5044,6 +5965,24 @@
               "short_pad": 3
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5056,10 +5995,16 @@
               "short_pad": 3
             }
           },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "short_pad": 3
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 3
+              "short_pad": 3
             }
           },
           "max_speed": {
@@ -5082,6 +6027,29 @@
               "disturbed_top": 2
             }
           },
+          "burnout": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 2,
+              "transonic": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 9,
+            "withheld": {
+              "disturbed_top": 2,
+              "ends_before_landing": 2,
+              "one_canopy": 2
+            }
+          },
+          "flight_time": {
+            "given": 10,
+            "withheld": {
+              "disturbed_top": 2,
+              "ends_before_landing": 2,
+              "short_pad": 1
+            }
+          },
           "landing": {
             "given": 11,
             "withheld": {
@@ -5093,6 +6061,13 @@
             "given": 14,
             "withheld": {
               "short_pad": 1
+            }
+          },
+          "main_descent": {
+            "given": 11,
+            "withheld": {
+              "disturbed_top": 2,
+              "ends_before_landing": 2
             }
           },
           "max_acceleration": {
@@ -5122,6 +6097,25 @@
               "disturbed_top": 1
             }
           },
+          "burnout": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 1,
+              "one_canopy": 3
+            }
+          },
+          "flight_time": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
           "landing": {
             "given": 5,
             "withheld": {
@@ -5131,6 +6125,12 @@
           "liftoff": {
             "given": 6,
             "withheld": {}
+          },
+          "main_descent": {
+            "given": 5,
+            "withheld": {
+              "disturbed_top": 1
+            }
           },
           "max_acceleration": {
             "given": 0,
@@ -5158,6 +6158,31 @@
               "disturbed_top": 15
             }
           },
+          "burnout": {
+            "given": 117,
+            "withheld": {
+              "disturbed_top": 15,
+              "implausible_speed": 1,
+              "transonic": 42
+            }
+          },
+          "drogue_descent": {
+            "given": 94,
+            "withheld": {
+              "disturbed_top": 15,
+              "ends_before_landing": 12,
+              "one_canopy": 52,
+              "short_leg": 2
+            }
+          },
+          "flight_time": {
+            "given": 141,
+            "withheld": {
+              "disturbed_top": 14,
+              "ends_before_landing": 12,
+              "short_pad": 8
+            }
+          },
           "landing": {
             "given": 148,
             "withheld": {
@@ -5169,6 +6194,13 @@
             "given": 167,
             "withheld": {
               "short_pad": 8
+            }
+          },
+          "main_descent": {
+            "given": 148,
+            "withheld": {
+              "disturbed_top": 15,
+              "ends_before_landing": 12
             }
           },
           "max_acceleration": {
@@ -5199,6 +6231,30 @@
               "slower_than_free_coast": 1
             }
           },
+          "burnout": {
+            "given": 22,
+            "withheld": {
+              "short_pad": 2,
+              "slower_than_free_coast": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 1,
+            "withheld": {
+              "ends_before_landing": 1,
+              "one_canopy": 20,
+              "short_leg": 2,
+              "slower_than_free_coast": 1
+            }
+          },
+          "flight_time": {
+            "given": 8,
+            "withheld": {
+              "ends_before_landing": 1,
+              "short_pad": 15,
+              "slower_than_free_coast": 1
+            }
+          },
           "landing": {
             "given": 23,
             "withheld": {
@@ -5210,6 +6266,13 @@
             "given": 9,
             "withheld": {
               "short_pad": 15,
+              "slower_than_free_coast": 1
+            }
+          },
+          "main_descent": {
+            "given": 23,
+            "withheld": {
+              "ends_before_landing": 1,
               "slower_than_free_coast": 1
             }
           },
@@ -5244,6 +6307,33 @@
               "short_pad": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 3,
+              "no_height_track": 19,
+              "short_pad": 1,
+              "transonic": 4
+            }
+          },
+          "drogue_descent": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "no_height_track": 19,
+              "short_pad": 1
+            }
+          },
+          "flight_time": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "no_height_track": 19,
+              "short_pad": 2
+            }
+          },
           "landing": {
             "given": 3,
             "withheld": {
@@ -5260,11 +6350,20 @@
               "short_pad": 2
             }
           },
+          "main_descent": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "no_height_track": 19,
+              "short_pad": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 21,
-              "not_yet_taken": 6
+              "axis_unstated": 6,
+              "no_accelerometer": 21
             }
           },
           "max_speed": {
@@ -5288,6 +6387,24 @@
             "given": 2,
             "withheld": {}
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "sampled_too_slowly": 2
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5297,6 +6414,12 @@
           "liftoff": {
             "given": 2,
             "withheld": {}
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "ends_before_landing": 2
+            }
           },
           "max_acceleration": {
             "given": 0,
@@ -5325,6 +6448,27 @@
               "clock_out_of_order": 1
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "sampled_too_slowly": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 1
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 1
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5336,6 +6480,13 @@
             "given": 1,
             "withheld": {
               "clock_out_of_order": 1
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "clock_out_of_order": 1,
+              "ends_before_landing": 1
             }
           },
           "max_acceleration": {
@@ -5366,6 +6517,33 @@
               "sampled_too_fast": 1
             }
           },
+          "burnout": {
+            "given": 66,
+            "withheld": {
+              "disturbed_top": 9,
+              "sampled_too_fast": 1,
+              "sampled_too_slowly": 1,
+              "transonic": 3
+            }
+          },
+          "drogue_descent": {
+            "given": 32,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 4,
+              "one_canopy": 33,
+              "sampled_too_fast": 1,
+              "short_leg": 1
+            }
+          },
+          "flight_time": {
+            "given": 66,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 4,
+              "sampled_too_fast": 1
+            }
+          },
           "landing": {
             "given": 66,
             "withheld": {
@@ -5380,10 +6558,20 @@
               "sampled_too_fast": 1
             }
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 66,
             "withheld": {
-              "not_yet_taken": 80
+              "disturbed_top": 9,
+              "ends_before_landing": 4,
+              "sampled_too_fast": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 64,
+            "withheld": {
+              "disturbed_top": 9,
+              "gravity_unstated": 6,
+              "sampled_too_fast": 1
             }
           },
           "max_speed": {
@@ -5409,6 +6597,25 @@
               "disturbed_top": 1
             }
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "one_canopy": 1
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
+            }
+          },
           "landing": {
             "given": 1,
             "withheld": {
@@ -5419,10 +6626,16 @@
             "given": 2,
             "withheld": {}
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 1,
             "withheld": {
-              "not_yet_taken": 2
+              "disturbed_top": 1
+            }
+          },
+          "max_acceleration": {
+            "given": 1,
+            "withheld": {
+              "disturbed_top": 1
             }
           },
           "max_speed": {
@@ -5447,6 +6660,31 @@
               "short_pad": 17
             }
           },
+          "burnout": {
+            "given": 36,
+            "withheld": {
+              "disturbed_top": 3,
+              "short_pad": 17,
+              "transonic": 1
+            }
+          },
+          "drogue_descent": {
+            "given": 11,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "one_canopy": 25,
+              "short_pad": 17
+            }
+          },
+          "flight_time": {
+            "given": 36,
+            "withheld": {
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "short_pad": 17
+            }
+          },
           "landing": {
             "given": 36,
             "withheld": {
@@ -5461,10 +6699,20 @@
               "short_pad": 17
             }
           },
-          "max_acceleration": {
-            "given": 0,
+          "main_descent": {
+            "given": 36,
             "withheld": {
-              "not_yet_taken": 57
+              "disturbed_top": 3,
+              "ends_before_landing": 1,
+              "short_pad": 17
+            }
+          },
+          "max_acceleration": {
+            "given": 34,
+            "withheld": {
+              "disturbed_top": 3,
+              "gravity_unstated": 3,
+              "short_pad": 17
             }
           },
           "max_speed": {
@@ -5489,6 +6737,24 @@
               "no_height_track": 2
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5496,6 +6762,12 @@
             }
           },
           "liftoff": {
+            "given": 0,
+            "withheld": {
+              "no_height_track": 2
+            }
+          },
+          "main_descent": {
             "given": 0,
             "withheld": {
               "no_height_track": 2
@@ -5527,6 +6799,28 @@
               "disturbed_top": 9
             }
           },
+          "burnout": {
+            "given": 19,
+            "withheld": {
+              "disturbed_top": 9,
+              "transonic": 23
+            }
+          },
+          "drogue_descent": {
+            "given": 32,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 6,
+              "one_canopy": 4
+            }
+          },
+          "flight_time": {
+            "given": 8,
+            "withheld": {
+              "disturbed_top": 6,
+              "short_pad": 37
+            }
+          },
           "landing": {
             "given": 36,
             "withheld": {
@@ -5538,6 +6832,13 @@
             "given": 14,
             "withheld": {
               "short_pad": 37
+            }
+          },
+          "main_descent": {
+            "given": 36,
+            "withheld": {
+              "disturbed_top": 9,
+              "ends_before_landing": 6
             }
           },
           "max_acceleration": {
@@ -5568,6 +6869,27 @@
               "short_pad": 5
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
+              "short_pad": 5
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5578,6 +6900,13 @@
           "liftoff": {
             "given": 1,
             "withheld": {
+              "short_pad": 5
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "disturbed_top": 1,
               "short_pad": 5
             }
           },
@@ -5608,6 +6937,24 @@
               "receiver_lag": 5
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 5
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 5
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5618,6 +6965,12 @@
             "given": 0,
             "withheld": {
               "receiver_dropout": 5
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 5
             }
           },
           "max_acceleration": {
@@ -5646,6 +6999,24 @@
               "receiver_lag": 4
             }
           },
+          "burnout": {
+            "given": 0,
+            "withheld": {
+              "receiver_lag": 4
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 4
+            }
+          },
+          "flight_time": {
+            "given": 0,
+            "withheld": {
+              "receiver_dropout": 4
+            }
+          },
           "landing": {
             "given": 0,
             "withheld": {
@@ -5656,6 +7027,12 @@
             "given": 0,
             "withheld": {
               "receiver_dropout": 4
+            }
+          },
+          "main_descent": {
+            "given": 0,
+            "withheld": {
+              "needs": 4
             }
           },
           "max_acceleration": {
@@ -5690,6 +7067,42 @@
               "unstated_sensor": 11
             }
           },
+          "burnout": {
+            "given": 3,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "no_height_track": 4,
+              "sampled_too_slowly": 1,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "transonic": 5,
+              "unstated_sensor": 11
+            }
+          },
+          "drogue_descent": {
+            "given": 3,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "ends_before_landing": 3,
+              "no_height_track": 4,
+              "one_canopy": 2,
+              "sampled_too_slowly": 1,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
+          "flight_time": {
+            "given": 6,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "ends_before_landing": 3,
+              "no_height_track": 4,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
           "landing": {
             "given": 6,
             "withheld": {
@@ -5711,11 +7124,23 @@
               "unstated_sensor": 11
             }
           },
+          "main_descent": {
+            "given": 5,
+            "withheld": {
+              "clock_out_of_order": 3,
+              "ends_before_landing": 3,
+              "no_height_track": 4,
+              "sampled_too_slowly": 1,
+              "short_pad": 3,
+              "slower_than_free_coast": 1,
+              "unstated_sensor": 11
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 13,
-              "not_yet_taken": 18
+              "axis_unstated": 18,
+              "no_accelerometer": 13
             }
           },
           "max_speed": {
@@ -5742,6 +7167,20 @@
             "given": 1,
             "withheld": {}
           },
+          "burnout": {
+            "given": 1,
+            "withheld": {}
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "one_canopy": 1
+            }
+          },
+          "flight_time": {
+            "given": 1,
+            "withheld": {}
+          },
           "landing": {
             "given": 1,
             "withheld": {}
@@ -5750,10 +7189,14 @@
             "given": 1,
             "withheld": {}
           },
+          "main_descent": {
+            "given": 1,
+            "withheld": {}
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 1
+              "axis_unstated": 1
             }
           },
           "max_speed": {
@@ -5774,6 +7217,26 @@
               "short_pad": 1
             }
           },
+          "burnout": {
+            "given": 4,
+            "withheld": {
+              "short_pad": 1,
+              "transonic": 2
+            }
+          },
+          "drogue_descent": {
+            "given": 0,
+            "withheld": {
+              "one_canopy": 6,
+              "short_pad": 1
+            }
+          },
+          "flight_time": {
+            "given": 6,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
           "landing": {
             "given": 6,
             "withheld": {
@@ -5786,10 +7249,16 @@
               "short_pad": 1
             }
           },
+          "main_descent": {
+            "given": 6,
+            "withheld": {
+              "short_pad": 1
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "not_yet_taken": 7
+              "axis_unstated": 7
             }
           },
           "max_speed": {
@@ -5818,6 +7287,35 @@
               "unstated_sensor": 5
             }
           },
+          "burnout": {
+            "given": 2,
+            "withheld": {
+              "disturbed_top": 1,
+              "no_height_track": 9,
+              "receiver_lag": 2,
+              "transonic": 2,
+              "unstated_sensor": 5
+            }
+          },
+          "drogue_descent": {
+            "given": 3,
+            "withheld": {
+              "disturbed_top": 1,
+              "needs": 2,
+              "no_height_track": 9,
+              "one_canopy": 1,
+              "unstated_sensor": 5
+            }
+          },
+          "flight_time": {
+            "given": 4,
+            "withheld": {
+              "no_height_track": 9,
+              "receiver_dropout": 2,
+              "short_pad": 1,
+              "unstated_sensor": 5
+            }
+          },
           "landing": {
             "given": 4,
             "withheld": {
@@ -5836,11 +7334,20 @@
               "unstated_sensor": 5
             }
           },
+          "main_descent": {
+            "given": 4,
+            "withheld": {
+              "disturbed_top": 1,
+              "needs": 2,
+              "no_height_track": 9,
+              "unstated_sensor": 5
+            }
+          },
           "max_acceleration": {
             "given": 0,
             "withheld": {
-              "no_accelerometer": 19,
-              "not_yet_taken": 2
+              "axis_unstated": 2,
+              "no_accelerometer": 19
             }
           },
           "max_speed": {
@@ -5937,7 +7444,7 @@
       },
       {
         "reason": "sampled_too_slowly",
-        "records": 28,
+        "records": 31,
         "first": "061c084cf2d6155c",
         "invented": null
       },
@@ -5972,12 +7479,6 @@
         "invented": null
       },
       {
-        "reason": "not_yet_taken",
-        "records": 393,
-        "first": "013c6fd5d14cb8a1",
-        "invented": null
-      },
-      {
         "reason": "short_pad",
         "records": 157,
         "first": "00d315962a4eccb3",
@@ -5985,7 +7486,7 @@
       },
       {
         "reason": "clock_out_of_order",
-        "records": 6,
+        "records": 7,
         "first": "4ea3b7a8a4d4119c",
         "invented": null
       },
@@ -5993,6 +7494,30 @@
         "reason": "disturbed_top",
         "records": 76,
         "first": "073f4a6678b4bb0b",
+        "invented": null
+      },
+      {
+        "reason": "axis_unstated",
+        "records": 136,
+        "first": "02edef1d0ad13443",
+        "invented": null
+      },
+      {
+        "reason": "gravity_unstated",
+        "records": 10,
+        "first": "3126596d71a32b10",
+        "invented": null
+      },
+      {
+        "reason": "one_canopy",
+        "records": 185,
+        "first": "0040ac8c3e5af57b",
+        "invented": null
+      },
+      {
+        "reason": "short_leg",
+        "records": 11,
+        "first": "17f790bd96cb9241",
         "invented": null
       }
     ]

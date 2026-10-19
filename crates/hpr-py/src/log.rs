@@ -242,12 +242,14 @@ impl FlightLog {
     }
 
     /// The readings taken from the log on its own, as ``hpr analyze`` takes them: a dict of
-    /// ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration`` and ``landing``, each with
-    /// ``status`` ``"read"`` and its value, the bound its error stays within, the height track it
-    /// came from (``source``), whether it was measured or derived (``provenance``) and how it was
-    /// read (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``. Beside them,
-    /// how they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the
-    /// running median's ``median_window_s`` and ``peak_bound_m``, and ``pad_altitude_m``.
+    /// ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration``, ``burnout``, ``landing``,
+    /// ``flight_time``, ``drogue_descent`` and ``main_descent``, each with ``status`` ``"read"``
+    /// and its value, the bound its error stays within, the track it came from (``source``),
+    /// whether it was measured, derived or clipped (``provenance``) and how it was read
+    /// (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``. Beside them, how
+    /// they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the running
+    /// median's ``median_window_s`` and ``peak_bound_m``, ``pad_altitude_m``, and the axial
+    /// ``accelerometer`` the top acceleration and burnout came from, or ``None``.
     fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &readings::read(&self.log))
     }
