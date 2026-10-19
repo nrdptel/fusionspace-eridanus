@@ -1675,6 +1675,48 @@ charge that fired a second after it. The readings are taken from the altitude af
 [running median](glossary.md#running-median), which sets that pulse aside.
 [Reading a flight log](reading-a-flight-log.md) explains each reading, and how far to trust it.
 
+#### A log with an accelerometer
+
+A log with an accelerometer along the rocket's axis gives the top acceleration and burnout from
+it. This invented log, written by the `make.py` beside it, is of a 2 kg rocket whose motor pushes
+120 N, a tenth more at its crest, and stops 3.45 s into the log; its accelerometer writes, in g,
+what the part reads, gravity in:
+
+<!-- cli: example `hpr analyze validation/fixtures/logs/accelerometer/axial.csv`; written by `cargo xtask cli`; do not edit -->
+
+```text
+$ hpr analyze validation/fixtures/logs/accelerometer/axial.csv
+axial.csv: unknown
+no primary track: each channel on its own clock
+readings from the barometric altitude channel, sampled every 0.010 s in steps of 0.010 m, after a 0.30 s running median
+2 channels: Baro Alt AGL (m) (altitude above ground), Axial accel (g) (acceleration)
+
+liftoff           2.30 s, within 0.67 s
+apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft); at 9.91 s, within 0.80 s, 7.61 s after liftoff
+top speed         68.9 m/s (226 ft/s), within 20.7 m/s (68 ft/s), at 3.48 s, 55.9 m (183 ft) up: derived from the heights
+landing           40.77 s, within 1.82 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s)
+flight time       38.47 s, within 2.48 s
+drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), from the main's opening at 16.26 s, within 0.98 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
+top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s
+burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer
+
+How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
+reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
+rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
+standard; a reading the log can't support is withheld, with the reason. The top speed is derived
+from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
+nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
+decides.
+More: https://hpr.fusionspace.co/reading-a-flight-log.html
+```
+
+<!-- cli: end -->
+
+The top acceleration, 6.7 g, is the specific force, gravity's 1 g in: the rocket itself sped up at
+about 5.7 g. Burnout, 3.45 s within 0.07 s, is where the thrust's fall ends, the end of the
+motor's burn ([Flight-log readings](physics/log-readings.md#the-accelerometer)).
+
 #### A file of several records
 
 Some files hold more than one record, and `hpr analyze` reads one of them at a time, by its own
