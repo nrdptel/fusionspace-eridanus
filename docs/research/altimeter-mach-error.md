@@ -14,9 +14,9 @@ well-vented bay and can reach a hundred in a small one. Neither reaches a vented
   +110 m and +480 m of false altitude at sea level, about 7% less at 3 km. A free-flight fuselage vent read
   +470 m just past Mach 1 [N2] (§1–2).
 - **Behind the Mach-1 shock the sign flips.** At Mach 1.0 a shock stands 2.9 calibers behind the shoulder; a port
-  behind it reads 120–180 m low, and as the shock sweeps over a port indicated altitude drops about 410 m within
-  about 0.04 in Mach [N1], [N3]. **Inference:** that is the makers' "Mach dip"; PerfectFlite's placement rule,
-  4–5 calibers back, puts the port there (§1–3).
+  behind it reads 120–180 m low. The shock moves aft as Mach rises: as it passes a port, indicated altitude jumps
+  up about 410 m within about 0.04 in Mach, and drops as much coasting back [N1], [N3]. **Inference:** the low
+  reading and the drop are the makers' "Mach dip"; PerfectFlite's rule, 4–5 calibers back, puts the port there.
 - **No maker sizes the error.** Five of seven hold off or de-weight the barometer through Mach 1; none ties it to
   the vehicle; no hobby log sizes the dip (§3).
 - **A vent lags in two regimes (Inference).** In fast climb the hole carries orifice flow: the bay reads low by
@@ -72,9 +72,9 @@ Altitude error at sea level / 3 km, from the unrounded trace (+ reads high; ±0.
 | 4 calibers aft | +30 / +30 m | −140 / −130 m | (tunnel) | +180 / +170 m |
 | Fuselage vent [N2] | ≈0 | +470 / +440 m (1.01) | not read | +530 / +490 m (1.18) |
 
-- **The step.** A port aft of the Mach-1 shock sees pressure jump as the shock passes: the −0.04 to +0.03 step is
-  about −410 m at sea level, −390 m at 3 km, within about 0.04 in Mach [N3], which a rocket at 10 g gains in
-  about 0.14 s. Coasting back through Mach 1 replays it in reverse.
+- **The step.** The shock moves aft as Mach rises [N3] p. 9: a port goes from +0.03 to −0.04, jumping up about
+  410 m at sea level, 390 m at 3 km, within about 0.04 in Mach (0.14 s at 10 g), and drops as much coasting back
+  ([static-pressure-hobby-shapes](static-pressure-hobby-shapes.md) §2).
 - **At apogee it is gone:** Cp 0.05 at Mach 0.1 is about 3 m. It reaches a baro apogee only through filters,
   detection timing and lag (§4).
 
@@ -156,7 +156,7 @@ Three invented bays, inside diameter × free length with no sled: 38 × 150 mm (
 ## What this suggests
 
 1. **M7.4's "Mach baro error":** Δh = −0.7·M²·Cp(calibers aft, M)·R·T/g from §1's table, with port position as
-   an input: +100 to +480 m for a forward port, a −140 to −410 m step for one aft of the Mach-1 shock (§2).
+   an input: +100 to +480 m for a forward port, −140 m behind the Mach-1 shock, a 410 m step up as it passes (§2).
 2. **M7.4's "baro-port artifacts":** Λ = V/(Cd·A) for boost (Δh = (w·Λ/(n·H))²/(2g)) and a viscous τ scaling as
    1/p for apogee; a late and low peak (τ, g·τ²/2) marks a leak-only bay (§4–5).
 3. **M7.2's readings:** flag baro samples above about Mach 0.9, up and back down; don't withhold an apogee
