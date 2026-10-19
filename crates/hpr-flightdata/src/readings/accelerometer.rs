@@ -879,9 +879,9 @@ fn coast_level(
 /// withheld as a log that starts in the climb has it, [`BURN_LEAST_S`] after the log's start,
 /// `lifted`'s words naming which. A span that rises later is a drag after a thrust too weak to
 /// pass 2 g as written, or a second burn, and says nothing. A log whose liftoff is withheld may
-/// start after burnout, its drag at its start, so a span there says, but not `alone`. Read as written, a
-/// thrust under 3 g on a part that takes gravity out reads under 2 g, and says nothing: the pad
-/// must say.
+/// start after burnout, its drag at its start, so a span there says, but not `alone`. Read as
+/// written, a thrust under 3 g on a part that takes gravity out reads under 2 g, and says
+/// nothing: the pad must say.
 fn thrust_witness(
     time: &[f64],
     clean: &[f64],
