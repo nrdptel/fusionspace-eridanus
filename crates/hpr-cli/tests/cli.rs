@@ -3997,6 +3997,123 @@ fn analyze_reads_an_axial_accelerometer() {
     }
 }
 
+/// A top acceleration that is a floor says why (M7.2c): clipped at the part's range, held flat
+/// at its top below it, or cut off where the accelerometer ends in the thrust, so that it shows
+/// no end to it. Each an invented
+/// Fluctus export, whose family states a ±200 g part: a pad to 3 s, a thrust peaking at 3.5 s and
+/// burning out at 4.1 s, a coast to apogee, 98 m, at 8 s, and a descent at 10 m/s.
+#[test]
+fn analyze_says_why_a_top_acceleration_is_a_floor() {
+    const G: f64 = 9.806_65;
+    let height = |t: f64| {
+        let c = t - 3.0;
+        if c <= 0.0 {
+            0.0
+        } else if c < 1.0 {
+            2.0 * G * c * c
+        } else if c < 5.0 {
+            let d = c - 1.0;
+            2.0 * G + 4.0 * G * d - 0.5 * G * d * d
+        } else {
+            (10.0 * G - 10.0 * (c - 5.0)).max(0.0)
+        }
+    };
+    let force = |t: f64| {
+        if t < 3.0 {
+            G
+        } else if t < 4.0 {
+            5.0 * G + G * (std::f64::consts::PI * (t - 3.0)).sin()
+        } else if t < 4.1 {
+            5.0 * G - 5.6 * G * (t - 4.0) / 0.1
+        } else if t < 8.0 {
+            -0.6 * G * (8.0 - t) / 3.9
+        } else {
+            G
+        }
+    };
+    // Uniform noise in ±0.15 m/s², the same on every run.
+    let jitter = |k: u32| {
+        let x = (f64::from(k) * 12.9898).sin() * 43_758.545_3;
+        0.3 * (x - x.floor() - 0.5)
+    };
+    let folder = tempfile::tempdir().unwrap();
+    let write = |name: &str, end_s: f64, accel: &dyn Fn(u32, f64) -> f64| {
+        let mut file =
+            "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);vert-accel (m/s2)\n".to_owned();
+        for k in (0..).take_while(|k| f64::from(*k) * 0.02 <= end_s + 1e-9) {
+            let t = f64::from(k) * 0.02;
+            file.push_str(&format!(
+                "{};20;{};{:.4}\n",
+                k * 20,
+                height(t).round(),
+                accel(k, t)
+            ));
+        }
+        let path = folder.path().join(name);
+        std::fs::write(&path, file).unwrap();
+        path.to_str().unwrap().to_owned()
+    };
+    // Scaled to peak at 240 g, read as 200 g.
+    let at_range = write("range.csv", 30.0, &|_, t| {
+        if t < 3.0 {
+            G
+        } else {
+            (40.0 * (force(t) - G) + G).min(200.0 * G)
+        }
+    });
+    // Held at 5.5 g, far below the part's range.
+    let flat = write("flat.csv", 30.0, &|k, t| {
+        (force(t) + jitter(k)).min(5.5 * G)
+    });
+    // The accelerometer ends at 3.7 s, its thrust still rising.
+    let cut = write("cut.csv", 3.7, &|k, t| {
+        if t < 3.0 {
+            G + jitter(k)
+        } else {
+            3.0 * G + 3.0 * G * (t - 3.0) + jitter(k)
+        }
+    });
+    for (path, clip, said) in [
+        (
+            &at_range,
+            "range",
+            "; clipped at the part's range of 200.0 g, so the top may have been higher",
+        ),
+        (
+            &flat,
+            "flat",
+            "; held flat at its top, so it may have been clipped, and the top may have been \
+             higher",
+        ),
+        (
+            &cut,
+            "",
+            "; the accelerometer shows no end to the thrust, so the top may have been higher",
+        ),
+    ] {
+        let printed = text_ok(&["analyze", path]);
+        let line = printed
+            .lines()
+            .find(|line| line.starts_with("top acceleration"))
+            .unwrap_or_default();
+        assert!(
+            line.ends_with(said),
+            "{path}: {said:?} at the end of\n{printed}"
+        );
+        let document = json(&["analyze", path], 0, "analyze.schema.json");
+        let top = &document["max_acceleration"];
+        assert_eq!(top["status"], "read", "{path}: {top}");
+        assert_eq!(top["is_floor"], true, "{path}: {top}");
+        if clip.is_empty() {
+            assert!(top["clip"].is_null(), "{path}: {top}");
+            assert_eq!(top["provenance"], "measured", "{path}: {top}");
+        } else {
+            assert_eq!(top["clip"], clip, "{path}: {top}");
+            assert_eq!(top["provenance"], "clipped", "{path}: {top}");
+        }
+    }
+}
+
 /// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no
 /// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 #[test]

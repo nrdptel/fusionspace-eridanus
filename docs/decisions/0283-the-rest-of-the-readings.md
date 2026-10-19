@@ -1,7 +1,7 @@
 # ADR-283: The rest of the readings: an axial accelerometer settled by three witnesses, burnout where the thrust's fall ends, and the main found back from landing at the ground's density (2026-10-18)
 
-- **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set)
-- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee), and is a floor where the part clipped. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor at the top speed's time. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within its bound, and no main was named on a flight under one canopy, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 184, burnout on 435, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
+- **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set); amended 2026-10-19 for M7.2c
+- **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee), which way up it reads by the first span that holds past 2 g for 0.5 s, and is a floor where the part clipped, at its stated range or held flat, or where the accelerometer shows no end to the thrust. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor: the top speed's time less its bound. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within its bound, and no main was named on a flight under one canopy, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 183, burnout on 435, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
 
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
@@ -13,6 +13,7 @@
 [i781]: https://github.com/nrdptel/fusionspace-eridanus/issues/781
 [i787]: https://github.com/nrdptel/fusionspace-eridanus/issues/787
 [i789]: https://github.com/nrdptel/fusionspace-eridanus/issues/789
+[noise]: ../research/altimeter-sensor-noise.md
 
 **Context.** ADR-280's M7.2c row asks for the top acceleration from the accelerometer, marked clipped
 at the part's stated range; burnout, measured from the accelerometer or derived from the speed's
@@ -127,3 +128,44 @@ in a row fails with its rule put back.
   don't say which lies along the rocket, as a board's three axes don't. A magnitude of the three
   could serve a top acceleration but not burnout, and is left for later ([#781][i781]).
 - The methods, bounds and their tests are on [the readings' page][page].
+
+**Amendment for M7.2c, the rules as built (2026-10-19).** A review of the first build found that
+§1's turn-over could be set by a knock on the pad, that a top with no end to its thrust was given
+as measured, that `hpr analyze` named a range for a top that only held flat, and that no tuning
+flight tested clipping at a range. The rules as built now:
+
+1. **Which way up (§1).** The trace is turned over by the sign of the first span of the cleaned
+   trace, in either sign, that holds past 2 g for 0.5 s, searched from liftoff's earliest time as
+   the burns are (§3); where none holds that long, by the sign every span shares, a short burn's.
+   Where spans go both ways and none holds, or none passes 2 g, which way up can't be told: the top
+   acceleration and the accelerometer's burnout are withheld with a new reason,
+   `direction_unstated`, the 27th, and burnout comes from the top speed. A top or burnout earlier
+   than liftoff's earliest time is never given. `a_dip_on_the_pad_doesnt_turn_the_trace_over` and
+   `a_knock_with_its_rebound_first_doesnt_turn_the_trace_over` hold the rule on a dip to −3 g and a
+   knock whose rebound comes first. Of the sample logs, one Entacore AIM CSV record
+   (`f5df1597457a39ea`) is withheld so: the top acceleration is given on 183 records, not 184.
+2. **A thrust with no end (§3, §4).** A top whose last burn never falls through zero before the
+   accelerometer's samples end or apogee is a floor, `measured`: the log, or the accelerometer
+   alone, may stop while the motor still pushes. Burnout isn't read off it, and comes from the top
+   speed. The synthetic report counts this cause as `thrust_unended`; no tuning-set top reads so.
+   `an_accelerometer_that_ends_in_the_thrust_gives_its_top_as_a_floor` holds it.
+3. **Why a top clipped (§3).** A clipped top says why in a new field, `Clip` in the library and
+   `clip` in the JSON and Python: `range` where it reaches the part's stated range, within two
+   steps and 0.25 g, or `flat` where it holds flat at its top below that range or with none
+   stated. `hpr analyze` names the part's range only for `range`.
+4. **Clipping on the tuning set (§7; Consequences).** The tuning set gains a log of each of the
+   500 Hz IMU profile's 38 flights with its low-g part set to ±8 g, a full scale the BMX160 and the
+   MPU-6000 offer on the same 16 bits ([the sensor noise note][noise]). 28 of their true tops reach
+   that range and 10 don't; 28 tops read as clipped at the range, each a floor that holds, and the
+   4 held flat stay on the AltOS-like profile's high-g part read at 20 Hz. So clipping at a range
+   is held on the tuning set for the low-g part, and only by unit tests for the high-g part's
+   ±180 g. With the new log the [report][report] gives the top acceleration on 290 logs and as a
+   floor on 32, and burnout from the accelerometer on 300, its mean bound 0.582 s; no reading's
+   largest share of its bound changed. `a_part_set_to_its_lower_range_clips_there` holds the log.
+5. **One canopy (§6), as the code states it.** A drogue no faster than the main's mark at the
+   ground's density reads as one canopy, whatever its ratio to the main: the walk back from
+   landing never leaves the main's run, which then reaches apogee, and the main's descent is the
+   whole descent's. Debrief's ratio of 1.4 is a second test the drogue must also pass, not the one
+   that decides (`close_rates_are_one_canopy`: a drogue at 12 m/s over a main at 10 m/s, whose
+   mark is 16 m/s). The rate's running median is taken in samples at the descent's median
+   interval, never more than the descent holds.

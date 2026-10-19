@@ -5131,9 +5131,10 @@
             }
           },
           "max_acceleration": {
-            "given": 15,
+            "given": 14,
             "withheld": {
-              "clock_out_of_order": 1
+              "clock_out_of_order": 1,
+              "direction_unstated": 1
             }
           },
           "max_speed": {
@@ -7506,6 +7507,12 @@
         "reason": "gravity_unstated",
         "records": 10,
         "first": "3126596d71a32b10",
+        "invented": null
+      },
+      {
+        "reason": "direction_unstated",
+        "records": 1,
+        "first": "f5df1597457a39ea",
         "invented": null
       },
       {

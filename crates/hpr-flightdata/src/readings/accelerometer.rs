@@ -12,10 +12,14 @@
 //! the trace cleaned by a Hampel filter over [`SPIKE_WINDOW_S`] at [`SPIKE_THRESHOLD`]
 //! ([`hampel`]), which takes out a spike narrower than half its window, a charge's shock or one
 //! bad sample, and keeps a step or a steady run as it was. The readings are turned over where the
-//! cleaned trace's first excursion past [`LIFTOFF_ACCELERATION_M_S2`] is negative: a pad reads 1 g
-//! or 0 either way up, and a rocket leaves it at 3 g or more, so the first such excursion is the
-//! thrust's, as a part mounted nose down writes it, while a canopy's shock later, however large,
-//! is not. Gravity's 1 g is put back where the logger took it out. Three witnesses say whether it
+//! thrust reads negative: the first span of the cleaned trace, either way up, from liftoff's
+//! earliest time, that holds past [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], found as
+//! the burns are (below), or, where none holds that long, every such span, if they all go one
+//! way ([`thrust_sign`]). A pad reads 1 g or 0 either way up, and a rocket leaves it at 3 g or
+//! more, so that span is the thrust's, as a part mounted nose down writes it, while a knock on
+//! the pad, either way, holds too briefly, and a canopy's shock later, however large, comes after
+//! it. Spans both ways where none holds, or none, withhold both readings
+//! ([`Reason::DirectionUnstated`]). Gravity's 1 g is put back where the logger took it out. Three witnesses say whether it
 //! did, each within [`GRAVITY_TOLERANCE_G`]: the family's word; the pad, where about 1 g holds
 //! gravity and about 0 doesn't; and the coast's last [`COAST_SPAN_S`] before apogee, where a
 //! rocket falls freely but for a small drag, so about 0 holds gravity and about −1 g doesn't. The
@@ -34,12 +38,15 @@
 //! it moves is a knock on the pad, or from the log's start where liftoff is withheld; with no
 //! burn, from there to apogee. In a burn the reading is the thrust less
 //! the drag, over the mass. A charge or a canopy's shock in a coast lies outside the burns, and
-//! isn't taken for the top. The top is read off the samples, not the cleaned trace. It is clipped
-//! where it reaches the part's range, as the family states it, or holds flat at its top for
-//! [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], within [`FLAT_TOP_SHARE`] of it or
-//! [`FLAT_TOP_M_S2`], as Debrief tells a part that clipped (`lib/analyze/index.ts`, MIT, the
-//! project owner's own); HPR Sim narrows that to half the part's noise where it is quieter, never
-//! below half a step ([`flat_top`]).
+//! isn't taken for the top. The top is read off the samples, not the cleaned trace. It is clipped,
+//! two causes kept apart ([`Clip`]), where it reaches the part's range, as the family states it,
+//! or else holds flat at its top for [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], within
+//! [`FLAT_TOP_SHARE`] of it or [`FLAT_TOP_M_S2`], as Debrief tells a part that clipped
+//! (`lib/analyze/index.ts`, MIT, the project owner's own); HPR Sim narrows that to half the
+//! part's noise where it is quieter, never below half a step ([`flat_top`]). A clipped top is a
+//! floor, and so is one whose last burn never falls through zero before the accelerometer ends
+//! or apogee: the thrust doesn't end on the channel, so the top may lie past its samples, and
+//! burnout isn't read off it. Neither the top nor burnout comes before liftoff's earliest time.
 //!
 //! **Burnout.** In the climb an accelerometer reads `(T − D)/m`: positive while the thrust beats
 //! the drag, below zero once it doesn't, and after burnout `−D/m`, which eases as the coast slows.
@@ -72,7 +79,7 @@
 
 use super::{
     ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, BURN_LEAST_S,
-    BURNOUT_MEAN_S, Burnout, COAST_SPAN_S, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES,
+    BURNOUT_MEAN_S, Burnout, COAST_SPAN_S, Clip, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES,
     FLAT_TOP_SHARE, GRAVITY_TOLERANCE_G, Gravity, GravityBy, LIFTOFF_ACCELERATION_M_S2,
     MIN_INTERVAL_S, MaxAcceleration, Method, NOISE_SPAN_S, PAD_MIN_SAMPLES, Provenance,
     RAIL_TILT_DEG, Reading, Readings, Reason, SPEED_NOISE_M_S, SPEED_WINDOW_S, SPIKE_THRESHOLD,
@@ -85,6 +92,10 @@ use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 /// The column the synthetic flights' loggers write their axial accelerometer under
 /// (`hpr_forensics::synthetic::logger`), gravity in.
 pub const SYNTHETIC_COLUMN: &str = "Axial acceleration (synthetic)";
+
+/// The column the synthetic flights' IMU-like logger writes its axial accelerometer under, gravity
+/// in, when its part is set to ±8 g (`hpr_forensics::synthetic::logger::LOWER_RANGE_G`).
+pub const SYNTHETIC_LOWER_RANGE_COLUMN: &str = "Axial acceleration, ±8 g (synthetic)";
 
 /// What a family states of its axial accelerometer.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -107,6 +118,8 @@ pub(super) fn family(format: LogFormat, column: &str) -> Option<Axial> {
         // stated range, ±180 g; the IMU like Blue Raven's ±32 g.
         (F::AltosCsv, SYNTHETIC_COLUMN) => axial(Some(In), Some(180.0)),
         (F::BlueRavenCsv, SYNTHETIC_COLUMN) => axial(Some(In), Some(32.0)),
+        // The same IMU set to ±8 g, as the BMX160 and the MPU-6000 can be.
+        (F::BlueRavenCsv, SYNTHETIC_LOWER_RANGE_COLUMN) => axial(Some(In), Some(8.0)),
         // AltOS's `acceleration` is along the flight path, its ground reading taken out; the
         // part varies by board (MMA2202, ADXL78, MMA6555, ADXL375).
         (
@@ -141,22 +154,20 @@ pub(super) fn family(format: LogFormat, column: &str) -> Option<Axial> {
     }
 }
 
-/// The channel with each sample that repeats the time before it left out, the first at each time
-/// kept: AltOS writes rows that share a time with the row before, and its primary track keeps the
-/// first, as Debrief does (`lib/flight/build.ts`). A clock that runs back is left for
-/// [`clocked`] to refuse.
+/// The channel with each sample that has no time left out, and each that repeats the time of the
+/// last kept, the first at each time kept: AltOS writes rows that share a time with the row
+/// before, and its primary track keeps the first, as Debrief does (`lib/flight/build.ts`). A
+/// clock that runs back is left for [`clocked`] to refuse.
 fn first_at_each_time(channel: &Channel) -> Channel {
     let mut kept = channel.clone();
-    let (time_s, values): (Vec<f64>, Vec<f64>) = channel
-        .time_s
-        .iter()
-        .zip(&channel.values)
-        .enumerate()
-        .filter(|(k, (t, _))| *k == 0 || channel.time_s[k - 1] != **t)
-        .map(|(_, (t, v))| (*t, *v))
-        .unzip();
-    kept.time_s = time_s;
-    kept.values = values;
+    kept.time_s.clear();
+    kept.values.clear();
+    for (&t, &value) in channel.time_s.iter().zip(&channel.values) {
+        if t.is_finite() && kept.time_s.last() != Some(&t) {
+            kept.time_s.push(t);
+            kept.values.push(value);
+        }
+    }
     kept
 }
 
@@ -268,21 +279,29 @@ pub(super) fn read(
     // The trace with its spikes taken out, to find the thrust's start and end and burnout on: a
     // charge's shock or one bad sample would otherwise turn the trace over or end the thrust.
     let clean = hampel(&raw, half_window(SPIKE_WINDOW_S, interval), SPIKE_THRESHOLD);
-    // Turned over where the thrust reads negative: the cleaned trace's first excursion past
-    // [`LIFTOFF_ACCELERATION_M_S2`] is the thrust's, as a pad reads 1 g or 0 either way up and a
-    // rocket leaves it at 3 g or more; failing one, the climb's largest cleaned reading.
-    let first = boost
-        .iter()
-        .copied()
-        .find(|&k| clean[k].abs() >= LIFTOFF_ACCELERATION_M_S2);
-    let largest = first.unwrap_or_else(|| {
-        boost
-            .iter()
-            .copied()
-            .max_by(|a, b| clean[*a].abs().total_cmp(&clean[*b].abs()))
-            .unwrap_or(boost[0])
+    // The thrust is searched from liftoff's earliest time by the heights, or the log's start
+    // where liftoff is withheld: a rocket at rest reads 1 g, so anything more before it moves is
+    // the pad's, a knock or a bump.
+    let end = boost.last().copied().unwrap_or(0);
+    let earliest_s = heights
+        .liftoff
+        .value()
+        .map(|liftoff| liftoff.time_s - liftoff.bound_s);
+    let from = earliest_s.map_or(0, |earliest_s| {
+        time[..=end].partition_point(|t| *t < earliest_s).min(end)
     });
-    let sign = if clean[largest] < 0.0 { -1.0 } else { 1.0 };
+    let half_mean = half_window(BURNOUT_MEAN_S, interval);
+    // Turned over where the thrust reads negative, the thrust found as the burns are (below), on
+    // the cleaned trace as written, either way up.
+    let sign = match thrust_sign(&clean, from, end, half_mean, interval) {
+        Ok(sign) => sign,
+        Err(detail) => {
+            return withheld(
+                Reason::DirectionUnstated,
+                format!("the accelerometer `{}` {detail}", channel.column),
+            );
+        }
+    };
     let g = STANDARD_GRAVITY_MPS2;
     let tolerance = GRAVITY_TOLERANCE_G * g;
     // The pad, on the accelerometer's own trace: a rocket at rest reads a steady level, which
@@ -401,53 +420,33 @@ pub(super) fn read(
         sample_interval_s: interval,
         step_m_s2: step,
     };
-    // The burns: each from a cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
-    // cleaned trace's mean next falls through zero, or apogee if it doesn't, that holds past there
-    // for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't, or the first such span
-    // where none does. They are searched from liftoff's earliest time by the heights, or the
-    // log's start where liftoff is withheld: a rocket at rest reads 1 g, so anything more before
-    // it moves is the pad's, a knock or a bump. The top is searched over the burns, so a shock in
-    // a coast isn't taken for it, nor a bump on the pad; with no burn, from there to apogee.
-    let mean = running_mean(&f_clean, half_window(BURNOUT_MEAN_S, interval));
-    let end = boost.last().copied().unwrap_or(0);
-    let from = match &heights.liftoff {
-        Reading::Read(liftoff) => {
-            let earliest = liftoff.time_s - liftoff.bound_s;
-            time[..=end].partition_point(|t| *t < earliest).min(end)
-        }
-        Reading::Withheld(_) => 0,
-    };
-    let mut spans: Vec<(usize, usize)> = Vec::new();
-    let mut burns: Vec<(usize, usize)> = Vec::new();
-    let mut next = from;
-    while let Some(rise) = (next..=end).find(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2) {
-        let fall = (rise + 1..=end).find(|&k| mean[k] <= 0.0);
-        let span = (rise, fall.unwrap_or(end));
-        #[expect(
-            clippy::cast_precision_loss,
-            reason = "a count of samples converts exactly"
-        )]
-        let held_s = (span.0..=span.1)
-            .filter(|&k| f_clean[k] >= LIFTOFF_ACCELERATION_M_S2)
-            .count() as f64
-            * interval;
-        spans.push(span);
-        if held_s >= BURN_LEAST_S {
-            burns.push(span);
-        }
-        match fall {
-            Some(fall) => next = fall + 1,
-            None => break,
-        }
-    }
+    // The burns: each a span of the cleaned trace past [`LIFTOFF_ACCELERATION_M_S2`] ([`spans`])
+    // that holds past there for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't, or
+    // the first such span where none does, searched from liftoff's earliest time. The top is
+    // searched over the burns, so a shock in a coast isn't taken for it, nor a bump on the pad.
+    let mean = running_mean(&f_clean, half_mean);
+    let spans = spans(&f_clean, &mean, from, end, interval);
+    let mut burns: Vec<Span> = spans
+        .iter()
+        .copied()
+        .filter(|span| span.held_s >= BURN_LEAST_S)
+        .collect();
     // A motor that holds past there for less, a short burn's, is the first such span.
     if burns.is_empty() {
         burns.extend(spans.first());
     }
+    // Whether the thrust ends on the channel: the last burn's mean falls through zero before
+    // apogee. Where it doesn't, the accelerometer ends in the thrust, or the thrust runs on to
+    // apogee, so the top may lie past the samples. Never without a burn: the thrust's direction
+    // was found on one.
+    let ended = burns.last().is_some_and(|burn| burn.falls);
     let thrust: Vec<usize> = if burns.is_empty() {
         (from..=end).collect()
     } else {
-        burns.iter().flat_map(|&(rise, fall)| rise..=fall).collect()
+        burns
+            .iter()
+            .flat_map(|burn| burn.rise..=burn.fall)
+            .collect()
     };
     let top_index = thrust
         .iter()
@@ -486,16 +485,25 @@ pub(super) fn read(
         + step
         + jump;
     let range_m_s2 = stated.range_g.map(|range| range * g);
-    let at_range = range_m_s2.is_some_and(|range| top >= range - 2.0 * step - tolerance);
-    let flat = flat_top(&f, &thrust, top, interval, noise_m_s2, step);
+    // Clipped at the stated range, or held flat at the top short of it or with no range stated:
+    // two causes, kept apart, as the first says the part read no more and the second only that
+    // it may have clipped.
+    let clip = if range_m_s2.is_some_and(|range| top >= range - 2.0 * step - tolerance) {
+        Some(Clip::Range)
+    } else if flat_top(&f, &thrust, top, interval, noise_m_s2, step) {
+        Some(Clip::Flat)
+    } else {
+        None
+    };
     let max_acceleration = Reading::Read(MaxAcceleration {
         acceleration_m_s2: top,
         bound_m_s2,
         time_s: time[top_index],
         range_m_s2,
-        is_floor: at_range || flat,
+        is_floor: clip.is_some() || !ended,
+        clip,
         source: Source::Accelerometer,
-        provenance: if at_range || flat {
+        provenance: if clip.is_some() {
             Provenance::Clipped
         } else {
             Provenance::Measured
@@ -504,16 +512,36 @@ pub(super) fn read(
     });
     // Burnout is the thrust's end. After more than one burn the tuning set, whose flights burn
     // once, holds no bound for it; burnout from the speed's peak, which comes no later than the
-    // last burn's end, stands instead.
+    // last burn's end, stands instead. Nor is it read where the thrust doesn't end on the
+    // channel, or where it would come before liftoff's earliest time.
     let read = match burns.as_slice() {
-        [_, .., (rise, _)] => Err(format!(
+        [_, .., last] => Err(format!(
             "the accelerometer shows {} burns, the last rising past {:.0} g at {:.2} s: burnout \
              is read from a flight that burns once",
             burns.len(),
             LIFTOFF_ACCELERATION_M_S2 / g,
-            time[*rise]
+            time[last.rise]
         )),
-        _ => burnout(&time, &f, &mean, end, top_index, step, interval),
+        _ if !ended => Err(format!(
+            "the accelerometer's thrust, past {:.0} g from {:.2} s, never falls through zero \
+             before {}: the thrust doesn't end on the channel, so it shows no burnout",
+            LIFTOFF_ACCELERATION_M_S2 / g,
+            burns.first().map_or(time[from], |burn| time[burn.rise]),
+            if end + 1 == time.len() {
+                "the accelerometer's last sample"
+            } else {
+                "apogee"
+            }
+        )),
+        _ => burnout(&time, &f, &mean, end, top_index, step, interval).and_then(
+            |(time_s, bound_s)| match earliest_s {
+                Some(earliest_s) if time_s < earliest_s => Err(format!(
+                    "the accelerometer's burnout, {time_s:.2} s, would come before liftoff's \
+                     earliest time by the heights, {earliest_s:.2} s"
+                )),
+                _ => Ok((time_s, bound_s)),
+            },
+        ),
     };
     let burnout = match read {
         Ok((time_s, bound_s)) => Reading::Read(Burnout {
@@ -610,6 +638,105 @@ fn running_mean(values: &[f64], half: usize) -> Vec<f64> {
             window.iter().sum::<f64>() / count
         })
         .collect()
+}
+
+/// A span of a trace past [`LIFTOFF_ACCELERATION_M_S2`]: from the sample `rise` past it to the
+/// sample `fall` where the trace's running mean next falls through zero, or the search's end if
+/// it doesn't.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Span {
+    /// The first sample past [`LIFTOFF_ACCELERATION_M_S2`].
+    rise: usize,
+    /// Where the mean next falls through zero, or the search's end.
+    fall: usize,
+    /// Whether the mean falls through zero before the search's end.
+    falls: bool,
+    /// How long the trace holds past [`LIFTOFF_ACCELERATION_M_S2`] over the span, s: its samples
+    /// there, an interval each.
+    held_s: f64,
+}
+
+/// The spans of `values` past [`LIFTOFF_ACCELERATION_M_S2`] from sample `from` to `end`, each
+/// ending where `mean`, the trace's running mean, next falls through zero, the next searched
+/// from after it; at `interval`.
+fn spans(values: &[f64], mean: &[f64], from: usize, end: usize, interval: f64) -> Vec<Span> {
+    let mut spans = Vec::new();
+    let mut next = from;
+    while let Some(rise) = (next..=end).find(|&k| values[k] >= LIFTOFF_ACCELERATION_M_S2) {
+        let fall = (rise + 1..=end).find(|&k| mean[k] <= 0.0);
+        let to = fall.unwrap_or(end);
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "a count of samples converts exactly"
+        )]
+        let held_s = (rise..=to)
+            .filter(|&k| values[k] >= LIFTOFF_ACCELERATION_M_S2)
+            .count() as f64
+            * interval;
+        spans.push(Span {
+            rise,
+            fall: to,
+            falls: fall.is_some(),
+            held_s,
+        });
+        match fall {
+            Some(fall) => next = fall + 1,
+            None => break,
+        }
+    }
+    spans
+}
+
+/// Which way up the accelerometer reads, +1 nose up or −1 nose down, from its cleaned trace
+/// `clean` as written, its samples `from` to `end` at `interval`, averaged over `half` samples
+/// either side to end a span: the sign of the first span, either way up, that holds past
+/// [`LIFTOFF_ACCELERATION_M_S2`] for [`BURN_LEAST_S`], as a thrust does and a knock on the pad
+/// doesn't, whichever way it reads; where none holds that long, the sign every span shares, a
+/// short burn's. A pad reads 1 g or 0 either way up and a rocket leaves it at 3 g or more, so a
+/// thrust passes 2 g either way. Where spans go both ways and none holds, or none passes 2 g, the
+/// thrust can't be told, and the words say why.
+fn thrust_sign(
+    clean: &[f64],
+    from: usize,
+    end: usize,
+    half: usize,
+    interval: f64,
+) -> Result<f64, String> {
+    let walk = |sign: f64| {
+        let values: Vec<f64> = clean.iter().map(|v| sign * v).collect();
+        let mean = running_mean(&values, half);
+        spans(&values, &mean, from, end, interval)
+    };
+    let (up, down) = (walk(1.0), walk(-1.0));
+    let held = |spans: &[Span]| {
+        spans
+            .iter()
+            .find(|span| span.held_s >= BURN_LEAST_S)
+            .map(|span| span.rise)
+    };
+    match (held(&up), held(&down)) {
+        (Some(up), Some(down)) => Ok(if down < up { -1.0 } else { 1.0 }),
+        (Some(_), None) => Ok(1.0),
+        (None, Some(_)) => Ok(-1.0),
+        (None, None) => match (up.is_empty(), down.is_empty()) {
+            (false, true) => Ok(1.0),
+            (true, false) => Ok(-1.0),
+            (false, false) => Err(format!(
+                "reads past {:.0} g both ways up, {} times nose up and {} nose down, and never \
+                 for {BURN_LEAST_S} s, as a thrust holds: which way up it reads, and so the \
+                 thrust, can't be told from a knock",
+                LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2,
+                up.len(),
+                down.len()
+            )),
+            (true, true) => Err(format!(
+                "never reads past {:.0} g either way up from liftoff's earliest time to apogee, \
+                 as a rocket leaving the pad does: which way up it reads, and so the thrust, \
+                 can't be told",
+                LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2
+            )),
+        },
+    }
 }
 
 /// Burnout from the accelerometer: its time and bound, or why the accelerometer gives none. `f`
@@ -1426,6 +1553,222 @@ mod tests {
         assert!(error.contains("too little drag"), "{error}");
         // The same at 0.6 g reads.
         assert!(try_burnout(0.6, true).is_ok());
+    }
+
+    /// Which way up a part reads can't be told where its trace never passes 2 g from liftoff's
+    /// earliest time to apogee, or passes it both ways up and never holds there for
+    /// [`BURN_LEAST_S`]: the top and the accelerometer's burnout are withheld as
+    /// [`Reason::DirectionUnstated`], and burnout falls back to the top speed's floor.
+    #[test]
+    fn a_trace_that_shows_no_thrust_either_way_up_is_withheld() {
+        let pulse = |t: f64, at: f64| {
+            if (at..at + 0.2).contains(&t) {
+                4.0 * G
+            } else {
+                0.0
+            }
+        };
+        for (case, trace) in [
+            ("flat", Box::new(|_: f64| G) as Box<dyn Fn(f64) -> f64>),
+            (
+                "both ways",
+                // 5 g for 0.2 s in the thrust, then −5 g for 0.2 s in the coast.
+                Box::new(move |t: f64| G + pulse(t, 3.4) - 1.5 * pulse(t, 5.0)),
+            ),
+        ] {
+            let readings = read_all(&log(
+                LogFormat::GenericTable,
+                "Axial accel",
+                0.01,
+                |k, t| trace(t) + jitter(k, 0.3),
+            ));
+            assert_eq!(
+                readings.max_acceleration.reason(),
+                Some(Reason::DirectionUnstated),
+                "{case}"
+            );
+            let burnout = readings.burnout.value().unwrap();
+            assert_eq!(burnout.method, Method::SpeedPeak, "{case}");
+            assert!(burnout.is_floor, "{case}");
+        }
+    }
+
+    /// A dip on the pad, to −3 g over 0.3 s at 1 s, doesn't turn the trace over: it never holds
+    /// past 2 g for [`BURN_LEAST_S`], and the thrust after it does. So on a column that holds
+    /// gravity and on AltOS's, which takes it out, the top and burnout are the thrust's.
+    #[test]
+    fn a_dip_on_the_pad_doesnt_turn_the_trace_over() {
+        let dipped = |t: f64| {
+            if (1.0..1.3).contains(&t) {
+                G - 4.0 * G * (std::f64::consts::PI * (t - 1.0) / 0.3).sin()
+            } else {
+                specific_force(t)
+            }
+        };
+        for (format, column, out_m_s2) in [
+            (LogFormat::GenericTable, "Axial accel", 0.0),
+            (LogFormat::AltosCsv, "acceleration", G),
+        ] {
+            let readings = read_all(&log(format, column, 0.01, |k, t| {
+                dipped(t) - out_m_s2 + jitter(k, 0.3)
+            }));
+            let accelerometer = readings.accelerometer.as_ref().unwrap();
+            assert!(!accelerometer.turned_over, "{column}: {accelerometer:?}");
+            let top = readings.max_acceleration.value().unwrap();
+            assert!(
+                (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+                "{column}: {top:?}"
+            );
+            assert!((top.time_s - 3.5).abs() < 0.1, "{column}: {top:?}");
+            let burnout = readings.burnout.value().unwrap();
+            assert_eq!(burnout.method, Method::LeastAfterThrust, "{column}");
+            assert!(
+                (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+                "{column}: {burnout:?}"
+            );
+        }
+    }
+
+    /// A knock on the pad with its rebound first, −2.5 g for 0.15 s at 2.5 s and then 4 g for
+    /// 0.15 s, inside liftoff's bound: neither holds past 2 g for [`BURN_LEAST_S`], so the trace
+    /// isn't turned over, and the top and burnout are the thrust's, neither before liftoff's
+    /// earliest time.
+    #[test]
+    fn a_knock_with_its_rebound_first_doesnt_turn_the_trace_over() {
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.01,
+            |k, t| {
+                let value = if (2.5..2.65).contains(&t) {
+                    -2.5 * G
+                } else if (2.65..2.8).contains(&t) {
+                    4.0 * G
+                } else {
+                    specific_force(t)
+                };
+                value + jitter(k, 0.3)
+            },
+        ));
+        assert!(!readings.accelerometer.as_ref().unwrap().turned_over);
+        let liftoff = readings.liftoff.value().unwrap();
+        let earliest = liftoff.time_s - liftoff.bound_s;
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        assert!(top.time_s >= earliest.max(3.0), "{top:?}, {liftoff:?}");
+        let burnout = readings.burnout.value().unwrap();
+        assert_eq!(burnout.method, Method::LeastAfterThrust, "{burnout:?}");
+        assert!(
+            (burnout.time_s - 4.1).abs() <= burnout.bound_s,
+            "{burnout:?}"
+        );
+        assert!(burnout.time_s >= earliest, "{burnout:?}, {liftoff:?}");
+        assert!(
+            burnout
+                .time_after_liftoff_s
+                .is_some_and(|after| after > 0.0),
+            "{burnout:?}"
+        );
+    }
+
+    /// An accelerometer that ends in the thrust, still rising from 3 g to 6 g, gives its top as a
+    /// floor: the thrust never falls through zero on the channel, so the top may have been
+    /// higher, and burnout isn't read off it. So whether the whole log ends at 3.7 s or only the
+    /// accelerometer does.
+    #[test]
+    fn an_accelerometer_that_ends_in_the_thrust_gives_its_top_as_a_floor() {
+        let rising = |t: f64| {
+            if t < 3.0 {
+                G
+            } else {
+                3.0 * G + 3.0 * G * (t - 3.0)
+            }
+        };
+        for whole in [true, false] {
+            let mut log = log(LogFormat::GenericTable, "Axial accel", 0.01, |k, t| {
+                rising(t) + jitter(k, 0.3)
+            });
+            let cut = |time_s: &[f64]| time_s.partition_point(|t| *t <= 3.7 + 1e-9);
+            let channel = &mut log.channels[0];
+            let kept = cut(&channel.time_s);
+            channel.time_s.truncate(kept);
+            channel.values.truncate(kept);
+            if whole {
+                let kept = cut(&log.time_s);
+                log.time_s.truncate(kept);
+                log.altitude_m.truncate(kept);
+            }
+            let readings = read_all(&log);
+            let top = readings.max_acceleration.value().unwrap();
+            assert!(top.is_floor, "whole {whole}: {top:?}");
+            assert_eq!(top.provenance, Provenance::Measured, "whole {whole}");
+            // The reading less its bound lies below the thrust where the channel ends.
+            assert!(
+                top.acceleration_m_s2 - top.bound_m_s2 <= rising(3.7),
+                "whole {whole}: {top:?}"
+            );
+            assert!(
+                readings
+                    .burnout
+                    .value()
+                    .is_none_or(|burnout| burnout.method != Method::LeastAfterThrust),
+                "whole {whole}: {:?}",
+                readings.burnout
+            );
+        }
+    }
+
+    /// The top's bound holds the jump to the next sample either side: a peak of 10 g, 0.1 s wide,
+    /// between two samples 0.05 s apart that read 7 g, is within the bound of the reading.
+    #[test]
+    fn a_peak_between_two_samples_is_within_the_jump() {
+        let peaked = |t: f64| {
+            if (3.0..4.0).contains(&t) {
+                4.0 * G + 6.0 * G * (1.0 - (t - 3.525).abs() / 0.05).max(0.0)
+            } else if (4.0..4.1).contains(&t) {
+                4.0 * G - 4.6 * G * (t - 4.0) / 0.1
+            } else {
+                specific_force(t)
+            }
+        };
+        let readings = read_all(&log(
+            LogFormat::GenericTable,
+            "Axial accel",
+            0.05,
+            |k, t| peaked(t) + jitter(k, 0.3),
+        ));
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(top.acceleration_m_s2 < 7.1 * G, "{top:?}");
+        assert!(
+            (top.acceleration_m_s2 - 10.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+    }
+
+    /// A sample with no time, then one that repeats the time before it: the sample with no time
+    /// is left out, and the repeat with it, as the time it repeats is the last kept.
+    #[test]
+    fn a_repeat_after_a_sample_with_no_time_is_left_out() {
+        let mut log = log(LogFormat::GenericTable, "Axial accel", 0.01, |k, t| {
+            specific_force(t) + jitter(k, 0.3)
+        });
+        let channel = &mut log.channels[0];
+        let k = channel.time_s.iter().position(|t| *t >= 3.5).unwrap();
+        let repeated = channel.time_s[k];
+        channel.time_s.splice(k + 1..k + 1, [f64::NAN, repeated]);
+        channel.values.splice(k + 1..k + 1, [100.0 * G, 100.0 * G]);
+        let kept = first_at_each_time(&log.channels[0]);
+        assert_eq!(kept.time_s.len(), log.channels[0].time_s.len() - 2);
+        assert!(kept.time_s.iter().all(|t| t.is_finite()));
+        let readings = read_all(&log);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
     }
 
     /// The noise of a straight line is 0; of uniform noise, its σ within a few percent.

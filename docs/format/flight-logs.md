@@ -146,10 +146,11 @@ gives none ([Flight-log readings](../physics/log-readings.md#the-height-track)).
 flight time and each canopy's descent, and an accelerometer column the reader names as the
 rocket's axis gives the top acceleration and burnout: AltOS's `acceleration`, the Raven's and Blue
 Raven's `Axial Accel (Gs)`, the Eggtimer's `Accel`, the ARTS2's `Acc`, among others. A board's
-three axes don't say which lies along the rocket, so they give neither
-([the accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's
-report counts the readings each family gives and withholds
-([how it was checked](#how-it-was-checked)).
+three axes don't say which lies along the rocket, so they give neither, and an axial column that
+never reads past 2 g either way up can't say which way up it reads (`direction_unstated`), as one
+Entacore AIM CSV record of the sample logs doesn't
+([the accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's report counts
+the readings each family gives and withholds ([how it was checked](#how-it-was-checked)).
 
 Written for [M7.1a](../decisions-and-roadmap.md#m7-1a) (the record, the survey of the sample
 logs, and the PerfectFlite, AltOS and Raven readers), as

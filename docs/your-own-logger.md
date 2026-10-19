@@ -276,9 +276,9 @@ apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft); at 9.90
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           37.40 s, within 1.46 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
 flight time       36.00 s, within 2.55 s
-drogue descent    withheld: the descent's rate never changes enough to tell a second canopy: the rocket came down under one, or under two whose rates are closer than 1.4 to one (the main's near the ground: 10.0 m/s)
+drogue descent    withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 16.0 m/s up to the main's opening, the mark 1.6 times the rate near the ground, 10.0 m/s, or 3 m/s more if that is more, and on median faster than 1.4 times that rate: the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one, and the main's descent is the whole descent's, from apogee
 main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), from apogee at 9.90 s to landing at 37.40 s, 273.0 m (896 ft) to 0.7 m (2 ft) up
-top acceleration  withheld: the accelerometer `Axial Accel (Gs)`'s family doesn't say whether its readings hold gravity; the log holds no pad to tell by; its coast to apogee reads 1.00 g (0 holds gravity, −1 g doesn't): within 0.25 g, they don't settle it, or disagree
+top acceleration  withheld: the accelerometer `Axial Accel (Gs)` never reads past 2 g either way up from liftoff's earliest time to apogee, as a rocket leaving the pad does: which way up it reads, and so the thrust, can't be told
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
@@ -449,7 +449,9 @@ layout that fails raises `HprError` naming the field or the column, in the comma
 `drogue_descent` and `main_descent`, each reading with its `status`, `"read"` or `"withheld"`. A
 reading read holds its value, its bound (`bound_m` for a height, `bound_s` for a time,
 `bound_m_s` for a speed or a descent rate, `bound_m_s2` for the top acceleration), its `source`,
-its `provenance` and its `method`; one withheld holds its `reason` and a `detail` in words.
+its `provenance` and its `method`. The apogee, the top acceleration and burnout also say whether
+each is a [floor](glossary.md#floor), `is_floor`, and the top acceleration why it clipped, `clip`:
+`"range"`, `"flat"` or `None`. A reading withheld holds its `reason` and a `detail` in words.
 Beside them, the track's `source`, `sample_interval_s` and `step_m`, the median's
 `median_window_s` and `peak_bound_m`, `pad_altitude_m`, and the `accelerometer` read, if any, say
 how they were taken. Each code is the one the JSON output uses

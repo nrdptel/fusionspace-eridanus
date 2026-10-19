@@ -1621,17 +1621,24 @@ Each reading is either a value that says where it came from and how far it may b
 `withheld` with the reason the log can't support it. The text output gives the reason as a sentence; the JSON output adds its code,
 listed on [Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld). A log read with
 readings withheld still exits with 0; a file the simulator can't read exits with 1
-([Exit codes](#exit-codes)). Since [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the
-readings, it also gives the flight time, the descent under each canopy with the main's opening, and
-the top acceleration and burnout. The top acceleration comes only from an accelerometer along the
-rocket's axis, printed in m/s² and g and marked where the part clipped: working it out from the
-altitude would turn the altitude's one-foot steps into spikes of many g. It is what the part
-reads, the [specific force](glossary.md#specific-force), with gravity's 1 g in, where
-`hpr sim`'s `max_acceleration_m_s2` is the rocket's own acceleration. A PerfectFlite has none,
-so it is withheld as `no_accelerometer`. Burnout is then printed as no sooner than the top
+([Exit codes](#exit-codes)).
+
+Since [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the readings, it also gives the flight
+time, the descent under each canopy with the main's opening, and the top acceleration and burnout.
+The top acceleration comes only from an accelerometer along the rocket's axis, printed in m/s² and
+g: working it out from the altitude would turn the altitude's one-foot steps into spikes of many
+g. It is what the part reads, the [specific force](glossary.md#specific-force), with gravity's 1 g
+in, where `hpr sim`'s `max_acceleration_m_s2` is the rocket's own acceleration. A PerfectFlite has
+none, so it is withheld as `no_accelerometer`. Burnout is then printed as no sooner than the top
 speed's time less its bound: a [floor](glossary.md#floor), as the true burnout comes no earlier
 and may come later by any amount
 ([Flight-log readings](physics/log-readings.md#the-accelerometer)).
+
+A top acceleration can be a floor too. Where the part clipped, its line says "clipped at the
+part's range of …" if the top reached the range the logger's family states, or "held flat at its
+top, so it may have been clipped" if it held flat below that range or none is stated. Where the
+accelerometer shows no end to the thrust, the line says that. The JSON marks each `is_floor`, and
+gives the clip's cause in `clip`, `range` or `flat`, or `null` for a thrust with no end.
 
 What the file states about itself, such as the altimeter's own apogee, is printed beside the
 simulator's readings, never in their place. Heights are meters above the altimeter's reading on

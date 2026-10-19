@@ -96,7 +96,7 @@ use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 mod accelerometer;
 mod canopies;
 
-pub use accelerometer::SYNTHETIC_COLUMN;
+pub use accelerometer::{SYNTHETIC_COLUMN, SYNTHETIC_LOWER_RANGE_COLUMN};
 
 /// The running median's span, s: 0.3 s, Debrief's despiking window. Debrief runs a Hampel filter
 /// over it ([`crate::filter::hampel`], threshold 4); HPR Sim takes the plain median (threshold 0). On
@@ -482,10 +482,18 @@ pub enum Reason {
     /// which: its family doesn't say, and neither its pad (about 1 g or 0) nor its coast to
     /// apogee (about 0 or −1 g) reads either level, or what they say disagrees.
     GravityUnstated,
-    /// The descent's rate never changes enough to tell a second canopy from the first: the
-    /// rocket came down under one, or under two whose rates are closer than
-    /// [`DROGUE_RATIO`] to one. Its rate is the main's, the canopy it landed under; there is no
-    /// drogue's.
+    /// Which way up the axial accelerometer reads, nose up or nose down, can't be told, and so
+    /// neither can its thrust: from liftoff's earliest time to apogee its cleaned trace never
+    /// passes [`LIFTOFF_ACCELERATION_M_S2`] either way up, or passes it both ways and never holds
+    /// there for [`BURN_LEAST_S`], as a thrust does and a knock on the pad doesn't.
+    DirectionUnstated,
+    /// The descent shows no drogue's leg. Walked back from landing, its rate at the ground's
+    /// density never passes the main's mark, [`MAIN_TOLERANCE_SHARE`] times the rate near the
+    /// ground or [`MAIN_TOLERANCE_M_S`] more if that is more, in the [`DESCENT_TAIL_S`] before
+    /// the main's leg, or the descent before that leg isn't, on median, [`DROGUE_RATIO`] times
+    /// that rate. The rocket came down under one canopy, or under a drogue no faster than the
+    /// mark, which reads as one: the main's descent is then the whole descent's, from apogee to
+    /// landing, and there is no drogue's.
     OneCanopy,
     /// A leg of the descent loses too little height, under [`LEG_LEAST_M`] or
     /// [`LEG_LEAST_SHARE`] of its top's height, or lasts too little, for its rate to be read.
@@ -668,16 +676,35 @@ pub struct MaxAcceleration {
     /// The range of the part its family states, m/s², `None` where it doesn't.
     pub range_m_s2: Option<f64>,
     /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
-    /// any amount. A clipped top is.
+    /// any amount. A clipped top is ([`clip`](Self::clip)), and so is one whose burn the
+    /// accelerometer ends in, its thrust never falling through zero on the channel before apogee:
+    /// that one is measured, its [`clip`](Self::clip) `None`.
     pub is_floor: bool,
+    /// Why it is clipped, where it is: at the part's stated range, or held flat at its top below
+    /// it or with no range stated; `None` where it isn't.
+    pub clip: Option<Clip>,
     /// The accelerometer.
     pub source: Source,
-    /// Measured, or clipped: at the part's stated range, less two steps and
-    /// [`GRAVITY_TOLERANCE_G`], or held flat at its top for [`FLAT_TOP_SAMPLES`] samples or
-    /// [`FLAT_TOP_S`], as Debrief tells a clipped part.
+    /// Clipped where [`clip`](Self::clip) says why; otherwise measured.
     pub provenance: Provenance,
     /// How it was read.
     pub method: Method,
+}
+
+with_all! {
+/// Why a top acceleration is clipped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Clip {
+    /// It reaches the part's range as its family states it, less two steps and
+    /// [`GRAVITY_TOLERANCE_G`]: the part read no more.
+    Range,
+    /// It holds flat at its top for [`FLAT_TOP_SAMPLES`] samples or [`FLAT_TOP_S`], as Debrief
+    /// tells a part that clipped, short of any range the family states or with none stated: the
+    /// part may have clipped, at a range other than the one stated.
+    Flat,
+}
 }
 
 /// Burnout: when the motor stopped pushing.
@@ -2842,12 +2869,13 @@ mod tests {
             codes.dedup();
             (listed, codes.len())
         }
-        assert_eq!(codes(Reason::ALL), (26, 26));
+        assert_eq!(codes(Reason::ALL), (27, 27));
         assert_eq!(codes(Source::ALL), (5, 5));
         assert_eq!(codes(Provenance::ALL), (3, 3));
         assert_eq!(codes(Method::ALL), (9, 9));
         assert_eq!(codes(Gravity::ALL), (2, 2));
         assert_eq!(codes(GravityBy::ALL), (3, 3));
+        assert_eq!(codes(Clip::ALL), (2, 2));
     }
 
     /// Serialized, a reading carries its status beside its fields.

@@ -29,6 +29,7 @@ use std::fs;
 use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
 
+use hpr_flightdata::readings::Clip;
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
@@ -72,8 +73,37 @@ struct Tops {
     /// The flight whose true top came nearest its part's range; `None` if no logger has an
     /// accelerometer.
     nearest: Option<Top>,
-    /// Each top read as clipped, a floor, by flight and log, in the flights' order.
+    /// The flights logged again with their part set to a lower range
+    /// ([`held::lower_range_name`]), and how many of their true tops reach it; `None` if no
+    /// logger's part has one.
+    lower: Option<Lower>,
+    /// How many tops were read as floors, by cause.
+    floors: Floors,
+    /// Each top read as a floor, by flight and log, in the flights' order.
     clipped: Vec<Clipped>,
+}
+
+/// The flights logged with their part set to a lower range.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct Lower {
+    /// The log's name.
+    log: String,
+    /// How many flights were logged so.
+    flights: u64,
+    /// How many of their true tops reach the lower range.
+    reaching: u64,
+}
+
+/// How many tops were read as floors, by cause.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+struct Floors {
+    /// Clipped at the part's stated range.
+    at_range: u64,
+    /// Held flat at the top, short of any stated range.
+    flat: u64,
+    /// A top whose thrust the accelerometer shows no end to before apogee, as where it ends in
+    /// the thrust.
+    thrust_unended: u64,
 }
 
 /// A tuning flight's true top acceleration against its part's range.
@@ -88,7 +118,7 @@ struct Top {
     share: f64,
 }
 
-/// A top acceleration read as clipped.
+/// A top acceleration read as a floor.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Clipped {
     /// The flight's index in the tuning set.
@@ -97,6 +127,8 @@ struct Clipped {
     profile: String,
     /// The log it was read from.
     log: String,
+    /// Why it is a floor: `range`, `flat`, or `thrust_unended`.
+    cause: String,
 }
 
 /// Runs the command.
@@ -237,8 +269,9 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
 type FlightOutcomes = (u64, Vec<(String, Vec<(Quantity, Outcome)>)>);
 
 /// One tuning flight's index, its logger's profile, and its true top over its part's range
-/// ([`held::top_over_range`]).
-type FlightTop = (u64, &'static str, Option<f64>);
+/// ([`held::top_over_range`]) and over the lower range its part can be set to
+/// ([`held::top_over_lower_range`]).
+type FlightTop = (u64, &'static str, Option<f64>, Option<f64>);
 
 /// Logs the first `count` tuning flights at every rate and step of `held`'s grid on every core,
 /// reads each log, and gives each reading's outcome, and each flight's top against its part's
@@ -274,6 +307,7 @@ fn read_logs(
                                 index,
                                 flight.draw.logger.profile.name(),
                                 held::top_over_range(&flight),
+                                held::top_over_lower_range(&flight),
                             );
                             done.push(((index, outcomes), top));
                         }
@@ -303,13 +337,19 @@ fn read_logs(
 fn tops(flights: &[FlightOutcomes], each: &[FlightTop]) -> Tops {
     let profile = |flight: u64| {
         each.iter()
-            .find(|(index, _, _)| *index == flight)
-            .map_or("unknown", |(_, profile, _)| *profile)
+            .find(|(index, _, _, _)| *index == flight)
+            .map_or("unknown", |(_, profile, _, _)| *profile)
             .to_owned()
     };
     let shares = each
         .iter()
-        .filter_map(|(flight, profile, share)| share.map(|share| (*flight, *profile, share)));
+        .filter_map(|(flight, profile, share, _)| share.map(|share| (*flight, *profile, share)));
+    let lower_shares: Vec<f64> = each.iter().filter_map(|(_, _, _, lower)| *lower).collect();
+    let lower = (!lower_shares.is_empty()).then(|| Lower {
+        log: held::lower_range_name(),
+        flights: lower_shares.len() as u64,
+        reaching: lower_shares.iter().filter(|share| **share >= 1.0).count() as u64,
+    });
     let reaching = shares.clone().filter(|(_, _, share)| *share >= 1.0).count() as u64;
     let nearest = shares
         .max_by(|a, b| a.2.total_cmp(&b.2))
@@ -318,27 +358,44 @@ fn tops(flights: &[FlightOutcomes], each: &[FlightTop]) -> Tops {
             profile: profile.to_owned(),
             share: census::three_figures(share),
         });
-    let clipped = flights
+    let clipped: Vec<Clipped> = flights
         .iter()
         .flat_map(|(flight, logs)| {
-            logs.iter()
-                .filter(|(_, results)| {
-                    results.iter().any(|(quantity, outcome)| {
-                        *quantity == Quantity::TopAcceleration
-                            && matches!(outcome, Outcome::Floor { .. })
+            logs.iter().flat_map(move |(log, results)| {
+                results
+                    .iter()
+                    .filter_map(move |(quantity, outcome)| match outcome {
+                        Outcome::Floor { clip, .. } if *quantity == Quantity::TopAcceleration => {
+                            let cause = match clip {
+                                Some(Clip::Range) => "range",
+                                Some(Clip::Flat) => "flat",
+                                Some(_) => "other",
+                                None => "thrust_unended",
+                            };
+                            Some((*flight, log.clone(), cause))
+                        }
+                        _ => None,
                     })
-                })
-                .map(move |(log, _)| (*flight, log.clone()))
+            })
         })
-        .map(|(flight, log)| Clipped {
+        .map(|(flight, log, cause)| Clipped {
             flight,
             profile: profile(flight),
             log,
+            cause: cause.to_owned(),
         })
         .collect();
+    let count = |cause: &str| clipped.iter().filter(|c| c.cause == cause).count() as u64;
+    let floors = Floors {
+        at_range: count("range"),
+        flat: count("flat"),
+        thrust_unended: count("thrust_unended"),
+    };
     Tops {
         reaching,
         nearest,
+        lower,
+        floors,
         clipped,
     }
 }
@@ -574,7 +631,9 @@ fn errors_section(page: &mut String, errors: &[Errors], tops: &Tops) {
          own reading's bound, which differs from flight to flight and log to log, so the least or \
          the most may pass the mean bound; the mean is for scale, and is given at the decimal \
          place of the larger of the least and the most to three figures, the digits every \
-         platform shares. A floor, a burnout from the \
+         platform shares. A canopy's rates are compared with the truth over the span the reader \
+         chose, its leg's ends, so an opening read early or late shows in the opening's error, \
+         not in the rates'. A floor, a burnout from the \
          speed's peak or a clipped top acceleration, is apart: it holds while it is no more than \
          its bound above the truth, and may lie any amount below it.\n\n\
          | Reading | Given | Mean error | Least | Most | Mean bound |\n\
@@ -614,13 +673,12 @@ fn tops_paragraph(page: &mut String, tops: &Tops) {
         return;
     };
     let reach = match tops.reaching {
-        0 => "No tuning flight's true top acceleration reaches the range its part clips at"
+        0 => "No tuning flight's true top acceleration reaches the range its own part clips at"
             .to_owned(),
-        1 => {
-            "1 tuning flight's true top acceleration reaches the range its part clips at".to_owned()
-        }
+        1 => "1 tuning flight's true top acceleration reaches the range its own part clips at"
+            .to_owned(),
         n => format!(
-            "{n} tuning flights' true top accelerations reach the range their part clips at"
+            "{n} tuning flights' true top accelerations reach the range their own parts clip at"
         ),
     };
     let _ = write!(
@@ -630,35 +688,72 @@ fn tops_paragraph(page: &mut String, tops: &Tops) {
         nearest.profile,
         number(nearest.share)
     );
-    if tops.clipped.is_empty() {
-        page.push_str("No top was read as clipped.\n");
-    } else {
-        let each: Vec<String> = tops
-            .clipped
-            .iter()
-            .map(|c| format!("flight {} ({}), {}", c.flight, c.profile, c.log))
-            .collect();
-        let _ = writeln!(
+    if let Some(lower) = &tops.lower {
+        let _ = write!(
             page,
-            "Tops read as clipped, each a floor, at the range or flat at the top: {}; {}.",
-            tops.clipped.len(),
-            each.join("; ")
+            "With {}, {} of the {} flights logged so have a true top that reaches that range, and \
+             {} don't. ",
+            lower.log,
+            lower.reaching,
+            lower.flights,
+            lower.flights - lower.reaching
         );
+    }
+    if tops.clipped.is_empty() {
+        page.push_str("No top was read as a floor.\n");
+        return;
+    }
+    let _ = writeln!(
+        page,
+        "Tops read as floors: {}; clipped at the part's range, {}; held flat at the top, {}; cut \
+         off where the accelerometer shows no end to the thrust, {}.",
+        tops.clipped.len(),
+        tops.floors.at_range,
+        tops.floors.flat,
+        tops.floors.thrust_unended
+    );
+    // Each cause's tops, by log and logger, in the order first met.
+    for (cause, words) in [
+        ("range", "Clipped at the part's range"),
+        ("flat", "Held flat at the top"),
+        ("thrust_unended", "No end to the thrust"),
+        ("other", "Clipped otherwise"),
+    ] {
+        let mut groups: Vec<((&str, &str), Vec<String>)> = Vec::new();
+        for c in tops.clipped.iter().filter(|c| c.cause == cause) {
+            let key = (c.log.as_str(), c.profile.as_str());
+            match groups.iter_mut().find(|(k, _)| *k == key) {
+                Some((_, flights)) => flights.push(c.flight.to_string()),
+                None => groups.push((key, vec![c.flight.to_string()])),
+            }
+        }
+        if !groups.is_empty() {
+            let each: Vec<String> = groups
+                .iter()
+                .map(|((log, profile), flights)| {
+                    format!("{log}, {profile} flights {}", flights.join(", "))
+                })
+                .collect();
+            let _ = writeln!(page, "\n{words}: {}.", each.join("; "));
+        }
     }
 }
 
 /// The page's section on the flight-log readings held to their bounds.
 fn readings_section(page: &mut String, tallies: &[Tally]) {
-    page.push_str(
+    let _ = write!(
+        page,
         "\n## Readings within their bounds\n\n\
          Each tuning flight logged by its own logger, then again at every rate and step of the \
          grid, from 500 to half a sample a second and from no step to 100 Pa, with its own \
-         logger's accelerometer at 500, 100 and 20 Hz, and cropped as loggers start their logs, \
-         and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how many of the \
-         flights' readings \
-         were given, then the largest share of its bound an error took: 1 is the bound, and \
-         `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and \
-         its bound. What is method and what is measured: `docs/physics/log-readings.md`.\n\n",
+         logger's accelerometer at 500, 100 and 20 Hz and, where its part can be, {}, so that \
+         some tops clip at the part's range and the rest don't, and cropped as loggers start \
+         their logs, and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how \
+         many of the flights' readings were given, then the largest share of its bound an error \
+         took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each \
+         worst flight, its error and its bound. What is method and what is measured: \
+         `docs/physics/log-readings.md`.\n\n",
+        held::lower_range_name().trim_start_matches("its accelerometer ")
     );
     let mut logs: Vec<&str> = Vec::new();
     for tally in tallies {
@@ -761,6 +856,7 @@ mod tests {
                     index,
                     flight.draw.logger.profile.name(),
                     held::top_over_range(&flight),
+                    held::top_over_lower_range(&flight),
                 );
                 ((index, outcomes), top)
             })
@@ -817,6 +913,8 @@ mod tests {
             tops: Tops {
                 reaching: 0,
                 nearest: None,
+                lower: None,
+                floors: Floors::default(),
                 clipped: Vec::new(),
             },
         });
@@ -824,18 +922,21 @@ mod tests {
         assert!(page.contains("first \\| second third |"), "{page}");
     }
 
-    /// The tops: a share of 1 reaches the range, the nearest is the largest share, and each
-    /// clipped top is named by its flight's profile and its log; with none, the page says so.
+    /// The tops: a share of 1 reaches the range, the nearest is the largest share, the flights
+    /// set to a lower range are counted against it, and each top read as a floor is named by its
+    /// flight's profile, its log and its cause, and counted by cause; with none, the page says so.
     #[test]
     fn the_tops_name_the_nearest_and_each_clipped() {
-        let floor = Outcome::Floor {
+        let floor = |clip: Option<Clip>| Outcome::Floor {
             error: -1.0,
             bound: 2.0,
+            clip,
         };
         let given = Outcome::Given {
             error: 0.5,
             bound: 2.0,
         };
+        let lower = held::lower_range_name();
         let flights: Vec<FlightOutcomes> = vec![
             (
                 0,
@@ -844,40 +945,75 @@ mod tests {
                     (
                         "its accelerometer at 20 Hz".to_owned(),
                         vec![
-                            (Quantity::TopAcceleration, floor),
-                            (Quantity::Burnout, floor),
+                            (Quantity::TopAcceleration, floor(Some(Clip::Flat))),
+                            (Quantity::Burnout, floor(None)),
                         ],
                     ),
                 ],
             ),
             (
                 1,
-                vec![("rrc3".to_owned(), vec![(Quantity::Burnout, floor)])],
+                vec![("rrc3".to_owned(), vec![(Quantity::Burnout, floor(None))])],
             ),
             (
                 2,
+                vec![
+                    (
+                        "imu-500hz".to_owned(),
+                        vec![(Quantity::TopAcceleration, given)],
+                    ),
+                    (
+                        lower.clone(),
+                        vec![(Quantity::TopAcceleration, floor(Some(Clip::Range)))],
+                    ),
+                ],
+            ),
+            (
+                3,
                 vec![(
                     "imu-500hz".to_owned(),
-                    vec![(Quantity::TopAcceleration, given)],
+                    vec![(Quantity::TopAcceleration, floor(None))],
                 )],
             ),
         ];
         let each: Vec<FlightTop> = vec![
-            (0, "altos", Some(0.25)),
-            (1, "rrc3", None),
-            (2, "imu-500hz", Some(1.0)),
+            (0, "altos", Some(0.25), None),
+            (1, "rrc3", None, None),
+            (2, "imu-500hz", Some(1.0), Some(4.0)),
+            (3, "imu-500hz", Some(0.1), Some(0.4)),
         ];
         let made = tops(&flights, &each);
         assert_eq!(made.reaching, 1);
         let nearest = made.nearest.as_ref().unwrap();
         assert_eq!((nearest.flight, nearest.share), (2, 1.0));
         assert_eq!(
-            made.clipped,
-            [Clipped {
-                flight: 0,
-                profile: "altos".to_owned(),
-                log: "its accelerometer at 20 Hz".to_owned(),
-            }]
+            made.lower,
+            Some(Lower {
+                log: lower.clone(),
+                flights: 2,
+                reaching: 1,
+            })
+        );
+        assert_eq!(
+            made.floors,
+            Floors {
+                at_range: 1,
+                flat: 1,
+                thrust_unended: 1,
+            }
+        );
+        let causes: Vec<(u64, &str, &str)> = made
+            .clipped
+            .iter()
+            .map(|c| (c.flight, c.log.as_str(), c.cause.as_str()))
+            .collect();
+        assert_eq!(
+            causes,
+            [
+                (0, "its accelerometer at 20 Hz", "flat"),
+                (2, lower.as_str(), "range"),
+                (3, "imu-500hz", "thrust_unended"),
+            ]
         );
         let mut page = String::new();
         tops_paragraph(&mut page, &made);
@@ -886,16 +1022,40 @@ mod tests {
             "{page}"
         );
         assert!(
-            page.contains("flight 0 (altos), its accelerometer at 20 Hz"),
+            page.contains(&format!(
+                "With {lower}, 1 of the 2 flights logged so have a true top that reaches"
+            )),
             "{page}"
         );
-        let none = tops(&flights, &[(0, "altos", Some(0.25))]);
+        assert!(
+            page.contains(
+                "Tops read as floors: 3; clipped at the part's range, 1; held flat at the top, 1; \
+                 cut off where the accelerometer shows no end to the thrust, 1."
+            ),
+            "{page}"
+        );
+        assert!(
+            page.contains("Held flat at the top: its accelerometer at 20 Hz, altos flights 0."),
+            "{page}"
+        );
+        assert!(
+            page.contains(&format!(
+                "Clipped at the part's range: {lower}, imu-500hz flights 2."
+            )),
+            "{page}"
+        );
+        assert!(
+            page.contains("No end to the thrust: imu-500hz, imu-500hz flights 3."),
+            "{page}"
+        );
+        let none = tops(&flights[..1], &[(0, "altos", Some(0.25), None)]);
         let mut page = String::new();
         tops_paragraph(&mut page, &none);
         assert!(
             page.contains("No tuning flight's true top acceleration reaches"),
             "{page}"
         );
+        assert!(!page.contains("logged so"), "{page}");
         let mut page = String::new();
         tops_paragraph(&mut page, &tops(&[], &[]));
         assert!(

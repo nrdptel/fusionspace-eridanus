@@ -7,8 +7,9 @@
 //! left out; the run of samples back from landing whose rate stays within
 //! [`MAIN_TOLERANCE_SHARE`] of it, or [`MAIN_TOLERANCE_M_S`] more if that is more, is the main's
 //! descent, and its first sample the opening. The run is walked on the rate's running median over
-//! [`DESCENT_TAIL_S`], or twice the fit where that is longer, so a spike of the fit's noise on a
-//! long leg doesn't end it, as a step, the opening, stays where it is under a median. Every rate is
+//! [`DESCENT_TAIL_S`], or twice the fit where that is longer, in samples at the descent's median
+//! interval and never more than it holds, so a spike of the fit's noise on a long leg doesn't end
+//! it, as a step, the opening, stays where it is under a median. Every rate is
 //! compared at the ground's density, scaled by `exp(−h/2H)` for its height `h` above the pad with
 //! the least scale height `H`, [`DENSITY_SCALE_HEIGHT_M`]: a canopy falls as the density to the
 //! −½, so one canopy from a high apogee would otherwise fall fast enough up high to read as two.
@@ -16,7 +17,9 @@
 //! it if the descent from apogee to there fell faster than [`DROGUE_RATIO`] times the main's rate,
 //! by its median, as Debrief asks, and if, as HPR Sim adds, the [`DESCENT_TAIL_S`] just before the
 //! run fell faster than the run's mark: a drogue whose rate crosses the mark leaves the run's
-//! start in the drogue's leg. These are Debrief's marks (`lib/analyze/index.ts`, MIT, the project
+//! start in the drogue's leg. So a drogue no faster than the mark, at the ground's density, reads
+//! as one canopy, whatever its ratio to the main, and the main's descent is then the whole
+//! descent's ([`Reason::OneCanopy`]). These are Debrief's marks (`lib/analyze/index.ts`, MIT, the project
 //! owner's own), set on its corpus of logs.
 //!
 //! **Its bound.** A fit centered half a window before the opening sees the drogue's descent alone,
@@ -143,14 +146,28 @@ pub(super) fn read(
     let rates: Vec<f64> = (first..landing)
         .map(|k| rate(k).unwrap_or(f64::NAN))
         .collect();
+    // The median's half window in samples at the descent's own interval, its median, so that a
+    // few samples bunched together don't widen it; never wider than the descent.
+    let mut intervals: Vec<f64> = (first..landing).map(|k| time[k + 1] - time[k]).collect();
+    let interval = median(&mut intervals).unwrap_or(0.0);
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a count of samples converts exactly"
+    )]
+    let samples = rates.len() as f64;
+    let half = if interval > 0.0 {
+        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval)
+            .round()
+            .min(samples)
+    } else {
+        samples
+    };
     #[expect(
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss,
-        reason = "a positive count of samples, rounded"
+        reason = "a positive count of samples, rounded, no more than the descent holds"
     )]
-    let half =
-        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / local_interval(time, landing)).round() as usize;
-    let smoothed = running_median(&rates, half.max(1));
+    let smoothed = running_median(&rates, (half as usize).max(1));
     let steady = |k: usize| {
         smoothed
             .get(k - first)
@@ -181,9 +198,12 @@ pub(super) fn read(
     let leg = |leg: Leg| descent(track, filtered, pad, apex, &leg, peak_bound_m);
     if !two {
         let detail = format!(
-            "the descent's rate never changes enough to tell a second canopy: the rocket came \
-             down under one, or under two whose rates are closer than {DROGUE_RATIO} to one (the \
-             main's near the ground: {main_rate:.1} m/s)"
+            "the descent shows no drogue's leg, which at the ground's density falls faster than \
+             {mark:.1} m/s up to the main's opening, the mark {MAIN_TOLERANCE_SHARE} times the \
+             rate near the ground, {main_rate:.1} m/s, or {MAIN_TOLERANCE_M_S} m/s more if that \
+             is more, and on median faster than {DROGUE_RATIO} times that rate: the rocket came \
+             down under one canopy, or under a drogue no faster than the mark, which reads as \
+             one, and the main's descent is the whole descent's, from apogee"
         );
         return (
             Reading::withheld(Reason::OneCanopy, detail),
@@ -398,7 +418,8 @@ mod tests {
         assert!((main.from_s - apogee.time_s).abs() < 1e-9);
     }
 
-    /// Two canopies whose rates are closer than 1.4 to one read as one: 12 m/s, then 10 m/s.
+    /// A drogue at 12 m/s over a main at 10 m/s, no faster than the main's mark, 16 m/s, 1.6 times
+    /// its rate, reads as one canopy, though Debrief's ratio of 1.4 would tell them apart.
     #[test]
     fn close_rates_are_one_canopy() {
         let readings = read_all(&log(0.05, 0.0, flight(12.0, 150.0, 10.0)));
@@ -415,6 +436,113 @@ mod tests {
         assert_eq!(readings.drogue_descent.reason(), Some(Reason::ShortLeg));
         let main = readings.main_descent.value().unwrap();
         assert!((main.rate_m_s - 6.0).abs() <= main.bound_m_s, "{main:?}");
+    }
+
+    /// A drogue at 9 m/s, no faster than the mark of a main at 6 m/s (9.6 m/s), whose rate passes
+    /// the mark for 0.8 s at 12 m/s, a gust's: the walk back from landing stops there, but the 2 s
+    /// just before it fell slower than the mark, so no main is named there, and the descent
+    /// reads as one canopy's.
+    #[test]
+    fn a_drogue_passing_the_mark_for_a_moment_names_no_main() {
+        let top = 2.0 * G * 4.0 + 0.5 * 8.0 * G * 8.0;
+        let (gust_s, gust_end_s) = (16.0, 16.8);
+        let at_gust = top - 9.0 * (gust_s - 11.0);
+        let after_gust = at_gust - 12.0 * (gust_end_s - gust_s);
+        let opened_s = gust_end_s + (after_gust - 150.0) / 9.0;
+        let readings = read_all(&log(0.05, 0.0, |t| {
+            let h = if t < 11.0 {
+                flight(25.0, 150.0, 6.0)(t)
+            } else if t < gust_s {
+                top - 9.0 * (t - 11.0)
+            } else if t < gust_end_s {
+                at_gust - 12.0 * (t - gust_s)
+            } else if t < opened_s {
+                after_gust - 9.0 * (t - gust_end_s)
+            } else {
+                150.0 - 6.0 * (t - opened_s)
+            };
+            h.max(0.0)
+        }));
+        assert_eq!(
+            readings.drogue_descent.reason(),
+            Some(Reason::OneCanopy),
+            "{:?}",
+            readings.drogue_descent
+        );
+        assert!(readings.main_descent.value().unwrap().opening.is_none());
+    }
+
+    /// One canopy from 8.6 km, falling as the air's density to the −½ with a scale height of
+    /// [`DENSITY_SCALE_HEIGHT_M`]: 1.85 times its rate near the ground at apogee, past the mark,
+    /// 1.6 times. At the ground's density its rate is one all the way down, and no main is named.
+    #[test]
+    fn one_canopy_from_high_up_reads_as_one_at_the_grounds_density() {
+        // A climb at 10 g from 1 s to 5 s (784.5 m, 392.3 m/s), a vacuum coast to apogee at 45 s.
+        let boost_s = 4.0;
+        let v = 10.0 * G * boost_s;
+        let burnout_m = 0.5 * 10.0 * G * boost_s * boost_s;
+        let coast_s = v / G;
+        let apogee_s = 1.0 + boost_s + coast_s;
+        let apogee_m = burnout_m + 0.5 * v * coast_s;
+        let (ground_m_s, scale_m) = (10.0, 2.0 * DENSITY_SCALE_HEIGHT_M);
+        let height = |t: f64| {
+            if t <= 1.0 {
+                0.0
+            } else if t < 1.0 + boost_s {
+                0.5 * 10.0 * G * (t - 1.0).powi(2)
+            } else if t < apogee_s {
+                let c = t - 1.0 - boost_s;
+                burnout_m + v * c - 0.5 * G * c * c
+            } else {
+                // dh/dt = −v₀ exp(h/2H): exp(−h/2H) grows by v₀/2H a second.
+                let grown = (-apogee_m / scale_m).exp() + ground_m_s * (t - apogee_s) / scale_m;
+                (-scale_m * grown.ln()).max(0.0)
+            }
+        };
+        let time_s: Vec<f64> = (0..7_500).map(|i| f64::from(i) * 0.1).collect();
+        let mut descent = log(0.05, 0.0, |_| 0.0);
+        descent.altitude_m = time_s.iter().map(|t| height(*t)).collect();
+        descent.time_s = time_s;
+        let readings = read_all(&descent);
+        assert!(readings.landing.value().is_some(), "{:?}", readings.landing);
+        assert!(apogee_m > 8_600.0, "{apogee_m}");
+        assert_eq!(
+            readings.drogue_descent.reason(),
+            Some(Reason::OneCanopy),
+            "{:?}",
+            readings.drogue_descent
+        );
+        let main = readings.main_descent.value().unwrap();
+        assert!(main.opening.is_none(), "{main:?}");
+    }
+
+    /// Samples 1e-9 s apart at landing don't stretch the walk's running median over the whole
+    /// descent: its window is set by the descent's own interval, and the drogue and the main's
+    /// opening read as on an even clock.
+    #[test]
+    fn samples_bunched_at_landing_leave_the_median_its_window() {
+        let top = 2.0 * G * 4.0 + 0.5 * 8.0 * G * 8.0;
+        let opened = 11.0 + (top - 150.0) / 25.0;
+        let mut bunched = log(0.05, 0.0, flight(25.0, 150.0, 6.0));
+        let landed_s = read_all(&bunched).landing.value().unwrap().time_s;
+        let k = bunched.time_s.iter().position(|t| *t == landed_s).unwrap();
+        bunched.time_s[k - 1] = landed_s - 1e-9;
+        bunched.time_s[k + 1] = landed_s + 1e-9;
+        let readings = read_all(&bunched);
+        assert_eq!(readings.landing.value().unwrap().time_s, landed_s);
+        let drogue = readings
+            .drogue_descent
+            .value()
+            .unwrap_or_else(|| panic!("{:?}", readings.drogue_descent));
+        assert!(
+            (drogue.rate_m_s - 25.0).abs() <= drogue.bound_m_s,
+            "{drogue:?}"
+        );
+        let opening = readings.main_descent.value().unwrap().opening.unwrap();
+        assert!(
+            (opening.time_s - opened).abs() <= opening.bound_s,
+            "{opening:?} vs {opened}"
+        );
     }
 
     /// A track in 10 m steps over a main at 3 m/s needs a fit over 13 s to hold four steps: more

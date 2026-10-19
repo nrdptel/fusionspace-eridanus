@@ -59,7 +59,7 @@ Every draw flew.
 
 ## Readings within their bounds
 
-Each tuning flight logged by its own logger, then again at every rate and step of the grid, from 500 to half a sample a second and from no step to 100 Pa, with its own logger's accelerometer at 500, 100 and 20 Hz, and cropped as loggers start their logs, and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how many of the flights' readings were given, then the largest share of its bound an error took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and its bound. What is method and what is measured: `docs/physics/log-readings.md`.
+Each tuning flight logged by its own logger, then again at every rate and step of the grid, from 500 to half a sample a second and from no step to 100 Pa, with its own logger's accelerometer at 500, 100 and 20 Hz and, where its part can be, set to ±8 g, so that some tops clip at the part's range and the rest don't, and cropped as loggers start their logs, and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how many of the flights' readings were given, then the largest share of its bound an error took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and its bound. What is method and what is measured: `docs/physics/log-readings.md`.
 
 ### The height track's readings
 
@@ -105,6 +105,7 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | its accelerometer at 500 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
 | its accelerometer at 100 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
 | its accelerometer at 20 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
+| its accelerometer set to ±8 g | 38, 0.504 | 38, 0.682 | 38, 0.282 | 14, 0.262 | 37, 0.363 | 37, 0.409 | 37, 0.556 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 171, 0.555 | 171, 0.711 | 171, 0.427 | 54, 0.358 | 171, 0.409 | 171, 0.442 | 171, 0.587 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 135, 0.381 | 171, 0.695 | 171, 0.427 | 54, 0.358 | 170, 0.272 | 134, 0.332 | 170, 0.556 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 171, 0.674 | 171, 0.427 | 54, 0.358 | 170, 0.174 | 0 | 170, 0.516 |
@@ -161,6 +162,7 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | its accelerometer at 500 Hz | 71, 0.576 | 71, 0.0861 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
 | its accelerometer at 100 Hz | 71, 0.686 | 70, 0.172 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
 | its accelerometer at 20 Hz | 71, 0.715 | 71, 0.262 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
+| its accelerometer set to ±8 g | 38, 0.283 | 38, 0.186 | 16, 0.655 | 16, 0.582 | 37, 0.621 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 171, 0.7 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
@@ -516,6 +518,15 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | its accelerometer at 20 Hz | main opening | `ends_before_landing` | 1 |
 | its accelerometer at 20 Hz | main opening | none to read | 34 |
 | its accelerometer at 20 Hz | main rate | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | top speed | `transonic` | 24 |
+| its accelerometer set to ±8 g | landing | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | flight time | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | descent rate | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | drogue rate | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | drogue rate | none to read | 21 |
+| its accelerometer set to ±8 g | main opening | `ends_before_landing` | 1 |
+| its accelerometer set to ±8 g | main opening | none to read | 21 |
+| its accelerometer set to ±8 g | main rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | top speed | `transonic` | 117 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | top acceleration | `no_accelerometer` | 171 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | burnout | `transonic` | 117 |
@@ -620,23 +631,27 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 
 ## Errors on the tuning set
 
-Each reading's errors, the reading less the truth, over every tuning flight and every log above together, beside the mean bound the readings stated. Each error is held to its own reading's bound, which differs from flight to flight and log to log, so the least or the most may pass the mean bound; the mean is for scale, and is given at the decimal place of the larger of the least and the most to three figures, the digits every platform shares. A floor, a burnout from the speed's peak or a clipped top acceleration, is apart: it holds while it is no more than its bound above the truth, and may lie any amount below it.
+Each reading's errors, the reading less the truth, over every tuning flight and every log above together, beside the mean bound the readings stated. Each error is held to its own reading's bound, which differs from flight to flight and log to log, so the least or the most may pass the mean bound; the mean is for scale, and is given at the decimal place of the larger of the least and the most to three figures, the digits every platform shares. A canopy's rates are compared with the truth over the span the reader chose, its leg's ends, so an opening read early or late shows in the opening's error, not in the rates'. A floor, a burnout from the speed's peak or a clipped top acceleration, is apart: it holds while it is no more than its bound above the truth, and may lie any amount below it.
 
 | Reading | Given | Mean error | Least | Most | Mean bound |
 |---|---:|---:|---:|---:|---:|
-| liftoff | 7013 | 0.12 s | -1.79 s | 1.21 s | 2.03 s |
-| apogee height | 7220 | 0 m | -179 m | 202 m | 200 m |
-| apogee time | 7220 | 0.04 s | -1.04 s | 1.2 s | 1.54 s |
-| top speed | 1308 | 2.2 m/s | -9.5 m/s | 28.2 m/s | 38.6 m/s |
-| landing | 7154 | -0.6 s | -4.4 s | 2.61 s | 3.84 s |
-| flight time | 6948 | -0.74 s | -5.06 s | 3.15 s | 5.83 s |
-| descent rate | 7154 | 0 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
-| top acceleration | 280 | 0.7 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
-| top acceleration, a floor | 4 | -4.49 m/s² | -7.55 m/s² | -1.58 m/s² | 12.7 m/s² |
-| burnout | 262 | -0.0118 s | -0.0943 s | 0.0476 s | 0.651 s |
+| liftoff | 7051 | 0.12 s | -1.79 s | 1.21 s | 2.03 s |
+| apogee height | 7258 | 0 m | -179 m | 202 m | 200 m |
+| apogee time | 7258 | 0.04 s | -1.04 s | 1.2 s | 1.54 s |
+| top speed | 1322 | 2.2 m/s | -9.5 m/s | 28.2 m/s | 38.6 m/s |
+| landing | 7191 | -0.6 s | -4.4 s | 2.61 s | 3.83 s |
+| flight time | 6985 | -0.74 s | -5.06 s | 3.15 s | 5.81 s |
+| descent rate | 7191 | 0 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
+| top acceleration | 290 | 0.6 m/s² | -13.6 m/s² | 13 m/s² | 16.3 m/s² |
+| top acceleration, a floor | 32 | -48 m/s² | -75.9 m/s² | -1.58 m/s² | 12.9 m/s² |
+| burnout | 300 | -0.0102 s | -0.0943 s | 0.0476 s | 0.582 s |
 | burnout, a floor | 1236 | -0.24 s | -1.33 s | 0.718 s | 1.3 s |
-| drogue rate | 2827 | 0.04 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
-| main opening | 2827 | 0.73 s | -0.778 s | 5.3 s | 2.04 s |
-| main rate | 5391 | 0.04 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |
+| drogue rate | 2843 | 0.04 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
+| main opening | 2843 | 0.72 s | -0.778 s | 5.3 s | 2.04 s |
+| main rate | 5428 | 0.04 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |
 
-No tuning flight's true top acceleration reaches the range its part clips at: the nearest, flight 57's on its imu-500hz logger, comes to 0.492 of it. Tops read as clipped, each a floor, at the range or flat at the top: 4; flight 78 (altos), its accelerometer at 20 Hz; flight 122 (altos), its accelerometer at 20 Hz; flight 144 (altos), its accelerometer at 20 Hz; flight 161 (altos), its accelerometer at 20 Hz.
+No tuning flight's true top acceleration reaches the range its own part clips at: the nearest, flight 57's on its imu-500hz logger, comes to 0.492 of it. With its accelerometer set to ±8 g, 28 of the 38 flights logged so have a true top that reaches that range, and 10 don't. Tops read as floors: 32; clipped at the part's range, 28; held flat at the top, 4; cut off where the accelerometer shows no end to the thrust, 0.
+
+Clipped at the part's range: its accelerometer set to ±8 g, imu-500hz flights 0, 3, 4, 5, 7, 8, 26, 31, 34, 49, 57, 70, 73, 107, 111, 118, 123, 132, 133, 138, 141, 160, 163, 167, 175, 190, 196, 198.
+
+Held flat at the top: its accelerometer at 20 Hz, altos flights 78, 122, 144, 161.

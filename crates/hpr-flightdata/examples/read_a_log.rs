@@ -94,7 +94,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!(
         "burnout           {}",
         show(&read.burnout, |burnout| if burnout.is_floor {
-            // A floor: burnout came no sooner than this, less its bound.
+            // A floor: the pair printed is the reading and its bound, and the floor, their
+            // difference, is the soonest burnout can have come.
             format!(
                 "no sooner than {:.2} s less {:.2} s, source: {}",
                 burnout.time_s,

@@ -224,6 +224,15 @@ single-pole filter at half the rate $f_s$ the logger samples at while climbing, 
 change with what the logger writes. Past 32 g the low-g part clips: the high-range part that
 takes over on a real IMU isn't modeled.
 
+The tuning set's 500 Hz IMU flights, 38 of them, are also logged with the low-g part set to ±8 g,
+in steps of 16/65,536 g: a full scale the BMX160 and the MPU-6000 offer on the same 16 bits, as
+their datasheets state ([the sensor noise note][noise]), where the part holds its top value past
+the range. The noise and the clock are the same as on its own log. Of these 38 flights, 28 have a
+true top that reaches 8 g and 10 don't, as the
+[synthetic report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)
+counts, so the readings' rule for a top clipped at its part's range is held on flights that reach
+it ([Flight-log readings](log-readings.md#checked-against)); at ±32 g none does.
+
 ### The GNSS fix
 
 A hobby GNSS receiver's navigation filter follows the rocket like a second-order loop. Under a
@@ -349,6 +358,9 @@ The tests that pin the flights, and the sources they follow.
   failing when changed; the fast noise's correlation at 100 and 500 Hz and the slow noise's time
   constant; the GNSS noise's 3 m (9.8 ft) on each axis; the log's span and each part's rate;
   each profile's step and channels; the height formulas.
+- `hpr_forensics::synthetic::held`: the 500 Hz IMU's part set to ±8 g, its range stated to the
+  readings, and a true top past it read as clipped at the range, a floor that holds; a part with
+  no lower setting writing no such log.
 - `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse,
   and set B's three changes reaching its flights' inputs while set A's keep HPR Sim's.
 - `cargo xtask synthetic --check`, in CI on every platform: the census reproduced.

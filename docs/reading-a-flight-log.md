@@ -209,7 +209,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!(
         "burnout           {}",
         show(&read.burnout, |burnout| if burnout.is_floor {
-            // A floor: burnout came no sooner than this, less its bound.
+            // A floor: the pair printed is the reading and its bound, and the floor, their
+            // difference, is the soonest burnout can have come.
             format!(
                 "no sooner than {:.2} s less {:.2} s, source: {}",
                 burnout.time_s,
@@ -298,13 +299,14 @@ converted exactly here, where `hpr analyze` rounds them up: the drogue's bound b
   a little low.
 - **The top acceleration** is withheld: a PerfectFlite has no accelerometer, and HPR Sim doesn't
   difference the heights twice to make one, as their one-foot steps would read as spikes of many g.
-- **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With
-  no accelerometer, burnout is the top speed's time, a floor. A rocket gains speed only while its
-  thrust beats the drag and its weight, so the motor burned out no sooner than that time less the
-  bound, and may have burned on after it by any amount. The true burnout is 2.10 s. The floor is
-  loose by design: on the synthetic flights' tuning set the top speed's time came on average
-  0.24 s before the true burnout, from 1.33 s before it to 0.72 s after, and the floor lies its
-  bound, about 1.3 s, earlier still ([Checked against](physics/log-readings.md#checked-against)).
+- **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With no
+  accelerometer, burnout is a [floor](glossary.md#floor): its reading is the top speed's time, and
+  the floor that time less its bound. A rocket gains speed only while its thrust beats the drag and
+  its weight, so the motor burned out no sooner than that time less the bound, and may have burned
+  on after it by any amount. The true burnout is 2.10 s. The floor is loose by design: on the
+  synthetic flights' tuning set the top speed's time came on average 0.24 s before the true burnout,
+  from 1.33 s before it to 0.718 s after, and the floor lies its bound, about 1.3 s, earlier still
+  ([Checked against](physics/log-readings.md#checked-against)).
 - **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
   rocket touches down 0.34 s later, at 6 m/s (20 ft/s) under its main.
 - **The flight time**, 45.00 s, within 2.91 s: landing's time less liftoff's. The true flight time
@@ -325,8 +327,16 @@ What the file states about itself, such as the altimeter's own apogee of 1,281 f
 `log.stated`, beside the analyzer's readings and never in their place. The codes, such as
 `no_accelerometer` and `barometer`, are the ones the JSON output of `hpr analyze` uses. The top
 speed is `max_speed` in both, the top acceleration `max_acceleration`, and the canopies' legs
-`drogue_descent` and `main_descent`; a burnout that is a floor carries `is_floor`. Python's `FlightLog.readings()` returns the same readings, bounds
-included, as a dict ([From Python](your-own-logger.md#from-python)).
+`drogue_descent` and `main_descent`; a reading that is a floor carries `is_floor`, and a clipped top
+acceleration says why in `clip`, `range` or `flat`. Python's `FlightLog.readings()` returns the same
+readings, bounds included, as a dict ([From Python](your-own-logger.md#from-python)).
+
+Every code a reading can be withheld with is in
+[the table of reasons](physics/log-readings.md#when-a-reading-is-withheld), with when it applies,
+among them those that came with the accelerometer and the canopies: `axis_unstated` (no
+accelerometer named along the rocket), `gravity_unstated` (whether its readings hold gravity),
+`direction_unstated` (which way up it reads), `one_canopy` (no drogue's leg in the descent) and
+`short_leg` (a leg too short to read).
 
 ## What it doesn't do yet
 

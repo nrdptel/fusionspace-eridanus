@@ -24,7 +24,7 @@ use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::{FlightLog, Quantity};
 use hpr::hpr_flightdata::readings::{
-    self, Descent, Gravity, GravityBy, Method, Provenance, Reading, Readings, Reason, Source,
+    self, Clip, Descent, Gravity, GravityBy, Method, Provenance, Reading, Readings, Reason, Source,
 };
 
 use crate::console::Level;
@@ -32,8 +32,8 @@ use crate::output::{
     AccelerometerGravity, Analyze, AnalyzeMethod, AnalyzedAccelerometer, AnalyzedChannel,
     AnalyzedLog, ApogeeReading, BurnoutReading, DescentReading, FlightTimeReading,
     GravitySettledBy, HighestSample, LandingReading, LiftoffReading, LogReading, LoggerStated,
-    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingMethod, ReadingProvenance,
-    ReadingSource, WithheldReading, WithheldReason,
+    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingMethod,
+    ReadingProvenance, ReadingSource, WithheldReading, WithheldReason,
 };
 use crate::units::{
     acceleration_bound, gravities, meters, meters_bound, seconds_bound, speed, speed_bound,
@@ -345,6 +345,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
                 time_s: acceleration.time_s,
                 range_m_s2: acceleration.range_m_s2,
                 is_floor: acceleration.is_floor,
+                clip: acceleration.clip.map(clip),
                 source: source(acceleration.source),
                 provenance: provenance(acceleration.provenance),
                 method: method(acceleration.method),
@@ -446,6 +447,7 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::DisturbedTop => WithheldReason::DisturbedTop,
                 Reason::AxisUnstated => WithheldReason::AxisUnstated,
                 Reason::GravityUnstated => WithheldReason::GravityUnstated,
+                Reason::DirectionUnstated => WithheldReason::DirectionUnstated,
                 Reason::OneCanopy => WithheldReason::OneCanopy,
                 Reason::ShortLeg => WithheldReason::ShortLeg,
                 _ => WithheldReason::Other,
@@ -472,6 +474,14 @@ fn provenance(provenance: Provenance) -> ReadingProvenance {
         Provenance::Derived => ReadingProvenance::Derived,
         Provenance::Clipped => ReadingProvenance::Clipped,
         _ => ReadingProvenance::Other,
+    }
+}
+
+fn clip(clip: Clip) -> ReadingClip {
+    match clip {
+        Clip::Range => ReadingClip::Range,
+        Clip::Flat => ReadingClip::Flat,
+        _ => ReadingClip::Other,
     }
 }
 
@@ -611,17 +621,21 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                     acceleration_bound(top.bound_m_s2),
                     top.time_s
                 );
-                if top.provenance == ReadingProvenance::Clipped {
-                    value.push_str(&match top.range_m_s2 {
-                        Some(range) => format!(
-                            "; clipped at the part's range of {}, so the top may have been higher",
-                            gravities(range)
-                        ),
-                        None => "; held flat at its top, so it may have been clipped, and the top \
-                                 may have been higher"
-                            .to_owned(),
-                    });
-                }
+                // Why the top is a floor: each cause in its own words.
+                value.push_str(&match (top.clip, top.range_m_s2) {
+                    (Some(ReadingClip::Range), Some(range)) => format!(
+                        "; clipped at the part's range of {}, so the top may have been higher",
+                        gravities(range)
+                    ),
+                    (Some(ReadingClip::Flat), _) => "; held flat at its top, so it may have been \
+                                                     clipped, and the top may have been higher"
+                        .to_owned(),
+                    (Some(_), _) => "; clipped, so the top may have been higher".to_owned(),
+                    (None, _) if top.is_floor => "; the accelerometer shows no end to the \
+                                                  thrust, so the top may have been higher"
+                        .to_owned(),
+                    (None, _) => String::new(),
+                });
                 value
             }
             LogReading::Withheld(reading) => withheld(reading),
@@ -886,6 +900,7 @@ mod tests {
             time_s: 0.75,
             range_m_s2: None,
             is_floor: false,
+            clip: None,
             source: ReadingSource::Accelerometer,
             provenance: ReadingProvenance::Measured,
             method: ReadingMethod::HighestReading,
@@ -951,6 +966,14 @@ mod tests {
         for from in GravityBy::ALL.iter().copied() {
             let mapped = gravity_by(from);
             assert_ne!(mapped, GravitySettledBy::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in Clip::ALL.iter().copied() {
+            let mapped = clip(from);
+            assert_ne!(mapped, ReadingClip::Other, "{from:?}");
             assert_eq!(
                 serde_json::to_value(mapped).unwrap(),
                 serde_json::to_value(from).unwrap()

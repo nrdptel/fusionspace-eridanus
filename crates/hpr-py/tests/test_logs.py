@@ -177,11 +177,12 @@ def test_the_readings_are_the_commands(repo, hpr_cli):
     # and the top and burnout are read from the accelerometer, the top a measured value.
     axial = hpr.FlightLog.read(repo / "validation/fixtures/logs/accelerometer/axial.csv").readings()
     top = axial["max_acceleration"]
-    assert (top["status"], top["source"], top["method"], top["is_floor"]) == (
+    assert (top["status"], top["source"], top["method"], top["is_floor"], top["clip"]) == (
         "read",
         "accelerometer",
         "highest_reading",
         False,
+        None,
     )
     burnout = axial["burnout"]
     assert (burnout["status"], burnout["source"], burnout["method"]) == (

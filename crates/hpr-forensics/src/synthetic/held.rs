@@ -23,10 +23,13 @@
 use std::collections::BTreeMap;
 
 use hpr_flightdata::log::FlightLog;
-use hpr_flightdata::readings::{self, Reading, Reason};
+use hpr_flightdata::readings::{self, Clip, Reading, Reason};
 use serde::{Deserialize, Serialize};
 
-use super::logger::{Recording, Written, accelerometer_log, barometer_log};
+use super::logger::{
+    LOWER_RANGE_G, Recording, Written, accelerometer_log, accelerometer_log_set_lower,
+    barometer_log,
+};
 use super::{Flight, SyntheticError};
 
 /// The foot, m.
@@ -252,6 +255,9 @@ pub enum Outcome {
         error: f64,
         /// The bound it states.
         bound: f64,
+        /// Why a top acceleration is clipped, where it is; `None` for any other floor, such as a
+        /// burnout from the speed's peak or a top whose thrust the accelerometer shows no end to.
+        clip: Option<Clip>,
     },
     /// Withheld, for this reason.
     Withheld(Reason),
@@ -278,9 +284,9 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
     let height = |t_log: f64| truth.at(t_log - pad_s).map_or(f64::NAN, |x| x.height_m);
     let chord = |from_s: f64, to_s: f64| (height(from_s) - height(to_s)) / (to_s - from_s);
     let top_acceleration = top_specific_force(flight);
-    let floor_or_given = |is_floor: bool, error: f64, bound: f64| {
+    let floor_or_given = |is_floor: bool, error: f64, bound: f64, clip: Option<Clip>| {
         if is_floor {
-            Outcome::Floor { error, bound }
+            Outcome::Floor { error, bound, clip }
         } else {
             Outcome::Given { error, bound }
         }
@@ -360,13 +366,19 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
                     a.is_floor,
                     a.acceleration_m_s2 - top_acceleration,
                     a.bound_m_s2,
+                    a.clip,
                 )
             }),
         ),
         (
             Quantity::Burnout,
             of(&read.burnout, |b| {
-                floor_or_given(b.is_floor, b.time_s - (pad_s + events.burnout_s), b.bound_s)
+                floor_or_given(
+                    b.is_floor,
+                    b.time_s - (pad_s + events.burnout_s),
+                    b.bound_s,
+                    None,
+                )
             }),
         ),
         (Quantity::DrogueRate, drogue_rate),
@@ -405,11 +417,29 @@ pub fn top_over_range(flight: &Flight) -> Option<f64> {
         .map(|range| top_specific_force(flight) / range)
 }
 
+/// As [`top_over_range`], against the lower range its logger's accelerometer is set to on the
+/// log [`accelerometer_log_set_lower`] writes; `None` for a part with no such setting.
+pub fn top_over_lower_range(flight: &Flight) -> Option<f64> {
+    flight
+        .draw
+        .logger
+        .profile
+        .accelerometer_lower_range_m_s2()
+        .map(|range| top_specific_force(flight) / range)
+}
+
+/// The name in the report of the log [`accelerometer_log_set_lower`] writes.
+pub fn lower_range_name() -> String {
+    format!("its accelerometer set to ±{LOWER_RANGE_G} g")
+}
+
 /// The logs flight `index` is checked on: its own logger's, named by its profile; its
 /// barometer's at each of [`grid`]'s recordings, named by [`name`]; its own logger's log with the
-/// accelerometer at each of [`ACCELEROMETER_RATES_HZ`]; and its barometer's at each of
-/// [`CROPPED`]'s recordings, cut each [`Crop`] way. A logger with no barometer gives no grid's or
-/// crop's, and one with no accelerometer no accelerometer's.
+/// accelerometer at each of [`ACCELEROMETER_RATES_HZ`], and with it set to the lower range its
+/// part offers, named by [`lower_range_name`], so that some tops clip at the range and the rest
+/// don't; and its barometer's at each of [`CROPPED`]'s recordings, cut each [`Crop`] way. A
+/// logger with no barometer gives no grid's or crop's, one with no accelerometer no
+/// accelerometer's, and one whose part has no lower setting no lower range's.
 ///
 /// # Errors
 ///
@@ -436,6 +466,10 @@ pub fn logs(
         {
             logs.push((format!("its accelerometer at {rate_hz} Hz"), log));
         }
+    }
+    if let Some(log) = accelerometer_log_set_lower(&flight.draw.logger, &flight.truth, seed, index)?
+    {
+        logs.push((lower_range_name(), log));
     }
     let liftoff_s = flight.draw.logger.pad_s + flight.truth.events.liftoff_s;
     for recording in CROPPED {
@@ -515,7 +549,7 @@ pub fn tally(flights: &[FlightOutcomes]) -> Vec<Tally> {
                         worst: None,
                     });
                 match *outcome {
-                    Outcome::Given { error, bound } | Outcome::Floor { error, bound } => {
+                    Outcome::Given { error, bound } | Outcome::Floor { error, bound, .. } => {
                         tally.given += 1;
                         // A floor errs only above the truth; a NaN, which `max` would take to 0, is
                         // never a hold.
@@ -608,7 +642,7 @@ pub fn errors(flights: &[FlightOutcomes]) -> Vec<Errors> {
             for (quantity, outcome) in results {
                 let (error, bound, floor) = match *outcome {
                     Outcome::Given { error, bound } => (error, bound, false),
-                    Outcome::Floor { error, bound } => (error, bound, true),
+                    Outcome::Floor { error, bound, .. } => (error, bound, true),
                     Outcome::Withheld(_) | Outcome::Absent => continue,
                 };
                 let sum = sums.entry((*quantity, floor)).or_default();
@@ -681,6 +715,7 @@ mod tests {
                             Outcome::Floor {
                                 error: -0.75,
                                 bound: 2.0,
+                                clip: None,
                             },
                         ),
                         (Quantity::Burnout, given(0.75)),
@@ -740,7 +775,11 @@ mod tests {
     /// a NaN error, which `max` would take to 0, never holds, a floor's or a reading's.
     #[test]
     fn a_floor_holds_one_side_and_never_on_nan() {
-        let floor = |error: f64| Outcome::Floor { error, bound: 1.0 };
+        let floor = |error: f64| Outcome::Floor {
+            error,
+            bound: 1.0,
+            clip: None,
+        };
         let holds = |outcome: Outcome| {
             tally(&[(
                 0,
@@ -779,6 +818,60 @@ mod tests {
         assert_eq!(top_over_range(&without), None);
     }
 
+    /// The IMU-like logger's part set to its lower range: the readings state the range it clips
+    /// at, and a true top past it reads as clipped at the range, a floor that holds; a part with
+    /// no lower setting writes no such log.
+    #[test]
+    fn a_part_set_to_its_lower_range_clips_there() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let mut flights = (0..).filter_map(|k| flyer.flight(Set::Tuning, k).ok().map(|f| (k, f)));
+        let (index, imu) = flights
+            .by_ref()
+            .take(40)
+            .find(|(_, f)| top_over_lower_range(f).is_some_and(|share| share > 1.1))
+            .unwrap();
+        let lower = imu.draw.logger.profile.accelerometer_lower_range_m_s2();
+        assert_eq!(
+            lower,
+            Some(LOWER_RANGE_G * hpr_core::gravity::STANDARD_GRAVITY_MPS2)
+        );
+        let log =
+            accelerometer_log_set_lower(&imu.draw.logger, &imu.truth, Set::Tuning.seed(), index)
+                .unwrap()
+                .unwrap();
+        let read = readings::read(&log);
+        let top = read.max_acceleration.value().unwrap();
+        assert_eq!(top.range_m_s2, lower, "{top:?}");
+        assert_eq!(top.clip, Some(Clip::Range), "{top:?}");
+        assert!(top.is_floor, "{top:?}");
+        let outcome = outcomes(&imu, &log)
+            .into_iter()
+            .find(|(quantity, _)| *quantity == Quantity::TopAcceleration)
+            .map(|(_, outcome)| outcome);
+        let Some(Outcome::Floor { error, bound, clip }) = outcome else {
+            panic!("{outcome:?}");
+        };
+        assert_eq!(clip, Some(Clip::Range));
+        assert!(error < 0.0 && error <= bound, "{error}, {bound}");
+        let (index, altos) = flights
+            .take(40)
+            .find(|(_, f)| {
+                f.draw.logger.profile.accelerometer_range_m_s2().is_some()
+                    && top_over_lower_range(f).is_none()
+            })
+            .unwrap();
+        assert!(
+            accelerometer_log_set_lower(
+                &altos.draw.logger,
+                &altos.truth,
+                Set::Tuning.seed(),
+                index
+            )
+            .unwrap()
+            .is_none()
+        );
+    }
+
     /// A tuning flight's readings hold on its own log and every grid log; a reading pushed past
     /// its bound is counted as not holding.
     #[test]
@@ -804,7 +897,14 @@ mod tests {
             ACCELEROMETER_RATES_HZ.len()
         } else {
             0
-        };
+        } + usize::from(
+            flight
+                .draw
+                .logger
+                .profile
+                .accelerometer_lower_range_m_s2()
+                .is_some(),
+        );
         assert_eq!(
             logs.len(),
             1 + grid().len() + accelerometers + CROPPED.len() * Crop::ALL.len()

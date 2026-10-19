@@ -246,7 +246,9 @@ impl FlightLog {
     /// ``flight_time``, ``drogue_descent`` and ``main_descent``, each with ``status`` ``"read"``
     /// and its value, the bound its error stays within, the track it came from (``source``),
     /// whether it was measured, derived or clipped (``provenance``) and how it was read
-    /// (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``. Beside them, how
+    /// (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``; a top acceleration
+    /// also says whether it is a floor (``is_floor``) and why it is clipped, ``"range"`` or
+    /// ``"flat"`` (``clip``), or ``None``. Beside them, how
     /// they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the running
     /// median's ``median_window_s`` and ``peak_bound_m``, ``pad_altitude_m``, and the axial
     /// ``accelerometer`` the top acceleration and burnout came from, or ``None``.

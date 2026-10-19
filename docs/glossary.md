@@ -570,12 +570,16 @@ format is the logger maker's. `hpr analyze` reads one and prints what it says, w
 
 ### Floor
 
-A reading that holds one way only: the truth is no lower (or, for a time, no sooner) than the
-reading less its bound, and may lie beyond it by any amount. `hpr analyze` gives a floor where the
-log can't show the other side: a top acceleration held at the part's range, an apogee close to
-the log's end, or burnout taken from the top speed's time less its bound, before which it can't
-have come. The JSON marks one `is_floor`. See
-[Flight-log readings](physics/log-readings.md#the-accelerometer).
+A reading that holds one way only. It has two numbers: the reading, where the rule lands, and the
+floor itself, that reading less its bound. The truth is at or above the floor (or, for a time, at
+or after it), and may lie beyond it by any amount. For burnout taken from the top speed on the
+invented PerfectFlite flight, the reading is the top speed's time, 2.20 s, which the JSON gives as
+`time_s`, and the floor is 2.20 s less its 1.32 s bound, 0.88 s, which `hpr analyze` prints as
+"no sooner than 0.88 s". The errors the tuning set reports for a floor are the reading's, not the
+floor's. `hpr analyze` gives a floor where the log can't show the other side: a top acceleration
+clipped at the part's range or held flat at its top, or one whose thrust the accelerometer shows
+no end to; an apogee close to the log's end; or burnout taken from the top speed. The JSON marks
+one `is_floor`. See [Flight-log readings](physics/log-readings.md#each-reading).
 
 ### Flutter
 

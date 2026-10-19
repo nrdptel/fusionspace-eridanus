@@ -11,9 +11,9 @@ withholds one instead of guessing.
   opening. They come from any logger's height track: its own barometric altitude, a pressure turned
   into a height by the 1976 standard atmosphere, or an altitude kept in a column of its own. An
   accelerometer along the rocket's axis adds the top acceleration and burnout; without one, burnout
-  is a [floor](../glossary.md#floor) at the top speed's time. Each reading states a bound on its
-  error and where it came from, or is **withheld** with one of 26 reasons. It never guesses. A GNSS
-  (GPS) height gives no reading.
+  is a [floor](../glossary.md#floor): the top speed's time less its bound. Each reading states a
+  bound on its error and where it came from, or is **withheld** with one of 27 reasons. It never
+  guesses. A GNSS (GPS) height gives no reading.
 - **Sources:** the [running median](../glossary.md#running-median) is the Hampel filter at threshold
   zero, as Pearson and colleagues define it, and an accelerometer's trace is cleaned by the same
   filter at threshold five. The landing's thresholds and the least climb are those of Debrief, the
@@ -29,7 +29,8 @@ withholds one instead of guessing.
   set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds),
   171 flights logged by a barometer, each logged again at 36 rates and steps and cut 6 ways as
   loggers that record from launch cut them, and the 71 of them with an accelerometer read again with
-  it at 500, 100 and 20 samples a second, every reading given stayed within its bound. The largest
+  it at 500, 100 and 20 samples a second, and 38 with it set to ±8 g, where 28 true tops reach the
+  part's range, every reading given stayed within its bound. The largest
   share of its bound any error took was 0.717, on an apogee, and 0.715 on a top acceleration
   ([Checked against](#checked-against)). The bounds were tuned on those same flights, so this shows
   they are wide enough there, not on flights held apart. On an invented PerfectFlite log, every
@@ -46,9 +47,10 @@ withholds one instead of guessing.
   canopy, read as one canopy's ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780));
   a canopy far above the tropopause; accelerometer noise that runs from sample to sample, which
   would narrow burnout's bound ([#787](https://github.com/nrdptel/fusionspace-eridanus/issues/787));
-  a top clipped at its part's range, held only by unit tests; and a board's three axes, which give
-  no top acceleration ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781); [What it
-  leaves out](#what-it-leaves-out)).
+  a top clipped at the high-g part's range, which no tuning flight reaches; and a board's three
+  axes, which give no top acceleration
+  ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781); [What it leaves
+  out](#what-it-leaves-out)).
 
 ## The method
 
@@ -224,8 +226,8 @@ the track's zero:
 
 Each reading names its `method`, and its `provenance`: `measured` when it is read straight off the
 track, `derived` when it is worked out from it, and `clipped` for a top acceleration at its
-part's range or held flat at its top, which is a floor ([The accelerometer](#the-accelerometer)).
-There are nine methods:
+part's range or held flat at its top, which is a floor, its `clip` saying which
+([The accelerometer](#the-accelerometer)). There are nine methods:
 
 | reading | rule | `method` | `provenance` |
 |---|---|---|---|
@@ -236,14 +238,23 @@ There are nine methods:
 | landing | the first sample after apogee back within the pad's allowance that stays below it, 3 m (9.8 ft) and a step for a second, and no sooner than a fall from rest in vacuum could lose that height | `back_on_the_pad` | `measured` |
 | flight time | landing's time less liftoff's | `liftoff_to_landing` | `measured` |
 | mean descent rate | the filtered height lost from apogee to landing, over the time taken, part of landing's reading | | |
-| top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time (the log's start if liftoff is withheld), gravity in | `highest_reading` | `measured`, or `clipped` |
+| top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time (the log's start if liftoff is withheld), gravity in; a floor where it clipped, or where the thrust doesn't end on the channel | `highest_reading` | `measured`, or `clipped` |
 | burnout | from the accelerometer: where its reading is least after it falls through zero, the end of the thrust's fall | `least_after_thrust` | `measured` |
-| | without it: the top speed's time, a floor: burnout came no sooner than that less its bound | `speed_peak` | `derived` |
+| | without it: a floor, the top speed's time less its bound; the reading is the top speed's time | `speed_peak` | `derived` |
 | drogue descent | the filtered height lost from apogee to the main's opening, over the time taken | `leg_chord` | `derived` |
 | main descent | the same from the main's opening, found back from landing, to landing; from apogee where the descent shows one canopy | `leg_chord` | `derived` |
 
 Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach, so
 it comes after the true liftoff by the time that climb took.
+
+**A floor** holds one way only, and has two numbers. The reading is where the rule lands: for
+burnout without an accelerometer, the top speed's time, 2.20 s on the invented PerfectFlite flight
+below, which the JSON gives as `time_s`. The floor is that reading less its bound: 2.20 s less
+1.32 s, 0.88 s, which `hpr analyze` prints as "no sooner than 0.88 s". The truth is at or after
+the floor, or for a top acceleration at or above it, and may be later, or higher, by any amount.
+The errors the tuning set reports for a floor are the reading's, not the floor's
+([Checked against](#checked-against); the [glossary](../glossary.md#floor)). The JSON marks a
+floor `is_floor`.
 
 The **top speed** is HPR Sim's own, worked out from the heights rather than read from a speed
 column a logger writes: every logger's track can give one, and its bound can be stated. A 0.5 s
@@ -271,7 +282,7 @@ bound the sum of theirs, so it needs both. Landing's reading no longer carries i
 The **top acceleration** comes only from an accelerometer, never from the heights. Differencing
 twice turns a track's steps into spikes: at 20 samples a second, a one-foot step differenced twice
 is $0.3048/0.05^2 = 122\,\mathrm{m/s^2}$, over 12 g. So a log with no accelerometer gives none
-(`no_accelerometer`), and its burnout is the floor at the top speed's time.
+(`no_accelerometer`), and its burnout is a floor: the top speed's time less its bound.
 
 ### The accelerometer
 
@@ -291,14 +302,23 @@ loggers write what the part reads; others take gravity's 1 g out on the pad, so 
 Sim puts the 1 g back where it was taken out, so every reading is the specific force, +1 g on the
 pad. So is the top acceleration: it holds the 1 g, where `hpr sim`'s `max_acceleration_m_s2` is the
 rocket's own acceleration, from the equations of motion. Less 1 g, the top acceleration is the
-rocket's own acceleration up on a vertical climb. A part mounted nose down writes the thrust
-negative. A pad reads 1 g or 0 either way up, and a rocket leaves it at 3 g or more, so the first
-reading past 2 g, either way, is the thrust's: where it is negative, the readings are turned over,
-and a canopy's shock later, however large, doesn't turn them. A sample that isn't a number is left
-out, and so is one that repeats the time before it, the first kept, as the height track keeps
-AltOS's rows that share a time. A part sampled faster than every 0.002 s, 500 times a second, the
-fastest the bounds were checked at, gives neither reading (`sampled_too_fast`), and burnout then
-comes from the top speed.
+rocket's own acceleration up on a vertical climb.
+
+**Which way up.** A part mounted nose down writes the thrust negative. A pad reads 1 g or 0 either
+way up, and a rocket leaves it at 3 g or more, so the thrust passes 2 g whichever way up the part
+reads. Which way up is found on the cleaned trace, as the burns are (both below), from liftoff's
+earliest time: the first span, in either sign, that holds past 2 g for 0.5 s is the thrust's, and
+where it is negative the readings are turned over. A knock on the pad, either way, holds too
+briefly, and a canopy's shock later, however large, comes after the thrust. Where no span holds
+that long, the sign every span shares is the thrust's, a short burn's. Where spans go both ways and
+none holds, or none passes 2 g, which way up can't be told: the top acceleration and burnout from
+the accelerometer are withheld (`direction_unstated`), and burnout comes from the top speed. One of
+the sample logs is withheld so.
+
+A sample that isn't a number or has no time is left out, and so is one that repeats the time of the
+last kept, the first kept, as the height track keeps AltOS's rows that share a time. A part sampled
+faster than every 0.002 s, 500 times a second, the fastest the bounds were checked at, gives neither
+reading (`sampled_too_fast`), and burnout then comes from the top speed.
 
 **A cleaned trace.** A charge's shock or one bad sample could turn the readings over, end the thrust
 early or pass for burnout. So those are found on a cleaned trace: a Hampel filter over 0.1 s puts
@@ -338,8 +358,9 @@ the longer ones are burns. The 0.5 s is HPR Sim's choice. The burns are searched
 earliest time by the heights, or from the log's start where liftoff is withheld: a rocket at rest
 reads 1 g, so anything more before it moves is a knock or a bump on the pad. With no burn, the top
 is searched from there to apogee. A charge or a canopy's shock in a coast lies outside the burns, so
-it isn't taken for the top; a second burn, an air start's or a sustainer's, is searched too. Its
-bound adds the part's own errors, the noise around the top and what a peak between samples can hide:
+it isn't taken for the top; a second burn, an air start's or a sustainer's, is searched too. No top
+or burnout earlier than liftoff's earliest time is given. Its bound adds the part's own errors, the
+noise around the top and what a peak between samples can hide:
 
 $$
 \begin{aligned}
@@ -356,17 +377,28 @@ out; $\sigma$ is the noise, measured within 0.5 s either side of the top; $\Delt
 $j$ is the jump to the sample either side. On the tests' trace, a thrust that rises to a top of 6 g,
 58.8 m/s², the scale alone is 5.9 m/s² of the bound and the bias 0.49 m/s².
 
-**Clipped.** A part reads no higher than its range. A top is `clipped` where it reaches the part's
-stated range, within two steps and 0.25 g, or holds flat at its top for 4 samples or 0.05 s,
-whichever is more samples, as Debrief tells a part that clipped. Flat means within Debrief's 0.3% of
-the top or 0.25 m/s², narrowed to half the part's noise where that is less, and never below half a
-step: a part at its range writes one value, while a thrust's plateau read by a quiet part still
-scatters by its noise. Tried when the rule was chosen, Debrief's tolerance alone called 82 of the
-tuning set's 284 tops clipped, though none reaches its part's range ([ADR-283][adr-283]). A
-clipped top is a [**floor**](../glossary.md#floor): the truth is no lower than the reading less its
-bound, and may be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped`, and
-gives the part's range as `range_m_s2` where the family states one; `hpr analyze` says the top may
-have been higher.
+**Clipped.** A part reads no higher than its range. A top is `clipped`, for one of two causes the
+JSON's `clip` keeps apart. It is `range` where the top reaches the part's range as its family
+states it, within two steps and 0.25 g: the part read no more. Otherwise it is `flat` where the
+top holds flat for 4 samples or 0.05 s, whichever is more samples, as Debrief tells a part that
+clipped: a part that clipped at a range other than the one stated, or with none stated, writes
+such a top. Flat means within Debrief's 0.3% of the top or 0.25 m/s², narrowed to half the part's
+noise where that is less, and never below half a step: a part at its range writes one value, while
+a thrust's plateau read by a quiet part still scatters by its noise. Tried when the rule was
+chosen, before the tuning set held a log whose tops reach its part's range, Debrief's tolerance
+alone called 82 of its 284 tops clipped ([ADR-283][adr-283]). A clipped top is a
+[**floor**](../glossary.md#floor): the truth is no lower than the reading less its bound, and may
+be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped` and its cause in
+`clip`, and gives the part's range as `range_m_s2` where the family states one. `hpr analyze`
+says "clipped at the part's range" only for `range`; for `flat` it says the top held flat at its
+top, so it may have been clipped. Either way the top may have been higher.
+
+**A thrust with no end.** A top is a floor too where the accelerometer shows no end to the thrust:
+the last burn never falls through zero before the accelerometer's samples end or apogee, as when
+the log, or the accelerometer alone, stops while the motor still pushes. The top may then lie past
+the samples. It is `measured`, its `clip` `null`, and `hpr analyze` says the accelerometer shows
+no end to the thrust. Burnout isn't read off such a trace, and comes from the top speed instead.
+The synthetic report counts this cause apart, as `thrust_unended`; no tuning-set top reads so.
 
 **Burnout from the accelerometer.** In the climb the reading is $(T - D)/m$, the thrust $T$ less the
 drag $D$ over the mass $m$: above zero while the thrust beats the drag, below zero once it doesn't,
@@ -400,16 +432,18 @@ and the window's 0.06 s the bound is about 0.3 s. The reading falls within a sam
 s.
 
 **Burnout from the top speed.** A rocket gains speed only while the thrust beats the drag and its
-weight, so the top speed comes at or before burnout, the last burn's end. Where the accelerometer gives no burnout, or
-the log has none, burnout is the top speed's time, a floor: it came no sooner than that less its
-bound, and may have come later by any amount, as a motor whose thrust tails off below the drag and
-the weight burns on after the rocket stops gaining speed. The bound is the time a coast slowing at
-$g$ takes to lose twice the speed's 5 m/s (16 ft/s) noise, by which the fit can place the peak late,
-then half the 0.5 s fit and an interval. On the invented PerfectFlite flight, which has no
-accelerometer, $2 \times 5/9.81 = 1.02$ s, half the fit's 0.25 s and the 0.05 s interval add to 1.32
-s, and `hpr analyze` reads burnout no sooner than 0.88 s, the top speed's time, 2.20 s, less that
-bound. The true burnout is 2.10 s, 0.10 s before the top speed's time. The JSON marks such a burnout
-`is_floor`, and a top speed withheld, as `transonic` on a fast flight, withholds it too.
+weight, so the top speed comes at or before burnout, the last burn's end. Where the accelerometer
+gives no burnout, or the log has none, burnout is a floor: its reading is the top speed's time, and
+the floor is that time less its bound. Burnout came no sooner than the floor, and may have come
+later by any amount, as a motor whose thrust tails off below the drag and the weight burns on after
+the rocket stops gaining speed. The bound is the time a coast slowing at $g$ takes to lose twice the
+speed's 5 m/s (16 ft/s) noise, by which the fit can place the peak late, then half the 0.5 s fit and
+an interval. On the invented PerfectFlite flight, which has no accelerometer,
+$2 \times 5/9.81 = 1.02$ s, half the fit's 0.25 s and the 0.05 s interval add to 1.32 s, and
+`hpr analyze` reads burnout no sooner than 0.88 s, the top speed's time, 2.20 s, less that bound.
+The true burnout is 2.10 s, 0.10 s before the top speed's time. The JSON gives such a burnout's
+reading as `time_s` and its bound as `bound_s`, and marks it `is_floor`; a top speed withheld, as
+`transonic` on a fast flight, withholds it too.
 
 ### The canopies
 
@@ -446,17 +480,26 @@ $H$ is the troposphere's least density scale height, 7,000 m (22,966 ft). In the
 atmosphere, whose temperature falls by $L$, 6.5 K/km, the density falls as $\exp(-h/H)$ near any
 height, with $H = RT/(g - RL)$ for air's gas constant $R$ and the temperature $T$. At the coldest
 the bounds allow, the tropopause's 216.65 K less 15 K, $H$ is 7,289 m (23,914 ft), taken down to
-7,000 m (22,966 ft). In the troposphere a canopy's rate grows with height by no more than
-$\exp(h/2H)$ at the least $H$, so the scaling can only slow a rate read high up, never quicken it,
-and one canopy doesn't read as two. When the rule was chosen, comparing each rate at its own
-density named a main on a tuning flight that had opened one canopy at apogee.
+7,000 m (22,966 ft). Where the air cools with height, as through the standard troposphere, a
+canopy's rate grows with height by no more than $\exp(h/2H)$ at the least $H$, so the scaling can
+only slow a rate read high up, never quicken it, and one canopy doesn't read as two. A surface
+inversion, air that warms with height, is the exception, as $L$ is negative there and $H$ shrinks: at 260 K, warming by 20 K/km, $H$ is about 4,800 m
+(15,748 ft). Over an inversion 300 m (984 ft) deep, a canopy's rate then grows by 3.2% from the
+ground to its top, and the scaling at 7,000 m (22,966 ft) takes out 2.2%, so a rate read there is
+about 1% quicker than near the ground: small beside the mark's 1.6. When the rule was chosen,
+comparing each rate at its own density named a main on a tuning flight that had opened one canopy at
+apogee.
 
-**A drogue, or one canopy.** A drogue came before the main if the descent from apogee to the
-opening fell faster than 1.4 times the main's rate, by its median, as Debrief asks; and, HPR Sim
-adds, if the 2 s just before the run fell faster than the run's mark, since a drogue whose rate
-crosses the mark leaves the run's start inside the drogue's leg. Otherwise the descent shows one
-canopy (`one_canopy`): the drogue's descent is withheld, and the main's runs from apogee to
-landing. A rocket that came down under none reads the same way.
+**A drogue, or one canopy.** A drogue came before the main only where the descent shows its leg:
+the 2 s just before the run, at the ground's density, fell faster than the run's mark, since a
+drogue whose rate crosses the mark leaves the run's start inside the drogue's leg, HPR Sim's
+addition; and the descent from apogee to the opening fell faster than 1.4 times the main's rate,
+by its median, as Debrief asks. Otherwise the descent shows one canopy (`one_canopy`): the
+drogue's descent is withheld, and the main's runs from apogee to landing. So a drogue no faster
+than the mark reads as one canopy, whatever its ratio to the main, and the main's descent is then
+the whole descent's: in the tests, a drogue at 12 m/s (39 ft/s) over a main at 10 m/s (33 ft/s),
+whose mark is 16 m/s (52 ft/s), reads as one canopy, though Debrief's ratio of 1.4 would tell them
+apart. A rocket that came down under none reads the same way.
 
 **Each leg's rate** is the filtered height it loses over the time it takes: the drogue's from
 apogee to the main's opening, the main's from there to landing. A leg that loses no more than 3 m
@@ -691,7 +734,7 @@ unit withheld by name, the same flight in its right unit read.
 
 A withheld reading has a code and a sentence with the log's own numbers. Only the readings that
 need what is missing go: a log that starts in the air on the logger's own altitude loses its
-liftoff, and with it the flight time, but keeps its apogee, top speed and landing. There are 26
+liftoff, and with it the flight time, but keeps its apogee, top speed and landing. There are 27
 reasons:
 
 | code | when | readings withheld |
@@ -720,7 +763,8 @@ reasons:
 | `no_accelerometer` | the log has no accelerometer | the top acceleration; burnout comes from the top speed's time |
 | `axis_unstated` | the log's accelerometers don't say which lies along the rocket's axis, such as a board's three axes or a table's column read by its header | the top acceleration; burnout comes from the top speed's time |
 | `gravity_unstated` | the axial accelerometer's readings may or may not hold gravity's 1 g, and neither its family, nor its pad, nor its coast to apogee settles which, or they disagree | the top acceleration; burnout comes from the top speed's time |
-| `one_canopy` | the descent's rate never changes enough to tell a second canopy: the rocket came down under one, under two whose rates are closer than 1.4 to one, or under none | the drogue's descent; the main's is read from apogee |
+| `direction_unstated` | which way up the axial accelerometer reads can't be told: from liftoff's earliest time to apogee its cleaned trace never passes 2 g either way up, or passes it both ways and never holds there for 0.5 s, as a thrust does and a knock on the pad doesn't | the top acceleration and burnout from the accelerometer; burnout comes from the top speed's time |
+| `one_canopy` | the descent shows no drogue's leg: at the ground's density, its rate in the 2 s before the main's leg never passes the main's mark, 1.6 times the rate near the ground or 3 m/s (9.8 ft/s) more if that is more, or the descent before that leg doesn't fall, on median, faster than 1.4 times that rate. A drogue no faster than the mark reads as one canopy, whatever its ratio to the main, and so does a rocket under one canopy or none | the drogue's descent; the main's is read from apogee, the whole descent's |
 | `short_leg` | a leg of the descent loses no more than 3 m (9.8 ft) or a tenth of its top's height; or the whole descent loses too little, or falls too slowly near the ground, to time a leg by | that leg's descent; or both |
 
 "All" means liftoff, apogee, the top speed and landing, with the flight time, burnout and each
@@ -746,7 +790,9 @@ from 500 to half a sample a second and every step from none to 10 m (33 ft) or 1
 in all, and cut 6 ways as loggers that record from launch write them: 20 samples a second in feet
 or in 10 Pa steps, starting 0.3 s before liftoff, 0.1 s after, or 0.5 s after with the zero first.
 The 71 flights whose logger has an accelerometer, the AltOS-like and the IMU profiles, are read
-again with it at 500, 100 and 20 samples a second. Every reading given stayed within its bound,
+again with it at 500, 100 and 20 samples a second, and the 500 Hz IMU profile's 38 once more with
+its part set to ±8 g ([The acceleration](synthetic-flights.md#the-acceleration)), so that some
+tops clip at the part's range and the rest don't. Every reading given stayed within its bound,
 and the check fails the build if one doesn't; a floor holds while it is no more than its bound
 above the truth. The largest share of its bound any error took, from the
 [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds)
@@ -772,31 +818,41 @@ beside the mean bound the readings stated
 ([Errors on the tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)).
 An error is the reading less the truth. Each error is held to its own reading's bound, which
 differs from flight to flight and log to log, so the least or the most may pass the mean bound; the
-mean is for scale. A floor, a burnout from the top speed or a clipped top acceleration, is counted
-apart, as it may lie any amount below the truth. The least, the most and
+mean is for scale. A canopy's rates are compared with the truth over the span the reader chose,
+its leg's ends, so an opening read early or late shows in the opening's error, not in the rates'.
+A floor, a burnout from the top speed or a top acceleration that clipped or whose thrust has no
+end on the channel, is counted apart, as it may lie any amount below the truth; its error is the
+reading's, not the floor's, which lies its bound lower or earlier still. The least, the most and
 the mean bound are to three figures, nearest; a mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 
 | reading | given | mean error | least | most | mean bound |
 |---|---:|---:|---:|---:|---:|
-| flight time | 6,948 | −0.74 s | −5.06 s | 3.15 s | 5.83 s |
-| top acceleration | 280 | 0.7 m/s² | −13.6 m/s² | 13 m/s² | 16.6 m/s² |
-| top acceleration, a floor | 4 | −4.49 m/s² | −7.55 m/s² | −1.58 m/s² | 12.7 m/s² |
-| burnout, from the accelerometer | 262 | −0.0118 s | −0.0943 s | 0.0476 s | 0.651 s |
+| flight time | 6,985 | −0.74 s | −5.06 s | 3.15 s | 5.81 s |
+| top acceleration | 290 | 0.6 m/s² | −13.6 m/s² | 13 m/s² | 16.3 m/s² |
+| top acceleration, a floor | 32 | −48 m/s² | −75.9 m/s² | −1.58 m/s² | 12.9 m/s² |
+| burnout, from the accelerometer | 300 | −0.0102 s | −0.0943 s | 0.0476 s | 0.582 s |
 | burnout, a floor | 1,236 | −0.24 s | −1.33 s | 0.718 s | 1.3 s |
-| drogue rate | 2,827 | 0.04 m/s (0.13 ft/s) | −1.61 m/s (−5.28 ft/s) | 1.35 m/s (4.43 ft/s) | 1.79 m/s (5.87 ft/s) |
-| main opening | 2,827 | 0.73 s | −0.778 s | 5.3 s | 2.04 s |
-| main rate | 5,391 | 0.04 m/s (0.13 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
+| drogue rate | 2,843 | 0.04 m/s (0.13 ft/s) | −1.61 m/s (−5.28 ft/s) | 1.35 m/s (4.43 ft/s) | 1.79 m/s (5.87 ft/s) |
+| main opening | 2,843 | 0.72 s | −0.778 s | 5.3 s | 2.04 s |
+| main rate | 5,428 | 0.04 m/s (0.13 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
 
-Burnout from the accelerometer lands within 0.0943 s of the truth, to three figures, against a mean bound of 0.651 s.
-A floor from the top speed comes 0.24 s before burnout on average, as a speed's peak should, and up
-to 0.718 s after it, within its bound. The main's opening is read late on average, by 0.73 s; its
-bound holds the time a canopy takes to slow the fall and half the fit. No tuning flight's true top
-acceleration reaches the range its part clips at: the nearest comes to 0.492 of it, the report says.
-The 4 tops read as clipped all the same, each a floor, are all on the ADXL375 read at 20 Hz. That is
-consistent with its noise there, 19.8 mg by the synthetic flights' noise model, being under half its
-49 mg step, so that it writes most of a thrust's plateau as one value, but no test pins a quiet part
-that reads as clipped ([ADR-283][adr-283]).
+Burnout from the accelerometer lands within 0.0943 s of the truth, to three figures, against a mean
+bound of 0.582 s. Without it, the top speed's time comes 0.24 s before burnout on average, as a
+speed's peak should, from 1.33 s before it to 0.718 s after, within its bound; the floor, that time
+less its bound, about 1.3 s on average, lies earlier still. The main's opening is read late on
+average, by 0.72 s; its bound holds the time a canopy takes to slow the fall and half the fit.
+
+No tuning flight's true top acceleration reaches the range its own part clips at: the nearest comes
+to 0.492 of it, the report says. So the 500 Hz IMU profile's 38 flights are logged once more with
+the part set to ±8 g, a full scale the BMX160 and the MPU-6000 offer: 28 of their true tops reach
+that range, and 10 don't. Of the 32 tops read as floors, 28 are clipped at the range, all on that
+log, each a floor that holds. The floors' mean error, −48 m/s², is mostly how far those clipped tops
+lie below their truth, as a floor may by any amount. The other 4 are held flat at their top, all on
+the AltOS-like profile's ADXL375-class part read at 20 Hz. That is consistent with its noise there,
+19.8 mg by the synthetic flights' noise model, being under half its 49 mg step, so that it writes
+most of a thrust's plateau as one value, but no test pins a quiet part that reads as flat
+([ADR-283][adr-283]). No tuning-set top reads as a thrust with no end.
 
 On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within
 its bound, and on no log was a main named on a flight that opened one canopy or none: those are
@@ -881,8 +937,8 @@ withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
 554, the top speed from 354, landing from 472, the flight time from 406, burnout from 435, the top
-acceleration from 184, the drogue's descent from 267 and the main's from 459. Each of the 26
-reasons has a case: for 22, the first file the survey withholds a reading of for it, by an
+acceleration from 183, the drogue's descent from 267 and the main's from 459. Each of the 27
+reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
 `step_too_coarse`), an invented file under
@@ -896,11 +952,12 @@ flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from log
 start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
 apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
-The new readings' reasons follow the loggers. The top acceleration is withheld as
-`no_accelerometer` on 665 records, as `axis_unstated` on 136, whose boards or tables don't say
-which accelerometer lies along the rocket, and as `gravity_unstated` on 10. The drogue's descent
-is withheld as `short_leg` on 11, and as `one_canopy` on 185, where the descent's rate didn't show
-a second canopy; with no truth beside the logs, that doesn't say how each rocket came down.
+The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
+on 665 records, as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
+along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 1, whose accelerometer
+never passes 2 g either way up. The drogue's descent is withheld as `short_leg` on 11, and as
+`one_canopy` on 185, where the descent showed no drogue's leg; with no truth beside the logs, that
+doesn't say how each rocket came down.
 
 ### What it leaves out
 
@@ -920,7 +977,8 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   budget).
 - **Rockets slow off the pad.** The liftoff bound and the pad's error assume at least 2 g off the
   pad. A rocket slower than that is read later than its liftoff bound, and may already be further
-  up, when a log starts, than its pad's error allows.
+  up, when a log starts, than its pad's error allows. An accelerometer that never reads past 2 g
+  can't say which way up it reads, and gives no top acceleration (`direction_unstated`).
 - **Fast flights' top speeds.** The top speed is withheld from 227.7 m/s (747 ft/s), and so is a
   burnout taken from its time where no accelerometer gives one. The heights
   aren't checked for the port's error near the speed of sound; the apogee, read near the top where
@@ -942,7 +1000,8 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   of Cavour, a design with no parachute, read that way
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
 - **A descent from far above the tropopause.** The scaling to the ground's density slows a rate read
-  high up, never quickens it, while the density from the pad up falls no faster than $\exp(-h/H)$.
+  high up, never quickens it, but for about 1% in a surface inversion ([The
+  canopies](#the-canopies)), while the density from the pad up falls no faster than $\exp(-h/H)$.
   Through the troposphere it falls slower, as its scale height is at least 7,289 m (23,914 ft);
   above it, about 11 km (36,000 ft) up, the scale height is about 6,340 m (20,800 ft), 5,903 m
   (19,367 ft) on a day 15 K cold. From a pad at sea level, the 1976 standard atmosphere's density
@@ -960,16 +1019,17 @@ a second canopy; with no truth beside the logs, that doesn't say how each rocket
   the cleaning takes out joins the burn, and can be taken for the top
   ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that reads above zero
   all through the coast, as a part that zeroed off its pad's level can, never ends its burn, so its
-  top is searched to apogee and its burnout comes from the speed's peak.
+  top is searched to apogee and given as a floor, and its burnout comes from the speed's peak.
 - **Noise that runs from sample to sample.** Averaging $n$ samples cuts the noise by $\sqrt n$ only
   where each sample's noise is its own. A part whose noise runs on, as its own low-pass
   filter or a slow drift makes it, keeps more of it through the average, so $N$ comes out too
   small and burnout's bound too narrow. The synthetic flights draw each sample's noise apart, so
   they can't show this ([#787](https://github.com/nrdptel/fusionspace-eridanus/issues/787)).
-- **Clipping at a part's range.** No tuning flight's true top reaches its part's stated range,
-  ±32 g or ±180 g ([the loggers](synthetic-flights.md#the-loggers)): the nearest comes to 0.492 of
-  it, the synthetic report says. So a top clipped at its range is held only by the unit tests. A
-  clipped top is a floor either way.
+- **Clipping at the high-g part's range.** Clipping at a part's range is held on the tuning set
+  only on the low-g IMU part set to ±8 g, where 28 tops clip. No tuning flight's true top reaches
+  its own part's range, ±32 g or ±180 g ([the loggers](synthetic-flights.md#the-loggers)): the
+  nearest comes to 0.492 of it, the synthetic report says. So a high-g part's top clipped at its
+  range is held only by the unit tests. A clipped top is a floor either way.
 - **The coast's witness.** It assumes the drag in the last second before apogee's earliest time is
   under 0.25 g. A rocket still fast at apogee, arcing over, reads its drag there: the witness then
   says nothing or, past 0.75 g, can disagree with a family's word and withhold the top
@@ -1017,15 +1077,21 @@ The tests that pin the readings, and the sources they follow.
   peak can fall between samples.
 - `hpr_flightdata::readings::accelerometer`: a noisy axial trace's top and burnout read within
   their bounds, burnout within a sample of the thrust's end; a part mounted nose down, with
-  gravity taken out, read alike; a top held at the part's range marked clipped, the truth above
-  the reading less its bound, and a quiet plateau not; gravity left unsettled withholding the
+  gravity taken out, read alike; a dip, and a knock with its rebound first, on the pad not
+  turning the trace over; a top held at the part's range marked clipped at the range, the truth
+  above the reading less its bound, and a quiet plateau not; an accelerometer that ends in the
+  thrust giving its top as a floor and no burnout; gravity left unsettled withholding the
   top acceleration and sending burnout to the top speed's floor; the coast settling gravity where the log holds no pad; a repeated time keeping its
-  first sample; a trace that never falls below zero giving burnout as a floor from the top speed;
+  first sample, and one after a sample with no time left out; a peak between two samples within
+  the top's bound; a trace that never falls below zero giving burnout as a floor from the top speed;
   and the noise measured as the scatter about the curve, a straight line's as 0.
 - `hpr_flightdata::readings::canopies`: a drogue to 150 m (492 ft) at 25 m/s (82 ft/s), then a
   main at 6 m/s (20 ft/s), each leg's rate and the opening read within their bounds, the opening's
   bound holding the main's slowing time to its 9.6 m/s (31.5 ft/s) mark beside half the fit; one canopy withholding the drogue and reading the
-  main from apogee; two canopies whose rates are close read as one; a short drogue leg withheld;
+  main from apogee; a drogue no faster than the main's mark read as one canopy, though Debrief's
+  ratio of 1.4 would tell them apart; a drogue passing the mark for a moment, as a gust would make
+  it, naming no main; one canopy from 8.6 km (28,215 ft) read as one at the ground's density; samples
+  bunched at landing leaving the median its window; a short drogue leg withheld;
   and a track too coarse for the main's fit withholding both.
 - `hpr_flightdata::synthetic`: the invented flight, its readings against the truth (burnout, the
   main's opening and both legs among them), and the Hampel filter keeping the pulse the median
@@ -1034,7 +1100,8 @@ The tests that pin the readings, and the sources they follow.
   the median, and property tests that every output lies within its window and that the sliding
   median equals each window's own, bit for bit.
 - `cargo xtask synthetic --check`: every reading on the tuning set within its bound, at every rate,
-  step and cut and with each accelerometer at 500, 100 and 20 samples a second, a floor no more
+  step and cut, with each accelerometer at 500, 100 and 20 samples a second, and with the IMU's
+  part set to ±8 g, a floor no more
   than its bound above the truth, its report reproduced on every platform.
 - `cargo xtask logs` and its tests: each invented sample read to its reason, and, where the sample
   logs are fetched, every record's readings counted and the report reproduced.

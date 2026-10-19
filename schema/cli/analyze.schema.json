@@ -1316,8 +1316,19 @@
           "type": "number",
           "format": "double"
         },
+        "clip": {
+          "description": "Why it is clipped: at the part's stated range, or held flat at its top below it or with\nno range stated; `null` where it isn't.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingClip"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "is_floor": {
-          "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is.",
+          "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is, and so is one whose thrust the accelerometer shows no end to,\nnever falling through zero on the channel before apogee: that one is measured, its `clip`\n`null`.",
           "type": "boolean"
         },
         "method": {
@@ -1325,7 +1336,7 @@
           "$ref": "#/$defs/ReadingMethod"
         },
         "provenance": {
-          "description": "Measured, or clipped: at the part's range, or held flat at its top.",
+          "description": "Clipped where `clip` says why; otherwise measured.",
           "$ref": "#/$defs/ReadingProvenance"
         },
         "range_m_s2": {
@@ -1531,6 +1542,26 @@
           "description": "A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim\ndoesn't know either.",
           "type": "string",
           "const": "unrecognized"
+        }
+      ]
+    },
+    "ReadingClip": {
+      "description": "Why a top acceleration is clipped.",
+      "oneOf": [
+        {
+          "description": "It reaches the part's range as its family states it, within two steps and 0.25 g: the\npart read no more.",
+          "type": "string",
+          "const": "range"
+        },
+        {
+          "description": "It holds flat at its top, as a part that clipped holds it, short of any range the family\nstates or with none stated: the part may have clipped, at a range other than the one\nstated.",
+          "type": "string",
+          "const": "flat"
+        },
+        {
+          "description": "A cause this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
         }
       ]
     },
@@ -1791,7 +1822,12 @@
           "const": "gravity_unstated"
         },
         {
-          "description": "The descent's rate never changes enough to tell a second canopy: the rocket came down\nunder one, or under two whose rates are closer than 1.4 to one. There is no drogue's.",
+          "description": "Which way up the axial accelerometer reads can't be told, and so neither can its thrust:\nfrom liftoff's earliest time to apogee it never reads past 2 g either way up, or reads\npast 2 g both ways and never holds there for 0.5 s, as a thrust does and a knock on the\npad doesn't.",
+          "type": "string",
+          "const": "direction_unstated"
+        },
+        {
+          "description": "The descent shows no drogue's leg: at the ground's density its rate never passes the\nmain's mark, 1.6 times its rate near the ground or 3 m/s more if that is more, in the 2 s\nbefore the main's leg, or the descent before that leg isn't, on median, 1.4 times that\nrate. The rocket came down under one canopy, or under a drogue no faster than the mark,\nwhich reads as one: the main's descent is then the whole descent's, from apogee. There is\nno drogue's.",
           "type": "string",
           "const": "one_canopy"
         },

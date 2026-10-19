@@ -46,12 +46,19 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
 - Log readings (M7.2b, ADR-281): bounds held only on the six synthetic logger profiles, none with a
   charge's transient; a spike rising no faster than a coast (16.42 m in its last second at 20 Hz)
   reads as the top (#761); some `disturbed_top` withholdings are true tops (#762); a pad drifting
-  within the allowance can put liftoff past its bound (#773, up to 1.22×), and a word's zero on a
-  short pad is placed by one unfiltered sample (#773); no reading from GNSS. M7.2c (ADR-283): no
-  tuning flight's top reaches its part's range (0.492 of it at most), so clipping at a range rests
-  on unit tests; the main's
-  opening bound leaves out a canopy's filling time (#779); a fall under no canopy reads as one
-  canopy's (#780); the coast witness assumes under 0.25 g of drag in the last second before apogee.
+  within the allowance can put liftoff past its bound, up to 1.22×, and a word's zero on a short
+  pad is placed by one unfiltered sample ([#773](https://github.com/nrdptel/fusionspace-eridanus/issues/773),
+  the pad error's noise budget); no reading from GNSS.
+  [M7.2c, the rest of the readings](../decisions-and-roadmap.md#m7-2c)
+  ([ADR-283](../decisions/0283-the-rest-of-the-readings.md), its rules): no tuning flight's top
+  reaches its own part's range (0.492 of it at most), so clipping is held on a ±8 g log of the
+  500 Hz IMU flights (28 of 38 reach it) and a high-g part's by unit tests alone; the main's
+  opening bound leaves out a canopy's filling time
+  ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779), the opening's bound); a fall
+  under no canopy reads as one canopy's
+  ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780), no canopy told from one);
+  the coast witness assumes under 0.25 g of drag in the last second before apogee; an
+  accelerometer that never passes 2 g gives no top acceleration (`direction_unstated`).
 - Reports pinned to six decimals or 1e-7 relative; no oracle runs in CI.
 - Export: State's Category IV rewrite (RIN 1400-AE73, interim final rule listed for 2026-09) may
   redefine the hobby-rocket exclusion; re-read it when published (`export-control.md`, ADR-192).

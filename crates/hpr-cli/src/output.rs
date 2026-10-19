@@ -1600,8 +1600,17 @@ pub enum WithheldReason {
     /// The axial accelerometer's readings may or may not hold gravity's 1 g, and none of its
     /// family, its pad and its coast to apogee settles which, or they disagree.
     GravityUnstated,
-    /// The descent's rate never changes enough to tell a second canopy: the rocket came down
-    /// under one, or under two whose rates are closer than 1.4 to one. There is no drogue's.
+    /// Which way up the axial accelerometer reads can't be told, and so neither can its thrust:
+    /// from liftoff's earliest time to apogee it never reads past 2 g either way up, or reads
+    /// past 2 g both ways and never holds there for 0.5 s, as a thrust does and a knock on the
+    /// pad doesn't.
+    DirectionUnstated,
+    /// The descent shows no drogue's leg: at the ground's density its rate never passes the
+    /// main's mark, 1.6 times its rate near the ground or 3 m/s more if that is more, in the 2 s
+    /// before the main's leg, or the descent before that leg isn't, on median, 1.4 times that
+    /// rate. The rocket came down under one canopy, or under a drogue no faster than the mark,
+    /// which reads as one: the main's descent is then the whole descent's, from apogee. There is
+    /// no drogue's.
     OneCanopy,
     /// A leg of the descent loses too little height, under 3 m or a tenth of its top's height,
     /// for its rate to be read.
@@ -1639,6 +1648,21 @@ pub enum ReadingProvenance {
     /// Measured, but at the sensor's range, so the true value may lie beyond it.
     Clipped,
     /// A provenance this build of `hpr` doesn't name.
+    Other,
+}
+
+/// Why a top acceleration is clipped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ReadingClip {
+    /// It reaches the part's range as its family states it, within two steps and 0.25 g: the
+    /// part read no more.
+    Range,
+    /// It holds flat at its top, as a part that clipped holds it, short of any range the family
+    /// states or with none stated: the part may have clipped, at a range other than the one
+    /// stated.
+    Flat,
+    /// A cause this build of `hpr` doesn't name.
     Other,
 }
 
@@ -1784,11 +1808,16 @@ pub struct MaxAccelerationReading {
     /// The range of the part its family states, m/s²; `null` where it doesn't.
     pub range_m_s2: Option<f64>,
     /// Whether the top is a floor: no lower than the reading less its bound, and maybe higher by
-    /// any amount. A clipped top is.
+    /// any amount. A clipped top is, and so is one whose thrust the accelerometer shows no end to,
+    /// never falling through zero on the channel before apogee: that one is measured, its `clip`
+    /// `null`.
     pub is_floor: bool,
+    /// Why it is clipped: at the part's stated range, or held flat at its top below it or with
+    /// no range stated; `null` where it isn't.
+    pub clip: Option<ReadingClip>,
     /// The accelerometer.
     pub source: ReadingSource,
-    /// Measured, or clipped: at the part's range, or held flat at its top.
+    /// Clipped where `clip` says why; otherwise measured.
     pub provenance: ReadingProvenance,
     /// How it was read.
     pub method: ReadingMethod,
