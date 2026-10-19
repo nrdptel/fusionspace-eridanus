@@ -221,8 +221,8 @@ every list. Labels get one every 200 words, because each one sends the reader of
 Hedges get 1.0, because a single hedge is often the honest word. That's about the top of the
 range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a mostly
 different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words: a
-second hedge, a word that calls a step easy and a sentence about the page each give the reader
-nothing, so one should be rare enough to be a choice. First person on a reference page gets 0,
+second hedge, a word that calls a step easy and a sentence that points at the section or back at
+earlier text each give the reader little, so one should be rare enough to be a choice. First person on a reference page gets 0,
 because the program is the subject there. The limits were set against these pages as they stood
 on October 19, 2026, when most of them were over the sentence and bold-label limits;
 the report gives the current counts.
@@ -254,14 +254,14 @@ each named by a published style guide or study, or by the design system's own wr
 - recaps: `in conclusion`
 - chat residue: `I hope this helps`
 
-Words with a technical sense in rocketry stay off it, whether or not a page uses them yet:
+Words with a technical sense in this project stay off it, whether or not a page uses them yet:
 robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates
-and `docs/`. It leaves out the decision records, the records pages and the done-work archive, which are
-history; the roadmap the records pages are written from; the research notes, which keep their wording
+and `docs/`. It leaves out the decision records and the done-work archive, which are history; the records
+pages and the roadmap they're written from, which are the plan; the research notes, which keep their wording
 until they're next edited; and the site's table of contents, which is links. It counts
 what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
 against these rules too.

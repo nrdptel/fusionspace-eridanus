@@ -113,11 +113,11 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   the survey's exemplars, and the guide gives each one's reason.
 - *The list.* 41 entries in 9 groups, each citing the published lists that name it, or the
   design system's writing rules (rechecked against them on 2026-10-19), with a test that fails without it and none on a model
-  page. Off it for a technical sense in rocketry: robust, deploy, streamline, boost and powerful (a more
+  page. Off it for a technical sense in this project: robust, deploy, streamline, boost and powerful (a more
   powerful motor). The noun "leverage" (a lever arm), "utilization" and the authors Garner and
   Foster are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
-  up" were dropped: no source lists them, and two recommend the last two (Google's word list, in
-  place of "tl;dr", and the federal plain-language guidelines, as transitions). Those guidelines
+  up" were dropped: no source warns against them. Google's word list suggests "to summarize" in place
+  of "tl;dr", and the federal plain-language guidelines list both as transitions. Those guidelines
   list "in conclusion" as a transition too; it stays on the list, from the Wikipedia page, because
   the guide asks for no recaps. The note's "let me know" and "Certainly!" are left off as
   ordinary speech ("certainly" is on two pages).
