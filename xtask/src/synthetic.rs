@@ -103,7 +103,7 @@ struct Floors {
     flat: u64,
     /// A top whose thrust the accelerometer shows no end to before apogee, as where it ends in
     /// the thrust.
-    thrust_unended: u64,
+    thrust_in_part: u64,
 }
 
 /// A tuning flight's true top acceleration against its part's range.
@@ -127,7 +127,7 @@ struct Clipped {
     profile: String,
     /// The log it was read from.
     log: String,
-    /// Why it is a floor: `range`, `flat`, or `thrust_unended`.
+    /// Why it is a floor: `range`, `flat`, or `thrust_in_part`.
     cause: String,
 }
 
@@ -370,7 +370,7 @@ fn tops(flights: &[FlightOutcomes], each: &[FlightTop]) -> Tops {
                                 Some(Clip::Range) => "range",
                                 Some(Clip::Flat) => "flat",
                                 Some(_) => "other",
-                                None => "thrust_unended",
+                                None => "thrust_in_part",
                             };
                             Some((*flight, log.clone(), cause))
                         }
@@ -389,7 +389,7 @@ fn tops(flights: &[FlightOutcomes], each: &[FlightTop]) -> Tops {
     let floors = Floors {
         at_range: count("range"),
         flat: count("flat"),
-        thrust_unended: count("thrust_unended"),
+        thrust_in_part: count("thrust_in_part"),
     };
     Tops {
         reaching,
@@ -705,18 +705,18 @@ fn tops_paragraph(page: &mut String, tops: &Tops) {
     }
     let _ = writeln!(
         page,
-        "Tops read as floors: {}; clipped at the part's range, {}; held flat at the top, {}; cut \
-         off where the accelerometer shows no end to the thrust, {}.",
+        "Tops read as floors: {}; clipped at the part's range, {}; held flat at the top, {}; \
+         where the accelerometer holds the thrust only in part, with no start or no end to it, {}.",
         tops.clipped.len(),
         tops.floors.at_range,
         tops.floors.flat,
-        tops.floors.thrust_unended
+        tops.floors.thrust_in_part
     );
     // Each cause's tops, by log and logger, in the order first met.
     for (cause, words) in [
         ("range", "Clipped at the part's range"),
         ("flat", "Held flat at the top"),
-        ("thrust_unended", "No end to the thrust"),
+        ("thrust_in_part", "The thrust held in part"),
         ("other", "Clipped otherwise"),
     ] {
         let mut groups: Vec<((&str, &str), Vec<String>)> = Vec::new();
@@ -999,7 +999,7 @@ mod tests {
             Floors {
                 at_range: 1,
                 flat: 1,
-                thrust_unended: 1,
+                thrust_in_part: 1,
             }
         );
         let causes: Vec<(u64, &str, &str)> = made
@@ -1012,7 +1012,7 @@ mod tests {
             [
                 (0, "its accelerometer at 20 Hz", "flat"),
                 (2, lower.as_str(), "range"),
-                (3, "imu-500hz", "thrust_unended"),
+                (3, "imu-500hz", "thrust_in_part"),
             ]
         );
         let mut page = String::new();
@@ -1030,7 +1030,8 @@ mod tests {
         assert!(
             page.contains(
                 "Tops read as floors: 3; clipped at the part's range, 1; held flat at the top, 1; \
-                 cut off where the accelerometer shows no end to the thrust, 1."
+                 where the accelerometer holds the thrust only in part, with no start or no end to \
+                 it, 1."
             ),
             "{page}"
         );
@@ -1045,7 +1046,7 @@ mod tests {
             "{page}"
         );
         assert!(
-            page.contains("No end to the thrust: imu-500hz, imu-500hz flights 3."),
+            page.contains("The thrust held in part: imu-500hz, imu-500hz flights 3."),
             "{page}"
         );
         let none = tops(&flights[..1], &[(0, "altos", Some(0.25), None)]);

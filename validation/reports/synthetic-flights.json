@@ -8477,7 +8477,7 @@
     "floors": {
       "at_range": 28,
       "flat": 4,
-      "thrust_unended": 0
+      "thrust_in_part": 0
     },
     "clipped": [
       {

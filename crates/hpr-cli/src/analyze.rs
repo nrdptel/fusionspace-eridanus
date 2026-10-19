@@ -631,8 +631,9 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                                                      clipped, and the top may have been higher"
                         .to_owned(),
                     (Some(_), _) => "; clipped, so the top may have been higher".to_owned(),
-                    (None, _) if top.is_floor => "; the accelerometer shows no end to the \
-                                                  thrust, so the top may have been higher"
+                    (None, _) if top.is_floor => "; the accelerometer holds the thrust only \
+                                                  in part, with no start or no end to it, so \
+                                                  the top may have been higher"
                         .to_owned(),
                     (None, _) => String::new(),
                 });

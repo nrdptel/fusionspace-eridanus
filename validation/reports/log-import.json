@@ -4054,12 +4054,12 @@
             }
           },
           "burnout": {
-            "given": 33,
+            "given": 32,
             "withheld": {
               "disturbed_top": 4,
               "no_climb": 1,
               "sampled_too_slowly": 1,
-              "transonic": 11
+              "transonic": 12
             }
           },
           "drogue_descent": {
@@ -4108,9 +4108,9 @@
             }
           },
           "max_acceleration": {
-            "given": 42,
+            "given": 41,
             "withheld": {
-              "direction_unstated": 3,
+              "direction_unstated": 4,
               "disturbed_top": 4,
               "no_climb": 1
             }
@@ -7513,8 +7513,8 @@
       },
       {
         "reason": "direction_unstated",
-        "records": 6,
-        "first": "4ed6012a31b4a214",
+        "records": 7,
+        "first": "32caeaf5f1f19e38",
         "invented": null
       },
       {

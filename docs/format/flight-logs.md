@@ -148,7 +148,7 @@ rocket's axis gives the top acceleration and burnout: AltOS's `acceleration`, th
 Raven's `Axial Accel (Gs)`, the Eggtimer's `Accel`, the ARTS2's `Acc`, among others. A board's
 three axes don't say which lies along the rocket, so they give neither. Nor does an axial column
 whose pad, coast and thrust don't settle which way up it reads, or that shows no thrust
-(`direction_unstated`), as on six records of the sample logs, three AltOS CSV, two Entacore AIM
+(`direction_unstated`), as on seven records of the sample logs, four AltOS CSV, two Entacore AIM
 CSV and a Raven CSV ([the accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's report counts
 the readings each family gives and withholds ([how it was checked](#how-it-was-checked)).
 

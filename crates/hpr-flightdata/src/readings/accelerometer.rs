@@ -345,8 +345,15 @@ pub(super) fn read(
                 (
                     time[0] + BURN_LEAST_S,
                     "the log's start by 0.5 s, liftoff withheld",
+                    false,
                 ),
-                |liftoff| (liftoff.time_s + liftoff.bound_s, "liftoff's latest time"),
+                |liftoff| {
+                    (
+                        liftoff.time_s + liftoff.bound_s,
+                        "liftoff's latest time",
+                        true,
+                    )
+                },
             ),
         ),
     ) {
@@ -492,6 +499,13 @@ pub(super) fn read(
     // apogee. Where it doesn't, the accelerometer ends in the thrust, or the thrust runs on to
     // apogee, so the top may lie past the samples.
     let ended = burns.last().is_some_and(|burn| burn.falls);
+    // Whether the thrust begins on the channel: the sample before the first burn's rise reads
+    // under 2 g. Where it doesn't, the log starts in the thrust, or the search for it does, so
+    // the top may have come before the samples searched, as an ignition spike before a log that
+    // starts in the climb would.
+    let began = burns
+        .first()
+        .is_none_or(|burn| burn.rise > 0 && f_clean[burn.rise - 1] < LIFTOFF_ACCELERATION_M_S2);
     let thrust: Vec<usize> = burns
         .iter()
         .flat_map(|burn| burn.rise..=burn.fall)
@@ -548,7 +562,7 @@ pub(super) fn read(
         bound_m_s2,
         time_s: time[top_index],
         range_m_s2,
-        is_floor: clip.is_some() || !ended,
+        is_floor: clip.is_some() || !ended || !began,
         clip,
         source: Source::Accelerometer,
         provenance: if clip.is_some() {
@@ -787,11 +801,14 @@ impl WayBy {
 }
 
 /// What the thrust says of which way up the part reads, `None` for nothing, and the words that
-/// say why.
+/// say why; `alone` where it can settle the way alone: where its span rises by liftoff's latest
+/// time, not at the start of a log whose liftoff is withheld, which may start after burnout,
+/// with a drag there.
 #[derive(Debug, Clone, PartialEq)]
 struct ThrustWitness {
     way: Option<Way>,
     words: String,
+    alone: bool,
 }
 
 /// The first sample of `clean`, the cleaned twin of `values`, that `moved` says has left the
@@ -860,8 +877,9 @@ fn coast_level(
 /// both ways, or none, say nothing. The thrust is what lifts the rocket, so the span that says
 /// must rise by `lifted`'s time: liftoff's latest time by the heights, or, where liftoff is
 /// withheld as a log that starts in the climb has it, [`BURN_LEAST_S`] after the log's start,
-/// where its thrust is; `lifted`'s words name which. A span that rises later is a drag after a
-/// thrust too weak to pass 2 g as written, or a second burn, and says nothing. Read as written, a
+/// `lifted`'s words naming which. A span that rises later is a drag after a thrust too weak to
+/// pass 2 g as written, or a second burn, and says nothing. A log whose liftoff is withheld may
+/// start after burnout, its drag at its start, so a span there says, but not `alone`. Read as written, a
 /// thrust under 3 g on a part that takes gravity out reads under 2 g, and says nothing: the pad
 /// must say.
 fn thrust_witness(
@@ -871,7 +889,7 @@ fn thrust_witness(
     end: usize,
     half: usize,
     interval: f64,
-    lifted: (f64, &str),
+    lifted: (f64, &str, bool),
 ) -> ThrustWitness {
     let walk = |way: Way| {
         let values: Vec<f64> = clean.iter().map(|v| way.sign() * v).collect();
@@ -892,17 +910,19 @@ fn thrust_witness(
         (None, None) => None,
     };
     let past = format!("{:.0} g", LIFTOFF_ACCELERATION_M_S2 / STANDARD_GRAVITY_MPS2);
+    let (lifted_s, lifted_by, alone) = lifted;
     let says = |way: Way, words: String| ThrustWitness {
         way: Some(way),
         words: format!("its thrust says {}: {words}", way.words()),
+        alone,
     };
     let neither = |words: String| ThrustWitness {
         way: None,
         words: format!("its thrust says neither: {words}"),
+        alone,
     };
     // The span that would say rises by liftoff's latest time, as the thrust that lifts the
     // rocket does, or says nothing.
-    let (lifted_s, lifted_by) = lifted;
     let lifts = |way: Way, rise: usize, words: String| {
         if time[rise] <= lifted_s {
             says(way, words)
@@ -1030,8 +1050,11 @@ fn direction(
     .iter()
     .filter_map(|(way, by)| way.map(|way| (way, *by)))
     .collect();
-    // A coast alone settles nothing: only the pad or the thrust can.
-    let settles = said.iter().any(|(_, by)| *by != WayBy::Coast);
+    // A coast alone settles nothing, nor a thrust at the start of a log whose liftoff is
+    // withheld: the pad can, the thrust where it rises by liftoff's latest time, or a thrust
+    // at a log's start with the coast beside it.
+    let settles =
+        by_pad.is_some() || (thrust.way.is_some() && (thrust.alone || by_coast.is_some()));
     match said.first() {
         Some(&(way, _)) if settles && said.iter().all(|(each, _)| *each == way) => {
             Ok((way, said.iter().map(|(_, by)| *by).collect()))
@@ -1067,10 +1090,14 @@ fn direction(
                 thrust.words,
                 if said.is_empty() {
                     "none of them says which way up it reads"
-                } else if !settles {
+                } else if !settles && thrust.way.is_none() {
                     "the coast alone says, and a coast's second can hold a weak thrust still \
                      burning or a canopy opened early, so it doesn't settle which way up it reads \
                      on its own"
+                } else if !settles {
+                    "the thrust alone says, at the start of a log whose liftoff is withheld, which \
+                     may start after burnout with a drag there, so it doesn't settle which way up \
+                     it reads without the coast beside it"
                 } else {
                     "they disagree on which way up it reads"
                 }
@@ -2251,6 +2278,124 @@ mod tests {
         }
     }
 
+    /// A log that starts in the thrust, past its 6 g top at 3.5 s: from 3.6 s the trace is
+    /// already past 2 g at its first sample, so the thrust began before the log and its top may
+    /// have come earlier, as it did: the top read is a floor, the truth no lower than it less
+    /// its bound. So on AltOS with the whole log cut, liftoff withheld, and on a column that
+    /// holds gravity with only the accelerometer cut, liftoff read by the heights.
+    #[test]
+    fn a_log_that_starts_in_the_thrust_gives_its_top_as_a_floor() {
+        for (format, column, out_m_s2, whole) in [
+            (LogFormat::AltosCsv, "acceleration", G, true),
+            (LogFormat::GenericTable, "Axial accel", 0.0, false),
+        ] {
+            let mut log = log(format, column, 0.01, |k, t| {
+                specific_force(t) - out_m_s2 + jitter(k, 0.3)
+            });
+            let from = |time_s: &[f64]| time_s.partition_point(|t| *t < 3.6);
+            let channel = &mut log.channels[0];
+            let cut = from(&channel.time_s);
+            channel.time_s.drain(..cut);
+            channel.values.drain(..cut);
+            if whole {
+                let cut = from(&log.time_s);
+                log.time_s.drain(..cut);
+                log.altitude_m.drain(..cut);
+            }
+            let readings = read_all(&log);
+            let top = readings.max_acceleration.value();
+            let top = top.unwrap_or_else(|| panic!("{column}: {:?}", readings.max_acceleration));
+            assert!(top.is_floor, "{column}: {top:?}");
+            assert_eq!(top.clip, None, "{column}");
+            assert!(
+                top.acceleration_m_s2 - top.bound_m_s2 <= 6.0 * G,
+                "{column}: {top:?}"
+            );
+        }
+    }
+
+    /// A log whose liftoff is withheld, as one that starts in the climb has it: its thrust's
+    /// span, at its start, may be a drag where the log starts after burnout, so it settles the
+    /// way only with the coast beside it. On AltOS, which takes gravity out, a log from 3.35 s,
+    /// after liftoff, reads its 6 g top at 3.5 s nose up, its coast agreeing; logs that
+    /// start at 4.6 s, after burnout, their drag at their start (a 2.5 g thrust's to apogee, or
+    /// a 6 g thrust's cut at 7 s), are withheld, never turned over.
+    #[test]
+    fn a_thrust_at_a_log_start_settles_only_beside_the_coast() {
+        let trimmed = |trace: &dyn Fn(f64) -> f64, dt: f64, from_s: f64, to_s: f64| {
+            let mut log = log(LogFormat::AltosCsv, "acceleration", dt, |k, t| {
+                trace(t) - G + jitter(k, 0.3)
+            });
+            let keep = |time_s: &[f64]| {
+                (
+                    time_s.partition_point(|t| *t < from_s - 1e-9),
+                    time_s.partition_point(|t| *t <= to_s + 1e-9),
+                )
+            };
+            let channel = &mut log.channels[0];
+            let (a, b) = keep(&channel.time_s);
+            channel.time_s = channel.time_s[a..b].to_vec();
+            channel.values = channel.values[a..b].to_vec();
+            let (a, b) = keep(&log.time_s);
+            log.time_s = log.time_s[a..b].to_vec();
+            log.altitude_m = log.altitude_m[a..b].to_vec();
+            read_all(&log)
+        };
+        let started = trimmed(&specific_force, 0.01, 3.35, f64::INFINITY);
+        assert!(started.liftoff.reason().is_some(), "{:?}", started.liftoff);
+        let accelerometer = started.accelerometer.as_ref();
+        assert!(
+            accelerometer.is_some_and(|a| !a.turned_over),
+            "{accelerometer:?}, {:?}",
+            started.max_acceleration
+        );
+        let top = started.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        let weak = |t: f64| {
+            if t < 3.0 {
+                G
+            } else if t < 4.5 {
+                2.5 * G
+            } else if t < 8.0 {
+                -1.5 * G * (8.0 - t) / 3.5
+            } else {
+                G
+            }
+        };
+        let strong = |t: f64| {
+            if t < 3.0 {
+                G
+            } else if t < 4.5 {
+                6.0 * G
+            } else if t < 8.0 {
+                -3.0 * G * (8.0 - t) / 3.5
+            } else {
+                G
+            }
+        };
+        for (case, readings) in [
+            ("weak, 0.01 s", trimmed(&weak, 0.01, 4.6, f64::INFINITY)),
+            ("weak, 0.02 s", trimmed(&weak, 0.02, 4.6, f64::INFINITY)),
+            ("weak, 0.05 s", trimmed(&weak, 0.05, 4.6, f64::INFINITY)),
+            ("weak, to 6.5 s", trimmed(&weak, 0.01, 4.6, 6.5)),
+            ("strong, to 7 s", trimmed(&strong, 0.01, 4.6, 7.0)),
+        ] {
+            assert!(
+                readings.max_acceleration.value().is_none()
+                    && readings
+                        .accelerometer
+                        .as_ref()
+                        .is_none_or(|a| !a.turned_over),
+                "{case}: {:?}, {:?}",
+                readings.accelerometer,
+                readings.max_acceleration
+            );
+        }
+    }
+
     /// A coast alone settles nothing, as its second can hold what reads the other way: on a
     /// part that holds gravity, nose up on a pad tilted to read 0.5 g, which says nothing, a
     /// 40 g burn of 0.3 s before a heavy drag leaves the thrust saying nothing, and a canopy
@@ -2351,7 +2496,7 @@ mod tests {
                 time.len() - 1,
                 half_window(BURNOUT_MEAN_S, dt),
                 dt,
-                (1.2, "liftoff's latest time"),
+                (1.2, "liftoff's latest time", true),
             )
         };
         // A pulse of `g` g from `at` s for `long` s.
@@ -2438,7 +2583,11 @@ mod tests {
                 time.len() - 1,
                 half_window(BURNOUT_MEAN_S, dt),
                 dt,
-                (BURN_LEAST_S, "the log's start by 0.5 s, liftoff withheld"),
+                (
+                    BURN_LEAST_S,
+                    "the log's start by 0.5 s, liftoff withheld",
+                    false,
+                ),
             )
         };
         assert_eq!(started(0.2).way, Some(Way::Up), "{:?}", started(0.2));
@@ -2460,14 +2609,17 @@ mod tests {
         let silent = ThrustWitness {
             way: None,
             words: "its thrust says neither".to_owned(),
+            alone: true,
         };
         let up = ThrustWitness {
             way: Some(Way::Up),
             words: "its thrust says nose up".to_owned(),
+            alone: true,
         };
         let down = ThrustWitness {
             way: Some(Way::Down),
             words: "its thrust says nose down".to_owned(),
+            alone: true,
         };
         let way = |pad: Option<f64>, coast: Option<f64>, thrust: &ThrustWitness| {
             direction(pad.map(|g| g * G), coast.map(|g| g * G), thrust).map(|(way, _)| way)
@@ -2494,6 +2646,20 @@ mod tests {
         assert!(way(None, Some(0.76), &up).is_err());
         assert_eq!(way(None, Some(0.74), &up), Ok(Way::Up));
         assert_eq!(way(Some(1.0), Some(-1.0), &silent), Ok(Way::Up));
+        // A thrust at the start of a log whose liftoff is withheld settles only beside the
+        // coast, or the pad.
+        let at_start = ThrustWitness {
+            way: Some(Way::Up),
+            words: "its thrust says nose up".to_owned(),
+            alone: false,
+        };
+        assert!(
+            direction(None, None, &at_start)
+                .unwrap_err()
+                .ends_with("without the coast beside it")
+        );
+        assert_eq!(way(None, Some(-1.0), &at_start), Ok(Way::Up));
+        assert!(way(None, Some(1.0), &at_start).is_err());
         assert_eq!(way(Some(-1.0), Some(1.0), &silent), Ok(Way::Down));
         assert!(way(None, None, &silent).is_err());
         assert_eq!(way(None, None, &down), Ok(Way::Down));

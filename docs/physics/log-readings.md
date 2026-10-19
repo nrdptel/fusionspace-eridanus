@@ -330,7 +330,11 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
   start. One that rises later is a drag after a thrust too weak to read past 2 g, or a second
   burn, and says nothing.
 
-The way is settled when the pad or the thrust says and no witness disagrees. The coast alone
+The way is settled when the pad or the thrust says and no witness disagrees. A thrust read at the
+start of a log whose liftoff is withheld settles only beside a coast that says the same way: a log
+that starts after burnout has the drag there instead, past 2 g the other way, and with no pad to
+tell by, nothing else could catch it. One AltOS CSV record of the sample logs starts in the climb
+and its coast reads −0.70 g, inside the band that says nothing, so it is withheld. The coast alone
 settles nothing: its second can hold a weak thrust still burning or a canopy opened early,
 either of which reads the other way, so it can only disagree. Otherwise the top
 acceleration and burnout from the accelerometer are withheld (`direction_unstated`), and burnout
@@ -426,12 +430,15 @@ be higher by any amount. The JSON marks it `is_floor`, its provenance `clipped` 
 says "clipped at the part's range" only for `range`; for `flat` it says the top held flat at its
 top, so it may have been clipped. Either way the top may have been higher.
 
-**A thrust with no end.** A top is a floor too where the accelerometer shows no end to the thrust:
-the last burn never falls through zero before the accelerometer's samples end or apogee, as when
-the log, or the accelerometer alone, stops while the motor still pushes. The top may then lie past
-the samples. It is `measured`, its `clip` `null`, and `hpr analyze` says the accelerometer shows
-no end to the thrust. Burnout isn't read off such a trace, and comes from the top speed instead.
-The synthetic report counts this cause apart, as `thrust_unended`; no tuning-set top reads so.
+**A thrust held in part.** A top is a floor too where the accelerometer holds the thrust only in
+part. With no end to it, the last burn never falls through zero before the accelerometer's
+samples end or apogee, as when the log, or the accelerometer alone, stops while the motor still
+pushes, and the top may lie past the samples; burnout isn't read off such a trace, and comes from
+the top speed instead. With no start, the trace is already past 2 g at its first sample searched,
+as when a log starts in the climb, and the top may have come before it, as a motor's ignition
+spike can. Either way it is `measured`, its `clip` `null`, and `hpr analyze` says the
+accelerometer holds the thrust only in part. The synthetic report counts this cause apart, as
+`thrust_in_part`; no tuning-set top reads so, as every tuning log starts on the pad.
 
 **Burnout from the accelerometer.** In the climb the reading is $(T - D)/m$, the thrust $T$ less the
 drag $D$ over the mass $m$: above zero while the thrust beats the drag, below zero once it doesn't,
@@ -969,8 +976,8 @@ logs hold, other flyers' files kept outside the repository, and counts each read
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
-554, the top speed from 354, landing from 472, the flight time from 406, burnout from 434, the top
-acceleration from 178, the drogue's descent from 267 and the main's from 459. Each of the 27
+554, the top speed from 354, landing from 472, the flight time from 406, burnout from 433, the top
+acceleration from 177, the drogue's descent from 267 and the main's from 459. Each of the 27
 reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
@@ -987,10 +994,14 @@ apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
 The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
 on 665 records, as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
-along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 2. On one, nothing
+along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 7. On one, nothing
 says which way up the accelerometer reads: it never passes 2 g either way, and the log holds no pad
-or coast to tell by. On the other, the coast reads near +1 g, nose down, against a pad and a thrust
-that say nose up. The drogue's descent is withheld as `short_leg` on 11, and as
+or coast to tell by. On one, the coast reads near +1 g, nose down, against a pad and a thrust that
+say nose up. On three AltOS CSV records, gravity taken out, the pad says nothing and a short burn
+comes before a heavy drag, so the thrust says nothing either. On one, the accelerometer's thrust
+rises after liftoff's latest time by the heights, its clock running late against theirs. On one,
+the log starts in the climb and its coast says nothing, so its thrust can't settle the way alone.
+The drogue's descent is withheld as `short_leg` on 11, and as
 `one_canopy` on 185, where the descent showed no drogue's leg; with no truth beside the logs, that
 doesn't say how each rocket came down.
 

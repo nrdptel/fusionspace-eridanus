@@ -1637,7 +1637,8 @@ and may come later by any amount
 A top acceleration can be a floor too. Where the part clipped, its line says "clipped at the
 part's range of …" if the top reached the range the logger's family states, or "held flat at its
 top, so it may have been clipped" if it held flat below that range or none is stated. Where the
-accelerometer shows no end to the thrust, the line says that. The JSON marks each `is_floor`, and
+accelerometer holds the thrust only in part, with no start or no end to it, the line says
+that. The JSON marks each `is_floor`, and
 gives the clip's cause in `clip`, `range` or `flat`; `clip` is `null` for a top that did not clip
 and for a thrust with no end.
 

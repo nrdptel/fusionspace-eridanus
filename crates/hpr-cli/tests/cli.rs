@@ -4088,7 +4088,8 @@ fn analyze_says_why_a_top_acceleration_is_a_floor() {
         (
             &cut,
             "",
-            "; the accelerometer shows no end to the thrust, so the top may have been higher",
+            "; the accelerometer holds the thrust only in part, with no start or no end to it, \
+             so the top may have been higher",
         ),
     ] {
         let printed = text_ok(&["analyze", path]);
