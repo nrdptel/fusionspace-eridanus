@@ -1408,8 +1408,8 @@ fn signpost(text: &str, words: &[Word<'_>], i: usize) -> bool {
 }
 
 /// Whether a word is the writer speaking of themself. A capital I counts before a lower-case word
-/// other than "is" or "was" (not a symbol, as in "where I is the inertia"), and not as a numeral
-/// or a motor's class ("Type I", "an I motor", "I motors").
+/// other than "is" (not a symbol, as in "where I is the inertia"), and not as a numeral or a
+/// motor's class ("Type I", "an I motor", "I motors").
 fn first_person(word: &Word<'_>, before: Option<&Word<'_>>, next: Option<&Word<'_>>) -> bool {
     if matches!(word.lower.as_str(), "i'm" | "i've" | "i'd" | "i'll") && word.raw.starts_with('I') {
         return true;
@@ -1420,7 +1420,7 @@ fn first_person(word: &Word<'_>, before: Option<&Word<'_>>, next: Option<&Word<'
     word.raw == "I"
         && next.is_some_and(|next| {
             next.raw.starts_with(char::is_lowercase)
-                && !matches!(next.raw, "is" | "was")
+                && next.raw != "is"
                 && !CLASS_AFTER_I.contains(&next.lower.as_str())
         })
         && !before.is_some_and(|before| NUMERAL_BEFORE_I.contains(&before.lower.as_str()))
@@ -1756,7 +1756,7 @@ mod tests {
             count("It answers \"what did my rocket do?\" for anyone. I checked."),
             1
         );
-        assert_eq!(count("A 12\" tube, and I measured it."), 1);
+        assert_eq!(count("A 12\" tube, and I measured it. I was wrong."), 2);
         assert_eq!(count("Its Tables I and II, and types I and III."), 0);
     }
 
@@ -1794,15 +1794,15 @@ mod tests {
     #[test]
     fn html_reads_text_not_code_scripts_or_styles() {
         let source = "<html><head><title>delve</title><style>p{}</style></head><body>\
-                      <script>leverage()</script><p>Plain &amp; short &mdash; <code>utilize</code> \
+                      <script>leverage()</script><p>Plain &amp; short &hellip; <code>utilize</code> \
                       it&rsquo;s fine.</p><!-- seamless --><pre>pivotal</pre></body></html>";
         let page = page_from("p.html", source, read_html(source), false);
         assert!(page.stock.is_empty(), "{:?}", page.stock);
         assert_eq!(page.contractions, 1);
         assert_eq!(page.words, 5);
         assert_eq!(
-            decode_entities("a &#8212; b &#x2019; &bogus; &"),
-            "a \u{2014} b \u{2019} &bogus; &"
+            decode_entities("a &#8230; b &#x2019; &bogus; &"),
+            "a \u{2026} b \u{2019} &bogus; &"
         );
     }
 

@@ -127,7 +127,7 @@ fails the build on one ([the check](#the-check)).
 > *Before*, in [Pick a motor](pick-a-motor.md): Flying a few more motors is quick: change
 > `--motor` and `--delay` and run again.
 >
-> *After*: To fly another motor, change `--motor` and `--delay` and run it again.
+> *After*: To fly more motors, change `--motor` and `--delay` and run it again.
 
 ### Short sentences
 
@@ -155,8 +155,8 @@ already say what a section is about.
 > flights with OpenRocket 24.12's on the 54 configurations of OpenRocket's example designs that HPR
 > Sim can fly, in 15 of the examples.
 >
-> *After*: HPR Sim and OpenRocket 24.12 flew the same 54 configurations: those of OpenRocket's
-> example designs that HPR Sim can fly, in 15 of the examples.
+> *After*: HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations:
+> those of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples.
 
 ### Paragraphs and lists
 
@@ -180,8 +180,8 @@ up before they know why.
 > development, so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds
 > flights out, predicted before their logs are read.
 >
-> *After*: Neither set is held out. I saw both while building the simulator, so neither is a blind
-> test. That waits for flights predicted before their logs are read, which is planned work
+> *After*: Neither set is held out. Both were seen during development, so neither is a blind test.
+> That waits for flights predicted before their logs are read, which is planned work
 > ([held-out flights](decisions-and-roadmap.md#m2-7)).
 
 ### Honest, once
@@ -219,7 +219,8 @@ on a 2,000-word page, but not a bold label on every item of every list. Labels g
 words.
 
 Hedges get 1.0, about the top of the range on one engineer's blog the survey measured (0.22
-to 1.19 per 100 words), because a single hedge is often the honest word. Stacked hedges,
+to 1.19 per 100 words, on a somewhat different list of hedges), because a single hedge is often
+the honest word. Stacked hedges,
 minimizers and signposts get one every 1,000 words. The limits were set against these pages as
 they stood on October 19, 2026, when most of them were over the sentence and bold-label limits;
 the report gives the current counts.
@@ -238,8 +239,9 @@ editing a page; the site's build runs the check too. Give it paths, such as
 `cargo xtask voice ../fusionspace-site/site`, and it reads those instead (Markdown, HTML or text)
 and prints the report. That's how fusionspace.co's pages and the design system's get checked.
 
-Only the stock-phrase list fails a build. It holds 41 entries in 9 groups, each named by at least
-one published style guide or study: puffery (`seamless`, `cutting-edge`), inflated words
+Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups,
+each named by a published style guide or study, or by the design system's own writing rules:
+puffery (`seamless`, `cutting-edge`), inflated words
 (`pivotal`, `testament`), words that spread with generated text (`delve`, `showcase`), buzz verbs
 (`leverages`, `utilize`), note-that phrases (`please note`), vague sources
 (`research has shown`), wordy phrases (`in order to`, `a number of`), recaps (`in conclusion`)
@@ -249,8 +251,10 @@ deploy, streamline, boost and powerful (a more powerful motor). Terms such as `m
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
-The check leaves out the decision records, the records pages and the done-work archive, which are
-history, and the research notes, which keep their wording until they're next edited. It counts
+It reads the README, the changelog, the contributing guide, the pull request and issue templates
+and `docs/`. It leaves out the decision records, the records pages, the roadmap they're written
+from and the done-work archive, which are history; the research notes, which keep their wording
+until they're next edited; and the site's table of contents, which is links. It counts
 what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
 against these rules too.
 
@@ -762,7 +766,8 @@ the page is first drawn; and the print page's cover.
 The rules follow the UK Government Digital Service's
 [style guide](https://www.gov.uk/guidance/style-guide), and the sentence-length checks that
 Datadog and GitLab run with the [Vale](https://vale.sh/) linter. The page kinds are Daniele
-Procida's [Diátaxis](https://diataxis.fr/) framework. The voice rules come from
-[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md): ten published style guides
-and studies, and 28 pages of documentation that read as if one person wrote them. The decision to adopt them is in the
+Procida's [Diátaxis](https://diataxis.fr/) framework. The decision to adopt them is in the
 [2026-10-03 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
+The voice rules come from
+[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md):
+ten published sources, and 28 pages of technical writing that read as if one person wrote them.
