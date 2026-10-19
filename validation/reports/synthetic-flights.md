@@ -59,9 +59,7 @@ Every draw flew.
 
 ## Readings within their bounds
 
-Each tuning flight logged by its own logger, then again at every rate and step of the grid, from 500 to half a sample a second and from no step to 100 Pa, with its own logger's accelerometer at 500, 100 and 20 Hz, and cropped as loggers start their logs, and read by `hpr_flightdata::readings` (M7.2b, M7.2c). Each cell gives how many of the flights' readings were given, then the largest share of its bound an error took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and its bound. What is method and what is measured: `docs/physics/log-readings.md`.
-
-### The height track's readings
+Each tuning flight logged by its own logger, then again at every rate and step of the grid, from 500 to half a sample a second and from no step to 100 Pa, and read by `hpr_flightdata::readings` (M7.2b). Each cell gives how many of the flights' readings were given, then the largest share of its bound an error took: 1 is the bound, and `cargo xtask synthetic` fails above it. The JSON names each worst flight, its error and its bound. What is method and what is measured: `docs/physics/log-readings.md`.
 
 | Log | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -102,9 +100,6 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | 0.5 Hz, pressure alone in 1 Pa steps | 171, 0.384 | 171, 0.636 | 171, 0.428 | 0 | 158, 0.478 | 158, 0.356 | 158, 0.472 |
 | 0.5 Hz, pressure alone in 10 Pa steps | 171, 0.375 | 171, 0.631 | 171, 0.407 | 0 | 161, 0.476 | 161, 0.351 | 161, 0.426 |
 | 0.5 Hz, pressure alone in 100 Pa steps | 171, 0.275 | 171, 0.593 | 171, 0.272 | 0 | 170, 0.451 | 170, 0.312 | 170, 0.389 |
-| its accelerometer at 500 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
-| its accelerometer at 100 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
-| its accelerometer at 20 Hz | 71, 0.575 | 71, 0.692 | 71, 0.555 | 23, 0.329 | 70, 0.539 | 70, 0.409 | 70, 0.593 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 171, 0.555 | 171, 0.711 | 171, 0.427 | 54, 0.358 | 171, 0.409 | 171, 0.442 | 171, 0.587 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 135, 0.381 | 171, 0.695 | 171, 0.427 | 54, 0.358 | 170, 0.272 | 134, 0.332 | 170, 0.556 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 171, 0.674 | 171, 0.427 | 54, 0.358 | 170, 0.174 | 0 | 170, 0.516 |
@@ -117,65 +112,7 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | perfectflite | 31, 0.493 | 31, 0.715 | 31, 0.276 | 10, 0.306 | 31, 0.328 | 31, 0.406 | 31, 0.581 |
 | rrc3 | 30, 0.418 | 30, 0.642 | 30, 0.344 | 7, 0.194 | 30, 0.302 | 30, 0.343 | 30, 0.546 |
 
-### The accelerometer's readings and the canopies'
-
-| Log | top acceleration | burnout | drogue rate | main opening | main rate |
-|---|---:|---:|---:|---:|---:|
-| imu-500hz | 38, 0.282 | 38, 0.0861 | 16, 0.655 | 16, 0.582 | 37, 0.621 |
-| 500 Hz, altitude, no step | 0 | 54, 0.0424 | 87, 0.684 | 87, 0.628 | 170, 0.7 |
-| 500 Hz, altitude in 0.3048 m steps | 0 | 54, 0.0424 | 87, 0.681 | 87, 0.63 | 171, 0.699 |
-| 500 Hz, altitude in 10 m steps | 0 | 54, 0.0566 | 87, 0.645 | 87, 0.57 | 171, 0.646 |
-| 500 Hz, pressure alone in 1 Pa steps | 0 | 54, 0.0424 | 87, 0.684 | 87, 0.628 | 170, 0.699 |
-| 500 Hz, pressure alone in 10 Pa steps | 0 | 54, 0.044 | 87, 0.675 | 87, 0.631 | 171, 0.69 |
-| 500 Hz, pressure alone in 100 Pa steps | 0 | 54, 0.0424 | 87, 0.607 | 87, 0.56 | 171, 0.643 |
-| 100 Hz, altitude, no step | 0 | 54, 0.0115 | 87, 0.688 | 87, 0.626 | 170, 0.695 |
-| 100 Hz, altitude in 0.3048 m steps | 0 | 54, 0.0115 | 87, 0.685 | 87, 0.625 | 171, 0.694 |
-| 100 Hz, altitude in 10 m steps | 0 | 54, 0.035 | 87, 0.645 | 87, 0.562 | 171, 0.611 |
-| 100 Hz, pressure alone in 1 Pa steps | 0 | 54, 0.0115 | 87, 0.687 | 87, 0.639 | 171, 0.694 |
-| 100 Hz, pressure alone in 10 Pa steps | 0 | 54, 0.0115 | 87, 0.68 | 87, 0.626 | 171, 0.69 |
-| 100 Hz, pressure alone in 100 Pa steps | 0 | 53, 0.125 | 87, 0.606 | 87, 0.568 | 171, 0.643 |
-| 20 Hz, altitude, no step | 0 | 54, 0.0677 | 87, 0.692 | 87, 0.619 | 170, 0.696 |
-| 20 Hz, altitude in 0.3048 m steps | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
-| 20 Hz, altitude in 10 m steps | 0 | 53, 0.228 | 87, 0.615 | 87, 0.56 | 171, 0.611 |
-| 20 Hz, pressure alone in 1 Pa steps | 0 | 54, 0.0677 | 87, 0.692 | 87, 0.593 | 170, 0.694 |
-| 20 Hz, pressure alone in 10 Pa steps | 0 | 54, 0.0677 | 87, 0.687 | 87, 0.642 | 171, 0.691 |
-| 20 Hz, pressure alone in 100 Pa steps | 0 | 53, 0.544 | 87, 0.609 | 87, 0.56 | 171, 0.643 |
-| 5 Hz, altitude, no step | 0 | 0 | 87, 0.691 | 87, 0.563 | 170, 0.7 |
-| 5 Hz, altitude in 0.3048 m steps | 0 | 0 | 87, 0.687 | 87, 0.563 | 170, 0.698 |
-| 5 Hz, altitude in 10 m steps | 0 | 0 | 87, 0.625 | 87, 0.555 | 171, 0.652 |
-| 5 Hz, pressure alone in 1 Pa steps | 0 | 0 | 87, 0.69 | 87, 0.563 | 170, 0.699 |
-| 5 Hz, pressure alone in 10 Pa steps | 0 | 0 | 87, 0.682 | 87, 0.574 | 171, 0.696 |
-| 5 Hz, pressure alone in 100 Pa steps | 0 | 0 | 87, 0.608 | 87, 0.558 | 171, 0.642 |
-| 1 Hz, altitude, no step | 0 | 0 | 0 | 0 | 0 |
-| 1 Hz, altitude in 0.3048 m steps | 0 | 0 | 0 | 0 | 0 |
-| 1 Hz, altitude in 10 m steps | 0 | 0 | 75, 0.565 | 75, 0.55 | 95, 0.572 |
-| 1 Hz, pressure alone in 1 Pa steps | 0 | 0 | 0 | 0 | 0 |
-| 1 Hz, pressure alone in 10 Pa steps | 0 | 0 | 0 | 0 | 0 |
-| 1 Hz, pressure alone in 100 Pa steps | 0 | 0 | 75, 0.617 | 75, 0.534 | 95, 0.555 |
-| 0.5 Hz, altitude, no step | 0 | 0 | 0 | 0 | 0 |
-| 0.5 Hz, altitude in 0.3048 m steps | 0 | 0 | 0 | 0 | 0 |
-| 0.5 Hz, altitude in 10 m steps | 0 | 0 | 47, 0.53 | 47, 0.586 | 47, 0.528 |
-| 0.5 Hz, pressure alone in 1 Pa steps | 0 | 0 | 0 | 0 | 0 |
-| 0.5 Hz, pressure alone in 10 Pa steps | 0 | 0 | 0 | 0 | 0 |
-| 0.5 Hz, pressure alone in 100 Pa steps | 0 | 0 | 0 | 0 | 0 |
-| its accelerometer at 500 Hz | 71, 0.576 | 71, 0.0861 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
-| its accelerometer at 100 Hz | 71, 0.686 | 70, 0.172 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
-| its accelerometer at 20 Hz | 71, 0.715 | 71, 0.262 | 36, 0.656 | 36, 0.613 | 70, 0.679 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 171, 0.7 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | 0 | 54, 0.0677 | 87, 0.689 | 87, 0.624 | 170, 0.693 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | 0 | 54, 0.0677 | 86, 0.687 | 86, 0.642 | 168, 0.691 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | 0 | 0 | 0 | 0 | 0 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | 0 | 0 | 0 | 0 | 0 |
-| altos | 33, 0.686 | 32, 0.0669 | 20, 0.656 | 20, 0.613 | 33, 0.679 |
-| gnss-tracker | 0 | 0 | 0 | 0 | 0 |
-| eggtimer | 0 | 14, 0 | 23, 0.64 | 23, 0.593 | 39, 0.679 |
-| perfectflite | 0 | 10, 0 | 11, 0.689 | 11, 0.519 | 31, 0.693 |
-| rrc3 | 0 | 7, 0 | 17, 0.599 | 17, 0.539 | 30, 0.625 |
-
 ### Readings withheld
-
-Each reading withheld, by reason; beside them, a drogue or a main's opening that the truth has none of, on a flight that came down under one canopy or none, as none to read.
 
 | Log | Reading | Reason | Flights |
 |---|---|---|---:|
@@ -183,252 +120,71 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | imu-500hz | landing | `ends_before_landing` | 1 |
 | imu-500hz | flight time | `ends_before_landing` | 1 |
 | imu-500hz | descent rate | `ends_before_landing` | 1 |
-| imu-500hz | drogue rate | `ends_before_landing` | 1 |
-| imu-500hz | drogue rate | none to read | 21 |
-| imu-500hz | main opening | `ends_before_landing` | 1 |
-| imu-500hz | main opening | none to read | 21 |
-| imu-500hz | main rate | `ends_before_landing` | 1 |
 | 500 Hz, altitude, no step | top speed | `transonic` | 117 |
 | 500 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
 | 500 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
 | 500 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
-| 500 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, altitude, no step | burnout | `transonic` | 117 |
-| 500 Hz, altitude, no step | drogue rate | `ends_before_landing` | 1 |
-| 500 Hz, altitude, no step | drogue rate | none to read | 83 |
-| 500 Hz, altitude, no step | main opening | `ends_before_landing` | 1 |
-| 500 Hz, altitude, no step | main opening | none to read | 83 |
-| 500 Hz, altitude, no step | main rate | `ends_before_landing` | 1 |
 | 500 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
-| 500 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, altitude in 0.3048 m steps | burnout | `transonic` | 117 |
-| 500 Hz, altitude in 0.3048 m steps | drogue rate | none to read | 84 |
-| 500 Hz, altitude in 0.3048 m steps | main opening | none to read | 84 |
 | 500 Hz, altitude in 10 m steps | top speed | `transonic` | 117 |
-| 500 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, altitude in 10 m steps | burnout | `transonic` | 117 |
-| 500 Hz, altitude in 10 m steps | drogue rate | none to read | 84 |
-| 500 Hz, altitude in 10 m steps | main opening | none to read | 84 |
 | 500 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
 | 500 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
 | 500 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
 | 500 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
-| 500 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, pressure alone in 1 Pa steps | burnout | `transonic` | 117 |
-| 500 Hz, pressure alone in 1 Pa steps | drogue rate | `ends_before_landing` | 1 |
-| 500 Hz, pressure alone in 1 Pa steps | drogue rate | none to read | 83 |
-| 500 Hz, pressure alone in 1 Pa steps | main opening | `ends_before_landing` | 1 |
-| 500 Hz, pressure alone in 1 Pa steps | main opening | none to read | 83 |
-| 500 Hz, pressure alone in 1 Pa steps | main rate | `ends_before_landing` | 1 |
 | 500 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
-| 500 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, pressure alone in 10 Pa steps | burnout | `transonic` | 117 |
-| 500 Hz, pressure alone in 10 Pa steps | drogue rate | none to read | 84 |
-| 500 Hz, pressure alone in 10 Pa steps | main opening | none to read | 84 |
 | 500 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 117 |
-| 500 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 500 Hz, pressure alone in 100 Pa steps | burnout | `transonic` | 117 |
-| 500 Hz, pressure alone in 100 Pa steps | drogue rate | none to read | 84 |
-| 500 Hz, pressure alone in 100 Pa steps | main opening | none to read | 84 |
 | 100 Hz, altitude, no step | top speed | `transonic` | 117 |
-| 100 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, altitude, no step | burnout | `transonic` | 117 |
-| 100 Hz, altitude, no step | drogue rate | `short_leg` | 1 |
-| 100 Hz, altitude, no step | drogue rate | none to read | 83 |
-| 100 Hz, altitude, no step | main opening | `short_leg` | 1 |
-| 100 Hz, altitude, no step | main opening | none to read | 83 |
-| 100 Hz, altitude, no step | main rate | `short_leg` | 1 |
 | 100 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
-| 100 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, altitude in 0.3048 m steps | burnout | `transonic` | 117 |
-| 100 Hz, altitude in 0.3048 m steps | drogue rate | none to read | 84 |
-| 100 Hz, altitude in 0.3048 m steps | main opening | none to read | 84 |
 | 100 Hz, altitude in 10 m steps | top speed | `transonic` | 117 |
-| 100 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, altitude in 10 m steps | burnout | `transonic` | 117 |
-| 100 Hz, altitude in 10 m steps | drogue rate | none to read | 84 |
-| 100 Hz, altitude in 10 m steps | main opening | none to read | 84 |
 | 100 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
-| 100 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, pressure alone in 1 Pa steps | burnout | `transonic` | 117 |
-| 100 Hz, pressure alone in 1 Pa steps | drogue rate | none to read | 84 |
-| 100 Hz, pressure alone in 1 Pa steps | main opening | none to read | 84 |
 | 100 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
-| 100 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, pressure alone in 10 Pa steps | burnout | `transonic` | 117 |
-| 100 Hz, pressure alone in 10 Pa steps | drogue rate | none to read | 84 |
-| 100 Hz, pressure alone in 10 Pa steps | main opening | none to read | 84 |
 | 100 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 118 |
-| 100 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 100 Hz, pressure alone in 100 Pa steps | burnout | `transonic` | 118 |
-| 100 Hz, pressure alone in 100 Pa steps | drogue rate | none to read | 84 |
-| 100 Hz, pressure alone in 100 Pa steps | main opening | none to read | 84 |
 | 20 Hz, altitude, no step | top speed | `transonic` | 117 |
 | 20 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
 | 20 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
 | 20 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude, no step | burnout | `transonic` | 117 |
-| 20 Hz, altitude, no step | drogue rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude, no step | drogue rate | none to read | 83 |
-| 20 Hz, altitude, no step | main opening | `ends_before_landing` | 1 |
-| 20 Hz, altitude, no step | main opening | none to read | 83 |
-| 20 Hz, altitude, no step | main rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps | top speed | `transonic` | 117 |
 | 20 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude in 0.3048 m steps | burnout | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps | drogue rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps | drogue rate | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps | main opening | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps | main opening | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps | main rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 10 m steps | top speed | `transonic` | 118 |
-| 20 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude in 10 m steps | burnout | `transonic` | 118 |
-| 20 Hz, altitude in 10 m steps | drogue rate | none to read | 84 |
-| 20 Hz, altitude in 10 m steps | main opening | none to read | 84 |
 | 20 Hz, pressure alone in 1 Pa steps | top speed | `transonic` | 117 |
 | 20 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
 | 20 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
 | 20 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
-| 20 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 1 Pa steps | burnout | `transonic` | 117 |
-| 20 Hz, pressure alone in 1 Pa steps | drogue rate | `ends_before_landing` | 1 |
-| 20 Hz, pressure alone in 1 Pa steps | drogue rate | none to read | 83 |
-| 20 Hz, pressure alone in 1 Pa steps | main opening | `ends_before_landing` | 1 |
-| 20 Hz, pressure alone in 1 Pa steps | main opening | none to read | 83 |
-| 20 Hz, pressure alone in 1 Pa steps | main rate | `ends_before_landing` | 1 |
 | 20 Hz, pressure alone in 10 Pa steps | top speed | `transonic` | 117 |
-| 20 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps | burnout | `transonic` | 117 |
-| 20 Hz, pressure alone in 10 Pa steps | drogue rate | none to read | 84 |
-| 20 Hz, pressure alone in 10 Pa steps | main opening | none to read | 84 |
 | 20 Hz, pressure alone in 100 Pa steps | top speed | `transonic` | 118 |
-| 20 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 100 Pa steps | burnout | `transonic` | 118 |
-| 20 Hz, pressure alone in 100 Pa steps | drogue rate | none to read | 84 |
-| 20 Hz, pressure alone in 100 Pa steps | main opening | none to read | 84 |
 | 5 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
 | 5 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
 | 5 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
 | 5 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
-| 5 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, altitude, no step | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, altitude, no step | drogue rate | `ends_before_landing` | 1 |
-| 5 Hz, altitude, no step | drogue rate | none to read | 83 |
-| 5 Hz, altitude, no step | main opening | `ends_before_landing` | 1 |
-| 5 Hz, altitude, no step | main opening | none to read | 83 |
-| 5 Hz, altitude, no step | main rate | `ends_before_landing` | 1 |
 | 5 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
 | 5 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 1 |
 | 5 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 1 |
 | 5 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 1 |
-| 5 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, altitude in 0.3048 m steps | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, altitude in 0.3048 m steps | drogue rate | `ends_before_landing` | 1 |
-| 5 Hz, altitude in 0.3048 m steps | drogue rate | none to read | 83 |
-| 5 Hz, altitude in 0.3048 m steps | main opening | `ends_before_landing` | 1 |
-| 5 Hz, altitude in 0.3048 m steps | main opening | none to read | 83 |
-| 5 Hz, altitude in 0.3048 m steps | main rate | `ends_before_landing` | 1 |
 | 5 Hz, altitude in 10 m steps | top speed | `sampled_too_slowly` | 171 |
-| 5 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, altitude in 10 m steps | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, altitude in 10 m steps | drogue rate | none to read | 84 |
-| 5 Hz, altitude in 10 m steps | main opening | none to read | 84 |
 | 5 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
 | 5 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 1 |
 | 5 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 1 |
 | 5 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 1 |
-| 5 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, pressure alone in 1 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, pressure alone in 1 Pa steps | drogue rate | `ends_before_landing` | 1 |
-| 5 Hz, pressure alone in 1 Pa steps | drogue rate | none to read | 83 |
-| 5 Hz, pressure alone in 1 Pa steps | main opening | `ends_before_landing` | 1 |
-| 5 Hz, pressure alone in 1 Pa steps | main opening | none to read | 83 |
-| 5 Hz, pressure alone in 1 Pa steps | main rate | `ends_before_landing` | 1 |
 | 5 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
-| 5 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, pressure alone in 10 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, pressure alone in 10 Pa steps | drogue rate | none to read | 84 |
-| 5 Hz, pressure alone in 10 Pa steps | main opening | none to read | 84 |
 | 5 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
-| 5 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 5 Hz, pressure alone in 100 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 5 Hz, pressure alone in 100 Pa steps | drogue rate | none to read | 84 |
-| 5 Hz, pressure alone in 100 Pa steps | main opening | none to read | 84 |
 | 1 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
 | 1 Hz, altitude, no step | landing | `ends_before_landing` | 1 |
 | 1 Hz, altitude, no step | flight time | `ends_before_landing` | 1 |
 | 1 Hz, altitude, no step | descent rate | `ends_before_landing` | 1 |
-| 1 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, altitude, no step | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude, no step | drogue rate | `ends_before_landing` | 1 |
-| 1 Hz, altitude, no step | drogue rate | `sampled_too_slowly` | 170 |
-| 1 Hz, altitude, no step | main opening | `ends_before_landing` | 1 |
-| 1 Hz, altitude, no step | main opening | `sampled_too_slowly` | 170 |
-| 1 Hz, altitude, no step | main rate | `ends_before_landing` | 1 |
-| 1 Hz, altitude, no step | main rate | `sampled_too_slowly` | 170 |
 | 1 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, altitude in 0.3048 m steps | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 0.3048 m steps | drogue rate | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 0.3048 m steps | main opening | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 0.3048 m steps | main rate | `sampled_too_slowly` | 171 |
 | 1 Hz, altitude in 10 m steps | top speed | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, altitude in 10 m steps | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, altitude in 10 m steps | drogue rate | `sampled_too_slowly` | 76 |
-| 1 Hz, altitude in 10 m steps | drogue rate | none to read | 20 |
-| 1 Hz, altitude in 10 m steps | main opening | `sampled_too_slowly` | 76 |
-| 1 Hz, altitude in 10 m steps | main opening | none to read | 20 |
-| 1 Hz, altitude in 10 m steps | main rate | `sampled_too_slowly` | 76 |
 | 1 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, pressure alone in 1 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 1 Pa steps | drogue rate | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 1 Pa steps | main opening | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 1 Pa steps | main rate | `sampled_too_slowly` | 171 |
 | 1 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, pressure alone in 10 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 10 Pa steps | drogue rate | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 10 Pa steps | main opening | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 10 Pa steps | main rate | `sampled_too_slowly` | 171 |
 | 1 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 1 Hz, pressure alone in 100 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 1 Hz, pressure alone in 100 Pa steps | drogue rate | `sampled_too_slowly` | 76 |
-| 1 Hz, pressure alone in 100 Pa steps | drogue rate | none to read | 20 |
-| 1 Hz, pressure alone in 100 Pa steps | main opening | `sampled_too_slowly` | 76 |
-| 1 Hz, pressure alone in 100 Pa steps | main opening | none to read | 20 |
-| 1 Hz, pressure alone in 100 Pa steps | main rate | `sampled_too_slowly` | 76 |
 | 0.5 Hz, altitude, no step | top speed | `sampled_too_slowly` | 171 |
 | 0.5 Hz, altitude, no step | landing | `ends_before_landing` | 14 |
 | 0.5 Hz, altitude, no step | flight time | `ends_before_landing` | 14 |
 | 0.5 Hz, altitude, no step | descent rate | `ends_before_landing` | 14 |
-| 0.5 Hz, altitude, no step | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, altitude, no step | burnout | `sampled_too_slowly` | 171 |
-| 0.5 Hz, altitude, no step | drogue rate | `ends_before_landing` | 14 |
-| 0.5 Hz, altitude, no step | drogue rate | `sampled_too_slowly` | 157 |
-| 0.5 Hz, altitude, no step | main opening | `ends_before_landing` | 14 |
-| 0.5 Hz, altitude, no step | main opening | `sampled_too_slowly` | 157 |
-| 0.5 Hz, altitude, no step | main rate | `ends_before_landing` | 14 |
-| 0.5 Hz, altitude, no step | main rate | `sampled_too_slowly` | 157 |
 | 0.5 Hz, altitude in 0.3048 m steps | top speed | `sampled_too_slowly` | 171 |
 | 0.5 Hz, altitude in 0.3048 m steps | landing | `ends_before_landing` | 12 |
 | 0.5 Hz, altitude in 0.3048 m steps | flight time | `ends_before_landing` | 12 |
 | 0.5 Hz, altitude in 0.3048 m steps | descent rate | `ends_before_landing` | 12 |
-| 0.5 Hz, altitude in 0.3048 m steps | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, altitude in 0.3048 m steps | burnout | `sampled_too_slowly` | 171 |
-| 0.5 Hz, altitude in 0.3048 m steps | drogue rate | `ends_before_landing` | 12 |
-| 0.5 Hz, altitude in 0.3048 m steps | drogue rate | `sampled_too_slowly` | 159 |
-| 0.5 Hz, altitude in 0.3048 m steps | main opening | `ends_before_landing` | 12 |
-| 0.5 Hz, altitude in 0.3048 m steps | main opening | `sampled_too_slowly` | 159 |
-| 0.5 Hz, altitude in 0.3048 m steps | main rate | `ends_before_landing` | 12 |
-| 0.5 Hz, altitude in 0.3048 m steps | main rate | `sampled_too_slowly` | 159 |
 | 0.5 Hz, altitude in 10 m steps | liftoff | `step_too_coarse` | 1 |
 | 0.5 Hz, altitude in 10 m steps | apogee height | `step_too_coarse` | 1 |
 | 0.5 Hz, altitude in 10 m steps | apogee time | `step_too_coarse` | 1 |
@@ -440,112 +196,31 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | 0.5 Hz, altitude in 10 m steps | flight time | `step_too_coarse` | 1 |
 | 0.5 Hz, altitude in 10 m steps | descent rate | `ends_before_landing` | 1 |
 | 0.5 Hz, altitude in 10 m steps | descent rate | `step_too_coarse` | 1 |
-| 0.5 Hz, altitude in 10 m steps | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, altitude in 10 m steps | burnout | `sampled_too_slowly` | 170 |
-| 0.5 Hz, altitude in 10 m steps | burnout | `step_too_coarse` | 1 |
-| 0.5 Hz, altitude in 10 m steps | drogue rate | `ends_before_landing` | 1 |
-| 0.5 Hz, altitude in 10 m steps | drogue rate | `sampled_too_slowly` | 122 |
-| 0.5 Hz, altitude in 10 m steps | drogue rate | `step_too_coarse` | 1 |
-| 0.5 Hz, altitude in 10 m steps | main opening | `ends_before_landing` | 1 |
-| 0.5 Hz, altitude in 10 m steps | main opening | `sampled_too_slowly` | 122 |
-| 0.5 Hz, altitude in 10 m steps | main opening | `step_too_coarse` | 1 |
-| 0.5 Hz, altitude in 10 m steps | main rate | `ends_before_landing` | 1 |
-| 0.5 Hz, altitude in 10 m steps | main rate | `sampled_too_slowly` | 122 |
-| 0.5 Hz, altitude in 10 m steps | main rate | `step_too_coarse` | 1 |
 | 0.5 Hz, pressure alone in 1 Pa steps | top speed | `sampled_too_slowly` | 171 |
 | 0.5 Hz, pressure alone in 1 Pa steps | landing | `ends_before_landing` | 13 |
 | 0.5 Hz, pressure alone in 1 Pa steps | flight time | `ends_before_landing` | 13 |
 | 0.5 Hz, pressure alone in 1 Pa steps | descent rate | `ends_before_landing` | 13 |
-| 0.5 Hz, pressure alone in 1 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, pressure alone in 1 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 0.5 Hz, pressure alone in 1 Pa steps | drogue rate | `ends_before_landing` | 13 |
-| 0.5 Hz, pressure alone in 1 Pa steps | drogue rate | `sampled_too_slowly` | 158 |
-| 0.5 Hz, pressure alone in 1 Pa steps | main opening | `ends_before_landing` | 13 |
-| 0.5 Hz, pressure alone in 1 Pa steps | main opening | `sampled_too_slowly` | 158 |
-| 0.5 Hz, pressure alone in 1 Pa steps | main rate | `ends_before_landing` | 13 |
-| 0.5 Hz, pressure alone in 1 Pa steps | main rate | `sampled_too_slowly` | 158 |
 | 0.5 Hz, pressure alone in 10 Pa steps | top speed | `sampled_too_slowly` | 171 |
 | 0.5 Hz, pressure alone in 10 Pa steps | landing | `ends_before_landing` | 10 |
 | 0.5 Hz, pressure alone in 10 Pa steps | flight time | `ends_before_landing` | 10 |
 | 0.5 Hz, pressure alone in 10 Pa steps | descent rate | `ends_before_landing` | 10 |
-| 0.5 Hz, pressure alone in 10 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, pressure alone in 10 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 0.5 Hz, pressure alone in 10 Pa steps | drogue rate | `ends_before_landing` | 10 |
-| 0.5 Hz, pressure alone in 10 Pa steps | drogue rate | `sampled_too_slowly` | 161 |
-| 0.5 Hz, pressure alone in 10 Pa steps | main opening | `ends_before_landing` | 10 |
-| 0.5 Hz, pressure alone in 10 Pa steps | main opening | `sampled_too_slowly` | 161 |
-| 0.5 Hz, pressure alone in 10 Pa steps | main rate | `ends_before_landing` | 10 |
-| 0.5 Hz, pressure alone in 10 Pa steps | main rate | `sampled_too_slowly` | 161 |
 | 0.5 Hz, pressure alone in 100 Pa steps | top speed | `sampled_too_slowly` | 171 |
 | 0.5 Hz, pressure alone in 100 Pa steps | landing | `ends_before_landing` | 1 |
 | 0.5 Hz, pressure alone in 100 Pa steps | flight time | `ends_before_landing` | 1 |
 | 0.5 Hz, pressure alone in 100 Pa steps | descent rate | `ends_before_landing` | 1 |
-| 0.5 Hz, pressure alone in 100 Pa steps | top acceleration | `no_accelerometer` | 171 |
-| 0.5 Hz, pressure alone in 100 Pa steps | burnout | `sampled_too_slowly` | 171 |
-| 0.5 Hz, pressure alone in 100 Pa steps | drogue rate | `ends_before_landing` | 1 |
-| 0.5 Hz, pressure alone in 100 Pa steps | drogue rate | `sampled_too_slowly` | 170 |
-| 0.5 Hz, pressure alone in 100 Pa steps | main opening | `ends_before_landing` | 1 |
-| 0.5 Hz, pressure alone in 100 Pa steps | main opening | `sampled_too_slowly` | 170 |
-| 0.5 Hz, pressure alone in 100 Pa steps | main rate | `ends_before_landing` | 1 |
-| 0.5 Hz, pressure alone in 100 Pa steps | main rate | `sampled_too_slowly` | 170 |
-| its accelerometer at 500 Hz | top speed | `transonic` | 48 |
-| its accelerometer at 500 Hz | landing | `ends_before_landing` | 1 |
-| its accelerometer at 500 Hz | flight time | `ends_before_landing` | 1 |
-| its accelerometer at 500 Hz | descent rate | `ends_before_landing` | 1 |
-| its accelerometer at 500 Hz | drogue rate | `ends_before_landing` | 1 |
-| its accelerometer at 500 Hz | drogue rate | none to read | 34 |
-| its accelerometer at 500 Hz | main opening | `ends_before_landing` | 1 |
-| its accelerometer at 500 Hz | main opening | none to read | 34 |
-| its accelerometer at 500 Hz | main rate | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | top speed | `transonic` | 48 |
-| its accelerometer at 100 Hz | landing | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | flight time | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | descent rate | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | burnout | `transonic` | 1 |
-| its accelerometer at 100 Hz | drogue rate | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | drogue rate | none to read | 34 |
-| its accelerometer at 100 Hz | main opening | `ends_before_landing` | 1 |
-| its accelerometer at 100 Hz | main opening | none to read | 34 |
-| its accelerometer at 100 Hz | main rate | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | top speed | `transonic` | 48 |
-| its accelerometer at 20 Hz | landing | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | flight time | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | descent rate | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | drogue rate | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | drogue rate | none to read | 34 |
-| its accelerometer at 20 Hz | main opening | `ends_before_landing` | 1 |
-| its accelerometer at 20 Hz | main opening | none to read | 34 |
-| its accelerometer at 20 Hz | main rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | top speed | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | burnout | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | drogue rate | none to read | 84 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.3 s before liftoff | main opening | none to read | 84 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | liftoff | `short_pad` | 36 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | top speed | `transonic` | 117 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | landing | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | flight time | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | flight time | `short_pad` | 36 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | descent rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | burnout | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | drogue rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | drogue rate | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | main opening | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | main opening | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.1 s after liftoff | main rate | `ends_before_landing` | 1 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | liftoff | `short_pad` | 171 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | top speed | `transonic` | 117 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | landing | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | flight time | `short_pad` | 171 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | flight time | `ends_before_landing` | 1 |
+| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | flight time | `short_pad` | 170 |
 | 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | descent rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | burnout | `transonic` | 117 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | drogue rate | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | drogue rate | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | main opening | `ends_before_landing` | 1 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | main opening | none to read | 83 |
-| 20 Hz, altitude in 0.3048 m steps, from 0.5 s after liftoff, its zero first | main rate | `ends_before_landing` | 1 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | liftoff | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | apogee height | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | apogee time | `short_pad` | 3 |
@@ -554,14 +229,6 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | landing | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | flight time | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | descent rate | `short_pad` | 3 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | burnout | `transonic` | 114 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | burnout | `short_pad` | 3 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | drogue rate | `short_pad` | 3 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | drogue rate | none to read | 82 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | main opening | `short_pad` | 3 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | main opening | none to read | 82 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.3 s before liftoff | main rate | `short_pad` | 3 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | liftoff | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | apogee height | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | apogee time | `short_pad` | 171 |
@@ -569,11 +236,6 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | landing | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | flight time | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | descent rate | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | burnout | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | drogue rate | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | main opening | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.1 s after liftoff | main rate | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | liftoff | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | apogee height | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | apogee time | `short_pad` | 171 |
@@ -581,62 +243,14 @@ Each reading withheld, by reason; beside them, a drogue or a main's opening that
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | landing | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | flight time | `short_pad` | 171 |
 | 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | descent rate | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | top acceleration | `no_accelerometer` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | burnout | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | drogue rate | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | main opening | `short_pad` | 171 |
-| 20 Hz, pressure alone in 10 Pa steps, from 0.5 s after liftoff, its zero first | main rate | `short_pad` | 171 |
 | altos | top speed | `transonic` | 24 |
-| altos | burnout | `transonic` | 1 |
-| altos | drogue rate | none to read | 13 |
-| altos | main opening | none to read | 13 |
 | gnss-tracker | liftoff | `receiver_dropout` | 29 |
 | gnss-tracker | apogee height | `receiver_lag` | 29 |
 | gnss-tracker | apogee time | `receiver_lag` | 29 |
 | gnss-tracker | top speed | `receiver_lag` | 29 |
 | gnss-tracker | landing | `needs` | 29 |
-| gnss-tracker | flight time | `receiver_dropout` | 29 |
+| gnss-tracker | flight time | `needs` | 29 |
 | gnss-tracker | descent rate | `needs` | 29 |
-| gnss-tracker | top acceleration | `no_accelerometer` | 29 |
-| gnss-tracker | burnout | `receiver_lag` | 29 |
-| gnss-tracker | drogue rate | `needs` | 29 |
-| gnss-tracker | main opening | `needs` | 29 |
-| gnss-tracker | main rate | `needs` | 29 |
 | eggtimer | top speed | `transonic` | 25 |
-| eggtimer | top acceleration | `no_accelerometer` | 39 |
-| eggtimer | burnout | `transonic` | 25 |
-| eggtimer | drogue rate | none to read | 16 |
-| eggtimer | main opening | none to read | 16 |
 | perfectflite | top speed | `transonic` | 21 |
-| perfectflite | top acceleration | `no_accelerometer` | 31 |
-| perfectflite | burnout | `transonic` | 21 |
-| perfectflite | drogue rate | none to read | 20 |
-| perfectflite | main opening | none to read | 20 |
 | rrc3 | top speed | `transonic` | 23 |
-| rrc3 | top acceleration | `no_accelerometer` | 30 |
-| rrc3 | burnout | `transonic` | 23 |
-| rrc3 | drogue rate | none to read | 13 |
-| rrc3 | main opening | none to read | 13 |
-
-## Errors on the tuning set
-
-Each reading's errors, the reading less the truth, over every tuning flight and every log above together, beside the mean bound the readings stated. Each error is held to its own reading's bound, which differs from flight to flight and log to log, so the least or the most may pass the mean bound; the mean is for scale, and is given at the decimal place of the larger of the least and the most to three figures, the digits every platform shares. A floor, a burnout from the speed's peak or a clipped top acceleration, is apart: it holds while it is no more than its bound above the truth, and may lie any amount below it.
-
-| Reading | Given | Mean error | Least | Most | Mean bound |
-|---|---:|---:|---:|---:|---:|
-| liftoff | 7013 | 0.12 s | -1.79 s | 1.21 s | 2.03 s |
-| apogee height | 7220 | 0 m | -179 m | 202 m | 200 m |
-| apogee time | 7220 | 0.04 s | -1.04 s | 1.2 s | 1.54 s |
-| top speed | 1308 | 2.2 m/s | -9.5 m/s | 28.2 m/s | 38.6 m/s |
-| landing | 7154 | -0.6 s | -4.4 s | 2.61 s | 3.84 s |
-| flight time | 6948 | -0.74 s | -5.06 s | 3.15 s | 5.83 s |
-| descent rate | 7154 | 0 m/s | -12.4 m/s | 5.66 m/s | 4.09 m/s |
-| top acceleration | 280 | 0.7 m/s² | -13.6 m/s² | 13 m/s² | 16.6 m/s² |
-| top acceleration, a floor | 4 | -4.49 m/s² | -7.55 m/s² | -1.58 m/s² | 12.7 m/s² |
-| burnout | 262 | -0.0118 s | -0.0943 s | 0.0476 s | 0.651 s |
-| burnout, a floor | 1236 | -0.24 s | -1.33 s | 0.718 s | 1.3 s |
-| drogue rate | 2827 | 0.04 m/s | -1.61 m/s | 1.35 m/s | 1.79 m/s |
-| main opening | 2827 | 0.73 s | -0.778 s | 5.3 s | 2.04 s |
-| main rate | 5391 | 0.04 m/s | -5.47 m/s | 4.83 m/s | 1.71 m/s |
-
-No tuning flight's true top acceleration reaches the range its part clips at: the nearest, flight 57's on its imu-500hz logger, comes to 0.492 of it. Tops read as clipped, each a floor, at the range or flat at the top: 4; flight 78 (altos), its accelerometer at 20 Hz; flight 122 (altos), its accelerometer at 20 Hz; flight 144 (altos), its accelerometer at 20 Hz; flight 161 (altos), its accelerometer at 20 Hz.

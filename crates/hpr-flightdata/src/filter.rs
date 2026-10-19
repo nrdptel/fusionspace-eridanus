@@ -56,10 +56,9 @@ fn window_len(half: usize, len: usize) -> usize {
 /// and skip `NaN`s, as in [`running_median`], which is this filter at `threshold = 0`.
 ///
 /// HPR Sim reads heights after [`running_median`] instead (see
-/// [`MEDIAN_WINDOW_S`](crate::readings::MEDIAN_WINDOW_S)): a pulse among other large departures,
-/// as an ejection charge's is, widens its own window's spread until this filter keeps it. It
-/// cleans an accelerometer's trace, where a spike stands alone, before the thrust and burnout are
-/// found on it ([`SPIKE_WINDOW_S`](crate::readings::SPIKE_WINDOW_S)).
+/// [`MEDIAN_WINDOW_S`](crate::readings::MEDIAN_WINDOW_S)); this is here to show why: a pulse
+/// among other large departures, as an ejection charge's is, widens its own window's spread until
+/// the filter keeps it.
 pub fn hampel(values: &[f64], half: usize, threshold: f64) -> Vec<f64> {
     let mut window = Vec::with_capacity(window_len(half, values.len()));
     (0..values.len())

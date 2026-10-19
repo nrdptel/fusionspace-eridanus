@@ -333,10 +333,7 @@ mod tests {
             landing.time_s,
             truth.landing_s
         );
-        assert_eq!(
-            read.flight_time.value().map(|f| f.time_s),
-            Some(landing.time_s - liftoff.time_s)
-        );
+        assert_eq!(landing.flight_time_s, Some(landing.time_s - liftoff.time_s));
         assert_eq!(landing.descent_time_s, landing.time_s - apogee.time_s);
         // The mean rate: the true heights at the two readings' times, over the same span, to
         // within the heights' own bounds.
@@ -350,50 +347,5 @@ mod tests {
             landing.mean_descent_rate_m_s
         );
         assert!(LIFTOFF_HEIGHT_M < truth.apogee_m);
-
-        // Burnout, with no accelerometer, is the top speed's time, a floor: no sooner than the
-        // truth less its bound.
-        let burnout = read.burnout.value().unwrap();
-        assert!(burnout.is_floor);
-        assert_eq!(burnout.time_s, speed.time_s);
-        assert!(burnout.time_s - truth.burnout_s <= burnout.bound_s);
-
-        // The main opens at 150 m at 21.14 s, the descent's rate falling at once from 25 m/s to
-        // 6 m/s: found back from landing within its bound, and late by no more than the half
-        // fit and the sample the median's step adds.
-        let main = read.main_descent.value().unwrap();
-        let opening = main.opening.unwrap();
-        assert!(
-            (opening.time_s - truth.main_s).abs() <= opening.bound_s,
-            "{} against {}",
-            opening.time_s,
-            truth.main_s
-        );
-        assert!(
-            opening.time_s >= truth.main_s
-                && opening.time_s <= truth.main_s + 0.5 * readings::DESCENT_WINDOW_S + DT,
-            "{} against {}",
-            opening.time_s,
-            truth.main_s
-        );
-        // Each leg's rate: the true heights at its ends, over its span, to within its bound, and
-        // within the heights' own.
-        let drogue = read.drogue_descent.value().unwrap();
-        for leg in [drogue, main] {
-            let span = leg.to_s - leg.from_s;
-            let expected = (state(&truth, leg.from_s).0 - state(&truth, leg.to_s).0) / span;
-            assert!((leg.rate_m_s - expected).abs() <= leg.bound_m_s);
-            assert!(
-                (leg.rate_m_s - expected).abs() <= 2.0 * bound / span,
-                "{} against {expected}",
-                leg.rate_m_s
-            );
-        }
-        assert!(
-            (drogue.rate_m_s - DROGUE_M_S).abs() < 4.0,
-            "{}",
-            drogue.rate_m_s
-        );
-        assert!((main.rate_m_s - MAIN_M_S).abs() < 0.1, "{}", main.rate_m_s);
     }
 }

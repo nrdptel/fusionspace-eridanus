@@ -6,8 +6,4 @@ apogee            390.1 m (1280 ft) at 10.28 s, source: barometer
 highest sample    400.5 m at 11.35 s
 top speed         78.3 m/s at 2.20 s, source: barometer
 top acceleration  withheld (no_accelerometer): the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
-burnout           no sooner than 2.20 s less 1.32 s, source: barometer
 landing           45.80 s; down from apogee at 10.9 m/s on average
-flight time       45.00 s
-drogue            21.7 m/s
-main              6.0 m/s, opened at 21.40 s, 148 m up

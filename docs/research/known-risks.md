@@ -47,11 +47,7 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   charge's transient; a spike rising no faster than a coast (16.42 m in its last second at 20 Hz)
   reads as the top (#761); some `disturbed_top` withholdings are true tops (#762); a pad drifting
   within the allowance can put liftoff past its bound (#773, up to 1.22×), and a word's zero on a
-  short pad is placed by one unfiltered sample (#773); no reading from GNSS. M7.2c (ADR-283): no
-  tuning flight's top reaches its part's range (0.492 of it at most), so clipping at a range rests
-  on unit tests; the main's
-  opening bound leaves out a canopy's filling time (#779); a fall under no canopy reads as one
-  canopy's (#780); the coast witness assumes under 0.25 g of drag in the last second before apogee.
+  short pad is placed by one unfiltered sample (#773); no reading from GNSS.
 - Reports pinned to six decimals or 1e-7 relative; no oracle runs in CI.
 - Export: State's Category IV rewrite (RIN 1400-AE73, interim final rule listed for 2026-09) may
   redefine the hobby-rocket exclusion; re-read it when published (`export-control.md`, ADR-192).

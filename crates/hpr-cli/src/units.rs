@@ -164,11 +164,6 @@ pub(crate) fn speed_bound(value: f64) -> String {
     )
 }
 
-/// A bound on an acceleration in meters per second squared, rounded up to a tenth: `101.1`.
-pub(crate) fn acceleration_bound(value: f64) -> String {
-    fixed(rounded_up(value, 1), 1)
-}
-
 /// A bound on a time in seconds, rounded up to a hundredth: `0.98`.
 pub(crate) fn seconds_bound(value: f64) -> String {
     fixed(rounded_up(value, 2), 2)
