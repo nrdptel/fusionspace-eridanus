@@ -59,7 +59,8 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780), no canopy told from one);
   the coast witness assumes under 0.25 g of drag in the last second before apogee; an
   accelerometer whose pad, coast and thrust don't settle which way up it reads, or that shows no
-  thrust, gives no top acceleration (`direction_unstated`).
+  thrust, gives no top acceleration (`direction_unstated`); an AltOS file's `acceleration` is
+  told from a barometer-only board's estimate by its columns alone, so a TeleGPS's would be read.
 - Reports pinned to six decimals or 1e-7 relative; no oracle runs in CI.
 - Export: State's Category IV rewrite (RIN 1400-AE73, interim final rule listed for 2026-09) may
   redefine the hobby-rocket exclusion; re-read it when published (`export-control.md`, ADR-192).

@@ -144,11 +144,13 @@ altitude channel, each reading within a stated bound or withheld with its reason
 gives none ([Flight-log readings](../physics/log-readings.md#the-height-track)). Since
 [M7.2c, the rest of the readings](../decisions-and-roadmap.md#m7-2c), the same track gives the
 flight time and each canopy's descent, and an accelerometer column the reader names as the
-rocket's axis gives the top acceleration and burnout: AltOS's `acceleration`, the Raven's and Blue
+rocket's axis gives the top acceleration and burnout: AltOS's `acceleration` (not from an EasyMini
+or a TeleMini, which have no accelerometer: the column is then the barometer's estimate, told by
+the file having neither an inertial unit's columns nor a GPS receiver's), the Raven's and Blue
 Raven's `Axial Accel (Gs)`, the Eggtimer's `Accel`, the ARTS2's `Acc`, among others. A board's
 three axes don't say which lies along the rocket, so they give neither. Nor does an axial column
 whose pad, coast and thrust don't settle which way up it reads, or that shows no thrust
-(`direction_unstated`), as on seven records of the sample logs, four AltOS CSV, two Entacore AIM
+(`direction_unstated`), as on six records of the sample logs, three AltOS CSV, two Entacore AIM
 CSV and a Raven CSV ([the accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's report counts
 the readings each family gives and withholds ([how it was checked](#how-it-was-checked)).
 

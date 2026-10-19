@@ -294,6 +294,15 @@ A column whose name holds the word `axial`, as a table's or a mapping's may, is 
 known. A board's three axes don't say which lies along the rocket, and their magnitude never falls
 below zero at burnout, so they give neither reading (`axis_unstated`).
 
+AltosUI writes `acceleration` for every board, but an EasyMini or a TeleMini has a barometer and
+no accelerometer (the Altus Metrum manual's specifications), so on one the column is the board's
+estimate from its barometer: a height differenced twice, which gives no reading here. Each AltOS
+board with an axial accelerometer adds an inertial unit's columns (`accel_x` and on: TeleMega,
+EasyMega) or a GPS receiver's (`latitude` and on: TeleMetrum) to the file. So an AltOS CSV with
+neither gives no top acceleration (`no_accelerometer`), and its burnout comes from the top speed.
+A TeleGPS, a GPS receiver with no accelerometer, would pass if its export wrote the column. On
+the sample logs 17 records are so withheld, 16 AltOS CSV and one AltOS table.
+
 **What an accelerometer reads.** It doesn't feel gravity's pull; it feels every other force on the
 rocket, over its mass: the [specific force](../glossary.md#specific-force). Along the axis that is
 the thrust less the drag, over the mass. Standing on the pad, the part reads +1 g, the pad's push;
@@ -333,8 +342,7 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
 The way is settled when the pad or the thrust says and no witness disagrees. A thrust read at the
 start of a log whose liftoff is withheld settles only beside a coast that says the same way: a log
 that starts after burnout has the drag there instead, past 2 g the other way, and with no pad to
-tell by, nothing else could catch it. One AltOS CSV record of the sample logs starts in the climb
-and its coast reads −0.70 g, inside the band that says nothing, so it is withheld. The coast alone
+tell by, nothing else could catch it. The coast alone
 settles nothing: its second can hold a weak thrust still burning or a canopy opened early,
 either of which reads the other way, so it can only disagree. Otherwise the top
 acceleration and burnout from the accelerometer are withheld (`direction_unstated`), and burnout
@@ -976,8 +984,8 @@ logs hold, other flyers' files kept outside the repository, and counts each read
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
-554, the top speed from 354, landing from 472, the flight time from 406, burnout from 433, the top
-acceleration from 177, the drogue's descent from 267 and the main's from 459. Each of the 27
+554, the top speed from 354, landing from 472, the flight time from 406, burnout from 428, the top
+acceleration from 161, the drogue's descent from 267 and the main's from 459. Each of the 27
 reasons has a case: for 23, the first file the survey withholds a reading of for it, by an
 anonymous id; for the four that none of
 the sample logs triggers (`bad_record`, `faster_than_free_fall`, `starts_off_the_pad` and
@@ -993,14 +1001,13 @@ start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV reco
 apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
 The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
-on 665 records, as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
-along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 7. On one, nothing
+on 682 records, 17 of them AltOS files from a board with no accelerometer (above), as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
+along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 6. On one, nothing
 says which way up the accelerometer reads: it never passes 2 g either way, and the log holds no pad
 or coast to tell by. On one, the coast reads near +1 g, nose down, against a pad and a thrust that
 say nose up. On three AltOS CSV records, gravity taken out, the pad says nothing and a short burn
 comes before a heavy drag, so the thrust says nothing either. On one, the accelerometer's thrust
-rises after liftoff's latest time by the heights, its clock running late against theirs. On one,
-the log starts in the climb and its coast says nothing, so its thrust can't settle the way alone.
+rises after liftoff's latest time by the heights, its clock running late against theirs.
 The drogue's descent is withheld as `short_leg` on 11, and as
 `one_canopy` on 185, where the descent showed no drogue's leg; with no truth beside the logs, that
 doesn't say how each rocket came down.

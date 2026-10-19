@@ -187,6 +187,23 @@ fn first_at_each_time(channel: &Channel) -> Channel {
     kept
 }
 
+/// Whether `channel` is AltOS's `acceleration` from a board with no accelerometer of its own.
+/// AltosUI's CSV writes the column for every board. An EasyMini or a TeleMini has a barometer
+/// and no accelerometer (*The Altus Metrum System*'s specifications; the `.eeprom` reader's
+/// `Board::EasyMini`), so on one the column is the board's estimate from its barometer, a height
+/// differenced twice. Each AltOS board with an axial accelerometer carries an inertial unit
+/// (TeleMega, EasyMega) or a GPS receiver (TeleMetrum), whose columns the export adds, so a file
+/// with neither holds no accelerometer's reading. A TeleGPS, a GPS receiver with no
+/// accelerometer, would pass if its export wrote the column.
+fn from_the_barometer(log: &FlightLog, channel: &Channel) -> bool {
+    log.format == LogFormat::AltosCsv
+        && channel.column == "acceleration"
+        && !log
+            .channels
+            .iter()
+            .any(|other| matches!(other.column.as_str(), "accel_x" | "latitude"))
+}
+
 /// The robust noise of `values`, 1σ: the median of each sample's distance from the mean of its
 /// two neighbors, over the 0.6745 a normal distribution's median absolute deviation is of its σ
 /// and the √1.5 the neighbors' mean adds. A curve's bend between three samples is left out with
@@ -217,15 +234,27 @@ pub(super) fn read(
             fallback(Some(detail)),
         )
     };
-    let accelerometers: Vec<_> = log.channels_of(Quantity::Acceleration).collect();
+    let accelerometers: Vec<_> = log
+        .channels_of(Quantity::Acceleration)
+        .filter(|channel| !from_the_barometer(log, channel))
+        .collect();
     if accelerometers.is_empty() {
+        let detail = if log
+            .channels_of(Quantity::Acceleration)
+            .any(|channel| from_the_barometer(log, channel))
+        {
+            "the log has no accelerometer: AltOS's `acceleration` comes here from a board with \
+             none of its own, as the file holds neither an inertial unit's columns (`accel_x` and \
+             on) nor a GPS receiver's, one of which every AltOS board with an axial accelerometer \
+             adds; it is the board's estimate from its barometer, a height differenced twice, \
+             which HPR Sim doesn't read a top from"
+        } else {
+            "the log has no accelerometer; HPR Sim doesn't difference a height twice to make \
+             one, as its steps would read as spikes of many g"
+        };
         return (
             None,
-            Reading::withheld(
-                Reason::NoAccelerometer,
-                "the log has no accelerometer; HPR Sim doesn't difference a height twice to make \
-                 one, as its steps would read as spikes of many g",
-            ),
+            Reading::withheld(Reason::NoAccelerometer, detail),
             fallback(None),
         );
     }
@@ -1292,7 +1321,7 @@ mod tests {
             .enumerate()
             .map(|(k, t)| value(k, *t))
             .collect();
-        FlightLog {
+        let mut log = FlightLog {
             format,
             logger: "test".to_owned(),
             serial_number: None,
@@ -1312,7 +1341,19 @@ mod tests {
             )],
             events: Vec::new(),
             notes: Vec::new(),
+        };
+        // An AltOS log is a TeleMetrum's: its GPS receiver's column beside the accelerometer.
+        if format == LogFormat::AltosCsv {
+            let time_s = log.time_s.clone();
+            let latitude = vec![40.0; time_s.len()];
+            log.channels.push(Channel::new(
+                "latitude",
+                Quantity::Latitude,
+                time_s,
+                latitude,
+            ));
         }
+        log
     }
 
     /// A noisy axial trace reads its top and burnout within their bounds, measured; gravity is
@@ -2276,6 +2317,43 @@ mod tests {
                 readings.max_acceleration
             );
         }
+    }
+
+    /// AltOS's `acceleration` from a board with no accelerometer, an EasyMini's, is its
+    /// barometer's estimate: with neither a GPS receiver's column nor an inertial unit's beside
+    /// it, no top or burnout is read from it, and burnout comes from the top speed. Either column
+    /// makes it a sensor's.
+    #[test]
+    fn altos_acceleration_without_an_accelerometer_board_isnt_read() {
+        let sensor = log(LogFormat::AltosCsv, "acceleration", 0.01, |k, t| {
+            specific_force(t) - G + jitter(k, 0.3)
+        });
+        assert!(read_all(&sensor).max_acceleration.value().is_some());
+        let mut barometer = sensor.clone();
+        barometer
+            .channels
+            .retain(|channel| channel.column != "latitude");
+        let readings = read_all(&barometer);
+        let Reading::Withheld(withheld) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(withheld.reason, Reason::NoAccelerometer);
+        assert!(
+            withheld.detail.contains("estimate from its barometer"),
+            "{withheld:?}"
+        );
+        assert!(readings.accelerometer.is_none());
+        let burnout = readings.burnout.value().expect("from the top speed");
+        assert_eq!(burnout.method, Method::SpeedPeak, "{burnout:?}");
+        let mut inertial = barometer.clone();
+        let (time_s, values) = (inertial.time_s.clone(), vec![9.8; inertial.time_s.len()]);
+        inertial.channels.push(Channel::new(
+            "accel_x",
+            Quantity::Acceleration,
+            time_s,
+            values,
+        ));
+        assert!(read_all(&inertial).max_acceleration.value().is_some());
     }
 
     /// A log that starts in the thrust, past its 6 g top at 3.5 s: from 3.6 s the trace is

@@ -4054,12 +4054,13 @@
             }
           },
           "burnout": {
-            "given": 32,
+            "given": 27,
             "withheld": {
               "disturbed_top": 4,
               "no_climb": 1,
+              "noisy_speed": 2,
               "sampled_too_slowly": 1,
-              "transonic": 12
+              "transonic": 15
             }
           },
           "drogue_descent": {
@@ -4108,10 +4109,11 @@
             }
           },
           "max_acceleration": {
-            "given": 41,
+            "given": 26,
             "withheld": {
-              "direction_unstated": 4,
+              "direction_unstated": 3,
               "disturbed_top": 4,
+              "no_accelerometer": 16,
               "no_climb": 1
             }
           },
@@ -4317,8 +4319,10 @@
             "withheld": {}
           },
           "max_acceleration": {
-            "given": 1,
-            "withheld": {}
+            "given": 0,
+            "withheld": {
+              "no_accelerometer": 1
+            }
           },
           "max_speed": {
             "given": 1,
@@ -7411,7 +7415,7 @@
       },
       {
         "reason": "no_accelerometer",
-        "records": 665,
+        "records": 682,
         "first": "0040ac8c3e5af57b",
         "invented": null
       },
@@ -7513,8 +7517,8 @@
       },
       {
         "reason": "direction_unstated",
-        "records": 7,
-        "first": "32caeaf5f1f19e38",
+        "records": 6,
+        "first": "4ed6012a31b4a214",
         "invented": null
       },
       {
