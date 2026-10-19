@@ -404,11 +404,10 @@ pub(super) fn read(
     // The burns: each from a cleaned reading past [`LIFTOFF_ACCELERATION_M_S2`] to where the
     // cleaned trace's mean next falls through zero, or apogee if it doesn't, that holds past there
     // for [`BURN_LEAST_S`], as a canopy's or a charge's shock doesn't, or the first such span
-    // where none does. They
-    // are searched from liftoff's earliest time by the heights: a rocket at rest reads 1 g, so
-    // anything more before it moves is the pad's, a knock or a bump. The top is searched over the
-    // burns, so a shock in a coast isn't taken for it, nor a bump on the pad; with no burn, from
-    // there to apogee.
+    // where none does. They are searched from liftoff's earliest time by the heights, or the
+    // log's start where liftoff is withheld: a rocket at rest reads 1 g, so anything more before
+    // it moves is the pad's, a knock or a bump. The top is searched over the burns, so a shock in
+    // a coast isn't taken for it, nor a bump on the pad; with no burn, from there to apogee.
     let mean = running_mean(&f_clean, half_window(BURNOUT_MEAN_S, interval));
     let end = boost.last().copied().unwrap_or(0);
     let from = match &heights.liftoff {
