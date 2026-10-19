@@ -1,6 +1,6 @@
 # ADR-005: Solid motors: statistics, consumption, grains, file models and the bundled catalog (2026-09-17)
 
-- **Status:** accepted; the peak thrust and burn-time crossings refined by ADR-150 (delivered samples only)
+- **Status:** accepted; the peak thrust and burn-time crossings refined by ADR-150 (delivered samples only); the catalog-metadata bullet replaced by ADR-186 (every figure from the curve file itself)
 - **Summary:** Solid motors: statistics, consumption, grains, file models and the bundled catalog
 
 **Context.** M1.3 builds `hpr-motor`. Loft's motor code went wrong in eight ways (lessons L36–L43):
@@ -52,10 +52,10 @@ Several choices had no single right answer (`docs/physics/motor.md`).
   average thrust, or their impulse is 1–5% off; the breakdown is in
   `docs/research/thrustcurve-data.md`. "Free" curves (which can be GPL) are never bundled.
 - **Catalog metadata:** each bundled motor's published statistics and identifiers (names, class,
-  type, dimensions, masses, impulse, thrust, burn time, delays, case) are copied from
-  ThrustCurve's API into the committed index, with attribution. ThrustCurve states no terms for
-  its metadata. These are facts about commercial products, mostly from certification bodies, for
-  32 motors, and the milestone's 1% check and offline catalog need them. Neer confirmed on
+  type, dimensions, masses, impulse, thrust, burn time, delays, case) are copied from ThrustCurve's
+  API into the committed index, with attribution. ThrustCurve grants no license for its metadata and
+  reserves copyright. These are facts about commercial products, mostly from certification bodies,
+  for 32 motors, and the milestone's 1% check and offline catalog need them. Neer confirmed on
   2026-09-18 that they are treated as facts, used with attribution; the catalog keeps them all.
 - **XML:** `roxmltree`, a strict read-only parser that refuses DTDs; the `.rse` writer is
   hand-written.

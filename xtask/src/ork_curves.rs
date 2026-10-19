@@ -12,9 +12,9 @@
 //! propellant's and the dry motor's, as hpr builds the motor from the file) are nearest
 //! OpenRocket's. A motor with no match is listed with why.
 //!
-//! [`TABLE`] holds ids, names and that difference only, no curve: ThrustCurve states no license
-//! for its records and OpenRocket's database states no terms (ADR-145), and the examples are
-//! public, so no private design's motor is named.
+//! [`TABLE`] holds ids, names and that difference only, no curve: ThrustCurve grants no license for
+//! its records and reserves copyright, OpenRocket's database states no terms (ADR-145), and the
+//! examples are public, so no private design's motor is named.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;

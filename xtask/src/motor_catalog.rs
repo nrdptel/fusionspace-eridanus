@@ -2,8 +2,8 @@
 //! curve files alone (issue #295).
 //!
 //! The 32 curve files under `crates/hpr-motor/data/thrustcurve/curves/` are ThrustCurve.org data
-//! files marked public domain. ThrustCurve.org states no terms for its API's motor records, so the
-//! index copies none of their figures. For each file the command reads:
+//! files marked public domain. ThrustCurve.org grants no license for its API's motor records and
+//! reserves copyright, so the index copies none of their figures. For each file the command reads:
 //!
 //! - from the file's header: diameter, length, propellant and loaded masses, and delays (as
 //!   written: `4-6`, `P`, `1000`; [`hpr_motor::DelayList::parse`] reads them);

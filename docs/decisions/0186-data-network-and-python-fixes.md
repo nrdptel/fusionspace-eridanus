@@ -6,7 +6,8 @@
 **Context.** ADR-185 split release 0.1 (M10.1) in four; M10.1b holds the five issues that touch
 the motor data, the network cache, the docs' accuracy figures, the Python binding and the `.hprz`
 container. The largest is #295: `crates/hpr-motor/data/thrustcurve/catalog.json` held each bundled
-motor's statistics as ThrustCurve.org's API states them, and that API publishes no terms. The 32
+motor's statistics as ThrustCurve.org's API states them, and ThrustCurve.org grants no license
+for them and reserves copyright. The 32
 curve files are marked public domain, and their headers carry most of the same facts.
 
 **Decision.**
