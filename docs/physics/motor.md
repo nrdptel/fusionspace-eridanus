@@ -109,9 +109,11 @@ The whole program is at the end of this page, in [The example program](#the-exam
 
 **License:** each curve is a ThrustCurve.org file marked public domain, bundled unchanged. Every
 number in the catalog comes from the file itself: the size, masses and delays from its header,
-and the rest worked out from its curve. ThrustCurve.org grants no license for its own motor
-records and reserves copyright (its site reads "All rights under copyright reserved"), so none of
-their figures is bundled ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295);
+and the rest worked out from its curve. Each curve file carries the license its uploader chose.
+ThrustCurve.org's own motor records, the figures its site and API publish for each motor, are
+another matter: it grants no license for them and reserves copyright (its site reads "All rights
+under copyright reserved"), so none of those figures is bundled
+([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295);
 [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
 `cargo xtask motor-catalog` writes the catalog from the files, and a test fails if the committed
 one differs.

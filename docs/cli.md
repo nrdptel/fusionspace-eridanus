@@ -1208,7 +1208,7 @@ file:
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
-checks: ThrustCurve.org's own published figures are not bundled, as it grants no license for them
+checks. ThrustCurve.org's own published figures are not bundled: it grants no license for them
 and reserves copyright ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
 When the 32 were chosen, their total impulse, average thrust and burn time agreed with
 ThrustCurve.org's within 1%, and the simulator's peak, the curve file's highest point, runs from
