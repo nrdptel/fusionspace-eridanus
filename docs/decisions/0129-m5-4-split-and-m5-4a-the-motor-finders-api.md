@@ -74,14 +74,15 @@ match exactly one ThrustCurve record on (manufacturer, designation), as all 598 
 back and finds exactly the recording's keys and values; reads it again from the cache without a
 fetch, and offline, through a transport that fails if called, fresh for the hour and stale after;
 and finds `ATTRIBUTION` on every answer. A typed test pins the enums' meanings (H128W a reload
-shipped as hazardous material; 827 listings in stock, 2,363 out, 495 special order), since a
-round trip through the same names can't. Review found the first draft refusing the whole list
-for an offer with no price, which the API allows; an enum whose names could be swapped unseen;
-several refusals untested; and a page fetch that dropped its build time. All are fixed. The files agree with each other (`in-stock.json` is
-`motors.json`'s 282 motors in stock, value for value; `meta.json` counts 598, 282 and 12), each
-refusal above is tested by a one-field change to a recording, and the derived rules hold on all
-598 motors and 3,685 listings. On that build, 20 L motors were in stock and none sold for $150
-or less a motor (the cheapest, $260.99), so M5.4c's example command lists nothing on the
-recording; its test will need a price that does. The join (M5.4b) starts from the exact match
-above, with ThrustCurve's whole `search.json` (1,156 motors, 0.93 MB, its terms unstated) kept
-under `refs/` unless a smaller recorded answer can carry the test.
+shipped as hazardous material; 827 listings in stock, 2,363 out, 495 special order), since a round
+trip through the same names can't. Review found the first draft refusing the whole list for an offer
+with no price, which the API allows; an enum whose names could be swapped unseen; several refusals
+untested; and a page fetch that dropped its build time. All are fixed. The files agree with each
+other (`in-stock.json` is `motors.json`'s 282 motors in stock, value for value; `meta.json` counts
+598, 282 and 12), each refusal above is tested by a one-field change to a recording, and the derived
+rules hold on all 598 motors and 3,685 listings. On that build, 20 L motors were in stock and none
+sold for $150 or less a motor (the cheapest, $260.99), so M5.4c's example command lists nothing on
+the recording; its test will need a price that does. The join (M5.4b) starts from the exact match
+above, with ThrustCurve's whole `search.json` (1,156 motors, 0.93 MB; ThrustCurve.org grants no
+license for it and reserves copyright) kept under `refs/` unless a smaller recorded answer can carry
+the test.

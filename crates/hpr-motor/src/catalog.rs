@@ -8,14 +8,15 @@
 //! online layer that starts at [M5.1][m5-1].
 //!
 //! Every figure in the bundled index comes from its curve file alone, written by
-//! `cargo xtask motor-catalog` (issue #295: ThrustCurve.org states no terms for its API's motor
-//! records, so none of their figures is copied). Size, masses and delays are the file header's;
-//! total impulse, average and peak thrust and burn time are worked out from the curve by
-//! [`ThrustCurve`]'s own methods, the ones the simulator flies (the trapezoid integral and the
-//! NFPA 1125 burn window; their definitions and sources are on [`crate::curve`]). Only the names
-//! that identify a motor (ThrustCurve.org's id for it, designation, maker, single-use or reload,
-//! case, propellant) and the file's provenance (its ThrustCurve.org data-file id, who produced the
-//! data, its license and the download date) are written by hand, in the command's table.
+//! `cargo xtask motor-catalog` (issue #295: ThrustCurve.org grants no license for its API's motor
+//! records and reserves copyright, so none of their figures is copied). Size, masses and delays are
+//! the file header's; total impulse, average and peak thrust and burn time are worked out from the
+//! curve by [`ThrustCurve`]'s own methods, the ones the simulator flies (the trapezoid integral and
+//! the NFPA 1125 burn window; their definitions and sources are on [`crate::curve`]). Only the
+//! names that identify a motor (ThrustCurve.org's id for it, designation, maker, single-use or
+//! reload, case, propellant) and the file's provenance (its ThrustCurve.org data-file id, who
+//! produced the data, its license and the download date) are written by hand, in the command's
+//! table.
 //!
 //! The index keeps the units motor files and catalogs use (mm, g, N·s, N, s), in fields named for
 //! them. [`CatalogMotor::motor`] converts to SI and takes the envelope (diameter, length and

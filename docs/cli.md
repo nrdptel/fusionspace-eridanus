@@ -1208,11 +1208,12 @@ file:
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
-checks: ThrustCurve.org's own published figures are not bundled, as it states no terms for them
-([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)). When the 32 were chosen,
-their total impulse, average thrust and burn time agreed with ThrustCurve.org's within 1%, and the
-simulator's peak, the curve file's highest point, runs from 16.7% below ThrustCurve.org's (Cesaroni
-26E31-15A) to 2.1% above (Loki M1378LR) ([Solid motors](physics/motor.md#the-bundled-motors)).
+checks. ThrustCurve.org's own published figures are not bundled: it grants no license for them
+and reserves copyright ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
+When the 32 were chosen, their total impulse, average thrust and burn time agreed with
+ThrustCurve.org's within 1%, and the simulator's peak, the curve file's highest point, runs from
+16.7% below ThrustCurve.org's (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR) ([Solid
+motors](physics/motor.md#the-bundled-motors)).
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->
 

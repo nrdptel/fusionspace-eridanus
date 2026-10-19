@@ -58,8 +58,9 @@ captures cached in the gitignored `refs/samples/thrustcurve/`). ThrustCurve's si
   licenses (I.e., GPL, Creative Commons, Apache)"; Other (restricted), "such as an explicit
   copyright"; Unknown. No page grants a license for the motor records: the home page reads "All
   rights under copyright reserved" (read 2026-10-17, and in a 2026-07-09 archive capture). The
-  Swagger file names the ISC license for the API (`info.license`); it says nothing about the
-  records.
+  five pinned info pages carry no notice of their own, so that line is the site's only statement
+  of terms. The Swagger file names the ISC license for the API (`info.license`); it says nothing
+  about the records.
   **Bundle `PD` only:** `free` may be GPL or share-alike, unstated; `other` is restricted; no
   value means unknown. Also exclude PD files whose own text contradicts the flag (section 4).
 

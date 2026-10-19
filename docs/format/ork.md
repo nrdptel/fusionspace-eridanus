@@ -2006,9 +2006,9 @@ How it works:
   embeds still comes first, and HPR Sim's bundled catalog last.
 - A supplied curve is never matched by name. In the database, 286 manufacturer-and-designation
   pairs have more than one curve.
-- The database's curves come from ThrustCurve.org by way of OpenRocket, and neither publishes terms
-  for reusing them. So the record stays on the machine that ran it, and only counts are published
-  here.
+- The database's curves come from ThrustCurve.org by way of OpenRocket. ThrustCurve.org grants no
+  license for its records and reserves copyright, and OpenRocket publishes no terms for reusing
+  them. So the record stays on the machine that ran it, and only counts are published here.
 
 To repeat the survey you need the private design library under `refs/`, which most readers won't
 have, plus Java 17 and the OpenRocket jar (`cargo xtask refs fetch`), as for the

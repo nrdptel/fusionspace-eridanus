@@ -41,9 +41,9 @@ can't compute the digest of a fetched file and compare.
      larger difference of the propellant's and the dry motor's mass, as hpr builds the motor from
      the file, over OpenRocket's loaded mass. Both differences are rounded to a millionth, so
      noise decides nothing; files alike in both keep the order `hpr sim` takes them in.
-3. **What the table holds.** Ids, the motor's maker and designation as the example writes them,
-   and the differences. It holds no curve: ThrustCurve states no licence for its records, and
-   OpenRocket's database states no terms
+3. **What the table holds.** Ids, the motor's maker and designation as the example writes them, and
+   the differences. It holds no curve: ThrustCurve grants no license for its records and reserves
+   copyright, and OpenRocket's database states no terms
    ([ADR-145](0145-recorded-answers-and-their-licences-stand-in.md)). It names only motors of
    OpenRocket's public examples, so it says nothing of a private design.
 4. **`hpr sim`.** A `.ork` motor fetched by ADR-154 §4 names the table's file for its digest, if
