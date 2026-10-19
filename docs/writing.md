@@ -109,14 +109,12 @@ in the maintainer's words. Reference pages stay impersonal: a model's equations,
 command's options, the glossary. There the program is the subject, and "you" gives the steps, as
 it does in a tutorial or a how-to.
 
-> *Before*, in [the README](https://github.com/nrdptel/fusionspace-eridanus/blob/main/README.md):
-> FusionSpace HPR · Sim (called hpr-sim before release 0.1) is an open-source flight simulator for
-> hobby and high-power rockets, written in Rust, that you use as a library, from the command line
-> or from Python.
->
-> *After*: FusionSpace HPR · Sim, called hpr-sim before release 0.1, is an open-source flight
-> simulator for hobby and high-power rockets. I write it in Rust, and you can use it as a library,
-> from the command line or from Python.
+*Before*, in [the README](https://github.com/nrdptel/fusionspace-eridanus/blob/main/README.md):
+"FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power rockets,
+written in Rust, that you use as a library, from the command line or from Python."
+
+*After*: "FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power
+rockets. I write it in Rust, and you can use it as a library, from the command line or from Python."
 
 ### Plain words
 
@@ -124,10 +122,10 @@ Use the plain word. Leave out the words that tell a reader something is "easy" o
 "quick" for you may not be for them. Never use a stock phrase; the check holds a list of them and
 fails the build on one ([the check](#the-check)).
 
-> *Before*, in [Pick a motor](pick-a-motor.md): Flying a few more motors is quick: change
-> `--motor` and `--delay` and run again.
->
-> *After*: To fly more motors, change `--motor` and `--delay` and run it again.
+*Before*, in [Pick a motor](pick-a-motor.md): "Flying a few more motors is quick: change `--motor`
+and `--delay` and run again."
+
+*After*: "To fly more motors, change `--motor` and `--delay` and run it again."
 
 ### Short sentences
 
@@ -135,15 +133,15 @@ Aim for about 20 words a sentence ([rule 2](#the-rules)), and use contractions w
 them: "isn't", "doesn't", "it's". A sentence that carries five things is better as a few
 sentences, or as a list.
 
-> *Before*, in the README: Flight in six degrees of freedom (6-DOF: three of position, three of
-> rotation), with variable mass: aerodynamics from subsonic to supersonic, the standard atmosphere
-> or a measured one, winds that change with height, staging, clusters and air starts, and recovery
-> with drift.
->
-> *After*: It flies a rocket in six degrees of freedom, three of position and three of rotation,
-> with its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is
-> the standard atmosphere or a measured one, with winds that change with height. It covers
-> staging, clusters and air starts, and recovery with drift.
+*Before*, in the README: "Flight in six degrees of freedom (6-DOF: three of position, three of
+rotation), with variable mass: aerodynamics from subsonic to supersonic, the standard atmosphere or
+a measured one, winds that change with height, staging, clusters and air starts, and recovery with
+drift."
+
+*After*: "It flies a rocket in six degrees of freedom, three of position and three of rotation, with
+its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is the
+standard atmosphere or a measured one, with winds that change with height. It covers staging,
+clusters and air starts, and recovery with drift."
 
 ### Say it once
 
@@ -151,12 +149,12 @@ Say a thing once, where it belongs. Don't announce what a section covers, point 
 said ("as mentioned"), or recap it at the end (`In summary`). The heading and the first sentence
 already say what a section is about.
 
-> *Before*, in [the OpenRocket format page](format/ork.md): This section compares HPR Sim's whole
-> flights with OpenRocket 24.12's on the 54 configurations of OpenRocket's example designs that HPR
-> Sim can fly, in 15 of the examples.
->
-> *After*: HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations:
-> those of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples.
+*Before*, in [the OpenRocket format page](format/ork.md): "This section compares HPR Sim's whole
+flights with OpenRocket 24.12's on the 54 configurations of OpenRocket's example designs that HPR
+Sim can fly, in 15 of the examples."
+
+*After*: "HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations: those
+of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples."
 
 ### Paragraphs and lists
 
@@ -165,10 +163,10 @@ a list as many items as there are, not three of the same shape because three sou
 bold label opens an item only where a reader scans for it, as in a list of options or a model
 page's *In short* box; a line that opens with a bold label and a colon reads like a form.
 
-> *Before*, in the README: **Status: RELEASED.** Version 0.1.0, released October 8, 2026; work
-> toward 0.2 goes on here.
->
-> *After*: Version 0.1.0 came out on October 8, 2026, and I'm working on 0.2 here.
+*Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
+0.2 goes on here."
+
+*After*: "Version 0.1.0 came out on October 8, 2026, and I'm working on 0.2 here."
 
 ### Labels
 
@@ -176,13 +174,13 @@ Say what a thing is before its label, and use a label (a milestone or a decision
 where the reader needs to follow it. A sentence that opens with one sends the reader to look it
 up before they know why.
 
-> *Before*, in [Accuracy](accuracy.md): Neither set is held out: both were seen during
-> development, so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds
-> flights out, predicted before their logs are read.
->
-> *After*: Neither set is held out. Both were seen during development, so neither is a blind test.
-> That waits for flights predicted before their logs are read, which is planned work
-> ([held-out flights](decisions-and-roadmap.md#m2-7)).
+*Before*, in [Accuracy](accuracy.md): "Neither set is held out: both were seen during development,
+so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted
+before their logs are read."
+
+*After*: "Neither set is held out. Both were seen during development, so neither is a blind test.
+That waits for flights predicted before their logs are read, which is planned work ([held-out
+flights](decisions-and-roadmap.md#m2-7))."
 
 ### Honest, once
 
@@ -190,12 +188,12 @@ Honesty stays exactly as strict ([rule 8](#the-rules)): what was checked, agains
 it stops. Say it once and plainly, like someone who checked. Put a hedge on the claim it
 qualifies, not on every clause around it.
 
-> *Before*, in [the simulator's tour](simulator-tour.md): Here the drag may read high, so the
-> apogee may read low: for a field's ceiling, the side that flatters
-> ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters)).
->
-> *After*: Here the drag may read high. If it does, the apogee reads low, the side that flatters a
-> field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters)).
+*Before*, in [the simulator's tour](simulator-tour.md): "Here the drag may read high, so the apogee
+may read low: for a field's ceiling, the side that flatters ([Trusting a
+simulation](trusting-a-simulation.md#which-miss-flatters))."
+
+*After*: "Here the drag may read high. If it does, the apogee reads low, the side that flatters a
+field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters))."
 
 ### The limits
 
