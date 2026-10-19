@@ -1163,6 +1163,15 @@ above a few kilometers need one, because an offset to the standard for field con
 the way up. See [Atmosphere](physics/atmosphere.md#sounding-and-forecast-profiles).
 
 
+### Specific force
+
+What an accelerometer reads: every force on the rocket but gravity, over its mass, in m/s² or g.
+Standing on the pad it reads +1 g, the pad's push against gravity; in the climb, the thrust less
+the drag over the mass; coasting, the drag's pull back, below zero; falling in vacuum, 0. Less 1 g,
+the specific force along the axis of a rocket climbing straight up is its own acceleration. See
+[Flight-log readings](physics/log-readings.md#the-accelerometer).
+
+
 ### Specific impulse
 
 Impulse per unit weight of propellant, $I_{\mathrm{sp}} = I/(m_p g_0)$, in seconds, with $g_0 = 9.80665\,\mathrm{m/s^2}$:

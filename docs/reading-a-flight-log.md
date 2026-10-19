@@ -37,14 +37,17 @@ record layout ([Reading your own logger](your-own-logger.md)). A zip archive's f
 unpacked first. Since
 [M7.2b, readings on every logger](decisions-and-roadmap.md#m7-2b), the readings come from any
 logger's barometric altitude or pressure, each within a stated bound; a GPS track gives none.
+Since [M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c), they include burnout, the
+flight time and each canopy's descent rate, and the top acceleration from an accelerometer along
+the rocket's axis.
 Formats no sample holds yet,
 such as a CATS flight computer's, are [listed as needing
 samples](format/flight-logs.md#formats-that-need-samples) ([evidence row G9](evidence.md#g9)).
 
 > **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each states
 > a bound on its error, held on HPR Sim's synthetic flights: on 171 simulated flights, each logged
-> at every rate from 500 to half a sample a second, every reading stayed within its bound, and the
-> largest error took 0.717 of it. The bounds were tuned on those same flights, and no real log has a
+> at every rate from 500 to half a sample a second, 71 of them with an accelerometer too, every
+> reading stayed within its bound, and the largest error took 0.717 of it. The bounds were tuned on those same flights, and no real log has a
 > truth beside it to test them. They hold on [six simulated logger
 > profiles](physics/synthetic-flights.md#the-loggers) and on rockets leaving the pad at 2 g or more:
 > a noisier logger or a slower rocket can be read outside them. On one real flight, a public log
@@ -200,11 +203,49 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))
     );
     println!(
+        "burnout           {}",
+        show(&read.burnout, |burnout| if burnout.is_floor {
+            // A floor: burnout came no sooner than this, less its bound.
+            format!(
+                "no sooner than {:.2} s less {:.2} s, source: {}",
+                burnout.time_s,
+                burnout.bound_s,
+                code(burnout.source)
+            )
+        } else {
+            format!("{:.2} s, source: {}", burnout.time_s, code(burnout.source))
+        })
+    );
+    println!(
         "landing           {}",
         show(&read.landing, |landing| format!(
             "{:.2} s; down from apogee at {:.1} m/s on average",
             landing.time_s, landing.mean_descent_rate_m_s
         ))
+    );
+    println!(
+        "flight time       {}",
+        show(&read.flight_time, |flight| format!(
+            "{:.2} s",
+            flight.time_s
+        ))
+    );
+    println!(
+        "drogue            {}",
+        show(&read.drogue_descent, |leg| format!(
+            "{:.1} m/s",
+            leg.rate_m_s
+        ))
+    );
+    println!(
+        "main              {}",
+        show(&read.main_descent, |leg| match &leg.opening {
+            Some(opening) => format!(
+                "{:.1} m/s, opened at {:.2} s, {:.0} m up",
+                leg.rate_m_s, opening.time_s, opening.height_m
+            ),
+            None => format!("{:.1} m/s", leg.rate_m_s),
+        })
     );
     Ok(())
 }
@@ -222,7 +263,11 @@ apogee            390.1 m (1280 ft) at 10.28 s, source: barometer
 highest sample    400.5 m at 11.35 s
 top speed         78.3 m/s at 2.20 s, source: barometer
 top acceleration  withheld (no_accelerometer): the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+burnout           no sooner than 2.20 s less 1.32 s, source: barometer
 landing           45.80 s; down from apogee at 10.9 m/s on average
+flight time       45.00 s
+drogue            21.7 m/s
+main              6.0 m/s, opened at 21.40 s, 148 m up
 ```
 
 ## What the readings say
@@ -245,16 +290,33 @@ below is the one [`hpr analyze`](cli.md#hpr-analyze) prints for the same log.
   the heights, as the steepest slope of a 0.5 s fit, not read from the altimeter's speed column.
   The true speed at burnout is 80.0 m/s (262.5 ft/s); the fit across the corner at burnout reads it
   a little low.
-- **The top acceleration** is withheld: a PerfectFlite has no accelerometer.
+- **The top acceleration** is withheld: a PerfectFlite has no accelerometer, and HPR Sim doesn't
+  difference the heights twice to make one, as their one-foot steps would read as spikes of many g.
+- **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With
+  no accelerometer, burnout is the top speed's time, a floor. A rocket gains speed only while its
+  thrust beats the drag and its weight, so the motor burned out no sooner than that time less the
+  bound, and may have burned on after it by any amount. The true burnout is 2.10 s.
 - **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
   rocket touches down 0.34 s later, at 6 m/s (20 ft/s) under its main.
+- **The flight time**, 45.00 s, within 2.91 s: landing's time less liftoff's. The true flight time
+  is 45.64 s: liftoff is read 0.30 s late and landing 0.34 s early.
 - **The mean descent rate**, 10.9 m/s (36 ft/s), within 2.1 m/s (6.9 ft/s): the height lost from
   apogee to landing over the time taken, drogue and main together.
+- **The drogue's descent**, 21.7 m/s (71 ft/s), within 2.2 m/s (7.2 ft/s), from apogee at 10.28 s
+  to the main's opening at 21.40 s. The rocket fell under its drogue at 25 m/s (82 ft/s), but the
+  leg starts at apogee, where it falls from rest: over the same span its true rate is 21.74 m/s
+  (71.3 ft/s).
+- **The main's descent**, 6.0 m/s (20 ft/s), within 0.8 m/s (2.6 ft/s), from its opening to
+  landing, as the flight's main truly fell. The opening, at 21.40 s within 1.06 s, 148.4 m (487 ft)
+  up, is found by walking back from landing until the descent's rate climbs well past the main's.
+  The main truly opened at 21.14 s, 150 m (492 ft) up, so the reading is 0.26 s late: the rate is a
+  slope fitted over 1 s, which still sees some of the drogue's faster fall just after the opening.
 
 What the file states about itself, such as the altimeter's own apogee of 1,281 ft, is kept in
 `log.stated`, beside the analyzer's readings and never in their place. The codes, such as
 `no_accelerometer` and `barometer`, are the ones the JSON output of `hpr analyze` uses. The top
-speed is `max_speed` in both. Python's `FlightLog.readings()` returns the same readings, bounds
+speed is `max_speed` in both, the top acceleration `max_acceleration`, and the canopies' legs
+`drogue_descent` and `main_descent`; a burnout that is a floor carries `is_floor`. Python's `FlightLog.readings()` returns the same readings, bounds
 included, as a dict ([From Python](your-own-logger.md#from-python)).
 
 ## What it doesn't do yet
@@ -263,10 +325,17 @@ included, as a dict ([From Python](your-own-logger.md#from-python)).
   ([evidence row G9](evidence.md#g9)): the formats that need samples are
   [listed](format/flight-logs.md#formats-that-need-samples), each with what a reader would need, and
   a sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662).
-- Take the top acceleration from an accelerometer, burnout, or each canopy's descent rate, or
-  find the deployments ([M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c)); give
-  the Mach number and dynamic pressure; or state a 90% interval on a reading
-  ([M7.2e](decisions-and-roadmap.md#m7-2e)).
+- Find the deployments as events: the main's opening is read from the descent's rate, not from
+  the log's record of when each charge fired. Give the Mach number and dynamic pressure, or state a
+  90% interval on a reading ([M7.2e](decisions-and-roadmap.md#m7-2e)).
+- Take the top acceleration from a board's three axes, which don't say which lies along the
+  rocket ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)): it comes only from an
+  accelerometer the log names as the rocket's axis
+  ([the accelerometer](physics/log-readings.md#the-accelerometer)).
+- Allow for a canopy's filling time in the main opening's bound
+  ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)), or tell a fall under no
+  canopy from one under a canopy: it is read as one canopy's descent
+  ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
 - Take a reading from a GPS track: a receiver's altitude lags the climb, so no bound can be
   stated for it.
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).

@@ -190,8 +190,12 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 liftoff           1.20 s, within 1.05 s
 apogee            409.5 m (1344 ft) above the pad, within 33.1 m (109 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.24 s; 47.40 s after liftoff, within 3.28 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
-top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
+landing           48.60 s, within 2.24 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
+flight time       47.40 s, within 3.28 s
+drogue descent    19.3 m/s (63 ft/s), within 1.9 m/s (7 ft/s), from apogee at 10.50 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), from the main's opening at 24.00 s, within 1.36 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.0 m (3 ft) up
+top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
+burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated: as right as those units are. Each reading states the bound its
@@ -210,10 +214,12 @@ The primary track, `Alt` in meters, holds every row; it is a channel too, beside
 and the acceleration, and the clock is each channel's `time_s`. The readings come from it, each
 with the bound its error stays within
 ([Flight-log readings](physics/log-readings.md#what-each-bound-holds)). The invented flight peaks
-at 1,345.7 ft between samples, within the apogee's bound of the reading. Two readings are withheld,
-each with the reason: the top speed, as a sample every 0.2 s is too few for its 0.5 s fit, and the
-top acceleration, which HPR Sim doesn't take from an accelerometer yet
-([M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c)). `--json` prints the same as
+at 1,345.7 ft between samples, within the apogee's bound of the reading. Three readings are
+withheld, each with the reason: the top speed, as a sample every 0.2 s is too few for its 0.5 s
+fit; the top acceleration, as the accelerometer `Accel X (g)` doesn't say it lies along the
+rocket's axis; and burnout, which then needs the top speed. A column is read as the rocket's axis
+only where its logger's reader names it so, or where its name holds the word `axial`
+([the accelerometer](physics/log-readings.md#the-accelerometer)). `--json` prints the same as
 one JSON document. `--record` prints the whole record instead, every sample of every channel in SI units
 (degrees for angles),
 as one JSON document whose
@@ -268,8 +274,12 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 liftoff           1.40 s, within 1.10 s
 apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft); at 9.90 s, within 1.03 s, 8.50 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           37.40 s, within 1.46 s; 36.00 s after liftoff, within 2.55 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
-top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
+landing           37.40 s, within 1.46 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
+flight time       36.00 s, within 2.55 s
+drogue descent    withheld: the descent's rate never changes enough to tell a second canopy: the rocket came down under one, or under two whose rates are closer than 1.4 to one (the main's near the ground: 10.0 m/s)
+main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), from apogee at 9.90 s to landing at 37.40 s, 273.0 m (896 ft) to 0.7 m (2 ft) up
+top acceleration  withheld: the accelerometer `Axial Accel (Gs)`'s family doesn't say whether its readings hold gravity; the log holds no pad to tell by; its coast to apogee reads 1.00 g (0 holds gravity, −1 g doesn't): within 0.25 g, they don't settle it, or disagree
+burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated: as right as those units are. Each reading states the bound its
@@ -329,8 +339,12 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 liftoff           1.20 s, within 1.06 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.33 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
-top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
+landing           48.60 s, within 2.27 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
+flight time       47.40 s, within 3.33 s
+drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), from the main's opening at 24.00 s, within 1.36 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
+top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
+burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated: as right as those units are. Each reading states the bound its
@@ -365,8 +379,12 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 liftoff           1.20 s, within 1.06 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           48.60 s, within 2.27 s; 47.40 s after liftoff, within 3.33 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
-top acceleration  withheld: HPR Sim doesn't take the top acceleration from an accelerometer yet: roadmap milestone M7.2c does
+landing           48.60 s, within 2.27 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
+flight time       47.40 s, within 3.33 s
+drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), from the main's opening at 24.00 s, within 1.36 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
+top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
+burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated: as right as those units are. Each reading states the bound its
@@ -541,7 +559,11 @@ liftoff           withheld: the log's only height is a GNSS receiver's, whose fi
 apogee            withheld: the log's only height is a GNSS receiver's, whose navigation filter lags a climb and overshoots its top by more than a barometer's bounds allow
 top speed         withheld: the log's only height is a GNSS receiver's, whose navigation filter lags a climb and overshoots its top by more than a barometer's bounds allow
 landing           withheld: landing is found against the pad after apogee, and liftoff and apogee were withheld
+flight time       withheld: the flight time needs liftoff, which is withheld above
+drogue descent    withheld, as landing is
+main descent      withheld, as landing is
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated: as right as those units are. Each reading states the bound its
@@ -558,8 +580,11 @@ More: https://hpr.fusionspace.co/your-own-logger.html
 
 ## What it doesn't do yet
 
-- Take the top acceleration from a log's accelerometer, as from this logger's `Accel X`:
-  [M7.2c, the rest of the readings](decisions-and-roadmap.md#m7-2c).
+- Take the top acceleration from an accelerometer whose column doesn't say it lies along the
+  rocket's axis, as this logger's `Accel X` doesn't, or from a board's three axes
+  ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). A mapping has no field
+  that marks a column as the axis yet, though a column whose name holds the word `axial`, as the
+  header writes it or as a mapping names it, is read as one.
 - Mark a primary track in a record layout. A mapping marks one; binary records' altitude reads as
   one of unstated zero.
 - Read Excel's own `.xls`, a compound file of several streams, by a reader or a mapping. Only an

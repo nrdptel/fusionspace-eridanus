@@ -111,8 +111,26 @@ def analyzed(hpr_cli, log, by=None, description=None, sheet=None):
     return json.loads(run.stdout)
 
 
-READINGS = ["liftoff", "apogee", "max_speed", "max_acceleration", "landing"]
-METHOD = ["source", "sample_interval_s", "step_m", "median_window_s", "peak_bound_m", "pad_altitude_m"]
+READINGS = [
+    "liftoff",
+    "apogee",
+    "max_speed",
+    "max_acceleration",
+    "burnout",
+    "landing",
+    "flight_time",
+    "drogue_descent",
+    "main_descent",
+]
+METHOD = [
+    "source",
+    "sample_interval_s",
+    "step_m",
+    "median_window_s",
+    "peak_bound_m",
+    "pad_altitude_m",
+    "accelerometer",
+]
 
 
 def test_the_readings_are_the_commands(repo, hpr_cli):

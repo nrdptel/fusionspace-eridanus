@@ -1621,10 +1621,13 @@ Each reading is either a value that says where it came from and how far it may b
 `withheld` with the reason the log can't support it. The text output gives the reason as a sentence; the JSON output adds its code,
 listed on [Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld). A log read with
 readings withheld still exits with 0; a file the simulator can't read exits with 1
-([Exit codes](#exit-codes)). The top acceleration comes only from an accelerometer: working it
-out from the altitude would turn the altitude's one-foot steps into spikes of many g. A PerfectFlite
-has none, so it is withheld as `no_accelerometer`; a log that has one has it withheld as
-`not_yet_taken` until [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the readings. What the file states about itself, such as the altimeter's own apogee,
+([Exit codes](#exit-codes)). Since [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the
+readings, it also gives the flight time, the descent under each canopy with the main's opening, and
+the top acceleration and burnout. The top acceleration comes only from an accelerometer along the
+rocket's axis, printed in m/s² and g and marked where the part clipped: working it out from the
+altitude would turn the altitude's one-foot steps into spikes of many g. A PerfectFlite has none,
+so it is withheld as `no_accelerometer`, and burnout is printed as no sooner than the top speed's
+time less its bound, a floor ([Flight-log readings](physics/log-readings.md#the-accelerometer)). What the file states about itself, such as the altimeter's own apogee,
 is printed beside the simulator's readings, never in their place. Heights are meters above the
 altimeter's reading on the pad, with feet in brackets; times are seconds on the log's clock.
 
@@ -1646,8 +1649,12 @@ liftoff           0.80 s, within 0.81 s
 apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, within 0.88 s, 9.47 s after liftoff
                   highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
 top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
-landing           45.80 s, within 2.11 s; 45.00 s after liftoff, within 2.91 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
+landing           45.80 s, within 2.11 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
+flight time       45.00 s, within 2.91 s
+drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at 21.40 s, within 1.06 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by any amount
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
 reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
@@ -1703,7 +1710,11 @@ liftoff           1.20 s, within 1.05 s
 apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
 landing           withheld: the log ends at 40.00 s, 280.8 m above the pad, before the altitude comes within 2.0 m of it and stays under 5.0 m for 1 s
+flight time       withheld: the flight time needs landing, which is withheld above
+drogue descent    withheld, as landing is
+main descent      withheld, as landing is
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
 reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
@@ -2110,12 +2121,12 @@ you press Tab. Save it where your shell looks for completions:
   apogee. A dropped stage flies as a point under its devices' drag, so its landing is rough. It flies a
   `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
-- **The first readings only.** `hpr analyze` reads every layout
+- **Readings within bounds, not intervals.** `hpr analyze` reads every layout
   [the layouts read](format/flight-logs.md) lists, and your own logger's by a mapping or a layout
-  you write ([Reading your own logger](your-own-logger.md)), but gives only the first readings.
-  The top acceleration, burnout, the drogue and main descent rates and the Mach number come with
-  [M7.2c](decisions-and-roadmap.md#m7-2c), and an interval on each reading with
-  [M7.2e](decisions-and-roadmap.md#m7-2e).
+  you write ([Reading your own logger](your-own-logger.md)), and gives each reading within a
+  bound or withheld. It gives no Mach number, takes no top acceleration from a board's three axes,
+  and finds no deployment but the main's opening, from the descent's rate; an interval on each
+  reading comes with [M7.2e](decisions-and-roadmap.md#m7-2e).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
   OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
   RASAero's `.CDX1`

@@ -3877,10 +3877,31 @@ fn analyze_reads_a_log_with_no_design_file_present() {
     let landing = read.landing.value().unwrap();
     assert_eq!(document["landing"]["time_s"], landing.time_s);
     assert_eq!(document["landing"]["bound_s"], landing.bound_s);
+    let flight = read.flight_time.value().unwrap();
+    assert_eq!(document["flight_time"]["time_s"], flight.time_s);
+    assert_eq!(document["flight_time"]["bound_s"], flight.bound_s);
+    assert_eq!(document["flight_time"]["method"], "liftoff_to_landing");
+    let burnout = read.burnout.value().unwrap();
+    assert_eq!(document["burnout"]["time_s"], burnout.time_s);
+    assert_eq!(document["burnout"]["is_floor"], true);
+    assert_eq!(document["burnout"]["method"], "speed_peak");
+    assert!(document["method"]["accelerometer"].is_null());
+    let main = read.main_descent.value().unwrap();
+    let opening = main.opening.unwrap();
+    assert_eq!(document["main_descent"]["rate_m_s"], main.rate_m_s);
     assert_eq!(
-        document["landing"]["flight_time_bound_s"].as_f64(),
-        landing.flight_time_bound_s
+        document["main_descent"]["opening"]["time_s"],
+        opening.time_s
     );
+    assert_eq!(
+        document["main_descent"]["opening"]["bound_s"],
+        opening.bound_s
+    );
+    assert_eq!(document["main_descent"]["method"], "leg_chord");
+    let drogue = read.drogue_descent.value().unwrap();
+    assert_eq!(document["drogue_descent"]["rate_m_s"], drogue.rate_m_s);
+    assert_eq!(document["drogue_descent"]["to_s"], opening.time_s);
+    assert!(document["drogue_descent"]["opening"].is_null());
     assert_eq!(
         document["landing"]["mean_descent_rate_m_s"],
         landing.mean_descent_rate_m_s
@@ -3904,6 +3925,14 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "set aside by the median",
         "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s",
         "top acceleration  withheld: the log has no accelerometer",
+        "flight time       45.00 s, within 2.91 s",
+        "drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to \
+         the main's opening at 21.40 s",
+        "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at \
+         21.40 s, within 1.06 s, to landing at 45.80 s",
+        "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
+         liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by \
+         any amount",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
