@@ -116,7 +116,7 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   page. Off it for a technical sense here: robust, deploy, streamline, boost and powerful (a more
   powerful motor). The noun "leverage" (a lever arm), "utilization" and the authors Garner and
   Foster are left out of their entries. "Studies show", "experts say", "to summarize" and "to sum
-  up" were dropped: no source names them, and two recommend the last two.
+  up" were dropped: no source names them.
 - *What it reads.* With no path: the README, the changelog, the contributing guide, the pull
   request and issue templates and `docs/`, less the decision records, the records pages, the
   roadmap they're written from, the done-work archive, the research notes and the site's table

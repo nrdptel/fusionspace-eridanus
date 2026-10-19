@@ -650,6 +650,8 @@ impl Reading {
     }
 }
 
+/// `cargo xtask voice`: with no path, writes [`REPORT`] for the repository's pages; with paths,
+/// prints the report for those. Fails on a stock phrase, a missing path or bad usage.
 pub fn run(args: &[String]) -> Result<(), String> {
     if args.iter().any(|arg| arg.starts_with('-')) {
         return Err(format!("usage:\n{USAGE}"));
@@ -789,6 +791,7 @@ fn leaves(entry: &str, path: &str) -> bool {
     }
 }
 
+/// Whether a page is a reference page, where first person counts against its limit of 0.
 fn is_reference(path: &str) -> bool {
     REFERENCE.iter().any(|entry| leaves(entry, path))
 }
@@ -834,6 +837,7 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
     Ok(pages)
 }
 
+/// A path's extension in lower case.
 fn extension(path: &Path) -> Option<String> {
     path.extension()
         .map(|ext| ext.to_string_lossy().to_ascii_lowercase())
@@ -961,6 +965,13 @@ fn read_html(source: &str) -> Reading {
     let mut text_from = 0;
     while let Some(found) = source[at..].find('<') {
         let start = at + found;
+        // A `<` that opens no tag, comment or declaration ("if a < b") is text.
+        if !source[start + 1..]
+            .starts_with(|c: char| c.is_ascii_alphabetic() || matches!(c, '/' | '!' | '?'))
+        {
+            at = start + 1;
+            continue;
+        }
         let text = &source[text_from..start];
         if !text.is_empty() {
             let decoded = decode_entities(text);
@@ -977,7 +988,13 @@ fn read_html(source: &str) -> Reading {
             continue;
         }
         let end = tag_end(source, start);
-        let tag = &lower[start + 1..end.saturating_sub(1).max(start + 1)];
+        // A tag the file cuts off has no `>` to drop, and its last character may be several bytes.
+        let inner_end = if source[..end].ends_with('>') {
+            end - 1
+        } else {
+            end
+        };
+        let tag = &lower[start + 1..inner_end.max(start + 1)];
         let closing = tag.starts_with('/');
         let name: String = tag
             .trim_start_matches('/')
@@ -1050,7 +1067,12 @@ fn decode_entities(text: &str) -> String {
     while let Some(at) = rest.find('&') {
         out.push_str(&rest[..at]);
         rest = &rest[at..];
-        let Some(end) = rest[..rest.len().min(12)].find(';') else {
+        let Some(end) = rest
+            .char_indices()
+            .take(12)
+            .find(|&(_, c)| c == ';')
+            .map(|(i, _)| i)
+        else {
             out.push('&');
             rest = &rest[1..];
             continue;
@@ -1181,7 +1203,11 @@ fn sentences(text: &str) -> Vec<&str> {
             continue;
         }
         if c == '.' {
-            let word_start = text[..i].rfind(char::is_whitespace).map_or(0, |s| s + 1);
+            let word_start = text[..i]
+                .char_indices()
+                .rev()
+                .find(|&(_, c)| c.is_whitespace())
+                .map_or(0, |(s, c)| s + c.len_utf8());
             let word = text[word_start..=i].trim_start_matches(['(', '"', '\u{201C}']);
             let lower = word.to_lowercase();
             let initial = word.len() == 2 && word.starts_with(|c: char| c.is_uppercase());
@@ -1261,12 +1287,12 @@ fn page_from(path: &str, source: &str, reading: Reading, reference: bool) -> Pag
         let all = words(&run.text);
         for (i, entry, found) in stock_in(&all) {
             let at = all[i].at;
+            // The marks are in text order, so the last one at or before the hit is a binary search.
             let source_at = run
                 .marks
-                .iter()
-                .rev()
-                .find(|(offset, _)| *offset <= at)
-                .map_or(0, |(offset, source)| source + (at - offset));
+                .partition_point(|&(offset, _)| offset <= at)
+                .checked_sub(1)
+                .map_or(0, |k| run.marks[k].1 + (at - run.marks[k].0));
             page.stock.push(Hit {
                 line: line_starts.partition_point(|&start| start <= source_at),
                 found,
@@ -1426,6 +1452,7 @@ fn first_person(word: &Word<'_>, before: Option<&Word<'_>>, next: Option<&Word<'
         && !before.is_some_and(|before| NUMERAL_BEFORE_I.contains(&before.lower.as_str()))
 }
 
+/// Whether a lower-case word is a contraction ("don't", "it's"), for the register's count.
 fn contraction(lower: &str) -> bool {
     ["n't", "'re", "'ve", "'ll", "'m", "'d"]
         .iter()
@@ -1805,6 +1832,37 @@ mod tests {
             decode_entities("a &#8230; b &#x2019; &bogus; &"),
             "a \u{2026} b \u{2019} &bogus; &"
         );
+    }
+
+    #[test]
+    fn wide_characters_and_stray_marks_are_read_whole() {
+        // A non-breaking or thin space before a sentence's last word, as the guide joins a
+        // number and its unit.
+        for space in ["\u{A0}", "\u{2009}", "\u{202F}"] {
+            let text = format!("It flew 1.5{space}m. Then it fell.");
+            assert_eq!(
+                sentences(&text),
+                [format!("It flew 1.5{space}m."), "Then it fell.".to_string()]
+            );
+        }
+        let source = "<p>It flew 1.5&nbsp;m. Then it fell.</p>";
+        assert_eq!(
+            page_from("p.html", source, read_html(source), false).sentences,
+            2
+        );
+        // An entity cut off by a wide character inside its first 12 bytes.
+        assert_eq!(
+            decode_entities("x &aaaaaaaaaa\u{E9}; y"),
+            "x &aaaaaaaaaa\u{E9}; y"
+        );
+        // A tag the file cuts off, ending in a wide character.
+        let cut = "<p>x</p><a \u{E9}";
+        assert_eq!(page_from("p.html", cut, read_html(cut), false).words, 1);
+        // A `<` that opens no tag is text, and what follows it is read.
+        let stray = "<p>If a < b, it is pivotal.</p>";
+        let page = page_from("p.html", stray, read_html(stray), false);
+        assert_eq!(page.words, 6);
+        assert_eq!(page.stock.len(), 1);
     }
 
     #[test]

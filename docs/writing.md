@@ -22,8 +22,8 @@ reads a page once and knows what it says and how far to trust it.
 ## The rules
 
 1. **Bottom line first.** The first sentence of a page, a section or a paragraph says what it
-   concludes. The detail and the reasoning come after: where a person is talking, the why, in the
-   maintainer's own words ([Voice](#voice)).
+   concludes. The detail and the reasoning come after. On a page where a person is talking, the
+   reasoning is in the maintainer's own words ([Voice](#voice)).
 2. **One idea a sentence.** Aim for about 20 words a sentence on average. A sentence over 25
    words is flagged for a second look; it is not forbidden.
 3. **Short paragraphs.** Five sentences at most.
@@ -92,13 +92,14 @@ build does and notes any long enough to risk a phone's column.
 
 Write as one person explaining their own work to another flyer: plain words, short sentences,
 each thing said once. These pages are one maintainer's project, and they should read that way. A
-read-through on October 18, 2026 found them correct but generic: bullets that open with a bold
-label, lists of three that all look alike, caveats stacked on caveats, and openings like
+read-through on October 18, 2026 found them correct but generic. Bullets opened with a bold label,
+lists of three all looked alike and caveats were stacked on caveats. Pages opened with
 "FusionSpace HPR is a ..." where a person would say why they built it
 ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0284-the-maintainers-own-voice.md)).
-The rules that follow come from that read-through and from
-[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md). Each one shows a passage
-from these pages as it was written, then the same passage in this voice.
+Each rule here comes from that read-through or from
+[a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md).
+Each shows a passage from these pages as it stood on October 19, 2026, then the same passage in
+this voice.
 
 ### Where "I" goes
 
@@ -153,15 +154,16 @@ already say what a section is about.
 flights with OpenRocket 24.12's on the 54 configurations of OpenRocket's example designs that HPR
 Sim can fly, in 15 of the examples."
 
-*After*: "HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations: those
-of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples."
+*After*: "HPR Sim's whole flights are compared with OpenRocket 24.12's on 54 configurations. They're
+the configurations of OpenRocket's example designs that HPR Sim can fly, in 15 of the examples."
 
 ### Paragraphs and lists
 
 Write a thought as a paragraph. Use a list for what really is a list: steps, options, parts. Give
 a list as many items as there are, not three of the same shape because three sounds finished. A
 bold label opens an item only where a reader scans for it, as in a list of options or a model
-page's *In short* box; a line that opens with a bold label and a colon reads like a form.
+page's *In short* box, whose items still count toward the limit. A line that opens with a bold
+label reads like a form.
 
 *Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
 0.2 goes on here."
@@ -216,10 +218,9 @@ words, at about 20 words a sentence. A bold-label limit of 0.5 still allows a li
 on a 2,000-word page, but not a bold label on every item of every list. Labels get one every 200
 words.
 
-Hedges get 1.0, about the top of the range on one engineer's blog the survey measured (0.22
-to 1.19 per 100 words, on a somewhat different list of hedges), because a single hedge is often
-the honest word. Stacked hedges,
-minimizers and signposts get one every 1,000 words. The limits were set against these pages as
+Hedges get 1.0, because a single hedge is often the honest word. That's about the top of the
+range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a somewhat
+different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words. The limits were set against these pages as
 they stood on October 19, 2026, when most of them were over the sentence and bold-label limits;
 the report gives the current counts.
 
@@ -239,13 +240,19 @@ and prints the report. That's how fusionspace.co's pages and the design system's
 
 Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups,
 each named by a published style guide or study, or by the design system's own writing rules:
-puffery (`seamless`, `cutting-edge`), inflated words
-(`pivotal`, `testament`), words that spread with generated text (`delve`, `showcase`), buzz verbs
-(`leverages`, `utilize`), note-that phrases (`please note`), vague sources
-(`research has shown`), wordy phrases (`in order to`, `a number of`), recaps (`in conclusion`)
-and chat residue (`I hope this helps`). Words with a technical sense here stay off it: robust,
-deploy, streamline, boost and powerful (a more powerful motor). Terms such as `magic bytes` and
-`seamless tube` pass. The list is in
+
+- puffery: `seamless`, `cutting-edge`
+- inflated words: `pivotal`, `testament`
+- words that spread with generated text: `delve`, `showcase`
+- buzz verbs: `leverages`, `utilize`
+- note-that phrases: `please note`
+- vague sources: `research has shown`
+- wordy phrases: `in order to`, `a number of`
+- recaps: `in conclusion`
+- chat residue: `I hope this helps`
+
+Words with a technical sense here stay off it: robust, deploy, streamline, boost and powerful (a
+more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
@@ -259,7 +266,7 @@ against these rules too.
 ### Measured, not gated
 
 Readability is measured, not used to fail a build: the counts show where to look, and a person
-decides what to change. Only the stock-phrase list fails one. The site also holds a model page's
+decides what to change. The site also holds a model page's
 *In short* box to its shape: four bulleted items, each opening with its label in bold (what it
 models, its sources, how well it is validated, what it leaves out). A cap of about 150 words on
 the box was planned and isn't built yet.
@@ -768,4 +775,5 @@ Procida's [Diátaxis](https://diataxis.fr/) framework. The decision to adopt the
 [2026-10-03 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
 The voice rules come from
 [a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md):
-ten published sources, and 28 pages of technical writing that read as if one person wrote them.
+the style guides and studies that name stock phrases, and 28 pages from nine sources of technical
+writing that read as if one person wrote them.
