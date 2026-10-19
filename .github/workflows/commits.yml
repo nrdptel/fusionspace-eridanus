@@ -1,0 +1,105 @@
+name: Commits
+
+# Every commit in a pull request is authored and committed by the GitHub account that opened it
+# (or committed by GitHub's own merge), and neither its commit messages nor its title and
+# description carry a co-author or session trailer or a tool footer. Main's branch protection
+# requires the job, so a pull request that breaks this cannot merge. It runs again when the
+# description is edited, and on every push to main as an audit of the messages and of each
+# commit's author being a GitHub account.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commit-metadata:
+    name: commit-metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check authors, trailers and the description
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          OPENER: ${{ github.event.pull_request.user.login }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        shell: python3 {0}
+        run: |
+          import json, os, re, subprocess, sys
+
+          # GitHub's merge and web edits are committed by its "web-flow" account.
+          MERGER = "web-flow"
+          # Any "...-by:" or "...-session:" trailer line: co-authors, sign-offs, tool sessions.
+          TRAILER = re.compile(r"(?im)^\s*([a-z]+(?:-[a-z]+)*-(?:by|session))\s*:")
+          FOOTER = re.compile(r"(?i)\bgenerated with\b|/code/session_|\U0001F916")
+
+          def api(path):
+              run = subprocess.run(["gh", "api", "--paginate", path], capture_output=True, text=True)
+              if run.returncode != 0:
+                  print(f"::error title=Commit metadata::gh api {path} failed: {run.stderr.strip()}")
+                  sys.exit(1)
+              out = run.stdout
+              # --paginate concatenates one JSON document per page.
+              docs, dec, i = [], json.JSONDecoder(), 0
+              while i < len(out):
+                  if out[i].isspace():
+                      i += 1
+                      continue
+                  doc, i = dec.raw_decode(out, i)
+                  docs.append(doc)
+              return docs
+
+          repo, pr = os.environ["REPO"], os.environ.get("PR", "")
+          if pr:
+              commits = [c for page in api(f"repos/{repo}/pulls/{pr}/commits") for c in page]
+              # The commits endpoint lists at most 250; a longer pull request can't be checked whole.
+              total = api(f"repos/{repo}/pulls/{pr}")[0]["commits"]
+              if total != len(commits):
+                  print(f"::error title=Commit metadata::{total} commits, of which {len(commits)} "
+                        "could be read; split the pull request")
+                  sys.exit(1)
+          else:
+              before, after = os.environ["BEFORE"], os.environ["AFTER"]
+              if set(before) == {"0"}:
+                  commits = [api(f"repos/{repo}/commits/{after}")[0]]
+              else:
+                  commits = [c for doc in api(f"repos/{repo}/compare/{before}...{after}")
+                             for c in doc["commits"]]
+
+          def login(account):
+              return (account or {}).get("login")
+
+          opener = os.environ.get("OPENER", "")
+          problems, texts = [], []
+          for c in commits:
+              sha, meta = c["sha"][:10], c["commit"]
+              author, committer = login(c.get("author")), login(c.get("committer"))
+              if author is None:
+                  problems.append(f"{sha}: its author, {meta['author']['email']}, is no GitHub account")
+              elif pr and author != opener:
+                  problems.append(f"{sha}: authored by {author}, not {opener}, who opened the pull request")
+              if pr and committer not in (opener, MERGER):
+                  problems.append(f"{sha}: committed by {committer or meta['committer']['email']}")
+              texts.append((f"{sha}: message", meta["message"]))
+          if pr:
+              texts += [("the pull request's title", os.environ.get("TITLE", "")),
+                        ("the pull request's description", os.environ.get("BODY", ""))]
+          for what, text in texts:
+              for m in TRAILER.finditer(text):
+                  problems.append(f"{what} has a '{m.group(1)}:' trailer")
+              for m in FOOTER.finditer(text):
+                  problems.append(f"{what} has a tool footer: {m.group(0)!r}")
+
+          print(f"{len(commits)} commit(s) checked.")
+          for p in problems:
+              print(f"::error title=Commit metadata::{p}")
+          sys.exit(1 if problems else 0)
