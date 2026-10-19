@@ -181,8 +181,7 @@ is denser still, filled by the mass-expended files at +1 to +15%.
 Read 2026-10-15 unless noted. Downloads cached under `refs/research/fetched-mass-survey/data/`, never committed.
 
 1. **S1** ThrustCurve search API, `https://www.thrustcurve.org/api/v1/search.json?maxResults=10000`
-   (`search/search-all.json`, 1,156 motors). No license granted for records, and the site reserves
-   copyright: cite, cache, don't commit.
+   (`search/search-all.json`, 1,156 motors). No license granted, copyright reserved: cite, cache, don't commit.
 2. **S2** ThrustCurve download API, `https://www.thrustcurve.org/api/v1/download.json`, POST by format
    (`download/`, 8 answers, 1,249 files); 17 per-motor GETs (`pergets/`). Each file carries its own license
    field (412 of the taken files none, 247 PD, 27 free): cache only.
