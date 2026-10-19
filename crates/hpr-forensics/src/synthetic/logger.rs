@@ -174,6 +174,11 @@ impl Profile {
         }
     }
 
+    /// The range its accelerometer clips at, m/s²; `None` with no accelerometer.
+    pub fn accelerometer_range_m_s2(self) -> Option<f64> {
+        self.accelerometer().map(|accel| accel.range_g * G)
+    }
+
     /// Whether it has a GNSS receiver.
     fn gnss(self) -> bool {
         matches!(self, Self::Altos | Self::GnssTracker)
@@ -485,6 +490,75 @@ pub fn barometer_log(
     Ok(Some(log))
 }
 
+/// The accelerometer's channel at `times`, the part sampled at `rate_hz` while climbing.
+fn accelerometer_channel(
+    draw: &LoggerDraw,
+    accel: &Accelerometer,
+    rate_hz: f64,
+    times: &[f64],
+    truth: &Truth,
+    (seed, index): (u64, u64),
+) -> Result<Channel, SyntheticError> {
+    let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
+    // RMS from the density over the part's bandwidth, half the climbing rate it is sampled at:
+    // σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that writes fewer samples
+    // after apogee keeps the part's bandwidth, so its noise.
+    let bandwidth_hz = rate_hz / 2.0;
+    let sigma = draw.density_g_per_root_hz * (1.57 * bandwidth_hz).sqrt() * G;
+    let range = accel.range_g * G;
+    let values = times
+        .iter()
+        .enumerate()
+        .map(|(k, &t_log)| {
+            let f = truth_at(truth, t_log - draw.pad_s)?.axial_specific_force_m_s2;
+            let read = (1.0 + draw.accel_scale) * f + draw.accel_bias_m_s2 + sigma * accel_noise[k];
+            Ok(quantize(read.clamp(-range, range), accel.step_g * G))
+        })
+        .collect::<Result<Vec<_>, SyntheticError>>()?;
+    Ok(Channel::new(
+        hpr_flightdata::readings::SYNTHETIC_COLUMN,
+        Quantity::Acceleration,
+        times.to_vec(),
+        values,
+    ))
+}
+
+/// The log `draw`'s logger writes of `truth`, its accelerometer sampled at `rate_hz` on its own
+/// clock in place of the barometer's: the same part, noise terms and streams, its noise grown
+/// with the rate's bandwidth. `None` for a profile with no accelerometer.
+///
+/// # Errors
+///
+/// As [`log`].
+pub fn accelerometer_log(
+    draw: &LoggerDraw,
+    rate_hz: f64,
+    truth: &Truth,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    let Some(accel) = draw.profile.accelerometer() else {
+        return Ok(None);
+    };
+    let mut log = log(draw, truth, seed, index)?;
+    let times = clock(
+        &Recording {
+            climbing_hz: rate_hz,
+            descending_hz: rate_hz,
+            written: Written::Altitude { step_m: 0.0 },
+        },
+        draw,
+        truth,
+    );
+    let channel = accelerometer_channel(draw, &accel, rate_hz, &times, truth, (seed, index))?;
+    for kept in &mut log.channels {
+        if kept.quantity == Quantity::Acceleration {
+            *kept = channel.clone();
+        }
+    }
+    Ok(Some(log))
+}
+
 /// The log of `truth` its barometer writes at `recording`, and, `with_others`, its
 /// accelerometer and GNSS receiver as the profile has them.
 fn write(
@@ -585,30 +659,14 @@ fn write(
             ));
         }
         if let Some(accel) = profile.accelerometer().filter(|_| with_others) {
-            let accel_noise = noise::white(&mut stream(seed, index, Key::Accel), times.len(), 1.0);
-            // RMS from the density over the part's bandwidth, half the climbing rate it is
-            // sampled at: σ = density × √(1.57 × bandwidth) (sensor noise §4). A logger that
-            // writes fewer samples after apogee keeps the part's bandwidth, so its noise.
-            let bandwidth_hz = profile.rate_hz(true) / 2.0;
-            let sigma = draw.density_g_per_root_hz * (1.57 * bandwidth_hz).sqrt() * G;
-            let range = accel.range_g * G;
-            let values = times
-                .iter()
-                .enumerate()
-                .map(|(k, &t_log)| {
-                    let f = truth_at(truth, sim(t_log))?.axial_specific_force_m_s2;
-                    let read = (1.0 + draw.accel_scale) * f
-                        + draw.accel_bias_m_s2
-                        + sigma * accel_noise[k];
-                    Ok(quantize(read.clamp(-range, range), accel.step_g * G))
-                })
-                .collect::<Result<Vec<_>, SyntheticError>>()?;
-            channels.push(Channel::new(
-                "Axial acceleration (synthetic)",
-                Quantity::Acceleration,
-                times.clone(),
-                values,
-            ));
+            channels.push(accelerometer_channel(
+                draw,
+                &accel,
+                profile.rate_hz(true),
+                &times,
+                truth,
+                (seed, index),
+            )?);
         }
         if !alone {
             time_s = times;
