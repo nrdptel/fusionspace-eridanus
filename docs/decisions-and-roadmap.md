@@ -459,6 +459,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
 | <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
 | <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
+| <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
+| <a id="m0-14a"></a>[M0.14a][phase-0] | The guide and the check | not yet done |
+| <a id="m0-14b"></a>[M0.14b][phase-0] | The front doors | not yet done |
+| <a id="m0-14c"></a>[M0.14c][phase-0] | The rest of the site | not yet done |
+| <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |

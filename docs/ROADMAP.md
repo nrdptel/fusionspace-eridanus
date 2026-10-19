@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 49,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 50,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -25,59 +25,60 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M7.2 Readings, reconstruction and ghost data
-2. M7.3 A flight against its simulation
-3. M0.9f The rest of the words
-4. M10.2 Release 0.2: the flight analyzer
-5. M0.13 Awareness and care on the sites
-6. M2.3c2 Logged traces
-7. M2.3c3 OpenRocket's newest release
-8. M2.3c6 The gap to OpenRocket, by cause
-9. M2.7 Held-out flights, predictions first
-10. M2.8 Honest uncertainty
-11. M2.6 An open benchmark
-12. M1.14 Accuracy inside the envelope
-13. M7.4 Fault diagnosis
-14. M7.5 The bias every simulator shares
-15. M10.3 Release 0.3: accuracy and diagnosis
-16. M2.11 Fin flutter held to measurement
-17. M2.3c7 Faster than sound: published flights
-18. M6.3 Challenge specs and presets
-19. M6.4 Airbrakes
-20. M6.2e Robust mode
-21. M6.6 Submission packs
-22. M6.7 Ejection charges
-23. M3.5 RASAero `.CDX1` import/export
-24. M3.6 RocketPy interop
-25. M2.9 The other tools' cells
-26. M6.8 Field kit: checklists, the settings check and the ground-test log
-27. M0.7b Rocketry explained: recovery, wind and motors
-28. M10.4 Release 0.4: the competition kit
-29. M4.4 C ABI and WASM
-30. M9.0 UI architecture ADR plus a spike
-31. M9.2 3D flight replay with a ghost
-32. M10.5 Release 0.5: the app preview
-33. M0.7c Rocketry explained: live figures
-34. M5.6a A catalog of hpr's own: format, search and a parts list
-35. M8.2 Edit model for UIs
-36. M9.1 Desktop app shell
-37. M5.6b Parachutes and recovery hardware
-38. M8.1 Design assistant
-39. M5.6c Motor hardware and rail buttons
-40. M5.6d More makers and electronics
-41. M3.4 RockSim `.rkt` import/export
-42. M9.3 Web PWA
-43. M10.6 Release 1.0: the app
-44. M0.7d Rocketry explained: the rest of the hobby
-45. M11.1 A motor of your own
-46. M11.2 Experimental solids
-47. M12.1 Parachute gores
-48. M12.2 Opening loads
-49. M9.4 Mobile
-50. M9.6 The four web tools, rebuilt
-51. M6.5 Roll control: tail-fin tabs and canards
-52. M13.3 Flight computer logic
-53. M13.1 Ground station
+1. M0.14 The maintainer's own voice
+2. M0.9f The rest of the words
+3. M7.2 Readings, reconstruction and ghost data
+4. M7.3 A flight against its simulation
+5. M10.2 Release 0.2: the flight analyzer
+6. M0.13 Awareness and care on the sites
+7. M2.3c2 Logged traces
+8. M2.3c3 OpenRocket's newest release
+9. M2.3c6 The gap to OpenRocket, by cause
+10. M2.7 Held-out flights, predictions first
+11. M2.8 Honest uncertainty
+12. M2.6 An open benchmark
+13. M1.14 Accuracy inside the envelope
+14. M7.4 Fault diagnosis
+15. M7.5 The bias every simulator shares
+16. M10.3 Release 0.3: accuracy and diagnosis
+17. M2.11 Fin flutter held to measurement
+18. M2.3c7 Faster than sound: published flights
+19. M6.3 Challenge specs and presets
+20. M6.4 Airbrakes
+21. M6.2e Robust mode
+22. M6.6 Submission packs
+23. M6.7 Ejection charges
+24. M3.5 RASAero `.CDX1` import/export
+25. M3.6 RocketPy interop
+26. M2.9 The other tools' cells
+27. M6.8 Field kit: checklists, the settings check and the ground-test log
+28. M0.7b Rocketry explained: recovery, wind and motors
+29. M10.4 Release 0.4: the competition kit
+30. M4.4 C ABI and WASM
+31. M9.0 UI architecture ADR plus a spike
+32. M9.2 3D flight replay with a ghost
+33. M10.5 Release 0.5: the app preview
+34. M0.7c Rocketry explained: live figures
+35. M5.6a A catalog of hpr's own: format, search and a parts list
+36. M8.2 Edit model for UIs
+37. M9.1 Desktop app shell
+38. M5.6b Parachutes and recovery hardware
+39. M8.1 Design assistant
+40. M5.6c Motor hardware and rail buttons
+41. M5.6d More makers and electronics
+42. M3.4 RockSim `.rkt` import/export
+43. M9.3 Web PWA
+44. M10.6 Release 1.0: the app
+45. M0.7d Rocketry explained: the rest of the hobby
+46. M11.1 A motor of your own
+47. M11.2 Experimental solids
+48. M12.1 Parachute gores
+49. M12.2 Opening loads
+50. M9.4 Mobile
+51. M9.6 The four web tools, rebuilt
+52. M6.5 Roll control: tail-fin tabs and canards
+53. M13.3 Flight computer logic
+54. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -129,6 +130,20 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     maintainer, a page on getting involved (youth programs, clubs, mentoring, each linked to its
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
+
+- [ ] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55).
+  - [ ] **M0.14a The guide and the check.** *Done when:* `writing.md`'s voice section, each rule
+    with a before-and-after pair from a real page, is in the design system's rules (a merged PR);
+    `cargo xtask voice` writes a per-page report and fails only on its stock-phrase list (a test
+    and a mutation probe each); the PR, issue and commit templates cite the section.
+  - [ ] **M0.14b The front doors.** *Done when:* the README, the docs landing page, each guide's
+    opening, fusionspace.co, the design repo's README and the repos' About text pass `xtask voice`
+    and an acceptance pass (ADR-282).
+  - [ ] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
+    passes `xtask voice` in CI, the report's total below M0.14a's, and an acceptance pass.
+  - [ ] **M0.14d The program's words.** *Done when:* `hpr`'s help, warnings and errors, the Python
+    docs and each crate's top-level docs pass `xtask voice` and an acceptance pass; a snapshot
+    pins each `--help`.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 
