@@ -65,11 +65,12 @@ Sources:
   `rocketpy/rocket/parachute.py`, for the point-mass descent that the parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) is compared against.
 - A. C. Carruthers and A. Filippone, "Aerodynamic Drag of Streamers and Flags", *Journal of
-  Aircraft* 42(4), 2005, and the OpenRocket technical documentation v13.05 (CC BY-SA), Appendix C,
-  for streamers; the same documentation's §3.5 for tumbling bodies, and its §4.2.5 for a `.ork`
-  file's parachutes and descent; and C. Kidwell's drop tests (2001), a research report for NARAM-43,
-  the National Association of Rocketry's annual meet, as the measurement both streamer models are
-  checked against.
+  Aircraft* 42(4), 2005, pp. 976–982, DOI [10.2514/1.9754](https://doi.org/10.2514/1.9754), and the
+  OpenRocket technical documentation v13.05 (CC BY-SA), Appendix C, for streamers; the same
+  documentation's §3.5 for tumbling bodies, and its §4.2.5 for a `.ork` file's parachutes and
+  descent; and C. Kidwell's drop tests (2001), a research report for NARAM-43, the National
+  Association of Rocketry's annual meet, as the measurement both streamer models are checked
+  against.
 
 ## Drag of each device
 
