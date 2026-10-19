@@ -28,7 +28,7 @@ below 4 km, under the noise, and far under the ±8–11 m per-flight band bias o
 ## 1. The logs and which temperature they carry
 
 Searched on GitHub 2026-10-19 by each family's CSV header, plus the eight repositories of altimeter-sensor-noise;
-`scripts/bay_temp.py` and `scripts/summarise.py` (standard library) compute every number in §2–4.
+two standard-library Python scripts compute every number in §2–4.
 
 | Family (logs used) | Column | Sensor it comes from |
 |---|---|---|
@@ -87,7 +87,7 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
   9–91 min, six of them still rising at liftoff (0.06–0.96 K/min over the last 10 min). One warms quickly enough
   (+13.1 K in 13 min) to be power-on self-heating. No commercial log shows a soak trend.
 - **Published:** no paper or team report logs a bay's temperature in flight. A builder estimates 10–40 °F above the
-  outside by airframe colour [TRF]; §3's 18–23 K is the same size. Altus Metrum asks for opaque bays (sunlight) [AM].
+  outside by airframe color [TRF]; §3's 18–23 K is the same size. Altus Metrum asks for opaque bays (sunlight) [AM].
 
 ## 5. What the datasheets state about temperature
 
