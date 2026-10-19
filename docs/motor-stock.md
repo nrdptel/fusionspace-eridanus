@@ -163,8 +163,8 @@ stand-ins in the same shape instead
   those of the two public-domain downloads, so the match leads to a committed file. The fields
   only ThrustCurve.org states (length, weights, peak thrust, certifying body, dates, links) are
   left out. CC BY 4.0 is the finder's license for its own copy and doesn't change ThrustCurve.org's
-  terms: the 282 records rest on that license and on the figures being published facts (ADR-145,
-  linked above).
+  terms: the 282 records rest on that license and on the figures being published facts (the
+  recordings' licenses, linked above).
 
 On them, too, all 282 motors match. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
