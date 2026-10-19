@@ -110,12 +110,11 @@ in the maintainer's words. Reference pages stay impersonal: a model's equations,
 command's options, the glossary. There the program is the subject, and "you" gives the steps, as
 it does in a tutorial or a how-to.
 
-*Before*, in [the README](https://github.com/nrdptel/fusionspace-eridanus/blob/main/README.md):
-"FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power rockets,
-written in Rust, that you use as a library, from the command line or from Python."
+*Before*, in [the contributing guide](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md):
+"Publishing packages, creating releases and tags, and changing repository settings are the
+maintainer's to do."
 
-*After*: "FusionSpace HPR · Sim (…) is an open-source flight simulator for hobby and high-power
-rockets. I write it in Rust, and you can use it as a library, from the command line or from Python."
+*After*: "Only I publish packages, create releases and tags, or change the repository's settings."
 
 ### Plain words
 
@@ -126,7 +125,7 @@ fails the build on one ([the check](#the-check)).
 *Before*, in [Pick a motor](pick-a-motor.md): "Flying a few more motors is quick: change `--motor`
 and `--delay` and run again."
 
-*After*: "To fly more motors, change `--motor` and `--delay` and run it again."
+*After*: "To fly a few more motors, change `--motor` and `--delay` and run it again."
 
 ### Short sentences
 
@@ -168,7 +167,7 @@ label reads like a form.
 *Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
 0.2 goes on here."
 
-*After*: "Version 0.1.0 came out on October 8, 2026, and I'm working on 0.2 here."
+*After*: "Version 0.1.0 came out on October 8, 2026, and work toward 0.2 goes on here."
 
 ### Labels
 
@@ -213,15 +212,19 @@ limit. A page over one is where to look first; it doesn't fail the build.
 | Signposts | "in this section", "as mentioned", "let's", "in short," and the like | 0.1 |
 | First person on a reference page | "I", "me" or "my" on a model, format, command or glossary page | 0 |
 
-The sentence limit is the target this guide already set: fewer than 10% of sentences over 25
-words, at about 20 words a sentence. A bold-label limit of 0.5 still allows a list of ten options
-on a 2,000-word page, but not a bold label on every item of every list. Labels get one every 200
-words.
+The sentence limit comes from the target this guide already set: fewer than 10% of sentences
+over 25 words, at about 20 words a sentence, is 0.5 per 100 words. On a page of shorter sentences
+the limit is stricter than 10%, so the report prints each page's share too. A bold-label limit of
+0.5 still allows a list of ten options on a 2,000-word page, but not a bold label on every item of
+every list. Labels get one every 200 words, because each one sends the reader off to look it up.
 
 Hedges get 1.0, because a single hedge is often the honest word. That's about the top of the
-range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a somewhat
-different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words. The limits were set against these pages as
-they stood on October 19, 2026, when most of them were over the sentence and bold-label limits;
+range the survey measured on one engineer's blog: 2.2 to 11.9 per 1,000 words, on a mostly
+different list of hedges. Stacked hedges, minimizers and signposts get one every 1,000 words: a
+second hedge, a word that calls a step easy and a sentence about the page each give the reader
+nothing, so one should be rare enough to be a choice. First person on a reference page gets 0,
+because the program is the subject there. The limits were set against these pages as they stood
+on October 19, 2026, when most of them were over the sentence and bold-label limits;
 the report gives the current counts.
 
 Who's talking has no limit, and the report prints it per page: "I", "we", "you" and contractions
@@ -251,14 +254,14 @@ each named by a published style guide or study, or by the design system's own wr
 - recaps: `in conclusion`
 - chat residue: `I hope this helps`
 
-Words with a technical sense here stay off it: robust, deploy, streamline, boost and powerful (a
-more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
+Words with a technical sense in rocketry stay off it, whether or not a page uses them yet:
+robust, deploy, streamline (a streamlined body), boost and powerful (a more powerful motor). Terms such as `magic bytes` and `seamless tube` pass. The list is in
 [`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates
-and `docs/`. It leaves out the decision records, the records pages, the roadmap they're written
-from and the done-work archive, which are history; the research notes, which keep their wording
+and `docs/`. It leaves out the decision records, the records pages and the done-work archive, which are
+history; the roadmap the records pages are written from; the research notes, which keep their wording
 until they're next edited; and the site's table of contents, which is links. It counts
 what a program can count. Voice is partly taste, so a cold reader checks each rewritten page
 against these rules too.
