@@ -238,7 +238,7 @@ There are nine methods:
 | mean descent rate | the filtered height lost from apogee to landing, over the time taken, part of landing's reading | | |
 | top acceleration | the axial accelerometer's highest reading over the burns, searched from liftoff's earliest time (the log's start if liftoff is withheld), gravity in | `highest_reading` | `measured`, or `clipped` |
 | burnout | from the accelerometer: where its reading is least after it falls through zero, the end of the thrust's fall | `least_after_thrust` | `measured` |
-| | without it: no sooner than the top speed's time, a floor | `speed_peak` | `derived` |
+| | without it: the top speed's time, a floor: burnout came no sooner than that less its bound | `speed_peak` | `derived` |
 | drogue descent | the filtered height lost from apogee to the main's opening, over the time taken | `leg_chord` | `derived` |
 | main descent | the same from the main's opening, found back from landing, to landing; from apogee where the descent shows one canopy | `leg_chord` | `derived` |
 
@@ -297,7 +297,8 @@ reading past 2 g, either way, is the thrust's: where it is negative, the reading
 and a canopy's shock later, however large, doesn't turn them. A sample that isn't a number is left
 out, and so is one that repeats the time before it, the first kept, as the height track keeps
 AltOS's rows that share a time. A part sampled faster than every 0.002 s, 500 times a second, the
-fastest the bounds were checked at, gives neither reading (`sampled_too_fast`).
+fastest the bounds were checked at, gives neither reading (`sampled_too_fast`), and burnout then
+comes from the top speed.
 
 **A cleaned trace.** A charge's shock or one bad sample could turn the readings over, end the thrust
 early or pass for burnout. So those are found on a cleaned trace: a Hampel filter over 0.1 s puts
@@ -428,7 +429,7 @@ These marks are Debrief's, set on its own logs.
 HPR Sim walks on the rate's running median over 2 s, or twice the fit where that is longer, so a
 spike of the fit's noise on a long leg doesn't end the walk, while a step, the opening, stays where
 it is. On the raw rate, tried when the rule was chosen, the walk missed the drogue on 2 of the 87
-tuning flights that came down under two canopies: a noise spike on a 125 s main leg stopped it 125 s
+tuning flights whose main's opening their own logs give: a noise spike on a 125 s main leg stopped it 125 s
 after the opening.
 
 **At the ground's density.** A canopy falls at the speed where its drag balances the weight,
@@ -705,7 +706,7 @@ reasons:
 | `noisy_speed` | from liftoff to apogee the speed swings below zero by more than 20% of its top | the top speed, and burnout from its time |
 | `transonic` | the top speed reaches 227.7 m/s (747 ft/s) | the top speed, and burnout from its time |
 | `sampled_too_slowly` | the samples come further apart than 2 s; or, for the top speed, than 0.125 s; or, for the canopies, too far apart for 5 samples in the descent's fit, every 0.25 s for a 1 s fit | all; or the top speed and burnout from its time; or both canopies' descents |
-| `sampled_too_fast` | the samples come more often than every 2 ms, 500 a second, the fastest rate the bounds were checked at | all |
+| `sampled_too_fast` | the samples come more often than every 2 ms, 500 a second, the fastest rate the bounds were checked at | all, where the heights come that fast; where the accelerometer does, the top acceleration and burnout from it |
 | `step_too_coarse` | the step is coarser than 10 m (33 ft) or 100 Pa; or so coarse for the descent near the ground that a fit holding four steps would span more than 10 s | all; or both canopies' descents |
 | `slower_than_free_coast` | the track loses no more than twice its noise and step in the 4 s before its top | all |
 | `disturbed_top` | the track falls more than twice its noise and step below a peak in the 4 s before its top, then climbs to that top; or, within a second either side, it climbs into its top faster than a coast and falls from it faster than a body at rest | apogee, the top speed, landing, and the readings that need them |
@@ -787,7 +788,7 @@ error's third figure, the digits every platform shares:
 | main opening | 2,827 | 0.73 s | −0.778 s | 5.3 s | 2.04 s |
 | main rate | 5,391 | 0.04 m/s (0.13 ft/s) | −5.47 m/s (−17.9 ft/s) | 4.83 m/s (15.8 ft/s) | 1.71 m/s (5.61 ft/s) |
 
-Burnout from the accelerometer lands within 0.0943 s of the truth, against a mean bound of 0.651 s.
+Burnout from the accelerometer lands within 0.0943 s of the truth, to three figures, against a mean bound of 0.651 s.
 A floor from the top speed comes 0.24 s before burnout on average, as a speed's peak should, and up
 to 0.718 s after it, within its bound. The main's opening is read late on average, by 0.73 s; its
 bound holds the time a canopy takes to slow the fall and half the fit. No tuning flight's true top

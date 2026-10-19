@@ -351,8 +351,8 @@ mod tests {
         );
         assert!(LIFTOFF_HEIGHT_M < truth.apogee_m);
 
-        // Burnout, with no accelerometer, is the top speed's time, a floor: no sooner than the
-        // truth less its bound.
+        // Burnout, with no accelerometer, is the top speed's time, a floor: the truth came no
+        // sooner than it less its bound.
         let burnout = read.burnout.value().unwrap();
         assert!(burnout.is_floor);
         assert_eq!(burnout.time_s, speed.time_s);

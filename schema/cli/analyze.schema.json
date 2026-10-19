@@ -1568,7 +1568,7 @@
           "const": "least_after_thrust"
         },
         {
-          "description": "The top speed's time: burnout comes no sooner.",
+          "description": "The top speed's time, a floor: burnout came no sooner than it less its bound.",
           "type": "string",
           "const": "speed_peak"
         },

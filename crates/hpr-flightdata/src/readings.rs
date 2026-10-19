@@ -551,7 +551,7 @@ pub enum Method {
     /// The first sample next to the axial accelerometer's least reading after it falls below
     /// zero: the end of the thrust's fall, where the coast's drag begins to ease.
     LeastAfterThrust,
-    /// The top speed's time: burnout comes no sooner.
+    /// The top speed's time, a floor: burnout came no sooner than it less its bound.
     SpeedPeak,
     /// Landing's time less liftoff's.
     LiftoffToLanding,
