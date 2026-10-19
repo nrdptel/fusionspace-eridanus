@@ -296,10 +296,11 @@ below zero at burnout, so they give neither reading (`axis_unstated`).
 
 AltosUI writes `acceleration` for every board, but an EasyMini or a TeleMini has a barometer and
 no accelerometer (the Altus Metrum manual's specifications), so on one the column is the board's
-estimate from its barometer: a height differenced twice, which gives no reading here. Each AltOS
-board with an axial accelerometer adds an inertial unit's columns (`accel_x` and on: TeleMega,
-EasyMega) or a GPS receiver's (`latitude` and on: TeleMetrum) to the file. So an AltOS CSV with
-neither gives no top acceleration (`no_accelerometer`), and its burnout comes from the top speed.
+estimate from its barometer, not a sensor's reading, and gives no reading here. Each AltOS board
+with an axial accelerometer adds an inertial unit's columns (`accel_x` and on: TeleMega, EasyMega)
+or a GPS receiver's (`latitude` and on: TeleMetrum) to the file. So an AltOS CSV with neither is
+taken for a barometer-only board's and gives no top acceleration (`no_accelerometer`), and its
+burnout comes from the top speed; an export that lost those columns loses its reading too.
 A TeleGPS, a GPS receiver with no accelerometer, would pass if its export wrote the column. On
 the sample logs 17 records are so withheld, 16 AltOS CSV and one AltOS table.
 
@@ -1001,16 +1002,16 @@ start close to liftoff: 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV reco
 apogee, top speed and landing are withheld as `disturbed_top` on 76.
 
 The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
-on 682 records, 17 of them AltOS files from a board with no accelerometer (above), as `axis_unstated` on 136, whose boards or tables don't say which accelerometer lies
-along the rocket, as `gravity_unstated` on 10, and as `direction_unstated` on 6. On one, nothing
-says which way up the accelerometer reads: it never passes 2 g either way, and the log holds no pad
-or coast to tell by. On one, the coast reads near +1 g, nose down, against a pad and a thrust that
-say nose up. On three AltOS CSV records, gravity taken out, the pad says nothing and a short burn
-comes before a heavy drag, so the thrust says nothing either. On one, the accelerometer's thrust
-rises after liftoff's latest time by the heights, its clock running late against theirs.
-The drogue's descent is withheld as `short_leg` on 11, and as
-`one_canopy` on 185, where the descent showed no drogue's leg; with no truth beside the logs, that
-doesn't say how each rocket came down.
+on 682 records, 17 of them AltOS files taken for a board with no accelerometer (above), as
+`axis_unstated` on 136, whose boards or tables don't say which accelerometer lies along the rocket,
+as `gravity_unstated` on 10, and as `direction_unstated` on 6. On one, nothing says which way up the
+accelerometer reads: it never passes 2 g either way, and the log holds no pad or coast to tell by.
+On one, the coast reads near +1 g, nose down, against a pad and a thrust that say nose up. On three
+AltOS CSV records, gravity taken out, the pad says nothing and a short burn comes before a heavy
+drag, so the thrust says nothing either. On one, the accelerometer's thrust rises after liftoff's
+latest time by the heights, its clock running late against theirs. The drogue's descent is withheld
+as `short_leg` on 11, and as `one_canopy` on 185, where the descent showed no drogue's leg; with no
+truth beside the logs, that doesn't say how each rocket came down.
 
 ### What it leaves out
 

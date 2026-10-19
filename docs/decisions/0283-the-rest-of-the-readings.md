@@ -215,11 +215,11 @@ that only held flat, and that no tuning flight tested clipping at a range. The r
 6. **AltOS's acceleration from a board with no accelerometer (§1).** AltosUI writes
    `acceleration` for every board, but an EasyMini or a TeleMini has a barometer and no
    accelerometer (*The Altus Metrum System*'s specifications, as the `.eeprom` reader already
-   holds for the EasyMini), so on one the column is the board's estimate from its barometer, a
-   height differenced twice, which §1's table must not take for an axial part. Each AltOS board
+   holds for the EasyMini), so on one the column is the board's estimate from its barometer, not
+   a sensor's reading, which §1's table must not take for an axial part. Each AltOS board
    with an axial accelerometer adds an inertial unit's columns (`accel_x` and on: TeleMega,
    EasyMega) or a GPS receiver's (`latitude` and on: TeleMetrum) to the file, so an AltOS CSV with
-   neither gives no top acceleration, `no_accelerometer`, and its burnout comes from the top speed
+   neither is taken for a barometer-only board's and gives no top acceleration, `no_accelerometer`, and its burnout comes from the top speed
    (`altos_acceleration_without_an_accelerometer_board_isnt_read`; a mutation that keeps the
    column fails it). A TeleGPS, a GPS receiver with no accelerometer, would pass if its export
    wrote the column. On the sample logs 17 records are so withheld, 16 AltOS CSV and one AltOS

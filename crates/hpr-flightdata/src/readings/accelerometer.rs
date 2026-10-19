@@ -190,8 +190,8 @@ fn first_at_each_time(channel: &Channel) -> Channel {
 /// Whether `channel` is AltOS's `acceleration` from a board with no accelerometer of its own.
 /// AltosUI's CSV writes the column for every board. An EasyMini or a TeleMini has a barometer
 /// and no accelerometer (*The Altus Metrum System*'s specifications; the `.eeprom` reader's
-/// `Board::EasyMini`), so on one the column is the board's estimate from its barometer, a height
-/// differenced twice. Each AltOS board with an axial accelerometer carries an inertial unit
+/// `Board::EasyMini`), so on one the column is the board's estimate from its barometer, not a
+/// sensor's reading. Each AltOS board with an axial accelerometer carries an inertial unit
 /// (TeleMega, EasyMega) or a GPS receiver (TeleMetrum), whose columns the export adds, so a file
 /// with neither holds no accelerometer's reading. A TeleGPS, a GPS receiver with no
 /// accelerometer, would pass if its export wrote the column.
@@ -243,11 +243,11 @@ pub(super) fn read(
             .channels_of(Quantity::Acceleration)
             .any(|channel| from_the_barometer(log, channel))
         {
-            "the log has no accelerometer: AltOS's `acceleration` comes here from a board with \
-             none of its own, as the file holds neither an inertial unit's columns (`accel_x` and \
-             on) nor a GPS receiver's, one of which every AltOS board with an axial accelerometer \
-             adds; it is the board's estimate from its barometer, a height differenced twice, \
-             which HPR Sim doesn't read a top from"
+            "the log has no accelerometer: the file holds neither an inertial unit's columns \
+             (`accel_x` and on) nor a GPS receiver's, one of which every AltOS board with an \
+             axial accelerometer adds, so its `acceleration` is taken for a board with none of \
+             its own, an EasyMini's or a TeleMini's, whose column is the board's estimate from \
+             its barometer, which HPR Sim doesn't read a top from"
         } else {
             "the log has no accelerometer; HPR Sim doesn't difference a height twice to make \
              one, as its steps would read as spikes of many g"
@@ -2354,6 +2354,14 @@ mod tests {
             values,
         ));
         assert!(read_all(&inertial).max_acceleration.value().is_some());
+        // A receiver with no fix leaves its column all gaps: still a TeleMetrum's.
+        let mut unfixed = sensor.clone();
+        for channel in &mut unfixed.channels {
+            if channel.column == "latitude" {
+                channel.values.fill(f64::NAN);
+            }
+        }
+        assert!(read_all(&unfixed).max_acceleration.value().is_some());
     }
 
     /// A log that starts in the thrust, past its 6 g top at 3.5 s: from 3.6 s the trace is
