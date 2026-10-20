@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 32 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 438988 words, 0 stock phrases. 37 pages are within every limit.
+82 pages, 438991 words, 0 stock phrases. 37 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -51,7 +51,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4150 | 13.5 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
 | `docs/glossary.md` (`ref`) | 13049 | 16.6 | 23% | 0.00 | 0.10 | **1.32** | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
-| `docs/how-a-flight-is-simulated.md` (`held`) | 2196 | 14.2 | 0% | 0.32 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 0.41 |
+| `docs/how-a-flight-is-simulated.md` (`held`) | 2199 | 14.2 | 0% | 0.32 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 0.41 |
 | `docs/monte-carlo.md` (`held`) | 3679 | 13.9 | 0% | 0.22 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.44 | 0.79 |
 | `docs/motor-stock.md` (`held`) | 3611 | 13.8 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.28 | 1.14 |
 | `docs/nomads.md` (`held`) | 4553 | 13.4 | 0% | 0.00 | 0.00 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.88 |

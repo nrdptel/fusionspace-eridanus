@@ -172,7 +172,8 @@ flight:
   [RASAero II](glossary.md#rasaero-ii) export, the drag reads 5.1% to 14.9% low from Mach 1.2 to
   2.0. It's lowest at Mach 2
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2);
-  [the drag against RASAero II](decisions-and-roadmap.md#m1-8b2)).
+  [the drag against RASAero II](decisions-and-roadmap.md#m1-8b2);
+  [what backs it](evidence.md#g26)).
 - The aerodynamics are for small angles of attack, with no [stall](glossary.md#stall). But a
   flight uses them at every angle: just off the rail in a strong crosswind, and near apogee.
 - Staging, clusters and air starts are checked against OpenRocket on three of its examples. Each
