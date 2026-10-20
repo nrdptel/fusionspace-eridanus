@@ -45,7 +45,7 @@ to 4% where printed). The readings are cached locally under `refs/`: the terms o
 - The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
 - **Gap:** no round flew between Mach 1.377 and 1.799 (Table VIII, PDF pp. 44–47): Mach 1.5 has no DREV point.
 - **Convention (Inference).** DREV doesn't state the rate's denominator (PDF pp. 12–13); its C_lp interpolated to
-  Mach 2.5 lies within a few percent of AEDC's, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
+  Mach 2.5 lies close to AEDC's, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
 
 **Other measured sets, Mach 1.5–3,** converted to C_lp per p·d/(2V) on area πd²/4 and length d:
 
@@ -78,9 +78,9 @@ interpolated linearly in Mach (**Inference**).
 | 3.00 | −18.32 | −15.4 | none | −13.8 | +11% |
 
 - **Against DREV** (readings cached under `refs/`, §1), at Mach 1.82 to 3.00 (its 1.832 row, then interpolated), HPR
-  Sim reads +2% to +13% high (mean +6.6%), and Fig. 5-7's points sit above DREV's.
-- **Fig. 5-7's points sit a nearly constant factor above DREV's** (in magnitude). **Inference:** a reference-area
-  slip between TN-100A and Fig. 5-7 would fit, unproven while TN-100A is unread; Barrowman doesn't state their accuracy.
+  Sim reads +2% to +13% high, and Fig. 5-7's points sit above DREV's.
+- **Fig. 5-7's points sit above DREV's** (in magnitude) at every Mach number. **Inference:** a reference-area slip
+  between TN-100A and Fig. 5-7 could explain it, unproven while TN-100A is unread; Barrowman doesn't state their accuracy.
 - **What changes.** On the measured consensus the row's sign flips: HPR Sim overstates the Basic Finner's
   supersonic roll damping, and the aero page's account (first-order theory reads low for want of a thickness
   term) no longer fits.

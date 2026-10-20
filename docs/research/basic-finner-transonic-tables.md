@@ -96,13 +96,13 @@ Mach 0.5 to 1.20, from −0.02 to +0.04 caliber (mean +0.01). The 45° runs read
 - **Roll orientation: about −2% to −9%.** From Mach 0.5 to 1.18 the 45° runs' C_Nα sits about 2% to 9% below the 0°
   runs' (**Inference** from Tables 12–13). The report notes C_mα at 45° about 10% below 0° from Mach 0.5 to 1.05 (PDF
   p. 33), though its own tables give 3% to 9% over that span, under 5% at Mach 0.79 and 0.92. So the rise from Mach
-  0.79 to the peak is +21.6% at 0° and +12.6% at 45°; to Mach 1.18 it is +12.7% and +6.9%. HPR Sim's slope does not
-  depend on roll, so this spread is a measured limit on how closely it can match one orientation.
-- **Tunnel against range: 7% to 12% high near Mach 1.08.** At Mach 1.076 the 0° runs read 7% to 12% above DREV's
+  0.79 to the peak is +21.6% at 0° and +12.6% at 45°; to Mach 1.18 it is +12% to +13% (two runs) and +6.9%. HPR Sim's
+  slope does not depend on roll, so this spread is a measured limit on how closely it can match one orientation.
+- **Tunnel against range: 6% to 12% high near Mach 1.08.** At Mach 1.076 the 0° runs read 6% to 12% above DREV's
   range fit at 1.077, in C_Nα and C_mα together [D3] (**Inference**, this note's ratios). The report calls the Mach
   1.06 point 10% above the others in C_mα (PDF p. 33) and notes the tunnel's Reynolds number is half the range's
   transonically (PDF p. 27). Wall interference, Reynolds number and the sting could each contribute; the report
-  bounds none alone, so each is **unbounded** on its own; the 7% to 12% gap bounds only their sum.
+  bounds none alone, so each is **unbounded** on its own; the 6% to 12% gap bounds only their sum.
 - **The range's own scatter: ±14% to ±17% in C_Nα.** The low yaw (mean squared yaw 1.1 to 2.3 deg², Table 7) leaves
   C_Nα loose while C_mα is held to 1%; the report blames the range's low CP on this (PDF p. 33). **Inference:** its CP
   inherits C_Nα's error: at Mach 1.105 that error alone moves the arm C_mα/C_Nα by most of the range CP's gap to
@@ -144,7 +144,8 @@ redistribution. The seven Mach numbers are 0.652, 0.782, 0.910, 0.992, 1.142, 1.
 deviation runs 3% to 26% across them, C_mα's 0% to 1%.
 
 - **Inference:** C_mα jumps 55% from Mach 0.910 to 0.992, and the CP (4.8 d less C_mα/C_Nα) moves about 0.7 caliber
-  aft, then forward again by Mach 1.5. At that jump C_Nα's error (up to 26%) makes the CP uncertain by ±0.6 caliber.
+  aft, then forward again by Mach 1.5. C_Nα is least certain at that jump (error up to 26%), so the shift is not well
+  determined.
 - The authors find their C_Nα "a bit below" Eglin's from Mach 0.6 to 1.2, blaming their low yaw (PDF p. 24).
   Eglin's report, AFATL-TR-81-87, was not reached (DTIC down; not in the Internet Archive's DTIC collection).
 
@@ -160,7 +161,7 @@ deviation runs 3% to 26% across them, C_mα's 0% to 1%.
   Table 12's 0° rows at Mach 0.789, 0.916, 0.917, 1.054, 1.076, 1.176, 1.177, 1.246, 1.247, 1.280 and 1.282, Table
   13's 45° rows as a second band, and Table 10's range rows with Table 7's standard deviations, publishing only the
   error statistics. Expected effect: the ±0.3 per rad reading error leaves that check; the comparison gains a
-  measured spread (about −2% to −9% by roll, tunnel 7% to 12% above range) that a tolerance can cite.
+  measured spread (about −2% to −9% by roll, tunnel 6% to 12% above range) that a tolerance can cite.
 - **Score the shape, not one roll.** HPR Sim has no roll-dependent C_Nα, so a local check can ask that its slope lie
   in the band between the 0° and 45° runs, and its peak's Mach between 0.92 and 1.16. Expected effect: a pass or
   fail on the peak's position that the pixel set could not give, without overclaiming its height.
@@ -171,7 +172,7 @@ deviation runs 3% to 26% across them, C_mα's 0% to 1%.
 
 ## Open questions
 
-- **Wall and sting effects** are not bounded apart; the tunnel-to-range gap (7% to 12% near Mach 1.08) bounds them
+- **Wall and sting effects** are not bounded apart; the tunnel-to-range gap (6% to 12% near Mach 1.08) bounds them
   together.
 - **Why 45° roll reads lower,** by up to about 9% transonically, is not explained in the report.
 - **Not reached:** AFATL-TR-81-87 (Eglin's Air Force Finner range and tunnel data), and the full run-by-run tunnel

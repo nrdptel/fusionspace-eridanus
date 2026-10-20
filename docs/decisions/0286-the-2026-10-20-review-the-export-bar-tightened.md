@@ -1,7 +1,7 @@
 # ADR-286: The 2026-10-20 review: the export bar tightened (2026-10-20)
 
 - **Status:** accepted; tightens [M3.2][m3-2]'s bar from [ADR-110][adr-110] (the export's apogee in OpenRocket within 0.5% of the original's) to 0.002%; places four ideas; no done-when is loosened and no release moves
-- **Summary:** The only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
+- **Summary:** In the corpus, the only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
 
 [m3-2]: ../decisions-and-roadmap.md#m3-2
 [m0-14]: ../decisions-and-roadmap.md#m0-14
@@ -35,8 +35,8 @@ of the 55 configurations moved, by up to 0.032%, and none by 0.5%. Today's bar p
 
 Where the eight differences come from was traced before tightening:
 
-- **Not the file.** In the six private designs that hold them, every number both files carry is
-  the same to the bit, and the parts come in the same order. What differs is form only: current
+- **Not the file.** In the six private designs that hold them, every number in the rocket both
+  files carry is the same to the bit, and the parts come in the same order. What differs is form only: current
   tag names for legacy ones, duplicate and zero-valued tags dropped, a few defaults written out,
   and an `automatic` ignition written as the event it resolves to. OpenRocket's own read-back gives
   the same launch mass, and centers of pressure and gravity within one bit.
@@ -46,15 +46,15 @@ Where the eight differences come from was traced before tightening:
   any of the other 141. Forty-three more flights of the most sensitive configuration, 25 of the
   original and 18 of the export, each in a fresh OpenRocket launch, overlap; with the two recorded
   flights, the 45 spread over 0.00051%.
-- **Why a last bit moves the apogee at all.** OpenRocket reports the highest of its steps (each
-  file sets its own: 0.01 s to 0.2 s in the corpus, 0.05 s on most), which can sit up to
-  $g\,\Delta t^2/8$ below the true peak: 3.06 mm (0.12 in) at 0.05 s. A difference in the last bit
-  that shifts the step grid near apogee moves the reported apogee by millimeters, here up to about
-  0.0005% of it. The sampling term alone reaches 0.0095% of the apogee on the corpus's lowest
-  flight, a public example; the flights where it is largest match to the bit because their step
-  grids don't move between the two files.
+- **Why a last bit moves the apogee at all.** OpenRocket reports the highest of its time steps,
+  which can sit up to $g\,\Delta t^2/8$ below the true peak: about 3.1 mm (0.12 in) for a 0.05 s
+  step. Each file sets its own step (0.01 s to 0.2 s in the corpus, 0.05 s on most), and the steps
+  around apogee can be longer than the setting. A difference in the last bit that shifts the step
+  grid near apogee moves the reported apogee by millimeters, here up to about 0.0005% of it. At the
+  0.05 s setting that ceiling is 0.0095% of the apogee on the corpus's lowest flight, a public
+  example whose export matches its original to the bit.
 
-So no closed form bounds the difference: the sampling part has one, but the step grid's part
+So no closed form bounds the difference: the sampling part has one for a known step, but the step grid's part
 depends on OpenRocket's step control, and a last-bit change can in principle flip a discrete
 event. The bar is therefore set from the measurement and said to be.
 
@@ -80,9 +80,9 @@ event. The bar is therefore set from the measurement and said to be.
    flown (after [#879][i-879], which refuses such a file until then), a canopy's drag area fitted
    from the flyer's own log (`accuracy.canopy-cd`), the stability margin through the flight with
    the cause of each change, and a past day's ERA5 column fetched with no account
-   (`steps.command-line`). None is promoted: three user-facing milestones are in progress
-   ([M0.14][m0-14], [M0.9f][m0-9], [M7.2][m7-2]), the limit [ADR-144][adr-144] sets, and the
-   queue keeps its order.
+   (a new task under `steps.command-line`). None is promoted: the queue's head holds three
+   user-facing milestones ([M0.14][m0-14], [M0.9f][m0-9], [M7.2][m7-2]), as many as
+   [ADR-144][adr-144] allows in progress, and the queue keeps its order.
 
 **Consequences.** The interop check now notices a writer that loses precision, the fault class it
 was built against, instead of passing anything short of half a percent. Its margin is a
