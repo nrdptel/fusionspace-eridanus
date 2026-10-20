@@ -9,8 +9,8 @@ the command, so a later run can be compared like for like.
   has come from the integrator since the entry below; the start, the same time and state as the
   step before's end, was evaluated afresh. A step now keeps the integrator's evaluation from the
   step before (`PhaseSystem::previous` in `crates/hpr-sim/src/flight.rs`) and takes the start from
-  it when the time and all 13 state components match bit for bit. In a profile of the K940's
-  flights the metrics fell from 35% of a flight to 28%.
+  it when the time and all 13 state components match bit for bit. In one profile of the K940's
+  flights (macOS `sample`, not committed) the metrics fell from 35% of a flight to 28%.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main e247ddfe against the change,
   alternating, with the commands below:
 

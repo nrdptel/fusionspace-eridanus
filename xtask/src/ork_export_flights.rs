@@ -50,11 +50,12 @@ const GUIDE: &str = "https://hpr.fusionspace.co/format/ork.html#checked-in-openr
 const ROADMAP_ROW: &str = "https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-2";
 
 /// M3.2's bar: the export's apogee within this share of the original's, in percent. 0.5% until
-/// ADR-286 (2026-10-20): the writer is value-exact, so what is left is OpenRocket's own run-to-run
-/// spread, 0.000509% over 43 fresh flights of the same file on its most sensitive configuration
-/// (its reported apogee is a sampled row, and a last-bit change can move its step grid). 0.002% is
-/// 3.9 times that, on the corpus's designs, not a bound; at 0.5%, rounding every written number to
-/// 6 decimals (Loft lesson L68's bug) passed all 55 public configurations, and at 0.002%, 20 fail.
+/// ADR-286 (2026-10-20): where the flights differ, every number both files carry is the same to
+/// the bit, so what is left is OpenRocket's own run-to-run spread, 0.00064% over 45 flights of the
+/// original and the export on its most sensitive configuration (its reported apogee is a sampled
+/// row, and a last-bit change can move its step grid). 0.002% is 3.1 times that, on the corpus's
+/// designs, not a bound; at 0.5%, rounding every written number to 6 decimals (Loft lesson L68's
+/// bug) passed all 55 public configurations, and at 0.002%, 20 fail.
 pub(crate) const TOLERANCE_PERCENT: f64 = 0.002;
 
 /// Digits kept of a published percentage.

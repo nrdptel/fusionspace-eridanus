@@ -1,9 +1,12 @@
 # ADR-286: The 2026-10-20 review: the export bar tightened (2026-10-20)
 
 - **Status:** accepted; tightens [M3.2][m3-2]'s bar from [ADR-110][adr-110] (the export's apogee in OpenRocket within 0.5% of the original's) to 0.002%; places four ideas; no done-when is loosened and no release moves
-- **Summary:** HPR Sim's `.ork` writer is value-exact and the only differences OpenRocket shows between a design and its export are OpenRocket's own run-to-run spread, at most 0.000509% on the corpus, while a writer that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
+- **Summary:** The only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00064% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
 
 [m3-2]: ../decisions-and-roadmap.md#m3-2
+[m0-14]: ../decisions-and-roadmap.md#m0-14
+[m0-9]: ../decisions-and-roadmap.md#m0-9
+[m7-2]: ../decisions-and-roadmap.md#m7-2
 [adr-110]: 0110-m3-2b-openrocket-flies-the-export-only-counts.md
 [adr-109]: 0109-m3-2-split-and-a-ork-written-from-the-design.md
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
@@ -27,8 +30,8 @@ A bar that loose can't see the mistakes it exists for. The writer prints each nu
 shortest decimal that reads back to the same bits, because an earlier tool lost precision by
 rounding (`numbers_read_back_to_the_same_bits` pins it, [ADR-109][adr-109]). A probe wrote the
 17 public example designs again with every number rounded to six decimals, the old mistake, and
-flew them: 45 of the 55 configurations moved, by up to 0.032%, and none by 0.5%. Today's bar
-passes that writer.
+flew them (a one-off probe on 2026-10-20, every decimal number in each rocket's tree rounded): 45
+of the 55 configurations moved, by up to 0.032%, and none by 0.5%. Today's bar passes that writer.
 
 Where the eight differences come from was traced before tightening:
 
@@ -40,12 +43,15 @@ Where the eight differences come from was traced before tightening:
 - **OpenRocket itself.** Flown again with the same jar, scripts and seed, the originals differ
   from their own record in 8 of the 151 configurations, and two more sessions of the export files
   differ from each other in 7: always the same 10 configurations in those six designs, and never
-  the 58 others. Forty-three flights of the most sensitive configuration, each in a fresh JVM,
-  spread over 0.000509%, with the original's and the export's flights overlapping.
+  any of the other 141. Forty-three more flights of the most sensitive configuration, 25 of the
+  original and 18 of the export, each in a fresh JVM, overlap; with the two recorded flights, the
+  45 spread over 0.00064%.
 - **Why a last bit moves the apogee at all.** OpenRocket reports the highest of its 0.05 s steps,
   which can sit up to $g\,\Delta t^2/8$ below the true peak: 3.07 mm (0.12 in) at 0.05 s. A
   difference in the last bit that shifts the step grid near apogee moves the reported apogee by
-  millimeters, here up to 0.0002% of it.
+  millimeters, here up to about 0.0006% of it. On the corpus's lowest flights the sampling term
+  alone reaches 0.0135% of the apogee; those flights match to the bit only because their step
+  grids don't move between the two files.
 
 So no closed form bounds the difference: the sampling part has one, but the step grid's part
 depends on OpenRocket's step control, and a last-bit change can in principle flip a discrete
@@ -55,16 +61,16 @@ event. The bar is therefore set from the measurement and said to be.
 
 1. **M3.2's bar becomes 0.002%.** Every export opens where its original does and is refused for
    the same reason where it does not (unchanged), and every configuration flown both ways reaches
-   the original's apogee within 0.002% (was 0.5%). That is 3.9 times the largest same-file spread
-   measured and 10 times today's largest difference, on the corpus's designs, not a bound for any
-   design. The rounding probe above fails it on 20 of its 55 configurations. `TOLERANCE_PERCENT`
+   the original's apogee within 0.002% (was 0.5%). That is 3.1 times the largest run-to-run
+   spread measured and 10 times today's largest difference, on the corpus's designs, not a bound
+   for any design. The rounding probe above fails it on 20 of its 55 configurations. `TOLERANCE_PERCENT`
    in `xtask/src/ork_export_flights.rs` carries it, with the edge test at exactly 0.002%; the
    report, the scoreboard's `interop.changed` row and [the format page][ork] say 0.002%. M3.2's
    archived entry and ADR-110 keep their words as records of what was decided then.
 2. **What a failure means.** A design added to the corpus whose export moves by more than 0.002%
    fails the gate's `refs` checks. The cause is traced: a writer fault is fixed, and an OpenRocket
-   spread larger than 0.000509% is measured the same way (fresh sessions of the same file) and
-   recorded in a decision record before the bar moves, never widened to pass.
+   spread larger than 0.00064% is measured the same way (fresh sessions of the original and the
+   export) and recorded in a decision record before the bar moves, never widened to pass.
 3. **The format page is corrected.** It said a difference between the two flights "comes from
    the file alone" and that the eight differences' cause "has not been traced"; it now gives the
    cause above, and that the count identical to the bit is 142 to 144 of 151 by session.
@@ -73,8 +79,9 @@ event. The bar is therefore set from the measurement and said to be.
    flown (after [#879][i-879], which refuses such a file until then), a canopy's drag area fitted
    from the flyer's own log (`accuracy.canopy-cd`), the stability margin through the flight with
    the cause of each change, and a past day's ERA5 column fetched with no account
-   (`steps.command-line`). None is promoted: the user-facing surfaces in progress are at their
-   limit of three ([ADR-144][adr-144]), and the queue keeps its order.
+   (`steps.command-line`). None is promoted: three user-facing milestones are in progress
+   ([M0.14][m0-14], [M0.9f][m0-9], [M7.2][m7-2]), the limit [ADR-144][adr-144] sets, and the
+   queue keeps its order.
 
 **Consequences.** The interop check now notices a writer that loses precision, the fault class it
 was built against, instead of passing anything short of half a percent. Its margin is a

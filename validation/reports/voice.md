@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 32 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 438389 words, 0 stock phrases. 37 pages are within every limit.
+82 pages, 438392 words, 0 stock phrases. 37 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -46,7 +46,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/flight-logs.md` (`ref`) | 43721 | 24.1 | 41% | 0.22 | 0.22 | **1.50** | 0.08 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.01 | 0.04 | 0.46 |
 | `docs/format/hpr.md` (`ref`) | 5338 | 19.4 | 25% | 0.40 | 0.08 | **1.05** | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.81 |
 | `docs/format/orc.md` (`ref`) | 2349 | 16.4 | 19% | **0.69** | 0.13 | **0.94** | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.35 |
-| `docs/format/ork.md` (`ref`) | 36817 | 19.0 | 24% | 0.22 | **0.57** | **1.10** | 0.10 | 0.00 | 0.02 | 0.02 | 0.00 | 0.00 | 0.00 | 0.04 | 0.14 |
+| `docs/format/ork.md` (`ref`) | 36816 | 19.0 | 24% | 0.22 | **0.57** | **1.10** | 0.10 | 0.00 | 0.02 | 0.02 | 0.00 | 0.00 | 0.00 | 0.04 | 0.14 |
 | `docs/format/pf2.md` (`ref`) | 809 | 15.1 | 10% | 0.00 | 0.13 | 0.50 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.24 |
 | `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4155 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
@@ -57,7 +57,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/nomads.md` (`held`) | 4492 | 13.4 | 0% | 0.00 | 0.00 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.25 | 0.85 |
 | `docs/online-data.md` (`held`) | 2165 | 14.6 | 0% | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 1.02 |
 | `docs/optimization.md` (`held`) | 7642 | 14.2 | 0% | 0.23 | 0.00 | 0.00 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.28 | 0.59 |
-| `docs/perf.md` | 5371 | 17.2 | 23% | **1.90** | **0.79** | **1.14** | 0.02 | 0.00 | 0.02 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.17 |
+| `docs/perf.md` | 5375 | 17.2 | 23% | **1.90** | **0.79** | **1.14** | 0.02 | 0.00 | 0.02 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.17 |
 | `docs/physics/aero.md` (`ref`) | 58615 | 21.5 | 34% | 0.36 | 0.36 | **1.36** | 0.07 | 0.01 | 0.01 | 0.02 | 0.00 | 0.00 | 0.01 | 0.03 | 0.12 |
 | `docs/physics/atmosphere.md` (`ref`) | 2314 | 13.7 | 10% | **1.39** | **0.52** | **0.70** | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.18 |
 | `docs/physics/design.md` (`ref`) | 9093 | 19.9 | 31% | **0.77** | 0.31 | **1.38** | 0.10 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.26 |

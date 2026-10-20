@@ -13,7 +13,7 @@ Finner's tunnel points ([aero](../physics/aero.md#roll-against-the-arcas-robin-a
 - **The Basic Finner is the reference.** DREV-TM-9703 tabulates C_X0, C_Nα, C_mα, C_mq and C_lp from Mach 1.08 to
   4.3. Four measured sets of its roll damping, DREV's range, BRL's range, NOL's tunnel and AEDC's tunnel, each lie
   within about 11% of DREV (up to 19% apart from each other). The Nicolaides points that HPR Sim compares against,
-  read from Barrowman's Fig. 5-7, sit **1.21 to 1.26 times** DREV's at matched Mach. Against DREV, HPR Sim's damping
+  read from Barrowman's Fig. 5-7, sit **above** DREV's at matched Mach. Against DREV, HPR Sim's damping
   reads **+2% to +13% high** at Mach 1.82–3.00, not 5.9% to 16.2% low. Near Mach 1.5 it reads +26% to +30% high
   against BRL and NOL. The cause of the gap is not found (**Inference**, §2).
 - **ARL-TN-1128 holds no coefficients.** It defines a shape, the HARV (High-Speed *Army* Reference Vehicle, not
@@ -45,7 +45,7 @@ to 4% where printed). The readings are cached locally under `refs/`: the terms o
 - The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
 - **Gap:** no round flew between Mach 1.377 and 1.799 (Table VIII, PDF pp. 44–47): Mach 1.5 has no DREV point.
 - **Convention (Inference).** DREV doesn't state the rate's denominator (PDF pp. 12–13); its C_lp interpolated to
-  Mach 2.5 lies within 2% of AEDC's −17.5, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
+  Mach 2.5 lies within a few percent of AEDC's, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
 
 **Other measured sets, Mach 1.5–3,** converted to C_lp per p·d/(2V) on area πd²/4 and length d:
 
@@ -78,9 +78,9 @@ interpolated linearly in Mach (**Inference**).
 | 3.00 | −18.32 | −15.4 | none | −13.8 | +11% |
 
 - **Against DREV** (readings cached under `refs/`, §1), at Mach 1.82 to 3.00 (its 1.832 row, then interpolated), HPR
-  Sim reads +2% to +13% high (mean +6.6%), and Fig. 5-7's points are 1.21 to 1.26 times DREV's (mean 1.23).
-- **The ratio is nearly constant,** close to 4/π = 1.273. **Inference:** a reference-area slip between TN-100A and
-  Fig. 5-7 would fit, unproven while TN-100A is unread; Barrowman doesn't state the points' accuracy.
+  Sim reads +2% to +13% high (mean +6.6%), and Fig. 5-7's points sit above DREV's.
+- **The gap is nearly constant across Mach.** **Inference:** a constant factor such as a reference-area slip between
+  TN-100A and Fig. 5-7 would fit, unproven while TN-100A is unread; Barrowman doesn't state the points' accuracy.
 - **What changes.** On the measured consensus the row's sign flips: HPR Sim overstates the Basic Finner's
   supersonic roll damping, and the aero page's account (first-order theory reads low for want of a thickness
   term) no longer fits.
@@ -171,9 +171,9 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 
 ## Open questions
 
-- **Why Nicolaides' points are 1.21–1.26 times DREV's** (1.12–1.20 BRL's, 1.28–1.38 NOL's). BuWeps TN-100A wasn't
-  reached, nor was BRL 799, seen only as replotted by DREV and NOL. Whether BRL 711's thicker fins explain its higher
-  values is open.
+- **Why Nicolaides' points sit above DREV's** (they are 1.12–1.20 times BRL's, 1.28–1.38 NOL's). BuWeps TN-100A
+  wasn't reached, nor was BRL 799, seen only as replotted by DREV and NOL. Whether BRL 711's thicker fins explain its
+  higher values is open.
 - DREV's rate convention is inferred from its agreement with AEDC. DRDC TM 2002-136, DREV Table X (C_lδ),
   BRL 934's centers of gravity and AGARD Model A's drag (NACA Report 1160) were not read.
 

@@ -110,7 +110,10 @@ cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as it
 ([M2.3c6][m2-3c6], [ADR-273][adr-273]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
 Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]), the
 post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]), fin flutter held to
-measurement ([M2.11][m2-11], [AD## The 2026-10-20 planning review
+measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the
+[theme notes](#theme-notes).
+
+## The 2026-10-20 planning review
 
 Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promote an idea.
 
@@ -124,7 +127,7 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
   faster or slower than the maker's table. Workflow: `hpr analyze` on a barometric log, canopy and
   descent mass named, prints C_D·S with a 90% interval from each canopy's descent rate ([M7.2][m7-2])
   beside the maker's figure. Moves: a new row, `accuracy.canopy-cd` (one maker's canopies read 17%
-  to 50% under their table, [the parachute note][hpcd]). *Done when:* synthetic descents of known
+  to 36% under their table on 29 balloon descents, [the parachute note][hpcd]). *Done when:* synthetic descents of known
   C_D·S are recovered inside the interval at its stated rate, and a public log gets its C_D·S.
 - SOON: the stability margin through the flight, with each change's cause. User: a flyer whose
   rocket passes Mach 1 and whose tool shows 2.6 calibers growing to 4.8 with no reason given ([a
@@ -135,8 +138,8 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
 - SOON: a past day's ERA5 column with no account. User: a flyer comparing an old flight's log with
   its simulation in that day's air. Workflow: `hpr weather era5` with a site and a UTC hour, no
   file, asks NSF NCAR's GDEX copy of ERA5 for the pressure levels (CC BY 4.0, no login, about 2 KB),
-  caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves:
-  `steps.command-line`, task "fly a past launch in its day's air". *Done when:* a recorded answer
+  caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves: a new
+  task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
   replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
 
 ## MAINTAINER'S CALL (money, outreach)
