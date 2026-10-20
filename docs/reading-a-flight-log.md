@@ -84,8 +84,7 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
 > those speeds a barometer's port may read the flow over the nose.
 >
-> The known gaps, each an open issue, are listed with each reading
-> ([What the readings say](#what-the-readings-say)) and under
+> The known gaps, each an open issue, are listed under
 > [What it doesn't do yet](#what-it-doesnt-do-yet). For a record or a
 > certification, the altimeter's own reading is the one to log. The rules behind each reading are
 > on [Flight-log readings](physics/log-readings.md), with what they were checked against. A

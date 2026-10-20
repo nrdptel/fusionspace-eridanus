@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 32 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 437923 words, 0 stock phrases. 37 pages are within every limit.
+82 pages, 437915 words, 0 stock phrases. 37 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -85,7 +85,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/pick-a-motor.md` (`held`) | 1166 | 13.3 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.46 | 0.35 |
 | `docs/plan.md` | 1087 | 10.9 | 3% | **1.29** | **2.40** | 0.10 | 0.19 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/python.md` (`held`) | 4634 | 14.2 | 1% | 0.07 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.46 | 0.78 |
-| `docs/reading-a-flight-log.md` (`held`) | 2337 | 13.7 | 0% | 0.48 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.82 |
+| `docs/reading-a-flight-log.md` (`held`) | 2329 | 13.7 | 0% | 0.48 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.82 |
 | `docs/recording-a-trajectory.md` (`held`) | 821 | 14.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.74 |
 | `docs/releasing.md` | 2552 | 22.8 | 36% | 0.28 | 0.08 | **1.42** | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.40 |
 | `docs/sensitivity.md` (`held`) | 2301 | 14.5 | 0% | 0.27 | 0.00 | 0.00 | 0.14 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.57 | 0.66 |
