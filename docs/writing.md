@@ -214,8 +214,9 @@ limit. A page over one is where to look first; it doesn't fail the build.
 
 Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before a word of
 place or time ("just below") and "how quick" or "how quickly", which measure something here.
-Quoted words aren't read for hedges, minimizers, signposts or first person, though the stock list
-reads them.
+First person leaves out a capital I that is a numeral or a symbol ("Type I", "an I motor", "where
+I is the inertia"). A quotation inside one sentence isn't read for these counts or for who's
+talking, though the stock list reads it.
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
 over 25 words, at about 20 words a sentence. That's 0.5 per 100 words. On a page of shorter

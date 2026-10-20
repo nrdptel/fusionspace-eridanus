@@ -1680,6 +1680,8 @@ mod tests {
         assert!(entries("Read the magic bytes and the magic number first.").is_empty());
         assert!(entries("A seamless tube makes a stronger body.").is_empty());
         assert_eq!(entries("It is magic."), ["magic"]);
+        // The stock list reads quoted words, which the counted patterns skip.
+        assert_eq!(entries("Don't call it \"seamless\" here."), ["seamless"]);
         assert!(entries("Fly them in order. To check one, run it.").is_empty());
         assert_eq!(
             entries("A number, of course, is one number. A number of flights."),

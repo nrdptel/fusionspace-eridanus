@@ -103,8 +103,8 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   style); "In short" counts only before a comma, not as the label of a model page's box; and
   "this section" counts only at a sentence's start.
   Minimizers leave out "just" before a word of place or time and "how quickly", which measure
-  something here. Quoted words aren't read for hedges, minimizers, signposts, first person or the
-  register; the stock list reads them. First person leaves out a capital I after a word that makes
+  something here. A quotation inside one sentence isn't read for hedges, minimizers, signposts,
+  first person or the register; the stock list reads it. First person leaves out a capital I after a word that makes
   it a numeral or a name ("Type I", "Saturn I") or before "is" or a motor word ("where I is the
   inertia", "an I motor").
 - *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
