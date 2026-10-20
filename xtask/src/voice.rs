@@ -1041,15 +1041,7 @@ fn read_html(source: &str) -> Reading {
             if !decode_entities(text).trim().is_empty() {
                 item_opening = false;
             }
-            // Each piece from one `&` to the next decodes alone, with its own mark, so a hit's
-            // line stays exact after an entity that decodes shorter than it's written.
-            let mut piece = 0;
-            for (amp, _) in text.match_indices('&').chain([(text.len(), "")]) {
-                if amp > piece {
-                    reading.push(&decode_entities(&text[piece..amp]), text_from + piece);
-                }
-                piece = amp;
-            }
+            push_decoded(&mut reading, text, text_from);
         }
         if lower[start..].starts_with("<!--") {
             at = lower[start..]
@@ -1110,10 +1102,26 @@ fn read_html(source: &str) -> Reading {
         }
     }
     let rest = &source[text_from.min(source.len())..];
-    if !rest.is_empty() {
-        reading.push(&decode_entities(rest), text_from);
-    }
+    push_decoded(&mut reading, rest, text_from);
     reading
+}
+
+/// Pushes HTML text read at `source` in the file with its entities decoded. Each entity and each
+/// stretch between entities gets its own mark, so a hit's line stays exact after an entity that
+/// decodes shorter than it's written.
+fn push_decoded(reading: &mut Reading, text: &str, source: usize) {
+    let mut at = 0;
+    while at < text.len() {
+        if let Some((c, written)) = decode_entity(&text[at..]) {
+            reading.push(c.encode_utf8(&mut [0; 4]), source + at);
+            at += written;
+            continue;
+        }
+        // Up to the next `&` that isn't this one: no entity starts before it.
+        let end = text[at + 1..].find('&').map_or(text.len(), |i| at + 1 + i);
+        reading.push(&text[at..end], source + at);
+        at = end;
+    }
 }
 
 /// The offset just past the `>` that closes the tag starting at `start`, skipping quoted values.
@@ -1138,43 +1146,10 @@ fn decode_entities(text: &str) -> String {
     while let Some(at) = rest.find('&') {
         out.push_str(&rest[..at]);
         rest = &rest[at..];
-        let Some(end) = rest
-            .char_indices()
-            .take(12)
-            .find(|&(_, c)| c == ';')
-            .map(|(i, _)| i)
-        else {
-            out.push('&');
-            rest = &rest[1..];
-            continue;
-        };
-        let name = &rest[1..end];
-        let decoded = match name {
-            "amp" => Some('&'),
-            "lt" => Some('<'),
-            "gt" => Some('>'),
-            "quot" => Some('"'),
-            "apos" | "#39" => Some('\''),
-            "nbsp" => Some(' '),
-            "rsquo" => Some('\u{2019}'),
-            "lsquo" => Some('\u{2018}'),
-            "ldquo" => Some('\u{201C}'),
-            "rdquo" => Some('\u{201D}'),
-            "mdash" => Some('\u{2014}'),
-            "ndash" => Some('\u{2013}'),
-            "hellip" => Some('\u{2026}'),
-            "middot" => Some('\u{B7}'),
-            _ => name
-                .strip_prefix("#x")
-                .or_else(|| name.strip_prefix("#X"))
-                .and_then(|hex| u32::from_str_radix(hex, 16).ok())
-                .or_else(|| name.strip_prefix('#').and_then(|dec| dec.parse().ok()))
-                .and_then(char::from_u32),
-        };
-        match decoded {
-            Some(c) => {
+        match decode_entity(rest) {
+            Some((c, written)) => {
                 out.push(c);
-                rest = &rest[end + 1..];
+                rest = &rest[written..];
             }
             None => {
                 out.push('&');
@@ -1184,6 +1159,41 @@ fn decode_entities(text: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// The character a reference at the start of `text` ("&amp;", "&#8230;") stands for, and how many
+/// bytes it's written in; `None` if `text` doesn't open with one this reader knows.
+fn decode_entity(text: &str) -> Option<(char, usize)> {
+    let rest = text.strip_prefix('&')?;
+    let end = rest
+        .char_indices()
+        .take(11)
+        .find(|&(_, c)| c == ';')
+        .map(|(i, _)| i)?;
+    let name = &rest[..end];
+    let decoded = match name {
+        "amp" => Some('&'),
+        "lt" => Some('<'),
+        "gt" => Some('>'),
+        "quot" => Some('"'),
+        "apos" | "#39" => Some('\''),
+        "nbsp" => Some(' '),
+        "rsquo" => Some('\u{2019}'),
+        "lsquo" => Some('\u{2018}'),
+        "ldquo" => Some('\u{201C}'),
+        "rdquo" => Some('\u{201D}'),
+        "mdash" => Some('\u{2014}'),
+        "ndash" => Some('\u{2013}'),
+        "hellip" => Some('\u{2026}'),
+        "middot" => Some('\u{B7}'),
+        _ => name
+            .strip_prefix("#x")
+            .or_else(|| name.strip_prefix("#X"))
+            .and_then(|hex| u32::from_str_radix(hex, 16).ok())
+            .or_else(|| name.strip_prefix('#').and_then(|dec| dec.parse().ok()))
+            .and_then(char::from_u32),
+    };
+    decoded.map(|c| (c, end + 2))
 }
 
 /// One word of a run: where it starts, as written, in lower case, and the stretch of text with no
@@ -1532,10 +1542,10 @@ fn contraction(lower: &str) -> bool {
 }
 
 /// A rate per 100 words, rounded up to two decimals, so a page over a limit never shows a rate
-/// at or under it.
+/// at or under it. On a page with no words, a count above 0 is over its limit and shows as `inf`.
 fn rate(count: usize, words: usize) -> f64 {
     if words == 0 {
-        return 0.0;
+        return if count == 0 { 0.0 } else { f64::INFINITY };
     }
     (count as f64 * 10_000.0 / words as f64).ceil() / 100.0
 }
@@ -1971,6 +1981,13 @@ mod tests {
             ..speaking
         };
         assert_eq!(Pattern::FirstPersonOnReference.count(&elsewhere), None);
+        // A bold label with no words is over the limit, and shows a rate over it.
+        let empty = markdown("- **:**\n");
+        assert_eq!((empty.words, empty.bold_labels), (0, 1));
+        assert!(Pattern::BoldLabels.over(&empty));
+        assert_eq!(rate(1, 0), f64::INFINITY);
+        assert_eq!(rate(0, 0), 0.0);
+        assert!(report(&[empty]).contains("| **inf** |"));
     }
 
     #[test]
@@ -2022,6 +2039,32 @@ mod tests {
         let source = format!("<p>a\n{}\nb\nc\nIt is pivotal.</p>", "&rsquo;".repeat(30));
         let page = page_from("p.html", &source, read_html(&source), false);
         assert_eq!(page.stock[0].line, 5);
+        // So does a hit on a line after an entity, in an HTML page, an HTML block or the text
+        // after the last tag.
+        for (path, source, line) in [
+            ("a.html", "<p>&amp;\nIt is pivotal.</p>", 2),
+            ("b.html", "<p>x &rsquo; &bogus;\ny\nIt is pivotal.</p>", 3),
+            ("c.html", "<p>x</p>&amp;\nIt is pivotal.", 2),
+            ("e.html", "<p>x\nIt is &#112;ivotal.</p>", 2),
+            (
+                "d.md",
+                "Intro.\n\n<div>\n&amp;\nIt is pivotal.\n</div>\n",
+                5,
+            ),
+        ] {
+            let page = if path.ends_with(".md") {
+                markdown(source)
+            } else {
+                page_from(path, source, read_html(source), false)
+            };
+            assert_eq!(page.stock.len(), 1, "{path}");
+            assert_eq!(page.stock[0].line, line, "{path}");
+        }
+        assert_eq!(decode_entity("&amp;x"), Some(('&', 5)));
+        assert_eq!(decode_entity("&#8230;"), Some(('\u{2026}', 7)));
+        assert_eq!(decode_entity("&bogus;"), None);
+        assert_eq!(decode_entity("&aaaaaaaaaa;"), None);
+        assert_eq!(decode_entity("amp;"), None);
     }
 
     #[test]
