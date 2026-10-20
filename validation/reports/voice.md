@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. Only a stock phrase fails the build.
 
-82 pages, 437706 words, 0 stock phrases. 5 pages are within every limit.
+82 pages, 437747 words, 0 stock phrases. 5 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -100,6 +100,6 @@ The register has no limits: "I", "we", "you" and contractions per 100 words, and
 | `docs/trusting-a-simulation.md` | 1548 | 19.5 | 25% | 0.20 | 0.00 | **1.23** | 0.20 | 0.07 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 0.39 |
 | `docs/weather.md` | 1981 | 19.7 | 26% | 0.31 | 0.16 | **1.27** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.31 |
 | `docs/when-fins-flutter.md` | 1759 | 21.2 | 36% | **0.52** | 0.06 | **1.65** | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.18 | 0.29 |
-| `docs/writing.md` | 9022 | 21.7 | 31% | 0.43 | 0.20 | **1.36** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.02 | 0.02 | 0.05 | 0.66 |
+| `docs/writing.md` | 9063 | 21.7 | 31% | 0.42 | 0.20 | **1.35** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.02 | 0.02 | 0.05 | 0.66 |
 | `docs/your-own-logger.md` | 2408 | 23.0 | 37% | 0.00 | 0.05 | **1.46** | 0.17 | 0.05 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.46 |
 | `docs/your-own-rocket.md` | 4455 | 17.9 | 22% | **0.79** | 0.16 | **1.10** | 0.09 | 0.03 | 0.03 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.34 |

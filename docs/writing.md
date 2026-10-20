@@ -103,8 +103,8 @@ this voice.
 
 ### Where "I" goes
 
-Use "I" where a person is talking: the README, the contributing guide, the landing pages, the
-pages that say why something exists, the guides and the release notes. It's one person's project, so there's no
+Use "I" where a person is talking: the README, the landing pages, the pages that say why
+something exists, the guides and the release notes. It's one person's project, so there's no
 company "we". The bottom line still comes first ([rule 1](#the-rules)), and the why follows it,
 in the maintainer's words. Reference pages stay impersonal: a model's equations, a file format, a
 command's options, the glossary. There the program is the subject, and "you" gives the steps, as
@@ -214,8 +214,9 @@ limit. A page over one is where to look first; it doesn't fail the build.
 
 Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before a word of
 place or time ("just below") and "how quick" or "how quickly", which measure something here.
-First person leaves out a capital I that is a numeral or a symbol ("Type I", "an I motor", "where
-I is the inertia"). A quotation inside one sentence isn't read for hedges, minimizers, signposts,
+First person counts a capital I only before a lower-case word, so it leaves out a numeral or a
+symbol ("Type I", "an I motor", "where I is the inertia") and an I at a clause's end or before a
+comma ("so did I"). A quotation inside one sentence isn't read for hedges, minimizers, signposts,
 first person or who's talking, though the stock list reads it.
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
@@ -235,9 +236,9 @@ First person on a reference page gets 0, because the program is the subject ther
 set against these pages as they stood on October 19, 2026, when most of them were over the
 sentence and bold-label limits. The report gives the current counts.
 
-Who's talking has no limit, since the right amount depends on the kind of page. The report
-prints it per page: "I", "we", "you" and contractions
-per 100 words. For scale, the survey found 1.0 to 3.5 contractions per 100 words on most personal
+Who's talking (the report's register) has no limit of its own, since the right amount depends on
+the kind of page. Only first person on a reference page is held to one, above. The report prints
+it per page: "I", "we", "you" and contractions per 100 words. For scale, the survey found 1.0 to 3.5 contractions per 100 words on most personal
 pages and 0 to 0.25 on reference pages. One author wrote about 3 "I" per 100 words on a blog and
 none on the project's reference pages.
 
@@ -271,7 +272,7 @@ Terms such as `magic bytes` and `seamless tube` pass. The list is in
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates
-and `docs/`. It leaves out:
+(less the guidance in their comments) and `docs/`. It leaves out:
 
 - the decision records and the done-work archive, which are history;
 - the records pages, written from the decision records and the roadmap, and the roadmap itself,

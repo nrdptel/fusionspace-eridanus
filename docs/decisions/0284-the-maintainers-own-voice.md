@@ -104,9 +104,10 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   "this section" counts only at a sentence's start.
   Minimizers leave out "just" before a word of place or time and "how quickly", which measure
   something here. A quotation inside one sentence isn't read for hedges, minimizers, signposts,
-  first person or the register; the stock list reads it. First person leaves out a capital I after a word that makes
-  it a numeral or a name ("Type I", "Saturn I") or before "is" or a motor word ("where I is the
-  inertia", "an I motor").
+  first person or the register; the stock list reads it. First person counts a capital I only before a lower-case word,
+  and leaves out one after a word that makes it a numeral or a name ("Type I", "Saturn I") or
+  before "is" or a motor word ("where I is the inertia", "an I motor"); so an I at a clause's end
+  ("so did I") isn't counted.
 - *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
   1.0; stacked hedges, minimizers and signposts 0.1; first person on a reference page 0 (the
   model and format pages, the command line and the glossary). The sentence limit comes from the
@@ -126,7 +127,7 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   the guide asks for no recaps. The note's "let me know" and "Certainly!" are left off as
   ordinary speech ("certainly" is on two pages).
 - *What it reads.* With no path: the README, the changelog, the contributing guide, the pull
-  request and issue templates and `docs/`, less the decision records, the records pages, the
+  request and issue templates (less the guidance in their comments) and `docs/`, less the decision records, the records pages, the
   roadmap they're written from, the done-work archive, the research notes and the site's table
   of contents. Its report is `validation/reports/voice.md`; a test holds the report to the
   pages, and `cargo xtask site` fails on a stock phrase.
