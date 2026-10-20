@@ -172,9 +172,9 @@ Each model page lists what its model leaves out. These gaps matter most for a wh
   flight uses them at every angle: just off the rail in a strong crosswind, and near apogee.
 - Staging, clusters and air starts are checked against OpenRocket on three of its examples. Each
   motor lights at its own time, and a sustainer flies on after a powered separation
-  ([Staging](physics/staging.md)). The examples' 12 flights are each within 5% of OpenRocket's
-  apogee and largest speed. Three cluster apogees are compared with OpenRocket's flight with no
-  parachute, since its parachute opened before apogee
+  ([Staging](physics/staging.md)). The two-stage, cluster and air-start examples' 12 flights are
+  each within 5% of OpenRocket's apogee and largest speed. Three cluster apogees are compared with
+  OpenRocket's flight with no parachute, since its parachute opened before apogee
   ([a two-stage and a cluster design](decisions-and-roadmap.md#m1-9c)).
 
   A motor that fails to light in a cluster is checked by tests only

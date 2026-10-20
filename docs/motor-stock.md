@@ -403,7 +403,7 @@ That test runs the command on the recorded lists, from the file and offline from
 - `hpr motors search` lists stock and prices: it doesn't match motors to ThrustCurve.org or
   download their curves. A program does, as in the example.
 - The match is by name only. A motor ThrustCurve.org spells differently from the finder is a miss;
-  the simulator doesn't fall back on impulse or size. None missed on the recording.
+  the simulator doesn't fall back on impulse or diameter. None missed on the recording.
 - `Curve::thrust_curve()` reads only the first motor of a file; the two recorded files hold one
   each.
 - There's no choice among files. A motor may have several files in one format (from a

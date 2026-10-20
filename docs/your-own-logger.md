@@ -16,7 +16,7 @@ barometric altitude above the pad as the primary track, the one the readings are
 
 The examples read invented files. All but the FIP export and the workbook `two-flights.xlsx`
 are one flight's, its logger's and its GPS tracker's
-([their evidence row](evidence.md#g11)).
+([the evidence register's row on these files](evidence.md#g11)).
 
 > **How far to trust it.** The record is the logger's own samples, converted by the units your
 > mapping or layout states. It's as right as those units are.
@@ -232,9 +232,9 @@ are withheld, each with the reason:
 - and burnout, which then needs the top speed.
 
 A column is read as the rocket's axis only where its logger's reader names it so or its name holds
-the word `axial` ([the accelerometer](physics/log-readings.md#the-accelerometer)). The name can be
-the header's or the mapping's. `--json` prints the same as JSON. `--record` prints the whole record
-instead, every sample of every channel, as JSON. The record's
+the word `axial` ([the accelerometer](physics/log-readings.md#the-accelerometer)). A column's name
+can be the header's or the mapping's. `--json` prints the same as one JSON document. `--record`
+prints the whole record instead, every sample of every channel, as one JSON document. The record's
 [schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-record.schema.json)
 lists its fields:
 

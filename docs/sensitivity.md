@@ -305,7 +305,7 @@ range.
   ±0.01 to ±0.015 (one standard error). Use Morris to find the few factors that matter, then
   Sobol' on those if you need the shares or the order of two close ones.
 - **Normal inputs:** give each one the same multiple of its standard deviation, such as ±2, so
-  they're compared alike.
+  they're compared alike. A range weighs its ends more than a normal spread does.
 
 ## Left out
 

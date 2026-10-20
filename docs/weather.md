@@ -217,7 +217,8 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
   ground. How much that changes a rocket's turn into the wind off the rail isn't measured.
 - A relative humidity above 100% at the ground refuses the answer rather than trimming it.
 - When Open-Meteo refuses a request (a place or date it doesn't cover), the error names the HTTP
-  status but not Open-Meteo's reason. The HTTP transport drops the body of a failed answer.
+  status but not Open-Meteo's reason. That's because the HTTP transport drops the body of a
+  failed answer.
 - Each request is for only one place and one launch time. It takes Open-Meteo's own choice of
   weather model unless you name one.
 - The command line fetches it with [`hpr weather open-meteo`](cli.md#hpr-weather), but `hpr sim`

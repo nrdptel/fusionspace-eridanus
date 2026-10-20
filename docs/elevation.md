@@ -26,8 +26,8 @@ library.
 > The example below shows the air 12.8% thinner over 1,400 m (4,593 ft). The recorded heights are
 > whole meters; Open-Meteo doesn't document its rounding.
 
-The tests replay two saved answers and never contact Open-Meteo, which was contacted by hand,
-over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
+The tests replay two saved answers and never contact Open-Meteo. The live service was contacted
+by hand, over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
 would show only when a program runs, as a refused answer.
 
 > **How far to trust it.** From a file, a copied value: at a given place, HPR Sim reads the same
@@ -196,8 +196,8 @@ Show it wherever the height is shown. The column `density / sea` is the air's de
 fraction of sea level's. `Fetched` and `Cached` say where an answer came from
 ([how long a copy stays fresh](online-data.md#how-long-a-copy-stays-fresh)).
 
-At Spaceport America's 1,400 m (4,593 ft), the drag at the same speed and drag coefficient is
-about 13% lower than at sea level.
+At Spaceport America's 1,400 m (4,593 ft), the standard air is about 13% thinner than at sea
+level. So the drag at the same speed and drag coefficient is about 13% lower.
 
 ## How it is checked
 
@@ -322,8 +322,8 @@ to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtm
 the offset and the tilt come to a meter or two at most.
 
 The simulator takes a height above either as the $H$ of
-[What the height means](#what-the-height-means). A meter's difference changes the air's density by
-about 0.01%.
+[What the height means](#what-the-height-means). A meter's difference in $H$ changes the air's
+density by about 0.01%.
 
 ### An example with a file
 

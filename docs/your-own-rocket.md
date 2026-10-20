@@ -534,9 +534,9 @@ It has eight steps.
    - A dimension named in a component's `auto` list is taken from the parts around it, and the
      value stored for it (0 here) is ignored. The nose's base radius and its shoulder's radius
      follow the airframe ([Automatic dimensions](physics/design.md#automatic-dimensions)). Other
-     parts can take theirs the same way: a tube fin set's `outer_radius_m`, for one. Then three
-     tubes or more are wide enough to touch the body and each other, and no wider, closing the ring.
-     One or two tubes take the body's radius.
+     parts can take theirs the same way: a tube fin set's `outer_radius_m`, for one, can be
+     automatic. Then three tubes or more are wide enough to touch the body and each other, and no
+     wider, closing the ring. One or two tubes take the body's radius.
    - Setting `motor_mount` makes a body tube or inner tube a motor mount. Its `overhang_m` is how
      far the nozzle sits aft of the mount's end.
    - <a id="packing"></a>A
@@ -779,7 +779,7 @@ What the example can't do yet, and where to go from here.
   fewer than three tubes, solid tubes, and tubes that overlap each other. It refuses a tube shorter
   than a third of its diameter, and tube fins on a pod or a tumbling airframe
   ([aerodynamics: Tube fins](physics/aero.md#tube-fins)).
-- Pods fly on Barrowman's rules. A
+- Pods fly on Barrowman's rules, without their interference with the body. A
   [pod set](physics/design.md#pods) gives each pod's parts their own normal force and drag, once
   per pod. It's as if the airframe didn't disturb the air around them. Nothing measured checks the
   pods yet, and a single pod's off-axis moments are left out

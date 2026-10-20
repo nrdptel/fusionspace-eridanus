@@ -202,8 +202,8 @@ The profile lists every row it left out, and why. Two things refuse the answer:
 
   Bad rows right after a good ground can do the same. They miss the ground but fit the rows above
   them, within the allowance. They beat the ground when the chain through them is longer, or as
-  long and closer. That chain is longer when it passes by fewer good rows than it holds bad ones,
-  less one.
+  long and closer. The chain through them is longer when it passes by fewer good rows than it
+  holds bad ones, less one.
 
   That happens in narrow bands of error, just past the ground's allowance. In the BUFR file, whose
   first layers are about 8 m (26 ft) thick, two rows 31 m (102 ft) high refuse the answer. Two
@@ -320,6 +320,8 @@ In the BUFR file the wind is already 11.1 m/s (25 mph) 8 m (26 ft) above the gro
 the rocket is slowest and turns into the wind the most. Without its rows below 1,438 geopotential
 meters, the BUFR flight's apogee is 419 m (1,375 ft) west. That's within 18 m (59 ft) of the coded
 message's. This flight peaks at 2,846 m (9,337 ft), within 2 m (6.6 ft) of the coded message's.
+
+Which version is nearer the truth isn't known.
 
 ## How it is checked
 

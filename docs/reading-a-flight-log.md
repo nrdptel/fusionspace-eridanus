@@ -32,7 +32,7 @@ these ([the layouts read](format/flight-logs.md)):
 - GPS tracks from Featherweight's GPS tracker, KML and NMEA files, and Missile Works' RTx
   tracker's `.rtx` file and its exports
 - GPS tracks in GPX files, checked on invented files only
-  ([their evidence row](evidence.md#g1))
+  ([the evidence register's row on GPX](evidence.md#g1))
 - tables from loggers no other reader knows, by the units their headers state, into the same record
 - those tables in a CSV layout also from the sheets of an Excel workbook
 - a team flight computer's binary records, by a layout the caller states
@@ -60,7 +60,7 @@ Since [the rest of the readings](decisions-and-roadmap.md#m7-2c) shipped, they i
 the flight time and each canopy's descent rate. They also include the top acceleration from an
 accelerometer along the rocket's axis. Formats no sample holds yet, such as a CATS flight
 computer's, are [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-([their evidence row](evidence.md#g9)).
+([the evidence row on these formats](evidence.md#g9)).
 
 > **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each
 > states a bound on its error, held on HPR Sim's synthetic flights. They're 171 simulated flights,
@@ -381,7 +381,7 @@ Among them are those that came with the accelerometer and the canopies:
 ## What it doesn't do yet
 
 - Read a format no sample holds yet, such as a CATS flight computer's
-  ([their evidence row](evidence.md#g9)). The formats that need samples are
+  ([the evidence row on such formats](evidence.md#g9)). The formats that need samples are
   [listed](format/flight-logs.md#formats-that-need-samples), each with what a reader would need. A
   sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662).
 - Find the deployments as events: the main's opening is read from the descent's rate, not from
