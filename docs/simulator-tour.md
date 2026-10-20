@@ -3,10 +3,10 @@
 Fly a design file from HPR Sim's command line and Python, read the output, scatter the inputs, and
 see how it did on real flights.
 
-This tour is for a flier who has HPR Sim installed, or is deciding whether to install it. It
-shows, in a few minutes, what HPR Sim does with a design file. That's what it prints, how to read
-it, how to fly it from Python, and how far it has been from real flights. It flies the small
-rocket the how-to guides use, then turns to a public flight that left a log. Each step links to
+This tour is for a flier who has HPR Sim installed, or is deciding whether to install it. They
+want to see in a few minutes what HPR Sim does with a design file. The tour shows what it prints,
+how to read it, how to fly it from Python, and how far it has been from real flights. It flies the
+small rocket the how-to guides use, then turns to a public flight that left a log. Each step links to
 the page that covers it in full.
 
 [HPR Sim](the-simulator.md) says what the simulator is and how to install it.
@@ -268,7 +268,7 @@ the design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 7 flights HPR Sim's apogee
 missed by −8.90% to +10.40% one by one. It missed by 6.04% on average without signs, and by
-−0.25% with them. That average is outside the project's own 5% target
+−0.25% with them. The average without signs is outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)).
 
 So on these flights the misses go both ways. On 53 logged flights of fliers' own designs, though,

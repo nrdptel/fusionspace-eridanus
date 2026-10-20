@@ -17,13 +17,15 @@ with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
 > Rust builder makes from the same numbers. A test builds [The builder](the-builder.md)'s example
 > rocket in Python and matches every digit that Rust example prints
 > ([`test_prints_what_the_rust_example_prints`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_builder.py)).
-> Digits beyond those printed can differ between a release and a debug build. Because the code is
-> the same, what that page and [Accuracy](accuracy.md) say about the numbers holds here too. The
-> rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is
+> Digits beyond those printed can differ between a release and a debug build.
+>
+> Because the code is the same, what that page and [Accuracy](accuracy.md) say about the numbers
+> holds here too. The rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is
 > the least certain number of all. On two of RocketPy's example rockets, HPR Sim's drift and
 > RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why). The package is
-> new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
+> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
+>
+> The package is new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
 > bring a design file, the gap that matters most is that most `.ork` configurations are refused
 > ([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
 > and Windows. It's published on PyPI, Python's package index, as `fusionspace-hpr`.
@@ -36,7 +38,8 @@ Install the package, fly a first rocket, and read its recording.
 
 `pip install fusionspace-hpr` installs release 0.1.0 from PyPI, with NumPy. One wheel serves
 CPython 3.10 and later on Linux on x86-64, on Macs with Apple silicon, and on Windows on x86-64.
-On Linux it needs glibc 2.17 or later. Elsewhere pip builds the source package, which needs Rust
+The Linux wheel needs glibc 2.17 or later. On any other system, or on Linux with an older glibc,
+pip builds the source package, which needs Rust
 ([Install a release](getting-started.md#install-a-release)).
 
 You can also build it from this repository. You need the Rust toolchain
@@ -199,10 +202,10 @@ in [Flight metrics](physics/metrics.md).
 
 `flight.envelope_flags` lists where the flight went past what the simulator's numbers have been
 checked for ([the operating envelope](VALIDATION.md#operating-envelope)). It also lists
-`"unstable_under_power"` for a static margin below zero while a motor burns
-([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Or, where the
+`"unstable_under_power"` for a static margin below zero while a motor burns. Or, where the
 simulator can give no margin, it lists `"unstable_without_margin"` for a pitching moment that turns
 the rocket away while a motor burns.
+[Flight metrics: unstable under power](physics/metrics.md#unstable-under-power) explains both.
 
 Each entry is a dictionary with its `flag`, such as `"beyond_validated_range"`, and the `value`
 that raised it. That's a Mach number, an angle of attack in radians, a margin in calibers, or a
@@ -268,7 +271,7 @@ example: apogee 2807 m, landing at 5.2 m/s
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with
 HPR Sim's own drag too, in a wind and in RocketPy's atmosphere. There its apogee is 0.609% below
 RocketPy's, the closest of the suite's six rockets. HPR Sim's own drag puts the others' apogees
-7.280% below RocketPy's to 10.302% above
+from 7.280% below RocketPy's to 10.302% above
 ([Whole flights with each code's own drag](accuracy.md#whole-flights-with-each-codes-own-drag),
 [same-drag and predicted mode](glossary.md#same-drag-and-predicted-mode)).
 
@@ -298,7 +301,7 @@ Three options make it RocketPy's flight:
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as before, to 2650 m (8694 ft) above the pad:
+as in the section above, to 2650 m (8694 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])
@@ -446,10 +449,11 @@ the two agree to the last digit. At some numbers, 0.3 or 0.45 say, they differ i
 because the table's interpolation rounds its own constant.
 
 A function that raises stops the flight, and `Flight` raises its exception unchanged, with its
-type and traceback. That holds even for an exception at a trial step. The integrator tries a step,
-and when a model refuses, it would normally retry with a shorter one. It asks at speeds and heights
-a little past the flight's own. The landing's search, for one, asks the wind a few meters below the
-ground. So a function that refuses past its data wants some margin.
+type and traceback. That holds even for an exception at a trial step.
+
+The integrator tries a step, and when a model refuses, it would normally retry with a shorter one.
+It asks at speeds and heights a little past the flight's own. The landing's search, for one, asks
+the wind a few meters below the ground. So a function that refuses past its data wants some margin.
 
 A function can't be given alongside its constant counterpart. `drag` with `drag_table`, or `wind`
 with `wind_speed_m_s` or `wind_from_deg`, raises `hpr.HprError`. So does something that can't be
@@ -623,9 +627,9 @@ The package covers the Rust builder, not the whole library. Not yet:
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
 - Staging and mass shifts. A configuration that drops a stage under power is refused. Any other
-  design of several stages flies as one stack, and `rocket.notes` says so. No stage drops away. A
-  motor lit by another's burnout lights on the whole stack, and one lit by a separation never
-  does.
+  design of several stages flies as one stack, and no stage drops away. A motor lit by another's
+  burnout lights on the whole stack, and one lit by a separation never does. `rocket.notes` says
+  so.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.
 - Separations stored in a design file, as above.
 - Monte Carlo's landing ellipses and spread summaries, which `hpr mc` prints and Rust programs

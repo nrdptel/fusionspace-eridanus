@@ -60,7 +60,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         Quote {
             template: "On {} logged flights of fliers' own designs, flown from the same files, HPR \
                        Sim's apogee missed by {} on average without signs. OpenRocket's missed by \
-                       {}",
+                       {} on average without signs",
             holes: |r| {
                 Ok(vec![
                     set_count(r, "hpr", "n")?.to_string(),
@@ -88,8 +88,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "On the {} public flights HPR Sim missed by {} on average without signs, \
-                       outside the project's own {} target",
+            template: "On the {} public flights HPR Sim's apogee missed by {} on average without \
+                       signs, outside the project's own {} target",
             holes: |r| {
                 if r.flag(REAL, "/summary/within_target")? {
                     return Err("the public flights now meet their target".to_owned());

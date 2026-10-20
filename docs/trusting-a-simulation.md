@@ -49,10 +49,10 @@ have read 2,946 m (9,665 ft). The miss is (2,946 − 2,789) / 2,789 = +5.63%
 sides of a miss are altimeter readings.
 
 Across 53 logged flights of fliers' own designs, HPR Sim's apogee averaged +8.73% above the logged
-one ([report][fixture-report]). Each was flown as drawn in its day's air. Each logged apogee there
-is the altimeter's reading turned into the height climbed in that day's air, so the comparison
-leans on that conversion too. Without their signs, the misses averaged 12.95%, and 26 were within
-10% either way. The figure counts them by size.
+one ([report][fixture-report]). Each flight was flown as drawn in its day's air. Each logged
+apogee there is the altimeter's reading turned into the height climbed in that day's air, so the
+comparison leans on that conversion too. Without their signs, the misses averaged 12.95%, and 26
+were within 10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
 
@@ -62,8 +62,8 @@ wide: the lowest read between 15% and 20% low, the highest past +30% high.
 OpenRocket, flying the same files in each day's wind and the pad's air, averaged +7.79% above and
 missed by 12.02% without signs ([report][fixture-report]). The two simulators agreed with each
 other within 5% on 52 of the 53 flights. So most of the miss is one they share, and where it comes
-from isn't pinned down. It's in what both are given (the design file, the motor's curve, the
-logged apogee they're scored against), or in models they have in common. A second simulator
+from isn't pinned down. It could be in what both are given (the design file, the motor's curve,
+the logged apogee they're scored against), or in models they have in common. A second simulator
 checks how the first is coded, not what the two share.
 
 The 7 public flights are university teams' rockets, flown in a
@@ -166,9 +166,9 @@ from the sky.
 
 ## What this guide leaves out
 
-- This guide covers nothing but apogee. No comparison here checks a top speed, a descent, a drift
-  or a landing place against a real flight. Those are checked against other programs, which shows
-  that HPR Sim computes what they compute, not that any of them matches the world
+- It checks nothing but apogee against real flights. No comparison here checks a top speed, a
+  descent, a drift or a landing place against one. Those are checked against other programs, which
+  shows that HPR Sim computes what they compute, not that any of them matches the world
   ([Accuracy](accuracy.md)).
 - It doesn't cover rockets unlike these. The flights are hobby and university rockets as their
   fliers drew them. A rocket much faster, much higher or of an odd shape sits outside them, and

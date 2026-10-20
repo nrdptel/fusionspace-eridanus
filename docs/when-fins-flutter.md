@@ -93,8 +93,8 @@ The ratio $V_f/V$ is the first reading. The second is Martin's own check: where 
 his chart against the line his data draw. His chart gives each wing one number, the denominator
 $D$ over its shear modulus $G_E$. The higher it is, the less stiff the wing for the air it flies
 in. Wings that fluttered or failed lie above a band, and wings that flew to at least Mach 1.3
-without known failure lie below it. It runs at a ratio of 0.25 to 0.31, a flutter speed 1.8 to 2.0
-times the speed of sound ([The line in Martin's data][band]). So the band isn't a speed to stay
+without known failure lie below it. The band runs at a ratio of 0.25 to 0.31, a flutter speed 1.8
+to 2.0 times the speed of sound ([The line in Martin's data][band]). So the band isn't a speed to stay
 under: it's how stiff Martin's unfailed wings were, all of them faster than sound.
 
 The guides' rocket's fins plot at 3.79, above the band. To plot below it with the same outline,

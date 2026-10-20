@@ -362,8 +362,8 @@ fn angle_shifts(r: &Reports) -> Result<(Shifts, &'static str), String> {
 pub(super) fn quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "There it read up to {} calibers aft on a longer model, and up to {} on the \
-                       one the figure draws",
+            template: "read up to {} calibers aft of the tunnel's on a longer model. On the one \
+                       the figure draws, it read up to {} calibers aft",
             holes: |r| {
                 let long = r.tunnel_rows_of(TUNNEL_LONG)?;
                 let short = r.tunnel_rows()?;

@@ -447,7 +447,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         },
         Quote {
             template: "At Mach {} in sea-level air its drag coefficient is {}: skin friction makes \
-                       {}, the base {} and the fins' square edges {}",
+                       {} of it, the base {} and the fins' square edges {}",
             holes: |r| {
                 let at = |key: &str| rocket(r, 1, key);
                 let (cd, fins) = (at("cd")?, at("fins_pressure")?);
@@ -671,9 +671,9 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "HPR Sim's read {} at Mach {} and {} at Mach {}, the most of the readings \
-                       below the speed of sound. It read {} at Mach {}, the least. Then it read \
-                       more at every faster speed, to {} at Mach {}",
+            template: "HPR Sim's read {} at Mach {}. It read {} at Mach {}, the most of the \
+                       readings below the speed of sound. It read {} at Mach {}, the least. Then \
+                       it read more at every faster speed, to {} at Mach {}",
             holes: |r| {
                 let rows = r.drawn_rows()?;
                 let first = rows.first().ok_or("no rows")?;

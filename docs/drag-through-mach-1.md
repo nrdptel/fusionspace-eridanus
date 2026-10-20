@@ -11,18 +11,18 @@ sound and what the finish changes. Then it shows how well HPR Sim's drag follows
 and which error flatters. It's one of the guides in *Rocketry explained*, which explain the
 physics behind the numbers HPR Sim prints.
 
-> **How far to trust it.** Every number in this guide's text is read by a test from a committed
-> file. One holds HPR Sim's drag for the guides' rocket ([report][rocket-report]). Another sets HPR
-> Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
+> **How far to trust it.** Every number in this guide's text is read by a test from three committed
+> files. One holds HPR Sim's drag for the guides' rocket ([report][rocket-report]). Another sets
+> HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
 > ([comparison][tunnel]). The third holds the logged flights of
-> [Trusting a simulation](trusting-a-simulation.md). That's one rocket's shape, two half-scale
-> models of it in two of NASA's tunnels, their bases left out. No hobby rocket's drag has been
-> measured for these comparisons. On the model the figure draws, HPR Sim's forebody drag read high
-> at every speed, by +7.0% to +154.1%, rounded outward. That's the side that flatters an apogee
-> ceiling. On hobby rockets the evidence leans the other way. HPR Sim's apogee averaged +8.73%
-> above the logged one on the 53 flights, and drag is one of the inputs that could explain it. The
-> guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO) decide
-> whether a rocket flies.
+> [Trusting a simulation](trusting-a-simulation.md). The tunnel comparison is one rocket's shape,
+> two half-scale models of it in two of NASA's tunnels, their bases left out. No hobby rocket's
+> drag has been measured for these comparisons. On the model the figure draws, HPR Sim's forebody
+> drag read high at every speed, by +7.0% to +154.1%, rounded outward. That's the side that
+> flatters an apogee ceiling. On hobby rockets the evidence leans the other way. HPR Sim's apogee
+> averaged +8.73% above the logged one on the 53 flights, and drag is one of the inputs that could
+> explain it. The guide gives ranges, not verdicts. The safety code and the range safety officer
+> (the RSO) decide whether a rocket flies.
 
 ## What drag is made of
 
@@ -58,9 +58,9 @@ HPR Sim builds the coefficient up part by part, following Niskanen's thesis, whi
 also follows ([Aerodynamics](physics/aero.md#drag)). The guides' rocket shows the parts, as HPR
 Sim computes them. It's a small rocket for a first certification flight that the repository keeps
 for its how-to guides ([its design file][level-1]). No measurement of this rocket's drag exists.
-At Mach 0.3 in sea-level air its drag coefficient is 0.60: skin friction makes 59%, the base 22%
-and the fins' square edges 19%. Its ogive nose, smooth into the body, adds next to nothing at that
-speed ([report][rocket-report]).
+At Mach 0.3 in sea-level air its drag coefficient is 0.60: skin friction makes 59% of it, the base
+22% and the fins' square edges 19%. Its ogive nose, smooth into the body, adds next to nothing at
+that speed ([report][rocket-report]).
 
 A worked example. At Mach 0.5 in sea-level air the guides' rocket flies at 170 m/s (558 ft/s), so
 the dynamic pressure is 17.7 kPa. Its reference area is the body's cross-section, 66 mm (2.60 in)
@@ -82,7 +82,7 @@ The guides' rocket's drag coefficient climbs to 0.69 by Mach 0.8 and 0.84 at Mac
 0.88 at Mach 1.07, 45% above its value at Mach 0.3, and by Mach 2 it's back down to 0.57
 ([report][rocket-report]). The base's drag grows from 0.15 at Mach 0.5 to 0.25 at Mach 1, then
 falls ([report][rocket-report]). The nose's pressure drag, next to nothing at Mach 0.5, reaches
-0.19 at Mach 1.1.
+0.19 at Mach 1.1 ([report][rocket-report]).
 
 Drag grows with the square of the speed as well, so the two compound. Doubling the speed makes
 the dynamic pressure four times larger, and the coefficient is higher besides. So in the same air,
@@ -123,10 +123,11 @@ rocket. The figure sets HPR Sim's forebody drag against the tunnel's, on the sho
 
 Each of the tunnel's points was read off the reports' plots to within 0.002 to 0.008 in drag
 coefficient either way. That's the band drawn round its dot, and most bands are smaller than the
-dot. HPR Sim's read +12.9% at Mach 0.6 and +51.0% at Mach 0.9, the most of the readings below the
-speed of sound. It read +7.1% at Mach 1, the least. Then it read more at every faster speed, to
-+154.0% at Mach 4.63, and at the faster speeds most of that is the fins. HPR Sim gives a fin's
-front edge the drag of a rounded edge, which grows with speed, where a thin, sharp fin's falls.
+dot. HPR Sim's read +12.9% at Mach 0.6. It read +51.0% at Mach 0.9, the most of the readings
+below the speed of sound. It read +7.1% at Mach 1, the least. Then it read more at every faster
+speed, to +154.0% at Mach 4.63, and at the faster speeds most of that is the fins. HPR Sim gives a
+fin's front edge the drag of a rounded edge, which grows with speed, where a thin, sharp fin's
+falls.
 With the fins off, HPR Sim's read +12.0% to +44.6% high on the short model, and up to +54.2% on
 the long one. Most of that comes from the boattail, which HPR Sim's rule over-predicts at these
 speeds. The models' finish wasn't reported. The comparison takes it as polished, a guess, and a
@@ -137,8 +138,8 @@ causes.
 
 ## Which error flatters
 
-A drag that reads high makes the simulated rocket fly lower and slower than the real one. Its
-apogee, its top speed and its max q, the peak dynamic pressure, all read low. For a flight near a
+A drag that reads high makes the simulated rocket fly lower and slower than the real one. The
+simulated apogee, top speed and max q, the peak dynamic pressure, all read low. For a flight near a
 waiver's ceiling, the height a launch's airspace permit allows, that's the flattering side. The
 real rocket may climb higher than the number says. A max q that reads low flatters the fins and
 the airframe too ([When fins flutter](when-fins-flutter.md)). A drag that reads low errs the other

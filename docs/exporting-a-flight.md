@@ -64,10 +64,10 @@ program prints a rounded summary instead of the files.
 
 ### Which program wrote a file
 
-Each file but the CSV carries its provenance, where it came from. Like a drawing's title block, it
-names the tool that made it: the program, its version and its designation in the FusionSpace
-product system. It also carries the motor catalog's date and how far to trust it, which come
-further below. The tool is named this way:
+Each file but the CSV carries its provenance, where it came from. Like a drawing's title block, the
+provenance names the tool that made the file. That's the program, its version and its designation
+in the FusionSpace product system. It also carries the motor catalog's date and how far to trust it,
+which come further below. The tool is named this way:
 
 - In JSON and GeoJSON, it's a `tool` object at the top,
   `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"}`.
@@ -81,13 +81,15 @@ further below. The tool is named this way:
 
 The CSV holds only the header and the rows, so a spreadsheet opens it cleanly. Its header gives
 each column in words with its unit in brackets, as the FusionSpace product system writes one.
-So it gives `time [s]` for the column the other formats call `time_s`, and `velocity east [m/s]`
-for `velocity_east_m_s`. It gives `acceleration up [m/s^2]` for `acceleration_up_m_s2` and `dynamic pressure
-[Pa]` for `dynamic_pressure_pa`. A column with no unit, such as `mach`, is its words alone.
+For example, it gives `time [s]` for the column the other formats call `time_s`,
+`velocity east [m/s]` for `velocity_east_m_s`, `acceleration up [m/s^2]` for
+`acceleration_up_m_s2` and `dynamic pressure
+[Pa]` for `dynamic_pressure_pa`. A column with no unit, such as `mach`, is its words alone. The
+library's `export::csv_header` gives one from the other.
 
-The library's `export::csv_header` gives one from the other. `hpr sim` writes the title block
-beside the CSV instead: `flight.meta.json` for `flight.csv`. It holds the same `tool` object, the
-CSV's file name, the design and configuration flown, the number of rows, and:
+`hpr sim` writes the title block beside the CSV instead: `flight.meta.json` for `flight.csv`. It
+holds the same `tool` object, the CSV's file name, the design and configuration flown, the number
+of rows, and:
 
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
   `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
@@ -166,7 +168,7 @@ Sea level sits above or below the ellipsoid by the
 simulator has no model of it. So it uses the value the flight was given
 (`Environment::with_geoid_undulation_m`, zero unless set), the same for every point of the flight.
 The geoid's slope is about 5 cm (2.0 in) per kilometer, and up to some 30 cm (12 in) in mountains.
-Over a rocket's few kilometers, that moves it by centimeters to decimeters.
+Over a rocket's few kilometers, that slope moves the undulation by centimeters to decimeters.
 
 For example, take a site where sea level is 25 m (82 ft) below the ellipsoid
 ($N = -25\,\mathrm{m}$). There a point 1500 m (4921 ft) above the ellipsoid is written as
@@ -204,7 +206,7 @@ and
 - The Parquet file isn't compressed and carries no per-page minimum and maximum. It takes 8 bytes
   per number, plus a header of about 20 bytes per page of up to 1024 numbers. A short index of the
   columns at the end of the file adds to that. The example's file is 3228 bytes, and its CSV about
-  5.5 kB. Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file
+  5.6 kB. Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file
   when filtering (say `WHERE time_s > 10`). So it reads it all, which for one flight takes no
   noticeable time.
 - A path over the antimeridian (±180° longitude) isn't cut in two as RFC 7946 asks. So a map would

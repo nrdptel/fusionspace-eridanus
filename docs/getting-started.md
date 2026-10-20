@@ -9,10 +9,10 @@ happened. Then the page walks through that program, so you can change it and fly
 variations. It needs some Rust, but no knowledge of this project.
 
 > **How far to trust it.** A simulation, not validated
-> ([the register's row on real flights](evidence.md#g24)): this rocket left no flight log to check
-> it against. On seven other rockets' logged flights, HPR Sim's apogees missed by 6.04% on average,
-> outside the 5% target ([real flights](accuracy.md#real-flights)). On 53 more from a private
-> collection, they were +8.73% above the logs, and OpenRocket's were +7.79%
+> ([the evidence register's row on real flights](evidence.md#g24)): this rocket left no flight
+> log to check it against. On seven other rockets' logged flights, HPR Sim's apogees missed by
+> 6.04% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 53 more
+> from a private collection, they were +8.73% above the logs, and OpenRocket's were +7.79%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)). Given the same drag,
 > its heights, speeds and times match RocketPy's. On its own drag it flies this rocket about 10%
 > higher than RocketPy does on the drag table RocketPy's example ships: 770 m (2,526 ft) against
@@ -220,8 +220,8 @@ Below the table:
   is due west.
 - Top speed is the fastest the rocket went, over the ground, with its
   [Mach number](glossary.md#mach-number). The Mach number is the rocket's speed through the air as
-  a fraction of the speed of sound. It comes just before burnout, once the dwindling thrust no longer beats the drag
-  and the weight.
+  a fraction of the speed of sound. The top speed comes just before burnout, once the dwindling
+  thrust no longer beats the drag and the weight.
 - Rail exit is the speed as the rocket leaves the rail. The slower it is in a crosswind, the
   larger the [angle of attack](glossary.md#angle-of-attack) just after it. That's where the
   simulator's models are least trustworthy (see
@@ -242,13 +242,13 @@ Below the table:
   motion, the motor and the air, not the drag.
 - Where it goes in wind is the least certain number. This airframe was compared with RocketPy
   only in still air, where its drifts agree within 3%. Here it leaves the rail at 16.2 m/s (53 ft/s)
-  in a 5 m/s (11 mph) wind, at a steep angle to the airflow. At such angles, two things put the
-  drifts of two of RocketPy's rockets 10 to 38% from RocketPy's
-  ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). One is HPR Sim's
-  [body lift](glossary.md#body-lift), a sideways push on the body that RocketPy leaves out. The
-  other is HPR Sim's later release from the rail. How much body lift a body makes is itself uncertain.
-  So this example's apogee 88.7 m (291 ft) upwind and its landing point are the least trustworthy
-  numbers it prints. Drift and landing haven't been compared with any real flight yet
+  in a 5 m/s (11 mph) wind, at a steep angle to the airflow. At such angles, HPR Sim's drifts for
+  two of RocketPy's rockets are 10 to 38% from RocketPy's
+  ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). HPR Sim's
+  [body lift](glossary.md#body-lift) and its later release from the rail put them there. Body lift
+  is a sideways push on the body that RocketPy leaves out. How much body lift a body makes is
+  itself uncertain. So this example's apogee 88.7 m (291 ft) upwind and its landing point are the
+  least trustworthy numbers it prints. Drift and landing haven't been compared with any real flight yet
   ([real flights](accuracy.md#real-flights) compare heights).
 - The thrust is likely a little low for this site. HPR Sim flies the curve as measured, to match
   RocketPy's example. A motor fired on a test stand near sea level gives somewhat more thrust in
@@ -563,8 +563,8 @@ It has six steps.
 1. **The rocket.** The program reads Valetudo's design from
    [`validation/designs/rocketpy-valetudo.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/rocketpy-valetudo.json)
    into a `Rocket`: its parts, their shapes, materials and positions, and its motor. The format is
-   the simulator's own and provisional. HPR Sim also reads its
-   [open design format](decisions-and-roadmap.md#m3-3) and OpenRocket's `.ork` files
+   the simulator's own and provisional. The [open design format](decisions-and-roadmap.md#m3-3)
+   will replace it. HPR Sim also reads that format, and OpenRocket's `.ork` files
    ([import from OpenRocket](decisions-and-roadmap.md#m3-1)). The
    [designs folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) holds the other
    example rockets, and its README says how each was built.

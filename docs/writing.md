@@ -249,9 +249,9 @@ none on the project's reference pages.
 
 `cargo xtask voice` reads this repository's pages, writes
 [the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md)
-and fails on a stock phrase. It also fails when a page already rewritten in this voice goes over a
-limit or misses a sentence target (below). A test fails when the report and the pages disagree, so run it
-after editing a page; the site's build runs the check too. Give it paths, such as
+and fails on a stock phrase. With no path, it also fails when a page already rewritten in this
+voice goes over a limit or misses a sentence target (below). A test fails when the report and the
+pages disagree, so run it after editing a page; the site's build runs the check too. Give it paths, such as
 `cargo xtask voice ../fusionspace-site/site`, and it reads those instead (Markdown, HTML or text)
 and prints the report. That's how fusionspace.co's pages and the design system's get checked.
 In the report, a rate in bold is over its limit, and `ref` marks a reference page.

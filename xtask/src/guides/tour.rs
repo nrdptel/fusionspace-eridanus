@@ -242,7 +242,7 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "That average is outside the project's own {} target",
+            template: "The average without signs is outside the project's own {} target",
             holes: |r| {
                 if r.flag(REAL, "/summary/within_target")? {
                     return Err("the public flights now meet their target".to_owned());

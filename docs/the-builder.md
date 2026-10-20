@@ -112,7 +112,7 @@ body tube you added:
 A position (`Position`) is measured along the tube the part is on:
 
 - `Top` places the part's fore end a distance aft of the tube's.
-- `Bottom` measures its aft end from the tube's aft end.
+- `Bottom` measures the part's aft end from the tube's aft end.
 - `Middle` measures its middle from the tube's middle.
 - `After` places its fore end behind the part before it.
 - `Absolute` measures its fore end from the nose tip.
@@ -241,7 +241,7 @@ Because a rocket is a value built by a function, a design study is a loop. The e
   The example's own fins are the 45 mm (1.8 in) ones.
 - Bigger fins cost height. In calm air the 65 mm (2.6 in) fins reach 38 m (125 ft) less than the
   45 mm (1.8 in) ones. That's their drag and their extra mass, about 9 g. In the wind they lose
-  47 m (154 ft), since they also turn the rocket further into it. The apogee drift shows it: 119 m
+  47 m (154 ft), since they also turn the rocket further into it. The apogee drift shows the extra turn: 119 m
   (390 ft) upwind with the 45 mm (1.8 in) fins. With the 65 mm (2.6 in) fins it's 176 m (577 ft).
 - The landing is closer with bigger fins. It comes 114 m (374 ft) closer from the 45 mm (1.8 in)
   fins to the 65 mm (2.6 in). The parachute opens further upwind, and lower, so it drifts for less
@@ -295,9 +295,10 @@ what the part is and its size in inches:
 *Structure* is all the parts together, without the motor.
 
 > **How far to trust it.** These masses are worked out from each part's shape and density. Nearly
-> every part weighs what OpenRocket 24.12 weighs when it builds the same catalog part. The mass is
-> within 0.1%, and the center of mass within 0.1% of the part's length. The few exceptions are
-> counted in [The masses against OpenRocket](#the-masses-against-openrocket) below.
+> every part weighs what OpenRocket 24.12 weighs when it builds the same catalog part. Each such
+> part's mass is within 0.1% of OpenRocket's, and its center of mass within 0.1% of its length.
+> The few exceptions are counted in
+> [The masses against OpenRocket](#the-masses-against-openrocket) below.
 >
 > One is deliberate, and this nose has it. Its [shoulder](glossary.md#shoulder), the short tube
 > that slides into the body, has the nose's own plastic wall here and weighs nothing in
@@ -397,7 +398,7 @@ Where the masses differ, the test checks each cause:
   own as a tube of the part's wall. That leaves the body, which is what OpenRocket weighs.
 - The two programs' walls differ. HPR Sim's wall is every point within its thickness of the outer
   surface. OpenRocket's masses follow a wall measured across each
-  [station](glossary.md#station) instead. Its inner radius is $r - t\sqrt{1 + r'^2}$
+  [station](glossary.md#station) instead. That wall's inner radius is $r - t\sqrt{1 + r'^2}$
   ($r$ the radius, $t$ the thickness, $r'$ the slope). The test works out both on its own.
 
   All 185 hollow parts' OpenRocket centers agree with the station-wise wall to 1.1e-4 of the
@@ -459,10 +460,10 @@ zero diameter, zero fins, or a shape parameter out of range. The error names the
 when it's added, too. That's fins before any tube, a second motor tube, or a nose behind a tube.
 
 The launch site and wind are checked when they're given, and the rail when the flight is set up. A
-design that comes in whole through `from_design` is checked before it flies. Tests try each of
-these and pin which check refuses it
-([`parts_out_of_order_are_refused`, `degenerate_designs_error_or_stay_finite`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
+design that comes in whole through `from_design` is checked before it flies.
 
+Tests try each of these checks and pin which check refuses it
+([`parts_out_of_order_are_refused`, `degenerate_designs_error_or_stay_finite`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
 One rocket in them has no fins at all. It flies, tumbling, to finite numbers. That test belongs to
 [the Loft lesson on degenerate designs](decisions-and-roadmap.md#l95). A
 [Loft lesson](glossary.md#loft-lesson) is a mistake of the project before this one, with the test

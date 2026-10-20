@@ -12,7 +12,7 @@ certifying member decide.
 HPR Sim's margin at rod clearance agrees with OpenRocket 24.12's to within 0.016
 [calibers](glossary.md#caliber) on 41 of OpenRocket's 53 example flights. But no margin of HPR
 Sim's has been checked against a measured rocket. On OpenRocket's two pod examples it reads 0.07
-calibers above OpenRocket's. Near the speed of sound its flight margin reads high too
+calibers above OpenRocket's. Near the speed of sound HPR Sim's flight margin also reads high
 ([accuracy of the margin](#accuracy-of-the-margin)). The outputs on this page are made by running
 each command, and CI checks that they still match what `hpr` prints.
 
@@ -291,10 +291,9 @@ The margin's checks, case by case:
   [#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186) are two of the open causes. A
   fifth, launched from a tilted rod, reads 0.0125 to 0.0366 above, most of it traced to the tilt.
   Reading more stable is the flattering side, so leave room for it near any limit.
-- Near the speed of sound, between Mach 0.8 and 1.2, HPR Sim's center of pressure is compared with
-  NASA's wind-tunnel data. It's up to 2.36 calibers behind ([Known gaps](accuracy.md#known-gaps)),
-  and wherever it misses by more than half a caliber, it sits behind. So the flight margin there
-  reads high: the flattering side ([Stability in flight](stability-in-flight.md) shows it against
-  the tunnel). The static
-  margin is computed at Mach 0, so it says nothing about the rocket's stability in that range. Use
-  the transonic guidance [above](#compare-with-published-guidance).
+- Near the speed of sound, between Mach 0.8 and 1.2, HPR Sim's center of pressure is up to 2.36
+  calibers behind NASA's wind-tunnel data ([Known gaps](accuracy.md#known-gaps)). Wherever it
+  misses by more than half a caliber, it sits behind. So the flight margin there reads high: the
+  flattering side ([Stability in flight](stability-in-flight.md) shows it against the tunnel). The
+  static margin is computed at Mach 0, so it says nothing about the rocket's stability in that
+  range. Use the transonic guidance [above](#compare-with-published-guidance).

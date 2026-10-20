@@ -9,8 +9,8 @@ already have.
 
 > **How far to trust it.** HPR Sim's flights here are estimates from a model. A motor's data, as
 > `hpr motors show` says, is copied from its curve file, not measured. Against 53 logged flights of
-> fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one, as `hpr sim` says under
-> each flight below. It was within 10% on 26 and read low on 13, by at most 20%.
+> fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one. It was within 10% on
+> 26 and read low on 13, by at most 20%. `hpr sim` gives these figures under each flight below.
 > [Accuracy](accuracy.md) says how close it comes elsewhere. The outputs on this page are made by
 > running each command, and CI checks that they still match what `hpr` prints. The motor's printed
 > data and your range safety officer have the last word.
@@ -304,7 +304,7 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 **The simulator doesn't change your `.ork` file: set the motor and its delay in OpenRocket, save,
 and fly the file again.** Without `--motor`, `hpr sim` flies the motors and delays the file holds,
-as [Fly your .ork](fly-your-ork.md) shows. Its `delay` line checks the delay you set.
+as [Fly your .ork](fly-your-ork.md) shows. `hpr sim`'s `delay` line checks the delay you set.
 
 ## What it leaves out
 

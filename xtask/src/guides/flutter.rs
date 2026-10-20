@@ -529,7 +529,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![needed(thickness_for_airspeed(r)?)]),
         },
         Quote {
-            template: "It runs at a ratio of {} to {}, a flutter speed {} to {} times the \
+            template: "The band runs at a ratio of {} to {}, a flutter speed {} to {} times the \
                        speed of sound",
             holes: |r| {
                 let [low, high] = band(r)?;

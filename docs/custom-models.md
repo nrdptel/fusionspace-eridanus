@@ -60,8 +60,8 @@ idea, with your code in place of the table. The last one set is the one flown.
 
 One difference matters. A table can carry the diameter it was measured on, and the simulator
 rescales it to the rocket's reference area. A negative coefficient is refused from either, where
-the flight meets it. A table can give one past its rows or between them if its curve extrapolates
-linearly or bends. **A model's number is not rescaled.** If your curve was measured on another
+the flight meets it. A table can give a negative one past its rows or between them if its curve
+extrapolates linearly or bends. **A model's number is not rescaled.** If your curve was measured on another
 area, multiply it by your area over `query.reference_area_m2()` before returning it.
 
 ## A drag model
@@ -93,7 +93,8 @@ A curve that ends at Mach 0.4 stops the flight: Mach number past the drag curve'
 What the lines say:
 
 - 10% more drag costs 53.9 m (177 ft) of [apogee](glossary.md#apogee), 4.7%, and reaches it
-  0.41 s sooner. It's a way to see how much a rougher finish, or an uncertain drag, could matter.
+  0.41 s sooner. Flying 10% more drag is a way to see how much a rougher finish, or an uncertain
+  drag, could matter.
 - The curve is invented. Its apogee lands within 2 m (6.6 ft) of the simulator's because of the
   numbers chosen. That says nothing about whether either is right. A curve from your own data
   would put your numbers here.

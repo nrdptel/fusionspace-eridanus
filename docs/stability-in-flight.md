@@ -10,16 +10,16 @@ move it. Then it shows how well HPR Sim's follows a wind tunnel's, and which err
 margin. It's one of the guides in *Rocketry explained*, which explain the physics behind the
 numbers HPR Sim prints.
 
-> **How far to trust it.** Every number in this guide's text is read by a test from a committed
-> file. One is HPR Sim's center of pressure for the guides' rocket ([report][rocket-report]). The
+> **How far to trust it.** Every number in this guide's text is read by a test from two committed
+> files. One is HPR Sim's center of pressure for the guides' rocket ([report][rocket-report]). The
 > other sets HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
 > ([comparison][tunnel]). That's one rocket's shape in one tunnel, at small angles. No hobby
 > rocket's center of pressure has been measured for these comparisons. HPR Sim's whole rocket at a
 > larger angle hasn't been checked against a measurement. From just below the speed of sound, HPR
-> Sim's center of pressure read aft of the tunnel's, the side that flatters a margin. There it read
-> up to 2.37 calibers aft on a longer model, and up to 1.35 on the one the figure draws. The guide
-> gives ranges, not verdicts. The safety code and the range safety officer (the RSO) decide
-> whether a rocket flies.
+> Sim's center of pressure read up to 2.37 calibers aft of the tunnel's on a longer model. On the
+> one the figure draws, it read up to 1.35 calibers aft. That's the side that flatters a margin.
+> The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
+> decide whether a rocket flies.
 
 ## Where the air pushes
 
@@ -60,8 +60,8 @@ through the [Prandtl–Glauert](physics/aero.md#fins) factor, the classic correc
 squeezing. On fins as short as most rockets', the gain is well below the factor itself. The nose's
 push, in the [slender-body theory](glossary.md#slender-body-theory) that sets it, doesn't change
 with speed. So in the model, as a rocket with fins at its tail speeds up, the fins gain on the
-nose and the CP moves aft. The margin grows. The wind tunnel below doesn't bear this out on the
-rocket it tested.
+nose and the CP moves aft. In the model the margin grows. The wind tunnel below doesn't bear this
+out on the rocket it tested.
 
 Faster than sound, the air can't move aside ahead of a fin. HPR Sim uses
 [supersonic linear theory](glossary.md#supersonic-linear-theory) there. At those speeds a fin's
@@ -92,11 +92,11 @@ at each moment. It gives its least value from the rail to apogee too (`min_fligh
 ## Against a wind tunnel
 
 NASA tested half-scale models of the Arcas Robin in wind tunnels from Mach 0.6 to 4.63
-([comparison][tunnel]). It's a sounding rocket with a long nose and swept fins. From Mach 0.6 to 0.8
-the tunnel's center of pressure moved forward by 0.69 calibers, while HPR Sim's moved aft by 0.10
-calibers. From there on, the tunnel's took the shape the section above describes, larger. From Mach
-0.8 to 1.2 the tunnel's center of pressure moved aft by 2.60 calibers, then forward by 5.23 calibers
-by Mach 4.63.
+([comparison][tunnel]). The Arcas Robin is a sounding rocket with a long nose and swept fins.
+From Mach 0.6 to 0.8 the tunnel's center of pressure moved forward by 0.69 calibers, while HPR
+Sim's moved aft by 0.10 calibers. From there on, the tunnel's took the shape the section above
+describes, larger. From Mach 0.8 to 1.2 the tunnel's center of pressure moved aft by 2.60
+calibers, then forward by 5.23 calibers by Mach 4.63.
 
 The figure sets HPR Sim's center of pressure against the tunnel's. Its axis doesn't start at the
 nose tip.
