@@ -698,8 +698,11 @@ What the example can't do yet, and where to go from here.
   no parachute. A design file can carry a parachute's weight as a mass part, but not the parachute
   itself or when it opens.
 - HPR Sim imports designs from one other program. [OpenRocket](glossary.md#openrocket) `.ork`
-  files are read ([`.ork` design files](format/ork.md)), though few of their motor configurations
-  fly yet. Their parachutes and streamers fly as OpenRocket flies them. RockSim `.rkt` files can't
+  files are read ([`.ork` design files](format/ork.md)). On a file's own curves and the bundled
+  motors alone, few motor configurations fly. `hpr sim` looks up each missing curve once and keeps
+  what it finds. Then most fly as saved
+  ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Their parachutes and
+  streamers fly as OpenRocket flies them. RockSim `.rkt` files can't
   be read yet ([RockSim import](decisions-and-roadmap.md#m3-4)).
 - Drag near and past Mach 1 is lightly checked. Since
   [drag through Mach 1](decisions-and-roadmap.md#m1-8b1) was built, the simulator's own drag
