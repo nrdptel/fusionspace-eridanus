@@ -5,7 +5,8 @@
 //! counts, per page and per 100 words, the patterns behind that ([`Pattern`]): bold-label list
 //! items, internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
 //! ("simply", "just"), signposts ("In this section"), and first person on a reference page. It
-//! also reports the register, which has no limit: "I", "we", "you" and contractions per 100 words,
+//! also reports the register, which has no limit of its own beyond first person on a reference
+//! page: "I", "we", "you" and contractions per 100 words,
 //! the mean sentence length and the share of sentences over 25 words (the guide's sentence
 //! targets). The counted patterns are held to the limits the guide sets ([`Pattern::limit`]) in
 //! the report only: they never fail a build.
@@ -1586,7 +1587,8 @@ fn report(pages: &[Page]) -> String {
     }
     let _ = writeln!(
         out,
-        "\nThe register has no limits: \"I\", \"we\", \"you\" and contractions per 100 words, \
+        "\nThe register has no limit of its own (first person on a reference page, above, is the one \
+         limit on it): \"I\", \"we\", \"you\" and contractions per 100 words, \
          and the guide's sentence targets (at most 20 words a sentence on average, fewer than \
          10% of sentences over 25 words). A reference page is marked `ref`.\n"
     );

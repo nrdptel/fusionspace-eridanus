@@ -111,8 +111,9 @@ milestone. The maintainer asked for it to be done carefully, across everything p
 - *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
   1.0; stacked hedges, minimizers and signposts 0.1; first person on a reference page 0 (the
   model and format pages, the command line and the glossary). The sentence limit comes from the
-  guide's target, and equals it at 20 words a sentence. The rest were set against the pages as they stood on 2026-10-19, and the
-  guide gives each one's reason.
+  guide's target, and equals it at 20 words a sentence. First person's 0 is because the program is the subject there. The
+  other limits were set against the pages as they stood on 2026-10-19, and the guide gives each
+  one's reason.
 - *The list.* 41 entries in 9 groups, each citing the published lists that name it (style
   guides, studies, and Wikipedia's pages on word choice and on signs of generated writing), or the
   design system's writing rules (rechecked against them on 2026-10-19), with a test that fails without it and none on a model

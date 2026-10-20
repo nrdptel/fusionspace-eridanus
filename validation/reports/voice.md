@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. Only a stock phrase fails the build.
 
-82 pages, 437780 words, 0 stock phrases. 5 pages are within every limit.
+82 pages, 437785 words, 0 stock phrases. 5 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -17,7 +17,7 @@ Rates are per 100 words, rounded up to two decimals, so a page over a limit neve
 | Signposts | 0.10 | 0 | 0.08, `docs/VALIDATION.md` |
 | First person on a reference page | 0.00 | 0 | none |
 
-The register has no limits: "I", "we", "you" and contractions per 100 words, and the guide's sentence targets (at most 20 words a sentence on average, fewer than 10% of sentences over 25 words). A reference page is marked `ref`.
+The register has no limit of its own (first person on a reference page, above, is the one limit on it): "I", "we", "you" and contractions per 100 words, and the guide's sentence targets (at most 20 words a sentence on average, fewer than 10% of sentences over 25 words). A reference page is marked `ref`.
 
 | Page | Words | Words a sentence | Over 25 words | Bold-label items | Labels | Sentences over 25 words | Hedges | Stacked hedges | Minimizers | Signposts | First person on a reference page | I | We | You | Contractions |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -100,6 +100,6 @@ The register has no limits: "I", "we", "you" and contractions per 100 words, and
 | `docs/trusting-a-simulation.md` | 1548 | 19.5 | 25% | 0.20 | 0.00 | **1.23** | 0.20 | 0.07 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 0.39 |
 | `docs/weather.md` | 1981 | 19.7 | 26% | 0.31 | 0.16 | **1.27** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.31 |
 | `docs/when-fins-flutter.md` | 1759 | 21.2 | 36% | **0.52** | 0.06 | **1.65** | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.18 | 0.29 |
-| `docs/writing.md` | 9096 | 21.7 | 32% | 0.42 | 0.20 | **1.38** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.03 | 0.02 | 0.05 | 0.65 |
+| `docs/writing.md` | 9101 | 21.8 | 32% | 0.42 | 0.20 | **1.38** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.03 | 0.02 | 0.05 | 0.65 |
 | `docs/your-own-logger.md` | 2408 | 23.0 | 37% | 0.00 | 0.05 | **1.46** | 0.17 | 0.05 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.46 |
 | `docs/your-own-rocket.md` | 4455 | 17.9 | 22% | **0.79** | 0.16 | **1.10** | 0.09 | 0.03 | 0.03 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.34 |
