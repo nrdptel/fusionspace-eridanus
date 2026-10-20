@@ -13,13 +13,16 @@ numbers HPR Sim prints.
 > **How far to trust it.** Every number in this guide's text is read by a test from two committed
 > files. One is HPR Sim's center of pressure for the guides' rocket ([report][rocket-report]). The
 > other sets HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
-> ([comparison][tunnel]). That's one rocket's shape in one tunnel, at small angles. No hobby
+> ([comparison][tunnel]).
+>
+> That's one rocket's shape in one tunnel, at small angles. No hobby
 > rocket's center of pressure has been measured for these comparisons. HPR Sim's whole rocket at a
-> larger angle hasn't been checked against a measurement. From just below the speed of sound, HPR
-> Sim's center of pressure read up to 2.37 calibers aft of the tunnel's on a longer model. On the
-> one the figure draws, it read up to 1.35 calibers aft. That's the side that flatters a margin.
-> The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
-> decide whether a rocket flies.
+> larger angle hasn't been checked against a measurement.
+>
+> From just below the speed of sound, HPR Sim's center of pressure read up to 2.37 calibers aft of
+> the tunnel's on a longer model. On the one the figure draws, it read up to 1.35 calibers aft.
+> That's the side that flatters a margin. The guide gives ranges, not verdicts. The safety code and
+> the range safety officer (the RSO) decide whether a rocket flies.
 
 ## Where the air pushes
 
@@ -27,9 +30,10 @@ A rocket's weight acts at its [center of gravity](glossary.md#center-of-gravity-
 point it balances on. When a gust or a tilted rail turns it, the air meets it at an angle, the
 [angle of attack](glossary.md#angle-of-attack). The air then pushes on its side. That push, the
 [normal force](glossary.md#normal-force), acts at the
-[center of pressure](glossary.md#center-of-pressure-cp) (CP). If the CP is behind the CG, the push
-turns the nose back into the oncoming air, as a weathervane turns. If it's ahead, the push turns
-the rocket further off, and it tumbles.
+[center of pressure](glossary.md#center-of-pressure-cp) (CP).
+
+If the CP is behind the CG, the push turns the nose back into the oncoming air, as a weathervane
+turns. If it's ahead, the push turns the rocket further off, and it tumbles.
 
 The [stability margin](glossary.md#stability-margin) is the distance from the CG back to the CP,
 in body diameters, called [calibers](glossary.md#caliber). Each part of the rocket pushes on its
@@ -47,7 +51,9 @@ Here $x_{\mathrm{CP}}$ and $x_{\mathrm{CG}}$ are the rocket's center of pressure
 gravity. Each part's own center of pressure is $x_i$, and all three are measured back from the nose
 tip. The index $i$ runs over the parts, and $d$ is the body's diameter. So anything that makes one
 part push harder than the others moves the CP toward that part. So does anything that moves a part's
-own center of pressure. The margin HPR Sim prints as `static margin` is the one this gives at low
+own center of pressure.
+
+The margin HPR Sim prints as `static margin` is the one this gives at low
 speed, with the air straight along the rocket. It's the number
 [Barrowman's method](glossary.md#barrowmans-method) gives by hand.
 [Check stability for a certification flight](stability-for-certification.md) reads it.
@@ -57,32 +63,38 @@ speed, with the air straight along the rocket. It's the number
 Below the speed of sound, air squeezes a little as it flows past, more the faster the rocket
 goes. In HPR Sim's model, each fin pushes harder for the same angle as the speed rises. It does so
 through the [Prandtl–Glauert](physics/aero.md#fins) factor, the classic correction for that
-squeezing. On fins as short as most rockets', the gain is well below the factor itself. The nose's
-push, in the [slender-body theory](glossary.md#slender-body-theory) that sets it, doesn't change
-with speed. So in the model, as a rocket with fins at its tail speeds up, the fins gain on the
-nose and the CP moves aft. In the model the margin grows. The wind tunnel below doesn't bear this
-out on the rocket it tested.
+squeezing. On fins as short as most rockets', the gain is well below the factor itself.
+
+The nose's push, in the [slender-body theory](glossary.md#slender-body-theory) that sets it, doesn't
+change with speed. So in the model, as a rocket with fins at its tail speeds up, the fins gain on
+the nose and the CP moves aft. In the model the margin grows. The wind tunnel below doesn't bear
+this out on the rocket it tested.
 
 Faster than sound, the air can't move aside ahead of a fin. HPR Sim uses
 [supersonic linear theory](glossary.md#supersonic-linear-theory) there. At those speeds a fin's
-push falls as the speed climbs, while a smooth body's push grows as shocks form along it. No
-closed-form method covers the speeds between, so HPR Sim joins its subsonic and supersonic fin
-methods with a straight line. In this guide I call that stretch *the join*
-([Fins through the speed of sound][fins-through]). It starts just below the speed of sound. It
-ends where supersonic theory starts for the fins, which depends on their shape. Across the join
-each fin's own center of pressure also slides aft, from a quarter of the way along its chord
-toward the middle. Once supersonic theory takes over, the CP turns and moves forward: the margin
-shrinks.
+push falls as the speed climbs, while a smooth body's push grows as shocks form along it.
+
+No closed-form method covers the speeds between, so HPR Sim joins its subsonic and supersonic fin
+methods with a straight line. In this guide I call that stretch *the join* ([Fins through the speed
+of sound][fins-through]). It starts just below the speed of sound. It ends where supersonic theory
+starts for the fins, which depends on their shape.
+
+Across the join each fin's own center of pressure also slides aft, from a quarter of the way along
+its chord toward the middle. Once supersonic theory takes over, the CP turns and moves forward: the
+margin shrinks.
 
 The guides' rocket shows it, as HPR Sim computes it. It's a small rocket for a first certification
 flight that the repository keeps for its how-to guides ([its design file][level-1]). No measurement
-of this rocket exists. Straight into the wind, its center of pressure sits 13.99 calibers behind its
+of this rocket exists.
+
+Straight into the wind, its center of pressure sits 13.99 calibers behind its
 nose tip at low speed. By Mach 0.8 it has moved 0.19 calibers aft, and by Mach 1.2, 1.04 calibers
 aft. By Mach 3 it sits 1.88 calibers forward of where it started ([report][rocket-report]).
 Supersonic linear theory starts for this rocket's fins at Mach 1.37, and the speeds just below that
-are in the join. In the join, the tunnel below finds HPR Sim's center of pressure too far aft. The
-CG doesn't depend on speed. It moves only as the motor burns, which the flight margin follows. So
-each caliber the CP moves is a caliber of margin.
+are in the join. In the join, the tunnel below finds HPR Sim's center of pressure too far aft.
+
+The CG doesn't depend on speed. It moves only as the motor burns, which the flight margin follows.
+So each caliber the CP moves is a caliber of margin.
 
 So the margin printed at low speed isn't the margin the rocket has at its top speed. `hpr sim
 --json` also gives the flight margin, the small-angle margin at the flight's own Mach number and CG
@@ -126,7 +138,9 @@ The figure marks the flattering side: the build marks each speed where HPR Sim's
 positive. The test [`a_cp_aft_of_the_reference_reads_a_higher_margin`][direction-test] pins what
 that sign means: a CP aft of the reference's is a positive error. It also pins that HPR Sim's own
 margin calculation then reads higher by that much, at any CG. It pins the sign, not how often HPR
-Sim errs aft. The marks show that. At 7 of the 12 speeds HPR Sim's center of pressure sat aft of
+Sim errs aft. The marks show that.
+
+At 7 of the 12 speeds HPR Sim's center of pressure sat aft of
 the tunnel's. The largest were from just below the speed of sound through the join. So for a
 rocket that flies there, read HPR Sim's flight margin as possibly high. The printed static margin,
 taken at low speed, says nothing about those speeds. These are one rocket's errors, not an upper
@@ -142,8 +156,9 @@ the CP moves forward, and the margin shrinks.
 
 At Mach 0.3, the guides' rocket's center of pressure moves forward by 0.25 calibers at 2°, 0.57
 calibers at 5°, 1.01 calibers at 10°, and 1.34 calibers at 15° ([report][rocket-report]). Each
-shift is from where it sits at the same speed, with the air straight along the rocket. The
-printed margins, static and flight, are the small-angle ones, so they don't show this. The
+shift is from where it sits at the same speed, with the air straight along the rocket.
+
+The printed margins, static and flight, are the small-angle ones, so they don't show this. The
 simulated flight does. HPR Sim flies the body lift at each moment's angle. So a rocket leaving the
 rail in a crosswind, or knocked by a gust, is turned back toward the wind by a smaller margin than
 the printed one.

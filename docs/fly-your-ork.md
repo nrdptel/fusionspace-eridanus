@@ -10,11 +10,13 @@ file and wants a second simulator's view of it.
 > **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 53
 > logged flights of fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one. It
 > was within 10% on 26 and read low on 13, by at most 20%. `hpr sim` says so under each result
-> below. [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
+> below.
+>
+> [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
 > summary sits at the top of the
 > [README](https://github.com/nrdptel/fusionspace-eridanus#accuracy-at-a-glance). The outputs on
 > this page are made by running each command, and CI checks that they still match what `hpr`
-> prints. Log your altimeter's reading; the RSO decides.
+> prints. Log your altimeter's reading; the range safety officer (RSO) decides.
 
 The steps:
 
@@ -26,12 +28,13 @@ The steps:
 
 You need `hpr` installed: the README's
 [Install and first flight](https://github.com/nrdptel/fusionspace-eridanus#install-and-first-flight) takes a
-few minutes. The examples fly the guides' own rocket,
+few minutes.
+
+The examples fly the guides' own rocket,
 [`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork).
 It's a 66 mm (2.6 in), 0.82 kg rocket with a 38 mm motor mount and one parachute on the motor's
-ejection charge. It's saved with two motors, an AeroTech H170M and an I175WS. OpenRocket 24.12
-opens it. Run
-the commands from a copy of the repository, or put your own file's path in its place.
+ejection charge. It's saved with two motors, an AeroTech H170M and an I175WS. OpenRocket 24.12 opens
+it. Run the commands from a copy of the repository, or put your own file's path in its place.
 
 ## Fly the file as it is
 
@@ -210,10 +213,11 @@ hpr motors fetch --manufacturer AeroTech H128W
 
 The curve is ThrustCurve's, found by the file's manufacturer and designation. For the motors of
 OpenRocket's own example designs, HPR Sim knows which file holds the curve OpenRocket flies, and
-takes it. For any other motor, the file may not be the one OpenRocket flies. A note under the flight
-names the curve file, who measured it, and which of the two it is.
-[Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one.
-If you have the motor's `.eng` or `.rse` file, fly it with `--motor`:
+takes it. For any other motor, the file may not be the one OpenRocket flies.
+
+A note under the flight names the curve file, who measured it, and which of the two it is. [Motors
+from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one. If you
+have the motor's `.eng` or `.rse` file, fly it with `--motor`:
 `hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
 
 ## Plot it, or save the numbers
@@ -226,6 +230,7 @@ hpr sim validation/fixtures/ork/guides/level-1.ork --plot level-1.svg --export l
 
 The plot is one fixed figure: altitude, speed and acceleration against time, each event marked.
 An SVG opens in any web browser; [Plotting the flight](cli.md#plotting-the-flight) shows one.
+
 Beside it, `level-1.plot.csv` holds the numbers the figure draws. The
 export holds every quantity the simulator tracks, every 0.01 s. The file's extension picks the
 format (`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`).

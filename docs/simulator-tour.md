@@ -13,9 +13,10 @@ the page that covers it in full.
 
 > **How far to trust it.** A test reads every number in this tour's text from a committed report.
 > CI reruns its commands and its Python examples, and redraws its pictures from what they print.
-> The guide rocket's flights are simulations, not measurements: it has no flight log. The tour
-> ends on a public flight. It's one of 7 university rockets' logged flights, where HPR Sim's
-> apogee missed by 6.04% on average without signs ([report][real-report]). Those flights check
+> The guide rocket's flights are simulations, not measurements: it has no flight log.
+>
+> The tour ends on a public flight. It's one of 7 university rockets' logged flights, where HPR
+> Sim's apogee missed by 6.04% on average without signs ([report][real-report]). Those flights check
 > apogee alone. The tour gives ranges, not verdicts. The safety code and the range safety officer
 > (the RSO) decide whether a rocket flies.
 
@@ -40,8 +41,8 @@ marked:
   point ([CG](glossary.md#center-of-gravity-cg)) and the
   [center of pressure](glossary.md#center-of-pressure-cp), and the [apogee](glossary.md#apogee).
   Then come the speed off the rail, the motor's delay against the time to apogee, and the descent
-  rate. The line under the configuration says what all of them are: a simulated flight, not a
-  measurement.
+  rate. The line under the configuration says what the summary's numbers are: a simulated
+  flight, not a measurement.
 - **C, the warnings.** Each names a known gap in HPR Sim's models that bears on this flight. It
   also names the issue that tracks the gap, and which way the gap pushes the numbers. Here the
   drag may read high. If it does, the apogee reads low, the side that flatters a field's ceiling
@@ -123,9 +124,10 @@ run.
 - **B, the landing ellipses.** Each is drawn to hold its share of the landings if they
   scattered as a [normal spread](glossary.md#normal-distribution). The `flights inside` column
   counts how many did. The next-flight ellipse is the one to set against a field's edges
-  ([landing ellipse](glossary.md#landing-ellipse)). In calm air, as here, the landings bunch
-  within about a meter of the pad, not as a normal spread. So the counts and the shares differ. A
-  wind (`--wind`) spreads them out.
+  ([landing ellipse](glossary.md#landing-ellipse)).
+
+  In calm air, as here, the landings bunch within about a meter of the pad, not as a normal spread.
+  So the counts and the shares differ. A wind (`--wind`) spreads them out.
 - **C, how far to trust it.** The spread comes from the scatter the command was
   told to apply, not from errors in the models, which move every run together. This note gives
   the miss on real flights, which the spread leaves out.

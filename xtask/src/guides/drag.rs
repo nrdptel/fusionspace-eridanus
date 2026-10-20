@@ -538,7 +538,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "The base's drag grows from {} at Mach {} to {} at Mach {}, then falls",
+            template: "The base's part of the drag coefficient grows from {} at Mach {} to {} \
+                       at Mach {}, then falls",
             holes: |r| {
                 let at_one = rocket(r, 7, "base")?;
                 // It rises at every row to Mach 1 and falls at every row after.

@@ -13,12 +13,13 @@ variations. It needs some Rust, but no knowledge of this project.
 > log to check it against. On seven other rockets' logged flights, HPR Sim's apogees missed by
 > 6.04% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 53 more
 > from a private collection, they were +8.73% above the logs, and OpenRocket's were +7.79%
-> ([private collection](accuracy.md#real-flights-of-the-private-collection)). Given the same drag,
-> its heights, speeds and times match RocketPy's. On its own drag it flies this rocket about 10%
-> higher than RocketPy does on the drag table RocketPy's example ships: 770 m (2,526 ft) against
-> 700 m (2,297 ft) ([the validation case](accuracy.md#whole-flights-with-each-codes-own-drag)).
-> The drag and the drift in a wind are the least certain numbers it prints
-> ([Accuracy of these numbers](#accuracy-of-these-numbers)).
+> ([private collection](accuracy.md#real-flights-of-the-private-collection)).
+>
+> Given the same drag, its heights, speeds and times match RocketPy's. On its own drag it flies this
+> rocket about 10% higher than RocketPy does on the drag table RocketPy's example ships: 770 m
+> (2,526 ft) against 700 m (2,297 ft) ([the validation
+> case](accuracy.md#whole-flights-with-each-codes-own-drag)). The drag and the drift in a wind are
+> the least certain numbers it prints ([Accuracy of these numbers](#accuracy-of-these-numbers)).
 
 ## Setting up
 
@@ -27,9 +28,11 @@ Install a release, or gather what you need to build HPR Sim yourself.
 ### Install a release
 
 Release 0.1.0 is out. Each part installs without a copy of the repository. The rest of this page
-builds HPR Sim from the repository instead, which works too. Release 0.1 has files for Linux
-on x86-64, Macs with Apple silicon, and Windows on x86-64. From release 0.2 there are also files
-for Linux on 64-bit ARM and Windows on ARM. Intel Macs aren't built yet ([issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438)).
+builds HPR Sim from the repository instead, which works too.
+
+Release 0.1 has files for Linux on x86-64, Macs with Apple silicon, and Windows on x86-64. From
+release 0.2 there are also files for Linux on 64-bit ARM and Windows on ARM. Intel Macs aren't built
+yet ([issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438)).
 
 - A package manager installs the command line, `hpr`, and keeps it up to date, or you can
   download it yourself. Packages for winget and conda-forge are planned
@@ -75,11 +78,13 @@ Three cautions for the downloaded archives:
 - The Linux files are for x86-64 and need the GNU C library (glibc) 2.17 or later. Run
   `ldd --version`: its first line ends in your glibc's version. By their glibc, that means RHEL
   and CentOS 7, Debian 8, Ubuntu 14.04 and anything newer. The release's checks run on a CentOS 7
-  image, and the others aren't run one by one. On an older glibc the program stops with
-  `version 'GLIBC_2.xx' not found`. There, or on a distribution built on musl such as Alpine,
-  build from source. `cargo install fusionspace-hpr-cli --locked` builds the command line
-  ([What you need](#what-you-need)), and pip builds the Python package. Homebrew and cargo
-  binstall install the same program on Linux, so the same floor applies to them.
+  image, and the others aren't run one by one.
+
+  On an older glibc the program stops with `version 'GLIBC_2.xx' not found`. There, or on a
+  distribution built on musl such as Alpine, build from source.
+  `cargo install fusionspace-hpr-cli --locked` builds the command line ([What you
+  need](#what-you-need)), and pip builds the Python package. Homebrew and cargo binstall install the
+  same program on Linux, so the same floor applies to them.
 - On Windows, release 0.2's `hpr.exe` runs on a clean Windows, since the C runtime is built into
   it. Release 0.1.0's needs Microsoft's Visual C++ Redistributable, a free package of runtime
   libraries. If Windows says `VCRUNTIME140.dll` was not found, install the Redistributable for
@@ -120,6 +125,7 @@ cargo run --example first_flight -p fusionspace-hpr-sim
 The first run compiles the simulator and its libraries, which takes a few minutes; later runs
 start at once. The last command runs the program
 [`crates/hpr-sim/examples/first_flight.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/first_flight.rs).
+
 In that command, `--example first_flight` names the program. `-p fusionspace-hpr-sim` (short for
 `--package`) names the [crate](glossary.md#crate) that holds it, one of the repository's Rust
 packages: the crate that flies the rocket. Code calls it `hpr_sim` (`use hpr_sim::…`). Every
@@ -241,21 +247,25 @@ Below the table:
   ([the whole-flight comparison](decisions-and-roadmap.md#m2-1b2)). That checks the equations of
   motion, the motor and the air, not the drag.
 - Where it goes in wind is the least certain number. This airframe was compared with RocketPy
-  only in still air, where its drifts agree within 3%. Here it leaves the rail at 16.2 m/s (53 ft/s)
-  in a 5 m/s (11 mph) wind, at a steep angle to the airflow. At such angles, HPR Sim's drifts for
-  two of RocketPy's rockets are 10 to 38% from RocketPy's
-  ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). HPR Sim's
-  [body lift](glossary.md#body-lift) and its later release from the rail put them there. Body lift
-  is a sideways push on the body that RocketPy leaves out. How much body lift a body makes is
-  itself uncertain. So this example's apogee 88.7 m (291 ft) upwind and its landing point are the
-  least trustworthy numbers it prints. Drift and landing haven't been compared with any real flight yet
+  only in still air, where its drifts agree within 3%.
+
+  Here it leaves the rail at 16.2 m/s (53 ft/s) in a 5 m/s (11 mph) wind, at a steep angle to the
+  airflow. At such angles, HPR Sim's drifts for two of RocketPy's rockets are 10 to 38% from
+  RocketPy's ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). HPR Sim's [body
+  lift](glossary.md#body-lift) and its later release from the rail put them there. Body lift is a
+  sideways push on the body that RocketPy leaves out. How much body lift a body makes is itself
+  uncertain.
+
+  So this example's apogee drift, 88.7 m (291 ft) upwind, and its landing point are the least
+  trustworthy numbers it prints. Drift and landing haven't been compared with any real flight yet
   ([real flights](accuracy.md#real-flights) compare heights).
 - The thrust is likely a little low for this site. HPR Sim flies the curve as measured, to match
   RocketPy's example. A motor fired on a test stand near sea level gives somewhat more thrust in
   the thinner air at 1,400 m (4,593 ft). With the simulator's correction for that, which assumes a
-  sea-level test, this flight reached 874 m (2,867 ft). Motor files don't say where the curve was
-  measured, so neither number is certain. Treat 779 m (2,556 ft) as a little low
-  ([Solid motors](physics/motor.md#thrust-at-altitude)).
+  sea-level test, this flight reached 874 m (2,867 ft).
+
+  Motor files don't say where the curve was measured, so neither number is certain. Treat 779 m
+  (2,556 ft) as a little low ([Solid motors](physics/motor.md#thrust-at-altitude)).
 - The drag is the largest doubt. HPR Sim computes the
   [drag coefficient](glossary.md#drag-coefficient) from the rocket's shape and surface. For this
   design it's 0.5566 at Mach 0.3, coasting with the motor burnt out
@@ -314,9 +324,11 @@ Below the table:
 - The descent is the best-checked part. Its check gives both codes the same start near
   apogee, opens the first parachute at once and uses RocketPy's formula for gravity. On those
   terms, HPR Sim's descent agrees with RocketPy's within 3% for five rockets
-  ([Recovery](physics/recovery.md)). This example opens the drogue after half a second and uses
-  HPR Sim's own gravity. Its landing point also depends on where the apogee is. On each code's own
-  drag, the apogee differs from RocketPy's by 10% for this rocket.
+  ([Recovery](physics/recovery.md)).
+
+  This example opens the drogue after half a second and uses HPR Sim's own gravity. Its landing
+  point also depends on where the apogee is. On each code's own drag, the apogee differs from
+  RocketPy's by 10% for this rocket.
 
 #### Checking it yourself
 
@@ -330,12 +342,15 @@ You don't have to take these numbers on trust. Four ways to test them:
 - To compare with a flight of your own, by hand, build your rocket as
   [Your own rocket](your-own-rocket.md) does, with the motor you flew.
   [Solid motors](physics/motor.md#using-a-motor) shows how to read its thrust-curve file. Set the
-  rail and the wind to match the day, and set HPR Sim's apogee beside your altimeter's. HPR Sim's apogee
-  is the height of the rocket's center of gravity above the pad. Most hobby altimeters measure air
-  pressure and turn it into height with the standard atmosphere. So on a day warmer or colder than
-  standard, they read off by roughly 3 to 4% of the height for every 10 °C of difference. Give the
-  simulator the day's temperature too: `Ussa76::with_offset` shifts the standard atmosphere, and
-  `Environment::new` takes it. The analyzer, `hpr analyze`, reads your altimeter's log, in any of
+  rail and the wind to match the day, and set HPR Sim's apogee beside your altimeter's.
+
+  HPR Sim's apogee is the height of the rocket's center of gravity above the pad. Most hobby
+  altimeters measure air pressure and turn it into height with the standard atmosphere. So on a day
+  warmer or colder than standard, they read off by roughly 3 to 4% of the height for every 10 °C of
+  difference. Give the simulator the day's temperature too: `Ussa76::with_offset` shifts the
+  standard atmosphere, and `Environment::new` takes it.
+
+  The analyzer, `hpr analyze`, reads your altimeter's log, in any of
   [the layouts it reads](format/flight-logs.md). From its barometric altitude or pressure, it takes
   the flight's apogee, liftoff, top speed and landing
   ([Reading a flight log](reading-a-flight-log.md)). Each comes within a stated bound, or is
@@ -562,12 +577,14 @@ It has six steps.
 
 1. **The rocket.** The program reads Valetudo's design from
    [`validation/designs/rocketpy-valetudo.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/rocketpy-valetudo.json)
-   into a `Rocket`: its parts, their shapes, materials and positions, and its motor. The format is
-   the simulator's own and provisional. The [open design format](decisions-and-roadmap.md#m3-3)
-   will replace it. HPR Sim also reads that format, and OpenRocket's `.ork` files
-   ([import from OpenRocket](decisions-and-roadmap.md#m3-1)). The
-   [designs folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) holds the other
-   example rockets, and its README says how each was built.
+   into a `Rocket`: its parts, their shapes, materials and positions, and its motor.
+
+   The format is the simulator's own and provisional. The [open design
+   format](decisions-and-roadmap.md#m3-3) will replace it. HPR Sim also reads the open design
+   format, and OpenRocket's `.ork` files ([import from OpenRocket](decisions-and-roadmap.md#m3-1)).
+   The [designs
+   folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) holds the
+   other example rockets, and its README says how each was built.
 2. **The surroundings.** `Geodetic::from_degrees` places the launch site by latitude, longitude
    and height. `Environment::standard` gives it the Earth's
    [WGS 84 gravity and rotation](physics/gravity.md), the
@@ -578,10 +595,11 @@ It has six steps.
 3. **The rail.** `Rail::vertical(rail_length_m)` is a rail 3 m (9.8 ft) long pointing straight up,
    with no friction. Its fields also set its heading, its angle above the horizon and its friction.
 4. **The simulation.** `Simulation::new` takes the rocket and the name of the configuration to
-   fly. A design can hold several, one per motor choice. It also takes the surroundings, the rail
-   and the integration settings, which say how finely to step through time. It runs the design's
-   checks first, and refuses a rocket that can't exist, such as a motor wider than its mount.
-   `FlightSettings::default()` steps through time to a tight
+   fly. A design can hold several, one per motor choice.
+
+   It also takes the surroundings, the rail and the integration settings, which say how finely to
+   step through time. It runs the design's checks first, and refuses a rocket that can't exist, such
+   as a motor wider than its mount. `FlightSettings::default()` steps through time to a tight
    [tolerance](glossary.md#tolerance) ([Time integration](physics/integration.md)).
 5. **The parachutes.** Each `Device` has a name, a drag, and a trigger that fires its charge.
    `DeviceDrag::canopy` is a parachute of the given type and
@@ -631,7 +649,7 @@ A number with no unit, such as the Mach number (`mach`), has none in its name.
 
 Edit the program and run it again. The edits below are for you to try. Each says which way the
 results move; run it to see by how much. Nothing checks these edits or what they print, so this
-page gives no numbers for them. For example:
+page gives no exact numbers for them. For example:
 
 - For more wind, change `let wind_speed_m_s = 5.0;` to `10.0`. The apogee drops a little and the
   landing moves farther east.
@@ -664,9 +682,12 @@ If you propose a change to the program itself in a pull request, two more comman
 - [Your own rocket](your-own-rocket.md) builds a rocket of your own, with your dimensions and a
   bundled motor. It shows the rocket's center of pressure, center of gravity and
   [stability margin](glossary.md#stability-margin). [The builder](the-builder.md) does the same
-  in fewer lines. [`.ork` design files](format/ork.md) reads a design from OpenRocket, though
-  few of its motor configurations fly yet. Its parachutes and streamers fly as OpenRocket flies
-  them.
+  in fewer lines.
+- [`.ork` design files](format/ork.md) reads a design from OpenRocket. On a file's own curves and
+  the bundled motors alone, few motor configurations fly. `hpr sim` looks up each missing curve
+  once and keeps what it finds. Then most fly as saved
+  ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Its parachutes and
+  streamers fly as OpenRocket flies them.
 - [Accuracy](accuracy.md) gathers every validation result, and
   [Checking a claim](checking-a-claim.md) shows how to trace a number to its source and its test.
 - [The API reference](api.md) documents every type used here, and

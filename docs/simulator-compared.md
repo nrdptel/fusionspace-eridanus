@@ -12,11 +12,12 @@ and [A tour of HPR Sim](simulator-tour.md).
 > **How far to trust it.** The table says whether each tool can do a thing, not how well it does
 > it. Its answers come from each tool's own documentation, as read on the date given below it. A
 > documentation page can lag its release. And a *no* means the documentation shows no way to do
-> it, not that no plugin or workaround exists. Only the numbers under *Measured side by side*
-> compare results, each read by a test from a committed report. RASAero II has flown none of them
-> yet, and every accuracy comparison checks apogee alone. Nothing here says which simulator is
-> right for a flight. HPR Sim gives ranges, not verdicts. The safety code and the range safety
-> officer (the RSO) decide whether a rocket flies.
+> it, not that no plugin or workaround exists.
+>
+> Only the numbers under *Measured side by side* compare results, each read by a test from a
+> committed report. RASAero II has flown none of them yet, and every accuracy comparison checks
+> apogee alone. Nothing here says which simulator is right for a flight. HPR Sim gives ranges, not
+> verdicts. The safety code and the range safety officer (the RSO) decide whether a rocket flies.
 
 ## What each does
 
@@ -218,12 +219,13 @@ and the largest change was 0.000191%; 2 of 75 designs didn't make the trip
 - [Decisions and roadmap](decisions-and-roadmap.md) says what comes next and when.
 
 **Sources.** The logged flights are a private collection of designs and their logs, shared as
-aggregates only. They come from university rocketry teams, rocketry courses and hobbyists. The
-public flights are among those RocketPy's documentation flies against their teams' logs. Both fly
-in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and contains
-modified Copernicus Climate Change Service information 2026. Neither the European Commission nor
-ECMWF is responsible for any use made of it. The
-[logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.
+aggregates only. They come from university rocketry teams, rocketry courses and hobbyists.
+
+The public flights are among those RocketPy's documentation flies against their teams' logs. Both
+fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
+contains modified Copernicus Climate Change Service information 2026. Neither the European
+Commission nor ECMWF is responsible for any use made of it. The [logged flights'
+report][fixture-report] gives the full attribution and the ERA5 citations.
 
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

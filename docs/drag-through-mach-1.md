@@ -6,7 +6,9 @@ drag can be wrong.
 This guide is for a flier who reads a drag coefficient, from HPR Sim, another simulator or a
 hand calculation. They want to know why it changes with speed and how far to trust the drag a
 simulation flies. They also want to know why a faster motor doesn't fly a rocket as much higher as
-its extra impulse suggests. The guide explains the drag's three parts, the rise near the speed of
+its extra impulse suggests.
+
+The guide explains the drag's three parts, the rise near the speed of
 sound and what the finish changes. Then it shows how well HPR Sim's drag follows a wind tunnel's,
 and which error flatters. It's one of the guides in *Rocketry explained*, which explain the
 physics behind the numbers HPR Sim prints.
@@ -15,11 +17,14 @@ physics behind the numbers HPR Sim prints.
 > files. One holds HPR Sim's drag for the guides' rocket ([report][rocket-report]). Another sets
 > HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
 > ([comparison][tunnel]). The third holds the logged flights of
-> [Trusting a simulation](trusting-a-simulation.md). The tunnel comparison is one rocket's shape,
-> two half-scale models of it in two of NASA's tunnels, their bases left out. No hobby rocket's
-> drag has been measured for these comparisons. On the model the figure draws, HPR Sim's forebody
-> drag read high at every speed, by +7.0% to +154.1%, rounded outward. That's the side that
-> flatters an apogee ceiling. On hobby rockets the evidence leans the other way. HPR Sim's apogee
+> [Trusting a simulation](trusting-a-simulation.md).
+>
+> The tunnel comparison is one rocket's shape, two half-scale models of it in two of NASA's tunnels,
+> their bases left out. No hobby rocket's drag has been measured for these comparisons. On the model
+> the figure draws, HPR Sim's forebody drag read high at every speed, by +7.0% to +154.1%, rounded
+> outward. That's the side that flatters an apogee ceiling.
+>
+> On hobby rockets the evidence leans the other way. HPR Sim's apogee
 > averaged +8.73% above the logged one on the 53 flights, and drag is one of the inputs that could
 > explain it. The guide gives ranges, not verdicts. The safety code and the range safety officer
 > (the RSO) decide whether a rocket flies.
@@ -55,12 +60,13 @@ three parts:
   air can't follow the body round its corner. It pulls back on the base like a suction cup.
 
 HPR Sim builds the coefficient up part by part, following Niskanen's thesis, which OpenRocket
-also follows ([Aerodynamics](physics/aero.md#drag)). The guides' rocket shows the parts, as HPR
-Sim computes them. It's a small rocket for a first certification flight that the repository keeps
-for its how-to guides ([its design file][level-1]). No measurement of this rocket's drag exists.
-At Mach 0.3 in sea-level air its drag coefficient is 0.60: skin friction makes 59% of it, the base
-22% and the fins' square edges 19%. Its ogive nose, smooth into the body, adds next to nothing at
-that speed ([report][rocket-report]).
+also follows ([Aerodynamics](physics/aero.md#drag)).
+
+The guides' rocket shows the parts, as HPR Sim computes them. It's a small rocket for a first
+certification flight that the repository keeps for its how-to guides ([its design file][level-1]).
+No measurement of this rocket's drag exists. At Mach 0.3 in sea-level air its drag coefficient is
+0.60: skin friction makes 59% of it, the base 22% and the fins' square edges 19%. Its ogive nose,
+smooth into the body, adds next to nothing at that speed ([report][rocket-report]).
 
 A worked example. At Mach 0.5 in sea-level air the guides' rocket flies at 170 m/s (558 ft/s), so
 the dynamic pressure is 17.7 kPa. Its reference area is the body's cross-section, 66 mm (2.60 in)
@@ -73,16 +79,18 @@ Air flowing round a nose speeds up, so as a rocket nears the speed of sound the 
 nose passes it first. Shocks form there, and the pressure pushing back on the nose climbs: the
 transonic drag rise. Past the speed of sound the nose pushes a shock wave ahead of it. Its
 pressure drag, now called [wave drag](glossary.md#wave-drag), settles to a value set by the nose's
-shape and how slender it is. The base's share of the coefficient grows with speed too, until the
+shape and how slender it is.
+
+The base's share of the coefficient grows with speed too, until the
 speed of sound, and then falls. The suction itself keeps growing, though more slowly. Skin
 friction's falls with speed, by a step at the speed of sound in HPR Sim's rule and faster past it
 ([Aerodynamics](physics/aero.md#drag-through-mach-1) has the formulas).
 
 The guides' rocket's drag coefficient climbs to 0.69 by Mach 0.8 and 0.84 at Mach 1. It peaks at
 0.88 at Mach 1.07, 45% above its value at Mach 0.3, and by Mach 2 it's back down to 0.57
-([report][rocket-report]). The base's drag grows from 0.15 at Mach 0.5 to 0.25 at Mach 1, then
-falls ([report][rocket-report]). The nose's pressure drag, next to nothing at Mach 0.5, reaches
-0.19 at Mach 1.1 ([report][rocket-report]).
+([report][rocket-report]). The base's part of the drag coefficient grows from 0.15 at Mach 0.5 to
+0.25 at Mach 1, then falls ([report][rocket-report]). The nose's pressure drag, next to nothing at
+Mach 0.5, reaches 0.19 at Mach 1.1 ([report][rocket-report]).
 
 Drag grows with the square of the speed as well, so the two compound. Doubling the speed makes
 the dynamic pressure four times larger, and the coefficient is higher besides. So in the same air,
@@ -113,24 +121,31 @@ judgment: the table describes surfaces, not a hobby rocket's paint, seams, fille
 NASA measured the drag of two half-scale models of the Arcas Robin. It's a sounding rocket with a
 long nose, thin, sharp swept fins and a short [boattail](glossary.md#boattail). The short model is
 the Arcas Robin itself, and the long one has a stretched body. They flew in two wind tunnels from
-Mach 0.6 to 4.63 ([comparison][tunnel]). The models sat on a [sting](glossary.md#sting), which
-disturbs the air behind the base. So the comparison is of the [forebody](glossary.md#forebody):
-the drag less the base's. With its fins on, the model's measured forebody drag rose from 0.30 at
-Mach 0.6 to 0.69 at Mach 1. Then it fell to 0.18 by Mach 4.63: the same rise and fall, on another
-rocket. The figure sets HPR Sim's forebody drag against the tunnel's, on the short model.
+Mach 0.6 to 4.63 ([comparison][tunnel]).
+
+The models sat on a [sting](glossary.md#sting), which disturbs the air behind the base. So the
+comparison is of the [forebody](glossary.md#forebody): the drag less the base's. With its fins on,
+the model's measured forebody drag rose from 0.30 at Mach 0.6 to 0.69 at Mach 1. Then it fell to
+0.18 by Mach 4.63: the same rise and fall, on another rocket. The figure sets HPR Sim's forebody
+drag against the tunnel's, on the short model.
 
 ![A chart of the Arcas Robin's forebody drag against Mach number: the wind tunnel's readings rise to a peak at the speed of sound and fall after it; HPR Sim's line runs above them at every speed, closest, as a share of the reading, at the speed of sound and furthest at the fastest speeds, each gap marked as the side that flatters an apogee ceiling.](images/drag-against-mach.svg)
 
 Each of the tunnel's points was read off the reports' plots to within 0.002 to 0.008 in drag
 coefficient either way. That's the band drawn round its dot, and most bands are smaller than the
-dot. HPR Sim's read +12.9% at Mach 0.6. It read +51.0% at Mach 0.9, the most of the readings
+dot.
+
+HPR Sim's read +12.9% at Mach 0.6. It read +51.0% at Mach 0.9, the most of the readings
 below the speed of sound. It read +7.1% at Mach 1, the least. Then it read more at every faster
 speed, to +154.0% at Mach 4.63, and at the faster speeds most of that is the fins. HPR Sim gives a
 fin's front edge the drag of a rounded edge, which grows with speed, where a thin, sharp fin's
 falls.
+
 With the fins off, HPR Sim's read +12.0% to +44.6% high on the short model, and up to +54.2% on
 the long one. Most of that comes from the boattail, which HPR Sim's rule over-predicts at these
-speeds. The models' finish wasn't reported. The comparison takes it as polished, a guess, and a
+speeds.
+
+The models' finish wasn't reported. The comparison takes it as polished, a guess, and a
 rougher one would read higher still. Only 2 of the 44 readings, both models' with their fins on
 and off, are within 10%, the target the comparison set before measuring.
 [Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel) has the tables and the
@@ -142,21 +157,26 @@ A drag that reads high makes the simulated rocket fly lower and slower than the 
 simulated apogee, top speed and max q, the peak dynamic pressure, all read low. For a flight near a
 waiver's ceiling, the height a launch's airspace permit allows, that's the flattering side. The
 real rocket may climb higher than the number says. A max q that reads low flatters the fins and
-the airframe too ([When fins flutter](when-fins-flutter.md)). A drag that reads low errs the other
-way: the rocket flies lower than the number says. That's the optimistic side for a flier aiming at
-a target altitude.
+the airframe too ([When fins flutter](when-fins-flutter.md)).
+
+A drag that reads low errs the other way: the rocket flies lower than the number says. That's the
+optimistic side for a flier aiming at a target altitude.
 
 The figure marks the flattering side: its thick bars mark each speed where HPR Sim's drag reads
 above the tunnel's. The test [`a_higher_drag_reads_a_lower_apogee`][direction-test] pins what that
 sign means, on a rocket that passes the speed of sound and on one that doesn't. On both, the same
 flight with its drag scaled up reaches a lower apogee, a lower top speed and a lower max q.
-Scaled down, it reaches higher ones. It pins the sign, not how often HPR Sim errs high. The marks
+Scaled down, it reaches higher ones.
+
+It pins the sign, not how often HPR Sim errs high. The marks
 show that. On the Arcas Robin, HPR Sim's forebody drag read high at every speed. So for a rocket
 of that shape, with thin, sharp fins and a boattail, read its apogee as possibly low.
 
 The tunnel's rocket isn't a hobby rocket, though. On the logged hobby flights of
 [Trusting a simulation](trusting-a-simulation.md), HPR Sim's apogee averaged +8.73% above the
-logged one on the 53 flights. On those rockets something leans the other way. Drag that reads low
+logged one on the 53 flights.
+
+On those rockets something leans the other way. Drag that reads low
 is one candidate. The motor's thrust and the rocket's mass are others. No comparison yet sizes HPR
 Sim's drag alone on a hobby rocket, so neither direction is a rule for yours.
 

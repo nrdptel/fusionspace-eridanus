@@ -6,7 +6,9 @@ rocket with it.
 This page shows how to fly a model of your own in place of one of HPR Sim's. It can be a drag
 model, a wind, or an atmosphere. You might have a drag curve from a wind tunnel, from another
 program, or from your own flights. Or you might have a wind profile from a weather balloon that
-none of the built-in winds fits. The page runs two example programs and walks through them. It
+none of the built-in winds fits.
+
+The page runs two example programs and walks through them. It
 follows on from [The builder](the-builder.md), and needs some Rust. From Python, a drag and a wind
 can be plain functions ([Python](python.md#drag-and-wind-of-your-own)).
 
@@ -61,7 +63,9 @@ idea, with your code in place of the table. The last one set is the one flown.
 One difference matters. A table can carry the diameter it was measured on, and the simulator
 rescales it to the rocket's reference area. A negative coefficient is refused from either, where
 the flight meets it. A table can give a negative one past its rows or between them if its curve
-extrapolates linearly or bends. **A model's number is not rescaled.** If your curve was measured on another
+extrapolates linearly or bends.
+
+**A model's number is not rescaled.** If your curve was measured on another
 area, multiply it by your area over `query.reference_area_m2()` before returning it.
 
 ## A drag model
@@ -138,7 +142,9 @@ The simulator has steady, power-law, log-law and layered winds built in ([Wind](
 and they reach the flight through the same `Wind` trait. This example writes one of its own. Its
 wind grows from 4 m/s (8.9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft). On the way
 up it veers, turning clockwise, from the west (270°) to the north-west (315°). Above 1,000 m
-(3,281 ft) it holds steady. The example flies the same rocket in that wind and in a steady 4 m/s
+(3,281 ft) it holds steady.
+
+The example flies the same rocket in that wind and in a steady 4 m/s
 (8.9 mph) west wind:
 
 <!-- quote: crates/hpr/examples/custom_wind.output.txt -->
@@ -195,9 +201,10 @@ density, speed of sound and viscosity, and whether the model had to extrapolate 
 
 The simulator refuses air it can't use wherever it reads the air. Every field must be a finite
 number. The temperature, speed of sound and viscosity must also be above zero. The density and
-pressure may be zero, as in a vacuum, but not negative. The simulator's standard atmosphere is the
-reason zero is allowed. Far above its 86 km (282,152 ft) top, its pressure and density shrink to
-zero.
+pressure may be zero, as in a vacuum, but not negative.
+
+The simulator's standard atmosphere is the reason zero is allowed. Far above its 86 km (282,152 ft)
+top, its pressure and density shrink to zero.
 
 Air that breaks a rule stops the flight with a `SimError::Domain` error. Its message names the
 field and gives the height above sea level, in meters, where the air was asked. If more than one

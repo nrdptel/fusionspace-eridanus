@@ -10,10 +10,12 @@ already have.
 > **How far to trust it.** HPR Sim's flights here are estimates from a model. A motor's data, as
 > `hpr motors show` says, is copied from its curve file, not measured. Against 53 logged flights of
 > fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one. It was within 10% on
-> 26 and read low on 13, by at most 20%. `hpr sim` gives these figures under each flight below.
-> [Accuracy](accuracy.md) says how close it comes elsewhere. The outputs on this page are made by
-> running each command, and CI checks that they still match what `hpr` prints. The motor's printed
-> data and your range safety officer have the last word.
+> 26 and read low on 13, by at most 20%.
+>
+> `hpr sim` gives these figures under each flight below. [Accuracy](accuracy.md) says how close it
+> comes elsewhere. The outputs on this page are made by running each command, and CI checks that
+> they still match what `hpr` prints. The motor's printed data and your range safety officer have
+> the last word.
 
 The steps:
 
@@ -206,7 +208,8 @@ More: https://hpr.fusionspace.co/accuracy.html
 The `warning` says the I377's case reaches 22.0 mm (0.87 in) past the mount tube's forward end.
 The 292 mm (11.5 in) case sits 10 mm (0.39 in) out of the back of the rocket's 260 mm (10 in)
 mount tube. The simulator flies it as drawn. Whether it fits the real rocket is for you to check.
-`--motor` replaces the motor of the configuration flown. So `--config` picks which of the file's
+
+`--motor` replaces the motor of the configuration flown. `--config` picks which of the file's
 configurations it goes in, and `--mount` picks which mount, if the design has several.
 
 ## Compare them
@@ -242,7 +245,8 @@ gives the speed at that moment. The further the charge is from apogee, the faste
 when the parachute comes out.
 
 In the H125 flight above, the coast is 9.42 s, and the 10 s delay fires the charge 0.58 s after
-apogee. The H125's delays are 8, 10, 12, 14 and 18 s, so 10 s is the nearest. The simulator flies
+apogee. The H125 comes in delays of 8, 10, 12, 14 and 18 s, more than its file's header lists, so
+10 s is the nearest. The simulator flies
 any delay you give. Give one the maker sells, or one your motor's delay can be adjusted to.
 
 A delay is a burning fuse, and real ones vary from motor to motor. The simulator flies the stated

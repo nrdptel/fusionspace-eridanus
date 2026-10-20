@@ -199,7 +199,8 @@ field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-fla
 ### The limits
 
 `cargo xtask voice` counts these on each page, per 100 words, and its report marks a page over a
-limit. A page over one is where to look first; it doesn't fail the build.
+limit. A page over one is where to look first. On a page not yet held, it doesn't fail the build
+([the check](#the-check)).
 
 | Counted | What it counts | Limit per 100 words |
 |---|---|---:|

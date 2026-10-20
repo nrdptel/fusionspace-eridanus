@@ -13,15 +13,17 @@ rail. The page runs four example programs and walks through them. It needs the s
 
 > **How far to trust it.** The builder adds no physics. It writes the same
 > [design tree](physics/design.md) that [Your own rocket](your-own-rocket.md) writes by hand, and
-> flies it with the same simulation. A test builds that page's rocket with the builder and flies
-> it. The mass properties and the whole flight come out the same, bit for bit
+> flies it with the same simulation.
+>
+> A test builds that page's rocket with the builder and flies it. The mass properties and the whole
+> flight come out the same, bit for bit
 > ([`the_builder_makes_the_rocket_own_rocket_builds_by_hand`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
 > So what that page says about trusting its numbers holds here.
 >
 > The masses come from each part's shape and a published density. So glue, paint and hardware are
 > missing until you weigh the parts. This rocket has never been flown for real, so no flight
 > checks it. Where it lands in a wind is the least certain number of all. On two of RocketPy's
-> example rockets, HPR Sim's drift and RocketPy's differ by 11 to 43%
+> example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
 > ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## The first example
@@ -38,9 +40,10 @@ This builds the small rocket of [Your own rocket](your-own-rocket.md). Its airfr
 inside and 56.3 mm (2.2 in) outside, and it takes 29 mm motors. It weighs the rocket, and finds its
 [center of gravity](glossary.md#center-of-gravity-cg) (CG), its
 [center of pressure](glossary.md#center-of-pressure-cp) (CP) and its
-[stability margin](glossary.md#stability-margin). Then it flies the rocket on a Cesaroni H54 from
-a rail leaning into a light wind. Its parachute opens at the motor's
-[ejection delay](glossary.md#ejection-delay). It prints this:
+[stability margin](glossary.md#stability-margin).
+
+Then it flies the rocket on a Cesaroni H54 from a rail leaning into a light wind. Its parachute
+opens at the motor's [ejection delay](glossary.md#ejection-delay). It prints this:
 
 <!-- quote: crates/hpr/examples/build_and_fly.output.txt -->
 ```text
@@ -133,9 +136,10 @@ the air on it ([Drag](physics/aero.md#drag)). The builder can't change the finis
 
 `set_motor` puts the motor in the motor tube, lit at launch. `add_parachute` adds a recovery
 device. Here it's a 90 cm (35 in) flat parachute opened by the ejection charge of motor number 0,
-the first, `Trigger::MotorDelay { motor: 0 }`. A device adds drag, not mass. The parachute's mass
-is in the 200 g recovery bay. The [recovery page](physics/recovery.md) explains the devices and
-what opens them.
+the first, `Trigger::MotorDelay { motor: 0 }`.
+
+A device adds drag, not mass. The parachute's mass is in the 200 g recovery bay. The [recovery
+page](physics/recovery.md) explains the devices and what opens them.
 
 #### Weighing it
 
@@ -240,9 +244,11 @@ Because a rocket is a value built by a function, a design study is a loop. The e
   ([stability margin](glossary.md#stability-margin)). So the program doesn't fly the two smallest.
   The example's own fins are the 45 mm (1.8 in) ones.
 - Bigger fins cost height. In calm air the 65 mm (2.6 in) fins reach 38 m (125 ft) less than the
-  45 mm (1.8 in) ones. That's their drag and their extra mass, about 9 g. In the wind they lose
-  47 m (154 ft), since they also turn the rocket further into it. The apogee drift shows the extra turn: 119 m
-  (390 ft) upwind with the 45 mm (1.8 in) fins. With the 65 mm (2.6 in) fins it's 176 m (577 ft).
+  45 mm (1.8 in) ones. That's their drag and their extra mass, about 9 g.
+
+  In the wind they lose 47 m (154 ft), since they also turn the rocket further into it. The apogee
+  drift shows the extra turn: 119 m (390 ft) upwind with the 45 mm (1.8 in) fins. With the 65 mm
+  (2.6 in) fins it's 176 m (577 ft).
 - The landing is closer with bigger fins. It comes 114 m (374 ft) closer from the 45 mm (1.8 in)
   fins to the 65 mm (2.6 in). The parachute opens further upwind, and lower, so it drifts for less
   time.
@@ -444,8 +450,9 @@ crates the builder is made of.
   flies one, building its simulation with `Simulation::new` rather than through the builder.
 - **Change the flight.** A flight builder's `simulation()` hands over the simulation `fly()` would
   run. The `motor_choice` example passes it to `hpr_sim::metrics::optimum_delays`. The
-  simulation's methods add a separation, events of your own, or moving or released masses. A
-  drag model of your own, or another program's drag table, needs no detour. The flight builder's
+  simulation's methods add a separation, events of your own, or moving or released masses.
+
+  A drag model of your own, or another program's drag table, needs no detour. The flight builder's
   `drag_model` and `drag_table` take them ([Models of your own](custom-models.md)).
 
   `run(&mut ())` flies the simulation, with no observer watching. A flight flown that way returns the

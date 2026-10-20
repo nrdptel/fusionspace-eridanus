@@ -25,9 +25,10 @@
 //!
 //! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]) and writes the
 //! per-page report to [`REPORT`]; a test fails when the committed report and the pages disagree,
-//! and `cargo xtask site` fails on a stock phrase in them or a held page that misses ([`misses`]). Given paths, it reads each file, or
-//! each page under a directory (Markdown, HTML or text), and prints the report, so fusionspace.co's
-//! pages and the design system's are read the same way.
+//! and `cargo xtask site` fails on a stock phrase in them or a held page that misses
+//! ([`misses`]). Given paths, it reads each file, or each page under a directory (Markdown, HTML
+//! or text), and prints the report, so fusionspace.co's pages and the design system's are read the
+//! same way; only a stock phrase fails there.
 //!
 //! What it reads as prose is the text a reader sees: not code (blocks or inline), math, HTML
 //! tags, images or link addresses. Headings and table cells count toward words, labels and stock
@@ -452,7 +453,8 @@ const STOCK: &[Stock] = &[
     },
 ];
 
-/// A pattern counted per 100 words and held to a limit in the report, never in a build.
+/// A pattern counted per 100 words and held to a limit in the report, and in the build on a
+/// [`HELD`] page (ADR-285).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Pattern {
     BoldLabels,
@@ -612,6 +614,8 @@ const ABBREVIATIONS: [&str; 22] = [
 struct Page {
     path: String,
     reference: bool,
+    /// On [`HELD`], and read as one of this repository's pages, so the check holds it.
+    held: bool,
     words: usize,
     sentences: usize,
     sentence_words: usize,
@@ -867,7 +871,9 @@ fn repository_pages(root: &Path) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        pages.push(read_page(&path, &text, is_reference(&path)));
+        let mut page = read_page(&path, &text, is_reference(&path));
+        page.held = is_held(&path);
+        pages.push(page);
     }
     Ok(pages)
 }
@@ -1379,7 +1385,8 @@ fn word_count(text: &str) -> usize {
 /// The sentences of a paragraph or list item. A sentence ends at `.`, `!` or `?` before a space
 /// (closing quotes and brackets allowed between) and a word that doesn't start in lower case;
 /// not after an abbreviation ([`ABBREVIATIONS`]), an initial ("A."), or a word with a period
-/// inside ("U.S.").
+/// before a letter inside it ("U.S."). A decimal or a version can end one ("Mach 0.9."), and so
+/// can an ellipsis ("rises... Then").
 fn sentences(text: &str) -> Vec<&str> {
     let mut found = Vec::new();
     let mut from = 0;
@@ -1743,7 +1750,7 @@ fn report(pages: &[Page]) -> String {
         let mean_tenths = (page.sentence_words * 10).div_ceil(page.sentences.max(1));
         let share = (page.long * 100).div_ceil(page.sentences.max(1));
         let mean = format!("{}.{}", mean_tenths / 10, mean_tenths % 10);
-        let marks: Vec<&str> = [(page.reference, "`ref`"), (is_held(&page.path), "`held`")]
+        let marks: Vec<&str> = [(page.reference, "`ref`"), (page.held, "`held`")]
             .into_iter()
             .filter_map(|(on, mark)| on.then_some(mark))
             .collect();
@@ -1955,7 +1962,7 @@ mod tests {
     #[test]
     fn a_decimal_or_a_version_can_end_a_sentence() {
         let text = "Drag peaks near Mach 1.05. It falls after. The rise is 3.2%. Release 0.1.0. \
-                    It reads ork.md. Then it flies.";
+                    It reads ork.md. Then it flies. The drag rises... It peaks.";
         assert_eq!(
             sentences(text),
             [
@@ -1963,7 +1970,9 @@ mod tests {
                 "It falls after.",
                 "The rise is 3.2%.",
                 "Release 0.1.0.",
-                "It reads ork.md. Then it flies."
+                "It reads ork.md. Then it flies.",
+                "The drag rises...",
+                "It peaks."
             ]
         );
     }
@@ -2413,6 +2422,18 @@ mod tests {
             )),
             "{error}"
         );
+    }
+
+    /// The site's check reports both failures at once: a stock phrase and a held page that misses.
+    #[test]
+    fn the_check_fails_on_a_stock_phrase_and_on_a_held_page() {
+        let mut pages: Vec<Page> = HELD.iter().map(|path| counted(path)).collect();
+        assert_eq!(failures(&pages), Ok(()));
+        pages[0].long = 5;
+        pages.push(markdown("Run it in order to check the margin."));
+        let error = failures(&pages).unwrap_err();
+        assert!(error.contains("is on the stock-phrase list"), "{error}");
+        assert!(error.contains("held pages that miss"), "{error}");
     }
 
     #[test]

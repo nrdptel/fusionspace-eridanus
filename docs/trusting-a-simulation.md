@@ -12,8 +12,10 @@ flight, how big its misses have been, and which miss to plan for. It's the first
 > and CI reruns the worked example's command. The reports set HPR Sim's apogees against 53 logged
 > flights of fliers' own designs ([report][fixture-report]), and against 7 public flights
 > ([report][real-report]). They measure apogee alone: no comparison here checks a top speed, a
-> descent or a landing place against a real flight. The guide gives ranges, not verdicts. The
-> safety code and the range safety officer (the RSO) decide whether a rocket flies.
+> descent or a landing place against a real flight.
+>
+> The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
+> decide whether a rocket flies.
 
 ## Two ways a simulation is wrong
 
@@ -178,7 +180,9 @@ from the sky.
   measures the rest. [Reading a flight log](reading-a-flight-log.md) shows how to compare.
 
 **Sources.** The logged flights are published by university rocketry teams, rocketry courses and
-hobbyists. The 7 public flights are those RocketPy's documentation flies against their teams'
+hobbyists.
+
+The 7 public flights are those RocketPy's documentation flies against their teams'
 logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [report][fixture-report] gives the

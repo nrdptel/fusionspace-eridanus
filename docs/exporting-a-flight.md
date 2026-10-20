@@ -30,11 +30,12 @@ cargo run --example export_flight -p fusionspace-hpr-sim --features parquet -- m
 This runs
 [`crates/hpr-sim/examples/export_flight.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/export_flight.rs),
 which writes five files into the folder `my-flight` and prints what it wrote. Without a folder, it
-writes them into `fusionspace-hpr-export` in the system's temporary folder. Parquet is an optional
-[feature](https://doc.rust-lang.org/cargo/reference/features.html) of `fusionspace-hpr-sim`, named
-`parquet`, so the command turns it on. Without it, cargo says the example needs it. The feature
-adds no other library. I made it optional so that a program with no use for a binary file format
-leaves it out. In your own program, turn it on in `Cargo.toml` with
+writes them into `fusionspace-hpr-export` in the system's temporary folder.
+
+Parquet is an optional [feature](https://doc.rust-lang.org/cargo/reference/features.html) of
+`fusionspace-hpr-sim`, named `parquet`, so the command turns it on. Without it, cargo says the
+example needs it. The feature adds no other library. I made it optional so that a program with no
+use for a binary file format leaves it out. In your own program, turn it on in `Cargo.toml` with
 `fusionspace-hpr-sim = { ..., features = ["parquet"] }` (the crate your code calls `hpr_sim`).
 
 <!-- quote: crates/hpr-sim/examples/export_flight.output.txt -->
@@ -192,9 +193,11 @@ tens of meters below the ellipsoid. So give $N$ for heights you mean to trust.
   with an independent reader, Apache's own Parquet library for Rust, and compare every number bit
   for bit. One test uses a recording of every channel (30 columns today) long enough to fill at
   least three [data pages](glossary.md#parquet-data-page) per column. Another compares a small file
-  with bytes worked out by hand from the specification. Once, by hand, when this was written,
-  pyarrow 25.0.1 and DuckDB 1.5.5 each read the example's file and a 30-column, 3005-row file.
-  Each got the same numbers as the matching CSV. CI doesn't repeat that check.
+  with bytes worked out by hand from the specification.
+
+  Once, by hand, when this was written, pyarrow 25.0.1 and DuckDB 1.5.5 each read the example's file
+  and a 30-column, 3005-row file. Each got the same numbers as the matching CSV. CI doesn't repeat
+  that check.
 
 The tests are in
 [`crates/hpr-sim/src/export.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/export.rs)
@@ -206,7 +209,9 @@ and
 - The Parquet file isn't compressed and carries no per-page minimum and maximum. It takes 8 bytes
   per number, plus a header of about 20 bytes per page of up to 1024 numbers. A short index of the
   columns at the end of the file adds to that. The example's file is 3228 bytes, and its CSV about
-  5.6 kB. Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file
+  5.6 kB.
+
+  Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file
   when filtering (say `WHERE time_s > 10`). So it reads it all, which for one flight takes no
   noticeable time.
 - A path over the antimeridian (±180° longitude) isn't cut in two as RFC 7946 asks. So a map would

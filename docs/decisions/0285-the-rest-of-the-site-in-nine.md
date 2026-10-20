@@ -30,7 +30,8 @@ the next ones are being done.
    of its sentences over 25 words. The comparison is exact, not on the report's rounded figures.
    Held are the pages M0.14b rewrote (`README.md`, `docs/start-here.md`, `docs/the-simulator.md`)
    and each increment's pages, added in its PR. M0.14c9 replaces the list with every site page,
-   read from the table of contents, so a new page is held from its first commit. The report marks
+   read from the table of contents less the records page §5 leaves as it is, so a new page is held
+   from its first commit. The report marks
    the held pages. This is the "passes `xtask voice` in CI" of M0.14c's *done when*: a report
    can't pass or fail, and a check that holds a page as soon as it's done keeps the earlier work
    from slipping. For the held pages it amends ADR-284's consequence that only the stock-phrase

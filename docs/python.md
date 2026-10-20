@@ -14,8 +14,10 @@ with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
 
 > **How far to trust it.** The package adds no physics. Each call hands its numbers to the Rust
 > builder and returns what that returns. So a flight made in Python runs the same code as one the
-> Rust builder makes from the same numbers. A test builds [The builder](the-builder.md)'s example
-> rocket in Python and matches every digit that Rust example prints
+> Rust builder makes from the same numbers.
+>
+> A test builds [The builder](the-builder.md)'s example rocket in Python and matches every digit
+> that Rust example prints
 > ([`test_prints_what_the_rust_example_prints`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_builder.py)).
 > Digits beyond those printed can differ between a release and a debug build.
 >

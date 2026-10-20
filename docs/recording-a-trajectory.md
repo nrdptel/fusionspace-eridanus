@@ -96,9 +96,10 @@ What the numbers show:
   ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that's
   north. It drifts up to 6.3 cm (2.5 in), which the table rounds to 0.0 or 0.1 m (0.3 ft).
 - `cg_up_m` and `height_above_ground_m` agree here, and don't in general. The launch frame is a
-  flat plane, and the Earth curves away below it. So `cg_up_m` reads low far from the pad. On the
-  ground 10 km (6.2 mi) from the pad, it's −7.8 m (−26 ft). At this landing, 94 m (308 ft) out,
-  it's under a millimeter low. For heights, use `height_above_ground_m`.
+  flat plane, and the Earth curves away below it. So `cg_up_m` reads low far from the pad.
+
+  On the ground 10 km (6.2 mi) from the pad, it's −7.8 m (−26 ft). At this landing, 90.2 m (296 ft)
+  out, it's under a millimeter low. For heights, use `height_above_ground_m`.
 
 ## Record something else
 

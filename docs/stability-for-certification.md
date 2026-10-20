@@ -18,11 +18,13 @@ each command, and CI checks that they still match what `hpr` prints.
 
 > **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
 > rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
-> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
-> examples it is within 0.016 calibers on 41 of 53 flights. It reads up to 0.1108 calibers above
-> OpenRocket's on private designs, and high near the speed of sound. That's the flattering side, so
-> leave room for it near any limit. On a design with tube fins, pods or freeform fins, check the
-> margin in both programs. Treat the smaller as the more cautious figure, not a bound.
+> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)).
+>
+> On OpenRocket's examples it is within 0.016 calibers on 41 of 53 flights. It reads up to 0.1108
+> calibers above OpenRocket's on private designs, and high near the speed of sound. That's the
+> flattering side, so leave room for it near any limit. On a design with tube fins, pods or freeform
+> fins, check the margin in both programs. Treat the smaller as the more cautious figure, not a
+> bound.
 
 The steps:
 
@@ -225,7 +227,9 @@ Two checks beyond the margin: how fast the rocket leaves the rail, and the margi
 **The rocket must leave the rail fast enough to fly straight, and the codes name no figure.** The
 NAR's code asks for "rigid guidance until the rocket has attained a speed that ensures a stable
 flight". Tripoli's, in 7-3, asks for guidance "until it has reached the velocity necessary for
-stable flight". Competitions set numbers. In its section 5.3.1, the Spaceport America Cup's guide
+stable flight".
+
+Competitions set numbers. In its section 5.3.1, the Spaceport America Cup's guide
 asks for at least 25 m/s (82 ft/s). NASA's Student Launch handbook asks for 15.8 m/s (52 ft/s).
 
 The reason is the wind. Just off the rail, a crosswind meets the rocket at an angle whose tangent
@@ -288,12 +292,14 @@ The margin's checks, case by case:
   ([the private designs](format/ork.md#the-simulators-flights-of-the-private-designs)). None of
   the four has a measured cause yet.
   [#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172) and
-  [#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186) are two of the open causes. A
-  fifth, launched from a tilted rod, reads 0.0125 to 0.0366 above, most of it traced to the tilt.
+  [#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186) are two of the open causes.
+
+  A fifth, launched from a tilted rod, reads 0.0125 to 0.0366 above, most of it traced to the tilt.
   Reading more stable is the flattering side, so leave room for it near any limit.
 - Near the speed of sound, between Mach 0.8 and 1.2, HPR Sim's center of pressure is up to 2.36
-  calibers behind NASA's wind-tunnel data ([Known gaps](accuracy.md#known-gaps)). Wherever it
-  misses by more than half a caliber, it sits behind. So the flight margin there reads high: the
-  flattering side ([Stability in flight](stability-in-flight.md) shows it against the tunnel). The
+  calibers behind NASA's wind-tunnel data ([Known gaps](accuracy.md#known-gaps)). Between those
+  speeds, wherever it misses by more than half a caliber, it sits behind. So the flight margin
+  there reads high: the flattering side ([Stability in flight](stability-in-flight.md) shows it
+  against the tunnel). The
   static margin is computed at Mach 0, so it says nothing about the rocket's stability in that
   range. Use the transonic guidance [above](#compare-with-published-guidance).

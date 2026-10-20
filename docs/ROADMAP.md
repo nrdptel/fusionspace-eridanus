@@ -159,8 +159,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M0.14c8 The file formats.** *Done when:* its 7 pages are held by `xtask voice` in CI,
       within its limits and the sentence targets, with an acceptance pass.
     - [ ] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
-      site page in CI, a new one included, the flight-log formats' page with them, within its
-      limits and the sentence targets, with an acceptance pass.
+      site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
+      with them, within its limits and the sentence targets, with an acceptance pass.
   - [ ] **M0.14d The program's words.** *Done when:* `hpr`'s help, warnings and errors, the Python
     docs and each crate's top-level docs pass `xtask voice` and an acceptance pass; a snapshot
     pins each `--help`.
