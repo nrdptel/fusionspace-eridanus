@@ -34,9 +34,9 @@ only.
 | Excess vocabulary: delve, showcase, garner, boast, intricate, realm | 2, 6, 7, 8 | 0 | 0 | fail |
 | Buzz verbs: leverage, utilize, facilitate, empower, streamline | 2, 3, 4, 5 | 0 | 0 | fail |
 | "it's important to note", "it should be noted", "please note" | 1, 2, 3 | 0 | 0 | fail |
-| Vague attribution: "research has shown", "experts declare", "experts argue" | 1, 2 | 0 | 0 | fail |
+| Vague attribution: "research has shown", "experts say" | 1, 2 | 0 | 0 | fail |
 | Wordy: in order to, a number of, is able to, at this point in time | 3, 4, 5, 10 | 0 | 0 | fail |
-| Recaps: In summary, In conclusion | 2 | 0 | 0 | fail |
+| Recaps: In summary, In conclusion, To summarize | 2 | 0 | 0 | fail |
 | Chat residue: "I hope this helps", "let me know", "Certainly!" | 2 | 0 | 0 | fail |
 | Same lists, technical senses: robust, key, critical, deploy, impact | 2, 5 | 297 | 77 | reader |
 | Minimizers: simply, just, easy, easily, quickly | 3, 4 | 107 | 42 | count |

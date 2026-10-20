@@ -78,7 +78,6 @@ mod spelling;
 mod steps;
 mod synthetic;
 mod validate;
-mod voice;
 mod wasm_check;
 mod workspace;
 
@@ -121,7 +120,6 @@ Commands:
 {ROADMAP_CURRENT}
 {MOTOR_CATALOG}
 {NAMES}
-{VOICE}
   help                     Print this message.";
 
 fn usage() -> String {
@@ -156,7 +154,6 @@ fn usage() -> String {
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
         .replace("{MOTOR_CATALOG}", motor_catalog::USAGE)
         .replace("{NAMES}", names::USAGE)
-        .replace("{VOICE}", voice::USAGE)
 }
 
 fn main() -> ExitCode {
@@ -193,7 +190,6 @@ fn main() -> ExitCode {
         Some("roadmap-current") => roadmap::run_current(&args.collect::<Vec<_>>()),
         Some("motor-catalog") => motor_catalog::run(&args.collect::<Vec<_>>()),
         Some("names") => names::run(&args.collect::<Vec<_>>()),
-        Some("voice") => voice::run(&args.collect::<Vec<_>>()),
         Some("help" | "-h" | "--help") => {
             println!("{}", usage());
             Ok(())
