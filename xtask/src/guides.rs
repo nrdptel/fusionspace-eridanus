@@ -405,8 +405,8 @@ fn trust_quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![r.count(REAL, "/summary/flights")?.to_string()]),
         },
         Quote {
-            template: "missed them by {} on average without signs, from {} to {} one by one, and \
-                       with signs by {}, so on these the highs and lows nearly cancel",
+            template: "missed them by {} on average without signs, from {} to {} one by one. With \
+                       signs the misses averaged {}, so on these the highs and lows nearly cancel",
             holes: |r| {
                 let flights = r.get(REAL, "/flights")?.as_array().map_or(0, Vec::len);
                 if flights == 0 || flights != r.count(REAL, "/summary/flights")? {
@@ -459,7 +459,7 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "the public flight of {} read {} on its altimeter at the top, and an altimeter \
+            template: "the public flight of {} read {} on its altimeter at the top. An altimeter \
                        riding HPR Sim's flight of its design would have read {}. The miss is ({} − \
                        {}) / {} = {}",
             holes: |r| {
@@ -479,7 +479,7 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "HPR Sim's flight of {} would have read {} at the top; the team's altimeter \
+            template: "HPR Sim's flight of {} would have read {} at the top. The team's altimeter \
                        read {}, a miss of {}",
             holes: |r| {
                 let flight = r.flight("juno-iii")?;

@@ -139,7 +139,7 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "of the {} flights, the one whose miss, without its sign, is the median is {}, \
+            template: "Of the {} flights, the one whose miss, without its sign, is the median is {}, \
                        the report's case {}",
             holes: |r| {
                 let flight = median_flight(r)?;
@@ -169,7 +169,7 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "would have read {}, at {} s: a miss of {}, so HPR Sim read {}",
+            template: "would have read {}, at {} s. That's a miss of {}, so HPR Sim read {}",
             holes: |r| {
                 let it = median(r)?;
                 Ok(vec![
@@ -219,8 +219,8 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "On the {} flights HPR Sim's apogee missed by {} to {} one by one, by {} on \
-                       average without signs, and by {} with them",
+            template: "On the {} flights HPR Sim's apogee missed by {} to {} one by one. It missed \
+                       by {} on average without signs, and by {} with them",
             holes: |r| {
                 let flights = public_flights(r)?;
                 let mut misses = Vec::new();
@@ -242,7 +242,7 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "That average is outside the project's own {} target",
+            template: "The average without signs is outside the project's own {} target",
             holes: |r| {
                 if r.flag(REAL, "/summary/within_target")? {
                     return Err("the public flights now meet their target".to_owned());
@@ -251,8 +251,8 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "So on these flights the misses go both ways, while on {} logged flights of \
-                       fliers' own designs they lean {}, averaging {} the logged ones",
+            template: "So on these flights the misses go both ways. On {} logged flights of \
+                       fliers' own designs, though, they lean {}, averaging {} the logged ones",
             holes: |r| {
                 // "Both ways" holds while the public flights hold a miss on each side.
                 let flights = public_flights(r)?;

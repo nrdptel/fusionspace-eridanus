@@ -362,8 +362,8 @@ fn angle_shifts(r: &Reports) -> Result<(Shifts, &'static str), String> {
 pub(super) fn quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "aft of the tunnel's by up to {} calibers on a longer model, and up to {} \
-                       on the one the figure draws",
+            template: "read up to {} calibers aft of the tunnel's on a longer model. On the one \
+                       the figure draws, it read up to {} calibers aft",
             holes: |r| {
                 let long = r.tunnel_rows_of(TUNNEL_LONG)?;
                 let short = r.tunnel_rows()?;
@@ -375,7 +375,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         },
         Quote {
             template: "On the longer model the tunnel also tested, it sat up to {} calibers aft, \
-                       at Mach {}, and {} of its {} speeds are within the target",
+                       at Mach {}. On that model, {} of its {} speeds are within the target",
             holes: |r| {
                 let rows = r.tunnel_rows_of(TUNNEL_LONG)?;
                 let worst = furthest_aft(&rows)?;
@@ -406,7 +406,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             holes: |r| rocket_move_holes(r, 6),
         },
         Quote {
-            template: "and by Mach {} it sits {} calibers {} of where it started",
+            template: "By Mach {} it sits {} calibers {} of where it started",
             holes: |r| rocket_move_holes(r, 10),
         },
         Quote {
@@ -455,7 +455,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "from Mach {} up, it stayed within {} calibers of it",
+            template: "From Mach {} up, HPR Sim's stayed within {} calibers of the tunnel's",
             holes: |r| {
                 let rows = r.tunnel_rows()?;
                 let (_, above) = join_edges(&rows)?;
@@ -476,7 +476,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "In the join it didn't follow either: it sat up to {} calibers aft, at Mach {}",
+            template: "HPR Sim's didn't follow it there either: it sat up to {} calibers aft, at \
+                       Mach {}",
             holes: |r| {
                 let rows = r.tunnel_rows()?;
                 let join: Vec<TunnelRow> = rows

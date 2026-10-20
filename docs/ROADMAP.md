@@ -140,7 +140,25 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged.
   - [ ] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
     passes `xtask voice` in CI, within its limits and `writing.md`'s sentence targets, with an
-    acceptance pass.
+    acceptance pass. Split in nine by the site's sections; ADR-285 lists each one's pages:
+    - [ ] **M0.14c2 Studies, data and logs.** *Done when:* its 13 pages are held by `xtask voice`
+      in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c3 The command line and the evidence.** *Done when:* its 5 pages are held by
+      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c4 Reference and the environment.** *Done when:* its 14 pages are held by
+      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass,
+      and the bold-label count leaves out the four labels of a model page's *In short* box.
+    - [ ] **M0.14c5 The rocket and its flight.** *Done when:* its 9 pages are held by
+      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c6 Aerodynamics.** *Done when:* the aerodynamics page is held by `xtask voice`
+      in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c7 Recovery, staging and readings.** *Done when:* its 5 pages are held by
+      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c8 The file formats.** *Done when:* its 7 pages are held by `xtask voice` in CI,
+      within its limits and the sentence targets, with an acceptance pass.
+    - [ ] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
+      site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
+      with them, within its limits and the sentence targets, with an acceptance pass.
   - [ ] **M0.14d The program's words.** *Done when:* `hpr`'s help, warnings and errors, the Python
     docs and each crate's top-level docs pass `xtask voice` and an acceptance pass; a snapshot
     pins each `--help`.

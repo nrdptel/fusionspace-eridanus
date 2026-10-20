@@ -199,7 +199,8 @@ field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-fla
 ### The limits
 
 `cargo xtask voice` counts these on each page, per 100 words, and its report marks a page over a
-limit. A page over one is where to look first; it doesn't fail the build.
+limit. A page over one is where to look first. On a page not yet held, it doesn't fail the build
+([the check](#the-check)).
 
 | Counted | What it counts | Limit per 100 words |
 |---|---|---:|
@@ -249,13 +250,14 @@ none on the project's reference pages.
 
 `cargo xtask voice` reads this repository's pages, writes
 [the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md)
-and fails on a stock phrase. A test fails when the report and the pages disagree, so run it after
-editing a page; the site's build runs the check too. Give it paths, such as
+and fails on a stock phrase. With no path, it also fails when a page already rewritten in this
+voice goes over a limit or misses a sentence target (below). A test fails when the report and the
+pages disagree, so run it after editing a page; the site's build runs the check too. Give it paths, such as
 `cargo xtask voice ../fusionspace-site/site`, and it reads those instead (Markdown, HTML or text)
 and prints the report. That's how fusionspace.co's pages and the design system's get checked.
 In the report, a rate in bold is over its limit, and `ref` marks a reference page.
 
-Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
+On any page, the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
 is named by a published list or by the design system's own writing rules. The lists are style
 guides, studies, and Wikipedia's pages on word choice and on signs of generated writing:
 
@@ -288,8 +290,11 @@ against these rules too.
 
 ### Measured, not gated
 
-Readability is measured, not used to fail a build: the counts show where to look, and a person
-decides what to change. The site also holds a model page's
+Readability is measured, not used to fail a build, on a page not yet rewritten in this voice:
+the counts show where to look, and a person decides what to change. A rewritten page is held: one
+rate over its limit, or one sentence target missed, fails the build. The report marks those pages
+`held`, and the rest join as they're rewritten, until every site page is held
+([the plan for the rest of the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)). The site also holds a model page's
 *In short* box to its shape: four bulleted items, each opening with its label in bold (what it
 models, its sources, how well it is validated, what it leaves out). A cap of about 150 words on
 the box was planned and isn't built yet.

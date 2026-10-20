@@ -9,9 +9,10 @@
 //! page: "I", "we", "you" and contractions per 100 words,
 //! the mean sentence length and the share of sentences over 25 words (the guide's sentence
 //! targets). The counted patterns are held to the limits the guide sets ([`Pattern::limit`]) in
-//! the report only: they never fail a build.
+//! the report, and on a [`HELD`] page they fail the check (ADR-285): a page M0.14 has rewritten
+//! stays within every limit and both sentence targets.
 //!
-//! It fails only on [`STOCK`], the stock phrases: puffery ("seamless"), inflated words
+//! It fails on every page on [`STOCK`], the stock phrases: puffery ("seamless"), inflated words
 //! ("pivotal"), the vocabulary that spread with generated text ("delve"), buzz verbs
 //! ("leverages"), "it's important to note", vague sources ("research has shown"), wordy phrases
 //! ("in order to"), recaps ("In conclusion") and chat residue ("I hope this helps"). Each entry
@@ -24,9 +25,10 @@
 //!
 //! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]) and writes the
 //! per-page report to [`REPORT`]; a test fails when the committed report and the pages disagree,
-//! and `cargo xtask site` fails on a stock phrase in them. Given paths, it reads each file, or
-//! each page under a directory (Markdown, HTML or text), and prints the report, so fusionspace.co's
-//! pages and the design system's are read the same way.
+//! and `cargo xtask site` fails on a stock phrase in them or a held page that misses
+//! ([`misses`]). Given paths, it reads each file, or each page under a directory (Markdown, HTML
+//! or text), and prints the report, so fusionspace.co's pages and the design system's are read the
+//! same way; only a stock phrase fails there.
 //!
 //! What it reads as prose is the text a reader sees: not code (blocks or inline), math, HTML
 //! tags, images or link addresses. Headings and table cells count toward words, labels and stock
@@ -47,7 +49,8 @@ pub const USAGE: &str =
                            no path it reads this repository's pages and writes
                            validation/reports/voice.md; given paths, it reads each file, or each
                            page under a directory, and prints the report (after `--`, a path may
-                           start with `-`). Fails only on a stock phrase.";
+                           start with `-`). Fails on a stock phrase, and with no path on a
+                           held page over a limit or missing a sentence target (ADR-285).";
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
@@ -90,6 +93,38 @@ const REFERENCE: [&str; 4] = [
     "docs/cli.md",
     "docs/glossary.md",
 ];
+
+/// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
+/// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
+const HELD: [&str; 19] = [
+    // M0.14b, the front doors.
+    "README.md",
+    "docs/start-here.md",
+    "docs/the-simulator.md",
+    // M0.14c1, the first guides.
+    "docs/404.md",
+    "docs/getting-started.md",
+    "docs/fly-your-ork.md",
+    "docs/pick-a-motor.md",
+    "docs/stability-for-certification.md",
+    "docs/recording-a-trajectory.md",
+    "docs/exporting-a-flight.md",
+    "docs/the-builder.md",
+    "docs/python.md",
+    "docs/custom-models.md",
+    "docs/simulator-tour.md",
+    "docs/simulator-compared.md",
+    "docs/trusting-a-simulation.md",
+    "docs/stability-in-flight.md",
+    "docs/when-fins-flutter.md",
+    "docs/drag-through-mach-1.md",
+];
+
+/// The writing guide's sentence targets: at most this many words a sentence on average...
+const MEAN_TARGET: usize = 20;
+
+/// ...and fewer than one sentence in this many over 25 words (under 10%).
+const LONG_SHARE_TARGET: usize = 10;
 
 /// The committed per-page report, relative to the workspace root.
 pub(crate) const REPORT: &str = "validation/reports/voice.md";
@@ -418,7 +453,8 @@ const STOCK: &[Stock] = &[
     },
 ];
 
-/// A pattern counted per 100 words and held to a limit in the report, never in a build.
+/// A pattern counted per 100 words and held to a limit in the report, and in the build on a
+/// [`HELD`] page (ADR-285).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Pattern {
     BoldLabels,
@@ -578,6 +614,8 @@ const ABBREVIATIONS: [&str; 22] = [
 struct Page {
     path: String,
     reference: bool,
+    /// On [`HELD`], and read as one of this repository's pages, so the check holds it.
+    held: bool,
     words: usize,
     sentences: usize,
     sentence_words: usize,
@@ -653,7 +691,8 @@ impl Reading {
 }
 
 /// `cargo xtask voice`: with no path, writes [`REPORT`] for the repository's pages; with paths,
-/// prints the report for those. Fails on a stock phrase, a missing path or bad usage.
+/// prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
+/// path on a held page that misses.
 pub fn run(args: &[String]) -> Result<(), String> {
     // After `--`, every argument is a path, even one that starts with `-`.
     let args = match args.split_first() {
@@ -664,26 +703,106 @@ pub fn run(args: &[String]) -> Result<(), String> {
         _ => args,
     };
     let root = crate::designs::root()?;
-    let pages = if args.is_empty() {
+    if args.is_empty() {
         let pages = repository_pages(&root)?;
         fs::write(root.join(REPORT), report(&pages))
             .map_err(|e| format!("writing {REPORT}: {e}"))?;
         println!("voice: wrote {REPORT}");
-        pages
-    } else {
-        let pages = given_pages(&root, args)?;
-        print!("{}", report(&pages));
-        pages
-    };
+        println!("{}", summary(&pages));
+        return failures(&pages);
+    }
+    let pages = given_pages(&root, args)?;
+    print!("{}", report(&pages));
     println!("{}", summary(&pages));
     stock_failure(&pages)
 }
 
-/// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it.
+/// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
+/// and so does a held page that misses.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
     let pages = repository_pages(root)?;
     println!("{}", summary(&pages));
-    stock_failure(&pages)
+    failures(&pages)
+}
+
+/// Both failures on this repository's pages: the stock phrases and the held pages that miss.
+fn failures(pages: &[Page]) -> Result<(), String> {
+    let errors: Vec<String> = [stock_failure(pages), held_failure(pages)]
+        .into_iter()
+        .filter_map(Result::err)
+        .collect();
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("\n"))
+    }
+}
+
+/// Whether a page is on [`HELD`].
+fn is_held(path: &str) -> bool {
+    HELD.contains(&path)
+}
+
+/// What keeps a page from passing: each rate over its limit, and each sentence target missed.
+/// The comparisons are exact, on the counts, where the report rounds up.
+fn misses(page: &Page) -> Vec<String> {
+    let mut found = Vec::new();
+    for pattern in Pattern::ALL {
+        if let Some(count) = pattern.count(page).filter(|_| pattern.over(page)) {
+            found.push(format!(
+                "{}: {count} in {} words, over the limit of {:.2} per 100 words",
+                pattern.name(),
+                page.words,
+                pattern.limit()
+            ));
+        }
+    }
+    if page.sentence_words > MEAN_TARGET * page.sentences {
+        found.push(format!(
+            "{} words in {} sentences, over the target of {MEAN_TARGET} words a sentence",
+            page.sentence_words, page.sentences
+        ));
+    }
+    if page.long > 0 && page.long * LONG_SHARE_TARGET >= page.sentences {
+        found.push(format!(
+            "{} of {} sentences over 25 words, not under the target of 1 in {LONG_SHARE_TARGET}",
+            page.long, page.sentences
+        ));
+    }
+    found
+}
+
+/// An error naming each way a held page misses, and each held page that isn't read, or `Ok`.
+fn held_failure(pages: &[Page]) -> Result<(), String> {
+    let mut message = String::new();
+    let mut failing = 0;
+    for path in HELD {
+        let Some(page) = pages.iter().find(|page| page.path == path) else {
+            failing += 1;
+            let _ = writeln!(
+                message,
+                "{path} is held, but it isn't one of the pages read"
+            );
+            continue;
+        };
+        let found = misses(page);
+        if !found.is_empty() {
+            failing += 1;
+        }
+        for miss in found {
+            let _ = writeln!(message, "{path}: {miss}");
+        }
+    }
+    if failing == 0 {
+        return Ok(());
+    }
+    let _ = write!(
+        message,
+        "held pages that miss the voice section's limits or its sentence targets: {failing} of {} \
+         (docs/writing.md#voice; ADR-285); rewrite the sentences, don't drop the page",
+        HELD.len()
+    );
+    Err(message)
 }
 
 /// The line printed after a run.
@@ -696,8 +815,10 @@ fn summary(pages: &[Page]) -> String {
         .count();
     format!(
         "voice: {} pages, {words} words, {stock} stock phrases; {within} pages within every limit \
-         of the writing guide's voice section; the stock-phrase list holds {} entries in {} groups",
+         of the writing guide's voice section, {} held; the stock-phrase list holds {} entries in \
+         {} groups",
         pages.len(),
+        pages.iter().filter(|page| page.held).count(),
         STOCK.len(),
         groups()
     )
@@ -750,7 +871,9 @@ fn repository_pages(root: &Path) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        pages.push(read_page(&path, &text, is_reference(&path)));
+        let mut page = read_page(&path, &text, is_reference(&path));
+        page.held = is_held(&path);
+        pages.push(page);
     }
     Ok(pages)
 }
@@ -1262,7 +1385,8 @@ fn word_count(text: &str) -> usize {
 /// The sentences of a paragraph or list item. A sentence ends at `.`, `!` or `?` before a space
 /// (closing quotes and brackets allowed between) and a word that doesn't start in lower case;
 /// not after an abbreviation ([`ABBREVIATIONS`]), an initial ("A."), or a word with a period
-/// inside ("U.S.").
+/// before a letter inside it ("U.S."). A decimal or a version can end one ("Mach 0.9."), and so
+/// can an ellipsis ("rises... Then").
 fn sentences(text: &str) -> Vec<&str> {
     let mut found = Vec::new();
     let mut from = 0;
@@ -1295,10 +1419,14 @@ fn sentences(text: &str) -> Vec<&str> {
             let word = text[word_start..=i].trim_start_matches(['(', '"', '\u{201C}']);
             let lower = word.to_lowercase();
             let initial = word.len() == 2 && word.starts_with(|c: char| c.is_uppercase());
-            if ABBREVIATIONS.contains(&lower.as_str())
-                || initial
-                || word[..word.len() - 1].contains('.')
-            {
+            // A stop inside the word before a letter makes it an abbreviation ("e.g.", "U.S.");
+            // one before a digit is a decimal or a version ("Mach 0.9.", "release 0.1."), which
+            // can end a sentence.
+            let dotted = word[..word.len() - 1]
+                .split('.')
+                .skip(1)
+                .any(|rest| rest.starts_with(char::is_alphabetic));
+            if ABBREVIATIONS.contains(&lower.as_str()) || initial || dotted {
                 continue;
             }
         }
@@ -1572,8 +1700,11 @@ fn report(pages: &[Page]) -> String {
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
-         inside a target it misses. Only a stock phrase fails the build.\n\n\
+         inside a target it misses. A stock phrase fails the build, and so does a page marked \
+         `held` that's over a limit or misses a sentence target: the {} pages already rewritten \
+         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
+        HELD.len(),
         pages.len()
     );
     let _ = writeln!(
@@ -1619,7 +1750,15 @@ fn report(pages: &[Page]) -> String {
         let mean_tenths = (page.sentence_words * 10).div_ceil(page.sentences.max(1));
         let share = (page.long * 100).div_ceil(page.sentences.max(1));
         let mean = format!("{}.{}", mean_tenths / 10, mean_tenths % 10);
-        let kind = if page.reference { " (`ref`)" } else { "" };
+        let marks: Vec<&str> = [(page.reference, "`ref`"), (page.held, "`held`")]
+            .into_iter()
+            .filter_map(|(on, mark)| on.then_some(mark))
+            .collect();
+        let kind = if marks.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", marks.join(", "))
+        };
         let _ = write!(
             out,
             "| `{}`{kind} | {} | {mean} | {share}% |",
@@ -1818,6 +1957,24 @@ mod tests {
         assert_eq!(loose.bold_labels, 2);
         let html = read_html("<ul><li><strong>A:</strong> b</li><li>c <b>d</b></li></ul>");
         assert_eq!(html.bold_labels, 1);
+    }
+
+    #[test]
+    fn a_decimal_or_a_version_can_end_a_sentence() {
+        let text = "Drag peaks near Mach 1.05. It falls after. The rise is 3.2%. Release 0.1.0. \
+                    It reads ork.md. Then it flies. The drag rises... It peaks.";
+        assert_eq!(
+            sentences(text),
+            [
+                "Drag peaks near Mach 1.05.",
+                "It falls after.",
+                "The rise is 3.2%.",
+                "Release 0.1.0.",
+                "It reads ork.md. Then it flies.",
+                "The drag rises...",
+                "It peaks."
+            ]
+        );
     }
 
     #[test]
@@ -2160,6 +2317,130 @@ mod tests {
             let page = read_page(path, &text, true);
             assert!(page.stock.is_empty(), "{path}: {:?}", page.stock);
         }
+    }
+
+    /// A page of 1,000 words in 50 sentences of 20 words, none long: within everything.
+    fn counted(path: &str) -> Page {
+        Page {
+            path: path.to_owned(),
+            words: 1000,
+            sentences: 50,
+            sentence_words: 1000,
+            ..Page::default()
+        }
+    }
+
+    #[test]
+    fn a_page_misses_each_limit_and_target_only_past_its_edge() {
+        let at_edges = Page {
+            bold_labels: 5,
+            hedges: 10,
+            long: 4,
+            ..counted("page.md")
+        };
+        assert!(misses(&at_edges).is_empty(), "{:?}", misses(&at_edges));
+        let over = Page {
+            bold_labels: 6,
+            ..counted("page.md")
+        };
+        assert_eq!(
+            misses(&over),
+            ["Bold-label items: 6 in 1000 words, over the limit of 0.50 per 100 words"]
+        );
+        let wordy = Page {
+            sentence_words: 1001,
+            ..counted("page.md")
+        };
+        assert_eq!(
+            misses(&wordy),
+            ["1001 words in 50 sentences, over the target of 20 words a sentence"]
+        );
+        // One sentence in ten over 25 words isn't under the target; 5 in 51 is.
+        let long = Page {
+            long: 5,
+            ..counted("page.md")
+        };
+        assert_eq!(
+            misses(&long),
+            ["5 of 50 sentences over 25 words, not under the target of 1 in 10"]
+        );
+        let under = Page {
+            long: 5,
+            sentences: 51,
+            sentence_words: 1020,
+            ..counted("page.md")
+        };
+        assert!(misses(&under).is_empty(), "{:?}", misses(&under));
+        // First person counts only on a reference page.
+        let personal = Page {
+            first_person: 1,
+            ..counted("page.md")
+        };
+        assert!(misses(&personal).is_empty());
+        let reference = Page {
+            reference: true,
+            ..personal
+        };
+        assert_eq!(
+            misses(&reference),
+            [
+                "First person on a reference page: 1 in 1000 words, over the limit of 0.00 per 100 words"
+            ]
+        );
+        // A page with no sentences meets both targets.
+        let empty = Page {
+            path: "page.md".to_owned(),
+            ..Page::default()
+        };
+        assert!(misses(&empty).is_empty());
+    }
+
+    #[test]
+    fn a_held_page_that_misses_or_isnt_read_fails_and_an_unheld_one_does_not() {
+        let mut pages: Vec<Page> = HELD.iter().map(|path| counted(path)).collect();
+        pages.push(Page {
+            bold_labels: 50,
+            ..counted("docs/unheld.md")
+        });
+        assert_eq!(held_failure(&pages), Ok(()));
+        pages[0].long = 5;
+        let error = held_failure(&pages).unwrap_err();
+        assert!(
+            error.starts_with(&format!("{}: 5 of 50 sentences over 25 words", HELD[0])),
+            "{error}"
+        );
+        assert!(
+            error.ends_with("rewrite the sentences, don't drop the page"),
+            "{error}"
+        );
+        pages.remove(0);
+        let error = held_failure(&pages).unwrap_err();
+        assert!(
+            error.starts_with(&format!(
+                "{} is held, but it isn't one of the pages read",
+                HELD[0]
+            )),
+            "{error}"
+        );
+    }
+
+    /// The site's check reports both failures at once: a stock phrase and a held page that misses.
+    #[test]
+    fn the_check_fails_on_a_stock_phrase_and_on_a_held_page() {
+        let mut pages: Vec<Page> = HELD.iter().map(|path| counted(path)).collect();
+        assert_eq!(failures(&pages), Ok(()));
+        pages[0].long = 5;
+        pages.push(markdown("Run it in order to check the margin."));
+        let error = failures(&pages).unwrap_err();
+        assert!(error.contains("is on the stock-phrase list"), "{error}");
+        assert!(error.contains("held pages that miss"), "{error}");
+    }
+
+    #[test]
+    fn the_held_pages_pass() {
+        let root = crate::designs::root().unwrap();
+        let pages = repository_pages(&root).unwrap();
+        assert_eq!(held_failure(&pages), Ok(()));
     }
 
     #[test]

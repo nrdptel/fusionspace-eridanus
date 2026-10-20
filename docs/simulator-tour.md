@@ -3,49 +3,55 @@
 Fly a design file from HPR Sim's command line and Python, read the output, scatter the inputs, and
 see how it did on real flights.
 
-**This tour is for** a flier who has HPR Sim installed, or is deciding whether to install it, and
-wants to see in a few minutes what it does with a design file: what it prints, how to read it,
-how to fly it from Python, and how far it has been from real flights. It flies the small rocket the how-to guides use, then
-turns to a public flight that left a log. Each step links to the page that covers it in full.
+This tour is for a flier who has HPR Sim installed, or is deciding whether to install it. They
+want to see in a few minutes what HPR Sim does with a design file. The tour shows what it prints,
+how to read it, how to fly it from Python, and how far it has been from real flights. It flies the
+small rocket the how-to guides use, then turns to a public flight that left a log. Each step links to
+the page that covers it in full.
+
 [HPR Sim](the-simulator.md) says what the simulator is and how to install it.
 
-> **How far to trust it.** Every number in this tour's text is read by a test from a committed
-> report, and CI reruns its commands and its Python examples and redraws its pictures from what
-> they print. The guide rocket's flights are simulations, not measurements: it has no flight log. The public flight at
-> the end is one of 7 university rockets' logged flights, where HPR Sim's apogee missed by 6.04%
-> on average without signs ([report][real-report]); they check apogee alone. The tour gives
-> ranges, not verdicts; the safety code and the range safety officer (the RSO) decide whether a
-> rocket flies.
+> **How far to trust it.** A test reads every number in this tour's text from a committed report.
+> CI reruns its commands and its Python examples, and redraws its pictures from what they print.
+> The guide rocket's flights are simulations, not measurements: it has no flight log.
+>
+> The tour ends on a public flight. It's one of 7 university rockets' logged flights, where HPR
+> Sim's apogee missed by 6.04% on average without signs ([report][real-report]). Those flights check
+> apogee alone. The tour gives ranges, not verdicts. The safety code and the range safety officer
+> (the RSO) decide whether a rocket flies.
 
 ## Fly a design file
 
 **`hpr sim` flies a design file from the launch rail to the ground and prints what happened.**
 The tour's rocket is
 [`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork),
-a small rocket saved by OpenRocket with two motors to choose from. Run the commands from a copy of
-the repository (`git clone https://github.com/nrdptel/fusionspace-eridanus`), or download the file
-from its page and put its path in place of the one shown. Its motors are in the catalog built into
-HPR Sim, so it flies with no network. The picture shows the run as a terminal shows it,
-with four parts marked:
+a small rocket saved by OpenRocket with two motors to choose from.
+
+Run the commands from a copy of the repository
+(`git clone https://github.com/nrdptel/fusionspace-eridanus`). Or download the file from its page,
+and put its path in place of the one shown. Its motors are in the catalog built into HPR Sim, so
+it flies with no network. The picture shows the run as a terminal shows it, with four parts
+marked:
 
 ![What `hpr sim` prints for the guide rocket, as a terminal shows it, with balloons A to D at the configuration line, the summary, the warnings and the table of events.](images/tour-sim.svg)
 
-- **A, the configuration.** A design file can hold several motor configurations. With none named,
-  `hpr sim` flies the file's default and says how to fly the others with `--config`.
-- **B, the summary.** The static margin in [calibers](glossary.md#caliber), the balance point
-  ([CG](glossary.md#center-of-gravity-cg)) and the
-  [center of pressure](glossary.md#center-of-pressure-cp), the [apogee](glossary.md#apogee),
-  the speed off the rail, the motor's delay against the time to apogee, and the descent rate. The
-  line under the configuration says what all of them are: a simulated flight, not a measurement.
-- **C, the warnings.** Each names a known gap in HPR Sim's models that bears on this flight, the
-  issue that tracks it, and which way it pushes the numbers. Here the drag may read high, so the
-  apogee may read low: for a field's ceiling, the side that flatters
+- **A, the configuration.** A design file can hold several motor configurations. With none
+  named, `hpr sim` flies the file's default and says how to fly the others with `--config`.
+- **B, the summary.** It gives the static margin in [calibers](glossary.md#caliber), the balance
+  point ([CG](glossary.md#center-of-gravity-cg)) and the
+  [center of pressure](glossary.md#center-of-pressure-cp), and the [apogee](glossary.md#apogee).
+  Then come the speed off the rail, the motor's delay against the time to apogee, and the descent
+  rate. The line under the configuration says what the summary's numbers are: a simulated
+  flight, not a measurement.
+- **C, the warnings.** Each names a known gap in HPR Sim's models that bears on this flight. It
+  also names the issue that tracks the gap, and which way the gap pushes the numbers. Here the
+  drag may read high. If it does, the apogee reads low, the side that flatters a field's ceiling
   ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters)).
 - **D, the events.** Liftoff, rail exit, burnout, apogee, the charge, the parachute's deployment
   and the ground hit, each with its time, height and speed.
 
 The lines between B and C say what was flown: the motor, the recovery, and the launch. With no site
-given, as here, that is a default: sea level on the equator, a vertical rail and calm air.
+given, as here, that's a default: sea level on the equator, a vertical rail and calm air.
 
 The same run as text, to copy or search:
 
@@ -99,30 +105,32 @@ More: https://hpr.fusionspace.co/accuracy.html
 <!-- cli: end -->
 
 [Fly your .ork](fly-your-ork.md) covers choosing the configuration, the site, the rail and the
-wind, and saving the flight to plot or to open in a spreadsheet.
+wind. It also covers saving the flight to plot or to open in a spreadsheet.
 
 ## Scatter its inputs
 
 **`hpr mc` flies the same file many times ([Monte Carlo](glossary.md#monte-carlo)), each flight's inputs drawn afresh, and prints how far
 the apogee and the landing spread.** A design file's masses, its drag and its motor are each a
 little off from the real rocket's. The command takes each scatter as one standard deviation, as a
-share of the value: `--mass-sd 0.02` for the mass, `--drag-sd 0.05` for the drag and
-`--impulse-sd 0.03` for the motor's impulse. `--seed 2026` makes the draws the same on every run.
+share of the value. Here they're `--mass-sd 0.02` for the mass, `--drag-sd 0.05` for the drag
+and `--impulse-sd 0.03` for the motor's impulse. `--seed 2026` makes the draws the same on every
+run.
 
 ![What `hpr mc` prints for the guide rocket, as a terminal shows it, with balloons A to C at the apogee's spread, the landing ellipse and the note on how far to trust it.](images/tour-mc.svg)
 
 - **A, the apogee's spread.** The nominal flight, then the runs' mean, their standard deviation,
-  and their [percentiles](glossary.md#percentile): most runs fell between the `5%` and `95%`
+  and their [percentiles](glossary.md#percentile). Most runs fell between the `5%` and `95%`
   columns.
-- **B, the landing ellipses.** Each is drawn to hold its share of the landings if they scattered
-  as a [normal spread](glossary.md#normal-distribution), and the `flights inside` column counts
-  how many did; the next-flight ellipse is the one to set against a field's edges
-  ([landing ellipse](glossary.md#landing-ellipse)). In calm air, as here, the landings bunch within
-  about a meter of the pad, not as a normal spread, so the counts and the shares differ; a wind
-  (`--wind`) spreads them out.
-- **C, how far to trust it.** The spread comes from the scatter the command was told to apply,
-  not from errors in the models, which move every run together. This note gives the miss on real
-  flights, which the spread leaves out.
+- **B, the landing ellipses.** Each is drawn to hold its share of the landings if they
+  scattered as a [normal spread](glossary.md#normal-distribution). The `flights inside` column
+  counts how many did. The next-flight ellipse is the one to set against a field's edges
+  ([landing ellipse](glossary.md#landing-ellipse)).
+
+  In calm air, as here, the landings bunch within about a meter of the pad, not as a normal spread.
+  So the counts and the shares differ. A wind (`--wind`) spreads them out.
+- **C, how far to trust it.** The spread comes from the scatter the command was
+  told to apply, not from errors in the models, which move every run together. This note gives
+  the miss on real flights, which the spread leaves out.
 
 The same run as text:
 
@@ -172,12 +180,14 @@ each column means.
 ## The same flight from Python
 
 **The `fusionspace-hpr` package flies the same file from Python and hands the flight back as
-numbers and [NumPy](https://numpy.org/) arrays,** for a notebook, a plot or a script of your own.
-`pip install fusionspace-hpr` installs it ([Python](python.md#install-it) covers the rest). This
-flies the guide rocket with its parachute, from the launch `hpr sim` used above: sea level on the
-equator, a vertical rail of the same length, calm air. Save it as `tour.py` and run
-`python tour.py` from the root of a copy of the repository, or put the downloaded file's path in
-place of the one shown:
+numbers and [NumPy](https://numpy.org/) arrays.** Use them in a notebook, a plot or a script of
+your own. `pip install fusionspace-hpr` installs it ([Python](python.md#install-it) covers the
+rest).
+
+This flies the guide rocket with its parachute, from the launch `hpr sim` used above. That's sea
+level on the equator, a vertical rail of the same length, and calm air. Save it as `tour.py` and
+run `python tour.py` from the root of a copy of the repository. Or put the downloaded file's path
+in place of the one shown:
 
 <!-- python: example -->
 
@@ -221,16 +231,17 @@ above Mach 0.8 from 1.45 s to 1.89 s, in the recording
   `hpr sim` flies it with none named. `recovery=True` flies the file's parachute; without it the
   rocket falls unslowed. This file reads cleanly, but many `.ork` configurations are refused for
   now ([A design from a file](python.md#a-design-from-a-file)).
-- `Environment` takes the site's latitude and longitude in degrees and its elevation in meters;
+- `Environment` takes the site's latitude and longitude in degrees and its elevation in meters.
   `Flight` takes the rocket, the site and the rail's length in meters, vertical unless told
-  otherwise, and flies as soon as it is made.
-- The numbers are the ones `hpr sim` printed above, from the same code:
-  [a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_docs.py)
+  otherwise. It flies as soon as it's made.
+- The numbers are the ones `hpr sim` printed above, from the same code.
+  [A test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_docs.py)
   holds the apogee, the speeds, the landing and the warnings to that run. The warnings are its
   warnings as data: each a GitHub issue number, a kind, a message and a link.
 - `flight["mach"]` and the rest are the recording: the flight's values at each recorded time, one
   NumPy array per column. The last lines find when the rocket flew faster than the Mach number in
-  the code, from which the warnings on the nose's and the base's drag say it reads high.
+  the code. It's the Mach number from which the warnings on the nose's and the base's drag say the
+  drag reads high.
 
 [Python](python.md) covers building a rocket part by part, Monte Carlo runs, and the recording's
 columns.
@@ -238,44 +249,52 @@ columns.
 ## A real flight
 
 The guide rocket has no log, so its numbers can't be checked against the sky. The public flights
-in the [real-flights report][real-report] can: each is a university team's rocket, flown by HPR
-Sim in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one, and set
-against the team's altimeter. The tour takes the middle one by a rule, not by choice: of the 7 flights, the one whose
-miss, without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*.
-EuRoC is the European Rocketry Challenge. If a rerun of the report moves the middle, the tour moves
-to the new one.
+in the [real-flights report][real-report] can. Each is a university team's rocket. HPR Sim flies
+each one in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one,
+and sets it against the team's altimeter.
+
+The tour takes the middle one by a rule, not by choice. Of the 7 flights, the one whose miss,
+without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*. EuRoC is the
+European Rocketry Challenge. If a rerun of the report moves the middle, the tour moves to the new
+one.
 
 Genesis's altimeter read 2,916.7 m (9,569 ft) at the top, 23.3 s after the rocket passed 30 m
 (98 ft) on the way up. An altimeter riding HPR Sim's flight of its design would have read
-2,746.0 m (9,009 ft), at 22.4 s: a miss of −5.85%, so HPR Sim read low. For a waiver or a field's ceiling, a low reading is the side that
-flatters: the rocket climbs past the height that was planned for. The report puts the miss
-down to HPR Sim's drag: flown on the drag the team's example gives, the apogee missed by −0.08%.
-The example records no fin edges or finish, so the design's are placeholders.
+2,746.0 m (9,009 ft), at 22.4 s. That's a miss of −5.85%, so HPR Sim read low. For a waiver or a
+field's ceiling, a low reading is the side that flatters: the rocket climbs past the height that
+was planned for.
+
+The report puts the miss down to HPR Sim's drag: flown on the drag the team's example gives, the
+apogee missed by −0.08% ([report][real-report]). The example records no fin edges or finish, so
+the design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 7 flights HPR Sim's apogee
-missed by −8.90% to +10.40% one by one, by 6.04% on average without signs, and by −0.25% with
-them. That average is outside the project's own 5% target ([Accuracy](accuracy.md#real-flights)). So
-on these flights the misses go both ways, while on 53 logged flights of fliers' own designs they
-lean high, averaging +8.73% above the logged ones: no side can be assumed.
+missed by −8.90% to +10.40% one by one. It missed by 6.04% on average without signs, and by
+−0.25% with them. The average without signs is outside the project's own 5% target
+([Accuracy](accuracy.md#real-flights)).
+
+So on these flights the misses go both ways. On 53 logged flights of fliers' own designs, though,
+they lean high, averaging +8.73% above the logged ones: no side can be assumed.
 [Trusting a simulation](trusting-a-simulation.md) sets the two beside each other and says which
 miss to plan for.
 
 **Sources.** The public flights are among those RocketPy's documentation flies against their teams'
 logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
-contains modified Copernicus Climate Change Service information 2026; neither the European
+contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The
 [logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.
 
 ## Where next
 
-- **Your own rocket:** [Fly your .ork](fly-your-ork.md), then
+- For your own rocket, start with [Fly your .ork](fly-your-ork.md). Then read
   [Check stability for a certification flight](stability-for-certification.md) and
   [Pick a motor](pick-a-motor.md).
-- **Every command and flag:** [The command line](cli.md).
-- **From Python or Rust:** [Python](python.md) and [Getting started](getting-started.md).
-- **Before you rely on a number:** [Trusting a simulation](trusting-a-simulation.md) and
+- Every command and flag is in [The command line](cli.md).
+- To work from Python or Rust, read [Python](python.md) and [Getting started](getting-started.md).
+- Before you rely on a number, read [Trusting a simulation](trusting-a-simulation.md) and
   [Accuracy](accuracy.md).
-- **Beside the other simulators:** [Compared with other simulators](simulator-compared.md).
+- To see HPR Sim beside the other simulators, read
+  [Compared with other simulators](simulator-compared.md).
 
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

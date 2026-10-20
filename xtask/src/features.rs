@@ -316,7 +316,7 @@ impl Record {
                 .ok_or_else(|| format!("{}: hpr names no milestone", capability.id))?;
             let does = if ahead.len() == 1 { "does" } else { "do" };
             less.push(format!(
-                "- **{}:** {} {does}; HPR Sim {} ({}).",
+                "- {}: {} {does}. HPR Sim {}; {} on the roadmap brings it.",
                 sentence_case(&capability.label, true),
                 list(&ahead.iter().map(ToString::to_string).collect::<Vec<_>>()),
                 if hpr.has == Has::Partly {
@@ -330,7 +330,7 @@ impl Record {
         if !less.is_empty() {
             out.push_str(
                 "\n**Where HPR Sim has less.** Each row where another tool says yes and HPR Sim \
-                 doesn't, with the milestone that brings it:\n\n",
+                 doesn't, with the step of the roadmap that brings it:\n\n",
             );
             for line in less {
                 out.push_str(&line);
@@ -347,7 +347,7 @@ impl Record {
             for (cell, tool) in capability.cell.iter().zip(&self.tool) {
                 match (&cell.note, cell.has) {
                     (Some(note), has) => notes.push(format!(
-                        "{} ({}): {}",
+                        "  - {} ({}): {}",
                         tool.name,
                         has.words(),
                         sentence_end(note)
@@ -361,9 +361,9 @@ impl Record {
             if !notes.is_empty() {
                 let _ = writeln!(
                     out,
-                    "- **{}.** {}",
+                    "- {}:\n{}",
                     sentence_case(&capability.label, true),
-                    notes.join(" ")
+                    notes.join("\n")
                 );
             }
         }
@@ -373,8 +373,8 @@ impl Record {
             if tool.id == "hpr" {
                 let _ = writeln!(
                     out,
-                    "- **{}:** each cell links the page of this site that shows it, or the \
-                     milestone that brings it.",
+                    "- {}: each cell links the page of this site that shows it, or the step of \
+                     the roadmap that brings it.",
                     tool.name
                 );
                 continue;
@@ -392,7 +392,7 @@ impl Record {
             };
             let _ = writeln!(
                 out,
-                "- **{} {release}**{released}, read on {}.{note}",
+                "- {} {release}{released}, read on {}.{note}",
                 tool.name,
                 prose_date(checked_on)?,
             );
@@ -533,7 +533,7 @@ fn roadmap_anchor(milestone: &str) -> String {
     )
 }
 
-/// `milestone` as a link with its roadmap title: `[M6.6, Submission packs](…#m6-6)`.
+/// `milestone` as a link whose text is its roadmap title, in words: `[Submission packs](…#m6-6)`.
 fn milestone_link(milestone: &str, roadmap: &str) -> Result<String, String> {
     let title = roadmap
         .lines()
@@ -547,10 +547,7 @@ fn milestone_link(milestone: &str, roadmap: &str) -> Result<String, String> {
         .find_map(|rest| rest.split("**").next())
         .ok_or_else(|| format!("{milestone} has no open entry in {ROADMAP}"))?;
     let title = title.trim_end_matches([',', '.', ':']).trim();
-    Ok(format!(
-        "[{milestone}, {title}]({})",
-        roadmap_anchor(milestone)
-    ))
+    Ok(format!("[{title}]({})", roadmap_anchor(milestone)))
 }
 
 /// `label` with its first letter in capitals (`upper`) or not, for the start or the middle of a
@@ -873,17 +870,24 @@ mod tests {
     }
 
     /// The region holds the table, the capability HPR Sim alone has, where it has less with the
-    /// milestone's link and title, each no in words, and each tool's release and date in prose.
+    /// milestone's link under its title, each no in words, and each tool's release and date in
+    /// prose, with no bold label on any list item (the voice limits, ADR-285).
     #[test]
     fn the_region_says_it_all() {
         let region = record().region(ROADMAP).unwrap();
         assert!(region.starts_with(REGION_START) && region.ends_with(REGION_END));
+        assert!(
+            !region
+                .lines()
+                .any(|line| line.trim_start().starts_with("- **")),
+            "{region}"
+        );
         for expected in [
             "| Capability | Each tool |",
             "| Flies a design from a command line | HPR\u{a0}Sim\u{a0}[yes](cli.md); OpenRocket\u{a0}[no](https://example.org/guide); RocketPy\u{a0}[no](https://example.org/docs) |",
-            "- **Draws a design in a window:** OpenRocket does; HPR Sim doesn't yet ([M9.1, Desktop app shell](decisions-and-roadmap.md#m9-1)).",
-            "- **Flies a design from a command line.** OpenRocket (no): its arguments set options for the window. RocketPy (no): a Python library.",
-            "- **OpenRocket 24.12**, released July 27, 2025, read on October 12, 2026.\n  - [Its guide](https://example.org/guide)\n",
+            "- Draws a design in a window: OpenRocket does. HPR Sim doesn't yet; [Desktop app shell](decisions-and-roadmap.md#m9-1) on the roadmap brings it.",
+            "- Flies a design from a command line:\n  - OpenRocket (no): its arguments set options for the window.\n  - RocketPy (no): a Python library.\n",
+            "- OpenRocket 24.12, released July 27, 2025, read on October 12, 2026.\n  - [Its guide](https://example.org/guide)\n",
             "as far as each tool's documentation shows, HPR Sim alone *flies a design from a command line*: each of the others' cells in that row says no.",
         ] {
             assert!(region.contains(expected), "{expected:?} not in\n{region}");

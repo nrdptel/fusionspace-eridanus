@@ -4,17 +4,19 @@ Fly a rocket designed in OpenRocket with `hpr sim` from the command line, and le
 numbers it prints.
 
 **This guide flies a rocket you designed in [OpenRocket](glossary.md#openrocket) with `hpr sim`,
-from the command line, and says how to read what it prints.** It is for a flier who has a `.ork`
+from the command line, and says how to read what it prints.** It's for a flier who has a `.ork`
 file and wants a second simulator's view of it.
 
 > **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 53
-> logged flights of fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one, was
-> within 10% on 26 and read low on 13, by at most 20%, as `hpr sim` says under each result below.
+> logged flights of fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one. It
+> was within 10% on 26 and read low on 13, by at most 20%. `hpr sim` says so under each result
+> below.
+>
 > [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
 > summary sits at the top of the
 > [README](https://github.com/nrdptel/fusionspace-eridanus#accuracy-at-a-glance). The outputs on
 > this page are made by running each command, and CI checks that they still match what `hpr`
-> prints. Log your altimeter's reading; the RSO decides.
+> prints. Log your altimeter's reading; the range safety officer (RSO) decides.
 
 The steps:
 
@@ -26,11 +28,13 @@ The steps:
 
 You need `hpr` installed: the README's
 [Install and first flight](https://github.com/nrdptel/fusionspace-eridanus#install-and-first-flight) takes a
-few minutes. The examples fly the guides' own rocket,
-[`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork):
-a 66 mm (2.6 in), 0.82 kg rocket with a 38 mm motor mount and one parachute on the motor's ejection
-charge, saved with two motors, an AeroTech H170M and an I175WS. OpenRocket 24.12 opens it. Run
-the commands from a copy of the repository, or put your own file's path in its place.
+few minutes.
+
+The examples fly the guides' own rocket,
+[`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork).
+It's a 66 mm (2.6 in), 0.82 kg rocket with a 38 mm motor mount and one parachute on the motor's
+ejection charge. It's saved with two motors, an AeroTech H170M and an I175WS. OpenRocket 24.12 opens
+it. Run the commands from a copy of the repository, or put your own file's path in its place.
 
 ## Fly the file as it is
 
@@ -90,25 +94,25 @@ More: https://hpr.fusionspace.co/accuracy.html
 The lines under the configuration are the ones to read first. Each height and speed is in SI,
 with feet or feet per second in parentheses:
 
-- **`static margin`**: how far the [center of pressure](glossary.md#center-of-pressure-cp) sits
+- `static margin` is how far the [center of pressure](glossary.md#center-of-pressure-cp) sits
   behind the [center of gravity](glossary.md#center-of-gravity-cg), in body diameters
-  ([calibers](glossary.md#caliber)), as the rocket leaves the rail, and its least value
-  before apogee. A rocket with a fin set of one or two fins has a different margin for each
-  direction the air crosses it, and `hpr sim` prints the least
+  ([calibers](glossary.md#caliber)). The line gives it as the rocket leaves the rail, and its
+  least value before apogee. A rocket with a fin set of one or two fins has a different margin
+  for each direction the air crosses it. `hpr sim` prints the least
   ([Flight metrics](physics/metrics.md#stability-margins)). [Check stability for a certification flight](stability-for-certification.md)
   says how to use it.
-- **`CG and CP`**: where the center of gravity and the center of pressure sit as the rocket leaves
-  the rail, the two points the margin comes from, measured from the nose tip.
-- **`apogee`**: the highest point of the center of gravity, above the launch site.
-- **`rail exit speed`**: the speed as the rocket leaves the rail. The slower it is, the more a
+- `CG and CP` gives where the center of gravity and the center of pressure sit as the rocket
+  leaves the rail, measured from the nose tip. They're the two points the margin comes from.
+- `apogee` is the highest point of the center of gravity, above the launch site.
+- `rail exit speed` is the speed as the rocket leaves the rail. The slower it is, the more a
   crosswind tips the rocket just after.
-- **`delay`**: the coast from burnout to apogee, beside the delay the file sets. Here the H170M's
-  10 s charge fires about half a second after apogee. [Pick a motor](pick-a-motor.md#choose-the-delay)
+- `delay` gives the coast from burnout to apogee, beside the delay the file sets. Here the
+  H170M's 10 s charge fires about half a second after apogee. [Pick a motor](pick-a-motor.md#choose-the-delay)
   says how to choose one.
-- **`descent`**: how fast the rocket comes down under its open parachutes, without the wind's
+- `descent` is how fast the rocket comes down under its open parachutes, without the wind's
   drift.
 
-The `recovery` line names each parachute, when it opened and its drag area; the events table
+The `recovery` line names each parachute, when it opened and its drag area. The events table
 gives each event's time, height and speed. The `note` says how the parachute is flown: it opens
 fully at once, as OpenRocket's does. [The command line](cli.md#flying-a-design) explains every
 line, and any `warning` you may see.
@@ -117,14 +121,15 @@ line, and any `warning` you may see.
 
 **`--config` picks another of the file's configurations, by its number, its name or its motors.**
 The output's second and third lines list them. A configuration the file leaves unnamed is called
-by its motors and delays in brackets, so the guide rocket's second is `[I175WS-9]`, and
+by its motors and delays in brackets. So the guide rocket's second is `[I175WS-9]`, and
 `--config 2`, `--config I175WS-9` and `--config i175ws-9` all fly it.
 
-**`hpr sim` does not read the launch conditions saved with the file's simulations: give them as
+**`hpr sim` doesn't read the launch conditions saved with the file's simulations: give them as
 options.** Without them, the rocket flies from a 1.5 m (4.9 ft) vertical rail at sea level, at
 0° N, 0° E, in calm air. Set the site's elevation for every real field: air thins with height, and
 a rocket climbs higher from a high one. This flies the second configuration from a field 1,400 m
-(4,593 ft) up, off a 2.4 m (7.9 ft) rail tilted 5° toward the west, in a 4 m/s (8.9 mph) west wind:
+(4,593 ft) up. The rail is 2.4 m (7.9 ft) long and tilted 5° toward the west, and a 4 m/s
+(8.9 mph) wind blows from the west:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2 --elevation 1400 --rail-length 2.4 --inclination 85 --heading 270 --wind 4 --wind-from 270`; written by `cargo xtask cli`; do not edit -->
 
@@ -175,14 +180,14 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-`--inclination` is the rail's angle above the horizon, so 85 is 5° off vertical (OpenRocket
-gives the same rail as 5°, from the vertical), and `--heading 270` leans it toward the west, into the wind. The wind is the same at every
-height. [The launch](cli.md#the-launch) lists every option and its default.
+`--inclination` is the rail's angle above the horizon, so 85 is 5° off vertical. OpenRocket gives
+the same rail as 5°, from the vertical. `--heading 270` leans it toward the west, into the wind.
+The wind is the same at every height. [The launch](cli.md#the-launch) lists every option and its default.
 
 ## Fetch a motor the simulator doesn't have
 
 **A motor outside the simulator's 32 is fetched from [ThrustCurve.org](glossary.md#thrustcurveorg)
-the first time you fly it, then kept in the simulator's cache, so it flies offline after.** A `.ork`
+the first time you fly it. Then it's kept in the simulator's cache, so it flies offline after.** A `.ork`
 names its motor but rarely carries its [thrust curve](glossary.md#thrust-curve). With no network,
 and no copy in the cache, `hpr sim` refuses and prints the command that fetches it. This test rocket
 names an AeroTech H128W:
@@ -207,11 +212,12 @@ hpr motors fetch --manufacturer AeroTech H128W
 ```
 
 The curve is ThrustCurve's, found by the file's manufacturer and designation. For the motors of
-OpenRocket's own example designs, HPR Sim knows which file holds the curve OpenRocket flies and
-takes it; for any other motor, the file may not be the one OpenRocket flies. A note under the flight
-names the curve file, who measured it, and which of the two it is.
-[Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one.
-If you have the motor's `.eng` or `.rse` file, fly it with `--motor`:
+OpenRocket's own example designs, HPR Sim knows which file holds the curve OpenRocket flies, and
+takes it. For any other motor, the file may not be the one OpenRocket flies.
+
+A note under the flight names the curve file, who measured it, and which of the two it is. [Motors
+from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one. If you
+have the motor's `.eng` or `.rse` file, fly it with `--motor`:
 `hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
 
 ## Plot it, or save the numbers
@@ -224,9 +230,10 @@ hpr sim validation/fixtures/ork/guides/level-1.ork --plot level-1.svg --export l
 
 The plot is one fixed figure: altitude, speed and acceleration against time, each event marked.
 An SVG opens in any web browser; [Plotting the flight](cli.md#plotting-the-flight) shows one.
+
 Beside it, `level-1.plot.csv` holds the numbers the figure draws. The
-export holds every quantity the simulator tracks, every 0.01 s; the file's extension picks the
-format (`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`), and
+export holds every quantity the simulator tracks, every 0.01 s. The file's extension picks the
+format (`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`).
 [Exporting a flight](exporting-a-flight.md) says what each column means. `--json` prints the
 summary itself as data, for a script to read.
 
@@ -240,22 +247,22 @@ common reasons, and what to do:
 | no thrust curve for the motor, and the run is offline | fetch it once online, as [above](#fetch-a-motor-the-simulator-doesnt-have), or give a motor file with `--motor` |
 | the design's checks found errors | each error names the parts, such as a motor wider than its mount. Fix the design; or, to fly it anyway, add `--accept-design-errors`, and the flight's notes list the errors |
 | a part the simulator couldn't read exactly as written | The simulator flies only what it reads exactly. The message names the part; the [`.ork` page](format/ork.md) lists what it reads |
-| a stage that separates, a second motor lit in flight | powered separations fly without `--motor`, one or several in turn, as on a three-stage rocket ([Separation](cli.md#separation)); with `--motor`, drop the option to fly the file's own motors. A payload dropped with nothing left to burn flies when its own parachute opens at the split; one that would coast with no drag first is refused: set one of the payload's devices to open at "Lower stage separation" with no delay ([M4.5g3](decisions-and-roadmap.md#m4-5g3), a payload's split) |
+| a stage that separates, a second motor lit in flight | powered separations fly without `--motor`, one or several in turn, as on a three-stage rocket ([Separation](cli.md#separation)); with `--motor`, drop the option to fly the file's own motors. A payload dropped with nothing left to burn flies when its own parachute opens at the split; one that would coast with no drag first is refused: set one of the payload's devices to open at "Lower stage separation" with no delay ([a payload's split](decisions-and-roadmap.md#m4-5g3)) |
 | it can't tell which configuration to fly | the file has several and no default: name one with `--config` |
 
-Warnings are not refusals. A `warning:` line flags something the design's checks found unusual
-but buildable, such as a motor longer than its mount tube, and the flight goes on. Warnings,
+Warnings aren't refusals. A `warning:` line flags something the design's checks found unusual
+but buildable, such as a motor longer than its mount tube. The flight goes on. Warnings,
 notes and `help:` lines go to standard error, so `hpr sim rocket.ork > flight.txt` saves the
 flight alone and leaves them on the terminal.
 
 ## What it leaves out
 
-- **The launch conditions in your file.** Give them as options,
+- The launch conditions in your file. Give them as options,
   [above](#choose-the-configuration-and-the-launch).
-- **Real weather.** One wind at every height, in the [standard atmosphere](glossary.md#standard-atmosphere).
+- Real weather. It flies one wind at every height, in the [standard atmosphere](glossary.md#standard-atmosphere).
   `hpr weather` fetches a launch day's profile, but `hpr sim` doesn't fly it yet
   ([#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265), flying a weather profile).
-- **A fall with no parachute open.** The landing is then marked "not a prediction"
+- A fall with no parachute open. The landing is then marked "not a prediction"
   ([the landing](cli.md#the-landing)).
-- **A verdict.** The simulator prints estimates. Whether a rocket is fit to fly is for you, the
+- A verdict. The simulator prints estimates. Whether a rocket is fit to fly is for you, the
   motor's printed data and your range safety officer to decide.
