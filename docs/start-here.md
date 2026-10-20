@@ -179,12 +179,16 @@ payload's drop are [below](#staging-two-stage-rockets-clusters-and-air-starts).
 HPR Sim opens an OpenRocket `.ork` file, zipped, gzipped or plain XML, and reads the whole design.
 That's the stages, the parts on and inside them, the motor configurations, when parachutes open,
 and the simulations OpenRocket stored. The airframe's shape is cross-checked against a second
-reader and OpenRocket itself, and so are its mass and center of gravity
-([Mass properties](physics/mass.md#checked-against-openrocket)). Pods, parallel stages and fins on
-a nose cone are read, weighed and flown ([Pods](physics/aero.md#pods)). On OpenRocket's examples
-with them, two checks are weaker than the rest. One flight is compared only up to where OpenRocket
-aborts it, and one design's stability margin reads 0.07 calibers high, the flattering side. A part
-HPR Sim can't shape honestly is left out with a warning.
+reader and against OpenRocket, and the parts' positions against OpenRocket alone
+([`.ork` design files](format/ork.md)). Its mass and center of gravity are checked against
+OpenRocket 24.12 ([Mass properties](physics/mass.md#checked-against-openrocket)). Pods, fins on a
+nose cone, and parallel stages on a rocket of one stage on the axis are read, weighed and flown
+([Pods](physics/aero.md#pods)). Three results on OpenRocket's examples with them stand apart. A pod
+example's sustainer reads 37.93% below OpenRocket's apogee; it turns over before apogee in both
+programs. OpenRocket aborts its own flight of that example's first configuration, so that one is
+compared only up to the abort. And on two pod examples the stability margin reads about 0.07
+calibers high, the flattering side. A part HPR Sim can't shape honestly is left out with a
+warning.
 
 `hpr sim` flies 136 of the 170 motor configurations in the reference library and OpenRocket's
 examples as saved, 54 of OpenRocket's 56 among them. It flies 9 more with
@@ -213,9 +217,10 @@ The library reads each format into one record, every column kept on its own cloc
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
 and Eggtimer. Others come from AltimeterCloud, Entacore AIM, AerospaceNU, Silicdyne, the ARTS2,
 the R-DAS, AltiMAX and MARSA. A phone app's log, GPS tracks, a course's Teensy logger and one
-team's flight computer are read too. So are zip archives and Excel workbooks. A table no reader knows is read by the
+team's radio telemetry packets are read too. So are zip archives and Excel workbooks. A table no reader knows is read by the
 units its header states, or by a column mapping you write. Binary records are read by a layout
-you write ([Reading your own logger](your-own-logger.md)). [Flight logs](format/flight-logs.md)
+you write ([Reading your own logger](your-own-logger.md)). That's shown so far on one invented
+flight's files ([evidence row G11, your own logger](evidence.md#g11)). [Flight logs](format/flight-logs.md)
 covers each layout and how it was checked, and
 [the notes below](#outputs-and-ways-to-use-it) give some readers' checks.
 
@@ -225,8 +230,8 @@ A Monte Carlo run flies one rocket many times, with its mass, drag, motor, wind,
 delays scattered. It's seeded, so a run repeats exactly. It gives the spread of the apogee, the
 landing or any number a flight reports, with failed flights counted. It runs from Rust or
 [`hpr mc`](cli.md#hpr-mc), staged flights included, and exports every flight as CSV. For a design
-without staging, Python gets the flights as NumPy arrays. They're the same numbers to the bit,
-with both built in release mode ([Monte Carlo dispersion](monte-carlo.md)).
+without staging, Python gets the flights as NumPy arrays. Python's numbers are the library's to the
+bit on one platform, with both built in release mode ([Monte Carlo dispersion](monte-carlo.md)).
 
 ### Optimization
 
@@ -276,10 +281,11 @@ of the Arcas Robin sounding rocket, from Mach 0.6 to 4.63, it reads high at most
 highest with fins past Mach 1
 ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). So for a rocket that
 goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its base drag, on the
-flat aft end, has been compared with two references, and neither is a direct measurement. One is
+flat aft end, has been compared with two references. One is
 MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The other is Love's
 correlation of measured bases. The base drag reads high from Mach 0.8 to 1.2 against the first,
-and low from Mach 1.5 against the second
+and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured, and no
+reference here measures base drag faster than Mach 0.3
 ([issue 68, the base drag's error](https://github.com/nrdptel/fusionspace-eridanus/issues/68);
 [the handbook's calculation](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation)).
 
