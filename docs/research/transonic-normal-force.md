@@ -50,7 +50,7 @@ covers this region and the join is not fitted to it.
 
 All give geometry complete enough to rebuild, except Allen 2005's nose profile, which must be assumed; Allen 2001's
 fins are pairs. "Release" means DTIC's public-release statement, "public use" NTRS's marking for NASA and NACA work,
-and "Crown" Canadian Crown copyright: cite it, commit only readings.
+and "Crown" Canadian Crown copyright: cite it; its readings stay cached under `refs/`, uncommitted (issue #619).
 
 ### The Basic Finner
 
@@ -62,10 +62,10 @@ and "Crown" Canadian Crown copyright: cite it, commit only readings.
   reached; ARL-TR-6725 Fig. 5 [B2] (PDF p. 25) replots them. **Inference,** read by pixel calibration (about ±0.3 per
   rad): C_Nα 15.0 at Mach 0.5; 16.1 (tunnel) and 16.7 (range) at 0.78; 17.9–18.3 at 0.92; 19.7 (tunnel) at 1.07;
   21.1 (range) at 1.10; 18.0–18.2 at 1.18–1.20; 18.3 at 1.29.
-- **Tabulated range points.** DREV-TM-9703 Table IX (PDF p. 48), multiple-fit: C_Nα 18.47 ± 2% at Mach 1.077 and
-  18.27 ± 3% at 1.293; single shots scatter from 16.39 to 22.34 at Mach 1.056–1.116 (Table VII, PDF p. 43). The
-  report says a peak "at approximately Mach 1.25 seems to have been missed" (PDF p. 26), which the dense set doesn't
-  support. BRL 934 Table III (PDF p. 41): 19.6 ± 5% at Mach
+- **Tabulated range points.** DREV-TM-9703 Table IX (PDF p. 48) has multiple fits of C_Nα at Mach 1.077 and 1.293
+  (probable errors ±2%, ±3%); single shots at Mach 1.056–1.116 spread 36%, lowest to highest (Table VII, PDF p. 43);
+  the readings stay cached under `refs/` (#619). The report says a peak "at approximately Mach 1.25 seems to have
+  been missed" (PDF p. 26), which the dense set doesn't support. BRL 934 Table III (PDF p. 41): 19.6 ± 5% at Mach
   0.975, 17.9 ± 4% at 1.139, 16.7 ± 4% at 1.264; rounds between 1.011 and 1.077 carry probable errors of 20–56%.
   Its text gives about 25 near Mach 1.1 (PDF p. 12), which the other sources don't support.
 - **CP (Inference),** from C_mα/C_Nα about 5.5 d on the tunnel pairs: 8.14 d from the tip at Mach 0.5, 8.31 at 0.8,
@@ -179,7 +179,7 @@ long model's.
 - **Not found:** the Triservice Missile Database (TM-2002-211653), TN D-794 (Scout and related models, Mach 0.4–1.2;
   NTRS record, no PDF), TN D-1228 (Blue Scout Jr.). TM X-3070 was not read.
 - **Whether the Allen 2005 files may be committed** as a public-domain fixture, or only the project's readings of
-  them, is a maintainer's call. DREV-TM-9703 is Crown copyright: cite it and commit only readings.
+  them, is a maintainer's call. DREV-TM-9703 is Crown copyright: cite it; its readings stay uncommitted (#619).
 - **No hobby shape at hobby Reynolds numbers:** all are about 10⁶ to 3 × 10⁷ on length, none with fillets.
 
 ## Sources (all read 2026-10-16)

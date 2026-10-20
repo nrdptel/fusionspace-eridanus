@@ -42,13 +42,6 @@ Their research: [propulsion](suite-propulsion.md), [parachutes](suite-parachutes
 IREC submission packs, a declared apogee with its bound and a ballast solver (M6.6); ejection-charge
 sizing (M6.7); Monte Carlo from the CLI and Python (M4.6); pad day on a phone (M9.4).
 
-## In scope, low priority (Neer's scope call, 2026-10-03)
-
-- WITHDRAWN by [ADR-193, the control scope][adr-193] (Neer, 2026-10-07: no pitch or yaw
-  control): thrust vector control (TVC) and active fins with a controller in the loop.
-- LATER: GPS-steered gliding parachutes (with TVC, forum threads of about 520 and 311 replies).
-- LATER: rocket-boosted gliders.
-
 ## Neer's 2026-10-06 ideas
 
 Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](suite-web-tools.md),
@@ -110,43 +103,44 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-15)
+## Earlier planning reviews (2026-10-08 to 2026-10-17)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
 ([M2.3c6][m2-3c6], [ADR-273][adr-273]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
 Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]), the
-post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]). The rest moved
-to the [theme notes](#theme-notes).
+post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]), fin flutter held to
+measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the
+[theme notes](#theme-notes).
 
-## The 2026-10-17 planning review
+## The 2026-10-20 planning review
 
-- PROMOTED to [M2.11][m2-11] ([ADR-279][adr-279]): fin flutter held to measurement. User: a flyer
-  checking a fin's flutter margin, or a team filling IREC's prediction table. Workflow: the flutter
-  page gives the speed's error and its side on fins measured fluttering in published tests, and
-  beside an independent calculator. Moves: a new scoreboard row, the largest flattering-side flutter
-  error, for each tool. *Done when:* M2.11's.
-- SOON: one altitude formula for every logged apogee ([#701][i-701]). User: a flyer comparing two
-  altimeters on one flight, or a log with a simulation. Workflow: `hpr analyze` derives height from
-  logged pressure by the standard atmosphere from the pad, beside the logger's column, each family's
-  conversion named sourced or assumed. Moves: `accuracy.public`, `accuracy.collection`,
-  `bias.public` and `bias.collection`, their reference apogees on one formula. *Done when:* #701's,
-  and the real-flight and fixture reports give those rows both ways.
-- SOON: a second-method report for Student Launch, whose reviews ask for data from a different
-  calculation method. User: a team's simulation lead. Workflow: `hpr crosscheck design.ork` sets HPR
-  Sim's apogee, rail-exit margin and speed, landing energies and descent time beside the file's
-  stored OpenRocket results, each against its requirement in the [2027 handbook][sl27], each gap
-  split by cause. Moves: a new steps row, `steps.sl-crosscheck`. *Done when:* the five numbers print
-  for both tools on every public Student Launch design (count stated), tests pin them, and the page
-  cites the handbook (source and stale-after dates) and names any HPR Sim feature its rule 1.1.1
-  bars (none today).
-- SOON: the drag settings worth checking, named in a design's summary. User: a flyer of an imported
-  `.ork` whose fin cross-sections and finishes were never set. Workflow: `hpr sim` and `hpr check`
-  mark each left at a default, with the C_D change at Mach 0.3 and the apogee change from the other
-  common setting (18% in C_D in one reported case, [flight-derived C_D][fdcd]). Moves:
-  `features.count`, and the share of `bias.collection` such defaults carry (#614, #585). *Done
-  when:* both changes print with each setting's source; tests cover a file left at defaults and one
-  set; the fixture report counts the designs left at defaults, as aggregates.
+Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promote an idea.
+
+- SOON: OpenRocket's whole-rocket aero tables, read and flown. User: a flyer whose `.ork` from
+  OpenRocket's next release carries drag and stability tables by Mach ([its guide][or-aero]).
+  Workflow: `hpr sim` flies them as OpenRocket does, held at their edges, names them and flags the
+  flight past their last Mach; until then such a file is refused ([#879][i-879]). Moves:
+  `features.count`. *Done when:* a probe `.ork` with both tables flies within 0.5% of that
+  release's apogee (pinned as 24.12 is), and tests hold the edge rule both ways.
+- SOON: a canopy's drag area fitted from the flyer's own log. User: an L2 flyer whose main lands
+  faster or slower than the maker's table. Workflow: `hpr analyze` on a barometric log, canopy and
+  descent mass named, prints C_D·S with a 90% interval from each canopy's descent rate ([M7.2][m7-2])
+  beside the maker's figure. Moves: a new row, `accuracy.canopy-cd` (one maker's canopies read 17%
+  to 36% under their table on 29 balloon descents, [the parachute note][hpcd]). *Done when:* synthetic descents of known
+  C_D·S are recovered inside the interval at its stated rate, and a public log gets its C_D·S.
+- SOON: the stability margin through the flight, with each change's cause. User: a flyer whose
+  rocket passes Mach 1 and whose tool shows 2.6 calibers growing to 4.8 with no reason given ([a
+  forum thread][stab-thread], 2026-10). Workflow: `hpr sim` prints the margin at rail exit, top Mach,
+  least and greatest, and splits each change into the CG's move and the CP's by part (nose, body
+  lift, fins' lift slope). Moves: `features.count`. *Done when:* on a public supersonic design the
+  parts sum to the change to rounding, and a mutation dropping one part fails the test.
+- SOON: a past day's ERA5 column with no account. User: a flyer comparing an old flight's log with
+  its simulation in that day's air. Workflow: `hpr weather era5` with a site and a UTC hour, no
+  file, asks NSF NCAR's GDEX copy of ERA5 for the pressure levels (CC BY 4.0, no login, about 2 KB),
+  caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves: a new
+  task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
+  replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -195,6 +189,9 @@ to the [theme notes](#theme-notes).
 [adr-273]: ../decisions/0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
 [m2-11]: ../decisions-and-roadmap.md#m2-11
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
-[i-701]: https://github.com/nrdptel/fusionspace-eridanus/issues/701
-[sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf
-[fdcd]: flight-derived-cd.md
+[adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
+[i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
+[hpcd]: hobby-parachute-cd.md
+[stab-thread]: https://www.rocketryforum.com/threads/stability-concerns-regarding-my-mach-1-l2.199218/
+[slth]: sl-true-height.md

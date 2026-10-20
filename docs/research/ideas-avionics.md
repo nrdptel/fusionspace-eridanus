@@ -42,6 +42,12 @@ Part of the [ideas backlog](ideas.md) (2026-10-03). One line each, with its tier
   checked. *Done when:* a synthetic log with a lockout near liftoff is flagged and a clean one
   isn't (a missed flag, the flattering side, has its own test); the reports count events checked
   and flagged on the public logs and, as aggregates, the collection's.
+- SOON: a static-port placement check through Mach 1. User: an L2 or L3 flyer drilling an avionics
+  bay's ports on a rocket past Mach 0.95. Workflow: the design check lists each port's zone (behind
+  the nose's shoulder, ahead of a fin root, boattail or transition, a single hole) with the measured
+  range of false altitude, no verdict ([the static-pressure note][sphs]). Moves: `features.count`.
+  *Done when:* each zone cites its source's table, and each flag fires just inside its edge and not
+  just outside (a test and a mutation probe each).
 
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1

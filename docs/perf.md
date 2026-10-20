@@ -3,6 +3,32 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## A step's start taken from the step before (2026-10-20)
+
+- **What this is.** The flight metrics read each accepted step's start, middle and end. The end
+  has come from the integrator since the entry below; the start, the same time and state as the
+  step before's end, was evaluated afresh. A step now keeps the integrator's evaluation from the
+  step before (`PhaseSystem::previous` in `crates/hpr-sim/src/flight.rs`) and takes the start from
+  it when the time and all 13 state components match bit for bit. In one profile of the K940's
+  flights (macOS `sample`, not committed) the metrics fell from 35% of a flight to 28%.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main e247ddfe against the change,
+  alternating: `cargo bench -p fusionspace-hpr --features parallel --bench ten_thousand` for the
+  10,000 flights (each figure the fastest of three), `cargo bench -p fusionspace-hpr-sim --bench
+  flight -- "flight metrics"`, and the wall time of a release `hpr mc
+  validation/fixtures/ork/guides/level-1.ork --runs 10000`:
+
+  | measurement | before | after |
+  |---|---|---|
+  | Valetudo: 10,000 flights on 10 threads | 2.57 / 2.52 s | 2.36 / 2.38 s (−7%) |
+  | K940: 10,000 flights on 10 threads | 7.85 / 7.85 s | 7.18 / 7.33 s (−7 to −9%) |
+  | "Valetudo K400C with its flight metrics" | 2.036 / 2.032 ms | 1.875 / 1.857 / 1.877 ms (−8%) |
+  | `hpr mc level-1.ork --runs 10000` | 3.27 / 3.34 / 3.37 s | 3.08 / 3.10 / 3.12 s (−7%) |
+
+- **What moves.** No output bit. `shared_step_evaluations_change_no_output_bit` (below) covers the
+  new path: a flight held on the pad, where the state stays the same to the bit while the time
+  moves, sampled inside its 1 ms steps, fails it if the step before's evaluation is taken on the
+  state alone. The committed reports and `hpr mc`'s output reproduce byte for byte.
+
 ## A step's evaluations shared by its observers (2026-10-15)
 
 - **What this is.** Every `hpr sim` and Monte Carlo flight carries `FlightMetrics`, which tracks

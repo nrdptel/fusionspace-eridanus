@@ -1318,12 +1318,13 @@ fn canted_fins_spin_to_the_analytic_balance() {
     }
 }
 
-/// The observers' evaluations, shared within a step (each time evaluated once, and the end state
-/// taken from the integrator's last evaluation when it is that state), change no output bit: the
-/// flight metrics and every recorded channel at 10 ms match the path that evaluates every instant
-/// afresh. Flown in a crosswind past Mach 1; to the ground under a drogue and a main that open
-/// over time, so a canopy's drag changes within a step; on the fixed-step RK4, whose dense output
-/// is cubic; and as a two-stage stack.
+/// The observers' evaluations, shared within a step (each time evaluated once, the end state taken
+/// from the integrator's last evaluation and the start from the step before's when it is that
+/// state), change no output bit: the flight metrics and every recorded channel match the path that
+/// evaluates every instant afresh. Flown in a crosswind past Mach 1; to the ground under a drogue
+/// and a main that open over time, so a canopy's drag changes within a step; on the fixed-step RK4,
+/// whose dense output is cubic; held on the pad, where the state repeats at other times; and as a
+/// two-stage stack.
 #[test]
 fn shared_step_evaluations_change_no_output_bit() {
     use crate::flight::STEP_MEMO_OFF;
@@ -1343,11 +1344,11 @@ fn shared_step_evaluations_change_no_output_bit() {
             STEP_MEMO_OFF.with(|off| off.set(false));
         }
     }
-    let read = |sim: &Simulation| -> (String, String, Vec<u64>) {
+    let read = |sim: &Simulation, every_s: f64| -> (String, String, Vec<u64>) {
         let mut metrics = FlightMetrics::new();
         let result = sim.run(&mut metrics).unwrap();
         let summary = metrics.summary(&result, sim.environment()).unwrap();
-        let mut recorder = Recorder::new(Channel::ALL.to_vec(), Some(0.01)).unwrap();
+        let mut recorder = Recorder::new(Channel::ALL.to_vec(), Some(every_s)).unwrap();
         sim.run(&mut recorder).unwrap();
         let bits = recorder
             .rows()
@@ -1396,15 +1397,36 @@ fn shared_step_evaluations_change_no_output_bit() {
         (
             "past Mach 1",
             flight("synthetic-54mm-three-fin", "i175", Method::default()),
+            0.01,
         ),
         (
             "Valetudo",
             flight("rocketpy-valetudo", "example", Method::default()),
+            0.01,
         ),
-        ("opening canopies", recovered),
+        ("opening canopies", recovered, 0.01),
         (
             "RK4",
             flight("rocketpy-valetudo", "example", Method::Rk4 { step_s: 0.01 }),
+            0.01,
+        ),
+        // The pad holds the state still to the bit while the thrust rises, so an evaluation there
+        // can be asked again at another time with the same state: 1 ms steps, sampled inside them.
+        (
+            "on the pad, sampled inside its steps",
+            Simulation::new(
+                &design("rocketpy-valetudo"),
+                "example",
+                windy_environment(ConstantWind::new(6.0, 4.0).unwrap()),
+                Rail::vertical(3.0),
+                FlightSettings {
+                    method: Method::Rk4 { step_s: 0.001 },
+                    max_time_s: 0.5,
+                    ..FlightSettings::default()
+                },
+            )
+            .unwrap(),
+            0.0003,
         ),
         (
             "two stages",
@@ -1413,13 +1435,14 @@ fn shared_step_evaluations_change_no_output_bit() {
                 "j760-i175",
                 Method::default(),
             ),
+            0.01,
         ),
     ];
-    for (name, sim) in &flights {
-        let shared = read(sim);
+    for (name, sim, every_s) in &flights {
+        let shared = read(sim, *every_s);
         let fresh = {
             let _fresh = Fresh::new();
-            read(sim)
+            read(sim, *every_s)
         };
         assert!(!shared.2.is_empty(), "{name}: nothing recorded");
         assert_eq!(shared.0, fresh.0, "{name}: metrics");

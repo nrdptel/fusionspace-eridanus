@@ -172,6 +172,15 @@ From the 2026-10-17 planning review:
   reports simulators disagreeing on how far it moves CP forward. Moves: a new CP row in
   `validation/reports/latest.md`. *Done when:* three or more boattail angles at two or more Mach
   numbers from a published tunnel test give HPR Sim's CP error and its sign, each pinned by a test.
+- SOON: the drag settings worth checking, named in a design's summary. User: a flyer of an imported
+  `.ork` whose fin cross-sections and finishes were never set. Workflow: `hpr sim` and `hpr check`
+  mark each left at a default, with the C_D change at Mach 0.3 and the apogee change from the other
+  common setting (18% in C_D in one reported case, [flight-derived C_D][fdcd]). Moves:
+  `features.count`, and the share of `bias.collection` such defaults carry (#614, #585). *Done
+  when:* both changes print with each setting's source; tests cover a file left at defaults and one
+  set; the fixture report counts the designs left at defaults, as aggregates.
+- LATER: joint steps and unfilled spiral seams as drag terms the user states, each by its cited law,
+  nothing added when unset. Moves: `bias.collection` ([the excrescence note](excrescence-drag.md)).
 
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3
@@ -181,3 +190,4 @@ From the 2026-10-17 planning review:
 [m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
 [i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
 [i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616
+[fdcd]: flight-derived-cd.md

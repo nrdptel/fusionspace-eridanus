@@ -63,7 +63,7 @@ How well HPR Sim reads each tool's design file and writes it back: the tool flie
 
 | measure | better | HPR Sim | OpenRocket 24.12 | RocketPy 1.13.0 |
 |---|---|---:|---:|---:|
-| Configurations whose apogee moves by more than 0.5%, or that fly only one way, after HPR Sim reads the tool's file and writes it back (`interop.changed`) | lower | n/a | 0 of 151 | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
+| Configurations whose apogee moves by more than 0.002%, or that fly only one way, after HPR Sim reads the tool's file and writes it back (`interop.changed`) | lower | n/a | 0 of 151 | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Designs that don't make the trip: HPR Sim can't read them, or the tool opens one of the original and the export but not the other, or refuses the two differently (`interop.failed`) | lower | n/a | 2 of 75 | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Largest apogee change through a round trip (`interop.largest`) | lower | n/a | 0.000191% over 151 configurations | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 
