@@ -3,22 +3,25 @@
 Search for the design that gives the result you want, such as a target apogee or the lightest stable
 fins, with HPR Sim's optimizers.
 
-Sometimes you know the result you want and need the design that gives it: that is
-[optimization](glossary.md#optimization). That might be a rocket
-that reaches exactly 3,048 m (10,000 ft) for a competition, or the lightest fins that keep it
-stable. An *optimizer* searches for that design. It tries designs, flies each one, and uses what
-it learns to choose better ones, until it finds the best it can. This page shows HPR Sim's
-optimizer, [CMA-ES](glossary.md#cma-es). It runs on test functions whose answers are known, then
-finds the nose ballast and body length that send a rocket to 3,048 m (10,000 ft) with a chosen
-stability margin. Then it chooses a motor and a catalog nose cone as well, within a competition's
-limits on stability and speed off the rail. Then a second optimizer, [NSGA-II](glossary.md#nsga-ii),
-weighs two goals against each other: how much apogee each extra [caliber](glossary.md#caliber)
-of stability costs. A third, [EGO](#few-evaluations-ego), is for models so slow that only tens
-of evaluations can be afforded. It needs some Rust.
+Sometimes you know the result you want and need the design that gives it: that's
+[optimization](glossary.md#optimization). That might be a rocket that reaches exactly 3,048 m
+(10,000 ft) for a competition, or the lightest fins that keep it stable. An *optimizer* searches
+for that design. It tries designs, flies each one, and uses what it learns to choose better ones,
+until it finds the best it can.
+
+This page shows HPR Sim's optimizer, [CMA-ES](glossary.md#cma-es). It runs on test functions
+whose answers are known. Then it finds the nose ballast and body length that send a rocket to
+3,048 m (10,000 ft) with a chosen stability margin. Then it chooses a motor and a catalog nose
+cone as well, within a competition's limits on stability and speed off the rail.
+
+Then a second optimizer, [NSGA-II](glossary.md#nsga-ii), weighs two goals against each other: how
+much apogee each extra [caliber](glossary.md#caliber) of stability costs. A third,
+[EGO](#few-evaluations-ego), is for models so slow that only tens of evaluations can be afforded.
+Using any of them needs some Rust.
 
 > **How far to trust it.** All three optimizers are tested against answers known exactly; CMA-ES
 > and NSGA-II also against outside implementations, EGO not yet. On a rocket, their answers are only
-> as good as the simulator's flight models, which are not yet validated against real flights
+> as good as the simulator's flight models, which aren't yet validated against real flights
 > ([Accuracy](accuracy.md)).
 >
 > - **Tested:** four standard test functions of ten variables are run from 20 seeds each. Every
@@ -33,43 +36,43 @@ of evaluations can be afforded. It needs some Rust.
 >   A run is repeated bit for bit from its [seed](glossary.md#seed) (`a_seed_fixes_the_run` in
 >   [`optimize/cmaes.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/cmaes.rs)).
 > - **Checked by re-flying:** the design each of the first two examples finds is flown again from
->   scratch, and again with the flight's numerical integration 100 times stricter
->   ([tolerances](glossary.md#tolerance)). Both reach apogee within 0.1 m (0.3 ft) of
->   3,048 m (10,000 ft); the first example's within 2 mm (0.079 in), measured.
+>   scratch. It's flown once more with the flight's numerical integration 100 times stricter
+>   ([tolerances](glossary.md#tolerance)). Both examples' designs reach apogee within 0.1 m
+>   (0.3 ft) of 3,048 m (10,000 ft); the first example's within 2 mm (0.079 in), measured.
 > - **Limits** (a minimum stability margin, say): held to three test problems whose answers on
->   their limits are known exactly, from 20 seeds each, to $10^{-10}$
+>   their limits are known exactly. Each is run from 20 seeds and held to $10^{-10}$
 >   ([`tests/constrained.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/constrained.rs)).
 >   The second example's winner is flown again and keeps its margin limits over the whole
 >   ascent and its rail-exit limit.
 > - **Choices** (which motor, which catalog part): held to three test functions mixing
 >   continuous and whole-number variables, at two sizes, from 20 seeds each. Every run reaches
->   the known minimum, with every whole number exactly right, and the median evaluations are
->   within 25% of an outside implementation's (the test's bound; measured, within 5%;
+>   the known minimum, with every whole number exactly right. The median evaluations are within
+>   25% of an outside implementation's (the test's bound; measured, within 5%;
 >   [`tests/mixed.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/mixed.rs)).
 >   The second example chooses a motor and a nose cone that hit 3,048 m (10,000 ft), checked by
 >   flying them again ([Choices](#choices-a-motor-a-catalog-part)). It finds *a* design that does; it
 >   doesn't promise the best of several that would.
 > - **Trade-offs** between goals (a [Pareto front](glossary.md#pareto-front)): NSGA-II is held to
->   three test problems whose fronts are known exactly, from 20 seeds each, and to pymoo, an
->   outside implementation run with the same settings. Every run's front lies within twice
->   pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
->   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%
->   (the test allows a factor of 1.25 either way; [Trade-offs](#trade-offs-a-pareto-front)). The third
->   example's front designs are flown again and give the same apogee and margin to the bit:
->   that shows the result repeats, not that it is right. At 2.5 calibers the front is within
->   0.5% of the apogee CMA-ES finds alone (the example's check).
-> - **Few evaluations** (EGO): from 20 seeds each, two standard test functions with several
->   local minima, Branin's (two variables) and Hartmann's (three), end within 1% of their known
->   minima in 50 evaluations (the test's bound; measured, within 0.12%). Hartmann's six-variable
->   function needs its values transformed first, as the method's authors did: then all 20 runs end
->   within 1% in 250 evaluations (measured, within 0.29%), against 6 of 20 without. That check
->   takes minutes in a release build, so the local gate runs it, not CI
+>   three test problems whose fronts are known exactly, from 20 seeds each. It's also held to
+>   pymoo, an outside implementation run with the same settings. Every run's front lies within
+>   twice pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
+>   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%.
+>   The test allows a factor of 1.25 either way ([Trade-offs](#trade-offs-a-pareto-front)). The
+>   third example's front designs are flown again and give the same apogee and margin to the bit.
+>   That shows the result repeats, not that it's right. At 2.5 calibers the front is within 0.5%
+>   of the apogee CMA-ES finds alone (the example's check).
+> - **Few evaluations** (EGO): two standard test functions with several local minima, Branin's
+>   (two variables) and Hartmann's (three), are run from 20 seeds each. They end within 1% of
+>   their known minima in 50 evaluations (the test's bound; measured, within 0.12%). Hartmann's
+>   six-variable function needs its values transformed first, as the method's authors did. Then
+>   all 20 runs end within 1% in 250 evaluations (measured, within 0.29%), against 6 of 20
+>   without. That check takes minutes in a release build, so the local gate runs it, not CI
 >   ([Few evaluations](#few-evaluations-ego)).
 > - **Left out, for now:** optimizing a [Monte Carlo](glossary.md#monte-carlo) run's statistics,
->   EGO beyond six variables, and a rule that stops NSGA-II
->   when its front has settled (it runs the generations it is given). They are the next steps of
->   [M6.2](decisions-and-roadmap.md#m6-2), the optimization milestone. There is no command-line
->   or Python front end yet.
+>   and EGO beyond six variables. Also left out is a rule that stops NSGA-II when its front has
+>   settled (it runs the generations it's given). They're the next steps of
+>   [the optimization milestone](decisions-and-roadmap.md#m6-2). There's no command-line or Python
+>   front end yet.
 
 ## The optimizer
 
@@ -93,7 +96,7 @@ a target, minimize the squared miss: $(\mathrm{apogee} - 3{,}048\,\mathrm{m})^2$
 CMA-ES is the *covariance matrix adaptation evolution strategy*, N. Hansen's method ("The CMA
 Evolution Strategy: A Tutorial", [arXiv:1604.00772](https://arxiv.org/abs/1604.00772), 2023). It
 keeps a cloud of likely designs, shaped like a stretched, tilted ball (a
-[normal distribution](glossary.md#normal-distribution)), and repeats four steps each *generation*:
+[normal distribution](glossary.md#normal-distribution)). Each *generation*, it repeats four steps:
 
 1. **Sample.** Draw a handful of designs from the cloud: $\lambda = 4 + \lfloor 3 \ln n \rfloor$ of them for $n$
    variables, so 6 for two variables and 10 for ten.
@@ -102,20 +105,20 @@ keeps a cloud of likely designs, shaped like a stretched, tilted ball (a
 3. **Move.** Move the cloud's center to a weighted average of the better half, the best weighted
    most.
 4. **Learn.** Stretch and tilt the cloud toward the directions the good designs lay in. Widen it
-   when successive moves go the same way, which means the steps are too short, and shrink it when
+   when successive moves go the same way, which means the steps are too short. Shrink it when
    they cancel out, which means the steps overshoot.
 
 So the cloud learns the problem's shape. If the apogee depends far more on one variable than on
 another, or on a combination of them, the cloud stretches to match. No derivatives are needed,
-which suits flights: their outputs wobble slightly in the last digits as the integrator's steps
+which suits flights. Their outputs wobble slightly in the last digits as the integrator's steps
 change, which would spoil a slope.
 
 The formulas and default settings are the tutorial's (Appendix A and Table 1). Table 1 also gives
 the worse half of each generation negative weights, which push the cloud away from them: the
 *active* variant. HPR Sim gives them zero weight, as the tutorial's own code does.
 
-The cloud is shaped in each variable divided by its step, so variables in meters and in
-kilograms start on an equal footing, as the tutorial advises.
+The cloud is shaped in each variable divided by its step, as the tutorial advises. So variables
+in meters and in kilograms start on an equal footing.
 [`hpr_analysis::optimize::cmaes`](api/hpr_analysis/optimize/cmaes/index.html) lists every equation.
 
 #### Bounds
@@ -158,7 +161,7 @@ Four test functions from CMA-ES's authors (N. Hansen, S. D. Müller and P. Koumo
 | rotated ellipsoid | the same, tilted so that no single variable lines up with it | 0 at $x = 0$ |
 | Rosenbrock's function | following a long, curved valley | 0 at $x = 1$ |
 
-Each run starts with every variable at 1 (at 0 for Rosenbrock's function) and steps of 0.5, and
+Each run starts with every variable at 1 (at 0 for Rosenbrock's function) and steps of 0.5. It
 goes until the value is $10^{-10}$ or less, the stopping value of the 2003 paper. The tests in
 [`tests/optimize.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/optimize.rs)
 run each function from 20 seeds and check:
@@ -167,12 +170,12 @@ run each function from 20 seeds and check:
   $x = 0$.
 - 17 of 20 Rosenbrock runs reach the minimum at $x = 1$. The other 3 end in the function's local
   minimum near $(-1, 1, \ldots, 1)$. The test requires at least 17. CMA-ES's authors note that local
-  minimum, and report 1 to 3 runs of 20 missing the global one at 4 to 16 variables (Kern, Hansen
-  and Koumoutsakos, 2006). pycma ends in the local minimum in 1 of 20. Measured once over seeds
-  1 to 300, HPR Sim reaches the global minimum in 290 (97%), so 17 of 20 is at the low end of what
-  chance gives.
+  minimum. They report 1 to 3 runs of 20 missing the global one at 4 to 16 variables (Kern, Hansen
+  and Koumoutsakos, 2006). In 1 of 20 runs, pycma ends in the local minimum. Measured once over
+  seeds 1 to 300, HPR Sim reaches the global minimum in 290 (97%). So 17 of 20 is at the low end
+  of what chance gives.
 - The median number of evaluations is within 25% of pycma's from the same starts (the test's
-  bound). Measured, they are within 5%:
+  bound). Measured, they're within 5%:
 
 | Function | HPR Sim | pycma 4.5.0 |
 |---|--:|--:|
@@ -182,23 +185,24 @@ run each function from 20 seeds and check:
 | Rosenbrock | 6,445 | 6,195 |
 
 - Tilting the ellipsoid changes the count by under 10%: the cloud learns the tilt.
-- Every generation's mean, cloud size and shape, over twelve generations with steps that differ
-  200-fold, match a second, separate implementation of the tutorial's formulas to rounding. It
-  takes the cloud's inverse square root by a different method (the Denman–Beavers iteration), and
-  passes through both branches of the step that pauses the shape's learning when the cloud
-  grows fast.
+- A second, separate implementation of the tutorial's formulas checks twelve generations, with
+  steps that differ 200-fold. Every generation's mean, cloud size and shape match it to rounding.
+  That implementation takes the cloud's inverse square root by a different method (the
+  Denman–Beavers iteration). The check passes through both branches of the step that pauses the
+  shape's learning when the cloud grows fast.
 - The default settings that pycma also takes from the tutorial's Table 1 match its values to
-  rounding. pycma departs from the table in a few places by its author's choice, such as how fast
-  the cloud's size adapts. That is why the counts differ a little.
+  rounding. In a few places, pycma departs from the table by its author's choice, such as how
+  fast the cloud's size adapts. That's why the counts differ a little.
 
-The tests catch real faults. Without the step that learns the cloud's shape from a generation's
-better half (the *rank-$\mu$ update*, $\mu$ being the size of that half), the ellipsoid takes a third more
-evaluations (7,875) and the pycma comparison fails. A reviewer found three faults the pycma
-comparison misses: the shape's learning never paused, the pause's test off by one generation, and
-the mean's step not scaled back to the variable's units. Each fails the second implementation's
-check. These were one-off checks, recorded in
-[ADR-138](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0138-optimization-cma-es-first-held-to-test-functions.md)
-(the decision record for this work), not run in CI.
+The tests catch real faults. Take out the step that learns the cloud's shape from a generation's
+better half (the *rank-$\mu$ update*, $\mu$ being the size of that half). Then the ellipsoid takes a
+third more evaluations (7,875), and the pycma comparison fails.
+
+A reviewer found three faults the pycma comparison misses. The shape's learning never paused, the
+pause's test was off by one generation, and the mean's step wasn't scaled back to the variable's
+units. Each fails the second implementation's check. These were one-off checks, recorded in
+[the decision record for this work](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0138-optimization-cma-es-first-held-to-test-functions.md),
+not run in CI.
 
 pycma is run by
 [`validation/oracles/cmaes/pycma_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/cmaes/pycma_runs.py),
@@ -212,19 +216,21 @@ A first rocket example, then how to fly the designs yourself, choose the setting
 
 The example program
 [`crates/hpr/examples/optimization.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/optimization.rs)
-runs CMA-ES on three of the test functions. Then it takes a 66 mm (2.6 in) rocket on a J760, starting from
-a 3 m (9.8 ft) rail at 85° into 5 m/s (11 mph) of wind. It finds the nose ballast and body tube
-length that give it two things at once: an apogee of 3,048 m (10,000 ft) above the pad, and a
-static margin of 2.20 [calibers](glossary.md#caliber) at launch mass (at Mach 0.3). Run it
-from a copy of the repository with:
+runs CMA-ES on three of the test functions. Then it takes a 66 mm (2.6 in) rocket on a J760. The
+rocket starts from a 3 m (9.8 ft) rail at 85°, into 5 m/s (11 mph) of wind.
+
+The example finds the nose ballast and body tube length that give the rocket two things at once.
+One is an apogee of 3,048 m (10,000 ft) above the pad. The other is a static margin of 2.20
+[calibers](glossary.md#caliber) at launch mass (at Mach 0.3). Run the example from a copy of the
+repository with:
 
 ```text
 cargo run --example optimization -p fusionspace-hpr
 ```
 
-Why two goals? With one goal, the apogee, and two variables, there is a whole curve of answers:
-more ballast and a shorter body cancel out, and the run would stop at whichever hit it reached
-first. A second goal, the margin, leaves one design that meets both, so the answer is the
+Why two goals? With one goal, the apogee, and two variables, there's a whole curve of answers.
+More ballast and a shorter body cancel out, and the run would stop at whichever hit it reached
+first. A second goal, the margin, leaves one design that meets both. So the answer is the
 rocket's, not the run's.
 
 The heart of it, abridged from the example:
@@ -245,16 +251,17 @@ let optimum = optimizer.minimize(seed, |x| {
 ```
 
 `miss` builds the rocket with that ballast and body length, flies it, and adds the two squared
-misses, each in a unit that makes a miss of one about equally bad. A design that can't fly returns
-infinity, which ranks below every real flight. Then the example flies the winner twice more: once
-from a fresh build, which must give the optimizer's result to the last bit, and once with the
-integrator's tolerances 100 times tighter, which must still reach apogee within 0.1 m (0.3 ft) of
-3,048 m (10,000 ft).
+misses. Each miss is in a unit that makes a miss of one about equally bad. A design that can't fly
+returns infinity, which ranks below every real flight.
+
+Then the example flies the winner twice more. The first flight is from a fresh build, and must
+give the optimizer's result to the last bit. The second has the integrator's tolerances 100 times
+tighter, and must still reach apogee within 0.1 m (0.3 ft) of 3,048 m (10,000 ft).
 
 The example prints whether each test function reached its minimum, not how many evaluations it
 took. Operating systems round the last bit of `ln` and `exp` differently, and an optimizer's path
-amplifies that, so the counts move by a few per cent between macOS, Linux and Windows. The
-medians [above](#checked-against) are the test's, on the development machine. It prints:
+amplifies that. So the counts move by a few per cent between macOS, Linux and Windows. The
+medians [above](#checked-against) are the test's, on the development machine. The example prints:
 
 <!-- quote: crates/hpr/examples/optimization.output.txt -->
 ```text
@@ -275,15 +282,15 @@ Flown again, tolerances 100 times tighter: apogee 3048.0 m
 
 The rocket started 81 m (266 ft) too high, with a margin of 1.79 calibers. The optimizer found the
 design in 300 flights on the development machine, about 50 generations. Flown again with tighter
-tolerances, its apogee moves by 1.4 mm (0.055 in). Limits on other things, such as the rail-exit speed, are the
-subject of [Limits on a design](#limits-on-a-design), and the second example uses them.
+tolerances, its apogee moves by 1.4 mm (0.055 in). Limits on other things, such as the rail-exit
+speed, are the subject of [Limits on a design](#limits-on-a-design). The second example uses them.
 
 ### Evaluating designs your own way
 
 `minimize` flies one design after another. To fly a generation's designs on several threads or
-machines, use the run's steps yourself ([`Run`]): `Cmaes::start` draws the first generation,
-`candidates` lists its designs, and `tell` takes their values, in the same order, and draws the
-next. It returns the result once the run stops.
+machines, use the run's steps yourself ([`Run`]). `Cmaes::start` draws the first generation, and
+`candidates` lists its designs. `tell` takes their values, in the same order, and draws the next.
+`tell` returns the result once the run stops.
 
 ### Choosing the numbers
 
@@ -294,27 +301,30 @@ next. It returns the result once the run stops.
   Without a target, a run goes on until it converges, which can take many more flights than a hit
   needs.
 - **Evaluations:** a cap on flights, 10,000 by default. The first example's two variables needed
-  300 flights, the second example's four variables 360; the ten-variable test functions take 1,600 to 6,500
-  evaluations to converge.
+  300 flights, and the second example's four variables 360. The ten-variable test functions take
+  1,600 to 6,500 evaluations to converge.
 - **Population:** leave it at the default unless the output has many local minima. Then a larger
   population ([`Cmaes::with_population`]) searches more widely, at more flights per generation.
 - **Seed:** a different seed gives a different run. Rerun with two or three seeds if the answer
-  matters: if they agree, the answer is not luck.
+  matters: if they agree, the answer isn't luck.
 - **NSGA-II's population and generations:** the number of flights is the population times the
   generations. The defaults, 100 designs for 250 generations, are 25,000 flights, sized for 30
-  variables; the third example's two variables needed 20 designs for 25 generations, 500
-  flights, to pass its 0.5% check. The population is also
-  how many designs the front can hold. Compare the fronts from two seeds before trusting one.
+  variables. The third example's two variables needed 20 designs for 25 generations, 500
+  flights, to pass its 0.5% check. The population is also how many designs the front can hold.
+  Compare the fronts from two seeds before trusting one.
 
 ### Limits on a design
 
-A design usually has limits as well as a goal: a stability margin of at least 1.5 calibers, say, or
-at least 15 m/s (49 ft/s) off the rail. The optimizer takes them as constraints, each written as a
-number $g$ that must not be above zero. A margin of at least 1.5 calibers is $g = 1.5 - \mathrm{margin}$.
+A design usually has limits as well as a goal. It needs a stability margin of at least 1.5
+calibers, say, or at least 15 m/s (49 ft/s) off the rail. The optimizer takes them as
+constraints, each written as a number $g$ that must not be above zero. A margin of at least 1.5
+calibers is $g = 1.5 - \mathrm{margin}$.
+
 Your model returns an [`Evaluation`]: the value, and the *violation*, the sum of every $g$ that is
 above zero. `Evaluation::constrained(value, &[g1, g2])` adds them up for you.
 
-Candidates are ranked by K. Deb's feasibility rules ([ADR-139][adr-139], from Deb's 2000 paper):
+Candidates are ranked by K. Deb's feasibility rules, from Deb's 2000 paper
+([the decision record][adr-139]):
 
 | Comparing | The better one is |
 |---|---|
@@ -323,18 +333,18 @@ Candidates are ranked by K. Deb's feasibility rules ([ADR-139][adr-139], from De
 | two that break some | the smaller violation |
 
 No penalty weight is needed, because a value is never weighed against a violation. Do scale the
-limits so that they count alike: a margin 0.1 caliber short and a rail speed 0.1 m/s (0.3 ft/s)
-short are not equally bad, so divide each $g$ by a size you care about, such as the 1.5 calibers
+limits so that they count alike. A margin 0.1 caliber short and a rail speed 0.1 m/s (0.3 ft/s)
+short aren't equally bad. So divide each $g$ by a size you care about, such as the 1.5 calibers
 or the 15 m/s (49 ft/s).
 
-Candidates that break a limit are kept and ranked, not redrawn, so a run can close in on an
+Candidates that break a limit are kept and ranked, not redrawn. So a run can close in on an
 answer that sits right on a limit, as most good designs do. Only a point that keeps every limit
-counts as reaching a target; the [`Optimum`] reports its `violation`, zero when it keeps them all.
+counts as reaching a target. The [`Optimum`] reports its `violation`, zero when it keeps them all.
+
 For a bound that the answer will sit on, leave the variable unbounded on that side and write the
-bound as a limit; clamp the value you fly (no negative ballast), and work the limit out from the
+bound as a limit. Clamp the value you fly (no negative ballast), and work the limit out from the
 unclamped one. A design that can't be flown at all returns `Evaluation::failed()`, which ranks
-behind every other, and a run that never keeps every limit says so: its `violation` is above
-zero.
+behind every other. A run that never keeps every limit says so: its `violation` is above zero.
 
 The tests hold this to three problems whose answers on their limits are known exactly:
 
@@ -344,26 +354,28 @@ The tests hold this to three problems whose answers on their limits are known ex
 | $\sum x_i^2$, 10 variables (the "tangent" problem) | $\sum x_i \ge 10$ | 10, at every $x_i = 1$ |
 | g06 of the CEC 2006 benchmark, 2 variables | inside one circle, outside another | −6961.81388, where the circles cross |
 
-From each of 20 seeds the run reaches the answer to $10^{-10}$ of its size and to within $10^{-4}$ of the
-point, also when it starts where the limit is broken. The next section's example puts limits on a
-rocket: its stability margin and its speed off the rail.
+From each of 20 seeds the run reaches the answer to $10^{-10}$ of its size, and to within
+$10^{-4}$ of the point. That holds also when the run starts where the limit is broken. The next
+section's example puts limits on a rocket: its stability margin and its speed off the rail.
 
 ## Choices: a motor, a catalog part
 
 Some variables are choices from a list rather than amounts: which motor, which nose cone from a
 maker's catalog. Make each one an *integer variable* ([`Variable::integer`]). It takes only the
-whole numbers from its low bound to its high one, and your model uses the number as a place in
-your list: 0 for the first motor, 1 for the second, and so on.
+whole numbers from its low bound to its high one. Your model uses the number as a place in your
+list: 0 for the first motor, 1 for the second, and so on.
 
 The optimizer still draws a real number for the variable, and gives your model the nearest whole
 number. Left at that, the cloud would shrink in that variable until every draw rounded to the same
-number, and the choice would freeze, even with a better one next to it. *CMA-ES with margin*
-(R. Hamano, S. Saito, M. Nomura and S. Shirakawa, GECCO 2022,
+number. The choice would then freeze, even with a better one next to it.
+
+*CMA-ES with margin* (R. Hamano, S. Saito, M. Nomura and S. Shirakawa, GECCO 2022,
 [arXiv:2205.13482](https://arxiv.org/abs/2205.13482)) prevents that. After each generation it
-keeps at least a small chance, the *margin* (nothing to do with a stability margin), that a draw
-lands on another value. It does so by
-moving the cloud's center towards the edge between two values, or by widening the cloud in that
-variable. The margin is $1/(n\lambda)$, for $n$ variables and $\lambda$ designs a generation: 1 in 32 for the
+keeps at least a small chance that a draw lands on another value. That chance is the *margin*,
+which has nothing to do with a stability margin. The method keeps it by moving the cloud's center
+towards the edge between two values, or by widening the cloud in that variable.
+
+The margin is $1/(n\lambda)$, for $n$ variables and $\lambda$ designs a generation: 1 in 32 for the
 example below. So a choice is never final: its neighbors keep being tried.
 
 Put the list in an order where neighbors are alike, such as motors by total impulse. The
@@ -375,9 +387,9 @@ motor. A list in no order still works, but the search has less to go on.
 The example program
 [`crates/hpr/examples/motor_and_nose.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/motor_and_nose.rs)
 builds a 2.6 in rocket from Madcow Rocketry's parts in the built-in
-[catalog](the-builder.md#parts-from-a-catalog): a 1.0 m (39 in) fiberglass body tube, an 18 in motor
-tube and three fiberglass fins. It flies it from a 3 m (9.8 ft) rail at 85° into 5 m/s (11 mph) of
-wind. The optimizer chooses four things:
+[catalog](the-builder.md#parts-from-a-catalog). The parts are a 1.0 m (39 in) fiberglass body
+tube, an 18 in motor tube and three fiberglass fins. The example flies the rocket from a 3 m
+(9.8 ft) rail at 85° into 5 m/s (11 mph) of wind. The optimizer chooses four things:
 
 | Variable | Kind | Range |
 |---|---|---|
@@ -386,29 +398,31 @@ wind. The optimizer chooses four things:
 | the nose ballast | continuous | 0 to 1.5 kg |
 | the fins' span | continuous | 3–15 cm (1.2–5.9 in) |
 
-The goal is the squared miss from 3,048 m (10,000 ft). The limits come from the International Rocket
-Engineering Competition's rules (its *Design, Test & Evaluation Guide*, 2025), and hold over the
-whole ascent, from the rail exit to apogee (§10.3.1 says "from launch"; on the rail, the rail holds
-the rocket):
+The goal is the squared miss from 3,048 m (10,000 ft). The limits come from the International
+Rocket Engineering Competition's rules (its *Design, Test & Evaluation Guide*, 2025). They hold
+over the whole ascent, from the rail exit to apogee (§10.3.1 says "from launch"; on the rail, the
+rail holds the rocket):
 
 - a [stability margin](glossary.md#stability-margin) of at least 1.5
-  [calibers](glossary.md#caliber) in flight (§10.3.1 asks for a "dynamic" margin; the
-  example takes the *flight margin*, the margin at the flight's own Mach number, as the
-  [flight metrics](physics/metrics.md) define it);
-- a *static* margin, the one at Mach 0, of at most 4 calibers, and a flight margin of at most 6,
-  so the rocket isn't over-stable (§10.4.1);
+  [calibers](glossary.md#caliber) in flight (§10.3.1 asks for a "dynamic" margin). The example
+  takes the *flight margin*, the margin at the flight's own Mach number, as the
+  [flight metrics](physics/metrics.md) define it;
+- a *static* margin, the one at Mach 0, of at most 4 calibers, and a flight margin of at most 6.
+  Both keep the rocket from being over-stable (§10.4.1);
 - at least 30 m/s (98 ft/s) off the rail (§10.2.1).
 
-The margins change through the flight: the center of mass moves forward as the motor burns, so
+The margins change through the flight. The center of mass moves forward as the motor burns, so
 the margin grows, and the flight margin changes with speed as well. For the lower limit the
-example uses the least flight margin of the ascent, which the flight finds inside its steps, not
-only at their ends. For the upper limits it uses the largest static and flight margins seen at
-the end of each integration step. The static margin only grows during the burn and stays put
-after it, so its largest is exact. A peak of the flight margin between two step ends could be
-missed; the winner's largest, 4.83 calibers, is well under its limit of 6.
+example uses the least flight margin of the ascent. The flight finds that least value inside its
+steps, not only at their ends.
+
+For the upper limits the example uses the largest static and flight margins seen at the end of
+each integration step. The static margin only grows during the burn and stays put after it, so
+its largest is exact. A peak of the flight margin between two step ends could be missed. The
+winner's largest, 4.83 calibers, is well under its limit of 6.
 
 The heart of it, abridged from the example. A choice is an integer variable: set its bounds with
-`within`, then mark it `integer`, and use the whole number your model is given as a place in your
+`within`, then mark it `integer`. Use the whole number your model is given as a place in your
 list. With limits, use the run's steps yourself ([`Run`]) and give `tell_constrained` an
 [`Evaluation`] per design:
 
@@ -440,10 +454,10 @@ let optimum = loop {
 };
 ```
 
-`Design`, `Flyer::fly` and `limits` are the example's own: they build the rocket, fly it, and
-write each limit as a number $g$ that must not be above zero, as [Limits on a
+`Design`, `Flyer::fly` and `limits` are the example's own. They build the rocket and fly it. They
+also write each limit as a number $g$ that must not be above zero, as [Limits on a
 design](#limits-on-a-design) describes. A draw for an integer variable outside its bounds is
-clamped to the nearest end, not drawn again. Run it from a copy of the repository with:
+clamped to the nearest end, not drawn again. Run the example from a copy of the repository with:
 
 ```text
 cargo run --example motor_and_nose -p fusionspace-hpr
@@ -471,47 +485,59 @@ Flown again, tolerances 100 times tighter: apogee 3048.0 m, rail exit 33.8 m/s
 Both flights within 0.1 m of 3,048 m and within every limit: yes
 ```
 
-The table counts the designs the run flew with each motor; the total impulse is from the motor's
-thrust curve. The last column is the apogee nearest 3,048 m (10,000 ft) among the designs that kept
-every limit. The run tried every motor. Its few J450DM designs that kept the limits fell well short.
-None of its J300LR designs kept them all. It settled on the K400C and stopped once it was within a
-centimeter of the target. Flown again, with the integrator's tolerances as set and then 100 times
-tighter, the winner is within 0.1 m (0.3 ft) of 3,048 m (10,000 ft), and keeps every limit over the
+The table counts the designs the run flew with each motor. The total impulse is from the motor's
+thrust curve. The last column is the apogee nearest 3,048 m (10,000 ft) among the designs that
+kept every limit.
+
+The run tried every motor. Its few J450DM designs that kept the limits fell well short. None of
+its J300LR designs kept them all. It settled on the K400C and stopped once it was within a
+centimeter of the target.
+
+The winner was flown again, with the integrator's tolerances as set and then 100 times tighter.
+Both flights are within 0.1 m (0.3 ft) of 3,048 m (10,000 ft), and keep every limit over the
 whole ascent.
 
-Read the table as what this one run saw, not as what each motor can do: a few designs, or a few
-dozen, say little about a motor. The answer is not unique. A scan of every motor and nose over the
-ballast and the fin span, run once on the development machine and not kept, found that the J760, the
-K400C and the K940 can each hit 3,048 m (10,000 ft) within the limits, with any of the four noses. A
-hit with any of them scores the same, so another seed may well settle on another. To prefer one, say
-so in the goal. A small cost for liftoff mass is one way.
+Read the table as what this one run saw, not as what each motor can do. A few designs, or a few
+dozen, say little about a motor.
 
-Unlike the first example's counts, this run's come out the same on every platform CI runs: it
+The answer isn't unique. A scan of every motor and nose over the ballast and the fin span was run
+once on the development machine, and not kept. The scan found the J760, the K400C and the K940
+can each hit 3,048 m (10,000 ft) within the limits. Each can do it with any of the four noses.
+
+A hit with any of them scores the same, so another seed may well settle on another. To prefer
+one, say so in the goal. A small cost for liftoff mass is one way.
+
+Unlike the first example's counts, this run's come out the same on every platform CI runs. CI
 checks the output on macOS, and on Linux and Windows on x86-64 and ARM, whose last bits of `ln`
-and `exp` differ. On
-the development machine the run was also tried with every flight perturbed (the integrator's
-tolerance changed by up to 1%) and with the step size moved by a few bits each generation, and
-neither changed a line of the output; those trials are not kept. Your own runs repeat bit for bit
-on one machine from the same seed, but on another machine a run can take another path.
+and `exp` differ. On the development machine the run was also tried with every flight perturbed
+(the integrator's tolerance changed by up to 1%). It was tried, too, with the step size moved by
+a few bits each generation. Neither changed a line of the output; those trials aren't kept.
 
-A goal that changes only when the choice changes, such as "the smallest motor that can do it",
-gives the search nothing to follow between choices. For that question, run the optimizer once
-for each motor, the motor fixed, and compare. The continuous search then only has to find a
+Your own runs repeat bit for bit on one machine from the same seed. On another machine, a run can
+take another path.
+
+Some goals change only when the choice changes, such as "the smallest motor that can do it". Such
+a goal gives the search nothing to follow between choices. For that question, run the optimizer
+once for each motor, the motor fixed, and compare. The continuous search then only has to find a
 design that keeps the limits.
 
 The body tube's length is fixed on purpose. Past Mach 1.2 a flight needs a table of the body's
 supersonic pressures, which takes a fifth of a second or more to build. Designs with the same
-outside shape can share one table, so with the length fixed the example builds at most three,
-one per fiberglass nose cone (the next paragraph says why the plastic one has none). With the length a variable, every design would build its own, and the run
-would take minutes. The example shows how to share the table, in its `Flyer::fly`.
+outside shape can share one table. So with the length fixed, the example builds at most three,
+one per fiberglass nose cone; the plastic one has none (below).
 
-The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm (0.0020 in) narrower than
-the tube (2.638 in against 2.640 in), and the method behind the table doesn't yet take a step in
-the body's outline larger than a millionth of its area ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
-So for the short stretch of its flight past Mach 1.2 (its top speed is Mach 1.23) the simulator
-falls back on slender-body theory for the body's normal force, its lift at an angle ([Bodies faster
-than sound](physics/aero.md#bodies-faster-than-sound)). How much that moves the apogee hasn't been
-measured; the flight spends only a moment above Mach 1.2.
+With the length a variable, every design would build its own, and the run would take minutes.
+The example shows how to share the table, in its `Flyer::fly`.
+
+The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm (0.0020 in)
+narrower than the tube (2.638 in against 2.640 in). The method behind the table doesn't yet take
+a step in the body's outline larger than a millionth of its area
+([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
+
+So the simulator falls back on slender-body theory for the body's normal force, its lift at an
+angle ([Bodies faster than sound](physics/aero.md#bodies-faster-than-sound)). It does so for the
+short stretch of the flight past Mach 1.2 (the rocket's top speed is Mach 1.23). How much that
+moves the apogee hasn't been measured; the flight spends only a moment above Mach 1.2.
 
 ### Checked against
 
@@ -527,11 +553,12 @@ continuous and half whole numbers
 
 Each runs with 10 and with 20 variables, from 20 seeds, to a value of $10^{-10}$. The starts and
 settings are those of
-[`validation/oracles/cmawm/cmawm_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/cmawm/cmawm_runs.py),
-which runs the same functions with `cmaes` 0.13.1, an outside implementation (MIT) adapted from
-the method's authors' code, with its active weights off as HPR Sim's are. Every run of every case
-reaches the minimum, with each whole number exactly right. The median evaluations are within the
-test's 25% of the outside implementation's, and measured within 5%:
+[`validation/oracles/cmawm/cmawm_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/cmawm/cmawm_runs.py).
+That script runs the same functions with `cmaes` 0.13.1, an outside implementation (MIT) adapted
+from the method's authors' code. The script's runs have the active weights off, as HPR Sim's are.
+
+Every run of every case reaches the minimum, with each whole number exactly right. The median
+evaluations are within the test's 25% of the outside implementation's, and measured within 5%:
 
 | Function | Variables | HPR Sim | `cmaes` 0.13.1 |
 |---|--:|--:|--:|
@@ -545,57 +572,64 @@ test's 25% of the outside implementation's, and measured within 5%:
 A unit test checks the margin itself after every generation of a mixed run, with each kind of
 whole-number variable (`integer_draws_keep_the_margin` in
 [`optimize/cmaes.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/cmaes.rs)).
-Another sets up a run's state by hand and checks one correction of each kind against the paper's
-equations worked out to 40 digits (`margin_correction_matches_the_equations`).
-With the margin taken out, three of the six cases fail: some runs stall with a whole number
-stuck on a wrong value. That was a one-off check, recorded in
-[ADR-140](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0140-discrete-choices-by-cma-es-with-margin.md),
+Another sets up a run's state by hand. It checks one correction of each kind against the paper's
+equations, worked out to 40 digits (`margin_correction_matches_the_equations`). With the margin
+taken out, three of the six cases fail: some runs stall with a whole number stuck on a wrong
+value. That was a one-off check, recorded in
+[the decision record for choices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0140-discrete-choices-by-cma-es-with-margin.md),
 not run in CI.
 
 ## Trade-offs: a Pareto front
 
 Often two goals pull against each other. Bigger fins or more nose weight make a rocket more
-stable, and both cost apogee. There is no single best design then. Instead there is a set of
+stable, and both cost apogee. There's no single best design then. Instead there's a set of
 designs, none of which can improve one goal without giving up some of the other: the [Pareto
-front](glossary.md#pareto-front). A design *dominates* another when it is no worse in either goal
-and better in at least one; the front is the designs nothing dominates. Knowing the front shows
-what each extra caliber of stability costs, before you pick one design from it.
+front](glossary.md#pareto-front).
+
+A design *dominates* another when it's no worse in either goal and better in at least one. The
+front is the designs nothing dominates. Knowing the front shows what each extra caliber of
+stability costs, before you pick one design from it.
 
 CMA-ES finds one design. For a front, HPR Sim has [NSGA-II](glossary.md#nsga-ii), a genetic
 algorithm by K. Deb and co-authors (2002). It keeps a population of designs and, each
 generation:
 
 1. breeds as many children as there are parents. Each pair of parents is chosen by two
-   tournaments: of two designs picked at random, the one on a better front wins, or, on the same
-   front, the one further from its neighbors (its *crowding distance*: the gaps between its two
-   neighbors' values of each goal, each as a share of that goal's range in the front, added
-   up). Every design plays two tournaments a generation.
-   A pair's children mix their parents' values
-   (*crossover*), then a few values are nudged at random (*mutation*);
+   tournaments. In each, of two designs picked at random, the one on a better front wins. On the
+   same front, the one further from its neighbors wins, by its *crowding distance*. It adds up the
+   gaps between the design's two neighbors' values of each goal. Each gap is taken as a share of
+   that goal's range in the front. Every design plays two tournaments a generation. A pair's
+   children mix their parents' values (*crossover*), then a few values are nudged at random
+   (*mutation*);
 2. flies the children;
 3. sorts parents and children together into fronts: the designs nothing dominates, then those
    only the first front dominates, and so on;
 4. keeps the best half, front by front. The front that doesn't fit whole keeps its designs with
-   the most room around them, so the front stays spread out instead of bunching up.
+   the most room around them. So the front stays spread out instead of bunching up.
 
-Each variable needs a low and a high bound: the first generation is drawn evenly between them,
-and the variable's start and step are not used. The defaults are the paper's: 100 designs, 250
-generations, crossover of 90% of pairs and mutation of one variable in $n$, the number of
-variables, on average ([`Nsga2`]). NSGA-II makes every goal as small as it can; to maximize one,
-give its negative. It runs the generations it is given and has no test of when the front has
-settled: run it again from a second seed, or for more generations, and compare the fronts.
-Limits work as they do for CMA-ES: [`Goals::constrained`] takes each limit as a number $g \le 0$,
-and a design that keeps every limit beats one that doesn't. A design that can't be flown is
-[`Goals::failed`], behind every other.
+Each variable needs a low and a high bound. The first generation is drawn evenly between them,
+and the variable's start and step aren't used. The defaults are the paper's: 100 designs, 250
+generations and crossover of 90% of pairs. The default mutation is of one variable in $n$, the
+number of variables, on average ([`Nsga2`]).
+
+NSGA-II makes every goal as small as it can; to maximize one, give its negative. It runs the
+generations it's given, and has no test of when the front has settled. Run it again from a
+second seed, or for more generations, and compare the fronts.
+
+Limits work as they do for CMA-ES. [`Goals::constrained`] takes each limit as a number
+$g \le 0$, and a design that keeps every limit beats one that doesn't. A design that can't be
+flown is [`Goals::failed`], behind every other.
 
 ### The example
 
 The example program
 [`crates/hpr/examples/pareto_front.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/pareto_front.rs)
-takes the 66 mm (2.6 in) rocket on a J760 from [An example](#an-example), with its body fixed at
-1.0 m (39 in). It varies two things, the nose ballast (0 to 0.8 kg) and the fins' span, 4–10 cm (1.6–3.9 in),
-for two goals: the highest apogee, and the largest static margin at launch mass, at Mach 0.3. Every
-design must keep at least 1.5 calibers. The heart of it, abridged:
+takes the 66 mm (2.6 in) rocket on a J760 from [An example](#an-example). The rocket's body is
+fixed at 1.0 m (39 in). The example varies two things, the nose ballast (0 to 0.8 kg) and the
+fins' span, 4–10 cm (1.6–3.9 in).
+
+The two goals are the highest apogee, and the largest static margin at launch mass, at Mach 0.3.
+Every design must keep at least 1.5 calibers. The heart of it, abridged:
 
 ```rust,ignore
 let variables = vec![
@@ -615,7 +649,7 @@ for member in &front.members {
 ```
 
 `flyer.design` is the example's own: it builds the rocket, works out its margin and flies it. Run
-it from a copy of the repository with:
+the example from a copy of the repository with:
 
 ```text
 cargo run --example pareto_front -p fusionspace-hpr
@@ -646,25 +680,27 @@ Between 2 and 3.5 calibers, each extra half caliber of margin costs this rocket 
 front designs whose margins bracket it. Two checks back the front up:
 
 - Every one of its 20 designs is flown again from a fresh build and gives the same apogee and
-  margin to the last bit. That shows the result repeats; it doesn't show it is right.
-- At 2.5 calibers, CMA-ES alone, told to find the highest apogee with at least that margin, gets the
-  same 3,050 m (10,007 ft), to the nearest 10 m (33 ft), in 200 flights: the front is within 0.5% of
-  it, the example's check.
+  margin to the last bit. That shows the result repeats; it doesn't show it's right.
+- At 2.5 calibers, CMA-ES alone is told to find the highest apogee with at least that margin. In
+  200 flights it gets the same 3,050 m (10,007 ft), to the nearest 10 m (33 ft). The front is
+  within 0.5% of that apogee, the example's check.
 
 How much that depends on the seed was measured once, on the development machine, and isn't
-checked in CI. From each of the 26 seeds 2020 to 2045, the front came within the 0.5%, from 0.46%
-below CMA-ES's apogee to 0.18% above (CMA-ES's own answer in 200 flights varies by 0.24% over
-those seeds). An earlier version of the example missed the check: with 20 designs for 12
-generations its front fell 0.66% short, and the generations were raised to 25. (Before that, 24
-designs over wider ranges spread the front from 1.5 to 5.3 calibers, too thinly, and the ranges
-were narrowed.) The 0.5% was not changed
-([ADR-141](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0141-several-goals-by-nsga-ii.md)).
+checked in CI. From each of the 26 seeds 2020 to 2045, the front came within the 0.5%. The front
+ranged from 0.46% below CMA-ES's apogee to 0.18% above. CMA-ES's own answer in 200 flights
+varies by 0.24% over those seeds.
+
+An earlier version of the example missed the check. With 20 designs for 12 generations its front
+fell 0.66% short, and the generations were raised to 25. (Before that, 24 designs over wider
+ranges spread the front from 1.5 to 5.3 calibers, too thinly, and the ranges were narrowed.) The
+0.5% wasn't changed
+([the decision record for trade-offs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0141-several-goals-by-nsga-ii.md)).
 
 ### Checked against
 
-Three test problems of E. Zitzler, K. Deb and L. Thiele (2000), with 30 variables from 0 to 1
-each, whose fronts are known exactly
-([`benchmark::zdt`](api/hpr_analysis/optimize/benchmark/zdt/index.html)):
+Three test problems of E. Zitzler, K. Deb and L. Thiele (2000), whose fronts are known exactly
+([`benchmark::zdt`](api/hpr_analysis/optimize/benchmark/zdt/index.html)). Each has 30
+variables, each from 0 to 1:
 
 | Problem | The front | What it tests |
 |---|---|---|
@@ -683,16 +719,20 @@ evaluations. Two numbers measure a run's front against the true one:
   that fall on its pieces.
 
 HPR Sim measures GD to the true front's curve itself, not to points along it. The same problems
-are run with pymoo 0.6.2, an outside implementation (Apache-2.0) by J. Blank and K. Deb, set up
-as the paper describes, from seeds 1 to 20
+are run with pymoo 0.6.2, an outside implementation (Apache-2.0) by J. Blank and K. Deb. It's set
+up as the paper describes and run from seeds 1 to 20
 ([`pymoo_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/nsga2/pymoo_runs.py)).
 Both sets of columns below are scored by HPR Sim's measures; the pymoo columns are pymoo's
-fronts. The rules were set from pymoo's runs before HPR Sim's were measured: every HPR Sim run
-within twice pymoo's worst, and HPR Sim's median at most 25% above pymoo's, the margin CMA-ES's
-tests allow against pycma. Review of the first results added a second rule: the median at most
-20% below pymoo's, a factor of 1.25 either way. On these problems every variable but the first
-is best at its lower bound, and an optimizer that drifts toward its bounds would score better
-than pymoo without being better. Measured:
+fronts.
+
+The rules were set from pymoo's runs before HPR Sim's were measured. Every HPR Sim run must be
+within twice pymoo's worst. HPR Sim's median must be at most 25% above pymoo's, the margin
+CMA-ES's tests allow against pycma.
+
+Review of the first results added a second rule: the median at most 20% below pymoo's, a factor
+of 1.25 either way. On these problems every variable but the first is best at its lower bound. An
+optimizer that drifts toward its bounds would score better than pymoo without being better.
+Measured:
 
 | Problem | Measure | HPR Sim median | HPR Sim worst | pymoo median | pymoo worst | Bound on every run |
 |---|---|--:|--:|--:|--:|--:|
@@ -703,28 +743,34 @@ than pymoo without being better. Measured:
 | ZDT3 | GD | 4.13e-4 | 7.02e-4 | 4.50e-4 | 6.53e-4 | 1.31e-3 |
 | ZDT3 | IGD | 5.38e-3 | 3.40e-2 | 5.51e-3 | 3.39e-2 | 6.78e-2 |
 
-At the median, HPR Sim's fronts lie 1% to 8% closer to the true front than pymoo's, and cover it
-as evenly (IGD 1.3% to 2.3% smaller). Each problem's worst HPR Sim run is 1.9 to 2.1 times inside
-its bound. The
-worst ZDT3 run of each has an IGD six times its median: it missed part of the front, a known
-hazard on a front in pieces. The per-run bound on ZDT3's IGD is loose for the same reason, set by
-pymoo's one such run; the median rule is what holds ZDT3's coverage. These come from
+At the median, HPR Sim's fronts lie 1% to 8% closer to the true front than pymoo's. They cover
+it as evenly (IGD 1.3% to 2.3% smaller). Each problem's worst HPR Sim run is 1.9 to 2.1 times
+inside its bound.
+
+The worst ZDT3 run of each has an IGD six times its median. Each of those runs missed part of the
+front, a known hazard on a front in pieces. The per-run bound on ZDT3's IGD is loose for the same
+reason, set by pymoo's one such run. The median rule is what holds ZDT3's coverage.
+
+The table's numbers come from
 `cargo test -p fusionspace-hpr-analysis --test nsga2 -- --nocapture`
 ([`tests/nsga2.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/nsga2.rs)).
 The same test checks HPR Sim's [`generational_distance`] against pymoo's own, on pymoo's fronts
 and 500 reference points, to $10^{-12}$.
 
 Deb and co-authors' own runs (their Table II) report a mean distance of 0.033, 0.072 and 0.115
-on these three problems, measured to 500 points of the true front: 18 to 87 times pymoo's mean
-here, to the same 500 points (0.0013 to 0.0019). Why the paper's are so much larger was not investigated.
+on these three problems. They measured it to 500 points of the true front. That's 18 to 87 times
+pymoo's mean here, to the same 500 points (0.0013 to 0.0019). Why the paper's are so much larger
+wasn't investigated.
 
 Unit tests check the pieces by hand
 ([`optimize/nsga2.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/nsga2.rs)):
 
 - fronts and crowding distances of small sets worked out on paper;
-- that crossover spreads children by the distribution its authors give, far from a bound and cut
-  at one, and mutation steps likewise, cut at each side's bound, each within five standard
-  errors over 100,000 draws; and that crossover's two children come out in either order;
+- that crossover spreads children by its authors' distribution, far from a bound and cut at one,
+  within five standard errors over 100,000 draws;
+- that mutation steps do likewise, cut at each side's bound, also within five standard errors
+  over 100,000 draws;
+- that crossover's two children come out in either order;
 - that children never leave a variable's bounds, nor pile up on them;
 - that a failed design, or one breaking a limit, ranks behind every design that keeps them.
 
@@ -735,35 +781,41 @@ They agree with pymoo's to its ten digits, except where pymoo prints the second 
 
 ## Few evaluations: EGO
 
-CMA-ES and NSGA-II spend hundreds of flights. That is fine when a flight takes a tenth of a
-second, but not when one evaluation is a long Monte Carlo run, or a slow outside program. *EGO*
+CMA-ES and NSGA-II spend hundreds of flights. That's fine when a flight takes a tenth of a
+second. It's not when one evaluation is a long Monte Carlo run, or a slow outside program. *EGO*
 (efficient global optimization; D. R. Jones, M. Schonlau and W. J. Welch, 1998), a form of
-Bayesian optimization, is built for that case. It spends its effort thinking between evaluations, so it needs only tens of them.
+Bayesian optimization, is built for that case. It spends its effort thinking between
+evaluations, so it needs only tens of them.
 
 It works like this:
 
 1. It evaluates an *initial design*: 10 points per variable, spread evenly over the box the
-   variables' bounds make. The design is a *Latin hypercube*: each variable's range is cut into
+   variables' bounds make. The design is a *Latin hypercube*. Each variable's range is cut into
    as many equal slices as there are points, and each slice gets one point.
 2. It fits a *surrogate*: a smooth guess at the model, drawn through every point evaluated so
    far. The surrogate is *kriging* (a Gaussian process). Besides its guess $\hat{y}$ at any point, it
    gives a standard error $s$: zero at the points already evaluated, and growing away from them.
 3. It asks where an evaluation is most worth making. The *expected improvement* at a point is
-   the average amount by which an evaluation there would beat the best value so far, outcomes
-   that don't beat it counting as zero. It is large where the guess is low, and where the guess
-   is unsure.
+   the average amount by which an evaluation there would beat the best value so far. Outcomes
+   that don't beat it count as zero. Expected improvement is large where the guess is low, and
+   where the guess is unsure.
 4. It evaluates the point of largest expected improvement, refits, and repeats.
 
-Each variable needs a low and a high bound, as for NSGA-II; its start and step are not used.
+Each variable needs a low and a high bound, as for NSGA-II; its start and step aren't used.
 By default a run stops after 20 evaluations per variable. [`Ego::with_max_evaluations`] sets
-the budget, [`Ego::with_target`] stops at a good enough value, and
+the budget, and [`Ego::with_target`] stops at a good enough value.
+
 [`Ego::with_tolerance_improvement`] stops once no point is expected to gain more than a set
-amount, in the model's units (with a transform, below, in the transformed units); it is off by
-default. Jones and co-authors stop at 1% of the best value's size. That can end a run well short of 1% from the minimum: on Hartmann's
-three-variable function, 8 of 20 runs (seeds 1 to 20) stopped more than 1% away, the worst
-4.7% (a reviewer's measurement). Use a smaller amount (the paper suggests 0.1%) where it
-matters. It never fires for a goal near zero (a miss): there, give an amount. A model that fails at a design returns $+\infty$;
-EGO fits it as the worst value so far and goes on.
+amount. The amount is in the model's units (with a transform, below, in the transformed units).
+The tolerance is off by default.
+
+Jones and co-authors stop at 1% of the best value's size. That can end a run well short of 1%
+from the minimum. On Hartmann's three-variable function, 8 of 20 runs (seeds 1 to 20) stopped
+more than 1% away, the worst 4.7% (a reviewer's measurement). Use a smaller amount (the paper
+suggests 0.1%) where it matters.
+
+A stop at such a share never fires for a goal near zero (a miss): there, give an amount. A model
+that fails at a design returns $+\infty$; EGO fits it as the worst value so far and goes on.
 
 A worked example, on Branin's function of two variables: its least value is
 $5/(4\pi) \approx 0.397887$, at three points. The initial design is 20 points, and 30 more follow. The
@@ -787,38 +839,45 @@ assert!(optimum.value < 1.01 * BRANIN_MINIMUM);
 
 ### Transforming the values
 
-The surrogate assumes the model varies about as much everywhere. Some models don't: Hartmann's
+The surrogate assumes the model varies about as much everywhere. Some models don't. Hartmann's
 six-variable function is nearly flat at values near zero over most of its box, then drops into
 narrow wells, the deepest at −3.32237. Fitted to the raw values, the surrogate misjudges how deep
 an unexplored well could be, and EGO settles in the second-deepest, near −3.20.
 
-Jones and co-authors meet this by fitting the surrogate to a transformation of the values,
-chosen by checking how well the fit predicts points left out of it. They "typically try the log
-transformation, $\ln(y)$, or the inverse transformation, $-1/y$" (§3, p. 468). On their test
-functions this chose $\ln y$ for Goldstein and Price's function and $-\ln(-y)$ for Hartmann's
-six-variable function (§4.2, p. 474). [`Ego::with_transform`] offers the two log transformations:
+Jones and co-authors meet this by fitting the surrogate to a transformation of the values. They
+choose the transformation by checking how well the fit predicts points left out of it. They
+"typically try the log transformation, $\ln(y)$, or the inverse transformation, $-1/y$" (§3,
+p. 468). On their test functions this chose $\ln y$ for Goldstein and Price's function and
+$-\ln(-y)$ for Hartmann's six-variable function (§4.2, p. 474). [`Ego::with_transform`] offers
+the two log transformations:
 
 - `Transform::Log`, $z = \ln y$, for a model whose values are all positive;
 - `Transform::NegativeLog`, $z = -\ln(-y)$, for one whose values are all negative.
 
 Both rise with $y$, so the least $z$ is at the least $y$. The surrogate, its guess and the
-expected improvement are all on the $z$ scale, as in the paper; the best point, a target and the
-result stay in the model's units. $-\ln(-y)$ turns −3.32 into −1.20 and −0.01 into 4.6: it pulls
-the deep wells close together and pushes the near-zero plateau far out, so the wells no longer
-look like narrow spikes against a flat floor. Jones and co-authors chose it after checking the fit (§4.2)
-and give no deeper reason; neither does HPR Sim. A value outside the
-transform's range (zero or positive under $-\ln(-y)$) is an error, not something to fit. The
-simulator doesn't choose a transform for you: it runs none of the paper's checks of the fit.
+expected improvement are all on the $z$ scale, as in the paper. The best point, a target and the
+result stay in the model's units.
+
+$-\ln(-y)$ turns −3.32 into −1.20 and −0.01 into 4.6. It pulls the deep wells close together
+and pushes the near-zero plateau far out. So the wells no longer look like narrow spikes against
+a flat floor. Jones and co-authors chose it after checking the fit (§4.2) and give no deeper
+reason; neither does HPR Sim.
+
+A value outside the transform's range (zero or positive under $-\ln(-y)$) is an error, not
+something to fit. The simulator doesn't choose a transform for you: it runs none of the paper's
+checks of the fit.
 
 A worked example: Hartmann's six-variable function from seed 10, in 100 evaluations, the initial
 design's 60 included. Its second-lowest minimum is −3.20316, a well 3.6% above the deepest one.
 With the transform, the run's best value is −3.30740 on macOS, 0.45% above the minimum, so it
-found the deepest well. Without it, the same seed ends at −3.20245, inside the shallower well.
-How close the run gets inside the deepest well depends on the computer: the same run ended
-1.01% above the minimum on Linux and 1.47% on Windows, as a seeded run magnifies the last-bit
-differences between their maths libraries (most likely; Rust's arithmetic is the same on all
-three). So the test in `tests/ego.rs` checks only which well the run ends in, a value below
-−3.2032, and accepts any run up to 3.59% above the minimum:
+found the deepest well. Without the transform, the same seed ends at −3.20245, inside the
+shallower well.
+
+How close the run gets inside the deepest well depends on the computer. The same run ended 1.01%
+above the minimum on Linux and 1.47% on Windows. That's most likely because a seeded run
+magnifies the last-bit differences between the systems' maths libraries; Rust's arithmetic is the
+same on all three. So the test in `tests/ego.rs` checks only which well the run ends in, a value
+below −3.2032. The test accepts any run up to 3.59% above the minimum:
 
 ```rust,ignore
 use hpr_analysis::optimize::benchmark::global::hartmann6;
@@ -835,10 +894,10 @@ assert!(optimum.value < -3.2032); // below the second-lowest minimum
 ### Checked against
 
 [`tests/ego.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/ego.rs)
-runs EGO from seeds 1 to 20 on two test functions: Branin's, with three minima of one value,
-and Hartmann's, with local minima above its least. The rule is Jones and co-authors' measure of
+runs EGO from seeds 1 to 20 on two test functions. Branin's has three minima of one value, and
+Hartmann's has local minima above its least. The rule is Jones and co-authors' measure of
 success: the best value within 1% of the minimum's size. The budget was set from a probe on
-seeds 1 to 10 at 40 evaluations, where Branin's worst run missed by 1.03%; at 50 the 20 seeds
+seeds 1 to 10 at 40 evaluations, where Branin's worst run missed by 1.03%. At 50, the 20 seeds
 gave the gaps below (macOS debug build; print them with
 `cargo test -p fusionspace-hpr-analysis --test ego -- --nocapture`).
 
@@ -849,40 +908,53 @@ gave the gaps below (macOS debug build; print them with
 | Hartmann 6, $-\ln(-y)$ | 6 | −3.32237 | 250 evaluations | 0.289% above |
 
 Branin's minimum is exact. Hartmann's is the value printed to six figures, and the test checks
-it by polishing with CMA-ES from the printed point. Unit tests in
+it by polishing with CMA-ES from the printed point.
+
+Unit tests in
 [`optimize/ego.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/ego.rs)
-check that the surrogate passes through its points, its fit, guess and standard error on three
-points against the formulas worked by hand, the expected improvement's limits, and that the
-initial design fills every slice. Unlike CMA-ES and NSGA-II, EGO isn't compared with an outside
-implementation: the minima are known exactly, which is what the milestone asks for.
+check:
+
+- that the surrogate passes through its points;
+- its fit, guess and standard error on three points, against the formulas worked by hand;
+- the expected improvement's limits;
+- that the initial design fills every slice.
+
+Unlike CMA-ES and NSGA-II, EGO isn't compared with an outside implementation. The minima are
+known exactly, which is what the milestone asks for.
 
 Hartmann's six-variable function is held to the same rule with the $-\ln(-y)$ transform, from
-seeds 1 to 20, in a program of its own,
+seeds 1 to 20. That runs in a program of its own,
 [`benches/ego_hartmann6.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/benches/ego_hartmann6.rs)
-(`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`). Every run ended within 1%; the last to
-get there did so at evaluation 205, so the budget of 250 was set from these same runs, with 45
-to spare. Jones and co-authors needed 121 evaluations from one run, with an initial design of
-65 points and an exact search for the largest expected improvement. Without the transform, 14
-of the same 20 runs ended at the local minimum near −3.20 after 250 evaluations, 3.6% to 3.7%
-above the minimum; the 6 that found the deepest well got within 1% by evaluation 78 in 5 of them
-and at 241 in the sixth, so the transform is the more reliable route, not always the faster one.
-The budget of 250 was set from these same 20 seeds, so treat the 20 of 20 as in-sample.
+(`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`).
+
+Every run ended within 1%. The last to get there did so at evaluation 205. So the budget of 250
+was set from these same runs, with 45 to spare. Jones and co-authors needed 121 evaluations from
+one run. They used an initial design of 65 points and an exact search for the largest expected
+improvement.
+
+Without the transform, 14 of the same 20 runs ended at the local minimum near −3.20 after 250
+evaluations. They ended 3.6% to 3.7% above the minimum. The 6 that found the deepest well got
+within 1% by evaluation 78 in 5 of them, and at 241 in the sixth. So the transform is the more
+reliable route, not always the faster one. The budget of 250 was set from these same 20 seeds, so
+treat the 20 of 20 as in-sample.
 
 The 20 runs take about 3 minutes spread over 10 cores in a release build. CI's tests use a debug
 build, about 20 times slower, where they would take hours. So the local gate runs the program
-whenever EGO's code changes (`scripts/gate.sh ego`), and CI runs only the one-seed example
-above, with and without the transform. The program's numbers are from macOS; the debug and
-release builds gave the same runs bit for bit there. Nobody has run the 20 on Linux or
-Windows: a run there may end further from the minimum, or even in the shallower well, 3.6% away.
-The one-seed example's spread above (0.45% to 1.47%) shows that runs move; it doesn't bound how
-far.
+whenever EGO's code changes (`scripts/gate.sh ego`). CI runs only the one-seed example above,
+with and without the transform.
+
+The program's numbers are from macOS; the debug and release builds gave the same runs bit for
+bit there. Nobody has run the 20 on Linux or Windows. A run there may end further from the
+minimum, or even in the shallower well, 3.6% away. The one-seed example's spread above (0.45% to
+1.47%) shows that runs move; it doesn't bound how far.
+
 EGO takes no limits, whole-number variables or noisy outputs yet
-([ADR-142](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0142-few-evaluations-by-ego.md);
-the transform: [ADR-152](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0152-hartmann-6-by-egos-log-transform.md)).
+([the decision record for EGO](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0142-few-evaluations-by-ego.md);
+for the transform, [a second record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0152-hartmann-6-by-egos-log-transform.md)).
 
 ## Left out
 
-- A choice is a whole number in a list you order. There is no separate handling for choices with
+- A choice is a whole number in a list you order. There's no separate handling for choices with
   no order, beyond putting alike ones next to each other.
 - Limits are inequalities only. For an equality $h = 0$, write $\lvert h \rvert - \varepsilon \le 0$ with a small $\varepsilon$.
 - NSGA-II takes only continuous variables with two bounds: no choices from a list yet. It

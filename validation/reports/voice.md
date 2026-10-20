@@ -2,17 +2,17 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 19 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 32 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 437998 words, 0 stock phrases. 24 pages are within every limit.
+82 pages, 438824 words, 0 stock phrases. 37 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
-| Bold-label items | 0.50 | 31 | 2.46, `docs/physics/quadrature.md` |
+| Bold-label items | 0.50 | 26 | 2.46, `docs/physics/quadrature.md` |
 | Labels | 0.50 | 9 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 52 | 1.72, `docs/reading-a-flight-log.md` |
+| Sentences over 25 words | 0.50 | 39 | 1.50, `docs/format/flight-logs.md` |
 | Hedges | 1.00 | 0 | 0.26, `docs/checking-a-claim.md` |
-| Stacked hedges | 0.10 | 0 | 0.05, `docs/your-own-logger.md` |
+| Stacked hedges | 0.10 | 0 | 0.02, `docs/VALIDATION.md` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
 | Signposts | 0.10 | 0 | 0.08, `docs/VALIDATION.md` |
 | First person on a reference page | 0.00 | 0 | none |
@@ -37,7 +37,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/cli.md` (`ref`) | 17718 | 21.3 | 33% | 0.24 | 0.14 | **1.31** | 0.09 | 0.00 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.32 |
 | `docs/custom-models.md` (`held`) | 1842 | 13.7 | 0% | 0.00 | 0.00 | 0.00 | 0.22 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.93 | 1.09 |
 | `docs/drag-through-mach-1.md` (`held`) | 1996 | 14.8 | 2% | 0.36 | 0.00 | 0.11 | 0.16 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.81 |
-| `docs/elevation.md` | 4078 | 18.4 | 25% | 0.42 | 0.10 | **1.08** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.32 | 0.18 |
+| `docs/elevation.md` (`held`) | 4176 | 14.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.34 | 0.77 |
 | `docs/evidence.md` | 6265 | 55.4 | 65% | 0.00 | 0.05 | **0.80** | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.10 |
 | `docs/exporting-a-flight.md` (`held`) | 1937 | 14.6 | 0% | 0.00 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.21 | 0.93 |
 | `docs/fly-your-ork.md` (`held`) | 1420 | 12.6 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.78 | 0.64 |
@@ -51,12 +51,12 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4150 | 13.5 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
 | `docs/glossary.md` (`ref`) | 13049 | 16.6 | 23% | 0.00 | 0.10 | **1.32** | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
-| `docs/how-a-flight-is-simulated.md` | 2127 | 18.1 | 27% | **0.85** | 0.10 | **1.23** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.15 | 0.10 |
-| `docs/monte-carlo.md` | 3587 | 17.9 | 25% | **0.59** | 0.09 | **1.26** | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.45 | 0.48 |
-| `docs/motor-stock.md` | 3548 | 19.9 | 28% | 0.20 | 0.29 | **1.30** | 0.09 | 0.00 | 0.00 | 0.03 | | 0.00 | 0.00 | 0.29 | 0.74 |
-| `docs/nomads.md` | 4494 | 19.5 | 32% | **0.54** | 0.18 | **1.54** | 0.05 | 0.03 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.29 | 0.36 |
-| `docs/online-data.md` | 2175 | 21.6 | 31% | 0.10 | 0.19 | **1.15** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 0.14 |
-| `docs/optimization.md` | 7658 | 18.9 | 25% | 0.23 | 0.10 | **1.21** | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.34 | 0.24 |
+| `docs/how-a-flight-is-simulated.md` (`held`) | 2179 | 14.2 | 0% | 0.33 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 0.46 |
+| `docs/monte-carlo.md` (`held`) | 3653 | 13.9 | 0% | 0.22 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.44 | 0.80 |
+| `docs/motor-stock.md` (`held`) | 3604 | 13.7 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.28 | 1.14 |
+| `docs/nomads.md` (`held`) | 4529 | 13.4 | 0% | 0.00 | 0.00 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.87 |
+| `docs/online-data.md` (`held`) | 2197 | 14.5 | 0% | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 1.05 |
+| `docs/optimization.md` (`held`) | 7786 | 14.2 | 0% | 0.22 | 0.00 | 0.00 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.34 | 0.62 |
 | `docs/perf.md` | 5174 | 17.2 | 23% | **1.92** | **0.82** | **1.15** | 0.02 | 0.00 | 0.02 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.18 |
 | `docs/physics/aero.md` (`ref`) | 58615 | 21.5 | 34% | 0.36 | 0.36 | **1.36** | 0.07 | 0.01 | 0.01 | 0.02 | 0.00 | 0.00 | 0.01 | 0.03 | 0.12 |
 | `docs/physics/atmosphere.md` (`ref`) | 2314 | 13.7 | 10% | **1.39** | **0.52** | **0.70** | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.18 |
@@ -85,21 +85,21 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/pick-a-motor.md` (`held`) | 1166 | 13.3 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.46 | 0.35 |
 | `docs/plan.md` | 1087 | 10.9 | 3% | **1.29** | **2.40** | 0.10 | 0.19 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/python.md` (`held`) | 4634 | 14.2 | 1% | 0.07 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.46 | 0.78 |
-| `docs/reading-a-flight-log.md` | 2387 | 27.5 | 48% | 0.47 | 0.17 | **1.72** | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.34 | 0.30 |
+| `docs/reading-a-flight-log.md` (`held`) | 2409 | 13.8 | 0% | 0.46 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.34 | 0.75 |
 | `docs/recording-a-trajectory.md` (`held`) | 821 | 14.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.74 |
 | `docs/releasing.md` | 2552 | 22.8 | 36% | 0.28 | 0.08 | **1.42** | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.40 |
-| `docs/sensitivity.md` | 2303 | 16.3 | 14% | **0.57** | 0.00 | **0.74** | 0.14 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.57 | 0.31 |
+| `docs/sensitivity.md` (`held`) | 2330 | 14.4 | 0% | 0.26 | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.56 | 0.65 |
 | `docs/simulator-compared.md` (`held`) | 2588 | 12.8 | 4% | 0.00 | 0.00 | 0.28 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.04 | 0.00 | 0.16 | 0.70 |
 | `docs/simulator-tour.md` (`held`) | 1573 | 13.9 | 0% | 0.45 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.32 | 0.51 |
-| `docs/soundings.md` | 5029 | 21.5 | 30% | 0.18 | 0.06 | **1.32** | 0.08 | 0.00 | 0.04 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.28 |
+| `docs/soundings.md` (`held`) | 5181 | 14.3 | 0% | 0.18 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.93 |
 | `docs/stability-for-certification.md` (`held`) | 1988 | 14.5 | 1% | 0.00 | 0.00 | 0.06 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.66 | 0.46 |
 | `docs/stability-in-flight.md` (`held`) | 1848 | 15.1 | 2% | 0.22 | 0.00 | 0.11 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.00 | 1.03 |
 | `docs/start-here.md` (`held`) | 7485 | 15.6 | 4% | 0.22 | 0.05 | 0.22 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.07 | 0.00 | 0.42 | 0.69 |
 | `docs/the-builder.md` (`held`) | 4119 | 12.8 | 0% | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.05 | 0.00 | 0.47 | 0.59 |
 | `docs/the-simulator.md` (`held`) | 797 | 15.1 | 2% | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.13 | 0.00 | 0.88 | 1.13 |
 | `docs/trusting-a-simulation.md` (`held`) | 1555 | 15.2 | 2% | 0.00 | 0.00 | 0.13 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 1.03 |
-| `docs/weather.md` | 1981 | 19.5 | 26% | 0.31 | 0.16 | **1.27** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.31 |
+| `docs/weather.md` (`held`) | 1983 | 13.2 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.86 |
 | `docs/when-fins-flutter.md` (`held`) | 1773 | 14.9 | 1% | 0.23 | 0.00 | 0.06 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.17 | 0.68 |
 | `docs/writing.md` | 9205 | 21.7 | 32% | 0.42 | 0.20 | **1.38** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.03 | 0.02 | 0.05 | 0.67 |
-| `docs/your-own-logger.md` | 2408 | 23.0 | 37% | 0.00 | 0.05 | **1.46** | 0.17 | 0.05 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.46 |
-| `docs/your-own-rocket.md` | 4455 | 17.6 | 22% | **0.79** | 0.16 | **1.08** | 0.09 | 0.03 | 0.03 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.34 |
+| `docs/your-own-logger.md` (`held`) | 2510 | 14.7 | 0% | 0.00 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.64 |
+| `docs/your-own-rocket.md` (`held`) | 4519 | 14.7 | 0% | 0.36 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.67 |

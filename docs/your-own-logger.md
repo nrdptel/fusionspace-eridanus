@@ -3,45 +3,54 @@
 Read a logger FusionSpace HPR doesn't know by a JSON file you write: a column mapping for a table,
 a record layout for binary records.
 
-This page is for a flyer whose altimeter or flight computer writes a file no reader here knows:
-a board they built that logs to a card, a team's flight computer, or a commercial logger whose
-format isn't read yet. FusionSpace HPR · Analyzer, the command line and the Python package read
-such a file by the mapping or layout you write, into the same
-[record](format/flight-logs.md#the-record) every other log reads into: each column of numbers but
-the clock and those you skip a channel on the logger's clock, its values in SI units (degrees for
-angles) where your mapping or layout states a unit, and, where a mapping marks one, the barometric
-altitude above the pad as the primary track, the one the readings are taken from. Every
-example below reads one invented flight's files, its logger's and its GPS tracker's
-([evidence row G11](evidence.md#g11)); it flew
-nowhere.
+This page is for a flyer whose altimeter or flight computer writes a file no reader here knows.
+Theirs can be a board they built that logs to a card, a team's flight computer, or a commercial
+logger whose format isn't read yet.
+
+FusionSpace HPR · Analyzer, the command line and the Python package read such a file by the
+mapping or layout you write. The file reads into the same
+[record](format/flight-logs.md#the-record) every other log reads into. Each column of numbers but
+the clock and those you skip becomes a channel on the logger's clock. A channel's values are in SI
+units (degrees for angles) where your mapping or layout states a unit. Where a mapping marks one,
+the barometric altitude above the pad is the primary track, the one the readings are taken from.
+
+The examples below read invented files. All but the FIP export's and the workbook's are one
+flight's, its logger's and its GPS tracker's
+([the evidence register's row on them](evidence.md#g11)). That flight flew nowhere.
 
 > **How far to trust it.** The record is the logger's own samples, converted to SI units (degrees
-> for angles) by the units your mapping or layout states: it is as right as those are. The
-> reader refuses a unit that doesn't measure its column's quantity, and keeps as written a column
-> whose values a unit makes impossible, but a wrong unit whose values stay plausible reads in it.
-> The tests read this page's files, and each sample log the project reads by a stated mapping or
-> layout where the samples are present (they are other people's, so CI reads this page's only),
-> from the command line, from Python and from the Rust library, and hold the three records equal,
-> channel by channel. The readings (liftoff, apogee, the top speed, landing) are taken from these
-> logs as from any other, each within a bound held on HPR Sim's synthetic flights
-> ([M7.2b, readings on every logger](decisions-and-roadmap.md#m7-2b)), but those bounds hold only
-> if the units are right. Check a unit against a known height, such as the launch site's elevation
-> from a GPS altitude, before trusting it, and go by the logger's own figures for a record.
+> for angles) by the units your mapping or layout states. It's as right as those units are.
+>
+> The reader refuses a unit that doesn't measure its column's quantity. It keeps as written a
+> column whose values a unit makes impossible. But a column with a wrong unit whose values stay
+> plausible is read in that unit.
+>
+> The tests read this page's files from the command line, from Python and from the Rust library.
+> They do the same for each sample log the project reads by a stated mapping or layout, where the
+> samples are present. Those are other people's, so CI reads this page's only. The tests hold the
+> three records equal, channel by channel.
+>
+> The readings (liftoff, apogee, the top speed, landing) are taken from these logs as from any
+> other. Each is within a bound held on HPR Sim's synthetic flights
+> ([readings on every logger](decisions-and-roadmap.md#m7-2b)). But those bounds hold only if the
+> units are right. Check a unit against a known height, such as the launch site's elevation from a
+> GPS altitude, before trusting it. For a record, go by the logger's own figures.
 
 ## The logger
 
-The examples read one made-up flight, as a home-built logger might record it: a clock in
-milliseconds, its altitude above the pad in feet, the air pressure in pascals, and an
-accelerometer along the rocket's axis in g. The rocket peaks at about 1,345.7 ft, 10.8 s after the
-logger starts; its highest sample, 10.6 s in, reads 1,345.2 ft. The logger writes the same
-samples three ways, each in
+The logger's examples read one made-up flight, as a home-built logger might record it. The
+logger records a clock in milliseconds and its altitude above the pad in feet. It also records the
+air pressure in pascals, and an accelerometer along the rocket's axis in g. The rocket peaks at
+about 1,345.7 ft, 10.8 s after the logger starts; its highest sample, 10.6 s in, reads
+1,345.2 ft. The logger writes the same samples three ways, each in
 [`validation/fixtures/logs/own-logger/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/fixtures/logs/own-logger),
 written by its `make.py`:
 
 - `flight.csv`, a table whose header names each column but states only some units. The altitude
   column, `Alt`, says nothing of its unit.
-- `flight.bin`, the same samples as binary records of 16 bytes: the clock as a 32-bit unsigned
-  integer, then the altitude, the pressure and the acceleration as 32-bit floats, little-endian.
+- `flight.bin`, the same samples as binary records of 16 bytes. Each holds the clock as a 32-bit
+  unsigned integer, then the altitude, the pressure and the acceleration as 32-bit floats,
+  little-endian.
 - `flight-capture.txt`, those records as the logger prints them over its USB serial console:
   base64 lines between two marker lines that name the block, `flight`.
 
@@ -49,10 +58,10 @@ A GPS tracker beside it writes `gps-track.csv`, read in [A GPS tracker's table](
 
 ## A table, by a column mapping
 
-A column mapping says how a table's columns are read: the header's line, the separator, the
-clock's column, and what each column measures in which unit. You rarely write one from nothing:
-`--print-mapping` prints what the header states, for you to edit. The invented table starts with
-a comment, so its header is on line 2:
+A column mapping says how a table's columns are read. It gives the header's line, the separator,
+the clock's column, and what each column measures in which unit. You rarely write one from
+nothing: `--print-mapping` prints what the header states, for you to edit. The invented table
+starts with a comment, so its header is on line 2:
 
 ```text
 # An invented flight, written as a flyer's own logger would write it
@@ -162,15 +171,18 @@ lists them:
 | `rows` | how a row is written: `cells`, the default; `list`, as `[1, 2.5]`; or `stamped`, a date and time first |
 
 A quantity sets the unit the record holds the column in: SI, but degrees for angles. The
-quantities are `altitude_above_ground`, `altitude_msl`, `gnss_altitude`, `inertial_altitude` and
-`altitude` (an altitude of unstated zero), `pressure`, `speed`, `acceleration`, `temperature`,
-`voltage`, `current`, `latitude`, `longitude`, `angle`, `angular_rate`, `distance`,
-`time_of_day`, `duration` and `number`, a count or a code with no unit; `unrecognized` is the
-same as `null`. The units a mapping may state are the ones a header may
+quantities for an altitude are `altitude_above_ground`, `altitude_msl`, `gnss_altitude`,
+`inertial_altitude` and `altitude` (an altitude of unstated zero). The others are `pressure`,
+`speed`, `acceleration`, `temperature`, `voltage`, `current`, `latitude`, `longitude`, `angle`,
+`angular_rate`, `distance`, `time_of_day`, `duration` and `number`. A `number` is a count or a
+code with no unit.
+
+`unrecognized` is the same as `null`. The units a mapping can state are the ones a header can
 ([Tables read by their headers](format/flight-logs.md#tables-read-by-their-headers)).
 
-A mapping file that doesn't follow the schema is refused before the log is read, naming the field
-by its path in the JSON, and its line and column. A unit written as `3` instead of `"ft"` says
+A mapping file that doesn't follow the schema is refused before the log is read. The refusal names
+the field by its path in the JSON, and its line and column. A unit written as `3` instead of
+`"ft"` says
 ``column mapping: `columns[1].unit`: invalid type: integer `3`, expected a string at line 16 column 15``,
 and a misspelled key, such as `primry`, is refused rather than left out. One the log contradicts
 is refused naming the column: a primary track on the clock's column, or a unit that doesn't
@@ -210,19 +222,22 @@ More: https://hpr.fusionspace.co/your-own-logger.html
 
 <!-- cli: end -->
 
-The primary track, `Alt` in meters, holds every row; it is a channel too, beside the pressure
-and the acceleration, and the clock is each channel's `time_s`. The readings come from it, each
-with the bound its error stays within
+The primary track, `Alt` in meters, holds every row. It's a channel too, beside the pressure and
+the acceleration, and the clock is each channel's `time_s`. The readings come from that track,
+each with the bound its error stays within
 ([Flight-log readings](physics/log-readings.md#what-each-bound-holds)). The invented flight peaks
 at 1,345.7 ft between samples, within the apogee's bound of the reading. Three readings are
-withheld, each with the reason: the top speed, as a sample every 0.2 s is too few for its 0.5 s
-fit; the top acceleration, as the accelerometer `Accel X (g)` doesn't say it lies along the
-rocket's axis; and burnout, which then needs the top speed. A column is read as the rocket's axis
-only where its logger's reader names it so, or where its name holds the word `axial`
-([the accelerometer](physics/log-readings.md#the-accelerometer)). `--json` prints the same as
-one JSON document. `--record` prints the whole record instead, every sample of every channel in SI units
-(degrees for angles),
-as one JSON document whose
+withheld, each with the reason:
+
+- the top speed, as a sample every 0.2 s is too few for its 0.5 s fit;
+- the top acceleration, as the accelerometer `Accel X (g)` doesn't say it lies along the rocket's
+  axis;
+- and burnout, which then needs the top speed.
+
+A column is read as the rocket's axis only where its logger's reader names it so or its name holds
+the word `axial` ([the accelerometer](physics/log-readings.md#the-accelerometer)). `--json` prints
+the same as one JSON document. `--record` prints the whole record instead, every sample of every
+channel in SI units (degrees for angles), as one JSON document. The document's
 [schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-record.schema.json)
 lists its fields:
 
@@ -230,16 +245,17 @@ lists its fields:
 hpr analyze flight.csv --mapping flight.mapping.json --record > flight.json
 ```
 
-A table on a sheet of a spreadsheet's workbook, an `.xlsx` or an `.xls` written as one bare
-worksheet, is read the same way, its sheet named from 0 with `--sheet`, for `--print-mapping` and
-`--mapping` alike; a workbook of one sheet needs none. A sheet one of the library's readers takes needs no mapping: `--sheet` alone
-reads it by that reader ([A file of several records](cli.md#a-file-of-several-records)).
+A table on a sheet of a spreadsheet's workbook is read the same way. The workbook can be an
+`.xlsx`, or an `.xls` written as one bare worksheet. Its sheet is named from 0 with `--sheet`, for
+`--print-mapping` and `--mapping` alike; a workbook of one sheet needs none. A sheet one of the
+library's readers takes needs no mapping: `--sheet` alone reads it by that reader
+([A file of several records](cli.md#a-file-of-several-records)).
 
 ### A FIP export below no header
 
 A Featherweight Raven's FIP export, the CSV its Featherweight Interface Program writes, reads by
-its own reader, but only with its header line. Pasted into a workbook below no header, nothing
-names its columns, so you state that line in a JSON file, a FIP header, and give it with
+its own reader, but only with its header line. When it's pasted into a workbook below no header,
+nothing names its columns. So you state that line in a JSON file, a FIP header, and give it with
 `--fip-header`
 ([its schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-fip-header.schema.json)).
 It has two keys:
@@ -252,8 +268,8 @@ It has two keys:
 
 A key the schema doesn't name is refused, naming it. The invented workbook
 `validation/fixtures/logs/several/fip-below-no-header.xlsx` holds an export of three channels,
-its header line gone, of a flight made to peak at 273.5 m (897 ft) above the pad. Its FIP header
-states that line:
+its header line gone. Its flight was made to peak at 273.5 m (897 ft) above the pad. The
+workbook's FIP header states that line:
 
 <!-- quote: validation/fixtures/logs/several/fip-below-no-header.header.json -->
 ```json
@@ -297,18 +313,21 @@ note: read under a header line the caller stated, the rows' own header missing
 
 `--sheet N` picks the workbook's sheet, `.xlsx` or a bare `.xls`, counted from 0; with none,
 the workbook must have only one. The rows saved as text read too. A log is read by one of
-`--mapping`, `--layout` and `--fip-header`. The readings are marked as read by your own description, as a
-mapping's are: they are only as right as the header you state
-([A FIP export pasted below no header](format/flight-logs.md#a-fip-export-pasted-below-no-header)
-says how the rows are read).
+`--mapping`, `--layout` and `--fip-header`.
+
+The readings are marked as read by your own description, as a mapping's are. They're only as
+right as the header you state.
+[A FIP export pasted below no header](format/flight-logs.md#a-fip-export-pasted-below-no-header)
+says how the rows are read.
 
 ## Binary records, by a record layout
 
-A record layout says how a file of binary records is laid out: each field's name and kind, in the
-record's order, and the byte order. A field's name states its unit as a table's header does, such
-as `Time (ms)` or `pressure__pa`: the records are written out as a table under those names and
-read by what they state. So one field must be a clock in a unit of time. The invented logger's
-layout:
+A record layout says how a file of binary records is laid out. It gives each field's name and
+kind, in the record's order, and the byte order.
+
+A field's name states its unit as a table's header does, such as `Time (ms)` or `pressure__pa`.
+The records are written out as a table under those names and read by what they state. So one
+field must be a clock in a unit of time. The invented logger's layout:
 
 <!-- quote: validation/fixtures/logs/own-logger/flight.layout.json -->
 ```json
@@ -322,9 +341,9 @@ layout:
 }
 ```
 
-A field's `kind` is one of `u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64` (unsigned and
-signed integers of 8 to 64 bits), `f32` or `f64`; `"byte_order": "big"` reads big-endian records,
-and little-endian is the default
+A field's `kind` is one of `u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64`, `f32` or `f64`.
+The first eight are unsigned and signed integers of 8 to 64 bits. `"byte_order": "big"` reads
+big-endian records, and little-endian is the default
 ([the layout's schema](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-layout.schema.json)):
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight.bin --layout validation/fixtures/logs/own-logger/flight.layout.json`; written by `cargo xtask cli`; do not edit -->
@@ -360,12 +379,14 @@ note: 251 binary records read by the caller's layout, written out as a table and
 
 <!-- cli: end -->
 
-A name says a unit, not where the zero is, so `Alt (ft)` reads as an altitude of unstated zero,
-and the records have no primary track: a layout can't mark one yet. So the readings come from the
-pressure, turned into a height by the 1976 standard atmosphere and zeroed on the pad, as the line
-`readings from the pressure` says. The serial console's capture
-holds the same records, read by the same layout with one more field, the block's name:
-`"block": "flight"`. A capture read by a layout that names no block is refused, its blocks listed.
+A name says a unit, not where the zero is, so `Alt (ft)` reads as an altitude of unstated zero.
+The records have no primary track: a layout can't mark one yet. So the readings come from the
+pressure, turned into a height by the 1976 standard atmosphere and zeroed on the pad. The line
+`readings from the pressure` says so.
+
+The serial console's capture holds the same records, read by the same layout with one more field,
+the block's name: `"block": "flight"`. A capture read by a layout that names no block is refused,
+its blocks listed.
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight-capture.txt --layout validation/fixtures/logs/own-logger/flight-capture.layout.json`; written by `cargo xtask cli`; do not edit -->
 
@@ -403,11 +424,11 @@ note: 251 binary records read by the caller's layout, written out as a table and
 
 ## From Python
 
-`FlightLog.read` reads a log by its format's own reader, a mapping, a layout or a FIP header, each
-a dict or the path of its JSON file, into the record the command line prints with `--record`.
-`FlightLog.header_mapping` gives what a table's header states, as a dict to edit. This reads the
-invented table by its header's mapping, edited in Python as above, then its records by their
-layout:
+`FlightLog.read` reads a log by its format's own reader, a mapping, a layout or a FIP header.
+The mapping, layout or FIP header is a dict or the path of its JSON file. It reads the log into
+the record the command line prints with `--record`. `FlightLog.header_mapping` gives what a
+table's header states, as a dict to edit. This reads the invented table by its header's mapping,
+edited in Python as above, then its records by their layout:
 
 <!-- python: example -->
 ```python
@@ -440,21 +461,29 @@ FlightLog(binary_records, 3 channels, 0 samples on the primary track)
 <!-- python: end -->
 
 The records' log has no samples on its primary track, as a layout marks none. Each channel's
-`time_s` and `values` are NumPy arrays, a gap NaN; `log.to_dict()` is the whole
-record as `hpr analyze --record` writes it, without its `tool`, a gap `None`. A mapping or a
-layout that fails raises `HprError` naming the field or the column, in the command line's words.
+`time_s` and `values` are NumPy arrays, a gap NaN. `log.to_dict()` is the whole record as
+`hpr analyze --record` writes it, without its `tool`, a gap `None`. A mapping or a layout that
+fails raises `HprError` naming the field or the column, in the command line's words.
 
-`log.readings()` takes the readings, as `hpr analyze` does, and returns them as a dict: under
-`liftoff`, `apogee`, `max_speed`, `max_acceleration`, `burnout`, `landing`, `flight_time`,
-`drogue_descent` and `main_descent`, each reading with its `status`, `"read"` or `"withheld"`. A
-reading read holds its value, its bound (`bound_m` for a height, `bound_s` for a time,
-`bound_m_s` for a speed or a descent rate, `bound_m_s2` for the top acceleration), its `source`,
-its `provenance` and its `method`. The apogee, the top acceleration and burnout also say whether
-each is a [floor](glossary.md#floor), `is_floor`, and the top acceleration why it clipped, `clip`:
-`"range"`, `"flat"` or `None`. A reading withheld holds its `reason` and a `detail` in words.
-Beside them, the track's `source`, `sample_interval_s` and `step_m`, the median's
-`median_window_s` and `peak_bound_m`, `pad_altitude_m`, and the `accelerometer` read, if any, say
-how they were taken. Each code is the one the JSON output uses
+`log.readings()` takes the readings, as `hpr analyze` does, and returns them as a dict. Its keys
+are `liftoff`, `apogee`, `max_speed`, `max_acceleration`, `burnout`, `landing`, `flight_time`,
+`drogue_descent` and `main_descent`. Each reading has its `status`, `"read"` or `"withheld"`.
+
+A reading read holds its value and its bound. The bound is `bound_m` for a height, `bound_s` for a
+time, `bound_m_s` for a speed or a descent rate, and `bound_m_s2` for the top acceleration. The
+reading also holds its `source`, its `provenance` and its `method`. The apogee, the top
+acceleration and burnout also say whether each is a [floor](glossary.md#floor), `is_floor`. The
+top acceleration says why it clipped, `clip`: `"range"`, `"flat"` or `None`.
+
+A reading withheld holds its `reason` and a `detail` in words. Beside the readings, these say how
+they were taken:
+
+- the track's `source`, `sample_interval_s` and `step_m`;
+- the median's `median_window_s` and `peak_bound_m`;
+- `pad_altitude_m`;
+- and the `accelerometer` read, if any.
+
+Each code is the one the JSON output uses
 ([Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld)). The table's log, read
 above:
 
@@ -477,11 +506,12 @@ top speed withheld: sampled_too_slowly
 
 `fip_header=` reads a FIP export below no header, a dict or the path of its JSON file, as the
 command line's `--fip-header` does. `sheet=` picks a workbook's sheet, from 0, for a mapping, a
-FIP header or the sheet's own reader, and `recording=` a raw dump's recording. The same
-combinations are refused as on the command line: one of `mapping=`, `layout=` and `fip_header=`;
-`recording=` with none of them and no `sheet=`; and `sheet=` not with `layout=`. This reads the
-invented FIP export above, then the second flight of the workbook in
-[A file of several records](cli.md#a-file-of-several-records):
+FIP header or the sheet's own reader, and `recording=` a raw dump's recording.
+
+The same combinations are refused as on the command line. A log is read by one of `mapping=`,
+`layout=` and `fip_header=`. `recording=` is refused with none of them and no `sheet=`, and
+`sheet=` with `layout=`. This reads the invented FIP export above, then the second flight of the
+workbook in [A file of several records](cli.md#a-file-of-several-records):
 
 <!-- python: example -->
 ```python
@@ -547,8 +577,8 @@ so its mapping states them:
 }
 ```
 
-A GPS altitude is above sea level as the receiver states it, not above the pad, so the mapping
-marks no primary track, and the readings are withheld, each by name: a receiver's altitude lags a
+A GPS altitude is above sea level as the receiver states it, not above the pad. So the mapping
+marks no primary track, and the readings are withheld, each by name. A receiver's altitude lags a
 climb and overshoots its top, so no bound can be stated for it:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/gps-track.csv --mapping validation/fixtures/logs/own-logger/gps-track.mapping.json`; written by `cargo xtask cli`; do not edit -->
@@ -585,16 +615,17 @@ More: https://hpr.fusionspace.co/your-own-logger.html
 ## What it doesn't do yet
 
 - Take the top acceleration from an accelerometer whose column doesn't say it lies along the
-  rocket's axis, as this logger's `Accel X` doesn't, or from a board's three axes
-  ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). A mapping has no field
-  that marks a column as the axis yet, though a column whose name holds the word `axial`, as the
-  header writes it or as a mapping names it, is read as one.
+  rocket's axis, as this logger's `Accel X` doesn't. It doesn't take one from a board's three axes
+  either ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). A mapping has no
+  field that marks a column as the axis yet. But a column is read as one when its name holds the
+  word `axial`, as the header writes it or as a mapping names it.
 - Mark a primary track in a record layout. A mapping marks one; binary records' altitude reads as
   one of unstated zero.
 - Read Excel's own `.xls`, a compound file of several streams, by a reader or a mapping. Only an
-  `.xls` written as one bare worksheet, as an AltiMAX altimeter's export is, reads; save any
-  other as `.xlsx` or CSV.
+  `.xls` written as one bare worksheet, as an AltiMAX altimeter's export is, reads. Save any other
+  as `.xlsx` or CSV.
 - Read a zip archive's files, from the command line or Python: unpack it and give the log inside.
   Both read every other layout the library tells from the file alone by its own reader
-  ([the layouts read](format/flight-logs.md#the-layouts-read)), a workbook's sheet or a raw dump's
-  recording as chosen, and another logger's table or binary records by a mapping or a layout.
+  ([the layouts read](format/flight-logs.md#the-layouts-read)). They read a workbook's sheet or a
+  raw dump's recording as chosen. They read another logger's table or binary records by a mapping
+  or a layout.
