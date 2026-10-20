@@ -102,12 +102,12 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   Signposts have no "this page" form, since a page opens by saying what it covers (the house
   style); "In short" counts only before a comma, not as the label of a model page's box; and
   "this section" counts only at a sentence's start.
-  Minimizers leave out "just" before a word of place or time and "how quickly", which measure
-  something here. A quotation inside one sentence isn't read for hedges, minimizers, signposts,
-  first person or the register; the stock list reads it. First person counts a capital I only before a lower-case word,
-  and leaves out one after a word that makes it a numeral or a name ("Type I", "Saturn I") or
-  before "is" or a motor word ("where I is the inertia", "an I motor"); so an I at a clause's end
-  ("so did I") isn't counted.
+  Minimizers leave out "just" before one of sixteen words of place or time ("just below") and
+  "how quick" or "how quickly", which measure something here. A quotation inside one sentence isn't read for hedges, minimizers, signposts,
+  first person or the register; the stock list reads it. First person counts a capital I before a lower-case word
+  other than "is", and leaves out one after a word that makes it a numeral or a name ("Type I",
+  "Saturn I") or before a motor word ("an I motor"); so an I at a clause's end ("so did I") isn't
+  counted, and a symbol I before another word ("the current I flowing") is.
 - *The limits,* per 100 words: bold-label items, labels and sentences over 25 words 0.5; hedges
   1.0; stacked hedges, minimizers and signposts 0.1; first person on a reference page 0 (the
   model and format pages, the command line and the glossary). The sentence limit comes from the

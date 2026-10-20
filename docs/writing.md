@@ -212,11 +212,13 @@ limit. A page over one is where to look first; it doesn't fail the build.
 | Signposts | "in this section", "as mentioned", "let's", "in short," and the like | 0.1 |
 | First person on a reference page | "I", "me", "my" and their forms (I'm, mine, myself) on a model, format, command or glossary page | 0 |
 
-Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before a word of
-place or time ("just below") and "how quick" or "how quickly", which measure something here.
-First person counts a capital I only before a lower-case word, so it leaves out a numeral or a
-symbol ("Type I", "an I motor", "where I is the inertia") and an I at a clause's end or before a
-comma ("so did I"). A quotation inside one sentence isn't read for hedges, minimizers, signposts,
+Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before one of
+sixteen words of place or time ("just below", "just after") and "how quick" or "how quickly",
+which measure something here. First person counts a capital I before a lower-case word other
+than "is", but not after a word that makes it a numeral or a name ("Type I") or before a motor
+word ("an I motor"). So it leaves out "where I is the inertia" and an I at a clause's end or
+before a comma ("so did I"), but still counts a symbol I before another word ("the current I
+flowing"). A quotation inside one sentence isn't read for hedges, minimizers, signposts,
 first person or who's talking, though the stock list reads it.
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
@@ -232,8 +234,8 @@ different list of hedges. Stacked hedges, minimizers and signposts get one every
 adds little: a second hedge, a word that calls a step easy, a sentence that points back at the
 page. Use one only on purpose.
 
-First person on a reference page gets 0, because the program is the subject there. The limits were
-set against these pages as they stood on October 19, 2026, when most of them were over the
+First person on a reference page gets 0, because the program is the subject there. The other
+limits were set against these pages as they stood on October 19, 2026, when most of them were over the
 sentence and bold-label limits. The report gives the current counts.
 
 Who's talking (the report's register) has no limit of its own, since the right amount depends on

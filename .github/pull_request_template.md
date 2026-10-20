@@ -1,6 +1,6 @@
 <!--
-Write this the way the writing guide's voice section asks: plain words, short sentences, each
-thing said once, and every number with its unit and what it was compared with.
+Write this the way the writing guide asks: plain words, short sentences and each thing said once
+(its voice section), and every number with its unit and what it was compared with (its rule 4).
 https://hpr.fusionspace.co/writing.html#voice
 -->
 
