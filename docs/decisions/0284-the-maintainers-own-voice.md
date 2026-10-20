@@ -168,3 +168,7 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   READMEs and About texts, so their check is the read on GitHub's page.
 - *The cold read,* as §7 asks: a reader who knows none of the code checks each page against each
   rule of the voice section and lists what it finds.
+- *The README's status line* keeps its opening, `**Status: RELEASED.**`: the product system asks
+  every README for a status in a drawing word with the version, and a test holds it. The voice
+  section's pair rewrites the words after it, and so does the README. The voice limit counts
+  bold labels on list items, which this line isn't.

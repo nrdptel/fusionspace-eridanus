@@ -1,359 +1,371 @@
 # Start here
 
-Meet the FusionSpace HPR suite and its flight simulator, FusionSpace HPR · Sim: what works today
-and how to read this site.
+What FusionSpace HPR and its flight simulator, FusionSpace HPR · Sim, do today, and how to read
+this site.
 
-**FusionSpace HPR is a suite of open-source tools for hobby and high-power rockets. Its first
-product, FusionSpace HPR · Sim (HPR Sim for short), is a flight
-simulator, and it is not ready to rely on yet.** A flight analyzer, a competition kit and an app
-are planned ([Decisions and the roadmap](decisions-and-roadmap.md)). This site explains what the
-simulator models, where each model comes from, and how well each one has been checked. It is
-written for a rocketeer who knows some physics and some code, but not this project. This page
-covers what HPR Sim is, what works today, what doesn't yet, how far to trust it, and how to read
-the other pages.
+**FusionSpace HPR is a suite of open-source tools I'm building for hobby and high-power rockets.
+Its first product, FusionSpace HPR · Sim (HPR Sim for short), is a flight simulator, and it isn't
+ready to rely on yet.** A flight analyzer, a competition kit and an app are planned
+([Decisions and the roadmap](decisions-and-roadmap.md)). This site explains what the simulator
+models, where each model comes from, and how well each one has been checked. I wrote it for a
+rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 53 logged flights of fliers' own designs, its
-> apogee averaged 8.73% above the logged one, was within 10% on 26 and read low on 13, by at most
-> 20%
-> ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md));
-> [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your altimeter
-> and your range safety officer are authoritative.
+> apogee averaged 8.73% above the logged one. It was within 10% on 26 and read low on 13, by at
+> most 20%
+> ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)),
+> and [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your
+> altimeter and your range safety officer have the final word.
 
 ## What the simulator is
 
 HPR Sim (called hpr-sim before release 0.1) simulates a rocket's flight from the launch rail to
-landing. It is a
-[6-DOF](glossary.md#6-dof-six-degrees-of-freedom) simulator: it follows all six degrees of freedom,
-the rocket's position along three axes and its rotation about three. Meanwhile the motor burns, and
-the rocket's mass, [center of gravity](glossary.md#center-of-gravity-cg) and inertia (how hard it is
-to turn) change.
+landing. It's a [6-DOF](glossary.md#6-dof-six-degrees-of-freedom) simulator: it follows all six
+degrees of freedom, the rocket's position along three axes and its rotation about three.
+Meanwhile the motor burns, and the rocket's mass, [center of gravity](glossary.md#center-of-gravity-cg)
+and inertia (how hard it is to turn) change.
 
-It is a Rust library first, meant to be built into other programs, as
+I made it a Rust library first, meant to be built into other programs, as
 [RocketPy](glossary.md#rocketpy) is. RocketPy is an open-source rocket flight simulator, written in
 Python and used as a Python library. HPR Sim has a Python package too ([Python](python.md)), and a
-graphical app is planned.
-OpenRocket `.ork` design files are read today. The command-line tool, `hpr`, flies a `.ork` or a
-rocket's JSON, looks up and converts motor files, searches vendors' motor stock and prices,
-re-runs the validation, reads an altimeter's flight log, and fetches a launch day's weather
-([The command line](cli.md)). [A tour of HPR Sim](simulator-tour.md) shows it working on a small
-rocket and a public flight, [HPR Sim](the-simulator.md) is the simulator's guide, and
+graphical app is planned. It reads OpenRocket `.ork` design files today.
+
+The command-line tool, `hpr`, flies a `.ork` or a rocket's JSON. It looks up and converts motor
+files, searches vendors' motor stock and prices, and re-runs the validation. It also reads an
+altimeter's flight log and fetches a launch day's weather ([The command line](cli.md)).
+[HPR Sim](the-simulator.md) is the simulator's guide. [A tour of HPR Sim](simulator-tour.md) shows
+it working on a small rocket and a public flight, and
 [Compared with other simulators](simulator-compared.md) sets it beside OpenRocket, RocketPy and
 RASAero II.
 
-It is also built to be checked. Every model cites a published source, and tests pin every model.
-The simulator is compared against RocketPy, [OpenRocket](https://openrocket.info/) and the logs
-of real flights, with the results committed to the repository.
+I built it to be checked, too. Every model cites a published source, and tests pin every model.
+The simulator is compared with RocketPy, [OpenRocket](https://openrocket.info/) and the logs of
+real flights, and the results are committed to the repository.
 
 For now it covers only commercial off-the-shelf solid rocket motors
 ([COTS motors](glossary.md#cots-motor)), the kind you buy from a manufacturer. That stays true
 until the first app.
 
-Release 0.1.0 came out on 2026-10-08; its files install as
-[Install a release](getting-started.md#install-a-release) says, or you build it from source. What a release holds, and how each
-of its files is checked, is in [How a release is built](releasing.md);
-[the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says what 0.1.0 does,
-how far to trust it, and its known gaps, the open issues that make a number look safer than it is
-among them.
-Releases come at product boundaries, and no dates are promised
-([Phase 8, releases](decisions-and-roadmap.md#m10-1)); what each holds, and how likely each goal
-is, is in [Plan](plan.md):
+Release 0.1.0 came out on 2026-10-08. Install its files as
+[Install a release](getting-started.md#install-a-release) says, or build it from source.
+[How a release is built](releasing.md) says what a release holds and how each of its files is
+checked. [The changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md)
+says what 0.1.0 does, how far to trust it, and its known gaps. Among them are the open issues that
+make a number look safer than it is.
+
+Releases come at product boundaries, and I don't promise dates
+([Phase 8, releases](decisions-and-roadmap.md#m10-1)). [Plan](plan.md) says what each one holds
+and how likely each goal is:
 
 - 0.1, the simulator: the library, the command line and the Python package, with Monte Carlo
-  dispersion from the command line and Python. It waits on
-  [M2.3c1, the logged flights' apogees](decisions-and-roadmap.md#m2-3c1) and named fixes
-  ([release 0.1](decisions-and-roadmap.md#m10-1)). It ships with its known limits listed, among
-  them drag that reads high above Mach 0.8, so apogee there reads low.
-- 0.2, the flight analyzer: the common altimeters' logs read on their own, with no design file, then
-  compared with its simulation and the rocket's drag fitted from it.
+  dispersion from the command line and Python. It waited on
+  [the logged flights' apogees](decisions-and-roadmap.md#m2-3c1) and named fixes
+  ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
+  them is drag that reads high above Mach 0.8, so the apogee there reads low.
+- 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
+  file. Then it compares a log with its simulation and fits the rocket's drag from it.
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
   flight's likely faults ranked from its log.
-- 0.4, the competition kit: rules presets for Student Launch, IREC and others, an optimizer, the
-  numbers a submission asks for, ejection-charge sizing, and RASAero and RocketPy files.
-- 0.5, an app preview: open a design or a log, fly it and replay it in 3D, with the simulated
-  flight drawn as a "ghost" beside the real one, on the desktop and in a web browser.
+- 0.4, the competition kit: rules presets for Student Launch, IREC and others, and an optimizer.
+  It adds the numbers a submission asks for, ejection-charge sizing, and RASAero and RocketPy
+  files.
+- 0.5, an app preview, on the desktop and in a web browser. Open a design or a log, fly it and
+  replay it in 3D, with the simulated flight drawn as a "ghost" beside the real one.
 - 1.0, the app, with its design editor.
 
-After 1.0, new product lines come one at a time, in an order that may still change: designing
-your own solid motors, then parachutes, then a pad-day mode on your phone (the day's forecast,
-the best launch hour, drift on the field, a flight card), then flight computers and trackers.
-Hybrids and liquids come last
+After 1.0, new product lines come one at a time, in an order that may still change. First comes
+designing your own solid motors, then parachutes. Then a pad-day mode on your phone: the day's
+forecast, the best launch hour, drift on the field and a flight card. Then flight computers and
+trackers. Hybrids and liquids come last
 ([the second-pass plan](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0163-the-second-pass-products-and-priorities.md)).
 
 ## What works today
 
 These parts are built and tested. Each page gives its sources, and most say what they leave out.
+
 The pages, the program's messages and the library's names use US spelling for the words
-[the style guide](writing.md) checks. The saved forms that held a British-spelled key (a landing
-ellipse, a design-check finding, a laid-out rocket and a few more) still read the old key and
-write the new one, so an older build may not read what this one saves; design files never held
-one and are unchanged ([M0.6e](decisions-and-roadmap.md#m0-6e), US names).
+[the style guide](writing.md) checks. Some saved forms held a British-spelled key: a landing
+ellipse, a design-check finding, a laid-out rocket and a few more. They still read the old key but
+write the new one, so an older build may not read what this one saves. Design files never held one
+and are unchanged ([US names](decisions-and-roadmap.md#m0-6e)).
 
 | part | what it does | pages |
 |---|---|---|
 | Earth | Gravity from [WGS 84](glossary.md#wgs-84) (the model of the Earth's shape and gravity that GPS uses), varying with latitude and height; the Earth's rotation; launch-site coordinates, the distance and bearing between two places, and a site's elevation looked up online or read from a GeoTIFF file | [Frames](physics/frames.md), [Geodesy](physics/geodesy.md), [Gravity](physics/gravity.md), [A launch site's elevation](elevation.md) |
 | Air | The 1976 US [Standard Atmosphere](glossary.md#standard-atmosphere) up to 86 km (282,152 ft), with temperature offsets, humidity, and [soundings](glossary.md#sounding) (measured or forecast profiles of pressure, temperature and wind against height), including the weather of a real day from an [ERA5](glossary.md#era5) file, an Open-Meteo forecast, a weather balloon or NOAA's GFS and RAP forecasts | [Atmosphere](physics/atmosphere.md), [ERA5 weather files](format/era5.md), [Launch-day weather](weather.md), [Weather-balloon soundings](soundings.md), [NOAA forecasts: GFS and RAP](nomads.md) |
 | Wind | Constant, layered, power-law and logarithmic wind profiles; [turbulence](glossary.md#turbulence-dryden) (random gusts) from a random-number generator started from a [seed](glossary.md#seed), a number you choose: the same seed gives exactly the same gusts every time on the same platform (operating system and processor) | [Wind](physics/wind.md), [Turbulence](physics/turbulence.md) |
-| Motors | Reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve); thrust, mass, center of gravity and inertia through the burn; [32 bundled motors](physics/motor.md#the-bundled-motors); a motor the catalog lacks, fetched from ThrustCurve.org by name and cached, so it flies offline after ([M4.5b](decisions-and-roadmap.md#m4-5b), motors on demand); motors in stock and their prices, from motor.fusionspace.co | [Solid motors](physics/motor.md), [`.eng` files](format/eng.md), [`.rse` files](format/rse.md), [Motor stock and prices](motor-stock.md) |
-| Rocket | Nose cones, body tubes, transitions (tapered sections between tubes of different diameters), fins and other parts, their materials, the whole rocket's mass properties, and design checks. Everyday fits warn and only what can't be built is refused ([M4.5c](decisions-and-roadmap.md#m4-5c), design checks that match reality); a packed part, such as a payload or a parachute, drawn wider than its bore warns, as its width sets only its own inertia ([M4.5l](decisions-and-roadmap.md#m4-5l), a packed part wider than its bore); a part inside a nose cone or transition is checked against the room where it sits, and warns if it fits at the wide end but meets the wall where the cone narrows ([M10.1a](decisions-and-roadmap.md#m10-1a), the flight and design fixes) | [Design tree](physics/design.md), [Shapes](physics/shapes.md), [Mass properties](physics/mass.md) |
-| Aerodynamics | The [center of pressure](glossary.md#center-of-pressure-cp) (where the aerodynamic force acts; its distance behind the center of gravity is the [stability margin](glossary.md#stability-margin)), the [normal force](glossary.md#normal-force) (the sideways force when the rocket flies at an angle to the airflow, its [angle of attack](glossary.md#angle-of-attack)) and drag. For small angles of attack: the normal force and the drag from [Mach](glossary.md#mach-number) 0 to 5, both checked against a wind tunnel from 0.6 to 4.63 (the drag reads high at most speeds). A part's or stage's own drag coefficient, stated in a `.ork` file, flies in place of its shape's drag as OpenRocket flies it, checked on 25 OpenRocket probe designs; OpenRocket's *Base drag hack* example, which relies on it, flies within 4.52% of OpenRocket's apogee on two motors and 7.80% high on the third, where HPR Sim gives its very blunt nose a value read between two measured heads and OpenRocket more, so the 5% bar is not met there ([M4.5h](decisions-and-roadmap.md#m4-5h), a part's drag override; [M4.5o](decisions-and-roadmap.md#m4-5o), a blunt nose's measured drag; [A part's stated drag coefficient](physics/aero.md#a-parts-stated-drag-coefficient)) | [Aerodynamics](physics/aero.md) |
+| Motors | Reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve); thrust, mass, center of gravity and inertia through the burn; [32 bundled motors](physics/motor.md#the-bundled-motors); a motor the catalog lacks, fetched from ThrustCurve.org by name and cached, so it flies offline after ([motors on demand](decisions-and-roadmap.md#m4-5b)); motors in stock and their prices, from motor.fusionspace.co | [Solid motors](physics/motor.md), [`.eng` files](format/eng.md), [`.rse` files](format/rse.md), [Motor stock and prices](motor-stock.md) |
+| Rocket | Nose cones, body tubes, transitions (tapered sections between tubes of different diameters), fins and other parts, their materials, the whole rocket's mass properties, and design checks. Everyday fits warn, and only what can't be built is refused ([design checks that match reality](decisions-and-roadmap.md#m4-5c)). A packed part, such as a payload or a parachute, drawn wider than its bore warns, as its width sets only its own inertia ([a packed part wider than its bore](decisions-and-roadmap.md#m4-5l)). A part inside a nose cone or transition is checked against the room where it sits. It warns if it fits at the wide end but meets the wall where the cone narrows ([the flight and design fixes](decisions-and-roadmap.md#m10-1a)) | [Design tree](physics/design.md), [Shapes](physics/shapes.md), [Mass properties](physics/mass.md) |
+| Aerodynamics | The [center of pressure](glossary.md#center-of-pressure-cp) (where the aerodynamic force acts; its distance behind the center of gravity is the [stability margin](glossary.md#stability-margin)), the [normal force](glossary.md#normal-force) (the sideways force when the rocket flies at an angle to the airflow, its [angle of attack](glossary.md#angle-of-attack)) and drag. For small angles of attack: the normal force and the drag from [Mach](glossary.md#mach-number) 0 to 5, both checked against a wind tunnel from 0.6 to 4.63 (the drag reads high at most speeds). A part's or stage's own drag coefficient, stated in a `.ork` file, flies in place of its shape's drag as OpenRocket flies it, checked on 25 OpenRocket probe designs. OpenRocket's *Base drag hack* example relies on it. It flies within 4.52% of OpenRocket's apogee on two motors and 7.80% high on the third, so the 5% bar isn't met there. HPR Sim gives its very blunt nose a value read between two measured heads, and OpenRocket gives it more ([a part's drag override](decisions-and-roadmap.md#m4-5h); [a blunt nose's measured drag](decisions-and-roadmap.md#m4-5o); [A part's stated drag coefficient](physics/aero.md#a-parts-stated-drag-coefficient)) | [Aerodynamics](physics/aero.md) |
 | Flight | The launch rail, powered flight and coast to apogee, with an [adaptive time step](glossary.md#adaptive-time-step) and [events](glossary.md#event) such as burnout and apogee | [Rigid-body flight](physics/flight.md), [Time integration](physics/integration.md) |
-| Recovery | Parachutes, [streamers](glossary.md#streamer) and [tumbling](glossary.md#tumble-recovery), the [drift](glossary.md#drift) they carry the rocket downwind, and a rocket that [separates](glossary.md#separation) into bodies that each descend on their own. A `.ork` file's parachutes and streamers fly as OpenRocket flies them, in `hpr sim` too, within 0.02% of OpenRocket's landing speed on 50 of its 53 example flights and within 0.12% on all 53 ([M4.5a](decisions-and-roadmap.md#m4-5a), a `.ork`'s recovery flown). `hpr sim` flies a `.ork`'s powered separation, each part under its own devices; the dropped booster's landing is rough ([M4.5g1](decisions-and-roadmap.md#m4-5g1), powered separation in `hpr sim`). Several powered separations fly in turn: OpenRocket's three-stage example flies as saved, all three configurations within 1.48% of OpenRocket's apogee and 1.64% of its largest speed on OpenRocket's own curves, and within 2.48% and 1.67% in `hpr sim` on the curves it fetches ([M4.5g2](decisions-and-roadmap.md#m4-5g2), several separations). A payload dropped with nothing left to burn flies when its own parachute opens at the split: OpenRocket's two payload examples fly, the payload's apogee within 1.1% of OpenRocket's ([M4.5g3](decisions-and-roadmap.md#m4-5g3), a payload's split) | [Recovery](physics/recovery.md#from-an-openrocket-file) |
-| Design files | Opens an OpenRocket `.ork` file (zip, gzip or plain XML) and reads the whole design: the stages and body components, the tubes, rings, fins, lugs and recovery gear on and inside them, the motor configurations, when parachutes open, and the simulations OpenRocket stored. The airframe's shape is cross-checked against a second reader and OpenRocket itself (positions against OpenRocket alone; mass and center of gravity in [Mass properties](physics/mass.md#checked-against-openrocket)). Pods are read, weighed and flown, checked against OpenRocket on five small probe designs and on OpenRocket's *Pods--airframes and winglets* ([Pods](physics/aero.md#pods)), and motors in more than one pod set fly, as do rail buttons' screw heads, weighed: OpenRocket's *Pods--powered with recovery deployment* flies, 0.36% below OpenRocket's apogee with only the sustainer's motor and 1.86% below with only the booster's motors, and in the conditions of OpenRocket's record its staged flight turns over before apogee in both programs: its site is at 28.61° N, where the Earth's rotation tips HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s ([M4.5i](decisions-and-roadmap.md#m4-5i), *Pods--powered* flies); its first configuration, whose booster burns out first in its main tube and drops its pods still burning, flies too, checked against OpenRocket's flight at two points up to where OpenRocket aborts it, not at an apogee: within 5% in height and speed at the separation and at OpenRocket's last row, weaker evidence than an apogee ([M4.5n](decisions-and-roadmap.md#m4-5n), a stage's first burnout), a parallel stage (boosters strapped beside the core) is read, weighed and flown on a rocket of one stage on the axis, and dropped at its own separation (OpenRocket's *Parallel booster staging* flies both its configurations within 1.3% of OpenRocket's apogee; [M4.5m](decisions-and-roadmap.md#m4-5m), parallel stages), fins on a nose cone or a transition are read with their root along its surface, as OpenRocket draws it (OpenRocket's *Pods--airframes and winglets* flies, each apogee within 0.5% of OpenRocket's, its stability margin 0.07 calibers above OpenRocket's, the flattering side; [M4.5g4](decisions-and-roadmap.md#m4-5g4), fins on a nose cone), a part HPR Sim cannot shape honestly is left out with a warning, and a configuration flies only when every motor in it has a thrust curve and lights at a moment HPR Sim can fly: `hpr sim` flies 136 of the 170 motor configurations in the reference library and OpenRocket's examples as saved, 54 of OpenRocket's 56 among them, and 9 more with `--accept-design-errors`; 25 are refused, mostly for a motor with no curve ([How many configurations `hpr sim` flies](format/ork.md#how-many-configurations-hpr-sim-flies); [M4.5j](decisions-and-roadmap.md#m4-5j), the corpus count). A design is written back out as a `.ork` that reads back as the same design ([writing a `.ork`](format/ork.md#writing-a-ork-back-out)), and `hpr convert` or a Rust program can keep it as a `.hpr` file in the HPR design format, and write the `.ork` back from that. TypeScript and Python programs can read a `.hpr` with generated types ([The HPR design format](format/hpr.md)). OpenRocket's parts catalog, the 16 `.orc` files it ships with 3,449 makers' parts, is built in and read as OpenRocket reads it; a program can look a part up, and the builder makes a rocket of the parts, each weighing what OpenRocket weighs it at but for a few departures the builder's page names ([Parts from a catalog](the-builder.md#parts-from-a-catalog), [`.orc` parts catalogs](format/orc.md)) | [`.ork` design files](format/ork.md), [The HPR design format](format/hpr.md), [`.orc` parts catalogs](format/orc.md) |
-| Flight logs | Reads a flight log on its own, with no design file, from the command line, Python or the library, and takes liftoff, apogee, the top speed, landing, the flight time and the descent under each canopy from any logger's barometric altitude or pressure, and the top acceleration and burnout from an accelerometer along the rocket's axis (burnout otherwise a [floor](glossary.md#floor): the top speed's time less its bound), each within a bound held on the synthetic flights' tuning set or withheld with the reason the log can't support it ([M7.2b](decisions-and-roadmap.md#m7-2b), readings on every logger; [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the readings; [Flight-log readings](physics/log-readings.md)); the library reads PerfectFlite's `.pf2`, its exports and older `.pfa`, AltOS's CSV, the Raven's FIP CSV and the Blue Raven's, RRC3's and Eggtimer's CSV (and an Eggtimer TRS's terminal text, plain or saved as RTF), AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (the logger's figures, no samples, so no readings), the R-DAS's raw text (its counts kept as written, no altitude; [M7.1c8](decisions-and-roadmap.md#m7-1c8)), AltOS's radio telemetry ([M7.1c9](decisions-and-roadmap.md#m7-1c9)) and raw `.eeprom` downloads ([M7.1c10](decisions-and-roadmap.md#m7-1c10), [the layout](format/flight-logs.md#altoss-eeprom)), the ARTS2's `.odf` and raw CSV ([M7.1c11](decisions-and-roadmap.md#m7-1c11), [the layout](format/flight-logs.md#the-arts2s-raw-data)), and GPS tracks from Featherweight's GPS CSV, KML, NMEA and Missile Works' RTx (its `.rtx` file and exports; [M7.1c12](decisions-and-roadmap.md#m7-1c12), [the layout](format/flight-logs.md#missile-works-rtx)) and GPX 1.0 and 1.1, checked on invented files only ([M7.1d1](decisions-and-roadmap.md#m7-1d1), [the layout](format/flight-logs.md#gpx)), and tables from loggers no other reader knows, by the units their headers state ([M7.1c13](decisions-and-roadmap.md#m7-1c13), [the layout](format/flight-logs.md#tables-read-by-their-headers)), into one record, every column kept, a zip archive's files one by one, and an Excel workbook's sheets one by one, each cell as the workbook stores it ([M7.1c14](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)), and a Blue Raven's USB download, keeping only the records whose CRC checks ([M7.1c17](decisions-and-roadmap.md#m7-1c17), [the layout](format/flight-logs.md#the-blue-ravens-usb-download)), a course's Teensy data logger, each unit its file doesn't state held to the flight's physics ([M7.1c18](decisions-and-roadmap.md#m7-1c18), [the layout](format/flight-logs.md#a-courses-teensy-data-logger)), one team's radio telemetry packets in their three forms, each checked against the flight computer's own log ([M7.1c19](decisions-and-roadmap.md#m7-1c19), [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)), a Raven FIP export pasted into a workbook with its header missing, read under a header you state, an AltiMAX altimeter's older `.xls` export ([M7.1c20](decisions-and-roadmap.md#m7-1c20), [the layouts](format/flight-logs.md#the-altimaxs-excel-export)), and a MARSA altimeter's download, AltOS's radio telemetry decoded to a table and AltOS's CSV re-saved by a spreadsheet or cut to its columns ([M7.1c21](decisions-and-roadmap.md#m7-1c21), [the layouts](format/flight-logs.md#a-marsa-download)), and tables whose headers state too little, or that have none, by a column mapping, the sample tables' mappings each holding every unit to a physical check ([M7.1c22](decisions-and-roadmap.md#m7-1c22), [the layout](format/flight-logs.md#tables-a-mapping-holds-to-physics)), and an AltiMAX's own `.ALS` file and an Entacore AIM's `.xtra` files and raw memory dumps, each held to its maker's conversion of the same flight ([M7.1c23](decisions-and-roadmap.md#m7-1c23), [the layouts](format/flight-logs.md#the-altimaxs-als)), and from the command line and Python as well as the library, a table by the column mapping or binary records by the record layout you write for your own logger, the mapping able to mark the primary track ([M7.1d2](decisions-and-roadmap.md#m7-1d2), [Reading your own logger](your-own-logger.md)) ([evidence row G1](evidence.md#g1)); in the four layouts read since [M7.1c4](decisions-and-roadmap.md#m7-1c4) (the board's CSV and ground station text, the phone app's CSV, the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept as written, and the raw downloads match their makers' exports of the same flights in every sample, where the sample logs hold one (55 of 57 `.FIPa` files, 1 of 6 `.rff`, 9 of 14 `.eeprom`, 3 of 3 `.odf`, its acceleration within half a count and its barometric altitude in order only) ([M7.1c5](decisions-and-roadmap.md#m7-1c5)); 2,200 simulated flights, each with its logger's log and its known truth, are drawn for testing the readings on every logger ([M7.2a, the synthetic flights](decisions-and-roadmap.md#m7-2a)) | [Reading a flight log](reading-a-flight-log.md), [Reading your own logger](your-own-logger.md), [Flight-log readings](physics/log-readings.md), [Synthetic flights](physics/synthetic-flights.md), [`.pf2` files](format/pf2.md), [Flight logs](format/flight-logs.md) |
+| Recovery | Parachutes, [streamers](glossary.md#streamer) and [tumbling](glossary.md#tumble-recovery), the [drift](glossary.md#drift) they carry the rocket downwind, and a rocket that [separates](glossary.md#separation) into bodies that each descend on their own. A `.ork` file's parachutes and streamers fly as OpenRocket flies them, in `hpr sim` too. They're within 0.02% of OpenRocket's landing speed on 50 of its 53 example flights, and within 0.12% on all 53 ([a `.ork`'s recovery flown](decisions-and-roadmap.md#m4-5a)). `hpr sim` flies a `.ork`'s powered separation, each part under its own devices; the dropped booster's landing is rough ([powered separation in `hpr sim`](decisions-and-roadmap.md#m4-5g1)). Several powered separations fly in turn. OpenRocket's three-stage example flies as saved: all three configurations are within 1.48% of OpenRocket's apogee and 1.64% of its largest speed on OpenRocket's own curves, and within 2.48% and 1.67% in `hpr sim` on the curves it fetches ([several separations](decisions-and-roadmap.md#m4-5g2)). A payload dropped with nothing left to burn flies when its own parachute opens at the split. OpenRocket's two payload examples fly, the payload's apogee within 1.1% of OpenRocket's ([a payload's split](decisions-and-roadmap.md#m4-5g3)) | [Recovery](physics/recovery.md#from-an-openrocket-file) |
+| Design files | Opens an OpenRocket `.ork` file (zip, gzip or plain XML) and reads the whole design: the stages and body components, the tubes, rings, fins, lugs and recovery gear on and inside them, the motor configurations, when parachutes open, and the simulations OpenRocket stored. The airframe's shape is cross-checked against a second reader and OpenRocket itself (positions against OpenRocket alone; mass and center of gravity in [Mass properties](physics/mass.md#checked-against-openrocket)). Pods are read, weighed and flown, checked against OpenRocket on five small probe designs and on OpenRocket's *Pods--airframes and winglets* ([Pods](physics/aero.md#pods)). Motors in more than one pod set fly, and rail buttons' screw heads are weighed. OpenRocket's *Pods--powered with recovery deployment* flies 0.36% below OpenRocket's apogee with only the sustainer's motor, and 1.86% below with only the booster's motors. In the conditions of OpenRocket's record, its staged flight turns over before apogee in both programs. Its site is at 28.61° N, where the Earth's rotation tips HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s ([*Pods--powered* flies](decisions-and-roadmap.md#m4-5i)). Its first configuration flies too: its booster burns out first in its main tube and drops its pods still burning. That one is checked against OpenRocket's flight at two points up to where OpenRocket aborts it, not at an apogee: within 5% in height and speed at the separation and at OpenRocket's last row. That's weaker evidence than an apogee ([a stage's first burnout](decisions-and-roadmap.md#m4-5n)). A parallel stage (boosters strapped beside the core) is read, weighed and flown on a rocket of one stage on the axis, and dropped at its own separation. OpenRocket's *Parallel booster staging* flies both its configurations within 1.3% of OpenRocket's apogee ([parallel stages](decisions-and-roadmap.md#m4-5m)). Fins on a nose cone or a transition are read with their root along its surface, as OpenRocket draws it. OpenRocket's *Pods--airframes and winglets* flies with each apogee within 0.5% of OpenRocket's, and its stability margin 0.07 calibers above OpenRocket's, the flattering side ([fins on a nose cone](decisions-and-roadmap.md#m4-5g4)). A part HPR Sim can't shape honestly is left out with a warning. A configuration flies only when every motor in it has a thrust curve and lights at a moment HPR Sim can fly. `hpr sim` flies 136 of the 170 motor configurations in the reference library and OpenRocket's examples as saved, 54 of OpenRocket's 56 among them, and 9 more with `--accept-design-errors`. The other 25 are refused, mostly for a motor with no curve ([How many configurations `hpr sim` flies](format/ork.md#how-many-configurations-hpr-sim-flies); [the corpus count](decisions-and-roadmap.md#m4-5j)). A design is written back out as a `.ork` that reads back as the same design ([writing a `.ork`](format/ork.md#writing-a-ork-back-out)). `hpr convert` or a Rust program can keep it as a `.hpr` file in the HPR design format, and write the `.ork` back from that. TypeScript and Python programs can read a `.hpr` with generated types ([The HPR design format](format/hpr.md)). OpenRocket's parts catalog, the 16 `.orc` files it ships with 3,449 makers' parts, is built in and read as OpenRocket reads it. A program can look a part up, and the builder makes a rocket of the parts. Each part weighs what OpenRocket weighs it at, but for a few departures the builder's page names ([Parts from a catalog](the-builder.md#parts-from-a-catalog), [`.orc` parts catalogs](format/orc.md)) | [`.ork` design files](format/ork.md), [The HPR design format](format/hpr.md), [`.orc` parts catalogs](format/orc.md) |
+| Flight logs | Reads a flight log on its own, with no design file, from the command line, Python or the library. From any logger's barometric altitude or pressure it takes liftoff, apogee, the top speed, landing, the flight time and the descent under each canopy. From an accelerometer along the rocket's axis it takes the top acceleration and burnout; otherwise burnout is a [floor](glossary.md#floor), the top speed's time less its bound. Each is within a bound held on the synthetic flights' tuning set, or withheld with the reason the log can't support it ([readings on every logger](decisions-and-roadmap.md#m7-2b); [the rest of the readings](decisions-and-roadmap.md#m7-2c); [Flight-log readings](physics/log-readings.md)). The library reads these into one record, every column kept on its own clock: PerfectFlite's `.pf2`, its exports and older `.pfa`; AltOS's CSV; the Raven's FIP CSV and the Blue Raven's; RRC3's and Eggtimer's CSV, and an Eggtimer TRS's terminal text, plain or saved as RTF; AltimeterCloud's and Entacore AIM's CSV; AerospaceNU's SillyGoose logs and its flight computer board's CSV and ground station text; Silicdyne Fluctus's CSV; the ARTS2's interpreted data; a phone app's `launch` CSV; the Raven's `.FIPa` and the RRC3's `.rff` raw downloads; the Featherweight app's flight summaries (the logger's figures, no samples, so no readings); the R-DAS's raw text, its counts kept as written, no altitude ([the R-DAS's raw text](decisions-and-roadmap.md#m7-1c8)); AltOS's radio telemetry as AltosUI saves it ([AltOS telemetry](decisions-and-roadmap.md#m7-1c9)) and its raw `.eeprom` downloads ([AltOS raw downloads](decisions-and-roadmap.md#m7-1c10), [the layout](format/flight-logs.md#altoss-eeprom)); the ARTS2's `.odf` and raw CSV ([ARTS2 raw data](decisions-and-roadmap.md#m7-1c11), [the layout](format/flight-logs.md#the-arts2s-raw-data)); GPS tracks from Featherweight's GPS CSV, KML, NMEA and Missile Works' RTx, its `.rtx` file and exports ([Missile Works' RTx](decisions-and-roadmap.md#m7-1c12), [the layout](format/flight-logs.md#missile-works-rtx)); GPX 1.0 and 1.1, checked on invented files only ([GPX tracks](decisions-and-roadmap.md#m7-1d1), [the layout](format/flight-logs.md#gpx)); tables from loggers no other reader knows, by the units their headers state ([tables read by their headers](decisions-and-roadmap.md#m7-1c13), [the layout](format/flight-logs.md#tables-read-by-their-headers)); a zip archive's files one by one; an Excel workbook's sheets one by one, each cell as the workbook stores it ([Excel workbooks](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)); a Blue Raven's USB download, keeping only the records whose CRC checks ([the Blue Raven's USB download](decisions-and-roadmap.md#m7-1c17), [the layout](format/flight-logs.md#the-blue-ravens-usb-download)); a course's Teensy data logger, each unit its file doesn't state held to the flight's physics ([a course's Teensy data logger](decisions-and-roadmap.md#m7-1c18), [the layout](format/flight-logs.md#a-courses-teensy-data-logger)); one team's radio telemetry packets in their three forms, each checked against the flight computer's own log ([radio packets](decisions-and-roadmap.md#m7-1c19), [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)); a Raven FIP export pasted into a workbook with its header missing, read under a header you state, and an AltiMAX altimeter's older `.xls` export ([workbooks with a reading beside](decisions-and-roadmap.md#m7-1c20), [the layouts](format/flight-logs.md#the-altimaxs-excel-export)); a MARSA altimeter's download, AltOS's radio telemetry decoded to a table, and AltOS's CSV re-saved by a spreadsheet or cut to its columns ([altimeters' other text](decisions-and-roadmap.md#m7-1c21), [the layouts](format/flight-logs.md#a-marsa-download)); tables whose headers state too little, or that have none, by a column mapping, the sample tables' mappings each holding every unit to a physical check ([tables by mapping](decisions-and-roadmap.md#m7-1c22), [the layout](format/flight-logs.md#tables-a-mapping-holds-to-physics)); and an AltiMAX's own `.ALS` file and an Entacore AIM's `.xtra` files and raw memory dumps, each held to its maker's conversion of the same flight ([the last binaries](decisions-and-roadmap.md#m7-1c23), [the layouts](format/flight-logs.md#the-altimaxs-als)). From the command line and Python as well as the library, it reads a table by the column mapping, or binary records by the record layout, that you write for your own logger, and the mapping can mark the primary track ([your own logger from the command line and Python](decisions-and-roadmap.md#m7-1d2), [Reading your own logger](your-own-logger.md)) ([evidence row G1](evidence.md#g1)). In four layouts (the board's CSV and ground station text, the phone app's CSV, the Eggtimer's RTF; [their milestone](decisions-and-roadmap.md#m7-1c4)), every unit a file doesn't state is decided by two checks or kept as written. The raw downloads match their makers' exports of the same flights in every sample where the sample logs hold one: 55 of 57 `.FIPa` files, 1 of 6 `.rff`, 9 of 14 `.eeprom` and 3 of 3 `.odf`, its acceleration within half a count and its barometric altitude in order only ([raw downloads](decisions-and-roadmap.md#m7-1c5)). For testing the readings on every logger, 2,200 simulated flights are drawn, each with its logger's log and its known truth ([the synthetic flights](decisions-and-roadmap.md#m7-2a)) | [Reading a flight log](reading-a-flight-log.md), [Reading your own logger](your-own-logger.md), [Flight-log readings](physics/log-readings.md), [Synthetic flights](physics/synthetic-flights.md), [`.pf2` files](format/pf2.md), [Flight logs](format/flight-logs.md) |
 | Monte Carlo | One rocket flown many times with its mass, drag, motor, wind, rail and recovery delays scattered, seeded so a run repeats exactly; the spread of the apogee, the landing or any number a flight reports, with failed flights counted. From Rust or `hpr mc`, staged flights included; every flight exported as CSV, or, for a design without staging, returned to Python as NumPy arrays, the same numbers to the bit with both built in release mode | [Monte Carlo dispersion](monte-carlo.md), [`hpr mc`](cli.md#hpr-mc) |
-| Optimization | Three optimizers search for the design that makes a result best. [CMA-ES](glossary.md#cma-es) tunes a design's numbers (a ballast mass, a body length) and picks from choices such as a motor or a catalog nose cone, within limits such as a minimum stability margin. [NSGA-II](glossary.md#nsga-ii) weighs two goals against each other, such as apogee against stability. [EGO](optimization.md#few-evaluations-ego), efficient global optimization, is for models so slow that only tens of evaluations can be afforded. Each is held to test functions whose answers are known, and CMA-ES and NSGA-II also to outside implementations. On a rocket, an answer is only as good as HPR Sim's flight models. From Rust only; EGO is checked on two, three and six variables, and competition rule files are not built yet | [Optimization](optimization.md) |
+| Optimization | Three optimizers search for the design that makes a result best. [CMA-ES](glossary.md#cma-es) tunes a design's numbers (a ballast mass, a body length) and picks from choices such as a motor or a catalog nose cone, within limits such as a minimum stability margin. [NSGA-II](glossary.md#nsga-ii) weighs two goals against each other, such as apogee against stability. [EGO](optimization.md#few-evaluations-ego), efficient global optimization, is for models so slow that only tens of evaluations can be afforded. Each is held to test functions whose answers are known, and CMA-ES and NSGA-II also to outside implementations. On a rocket, an answer is only as good as HPR Sim's flight models. From Rust only; EGO is checked on two, three and six variables, and competition rule files aren't built yet | [Optimization](optimization.md) |
 | Python | The `hpr` package: the builder's rocket, motor, site and flight from Python, with the recording as NumPy arrays and a design read from a file. A Monte Carlo run, its flights as NumPy arrays. `pip install fusionspace-hpr` from PyPI, or built from source; no staging; a design read from a file flies its stored parachutes with `recovery=True`, and most `.ork` configurations are refused as they don't fly as written | [Python](python.md) |
-| Evidence | A register of the gaps these pages state in what backs a file reader, a model or a check: the kind of evidence behind each, the kind that would settle it, and the open issue waiting for a real sample; the build fails a gap stated in one of its listed phrases with no row, though a gap worded otherwise passes ([M2.10](decisions-and-roadmap.md#m2-10)) | [What backs each claim](evidence.md) |
+| Evidence | A register of the gaps these pages state in what backs a file reader, a model or a check: the kind of evidence behind each, the kind that would settle it, and the open issue waiting for a real sample. The build fails a gap stated in one of its listed phrases with no row, though a gap worded otherwise passes ([the evidence register](decisions-and-roadmap.md#m2-10)) | [What backs each claim](evidence.md) |
 
 ## What doesn't work yet
 
-These are the gaps you are most likely to meet. Each model page lists what its own model leaves
+These are the gaps you're most likely to meet. Each model page lists what its own model leaves
 out, and [What backs each claim](evidence.md) lists the gaps the pages state, with the issue that
 waits for each one's evidence.
 
 ### Speed and angle of attack
 
-- **Drag near and past Mach 1 is lightly checked.** Since
-  [M1.8b1](decisions-and-roadmap.md#m1-8b1) (drag through Mach 1), a flight on HPR Sim's own drag flies
-  from Mach 0 to 5, and one that reaches Mach 5, the top of the models, stops with an error.
-  - Near and above the speed of sound, the
-    [transonic and supersonic](glossary.md#transonic-and-supersonic) speeds, the drag is Niskanen's
-    2009 method, which is semi-empirical: formulas fitted to measurements.
-  - Against NASA's wind-tunnel tests of the Arcas Robin sounding rocket, from Mach 0.6 to 4.63, it
-    reads high at most speeds, most of all with fins past Mach 1
-    ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
-  - So for a rocket that goes past Mach 1, expect HPR Sim's apogee to come out low rather than high.
-    Its base drag, on the flat aft end, hasn't been checked faster than Mach 0.3 at all.
-  - It has been compared with [RASAero II](glossary.md#rasaero-ii)'s drag near Mach 1; the
-    comparison is not uniformly within the 10% target. See [Accuracy](accuracy.md) for the cases
-    and errors. A drag table from another tool can replace HPR Sim's own drag
-    ([Aerodynamics](physics/aero.md#drag)).
-- **The normal force still has gaps near Mach 1 and on some supersonic bodies.** The current body
-  and Arcas Robin comparisons, including their measured error ranges, are in
-  [Aerodynamics](physics/aero.md) and [Accuracy](accuracy.md).
-- **Small angles of attack only.** Nothing models [stall](glossary.md#stall), the loss of lift at
-  a large angle of attack, yet a flight uses the same models at every angle. So results near rail
-  exit in a strong crosswind, and near apogee, are the least trustworthy.
+Drag near and past Mach 1 is lightly checked. Since
+[the drag buildup through Mach 1](decisions-and-roadmap.md#m1-8b1) was built, a flight on HPR
+Sim's own drag flies from Mach 0 to 5. One that reaches Mach 5, the top of the models, stops with
+an error.
+
+Near and above the speed of sound, the
+[transonic and supersonic](glossary.md#transonic-and-supersonic) speeds, the drag is Niskanen's
+2009 method. It's semi-empirical: formulas fitted to measurements. Against NASA's wind-tunnel tests
+of the Arcas Robin sounding rocket, from Mach 0.6 to 4.63, it reads high at most speeds. It's
+highest with fins past Mach 1
+([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). So for a rocket that
+goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its base drag, on the
+flat aft end, hasn't been checked faster than Mach 0.3 at all.
+
+It's also been compared with [RASAero II](glossary.md#rasaero-ii)'s drag near Mach 1, and that
+comparison isn't within the 10% target everywhere. [Accuracy](accuracy.md) has the cases and
+errors. A drag table from another tool can replace HPR Sim's own drag
+([Aerodynamics](physics/aero.md#drag)).
+
+The normal force still has gaps near Mach 1 and on some supersonic bodies. The current body and
+Arcas Robin comparisons, with their measured error ranges, are in
+[Aerodynamics](physics/aero.md) and [Accuracy](accuracy.md).
+
+It's for small angles of attack only. Nothing models [stall](glossary.md#stall), the loss of lift
+at a large angle of attack, yet a flight uses the same models at every angle. So results near
+rail exit in a strong crosswind, and near apogee, are the least trustworthy.
 
 ### Staging, two-stage rockets, clusters and air starts
 
-- **Staging is new, and checked against OpenRocket on its own examples.** Each motor lights at its
-  own time, an [air start](glossary.md#air-start) included, and a [sustainer](glossary.md#sustainer)
-  flies on after dropping its [booster](glossary.md#booster), which lands on its own
-  ([Staging](physics/staging.md)). Tests check the bookkeeping. OpenRocket's two-stage and
-  three-stage examples, its cluster example and its air-start example, 15 flights in all, are
-  each within 5% of OpenRocket's apogee and largest speed. Five apogees, three of the cluster's
-  and two of the three-stage example's, are compared with OpenRocket's flight with no parachute,
-  since its parachute opened before apogee
-  ([M1.9c](decisions-and-roadmap.md#m1-9c), a two-stage and a cluster design against OpenRocket;
-  [M4.5g2](decisions-and-roadmap.md#m4-5g2), several separations;
-  [results](format/ork.md#staged-clustered-and-air-start-flights)).
-  - A `.ork` file's ignition settings and every powered separation are read, from the tail
-    forward ([M4.5g2](decisions-and-roadmap.md#m4-5g2), several separations). A powered separation
-    has a time known before the flight, and then a motor ahead of it is still burning or yet to
-    light and none behind it is. One at its own stage's first burnout may drop the stage's own
-    other motors still burning, if they lit strictly before the split, as OpenRocket does
-    ([M4.5n](decisions-and-roadmap.md#m4-5n), a stage's first burnout). The ignitions come with
-    the rocket. Your program passes the separation to the flight, with a recovery device on each
-    part, since HPR Sim refuses the flight without them; `hpr sim` does the same for you
-    ([Separation](cli.md#separation)). The example [`ork_two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/ork_two_stage.rs) does both. A lone separation with nothing ahead of it left to burn, such as a payload's, is
-    read too; `hpr sim` flies it when the payload's own device opens at the split
-    ([M4.5g3](decisions-and-roadmap.md#m4-5g3), a payload's split). One beside another
-    separation, or at or after apogee beside another, isn't flown
-    ([which configurations fly](format/ork.md#which-configurations-the-rocket-flies)).
-  - A [cluster](glossary.md#cluster), several motors burning side by side, flies, whether they
-    share one mount of several tubes or each has its own: HPR Sim adds up their thrust and mass, and a
-    motor off the rocket's center line adds a turning moment. A motor that fails to light can be
-    set, and the rocket then turns as a hand calculation says ([Clusters](physics/design.md#clusters)).
-    A `.ork` file's cluster flies with a motor in every tube.
-  - A rocket can [separate](glossary.md#separation) into parts for recovery once the aft part's
-    motors have burnt out.
+Staging is new, and it's checked against OpenRocket on OpenRocket's own examples. Each motor
+lights at its own time, an [air start](glossary.md#air-start) included. A
+[sustainer](glossary.md#sustainer) flies on after dropping its [booster](glossary.md#booster),
+which lands on its own ([Staging](physics/staging.md)). Tests check the bookkeeping. OpenRocket's
+two-stage, three-stage, cluster and air-start examples make 15 flights in all. Each is within 5%
+of OpenRocket's apogee and largest speed. In OpenRocket's flights of five of them, three of the
+cluster's and two of the three-stage example's, the parachute opened before apogee. Those five
+apogees are compared with OpenRocket's flight with no parachute
+([a two-stage and a cluster design against OpenRocket](decisions-and-roadmap.md#m1-9c);
+[several separations](decisions-and-roadmap.md#m4-5g2);
+[results](format/ork.md#staged-clustered-and-air-start-flights)).
+
+A `.ork` file's ignition settings and every powered separation are read, from the tail forward
+([several separations](decisions-and-roadmap.md#m4-5g2)). A powered separation has a time known
+before the flight. At that time a motor ahead of it is still burning or yet to light, and none
+behind it is. A separation at its own stage's first burnout may drop that stage's other motors
+while they still burn, if they lit strictly before the split. OpenRocket does the same
+([a stage's first burnout](decisions-and-roadmap.md#m4-5n)).
+
+The ignitions come with the rocket. Your program passes the separation to the flight, with a
+recovery device on each part, since HPR Sim refuses the flight without them. `hpr sim` does the
+same for you ([Separation](cli.md#separation)). The example
+[`ork_two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/ork_two_stage.rs)
+does both. A lone separation with nothing ahead of it left to burn, such as a payload's, is read
+too. `hpr sim` flies it when the payload's own device opens at the split
+([a payload's split](decisions-and-roadmap.md#m4-5g3)). One beside another separation, or at or
+after apogee beside another, isn't flown
+([which configurations fly](format/ork.md#which-configurations-the-rocket-flies)).
+
+A [cluster](glossary.md#cluster), several motors burning side by side, flies, whether they share
+one mount of several tubes or each has its own. HPR Sim adds up their thrust and mass, and a motor
+off the rocket's center line adds a turning moment. You can set a motor that fails to light, and
+the rocket then turns as a hand calculation says ([Clusters](physics/design.md#clusters)). A
+`.ork` file's cluster flies with a motor in every tube.
+
+A rocket can [separate](glossary.md#separation) into parts for recovery once the aft part's
+motors have burnt out.
 
 ### Effects left out
 
-- **Some effects are left out of a flight, or approximated:**
-  - [tip-off](glossary.md#tip-off) (the rocket pitching as it leaves the rail), thrust
-    misalignment (a motor pushing slightly off the rocket's axis), and turbulence (the model
-    exists, but a flight doesn't use it), none of which a milestone plans yet
-    ([issue #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39) tracks turbulence);
-  - the shock load when a parachute opens, and the canopy's overshoot of its steady drag
-    ([Recovery](physics/recovery.md));
-  - the [internal momentum](glossary.md#internal-momentum) of the burning propellant, which is
-    counted twice, as RocketPy counts it: a thrust curve measured on a test stand already includes
-    its effect, and the equations of motion add it again. On Valetudo, the rocket that
-    [Getting started](getting-started.md) flies, it adds 21 N to the push at liftoff and changes
-    the burnout speed by at most 0.05 m/s (0.2 ft/s); see
-    [Rigid-body flight](physics/flight.md#equations-of-motion).
+These are left out of a flight, or approximated:
+
+- [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail;
+- thrust misalignment, a motor pushing slightly off the rocket's axis;
+- turbulence: the model exists, but a flight doesn't use it. No milestone plans these first three
+  yet, though [issue #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39) tracks
+  turbulence;
+- the shock load when a parachute opens, and the canopy's overshoot of its steady drag
+  ([Recovery](physics/recovery.md));
+- the [internal momentum](glossary.md#internal-momentum) of the burning propellant, counted twice,
+  as RocketPy counts it. A thrust curve measured on a test stand already includes its effect, and
+  the equations of motion add it again. On Valetudo, the rocket that
+  [Getting started](getting-started.md) flies, it adds 21 N to the push at liftoff. It changes the
+  burnout speed by at most 0.05 m/s (0.2 ft/s)
+  ([Rigid-body flight](physics/flight.md#equations-of-motion)).
 
 ### Outputs and ways to use it
 
 - **Output files.** [Exporting a flight](exporting-a-flight.md) writes a recording as CSV, JSON or
-  Parquet ([M1.10c2](decisions-and-roadmap.md#m1-10c2)), and the flight path with its landings as
-  GeoJSON or KML for a map. A flight's peaks, its stability
-  margin from the rail exit to apogee (the weakest direction's, for a rocket with a fin set of
-  one or two fins; [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329)), the optimum ejection delay and its landing's latitude and
-  longitude are in [Flight metrics](physics/metrics.md), and its fins' flutter speed and margin in
-  [Fin flutter](physics/flutter.md).
+  Parquet ([Parquet recordings](decisions-and-roadmap.md#m1-10c2)), and the flight path with its
+  landings as GeoJSON or KML for a map. [Flight metrics](physics/metrics.md) gives a flight's
+  peaks and its stability margin from the rail exit to apogee. For a rocket with a fin set of one
+  or two fins, that's the weakest direction's margin
+  ([#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329)). It also gives the optimum
+  ejection delay and the landing's latitude and longitude. [Fin flutter](physics/flutter.md) gives
+  the fins' flutter speed and margin.
 - **Where an export comes from.** A CSV's header gives each column's unit in brackets
-  (`time [s]`). `hpr sim`'s JSON recording, and the small file `hpr sim` and `hpr mc` write beside
-  a CSV, carry the motor catalog's as-of date and how far to trust the numbers (since
-  [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports), and so do GeoJSON, KML,
-  Parquet and the `--plot` figure (since [M0.9c8](decisions-and-roadmap.md#m0-9c8), the date and
-  the note on `hpr sim`'s other exports). A catalog motor `hpr convert` writes says the catalog's
-  date, and a weather profile `hpr weather --output` saves says whether it is measured, a forecast
-  or a reanalysis, and how far to trust it (since [M0.9c14](decisions-and-roadmap.md#m0-9c14), provenance on the other files).
-- **It reads what you type, and says what to do when it can't.** Numbers are read as written by
-  hand: `--elevation 1,280` is 1280 m (4199 ft), and a comma it can't read as a thousands
-  separator, such as `3,9`, is asked about. A refused option is named with its value and unit and
-  an example, and a file that isn't there with the closest name in its folder
+  (`time [s]`). `hpr sim`'s JSON recording carries the motor catalog's as-of date and how far to
+  trust the numbers. So does the small file `hpr sim` and `hpr mc` write beside a CSV
+  ([provenance on the exports](decisions-and-roadmap.md#m0-9c5)). So do GeoJSON, KML, Parquet and
+  the `--plot` figure ([provenance on every export](decisions-and-roadmap.md#m0-9c8)). A catalog
+  motor that `hpr convert` writes says the catalog's date. A weather profile that
+  `hpr weather --output` saves says whether it's measured, a forecast or a reanalysis, and how far
+  to trust it ([provenance on the other files](decisions-and-roadmap.md#m0-9c14)).
+- **It reads what you type, and says what to do when it can't.** It reads numbers as you'd write
+  them by hand: `--elevation 1,280` is 1280 m (4199 ft). A comma it can't read as a thousands
+  separator, such as `3,9`, is asked about. A refused option is named with its value, its unit and
+  an example. For a file that isn't there, it names the closest file in the same folder
   ([typing numbers](cli.md#typing-numbers-and-what-a-refusal-says);
-  [M0.9c6](decisions-and-roadmap.md#m0-9c6), errors and typed numbers). Every refusal ends with
-  a `help:` line that says what to do, and a fetch that waits on the network says on the terminal
-  what it waits for ([M0.9c15](decisions-and-roadmap.md#m0-9c15), next steps and waits).
-- **The command line flies powered separations only.** `hpr sim` flies a `.ork` file or
-  an HPR design file, exports its recording ([The command line](cli.md#hpr-sim)), and with `--plot`
-  draws its altitude, speed and acceleration against time, events marked and listed in a table,
-  as an SVG in the FusionSpace chart style, its panels' heights chosen so their slopes run near
-  45° ([banked](cli.md#plotting-the-flight)) and a title block at its end,
-  with the numbers it draws in a CSV beside it
-  ([Plotting the flight](cli.md#plotting-the-flight); [M4.5e](decisions-and-roadmap.md#m4-5e),
-  plots; [M0.6c](decisions-and-roadmap.md#m0-6c), their style;
-  [M0.9c12](decisions-and-roadmap.md#m0-9c12), balloons, banking, title block and data).
-- **`hpr sim` reads by name.** It leads with the static margin and the center of gravity and
-  center of pressure it came from, apogee, rail exit speed, ejection delay and the descent speed
-  under open parachutes, each height and speed in SI with feet or feet per second in parentheses
-  ([units](cli.md#units)), and ends with how far to trust it, from 53 logged flights
-  ([M0.9c3](decisions-and-roadmap.md#m0-9c3)), and calls configurations and parts by name,
-  such as `[C6-5]` for a configuration the file leaves unnamed
-  ([M4.5d](decisions-and-roadmap.md#m4-5d), readable output). It flies a
-  `.ork` file's parachutes and streamers, and its powered separations, one or several
-  ([M4.5g1](decisions-and-roadmap.md#m4-5g1), powered separation in `hpr sim`;
-  [M4.5g2](decisions-and-roadmap.md#m4-5g2), several separations), and a payload dropped with
+  [errors and typed numbers](decisions-and-roadmap.md#m0-9c6)). Every refusal ends with a `help:`
+  line that says what to do. A fetch that waits on the network says on the terminal what it's
+  waiting for ([next steps and waits](decisions-and-roadmap.md#m0-9c15)).
+- **`hpr sim` flies a design and plots its flight.** It flies a `.ork` file or an HPR
+  design file and exports its recording ([The command line](cli.md#hpr-sim)). With `--plot` it
+  draws the flight's altitude, speed and acceleration against time, as an SVG in the FusionSpace
+  chart style. Events are marked and listed in a table, and a title block closes it. The panels'
+  heights are chosen so their slopes run near 45° ([banked](cli.md#plotting-the-flight)). The
+  numbers it draws go in a CSV beside it
+  ([Plotting the flight](cli.md#plotting-the-flight); [plots](decisions-and-roadmap.md#m4-5e);
+  [their style](decisions-and-roadmap.md#m0-6c);
+  [balloons, banking, title block and data](decisions-and-roadmap.md#m0-9c12)).
+- **`hpr sim` reads by name.** Its readout leads with the static margin, and the center of
+  gravity and center of pressure it came from. Then come the apogee, the rail exit speed, the
+  ejection delay and the descent speed under open parachutes. Each height and speed is in SI, with
+  feet or feet per second in parentheses ([units](cli.md#units)). It ends with how far to trust
+  it, from 53 logged flights ([how far to trust a result](decisions-and-roadmap.md#m0-9c3)). It
+  calls configurations and parts by name, such as `[C6-5]` for a configuration the file leaves
+  unnamed ([readable output](decisions-and-roadmap.md#m4-5d)). It flies a `.ork` file's
+  parachutes and streamers, and its powered separations, one or several
+  ([powered separation in `hpr sim`](decisions-and-roadmap.md#m4-5g1);
+  [several separations](decisions-and-roadmap.md#m4-5g2)). It also flies a payload dropped with
   nothing left to burn, when its own parachute opens at the split
-  ([M4.5g3](decisions-and-roadmap.md#m4-5g3), a payload's split). A rocket's `.json` carries no
-  parachute. A Rust program flies separations and parachutes:
+  ([a payload's split](decisions-and-roadmap.md#m4-5g3)). A rocket's `.json` carries no
+  parachute. A Rust program flies separations and parachutes.
   [Getting started](getting-started.md) flies a first rocket, and [The builder](the-builder.md)
   builds and flies one of your own in a few calls. A Python program flies the parachutes of a
   rocket it builds part by part, or a design file's with `recovery=True`, but no staging
   ([Python](python.md)).
-- **`.ork` files are read, but most don't fly with their own motors.** A `.ork` file is read
-  ([`.ork` design files](format/ork.md)), but few of its motor configurations fly as written, as
-  HPR Sim has few motors' curves. Its parachutes and streamers fly as OpenRocket flies them
-  ([Recovery](physics/recovery.md#from-an-openrocket-file)). `hpr sim --motor` flies one
-  with a motor you give ([The command line](cli.md#hpr-sim)).
-- **Monte Carlo runs give the apogee's spread and landing ellipses, from Rust, the command
-  line or Python.** A [Monte Carlo](glossary.md#monte-carlo) run flies a rocket many times with its mass,
-  drag, motor, wind and rail scattered, seeded and reproducible
-  ([Monte Carlo dispersion](monte-carlo.md)), and draws the ellipse its landings fall in
-  ([Landing ellipses](monte-carlo.md#landing-ellipses)). [`hpr mc`](cli.md#hpr-mc) runs one on any
-  design `hpr sim` flies and exports every flight as CSV; for a design without staging,
-  `hpr.MonteCarlo` returns the same flights to Python as NumPy arrays
-  ([Python](python.md#monte-carlo)), but not the ellipses.
-  Morris screening and Sobol' indices rank which inputs matter most
-  ([Sensitivity analysis](sensitivity.md)). CMA-ES finds the values of a design's numbers that
-  hit a target, such as the ballast and body length for a 3,048 m (10,000 ft) apogee with a chosen
-  margin. CMA-ES also chooses a motor and a nose cone within a competition's limits, and NSGA-II
-  weighs apogee against stability ([Optimization](optimization.md)). Their answers are only as good
-  as HPR Sim's flight models. Competition rule files are not built yet.
-  No app yet: it is on the [roadmap][roadmap].
+- **A `.ork` file's motors need a fetch the first time.** HPR Sim reads a `.ork` file
+  ([`.ork` design files](format/ork.md)), but a file rarely carries its motors' curves, and HPR
+  Sim bundles 32. With those alone, 4 of the reference library's 170 motor configurations fly.
+  `hpr sim` fetches a missing curve from ThrustCurve.org and keeps it, and with those curves 136
+  fly ([motors in the reference library](format/ork.md#motors-in-the-reference-library)). Its parachutes and streamers fly as OpenRocket
+  flies them ([Recovery](physics/recovery.md#from-an-openrocket-file)). `hpr sim --motor` flies
+  one with a motor you give ([The command line](cli.md#hpr-sim)).
+- **Monte Carlo runs give the apogee's spread and landing ellipses, from Rust, the command line or
+  Python.** A [Monte Carlo](glossary.md#monte-carlo) run flies a rocket many times with its mass,
+  drag, motor, wind and rail scattered. It's seeded and reproducible
+  ([Monte Carlo dispersion](monte-carlo.md)), and it draws the ellipse its landings fall in
+  ([Landing ellipses](monte-carlo.md#landing-ellipses)). [`hpr mc`](cli.md#hpr-mc) runs one on
+  any design `hpr sim` flies, and exports every flight as CSV. For a design without staging,
+  `hpr.MonteCarlo` returns the same flights to Python as NumPy arrays, but not the ellipses
+  ([Python](python.md#monte-carlo)). Morris screening and Sobol' indices rank which inputs matter
+  most ([Sensitivity analysis](sensitivity.md)). CMA-ES finds the values of a design's numbers
+  that hit a target. For example, it finds the ballast and body length for a 3,048 m (10,000 ft)
+  apogee with a chosen margin. CMA-ES also chooses a motor and a nose cone within a competition's
+  limits, and NSGA-II weighs apogee against stability ([Optimization](optimization.md)). Their
+  answers are only as good as HPR Sim's flight models. Competition rule files aren't built yet.
+  There's no app yet: it's on the [roadmap][roadmap].
 - **The flight-log analyzer gives readings within bounds, not intervals yet.** `hpr analyze` and
-  the Python package read a flight log on its own, with no design file and no simulation, by its
-  format's reader or by the column mapping or record layout you write for your own logger
+  the Python package read a flight log on its own, with no design file and no simulation. They use
+  its format's reader, or the column mapping or record layout you write for your own logger
   ([Reading your own logger](your-own-logger.md)). They give liftoff, apogee, the top speed,
-  landing, the flight time and the descent under each canopy, and the top acceleration and
-  burnout from an accelerometer along the rocket's axis (since
-  [M7.2c](decisions-and-roadmap.md#m7-2c), the rest of the readings), each within a stated bound,
-  or withheld with the reason the log can't support it
+  landing, the flight time and the descent under each canopy. From an accelerometer along the
+  rocket's axis they also give the top acceleration and burnout. Burnout and each leg of the
+  descent came with [the rest of the readings](decisions-and-roadmap.md#m7-2c). Each reading comes
+  within a stated bound, or is withheld with the reason the log can't support it
   ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, a board's three
-  axes give no top acceleration, and no reading states a 90% interval yet. Like
-  `hpr weather` and `hpr motors show`, it ends with how far to trust its figures (since
-  [M0.9c4](decisions-and-roadmap.md#m0-9c4), units and trust notes on every readout). The library
-  reads PerfectFlite's exports and older `.pfa`, AltOS's CSV, the Featherweight Raven's FIP CSV,
-  the Blue Raven's CSV, Missile Works RRC3's and Eggtimer's too (an Eggtimer TRS's terminal text
-  as well, plain or saved as RTF), AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's
-  SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne
-  Fluctus's CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, the Raven's `.FIPa`
-  and the RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no
-  samples), the R-DAS's raw text (its counts kept as written,
-  [M7.1c8](decisions-and-roadmap.md#m7-1c8)), AltOS's radio telemetry as AltosUI saves it
-  ([M7.1c9](decisions-and-roadmap.md#m7-1c9)), AltOS's raw downloads, the `.eeprom` files of the
-  board's own log, which match AltosUI's exports on every value converted to SI in all 9 samples
-  that have one, one export's acceleration, zeroed at +1 g, counted apart
-  ([M7.1c10](decisions-and-roadmap.md#m7-1c10), [the layout](format/flight-logs.md#altoss-eeprom)),
-  the ARTS2's `.odf` and raw CSV, the `.odf` in units from its own calibration, holding the same
-  records as the raw CSV and agreeing with DataAnalyzer's export in all 3 samples, the
-  acceleration within half a count and the barometric altitude in order only
-  ([M7.1c11](decisions-and-roadmap.md#m7-1c11), [the layout](format/flight-logs.md#the-arts2s-raw-data)),
-  Missile Works' RTx GPS tracker's `.rtx` file and its CSV and text exports, the `.rtx`'s words
-  decoded from the files and agreeing with mDACS's exports on every fix but the last, which the
-  exports leave out, in all 5 samples, every field in 4 and positions and altitudes in the fifth
-  ([M7.1c12](decisions-and-roadmap.md#m7-1c12),
-  [the layout](format/flight-logs.md#missile-works-rtx)), a table from a logger no other reader
-  knows, read only as far as its header states its units, each unit held to the column's name and
-  values: 224 columns of the 31 sample tables read in a stated unit, the rest kept as written
-  ([M7.1c13](decisions-and-roadmap.md#m7-1c13),
-  [the layout](format/flight-logs.md#tables-read-by-their-headers)), and GPS tracks from Featherweight's GPS tracker,
-  KML and NMEA files, and GPX 1.0 and 1.1 files, each value of three invented files equal to an
-  independent reader's ([M7.1d1](decisions-and-roadmap.md#m7-1d1),
-  [the layout](format/flight-logs.md#gpx), [evidence row G1](evidence.md#g1)), every column kept on its own clock, and unpacks a zip archive of a flight's files to read each one
-  ([M7.1c7](decisions-and-roadmap.md#m7-1c7)), and an Excel workbook's sheets, each read as a file,
-  every cell of the 16 sample workbooks agreeing with an independent reader's
-  ([M7.1c14](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)),
-  Eggtimer and RRC3 exports saved by a European locale's spreadsheet (decimal commas tested on
-  invented files), and, in the survey, six team tables read by the column mapping RocketPy states
-  for them
-  ([M7.1c15](decisions-and-roadmap.md#m7-1c15),
-  [the mappings](format/flight-logs.md#mappings-a-publisher-states)), and a team flight
-  computer's binary records, from a raw file or a console capture's base64, read by a layout the
-  caller states, every field of the 5 sample files matching the team's own decoded table
-  ([M7.1c16](decisions-and-roadmap.md#m7-1c16),
-  [the layout](format/flight-logs.md#binary-records-by-a-stated-layout)), and a Blue Raven's USB
-  download, keeping only the records whose CRC checks, each held to its stated length, and
-  reading the fields its manual lists, every value of the 2 sample files matching the survey's own
-  decoding
-  ([M7.1c17](decisions-and-roadmap.md#m7-1c17),
-  [the layout](format/flight-logs.md#the-blue-ravens-usb-download)), and a course's Teensy data
-  logger, every value of the 8 sample files matching the survey's own decoding and each unit no
-  line states held to the flight's physics: the barometer's altitude to its pressure by the
-  BMP180's formula, 1 g at rest, the time to apogee
-  ([M7.1c18](decisions-and-roadmap.md#m7-1c18),
-  [the layout](format/flight-logs.md#a-courses-teensy-data-logger)), and one team's radio
-  telemetry packets, as its flight computer logged them, as a receiver heard them and inside an
-  RTF document, every packet a receiver or an export holds that the onboard log also holds
-  matching the log's field for field ([M7.1c19](decisions-and-roadmap.md#m7-1c19),
-  [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)), and a Raven FIP export
-  pasted into a workbook with its header missing, read under a stated header, the two sample
-  sheets matching the `.FIPa` of the same flight sample by sample, and an AltiMAX altimeter's
-  `.xls` export, every cell of the sample checked by an outside reader and each of its heights
-  following its pressure by the standard atmosphere's formula ([M7.1c20](decisions-and-roadmap.md#m7-1c20),
-  [the layouts](format/flight-logs.md#a-fip-export-pasted-below-no-header)), and a MARSA
-  altimeter's download, read in feet and g, units held to an AltOS board's in the same flight
-  (the apogee 0.981 and 0.986 times its), AltOS's radio telemetry decoded to a table, read by its
-  header, a table cut from
-  an AltOS export, read by AltOS's state numbers, and an AltOS export a spreadsheet re-saved, each
-  formula kept as text ([M7.1c21](decisions-and-roadmap.md#m7-1c21),
-  [the layouts](format/flight-logs.md#a-marsa-download)), and tables whose headers state too
-  little, or that have none, read by a column mapping, the sample tables' mappings each holding
-  every unit to a physical check ([M7.1c22](decisions-and-roadmap.md#m7-1c22),
-  [the layout](format/flight-logs.md#tables-a-mapping-holds-to-physics)); in the four layouts
-  [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
-  app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept
-  as written, and the two raw downloads [M7.1c5](decisions-and-roadmap.md#m7-1c5) added match
-  their makers' exports of the same flights in every sample, where the sample logs hold an export
-  (55 of 57 `.FIPa` files, 1 of 6 `.rff`)
-  ([the layouts read](format/flight-logs.md), [M7.1a](decisions-and-roadmap.md#m7-1a),
-  [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
-  [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3),
-  [M7.1c4](decisions-and-roadmap.md#m7-1c4), [M7.1c5](decisions-and-roadmap.md#m7-1c5)). Since
-  [M7.1c23, the last of the importers](decisions-and-roadmap.md#m7-1c23), Entacore AIM XTRA's own
-  files and the AltiMAX's `.ALS` file are read too, each held to its maker's conversion of the
-  same flight, and every sample log in a layout HPR Sim knows is read; the formats with no
-  sample, such as CATS's, are
+  axes give no top acceleration, and no reading states a 90% interval yet. Like `hpr weather` and
+  `hpr motors show`, it ends with how far to trust its figures
+  ([units and trust notes on every readout](decisions-and-roadmap.md#m0-9c4)).
+
+  The formats it reads are in the table under [What works today](#what-works-today). Where the
+  sample logs allow, each reader is held to another source:
+
+  - AltOS's raw downloads, the `.eeprom` files of the board's own log, match AltosUI's exports on
+    every value converted to SI, in all 9 samples that have one. One export's acceleration, zeroed
+    at +1 g, is counted apart ([AltOS raw downloads](decisions-and-roadmap.md#m7-1c10),
+    [the layout](format/flight-logs.md#altoss-eeprom)).
+  - The ARTS2's `.odf` is in units from its own calibration, and holds the same records as its raw
+    CSV. It agrees with DataAnalyzer's export in all 3 samples: the acceleration within half a
+    count, the barometric altitude in order only
+    ([ARTS2 raw data](decisions-and-roadmap.md#m7-1c11),
+    [the layout](format/flight-logs.md#the-arts2s-raw-data)).
+  - The words of Missile Works' RTx GPS tracker's `.rtx` file are decoded from the files. They
+    agree with mDACS's CSV and text exports on every fix but the last, which the exports leave out,
+    in all 5 samples. Every field agrees in 4, and positions and altitudes in the fifth
+    ([Missile Works' RTx](decisions-and-roadmap.md#m7-1c12),
+    [the layout](format/flight-logs.md#missile-works-rtx)).
+  - A table from a logger no other reader knows is read only as far as its header states its
+    units, each unit held to the column's name and values. Of the 31 sample tables, 224 columns
+    are read in a stated unit, and the rest kept as written
+    ([tables read by their headers](decisions-and-roadmap.md#m7-1c13),
+    [the layout](format/flight-logs.md#tables-read-by-their-headers)).
+  - GPX 1.0 and 1.1 files: each value of three invented files equals an independent reader's
+    ([GPX tracks](decisions-and-roadmap.md#m7-1d1), [the layout](format/flight-logs.md#gpx),
+    [evidence row G1](evidence.md#g1)).
+  - A zip archive of a flight's files is unpacked to read each one
+    ([archives and two readers' variants](decisions-and-roadmap.md#m7-1c7)).
+  - An Excel workbook's sheets are each read as a file. Every cell of the 16 sample workbooks
+    agrees with an independent reader's ([Excel workbooks](decisions-and-roadmap.md#m7-1c14),
+    [the layout](format/flight-logs.md#excel-workbooks)).
+  - Eggtimer and RRC3 exports saved by a European locale's spreadsheet are read, with decimal
+    commas tested on invented files. In the survey, six team tables are read by the column mapping
+    RocketPy states for them
+    ([mappings a publisher states](decisions-and-roadmap.md#m7-1c15),
+    [the mappings](format/flight-logs.md#mappings-a-publisher-states)).
+  - A team flight computer's binary records, from a raw file or a console capture's base64, are
+    read by a layout the caller states. Every field of the 5 sample files matches the team's own
+    decoded table ([binary records by a stated layout](decisions-and-roadmap.md#m7-1c16),
+    [the layout](format/flight-logs.md#binary-records-by-a-stated-layout)).
+  - A Blue Raven's USB download keeps only the records whose CRC checks, each held to its stated
+    length, and reads the fields its manual lists. Every value of the 2 sample files matches the
+    survey's own decoding
+    ([the Blue Raven's USB download](decisions-and-roadmap.md#m7-1c17),
+    [the layout](format/flight-logs.md#the-blue-ravens-usb-download)).
+  - Every value of the 8 sample files from a course's Teensy data logger matches the survey's own
+    decoding ([a course's Teensy data logger](decisions-and-roadmap.md#m7-1c18),
+    [the layout](format/flight-logs.md#a-courses-teensy-data-logger)). Each unit no line states is
+    held to the flight's physics: the barometer's altitude to its pressure by the BMP180's
+    formula, 1 g at rest, the time to apogee.
+  - A team's radio telemetry packets are read as its flight computer logged them, as a receiver
+    heard them, and inside an RTF document. Every packet a receiver or an export holds that the
+    onboard log also holds matches the log's, field for field
+    ([radio packets](decisions-and-roadmap.md#m7-1c19),
+    [the layout](format/flight-logs.md#one-teams-radio-telemetry-packets)).
+  - A Raven FIP export pasted into a workbook with its header missing is read under a stated
+    header ([workbooks with a reading beside](decisions-and-roadmap.md#m7-1c20),
+    [the layouts](format/flight-logs.md#a-fip-export-pasted-below-no-header)). The two sample
+    sheets match the `.FIPa` of the same flight, sample by sample. Every cell of the sample
+    AltiMAX `.xls` export is checked by an outside reader, and each of its heights follows its
+    pressure by the standard atmosphere's formula.
+  - A MARSA altimeter's download is read in feet and g. Its units are held to an AltOS board's in
+    the same flight, the apogee 0.981 and 0.986 times its. AltOS's radio telemetry decoded to a
+    table is read by its header, and a table cut from an AltOS export by AltOS's state numbers. An
+    AltOS export a spreadsheet re-saved keeps each formula as text
+    ([altimeters' other text](decisions-and-roadmap.md#m7-1c21),
+    [the layouts](format/flight-logs.md#a-marsa-download)).
+  - A table whose header states too little, or that has none, is read by a column mapping. The
+    sample tables' mappings each hold every unit to a physical check
+    ([tables by mapping](decisions-and-roadmap.md#m7-1c22),
+    [the layout](format/flight-logs.md#tables-a-mapping-holds-to-physics)).
+
+  [The layouts read](format/flight-logs.md) covers each format. The first readers came with
+  [the record, a survey and three families](decisions-and-roadmap.md#m7-1a) and
+  [RRC3, Eggtimer and Blue Raven CSV](decisions-and-roadmap.md#m7-1b).
+  [GPS tracks](decisions-and-roadmap.md#m7-1c1), [text loggers](decisions-and-roadmap.md#m7-1c2)
+  and [club layouts](decisions-and-roadmap.md#m7-1c3) followed. Every sample log in a layout HPR
+  Sim knows is read. The formats with no sample, such as CATS's, are
   [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-  ([evidence row G9](evidence.md#g9)). Burnout and each leg of the descent are read since
-  [M7.2c](decisions-and-roadmap.md#m7-2c); comparing a flight with a simulation of it comes with
-  [M7.3](decisions-and-roadmap.md#m7-3).
+  ([evidence row G9](evidence.md#g9)). Comparing a flight with a simulation of it is planned
+  ([a flight against its simulation](decisions-and-roadmap.md#m7-3)).
 
 <a id="how-far-to-trust-it"></a>
 
@@ -362,113 +374,115 @@ waits for each one's evidence.
 [Accuracy](accuracy.md) gathers every result so far, gaps included. The accuracy work aims first
 at the flights most rocketeers make, the core band: up to Mach 2.5. It assumes angles of attack of
 15° or less. The wider envelope runs to Mach 3.5, at any angle
-([the operating envelope](VALIDATION.md#operating-envelope)). Whole flights are checked mostly
-below about Mach 1.15 so far. Faster flights still fly, and say so: a flight beyond the validated
-range, at high angle of attack, outside the core band or beyond the envelope carries a flag
-([M1.14a1, the envelope flags](decisions-and-roadmap.md#m1-14a1)), and a flight that meets a known
-error in HPR Sim's drag, its stability or the flight's path warns by its issue number
-([the lists](VALIDATION.md#operating-envelope); [M1.14a2, the drag issue
-warnings](decisions-and-roadmap.md#m1-14a2); [M1.14a3, the stability
-ones](decisions-and-roadmap.md#m1-14a3); [M10.1d2, four more and a flight unstable under
-power](decisions-and-roadmap.md#m10-1d2); [M10.1d6, the flight-path
-warnings](decisions-and-roadmap.md#m10-1d6)). A flight whose static margin falls below zero while a
-motor burns says its apogee is not a prediction. In brief:
+([the operating envelope](VALIDATION.md#operating-envelope)). So far, whole flights are checked
+mostly below about Mach 1.15.
+
+Faster flights still fly, and they say so. A flight carries a flag when it goes beyond the
+validated range, at a high angle of attack, outside the core band or beyond the envelope
+([the envelope flags](decisions-and-roadmap.md#m1-14a1)). A flight that meets a known error in
+HPR Sim's drag, its stability or the flight's path warns by its issue number
+([the lists](VALIDATION.md#operating-envelope)). The warnings came in steps:
+[drag](decisions-and-roadmap.md#m1-14a2), [stability](decisions-and-roadmap.md#m1-14a3),
+[four more and a flight unstable under power](decisions-and-roadmap.md#m10-1d2), and
+[the flight's path](decisions-and-roadmap.md#m10-1d6). A flight whose static margin falls below
+zero while a motor burns says its apogee isn't a prediction. The results so far:
 
 - **Whole flights match RocketPy's in height, speed and time when both codes fly the same drag.**
   Six of RocketPy's example rockets agree within 3% on apogee, speeds, burnout and flight time
-  ([M2.1b2](decisions-and-roadmap.md#m2-1b2), the whole-flight comparison). So does where they
-  go, except for rockets that leave the rail slowly in a wind. There HPR Sim's
-  [body lift](glossary.md#body-lift), which RocketPy leaves out, its later release from the rail
-  and, for one rocket, its simpler fin model put the apogee's drift −4.333% to −38.158% from
+  ([the whole-flight cases](decisions-and-roadmap.md#m2-1b2)). So does where they go, except for
+  rockets that leave the rail slowly in a wind. There, three things move HPR Sim's drift: its
+  [body lift](glossary.md#body-lift), which RocketPy leaves out, its later release from the rail,
+  and for one rocket its simpler fin model. They put the apogee's drift −4.333% to −38.158% from
   RocketPy's, and the landing's −21.686% to +36.678% ([report][report];
-  [Accuracy](accuracy.md#whole-flights-against-rocketpy)). With HPR Sim's own drag, against RocketPy
-  flying the drag its examples ship, HPR Sim's heights differ from RocketPy's by −7.280% to +10.302%
-  ([report][report]). The larger gaps are where the two drags differ most: HPR Sim's is well below
-  the example's for two rockets, and above it at high speed for Prometheus 2022, which flies
-  through Mach 1 ([Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)).
-- **Against seven real flights, HPR Sim's apogees miss by 6.04% on average,** outside the 5% target,
-  and by −8.90% to +10.40% one by one
-  ([evidence row G24](evidence.md#g24)). HPR Sim's height is read the way each log's barometric
-  altimeter reads the air (four of the seven assumed barometric,
-  [evidence row G21](evidence.md#g21)); drift and speed are not
-  compared yet
+  [Accuracy](accuracy.md#whole-flights-against-rocketpy)). With HPR Sim's own drag, against
+  RocketPy flying the drag its examples ship, HPR Sim's heights differ from RocketPy's by −7.280%
+  to +10.302% ([report][report]). The larger gaps are where the two drags differ most. HPR Sim's
+  drag is well below the example's for two rockets. It's above it at high speed for Prometheus
+  2022, which flies through Mach 1
+  ([Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)).
+- **Against seven real flights, HPR Sim's apogees miss by 6.04% on average,** outside the 5%
+  target, and by −8.90% to +10.40% one by one ([evidence row G24](evidence.md#g24)). HPR Sim's
+  height is read the way each log's barometric altimeter reads the air. Four of the seven
+  altimeters are assumed to be barometric ([evidence row G21](evidence.md#g21)). Drift and speed
+  aren't compared yet
   ([real flights](accuracy.md#real-flights),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
-- **Against 53 more real flights, from a private collection, HPR Sim and OpenRocket both over-predict
-  the logged apogee,** HPR Sim by 8.73% on average and OpenRocket by 7.79%, while agreeing with each
-  other within 5% on 52 of them; neither meets the 5% target. Each flight was rechecked against
-  the collection's own catalog of its sources ([M2.3c5](decisions-and-roadmap.md#m2-3c5)). The
-  flights' owners allow only aggregate numbers
+- **Against 53 more real flights, from a private collection, HPR Sim and OpenRocket both
+  over-predict the logged apogee.** HPR Sim does by 8.73% on average and OpenRocket by 7.79%, and
+  they agree with each other within 5% on 52 of them. Neither meets the 5% target. Each flight was
+  rechecked against the collection's own catalog of its sources
+  ([the collection rechecked](decisions-and-roadmap.md#m2-3c5)). The flights' owners allow only
+  aggregate numbers
   ([private collection](accuracy.md#real-flights-of-the-private-collection),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)).
 - **The scoreboard sets HPR Sim beside OpenRocket and RocketPy, axis by axis,** each number read
-  from these reports. It opens with how many of its cells are measured and, where HPR Sim and
-  another tool both are, which is ahead; each cell nothing measures yet names the milestone that
-  will. CI fails when one of HPR Sim's numbers there gets worse, unless a decision record accepts it
-  ([M0.10](decisions-and-roadmap.md#m0-10), the scoreboard;
+  from these reports. It opens with how many of its cells are measured. Where HPR Sim and another
+  tool both are, it says which is ahead, and each cell nothing measures yet names the milestone
+  that will. CI fails when one of HPR Sim's numbers there gets worse, unless a decision record
+  accepts it ([the scoreboard's milestone](decisions-and-roadmap.md#m0-10);
   [Accuracy](accuracy.md#the-scoreboard);
   [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)).
 - **The scoreboard counts the steps to a first answer:** opening a design's `.ork` file, flying it
   and getting its landing spread. HPR Sim takes 2 commands or 10 lines of Python, from files a
-  test runs. Neither OpenRocket nor RocketPy does all three from the `.ork` file: OpenRocket 24.12
+  test runs. Neither OpenRocket nor RocketPy does all three from the `.ork` file. OpenRocket 24.12
   opens and flies one in 7 clicks but has no Monte Carlo, and RocketPy reads no `.ork` file
-  ([M0.11](decisions-and-roadmap.md#m0-11), steps to a first answer;
+  ([steps to a first answer](decisions-and-roadmap.md#m0-11);
   [Accuracy](accuracy.md#the-scoreboard)).
 - **The descent under a parachute matches RocketPy's.** The comparison flies the descents of five
   of RocketPy's [example rockets](glossary.md#example-rockets) in both codes:
   - Each starts from the same state near apogee, with the first parachute opening at once.
   - Both codes get the same [drag areas](glossary.md#drag-area) and wind.
-  - RocketPy's parachutes can add random noise, which would make each run differ; it is switched
+  - RocketPy's parachutes can add random noise, which would make each run differ; it's switched
     off.
-  - HPR Sim uses RocketPy's formula for gravity, and RocketPy's way of interpolating the wind, that
-    is, of working out the wind between the heights it is given.
+  - HPR Sim uses RocketPy's formula for gravity. It also uses RocketPy's way of interpolating the
+    wind, that is, of working out the wind between the heights it's given.
 
-  Six numbers are compared for each rocket: the descent time, the mean descent rate, the descent
-  rate at landing, and the [drift](glossary.md#drift) in total, to the east and to the north. All
-  30 agree with RocketPy's within 3%; the largest difference is +2.865%. That shows the two codes
-  agree on the descent physics, not that either matches a real flight. The committed
+  Six numbers are compared for each rocket. They're the descent time, the mean descent rate, the
+  descent rate at landing, and the [drift](glossary.md#drift) in total, to the east and to the
+  north. All 30 agree with RocketPy's within 3%; the largest difference is +2.865%. That shows the
+  two codes agree on the descent physics, not that either matches a real flight. The committed
   [validation report][report] has every number, and [Recovery](physics/recovery.md) explains the
   comparison.
-- **Each model is tested on its own**: against exact answers, and where its source prints tables
-  or worked examples, against those; several parts also against RocketPy. Each test states its
-  [tolerance](glossary.md#tolerance). The largest known gaps:
+- **Each model is tested on its own**: against exact answers, and against its source's tables or
+  worked examples where it prints them. Several parts are also tested against RocketPy. Each test
+  states its [tolerance](glossary.md#tolerance). The largest known gaps:
   - The drag was checked at Mach 0.3 against other programs' curves (below), and from Mach 0.6 to
     4.63 against NASA's Arcas Robin wind tunnel. There it reads high at most speeds, most of all
-    with fins past Mach 1: 2 of 44 measurements are within the 10% target set before measuring
+    with fins past Mach 1. 2 of 44 measurements are within the 10% target set before measuring
     ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). The normal force
-    and center of pressure were checked at Mach 0 against Barrowman's worked examples and from
-    Mach 0.6 to 4.63 against the same wind tunnel, where they miss between Mach 0.8 and 1.2, and
-    past Mach 3, the current comparison and its measured range are reported in
-    [Aerodynamics](physics/aero.md#normal-force-through-mach-1).
+    and center of pressure were checked at Mach 0 against Barrowman's worked examples. From Mach
+    0.6 to 4.63, against the same wind tunnel, they miss between Mach 0.8 and 1.2, and past Mach 3.
+    [Aerodynamics](physics/aero.md#normal-force-through-mach-1) reports the current comparison and
+    its measured range.
   - The drag was compared with drag curves that come with RocketPy's example rockets, labeled as
     [RASAero II](glossary.md#rasaero-ii)'s (another rocket aerodynamics program). The curves don't
-    record the fins' edges or the surface finish, so HPR Sim's copies of the designs follow a declared
-    guess. HPR Sim is within 10% in four of the seven cases.
+    record the fins' edges or the surface finish, so HPR Sim's copies of the designs follow a
+    declared guess. HPR Sim is within 10% in four of the seven cases.
   - HPR Sim's drag is 18% low for Cavour, another of RocketPy's examples, while its motor burns
-    ([power-on drag](glossary.md#power-on-and-power-off-drag)); the cause is not known yet.
+    ([power-on drag](glossary.md#power-on-and-power-off-drag)). The cause isn't known yet.
   - HPR Sim's drag is 47% to 50% below Valetudo's example curve. Valetudo is the rocket that
-    [Getting started](getting-started.md) flies. Its references disagree with each other, though:
-    at Mach 0.3 the example curve gives a [drag coefficient](glossary.md#drag-coefficient) of
+    [Getting started](getting-started.md) flies. Its references disagree with each other, though.
+    At Mach 0.3 the example curve gives a [drag coefficient](glossary.md#drag-coefficient) of
     1.05, 1.44 times the 0.728 in an [OpenRocket](glossary.md#openrocket) file of the same rocket.
-    Given that OpenRocket file's own surface finish and launch lugs, HPR Sim gives 0.714, 1.9% under
-    the file's 0.728 ([Aerodynamics](physics/aero.md#drag-verification)).
-  - The Recruiter is a six-fin model rocket that J. S. Barrowman, whose
-    [method](glossary.md#barrowmans-method) HPR Sim follows for the normal force, works through in
-    his 1970 report Centuri TIR-33. HPR Sim's [normal-force slope](glossary.md#normal-force-slope)
-    for it, how fast the sideways force grows with angle of attack, is 2.87% above his printed
-    value, and 3.42% on the fins alone. Most of that comes from a different rule for six fins
+    Given that file's own surface finish and launch lugs, HPR Sim gives 0.714, 1.9% under the
+    file's 0.728 ([Aerodynamics](physics/aero.md#drag-verification)).
+  - The Recruiter is a six-fin model rocket that J. S. Barrowman works through in his 1970 report
+    Centuri TIR-33. HPR Sim follows his [method](glossary.md#barrowmans-method) for the normal
+    force. For the Recruiter, HPR Sim's [normal-force slope](glossary.md#normal-force-slope), how
+    fast the sideways force grows with angle of attack, is 2.87% above his printed value. On the
+    fins alone it's 3.42% above. Most of that comes from a different rule for six fins
     ([Aerodynamics](physics/aero.md#verification)).
   - [Tumbling](glossary.md#tumble-recovery) drag is −10 to +19% off its source's own drop tests.
-    A separated body's parachute can open at a higher speed than it would for real, because the
-    body falls with no drag until then ([Recovery](physics/recovery.md)).
-- **You can check it yourself.** [Getting started](getting-started.md#checking-it-yourself) says
-  how: run a program that shows how much the drag moves the apogee, trace any number with
-  [Checking a claim](checking-a-claim.md), or compare HPR Sim's apogee by hand with your own
+    A separated body falls with no drag until its parachute opens. So the parachute can open at a
+    higher speed than it would for real ([Recovery](physics/recovery.md)).
+- **You can check it yourself.** [Getting started](getting-started.md#checking-it-yourself) shows
+  how. Run a program that shows how much the drag moves the apogee, or trace any number with
+  [Checking a claim](checking-a-claim.md). Or compare HPR Sim's apogee by hand with your own
   altimeter's or another simulator's.
 
 ## Reading these pages
 
-New here? [Getting started](getting-started.md) builds HPR Sim and flies a first rocket, and
+New here? [Getting started](getting-started.md) builds HPR Sim and flies a first rocket.
 [How a flight is simulated](how-a-flight-is-simulated.md) follows a flight from the pad to the
 ground, linking the page for each model on the way.
 
@@ -493,11 +507,11 @@ what it leaves out. Below that, it names the code that implements the model, the
 and the tests that pin it.
 
 Sources are cited by a short key in square brackets, such as **[N09]** for Niskanen's 2009 thesis
-on model rocket simulation, with the full reference near the top of the page.
+on model rocket simulation. The full reference is near the top of the page.
 
-Equations are typeset, as a textbook sets them, here and on GitHub; the code's documentation
-writes them in plain text. For example, once its drag balances its weight, a rocket under a
-parachute falls at the steady speed
+Equations are typeset as a textbook sets them, here and on GitHub. The code's documentation writes
+them in plain text. For example, once its drag balances its weight, a rocket under a parachute
+falls at the steady speed
 
 $$
 v_e = \sqrt{\frac{2 m g}{\rho\, C_D S}}
@@ -507,56 +521,56 @@ where $m$ is its mass, $g$ gravity, $\rho$ the air's density and
 $C_D S$ the parachute's [drag area](glossary.md#drag-area)
 ([Recovery](physics/recovery.md#the-descent)).
 
-Terms are defined in the [Glossary](glossary.md), and
-[Checking a claim](checking-a-claim.md) shows how to trace any number to its source, its test and
-its validation.
+Terms are defined in the [Glossary](glossary.md). [Checking a claim](checking-a-claim.md) shows
+how to trace any number to its source, its test and its validation.
 
 The code itself is documented in [the API reference](api.md), which Rust's documentation tool
-generates from the source. It lists every public type and function, and each crate's front page
-links back to the pages here that explain its models.
+generates from the source. It lists every public type and function. Each crate's front page links
+back to the pages here that explain its models.
 
 Three kinds of label link to the project's records on GitHub, which
 [Decisions and the roadmap](decisions-and-roadmap.md) introduces:
 
-- A **milestone**, such as [M1.8](decisions-and-roadmap.md#m1-8), is a step of the [roadmap][roadmap], the ordered plan
-  of work.
-- A **decision record**, such as [ADR-011][adr-011], explains a significant choice and the
+- A *milestone*, such as [M1.8](decisions-and-roadmap.md#m1-8), is a step of the
+  [roadmap][roadmap], the ordered plan of work.
+- A *decision record*, such as [ADR-011][adr-011], explains a significant choice and the
   alternatives that were considered. All of them are in the [decision log][decisions].
-- A **Loft lesson**, such as [Loft lesson L15](decisions-and-roadmap.md#l15), is a mistake found in Loft, the project
-  that came before HPR Sim. A test here guards against it, or will once its milestone ships. They
-  are listed in [Lessons from Loft][lessons].
+- A *Loft lesson*, such as [Loft lesson L15](decisions-and-roadmap.md#l15), is a mistake found in
+  Loft, the project that came before HPR Sim. A test here guards against it, or will once its
+  milestone ships. They're listed in [Lessons from Loft][lessons].
 
 Every page's source is a Markdown file in the repository's
-[`docs/` folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/docs). The pencil icon at the top of
-a page opens its source in GitHub's editor, where you can propose a fix.
+[`docs/` folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/docs). The pencil icon
+at the top of a page opens its source in GitHub's editor, where you can propose a fix.
 
 Each page opens with HPR Sim's number, `FS-ACHERNAR · SW · TOOL 001`, in a small tag over its
-title (the [title block](#title-block) says what it means). Beside the tag, a chip gives the
-site's status from the title block: IN PREPARATION while the pages describe work after the last
-release, RELEASED when they describe a release as it shipped. Under the title, one sentence in
+title. The [title block](#title-block) says what it means. Beside the tag, a chip gives the site's
+status from the title block. It reads IN PREPARATION while the pages describe work after the last
+release, and RELEASED when they describe a release as it shipped. Under the title, one sentence in
 larger gray type says what the page covers. The sections are numbered as the sheets of a drawing
-set: `SHEET 2 / 5` over a section's name makes it the second of five. The
-theme switch, Auto, Light and Dark, stands in the header before the print and edit buttons on a
-window 960 px wide or wider, and at the top of the table of contents on a narrower one (on a
-phone, behind the menu button). Auto follows your system's light or dark
-setting; a choice you make is kept in your browser, for this site only.
+set: `SHEET 2 / 5` over a section's name makes it the second of five.
+
+The theme switch, Auto, Light and Dark, sits in the header before the print and edit buttons on a
+window 960 px wide or wider. On a narrower one it's at the top of the table of contents, and on a
+phone it's behind the menu button. Auto follows your system's light or dark setting. A choice you
+make is kept in your browser, for this site only.
 
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
-contents or the buttons. Each link's address follows it in parentheses: a whole address for
-another site, and for a page of this one its path from the page, such as `cli.html#units`. The
-[title block](glossary.md#title-block), with the version and date, closes the page. The printer
-icon at the top opens a cover with a *Print the guide* button, which prints every chapter one
-after another; that runs long, as it holds every chapter and its links' addresses. Printed
-to a PDF file, the guide reads offline.
+contents or the buttons. Each link's address follows it in parentheses. For another site that's
+the whole address, and for a page of this one it's the path from the page, such as
+`cli.html#units`. The [title block](glossary.md#title-block), with the version and date, closes the
+page. The printer icon at the top opens a cover with a *Print the guide* button, which prints every
+chapter one after another. That runs long, since it holds every chapter and its links' addresses.
+Printed to a PDF file, the guide reads offline.
 
 ## Title block
 
-Every page of this site ends with a title block, the box in the corner of an engineering drawing
-that says what a document is, who issued it, when, and which sources it rests on; its fields
-follow ISO 7200, the standard for drawings' title blocks. This page's is at its foot, below the
-page arrows. Its entries are written once, at the end of this section in the page's source, and
-describe the whole site and this version of HPR Sim; each page adds its own title, as "Page",
-after the site's. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way;
+Every page of this site ends with a title block. It's the box in an engineering drawing's corner
+that says what a document is, who issued it, when, and which sources it rests on. Its fields follow
+ISO 7200, the standard for drawings' title blocks. This page's is at its foot, below the page
+arrows. Its entries are written once, at the end of this section in the page's source. They
+describe the whole site and this version of HPR Sim, and each page adds its own title, as "Page",
+after the site's. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way.
 `FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in that family's register: Achernar, the
 simulator's internal name, then software tool 1.
 
