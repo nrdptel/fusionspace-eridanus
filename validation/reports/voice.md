@@ -2,9 +2,9 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. Only a stock phrase fails the build.
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 3 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 437339 words, 0 stock phrases. 8 pages are within every limit.
+82 pages, 437412 words, 0 stock phrases. 8 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -26,7 +26,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `.github/pull_request_template.md` | 8 | 0.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.00 |
 | `CHANGELOG.md` | 1810 | 21.3 | 34% | **0.94** | 0.00 | **0.94** | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.23 |
 | `CONTRIBUTING.md` | 671 | 13.7 | 5% | 0.00 | 0.00 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 1.05 |
-| `README.md` | 2452 | 14.0 | 3% | 0.17 | 0.17 | 0.13 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.17 | 0.00 | 0.82 | 0.66 |
+| `README.md` (`held`) | 2452 | 14.0 | 3% | 0.17 | 0.17 | 0.13 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.17 | 0.00 | 0.82 | 0.66 |
 | `docs/404.md` | 47 | 14.7 | 34% | 0.00 | 0.00 | **2.13** | **2.13** | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 2.13 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
 | `docs/VALIDATION.md` | 9968 | 21.4 | 33% | 0.41 | **1.34** | **0.98** | 0.07 | 0.02 | 0.00 | 0.08 | | 0.00 | 0.00 | 0.07 | 0.14 |
@@ -94,12 +94,12 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/soundings.md` | 5029 | 21.7 | 30% | 0.18 | 0.06 | **1.32** | 0.08 | 0.00 | 0.04 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.28 |
 | `docs/stability-for-certification.md` | 1928 | 22.8 | 38% | 0.32 | 0.00 | **1.61** | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.68 | 0.06 |
 | `docs/stability-in-flight.md` | 1799 | 23.1 | 38% | 0.23 | 0.00 | **1.62** | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.45 |
-| `docs/start-here.md` | 7485 | 15.7 | 4% | 0.22 | 0.05 | 0.25 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.07 | 0.00 | 0.42 | 0.69 |
+| `docs/start-here.md` (`held`) | 7485 | 15.7 | 4% | 0.22 | 0.05 | 0.25 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.07 | 0.00 | 0.42 | 0.69 |
 | `docs/the-builder.md` | 4046 | 17.2 | 18% | **0.57** | 0.03 | **0.92** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.47 | 0.28 |
-| `docs/the-simulator.md` | 797 | 15.1 | 2% | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.13 | 0.00 | 0.88 | 1.13 |
+| `docs/the-simulator.md` (`held`) | 797 | 15.1 | 2% | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.13 | 0.00 | 0.88 | 1.13 |
 | `docs/trusting-a-simulation.md` | 1548 | 19.5 | 25% | 0.20 | 0.00 | **1.23** | 0.20 | 0.07 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 0.39 |
 | `docs/weather.md` | 1981 | 19.7 | 26% | 0.31 | 0.16 | **1.27** | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.31 |
 | `docs/when-fins-flutter.md` | 1759 | 21.2 | 36% | **0.52** | 0.06 | **1.65** | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.18 | 0.29 |
-| `docs/writing.md` | 9121 | 21.7 | 32% | 0.42 | 0.20 | **1.38** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.03 | 0.02 | 0.05 | 0.66 |
+| `docs/writing.md` | 9194 | 21.7 | 32% | 0.42 | 0.20 | **1.39** | 0.19 | 0.02 | 0.03 | 0.03 | | 0.03 | 0.02 | 0.05 | 0.67 |
 | `docs/your-own-logger.md` | 2408 | 23.0 | 37% | 0.00 | 0.05 | **1.46** | 0.17 | 0.05 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.46 |
 | `docs/your-own-rocket.md` | 4455 | 17.9 | 22% | **0.79** | 0.16 | **1.10** | 0.09 | 0.03 | 0.03 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.34 |
