@@ -467,7 +467,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14b"></a>[M0.14b][phase-0] | The front doors | blocked |
 | <a id="m0-14c"></a>[M0.14c][phase-0] | The rest of the site | not yet done |
 | <a id="m0-14c1"></a>[M0.14c1][done-0] | The first guides | done |
-| <a id="m0-14c2"></a>[M0.14c2][phase-0] | Studies, data and logs | not yet done |
+| <a id="m0-14c2"></a>[M0.14c2][done-0] | Studies, data and logs | done |
 | <a id="m0-14c3"></a>[M0.14c3][phase-0] | The command line and the evidence | not yet done |
 | <a id="m0-14c4"></a>[M0.14c4][phase-0] | Reference and the environment | not yet done |
 | <a id="m0-14c5"></a>[M0.14c5][phase-0] | The rocket and its flight | not yet done |
