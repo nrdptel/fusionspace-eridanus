@@ -37,9 +37,7 @@ the library, as below.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurveorg)). Each
-matched record's size, impulse, average thrust and burn time equal the motor finder's. A curve is
-the file someone uploaded to ThrustCurve.org, read by the same readers as a motor file on your
-disk.
+matched record's size, impulse, average thrust and burn time equal the motor finder's.
 
 The tests replay saved answers, and CI never contacts either live site. Both were contacted by
 hand, over an encrypted (HTTPS) connection, to record them. If a site changes its format, you'll
@@ -151,10 +149,9 @@ matches a motor in stock to the record with the same maker and designation, char
 character. The maker is matched by its full name, such as `Cesaroni Technology`.
 
 If no record has that maker and designation, or more than one does, the motor is a *miss*. The
-match's report (`Join::report()`) lists it with the reason. The simulator doesn't guess: it doesn't
-compare impulse or diameter, or try other spellings. A motor ThrustCurve.org spells differently is
-reported as a miss, never matched by a guess. (The report and the code call a matched motor
-*mapped*.)
+match's report (`Join::report()`) lists it with the reason. A motor ThrustCurve.org spells
+differently is reported as a miss, never matched by a guess. (The report and the code call a
+matched motor *mapped*.)
 
 `thrustcurve::fetch_finder_records` fetches the records the match needs, one search for each of the
 three makers the finder reads. `thrustcurve::join` matches them.
@@ -174,8 +171,8 @@ total impulse, average thrust and burn time were the same on both sides. So each
 right motor by more than its name. The motor finder copies ThrustCurve.org's names and figures, so
 a full match is expected; the match is there to catch drift.
 
-ThrustCurve.org grants no license for its motor records; its site reads "All rights under
-copyright reserved". So the repository no longer keeps those three answers. The tests replay
+ThrustCurve.org grants no license for its motor records, so the repository no longer keeps those
+three answers. The tests replay
 stand-ins in the same shape instead
 ([the decision record on the recordings' licenses](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
 They hold 297 records:
@@ -194,7 +191,7 @@ licenses, linked above).
 
 On them, too, all 282 motors match. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
-and check it against the match on every run. So the committed tests show that the code keeps the
+and check it against the match on every run. So the committed tests show the code keeps the
 rule. The full match on ThrustCurve.org's own records is the measurement of 1 October 2026 above,
 which last ran on 2026-10-01.
 
@@ -254,7 +251,7 @@ and reads one curve. It makes these calls:
    three makers, and `thrustcurve::join(&in_stock.motors, &records)` matches the motors in stock.
 6. `Download::new(id, Format::Rasp)` and `thrustcurve::fetch_download` fetch AeroTech J450DM's
    `.eng` file by its matched id, and `read()?.thrust_curve()?` reads it. It uses J450DM because
-   the tests record only public-domain files, and this is one the simulator already carries.
+   the tests record only public-domain files.
 
 Run it from a copy of the repository with
 `cargo run --example motor_stock -p fusionspace-hpr --features net`. It prints:
@@ -280,7 +277,7 @@ the file:  total impulse   1061.6 N·s, burn time  2.28 s, average thrust  465.6
 record:    total impulse     1055 N·s, burn time  2.27 s, average thrust    465 N
 ```
 
-CI checks that it still prints this (`cargo xtask examples --check`). The first line is the credit
+CI checks it still prints this (`cargo xtask examples --check`). The first line is the credit
 the site asks for, with its caution; show it wherever a price or stock is shown. `Fetched` and
 `Stale` say where an answer came from
 ([how long a copy stays fresh](online-data.md#how-long-a-copy-stays-fresh)). `vendors` is how many
@@ -293,7 +290,7 @@ is theirs. The match runs on the finder's own copy of ThrustCurve.org's figures
 ([evidence row G23](evidence.md#g23)).
 
 J450DM's file is a real answer: the certification test's curve (`source cert`), public domain.
-It's the very file the simulator already carries for J450DM ([Solid motors](physics/motor.md)).
+It's the file the simulator already carries for J450DM ([Solid motors](physics/motor.md)).
 Its curve starts at zero thrust at ignition, then follows the file's 36 points. The simulator works
 its figures out from those points. So they differ from the published figures on the record (here
 the motor finder's copy of them):
@@ -317,7 +314,7 @@ such as the test recordings below. The data is gathered from public vendor listi
 ThrustCurve.org, and comes as is, with no warranty.
 
 The simulator puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved.
-The example above prints it first. `hpr motors search` prints it at the top of every list, in text
+`hpr motors search` prints it at the top of every list, in text
 and in JSON, with ThrustCurve.org's below it.
 
 The site asks programs to use its files rather than read the vendors' pages themselves. It also
@@ -364,7 +361,7 @@ that:
 - offline, a file never fetched is an error naming its address.
 
 Some of the site's rules the simulator doesn't enforce when it reads an answer. The tests confirm
-that the recording keeps them:
+the recording keeps them:
 
 - each motor's page is at the address it names;
 - the price of one motor is the sticker price over the pack;
@@ -403,8 +400,8 @@ That test runs the command on the recorded lists, from the file and offline from
 
 ## What it leaves out
 
-- `hpr motors search` lists stock and prices, with no curves: it doesn't match motors to
-  ThrustCurve.org or download their curves. A program does, as in the example.
+- `hpr motors search` lists stock and prices: it doesn't match motors to ThrustCurve.org or
+  download their curves. A program does, as in the example.
 - The match is by name only. A motor ThrustCurve.org spells differently from the finder is a miss;
   the simulator doesn't fall back on impulse or size. None missed on the recording.
 - `Curve::thrust_curve()` reads only the first motor of a file; the two recorded files hold one
@@ -412,8 +409,7 @@ That test runs the command on the recorded lists, from the file and offline from
 - There's no choice among files. A motor may have several files in one format (from a
   certification test, the maker or a user). The simulator gives them all, in the API's order, and
   leaves the choice to the program.
-- Prices are as listed. The simulator shows a price as the site gives it, and doesn't screen out a
-  shop's placeholder price.
+- Prices are as listed: the simulator doesn't screen out a shop's placeholder price.
 - It covers U.S. vendors and dollars only, and only the three makers the site reads.
 - There's no history. Each answer is the stock of one hour; the simulator keeps only the latest
   copy of each file.

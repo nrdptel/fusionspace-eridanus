@@ -24,7 +24,7 @@ with one wind.
 Code: `hpr_net::open_meteo` ([API reference](api/hpr_net/open_meteo/index.html)), written for
 [the first weather increment](decisions-and-roadmap.md#m5-2a). It needs the `net` feature of the
 `hpr` crate. The choices are in
-[the decision record on Open-Meteo's pressure levels as a sounding](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0119-m5-2-split-open-meteos-pressure-levels-as-a.md).
+[the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0119-m5-2-split-open-meteos-pressure-levels-as-a.md).
 
 Weather from a file you download is on [ERA5 weather files](format/era5.md). The air a weather
 balloon measured is on [Weather-balloon soundings](soundings.md). NOAA's own GFS and RAP forecasts
@@ -33,10 +33,9 @@ are on [NOAA forecasts: GFS and RAP](nomads.md).
 ## What the simulator asks for
 
 Open-Meteo has two services with winds above the ground ([its documentation](https://open-meteo.com/en/docs)).
-Both give the output of numerical weather models, hour by hour, on 19 *pressure levels*. A pressure
-level is a height named by the air pressure there, in hectopascals (hPa; sea-level pressure is
-about 1013 hPa). The levels run from 1000 hPa, about sea level, to 30 hPa, about 24 km
-(79,000 ft) up.
+Both give numerical weather models' output, hour by hour, on 19 *pressure levels*. A pressure level
+is a height named by the air pressure there, in hectopascals (hPa; sea-level pressure is about
+1013 hPa). The levels run from 1000 hPa, about sea level, to 30 hPa, about 24 km (79,000 ft) up.
 
 | service | covers | a saved answer stays fresh for |
 |---|---|---|
@@ -57,8 +56,8 @@ copy.
 
 The simulator writes the site's latitude and longitude to 5 decimal places. That's about 1 m
 (3.3 ft) on the ground, far finer than any model's grid. Your program keeps the site in radians and
-turns it back into degrees, which can change its last digits. The rounding allows for that, so a
-site given to 8 decimals or fewer still finds its saved answer.
+turns it back into degrees, which can change its last digits. The rounding absorbs that: a site
+given to 8 decimals or fewer still finds its saved answer.
 
 Open-Meteo's data is licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): show the
 credit "Weather data by Open-Meteo.com (CC BY 4.0)" wherever you show the weather. Every answer
@@ -75,8 +74,8 @@ wind above it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile 
 lowest level).
 
 **Levels below the ground are left out.** The weather models report all 19 levels everywhere,
-inventing values beneath high ground. A level is kept only when its pressure is below the ground
-pressure and its height is above the ground.
+inventing values beneath high ground. A level is kept only when its pressure is below the
+ground's and its height is above the ground.
 
 A level with a missing value at either hour is left out too. So is one whose relative humidity is
 outside 0 to 100%. The profile lists every level it left out, and why.
@@ -99,10 +98,10 @@ north parts. So a wind that turns through the hour takes the shorter way round.
 **Between levels** the sounding works as for any other. The temperature and humidity are linear,
 and the pressure is hydrostatic. The wind is interpolated by its speed and direction, or, if you
 ask, by its east and north parts, as RocketPy does. Above the top level the standard atmosphere
-continues, and the air is marked as extrapolated.
+continues, and the air is marked extrapolated.
 
 **Humidity** is taken as relative to liquid water. A model that reports it relative to ice at cold
-levels changes the density there by very little. The two differ by at most 27 Pa of water vapor
+levels changes the density there very little. The two differ by at most 27 Pa of water vapor
 (near −12 °C). That moves the density by under 0.03% at 400 hPa. Higher up the air is colder and
 the gap smaller: about 6 Pa at −40 °C, 0.08% even at 30 hPa.
 
@@ -118,14 +117,14 @@ these calls:
    uses the network. A stand-in transport answers with the historical-forecast answer recorded for
    the tests, which holds 15:00 and 16:00.
 2. `OpenMeteoRequest::new(latitude, longitude, time, OpenMeteoApi::HistoricalForecast)` says what
-   to ask for, and `open_meteo::fetch(&client, &request, now)` fetches it and reads it at the
-   launch time.
+   to ask for, and `open_meteo::fetch(&client, &request, now)` fetches and reads it at the launch
+   time.
 3. `profile.sounding(WindInterpolation::SpeedDirection)` makes the sounding, and
    `sounding.wind()` its wind.
 4. `hpr_sim::Environment::new(earth, sounding, wind)` puts both in a flight's environment.
 
 The program prints the ground and the levels below 6 km (19,685 ft). Then it prints the air at the
-pad and above it, next to the standard atmosphere. Last, it flies RocketPy's Calisto (one of the
+pad and above it, beside the standard atmosphere. Last, it flies RocketPy's Calisto (one of the
 [example rockets](glossary.md#example-rockets)) in both, without its parachutes. Run it from a
 copy of the repository with `cargo run --example open_meteo_weather -p fusionspace-hpr --features net`. It
 prints:
@@ -182,14 +181,14 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
 
 - At each recorded hour, the sounding is sampled at every kept level's height. It gives back the
   recorded pressure to a relative 1e-12, the temperature to 1e-9 K and the wind to 1e-9 m/s. It
-  also holds the recorded humidity. The expected values are read from the recording by the test
-  itself, not by the code under test. The ground is checked the same way.
+  also holds the recorded humidity. The test reads the expected values from the recording itself,
+  not through the code under test. The ground is checked the same way.
 - Both answers leave out exactly the five levels below the 1,400 m (4,593 ft) ground, and keep 14.
   Each half of the rule (the pressure, the height) leaves a level out on its own, in an edited
   answer.
-- At 10 and 30 minutes past the hour, every value is the weighted average of the two hours. The
-  wind is the weighted average of its parts. A wind from 350° then 10° is from due north at half
-  past, and a direction never reads 360°.
+- At 10 and 30 minutes past the hour, every value is the weighted average of the two hours. So is
+  each part of the wind. A wind from 350° then 10° is from due north at half past, and a direction
+  never reads 360°.
 - A humidity of 100% at both hours stays 100% at any time between. Above 100%, a level is left out
   and the ground refused.
 - The request's address is the one recorded, so a replayed answer fills the cache. A second
@@ -213,13 +212,12 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
   been compared with one. NOAA's Global Forecast System and Rapid Refresh (GFS and RAP) can be
   fetched by name. A whole GFS file you download can be read too ([NOAA forecasts: GFS and
   RAP](nomads.md)).
-- The 2 m (6.6 ft) temperature and humidity and the 10 m (33 ft) wind are placed at the ground
-  itself. So the whole launch rail sees the 10 m (33 ft) wind. A real wind is weaker close to the
+- The ground takes the 2 m (6.6 ft) temperature and humidity and the 10 m (33 ft) wind. So the
+  whole launch rail sees the 10 m (33 ft) wind. A real wind is weaker close to the
   ground. How much that changes a rocket's turn into the wind off the rail isn't measured.
 - A relative humidity above 100% at the ground refuses the answer rather than trimming it.
 - When Open-Meteo refuses a request (a place or date it doesn't cover), the error names the HTTP
-  status but not Open-Meteo's reason. That's because the HTTP transport drops the body of a failed
-  answer.
+  status but not Open-Meteo's reason. The HTTP transport drops the body of a failed answer.
 - Each request is for only one place and one launch time. It takes Open-Meteo's own choice of
   weather model unless you name one.
 - The command line fetches it with [`hpr weather open-meteo`](cli.md#hpr-weather), but `hpr sim`

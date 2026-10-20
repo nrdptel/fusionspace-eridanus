@@ -9,8 +9,8 @@ free weather and terrain service. The answer is saved, so the same lookup works 
 network, on a field with no signal. The second reads it from an elevation file you have, a
 GeoTIFF ([below](#from-an-elevation-file-of-your-own)).
 
-The page is for anyone who needs a site's height above sea level to start a flight at the right
-air pressure and density. There's no `hpr` command for either way yet: a Rust program calls the
+The page is for anyone who needs a site's height to start a flight at the right air pressure and
+density. There's no `hpr` command for either way yet: a Rust program calls the
 library.
 
 > **How far to trust it.** Online, a copied value: HPR Sim gives back Open-Meteo's number
@@ -26,30 +26,28 @@ library.
 > The example below shows the air 12.8% thinner over 1,400 m (4,593 ft). The recorded heights are
 > whole meters; Open-Meteo doesn't document its rounding.
 
-The tests replay two saved answers and never contact Open-Meteo. The live service was contacted
-by hand, over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
+The tests replay two saved answers and never contact Open-Meteo, which was contacted by hand,
+over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
 would show only when a program runs, as a refused answer.
 
 > **How far to trust it.** From a file, a copied value: at a given place, HPR Sim reads the same
-> stored value as GDAL. GDAL is the library most mapping programs read terrain with. That's checked
-> at 2,800 places in seven small files, in CI.
+> stored value as GDAL. GDAL is the library most mapping programs read terrain with. That's
+> checked at 2,800 places in seven small files, in CI.
 >
-> A whole tile from the US Geological Survey (USGS) is checked at 2,000 places too. That check
-> runs on machines that have downloaded the tile, not in CI
-> ([how](#how-the-file-reader-is-checked)). Only files on a latitude and longitude grid are read.
-> How accurate the height itself is depends on who made the file; the simulator gives back what's
-> stored.
+> A whole tile from the US Geological Survey (USGS) is checked at 2,000 places too, on machines
+> that have downloaded it, not in CI ([how](#how-the-file-reader-is-checked)). Only files on a
+> latitude and longitude grid are read. How accurate the height itself is depends on who made the
+> file; the simulator gives back what's stored.
 
 Code:
 
-- The online lookup is `hpr_net::elevation` ([API reference](api/hpr_net/elevation/index.html)).
-  It was written for [the second launch-site increment](decisions-and-roadmap.md#m5-3b), and it
-  needs the `net` feature of the `hpr` crate. The choices are in
+- The online lookup is `hpr_net::elevation` ([API reference](api/hpr_net/elevation/index.html)),
+  written for [the second launch-site increment](decisions-and-roadmap.md#m5-3b). It needs the
+  `hpr` crate's `net` feature. The choices are in
   [the decision record on Open-Meteo's elevation through the cache](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0126-m5-3b-open-meteos-elevation-through-the-cache.md).
-- The file reader is `hpr_io::geotiff` ([API reference](api/hpr_io/geotiff/index.html)), which
-  the `hpr` crate re-exports as `hpr::hpr_io::geotiff`, with no feature needed. It was written for
-  [the increment that reads a site's height from your own file](decisions-and-roadmap.md#m5-3c2).
-  Its choices are in
+- The file reader is `hpr_io::geotiff` ([API reference](api/hpr_io/geotiff/index.html)), written
+  for [the GeoTIFF increment](decisions-and-roadmap.md#m5-3c2). The `hpr` crate re-exports it as
+  `hpr::hpr_io::geotiff`, with no feature needed. The choices are in
   [the decision record on a site's height from a user's GeoTIFF](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0128-m5-3c2-a-sites-height-from-a-users-geotiff-held.md).
 
 The weather over a site is on [Launch-day weather](weather.md), and the compass's offset from true
@@ -60,7 +58,7 @@ north on [The magnetic field and declination](physics/magnetic.md).
 Open-Meteo's elevation service ([its documentation](https://open-meteo.com/en/docs/elevation-api))
 takes a list of places, each a latitude and longitude in degrees. It answers one height for each,
 in the same order. The simulator asks for one place or up to 100 in one request, the service's
-limit. This is a request recorded for the tests, for Spaceport America, the Dead Sea and a point in
+limit. Here's a request recorded for the tests, for Spaceport America, the Dead Sea and a point in
 the open Atlantic:
 
 | what | value |
@@ -75,7 +73,7 @@ Open-Meteo you run yourself.
 
 The simulator writes each coordinate to 5 decimal places, about 1 m (3.3 ft) on the ground. Your
 program keeps a place in radians and turns it back into degrees, which can change its last digits.
-The rounding allows for that, so a place given to 8 decimals or fewer still finds its saved answer.
+The rounding allows for that: a place given to 8 decimals or fewer still finds its saved answer.
 
 **A saved answer is found again only by the same request:** the same places, in the same order.
 If you look up three club fields in one request at home, a later lookup of one of them alone is a
@@ -96,13 +94,13 @@ issue 5.0, Table 3, page 15). The model is a *digital surface model*: its height
 buildings and vegetation ([the dataset's readme](https://copernicus-dem-30m.s3.amazonaws.com/readme.html)).
 
 Its stated accuracy is under 4 m (13 ft) for 90% of points (handbook, Table 1, page 10). That's a
-mean over the world outside Antarctica and Greenland, and the makers warn that it varies from
+mean over the world outside Antarctica and Greenland, and the makers warn it varies from
 place to place. Of the 16,363 tiles there, each about a degree across, 184 (1.1%) are worse than
 10 m (33 ft). The handbook's Table 12, page 31, prints 0.9%, but as a share of all tiles,
 Antarctica and Greenland included.
 
 The ground doesn't move, so a saved answer stays fresh for a year. Open-Meteo's forecast for
-Spaceport America ([Launch-day weather](weather.md)) gives the same ground height there,
+Spaceport America ([Launch-day weather](weather.md)) gives the same ground height,
 1,400 m (4,593 ft).
 
 ### What the simulator refuses
@@ -116,7 +114,7 @@ simulator's range is a broken answer, such as the value −32,768 that some terr
 
 An answer the simulator refuses is never saved, as on
 [Online data and the cache](online-data.md#what-it-promises). When Open-Meteo itself refuses a
-request, it answers with HTTP status 400 and a reason. The HTTP transport reports that as a failed
+request, it answers with HTTP status 400 and a reason. The HTTP transport reports a failed
 fetch naming the status, without Open-Meteo's reason. The simulator checks each place's latitude
 and longitude before asking, so that's rare.
 
@@ -138,9 +136,9 @@ A flight's launch site takes its height above the [WGS 84](glossary.md#wgs-84) e
 $N$, the height of sea level above the ellipsoid there. Around the world, $N$ runs between about
 −107 m (−351 ft) and +86 m (+282 ft).
 
-The simulator has no model of $N$, but a geoid calculator gives it for a place.
-[GeographicLib's GeoidEval](https://geographiclib.sourceforge.io/cgi-bin/GeoidEval) is one. It
-gives EGM2008's −23.85 m (−78.2 ft) at Spaceport America (32.99° N, 106.97° W). Then:
+A geoid calculator gives $N$ for a place:
+[GeographicLib's GeoidEval](https://geographiclib.sourceforge.io/cgi-bin/GeoidEval) gives
+EGM2008's −23.85 m (−78.2 ft) at Spaceport America (32.99° N, 106.97° W). Then:
 
 - If you know $N$, place the site with `Geodetic::from_degrees(latitude, longitude, H + N)`,
   where $H$ is the height from this page. Then give the flight's environment $N$ with
@@ -164,8 +162,8 @@ looks up the three places above in one request. It makes these calls:
 1. `Client::new(transport, Cache::new(folder), Mode::Online)` sets up the fetching. The
    *transport* is what fetches ([Online data and the cache](online-data.md)). A real program
    passes `hpr_net::Http::new()`, and keeps its saved answers in `Cache::platform_dir()`, the
-   system's usual folder for them. This one never uses the network: a stand-in transport answers
-   with the answer recorded for the tests.
+   system's usual folder for them. This one never uses the network: a stand-in transport gives
+   the answer recorded for the tests.
 2. `ElevationRequest::new(places)` says what to ask for. Then
    `elevation::fetch(&client, &request, now)` fetches the heights and saves them; `now` is the
    time, in seconds since 1 January 1970. Each height comes back
@@ -193,13 +191,13 @@ the open Atlantic                   0.00              0          1013.25        
 A flight from Spaceport America, New Mexico starts 1400 m above sea level, at 856.02 hPa.
 ```
 
-The first line is the credit that Open-Meteo's license and the terrain model's license ask for.
+The first line is the credit Open-Meteo's license and the terrain model's ask for.
 Show it wherever the height is shown. The column `density / sea` is the air's density as a
 fraction of sea level's. `Fetched` and `Cached` say where an answer came from
 ([how long a copy stays fresh](online-data.md#how-long-a-copy-stays-fresh)).
 
-At Spaceport America's 1,400 m (4,593 ft), the standard air is about 13% thinner than at sea
-level. So at the same speed and drag coefficient, the drag there is about 13% lower.
+At Spaceport America's 1,400 m (4,593 ft), the drag at the same speed and drag coefficient is
+about 13% lower than at sea level.
 
 ## How it is checked
 
@@ -231,7 +229,7 @@ a rounding half step.
 
 They check that the simulator refuses a request with no places, with 101, or with a bad server
 address. They check that it refuses a latitude or longitude out of range or not a number, and
-names the place, counting from 0. They also check that the reader takes negative heights and the
+names the place, counting from 0. They also check the reader takes negative heights and the
 range's edges, and refuses each kind of broken answer above.
 
 ## What it leaves out
@@ -250,29 +248,28 @@ range's edges, and refuses each kind of broken answer above.
 
 ## From an elevation file of your own
 
-A [DEM](glossary.md#dem-digital-elevation-model) (digital elevation model) is a grid of ground
-heights. Most are published as [GeoTIFF](glossary.md#geotiff) files: an image whose pixels are
-heights. Tags in the file say where on Earth each pixel lies (the
-[OGC GeoTIFF Standard 1.1](https://docs.ogc.org/is/19-008r4/19-008r4.html)). The United States
-Geological Survey (USGS) publishes the United States this way, free and in the public domain,
-through its [3D Elevation Program](https://www.usgs.gov/3d-elevation-program):
+Most [DEMs](glossary.md#dem-digital-elevation-model) are published as
+[GeoTIFF](glossary.md#geotiff) files: an image whose pixels are heights. Tags in the file say
+where on Earth each pixel lies (the
+[OGC GeoTIFF Standard 1.1](https://docs.ogc.org/is/19-008r4/19-008r4.html)). The USGS publishes
+the United States this way, free and in the public domain, through its
+[3D Elevation Program](https://www.usgs.gov/3d-elevation-program):
 
 - Its 1-arc-second tiles, with heights about 30 m (98 ft) apart, are what the simulator is tested
   on. Its 1/3- and 1/9-arc-second tiles use the same latitude and longitude grid, but none has been
   tried.
 - Its 1 m (3.3 ft) files are on a map projection (UTM) and are refused. GDAL's free `gdalwarp` tool
-  converts them first, as the table below says.
+  converts them first.
 - Copernicus and NASA publish the world as GeoTIFFs too; no file of theirs has been tried.
 
 ### Reading your own file
 
 1. Bring the reader in: `use hpr::hpr_io::geotiff::ElevationRaster;`.
 2. Read the whole file into memory: `let bytes = std::fs::read(path)?;`.
-3. `ElevationRaster::parse(&bytes)` reads its tags. `info()` then holds what they say: the size,
-   the corner and pixel size in degrees, the [CRS](glossary.md#crs-coordinate-reference-system)
-   and the sample type. It holds the scale and offset, and the unit and whether the file states it
-   (`vertical_unit_stated`). It holds the vertical datum's code (`vertical_crs_epsg`) and the
-   nodata value too.
+3. `ElevationRaster::parse(&bytes)` reads its tags. `info()` holds what they say: the size, the
+   corner and pixel size in degrees, the [CRS](glossary.md#crs-coordinate-reference-system) and
+   the sample type. It also holds the scale and offset, the unit and whether the file states it
+   (`vertical_unit_stated`), the vertical datum's code (`vertical_crs_epsg`) and the nodata value.
 4. `height_at(latitude_deg, longitude_deg)`, in degrees, gives
    `Result<Option<f64>, GeoTiffError>`: `Ok(Some(height))` in meters, `Ok(None)` where the file
    has no data, or an error from the table below.
@@ -325,9 +322,8 @@ to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtm
 the offset and the tilt come to a meter or two at most.
 
 The simulator takes a height above either as the $H$ of
-[What the height means](#what-the-height-means). That's the height above sea level the air is
-looked up by. A meter's difference changes the air's density by about 0.01%. That section also
-shows how to place a flight's site from $H$ and the geoid undulation $N$.
+[What the height means](#what-the-height-means). A meter's difference changes the air's density by
+about 0.01%.
 
 ### An example with a file
 
@@ -360,8 +356,7 @@ at 1400.7 m: 855.95 hPa, density 0.872 of sea level's
 
 - `1.000"` is one arc-second, `PixelIsArea` says the tiepoint is a pixel's corner, and
   `EPSG:4269` is NAD83.
-- `F32` is 32-bit floating point, and `Meter (stated: false)` says the file states no unit, so
-  the simulator took meters.
+- `F32` is 32-bit floating point, and `Meter (stated: false)` says the file states no unit.
 - In the feet file, `EPSG:6360` is NAVD88 in US survey feet, which the file states.
 
 The runway reads 1,400.691 m (4,595.44 ft). Open-Meteo's answer for the same place,
@@ -428,9 +423,9 @@ pixel's width. A coordinate typed to a few decimals never comes that close.
 - There's no smoothing. A place reads its pixel's value, and on a slope the next pixel can be
   meters higher.
 - Datums aren't converted. A datum within a few meters of WGS 84 is taken as WGS 84, and the
-  vertical datum is reported, not converted. Near the rupture of a large earthquake since a datum
+  vertical datum is reported. Near the rupture of a large earthquake since a datum
   was fixed, the ground has moved further, by several meters. Chile's earthquake in 2010, for
   SIRGAS 2000, is an example.
 - The file's accuracy is the file's. The reader gives back what's stored, and the USGS and other
   publishers state their own accuracy.
-- There's no command. As for the online lookup, a program calls the library.
+- There's no command: a program calls the library.

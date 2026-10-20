@@ -32,7 +32,7 @@ these ([the layouts read](format/flight-logs.md)):
 - GPS tracks from Featherweight's GPS tracker, KML and NMEA files, and Missile Works' RTx
   tracker's `.rtx` file and its exports
 - GPS tracks in GPX files, checked on invented files only
-  ([the evidence register's row on GPX](evidence.md#g1))
+  ([their evidence row](evidence.md#g1))
 - tables from loggers no other reader knows, by the units their headers state, into the same record
 - those tables in a CSV layout also from the sheets of an Excel workbook
 - a team flight computer's binary records, by a layout the caller states
@@ -60,7 +60,7 @@ Since [the rest of the readings](decisions-and-roadmap.md#m7-2c) shipped, they i
 the flight time and each canopy's descent rate. They also include the top acceleration from an
 accelerometer along the rocket's axis. Formats no sample holds yet, such as a CATS flight
 computer's, are [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-([the evidence register's row on them](evidence.md#g9)).
+([their evidence row](evidence.md#g9)).
 
 > **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each
 > states a bound on its error, held on HPR Sim's synthetic flights. They're 171 simulated flights,
@@ -75,7 +75,7 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > One real flight's log is public, but it isn't committed here, so it isn't checked in CI. On it,
 > the analyzer reads the apogee as 1,009 ft above the pad, as the altimeter states it. Those are
 > two readings of one pressure trace, not a measurement of the height
-> ([the evidence register's row on the analyzer](evidence.md#g10)).
+> ([the analyzer's evidence row](evidence.md#g10)).
 >
 > Most of an apogee's bound is the day's air. A barometric altimeter turns pressure into height by
 > the standard atmosphere. So on a day 15 K from standard, its heights are off by up to 6.92%.
@@ -86,12 +86,12 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 >
 > If a charge's spike climbs into the top no faster than a coast can, it's read as the apogee.
 > That holds however high it stands
-> ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a charge's transient at the
-> top). Some tops withheld as `disturbed_top` are the rocket's own
-> ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a coast's own top
-> from a disturbed one). The main's opening leaves out a canopy's filling time
-> ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)). A fall under no canopy is
-> read as one canopy's ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
+> ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761)). Some tops withheld as
+> `disturbed_top` are the rocket's own
+> ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The main's opening leaves
+> out a canopy's filling time ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)).
+> A fall under no canopy is read as one canopy's
+> ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
 >
 > A board's three axes give no top acceleration
 > ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). For a record or a
@@ -322,7 +322,7 @@ below reads 7.2 ft/s here and 8 ft/s there.
 - **Apogee**, 390.1 m (1,280 ft) at 10.28 s, which is 10.275 s rounded. The top is flat over
   several samples, so the analyzer takes their middle as its time. It's the top of the altitude
   after a 0.3 s [running median](glossary.md#running-median). It's 0.17 m (0.56 ft) below the true
-  apogee, well within its 31.9 m (105 ft) bound. Most of that bound allows for the day's air.
+  apogee, well within its 31.9 m (105 ft) bound.
 - **The highest sample**, 400.5 m (1,314 ft), a second after apogee, is the ejection charge's
   pressure pulse, not the rocket. The median sets it aside.
 - **The top speed**, 78.3 m/s (257 ft/s) at 2.20 s, within 20.6 m/s (68 ft/s). It's worked out
@@ -334,8 +334,8 @@ below reads 7.2 ft/s here and 8 ft/s there.
 - **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With no
   accelerometer, burnout is a [floor](glossary.md#floor): its reading is the top speed's time, and
   the floor that time less its bound. A rocket gains speed only while its thrust beats the drag and
-  its weight. So the motor burned out no sooner than that time less the bound. It may have burned
-  on after the top speed's time by any amount. The true burnout is 2.10 s.
+  its weight. So the motor burned out no sooner than the floor. It may have burned on after the
+  top speed's time by any amount. The true burnout is 2.10 s.
 
   The floor is loose by design: on the synthetic flights' tuning set, the top speed came 0.24 s
   before the true burnout on average. The top speed's time ranged from 1.33 s before the true
@@ -355,8 +355,8 @@ below reads 7.2 ft/s here and 8 ft/s there.
   landing, as the flight's main truly fell. The opening is at 21.40 s within 1.06 s, 148.4 m
   (487 ft) up. It's found by walking back from landing until the descent's rate climbs well past
   the main's. The main truly opened at 21.14 s, 150 m (492 ft) up, so the reading is 0.26 s late.
-  It's late because the rate is a slope fitted over 1 s. The slope still sees some of the drogue's
-  faster fall just after the opening.
+  It's late because the rate, a slope fitted over 1 s, still sees some of the drogue's faster fall
+  just after the opening.
 
 What the file states about itself, such as the altimeter's own apogee of 1,281 ft, is kept in
 `log.stated`. It sits beside the analyzer's readings, never in their place.
@@ -381,7 +381,7 @@ Among them are those that came with the accelerometer and the canopies:
 ## What it doesn't do yet
 
 - Read a format no sample holds yet, such as a CATS flight computer's
-  ([the evidence register's row on them](evidence.md#g9)). The formats that need samples are
+  ([their evidence row](evidence.md#g9)). The formats that need samples are
   [listed](format/flight-logs.md#formats-that-need-samples), each with what a reader would need. A
   sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662).
 - Find the deployments as events: the main's opening is read from the descent's rate, not from
@@ -409,11 +409,9 @@ Among them are those that came with the accelerometer and the canopies:
   more. A noisier logger or a slower rocket can be read outside its bound.
 - Tell a charge's spike from the top when the spike climbs into the top no faster than a coast
   can. Such a spike is read as the apogee, however high it stands
-  ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a charge's transient at the
-  top).
+  ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761)).
 - Tell every disturbed top from the rocket's own. Some tops withheld as `disturbed_top` are the
-  rocket's own ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a
-  coast's own top from a disturbed one).
+  rocket's own ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)).
 - Correct a barometric altitude for the day's air. The altitude is the altimeter's own
   conversion, which assumes a standard atmosphere
   ([Barometric altimeter](glossary.md#barometric-altimeter)). The bound allows for air up to 15 K

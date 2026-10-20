@@ -3,9 +3,7 @@
 See what lies behind each number HPR Sim prints, stage by stage from ignition to landing, and which
 model computes it.
 
-This page follows a flight from ignition to landing. At each stage it says in plain words what HPR
-Sim computes, and which model does it. Read it to learn what lies behind a number the simulator
-prints, before the model pages it links.
+This page uses plain words. Read it before the model pages it links.
 
 > **How far to trust it.** This page describes the method, not how well it works; every number it
 > shows is an estimate from the models it names. When both codes fly the same drag, whole flights
@@ -48,8 +46,7 @@ The numbers match the drawing.
 
    The rocket stands on the rail, its aft end at the rail's foot. It holds still until the push up
    the rail, mostly the thrust, beats the weight's pull down it and the rail's friction. That
-   instant is [liftoff](glossary.md#liftoff). If the motors burn out first, the flight ends on the
-   pad.
+   instant is [liftoff](glossary.md#liftoff).
 2. **On the rail.** The rocket slides along the rail without turning: one degree of freedom.
    [Rail exit](glossary.md#rail-exit-and-rail-exit-velocity) comes when the rocket's last rail
    guide leaves the top of the rail. That guide is a rail button or a launch lug (a short tube on
@@ -94,9 +91,9 @@ The numbers match the drawing.
    [Streamers](glossary.md#streamer) and [tumbling](glossary.md#tumble-recovery) are recovery
    devices too ([Recovery](physics/recovery.md)).
 7. **Landing.** The flight ends when the center of gravity comes back down to the launch site's
-   height. The ground is flat, at the height of the pad: there's no terrain.
+   height.
 
-A flight can also end in other ways, and the simulator reports each by name
+A flight can also end in other ways, each reported by name
 ([Rigid-body flight](physics/flight.md#events-and-termination)):
 
 | ending | what happened |
@@ -107,13 +104,13 @@ A flight can also end in other ways, and the simulator reports each by name
 | step limit | the integrator (below) used up its budget of steps, a million attempted steps by default, before landing |
 | separated | the rocket split into parts, and each part's own descent says where it landed |
 
-The time cap and the step limit are safety stops, so that a flight which doesn't land still ends.
+The time cap and the step limit are safety stops, so a flight that doesn't land still ends.
 A [stiff](glossary.md#stiff-problem) stretch of flight, one that forces very short steps, can show
 up as the step limit ([Time integration](physics/integration.md#defaults-and-limits)). Both limits
 are fields of `FlightSettings` (`max_time_s` and `step_limit`), and a program can change them.
 
-Anything else that stops a flight is an error, such as reaching Mach 5. Mach 5 is the top of
-the speeds the simulator's normal force and drag cover.
+Anything else that stops a flight is an error, such as reaching Mach 5. Mach 5 is the top speed
+the simulator's normal force and drag cover.
 
 ## How the simulator steps through time
 
@@ -125,11 +122,10 @@ The equations above turn a state into its rate of change. An integrator builds t
 them by stepping forward in time, one short step after another
 ([Time integration](physics/integration.md)).
 
-The steps size themselves. The simulator's default method is
-[Dormand–Prince 5(4)](glossary.md#dormandprince-and-rk4). On each step it makes two estimates of
-the new state, one of fifth order and one of fourth; that's the "5(4)". The higher a method's
-order, the faster its error shrinks as the step gets shorter. HPR Sim keeps the fifth-order
-estimate, and takes the difference between the two as the step's error.
+The simulator's default method is [Dormand–Prince 5(4)](glossary.md#dormandprince-and-rk4). On
+each step it makes two estimates of the new state, one of fifth order and one of fourth; that's the
+"5(4)". The higher a method's order, the faster its error shrinks as the step gets shorter. HPR Sim
+keeps the fifth-order estimate, and takes the difference between the two as the step's error.
 
 HPR Sim sizes the next step to keep that error within a [tolerance](glossary.md#tolerance). Steps
 are short where things change fast, at liftoff and burnout, and long in a steady descent
@@ -145,20 +141,18 @@ there, so none straddles a jump.
 
 Other moments are found during the flight, such as liftoff, rail exit, apogee, an altitude trigger
 and landing. These are [events](glossary.md#event). When the quantity that defines one changes
-sign within a step, the simulator finds the instant it crossed zero inside that step. For apogee,
-that quantity is the vertical speed.
+sign within a step, the simulator finds the instant it crossed zero inside that step.
 
-What you get back is every event, with a snapshot of the flight at that instant. The snapshot
-holds the time, position, velocity, height, airspeed, Mach number, angle of attack, thrust, mass
-and more. A program can also watch every step as it happens, as
+You get back every event, with a snapshot of the flight at that instant. The snapshot holds the
+time, position, velocity, height, airspeed, Mach number, angle of attack, thrust, mass and more. A
+program can also watch every step as it happens, as
 [Getting started](getting-started.md#the-program-step-by-step) does to find the top speed. Or it
 can record chosen quantities at a fixed interval with a `Recorder`
 ([Recording a trajectory](recording-a-trajectory.md)).
 
 ## What is left out
 
-Each model page lists what its model leaves out. These are the gaps that matter most for a whole
-flight:
+Each model page lists what its model leaves out. These gaps matter most for a whole flight:
 
 - Near and past Mach 1, the drag is lightly checked. The normal force, center of pressure and
   drag all carry a flight from Mach 0 to 5. The normal force was checked against a wind tunnel to
@@ -178,9 +172,9 @@ flight:
   flight uses them at every angle: just off the rail in a strong crosswind, and near apogee.
 - Staging, clusters and air starts are checked against OpenRocket on three of its examples. Each
   motor lights at its own time, and a sustainer flies on after a powered separation
-  ([Staging](physics/staging.md)). OpenRocket's two-stage, cluster and air-start examples, 12
-  flights, are each within 5% of OpenRocket's apogee and largest speed. Three cluster apogees are
-  compared with OpenRocket's flight with no parachute, since its parachute opened before apogee
+  ([Staging](physics/staging.md)). The examples' 12 flights are each within 5% of OpenRocket's
+  apogee and largest speed. Three cluster apogees are compared with OpenRocket's flight with no
+  parachute, since its parachute opened before apogee
   ([a two-stage and a cluster design](decisions-and-roadmap.md#m1-9c)).
 
   A motor that fails to light in a cluster is checked by tests only
@@ -189,8 +183,8 @@ flight:
   checked against exact answers only
   ([Recovery: ejected pieces](physics/recovery.md#ejected-pieces)).
 - Moving and released mass are checked against exact answers only. That's ballast or a payload
-  that slides along the airframe in flight, or leaves it. Such mass is compared with hand
-  calculations and conservation laws, not with another simulator or a real flight
+  that slides along the airframe in flight, or leaves it. The exact answers are hand calculations
+  and conservation laws, not another simulator or a real flight
   ([Moving mass](physics/moving-mass.md), [Released mass](physics/released-mass.md)).
 - [Tip-off](glossary.md#tip-off), thrust misalignment (a motor pushing slightly off the rocket's
   axis) and turbulence, which no milestone plans yet. Roll from canted fins and roll damping are
@@ -198,7 +192,7 @@ flight:
   ([Roll: forcing and damping](physics/aero.md#roll-forcing-and-damping)).
 - One term is counted twice. A thrust curve measured on a test stand already includes the
   propellant's [internal momentum](glossary.md#internal-momentum), and the equations of motion add
-  it again, as RocketPy's do. HPR Sim keeps it so that the two codes can be compared like for like.
+  it again, as RocketPy's do. HPR Sim keeps it so the two codes can be compared like for like.
   On the Getting started rocket it adds 21 N to the push at liftoff. It changes the burnout speed
   by at most 0.05 m/s (0.2 ft/s) ([Rigid-body flight](physics/flight.md#equations-of-motion)).
 - Under a parachute, four things are left out. One is the drag overshoot as a canopy fills, so the

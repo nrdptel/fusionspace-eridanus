@@ -11,15 +11,15 @@ Environmental Prediction (NCEP) run two weather models whose output HPR Sim read
 - The **Rapid Refresh (RAP)** covers the contiguous United States and nearby parts of Canada and
   Mexico, on a grid 13 km (8.1 mi) apart. It's started again every hour.
 
-The simulator asks NOAA's download server for a small piece of one forecast around the site. The
-server is NOMADS (NOAA Operational Model Archive and Distribution System). The piece arrives as a
+The simulator asks NOAA's download server, NOMADS (NOAA Operational Model Archive and Distribution
+System), for a small piece of one forecast around the site. The piece arrives as a
 [GRIB2](glossary.md#grib2) file, the World Meteorological Organization's binary format for weather
 on a grid. The simulator reads it with its own decoder.
 
 The result is a [sounding](glossary.md#sounding): temperature, pressure, humidity and wind at a
 column of heights. The column runs from the ground up to about 31 km (102,000 ft) in GFS or 16 km
 (52,000 ft) in RAP. You can also download a whole GFS file and read it offline
-([A whole GFS file](#a-whole-gfs-file)). A whole file's sounding goes up to about 79 km
+([A whole GFS file](#a-whole-gfs-file)). That file's sounding goes up to about 79 km
 (259,000 ft).
 
 This page is for anyone who wants a flight in a named NOAA model's forecast. Open-Meteo's choice
@@ -29,10 +29,10 @@ of model is on [Launch-day weather](weather.md), and a weather balloon's measure
 > **How far to trust it.** A weather model's forecast, read as the model wrote it.
 >
 > - HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
->   center's reference decoder, gives. All 6,123 values are within 2.2e-16 of each other, relatively
->   (one rounding in the last binary digit). The profile gives back those values, interpolated to
+>   center's reference decoder, gives. All 6,123 values agree within 2.2e-16, relatively (one
+>   rounding in the last binary digit). The profile gives back those values, interpolated to
 >   the site, at every level it keeps. That's checked below.
-> - A whole GFS file you download yourself reads too ([A whole GFS file](#a-whole-gfs-file)). Every
+> - A whole GFS file you download reads too ([A whole GFS file](#a-whole-gfs-file)). Every
 >   one of the 746,770,303 values in one such file is within 4.4e-16 of ecCodes', relatively. That
 >   check was a script run once outside CI, and CI checks eight of the file's messages. The file's
 >   profile at Spaceport America is the recorded cut's to 1.04e-7. A test skipped in CI checks
@@ -86,8 +86,8 @@ among them the four around the site. That's about 28 KB for GFS and 40 KB for RA
 
 The box's edges are written to hundredths of a degree, worked out from the site rounded to
 5 decimals, about 1 m (3.3 ft). Your program keeps the site in radians and turns it back into
-degrees, which can change its last digits. The rounding allows for that, so a site given to
-8 decimals or fewer asks for the same box and finds its saved answer. The simulator asks for:
+degrees, which can change its last digits. The rounding absorbs that: a site given to 8 decimals
+or fewer asks for the same box and finds its saved answer. The simulator asks for:
 
 | variable | where |
 |---|---|
@@ -130,7 +130,7 @@ has 0.25° steps, and RAP's has 13,545 m (44,439 ft) cells about 265° E.
 2 m (6.6 ft) temperature and humidity, and the 10 m (33 ft) wind. Putting the 10 m (33 ft) wind at
 the ground makes it the wind on the launch rail. The profile doesn't jump from there to the lowest
 level's wind above it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile that
-stepped at its lowest level). This is what Open-Meteo's page does too.
+stepped at its lowest level). Open-Meteo's page does the same.
 
 **Levels below the ground are left out.** The models give every level everywhere, inventing values
 beneath high ground. A level is kept only when its pressure is below the ground's and its height is
@@ -146,9 +146,9 @@ above sea level at the site's latitude. It uses the World Meteorological Organiz
 
 The model's terrain height is also given in geopotential meters and converted the same way. At
 this latitude that adds about 2 m (6.6 ft): GFS's 1,474.4 gpm becomes 1,476.4 m (4,844 ft).
-Suppose the model's terrain were really a height above sea level, as for
-[Open-Meteo's elevation](weather.md#how-the-answer-becomes-a-sounding). Then the ground would sit
-about 2 m (6.6 ft) too high.
+Were the model's terrain really a height above sea level, as for
+[Open-Meteo's elevation](weather.md#how-the-answer-becomes-a-sounding), the ground would sit about
+2 m (6.6 ft) too high.
 
 **RAP's winds are turned to east and north.** RAP's map is a cone unrolled flat (a
 [Lambert conformal](glossary.md#lambert-conformal-projection) projection). RAP gives each wind as
@@ -191,9 +191,9 @@ Left unturned, a 20 m/s (45 mph) wind would be about 1.8 m/s (4.0 mph) off sidew
 one 13 km (8.1 mi) cell, $\theta$ changes by about 0.06°. GFS gives its winds east and north
 already.
 
-**Humidity** is taken as relative to liquid water, as for Open-Meteo. Whether NCEP's models give
-it relative to ice at cold levels isn't settled here. If they do, the density there moves by under
-0.1% ([Launch-day weather](weather.md#how-the-answer-becomes-a-sounding) explains the bound). A
+**Humidity** is taken as relative to liquid water, as for Open-Meteo. If NCEP's models give it
+relative to ice at cold levels, the density there moves by under 0.1%
+([Launch-day weather](weather.md#how-the-answer-becomes-a-sounding) explains the bound). A
 humidity above 100% is kept in the level as given and taken as 100% in the sounding.
 
 **Between levels** the sounding works as for any other: the temperature and humidity are linear,
@@ -221,12 +221,12 @@ these calls:
    `sounding.wind()` its wind.
 4. `hpr_sim::Environment::new(earth, sounding, wind)` puts both in a flight's environment.
 
-It prints each model's ground and the standard levels 850, 700, 500, 250 and 100 hPa that lie
-above it. Heights are in meters above sea level. The wind's direction is where it blows from,
-clockwise from north. Then it prints where Calisto is at apogee: east and north of the pad,
-negative for west and south.
+It prints each model's ground and the standard levels 850, 700, 500, 250 and 100 hPa above it.
+Heights are in meters above sea level. The wind's direction is where it blows from, clockwise from
+north. Then it prints where Calisto is at apogee: east and north of the pad, negative for west and
+south.
 
-Each flight starts on its own model's ground, and the standard-atmosphere flight starts on GFS's.
+Each flight starts on its own model's ground, and the standard-atmosphere flight on GFS's.
 Run it from a copy of the repository with
 `cargo run --example nomads_forecast -p fusionspace-hpr --features net`. It prints:
 
@@ -284,7 +284,7 @@ effect). Which model is nearer the air Calisto would have met isn't measured.
 ## Whole files offline
 
 A whole downloaded GFS file reads with no network. Fields packed as JPEG 2000 images, as RAP's
-whole files are, read too, though no whole RAP file has been tried.
+whole files are, read too.
 
 ### A whole GFS file
 
@@ -299,9 +299,8 @@ https://noaa-gfs-bdp-pds.s3.amazonaws.com/gfs.20260930/00/atmos/gfs.t00z.pgrb2.0
 ```
 
 Here `20260930/00` and `t00z` are the run (00 UTC on 30 September 2026) and `f018` the forecast
-hour. Only the 0.25° files (`pgrb2.0p25`) read. The smaller 0.5° and 1° files are refused, since
-the simulator checks the file is on GFS's 0.25° grid. The [command line](cli.md#hpr-weather) reads
-the file as it reads a saved cut, with the site you want:
+hour. Only the 0.25° files (`pgrb2.0p25`) read. The smaller 0.5° and 1° files are refused. The
+[command line](cli.md#hpr-weather) reads the file as it reads a saved cut, with the site you want:
 `hpr weather gfs --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T00Z --hour 18 --from
 gfs.t00z.pgrb2.0p25.f018 --output profile.json`. It took about a third of a second on a Mac.
 
@@ -359,7 +358,7 @@ downloaded, only four of its fields ([How it is checked](#how-it-is-checked)).
 The tests in [`crates/hpr-net/tests/nomads.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/nomads.rs)
 use the two files the example reads. They were recorded unchanged from NOMADS' grib filter on
 30 September 2026 for Spaceport America (32.99° N, 106.97° W). One is GFS's 00 UTC run at hour 18
-(27,586 bytes). The other is RAP's 12 UTC run at hour 6 (40,026 bytes), and both are for 18 UTC.
+(27,586 bytes). The other is RAP's 12 UTC run at hour 6 (40,026 bytes), both for 18 UTC.
 No test uses the network.
 
 The expected values come from [ecCodes](https://confluence.ecmwf.int/display/ECC) 2.49.0, the European Centre
@@ -399,8 +398,8 @@ were made on macOS. CI runs the same tests with the same bounds on Linux and Win
 - The request's address is the one recorded, so a replayed answer fills the cache. A second
   request is answered from the cache. Offline mode answers without the network 40 days later,
   [marked stale](online-data.md#what-it-promises).
-- Wrong answers aren't saved. A RAP request answered with a GFS cut is refused and not saved. So is
-  a cut of another run or hour than the one asked for. A GFS cut whose steps are changed to 0.5°
+- Wrong answers aren't saved. A RAP request answered with a GFS cut is refused. So is a cut of
+  another run or hour than the one asked for. A GFS cut whose steps are changed to 0.5°
   still reads, but isn't GFS's grid, so it would be refused too.
 - A humidity over 100% is kept in the level and taken as 100% in the sounding (a unit test).
 - A level whose field has no value at one of the four points around the site is left out as
@@ -457,17 +456,15 @@ were made on macOS. CI runs the same tests with the same bounds on Linux and Win
 - Whole RAP files' packing is read, but a whole file hasn't been run through `hpr weather`.
 - GFS's coarser 0.5° and 1° files are refused: the simulator checks for the 0.25° grid.
 - Nothing here checks a forecast's accuracy against the weather that came.
-- Each request is for one forecast hour, with no interpolation between hours. You pick the run and
-  the hour closest to your launch.
+- Each request is for one forecast hour, with no interpolation between hours.
 - RAP stops at 100 hPa, about 16 km (52,000 ft), and GFS as asked for here at 10 hPa, about 31 km
   (102,000 ft). A whole GFS file goes on to 0.01 hPa, about 79 km (259,000 ft). The layer thickness
   check above stops at 10 hPa.
 - Above the top level, the sounding continues as the
   [standard atmosphere](glossary.md#standard-atmosphere), shifted to pass through the top level's
   temperature and pressure. It keeps the top level's share of water vapor, capped where the air
-  saturates. The wind holds the top level's wind. The air and the wind there are both marked as
-extrapolated. A flight above
-  16 km (52,000 ft) in RAP's forecast is flying on that guess.
+  saturates. The wind holds the top level's wind. The air and wind there are both marked
+  extrapolated. A flight above 16 km (52,000 ft) in RAP's forecast is flying on that guess.
 - A kept level is blended from the four grid points even where one of them has that level
   underground. In the RAP cut, 850 hPa takes 13% of its weight from a point whose ground is at
   845.8 hPa. The effect here is about 0.02 K, and larger in steep terrain.
@@ -475,8 +472,7 @@ extrapolated. A flight above
   doesn't shift the profile to the real ground.
 - Whether NCEP gives humidity over ice at cold levels is unsettled here. The difference moves the
   density by under 0.1%.
-- The live connection to NOMADS isn't tested in CI. Nothing tells you which runs NOMADS still holds
-  before you ask.
+- Nothing tells you which runs NOMADS still holds before you ask.
 - The command line fetches them with [`hpr weather gfs` and `rap`](cli.md#hpr-weather), but
   `hpr sim` doesn't fly them yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
   The Python package doesn't fetch NOAA's forecasts.

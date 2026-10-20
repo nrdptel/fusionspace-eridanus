@@ -3,17 +3,16 @@
 Fetch a weather balloon's measurements from the University of Wyoming's archive and fly a rocket
 through the air they recorded.
 
-This page covers fetching a weather balloon's measurements from the
-[University of Wyoming's archive](https://weather.uwyo.edu/upperair/sounding.shtml) and flying a
-rocket through them. The balloon carries a [radiosonde](glossary.md#radiosonde), which measures
-the air on the way up, from the ground to 30 km (98,000 ft) or more. What it records is a
+The [University of Wyoming's archive](https://weather.uwyo.edu/upperair/sounding.shtml) serves
+weather balloons' measurements. A balloon carries a [radiosonde](glossary.md#radiosonde), which
+measures the air on the way up, from the ground to 30 km (98,000 ft) or more. It records a
 [sounding](glossary.md#sounding): temperature, pressure, humidity and wind at a column of heights.
 Hundreds of stations release one at 00 and 12 UTC (universal time, the time at Greenwich) every
 day.
 
-This page is for anyone who wants a flight in the air that was measured near a launch. The other
-choices are a forecast ([Launch-day weather](weather.md), [NOAA forecasts: GFS and RAP](nomads.md))
-or the [standard atmosphere](glossary.md#standard-atmosphere).
+This page is for anyone who wants a flight in air measured near a launch. The alternatives are a
+forecast ([Launch-day weather](weather.md), [NOAA forecasts: GFS and RAP](nomads.md)) or the
+[standard atmosphere](glossary.md#standard-atmosphere).
 
 > **How far to trust it.** A weather balloon's measurement, passed on as the archive gives it.
 >
@@ -38,7 +37,7 @@ or the [standard atmosphere](glossary.md#standard-atmosphere).
 Code: `hpr_net::wyoming` ([API reference](api/hpr_net/wyoming/index.html)), written for
 [the second weather increment](decisions-and-roadmap.md#m5-2b). It needs the `net` feature of the
 `hpr` crate. The choices are in
-[the decision record on University of Wyoming soundings](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0120-university-of-wyoming-soundings.md).
+[the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0120-university-of-wyoming-soundings.md).
 
 ## What the simulator asks for
 
@@ -84,8 +83,8 @@ station's later messages arrive:
 
 Offline mode answers from the disk only, however old the copy. An answer the simulator can't read
 is never saved, so it can't replace a good copy. A sounding the archive doesn't have comes back as
-an HTTP error, which the request reports. The error is 404, or 400 for a BUFR file the station
-doesn't send. No test covers a missing sounding.
+an HTTP error: 404, or 400 for a BUFR file the station doesn't send. The request reports that
+error. No test covers a missing sounding.
 
 The archive states no terms of use. Show the credit "Sounding from the University of Wyoming's
 radiosonde archive" wherever you show the sounding. Every answer carries it.
@@ -93,9 +92,9 @@ radiosonde archive" wherever you show the sounding. Every answer carries it.
 ## How the answer becomes a sounding
 
 **Heights.** The file gives geopotential meters. The simulator converts them to heights above sea
-level at the first row's latitude. It uses the World Meteorological Organization's formula
-(WMO-No. 8, its *Guide to Instruments and Methods of Observation*, eqs. 12.15 and 12.16, as the
-[atmosphere page](physics/atmosphere.md) explains).
+level at the first row's latitude. It uses the WMO's formula (WMO-No. 8, its *Guide to Instruments
+and Methods of Observation*, eqs. 12.15 and 12.16, as the [atmosphere page](physics/atmosphere.md)
+explains).
 
 The balloon drifts as it climbs. Converting at the latitude it reached instead would move a
 height. At 10 km (33,000 ft) the move is about 0.8 m (2.6 ft) per degree of drift. At
@@ -120,8 +119,7 @@ In the three recorded soundings, take the 13 layers between the standard levels 
 are off by 0.05% to 0.13% on average, either way. Read as meters above sea level instead, the
 layers would be 0.51% to 0.60% too thin on average.
 
-So they're geopotential meters, as the column says. The test holds the average under 0.1% as
-geopotential meters, and more than 0.4% too thin as meters above sea level.
+So they're geopotential meters, as the column says.
 
 **Each row is checked against the row before it.** Take a row with a pressure, height and
 temperature. It *fits* the row before it when its height above that row is the layer's
@@ -141,14 +139,13 @@ at 557 hPa to the next at 549 hPa:
 **Rows are kept from a chain.** The simulator looks for the longest *chain* of rows from the ground
 in which each row fits the one before it in the chain. The chain may pass by up to 10 rows at a
 time, and the rows it passes by are left out. Of two chains equally long, the simulator takes the
-one whose layers fit more closely. That's the one with the smaller total of each layer's miss as a
-share of its allowance. A miss of 25 m (82 ft) with an allowance of 50 m (164 ft) is a share of
-0.5.
+one whose layers fit more closely. Closer means a smaller total of each layer's miss as a share of
+its allowance. A miss of 25 m (82 ft) with an allowance of 50 m (164 ft) is a share of 0.5.
 
 Why a chain: every row kept must also lie above the last row kept, so one bad row kept can hide
-the good ones. Take a 557 hPa row with a digit lost, 57 hPa at 5,035 m (16,519 ft). On that rule
-alone it would be kept. Every good row up to 57 hPa, about 20 km (66,000 ft), would then lie below
-it and be dropped.
+the good ones. On that rule alone, a 557 hPa row with a digit lost, 57 hPa at 5,035 m (16,519 ft),
+would be kept. Every good row up to 57 hPa, about 20 km (66,000 ft), would then lie below it and
+be dropped.
 
 To fit, the bad row would have to be 18.6 km (61,000 ft) above the row before it, at 570 hPa. It's
 183 m (600 ft) above that row. So the chain passes it by, from 570 hPa to 549 hPa, and it's left
@@ -187,9 +184,9 @@ Then the simulator keeps:
 
 It leaves out:
 
-- **A row the chain passes by**, as above.
-- **A row with a value missing or impossible**: the last row often has no wind. A row is dropped
-  the same way when it has any of these:
+- **A row the chain passes by**.
+- **A row with a value missing or impossible**: the last row often has no wind. An impossible
+  value is any of these:
   - a pressure below 0.1 hPa or above 1,200 hPa;
   - a temperature outside −150 to 80 °C;
   - a height outside −1 km (−3,281 ft) to 60 km (196,850 ft);
@@ -199,15 +196,14 @@ It leaves out:
 The profile lists every row it left out, and why. Two things refuse the answer:
 
 - **A ground the rows after it disagree with.** No row before the ground checks it. So HPR Sim also
-  looks for chains that start after it. Each starts at one of the next 11 rows with a pressure,
-  height and temperature within the bounds. If one of them beats every chain from the ground, the
-  ground is taken as wrong. A chain beats another by being longer, or as long and fitting more
-  closely.
+  looks for chains each starting at one of the next 11 rows with a pressure, height and
+  temperature within the bounds. If one of them beats every chain from the ground, the ground is
+  taken as wrong.
 
   Bad rows right after a good ground can do the same. They miss the ground but fit the rows above
   them, within the allowance. They beat the ground when the chain through them is longer, or as
-  long and closer. The chain through them is longer when it passes by fewer good rows than it
-  holds bad ones, less one.
+  long and closer. That chain is longer when it passes by fewer good rows than it holds bad ones,
+  less one.
 
   That happens in narrow bands of error, just past the ground's allowance. In the BUFR file, whose
   first layers are about 8 m (26 ft) thick, two rows 31 m (102 ft) high refuse the answer. Two
@@ -215,9 +211,8 @@ The profile lists every row it left out, and why. Two things refuse the answer:
   35 m (115 ft) high, which fit nothing but each other and are passed by.
 
   In the winter coded message, three rows 45 m (148 ft) high refuse the answer. So do 11 bad rows
-  that fit each other, however far off. HPR Sim can't tell these from a bad ground, and refuses
-  the answer. Rows grossly off, 850 m (2,789 ft) say, fit nothing above them and are passed by,
-  up to 10.
+  that fit each other, however far off. HPR Sim can't tell these from a bad ground. Rows grossly
+  off, 850 m (2,789 ft) say, fit nothing above them and are passed by, up to 10.
 - **More than 10 rows after the chain's end.** The chain can pass by only 10 rows at a time, so
   11 bad rows in a row end it. HPR Sim takes that to mean the chain's end is wrong, or all 11 are.
   A block of heights 1 km (3,281 ft) off is one such case.
@@ -238,7 +233,7 @@ In the profile:
   explains). The wind is interpolated by its speed and direction. Pass
   `WindInterpolation::Components` to interpolate its east and north parts instead, as
   [RocketPy](glossary.md#rocketpy) does. Above the top level the standard atmosphere continues,
-  and the air is marked as extrapolated.
+  and the air is marked extrapolated.
 
 ## An example
 
@@ -259,13 +254,13 @@ station without its parachutes. It makes these calls:
 4. `hpr_sim::Environment::new(earth, profile, wind)` puts both in a flight's environment.
 
 It prints the ground and five standard levels, with heights in meters above sea level, and each
-version's second row. Then it prints the air at the pad and above it, next to the standard
+version's second row. Then it prints the air at the pad and above it, beside the standard
 atmosphere. It also prints where Calisto is at apogee: east and north of the pad, negative for
 west and south.
 
-Each flight starts on its own sounding's ground. The third flight keeps the BUFR file's ground row
-and its rows from 1,438 geopotential meters up, dropping those between. The coded message's second
-row is at 1,438 geopotential meters. Run it from a copy of the repository with
+Each flight starts on its own sounding's ground. The third flight drops the BUFR file's rows
+between its ground and 1,438 geopotential meters, the height of the coded message's second row.
+Run it from a copy of the repository with
 `cargo run --example wyoming_sounding -p fusionspace-hpr --features net`. It prints:
 
 <!-- quote: crates/hpr/examples/wyoming_sounding.output.txt -->
@@ -326,9 +321,6 @@ the rocket is slowest and turns into the wind the most. Without its rows below 1
 meters, the BUFR flight's apogee is 419 m (1,375 ft) west. That's within 18 m (59 ft) of the coded
 message's. This flight peaks at 2,846 m (9,337 ft), within 2 m (6.6 ft) of the coded message's.
 
-Which of the two is nearer the wind a rocket meets isn't measured. A balloon's first seconds of
-drift aren't a steady wind either.
-
 ## How it is checked
 
 The tests in [`crates/hpr-net/tests/wyoming.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/wyoming.rs)
@@ -360,10 +352,10 @@ test uses the network.
   it. Each misses by at most 1 m (3.3 ft) beyond rounding. The most is 0 m (0 ft) in the coded
   messages and 0.97 m (3.2 ft) in the BUFR file.
 
-  The test works out the thickness on its own. It uses the file's mixing ratio (grams of water
-  vapor per kilogram of dry air) for the humidity. Unit tests pin the check, and the worked
-  example above, to thicknesses and allowances worked out by hand. They test 0.01 m (0.03 ft)
-  either side of the edge.
+  The test works out the thickness itself, with the file's mixing ratio (grams of water vapor per
+  kilogram of dry air) for the humidity. Unit tests pin the check, and the worked example above,
+  to thicknesses and allowances worked out by hand. They test 0.01 m (0.03 ft) either side of the
+  edge.
 - Rows the chain passes by, with the rest of the answer kept:
   - A pressure missing a digit, 57 hPa at 5 km (16,000 ft); the profile is the recording's without
     the row.
@@ -404,35 +396,33 @@ test uses the network.
   - A row at 0.1 hPa and −150 °C, 55.6 km (182,400 ft) up, fits the row below it and is kept.
 - Answers refused:
   - A block of 10 rows raised 1 km (3,281 ft) is left out; 11 refuse the answer.
-  - In the coded message, a ground at 87.2 hPa (872 with its decimal point misplaced) refuses the
-    answer. So does one at 125 m (410 ft), where 1,252 m (4,108 ft) lost a digit, and one 8 hPa
-    off. So does one 52 m (171 ft) or 80 m (262 ft) high. A BUFR ground 34 m (112 ft) high, whose
-    first layer is 8 m (26 ft) thick, does too.
-  - A ground at 1,200 hPa, at −1,000 m (−3,281 ft) or at −150 °C refuses it as well. These
-    are within the bounds, but no row above fits them.
+  - In the coded message, a ground at 87.2 hPa (872 with its decimal point misplaced). Also one at
+    125 m (410 ft), where 1,252 m (4,108 ft) lost a digit, and one 8 hPa off. Also one
+    52 m (171 ft) or 80 m (262 ft) high. And a BUFR ground 34 m (112 ft) high, whose first layer
+    is 8 m (26 ft) thick.
+  - A ground at 1,200 hPa, at −1,000 m (−3,281 ft) or at −150 °C. These are within the bounds, but
+    no row above fits them.
   - In the coded message, the first layer is 186 m (610 ft) thick. A ground 40 m (131 ft) high
     there, or at 80 °C, fits it and is kept with every row.
   - With only one row after a bad ground, the ground is kept and the row left out. A row with no
     temperature right after a bad ground isn't counted: the refusal names the row after it.
   - Rows after a good ground that beat it. In the BUFR file they're two rows raised
     31 m (102 ft), and four lowered 35 m (115 ft). In the winter coded message they're three
-    raised 45 m (148 ft). In the other coded message they're four raised 50 m (164 ft). Eleven
-    rows raised 1 km (3,281 ft) beat it too.
+    raised 45 m (148 ft), and in the other, four raised 50 m (164 ft). Eleven rows raised
+    1 km (3,281 ft) beat it too.
   - Two BUFR rows raised 20 m (66 ft) fit the ground and are kept, leaving out the three good rows
     no higher than them. Two BUFR rows raised 35 m (115 ft), and 10 coded-message rows raised
     1 km (3,281 ft), are passed by. A chain without the ground may start only at the 11 rows after
     it. After 11 rows that fit nothing, the answer is refused for the gap.
 - A row raised within its allowance is kept, and leaves out the good rows just above it, which
   now lie below it. The tests raise one row, or a block of two or three, by 20 m (66 ft) or
-  35 m (115 ft). They raise it by 50 m (164 ft) or 100 m (328 ft) too. They lower it by
-  50 m (164 ft) or 100 m (328 ft). None of these refuses an answer, and a coded message loses at
-  most 2 other levels.
+  35 m (115 ft). They raise or lower it by 50 m (164 ft) or 100 m (328 ft). None of these refuses
+  an answer, and a coded message loses at most 2 other levels.
 
   The BUFR file is sampled at every 150th row, to keep the test under a minute. It's also sampled
-  at the rows where a sweep of every row found the worst. That sweep was run once, not in the
-  tests. In the BUFR file a change loses at most 8 other rows for one row. A block loses at most
-  10, about 50 m (164 ft) of the climb. Lowering one row, or changing its pressure by 3%, loses no
-  other.
+  where a sweep of every row, run once and not in the tests, found the worst. In the BUFR file a
+  change loses at most 8 other rows for one row. A block loses at most 10, about 50 m (164 ft) of
+  the climb. Lowering one row, or changing its pressure by 3%, loses no other.
 - Values just past the bounds above are left out. Unit tests keep values at each bound. At the top
   row, temperatures of −150 and 80 °C and a wind of 300 m/s (671 mph) are kept and make a
   profile.
@@ -442,20 +432,21 @@ test uses the network.
 - An answer that isn't the archive's text (such as an error page) isn't saved. With no earlier
   copy the request fails. With one, the earlier copy comes back, marked stale.
 - Text with no header, a missing or doubled column, or a unit other than the one required is
-  refused. So is a row with too few or too many fields, or a field that isn't a number. So are a
-  first row with no date and a first row with a value missing. A header or a row of a million
-  commas, and more than 100,000 rows, are refused without being read further.
+  refused. So is a row with too few or too many fields, or a field that isn't a number. So is a
+  first row with no date, or with a value missing. A header or a row of a million commas, and more
+  than 100,000 rows, are refused without being read further.
 - The heights are geopotential, by the hypsometric check above. The test holds each average under
   0.1% as geopotential meters, and more than 0.4% too thin as meters above sea level.
 
 ## What it leaves out
 
 - How far a station's sounding is from the air over a launch site isn't measured, in distance or
-  in time. A rocket flown hours from the balloon, 100 km (62 mi) away, flies other air.
-- Which version is nearer the truth near the ground, where they differ most, isn't known.
+  in time.
+- Which version is nearer the truth near the ground, where they differ most, isn't known. A
+  balloon's first seconds of drift aren't a steady wind either.
 - A level with any value missing is left out whole, even when its other values are good.
 - The check catches a gross error in a row's pressure or height. It keeps:
-  - A wrong wind, or a wrong humidity. The check doesn't use the wind, and humidity moves the
+  - A wrong wind or humidity. The check doesn't use the wind, and humidity moves the
     thickness by only a few percent. For saturated air at 30 °C and sea-level pressure, it's 1.6%.
     Only a wind below zero or above 300 m/s (671 mph) is caught.
   - A wrong temperature that keeps the thickness within the allowance, and a height error within
@@ -469,18 +460,16 @@ test uses the network.
     kept, and 664 hPa is left out.
 
     High in a BUFR file, rounding the pressure to 0.1 hPa widens the allowance. There four rows at
-    13.9 hPa lowered 50 m (164 ft) are kept. The two good rows at 14.0 hPa before them are left
+    13.9 hPa lowered 50 m (164 ft) are kept, and the two good rows at 14.0 hPa before them left
     out.
 - A good ground followed by bad rows that fit the rows above them is refused, as if the ground
-  were wrong. That happens when the chain through them wins: two BUFR rows 31 m (102 ft) high do
-  it.
+  were wrong. That happens when the chain through them wins.
 - A row, or a short block, kept a little too high leaves out the good rows just above it. In the
   tests that's at most 2 other levels of a coded message and 10 other rows of a BUFR file (8 for
   one row).
 - Only the archive's comma-separated text is read, not its other formats, and there's no list of
   stations to search by place.
-- Its terms of use aren't stated. Only soundings from U.S. stations, which are U.S. government
-  works, are committed as test data
+- Only soundings from U.S. stations, which are U.S. government works, are committed as test data
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0120-university-of-wyoming-soundings.md)).
 - The command line fetches them with [`hpr weather wyoming`](cli.md#hpr-weather). But `hpr sim`
   doesn't fly them yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)),

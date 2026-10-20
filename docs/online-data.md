@@ -23,36 +23,35 @@ flight.
 > **How far to trust it.** What the crate returns is a copy of what each source served, not a
 > measurement by HPR Sim. Each answer says how fresh it is. The crate's tests replay a small
 > hand-written sample response and answers recorded from each of the six sources. They replay
-> them from a folder and from a test web server on the machine running the tests, never the live
-> network.
+> them from a folder and from a test web server on the test machine, never the live network.
 >
-> Those tests speak plain HTTP only. Encrypted HTTPS was checked by hand, not in CI. It was
-> checked against Open-Meteo first, then through the command line's
-> [`hpr weather`](cli.md#hpr-weather) against all four of its online sources. When it matters,
-> rely on the source itself and on the day's conditions at the field, not a cached copy.
+> Those tests speak plain HTTP only. Encrypted HTTPS was checked by hand against Open-Meteo
+> first, then through the command line's [`hpr weather`](cli.md#hpr-weather) against all four of
+> its online sources, not in CI. When it matters, rely on the source itself and on the day's
+> conditions at the field, not a cached copy.
 
 ## What it promises
 
 The simulation itself never touches the network ([the architecture's pure-core rule: no filesystem, network or clock](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ARCHITECTURE.md#principles)).
 Anything fetched from the internet goes through a *client*. The client puts a *cache* (a folder of
-saved responses) in front of a *transport* (the thing that actually fetches). It runs in one of
+saved responses) in front of a *transport* (the thing that fetches). It runs in one of
 two modes:
 
 - **Online:** if the cache holds a fresh copy, the client returns it without fetching. Otherwise it
   fetches, saves the response, and returns it. If the fetch fails and an old copy exists, it
-  returns the old copy, marked stale, with the reason the fetch failed. With no old copy, it
+  returns the old copy, marked stale, with the reason. With no old copy, it
   returns the fetch's error.
 - **Offline:** it never calls the transport. It returns whatever the cache holds, marked stale if
   it's old, or an error saying the URL isn't cached.
 
-Each answer says how fresh it is (`Fetched`, `Cached` or `Stale`) and when it was fetched. It also
-gives the data source's attribution, the credit line that its terms ask you to show with the data.
+Each answer says how fresh it is (`Fetched`, `Cached` or `Stale`) and when it was fetched. It
+gives the data source's attribution, the credit line its terms ask you to show with the data.
 
 A data source can also give the client a check, its own parser (`Client::fetch_checked`). Then an
-answer the parser refuses is never saved, so it can't take a good copy's place. An error page sent
-as a success is one such answer; a forecast whose hours are still empty is another. Online, a good
-copy that has gone stale comes back instead, with the reason; with no copy, the fetch fails. A
-saved copy the check refuses counts as missing online, and is the error offline.
+answer the parser refuses is never saved, so it can't take a good copy's place. Examples are an
+error page sent as a success and a forecast whose hours are still empty. Online, a good copy that
+has gone stale comes back instead, with the reason; with no copy, the fetch fails. A saved copy
+the check refuses counts as missing online, and is the error offline.
 
 ## How long a copy stays fresh
 
@@ -106,7 +105,7 @@ is handled as above. Online, the client falls back to an old copy marked stale.
 On the command line, a fetch that waits more than a tenth of a second says so on standard error,
 when that's a terminal. It shows `waiting for nomads.ncep.noaa.gov, 1 s` until the answer starts,
 then `fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`. Each line is drawn over the one
-before, and the line is gone once the answer is in. A copy read from the cache, standard error
+before and is gone once the answer is in. A copy read from the cache, standard error
 into a file or a pipe, `--json`, and a terminal with `TERM=dumb` draw nothing.
 
 A fetch that waits longer than the time allowed (the table above) fails. A failed or refused
@@ -152,7 +151,7 @@ not reach the network.
 ## How it is checked
 
 The tests in [`crates/hpr-net/tests/offline.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/offline.rs)
-replay a hand-written sample from a folder instead of using the network:
+replay a hand-written sample from a folder:
 
 - The offline test gives the client a transport that fails the test if it's ever called. Then the
   test asks for a URL before and after it's cached, fresh and thirty days stale.
@@ -171,7 +170,7 @@ replay a hand-written sample from a folder instead of using the network:
   ([Motor stock and prices](motor-stock.md#how-it-is-checked)).
 
 The cache's own tests check that a saved body reads back, and that another URL's entry in the same
-file reads as a miss. They also check the hash that names each file against its published test
+file reads as a miss. They check the hash that names each file against its published test
 values. It's FNV-1a, a standard 64-bit hash, so names stay the same on every platform. The cache
 folder rules are checked for each system with a made-up environment, `HPR_CACHE_DIR` included; the
 `XDG_CACHE_HOME` case runs only on Unix test machines.
@@ -179,8 +178,8 @@ folder rules are checked for each system with a made-up environment, `HPR_CACHE_
 The API reference for [`hpr_net`](api/hpr_net/index.html) has a runnable example.
 
 The HTTP tests in [`crates/hpr-net/tests/http.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/http.rs)
-start a small web server inside the test, on the computer's own loopback address (`127.0.0.1`).
-It serves the same sample. Nothing leaves the machine, and the tests turn off any proxy the
+start a small web server inside the test, serving the same sample on the computer's own loopback
+address (`127.0.0.1`). Nothing leaves the machine, and the tests turn off any proxy the
 environment names. They check that:
 
 - a fetch saves the sample in the cache, and a second fetch inside the time to live sends no
@@ -200,7 +199,7 @@ environment names. They check that:
 
 ## What it leaves out
 
-- There are no retries: a failed fetch is tried once.
+- No retries: a failed fetch is tried once.
 - Plain, unencrypted `http://` addresses are accepted; nothing forces HTTPS.
 - The 60 s time limit covers the whole transfer, so a large answer on a slow connection can time
   out. Raise it in `HttpConfig`.
@@ -208,11 +207,10 @@ environment names. They check that:
   encrypted server would need certificates made for the test. One manual run on a Mac fetched a
   real Open-Meteo forecast over HTTPS. The same run refused a site with an expired certificate
   ([the decision record on HTTP over the cache](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0118-m5-1b-http-over-the-cache.md)).
-  That run isn't repeated in CI.
 - Freshness comes only from the source's TTL: a server's cache headers are ignored, and the cache
   key is the URL alone.
 - If saving a fetched body fails (a full disk, a read-only folder), the fetch fails too.
 - Nothing prunes old entries, and nothing locks the cache. Each file is written whole under a
-  temporary name and then renamed, so no file is ever half written. But two programs saving the
+  temporary name and renamed, so no file is ever half written. But two programs saving the
   same URL at once, or a crash between the two renames, can leave a body beside another fetch's
   time. Temporary files a crash leaves behind aren't cleaned up.

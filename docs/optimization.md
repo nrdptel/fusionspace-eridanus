@@ -12,7 +12,7 @@ until it finds the best it can.
 This page shows HPR Sim's optimizer, [CMA-ES](glossary.md#cma-es). It runs on test functions
 whose answers are known. Then it finds the nose ballast and body length that send a rocket to
 3,048 m (10,000 ft) with a chosen stability margin. Then it chooses a motor and a catalog nose
-cone as well, within a competition's limits on stability and speed off the rail.
+cone, within a competition's limits on stability and speed off the rail.
 
 Then a second optimizer, [NSGA-II](glossary.md#nsga-ii), weighs two goals against each other: how
 much apogee each extra [caliber](glossary.md#caliber) of stability costs. A third,
@@ -31,7 +31,7 @@ Using any of them needs some Rust.
 >   here, one flight. Over the 20 seeds, the median number of evaluations is within 25% of
 >   pycma's, the method's author's own Python implementation run from the same starts. That 25% is
 >   the test's bound; measured, they are within 5%. Twelve generations of a three-variable run are
->   also recomputed by a separate implementation of the published formulas, and agree to rounding
+>   recomputed by a separate implementation of the published formulas, and agree to rounding
 >   ([`tests/optimize.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/optimize.rs)).
 >   A run is repeated bit for bit from its [seed](glossary.md#seed) (`a_seed_fixes_the_run` in
 >   [`optimize/cmaes.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/cmaes.rs)).
@@ -77,16 +77,13 @@ Using any of them needs some Rust.
 
 ## The optimizer
 
-What CMA-ES changes and minimizes, how it searches, and what it was checked against.
-
 ### What the optimizer does
 
 The optimizer changes *variables*: numbers in the design, such as a ballast mass or a body length
 ([`Variable`]). For each variable you give three things:
 
 - a **start**, the value to begin from;
-- a **step**, how far to try from the start at first, about a quarter to a third of the range you
-  expect the answer in;
+- a **step**, how far to try from the start at first;
 - optional **bounds**, the range the variable must stay in.
 
 It *minimizes* one number your model returns. To maximize something, minimize its negative. To hit
@@ -126,7 +123,7 @@ in meters and in kilograms start on an equal footing.
 
 A sampled design outside a variable's bounds is thrown away and drawn again, the tutorial's
 simplest way of handling bounds. It works well while the answer lies inside the range. If it
-lies on a bound, the run slows down near it. If any one design of a generation is still outside
+lies on a bound, the run slows down near it. If any design of a generation is still outside
 after 1,000 tries, the run stops and says so. With many variables near their bounds this comes
 soon: each such variable halves the chance that a draw falls inside.
 
@@ -170,11 +167,10 @@ run each function from 20 seeds and check:
 - Every sphere and ellipsoid run reaches the minimum, which puts its best point within $10^{-5}$ of
   $x = 0$.
 - 17 of 20 Rosenbrock runs reach the minimum at $x = 1$. The other 3 end in the function's local
-  minimum near $(-1, 1, \ldots, 1)$. The test requires at least 17. CMA-ES's authors note that local
-  minimum. They report 1 to 3 runs of 20 missing the global one at 4 to 16 variables (Kern, Hansen
-  and Koumoutsakos, 2006). In 1 of 20 runs, pycma ends in the local minimum. Measured once over
-  seeds 1 to 300, HPR Sim reaches the global minimum in 290 (97%). So 17 of 20 is at the low end
-  of what chance gives.
+  minimum near $(-1, 1, \ldots, 1)$. The test requires at least 17. CMA-ES's authors report 1 to 3
+  runs of 20 missing the global one at 4 to 16 variables (Kern, Hansen and Koumoutsakos, 2006). In 1
+  of 20 runs, pycma ends in the local minimum. Measured once over seeds 1 to 300, HPR Sim reaches
+  the global minimum in 290 (97%). So 17 of 20 is at the low end of what chance gives.
 - The median number of evaluations is within 25% of pycma's from the same starts (the test's
   bound). Measured, they're within 5%:
 
@@ -210,8 +206,6 @@ pycma is run by
 whose results are committed beside the test.
 
 ## Using the optimizer
-
-A first rocket example, then how to fly the designs yourself, choose the settings and add limits.
 
 ### An example
 
@@ -296,8 +290,7 @@ machines, use the run's steps yourself ([`Run`]). `Cmaes::start` draws the first
 ### Choosing the numbers
 
 - **Steps:** about a quarter to a third of the range the answer is likely in, in the variable's
-  own units. Steps of very different sizes are fine: the run works in each variable divided by its
-  step.
+  own units. Steps of very different sizes are fine.
 - **Target:** for a target apogee, the squared miss you accept: `0.1 * 0.1` for 0.1 m (0.3 ft).
   Without a target, a run goes on until it converges, which can take many more flights than a hit
   needs.
@@ -312,7 +305,6 @@ machines, use the run's steps yourself ([`Run`]). `Cmaes::start` draws the first
   generations. The defaults, 100 designs for 250 generations, are 25,000 flights, sized for 30
   variables. The third example's two variables needed 20 designs for 25 generations, 500
   flights, to pass its 0.5% check. The population is also how many designs the front can hold.
-  Compare the fronts from two seeds before trusting one.
 
 ### Limits on a design
 
@@ -322,7 +314,7 @@ constraints, each written as a number $g$ that must not be above zero. A margin 
 calibers is $g = 1.5 - \mathrm{margin}$.
 
 Your model returns an [`Evaluation`]: the value, and the *violation*, the sum of every $g$ that is
-above zero. `Evaluation::constrained(value, &[g1, g2])` adds them up for you.
+above zero. `Evaluation::constrained(value, &[g1, g2])` adds them up.
 
 Candidates are ranked by K. Deb's feasibility rules, from Deb's 2000 paper
 ([the decision record][adr-139]):
@@ -334,18 +326,18 @@ Candidates are ranked by K. Deb's feasibility rules, from Deb's 2000 paper
 | two that break some | the smaller violation |
 
 No penalty weight is needed, because a value is never weighed against a violation. Do scale the
-limits so that they count alike. A margin 0.1 caliber short and a rail speed 0.1 m/s (0.3 ft/s)
-short aren't equally bad. So divide each $g$ by a size you care about, such as the 1.5 calibers
-or the 15 m/s (49 ft/s).
+limits so they count alike. A margin 0.1 caliber short and a rail speed 0.1 m/s (0.3 ft/s) short
+aren't equally bad. So divide each $g$ by a size you care about, such as the 1.5 calibers or the
+15 m/s (49 ft/s).
 
-Candidates that break a limit are kept and ranked, not redrawn. So a run can close in on an
-answer that sits right on a limit, as most good designs do. Only a point that keeps every limit
-counts as reaching a target. The [`Optimum`] reports its `violation`, zero when it keeps them all.
+Candidates that break a limit are kept and ranked, not redrawn. So a run can close in on an answer
+that sits on a limit, as most good designs do. Only a point that keeps every limit counts as
+reaching a target. The [`Optimum`] reports its `violation`, zero when it keeps them all.
 
-For a bound that the answer will sit on, leave the variable unbounded on that side and write the
-bound as a limit. Clamp the value you fly (no negative ballast), and work the limit out from the
-unclamped one. A design that can't be flown at all returns `Evaluation::failed()`, which ranks
-behind every other. A run that never keeps every limit says so: its `violation` is above zero.
+For a bound the answer will sit on, leave the variable unbounded on that side and write the bound as
+a limit. Clamp the value you fly (no negative ballast), and work the limit out from the unclamped
+one. A design that can't be flown at all returns `Evaluation::failed()`, which ranks behind every
+other. A run that never keeps every limit says so: its `violation` is above zero.
 
 The tests hold this to three problems whose answers on their limits are known exactly:
 
@@ -356,8 +348,7 @@ The tests hold this to three problems whose answers on their limits are known ex
 | g06 of the CEC 2006 benchmark, 2 variables | inside one circle, outside another | −6961.81388, where the circles cross |
 
 From each of 20 seeds the run reaches the answer to $10^{-10}$ of its size, and to within
-$10^{-4}$ of the point. That holds also when the run starts where the limit is broken. The next
-section's example puts limits on a rocket: its stability margin and its speed off the rail.
+$10^{-4}$ of the point. That holds also when the run starts where the limit is broken.
 
 ## Choices: a motor, a catalog part
 
@@ -412,19 +403,18 @@ the rail holds the rocket):
   Both keep the rocket from being over-stable (§10.4.1);
 - at least 30 m/s (98 ft/s) off the rail (§10.2.1).
 
-The margins change through the flight. The center of mass moves forward as the motor burns, so
-the margin grows, and the flight margin changes with speed as well. For the lower limit the
-example uses the least flight margin of the ascent. The flight finds that least value inside its
-steps, not only at their ends.
+The margins change through the flight. The center of mass moves forward as the motor burns, so the
+margin grows, and the flight margin changes with speed. For the lower limit the example uses the
+least flight margin of the ascent. The flight finds that least value inside its steps, not only at
+their ends.
 
 For the upper limits the example uses the largest static and flight margins seen at the end of
 each integration step. The static margin only grows during the burn and stays put after it, so
 its largest is exact. A peak of the flight margin between two step ends could be missed. The
 winner's largest, 4.83 calibers, is well under its limit of 6.
 
-The heart of it, abridged from the example. A choice is an integer variable: set its bounds with
-`within`, then mark it `integer`. Use the whole number your model is given as a place in your
-list. With limits, use the run's steps yourself ([`Run`]) and give `tell_constrained` an
+The heart of it, abridged from the example. Set a choice's bounds with `within`, then mark it
+`integer`. With limits, use the run's steps yourself ([`Run`]) and give `tell_constrained` an
 [`Evaluation`] per design:
 
 ```rust,ignore
@@ -455,10 +445,10 @@ let optimum = loop {
 };
 ```
 
-`Design`, `Flyer::fly` and `limits` are the example's own. They build the rocket and fly it. They
-also write each limit as a number $g$ that must not be above zero, as [Limits on a
-design](#limits-on-a-design) describes. A draw for an integer variable outside its bounds is
-clamped to the nearest end, not drawn again. Run the example from a copy of the repository with:
+`Design`, `Flyer::fly` and `limits` are the example's own. They build the rocket, fly it, and write
+each limit as a number $g$ that must not be above zero ([Limits on a design](#limits-on-a-design)).
+A draw for an integer variable outside its bounds is clamped to the nearest end, not drawn again.
+Run the example from a copy of the repository with:
 
 ```text
 cargo run --example motor_and_nose -p fusionspace-hpr
@@ -505,8 +495,8 @@ The answer isn't unique. A scan of every motor and nose over the ballast and the
 once on the development machine, and not kept. The scan found the J760, the K400C and the K940
 can each hit 3,048 m (10,000 ft) within the limits. Each can do it with any of the four noses.
 
-A hit with any of them scores the same, so another seed may well settle on another. To prefer
-one, say so in the goal. A small cost for liftoff mass is one way.
+A hit with any of them scores the same, so another seed may settle on another. To prefer one, say so
+in the goal. A small cost for liftoff mass is one way.
 
 Unlike the first example's counts, this run's come out the same on every platform CI runs. CI
 checks the output on macOS, and on Linux and Windows on x86-64 and ARM, whose last bits of `ln`
@@ -530,9 +520,9 @@ one per fiberglass nose cone; the plastic one has none (below).
 With the length a variable, every design would build its own, and the run would take minutes.
 The example shows how to share the table, in its `Flyer::fly`.
 
-The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm (0.0020 in)
-narrower than the tube (2.638 in against 2.640 in). The method behind the table doesn't yet take
-a step in the body's outline larger than a millionth of its area
+The winning plastic nose cone gets no table. The catalog lists it 0.05 mm (0.0020 in) narrower than
+the tube (2.638 in against 2.640 in). The method behind the table doesn't yet take a step in the
+body's outline larger than a millionth of its area
 ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
 
 So the simulator falls back on slender-body theory for the body's normal force, its lift at an
@@ -582,10 +572,9 @@ not run in CI.
 
 ## Trade-offs: a Pareto front
 
-Often two goals pull against each other. Bigger fins or more nose weight make a rocket more
-stable, and both cost apogee. There's no single best design then. Instead there's a set of
-designs, none of which can improve one goal without giving up some of the other: the [Pareto
-front](glossary.md#pareto-front).
+Often two goals conflict. Bigger fins or more nose weight make a rocket more stable, and both cost
+apogee. There's no single best design then. Instead there's a set of designs, none of which can
+improve one goal without giving up some of the other: the [Pareto front](glossary.md#pareto-front).
 
 A design *dominates* another when it's no worse in either goal and better in at least one. The
 front is the designs nothing dominates. Knowing the front shows what each extra caliber of
@@ -820,10 +809,9 @@ an amount. A model that fails at a design returns $+\infty$; EGO fits it as the 
 and goes on.
 
 A worked example, on Branin's function of two variables: its least value is
-$5/(4\pi) \approx 0.397887$, at three points. The initial design is 20 points, and 30 more follow. The
-`1` is the [seed](glossary.md#seed); a variable's start and step are required by
-`Variable::new` but EGO doesn't use them. This is the example on [`Ego`]'s API page, which
-runs as a test from seed 1; `tests/ego.rs` runs seeds 1 to 20:
+$5/(4\pi) \approx 0.397887$, at three points. The initial design is 20 points, and 30 more follow.
+The `1` is the [seed](glossary.md#seed). This is the example on [`Ego`]'s API page, which runs as a
+test from seed 1; `tests/ego.rs` runs seeds 1 to 20:
 
 ```rust,ignore
 use hpr_analysis::optimize::Variable;
@@ -929,16 +917,15 @@ seeds 1 to 20. That runs in a program of its own,
 [`benches/ego_hartmann6.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/benches/ego_hartmann6.rs)
 (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`).
 
-Every run ended within 1%. The last to get there did so at evaluation 205. So the budget of 250
-was set from these same runs, with 45 to spare. Jones and co-authors needed 121 evaluations from
-one run. They used an initial design of 65 points and an exact search for the largest expected
-improvement.
+Every run ended within 1%. The last got there at evaluation 205. The budget of 250 was set from
+these same runs, with 45 to spare, so treat the 20 of 20 as in-sample. Jones and co-authors needed
+121 evaluations from one run. They used an initial design of 65 points and an exact search for the
+largest expected improvement.
 
 Without the transform, 14 of the same 20 runs ended at the local minimum near −3.20 after 250
 evaluations. They ended 3.6% to 3.7% above the minimum. The 6 that found the deepest well got
 within 1% by evaluation 78 in 5 of them, and at 241 in the sixth. So the transform is the more
-reliable route, not always the faster one. The budget of 250 was set from these same 20 seeds, so
-treat the 20 of 20 as in-sample.
+reliable route, not always the faster one.
 
 The 20 runs take about 3 minutes spread over 10 cores in a release build. CI's tests use a debug
 build, about 20 times slower, where they would take hours. So the local gate runs the program

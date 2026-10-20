@@ -3,8 +3,8 @@
 Build your own rocket in Rust part by part, find its center of gravity, center of pressure and
 stability margin, then fly it.
 
-This page builds a rocket of your own in Rust, part by part. It takes your dimensions, your
-materials, and a motor from the catalog that comes with HPR Sim. Then it finds the rocket's
+This page builds a rocket from your dimensions, your materials, and a motor from HPR Sim's bundled
+catalog. Then it finds the rocket's
 [center of gravity](glossary.md#center-of-gravity-cg) (CG), its
 [center of pressure](glossary.md#center-of-pressure-cp) (CP) and its
 [stability margin](glossary.md#stability-margin), and flies it. Last, it turns the rocket into a
@@ -126,9 +126,8 @@ diameters on your drawings.
 
 #### Mass, center of gravity and center of pressure
 
-The table has two columns. The **liftoff** column is the rocket on the pad, with the motor full.
-The **burnout** column is the rocket with the motor spent. Its case and nozzle are still aboard,
-and its propellant is gone.
+The **liftoff** column is the rocket on the pad, with the motor full. The **burnout** column is the
+rocket with the motor spent. Its case and nozzle are still aboard.
 
 - **Mass:** 0.675 kg on the pad and 0.579 kg at burnout. The 0.096 kg between them is the
   propellant; the catalog lists 96.6 g for this motor.
@@ -156,9 +155,8 @@ The simulator doesn't judge whether a margin is enough; your club's or range's r
 
 Barrowman's method works out each nose cone, transition and fin set on its own. Each gets a CP and
 a normal-force slope: how fast its sideways push grows with the
-[angle of attack](glossary.md#angle-of-attack), per radian. A plain body tube's slope is zero, so
-it has no line of its own. (A tube's sideways push appears only at larger angles, so it adds
-nothing to the slope.)
+[angle of attack](glossary.md#angle-of-attack), per radian. A plain body tube has no line of its
+own: its sideways push appears only at larger angles, so its slope is zero.
 The rocket's CP is the average of the parts' CPs, each weighted by its slope:
 
 | part | slope (per radian) | CP (m from the nose tip) | slope × CP |
@@ -169,17 +167,16 @@ The rocket's CP is the average of the parts' CPs, each weighted by its slope:
 
 So the CP is 5.313 ÷ 6.82 ≈ 0.779 m (30.7 in). The fins sit far aft and have more than twice the
 nose's slope, so they pull the CP toward the tail. Moving the CP aft (bigger fins, or fins farther
-aft) or the CG forward (a heavier nose) raises the margin. Run the program to see by how much.
+aft) or the CG forward (a heavier nose) raises the margin.
 
-**How speed moves the CP.** In the simulator, only a fin set's terms change with the Mach number.
-The fin set's slope grows as the rocket speeds up toward Mach 1, and from Mach 0.8 its own CP moves
-aft too. The slopes and CPs of nose cones, transitions and body tubes stay where they are
-([Aerodynamics](physics/aero.md#your-rockets-center-of-pressure)).
+**How speed moves the CP.** In the simulator, only a fin set's terms change with the Mach number
+([Aerodynamics](physics/aero.md#your-rockets-center-of-pressure)). The fin set's slope grows as the
+rocket speeds up toward Mach 1, and from Mach 0.8 its own CP moves aft too.
 
 - With the fins at the tail, as here, the growing fin slope pulls the rocket's CP aft as it speeds
   up.
-- A rocket with canards (a second fin set near the nose) is different. The canards' slope grows
-  too and pulls the CP forward, so which way the CP moves depends on both fin sets.
+- With canards (a second fin set near the nose), their slope grows too and pulls the CP forward.
+  So which way the CP moves depends on both fin sets.
 - HPR Sim keeps fin sets' CPs a quarter of the way along their
   [mean aerodynamic chords](glossary.md#mean-aerodynamic-chord-mac), a kind of average chord, up
   to Mach 0.8. From there it moves each CP aft, toward where supersonic linear theory puts it
@@ -188,7 +185,7 @@ aft too. The slopes and CPs of nose cones, transitions and body tubes stay where
   found an Arcas Robin rocket's CP moving forward, not aft, between Mach 0.6 and 0.8, so HPR Sim
   doesn't. This rocket's top speed, Mach 0.56, is well below either.
 
-`Flow::axial(0.0)` in place of `Flow::axial(0.3)` gives the low-speed value that Barrowman's method
+`Flow::axial(0.0)` in place of `Flow::axial(0.3)` gives the low-speed value Barrowman's method
 gives by hand.
 
 #### The flight
@@ -202,12 +199,12 @@ which opens when the motor's ejection charge fires.
   ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
 - **Apogee:** 1144.5 m (3755 ft) above the pad, 13.92 s after ignition
   ([apogee](glossary.md#apogee)).
-- **Top speed:** 187 m/s (614 ft/s), Mach 0.56: the fastest airspeed at the end of any of the
-  [time steps](glossary.md#adaptive-time-step) the flight was computed in. With no wind, the
-  airspeed is also the speed over the ground.
+- **Top speed:** 187 m/s (614 ft/s), Mach 0.56: the fastest airspeed at the end of any [time
+  step](glossary.md#adaptive-time-step). With no wind, the airspeed is also the speed over the
+  ground.
 - **Ejection:** at 13.50 s, at 5.5 m/s (18 ft/s). The charge fires the 10 s delay after
-  [burnout](glossary.md#burnout). In the simulator, burnout is the time of the thrust curve's last
-  point, 3.50 s for this motor. The ejection comes 0.42 s before apogee, while the rocket is still
+  [burnout](glossary.md#burnout). In the simulator, burnout is the thrust curve's last point,
+  3.50 s for this motor. The ejection comes 0.42 s before apogee, while the rocket is still
   climbing slowly.
 
 This motor has three times near the end of its burn, and they measure different things:
@@ -225,8 +222,8 @@ This motor has three times near the end of its burn, and they measure different 
 
 #### The fin set as a design file
 
-The last lines are the fin set as a design file stores it, in JSON.
-[As a design file](#as-a-design-file), below, explains the form.
+The last lines are the fin set in a design file's JSON.
+[As a design file](#as-a-design-file) explains the form.
 
 ## The program, step by step
 
@@ -537,9 +534,9 @@ It has eight steps.
    - A dimension named in a component's `auto` list is taken from the parts around it, and the
      value stored for it (0 here) is ignored. The nose's base radius and its shoulder's radius
      follow the airframe ([Automatic dimensions](physics/design.md#automatic-dimensions)). Other
-     parts can take theirs the same way: a tube fin set's `outer_radius_m`, for one, can be
-     automatic. Then three tubes or more are wide enough to touch the body and each other, and no
-     wider, closing the ring. One or two tubes take the body's radius.
+     parts can take theirs the same way: a tube fin set's `outer_radius_m`, for one. Then three
+     tubes or more are wide enough to touch the body and each other, and no wider, closing the ring.
+     One or two tubes take the body's radius.
    - Setting `motor_mount` makes a body tube or inner tube a motor mount. Its `overhang_m` is how
      far the nozzle sits aft of the mount's end.
    - <a id="packing"></a>A
@@ -568,7 +565,7 @@ It has eight steps.
    so `"h54"` finds this one too. `bundled_motor()` builds the motor from its thrust curve and the
    catalog's size and masses.
    - The [`MountedMotor`](api/hpr_design/config/struct.MountedMotor.html) names the mount by its
-     id, and carries the ejection delay and the case's diameter and length. It also says when the
+     id, and carries the ejection delay and the case's diameter and length. It says when the
      motor lights: `Ignition::Launch` here, and a later time for an air start or a sustainer
      ([Staging](physics/staging.md)).
    - The design checks compare the case with its mount. A case wider than the mount's bore is an
@@ -594,11 +591,10 @@ It has eight steps.
      [`Assembly`](api/hpr_design/config/struct.Assembly.html).
    - Its `mass_properties(t)` is the whole rocket `t` seconds after ignition, and
      `dry_mass_properties()` is the rocket with every motor spent.
-   - Each gives a mass, a CG and the moments of inertia (how hard the rocket is to turn), which
-     the flight needs. The CG, `cg_m`, is in the
-     [body frame](glossary.md#body-frame), whose origin is the nose tip and whose $z$ axis points
-     forward, out through the nose. So a point $s$ meters aft of the tip has $z = -s$, and the CG's
-     station is `−cg_m.z`.
+   - Each gives a mass, a CG and the moments of inertia, which the flight needs. The CG, `cg_m`, is
+     in the [body frame](glossary.md#body-frame), whose origin is the nose tip and whose $z$ axis
+     points forward, out through the nose. So a point $s$ meters aft of the tip has $z = -s$, and
+     the CG's station is `−cg_m.z`.
    - [`AeroModel::new`](api/hpr_aero/model/struct.AeroModel.html#method.new) builds the
      aerodynamic model from the placed parts. Its
      [`normal_force`](api/hpr_aero/model/struct.AeroModel.html#method.normal_force), at
@@ -619,7 +615,7 @@ It has eight steps.
      number at the end of every step, and the program takes the row with the highest airspeed.
      [Recording a trajectory](recording-a-trajectory.md) explains recorders.
 8. **The design file.** The end of the program writes the rocket as JSON, reads it back, and prints
-   the fin set's part of it. [As a design file](#as-a-design-file), below, explains.
+   the fin set's part of it. [As a design file](#as-a-design-file) explains.
 
 ## Design files
 
@@ -654,7 +650,7 @@ at the end of the output shows the rules:
   default; a cant spins the rocket
   ([Roll: forcing and damping](physics/aero.md#roll-forcing-and-damping)). `fillet` gives the fins'
   [fillets](glossary.md#fillet), a radius and a material. It isn't written when there are none,
-  which is why the output above has no `fillet` key. In Rust it's, for example,
+  so the output above has no `fillet` key. In Rust it's, for example,
   `fillet: Some(FinFillet { radius_m: 0.005, material: material("epoxy")? })`, with `FinFillet`
   added to the `use hpr_design::{…}` list.
 - A key the simulator doesn't know is refused, so a misspelt key is an error rather than silently
@@ -674,7 +670,7 @@ replace it and convert the repository's own designs.
 
 ### What else a design can hold
 
-The example leaves out several kinds of part and setting that a design can have:
+The example leaves out several kinds of part and setting a design can have:
 
 - More parts: transitions, centering rings (whose radii can be automatic), launch lugs, rail
   buttons, parachutes, streamers and shock cords. Fins can be elliptical or freeform too
@@ -750,19 +746,18 @@ What the example can't do yet, and where to go from here.
   ([Recovery: ejected pieces](physics/recovery.md#ejected-pieces), with the example
   [`ejected_pieces.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/ejected_pieces.rs)).
 - Mass that moves in flight is yours to declare too. To slide ballast or a payload along the
-  airframe during the flight, give the flight a `MassShift` for it with `Simulation::with_shifts`.
-  A shift gives the part's `id`, how far it moves (positive toward the tail), how long it takes,
-  and a trigger. The triggers are the same kinds a parachute has. The center of mass, the inertia
-  and the stability margin follow it, and `Simulation::mass_properties` tells you what they were
-  at any time.
+  airframe, give the flight a `MassShift` for it with `Simulation::with_shifts`. A shift gives the
+  part's `id`, how far it moves (positive toward the tail), how long it takes, and a trigger. The
+  triggers are the same kinds a parachute has. The center of mass, the inertia and the stability
+  margin follow it, and `Simulation::mass_properties` gives them at any time.
 - A shift must start after the rocket leaves the rail. A flight that separates or ejects pieces
   can't have one yet. Moving mass is checked against exact answers only
   ([Moving mass](physics/moving-mass.md), with the example
   [`moving_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/moving_ballast.rs)).
-- Mass released in flight is yours to declare too. To let ballast or a payload go during the
-  flight, give it a `MassRelease` with `Simulation::with_releases`. A release gives the part's
-  `id`, a trigger, and the part's own drag area once it's out. The rest flies on without it, and
-  the part falls to the ground on its own (`FlightResult::released`).
+- Mass released in flight is yours to declare too. To let ballast or a payload go, give it a
+  `MassRelease` with `Simulation::with_releases`. A release gives the part's `id`, a trigger, and
+  the part's own drag area once it's out. The rest flies on without it, and the part falls to the
+  ground on its own (`FlightResult::released`).
 - A release must come after the rocket leaves the rail. A flight can't combine one with a
   separation, ejected pieces or a mass shift yet. Check the stability margin after a release: the
   simulator doesn't warn. Released mass is checked against exact answers only
@@ -772,9 +767,9 @@ What the example can't do yet, and where to go from here.
   only catalog data, a motor's own CG stays at its mid-length, full or spent
   ([Solid motors](physics/motor.md)).
 - Tube fins fly as ring wings, below Mach 0.8, with three tubes or more. Tube fins are open tubes
-  that run along the body, touching it, in place of flat fins. Each tube's slope comes from a
-  cited ring-wing formula. Its center of pressure comes from Fletcher's wind-tunnel rings for short
-  tubes. For tubes longer than 1.5 diameters, the center of pressure comes from this project's own
+  that run along the body, touching it, in place of flat fins. Each tube's slope comes from a cited
+  ring-wing formula. Its center of pressure comes from Fletcher's wind-tunnel rings for short tubes.
+  For tubes longer than 1.5 diameters, the center of pressure comes from this project's own
   derivation, a judgment.
 - The tube fins' drag applies the flat fins' rules. No tube fin rocket has been checked against a
   measurement. HPR Sim's tube-fin drag probably reads low, so treat an apogee as high. On
@@ -784,7 +779,7 @@ What the example can't do yet, and where to go from here.
   fewer than three tubes, solid tubes, and tubes that overlap each other. It refuses a tube shorter
   than a third of its diameter, and tube fins on a pod or a tumbling airframe
   ([aerodynamics: Tube fins](physics/aero.md#tube-fins)).
-- Pods fly on Barrowman's rules, without their interference with the body. A
+- Pods fly on Barrowman's rules. A
   [pod set](physics/design.md#pods) gives each pod's parts their own normal force and drag, once
   per pod. It's as if the airframe didn't disturb the air around them. Nothing measured checks the
   pods yet, and a single pod's off-axis moments are left out
