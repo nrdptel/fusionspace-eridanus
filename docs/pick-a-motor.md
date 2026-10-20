@@ -227,7 +227,7 @@ Between the two flights above:
   the margin. Check it with every motor you might fly
   ([Check stability for a certification flight](stability-for-certification.md)).
 - The I377 takes the rocket past the speed of sound, Mach 1. The H125 stays well below it, and
-  the H170M, at Mach 0.842, barely reaches the range below. Between Mach 0.8 and 1.2, HPR Sim's
+  the H170M, at Mach 0.842, barely enters the range from Mach 0.8 to 1.2. In that range, HPR Sim's
   center of pressure is up to 2.36 calibers behind NASA's wind-tunnel data
   ([Known gaps](accuracy.md#known-gaps)). So its margin there reads high, and published guidance
   asks for a larger margin
@@ -246,7 +246,8 @@ when the parachute comes out.
 
 In the H125 flight above, the coast is 9.42 s, and the 10 s delay fires the charge 0.58 s after
 apogee. The H125 comes in delays of 8, 10, 12, 14 and 18 s, more than its file's header lists, so
-10 s is the nearest. The simulator flies any delay you give. Give one the maker sells, or one your motor's delay can be adjusted to.
+10 s is the nearest. The simulator flies any delay you give. Give one the maker sells, or one your
+motor's delay can be adjusted to.
 
 A delay is a burning fuse, and real ones vary from motor to motor. The simulator flies the stated
 time exactly. [Monte Carlo dispersion](monte-carlo.md), in the library, can scatter it.
