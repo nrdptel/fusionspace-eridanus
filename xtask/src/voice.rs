@@ -1110,17 +1110,20 @@ fn read_html(source: &str) -> Reading {
 /// stretch between entities gets its own mark, so a hit's line stays exact after an entity that
 /// decodes shorter than it's written.
 fn push_decoded(reading: &mut Reading, text: &str, source: usize) {
-    let mut at = 0;
-    while at < text.len() {
-        if let Some((c, written)) = decode_entity(&text[at..]) {
-            reading.push(c.encode_utf8(&mut [0; 4]), source + at);
-            at += written;
-            continue;
+    // The text is cut only before a `&` and after an entity's `;`, both one byte, so every cut
+    // falls between characters.
+    let mut piece = 0;
+    for end in text.match_indices('&').map(|(i, _)| i).chain([text.len()]) {
+        let part = &text[piece..end];
+        // A piece holds at most one entity, at its start, since it ends at the next `&`.
+        let written = decode_entity(part).map_or(0, |(c, written)| {
+            reading.push(c.encode_utf8(&mut [0; 4]), source + piece);
+            written
+        });
+        if written < part.len() {
+            reading.push(&part[written..], source + piece + written);
         }
-        // Up to the next `&` that isn't this one: no entity starts before it.
-        let end = text[at + 1..].find('&').map_or(text.len(), |i| at + 1 + i);
-        reading.push(&text[at..end], source + at);
-        at = end;
+        piece = end;
     }
 }
 
@@ -2046,6 +2049,16 @@ mod tests {
             ("b.html", "<p>x &rsquo; &bogus;\ny\nIt is pivotal.</p>", 3),
             ("c.html", "<p>x</p>&amp;\nIt is pivotal.", 2),
             ("e.html", "<p>x\nIt is &#112;ivotal.</p>", 2),
+            (
+                "f.html",
+                "<p>\u{E9}t\u{E9}\n\u{201C}x\u{201D} &amp;\u{E9}\nIt is pivotal.</p>",
+                3,
+            ),
+            (
+                "g.html",
+                "<p>x</p>\u{2014}&amp;\u{E9}&bogus;\u{E9}\nIt is pivotal.",
+                2,
+            ),
             (
                 "d.md",
                 "Intro.\n\n<div>\n&amp;\nIt is pivotal.\n</div>\n",
