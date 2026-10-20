@@ -514,6 +514,27 @@ mod tests {
         }
     }
 
+    /// The landing page's `.ork` section gives the same counts, in its own words.
+    #[test]
+    fn the_landing_page_quotes_the_counts() {
+        let total = report().total;
+        let root = crate::ork::root().unwrap();
+        let page = fs::read_to_string(root.join("docs/start-here.md")).unwrap();
+        let joined = page.split_whitespace().collect::<Vec<_>>().join(" ");
+        let sentence = format!(
+            "After that one fetch, {} of the {} fly as saved, {} more with \
+             `--accept-design-errors`, and {} are refused",
+            total.flies,
+            total.configurations,
+            total.flies_with_flag,
+            total.refused_total()
+        );
+        assert!(
+            joined.contains(&sentence),
+            "docs/start-here.md doesn't quote the report: {sentence}"
+        );
+    }
+
     #[test]
     fn a_hybrid_is_named_before_the_readers_reason() {
         assert!(is_hybrid(Some(" Hybrid ")));
