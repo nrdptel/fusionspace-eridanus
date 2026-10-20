@@ -36,6 +36,30 @@
 // highlighted as mdBook's script highlights a page's as it loads: each `code` but a heading's,
 // then marked `hljs` for its colors. The copy goes when printing ends. The page check places
 // them so before it reads the page on paper.
+//
+// A jump to a heading: each sheet off screen skips its layout until it nears the window, and one
+// never drawn stands in at 1,200 px (`hpr.css`), far short of a sheet on a phone, which at
+// 320 px is often tens of thousands of pixels tall. Under 520 px a heading jumped to stands
+// 190 px down the window, below the bar's two rows, so the window's top falls in the sheet
+// before it: the browser draws that sheet as it nears, keeps its top where it is, and the
+// heading moves down by all the sheet grew. At 320 px a link to *Accuracy so far* on the landing
+// page stopped about 11,000 px short of it. So before a jump, every sheet from the page's top
+// through the target's is drawn, and the jump lands where it would with nothing skipped. That's
+// on a click on a link into this page, before the browser follows it; on a page loaded with an
+// address that names a heading; and on a change of the address's heading without a click, such
+// as one typed in, when the heading is then out of the window. Two frames later the sheets skip
+// again, each at the height it was drawn at, so the page doesn't move and a tap still redraws
+// only what is on screen. The page check follows a link to each sheet's heading from the top of
+// each page at its narrowest width and fails a heading that doesn't land where it would with
+// nothing skipped.
+//
+// The sidebar's list at rest: mdBook scrolls it to put the current chapter in its middle, or to
+// keep a link just clicked where it was, and under 960 px the switch then takes the top of the
+// sidebar, which shortens the list. Wherever that leaves the list, an entry can sit cut by its
+// top edge, or from 960 px under the 4 px strip along the window's top. So as the page loads,
+// once its fonts are in and when the switch moves, an entry cut there is brought down to stand
+// whole, 4 px below the edge. The reader's own scrolling is left alone. The page check fails text
+// cut by the strip, or by the top of a box the page leaves scrolled as it loads.
 'use strict';
 
 document.addEventListener('click', function (event) {
@@ -175,4 +199,91 @@ document.addEventListener('click', function (event) {
         placed.forEach(function (node) { node.remove(); });
         placed = [];
     });
+})();
+
+(function () {
+    const main = document.querySelector('.content main');
+    const sheets = main ? Array.from(main.querySelectorAll('.fs-sheet')) : [];
+    if (!sheets.length) return;
+    const targetOf = function (hash) {
+        if (!hash || hash === '#') return null;
+        let id = hash.slice(1);
+        try {
+            id = decodeURIComponent(id);
+        } catch (e) {
+            // Not percent-encoded as an address would be: the id as written.
+        }
+        return document.getElementById(id) || document.getElementsByName(id)[0] || null;
+    };
+    // Draws each sheet that holds `target` or comes before it, until two frames have recorded
+    // each one's drawn height as the height it skips at.
+    const draw = function (target) {
+        const reach = sheets.filter(function (sheet) {
+            return sheet.contains(target)
+                || (sheet.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        });
+        // Drawn with the containment `auto` keeps, so each is as tall as when it draws itself.
+        reach.forEach(function (sheet) {
+            sheet.style.contentVisibility = 'visible';
+            sheet.style.contain = 'layout style paint';
+        });
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                reach.forEach(function (sheet) {
+                    sheet.style.removeProperty('content-visibility');
+                    sheet.style.removeProperty('contain');
+                });
+            });
+        });
+    };
+    let clicked = null;
+    document.addEventListener('click', function (event) {
+        const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+        if (!link) return;
+        const url = new URL(link.getAttribute('href'), document.baseURI);
+        if (url.origin !== location.origin || url.pathname !== location.pathname
+            || url.search !== location.search) return;
+        const target = targetOf(url.hash);
+        if (!target) return;
+        draw(target);
+        // The same heading again changes no address, so no `hashchange` follows to clear this.
+        clicked = url.hash === location.hash ? null : url.hash;
+    }, true);
+    window.addEventListener('hashchange', function () {
+        const target = targetOf(location.hash);
+        const followed = clicked === location.hash;
+        clicked = null;
+        if (!target || followed) return;
+        draw(target);
+        const top = target.getBoundingClientRect().top;
+        if (top < 0 || top >= window.innerHeight) target.scrollIntoView({ block: 'start' });
+    });
+    const first = targetOf(location.hash);
+    if (first) {
+        draw(first);
+        first.scrollIntoView({ block: 'start' });
+    }
+})();
+
+(function () {
+    const list = document.querySelector('#mdbook-sidebar .sidebar-scrollbox');
+    if (!list) return;
+    // The strip the system's theme fixes along the window's top, as the body's `::before`.
+    const strip = function () {
+        const before = window.getComputedStyle(document.body, '::before');
+        if (before.position !== 'fixed' || parseFloat(before.top) !== 0) return 0;
+        return parseFloat(before.height) || 0;
+    };
+    const settle = function () {
+        if (list.scrollTop <= 0) return;
+        const edge = Math.max(list.getBoundingClientRect().top, strip());
+        const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
+            const box = entry.getBoundingClientRect();
+            return box.top < edge && box.bottom > edge;
+        });
+        if (cut) list.scrollTop -= edge + 4 - cut.getBoundingClientRect().top;
+    };
+    settle();
+    if (document.fonts) document.fonts.ready.then(settle);
+    window.matchMedia('(min-width: 960px)').addEventListener('change', settle);
 })();

@@ -3,81 +3,87 @@
 # FusionSpace HPR
 [![vs RocketPy, same inputs: the gated metrics that pass](docs/images/census-badge.svg)](docs/accuracy.md#the-census) [![real flights: the mean apogee error against its target](docs/images/real-flights-badge.svg)](docs/accuracy.md#real-flights)
 
-[FusionSpace HPR · Sim](https://hpr.fusionspace.co/) (called hpr-sim before release 0.1) is an
-open-source flight simulator for hobby and high-power rockets, written in Rust, that you use as a
-library, from the command line or from Python.
+[FusionSpace HPR · Sim](https://hpr.fusionspace.co/) (called hpr-sim before release 0.1) flies a
+hobby or high-power rocket from the rail to the ground. It tells you how far to trust the numbers
+it gives. It's written in Rust, and you can use it from the command line, from Python or as a
+library. It's open source and works offline, and I built it to fit inside other projects. It's
+checked against independent simulators and real flights, and the results are published, misses
+included.
 
-**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward 0.2 goes on here.
-**Documentation: <https://hpr.fusionspace.co/>**, a searchable guide with the API reference
-(rustdoc) beside it.
+**Status: RELEASED.** Version 0.1.0, the first release, came out on October 8, 2026, and I'm
+working toward 0.2 here. The documentation is at <https://hpr.fusionspace.co/>: a searchable
+guide, with the API reference (rustdoc) beside it.
 
 ## What works today
 
-This is what `main` does; [the changelog](CHANGELOG.md) says what release 0.1.0 holds. Every model
-is cited and tested, and the simulator is measured against independent simulators and real flight
-data, with the results published ([Start here](docs/start-here.md#what-works-today) lists each
-part with its page).
+This is what `main` does, and [the changelog](CHANGELOG.md) says what release 0.1.0 holds. Every
+model cites its source and has tests.
+[Start here](docs/start-here.md#what-works-today) lists each part with its page.
 
-- Flight in six degrees of freedom (6-DOF: three of position, three of rotation), with variable
-  mass: aerodynamics from subsonic to supersonic, the standard atmosphere or a measured one, winds
-  that change with height, staging, clusters and air starts, and recovery with drift.
-- Rockets built part by part, with OpenRocket's catalog of 3,449 makers' parts built in, or read
-  from a design file.
-- OpenRocket `.ork` designs read whole and written back, and an open design format of its own
-  (`.hpr`, `.hprz`); `.eng` and `.rse` motors, 32 bundled, and any other fetched from
-  ThrustCurve.org once.
-- Online weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's GFS and RAP),
-  [a site's elevation](https://hpr.fusionspace.co/elevation.html) (Open-Meteo's, or from a
-  GeoTIFF terrain file of your own) and
-  [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html) from
+- It flies a rocket in six degrees of freedom (6-DOF), three of position and three of rotation,
+  with its mass changing in flight. The aerodynamics run from subsonic to supersonic. The air is
+  the standard atmosphere or a measured one, with winds that change with height. It covers
+  staging, clusters and air starts, and recovery with drift.
+- You build a rocket part by part, with OpenRocket's catalog of 3,449 makers' parts built in, or
+  read it from a design file.
+- It reads OpenRocket `.ork` designs whole and writes them back, and it has an open design format
+  of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: 32 are bundled, and any
+  other is fetched from ThrustCurve.org once.
+- Online data is optional: weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's
+  GFS and RAP), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
+  [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html). The elevation is
+  Open-Meteo's, or from a GeoTIFF terrain file of your own. Stock and prices come from
   [motor.fusionspace.co](https://motor.fusionspace.co), matched to ThrustCurve.org's thrust
-  curves, all optional. Everything else works offline on macOS, Windows and Linux.
-- [Monte Carlo dispersion](https://hpr.fusionspace.co/monte-carlo.html) (seeded and
-  reproducible), [sensitivity analysis](https://hpr.fusionspace.co/sensitivity.html) (Morris
-  screening and Sobol' indices) and [optimization](https://hpr.fusionspace.co/optimization.html)
-  of design numbers and choices (CMA-ES, NSGA-II's trade-offs between goals, and EGO for slow
-  models), in the library; `hpr mc` runs the Monte Carlo from the command line.
-- A flight log read on its own, with no design file, by its format's reader or by a mapping or
-  layout you write, and its liftoff, apogee, top speed and landing taken from any logger's
-  barometric altitude or pressure, each within a stated bound or withheld with the reason
-  (`hpr analyze`).
-- Flights exported as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and a Python package.
+  curves. Everything else works offline on macOS, Windows and Linux.
+- The library runs [Monte Carlo dispersion](https://hpr.fusionspace.co/monte-carlo.html), seeded
+  and reproducible, and [sensitivity analysis](https://hpr.fusionspace.co/sensitivity.html) by
+  Morris screening and Sobol' indices. It also does
+  [optimization](https://hpr.fusionspace.co/optimization.html) of design numbers and choices:
+  CMA-ES, NSGA-II's trade-offs between goals, and EGO for slow models. `hpr mc` runs the Monte
+  Carlo from the command line.
+- `hpr analyze` reads a flight log on its own, with no design file. It uses the format's own reader,
+  or a mapping or layout you write. From any logger's barometric altitude or pressure, it takes the
+  liftoff, apogee, top speed and landing. Each one comes within a bound held on synthetic flights, or it's withheld
+  with the reason.
+- It exports flights as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and there's a Python
+  package.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
 go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulated apogee missed by
-12.95% on average (mean absolute), outside the 5% target, and read high by 8.73% on average. It
+12.95% on average (mean absolute), outside the 5% target. On average it read high, by 8.73%. It
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
-safety officer (RSO) are authoritative. The 53 flights' weather is ERA5, generated using Copernicus
-Climate Change Service information 2026, and contains modified Copernicus Climate Change Service
-information 2026; neither the European Commission nor ECMWF is responsible for any use made of it.
+safety officer (RSO) are authoritative.
+
+The 53 flights' weather is ERA5, generated using Copernicus Climate Change Service information
+2026, and contains modified Copernicus Climate Change Service information 2026; neither the
+European Commission nor ECMWF is responsible for any use made of it.
 
 ## What doesn't work yet
 
-- Comparing a flight log with its simulation, and diagnosing what went wrong in a flight
-  (`hpr compare` and `hpr diagnose` refuse until then); searching a design from the command line
-  (`hpr optimize`).
+- Comparing a flight log with its simulation, or diagnosing what went wrong in a flight:
+  `hpr compare` and `hpr diagnose` refuse for now. Searching a design from the command line
+  (`hpr optimize`) refuses too.
 - RockSim, RASAero and RocketPy files; C and WebAssembly interfaces; a desktop, web or mobile app
   with 3D flight replay.
 - Motors other than commercial solid ones: no hybrids, liquids or research motors before
   release 1.0.
-- Effects left out of a flight: gusts (a turbulence model exists, but no flight uses it), the
-  rocket pitching as it leaves the rail, a motor's thrust off its axis, and a parachute's opening
-  shock.
-- Accuracy gaps: simulated apogees miss real flights' logged ones by more than the target
-  (above); drag past Mach 1 is lightly checked; only small angles of attack are modeled.
-  [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you are most likely to meet,
+- Effects a flight leaves out: gusts, the rocket pitching as it leaves the rail, a motor's thrust
+  off its axis, and a parachute's opening shock. A turbulence model exists, but no flight uses it.
+- Accuracy: simulated apogees miss real flights' logged ones by more than the target (above).
+  Drag past Mach 1 is lightly checked, and only small angles of attack are modeled.
+  [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you're most likely to meet,
   and [the roadmap](docs/ROADMAP.md) the order of the work.
 
 ## Accuracy at a glance
 
-What HPR Sim has been compared with, and how it came out. A "code-to-code" line says how closely HPR Sim
-agrees with another simulator, not which of the two is right; only the real flights are
-measurements, and on those HPR Sim misses its target. Each number behind this table is also a
-check: CI fails when one moves, better or worse, until the change is accepted with a written
-reason. CI flies the RocketPy comparisons again on every change; the OpenRocket and real-flight
-ones need files CI doesn't have, so it holds their committed numbers
+Here's what HPR Sim has been compared with, and how it came out. A "code-to-code" line says how
+closely HPR Sim agrees with another simulator, not which of the two is right. Only the real
+flights are measurements, and on those HPR Sim misses its target. Each number behind this table is
+also a check. CI fails when one moves, better or worse, until the change is accepted with a
+written reason. CI flies the RocketPy comparisons again on every change. The OpenRocket and
+real-flight ones need files CI doesn't have, so it holds their committed numbers
 ([the census](docs/accuracy.md#the-census)).
 
 <!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
@@ -93,8 +99,8 @@ ones need files CI doesn't have, so it holds their committed numbers
 
 <!-- census: end -->
 
-The census doesn't count 53 more real flights, from a private collection: HPR Sim's apogees are
-+8.73% above their logs on average and OpenRocket's +7.79%, both outside the 5% target
+The census doesn't count 53 more real flights, from a private collection. On those, HPR Sim's
+apogees are +8.73% above their logs on average and OpenRocket's +7.79%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
 "Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which
@@ -103,23 +109,23 @@ correct the point it takes the burn's turning moments about
 
 ## Install and first flight
 
-Release 0.1.0 is out:
+Release 0.1.0 is out, four ways:
 
-- **the command line:** the `fusionspace-hpr` archive for your system from
-  [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), or
-  `cargo install fusionspace-hpr-cli --locked`; either gives you the `hpr` command;
-- **the command line from a package manager:** `brew install nrdptel/tap/fusionspace-hpr` with
+- **The command line:** download the `fusionspace-hpr` archive for your system from
+  [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), or run
+  `cargo install fusionspace-hpr-cli --locked`. Either one gives you the `hpr` command.
+- **The command line from a package manager:** `brew install nrdptel/tap/fusionspace-hpr` with
   Homebrew, or Scoop on Windows
-  ([Install a release](https://hpr.fusionspace.co/getting-started.html#install-a-release));
-- **Python:** `pip install fusionspace-hpr`, then `from fusionspace import hpr`;
-- **a Rust program:** `cargo add fusionspace-hpr`, then `use hpr::…`.
+  ([Install a release](https://hpr.fusionspace.co/getting-started.html#install-a-release)).
+- **Python:** `pip install fusionspace-hpr`, then `from fusionspace import hpr`.
+- **A Rust program:** `cargo add fusionspace-hpr`, then `use hpr::…`.
 
 [Install a release](https://hpr.fusionspace.co/getting-started.html#install-a-release) has
 the details, and [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says
 what 0.1.0 does, how far to trust it, and its known gaps.
 
-To build it yourself instead, use a copy of this repository. You need [Git](https://git-scm.com) and
-[rustup](https://rustup.rs), Rust's installer; the first build fetches the pinned Rust version and
+To build it yourself instead, clone this repository. You need [Git](https://git-scm.com) and
+[rustup](https://rustup.rs), Rust's installer. The first build fetches the pinned Rust version and
 takes a few minutes.
 [Getting started](https://hpr.fusionspace.co/getting-started.html#what-you-need) lists what
 each operating system needs.
@@ -182,8 +188,8 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-The `help:`, `note:` and `warning:` lines go to standard error, the flight alone to standard
-output, so `> flight.txt` saves the flight and leaves them on the terminal. Then fly your own:
+The `help:`, `note:` and `warning:` lines go to standard error and the flight alone to standard
+output. So `> flight.txt` saves the flight and leaves them on the terminal. Then fly your own:
 `hpr sim my-rocket.ork`. A motor HPR Sim doesn't carry is fetched from ThrustCurve.org once, then
 flies offline. Three guides go further:
 [Fly your .ork](https://hpr.fusionspace.co/fly-your-ork.html),
@@ -192,16 +198,17 @@ flies offline. Three guides go further:
 
 ## Python
 
-`crates/hpr-py` builds `hpr`, a Python package over the library's builder: build a rocket part by
-part or read a design file, fly it, and get its recording as NumPy arrays. `pip install
-fusionspace-hpr` installs it from PyPI; [Python](https://hpr.fusionspace.co/python.html) says how
-to build and use it.
+`crates/hpr-py` builds `hpr`, a Python package over the library's builder. With it you build a
+rocket part by part or read a design file, fly it, and get its recording as NumPy arrays.
+`pip install fusionspace-hpr` installs it from PyPI, and
+[Python](https://hpr.fusionspace.co/python.html) says how to build and use it.
 
 ## The command line
 
-`hpr` is the command-line tool; [The command line](https://hpr.fusionspace.co/cli.html)
+`hpr` is the command-line tool, and [The command line](https://hpr.fusionspace.co/cli.html)
 shows each command's output. This table is generated from the commands the tool registers, so it
-lists only what exists: a "not yet" command refuses, with exit status 3, until its milestone.
+lists only what exists. A "not yet" command refuses, with exit status 3, until the milestone that
+builds it.
 
 <!-- cli: commands, written by `cargo xtask cli` from the registered commands; do not edit -->
 
@@ -222,12 +229,16 @@ lists only what exists: a "not yet" command refuses, with exit status 3, until i
 
 ## Where the details are
 
-[The documentation site](https://hpr.fusionspace.co/) has every page, searchable; the same pages
-read here on GitHub. [Start here](docs/start-here.md) says what works, what doesn't and how far to
-trust it; [Getting started](docs/getting-started.md) flies a first rocket;
-[Accuracy](docs/accuracy.md) has every validation result; each model's page gives its equations
-and sources. [The changelog](CHANGELOG.md) says what each release changed. `cargo xtask site`
-builds the site on your machine.
+[The documentation site](https://hpr.fusionspace.co/) has every page, and you can search it. The
+same pages read here on GitHub:
+
+- [Start here](docs/start-here.md) says what works, what doesn't and how far to trust it.
+- [Getting started](docs/getting-started.md) flies a first rocket.
+- [Accuracy](docs/accuracy.md) has every validation result.
+- Each model's page gives its equations and sources.
+- [The changelog](CHANGELOG.md) says what each release changed.
+
+`cargo xtask site` builds the site on your machine.
 
 ## Building
 
@@ -241,7 +252,7 @@ cargo deny check                        # dependency licenses, advisories and so
 cargo xtask site                        # build the documentation site and check its links
 ```
 
-`cargo test` also runs the design format's generated TypeScript and Python readers, so it needs
+`cargo test` also runs the design format's generated TypeScript and Python readers. So it needs
 Node.js 22.18 or later and Python 3.11 or later on the path
 ([TypeScript and Python](docs/format/hpr.md#typescript-and-python)).
 
@@ -259,31 +270,36 @@ cargo xtask refs verify   # re-hash everything against the pins
 cargo xtask refs doctor   # which tools and oracles work on this machine
 ```
 
-The workspace crates live under `crates/`; `docs/ARCHITECTURE.md` describes what each one is for.
-[The roadmap](docs/ROADMAP.md) lists open work and [its archive](docs/roadmap-done.md) what is
+The workspace's crates live under `crates/`, and `docs/ARCHITECTURE.md` says what each one is for.
+[The roadmap](docs/ROADMAP.md) lists the open work and [its archive](docs/roadmap-done.md) what's
 done.
 
 ## Design
 
-HPR Sim is part of FusionSpace, the project owner's family of rocketry tools, and follows its
-[product system](https://github.com/nrdptel/fusionspace-design/blob/main/product/README.md) (revision E, pinned at its October 14, 2026 commit `1b88597`): the rules for how its
-tools look, word things and show how far to trust a result. It changes how HPR Sim presents
-numbers, not how it computes them. [The decision record](docs/decisions/0164-the-fusionspace-product-system.md)
-says what is adopted, and [M0.6, the product system milestone](docs/decisions-and-roadmap.md#m0-6),
+HPR Sim is part of FusionSpace, my family of rocketry tools. It follows FusionSpace's
+[product system](https://github.com/nrdptel/fusionspace-design/blob/main/product/README.md): the
+rules for how its tools look, word things and show how far to trust a result. The system is pinned
+at revision E, its October 14, 2026 commit `1b88597`. It changes how HPR Sim presents numbers, not
+how it computes them. [The decision record](docs/decisions/0164-the-fusionspace-product-system.md)
+says what's adopted. The product system milestone ([M0.6](docs/decisions-and-roadmap.md#m0-6))
 brought the site, the command line, the plot and the exports in line with it.
 
-- The system's [principles](https://github.com/nrdptel/fusionspace-design/blob/main/product/principles.md) and [foundations](https://github.com/nrdptel/fusionspace-design/blob/main/product/foundations.md) apply to everything; the command line also follows
-  [`cli.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/cli.md), the documentation site [`web.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/web.md), and numbers, plots and
-  exports [`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md).
+- The system's [principles](https://github.com/nrdptel/fusionspace-design/blob/main/product/principles.md)
+  and [foundations](https://github.com/nrdptel/fusionspace-design/blob/main/product/foundations.md)
+  apply to everything. On top of them, the command line follows
+  [`cli.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/cli.md), the
+  documentation site [`web.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/web.md),
+  and numbers, plots and exports
+  [`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md).
 - The site's theme and fonts and the command line's color styles are the system's files, copied in
   unchanged with their license lines ([third-party notices](THIRD-PARTY-NOTICES.md)). The plot,
   the site's figures and the badges above use its
   [`tokens/`](https://github.com/nrdptel/fusionspace-design/blob/main/product/tokens/) colors
   and its fonts, Cascadia Mono and Archivo, and no others. `cargo xtask figures` fails an SVG
   that doesn't ([the rules](docs/writing.md#figures-in-the-systems-colors-and-fonts)).
-- The designation `FS-ACHERNAR · SW · TOOL 001` names HPR Sim like a part: Achernar, its internal
-  name, one of the stars of project Eridanus; then software, tool 1
-  ([ADR-198, project Eridanus](docs/decisions/0198-the-2026-10-07-project-eridanus.md)).
+- The designation `FS-ACHERNAR · SW · TOOL 001` names HPR Sim like a part. Achernar is its
+  internal name, one of the stars of project Eridanus, and then come software and tool 1
+  ([the decision that named it](docs/decisions/0198-the-2026-10-07-project-eridanus.md)).
   `hpr --version`, the site's title block and every file HPR Sim writes show it beside the version.
   Files stamped with the earlier `FS · SW · TOOL 005` still read.
 - Its [`review.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/review.md) checklist runs before each release.
@@ -299,8 +315,9 @@ Licensed under either of
 at your option. Third-party sources and their licenses are listed in
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-The FusionSpace name, its logo (four nose cones) and the banners in `.github/brand/` are the project
-owner's and are not covered by these licenses (see fusionspace-design's [`TRADEMARKS.md`](https://github.com/nrdptel/fusionspace-design/blob/main/TRADEMARKS.md)).
+The FusionSpace name, its logo (four nose cones) and the banners in `.github/brand/` are mine, and
+these licenses don't cover them (see fusionspace-design's
+[`TRADEMARKS.md`](https://github.com/nrdptel/fusionspace-design/blob/main/TRADEMARKS.md)).
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in
 the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any

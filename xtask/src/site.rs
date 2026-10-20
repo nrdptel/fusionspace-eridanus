@@ -315,7 +315,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
          the system's, no sidebar the menu button or a drag to the side leaves drawn, no page \
          arrows off the column or naming no page, no intro, sheet or theme switch off the system's and every switch \
-         setting the theme it is pressed for, no text mark drawn as an icon, every page \
+         setting the theme it is pressed for, no text mark drawn as an icon, no text or top \
+         rule hidden by the strip along the window's top or text cut by a box left scrolled, \
+         every link to a heading landing on it at the narrowest width, every page \
          printing in the light \
          theme's colors without navigation or anything fixed over its sheets, with its links' \
          addresses, its rows and title block whole, and every canary found",

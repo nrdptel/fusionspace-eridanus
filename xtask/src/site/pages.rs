@@ -101,7 +101,11 @@
 //!   - **a header off the system's** (`web.md`, *Page anatomy*; ADR-229): each lockup must be
 //!     24 px tall, filled in the ink role of the page's theme, drawn whole inside every box that
 //!     clips it and the window, and kept a quarter of its height (the brand's clear space) from
-//!     the window's sides and every icon and text in its header. The menu button is drawn at
+//!     the window's sides and every icon and text in its header. Where the page fixes a strip
+//!     along the window's top (the body's `::before`, as the system's theme draws its 4 px
+//!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
+//!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
+//!     the current chapter in its middle. The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -164,6 +168,13 @@
 //!     `scroll-padding-top` (2.4.11);
 //!   - and, as motion, a smooth scroll a script asks for when the menu bar's title is clicked, as
 //!     mdBook's does.
+//! - **A link to a heading that lands away from it**, read once a run, at its narrowest width,
+//!   on a page where something skips its layout off screen (`content-visibility: auto`, as each
+//!   sheet does in `theme/hpr.css`). Such a box stands in at its `contain-intrinsic-size` until
+//!   it is first drawn, so a jump worked out over stand-ins shorter than what they hold stops
+//!   short. In a frame of its own, from the top of the page and with each such box standing in
+//!   as on a fresh load, a link to each `h2` with an id is clicked, and two frames later the
+//!   heading must be within 2 px of where the same link puts it with nothing skipped.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -243,7 +254,11 @@
 //! one placed the other way round, one in its places with buttons 32 px tall, also read in the
 //! sidebar opened under 720 px, and, in the header at every width, one with buttons 32 px tall,
 //! one in Archivo, one
-//! with its pressed button unfilled and one drawn with scripts off; and an ordinary page
+//! with its pressed button unfilled and one drawn with scripts off; sheets that skip their layout
+//! off screen, which a link to the last one's name stops short of; a box's top rule under a
+//! strip fixed along the window's top and one below it, which must pass, and a list the page
+//! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
+//! must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -388,6 +403,12 @@ fn print_width(checked: &[u32]) -> u32 {
         .unwrap_or(0)
 }
 
+/// The narrowest width of `checked`, where links to each page's headings are followed; 0 for
+/// none.
+fn landing_width(checked: &[u32]) -> u32 {
+    checked.iter().copied().min().unwrap_or(0)
+}
+
 /// Which of [`widths`] one run checks: part `index` of `count`, so CI can spread the check over
 /// several machines. The parts interleave (part 1 of 3 takes the 1st, 4th, 7th width and so on),
 /// so each runs from the narrowest widths to the widest and the parts take about as long; every
@@ -499,7 +520,9 @@ enum Kind {
     /// clear space; no menu button; a sidebar put away from 720 px on a first visit, one the menu
     /// button or a drag to the window's side doesn't put away, or one a screen reader or the
     /// keyboard reaches while put away, or can't while drawn (#384); a search field that opens
-    /// off the column or less than 16 px above the page.
+    /// off the column or less than 16 px above the page; text or a top rule under the strip
+    /// fixed along the window's top, or text cut by the top edge of a box the page leaves
+    /// scrolled as it loads.
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, its edges off the column's, or something drawn below it (#384).
@@ -527,10 +550,14 @@ enum Kind {
     /// switch doesn't offer; pressing Dark, then Auto, not setting the theme; or a theme saved
     /// that it doesn't offer, Coal, not forgotten for Auto (#384, #429).
     Switch,
+    /// A link to a heading that leaves it away from where the same link puts it with nothing
+    /// skipping its layout: a jump worked out over boxes standing in, off screen, at a height
+    /// short of what they hold (`content-visibility: auto`).
+    Landing,
 }
 
 impl Kind {
-    const ALL: [Kind; 27] = [
+    const ALL: [Kind; 28] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -558,6 +585,7 @@ impl Kind {
         Kind::Print,
         Kind::Sheet,
         Kind::Switch,
+        Kind::Landing,
     ];
 
     fn describe(self) -> &'static str {
@@ -589,6 +617,7 @@ impl Kind {
             Kind::Print => "a page that prints off the system's",
             Kind::Sheet => "an intro or a sheet off the system's",
             Kind::Switch => "a theme switch off the system's",
+            Kind::Landing => "a link to a heading that lands away from it",
         }
     }
 }
@@ -980,6 +1009,58 @@ macro_rules! sheets {
     };
 }
 
+/// Five sheets, each taller than the 1,200 px `theme/hpr.css` lets one stand in at while it is
+/// off screen and skips its layout, the last named under an id a link can reach, for the landing
+/// canaries. The browser draws a sheet or two below the window as the page loads, so the last's
+/// link crosses sheets still standing in. A heading jumped to stands 96 px down the window, as
+/// the site's do under 520 px (`fusionspace-mdbook.css`, `:target`), so the window's top falls in
+/// the sheet before it: the browser keeps that sheet's top where it is as it is drawn, and the
+/// heading moves down.
+macro_rules! skipping_sheets {
+    () => {
+        concat!(
+            sheets!(
+                "<style>.fs-sheet { content-visibility: auto; contain-intrinsic-size: auto \
+                 1200px; } .fs-sheet-body { min-height: 6000px; } :target { scroll-margin-top: \
+                 96px; }</style>",
+                "SHEET 1 / 5",
+                "SHEET 2 / 5"
+            ),
+            "<section class=\"fs-sheet\"><div class=\"fs-sheet-rail\"><span \
+             class=\"fs-sheet-no\">SHEET 3 / 5</span><h2>The third sheet</h2></div><div \
+             class=\"fs-sheet-body\"><p>Its text.</p></div></section><section \
+             class=\"fs-sheet\"><div class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">SHEET \
+             4 / 5</span><h2>The fourth sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
+             text.</p></div></section><section class=\"fs-sheet\"><div \
+             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">SHEET 5 / 5</span><h2 \
+             id=\"the-last-sheet\">The last sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
+             text.</p></div></section>"
+        )
+    };
+}
+
+/// A 4 px strip fixed along the window's top, as the system's mdBook theme draws its gradient,
+/// in the ink, and a box with a top rule fixed near it (`.rule`), on screen, for the strip
+/// canaries.
+macro_rules! strip {
+    () => {
+        "<style>@media screen { body::before { content: \"\"; position: fixed; top: 0; left: 0; \
+         right: 0; height: 4px; background: #0B0F1C; z-index: 1000; } .rule { position: fixed; \
+         right: 16px; width: 40px; height: 16px; border-top: 1px solid #0B0F1C; } }</style>"
+    };
+}
+
+/// A box of eight lines that scrolls up and down, and the start of the script that scrolls it
+/// as the page loads, to the number of pixels that follows, for the list canaries.
+macro_rules! scrolled_list {
+    () => {
+        "<div style=\"height: 96px; overflow-y: auto\"><p style=\"margin: 0\">Launch-day \
+         weather<br>Weather-balloon soundings<br>Forecasts<br>Motors<br>Recovery<br>Staging<br>\
+         Moving mass<br>Released mass</p></div><script>\
+         document.currentScript.previousElementSibling.scrollTop = "
+    };
+}
+
 /// The theme switch's buttons as `switch.rs` writes them, Auto pressed, as `theme/hpr.js` marks
 /// it for a first-time reader.
 macro_rules! switch_buttons {
@@ -1121,7 +1202,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 181] = [
+const CANARIES: [Canary; 186] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2271,6 +2352,42 @@ const CANARIES: [Canary; 181] = [
         after: "",
     },
     Canary {
+        file: "canary-landing-short.html",
+        what: "sheets that skip their layout off screen, which a link to the last one's name \
+               stops short of",
+        expect: &[Kind::Landing],
+        inside: skipping_sheets!(),
+        after: "",
+    },
+    Canary {
+        file: "canary-strip-rule.html",
+        what: "a box's top rule under a 4 px strip fixed along the window's top",
+        expect: &[Kind::Header],
+        inside: "",
+        after: concat!(strip!(), "<div class=\"rule\" style=\"top: 2px\"></div>"),
+    },
+    Canary {
+        file: "canary-strip-clear.html",
+        what: "the same box with its rule below the strip, which must pass",
+        expect: &[],
+        inside: "",
+        after: concat!(strip!(), "<div class=\"rule\" style=\"top: 6px\"></div>"),
+    },
+    Canary {
+        file: "canary-list-cut.html",
+        what: "a list the page leaves scrolled as it loads, its top line cut by its edge",
+        expect: &[Kind::Header],
+        inside: "",
+        after: concat!(scrolled_list!(), "10;</script>"),
+    },
+    Canary {
+        file: "canary-list-whole.html",
+        what: "the same list scrolled to a line's edge, which must pass",
+        expect: &[],
+        inside: "",
+        after: concat!(scrolled_list!(), "24;</script>"),
+    },
+    Canary {
         file: "canary-chip-released.html",
         what: "a RELEASED chip drawn as the system's, which must pass",
         expect: &[],
@@ -3082,6 +3199,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     let plan = serde_json::json!({
         "widths": checked,
         "print_width": print_width(&checked),
+        "landing_width": landing_width(&checked),
         "height": HEIGHT_PX,
         "parallel": FRAMES_PER_TAB,
     })
@@ -3281,9 +3399,18 @@ struct Measured {
     theme_switch: Vec<Style>,
     #[serde(default)]
     theme_switch_count: usize,
+    /// The headings a link leaves away from where it lands with nothing skipped.
+    #[serde(default)]
+    landing: Vec<Style>,
+    #[serde(default)]
+    landing_count: usize,
     /// Whether the page was read on paper at this width, as at one width of each run.
     #[serde(default)]
     printed: bool,
+    /// Whether links to the page's headings were followed at this width, as at one width of
+    /// each run.
+    #[serde(default)]
+    landed: bool,
 }
 
 impl Measured {
@@ -3316,6 +3443,7 @@ impl Measured {
             Kind::Print => self.print_count > 0,
             Kind::Sheet => self.sheet_count > 0,
             Kind::Switch => self.theme_switch_count > 0,
+            Kind::Landing => self.landing_count > 0,
         }
     }
 
@@ -3398,6 +3526,7 @@ impl Measured {
             Kind::Print => Style::list(&self.print),
             Kind::Sheet => Style::list(&self.sheet),
             Kind::Switch => Style::list(&self.theme_switch),
+            Kind::Landing => Style::list(&self.landing),
         }
     }
 }
@@ -3541,6 +3670,11 @@ fn page_problems(page: &str, measured: &[Measured], step_px: u32) -> Vec<String>
             "{page}: was not read on paper at exactly one width of the run"
         ));
     }
+    if failed.is_empty() && measured.iter().filter(|m| m.landed).count() != 1 {
+        problems.push(format!(
+            "{page}: its links to its headings were not followed at exactly one width of the run"
+        ));
+    }
     for kind in Kind::ALL {
         let hit: Vec<&Measured> = measured
             .iter()
@@ -3561,8 +3695,9 @@ fn page_problems(page: &str, measured: &[Measured], step_px: u32) -> Vec<String>
 }
 
 /// Whether a canary was found as it should be: each problem it expects at every width, no other.
-/// What prints is read at one width of the run, so a print problem is expected there only, and
-/// a run that never read the canary on paper is broken.
+/// What prints is read at one width of the run, and links to headings are followed at one, so a
+/// print problem or a heading a link misses is expected there only, and a run that never read the
+/// canary on paper or never followed its links is broken.
 fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> {
     let broken = |what: String| {
         format!(
@@ -3580,6 +3715,7 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
         for kind in Kind::ALL {
             let expected = canary.expect.contains(&kind)
                 && (kind != Kind::Print || m.printed)
+                && (kind != Kind::Landing || m.landed)
                 && (!PRESSED.contains(&canary.file) || m.printed);
             if m.has(kind) != expected {
                 let verb = if expected {
@@ -3603,6 +3739,12 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
     if measured.iter().filter(|m| m.printed).count() != 1 {
         return Err(broken(
             "was not read on paper at exactly one width of the run".to_string(),
+        ));
+    }
+    if measured.iter().filter(|m| m.landed).count() != 1 {
+        return Err(broken(
+            "did not have its links to its headings followed at exactly one width of the run"
+                .to_string(),
         ));
     }
     Ok(())
@@ -4303,11 +4445,12 @@ mod tests {
             .map(|_| r#"{"a":"Apogee","b":"Top speed","width":40,"height":12}"#.to_owned())
             .collect();
         format!(
-            r#"{{"width":{width},"error":null,"printed":{printed},"client_width":{cw},"scroll_width":{scroll},
+            r#"{{"width":{width},"error":null,"printed":{printed},"landed":{landed},"client_width":{cw},"scroll_width":{scroll},
             "past":[{past_list}],"past_count":{past},"cut":[{cut_list}],"cut_count":{cut},
             "overlaps":[{overlap_list}],"overlap_count":{overlap}}}"#,
             cw = width - 15,
             printed = width == PRINT_PX,
+            landed = width == NARROWEST_PX,
             past_list = examples(past, "right"),
             cut_list = examples(cut, "lost"),
             overlap_list = overlaps.join(","),
@@ -4719,6 +4862,61 @@ mod tests {
             );
             let err = canary_verdict(canary("canary-mark-words.html"), &measured).unwrap_err();
             assert!(err.contains("was not read on paper"), "{err}");
+        }
+    }
+
+    #[test]
+    fn links_to_headings_are_followed_once_at_the_narrowest_width() {
+        assert_eq!(landing_width(&widths()), NARROWEST_PX);
+        assert_eq!(landing_width(&[1040, 400, 680]), 400);
+        assert_eq!(landing_width(&[]), 0);
+        let missed = r#""overlap_count":0,"landing":[{"selector":"h2#accuracy-so-far","property":"top after a link to it","value":"10982 px down the window, where it lands at 190 px with nothing skipped","theme":"320 px"}],"landing_count":1}"#;
+        let body = page_json("start-here.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            if w == NARROWEST_PX {
+                plain.replacen("\"overlap_count\":0}", missed, 1)
+            } else {
+                plain
+            }
+        });
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
+        assert_eq!(
+            page_problems(&page, &measured, STEP_PX),
+            [
+                "start-here.html: a link to a heading that lands away from it at 320 px; at \
+                 320 px, `h2#accuracy-so-far` has top after a link to it `10982 px down the \
+                 window, where it lands at 190 px with nothing skipped` (320 px)"
+            ]
+        );
+        // The canary that misses shows it at the one width its links are followed, and passes;
+        // one that expects nothing fails.
+        let short = canary("canary-landing-short.html");
+        assert_eq!(short.expect, &[Kind::Landing]);
+        assert!(canary_verdict(short, &measured).is_ok());
+        let err = canary_verdict(canary("canary-ordinary.html"), &measured).unwrap_err();
+        assert!(
+            err.contains("at 320 px: `a link to a heading that lands away from it` was found"),
+            "{err}"
+        );
+        // Not followed at all, or at two widths: the check is broken, and a page fails.
+        for landed in [&[][..], &[320, 360][..]] {
+            let body = page_json("start-here.html", |w| {
+                width_json(w, w - 15, 0, 0, 0).replacen(
+                    &format!("\"landed\":{}", w == NARROWEST_PX),
+                    &format!("\"landed\":{}", landed.contains(&w)),
+                    1,
+                )
+            });
+            let (page, measured) = parse_results(&body, &widths()).unwrap();
+            assert_eq!(
+                page_problems(&page, &measured, STEP_PX),
+                [
+                    "start-here.html: its links to its headings were not followed at exactly \
+                     one width of the run"
+                ]
+            );
+            let err = canary_verdict(canary("canary-ordinary.html"), &measured).unwrap_err();
+            assert!(err.contains("links to its headings"), "{err}");
         }
     }
 

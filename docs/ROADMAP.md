@@ -134,9 +134,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55). Each
   rewriting increment's PR shows every changed page before and after, and its cold reader checks
   each page against each voice rule, every finding fixed or filed (ADR-284 §7).
-  - [ ] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the guides'
-    landing pages, fusionspace.co, the design repo's README, the profile README and ADR-284 §5's
-    About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
+  - [ ] [blocked] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the
+    guides' landing pages, fusionspace.co, the design repo's README, the profile README and
+    ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
+    Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged.
   - [ ] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
     passes `xtask voice` in CI, within its limits and `writing.md`'s sentence targets, with an
     acceptance pass.

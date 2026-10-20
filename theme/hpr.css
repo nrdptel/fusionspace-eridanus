@@ -198,6 +198,15 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--fs-canvas); background: var(--fs-ink); }
 #mdbook-menu-bar .right-buttons:has(> #mdbook-theme-list) { display: flex; align-items: center; }
 #mdbook-menu-bar #mdbook-theme-list.fs-seg { margin-inline-end: 8px; }
+/* From 960 px the header's row holds the switch, 46 px tall in mdBook's 50 px bar, and the 4 px
+   strip fixed along the window's top (`fusionspace-mdbook.css`) would cover its top rule. There
+   the bar takes a 4 px top border, under the strip, so its row is drawn below the strip, as the
+   system's page anatomy puts the header; the scroll padding grows by as much, so a heading jumped
+   to still clears the bar. The page check fails a top rule or text under the strip. */
+@media only screen and (min-width: 960px) {
+    #mdbook-menu-bar { border-top: 4px solid transparent; }
+    html { scroll-padding-top: calc(var(--menu-bar-height) + 5px); }
+}
 .sidebar > #mdbook-theme-list.fs-seg { position: absolute; top: 10px; left: 10px; }
 .sidebar:has(> #mdbook-theme-list) > .sidebar-scrollbox { top: 66px; }
 html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }

@@ -81,6 +81,26 @@
     });
   }
 
+  // How long one animation frame of the landing probe may take, in milliseconds.
+  const FRAME_TIMEOUT_MS = 30000;
+
+  function twoFrames(win) {
+    // Two animation frames, with no timer standing in for one that doesn't come: the landing
+    // probe reads what those frames draw, and one skipped would read a jump before the page
+    // moves. A frame that never comes fails the probe.
+    return new Promise(function (resolve, reject) {
+      const timer = setTimeout(function () {
+        reject(new Error('a frame did not come in ' + FRAME_TIMEOUT_MS / 1000 + ' s'));
+      }, FRAME_TIMEOUT_MS);
+      win.requestAnimationFrame(function () {
+        win.requestAnimationFrame(function () {
+          clearTimeout(timer);
+          resolve();
+        });
+      });
+    });
+  }
+
   const INFINITE = { x0: -Infinity, x1: Infinity, y0: -Infinity, y1: Infinity };
 
   function intersect(a, b) {
@@ -1640,6 +1660,7 @@
       }
     }
     probeHeader(win, doc, note);
+    probeTop(win, doc, note);
     probeNoScript(win, doc, note);
     probeFallbacks(win, doc, note);
     probeTitleBlock(win, doc, note);
@@ -1655,6 +1676,92 @@
     const r = el.getBoundingClientRect();
     return r.width > HIDDEN_BOX_PX && r.height > HIDDEN_BOX_PX
       && win.getComputedStyle(el).visibility !== 'hidden';
+  }
+
+  // The window's top as the page loads (`web.md`, *Page anatomy*, which puts the header under
+  // the strip). Where the page fixes a strip along the window's top (the body's `::before`, as
+  // the system's theme draws its 4 px gradient), no box may have its top rule under it while the
+  // box shows below it, and no text may show cut by it. And in a box that scrolls up and down and
+  // that the page left scrolled as it loaded, as mdBook leaves its sidebar's list with the
+  // current chapter in its middle, no text may show cut by the box's top edge, where the reader
+  // didn't put it. Text wholly out of sight, under the strip or above the edge, is not cut.
+  function probeTop(win, doc, note) {
+    const round = function (v) { return Math.round(v * 10) / 10; };
+    const view = { x0: 0, x1: win.innerWidth, y0: 0, y1: win.innerHeight };
+    const rect = function (r) { return { x0: r.left, x1: r.right, y0: r.top, y1: r.bottom }; };
+    const empty = function (b) { return b.x1 - b.x0 <= SLACK_PX || b.y1 - b.y0 <= SLACK_PX; };
+    // The part of `r` inside every box from `from` up that clips it, up to a fixed box, which
+    // nothing outside it clips; and inside the window, unless `below` (a box below the window
+    // shows as it loaded once the page is scrolled to it).
+    const seen = function (from, r, below) {
+      let box = below ? rect(r) : intersect(rect(r), view);
+      for (let a = from; a && a !== doc.body && a !== doc.documentElement; a = a.parentElement) {
+        const s = win.getComputedStyle(a);
+        if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
+          const b = a.getBoundingClientRect();
+          const left = b.left + a.clientLeft, top = b.top + a.clientTop;
+          box = intersect(box, { x0: left, x1: left + a.clientWidth, y0: top,
+            y1: top + a.clientHeight });
+        }
+        if (s.position === 'fixed') break;
+      }
+      return box;
+    };
+    const visible = function (el) {
+      const s = win.getComputedStyle(el);
+      return s.visibility !== 'hidden' && s.opacity !== '0';
+    };
+    const before = win.getComputedStyle(doc.body, '::before');
+    const strip = before.content !== 'none' && before.position === 'fixed'
+      && parseFloat(before.top) === 0 ? parseFloat(before.height) || 0 : 0;
+    // Each line of an element's own text whose top is out of sight while the rest shows: `scrolled`
+    // names the edge of the scrolled box that hides it, for a line inside one.
+    const cutLines = function (el, scrolled) {
+      for (const n of Array.from(el.childNodes)) {
+        if (n.nodeType !== 3 || !/\S/.test(n.data)) continue;
+        const range = doc.createRange();
+        range.selectNodeContents(n);
+        for (const r of Array.from(range.getClientRects())) {
+          if (r.width === 0 || r.height === 0) continue;
+          const shown = seen(el, r, scrolled !== null);
+          const under = shown.y0 < strip;
+          if (under) shown.y0 = strip;
+          if (empty(shown) || shown.y0 <= r.top + SLACK_PX) continue;
+          const by = under ? 'the ' + strip + ' px strip along the window\'s top'
+            : scrolled === null ? null : 'the top of the box it scrolls in, at '
+              + round(scrolled) + ' px, as the page loads';
+          if (by) note('header', selector(el), 'text', '"' + snippet(n.data) + '" cut by ' + by);
+        }
+      }
+    };
+    const all = Array.from(doc.body.querySelectorAll('*'));
+    if (strip > 0) {
+      for (const el of all) {
+        const r = el.getBoundingClientRect();
+        if (r.top >= strip || r.bottom <= 0 || r.width === 0 || !visible(el)) continue;
+        const s = win.getComputedStyle(el);
+        const rule = parseFloat(s.borderTopWidth);
+        const box = seen(el.parentElement, r);
+        if (rule > 0 && s.borderTopStyle !== 'none' && s.borderTopStyle !== 'hidden'
+          && !/^(transparent|rgba\(.*,\s*0\))$/.test(s.borderTopColor)
+          && box.y0 < strip && box.y1 > strip + rule && !empty(box)) {
+          note('header', selector(el), 'top rule', 'at ' + round(r.top) + ' px, under the '
+            + strip + ' px strip along the window\'s top');
+        }
+        cutLines(el, null);
+      }
+    }
+    for (const box of all) {
+      if (box.scrollTop <= 0) continue;
+      const y = win.getComputedStyle(box).overflowY;
+      if (y !== 'auto' && y !== 'scroll') continue;
+      const edge = box.getBoundingClientRect().top + box.clientTop;
+      for (const el of [box].concat(Array.from(box.querySelectorAll('*')))) {
+        // A line the strip cuts was noted with the strip's.
+        if (!visible(el) || (strip > 0 && el.getBoundingClientRect().top < strip)) continue;
+        cutLines(el, edge);
+      }
+    }
   }
 
   // The header (#384; `web.md`, *Page anatomy*). Each lockup (`.fs-lockup`, which `xtask site`
@@ -2515,8 +2622,94 @@
   // The mark on a box the check draws though `content-visibility: auto` would skip it.
   const SHOWN = 'data-hpr-shown';
 
-  // `printed`: whether this width reads the page on paper too.
-  function check(page, width, height, printed) {
+  // A link to a heading must land on it (`theme/hpr.css`, `theme/hpr.js`). A box with
+  // `content-visibility: auto` skips its layout while it is off screen and stands in at its
+  // `contain-intrinsic-size` until it is first drawn, so a jump worked out over stand-ins shorter
+  // than what they hold stops short once those near the window are drawn. Read once a run, at
+  // its narrowest width, on a page where something skips, in a frame of its own, since `check`
+  // draws every such box. From the top of the page, each box back at its stand-in as on a fresh
+  // load, a link to each `h2` with an id is clicked; two frames later the heading must sit
+  // within LANDING_PX of where the same link puts it with nothing skipped.
+  const LANDING_PX = 2;
+  // The mark on a box the landing probe finds skipping.
+  const SKIPS = 'data-hpr-skips';
+
+  async function probeLanding(page, width, height, result) {
+    const note = function (sel, value) {
+      result.landing_count++;
+      if (result.landing.length < EXAMPLES) {
+        result.landing.push({ selector: sel, property: 'top after a link to it', value: value,
+          theme: width + ' px' });
+      }
+    };
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
+      + 'width:' + width + 'px;height:' + height + 'px';
+    let timer = null;
+    const loaded = new Promise(function (resolve) {
+      frame.addEventListener('load', function () { resolve(true); }, { once: true });
+      timer = setTimeout(function () { resolve(false); }, LOAD_TIMEOUT_MS);
+    });
+    frame.src = '/' + page;
+    document.body.appendChild(frame);
+    try {
+      if (!(await loaded)) {
+        note('html', 'not read: the page did not load again in ' + LOAD_TIMEOUT_MS / 1000 + ' s');
+        return;
+      }
+      const w = frame.contentWindow;
+      const d = frame.contentDocument;
+      const faces = Array.from(d.fonts);
+      await Promise.all(faces.map(function (f) { return f.load().catch(function () {}); }));
+      await d.fonts.ready;
+      await twoFrames(w);
+      const main = d.querySelector('main') || d.body;
+      for (const el of d.querySelectorAll('*')) {
+        if (w.getComputedStyle(el).contentVisibility === 'auto') el.setAttribute(SKIPS, '');
+      }
+      // `hidden` with no `auto` size forgets the size each box was last drawn at, so once it is
+      // taken away each stands in again until it nears the window; `visible` with the
+      // containment `auto` keeps draws each as it is on screen.
+      const forget = d.createElement('style');
+      forget.textContent = '[' + SKIPS + '] { content-visibility: hidden !important; '
+        + 'contain-intrinsic-size: none !important; }';
+      const shown = d.createElement('style');
+      shown.textContent = '[' + SKIPS + '] { content-visibility: visible !important; '
+        + 'contain: layout style paint !important; }';
+      for (const heading of Array.from(main.querySelectorAll('h2[id]'))) {
+        w.history.replaceState(null, '', w.location.pathname + w.location.search);
+        w.scrollTo(0, 0);
+        d.head.appendChild(forget);
+        await twoFrames(w);
+        forget.remove();
+        await twoFrames(w);
+        await twoFrames(w);
+        const link = d.createElement('a');
+        link.href = '#' + encodeURIComponent(heading.id);
+        main.insertBefore(link, main.firstChild);
+        link.click();
+        link.remove();
+        await twoFrames(w);
+        await twoFrames(w);
+        const got = heading.getBoundingClientRect().top;
+        d.head.appendChild(shown);
+        heading.scrollIntoView({ block: 'start' });
+        const want = heading.getBoundingClientRect().top;
+        shown.remove();
+        if (Math.abs(got - want) > LANDING_PX) {
+          note(selector(heading), Math.round(got) + ' px down the window, where it lands at '
+            + Math.round(want) + ' px with nothing skipped');
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+      frame.remove();
+    }
+  }
+
+  // `printed`: whether this width reads the page on paper too; `landed`: whether it follows
+  // links to the page's headings.
+  function check(page, width, height, printed, landed) {
     return new Promise(function (resolve) {
       const frame = document.createElement('iframe');
       frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
@@ -2585,6 +2778,12 @@
           if (printed) await probeSwitchPress(win, doc, result);
           if (printed) await probeSwitchRetired(win, doc, result);
           result.printed = printed;
+          result.landing = [];
+          result.landing_count = 0;
+          if (landed && doc.querySelector('[' + SHOWN + ']')) {
+            await probeLanding(page, width, height, result);
+          }
+          result.landed = landed;
           for (const off of await probeSearch(win, doc)) {
             result.header_count++;
             if (result.header.length < EXAMPLES) result.header.push(off);
@@ -2631,7 +2830,7 @@
         while (next < plan.widths.length) {
           const i = next++;
           results[i] = await check(page, plan.widths[i], plan.height,
-            plan.widths[i] === plan.print_width);
+            plan.widths[i] === plan.print_width, plan.widths[i] === plan.landing_width);
         }
       };
       const workers = [];
