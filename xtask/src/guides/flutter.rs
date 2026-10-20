@@ -447,8 +447,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![fixed(r.number(REPORT, "/unfailed_mach")?, 1)]),
         },
         Quote {
-            template: "has {} fins of {}, {} thick, with a {} root chord, a {} tip chord and a {} \
-                       span",
+            template: "has {} fins of {}, {} thick. Each fin has a {} root chord, a {} tip chord \
+                       and a {} span",
             holes: |r| {
                 Ok(vec![
                     r.count(REPORT, "/fins/count")?.to_string(),
@@ -484,7 +484,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "the criterion puts their flutter speed at {}, Mach {}",
+            template: "The criterion puts their flutter speed at {}, Mach {}",
             holes: |r| {
                 let at = r.number(REPORT, "/flutter_speed_m_s")?;
                 let sound = r.number(REPORT, "/launch/speed_of_sound_m_s")?;
@@ -492,7 +492,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "On the faster of its motors, the rocket reaches {}, Mach {}",
+            template: "The rocket reaches {}, Mach {}, on the faster of its motors",
             holes: |r| {
                 let flight = closest(r)?;
                 Ok(vec![
@@ -512,7 +512,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "At its max q, {} kPa, the flutter speed is {}",
+            template: "At max q, {} kPa, the flutter speed is {}",
             holes: |r| {
                 let flight = closest(r)?;
                 Ok(vec![
@@ -529,7 +529,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![needed(thickness_for_airspeed(r)?)]),
         },
         Quote {
-            template: "The band runs at a ratio of {} to {}, a flutter speed {} to {} times the \
+            template: "It runs at a ratio of {} to {}, a flutter speed {} to {} times the \
                        speed of sound",
             holes: |r| {
                 let [low, high] = band(r)?;
@@ -553,11 +553,11 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "to plot below it with the same outline, they would have to be {} thick",
+            template: "To plot below it with the same outline, they would have to be {} thick",
             holes: |r| Ok(vec![needed(thickness_below_band(r)?)]),
         },
         Quote {
-            template: "the rocket tops out at Mach {}",
+            template: "The rocket tops out at Mach {}",
             holes: |r| {
                 let flight = closest(r)?;
                 Ok(vec![fixed(
@@ -575,7 +575,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "the halved constant puts the guides' rocket's flutter speed at {}, and the \
+            template: "The halved constant puts the guides' rocket's flutter speed at {}, and the \
                        ratio at max q at {}",
             holes: |r| {
                 let flight = closest(r)?;

@@ -95,7 +95,29 @@ const REFERENCE: [&str; 4] = [
 
 /// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
 /// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 3] = ["README.md", "docs/start-here.md", "docs/the-simulator.md"];
+const HELD: [&str; 19] = [
+    // M0.14b, the front doors.
+    "README.md",
+    "docs/start-here.md",
+    "docs/the-simulator.md",
+    // M0.14c1, the first guides.
+    "docs/404.md",
+    "docs/getting-started.md",
+    "docs/fly-your-ork.md",
+    "docs/pick-a-motor.md",
+    "docs/stability-for-certification.md",
+    "docs/recording-a-trajectory.md",
+    "docs/exporting-a-flight.md",
+    "docs/the-builder.md",
+    "docs/python.md",
+    "docs/custom-models.md",
+    "docs/simulator-tour.md",
+    "docs/simulator-compared.md",
+    "docs/trusting-a-simulation.md",
+    "docs/stability-in-flight.md",
+    "docs/when-fins-flutter.md",
+    "docs/drag-through-mach-1.md",
+];
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...
 const MEAN_TARGET: usize = 20;
@@ -1390,10 +1412,14 @@ fn sentences(text: &str) -> Vec<&str> {
             let word = text[word_start..=i].trim_start_matches(['(', '"', '\u{201C}']);
             let lower = word.to_lowercase();
             let initial = word.len() == 2 && word.starts_with(|c: char| c.is_uppercase());
-            if ABBREVIATIONS.contains(&lower.as_str())
-                || initial
-                || word[..word.len() - 1].contains('.')
-            {
+            // A stop inside the word before a letter makes it an abbreviation ("e.g.", "U.S.");
+            // one before a digit is a decimal or a version ("Mach 0.9.", "release 0.1."), which
+            // can end a sentence.
+            let dotted = word[..word.len() - 1]
+                .split('.')
+                .skip(1)
+                .any(|rest| rest.starts_with(char::is_alphabetic));
+            if ABBREVIATIONS.contains(&lower.as_str()) || initial || dotted {
                 continue;
             }
         }
@@ -1924,6 +1950,22 @@ mod tests {
         assert_eq!(loose.bold_labels, 2);
         let html = read_html("<ul><li><strong>A:</strong> b</li><li>c <b>d</b></li></ul>");
         assert_eq!(html.bold_labels, 1);
+    }
+
+    #[test]
+    fn a_decimal_or_a_version_can_end_a_sentence() {
+        let text = "Drag peaks near Mach 1.05. It falls after. The rise is 3.2%. Release 0.1.0. \
+                    It reads ork.md. Then it flies.";
+        assert_eq!(
+            sentences(text),
+            [
+                "Drag peaks near Mach 1.05.",
+                "It falls after.",
+                "The rise is 3.2%.",
+                "Release 0.1.0.",
+                "It reads ork.md. Then it flies."
+            ]
+        );
     }
 
     #[test]

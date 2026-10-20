@@ -3,23 +3,23 @@
 Save a flight as CSV, JSON or Parquet tables for a spreadsheet, and as GeoJSON or KML maps of its
 path and landing.
 
-This page shows how to save a flight as files other programs read: a table of numbers over time
-for a spreadsheet or a plotting tool (CSV, JSON or Parquet), and a map of the flight path and the
-landing (GeoJSON or KML, which Google Earth, QGIS and most web maps open). It flies the rocket of
-[Getting started](getting-started.md) again and writes all five files. It needs the first page's
-setup, and a little Rust.
+This page shows how to save a flight as files other programs read. A table of numbers over time,
+for a spreadsheet or a plotting tool, comes as CSV, JSON or Parquet. A map of the flight path and
+the landing comes as GeoJSON or KML, which Google Earth, QGIS and most web maps open. It flies the
+rocket of [Getting started](getting-started.md) again and writes all five files. It needs the first
+page's setup, and a little Rust.
 
 Without writing Rust, `hpr sim --export` writes the same five formats for a `.ork` or HPR design
-file, every quantity HPR Sim tracks in each ([The command line](cli.md#exporting-the-recording)).
-Its maps mark the landing when a parachute or streamer opened, as a `.ork` file's do, and no
-landing otherwise ([the landing](cli.md#the-landing)).
+file. It puts every quantity HPR Sim tracks in each
+([The command line](cli.md#exporting-the-recording)). Its maps mark the landing when a parachute
+or streamer opened, as a `.ork` file's do, and no landing otherwise
+([the landing](cli.md#the-landing)).
 
-> **How far to trust it.** Exact copies of a simulation that is not validated
-> ([evidence row G24](evidence.md#g24)). Every number in a
-> file reads back to exactly the value the simulator computed, and tests check that. The flight
-> itself is the first flight's, and
-> [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on that page applies
-> to it too.
+> **How far to trust it.** Exact copies of a simulation that isn't validated
+> ([the evidence register's row on real flights](evidence.md#g24)). Every number in a file reads
+> back to exactly the value the simulator computed, and tests check that. The flight itself is the
+> first flight's, and [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on
+> that page applies to it too.
 
 ## Run it
 
@@ -29,12 +29,12 @@ cargo run --example export_flight -p fusionspace-hpr-sim --features parquet -- m
 
 This runs
 [`crates/hpr-sim/examples/export_flight.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/export_flight.rs),
-which writes five files into the folder `my-flight` (without a folder, into `fusionspace-hpr-export` in
-the system's temporary folder) and prints what it wrote. Parquet is an optional
+which writes five files into the folder `my-flight` and prints what it wrote. Without a folder, it
+writes them into `fusionspace-hpr-export` in the system's temporary folder. Parquet is an optional
 [feature](https://doc.rust-lang.org/cargo/reference/features.html) of `fusionspace-hpr-sim`, named
-`parquet`, so the command turns it on; without it, cargo says the example needs it. The feature adds
-no other library; it is optional so that a program with no use for a binary file format leaves it
-out. In your own program, turn it on in `Cargo.toml` with
+`parquet`, so the command turns it on. Without it, cargo says the example needs it. The feature
+adds no other library. I made it optional so that a program with no use for a binary file format
+leaves it out. In your own program, turn it on in `Cargo.toml` with
 `fusionspace-hpr-sim = { ..., features = ["parquet"] }` (the crate your code calls `hpr_sim`).
 
 <!-- quote: crates/hpr-sim/examples/export_flight.output.txt -->
@@ -49,7 +49,7 @@ landed at 32.99000° N, 106.96904° W, 90 m from the pad, at 58.9 s
 ```
 
 CI runs it on macOS, Windows and Linux and fails if it prints anything else. The files hold every
-number to its last digit, which may differ in the last place between operating systems, so the
+number to its last digit, which may differ in the last place between operating systems. So the
 program prints a rounded summary instead of the files.
 
 ## The five files
@@ -64,61 +64,64 @@ program prints a rounded summary instead of the files.
 
 ### Which program wrote a file
 
-Each file but the CSV carries its provenance, where it came from: the program that wrote it, its
-version and its designation in the FusionSpace product system, the way a drawing's title block
-names the tool that made it, and, below, the motor catalog's date and how far to trust it:
+Each file but the CSV carries its provenance, where it came from. Like a drawing's title block, it
+names the tool that made it: the program, its version and its designation in the FusionSpace
+product system. It also carries the motor catalog's date and how far to trust it, which come
+further below. The tool is named this way:
 
-- **JSON and GeoJSON:** a `tool` object at the top,
+- In JSON and GeoJSON, it's a `tool` object at the top,
   `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"}`.
-  The text is ASCII, so the designation's middle dot `·` is written as its escape `\u00b7`, which
-  every JSON reader reads back as the dot. In GeoJSON the object is a *foreign member*, a key the
-  standard doesn't define, which RFC 7946 (section 6.1) allows and map programs pass over.
-- **KML:** a comment on the second line, `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`.
-- **Parquet:** the first three entries of the file's key-value metadata: `tool` (`FusionSpace HPR`),
-  `tool_version` and `designation`. pyarrow shows them with
+  The text is ASCII, so the designation's middle dot `·` is written as its escape `\u00b7`. Every
+  JSON reader reads that back as the dot. In GeoJSON the object is a *foreign member*, a key the
+  standard doesn't define. RFC 7946 (section 6.1) allows it, and map programs pass over it.
+- In KML, it's a comment on the second line, `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`.
+- In Parquet, it's the first three entries of the file's key-value metadata: `tool`
+  (`FusionSpace HPR`), `tool_version` and `designation`. pyarrow shows them with
   `pyarrow.parquet.read_metadata(path).metadata`.
 
 The CSV holds only the header and the rows, so a spreadsheet opens it cleanly. Its header gives
-each column in words with its unit in brackets, as the FusionSpace product system writes one:
-`time [s]` for the column the other formats call `time_s`, `velocity east [m/s]` for
-`velocity_east_m_s`, `acceleration up [m/s^2]` for `acceleration_up_m_s2` and `dynamic pressure
-[Pa]` for `dynamic_pressure_pa`; a column with no unit, such as `mach`, is its words alone. The
-library's `export::csv_header` gives one from the other. `hpr sim` writes the title block beside
-the CSV instead: `flight.meta.json` for `flight.csv`, with the same `tool` object, the CSV's file
-name, the design and configuration flown, the number of rows, and:
+each column in words with its unit in brackets, as the FusionSpace product system writes one.
+So it gives `time [s]` for the column the other formats call `time_s`, and `velocity east [m/s]`
+for `velocity_east_m_s`. It gives `acceleration up [m/s^2]` for `acceleration_up_m_s2` and `dynamic pressure
+[Pa]` for `dynamic_pressure_pa`. A column with no unit, such as `mach`, is its words alone.
+
+The library's `export::csv_header` gives one from the other. `hpr sim` writes the title block
+beside the CSV instead: `flight.meta.json` for `flight.csv`. It holds the same `tool` object, the
+CSV's file name, the design and configuration flown, the number of rows, and:
 
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
   `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
-  --json`'s `motors`: each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
-  one that did, and `hpr sim`'s motor line says "from the bundled catalog, as of 2026-09-17". The
+  --json`'s `motors`. Each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
+  one that did. And `hpr sim`'s motor line says "from the bundled catalog, as of 2026-09-17". The
   day of the run itself is left out, so the same run writes the same bytes.
-- `kind` and `trust`: what the numbers are (`simulated`, for a flight; `hpr motors show` says
-  `copied` of a catalog motor's figures) and the
+- `kind` and `trust`: what the numbers are, and the
   [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.
+  The kind is `simulated` for a flight, and `hpr motors show` says `copied` of a catalog motor's
+  figures.
 
 A JSON recording from `hpr sim` carries the same three, with `design` and `configuration`, between
-`tool` and `columns`, so a saved flight keeps its note. `hpr mc --export`'s sidecar carries them
-too, with `hpr mc`'s own note. GeoJSON, KML and Parquet carry them as well, so a map or a table
+`tool` and `columns`. So a saved flight keeps its note. `hpr mc --export`'s sidecar carries them
+too, with `hpr mc`'s own note. GeoJSON, KML and Parquet carry them as well. So a map or a table
 copied away from the rest still says how old its motor data is and how far to trust it:
 
-- **GeoJSON:** `design`, `configuration`, `catalog_as_of`, `kind` and `trust` as foreign members
-  between `tool` and `features`, as in the JSON recording.
-- **KML:** the `Document`'s `description`, `Motor catalog as of 2026-09-17.` followed by the
-  note; the design and configuration are already in its `name`. KML has no field for `kind`; the
-  note says the numbers are simulated.
-- **Parquet:** five more entries of the key-value metadata after the program's three, under the
-  same names, each value as text (`kind` is `simulated`). pyarrow gives the keys and values as
-  bytes: `pyarrow.parquet.read_metadata(path).metadata[b"trust"].decode()` is the note.
+- In GeoJSON, they're `design`, `configuration`, `catalog_as_of`, `kind` and `trust`, as foreign
+  members between `tool` and `features`, as in the JSON recording.
+- KML uses the `Document`'s `description`: `Motor catalog as of 2026-09-17.` followed by the
+  note. The design and configuration are already in its `name`. KML has no field for `kind`.
+  The note says the numbers are simulated.
+- In Parquet, they're five more entries of the key-value metadata after the program's three, under
+  the same names. Each value is text (`kind` is `simulated`). The keys and values come out of
+  pyarrow as bytes: `pyarrow.parquet.read_metadata(path).metadata[b"trust"].decode()` is the note.
 
-Each gives the bundled catalog's date whether or not the flight's motor came from the catalog: a
+Each gives the bundled catalog's date whether or not the flight's motor came from the catalog. A
 motor from your own `.eng` or `.rse` file is as old as that file. `hpr sim --json`'s `motors`
 says where each motor came from.
 
 The `--plot` figure gives the catalog's date too, in its title block, and its data file has a
-sidecar of its own ([Plotting the flight](cli.md#plotting-the-flight)). The library's `export::csv` writes the CSV
-alone, and `export::json`, `export::geojson`, `export::kml` and `export::parquet` carry no more
-than the program's name, version and designation; `export::json_with`, `export::geojson_with`,
-`export::kml_with` and `export::parquet_with` add a program's own fields.
+sidecar of its own ([Plotting the flight](cli.md#plotting-the-flight)). The library's `export::csv`
+writes the CSV alone. `export::json`, `export::geojson`, `export::kml` and `export::parquet` carry
+no more than the program's name, version and designation. `export::json_with`,
+`export::geojson_with`, `export::kml_with` and `export::parquet_with` add a program's own fields.
 
 To look at the Parquet file from Python, install pandas and pyarrow (`pip install pandas pyarrow`;
 pandas can't read Parquet on its own), then:
@@ -131,7 +134,7 @@ or, with DuckDB's command-line program, `duckdb -c "SELECT * FROM 'my-flight/fli
 
 The tables hold whatever [channels](recording-a-trajectory.md#record-something-else) the
 recorder kept, one row per recorded moment. The maps need the recorder to keep the time and the
-center of gravity's position (`Channel::Time` and `Channel::CgPosition`); they place each recorded
+center of gravity's position (`Channel::Time` and `Channel::CgPosition`). They place each recorded
 position on the Earth, with the same conversion as the landing point in
 [Flight metrics](physics/metrics.md).
 
@@ -151,42 +154,45 @@ here are cut short):
 A height needs something to count from, a datum. The two map formats use different ones, because
 their standards say so:
 
-- **GeoJSON** heights are above the WGS 84 ellipsoid, the smooth shape GPS uses
+- GeoJSON heights are above the WGS 84 ellipsoid, the smooth shape GPS uses
   ([ellipsoidal height](glossary.md#ellipsoidal-height);
   [RFC 7946](https://www.rfc-editor.org/rfc/rfc7946#section-4), section 4).
-- **KML** heights with `altitudeMode` `absolute` are above sea level, which KML takes from the
+- KML heights with `altitudeMode` `absolute` are above sea level, which KML takes from the
   EGM96 geoid ([height above sea level](glossary.md#height-above-sea-level-msl);
   [OGC KML 2.2, 07-147r2](https://www.ogc.org/standard/kml/)).
 
 Sea level sits above or below the ellipsoid by the
-[geoid undulation](glossary.md#height-above-sea-level-msl) $N$, up to about 100 m (328 ft). The simulator
-has no model of it, so it uses the value the flight was given (`Environment::with_geoid_undulation_m`,
-zero unless set), the same for every point of the flight. The geoid's slope, about 5 cm (2.0 in) per
-kilometer and up to some 30 cm (12 in) in mountains, moves it by centimeters to decimeters over a rocket's
-few kilometers. For example, at a site where sea level
-is 25 m (82 ft) below the ellipsoid ($N = -25\,\mathrm{m}$), a point 1500 m (4921 ft) above the ellipsoid is
-written as 1500 m (4921 ft) in GeoJSON and as 1525 m (5003 ft) in KML. The first flight leaves $N$
-at zero, so its two files agree; at the real site sea level is some tens of meters below the
-ellipsoid, so give $N$ for heights you mean to trust.
+[geoid undulation](glossary.md#height-above-sea-level-msl) $N$, up to about 100 m (328 ft). The
+simulator has no model of it. So it uses the value the flight was given
+(`Environment::with_geoid_undulation_m`, zero unless set), the same for every point of the flight.
+The geoid's slope is about 5 cm (2.0 in) per kilometer, and up to some 30 cm (12 in) in mountains.
+Over a rocket's few kilometers, that moves it by centimeters to decimeters.
+
+For example, take a site where sea level is 25 m (82 ft) below the ellipsoid
+($N = -25\,\mathrm{m}$). There a point 1500 m (4921 ft) above the ellipsoid is written as
+1500 m (4921 ft) in GeoJSON. In KML it's written as 1525 m (5003 ft).
+
+The first flight leaves $N$ at zero, so its two files agree. At the real site, sea level is some
+tens of meters below the ellipsoid. So give $N$ for heights you mean to trust.
 
 ## How the files are checked
 
-- **Numbers:** each is written in the shortest form that reads back to the same number, and the
-  tests read every file back and compare it with the recording exactly, not within a tolerance. A
-  value that isn't a finite number is refused with an error rather than written as `NaN` or
-  `null`, which different programs read differently.
-- **GeoJSON:** checked against the published GeoJSON schema
+- Each number is written in the shortest form that reads back to the same number. The tests read
+  every file back and compare it with the recording exactly, not within a tolerance. A value that
+  isn't a finite number is refused with an error rather than written as `NaN` or `null`, which
+  different programs read differently.
+- GeoJSON is checked against the published GeoJSON schema
   ([geojson.org/schema](https://geojson.org/schema/FeatureCollection.json)), with longitude
   before latitude as the standard requires. A test also shows the check rejects a broken file.
-- **KML:** parsed by a strict XML parser, and checked for the KML 2.2 namespace, the height mode
-  and every coordinate.
-- **Parquet:** HPR Sim writes the file itself, from the format's specification. The tests read it
-  back with an independent reader, Apache's own Parquet library for Rust, and compare every number
-  bit for bit. One test uses a recording of every channel (30 columns today) long enough to fill at
-  least three [data pages](glossary.md#parquet-data-page) per column, and another compares a small
-  file with bytes worked out by hand from the specification. Once, by hand, when this was written,
-  pyarrow 25.0.1 and DuckDB 1.5.5 each read the example's file and a 30-column, 3005-row file and
-  got the same numbers as the matching CSV. CI does not repeat that check.
+- KML is parsed by a strict XML parser, and checked for the KML 2.2 namespace, the height mode and
+  every coordinate.
+- HPR Sim writes the Parquet file itself, from the format's specification. The tests read it back
+  with an independent reader, Apache's own Parquet library for Rust, and compare every number bit
+  for bit. One test uses a recording of every channel (30 columns today) long enough to fill at
+  least three [data pages](glossary.md#parquet-data-page) per column. Another compares a small file
+  with bytes worked out by hand from the specification. Once, by hand, when this was written,
+  pyarrow 25.0.1 and DuckDB 1.5.5 each read the example's file and a 30-column, 3005-row file.
+  Each got the same numbers as the matching CSV. CI doesn't repeat that check.
 
 The tests are in
 [`crates/hpr-sim/src/export.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/export.rs)
@@ -195,23 +201,23 @@ and
 
 ## What it leaves out
 
-- **Parquet compression and statistics:** the Parquet file is not compressed and carries no
-  per-page minimum and maximum. It takes 8 bytes per number, plus a header of about 20 bytes per
-  page of up to 1024 numbers and a short index of the columns at the end of the file: the
-  example's is 3212 bytes, and its CSV about 5.5 kB. Without the minimums and maximums, a tool
-  such as DuckDB can't skip parts of the file when filtering (say `WHERE time_s > 10`) and reads
-  it all, which for one flight takes no noticeable time.
-- **A path over the antimeridian** (±180° longitude) is not cut in two as RFC 7946 asks, so a map
-  would draw it the long way round the globe.
-- **Landing heights:** a landing is a point on the ground, without a height.
-- **A summary file:** the flight's peaks and margins ([Flight metrics](physics/metrics.md)) are
-  not in these files. A `FlightSummary` converts to JSON on its own with `serde_json::to_string`,
-  but that path writes a value that isn't finite as `null` rather than refusing it.
+- The Parquet file isn't compressed and carries no per-page minimum and maximum. It takes 8 bytes
+  per number, plus a header of about 20 bytes per page of up to 1024 numbers. A short index of the
+  columns at the end of the file adds to that. The example's file is 3228 bytes, and its CSV about
+  5.5 kB. Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file
+  when filtering (say `WHERE time_s > 10`). So it reads it all, which for one flight takes no
+  noticeable time.
+- A path over the antimeridian (±180° longitude) isn't cut in two as RFC 7946 asks. So a map would
+  draw it the long way round the globe.
+- A landing is a point on the ground, without a height.
+- There's no summary file: the flight's peaks and margins ([Flight metrics](physics/metrics.md))
+  aren't in these files. A `FlightSummary` converts to JSON on its own with `serde_json::to_string`.
+  But that path writes a value that isn't finite as `null` rather than refusing it.
 
-The choices are recorded in
-[ADR-079: exports as text built in the core](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0079-exports-as-text-built-in-the-core-heights-on.md)
+The choices are recorded in two decisions:
+[exports as text built in the core](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0079-exports-as-text-built-in-the-core-heights-on.md)
 and
-[ADR-080: Parquet written in-house, read back by Apache's library](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0080-parquet-written-in-house-read-back-by-apaches.md).
+[Parquet written in-house, read back by Apache's library](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0080-parquet-written-in-house-read-back-by-apaches.md).
 
 ## The program
 

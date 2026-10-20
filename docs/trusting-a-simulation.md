@@ -3,34 +3,34 @@
 A simulated apogee is an estimate: this guide shows how far off it has been on real flights, and
 which way it errs.
 
-**This guide is for** a flier who reads a simulated apogee to pick a motor, plan a waiver or a
+This guide is for a flier who reads a simulated apogee to pick a motor, plan a waiver or a
 field's ceiling, or set up a flight. It explains what a simulator can and can't know about a
-flight, how big its misses have been, and which miss to plan for. It is the first of the guides in
-*Rocketry explained*, which explain the physics behind the numbers HPR Sim prints.
+flight, how big its misses have been, and which miss to plan for. It's the first of the guides in
+*Rocketry explained*. They explain the physics behind the numbers HPR Sim prints.
 
-> **How far to trust it.** Every number in this guide's text is read by a test from a committed
-> report, and CI reruns the worked example's command. The reports set HPR Sim's apogees against 53
-> logged flights of fliers' own designs ([report][fixture-report]), and against 7 public flights
+> **How far to trust it.** A test reads every number in this guide's text from a committed report,
+> and CI reruns the worked example's command. The reports set HPR Sim's apogees against 53 logged
+> flights of fliers' own designs ([report][fixture-report]), and against 7 public flights
 > ([report][real-report]). They measure apogee alone: no comparison here checks a top speed, a
-> descent or a landing place against a real flight. The guide gives ranges, not verdicts; the
+> descent or a landing place against a real flight. The guide gives ranges, not verdicts. The
 > safety code and the range safety officer (the RSO) decide whether a rocket flies.
 
 ## Two ways a simulation is wrong
 
-A simulation can be wrong in what it is told and in how it works. The first is its inputs: the
-masses and the balance point in the design file, the finish of the paint, the motor's real thrust,
-and the day's wind and air. The second is its models: above all the drag, which a simulator
-estimates from the rocket's shape instead of measuring it.
+A simulation can be wrong in what it's told and in how it works. The first is its inputs. They're
+the design file's masses and balance point, the finish of the paint, the motor's real thrust, and
+the day's wind and air. The second is its models: above all the drag, which a simulator estimates
+from the rocket's shape instead of measuring it.
 
 Scattering the inputs shows the first kind. HPR Sim's Monte Carlo command, `hpr mc`, flies the
 rocket many times, each with its inputs drawn afresh, and prints the spread
-([Monte Carlo dispersion](monte-carlo.md)). It can't show the second kind: a model that is wrong
+([Monte Carlo dispersion](monte-carlo.md)). It can't show the second kind: a model that's wrong
 the same way on every run moves every run together.
 
 Only flights that really flew show the second kind. The comparisons below fly each rocket's design
 in the day's weather and set its apogee against the altimeter's. So they measure both kinds at
-once, and the altimeter's own error with them: the weather is the day's, but the masses and the
-finish are the design file's, as most fliers' files are, and an altimeter reads the air's
+once, and the altimeter's own error with them. The weather is the day's, but the masses and the
+finish are the design file's, as most fliers' files are. And an altimeter reads the air's
 pressure, not the height ([Reading a flight log](reading-a-flight-log.md)).
 
 ## How far off it has been
@@ -43,16 +43,16 @@ $$
 $$
 
 For example, the public flight of Cavour, Politecnico di Torino, EuRoC 2023 read 2,789 m
-(9,150 ft) on its altimeter at the top, and an altimeter riding HPR Sim's flight of its design
-would have read 2,946 m (9,665 ft). The miss is (2,946 − 2,789) / 2,789 = +5.63%
+(9,150 ft) on its altimeter at the top. An altimeter riding HPR Sim's flight of its design would
+have read 2,946 m (9,665 ft). The miss is (2,946 − 2,789) / 2,789 = +5.63%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
-Across 53 logged flights of fliers' own designs, each flown as drawn in its day's air, HPR Sim's
-apogee averaged +8.73% above the logged one ([report][fixture-report]). Each logged apogee there is
-the altimeter's reading turned into the height climbed in that day's air, so the comparison leans
-on that conversion too. Without their signs, the misses averaged 12.95%, and 26 were within 10%
-either way. The figure counts them by size.
+Across 53 logged flights of fliers' own designs, HPR Sim's apogee averaged +8.73% above the logged
+one ([report][fixture-report]). Each was flown as drawn in its day's air. Each logged apogee there
+is the altimeter's reading turned into the height climbed in that day's air, so the comparison
+leans on that conversion too. Without their signs, the misses averaged 12.95%, and 26 were within
+10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
 
@@ -62,17 +62,17 @@ wide: the lowest read between 15% and 20% low, the highest past +30% high.
 OpenRocket, flying the same files in each day's wind and the pad's air, averaged +7.79% above and
 missed by 12.02% without signs ([report][fixture-report]). The two simulators agreed with each
 other within 5% on 52 of the 53 flights. So most of the miss is one they share, and where it comes
-from isn't pinned down: in what both are given (the design file, the motor's curve, the logged
-apogee they are scored against), or in models they have in common. A second simulator checks how
-the first is coded, not what the two share.
+from isn't pinned down. It's in what both are given (the design file, the motor's curve, the
+logged apogee they're scored against), or in models they have in common. A second simulator
+checks how the first is coded, not what the two share.
 
 The 7 public flights are university teams' rockets, flown in a
 [reanalysis](glossary.md#reanalysis) of their days' weather, one of them in another year's
 ([report][real-report]). HPR Sim's apogee missed them by 6.04% on average without signs, from
-−8.90% to +10.40% one by one, and with signs by −0.25%, so on these the highs and lows nearly
-cancel. That is still outside the project's own 5% target ([Accuracy](accuracy.md#real-flights)).
-The note HPR Sim prints with every apogee quotes the 53, the larger set and the less flattering
-one ([the trust note's decision record][adr-211]).
+−8.90% to +10.40% one by one. With signs the misses averaged −0.25%, so on these the highs and
+lows nearly cancel. The average without signs is still outside the project's own 5% target
+([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 53,
+the larger set and the less flattering one ([the trust note's decision record][adr-211]).
 
 ## Which miss flatters
 
@@ -81,28 +81,29 @@ simulated apogee below the real one flatters: the rocket climbs past the height 
 for. A simulated apogee above the real one mainly costs height. For a contest's lowest altitude,
 or a motor picked to reach a height, the sides swap, and the high side flatters.
 
-The figure marks the low side, and a test ties the mark to the sign of a miss: the figure's code
-marks the bins of negative misses, and
+The figure marks the low side, and a test ties the mark to the sign of a miss. The figure's code
+marks the bins of negative misses. And
 [`a_low_simulated_apogee_is_a_negative_miss`][direction-test] holds that a simulated apogee below
 the logged one makes a negative miss in the report's rows. Of the 53 flights, 13 read low, the
-lowest of them between 15% and 20% low ([report][fixture-report]). A sample is not a bound: a
+lowest of them between 15% and 20% low ([report][fixture-report]). A sample isn't a bound: a
 rocket unlike these may miss by more.
 
 One of the public flights shows the low side. An altimeter riding HPR Sim's flight of Juno III,
-Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top; the
+Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top. The
 team's altimeter read 3,151.5 m (10,340 ft), a miss of −7.24% ([report][real-report]). The real
 altimeter read 228.1 m (748 ft) higher than the simulated one, and its log ends just short of the
 top. The report finds this miss consistent with the motor's impulse, as the example sets it.
-So plan a ceiling with room above the simulated apogee; how much room is the flier's and the
+
+So plan a ceiling with room above the simulated apogee. How much room is the flier's and the
 RSO's call, and this guide has no number for it.
 
 ## The spread from the inputs
 
-This is the guide's worked example: the small rocket the repository keeps for its how-to guides,
-flown many times over with its mass, its drag and its motor's impulse each scattered. The command
+The guide's worked example is the small rocket the repository keeps for its how-to guides. It's
+flown many times over, with its mass, its drag and its motor's impulse each scattered. The command
 gives each scatter as one standard deviation, as a share of the value: `--mass-sd 0.02` for the
-mass. The drag's scatter is a guessed spread around HPR Sim's own drag: it widens the runs, but it
-can't show a drag that is wrong the same way on every run.
+mass. The drag's scatter is a guessed spread around HPR Sim's own drag. It widens the runs, but it
+can't show a drag that's wrong the same way on every run.
 
 <!-- cli: example `hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03` -->
 
@@ -147,37 +148,39 @@ More: https://hpr.fusionspace.co/accuracy.html
 Read it in three parts. The table's `5%` and `95%` columns are
 [percentiles](glossary.md#percentile): most runs fell between them, a few on either side. The
 warnings name the known model gaps that bear on this flight, each with the side it pushes the
-numbers to: here, drag that may read high, so an apogee that may read low, the side that flatters
-a ceiling. The note at the end is the miss on real flights from the sections above, which the
-spread leaves out. The rest is the flight's setup and its landing
-([Monte Carlo dispersion](monte-carlo.md)).
+numbers to. Here the drag may read high. If it does, the apogee reads low, the side that flatters
+a ceiling.
+
+The note at the end is the miss on real flights from the sections above, which the spread leaves
+out. The rest is the flight's setup and its landing ([Monte Carlo dispersion](monte-carlo.md)).
 
 The warnings don't settle which way this rocket will miss. They push its apogee low, yet across
-the 53 flights the misses leaned high on average, so causes not yet found can outweigh the known
+the 53 flights the misses leaned high on average. So causes not yet found can outweigh the known
 ones. A warning says which way one known gap pushes, not which way the flight will miss.
 
 The spread and the miss don't add as one range. The spread is this rocket's, from inputs the
-command was told to scatter; the miss is a record of other rockets, and it already holds their
+command was told to scatter. The miss is a record of other rockets, and it already holds their
 files' own input errors. Read the spread as how far the flight moves if the model is right and the
-inputs are off by about the scatter given, and the miss as how far files like this one have been
+inputs are off by about the scatter given. Read the miss as how far files like this one have been
 from the sky.
 
 ## What this guide leaves out
 
-- **Anything but apogee.** No comparison here checks a top speed, a descent, a drift or a landing
-  place against a real flight. Those are checked against other programs, which shows that HPR Sim
-  computes what they compute, not that any of them matches the world ([Accuracy](accuracy.md)).
-- **Rockets unlike these.** The flights are hobby and university rockets as their fliers drew them.
-  A rocket much faster, much higher or of an odd shape sits outside them, and
+- This guide covers nothing but apogee. No comparison here checks a top speed, a descent, a drift
+  or a landing place against a real flight. Those are checked against other programs, which shows
+  that HPR Sim computes what they compute, not that any of them matches the world
+  ([Accuracy](accuracy.md)).
+- It doesn't cover rockets unlike these. The flights are hobby and university rockets as their
+  fliers drew them. A rocket much faster, much higher or of an odd shape sits outside them, and
   [Accuracy](accuracy.md) lists what each comparison covers.
-- **Your own rocket's miss.** A weighed rocket, its mass and balance point put in the file, removes
-  one input error the logged flights carry; only flying it and reading the altimeter measures the
-  rest. [Reading a flight log](reading-a-flight-log.md) shows how to compare.
+- It doesn't give your own rocket's miss. A weighed rocket, its mass and balance point put in the
+  file, removes one input error the logged flights carry. Only flying it and reading the altimeter
+  measures the rest. [Reading a flight log](reading-a-flight-log.md) shows how to compare.
 
 **Sources.** The logged flights are published by university rocketry teams, rocketry courses and
-hobbyists; the 7 public flights are those RocketPy's documentation flies against their teams'
+hobbyists. The 7 public flights are those RocketPy's documentation flies against their teams'
 logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
-contains modified Copernicus Climate Change Service information 2026; neither the European
+contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [report][fixture-report] gives the
 full attribution and the ERA5 citations.
 

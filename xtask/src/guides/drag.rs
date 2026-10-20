@@ -447,7 +447,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         },
         Quote {
             template: "At Mach {} in sea-level air its drag coefficient is {}: skin friction makes \
-                       {} of it, the base {} and the fins' square edges {}",
+                       {}, the base {} and the fins' square edges {}",
             holes: |r| {
                 let at = |key: &str| rocket(r, 1, key);
                 let (cd, fins) = (at("cd")?, at("fins_pressure")?);
@@ -485,8 +485,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "the body's cross-section, {} across, and its drag coefficient there is {}, \
-                       so the air holds it back with {} N, the weight of {} kg",
+            template: "the body's cross-section, {} across. Its drag coefficient there is {}, so \
+                       the air holds it back with {} N, the weight of {} kg",
             holes: |r| {
                 let sound = r.number(REPORT, "/air/speed_of_sound_m_s")?;
                 let density = r.number(REPORT, "/air/density_kg_m3")?;
@@ -503,8 +503,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "its drag coefficient climbs to {} by Mach {} and {} at Mach {}, and peaks \
-                       at {} at Mach {}, {} above its value at Mach {}",
+            template: "The guides' rocket's drag coefficient climbs to {} by Mach {} and {} at Mach \
+                       {}. It peaks at {} at Mach {}, {} above its value at Mach {}",
             holes: |r| {
                 let low = rocket(r, 1, "cd")?;
                 let peak = r.number(REPORT, "/peak/cd")?;
@@ -521,7 +521,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "By Mach {} it is back down to {}",
+            template: "by Mach {} it's back down to {}",
             holes: |r| Ok(vec![rocket_mach(r, 12)?, coefficient(rocket(r, 12, "cd")?)]),
         },
         Quote {
@@ -538,7 +538,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "The base's grows from {} at Mach {} to {} at Mach {}, then falls",
+            template: "The base's drag grows from {} at Mach {} to {} at Mach {}, then falls",
             holes: |r| {
                 let at_one = rocket(r, 7, "base")?;
                 // It rises at every row to Mach 1 and falls at every row after.
@@ -574,7 +574,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         },
         Quote {
             template: "On the faster of its two motors the guides' rocket reaches Mach {}, where \
-                       the rise has begun: at Mach {}, just past that, its drag coefficient is {}, \
+                       the rise has begun. At Mach {}, just past that, its drag coefficient is {}, \
                        {} above its value at Mach {}",
             holes: |r| {
                 let count = r
@@ -648,7 +648,7 @@ pub(super) fn quotes() -> Vec<Quote> {
         },
         Quote {
             template: "With its fins on, the model's measured forebody drag rose from {} at Mach {} \
-                       to {} at Mach {}, then fell to {} by Mach {}",
+                       to {} at Mach {}. Then it fell to {} by Mach {}",
             holes: |r| {
                 let rows = r.drawn_rows()?;
                 let first = rows.first().ok_or("no rows")?;
@@ -671,9 +671,9 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "HPR Sim's read {} at Mach {}, {} at Mach {}, the most of the readings \
-                       below the speed of sound, and {} at Mach {}, the least; then more at every faster speed, to {} \
-                       at Mach {}",
+            template: "HPR Sim's read {} at Mach {} and {} at Mach {}, the most of the readings \
+                       below the speed of sound. It read {} at Mach {}, the least. Then it read \
+                       more at every faster speed, to {} at Mach {}",
             holes: |r| {
                 let rows = r.drawn_rows()?;
                 let first = rows.first().ok_or("no rows")?;

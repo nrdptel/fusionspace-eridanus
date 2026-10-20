@@ -3,28 +3,29 @@
 Replace one of HPR Sim's models with your own drag curve, wind profile or atmosphere, and fly a
 rocket with it.
 
-This page shows how to fly a model of your own in place of one of HPR Sim's: a drag model, a wind,
-or an atmosphere. You might have a drag curve from a wind tunnel, from another program, or from
-your own flights, or a wind profile from a weather balloon that none of the built-in winds fits.
-The page runs two example programs and walks through them. It follows on from
-[The builder](the-builder.md), and needs some Rust. From Python, a drag and a wind can be plain
-functions ([Python](python.md#drag-and-wind-of-your-own)).
+This page shows how to fly a model of your own in place of one of HPR Sim's. It can be a drag
+model, a wind, or an atmosphere. You might have a drag curve from a wind tunnel, from another
+program, or from your own flights. Or you might have a wind profile from a weather balloon that
+none of the built-in winds fits. The page runs two example programs and walks through them. It
+follows on from [The builder](the-builder.md), and needs some Rust. From Python, a drag and a wind
+can be plain functions ([Python](python.md#drag-and-wind-of-your-own)).
 
-> **How far to trust it.** As far as your model, and no further than the simulator's other models,
-> which still fly the rest of the rocket and are not yet validated against real flights
+> **How far to trust it.** As far as your model, and no further than the simulator's other models.
+> They still fly the rest of the rocket, and they aren't yet validated against real flights
 > ([Accuracy](accuracy.md)).
 >
-> - **Refused:** a drag coefficient that is negative or not a finite number, a wind velocity
->   that is not finite, and air the flight can't use: a density or pressure that is negative or
->   not finite, or a temperature, speed of sound or viscosity that is zero, negative or not
->   finite. Each error names the wind or the air's field, and the height.
-> - **Tested:** a drag model that hands back the simulator's own drag flies the same flight, bit for
->   bit, as flying without one, and a model that gives the same drag at every speed flies exactly as
->   a drag table of that value does
+> - The simulator refuses a drag coefficient that's negative or not a finite number, and a wind
+>   velocity that isn't finite. It also refuses air the flight can't use: a density or pressure
+>   that's negative or not finite. A temperature, speed of sound or viscosity that's zero,
+>   negative or not finite is refused too. Each error names the wind or the air's field, and the
+>   height.
+> - A test pins two things. A drag model that hands back the simulator's own drag flies the same
+>   flight, bit for bit, as flying without one. A model that gives the same drag at every speed
+>   flies exactly as a drag table of that value does
 >   ([`a_drag_model_is_flown_in_place_of_hprs_drag`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
-> - **Not checked:** whether your model is right. The simulator can't know.
-> - **Invented:** the drag curve and the wind on this page. They are not measurements of any
->   rocket or any day.
+> - Nothing checks whether your model is right. The simulator can't know.
+> - The drag curve and the wind on this page are invented. They aren't measurements of any rocket
+>   or any day.
 
 ## Which models you can replace
 
@@ -39,28 +40,29 @@ own type provides. Write the type, give it the method, and hand it over.
 
 The zero-lift drag coefficient is the drag with the rocket pointed straight into the air, divided
 by the [dynamic pressure](glossary.md#dynamic-pressure) and the rocket's
-[reference area](glossary.md#reference-area): by default the area of a circle of its largest body
-diameter. A drag model replaces that number and nothing else:
+[reference area](glossary.md#reference-area). By default that's the area of a circle of the
+rocket's largest body diameter. A drag model replaces that number and nothing else:
 
-- **At an [angle of attack](glossary.md#angle-of-attack)**, the simulator scales your number up and
+- At an [angle of attack](glossary.md#angle-of-attack), the simulator scales your number up and
   down with the angle as it scales its own ([Drag](physics/aero.md#drag)).
-- **The [normal force](glossary.md#normal-force),
-  [center of pressure](glossary.md#center-of-pressure-cp), roll and damping** stay the simulator's.
+- The [normal force](glossary.md#normal-force),
+  [center of pressure](glossary.md#center-of-pressure-cp), roll and damping stay the simulator's.
   So the [stability margin](glossary.md#stability-margin) a rocket reports doesn't change with the
   drag model.
-- **Recovery** doesn't use it: under a parachute the drag is the parachute's.
-- **Staging:** a drag model is the whole stack's drag, so a flight with a powered separation
-  refuses it at the separation ([Staging](physics/staging.md)).
+- Recovery doesn't use it. Under a parachute the drag is the parachute's.
+- A drag model is the whole stack's drag. So a flight with a powered separation refuses it at the
+  separation ([Staging](physics/staging.md)).
 
-A drag table read from another program's export (the flight builder's `drag_table`, or
-`with_drag_table` on a simulation, which
-[Getting started](getting-started.md#accuracy-of-these-numbers) uses) replaces the same number; a drag
-model is the same idea with your code in place of the table. The last one set is the one flown.
-One difference matters: a table can carry the diameter it was measured on, and the simulator
-rescales it to the rocket's reference area. A negative coefficient is refused from either, where the
-flight meets it: a table can give one past its rows or between them if its curve extrapolates
-linearly or bends. **A model's number is not rescaled.** If your curve was measured
-on another area, multiply it by your area over `query.reference_area_m2()` before returning it.
+A drag table read from another program's export replaces the same number. That's the flight
+builder's `drag_table`, or `with_drag_table` on a simulation, which
+[Getting started](getting-started.md#accuracy-of-these-numbers) uses. A drag model is the same
+idea, with your code in place of the table. The last one set is the one flown.
+
+One difference matters. A table can carry the diameter it was measured on, and the simulator
+rescales it to the rocket's reference area. A negative coefficient is refused from either, where
+the flight meets it. A table can give one past its rows or between them if its curve extrapolates
+linearly or bends. **A model's number is not rescaled.** If your curve was measured on another
+area, multiply it by your area over `query.reference_area_m2()` before returning it.
 
 ## A drag model
 
@@ -69,9 +71,10 @@ cargo run --example custom_drag -p fusionspace-hpr
 ```
 
 This flies the rocket of [The builder](the-builder.md) three times on a Cesaroni H54, from a
-vertical rail in calm air: with the simulator's own drag, with that drag made 10% higher, and with a
-drag curve of invented numbers. The parachute opens at apogee, so only the drag changes from one
-flight to the next. Then it tries a curve that stops short of the rocket's speed. It prints this:
+vertical rail in calm air. It flies with the simulator's own drag, with that drag made 10% higher,
+and with a drag curve of invented numbers. The parachute opens at apogee, so only the drag changes
+from one flight to the next. Then it tries a curve that stops short of the rocket's speed. It
+prints this:
 
 <!-- quote: crates/hpr/examples/custom_drag.output.txt -->
 ```text
@@ -89,14 +92,13 @@ A curve that ends at Mach 0.4 stops the flight: Mach number past the drag curve'
 
 What the lines say:
 
-- **10% more drag** costs 53.9 m (177 ft) of [apogee](glossary.md#apogee), 4.7%, and reaches it 0.41 s
-  sooner. That is a quick way to see how much a rougher finish, or an uncertain drag, could
-  matter.
-- **The curve** is invented. Its apogee lands within 2 m (6.6 ft) of the simulator's because of the
-  numbers chosen, which says nothing about whether either is right. A curve from your own data
+- 10% more drag costs 53.9 m (177 ft) of [apogee](glossary.md#apogee), 4.7%, and reaches it
+  0.41 s sooner. It's a way to see how much a rougher finish, or an uncertain drag, could matter.
+- The curve is invented. Its apogee lands within 2 m (6.6 ft) of the simulator's because of the
+  numbers chosen. That says nothing about whether either is right. A curve from your own data
   would put your numbers here.
-- **The short curve** refuses to guess past its last point, so the flight stops there and says
-  why, instead of flying on made-up drag.
+- The short curve refuses to guess past its last point. So the flight stops there and says why,
+  instead of flying on made-up drag.
 
 ### The program
 
@@ -115,13 +117,15 @@ coefficient:
 - `query.buildup()` is the simulator's own drag at that flow, what the flight would have used
   without the model. The 10% model multiplies its `zero_lift_coefficient` by 1.1.
 
-The method returns a `Result`, so a model can refuse a question it can't answer, as the curve does
-past Mach 0.4. The flight stops with that error, wrapped to say it came from the drag model. The
-integrator tries speeds a little past the flight's own as it works out each step, so a curve that
-refuses past its end wants some margin beyond the top speed. A model is asked several times every
-step of the flight, so it should be quick, and give the same answer to the same question: a flight
-is only as repeatable as its models. Whatever the drag model, a flight stops at Mach 5, where
-the simulator's normal force ends.
+The method returns a `Result`, so a model can refuse a question it can't answer. A refusal stops
+the flight with its error, wrapped to say it came from the drag model. The short curve refuses
+that way past Mach 0.4.
+
+The integrator tries speeds a little past the flight's own as it works out each step. So a curve
+that refuses past its end wants some margin beyond the top speed. A model is asked several times
+every step of the flight, so it should be fast. It should also give the same answer to the same
+question, since a flight is only as repeatable as its models. Whatever the drag model, a flight
+stops at Mach 5, where the simulator's normal force ends.
 
 ## A wind model
 
@@ -130,11 +134,11 @@ cargo run --example custom_wind -p fusionspace-hpr
 ```
 
 The simulator has steady, power-law, log-law and layered winds built in ([Wind](physics/wind.md)),
-and they reach the flight through the same `Wind` trait. This example writes one of its own: a wind
-that grows from 4 m/s (8.9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft), and veers,
-turning clockwise, from the west (270°) to the north-west (315°) on the way up. Above 1,000 m
-(3,281 ft) it holds steady. It flies the same rocket in that wind and in a steady 4 m/s (8.9 mph)
-west wind:
+and they reach the flight through the same `Wind` trait. This example writes one of its own. Its
+wind grows from 4 m/s (8.9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft). On the way
+up it veers, turning clockwise, from the west (270°) to the north-west (315°). Above 1,000 m
+(3,281 ft) it holds steady. The example flies the same rocket in that wind and in a steady 4 m/s
+(8.9 mph) west wind:
 
 <!-- quote: crates/hpr/examples/custom_wind.output.txt -->
 ```text
@@ -148,52 +152,60 @@ veering                 1135.7           1395            835      4.6
 ```
 
 Both winds are the same at the ground, where a flier would measure them. Aloft, the veering wind is
-stronger and comes from further north, so the rocket drifts further under its parachute, and to
+stronger and comes from further north. So the rocket drifts further under its parachute, and to
 the south-east rather than due east. The parachute's descent rate is the same in both.
 
 The program is
 [`crates/hpr/examples/custom_wind.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/custom_wind.rs).
 Its `Veering` type has one method, `wind`, which gets a height above mean sea level and returns a
-`WindSample`: the air's velocity as east, north and up components, and whether the model had to
-extrapolate past its data (never, for this one). A wind is asked by height above sea level, not
-above the ground, so the type keeps the ground's elevation to measure from.
-`Environment::with_wind` flies it. The [wind direction](glossary.md#wind-direction) is where the
-wind blows from, so a west wind moves the air east.
+`WindSample`. The sample holds the air's velocity as east, north and up components. It also says
+whether the model had to extrapolate past its data (never, for this one).
+
+A wind is asked by height above sea level, not above the ground, so the type keeps the ground's
+elevation to measure from. `Environment::with_wind` flies it. The
+[wind direction](glossary.md#wind-direction) is where the wind blows from, so a west wind moves the
+air east.
 
 The simulator refuses a wind velocity that isn't finite wherever it reads the wind. A wind that
 returns a NaN (not a number) or an infinity stops the flight with a `SimError::Domain` error. Its
 message names the wind and gives the height above sea level, in meters, where the wind was asked.
-For a test wind that turns to NaN above 1,700 m (5,577 ft), the message reads "height above sea
-level, m, at which the wind's velocity is not finite is outside its domain: 1700.0…", the height of
-the first step to ask above 1,700 m (5,577 ft), so its digits depend on the step. This holds
-while climbing, under a canopy, and for bodies flown apart after a separation
+
+Take a test wind that turns to NaN above 1,700 m (5,577 ft). The height in the message is that of
+the first step to ask above 1,700 m (5,577 ft), so its digits depend on the step. The message reads
+"height above sea level, m, at which the wind's velocity is not finite is outside its domain:
+1700.0…".
+
+This holds while climbing, under a canopy, and for bodies flown apart after a separation
 ([issue #237](https://github.com/nrdptel/fusionspace-eridanus/issues/237), the report that asked for it).
 Tests pin each case: [`a_wind_that_is_not_finite_stops_the_flight` and
 `a_wind_that_is_not_finite_under_a_canopy_stops_the_descent`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs),
 and
 [`a_separated_body_refuses_a_wind_that_is_not_finite`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/recovery.rs).
-The simulator can't tell whether a finite wind is right; that is up to the model.
+The simulator can't tell whether a finite wind is right. That's up to the model.
 
 ## An atmosphere
 
 An atmosphere of your own works the same way, through `Environment::with_atmosphere`. The
 simulator's own are the [standard atmosphere](glossary.md#standard-atmosphere) and a weather
-balloon's [sounding](glossary.md#sounding) ([Atmosphere](physics/atmosphere.md)); there is no
-example program for one of your own yet. Its one method, `air`, gets a height above mean sea level
-and returns an `AirSample`: the air's temperature, pressure, density, speed of sound and viscosity,
-and whether the model had to extrapolate past its data.
+balloon's [sounding](glossary.md#sounding) ([Atmosphere](physics/atmosphere.md)). There's no
+example program for one of your own yet. An atmosphere's one method, `air`, gets a height above
+mean sea level and returns an `AirSample`. The sample holds the air's temperature, pressure,
+density, speed of sound and viscosity, and whether the model had to extrapolate past its data.
 
 The simulator refuses air it can't use wherever it reads the air. Every field must be a finite
 number. The temperature, speed of sound and viscosity must also be above zero. The density and
 pressure may be zero, as in a vacuum, but not negative. The simulator's standard atmosphere is the
-reason zero is allowed: far above its 86 km (282,152 ft) top, its pressure and density shrink to zero.
+reason zero is allowed. Far above its 86 km (282,152 ft) top, its pressure and density shrink to
+zero.
 
 Air that breaks a rule stops the flight with a `SimError::Domain` error. Its message names the
-field and gives the height above sea level, in meters, where the air was asked. For a test
-atmosphere whose density turns to NaN above 1,700 m (5,577 ft), the message reads "height above
-sea level, m, at which the air's density is negative or not finite is outside its domain:", then
-the height of the first step to ask above 1,700 m (5,577 ft). If more than one field is bad, the
-first in the order density, pressure, temperature, speed of sound, viscosity is the one named.
+field and gives the height above sea level, in meters, where the air was asked. If more than one
+field is bad, the first in the order density, pressure, temperature, speed of sound, viscosity is
+the one named.
+
+Take a test atmosphere whose density turns to NaN above 1,700 m (5,577 ft). The message reads
+"height above sea level, m, at which the air's density is negative or not finite is outside its
+domain:". The height of the first step to ask above 1,700 m (5,577 ft) follows it.
 
 This holds while climbing, under a canopy, and for bodies flown apart after a separation
 ([issue #301](https://github.com/nrdptel/fusionspace-eridanus/issues/301), the report that asked for it).
@@ -206,12 +218,13 @@ and
 Another test checks that the simulator's own atmospheres pass, from 5 km (16,000 ft) below sea level to a
 million kilometers up
 ([`the_check_on_the_air_takes_every_stock_atmosphere`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/environment.rs)).
-The simulator can't tell whether air that passes is right; that is up to the model.
+
+The simulator can't tell whether air that passes is right. That's up to the model.
 
 ## Where next
 
 - The API reference's [`guide`](api/hpr/guide/index.html) module says the same in five short
-  chapters, each with code that CI runs, and [`hpr_aero::custom`](api/hpr_aero/custom/index.html)
+  chapters, each with code that CI runs. [`hpr_aero::custom`](api/hpr_aero/custom/index.html)
   documents the drag trait.
 - [The builder](the-builder.md) builds the rocket these examples fly.
 - [Accuracy](accuracy.md) says how well the simulator's own models have been checked, which is what

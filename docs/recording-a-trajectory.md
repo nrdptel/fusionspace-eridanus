@@ -3,15 +3,15 @@
 Record a whole flight in HPR Sim as a table of height, speed and position over time, for a
 spreadsheet or plotting tool.
 
-This page shows how to get a whole flight out of HPR Sim as a table of numbers over time, which a
-spreadsheet or a plotting tool reads. It flies the rocket of [Getting started](getting-started.md)
+This page shows how to get a whole flight out of HPR Sim as a table of numbers over time. A
+spreadsheet or a plotting tool reads it. It flies the rocket of [Getting started](getting-started.md)
 again, in the same weather, and keeps its height, speed and position every 5 seconds. It needs the
 first page's setup, and a little Rust.
 
 > **How far to trust it.** A simulation, not validated
-> ([evidence row G24](evidence.md#g24)): these are the first flight's numbers,
-> and [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on that page
-> applies to them too.
+> ([the evidence register's row on real flights](evidence.md#g24)). These are the first flight's
+> numbers, and [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on that
+> page applies to them too.
 
 ## Run it
 
@@ -21,8 +21,9 @@ cargo run --example trajectory -p fusionspace-hpr-sim > trajectory.csv
 
 This runs
 [`crates/hpr-sim/examples/trajectory.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/trajectory.rs)
-and saves what it prints in `trajectory.csv`, a CSV (comma-separated values) file: a header line
-naming each column with its unit in brackets, then one line per moment of the flight. It holds this:
+and saves what it prints in `trajectory.csv`, a CSV (comma-separated values) file. The file starts
+with a header line naming each column with its unit in brackets, then has one line per moment of
+the flight. It holds this:
 
 <!-- quote: crates/hpr-sim/examples/trajectory.output.txt -->
 ```text
@@ -50,8 +51,8 @@ time [s],height above ground [m],vertical speed [m/s],airspeed [m/s],cg east [m]
 ```
 
 Like the first flight's, this output is committed in
-[`trajectory.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/trajectory.output.txt),
-and CI runs the program on macOS, Windows and Linux and fails if it prints anything else.
+[`trajectory.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/trajectory.output.txt).
+CI runs the program on macOS, Windows and Linux and fails if it prints anything else.
 
 This program rounds as it prints. To save a recording with every digit, as CSV or JSON, or the
 flight path as a map, see [Exporting a flight](exporting-a-flight.md).
@@ -66,7 +67,7 @@ flight path as a map, see [Exporting a flight](exporting-a-flight.md).
 | `airspeed_m_s` | The rocket's speed through the air, which the wind adds to or takes from | m/s |
 | `cg_east_m`, `cg_north_m`, `cg_up_m` | Where the center of gravity is: meters east, north and up of the pad, in the [launch frame](glossary.md#launch-frame-enu) | m |
 
-There is a row every 5 seconds, and one at every [event](glossary.md#event), at the moment it
+There's a row every 5 seconds, and one at every [event](glossary.md#event), at the moment it
 happened:
 
 | time (s) | event |
@@ -82,23 +83,22 @@ happened:
 
 What the numbers show:
 
-- **On the pad the airspeed is 5.0 m/s (11 mph)** with the rocket standing still: that is the wind.
-- **The rocket climbs into the wind.** The wind blows from the west, and off the rail a stable
-  rocket turns its nose toward the wind it feels
-  ([weathercocking](glossary.md#weathercocking)), so it drifts west: `cg_east_m` is −88.7 m
-  (−291 ft) at apogee.
-- **Under the drogue alone it falls at about 27 m/s (89 ft/s)**, and the wind carries it east.
-- **The main slows it from 26.5 m/s (87 ft/s) to 6.4 m/s (21 ft/s)** between the row where it
-  opens (40.234) and the next (45.000), and it lands at 6.4 m/s (21 ft/s), 90.2 m (296 ft) east of
-  the pad.
-- **`cg_north_m` shows 0.1 m (0.3 ft) for a while, with no wind from the south.** The Earth's rotation
+- On the pad the airspeed is 5.0 m/s (11 mph) with the rocket standing still. That's the wind.
+- The rocket climbs into the wind. The wind blows from the west, and off the rail a stable rocket
+  turns its nose toward the wind it feels ([weathercocking](glossary.md#weathercocking)). So it
+  drifts west: `cg_east_m` is −88.7 m (−291 ft) at apogee.
+- Under the drogue alone it falls at about 27 m/s (89 ft/s), and the wind carries it east.
+- The main slows it from 26.5 m/s (87 ft/s) to 6.4 m/s (21 ft/s) between the row where it opens
+  (40.234) and the next (45.000).
+- It lands at 6.4 m/s (21 ft/s), 90.2 m (296 ft) east of the pad.
+- `cg_north_m` shows 0.1 m (0.3 ft) for a while, with no wind from the south. The Earth's rotation
   nudges a moving rocket sideways, to the right of its motion in the northern hemisphere
-  ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that
-  is north: it drifts up to 6.3 cm (2.5 in), which the table rounds to 0.0 or 0.1 m (0.3 ft).
-- **`cg_up_m` and `height_above_ground_m` agree here, and don't in general.** The launch frame is
-  a flat plane, and the Earth curves away below it, so far from the pad `cg_up_m` reads low: on
-  the ground 10 km (6.2 mi) from the pad, it is −7.8 m (−26 ft). At this landing, 94 m (308 ft)
-  out, it is under a millimeter low. For heights, use `height_above_ground_m`.
+  ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that's
+  north. It drifts up to 6.3 cm (2.5 in), which the table rounds to 0.0 or 0.1 m (0.3 ft).
+- `cg_up_m` and `height_above_ground_m` agree here, and don't in general. The launch frame is a
+  flat plane, and the Earth curves away below it. So `cg_up_m` reads low far from the pad. On the
+  ground 10 km (6.2 mi) from the pad, it's −7.8 m (−26 ft). At this landing, 94 m (308 ft) out,
+  it's under a millimeter low. For heights, use `height_above_ground_m`.
 
 ## Record something else
 
@@ -106,15 +106,15 @@ The program below makes its recorder with
 `Recorder::new(vec![Channel::Time, Channel::HeightAboveGround, ...], Some(5.0))`, and passes it to
 `run`, which feeds it every step of the flight. Change either argument:
 
-- **The interval** is `Some(5.0)`, a row every 5 s. `Some(0.1)` gives a smooth plot, about 600
+- The interval is `Some(5.0)`, a row every 5 s. `Some(0.1)` gives a smooth plot, about 600
   rows for this flight. `None` keeps a row at the end of every step the integrator takes, which is
   as fine as the flight was computed ([Time integration](physics/integration.md)).
-- **The channels** are the columns. Others include the Mach number, the
+- The channels are the columns. Others include the Mach number, the
   [angle of attack](glossary.md#angle-of-attack), the [dynamic pressure](glossary.md#dynamic-pressure),
   the thrust, the mass, the attitude and the rotation rates. The
   [`Channel` page](api/hpr_sim/recorder/enum.Channel.html) of the API reference lists every one
   with its unit, and `Channel::ALL` keeps them all.
-- **After the flight,** `recorder.columns()` gives the column names, units included, and
+- After the flight, `recorder.columns()` gives the column names, units included, and
   `recorder.rows()` gives one list of numbers per row, in the same order.
 
 To save a file straight from Rust instead of printing, write the same lines to a

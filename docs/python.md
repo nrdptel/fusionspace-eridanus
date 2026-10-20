@@ -3,29 +3,30 @@
 Fly a rocket from Python with the `fusionspace-hpr` package, once or as a Monte Carlo run, and get
 its recording back as NumPy arrays.
 
-This page shows how to fly a rocket from Python with the `fusionspace-hpr` package. The package has the same
-four types as the Rust [builder](the-builder.md): an `Environment`, a `Motor`, a `Rocket` and a
-`Flight`. You describe the rocket part by part from the nose back, or read it from a design file,
-then fly it from a rail, once or, as a `MonteCarlo` run, many times with its inputs scattered. A
-flight's metrics come back as numbers and dictionaries, and its recording and a run's flights as
-[NumPy](https://numpy.org/) arrays. You need Python 3.10 or later and some
-familiarity with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
+The `fusionspace-hpr` package has the same four types as the Rust [builder](the-builder.md): an
+`Environment`, a `Motor`, a `Rocket` and a `Flight`. You describe the rocket part by part from the
+nose back, or read it from a design file. Then you fly it from a rail: once, or many times with
+its inputs scattered, as a `MonteCarlo` run.
+
+A flight's metrics come back as numbers and dictionaries. Its recording and a run's flights come
+back as [NumPy](https://numpy.org/) arrays. You need Python 3.10 or later and some familiarity
+with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
 
 > **How far to trust it.** The package adds no physics. Each call hands its numbers to the Rust
-> builder and returns what that returns, so a flight made in Python runs the same code as one the
+> builder and returns what that returns. So a flight made in Python runs the same code as one the
 > Rust builder makes from the same numbers. A test builds [The builder](the-builder.md)'s example
 > rocket in Python and matches every digit that Rust example prints
 > ([`test_prints_what_the_rust_example_prints`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_builder.py)).
 > Digits beyond those printed can differ between a release and a debug build. Because the code is
 > the same, what that page and [Accuracy](accuracy.md) say about the numbers holds here too. The
-> rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is the least certain number of all: on two of RocketPy's example
-> rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why). The package is new
-> and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). The gap
-> that matters most if you bring a design file: most `.ork` configurations are refused
-> ([A design from a file](#a-design-from-a-file)). The package
-> is built and tested on Linux, macOS and Windows, and published on PyPI, Python's package
-> index, as `fusionspace-hpr`.
+> rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is
+> the least certain number of all. On two of RocketPy's example rockets, HPR Sim's drift and
+> RocketPy's differ by 10 to 38%
+> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why). The package is
+> new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
+> bring a design file, the gap that matters most is that most `.ork` configurations are refused
+> ([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
+> and Windows. It's published on PyPI, Python's package index, as `fusionspace-hpr`.
 
 ## First steps
 
@@ -33,9 +34,9 @@ Install the package, fly a first rocket, and read its recording.
 
 ### Install it
 
-`pip install fusionspace-hpr` installs release 0.1.0 from PyPI, with NumPy. One wheel serves CPython 3.10 and later on Linux on x86-64, Macs with
-Apple silicon, and Windows on x86-64, with glibc 2.17 or later on Linux; elsewhere pip builds
-the source package, which needs Rust
+`pip install fusionspace-hpr` installs release 0.1.0 from PyPI, with NumPy. One wheel serves
+CPython 3.10 and later on Linux on x86-64, on Macs with Apple silicon, and on Windows on x86-64.
+On Linux it needs glibc 2.17 or later. Elsewhere pip builds the source package, which needs Rust
 ([Install a release](getting-started.md#install-a-release)).
 
 You can also build it from this repository. You need the Rust toolchain
@@ -61,16 +62,16 @@ which needs [uv](https://docs.astral.sh/uv/).
 
 The package's distribution name, the one `pip` lists, is `fusionspace-hpr`, and it imports as
 `fusionspace.hpr`. The examples here write `from fusionspace import hpr`, so the rest of the code
-says `hpr.Rocket`, `hpr.Flight` and so on; `import fusionspace.hpr as hpr` does the same.
+says `hpr.Rocket`, `hpr.Flight` and so on. `import fusionspace.hpr as hpr` does the same.
 `fusionspace` is a namespace that other FusionSpace packages can share; it holds nothing itself.
 
 ### A first flight
 
 This builds a simpler version of the rocket in [Your own rocket](your-own-rocket.md) and
-[The builder](the-builder.md): a 54 mm (2.1 in) airframe with an ogive nose, three fins and a Cesaroni
-H54, whose recovery bay here is a point mass and whose nose has no shoulder. It flies from a 1.8 m
-(5.9 ft) rail leaning 5° into a 5 m/s (11 mph) west wind, with a parachute opened by the motor's
-ejection charge at the end of its [ejection delay](glossary.md#ejection-delay).
+[The builder](the-builder.md). It's a 54 mm (2.1 in) airframe with an ogive nose, three fins and a
+Cesaroni H54. Its recovery bay here is a point mass, and its nose has no shoulder. It flies from a
+1.8 m (5.9 ft) rail leaning 5° into a 5 m/s (11 mph) west wind. The motor's ejection charge opens a
+parachute at the end of its [ejection delay](glossary.md#ejection-delay).
 
 ```python
 from fusionspace import hpr
@@ -125,13 +126,13 @@ Line by line:
   (7.9 in) long, with a 29 mm (1.1 in) bore and a 1 mm (0.039 in) wall.
 - Parts go on from the nose back: the nose, then tubes. Fins, a motor tube and masses go on or in
   the tube before them.
-- Each part names its material by an id from the built-in list, `hpr.materials()`, and takes its
+- Each part names its material by an id from the built-in list, `hpr.materials()`. It takes its
   mass from its shape and that material's density.
-- The fins' lengths are named, so two can't swap unseen: the root chord, tip chord and span, and
-  the sweep, how far aft of the root's leading edge the tip's is.
+- The fins' lengths are named, so two can't swap unseen. They're the root chord, tip chord and
+  span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
 - `Motor.from_catalog` finds one of the [32 bundled motors](physics/motor.md#the-bundled-motors)
-  by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A),
-  so give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
+  by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).
+  So give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
   RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
 - `static_margin_cal(0.0, 0.3)` is the stability margin at ignition (0 s) and Mach 0.3.
 - `Flight` flies the rocket as soon as it is made. The rail is 1.8 m (5.9 ft) long and leans
@@ -142,18 +143,19 @@ Line by line:
 The stability margin is the distance from the
 [center of gravity](glossary.md#center-of-gravity-cg) back to the
 [center of pressure](glossary.md#center-of-pressure-cp), in body diameters
-([calibers](glossary.md#caliber)). It is 2.12 here, where The builder's example says
-1.92. That example packs its 200 g recovery bay into a 15 cm (5.9 in) cylinder, which moves the bay's
-center, and so the rocket's center of gravity, aft: about 0.4 calibers less. It also gives the
-nose a capped shoulder, which adds mass at the front: about 0.2 calibers more. A test holds both
-steps to these sizes
+([calibers](glossary.md#caliber)). It's 2.12 here and 1.92 in The builder's example.
+
+That example packs its 200 g recovery bay into a 15 cm (5.9 in) cylinder. This moves the bay's
+center aft, and with it the rocket's center of gravity: about 0.4 calibers less. It also gives the nose a
+capped shoulder, which adds mass at the front: about 0.2 calibers more. A test holds both steps to
+these sizes
 ([`test_the_margin_moves_as_the_python_page_says`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_options.py)).
 
 ### The recording
 
 A flight is recorded at every step of the [integrator](physics/integration.md), or every
-`interval_s` seconds (at least 0.001 s) if you give `Flight` one, with a row at every event too.
-`flight.columns` names the columns, each with its unit, and `flight["name"]` gives one as a NumPy
+`interval_s` seconds (at least 0.001 s) if you give `Flight` one. Either way there's a row at every
+event too. `flight.columns` names the columns, each with its unit, and `flight["name"]` gives one as a NumPy
 array. `flight.series` gives them all, as a dictionary of arrays. Continuing from above:
 
 ```python
@@ -174,39 +176,44 @@ Highest recorded height: 1118.3 m at 13.67 s
    trigger at 13.500 s
 ```
 
-The columns are the ones [Recording a trajectory](recording-a-trajectory.md) lists: time, position
-and velocity east, north and up of the pad, attitude, height, airspeed, Mach number, angle of
-attack, thrust, mass and more. Heights are the center of gravity's, above the pad; it stands on the
-rail at the start, so the first height isn't zero. The arrays are read-only copies, so a slip
-can't change the flight's record. To plot one, hand the arrays to any plotting library, for
-example `matplotlib.pyplot.plot(time_s, height_m)`.
+The columns are the ones [Recording a trajectory](recording-a-trajectory.md) lists. They're time,
+position and velocity east, north and up of the pad, attitude, height, airspeed, Mach number, angle
+of attack, thrust, mass and more. Heights are the center of gravity's, above the pad. The rocket
+stands on the rail at the start, so the first height isn't zero.
 
-`flight.events` lists what happened, in the order it happened. Each event is a dictionary with its
-`kind`, the `index` of the parachute or motor it is about, its `time_s`, and the flight's state
+The arrays are read-only copies, so a slip can't change the flight's record. To plot one, hand the
+arrays to any plotting library, for example `matplotlib.pyplot.plot(time_s, height_m)`.
+
+`flight.events` lists what happened, in the order it happened. Each event is a dictionary. It
+holds its `kind`, the `index` of the parachute or motor it is about, its `time_s`, and the flight's state
 then, `sample`. The kinds are `"liftoff"`, `"rail_exit"`, `"burnout"`, `"apogee"`, `"trigger"` (a
 parachute's charge fires), `"deployment"` (it is open) and `"ground_hit"`. Here the parachute's
 charge fires at 13.5 s, the H54's 3.5 s burn plus its 10 s delay, 0.17 s before apogee.
 
-`flight.landing` is a dictionary of the landing: its `time_s`, `latitude_deg`, `longitude_deg`,
-`east_m` and `north_m` of the pad, `distance_m`, `ground_hit_speed_m_s`, `descent_rate_m_s`, and
-`body`, which separated body landed (`None` for a rocket that didn't come apart).
-`flight.summary` has every metric of the flight as a dictionary: the apogee, top speed, Mach
-number and dynamic pressure, the stability margins and the landings, each explained in
-[Flight metrics](physics/metrics.md). `flight.envelope_flags` lists where the flight went past what
-the simulator's numbers have been checked for
-([the operating envelope](VALIDATION.md#operating-envelope)), and `"unstable_under_power"` for a
-static margin below zero while a motor burns, or `"unstable_without_margin"` for a pitching moment
-that turns the rocket away while a motor burns where the simulator can give no margin
-([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)): each a
-dictionary with its `flag`, such as `"beyond_validated_range"`, the `value` that raised it (a Mach
-number, an angle of attack in radians, a margin in calibers, or a pitch-moment slope per radian),
-its `time_s` and
-`height_above_ground_m`, and a `message`. It is empty for a flight that raises none. `flight.issue_warnings` lists the known
-errors in the simulator's drag, stability or flight path the flight meets
-([the list](VALIDATION.md#operating-envelope)): each a dictionary with its `issue` number, such as
-`67`, its `kind` (`"drag"`, `"stability"` or `"flight"`), its `url`, the flight's `max_mach` and its
-`time_s`, the `parts` whose shape meets it, and a `message` saying which way its numbers lean.
-`flight.to_json()` is the whole record as JSON text.
+`flight.landing` is a dictionary of the landing. It holds its `time_s`, `latitude_deg`,
+`longitude_deg`, `east_m` and `north_m` of the pad, `distance_m`, `ground_hit_speed_m_s` and
+`descent_rate_m_s`. Its `body` says which separated body landed (`None` for a rocket that didn't
+come apart). `flight.summary` has every metric of the flight as a dictionary. They're the apogee,
+top speed, Mach number and dynamic pressure, the stability margins and the landings, each explained
+in [Flight metrics](physics/metrics.md).
+
+`flight.envelope_flags` lists where the flight went past what the simulator's numbers have been
+checked for ([the operating envelope](VALIDATION.md#operating-envelope)). It also lists
+`"unstable_under_power"` for a static margin below zero while a motor burns
+([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Or, where the
+simulator can give no margin, it lists `"unstable_without_margin"` for a pitching moment that turns
+the rocket away while a motor burns.
+
+Each entry is a dictionary with its `flag`, such as `"beyond_validated_range"`, and the `value`
+that raised it. That's a Mach number, an angle of attack in radians, a margin in calibers, or a
+pitch-moment slope per radian. It also holds its `time_s` and `height_above_ground_m`, and a
+`message`. The list is empty for a flight that raises none.
+
+`flight.issue_warnings` lists the known errors in the simulator's drag, stability or flight path
+the flight meets ([the list](VALIDATION.md#operating-envelope)). Each warning is a dictionary
+with its `issue` number, such as `67`, its `kind` (`"drag"`, `"stability"` or `"flight"`), and its
+`url`. It also holds the flight's `max_mach` and its `time_s`, the `parts` whose shape meets it, and a
+`message` saying which way its numbers lean. `flight.to_json()` is the whole record as JSON text.
 
 ## Files and RocketPy
 
@@ -214,29 +221,32 @@ Fly a design read from a file, and fly RocketPy's example rocket as the validati
 
 ### A design from a file
 
-`Rocket.from_file` reads a design instead of building one: a file in
+`Rocket.from_file` reads a design instead of building one. The design can be a file in
 [the HPR design format](format/hpr.md) (`.hpr` or `.hprz`), an OpenRocket `.ork` file ([`.ork`
 design files](format/ork.md)), or a rocket's JSON. It flies the
 [motor configuration](glossary.md#configuration) you name, or the file's default one, or its only
 one, as `hpr sim` does.
 
 Most `.ork` files won't fly yet. A configuration flies only if every motor lights at launch and
-has a thrust curve, in the file or among the simulator's 32 bundled motors: that is 4 of the 170
-configurations in the reference library. Otherwise `from_file` raises `HprError` and says why, and
+has a thrust curve, in the file or among the simulator's 32 bundled motors. That's 4 of the 170
+configurations in the reference library. Otherwise `from_file` raises `HprError` and says why.
 Python can't yet swap in a motor as `hpr sim --motor` does.
 
-A design read from a file flies **without** the parachutes it stores unless you ask for them
-with `recovery=True`: `Rocket.from_file("validation/fixtures/ork/guides/level-1.ork",
-recovery=True)` flies the file's devices
-as `hpr sim` does, each opening fully at its event with the file's drag coefficient or
-OpenRocket's own ([When parachutes open and stages separate](format/ork.md#when-parachutes-open-and-stages-separate)).
-Without it, add parachutes with `add_parachute`; until you do, the rocket falls to the ground
-unslowed, and its landing numbers mean nothing. Parachutes added after `recovery=True` come after
-the file's, so the file's first is parachute 0 for `released_by`. Stage separations are never
-flown. `rocket.notes` lists what reading the file said: the `.ork` reader's warnings, a design
-written by an older version of the format, what the file holds that isn't flown, and a file's
-parachute that never opens in the configuration flown. A file's recovery the simulator can't fly,
-such as a device opened by an event it doesn't read, raises `HprError` with why.
+A design read from a file flies **without** the parachutes it stores, unless you ask for them
+with `recovery=True`. `Rocket.from_file("validation/fixtures/ork/guides/level-1.ork",
+recovery=True)` flies the file's devices as `hpr sim` does. Each opens fully at its event, with
+the file's drag coefficient or OpenRocket's own ([When parachutes open and stages separate](format/ork.md#when-parachutes-open-and-stages-separate)).
+
+Without that option, add parachutes with `add_parachute`. Until you do, the rocket falls to the
+ground unslowed, and its landing numbers mean nothing. Parachutes added after `recovery=True` come
+after the file's, so the file's first is parachute 0 for `released_by`. Stage separations are never
+flown.
+
+`rocket.notes` lists what reading the file said. It holds the `.ork` reader's warnings, and notes
+a design written by an older version of the format. It also notes what the file holds that isn't
+flown, and a file's parachute that never opens in the configuration flown. A file's recovery the
+simulator can't fly, such as a device opened by an event it doesn't read, raises `HprError` with
+why.
 
 This one is [RocketPy](glossary.md#rocketpy)'s example rocket, Calisto, from the file the
 validation suite uses, with its two parachutes as RocketPy's example gives them. The path is the
@@ -256,19 +266,18 @@ example: apogee 2807 m, landing at 5.2 m/s
 ```
 
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with
-HPR Sim's own drag too, in a wind and in RocketPy's atmosphere, and its apogee is 0.609% below
-RocketPy's. That is the closest of the suite's six rockets: on the others, HPR Sim's own drag puts
-the apogee from 7.280% below RocketPy's to 10.302% above
+HPR Sim's own drag too, in a wind and in RocketPy's atmosphere. There its apogee is 0.609% below
+RocketPy's, the closest of the suite's six rockets. HPR Sim's own drag puts the others' apogees
+7.280% below RocketPy's to 10.302% above
 ([Whole flights with each code's own drag](accuracy.md#whole-flights-with-each-codes-own-drag),
-[same-drag and predicted mode](glossary.md#same-drag-and-predicted-mode)). The next section flies
-Calisto from Python as that suite does, and compares it with RocketPy.
+[same-drag and predicted mode](glossary.md#same-drag-and-predicted-mode)).
 
 ### RocketPy's example, flown as the suite flies it
 
-This section flies Calisto again, this time the way the validation suite flies it against
-RocketPy. It is for checking HPR Sim against [RocketPy](glossary.md#rocketpy), or for moving a
-RocketPy script across. Both codes fly the same drag and the same inputs, so the comparison tests
-the rest of the physics: the equations of motion, the atmosphere, the rail and the parachutes. It is
+Here Calisto flies again from Python, this time the way the validation suite flies it against
+RocketPy. It's for checking HPR Sim against [RocketPy](glossary.md#rocketpy), or for moving a
+RocketPy script across. Both codes fly the same drag and the same inputs. So the comparison tests
+the rest of the physics: the equations of motion, the atmosphere, the rail and the parachutes. It's
 a comparison between two codes, not with a real flight.
 
 Three options make it RocketPy's flight:
@@ -280,16 +289,16 @@ Three options make it RocketPy's flight:
   two-column drag files.
 - **RocketPy's gravity.** `Environment(..., gravity="vertical_taylor")` uses RocketPy's formula
   for gravity instead of HPR Sim's default. Near the ground the two differ in size by about one part
-  in $10^8$, but HPR Sim's default also turns with the rocket's position over the ground. On this
+  in $10^8$. But HPR Sim's default also turns with the rocket's position over the ground. On this
   flight the switch moves the apogee by 2 parts in $10^7$ and the landing point by 0.3 m
   (1.0 ft); see [Gravity](physics/gravity.md).
 - **One parachute at a time.** RocketPy flies only the last parachute to open, and HPR Sim adds
   together every one that is open. `released_by` is another parachute's number, counted from 0
-  in the order they were added: `add_parachute(..., released_by=1)` cuts this one away once the
+  in the order they were added. `add_parachute(..., released_by=1)` cuts this one away once the
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2650 m (8694 ft) above the pad:
+as before, to 2650 m (8694 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])
@@ -305,7 +314,7 @@ apogee 2650 m
 
 The example
 [`crates/hpr-py/examples/calisto.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/examples/calisto.py)
-puts it all together. It is written as notebook cells (`# %%`), which editors such as VS Code run
+puts it all together. It's written as notebook cells (`# %%`), which editors such as VS Code run
 one at a time. It reads the rocket, the wind, the drag and the parachutes from the repository's
 files, then flies them. Then it measures each metric as RocketPy defines it, and not always as
 HPR Sim's own summary does:
@@ -317,7 +326,7 @@ HPR Sim's own summary does:
   RocketPy's 800 m (2,625 ft).
 - RocketPy's rail exit is when its forward rail button leaves the rail, after 3.745 m (12.29 ft) of
   travel (RocketPy's `effective_1rl`). HPR Sim's is when its aft-most rail guide clears the top of
-  the 5.2 m (17 ft) rail, after 4.45 m (14.6 ft) of travel, so the example reads RocketPy's off the
+  the 5.2 m (17 ft) rail, after 4.45 m (14.6 ft) of travel. So the example reads RocketPy's off the
   recording.
 - RocketPy's flight ends when the dry center of mass is back at its starting height.
 
@@ -345,13 +354,15 @@ largest difference 1.26%, within 3%: True
 ```
 
 Every metric is within 3% of RocketPy's, the bound the validation suite holds this flight to
-([M2.1](decisions-and-roadmap.md#m2-1)). These are the suite's numbers: a test holds each to within
-0.001% of what the suite's report records for the same flight
+([the comparisons with RocketPy](decisions-and-roadmap.md#m2-1)). These are the suite's numbers. A
+test holds each to within 0.001% of what the suite's report records for the same flight
 ([`test_calisto.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_calisto.py)).
-Because both codes fly the same drag, this says nothing about HPR Sim's own drag, the largest source
-of difference: flying its own, HPR Sim puts the suite's six rockets' apogees 7.280% below RocketPy's
-to 10.302% above, as the section before says. The drifts differ most here. On two of RocketPy's
-other example rockets, Juno III and Bella Lui, flown in a wind, the drifts differ by 10 to 38%
+
+Because both codes fly the same drag, this says nothing about HPR Sim's own drag, the largest
+source of difference. Flying its own drag, HPR Sim puts the suite's six rockets' apogees 7.280%
+below RocketPy's to 10.302% above, as the section before says. The drifts differ most here.
+Juno III and Bella Lui are two of RocketPy's other example rockets. On them, flown in a wind,
+HPR Sim's drift and RocketPy's differ by 10 to 38%
 ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## Drag, wind and scatter
@@ -360,12 +371,13 @@ Fly a drag and a wind you write in Python, and fly a rocket many times with its 
 
 ### Drag and wind of your own
 
-A flight can fly a drag and a wind you write as Python functions, in place of the simulator's own
-drag and the environment's wind: a drag curve from a wind tunnel or another program, say, or a wind
-profile from a weather balloon. The simulator calls them as it flies, several times for each time
-step of its integrator, and keeps everything else its own: the rest of the aerodynamics, the thrust,
-the masses and the atmosphere. They are the Python side of the Rust library's
-[models of your own](custom-models.md).
+A flight can fly a drag and a wind you write as Python functions. They take the place of the
+simulator's own drag and the environment's wind. A drag curve from a wind tunnel or another program
+is one example, and a wind profile from a weather balloon another.
+
+The simulator calls them as it flies, several times for each time step of its integrator. It
+keeps everything else its own: the rest of the aerodynamics, the thrust, the masses and the
+atmosphere. They're the Python side of the Rust library's [models of your own](custom-models.md).
 
 > **How far to trust it.** As far as your functions. The simulator checks that each number is
 > finite, and that a drag is not negative, but not that it is right.
@@ -382,8 +394,8 @@ Three things about the drag number, as for a Rust drag model:
 - At an angle of attack the simulator scales it, as it scales its own.
 - Under a parachute the drag is the parachute's, not the function's.
 
-The wind's two numbers are the way the air moves, so a wind from the west is `(+speed, 0)`: the
-opposite of `wind_from_deg`, which names where the wind comes from.
+The wind's two numbers are the way the air moves, so a wind from the west is `(+speed, 0)`. That's
+the opposite of `wind_from_deg`, which names where the wind comes from.
 
 Here the drag rises through Mach 0.8 to 1.1 and drops 10% under power, and the wind strengthens
 with height:
@@ -430,45 +442,48 @@ LookupError no drag measured past Mach 0.3
 ```
 
 A function that always returns the same number flies as a drag table of that number does. At 0.5
-the two agree to the last digit; at some numbers, 0.3 or 0.45 say, they differ in the eleventh,
+the two agree to the last digit. At some numbers, 0.3 or 0.45 say, they differ in the eleventh,
 because the table's interpolation rounds its own constant.
 
 A function that raises stops the flight, and `Flight` raises its exception unchanged, with its
-type and traceback. That holds even for an exception at a trial step: the integrator tries a step,
+type and traceback. That holds even for an exception at a trial step. The integrator tries a step,
 and when a model refuses, it would normally retry with a shorter one. It asks at speeds and heights
-a little past the flight's own (the landing's search, for one, asks the wind a few meters below the
-ground), so a function that refuses past its data wants some margin.
+a little past the flight's own. The landing's search, for one, asks the wind a few meters below the
+ground. So a function that refuses past its data wants some margin.
 
-A function can't be given alongside its constant counterpart: `drag` with `drag_table`, or `wind`
-with `wind_speed_m_s` or `wind_from_deg`, raises `hpr.HprError`, as does something that can't be
-called. So does a drag coefficient that is negative or not finite, or a wind that isn't finite; an
-answer of the wrong type, such as a string, raises Python's `TypeError`.
+A function can't be given alongside its constant counterpart. `drag` with `drag_table`, or `wind`
+with `wind_speed_m_s` or `wind_from_deg`, raises `hpr.HprError`. So does something that can't be
+called, a drag coefficient that is negative or not finite, or a wind that isn't finite. An answer
+of the wrong type, such as a string, raises Python's `TypeError`.
 
-Each call takes Python's global interpreter lock, so a flight with a Python function runs slower
+Each call takes Python's global interpreter lock. So a flight with a Python function runs slower
 than one without, and flights in other threads wait while it calls. The functions should give the
 same answer to the same question, or a flight can't be repeated.
 
 ### Monte Carlo
 
-A [Monte Carlo](glossary.md#monte-carlo) run flies the rocket many times, each time with its
-uncertain inputs drawn afresh about their planned values, to show how far the apogee and the
-landing spread ([Monte Carlo dispersion](monte-carlo.md) explains the method and how to choose the
-numbers). `hpr.MonteCarlo` takes the rocket, the site and the rail as `Flight` does (a vertical
-rail by default), how many flights to fly (100 by default), a [seed](glossary.md#seed) (0 by
-default), and one [standard deviation](glossary.md#standard-deviation) for each input to scatter:
-a fraction for a share (`impulse_sd_fraction=0.03` is 3%), degrees for an angle, meters or
-seconds otherwise. An input left out isn't scattered. Like `Flight`, it flies as soon as it is
-made, its flights spread over the computer's cores. The spread it shows is only as good as the
-standard deviations you give and the simulator's flight models, which are not yet checked against
-repeated real flights ([Accuracy](accuracy.md)); where a rocket lands in a wind is the least certain
-number of all.
+A [Monte Carlo](glossary.md#monte-carlo) run flies the rocket many times, to show how far the
+apogee and the landing spread. Each time, its uncertain inputs are drawn afresh about their planned
+values. [Monte Carlo dispersion](monte-carlo.md) explains the method and how to choose the numbers.
 
-The run reads as a dictionary of NumPy arrays, one value a flight: what each flight drew
-(`motor_1_impulse_scale`, `drag_scale` and the rest) and what it came to (`apogee_m`,
+`hpr.MonteCarlo` takes the rocket, the site and the rail as `Flight` does (a vertical rail by
+default). It also takes how many flights to fly (100 by default) and a [seed](glossary.md#seed) (0
+by default). And it takes one [standard deviation](glossary.md#standard-deviation) for each input
+to scatter. That's a fraction for a share (`impulse_sd_fraction=0.03` is 3%), degrees for an angle,
+and meters or seconds otherwise. An input left out isn't scattered.
+
+Like `Flight`, it flies as soon as it's made, with its flights spread over the computer's cores.
+The spread it shows is only as good as the standard deviations you give and the simulator's flight
+models. Those models aren't yet checked against repeated real flights ([Accuracy](accuracy.md)).
+Where a rocket lands in a wind is the least certain number of all.
+
+The run reads as a dictionary of NumPy arrays, one value a flight. The arrays hold what each flight
+drew (`motor_1_impulse_scale`, `drag_scale` and the rest) and what it came to (`apogee_m`,
 `landing_distance_m`, `max_mach` and the rest). `run.columns` lists them, in the order of
 [`hpr mc --export`](cli.md#hpr-mc)'s CSV columns. This flies a level 1 certification rocket's
-`.ork` design 200 times from a 1.5 m (4.9 ft) vertical rail, in its default motor configuration, with the
-parachute stored in its file (`recovery=True`, [A design from a file](#a-design-from-a-file)):
+`.ork` design 200 times from a 1.5 m (4.9 ft) vertical rail. It flies its default motor
+configuration, with the parachute stored in its file (`recovery=True`,
+[A design from a file](#a-design-from-a-file)):
 
 ```python
 import numpy
@@ -499,18 +514,18 @@ The command line flies the same run: `hpr mc validation/fixtures/ork/guides/leve
 
 A test holds the two equal
 ([`test_a_run_is_hpr_mcs_bit_for_bit`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_montecarlo.py)).
-It flies 40 flights of this design with all eleven inputs scattered, and finds every number of
+It flies 40 flights of this design with all eleven inputs scattered. It finds every number of
 every column equal, bit for bit, and the two CSV texts equal byte for byte. That holds on one
-platform, with both built in release mode (`maturin develop --release`, `cargo build --release`);
-a debug build's last digits can differ.
+platform, with both built in release mode (`maturin develop --release`, `cargo build --release`).
+A debug build's last digits can differ.
 
 A flight that fails, such as one whose drawn mass is negative, is counted and kept, never
-dropped. `run.failed` counts them, `run.failures` groups them by why (a dictionary each:
-`at`, `"inputs"` or `"flight"`; `reason`; `count`; and `first_index`, the first one's row), and
-the `outcome`,
-`failed_at` and `reason` columns say which they were. A failed flight's figures are NaN, so use
-NumPy's `nanmean`, `nanpercentile` and the like, as above, or pick the flown ones with
-`run["outcome"] == "flown"`. `run.nominal` is the flight with nothing scattered, as
+dropped. `run.failed` counts them. `run.failures` groups them by why, a dictionary each: `at`,
+`"inputs"` or `"flight"`; `reason`; `count`; and `first_index`, the first one's row. The
+`outcome`, `failed_at` and `reason` columns say which they were.
+
+A failed flight's figures are NaN, so use NumPy's `nanmean`, `nanpercentile` and the like, as
+above, or pick the flown ones with `run["outcome"] == "flown"`. `run.nominal` is the flight with nothing scattered, as
 `Flight.summary` gives it, and `run.dispersion` the standard deviations given, by name.
 
 The eleven inputs, each named for its unit:
@@ -530,11 +545,10 @@ The eleven inputs, each named for its unit:
 | `deployment_lag_sd_s` | each parachute's lag after its trigger, s |
 
 A `drag` or `wind` function of your own is called from every flight of the run, one call at a
-time, and an exception it raises stops the run and is raised by `MonteCarlo`. The calls come in no
-set order, so a run repeats bit for bit only if the function's answer depends on its arguments
-alone. A run takes 1 to
-100,000 flights; a standard deviation that is negative or not finite raises `hpr.HprError`,
-named by its argument.
+time. An exception it raises stops the run, and `MonteCarlo` raises it. The calls come in no set
+order, so a run repeats bit for bit only if the function's answer depends on its arguments alone.
+A run takes 1 to 100,000 flights. A standard deviation that is negative or not finite raises
+`hpr.HprError`, named by its argument.
 
 ## Reference and limits
 
@@ -543,8 +557,8 @@ The errors the package raises, how it names values and units, every call it has,
 ### When something is wrong
 
 A value out of its range, a part out of order, or a motor or material that isn't there raises
-`hpr.HprError`, a kind of `ValueError`, with the library's own message. So does an argument that
-doesn't apply, such as a `canopy` beside a `cd_s_m2`:
+`hpr.HprError`. It's a kind of `ValueError`, and it carries the library's own message. An argument
+that doesn't apply raises it too, such as a `canopy` beside a `cd_s_m2`:
 
 ```python
 try:
@@ -559,9 +573,9 @@ no motor with a bundled thrust curve matches `Z9000`
 
 ### Names and units
 
-Every value is in SI units, and every argument and attribute that carries one names it, as the Rust
+Every value is in SI units. Every argument and attribute that carries one names it, as the Rust
 API does: `length_m`, `mass_kg`, `apogee_m`, `max_speed_m_s`, `wind_from_deg`. Names that pick one
-of several things are strings, in any case, with a space or hyphen allowed where the name has an
+of several things are strings, in any case. A space or hyphen is allowed where the name has an
 underscore:
 
 | argument | the choices |
@@ -573,8 +587,8 @@ underscore:
 | a parachute's `canopy` | `"flat_circular"` (the default), `"conical"`, `"biconical"`, `"triconical"`, `"extended_skirt10_flat"`, `"extended_skirt14_full"`, `"hemispherical"`, `"annular"`, `"cross"`, `"flat_ribbon"`, `"conical_ribbon"`, `"ringslot"`, `"ringsail"` ([Recovery](physics/recovery.md)) |
 
 A parachute is either a canopy `diameter_m` across, with its type's drag coefficient or your own
-`drag_coefficient`, or a [drag area](glossary.md#drag-area) `cd_s_m2`, its drag coefficient
-times its area in m², as RocketPy's `cd_s`.
+`drag_coefficient`, or a [drag area](glossary.md#drag-area) `cd_s_m2`. A drag area is the
+parachute's drag coefficient times its area in m², as RocketPy's `cd_s` is.
 
 ### Every class and method
 
@@ -597,7 +611,7 @@ times its area in m², as RocketPy's `cd_s`.
 | `FlightLog.read(path, mapping=, layout=, sheet=, recording=, fip_header=)`, `FlightLog.header_mapping(path, sheet=)` | a flight log, read by its format's own reader, by a column mapping, by a record layout or, for a Raven FIP export below no header, by a FIP header, each a dict or a JSON file's path ([Reading your own logger](your-own-logger.md#from-python)); `sheet=` picks a workbook's sheet and `recording=` a raw dump's recording, each from 0, where the file holds several ([A file of several records](cli.md#a-file-of-several-records)); its `format`, `logger`, `serial_number`, `firmware`, `flight_number`, `time_s`, `altitude_m`, `channels`, `events`, `stated`, `notes`, `to_dict()` and `readings()`, a dict of the `liftoff`, `apogee`, `max_speed`, `max_acceleration` and `landing` readings `hpr analyze` takes, each read within its bound or withheld with its reason ([Flight-log readings](physics/log-readings.md)); and what a table's header states, as a mapping to edit |
 
 
-An argument written `name=` above can be left out, and is given by name: `add_fins`' lengths
+An argument written `name=` above can be left out, and is given by name. `add_fins`' lengths
 have no default, but are named too. Each class and method has a docstring that says what its
 arguments mean: `help(hpr.Rocket.add_fins)`, for example. The Rust reference for the package, [`hpr_py`](api/hpr_py/index.html), says how it is
 built.
@@ -609,9 +623,9 @@ The package covers the Rust builder, not the whole library. Not yet:
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
 - Staging and mass shifts. A configuration that drops a stage under power is refused. Any other
-  design of several stages flies as one stack: no stage drops away, a motor lit by another's
-  burnout lights on the whole stack, one lit by a separation never does, and `rocket.notes` says
-  so.
+  design of several stages flies as one stack, and `rocket.notes` says so. No stage drops away. A
+  motor lit by another's burnout lights on the whole stack, and one lit by a separation never
+  does.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.
 - Separations stored in a design file, as above.
 - Monte Carlo's landing ellipses and spread summaries, which `hpr mc` prints and Rust programs
