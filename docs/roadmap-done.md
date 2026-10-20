@@ -87,7 +87,6 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
-- M0.14a The guide and the check ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -608,13 +607,6 @@ One line per milestone or increment, in the order it was archived within its pha
   converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
   test each; the page check fails math text off the math face or under 12 px and a formula wider
   than its box, with a canary; `docs/writing.md` has the rules.
-- **M0.14** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
-  - [x] **M0.14a The guide and the check.** *Done when:* `writing.md`'s voice section, each rule
-    with a before-and-after pair from a real page and limits per 100 words for each counted
-    pattern, is in the design system's rules (a merged PR); `cargo xtask voice` reads any path,
-    commits its per-page report, and fails only on its stock-phrase list of at least 30 entries
-    (a test failing without each, none hitting `docs/physics/`); `.github` gains a PR template and
-    issue templates citing the section.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
