@@ -81,6 +81,26 @@
     });
   }
 
+  // How long one animation frame of the landing probe may take, in milliseconds.
+  const FRAME_TIMEOUT_MS = 30000;
+
+  function twoFrames(win) {
+    // Two animation frames, with no timer standing in for one that doesn't come: the landing
+    // probe reads what those frames draw, and one skipped would read a jump before the page
+    // moves. A frame that never comes fails the probe.
+    return new Promise(function (resolve, reject) {
+      const timer = setTimeout(function () {
+        reject(new Error('a frame did not come in ' + FRAME_TIMEOUT_MS / 1000 + ' s'));
+      }, FRAME_TIMEOUT_MS);
+      win.requestAnimationFrame(function () {
+        win.requestAnimationFrame(function () {
+          clearTimeout(timer);
+          resolve();
+        });
+      });
+    });
+  }
+
   const INFINITE = { x0: -Infinity, x1: Infinity, y0: -Infinity, y1: Infinity };
 
   function intersect(a, b) {
@@ -2515,8 +2535,94 @@
   // The mark on a box the check draws though `content-visibility: auto` would skip it.
   const SHOWN = 'data-hpr-shown';
 
-  // `printed`: whether this width reads the page on paper too.
-  function check(page, width, height, printed) {
+  // A link to a heading must land on it (`theme/hpr.css`, `theme/hpr.js`). A box with
+  // `content-visibility: auto` skips its layout while it is off screen and stands in at its
+  // `contain-intrinsic-size` until it is first drawn, so a jump worked out over stand-ins shorter
+  // than what they hold stops short once those near the window are drawn. Read once a run, at
+  // its narrowest width, on a page where something skips, in a frame of its own, since `check`
+  // draws every such box. From the top of the page, each box back at its stand-in as on a fresh
+  // load, a link to each `h2` with an id is clicked; two frames later the heading must sit
+  // within LANDING_PX of where the same link puts it with nothing skipped.
+  const LANDING_PX = 2;
+  // The mark on a box the landing probe finds skipping.
+  const SKIPS = 'data-hpr-skips';
+
+  async function probeLanding(page, width, height, result) {
+    const note = function (sel, value) {
+      result.landing_count++;
+      if (result.landing.length < EXAMPLES) {
+        result.landing.push({ selector: sel, property: 'top after a link to it', value: value,
+          theme: width + ' px' });
+      }
+    };
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
+      + 'width:' + width + 'px;height:' + height + 'px';
+    let timer = null;
+    const loaded = new Promise(function (resolve) {
+      frame.addEventListener('load', function () { resolve(true); }, { once: true });
+      timer = setTimeout(function () { resolve(false); }, LOAD_TIMEOUT_MS);
+    });
+    frame.src = '/' + page;
+    document.body.appendChild(frame);
+    try {
+      if (!(await loaded)) {
+        note('html', 'not read: the page did not load again in ' + LOAD_TIMEOUT_MS / 1000 + ' s');
+        return;
+      }
+      const w = frame.contentWindow;
+      const d = frame.contentDocument;
+      const faces = Array.from(d.fonts);
+      await Promise.all(faces.map(function (f) { return f.load().catch(function () {}); }));
+      await d.fonts.ready;
+      await twoFrames(w);
+      const main = d.querySelector('main') || d.body;
+      for (const el of d.querySelectorAll('*')) {
+        if (w.getComputedStyle(el).contentVisibility === 'auto') el.setAttribute(SKIPS, '');
+      }
+      // `hidden` with no `auto` size forgets the size each box was last drawn at, so once it is
+      // taken away each stands in again until it nears the window; `visible` with the
+      // containment `auto` keeps draws each as it is on screen.
+      const forget = d.createElement('style');
+      forget.textContent = '[' + SKIPS + '] { content-visibility: hidden !important; '
+        + 'contain-intrinsic-size: none !important; }';
+      const shown = d.createElement('style');
+      shown.textContent = '[' + SKIPS + '] { content-visibility: visible !important; '
+        + 'contain: layout style paint !important; }';
+      for (const heading of Array.from(main.querySelectorAll('h2[id]'))) {
+        w.history.replaceState(null, '', w.location.pathname + w.location.search);
+        w.scrollTo(0, 0);
+        d.head.appendChild(forget);
+        await twoFrames(w);
+        forget.remove();
+        await twoFrames(w);
+        await twoFrames(w);
+        const link = d.createElement('a');
+        link.href = '#' + encodeURIComponent(heading.id);
+        main.insertBefore(link, main.firstChild);
+        link.click();
+        link.remove();
+        await twoFrames(w);
+        await twoFrames(w);
+        const got = heading.getBoundingClientRect().top;
+        d.head.appendChild(shown);
+        heading.scrollIntoView({ block: 'start' });
+        const want = heading.getBoundingClientRect().top;
+        shown.remove();
+        if (Math.abs(got - want) > LANDING_PX) {
+          note(selector(heading), Math.round(got) + ' px down the window, where it lands at '
+            + Math.round(want) + ' px with nothing skipped');
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+      frame.remove();
+    }
+  }
+
+  // `printed`: whether this width reads the page on paper too; `landed`: whether it follows
+  // links to the page's headings.
+  function check(page, width, height, printed, landed) {
     return new Promise(function (resolve) {
       const frame = document.createElement('iframe');
       frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
@@ -2585,6 +2691,12 @@
           if (printed) await probeSwitchPress(win, doc, result);
           if (printed) await probeSwitchRetired(win, doc, result);
           result.printed = printed;
+          result.landing = [];
+          result.landing_count = 0;
+          if (landed && doc.querySelector('[' + SHOWN + ']')) {
+            await probeLanding(page, width, height, result);
+          }
+          result.landed = landed;
           for (const off of await probeSearch(win, doc)) {
             result.header_count++;
             if (result.header.length < EXAMPLES) result.header.push(off);
@@ -2631,7 +2743,7 @@
         while (next < plan.widths.length) {
           const i = next++;
           results[i] = await check(page, plan.widths[i], plan.height,
-            plan.widths[i] === plan.print_width);
+            plan.widths[i] === plan.print_width, plan.widths[i] === plan.landing_width);
         }
       };
       const workers = [];
