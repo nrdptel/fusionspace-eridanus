@@ -818,7 +818,7 @@ fn summary(pages: &[Page]) -> String {
          of the writing guide's voice section, {} held; the stock-phrase list holds {} entries in \
          {} groups",
         pages.len(),
-        HELD.len(),
+        pages.iter().filter(|page| page.held).count(),
         STOCK.len(),
         groups()
     )

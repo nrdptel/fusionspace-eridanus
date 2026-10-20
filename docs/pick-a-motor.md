@@ -246,8 +246,7 @@ when the parachute comes out.
 
 In the H125 flight above, the coast is 9.42 s, and the 10 s delay fires the charge 0.58 s after
 apogee. The H125 comes in delays of 8, 10, 12, 14 and 18 s, more than its file's header lists, so
-10 s is the nearest. The simulator flies
-any delay you give. Give one the maker sells, or one your motor's delay can be adjusted to.
+10 s is the nearest. The simulator flies any delay you give. Give one the maker sells, or one your motor's delay can be adjusted to.
 
 A delay is a burning fuse, and real ones vary from motor to motor. The simulator flies the stated
 time exactly. [Monte Carlo dispersion](monte-carlo.md), in the library, can scatter it.
