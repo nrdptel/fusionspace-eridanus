@@ -43,7 +43,7 @@ model cites its source and has tests.
   Carlo from the command line.
 - `hpr analyze` reads a flight log on its own, with no design file. It uses the format's own reader,
   or a mapping or layout you write. From any logger's barometric altitude or pressure, it takes the
-  liftoff, apogee, top speed and landing. Each one comes within a stated bound, or it's withheld
+  liftoff, apogee, top speed and landing. Each one comes within a bound held on synthetic flights, or it's withheld
   with the reason.
 - It exports flights as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and there's a Python
   package.
@@ -54,10 +54,11 @@ go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulate
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
-safety officer (RSO) are authoritative. The 53 flights' weather is ERA5, generated using
-Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change
-Service information 2026; neither the European Commission nor ECMWF is responsible for any use made
-of it.
+safety officer (RSO) are authoritative.
+
+The 53 flights' weather is ERA5, generated using Copernicus Climate Change Service information
+2026, and contains modified Copernicus Climate Change Service information 2026; neither the
+European Commission nor ECMWF is responsible for any use made of it.
 
 ## What doesn't work yet
 

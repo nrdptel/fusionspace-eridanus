@@ -79,9 +79,9 @@ what to do on macOS when it can't check the program.
   [Monte Carlo dispersion](monte-carlo.md) and [Reading a flight log](reading-a-flight-log.md).
 - Before you rely on a number, read [Trusting a simulation](trusting-a-simulation.md).
 
-The public flights are among those RocketPy's documentation flies against their teams' logs.
-University rocketry teams, rocketry courses and hobbyists published the logged flights. Both sets
-fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
+The trust note's flights come from two places. The public flights are among those RocketPy's
+documentation flies against their teams' logs. University rocketry teams, rocketry courses and
+hobbyists published the logged flights. Both sets fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The
 [logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.
