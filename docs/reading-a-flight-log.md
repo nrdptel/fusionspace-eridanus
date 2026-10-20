@@ -84,8 +84,8 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
 > those speeds a barometer's port may read the flow over the nose.
 >
-> A charge's spike can climb into the top no faster than a coast can. Then it's read as the
-> apogee, however high it stands
+> If a charge's spike climbs into the top no faster than a coast can, it's read as the apogee.
+> That holds however high it stands
 > ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761), a charge's transient at the
 > top). Some tops withheld as `disturbed_top` are the rocket's own
 > ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762), telling a coast's own top
@@ -117,8 +117,9 @@ record layout, `--layout`. Each is a JSON file you write.
 
 ### A file of several records
 
-A spreadsheet's workbook holds sheets: an `.xlsx`, or an `.xls` written as one bare worksheet
-(as an AltiMAX altimeter's Excel export is). An Entacore AIM raw dump can hold several recordings.
+A spreadsheet's workbook holds sheets. The workbook is an `.xlsx`, or an `.xls` written as one
+bare worksheet (as an AltiMAX altimeter's Excel export is). An Entacore AIM raw dump can hold
+several recordings.
 
 `hpr analyze` reads one at a time, each by its own reader. With no choice given, it reads the
 workbook's one sheet that reads as a log, or the dump's one recording. Where there are several,
@@ -319,9 +320,9 @@ below reads 7.2 ft/s here and 8 ft/s there.
   noise allowance. The allowance is at least 2 m (6.6 ft) and a step. The rocket left the pad at
   0.50 s; it took 0.30 s to climb that far.
 - **Apogee**, 390.1 m (1,280 ft) at 10.28 s, which is 10.275 s rounded. The top is flat over
-  several samples, and the analyzer takes the middle. It's the top of the altitude after a 0.3 s
-  [running median](glossary.md#running-median). It's 0.17 m (0.56 ft) below the true apogee, well
-  within its 31.9 m (105 ft) bound. Most of that bound allows for the day's air.
+  several samples, so the analyzer takes their middle as its time. It's the top of the altitude
+  after a 0.3 s [running median](glossary.md#running-median). It's 0.17 m (0.56 ft) below the true
+  apogee, well within its 31.9 m (105 ft) bound. Most of that bound allows for the day's air.
 - **The highest sample**, 400.5 m (1,314 ft), a second after apogee, is the ejection charge's
   pressure pulse, not the rocket. The median sets it aside.
 - **The top speed**, 78.3 m/s (257 ft/s) at 2.20 s, within 20.6 m/s (68 ft/s). It's worked out
@@ -333,12 +334,12 @@ below reads 7.2 ft/s here and 8 ft/s there.
 - **Burnout**, no sooner than 0.88 s: the top speed's time, 2.20 s, less its 1.32 s bound. With no
   accelerometer, burnout is a [floor](glossary.md#floor): its reading is the top speed's time, and
   the floor that time less its bound. A rocket gains speed only while its thrust beats the drag and
-  its weight. So the motor burned out no sooner than that time less the bound, and may have burned
-  on after that time by any amount. The true burnout is 2.10 s.
+  its weight. So the motor burned out no sooner than that time less the bound. It may have burned
+  on after the top speed's time by any amount. The true burnout is 2.10 s.
 
-  The floor is loose by design. On the synthetic flights' tuning set, the top speed's time came
-  0.24 s before the true burnout on average. It ranged from 1.33 s before to 0.718 s after. The
-  floor lies its bound, about 1.3 s, earlier still
+  The floor is loose by design: on the synthetic flights' tuning set, the top speed came 0.24 s
+  before the true burnout on average. The top speed's time ranged from 1.33 s before the true
+  burnout to 0.718 s after it. The floor lies its bound, about 1.3 s, earlier still
   ([Checked against](physics/log-readings.md#checked-against)).
 - **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
   rocket touches down 0.34 s later, at 6 m/s (20 ft/s) under its main.
@@ -354,8 +355,8 @@ below reads 7.2 ft/s here and 8 ft/s there.
   landing, as the flight's main truly fell. The opening is at 21.40 s within 1.06 s, 148.4 m
   (487 ft) up. It's found by walking back from landing until the descent's rate climbs well past
   the main's. The main truly opened at 21.14 s, 150 m (492 ft) up, so the reading is 0.26 s late.
-  The rate is a slope fitted over 1 s, which still sees some of the drogue's faster fall just after
-  the opening.
+  It's late because the rate is a slope fitted over 1 s. The slope still sees some of the drogue's
+  faster fall just after the opening.
 
 What the file states about itself, such as the altimeter's own apogee of 1,281 ft, is kept in
 `log.stated`. It sits beside the analyzer's readings, never in their place.

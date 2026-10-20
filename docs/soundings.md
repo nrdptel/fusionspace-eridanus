@@ -85,7 +85,7 @@ station's later messages arrive:
 Offline mode answers from the disk only, however old the copy. An answer the simulator can't read
 is never saved, so it can't replace a good copy. A sounding the archive doesn't have comes back as
 an HTTP error, which the request reports. The error is 404, or 400 for a BUFR file the station
-doesn't send. No test covers that.
+doesn't send. No test covers a missing sounding.
 
 The archive states no terms of use. Show the credit "Sounding from the University of Wyoming's
 radiosonde archive" wherever you show the sounding. Every answer carries it.
@@ -152,8 +152,8 @@ it and be dropped.
 
 To fit, the bad row would have to be 18.6 km (61,000 ft) above the row before it, at 570 hPa. It's
 183 m (600 ft) above that row. So the chain passes it by, from 570 hPa to 549 hPa, and it's left
-out. Two or three bad rows that fit each other are passed by the same way. A chain through them
-would have to pass by more good rows.
+out. A chain through two or three bad rows that fit each other would have to pass by more good
+rows. So they're passed by the same way.
 
 A row with no wind or humidity is left out of the profile but can still be in the chain. So the
 next row is checked across a thin layer, not a thick one. A row with no temperature can't be
@@ -264,8 +264,8 @@ atmosphere. It also prints where Calisto is at apogee: east and north of the pad
 west and south.
 
 Each flight starts on its own sounding's ground. The third flight keeps the BUFR file's ground row
-and its rows from 1,438 geopotential meters up, dropping those between. That's the height of the
-coded message's second row. Run it from a copy of the repository with
+and its rows from 1,438 geopotential meters up, dropping those between. The coded message's second
+row is at 1,438 geopotential meters. Run it from a copy of the repository with
 `cargo run --example wyoming_sounding -p fusionspace-hpr --features net`. It prints:
 
 <!-- quote: crates/hpr/examples/wyoming_sounding.output.txt -->
@@ -416,8 +416,8 @@ test uses the network.
     temperature right after a bad ground isn't counted: the refusal names the row after it.
   - Rows after a good ground that beat it. In the BUFR file they're two rows raised
     31 m (102 ft), and four lowered 35 m (115 ft). In the winter coded message they're three
-    raised 45 m (148 ft), and in the other four raised 50 m (164 ft). Eleven rows raised
-    1 km (3,281 ft) beat it too.
+    raised 45 m (148 ft). In the other coded message they're four raised 50 m (164 ft). Eleven
+    rows raised 1 km (3,281 ft) beat it too.
   - Two BUFR rows raised 20 m (66 ft) fit the ground and are kept, leaving out the three good rows
     no higher than them. Two BUFR rows raised 35 m (115 ft), and 10 coded-message rows raised
     1 km (3,281 ft), are passed by. A chain without the ground may start only at the 11 rows after
@@ -430,8 +430,9 @@ test uses the network.
 
   The BUFR file is sampled at every 150th row, to keep the test under a minute. It's also sampled
   at the rows where a sweep of every row found the worst. That sweep was run once, not in the
-  tests. There a change loses at most 8 other rows for one row, and 10 for a block: about
-  50 m (164 ft) of the climb. Lowering one row, or changing its pressure by 3%, loses no other.
+  tests. In the BUFR file a change loses at most 8 other rows for one row. A block loses at most
+  10, about 50 m (164 ft) of the climb. Lowering one row, or changing its pressure by 3%, loses no
+  other.
 - Values just past the bounds above are left out. Unit tests keep values at each bound. At the top
   row, temperatures of −150 and 80 °C and a wind of 300 m/s (671 mph) are kept and make a
   profile.
@@ -474,8 +475,8 @@ test uses the network.
   were wrong. That happens when the chain through them wins: two BUFR rows 31 m (102 ft) high do
   it.
 - A row, or a short block, kept a little too high leaves out the good rows just above it. In the
-  tests that's at most 2 other levels of a coded message. In a BUFR file it's at most 10 other
-  rows, or 8 for one row.
+  tests that's at most 2 other levels of a coded message and 10 other rows of a BUFR file (8 for
+  one row).
 - Only the archive's comma-separated text is read, not its other formats, and there's no list of
   stations to search by place.
 - Its terms of use aren't stated. Only soundings from U.S. stations, which are U.S. government

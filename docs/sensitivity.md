@@ -164,12 +164,11 @@ check four things:
   by its standard error. Over $n$ seeds, these have a mean within $4/\sqrt{n}$ of 0 and a standard
   deviation within $4/\sqrt{2n}$ of 1. This holds for every Sobol' index of Ishigami's function
   (1,000 seeds) and of the g function's first four factors (500 seeds). It holds for Morris's
-  $\mu^*$ of those four too (1,000 seeds).
+  $\mu^*$ of those four too (1,000 seeds). The same test checks that standard errors 15% too small
+  would fail. A separate unit test computes each Sobol' standard error a second way, from the raw
+  row means.
 - On the g function, twenty Morris paths rank the four factors that matter in the order of their
   total indices.
-
-The test of the standard errors also checks that standard errors 15% too small would fail. A
-separate unit test computes each Sobol' standard error a second way, from the raw row means.
 
 ## An example
 

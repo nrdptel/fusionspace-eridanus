@@ -11,11 +11,12 @@ FusionSpace HPR · Analyzer, the command line and the Python package read such a
 mapping or layout you write. The file reads into the same
 [record](format/flight-logs.md#the-record) every other log reads into. Each column of numbers but
 the clock and those you skip becomes a channel on the logger's clock. A channel's values are in SI
-units (degrees for angles) where your mapping or layout states a unit. Where a mapping marks one,
-the barometric altitude above the pad is the primary track, the one the readings are taken from.
+units (degrees for angles) where your mapping or layout states a unit. A mapping can mark a column
+as the primary track, the one the readings are taken from. That track is the barometric altitude
+above the pad.
 
-The examples below read invented files. All but the FIP export's and the workbook's are one
-flight's, its logger's and its GPS tracker's
+The examples below read invented files. All but the FIP export and the workbook `two-flights.xlsx`
+are one flight's, its logger's and its GPS tracker's
 ([the evidence register's row on them](evidence.md#g11)). That flight flew nowhere.
 
 > **How far to trust it.** The record is the logger's own samples, converted to SI units (degrees
@@ -31,7 +32,7 @@ flight's, its logger's and its GPS tracker's
 > three records equal, channel by channel.
 >
 > The readings (liftoff, apogee, the top speed, landing) are taken from these logs as from any
-> other. Each is within a bound held on HPR Sim's synthetic flights
+> other. Each reading carries a bound held on HPR Sim's synthetic flights
 > ([readings on every logger](decisions-and-roadmap.md#m7-2b)). But those bounds hold only if the
 > units are right. Check a unit against a known height, such as the launch site's elevation from a
 > GPS altitude, before trusting it. For a record, go by the logger's own figures.
@@ -425,10 +426,10 @@ note: 251 binary records read by the caller's layout, written out as a table and
 ## From Python
 
 `FlightLog.read` reads a log by its format's own reader, a mapping, a layout or a FIP header.
-The mapping, layout or FIP header is a dict or the path of its JSON file. It reads the log into
-the record the command line prints with `--record`. `FlightLog.header_mapping` gives what a
-table's header states, as a dict to edit. This reads the invented table by its header's mapping,
-edited in Python as above, then its records by their layout:
+The mapping, layout or FIP header is a dict or the path of its JSON file. `FlightLog.read` reads
+the log into the record the command line prints with `--record`. `FlightLog.header_mapping` gives
+what a table's header states, as a dict to edit. This reads the invented table by its header's
+mapping, edited in Python as above, then its records by their layout:
 
 <!-- python: example -->
 ```python
@@ -509,7 +510,7 @@ command line's `--fip-header` does. `sheet=` picks a workbook's sheet, from 0, f
 FIP header or the sheet's own reader, and `recording=` a raw dump's recording.
 
 The same combinations are refused as on the command line. A log is read by one of `mapping=`,
-`layout=` and `fip_header=`. `recording=` is refused with none of them and no `sheet=`, and
+`layout=` and `fip_header=`. `recording=` is refused with any of them or with `sheet=`, and
 `sheet=` with `layout=`. This reads the invented FIP export above, then the second flight of the
 workbook in [A file of several records](cli.md#a-file-of-several-records):
 

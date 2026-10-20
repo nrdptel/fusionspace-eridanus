@@ -35,7 +35,8 @@ of model is on [Launch-day weather](weather.md), and a weather balloon's measure
 > - A whole GFS file you download yourself reads too ([A whole GFS file](#a-whole-gfs-file)). Every
 >   one of the 746,770,303 values in one such file is within 4.4e-16 of ecCodes', relatively. That
 >   check was a script run once outside CI, and CI checks eight of the file's messages. The file's
->   profile at Spaceport America is the recorded cut's to 1.04e-7.
+>   profile at Spaceport America is the recorded cut's to 1.04e-7. A test skipped in CI checks
+>   that, since CI doesn't have the file.
 > - How good a forecast is depends on the model, and nothing here measures that. No forecast has
 >   been compared with a weather balloon or a flight log.
 > - The pad sits on the model's ground, which is smoothed. At Spaceport America it's
@@ -85,8 +86,8 @@ among them the four around the site. That's about 28 KB for GFS and 40 KB for RA
 
 The box's edges are written to hundredths of a degree, worked out from the site rounded to
 5 decimals, about 1 m (3.3 ft). Your program keeps the site in radians and turns it back into
-degrees, which can change its last digits. Even so, a site given to 8 decimals or fewer asks for
-the same box and finds its saved answer. The simulator asks for:
+degrees, which can change its last digits. The rounding allows for that, so a site given to
+8 decimals or fewer asks for the same box and finds its saved answer. The simulator asks for:
 
 | variable | where |
 |---|---|
@@ -127,9 +128,9 @@ has 0.25° steps, and RAP's has 13,545 m (44,439 ft) cells about 265° E.
 
 **The ground** is at the model's terrain height at the site. It takes the surface pressure, the
 2 m (6.6 ft) temperature and humidity, and the 10 m (33 ft) wind. Putting the 10 m (33 ft) wind at
-the ground makes it the wind on the launch rail. The rail's wind doesn't jump to the lowest level's
-wind above it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile that stepped at its
-lowest level). This is what Open-Meteo's page does too.
+the ground makes it the wind on the launch rail. The profile doesn't jump from there to the lowest
+level's wind above it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile that
+stepped at its lowest level). This is what Open-Meteo's page does too.
 
 **Levels below the ground are left out.** The models give every level everywhere, inventing values
 beneath high ground. A level is kept only when its pressure is below the ground's and its height is
@@ -145,8 +146,9 @@ above sea level at the site's latitude. It uses the World Meteorological Organiz
 
 The model's terrain height is also given in geopotential meters and converted the same way. At
 this latitude that adds about 2 m (6.6 ft): GFS's 1,474.4 gpm becomes 1,476.4 m (4,844 ft).
-[Open-Meteo's elevation](weather.md#how-the-answer-becomes-a-sounding) is a height above sea level.
-If the model's terrain were really one too, the ground would sit about 2 m (6.6 ft) too high.
+Suppose the model's terrain were really a height above sea level, as for
+[Open-Meteo's elevation](weather.md#how-the-answer-becomes-a-sounding). Then the ground would sit
+about 2 m (6.6 ft) too high.
 
 **RAP's winds are turned to east and north.** RAP's map is a cone unrolled flat (a
 [Lambert conformal](glossary.md#lambert-conformal-projection) projection). RAP gives each wind as
@@ -271,7 +273,7 @@ wind. At apogee it's west-southwest of the pad, upwind. The wind at the ground b
 west-southwest (242° and 246°). A rocket just off the rail, still slow, turns into the wind
 ([weathercocking](glossary.md#weathercocking)) and flies that way.
 
-GFS's stronger wind near the ground turns Calisto further into the wind. It ends 49 m (161 ft)
+GFS's stronger wind near the ground turns Calisto further into the wind. Calisto ends 49 m (161 ft)
 further west and 48 m (157 ft) further south than in RAP's forecast. How much of that comes from
 the ground's wind and how much from the winds aloft isn't separated.
 
@@ -463,7 +465,8 @@ were made on macOS. CI runs the same tests with the same bounds on Linux and Win
 - Above the top level, the sounding continues as the
   [standard atmosphere](glossary.md#standard-atmosphere), shifted to pass through the top level's
   temperature and pressure. It keeps the top level's share of water vapor, capped where the air
-  saturates. The wind holds the top level's wind. Both are marked as extrapolated. A flight above
+  saturates. The wind holds the top level's wind. The air and the wind there are both marked as
+extrapolated. A flight above
   16 km (52,000 ft) in RAP's forecast is flying on that guess.
 - A kept level is blended from the four grid points even where one of them has that level
   underground. In the RAP cut, 850 hPa takes 13% of its weight from a point whose ground is at

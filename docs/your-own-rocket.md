@@ -664,9 +664,9 @@ at the end of the output shows the rules:
 
 For a complete file of a similar rocket, see
 [`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json).
-It has centering rings, rail buttons, a parachute and a shock cord as parts, and flies on a 38 mm
-Cesaroni I175. A program in the repository writes the files in that folder, so edit a copy rather
-than the file.
+The rocket has centering rings, rail buttons, a parachute and a shock cord as parts, and flies on
+a 38 mm Cesaroni I175. A program in the repository writes the files in that folder, so edit a copy
+rather than the file.
 
 **The format is provisional.** It's the simulator's own. The open design format,
 [a documented and versioned design file with a schema](decisions-and-roadmap.md#m3-3), will
@@ -713,15 +713,17 @@ What the example can't do yet, and where to go from here.
   tunnel measured, most of all with fins past Mach 1
   ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
 - Against a worked example in a U.S. Army design handbook, the body alone reads a little low faster
-  than sound. Against [RASAero II](glossary.md#rasaero-ii)'s drag for a rocket with a short, steep
-  [boattail](glossary.md#boattail), the whole rocket reads 5% to 15% low faster than sound
+  than sound. Against [RASAero II](glossary.md#rasaero-ii)'s drag for
+  [Calisto](glossary.md#example-rockets), a rocket with a short, steep
+  [boattail](glossary.md#boattail), the whole rocket reads low faster than sound. From Mach 1.05
+  to 2, where the comparison stops, it reads 5% to 15% low
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)). It read about a
   quarter low until the simulator modeled
   [a boattail's drag faster than sound](decisions-and-roadmap.md#m1-8b3), and the rest is only
   partly explained.
 - If your rocket goes supersonic, its drag there may be off either way. It may read low with a
-  steep boattail, and a quarter or more high with thin, sharp fins. Treat a supersonic flight's
-  apogee as rough.
+  steep boattail. With thin, sharp fins, the drag of all but the base read 29.8% to 154% high from
+  Mach 1.2 against the wind tunnel above. Treat a supersonic flight's apogee as rough.
 - Staging needs its settings. A motor lights at launch unless its `ignition` says otherwise. So a
   two-stage design flies with both stages burning at once, until you give the sustainer its
   ignition and the flight a separation ([Staging](physics/staging.md)). A `.ork` file's own

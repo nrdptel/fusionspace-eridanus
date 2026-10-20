@@ -74,8 +74,8 @@ A request can name another server instead (`ElevationRequest::endpoint`), for a 
 Open-Meteo you run yourself.
 
 The simulator writes each coordinate to 5 decimal places, about 1 m (3.3 ft) on the ground. Your
-program can keep a place in radians and turn it back into degrees, which can change its last
-digits. Even so, a place given to 8 decimals or fewer still finds its saved answer.
+program keeps a place in radians and turns it back into degrees, which can change its last digits.
+The rounding allows for that, so a place given to 8 decimals or fewer still finds its saved answer.
 
 **A saved answer is found again only by the same request:** the same places, in the same order.
 If you look up three club fields in one request at home, a later lookup of one of them alone is a
@@ -229,9 +229,9 @@ that the address is the same after a trip through radians, for every longitude i
 It's the same, too, for 720,000 values given to 6 or 8 decimals, the 6-decimal ones all sitting on
 a rounding half step.
 
-They check that the simulator refuses a request with no places, or with 101. It must refuse a
-latitude or longitude out of range or not a number, and name the place, counting from 0. It must
-refuse a bad server address too. They also check that the reader takes negative heights and the
+They check that the simulator refuses a request with no places, with 101, or with a bad server
+address. They check that it refuses a latitude or longitude out of range or not a number, and
+names the place, counting from 0. They also check that the reader takes negative heights and the
 range's edges, and refuses each kind of broken answer above.
 
 ## What it leaves out
@@ -321,8 +321,8 @@ Check two things in `info()`, the first one first:
 EGM2008 is a model of the [geoid](#what-the-height-means). NAVD88 was defined by leveling.
 [The US National Geodetic Survey](https://geodesy.noaa.gov/datums/newdatums/index.shtml) puts it
 about half a meter off the best geoid models. NAVD88 is tilted, too, by about a meter from coast
-to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtml)): a meter or
-two at most.
+to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtml)). Together,
+the offset and the tilt come to a meter or two at most.
 
 The simulator takes a height above either as the $H$ of
 [What the height means](#what-the-height-means). That's the height above sea level the air is

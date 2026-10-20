@@ -21,12 +21,13 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 > real flights ([Accuracy](accuracy.md)).
 >
 > - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
->   tests pin the sampling. In them, the same [seed](glossary.md#seed) gives the same run, bit for
->   bit, however many flights it has and however many threads fly them. A run with no dispersion
->   flies the nominal flight in every sample, and each dispersion moves its input as the table
->   below says. A dispersed motor keeps its [specific impulse](glossary.md#specific-impulse), and
->   failed flights are counted. The [landing ellipses](#landing-ellipses) are tested against normal
->   spreads with known answers.
+>   tests pin the sampling. They check that the same [seed](glossary.md#seed) gives the same run,
+>   bit for bit, however many flights it has and however many threads fly them. They check that a
+>   run with no dispersion flies the nominal flight in every sample. They check that each
+>   dispersion moves its input as the table below says. They also check that a dispersed motor
+>   keeps its [specific impulse](glossary.md#specific-impulse), and that failed flights are
+>   counted. The [landing ellipses](#landing-ellipses) are tested against normal spreads with known
+>   answers.
 > - Nothing checks whether the spread matches the spread of real flights. No measured set of
 >   repeated flights has been compared yet.
 > - A run leaves out correlations between inputs, distributions other than the
@@ -296,11 +297,11 @@ Five cases need a word:
   away from that heading, never sideways. RocketPy disperses its rail the same way, an inclination
   and a heading (`rocketpy/stochastic/stochastic_flight.py:21-24`, version 1.13.0). Disperse the
   heading too for leans in every direction.
-- A staged flight separates where the nominal one does: at the same event, or the same time for a
-  split the file times in seconds. A split timed by a burnout follows the dispersed burn; one
-  timed in seconds doesn't. If a booster still burns at a split timed in seconds, the flight stops
-  with its error and counts as failed. The exception is a split that may drop a burning motor, as
-  OpenRocket's first burnout of a stage does
+- Every flight of a staged run separates where the nominal one does. It separates at the same
+  event, or at the same time for a split the file times in seconds. A split timed by a burnout
+  follows the dispersed burn; one timed in seconds doesn't. If a booster still burns at a split
+  timed in seconds, the flight stops with its error and counts as failed. The exception is a split
+  that may drop a burning motor, as OpenRocket's first burnout of a stage does
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md)).
   `--delay-sd` moves a booster's ejection charge, and the parachute it fires, but not a split the
   file times in seconds.
@@ -350,8 +351,9 @@ fusionspace-hpr = { git = "https://github.com/nrdptel/fusionspace-eridanus", rev
 
 On another platform (operating system and processor) a draw can differ in its last binary digit.
 That's because the normal numbers use the platform's logarithm. A run then agrees to many digits,
-not to the bit. The choices are in
-[the decision record on independent normal draws](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0134-monte-carlo-dispersion-independent-normals-one.md).
+not to the bit. The draws, independent normals with one random stream per sample and input, are
+set in
+[the decision record on Monte Carlo dispersion](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0134-monte-carlo-dispersion-independent-normals-one.md).
 
 ### How long a run takes
 
@@ -408,11 +410,11 @@ The spread a run gives is the spread you put in. Some places to start:
 
 - **Motor impulse** has its limit in NFPA 1125, the code commercial motors are certified to
   (§8.1.7 and §8.2.7). Over a motor type's certification firings, the "standard deviation of the
-  total impulse data shall be no greater than 6.7 percent of the mean". Four certification reports
-  of the National Association of Rocketry (NAR) measured 1.3% to 3.1%. The reports, hosted on
-  [ThrustCurve.org](https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e8f/G80-20071207.pdf),
-  are for an Estes C6 (2.0%), D12 (3.1%), E12 (1.28%) and an AeroTech G80 (2.3%). So 2% to 3% is
-  a fair guess, and 6.7% the most the code allows.
+  total impulse data shall be no greater than 6.7 percent of the mean". Four National Association
+  of Rocketry (NAR) certification reports measured 1.3% to 3.1%: an Estes C6 (2.0%), D12 (3.1%),
+  E12 (1.28%) and an AeroTech G80 (2.3%). The G80's report is hosted on
+  [ThrustCurve.org](https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e8f/G80-20071207.pdf).
+  So 2% to 3% is a fair guess, and 6.7% the most the code allows.
 - **Ejection delay.** The code lets a measured delay differ from its label by "1.5 seconds or
   20 percent (whichever is greater, but not to exceed 3 seconds)". The E12 and G80 reports'
   firings of one delay scatter by 0.2 to 0.9 s. A delay's average can sit more than a second from

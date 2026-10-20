@@ -57,10 +57,11 @@ Using any of them needs some Rust.
 >   pymoo, an outside implementation run with the same settings. Every run's front lies within
 >   twice pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
 >   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%.
->   The test allows a factor of 1.25 either way ([Trade-offs](#trade-offs-a-pareto-front)). The
->   third example's front designs are flown again and give the same apogee and margin to the bit.
->   That shows the result repeats, not that it's right. At 2.5 calibers the front is within 0.5%
->   of the apogee CMA-ES finds alone (the example's check).
+>   For the medians, the test allows a factor of 1.25 either way
+>   ([Trade-offs](#trade-offs-a-pareto-front)). The third example's front designs are flown again
+>   and give the same apogee and margin to the bit. That shows the result repeats, not that it's
+>   right. At 2.5 calibers the front is within 0.5% of the apogee CMA-ES finds alone (the example's
+>   check).
 > - **Few evaluations** (EGO): two standard test functions with several local minima, Branin's
 >   (two variables) and Hartmann's (three), are run from 20 seeds each. They end within 1% of
 >   their known minima in 50 evaluations (the test's bound; measured, within 0.12%). Hartmann's
@@ -70,7 +71,7 @@ Using any of them needs some Rust.
 >   ([Few evaluations](#few-evaluations-ego)).
 > - **Left out, for now:** optimizing a [Monte Carlo](glossary.md#monte-carlo) run's statistics,
 >   and EGO beyond six variables. Also left out is a rule that stops NSGA-II when its front has
->   settled (it runs the generations it's given). They're the next steps of
+>   settled (it runs the generations it's given). All three are the next steps of
 >   [the optimization milestone](decisions-and-roadmap.md#m6-2). There's no command-line or Python
 >   front end yet.
 
@@ -399,9 +400,9 @@ tube, an 18 in motor tube and three fiberglass fins. The example flies the rocke
 | the fins' span | continuous | 3–15 cm (1.2–5.9 in) |
 
 The goal is the squared miss from 3,048 m (10,000 ft). The limits come from the International
-Rocket Engineering Competition's rules (its *Design, Test & Evaluation Guide*, 2025). They hold
-over the whole ascent, from the rail exit to apogee (§10.3.1 says "from launch"; on the rail, the
-rail holds the rocket):
+Rocket Engineering Competition's rules (its *Design, Test & Evaluation Guide*, 2025). The limits
+hold over the whole ascent, from the rail exit to apogee (§10.3.1 says "from launch"; on the rail,
+the rail holds the rocket):
 
 - a [stability margin](glossary.md#stability-margin) of at least 1.5
   [calibers](glossary.md#caliber) in flight (§10.3.1 asks for a "dynamic" margin). The example
@@ -758,9 +759,9 @@ The same test checks HPR Sim's [`generational_distance`] against pymoo's own, on
 and 500 reference points, to $10^{-12}$.
 
 Deb and co-authors' own runs (their Table II) report a mean distance of 0.033, 0.072 and 0.115
-on these three problems. They measured it to 500 points of the true front. That's 18 to 87 times
-pymoo's mean here, to the same 500 points (0.0013 to 0.0019). Why the paper's are so much larger
-wasn't investigated.
+on these three problems. They measured it to 500 points of the true front. Their means are 18 to
+87 times pymoo's mean here, to the same 500 points (0.0013 to 0.0019). Why the paper's are so much
+larger wasn't investigated.
 
 Unit tests check the pieces by hand
 ([`optimize/nsga2.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/nsga2.rs)):
@@ -814,8 +815,9 @@ from the minimum. On Hartmann's three-variable function, 8 of 20 runs (seeds 1 t
 more than 1% away, the worst 4.7% (a reviewer's measurement). Use a smaller amount (the paper
 suggests 0.1%) where it matters.
 
-A stop at such a share never fires for a goal near zero (a miss): there, give an amount. A model
-that fails at a design returns $+\infty$; EGO fits it as the worst value so far and goes on.
+A stop at a share of the best value's size never fires for a goal near zero (a miss): there, give
+an amount. A model that fails at a design returns $+\infty$; EGO fits it as the worst value so far
+and goes on.
 
 A worked example, on Branin's function of two variables: its least value is
 $5/(4\pi) \approx 0.397887$, at three points. The initial design is 20 points, and 30 more follow. The

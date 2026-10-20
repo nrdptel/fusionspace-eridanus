@@ -137,8 +137,8 @@ short names, `aerotech`, `cesaroni` and `loki`, in any case.
 
 The motor finder carries no thrust curves, and no ThrustCurve.org id. ThrustCurve.org has both. It
 aims to hold a record for every certified motor, each with its own id (24 hexadecimal digits, such
-as `5f4294d2000231000000044f`). It also has the simulator files people have uploaded for each
-motor. HPR Sim asks ThrustCurve.org's [public API](https://www.thrustcurve.org/info/api.html) two
+as `5f4294d2000231000000044f`). It also has the simulator files people have uploaded for its
+motors. HPR Sim asks ThrustCurve.org's [public API](https://www.thrustcurve.org/info/api.html) two
 things:
 
 | Request | What it gives | HPR Sim's call |
@@ -150,10 +150,11 @@ things:
 matches a motor in stock to the record with the same maker and designation, character for
 character. The maker is matched by its full name, such as `Cesaroni Technology`.
 
-If no record has that name, or more than one does, the motor is a *miss*. The match's report
-(`Join::report()`) lists it with the reason. The simulator doesn't guess: it doesn't compare
-impulse or diameter, or try other spellings. A motor ThrustCurve.org spells differently is reported
-as a miss, never matched by a guess. (The report and the code call a matched motor *mapped*.)
+If no record has that maker and designation, or more than one does, the motor is a *miss*. The
+match's report (`Join::report()`) lists it with the reason. The simulator doesn't guess: it doesn't
+compare impulse or diameter, or try other spellings. A motor ThrustCurve.org spells differently is
+reported as a miss, never matched by a guess. (The report and the code call a matched motor
+*mapped*.)
 
 `thrustcurve::fetch_finder_records` fetches the records the match needs, one search for each of the
 three makers the finder reads. `thrustcurve::join` matches them.
@@ -197,10 +198,10 @@ and check it against the match on every run. So the committed tests show that th
 rule. The full match on ThrustCurve.org's own records is the measurement of 1 October 2026 above,
 which last ran on 2026-10-01.
 
-The test was added with
+The test that writes the report was added with
 [the milestone for ThrustCurve searches and curves](decisions-and-roadmap.md#m5-4b). The
-[milestone's goal](decisions-and-roadmap.md#m5-4b) was 95% of the motors in stock, and the test
-asserts that too.
+[milestone's goal](decisions-and-roadmap.md#m5-4b) was 95% of the motors in stock, and that test
+asserts it too.
 
 **The curve.** A download's file is read by the same readers as a motor file on your disk
 ([Solid motors](physics/motor.md)): `.eng` by `hpr_motor::eng`, `.rse` by `hpr_motor::rse`.
@@ -346,8 +347,8 @@ that:
 - each answer, read and written back out, holds exactly the recording's fields and values, and
   carries the credit line;
 - the API's words read with their meaning. H128W is a reload that ships as hazardous material,
-  F27R/L a single-use motor whose shipping varies, and D13W a reload that doesn't. The listings
-  count 827 in stock, 2,363 out of stock and 495 on special order;
+  F27R/L a single-use motor whose shipping varies, and D13W a reload that doesn't. The listing
+  counts are 827 in stock, 2,363 out of stock and 495 on special order;
 - a second read online, inside the hour, is answered from the saved copy without a fetch;
 - offline, each read gives the same values, fresh for the hour and marked stale after it. The
   offline transport fails the test if it's ever called;

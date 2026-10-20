@@ -112,8 +112,8 @@ A [stiff](glossary.md#stiff-problem) stretch of flight, one that forces very sho
 up as the step limit ([Time integration](physics/integration.md#defaults-and-limits)). Both limits
 are fields of `FlightSettings` (`max_time_s` and `step_limit`), and a program can change them.
 
-Anything else that stops a flight is an error, such as reaching Mach 5. That's the top of the
-speeds the simulator's normal force and drag cover.
+Anything else that stops a flight is an error, such as reaching Mach 5. Mach 5 is the top of
+the speeds the simulator's normal force and drag cover.
 
 ## How the simulator steps through time
 
@@ -168,8 +168,9 @@ flight:
   ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
 
   Near and above the speed of sound the drag is Niskanen's semi-empirical method (formulas fitted
-  to measurements). Compared through Mach 2, it reads low against
-  [RASAero II](glossary.md#rasaero-ii) past Mach 1.6
+  to measurements). Against [Calisto](glossary.md#example-rockets)'s curve, the one real
+  [RASAero II](glossary.md#rasaero-ii) export, the drag reads 5.1% to 14.9% low from Mach 1.2 to
+  2.0. It's lowest at Mach 2
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2);
   [the drag against RASAero II](decisions-and-roadmap.md#m1-8b2)).
 - The aerodynamics are for small angles of attack, with no [stall](glossary.md#stall). But a
@@ -187,8 +188,8 @@ flight:
   checked against exact answers only
   ([Recovery: ejected pieces](physics/recovery.md#ejected-pieces)).
 - Moving and released mass are checked against exact answers only. That's ballast or a payload
-  that slides along the airframe in flight, or leaves it. It's compared with hand calculations and
-  conservation laws, not with another simulator or a real flight
+  that slides along the airframe in flight, or leaves it. Such mass is compared with hand
+  calculations and conservation laws, not with another simulator or a real flight
   ([Moving mass](physics/moving-mass.md), [Released mass](physics/released-mass.md)).
 - [Tip-off](glossary.md#tip-off), thrust misalignment (a motor pushing slightly off the rocket's
   axis) and turbulence, which no milestone plans yet. Roll from canted fins and roll damping are

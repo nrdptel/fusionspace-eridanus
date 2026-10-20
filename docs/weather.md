@@ -57,8 +57,8 @@ copy.
 
 The simulator writes the site's latitude and longitude to 5 decimal places. That's about 1 m
 (3.3 ft) on the ground, far finer than any model's grid. Your program keeps the site in radians and
-turns it back into degrees, which can change its last digits. Even so, a site given to 8 decimals
-or fewer still finds its saved answer.
+turns it back into degrees, which can change its last digits. The rounding allows for that, so a
+site given to 8 decimals or fewer still finds its saved answer.
 
 Open-Meteo's data is licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): show the
 credit "Weather data by Open-Meteo.com (CC BY 4.0)" wherever you show the weather. Every answer
@@ -70,9 +70,9 @@ in for Open-Meteo's own: set the request's `endpoint`.
 
 **The ground** is at the answer's elevation. It takes the ground pressure, the 2 m (6.6 ft)
 temperature and humidity, and the 10 m (33 ft) wind. Putting the 10 m (33 ft) wind at the ground
-makes it the wind on the launch rail. The rail's wind doesn't jump to the lowest level's wind above
-it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile that stepped at its lowest
-level).
+makes it the wind on the launch rail. The profile doesn't jump from there to the lowest level's
+wind above it ([a Loft lesson](decisions-and-roadmap.md#l6): a forecast profile that stepped at its
+lowest level).
 
 **Levels below the ground are left out.** The weather models report all 19 levels everywhere,
 inventing values beneath high ground. A level is kept only when its pressure is below the ground
@@ -198,7 +198,8 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
   does the same over HTTP, from a test server on the machine's own address.
 - An answer with an hour's values missing isn't saved. With no earlier copy the request fails.
   With one, the earlier copy comes back, marked stale, and stays saved. A saved answer that can't
-  be read at a later launch time in the same hour is fetched again online. Offline, it's the error.
+  be read at a later launch time in the same hour is fetched again online. Offline, the request
+  fails with the reason that answer can't be read.
 - The simulator refuses text that isn't JSON, Open-Meteo's error answer, and a unit other than the
   one asked for. It also refuses a missing field, hours outside 1970 to 9999, and a time outside
   the answer's hours.
@@ -219,8 +220,8 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
 - When Open-Meteo refuses a request (a place or date it doesn't cover), the error names the HTTP
   status but not Open-Meteo's reason. That's because the HTTP transport drops the body of a failed
   answer.
-- Each request is for one place and one launch time. It takes Open-Meteo's own choice of weather
-  model unless you name one.
+- Each request is for only one place and one launch time. It takes Open-Meteo's own choice of
+  weather model unless you name one.
 - The command line fetches it with [`hpr weather open-meteo`](cli.md#hpr-weather), but `hpr sim`
   doesn't fly it yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
   The Python package doesn't fetch weather.
