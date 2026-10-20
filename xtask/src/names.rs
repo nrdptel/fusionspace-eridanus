@@ -344,6 +344,12 @@ pub const ALLOW: &[Allow] = &[
         why: "an anchor: the heading names the `hpr sim` command",
     },
     Allow {
+        file: "docs/your-own-rocket.md",
+        scope: Scope::Text("(format/ork.md#how-many-configurations-hpr-sim-flies)"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
         file: "docs/writing.md",
         scope: Scope::Text("fails on the old name, `hpr-sim`, in any"),
         count: 1,

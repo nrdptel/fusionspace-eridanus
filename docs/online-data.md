@@ -4,58 +4,64 @@ See how HPR Sim fetches weather, elevation and motor data over the network, and 
 those answers working offline.
 
 This page covers `hpr-net`, the one crate that uses the network, and the cache that makes its
-answers work offline. It is for anyone who will pull weather, elevation or motor data into a
-flight. **Today the crate holds the cache, the offline rule and an HTTP client**
-([M5.1, the online layer](decisions-and-roadmap.md#m5-1)), **and six data sources: Open-Meteo's
-weather** ([Launch-day weather](weather.md)), **weather-balloon soundings from the University
-of Wyoming** ([Weather-balloon soundings](soundings.md)), **NOAA's GFS and RAP forecasts**
-([NOAA forecasts: GFS and RAP](nomads.md)), **Open-Meteo's ground elevation**
-([A launch site's elevation](elevation.md)), **motor.fusionspace.co's motor stock and prices,
-and ThrustCurve.org's motor records and thrust curves** (both on
-[Motor stock and prices](motor-stock.md); `hpr sim` and `hpr motors fetch` fetch a curve the
-bundled catalog lacks, [Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg)).
+answers work offline. It's for anyone who will pull weather, elevation or motor data into a
+flight.
+
+**Today the crate holds the cache, the offline rule and an HTTP client**
+([the online layer](decisions-and-roadmap.md#m5-1)), **and six data sources:**
+
+- Open-Meteo's weather ([Launch-day weather](weather.md));
+- weather-balloon soundings from the University of Wyoming
+  ([Weather-balloon soundings](soundings.md));
+- NOAA's GFS and RAP forecasts ([NOAA forecasts: GFS and RAP](nomads.md));
+- Open-Meteo's ground elevation ([A launch site's elevation](elevation.md));
+- motor.fusionspace.co's motor stock and prices ([Motor stock and prices](motor-stock.md));
+- ThrustCurve.org's motor records and thrust curves (also on
+  [Motor stock and prices](motor-stock.md)). `hpr sim` and `hpr motors fetch` fetch a curve the
+  bundled catalog lacks ([Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg)).
 
 > **How far to trust it.** What the crate returns is a copy of what each source served, not a
-> measurement by HPR Sim, and each answer says how fresh it is. Its tests replay a small
-> hand-written sample response and answers recorded from each of the six sources, from a folder
-> and from a test web server on the machine running the tests, never the live network. Those tests
-> speak plain HTTP only: encrypted HTTPS was checked by hand, against Open-Meteo and then through
-> the command line's [`hpr weather`](cli.md#hpr-weather) against all four sources, not in CI. When
-> it matters, rely on the source itself and on the day's conditions at the field, not a cached
-> copy.
+> measurement by HPR Sim. Each answer says how fresh it is. The crate's tests replay a small
+> hand-written sample response and answers recorded from each of the six sources. They replay
+> them from a folder and from a test web server on the test machine, never the live network.
+>
+> Those tests speak plain HTTP only. Encrypted HTTPS was checked by hand against Open-Meteo
+> first, then through the command line's [`hpr weather`](cli.md#hpr-weather) against all four of
+> its online sources, not in CI. When it matters, rely on the source itself and on the day's
+> conditions at the field, not a cached copy.
 
 ## What it promises
 
 The simulation itself never touches the network ([the architecture's pure-core rule: no filesystem, network or clock](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ARCHITECTURE.md#principles)).
-Anything fetched from the internet goes through a *client*, which puts a *cache* (a folder of
-saved responses) in front of a *transport* (the thing that actually fetches). The client runs in
-one of two modes:
+Anything fetched from the internet goes through a *client*. The client puts a *cache* (a folder of
+saved responses) in front of a *transport* (the thing that fetches). It runs in one of
+two modes:
 
 - **Online:** if the cache holds a fresh copy, the client returns it without fetching. Otherwise it
   fetches, saves the response, and returns it. If the fetch fails and an old copy exists, it
-  returns the old copy, marked stale, with the reason the fetch failed; with no old copy, the
-  fetch's error.
+  returns the old copy, marked stale, with the reason. With no old copy, it
+  returns the fetch's error.
 - **Offline:** it never calls the transport. It returns whatever the cache holds, marked stale if
-  it is old, or an error saying the URL is not cached.
+  it's old, or an error saying the URL isn't cached.
 
-Each answer says how fresh it is (`Fetched`, `Cached` or `Stale`), when it was fetched, and the
-data source's attribution, the credit line that its terms ask you to show with the data.
+Each answer says how fresh it is (`Fetched`, `Cached` or `Stale`) and when it was fetched. It
+gives the data source's attribution, the credit line its terms ask you to show with the data.
 
 A data source can also give the client a check, its own parser (`Client::fetch_checked`). Then an
-answer the parser refuses, such as an error page sent as a success or a forecast whose hours are
-still empty, is never saved, so it can't take a good copy's place. Online, a good copy that has
-gone stale comes back instead, with the reason; with no copy, the fetch fails. A saved copy the
-check refuses counts as missing online, and is the error offline.
+answer the parser refuses is never saved, so it can't take a good copy's place. Examples are an
+error page sent as a success and a forecast whose hours are still empty. Online, a good copy that
+has gone stale comes back instead, with the reason; with no copy, the fetch fails. A saved copy
+the check refuses counts as missing online, and is the error offline.
 
 ## How long a copy stays fresh
 
 Each source has a *time to live* (TTL): how many seconds a saved copy counts as fresh. A copy
-exactly one TTL old is no longer fresh: online it is fetched again, offline it comes back marked
+exactly one TTL old is no longer fresh: online it's fetched again, offline it comes back marked
 `Stale`. A copy dated later than the time asked (saved while the clock ran fast) is never fresh.
-The caller passes the time, in seconds since 1 January 1970 (Unix time); the crate reads no clock,
+The caller passes the time, in seconds since 1 January 1970 (Unix time). The crate reads no clock,
 so the tests can use small numbers.
 
-Here is a worked example with a one-hour TTL (3,600 s), from the tests. Each scenario starts with
+Here's a worked example with a one-hour TTL (3,600 s), from the tests. Each scenario starts with
 an empty cache and fills it at 1,000 s:
 
 | scenario | time asked (s) | cache holds | answer | fetches made |
@@ -71,10 +77,12 @@ an empty cache and fills it at 1,000 s:
 
 ## Fetching over HTTP
 
-The HTTP client is [`Http`](api/hpr_net/struct.Http.html). It is behind `hpr-net`'s `http` cargo
-feature, so a program that depends on `hpr-net` alone and needs only the cache and saved responses
-builds no network code. The `hpr` library's `net` feature turns HTTP on: with
-`fusionspace-hpr = { version = "0.1", features = ["net"] }` in `Cargo.toml` it is
+The HTTP client is [`Http`](api/hpr_net/struct.Http.html). It's behind `hpr-net`'s `http` cargo
+feature. So a program that depends on `hpr-net` alone and needs only the cache and saved responses
+builds no network code.
+
+The `hpr` library's `net` feature turns HTTP on: with
+`fusionspace-hpr = { version = "0.1", features = ["net"] }` in `Cargo.toml` it's
 `hpr::hpr_net::Http`. Its API page has
 an example, compiled in CI, that fetches into the platform's cache folder. Building with HTTP needs
 a C compiler, since the encryption library compiles some C and assembly.
@@ -92,25 +100,26 @@ a C compiler, since the encryption library compiles some C and assembly.
 | bytes so far | counts the answer's bytes as they arrive, after any unpacking, for a caller to show while it waits ([`Http::received`](api/hpr_net/struct.Http.html#method.received)); each fetch starts from 0 | tests of the count and of its start |
 
 A failed fetch (an error status, a timeout, a refused or dropped connection, a too-long answer)
-is handled as above: online, the client falls back to an old copy marked stale.
+is handled as above. Online, the client falls back to an old copy marked stale.
 
 On the command line, a fetch that waits more than a tenth of a second says so on standard error,
-when that is a terminal: `waiting for nomads.ncep.noaa.gov, 1 s` until the answer starts, then
-`fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`, each line over the one before and gone
-when the answer is in. A copy read from the cache, standard error into a file or a pipe,
-`--json`, and a terminal with `TERM=dumb` draw nothing. A fetch that waits longer than the time
-allowed (the table above) fails. A failed or refused fetch, including an `--offline` run with
-nothing cached, ends with `help:` lines that say what to do, such as running it again without
-`--offline`.
+when that's a terminal. It shows `waiting for nomads.ncep.noaa.gov, 1 s` until the answer starts,
+then `fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`. Each line is drawn over the one
+before and is gone once the answer is in. A copy read from the cache, standard error
+into a file or a pipe, `--json`, and a terminal with `TERM=dumb` draw nothing.
+
+A fetch that waits longer than the time allowed (the table above) fails. A failed or refused
+fetch, including an `--offline` run with nothing cached, ends with `help:` lines. They say what to
+do, such as running it again without `--offline`.
 
 The time and size limits, and whether to use the environment's proxy, are fields of
 [`HttpConfig`](api/hpr_net/struct.HttpConfig.html). Start from `HttpConfig::default()`, change a
 field (for example `config.timeout = Duration::from_secs(300)`), and pass it to
 `Http::with_config(config)`.
 
-Because the computer's certificate store is not read, a network that inspects encrypted traffic
-with its own certificate (common on company and school networks) makes every HTTPS fetch fail, and
-there is no setting yet to add a certificate.
+The computer's certificate store isn't read. So a network that inspects encrypted traffic with
+its own certificate (common on company and school networks) makes every HTTPS fetch fail. There's
+no setting yet to add a certificate.
 
 ## Where the cache lives
 
@@ -124,81 +133,84 @@ gives the usual place for caches on each system, and the folder is created on th
 | Linux and other Unix | `$XDG_CACHE_HOME/fusionspace-hpr` if that variable holds a full path, otherwise `$HOME/.cache/fusionspace-hpr` |
 
 The folders carry FusionSpace HPR's name
-([ADR-199](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)).
-Builds from before release 0.1 used folders named `hpr-sim`; those are not read, so a cache from
+([the decision on the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)).
+Builds from before release 0.1 used folders named `hpr-sim`; those are not read. So a cache from
 one of them fills again from the network, and the old folder can be deleted.
 
 Setting the environment variable `HPR_CACHE_DIR` puts the cache in that folder instead, on every
-system; a relative path there is taken from the current folder. The folders come from environment
-variables alone: on Windows `LOCALAPPDATA` is read rather than asking the system, which gives the
-same folder unless the variable was changed. If `HPR_CACHE_DIR` is not set and `HOME` (macOS,
+system. A relative path there is taken from the current folder. The folders come from environment
+variables alone. On Windows, `LOCALAPPDATA` is read rather than asking the system, which gives the
+same folder unless the variable was changed. If `HPR_CACHE_DIR` isn't set and `HOME` (macOS,
 Linux) or `LOCALAPPDATA` (Windows) is unset or empty, `Cache::platform_dir` returns nothing and you
 must name a folder.
 
 Setting `HPR_OFFLINE` to anything but empty or `0` makes every `hpr` command answer from the
-cache alone, as each command's `--offline` does: for a script, or a field laptop, that must not
-reach the network.
+cache alone, as each command's `--offline` does. It's for a script, or a field laptop, that must
+not reach the network.
 
 ## How it is checked
 
 The tests in [`crates/hpr-net/tests/offline.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/offline.rs)
-replay a hand-written sample from a folder instead of using the network:
+replay a hand-written sample from a folder:
 
-- The offline test gives the client a transport that fails the test if it is ever called, then
-  asks for a URL before and after it is cached, fresh and thirty days stale.
-- Offline, a corrupt entry is an error; online, it is fetched again and overwritten.
+- The offline test gives the client a transport that fails the test if it's ever called. Then the
+  test asks for a URL before and after it's cached, fresh and thirty days stale.
+- Offline, a corrupt entry is an error; online, it's fetched again and overwritten.
 - The checked fetch is tested through Open-Meteo's source
-  ([Launch-day weather](weather.md#how-it-is-checked)): an answer with an hour's values missing
-  is not saved, and an earlier good copy comes back and stays saved. The soundings' source is
-  tested the same way ([Weather-balloon soundings](soundings.md#how-it-is-checked)), and NOAA's
-  forecasts refuse, and don't save, a file for another run or hour than the one asked for
-  ([NOAA forecasts: GFS and RAP](nomads.md#how-it-is-checked)). The elevation source refuses an
-  answer with no heights, and a lookup made once works offline
-  ([A launch site's elevation](elevation.md#how-it-is-checked)). The motor-stock source refuses,
-  and doesn't save, a motor's page that holds another motor, and the ThrustCurve.org source a
-  download of another motor's file
+  ([Launch-day weather](weather.md#how-it-is-checked)). An answer with an hour's values missing
+  isn't saved, and an earlier good copy comes back and stays saved.
+- The soundings' source is tested the same way
+  ([Weather-balloon soundings](soundings.md#how-it-is-checked)).
+- NOAA's forecasts refuse, and don't save, a file for another run or hour than the one asked for
+  ([NOAA forecasts: GFS and RAP](nomads.md#how-it-is-checked)).
+- The elevation source refuses an answer with no heights, and a lookup made once works offline
+  ([A launch site's elevation](elevation.md#how-it-is-checked)).
+- The motor-stock source refuses, and doesn't save, a motor's page that holds another motor. The
+  ThrustCurve.org source does the same with a download of another motor's file
   ([Motor stock and prices](motor-stock.md#how-it-is-checked)).
 
 The cache's own tests check that a saved body reads back, and that another URL's entry in the same
-file reads as a miss. They also check that the hash that names each file (FNV-1a, a standard 64-bit
-hash, so names stay the same on every platform) matches its published test values. The cache
+file reads as a miss. They check the hash that names each file against its published test
+values. It's FNV-1a, a standard 64-bit hash, so names stay the same on every platform. The cache
 folder rules are checked for each system with a made-up environment, `HPR_CACHE_DIR` included; the
-`XDG_CACHE_HOME` case runs only on Unix test machines. The API reference for
-[`hpr_net`](api/hpr_net/index.html) has a runnable example.
+`XDG_CACHE_HOME` case runs only on Unix test machines.
+
+The API reference for [`hpr_net`](api/hpr_net/index.html) has a runnable example.
 
 The HTTP tests in [`crates/hpr-net/tests/http.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/http.rs)
-start a small web server inside the test, on the computer's own loopback address (`127.0.0.1`),
-which serves the same sample. Nothing leaves the machine, and the tests turn off any proxy the
+start a small web server inside the test, serving the same sample on the computer's own loopback
+address (`127.0.0.1`). Nothing leaves the machine, and the tests turn off any proxy the
 environment names. They check that:
 
-- a fetch saves the sample in the cache, a second fetch inside the time to live sends no request,
-  and offline mode answers from the cache without a request while the server is still running;
+- a fetch saves the sample in the cache, and a second fetch inside the time to live sends no
+  request;
+- offline mode answers from the cache without a request while the server is still running;
 - a compressed answer arrives unpacked, and the request names `fusionspace-hpr` and asks for gzip;
 - a redirect is followed and saved under the address asked for;
 - a 404 and a 304 are failed fetches and save nothing;
-- an answer one byte over the limit is refused and one at the limit passes, and a megabyte of
-  zeros that compresses to under 64 KiB is refused at a 64 KiB limit;
-- a server that never answers is cut off at a 0.3 s limit (the test requires under 5 s; the
-  server stalls for 10 s), and a timeout of `Duration::MAX` (the usual way to say "no limit"),
-  which the transport treats as 30 days, does not crash;
+- an answer one byte over the limit is refused and one at the limit passes;
+- a megabyte of zeros that compresses to under 64 KiB is refused at a 64 KiB limit;
+- a server that never answers is cut off at a 0.3 s limit. The test requires under 5 s, and the
+  server stalls for 10 s;
+- a timeout of `Duration::MAX` (the usual way to say "no limit"), which the transport treats as
+  30 days, doesn't crash;
 - when the server hangs up without answering, an old copy comes back marked stale, with the
   reason.
 
 ## What it leaves out
 
-- No retries: a failed fetch is tried once. Plain, unencrypted `http://` addresses are accepted;
-  nothing forces HTTPS. The 60 s
-  time limit covers the whole transfer, so a large answer on a slow connection can time out; raise
-  it in `HttpConfig`.
-- No test makes an encrypted (HTTPS) connection: the test server speaks plain HTTP, since a local
+- No retries: a failed fetch is tried once.
+- Plain, unencrypted `http://` addresses are accepted; nothing forces HTTPS.
+- The 60 s time limit covers the whole transfer, so a large answer on a slow connection can time
+  out. Raise it in `HttpConfig`.
+- No test makes an encrypted (HTTPS) connection. The test server speaks plain HTTP, since a local
   encrypted server would need certificates made for the test. One manual run on a Mac fetched a
-  real Open-Meteo forecast over HTTPS and refused a site with an expired certificate
-  ([ADR-118: M5.1b, HTTP over the cache](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0118-m5-1b-http-over-the-cache.md)), but that is not repeated in
-  CI.
+  real Open-Meteo forecast over HTTPS. The same run refused a site with an expired certificate
+  ([the decision record on HTTP over the cache](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0118-m5-1b-http-over-the-cache.md)).
 - Freshness comes only from the source's TTL: a server's cache headers are ignored, and the cache
   key is the URL alone.
 - If saving a fetched body fails (a full disk, a read-only folder), the fetch fails too.
 - Nothing prunes old entries, and nothing locks the cache. Each file is written whole under a
-  temporary name and then renamed, so no file is ever half written. But two programs saving the
+  temporary name and renamed, so no file is ever half written. But two programs saving the
   same URL at once, or a crash between the two renames, can leave a body beside another fetch's
-  time. Temporary files a crash leaves behind are not cleaned up.
+  time. Temporary files a crash leaves behind aren't cleaned up.

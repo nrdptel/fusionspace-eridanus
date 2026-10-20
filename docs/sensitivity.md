@@ -5,28 +5,30 @@ indices, so you know what to measure.
 
 A [Monte Carlo](glossary.md#monte-carlo) run shows how far a rocket's apogee spreads. It doesn't
 say which input causes the spread. [Sensitivity analysis](glossary.md#sensitivity-analysis) does:
-it ranks the uncertain inputs by how much each moves a result, so you know which to measure more
-carefully and which you can stop worrying about. This page shows HPR Sim's two methods. They are
-Morris's screening, which is cheap, and Sobol' indices, which cost more and say more. It runs
-both on two test functions whose answers are known, then screens a rocket's apogee and landing.
-It needs some Rust, and follows on from [Monte Carlo dispersion](monte-carlo.md).
+it ranks the uncertain inputs by how much each moves a result. Then you know which to measure more
+carefully, and which you can stop worrying about.
+
+This page shows HPR Sim's two methods: Morris's screening, which is cheap, and Sobol' indices, which
+cost more and say more. It runs both on two test functions whose answers are known, then screens a
+rocket's apogee and landing. It needs some Rust, and follows on from
+[Monte Carlo dispersion](monte-carlo.md).
 
 > **How far to trust it.** The two methods are tested against answers known in closed form. On a
-> rocket, the ranking they give is only as good as the ranges you give and the simulator's flight
-> models, which are not yet validated against real flights ([Accuracy](accuracy.md)).
+> rocket, the ranking is only as good as the ranges you give. It's also only as good as the
+> simulator's flight models, which aren't yet validated against real flights
+> ([Accuracy](accuracy.md)).
 >
-> - **Tested:** both methods match the known answers of two standard test functions within four
->   of their own [standard errors](glossary.md#standard-error). Repeated with 500 to 1,000
->   different seeds, the error an analysis reports is the scatter the repeats really show: for
->   every Sobol' index of Ishigami's function, and for the Sobol' indices and Morris $\mu^*$s of a
->   four-factor g function. The same
->   [seed](glossary.md#seed) gives the same numbers, bit for bit
+> - Both methods match the known answers of two standard test functions within four of their own
+>   [standard errors](glossary.md#standard-error). The tests repeat the analyses with 500 to 1,000
+>   seeds. The error an analysis reports is the scatter the repeats show. That holds for every
+>   Sobol' index of Ishigami's function, and for the Sobol' indices and Morris $\mu^*$s of a
+>   four-factor g function. The same [seed](glossary.md#seed) gives the same numbers, bit for bit
 >   ([`tests/sensitivity.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/sensitivity.rs)).
-> - **Not checked:** whether a rocket's ranking matches what real flights would show.
-> - **Left out:** inputs that depend on each other, inputs that aren't spread evenly over a
->   range, and the [Sobol' indices](glossary.md#sobol-index) of pairs of inputs. A Sobol'
->   analysis costs thousands of runs per input: 65,536 flights for this page's rocket, against
->   Morris's 70, so the rocket example uses only the Morris screening.
+> - Nothing checks whether a rocket's ranking matches what real flights would show.
+> - Left out are inputs that depend on each other, inputs that aren't spread evenly over a range,
+>   and the [Sobol' indices](glossary.md#sobol-index) of pairs of inputs. A Sobol' analysis costs
+>   thousands of runs per input: 65,536 flights for this page's rocket, against Morris's 70. So the
+>   rocket example uses only the Morris screening.
 
 ## Inputs as factors
 
@@ -35,10 +37,10 @@ likely ([`Factor`]). The drag might be anywhere from 10% below its estimate to 1
 the wind anywhere from calm to 8 m/s (18 mph). Factors are independent: a heavier rocket isn't
 also draggier.
 
-Both methods work the same way. They lay out the points to try (a *design*), you run your model
-at each point in order, and they analyze what came back. The model can be a whole flight, with the
+Both methods work the same way. They lay out the points to try (a *design*), you run your model at
+each point in order, and they analyze what came back. The model can be a whole flight, with the
 factors set into its inputs, or any function. So you can run the points however you like, on many
-threads or many machines. Each method also has a shortcut that takes a closure and runs the points
+threads or machines. Each method also has a shortcut that takes a closure and runs the points
 itself.
 
 ## The two methods
@@ -53,7 +55,7 @@ levels (two of four), which is a fraction $\Delta = p/[2(p - 1)]$ of its range: 
 levels.
 
 The change in the output over one step, divided by $\Delta$, is an
-[elementary effect](glossary.md#elementary-effect). It is the change the factor would cause across
+[elementary effect](glossary.md#elementary-effect). It's the change the factor would cause across
 its whole range, at the slope measured over the step. A *path* starts at a random grid point and
 steps each factor once, in a random order, so $k$ factors take $k + 1$ runs per path. Each step
 gives one effect. After $r$ paths, each factor has $r$ effects, and the screening reports three
@@ -69,10 +71,10 @@ A factor with $\mu^*$ near zero can be left at its planned value. The screening 
 standard error, which shrinks as $1/\sqrt{r}$: ten paths are usually enough to rank, and the cost is
 $r(k + 1)$ runs.
 
-For example, Ishigami's test function (below) has $a \sin^2 x_2$ as a term, with $a = 7$. On a
-four-level grid from $-\pi$ to $\pi$, a step of $x_2$ moves $\sin^2$ by exactly 3/4, up or down, so every
-effect of $x_2$ is $\pm(3/4)(7)/(2/3) = \pm 7.875$. The example's screening finds $\mu^* = 7.875$ with no
-error, and $\mu$ near zero.
+For example, Ishigami's test function (below) has the term $a \sin^2 x_2$, with $a = 7$. On a
+four-level grid from $-\pi$ to $\pi$, a step of $x_2$ moves $\sin^2$ by exactly 3/4, up or down. So
+every effect of $x_2$ is $\pm(3/4)(7)/(2/3) = \pm 7.875$. The example's screening finds
+$\mu^* = 7.875$ with no error, and $\mu$ near zero.
 
 M. D. Morris, "Factorial sampling plans for preliminary computational experiments",
 *Technometrics* 33(2), 161–174, 1991, defines the effects, the grid and the paths. F. Campolongo,
@@ -80,13 +82,15 @@ J. Cariboni and A. Saltelli, "An effective screening design for sensitivity anal
 models", *Environmental Modelling & Software* 22, 1509–1518, 2007, add $\mu^*$. They found, by
 experiment rather than proof, that it ranks factors in the same order as the total Sobol' index.
 
-That is usual, not certain. A step spans about half of each range, so it can miss a response
-that repeats over about half the range. Ishigami's $\sin^2 x_2$ repeats every $\pi$, half of its range
-from $-\pi$ to $\pi$. At four levels, Morris puts $x_2$ first ($\mu^*$ 7.875 against 7.704 for $x_1$), while
-the total index puts $x_1$ first (0.558 against 0.442). At six levels or more, Morris puts $x_2$
-last (2.687 at six levels), though it causes the largest share of the variance alone. A rocket's
-outputs rarely repeat like that, but treat factors whose $\mu^*$s are close as tied, and use Sobol'
-indices to settle an order that matters.
+That's usual, not certain. A step spans about half of each range, so it can miss a response
+that repeats over about half the range. Ishigami's $\sin^2 x_2$ repeats every $\pi$, half of its
+range from $-\pi$ to $\pi$. At four levels, Morris puts $x_2$ first ($\mu^*$ 7.875 against 7.704
+for $x_1$), while the total index puts $x_1$ first (0.558 against 0.442). At six levels or more,
+Morris puts $x_2$ last (2.687 at six levels), though it causes the largest share of the variance
+alone.
+
+A rocket's outputs rarely repeat like that. Still, treat factors whose $\mu^*$s are close as tied,
+and use Sobol' indices to settle an order that matters.
 
 [`hpr_analysis::sensitivity::morris`](api/hpr_analysis/sensitivity/morris/index.html) gives the
 equations and page numbers.
@@ -107,11 +111,12 @@ zero can be left at its planned value.
 
 The analysis draws two independent tables, $A$ and $B$, each of $N$ rows with every factor spread
 over its range. Then, for each factor $i$, it builds a third table: $A$ with factor $i$'s column
-taken from $B$. Comparing the outputs of the three tables row by row gives both indices. A.
-Saltelli and others ("Variance based sensitivity analysis of model output", *Computer Physics
-Communications* 181, 259–270, 2010) give the estimates used here, the best of those they compared.
-The cost is $N(k + 2)$ runs, and the error shrinks as $1/\sqrt{N}$: with $N = 8{,}192$, an index comes
-out to about ±0.01.
+taken from $B$. Comparing the outputs of the three tables row by row gives both indices.
+
+The estimates used here are from A. Saltelli and others ("Variance based sensitivity analysis of
+model output", *Computer Physics Communications* 181, 259–270, 2010). They're the best the paper
+compared. The cost is $N(k + 2)$ runs, and the error shrinks as $1/\sqrt{N}$: with $N = 8{,}192$, an
+index comes out to about ±0.01.
 
 Each index comes with its standard error, found by the
 [delta method](https://en.wikipedia.org/wiki/Delta_method) from how much the rows scatter.
@@ -132,15 +137,15 @@ Two test functions have Sobol' indices known in closed form
   \end{aligned}
   $$
 
-  each $x$ from $-\pi$ to $\pi$. $x_3$ does nothing alone ($S_3 = 0$), yet it is part of a quarter of the variance, through
-  $x_1$. The closed forms are I. M. Sobol' and Y. L. Levitan's (*Computer Physics Communications*
-  117, 1999, p. 57).
-- **Sobol's g function**, a product of one term per factor, each with a weight $a_i$: the factor
-  matters most at $a_i = 0$ and hardly at all at 99. The closed forms are Saltelli and others' (2010,
-  p. 268). The tests use $a_i$ = 0, 1, 4.5, 9 and four 99s, spanning the four classes Marrel and
-  others (2008) name, as the
-  [SFU library of test functions](https://www.sfu.ca/~ssurjano/gfunc.html) quotes them: very
-  important at 0, relatively important at 1, non-important at 9 and non-significant at 99.
+  each $x$ from $-\pi$ to $\pi$. $x_3$ does nothing alone ($S_3 = 0$), yet it's part of a quarter
+  of the variance, through $x_1$. The closed forms are I. M. Sobol' and Y. L. Levitan's
+  (*Computer Physics Communications* 117, 1999, p. 57).
+- **Sobol's g function**, a product of one term per factor, each with a weight $a_i$. The factor
+  matters most at $a_i = 0$ and hardly at all at 99. The closed forms are Saltelli and others'
+  (2010, p. 268). The tests use $a_i$ = 0, 1, 4.5, 9 and four 99s, spanning the four classes
+  Marrel and others (2008) name. The
+  [SFU library of test functions](https://www.sfu.ca/~ssurjano/gfunc.html) quotes the classes:
+  very important at 0, relatively important at 1, non-important at 9 and non-significant at 99.
 
 For Morris there is also an exact answer. A screening estimates the moments of a finite set of
 effects: every step on the grid. [`Morris::population`] runs the model at every grid point and
@@ -154,12 +159,13 @@ check four things:
 - Every Sobol' index of both functions, from 32,768 and 16,384 rows, lies within four standard
   errors of its closed form.
 - Every Morris $\mu^*$, from 1,000 paths, lies within four standard errors of the exact one.
-- The standard errors are honest. Take each estimate's distance from the known answer, divided by
-  its standard error. Over $n$ seeds, these have a mean within $4/\sqrt{n}$ of 0 and a standard
+- The standard errors are honest. The test divides each estimate's distance from the known answer
+  by its standard error. Over $n$ seeds, these have a mean within $4/\sqrt{n}$ of 0 and a standard
   deviation within $4/\sqrt{2n}$ of 1. This holds for every Sobol' index of Ishigami's function
-  (1,000 seeds) and of the g function's first four factors (500 seeds), and for Morris's $\mu^*$ of
-  those four (1,000 seeds). The same test checks that standard errors 15% too small would fail.
-  A separate unit test computes each Sobol' standard error a second way, from the raw row means.
+  (1,000 seeds) and of the g function's first four factors (500 seeds). It holds for Morris's
+  $\mu^*$ of those four too (1,000 seeds). The same test checks that standard errors 15% too small
+  would fail. A separate unit test computes each Sobol' standard error a second way, from the raw
+  row means.
 - On the g function, twenty Morris paths rank the four factors that matter in the order of their
   total indices.
 
@@ -223,8 +229,9 @@ The six inputs, with ranges made up for the example:
 | wind turn | −30° to 30° | 0° | the wind's direction, turned clockwise from the forecast's (a wind from the west) |
 | rail angle | 80° to 90° | 85° | the rail's angle above the horizon; 90° is vertical |
 
-A [`Draw`] can also move a stage's center of mass, the motor's burn time and ejection delay, the
-rail's heading and a recovery device's delay ([What each dispersion does](monte-carlo.md#what-each-dispersion-does)).
+A [`Draw`] can also move a stage's center of mass, and the motor's burn time and ejection delay.
+It can move the rail's heading and a recovery device's delay too
+([What each dispersion does](monte-carlo.md#what-each-dispersion-does)).
 
 It prints:
 
@@ -265,46 +272,46 @@ rail angle (°)              68.4 ±   3.1    9.9                      350.2 ± 
 
 How to read it:
 
-- **The test functions** land within 1.4 standard errors of the known answers, from the printed
-  digits. $S_3$ comes out slightly below zero: the estimate of a share that is really zero
-  scatters around zero. The g function's `x5` shows "± 0.0000" because its error is below
-  0.00005.
-- **Ishigami's Morris screening** at 400 runs puts `x2`, `x1`, `x3` in the whole grid's order, but
-  the gaps are only about one standard error, so at 100 paths they aren't really ranked. Its $\sigma$s
-  are as large as its $\mu^*$s, the sign of a function that bends or whose factors act together.
-- **The rocket's apogee** moves most with the motor's impulse, 118 m (387 ft) across ±6%, and the
-  drag, 113 m (371 ft) across ±10%; then the rail's angle, 68 m (223 ft) across 80° to 90°, the
-  wind's speed, 50 m (164 ft), and the dry mass, 36 m (118 ft) across ±5%. The wind's direction
-  hardly matters, 4 m (13 ft). The $\sigma$s are small beside the $\mu^*$s: each input acts nearly in a
-  straight line and alone. The exception is the wind's direction, whose $\sigma$, 5.4 m (18 ft),
-  exceeds its $\mu^*$, 4.4 m (14 ft): its effects differ in size or sign from path to path. The
-  impulse and the drag are 1.4 combined standard errors apart: ten paths don't settle which comes
-  first.
-- **The landing** is the wind's: 1,418 m (4,652 ft) across calm to 8 m/s (18 mph), then the rail's
-  angle, 350 m (1,148 ft). Here the $\sigma$s are large, so these effects bend or depend on the other
-  inputs.
+- The test functions land within 1.4 standard errors of the known answers, from the printed
+  digits. $S_3$ comes out slightly below zero: the estimate of a share that's really zero scatters
+  around zero. The g function's `x5` shows "± 0.0000" because its error is below 0.00005.
+- Ishigami's Morris screening at 400 runs puts `x2`, `x1`, `x3` in the whole grid's order. But the
+  gaps are only about one standard error, so at 100 paths they aren't really ranked. Its
+  $\sigma$s are as large as its $\mu^*$s, the sign of a function that bends or whose factors act
+  together.
+- The rocket's apogee moves most with the motor's impulse, 118 m (387 ft) across ±6%, and the
+  drag, 113 m (371 ft) across ±10%. Then comes the rail's angle, 68 m (223 ft) across 80° to 90°.
+  Next come the wind's speed, 50 m (164 ft), and the dry mass, 36 m (118 ft) across ±5%. The
+  wind's direction hardly matters, 4 m (13 ft).
+- The apogee's $\sigma$s are small beside its $\mu^*$s: each input acts nearly in a straight line
+  and alone. The exception is the wind's direction. Its $\sigma$, 5.4 m (18 ft), exceeds its
+  $\mu^*$, 4.4 m (14 ft), so its effects differ in size or sign from path to path. The impulse and
+  the drag are 1.4 combined standard errors apart: ten paths don't settle which comes first.
+- The landing is the wind's: 1,418 m (4,652 ft) across calm to 8 m/s (18 mph), then the rail's
+  angle, 350 m (1,148 ft). Here the $\sigma$s are large, so these effects bend or depend on the
+  other inputs.
 
-The ranges are made up for the example. With your own rocket, use the ranges your measurements
-support; a factor's effect grows with its range.
+With your own rocket, use the ranges your measurements support; a factor's effect grows with its
+range.
 
 ## Choosing the numbers
 
 - **Levels:** four, an even number as the method needs. More levels let a path start from more
-  places in each range, at the same cost per path, but the step stays about half the range, so
+  places in each range, at the same cost per path. But the step stays about half the range, so
   more levels don't help with a response that repeats (see [Morris screening](#morris-screening)).
-- **Paths:** ten to twenty to rank. Check $\mu^*$'s standard error: two factors whose $\mu^*$s differ
-  by less than a couple of errors aren't ranked yet.
+- **Paths:** ten to twenty to rank. Check $\mu^*$'s standard error: two factors whose $\mu^*$s
+  differ by less than a couple of errors aren't ranked yet.
 - **Rows:** a Sobol' analysis needs about 8,000 rows, each $k + 2$ runs, to pin an index to about
-  ±0.01 to ±0.015 (one standard error). Use Morris first to find the few factors that matter, then
+  ±0.01 to ±0.015 (one standard error). Use Morris to find the few factors that matter, then
   Sobol' on those if you need the shares or the order of two close ones.
 - **Normal inputs:** give each one the same multiple of its standard deviation, such as ±2, so
-  they are compared alike. A range spreads the input evenly, which weighs its ends more than a
-  normal spread does.
+  they're compared alike. A range weighs its ends more than a normal spread does.
 
 ## Left out
 
 - Factors are uniform over their ranges and independent. A normal input can be given as a range
-  about its mean, such as ±2 standard deviations, which spreads it more evenly than it really is.
+  about its mean, such as ±2 standard deviations. That weighs its ends more than a normal spread
+  does.
 - Sobol' rows are plain pseudo-random draws, not quasi-random ones (evenly spread sequences, such
   as Sobol's own), which converge faster.
 - No second-order Sobol' indices (the share of each pair alone).

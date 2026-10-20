@@ -579,9 +579,10 @@ It has six steps.
    [`validation/designs/rocketpy-valetudo.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/rocketpy-valetudo.json)
    into a `Rocket`: its parts, their shapes, materials and positions, and its motor.
 
-   The format is the simulator's own and provisional. The [open design
-   format](decisions-and-roadmap.md#m3-3) will replace it. HPR Sim also reads the open design
-   format, and OpenRocket's `.ork` files ([import from OpenRocket](decisions-and-roadmap.md#m3-1)).
+   The file holds the rocket alone: the `rocket` key of the [open design
+   format](decisions-and-roadmap.md#m3-3), without the rest of a `.hpr` file. HPR Sim also reads
+   whole `.hpr` files, and OpenRocket's `.ork` files
+   ([import from OpenRocket](decisions-and-roadmap.md#m3-1)).
    The [designs
    folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) holds the
    other example rockets, and its README says how each was built.

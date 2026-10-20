@@ -438,6 +438,7 @@ surface = "Aerodynamics"
 claim = "Drag is compared with the RASAero II curves of RocketPy's example rockets, of which Calisto's is the one real RASAero II export"
 pages = [
   "accuracy.md#results-by-model",
+  "how-a-flight-is-simulated.md#what-is-left-out",
   "physics/aero.md#in-short",
 ]
 kind = "code-to-code"

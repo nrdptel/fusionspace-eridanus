@@ -4,46 +4,51 @@ Fly a rocket many times with its uncertain inputs scattered, see how far its apo
 spread, and choose each input's scatter.
 
 No two flights of one rocket are the same. The motor burns a little hotter or cooler than its
-label, the rocket weighs a few grams more than the plan, the wind is not the forecast's. A
-[Monte Carlo](glossary.md#monte-carlo) run flies the rocket hundreds or thousands of times. Each
-time it draws the uncertain inputs afresh around their planned (nominal) values, and the run shows
-how far the apogee and the landing spread, and draws the ellipse the landings fall in. This page
-runs one, says what each [dispersion](glossary.md#dispersion) does to a flight, and how to choose
-the numbers. Its examples need some Rust and follow on from [The builder](the-builder.md);
-[`hpr mc`](cli.md#hpr-mc) runs the same from the command line, with no code
-([below](#from-the-command-line)), and `hpr.MonteCarlo` from Python ([From Python](#from-python)).
+label, and the rocket weighs a few grams more than the plan. The wind isn't the forecast's.
 
-> **How far to trust it.** The sampling is tested; the spread it gives is only as good as the
-> uncertainties you give it and HPR Sim's flight models, which are not yet validated against real
-> flights ([Accuracy](accuracy.md)).
+A [Monte Carlo](glossary.md#monte-carlo) run flies the rocket hundreds or thousands of times. Each
+time it draws the uncertain inputs afresh around their planned (nominal) values. The run shows how
+far the apogee and the landing spread, and draws the ellipse the landings fall in.
+
+This page runs one, says what each [dispersion](glossary.md#dispersion) does to a flight, and how
+to choose the numbers. Its examples need some Rust and follow on from [The builder](the-builder.md).
+[`hpr mc`](cli.md#hpr-mc) runs the same from the command line, with no code
+([below](#from-the-command-line)), and `hpr.MonteCarlo` from Python
+([From Python](#from-python)).
+
+> **How far to trust it.** The spread a run gives is only as good as the uncertainties you give it
+> and HPR Sim's flight models. Those models aren't yet validated against real flights
+> ([Accuracy](accuracy.md)).
 >
-> - **Tested:** the same [seed](glossary.md#seed) gives the same run, bit for bit, however many
->   flights it has and however many threads fly them; a run with no dispersion flies the nominal
->   flight in every sample; each dispersion moves its input as the table below says; a dispersed
->   motor keeps its [specific impulse](glossary.md#specific-impulse); failed flights are counted
->   ([`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
->   tests). The [landing ellipses](#landing-ellipses) are tested against normal spreads with known
->   answers.
-> - **Not checked:** whether the spread matches the spread of real flights. No measured set of
->   repeated flights has been compared yet.
-> - **Left out:** correlations between inputs, distributions other than the
+> - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
+>   tests pin the sampling. They check that:
+>   - the same [seed](glossary.md#seed) gives the same run, bit for bit, however many flights it
+>     has and however many threads fly them;
+>   - a run with no dispersion flies the nominal flight in every sample;
+>   - each dispersion moves its input as the table below says;
+>   - a dispersed motor keeps its [specific impulse](glossary.md#specific-impulse);
+>   - failed flights are counted.
+> - The [landing ellipses](#landing-ellipses) are tested against normal spreads with known answers.
+> - Nothing checks whether the spread matches that of real flights. No measured set of repeated
+>   flights has been compared yet.
+> - A run leaves out correlations between inputs, distributions other than the
 >   [normal](glossary.md#normal-distribution), and the inputs listed under
->   [What is not dispersed](#what-is-not-dispersed). A run flies what `Flight::builder` sets up,
->   a staged flight's separations included; events of your own can't be part of one yet.
+>   [What is not dispersed](#what-is-not-dispersed). It flies what `Flight::builder` sets up, a
+>   staged flight's separations included. Events of your own can't be part of one yet.
 
 ## Running a dispersion
 
-Run one from Rust, from the command line or from Python; all three fly the same flights for the same seed.
+Rust, the command line and Python fly the same flights for the same seed.
 
 ### A run of 200 flights
 
 The example program
 [`crates/hpr/examples/monte_carlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/monte_carlo.rs)
 takes the 54 mm (2.1 in) rocket of [The builder](the-builder.md) on a Cesaroni H54
-([motor designation](glossary.md#motor-designation) 168H54-10A), at Spaceport America in a forecast
-wind of 4 m/s (8.9 mph) from the west, off a rail leaned 5° into the wind. It disperses the rocket's
-mass, its center of mass, its drag, the motor's impulse and burn time, the wind and the rail, and
-flies 200 flights. Run it from a copy of the repository with:
+([motor designation](glossary.md#motor-designation) 168H54-10A). It flies at Spaceport America in
+a forecast wind of 4 m/s (8.9 mph) from the west, off a rail leaned 5° into the wind. The program
+disperses the rocket's mass, its center of mass, its drag, the motor's impulse and burn time, the
+wind and the rail. It flies 200 flights. Run it from a copy of the repository with:
 
 ```text
 cargo run --example monte_carlo -p fusionspace-hpr
@@ -102,35 +107,38 @@ Apogee with 5% less drag: +29 m; with 5% more: -27 m
 How to read it:
 
 - **Nominal** is the one flight with every input at its planned value.
-- **Landing distance** is how far from the pad the rocket lands; **landing east** is the eastward,
-  downwind, part of it. The nominal flight lands due east, so the two are equal. In the run the
-  wind's heading has a standard deviation of 15°, which pushes some flights north or south, so the mean landing east
-  is smaller than the mean distance.
+- **Landing distance** is how far from the pad the rocket lands, and **landing east** is the
+  eastward, downwind, part of it. The nominal flight lands due east, so the two are equal. In the
+  run the wind's heading has a standard deviation of 15°, which pushes some flights north or
+  south. So the mean landing east is smaller than the mean distance.
 - **Std dev** is the [standard deviation](glossary.md#standard-deviation). If the spread is normal,
   about two values in three lie within one standard deviation of the mean. **5%** and **95%** are
   [percentiles](glossary.md#percentile): one flight in twenty went lower than the 5% value, one in
   twenty higher than the 95% value. So nine flights in ten reached between about 1,040 m (3,412 ft)
   and 1,200 m (3,937 ft).
-- **The mean is not the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
-  With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4$ m (its
-  [standard error](glossary.md#standard-error)), so 6.5 m (21 ft) is 1.9 standard errors: chance
-  can account for most of it. Part is that the apogee doesn't respond evenly: 5% less drag gains
-  29 m (95 ft) and 5% more loses 27 m (89 ft), so an even spread of drag lifts the mean apogee by
-  about 1 m (3.3 ft).
-- **The landing spreads far more than the apogee.** The landing distance's standard deviation is
-  209 m (686 ft), about a third of its mean of 660 m (2,165 ft); the apogee's is 47 m (154 ft), 4%
-  of 1,120 m (3,675 ft). Under the parachute the drift is the wind's speed times the time in the
-  air, and the wind's speed is the most uncertain input here.
+
+**The mean isn't the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
+With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4$ m (its
+[standard error](glossary.md#standard-error)). So 6.5 m (21 ft) is 1.9 standard errors, and chance
+can account for most of it.
+
+Part of the gap is that the apogee doesn't respond evenly to drag. With 5% less drag it gains 29 m
+(95 ft), and with 5% more it loses 27 m (89 ft). So an even spread of drag lifts the mean apogee by
+about 1 m (3.3 ft).
+
+**The landing spreads far more than the apogee.** The landing distance's standard deviation is
+209 m (686 ft), about a third of its mean of 660 m (2,165 ft). The apogee's is 47 m (154 ft), 4% of
+1,120 m (3,675 ft). Under the parachute the drift is the wind's speed times the time in the air,
+and the wind's speed is the most uncertain input here.
 
 ### From the command line
 
 [`hpr mc`](cli.md#hpr-mc) flies any design [`hpr sim`](cli.md#hpr-sim) flies, a staged `.ork`
-included, with each dispersion an option in the units the command line uses elsewhere: degrees
-for angles, a fraction for a percentage (`--impulse-sd 0.03` is 3%). It prints the apogee's and
-the landing distance's spreads, the landing ellipses below and the failed flights, and
-`--export runs.csv` writes every flight's draw and outcome, one row a flight. Its runs are the
-library's for the same seed, bit for bit: a test flies both and compares them
-(`mc_flies_a_public_ork_as_the_library_does`).
+included. Each dispersion is an option in the units the command line uses elsewhere: degrees for
+angles, a fraction for a percentage (`--impulse-sd 0.03` is 3%). It prints the apogee's and the
+landing distance's spreads, the landing ellipses below and the failed flights. `--export runs.csv`
+writes every flight's draw and outcome, one row a flight. The command's runs are the library's for
+the same seed, bit for bit: a test compares them (`mc_flies_a_public_ork_as_the_library_does`).
 
 ```text
 hpr mc my-rocket.ork --runs 200 --seed 2026 --wind 4 --wind-from 270 \
@@ -139,12 +147,13 @@ hpr mc my-rocket.ork --runs 200 --seed 2026 --wind 4 --wind-from 270 \
 
 ### From Python
 
-`hpr.MonteCarlo` in the [Python package](python.md#monte-carlo) flies the same run and returns it
-as NumPy arrays. Each array is one column of the table `hpr mc --export` writes, with one value per
-flight; failed flights are counted and their figures are NaN. It takes the same eleven
-dispersions as `hpr mc`'s options, named for their units (`impulse_sd_fraction`,
-`wind_from_sd_deg`). A test runs both on 40 flights with every input scattered and finds every
-number equal, bit for bit, on one platform with both built in release mode
+`hpr.MonteCarlo` in the [Python package](python.md#monte-carlo) flies the same run and returns it as
+NumPy arrays. Each array is one column of the table `hpr mc --export` writes. Failed flights are
+counted, and their figures are NaN. `hpr.MonteCarlo` takes the same eleven dispersions as `hpr mc`'s
+options, named for their units (`impulse_sd_fraction`, `wind_from_sd_deg`).
+
+A test runs both on 40 flights with every input scattered and finds every number equal, bit for
+bit. That holds on one platform, with both built in release mode
 ([`test_a_run_is_hpr_mcs_bit_for_bit`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_montecarlo.py)).
 Landing ellipses and the summary tables aren't in Python yet; NumPy finds the spreads from the
 arrays. A configuration that drops a stage can't be read from Python yet, so it runs only from
@@ -153,28 +162,28 @@ Rust and `hpr mc`.
 ## Landing ellipses
 
 A [landing ellipse](glossary.md#landing-ellipse) is the outline a range safety officer or a
-competition asks for: an area on the ground that the rocket lands inside, say, 95 times in 100.
-Comparing it with the field's boundary says whether the field is big enough for this rocket in this
-wind. For that check, use the *next-flight* ellipse below ([`Scatter::prediction_ellipse`]).
+competition asks for. It's an area the rocket lands inside, say, 95 times in 100. Comparing it with
+the field's boundary says whether the field is big enough for this rocket in this wind. For that
+check, use the *next-flight* ellipse below ([`Scatter::prediction_ellipse`]).
 
-The ellipse assumes the landings follow a [normal
-distribution](glossary.md#normal-distribution), and it is only as good as the run's landings,
-which carry the flight models' errors and those of the dispersions you chose; neither has been
-compared with real flights yet. The section ends with how to tell when the landings aren't normal.
+The ellipse assumes the landings follow a [normal distribution](glossary.md#normal-distribution).
+It's only as good as the run's landings, which carry the flight models' errors and those of the
+dispersions you chose. Neither has been compared with real flights yet.
 
 The simulator draws the ellipse from the run's landing points ([`Run::landing`], then
 [`Scatter::ellipse`]) in three steps. Its *semi-major* and *semi-minor* axes are its half-lengths
-along its long and its short direction.
+along its long and short directions.
 
-1. **The center** is the landings' mean: here 626 m (2,054 ft) east and 23 m (75 ft) south of the pad.
-2. **The axes.** The landings' [covariance](glossary.md#covariance) gives the direction they spread
-   most, the *major axis*, and the direction across it, the *minor axis*, with a standard deviation
-   along each. Here those are about 214.6 m (704 ft) and 203.0 m (666 ft). The spread is nearly
-   round, because the wind's uncertain heading (15°) spreads the landings sideways about as much as
-   its uncertain speed (25%) spreads them downwind.
-3. **The size.** If the landings follow a two-dimensional [normal
-   distribution](glossary.md#normal-distribution), the ellipse reaching $k$ standard deviations
-   along each axis holds the share
+1. The center is the landings' mean: here 626 m (2,054 ft) east and 23 m (75 ft) south of the
+   pad.
+2. The axes come from the landings' [covariance](glossary.md#covariance). It gives the direction
+   they spread most, the *major axis*, and the direction across it, the *minor axis*, with a
+   standard deviation along each. Here those are about 214.6 m (704 ft) and 203.0 m (666 ft). The
+   spread is nearly round: the wind's uncertain heading (15°) spreads the landings sideways about as
+   much as its uncertain speed (25%) spreads them downwind.
+3. The size is how many standard deviations, $k$, the ellipse reaches along each axis. If the
+   landings follow a two-dimensional [normal distribution](glossary.md#normal-distribution), that
+   ellipse holds the share
 
    $$
    p = 1 - \exp(-k^2/2)
@@ -194,38 +203,41 @@ along its long and its short direction.
    The 95% ellipse's semi-axes are $2.448 \times 214.6\,\mathrm{m} = 525\,\mathrm{m}$ and
    $2.448 \times 203.0\,\mathrm{m} = 497\,\mathrm{m}$.
 
-In two dimensions it takes more standard deviations to hold 95% than in one (2.448 against 1.960),
-because a landing can stray in two directions at once.
+In two dimensions it takes more standard deviations to hold 95% than in one: 2.448 against 1.960.
+That's because a landing can stray in two directions at once.
 
 **Heading** is the major axis's direction, clockwise from north, between 0° and 180°: here 131°,
-running from north-west to south-east. With axes this close to equal the heading means little: a
-few landings more or less could turn it a long way. A circle has no heading at all; the simulator
-then reports 90°, east.
+running from north-west to south-east. With axes this close to equal the heading means little: a few
+landings more or less could turn it a long way. A circle has no heading; the simulator then reports
+90°, east.
 
-**The next flight.** The mean and covariance of 200 flights are only estimates, so an ellipse
+**The next flight.** The mean and covariance of 200 flights are only estimates. So an ellipse
 drawn from them holds a little less than its level of the flights still to come. For normal
-landings [`Scatter::prediction_ellipse`] allows for that exactly. Its $k$ comes from Hotelling's
-$T^2$ distribution, the one that accounts for the mean and the spread both being estimated from the
-same flights, for $n$ landings:
+landings [`Scatter::prediction_ellipse`] allows for that exactly.
+
+The next-flight ellipse's $k$ comes from Hotelling's $T^2$ distribution, which accounts for the
+mean and the spread both being estimated from the same flights. For $n$ landings:
 
 $$
 k^2 = \frac{n^2 - 1}{n}\left[(1 - p)^{-2/(n - 2)} - 1\right]
 $$
 
-With
-200 landings its axes are 1.3% longer, 532 m (1,745 ft) against 525 m (1,722 ft); with 10 they would
-be 36% longer. Use it to answer "will my next flight land in the field?".
+With 200 landings the next-flight ellipse's axes are 1.3% longer: 532 m (1,745 ft) against 525 m
+(1,722 ft). With 10 they would be 36% longer.
 
 **Landings inside** counts the run's landings each ellipse really holds
 ([`Scatter::share_inside`]). Here they are 48.0%, 94.5% and 95.5%. Those are within the
 [standard error](glossary.md#standard-error) of a share $p$ from a run of 200, $\sqrt{p(1 - p)/200}$:
 about 3.5 percentage points at 50%, 1.5 at 95%. So the landings are consistent with a normal
-spread, though that doesn't prove it. With few landings the shares run high, because the ellipse is fitted to the
-same points: with three landings, even the 50% ellipse holds all three. If the share is far from
-the level in a run of hundreds of flights, the landings aren't normal: an uncertain wind
-heading in a strong wind spreads them along an arc, and an ellipse is then the wrong shape. Look at
-the points themselves ([`Scatter::points`]). A failed flight has no landing; it counts as outside
-for the lower bound and inside for the upper ([Failed flights are counted](#failed-flights-are-counted)).
+spread, though that doesn't prove it.
+
+With few landings the shares run high, because the ellipse is fitted to the same points. With three
+landings, even the 50% ellipse holds all three. If the share is far from the level in a run of
+hundreds of flights, the landings aren't normal. An uncertain wind heading in a strong wind spreads
+them along an arc, and an ellipse is then the wrong shape. Look at the points ([`Scatter::points`]).
+
+A failed flight has no landing. It counts as outside for the lower bound and inside for the upper
+([Failed flights are counted](#failed-flights-are-counted)).
 
 > **How far to trust it.** The ellipse math is tested against normal spreads whose answers are
 > known exactly
@@ -238,19 +250,19 @@ for the lower bound and inside for the upper ([Failed flights are counted](#fail
 > - 100,000 points drawn from a known normal spread give back its covariance, and land inside each
 >   ellipse at its level, within five standard errors.
 > - A new point lands inside the next-flight ellipse of 3, 5 or 20 others at its level, within
->   five standard errors, and inside the plain ellipse visibly less often.
+>   five standard errors. It lands inside the plain ellipse visibly less often.
 >
-> The tests can catch a wrong ellipse: the 95% ellipse of a spread 200 m (656 ft) long and
-> 30 m (98 ft) wide (one standard deviation each way), turned 6° off its axes, holds 90.6%, and the
-> test pins that.
+> The tests can catch a wrong ellipse. Take a spread 200 m (656 ft) long and 30 m (98 ft) wide,
+> one standard deviation each way. Its 95% ellipse, turned 6° off the spread's axes, holds 90.6%,
+> and the test pins that.
 
 ## What each dispersion does
 
 Each dispersion is a standard deviation: zero, the default, leaves its input at the nominal value.
 For each flight the simulator draws a standard normal number $z$ (mean 0, standard deviation 1) for
-each input and moves the input by $\sigma z$, with $\sigma$ the standard deviation you gave. A rocket built of
-more than one stage gets a draw for each stage, whether its stages fly together or separate; each
-motor and each parachute gets its own draw too.
+each input. It moves the input by $\sigma z$, with $\sigma$ the standard deviation you gave. A
+rocket of more than one stage gets a draw for each stage, whether its stages fly together or
+separate. Each motor and each parachute gets its own draw.
 
 | Field | What each flight flies |
 |---|---|
@@ -266,36 +278,34 @@ motor and each parachute gets its own draw too.
 | `rail_azimuth_sd_rad` | The rail's heading plus $\sigma z$, clockwise. |
 | `deployment_lag_sd_s` | Each recovery device's lag after its trigger plus $\sigma z$ seconds, never below zero. A part's [tumble](glossary.md#tumble-recovery), which the simulator adds to a separated part with no device open, starts at the split and has no lag to scatter. |
 
-Four cases need a word:
+Five cases need a word:
 
-- **A draw that makes an input impossible fails that flight.** With a 60% mass spread, a draw of
-  $z$ below −1.67 gives a negative mass; a rail drawn below the horizon is another. That flight is
+- A draw that makes an input impossible fails that flight. With a 60% mass spread, a draw of $z$
+  below −1.67 gives a negative mass; a rail drawn below the horizon is another. That flight is
   kept in the run as failed, with its reason, and counted (next section). The two delays and the
-  wind's speed are the exceptions: a charge can't fire before its event and a wind can't blow at
+  wind's speed are the exceptions. A charge can't fire before its event and a wind can't blow at
   less than calm, so a draw below zero is flown as zero.
-- **A [cluster](glossary.md#cluster) is one draw.** The simulator holds a cluster as one motor in a
+- A [cluster](glossary.md#cluster) is one draw. The simulator holds a cluster as one motor in a
   mount with several tubes, so all its motors get the same impulse and burn time.
-- **A vertical rail leans along one line.** The elevation is dispersed in the plane of the rail's
-  heading, so on a vertical rail with only its elevation dispersed every flight leans towards or
+- A vertical rail leans along one line. The elevation is dispersed in the plane of the rail's
+  heading. So on a vertical rail with only its elevation dispersed, every flight leans towards or
   away from that heading, never sideways. RocketPy disperses its rail the same way, an inclination
   and a heading (`rocketpy/stochastic/stochastic_flight.py:21-24`, version 1.13.0). Disperse the
   heading too for leans in every direction.
-- **A staged flight keeps its separations.** Every flight comes apart where the nominal one does:
-  at the same event, or at the same time for a split the file times in seconds. A split timed by a
-  burnout follows the dispersed burn. One timed in seconds doesn't, so a flight whose booster still
-  burns then stops with the flight's error and counts as failed, unless the split may drop a
-  burning motor, as OpenRocket's first burnout of a stage does
-  ([decision record ADR-172](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md)).
-  `--delay-sd` moves a booster's
-  ejection charge, and the parachute it fires, but not a split the file times in seconds.
-- **A part dropped on the way up needs its device open.** After a split with nothing left to
-  burn, each part flies as a point with only its open devices' drag. A part whose device fired by
-  the split but waits out a dispersed lag would climb through the lag with no drag at all, so the
-  simulator refuses that flight, and it counts as failed.
+- Every flight of a staged run separates where the nominal one does. It separates at the same
+  event, or at the same time for a split the file times in seconds. A split timed by a burnout
+  follows the dispersed burn; one timed in seconds doesn't. If a booster still burns at a split
+  timed in seconds, the flight stops with its error and counts as failed. The exception is a split
+  that may drop a burning motor, as OpenRocket's first burnout of a stage does
+  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md)).
+  `--delay-sd` moves a booster's ejection charge, and the parachute it fires, but not a split the
+  file times in seconds.
+- A part dropped on the way up needs its device open. After a split with nothing left to burn, each
+  part flies as a point with only its open devices' drag. A part whose device fired by the split but
+  waits out a dispersed lag would climb through the lag with no drag. So the simulator refuses that
+  flight, and it counts as failed.
 
 ## How a run behaves
-
-What a run does with failed flights, how its seed fixes every draw, and how long it takes.
 
 ### Failed flights are counted
 
@@ -315,8 +325,8 @@ run can't answer the question.
 
 ### The same seed, the same run
 
-Every number a flight draws comes from its own stream of random numbers, picked out by the run's
-seed, the flight's number in the run and the input it is for. So:
+Every number a flight draws comes from its own stream of random numbers. The stream is picked out
+by the run's seed, the flight's number in the run and the input it's for. So:
 
 - flight 37 of a run is the same flight in a run of 100 or of 10,000;
 - a run flown on one thread or on twelve is the same, bit for bit (with the `parallel` feature,
@@ -324,8 +334,8 @@ seed, the flight's number in the run and the input it is for. So:
 - turning a dispersion on or off doesn't change what the other inputs draw.
 
 To fly on several threads, turn on the `parallel` feature where your program depends on the `hpr`
-library, as [Using it from your own program](api.md#using-it-from-your-own-program) describes, and
-call `run_parallel` instead of `run`:
+library. [Using it from your own program](api.md#using-it-from-your-own-program) describes how.
+Then call `run_parallel` instead of `run`:
 
 ```toml
 [dependencies]
@@ -333,14 +343,16 @@ fusionspace-hpr = { git = "https://github.com/nrdptel/fusionspace-eridanus", rev
 ```
 
 On another platform (operating system and processor) a draw can differ in its last binary digit,
-because the normal numbers use the platform's logarithm; a run then agrees to many digits, not to
-the bit. The decision record is [ADR-134](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0134-monte-carlo-dispersion-independent-normals-one.md).
+because the normal numbers use the platform's logarithm. A run then agrees to many digits, not to
+the bit.
+[The decision record on Monte Carlo dispersion](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0134-monte-carlo-dispersion-independent-normals-one.md)
+sets out the draws.
 
 ### How long a run takes
 
-On the development machine, an Apple M5 with 10 cores, 10,000 flights of a Level 2 rocket (one
-on a J, K or L [impulse class](glossary.md#impulse-class) motor) from ignition to the ground,
-under a drogue and a main, take:
+On the development machine, an Apple M5 with 10 cores, these are the times for 10,000 flights of
+a Level 2 rocket. That's a rocket on a J, K or L [impulse class](glossary.md#impulse-class) motor.
+Each flight runs from ignition to the ground, under a drogue and a main:
 
 | rocket | peak Mach | 10,000 flights, 10 threads | one flight, one thread |
 |---|--:|--:|--:|
@@ -359,44 +371,48 @@ It takes about a minute. Its output, the before-and-after numbers and where the 
 on [Performance](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/perf.md). Other machines
 haven't been timed.
 
-A rocket that passes Mach 1.2 flies on a supersonic table: its body's lift and center of
-pressure by the shock-expansion method, worked out at every 0.05 Mach once and then looked up
+A rocket that passes Mach 1.2 flies on a supersonic table. The table holds the body's lift and
+center of pressure by the shock-expansion method
 ([The body faster than sound in a flight](physics/aero.md#the-body-faster-than-sound-in-a-flight)).
-Building it takes about a fifth of a second for the rocket above. A dispersion changes the
-rocket's masses, its motor, the weather and a scale on its drag, never its shape, so the flights
-of a run share the nominal flight's table: the run builds it once. Each flight also reuses the
-nominal rocket's layout, its parts placed and weighed. Every flight flies exactly as it would
-alone, bit for bit; a unit test holds a supersonic flight to that, on one, two and five threads
-(`samples_share_the_nominal_table_and_fly_as_alone`).
+They're worked out once at every 0.05 Mach and then looked up. Building the table takes about a
+fifth of a second for the rocket above.
 
-Before this speed-up ([M6.1d](decisions-and-roadmap.md#m6-1d), October 2026), each flight built
-its own table, and the supersonic run above took 264 s. To fly draws of your own, as a
-[sensitivity analysis](sensitivity.md) does, use `monte_carlo.fly(&draw)`, which shares the same
-work. Flying a draw's inputs yourself, `monte_carlo.inputs(&draw)?.fly()`, builds its own
-table and layout. A two-stage rocket's sustainer, built
-when the stages separate, still builds its own table in every flight. Issue
-[#285](https://github.com/nrdptel/fusionspace-eridanus/issues/285) is about making each flight itself faster.
+A dispersion changes the rocket's masses, its motor, the weather and a scale on its drag, never
+its shape. So the flights of a run share the nominal flight's table: the run builds it once. Each
+flight also reuses the nominal rocket's layout, its parts placed and weighed. Every flight flies
+exactly as it would alone, bit for bit. A unit test holds a supersonic flight to that, on one, two
+and five threads (`samples_share_the_nominal_table_and_fly_as_alone`).
 
-This times the run. It says nothing about how accurate a Mach 2 flight is: no validation flight
-goes past Mach 1.06 (see
-[The body faster than sound in a flight](physics/aero.md#the-body-faster-than-sound-in-a-flight)).
+Before this speed-up ([sharing the table](decisions-and-roadmap.md#m6-1d), October 2026), each
+flight built its own table. The supersonic run above then took 264 s. To fly draws of your own, as a
+[sensitivity analysis](sensitivity.md) does, use `monte_carlo.fly(&draw)`, which shares the work.
+Flying a draw's inputs yourself, `monte_carlo.inputs(&draw)?.fly()`, builds its own table and
+layout.
+
+A two-stage rocket's sustainer, built when the stages separate, still builds its own table in every
+flight. Issue [#285](https://github.com/nrdptel/fusionspace-eridanus/issues/285) is about making
+each flight itself faster.
+
+The times say nothing about how accurate a Mach 2 flight is. No validation flight goes past
+Mach 1.06
+([The body faster than sound in a flight](physics/aero.md#the-body-faster-than-sound-in-a-flight)).
 
 ## Choosing the numbers
 
 The spread a run gives is the spread you put in. Some places to start:
 
-- **Motor impulse.** NFPA 1125, the code commercial motors are certified to, requires that the
-  "standard deviation of the total impulse data shall be no greater than 6.7 percent of the mean"
-  over a motor type's certification firings (§8.1.7 and §8.2.7). Four certification reports of the
-  National Association of Rocketry (NAR) measured 1.3% to 3.1%: an Estes C6 (2.0%), D12 (3.1%),
-  E12 (1.28%) and an AeroTech G80 (2.3%), hosted on
+- **Motor impulse** has its limit in NFPA 1125, the code commercial motors are certified to
+  (§8.1.7 and §8.2.7). Over a motor type's certification firings, the "standard deviation of the
+  total impulse data shall be no greater than 6.7 percent of the mean". Four National Association
+  of Rocketry (NAR) certification reports measured 1.3% to 3.1%: an Estes C6 (2.0%), D12 (3.1%),
+  E12 (1.28%) and an AeroTech G80 (2.3%). The G80's report is hosted on
   [ThrustCurve.org](https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e8f/G80-20071207.pdf).
   So 2% to 3% is a fair guess, and 6.7% the most the code allows.
-- **Ejection delay.** The same code allows a measured delay to differ from the labeled one by
-  "1.5 seconds or 20 percent (whichever is greater, but not to exceed 3 seconds)". The E12 and G80
-  reports' firings of one delay scatter by 0.2 to 0.9 s, and a delay's average can sit more than a
-  second from its label: the G80's 7 s delay averaged 5.88 s. A dispersion is about the nominal
-  value, so give the delay you expect, not only the one printed on the motor.
+- **Ejection delay.** The code lets a measured delay differ from its label by "1.5 seconds or
+  20 percent (whichever is greater, but not to exceed 3 seconds)". The E12 and G80 reports'
+  firings of one delay scatter by 0.2 to 0.9 s. A delay's average can sit more than a second from
+  its label: the G80's 7 s delay averaged 5.88 s. A dispersion is about the nominal value, so give
+  the delay you expect, not only the one printed on the motor.
 - **Burn time.** The code sets no limit of its own. The four reports disagree: the E12's and G80's
   burn times scatter by 1.5% and 1.8%, the older C6's and D12's by 17% and 18%. Why isn't recorded;
   the older sheets may time the burn differently. Start from a few percent for a composite motor,
@@ -408,10 +424,10 @@ The spread a run gives is the spread you put in. Some places to start:
 - **Wind** depends on the forecast, its age and the hour. A [sounding](glossary.md#sounding) of the
   day, or a forecast's spread between models, is a better guide than a guess.
 
-The NFPA wording is the 2019 edition's, as quoted in the public first-draft documents of its next
-revision
-([public inputs 4 and 5](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_PIResponses.pdf)),
-whose first revisions FR-7 and FR-8 keep both sentences
+The NFPA wording is the 2019 edition's. It's quoted in the public first-draft documents of the
+code's next revision
+([public inputs 4 and 5](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_PIResponses.pdf)).
+The draft's first revisions, FR-7 and FR-8, keep both sentences
 ([`1125_A2021_PYR_AAA_FD_FRStatements.pdf`](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf)).
 The edition in force today hasn't been checked.
 

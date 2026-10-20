@@ -5105,8 +5105,8 @@ The getting-started fins are a variant: RocketPy's getting-started example gives
 fins with a thick NACA 0012 airfoil, but the export was made for the 2018 fins, whose normal
 force it matches. So the variant's rows show how much the fins move drag, not a second
 agreement: its thick fins now read 23% to 32% high faster than sound. Calisto on its 2018 fins is
-within 10% up to Mach 0.8, at 0.95 and 1.0 and from 1.2 to 1.55; it reads +13.0% and +16.4% at
-Mach 0.85 and 0.9, where its boattail's rise starts sooner than RASAero II's, −10.1% at Mach 1.05,
+within 10% up to Mach 0.8, at 1.0 and from 1.1 to 1.55; it reads +13.0%, +16.4% and +10.5% at
+Mach 0.85, 0.9 and 0.95, where its boattail's rise starts sooner than RASAero II's, −10.1% at Mach 1.05,
 and falls below the curve from Mach 1.6, to −14.9% at 2.0. Valetudo's curve is
 1.44 times its own OpenRocket export, as the Mach 0.3 check found, and Cavour's power-on miss is
 the same open question. Two misses are unexplained: Cavour's power-off curve rises faster than

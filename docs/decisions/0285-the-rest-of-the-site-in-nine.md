@@ -100,6 +100,28 @@ the pages, the way a flyer would:
 8. An address that doesn't exist on the docs site shows the 404 page, and it leads back to the
    landing page.
 
+**M0.14c2's tasks,** done the same way, on the PR's final commit:
+
+1. From Monte Carlo dispersion, run its 200-flight example as the page says, and say what the
+   apogee's range means and which inputs the run scatters.
+2. From Sensitivity analysis, run its example and say which input moves the apogee most. From
+   Optimization, run one of its examples and say what the optimizer was asked for and what it
+   found.
+3. From Online data and the cache, say where the cache lives, how long a copy stays fresh, and
+   what a run with no network and an empty cache does.
+4. From Launch-day weather, Weather-balloon soundings and NOAA forecasts, run each page's example
+   and say, for each source, what the simulator asks it for and what the page says it leaves out.
+5. From A launch site's elevation, get a site's height by the page's steps, say what the height
+   means, and read the page's file of one's own by its example.
+6. From Motor stock and prices, run its example and say where the listing comes from, how fresh
+   it is and what the simulator refuses.
+7. From Reading a flight log and Reading your own logger, read a log with `hpr analyze` as each
+   page says, and read the invented logger's table by its edited mapping; the output is the
+   pages'.
+8. From Your own rocket, run its example and say what the rocket is and what it printed. From How
+   a flight is simulated, say in a few sentences what the simulator does from the pad to the
+   ground and how far its numbers are trusted, with the page's numbers.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
