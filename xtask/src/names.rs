@@ -140,7 +140,7 @@ pub const ALLOW: &[Allow] = &[
     Allow {
         file: "docs/start-here.md",
         scope: Scope::Text("(format/ork.md#how-many-configurations-hpr-sim-flies)"),
-        count: 1,
+        count: 2,
         why: "an anchor: the heading names the `hpr sim` command",
     },
     Allow {

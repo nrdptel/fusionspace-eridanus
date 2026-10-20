@@ -6,7 +6,7 @@
 [FusionSpace HPR · Sim](https://hpr.fusionspace.co/) (called hpr-sim before release 0.1) flies a
 hobby or high-power rocket from the rail to the ground. It tells you how far to trust the numbers
 it gives. It's written in Rust, and you can use it from the command line, from Python or as a
-library. I'm building it to be open source, to work offline and to fit inside other projects. It's
+library. It's open source and works offline, and I built it to fit inside other projects. It's
 checked against independent simulators and real flights, and the results are published, misses
 included.
 
@@ -54,9 +54,9 @@ go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulate
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
-safety officer (RSO) are authoritative. The 53 flights' weather is ERA5. It was generated using
+safety officer (RSO) are authoritative. The 53 flights' weather is ERA5, generated using
 Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change
-Service information 2026. Neither the European Commission nor ECMWF is responsible for any use made
+Service information 2026; neither the European Commission nor ECMWF is responsible for any use made
 of it.
 
 ## What doesn't work yet

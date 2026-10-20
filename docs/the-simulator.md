@@ -48,8 +48,8 @@ I built HPR Sim for three kinds of user:
   known gaps stated rather than hidden.
 - A team that needs a flight's spread, not one number. `hpr mc` flies the file many times with its
   inputs scattered.
-- A developer who wants a simulator inside a program, a test or a notebook. It runs offline, and
-  it gives the same numbers from the same inputs and seed on one machine.
+- A developer who wants a simulator inside a program, a test or a notebook. HPR Sim runs offline,
+  and it gives the same numbers from the same inputs and seed on one machine.
 
 It isn't for a rocket on a hybrid, liquid or research motor yet, because it doesn't fly those. It
 doesn't draw a design either: it reads one made in OpenRocket. A design editor comes with the app.
