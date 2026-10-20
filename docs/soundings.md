@@ -319,7 +319,7 @@ wind at the ground, 5.7 m/s (13 mph). The coded message's second row, 186 m (610
 In the BUFR file the wind is already 11.1 m/s (25 mph) 8 m (26 ft) above the ground. That's where
 the rocket is slowest and turns into the wind the most. Without its rows below 1,438 geopotential
 meters, the BUFR flight's apogee is 419 m (1,375 ft) west. That's within 18 m (59 ft) of the coded
-message's. This flight peaks at 2,846 m (9,337 ft), within 2 m (6.6 ft) of the coded message's.
+message's. This flight peaks at 2,846 m (9,337 ft), within 2.2 m (7.2 ft) of the coded message's.
 
 Which version is nearer the truth isn't known.
 

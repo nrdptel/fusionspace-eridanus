@@ -59,8 +59,7 @@ The numbers match the drawing.
    - the thrust of each burning motor, along the rocket's axis. So a
      [cluster](glossary.md#cluster) of motors that all light at once is flown, with their thrusts
      added. A motor off the center line adds a turning effect, as when one motor of a cluster
-     fails to light ([Clusters](physics/design.md#clusters)). Tests check it; no other simulator
-     has yet;
+     fails to light ([Clusters](physics/design.md#clusters)). Tests check it;
    - the weight and the [Coriolis](glossary.md#coriolis-acceleration) force, at the center of
      gravity;
    - the air's forces, from the air's velocity past the rocket, wind included. They're the drag
@@ -158,13 +157,14 @@ Each model page lists what its model leaves out. These gaps matter most for a wh
   drag all carry a flight from Mach 0 to 5. The normal force was checked against a wind tunnel to
   Mach 4.63 ([Aerodynamics](physics/aero.md#normal-force-through-mach-1)). The drag was checked at
   Mach 0.3 against other programs' curves, and from Mach 0.6 to 4.63 against the same wind tunnel.
-  Against the tunnel it reads high at most speeds, most of all with fins past Mach 1
+  Against the tunnel it reads high at every Mach number it measured, most of all with fins past
+  Mach 1
   ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
 
   Near and above the speed of sound the drag is Niskanen's semi-empirical method (formulas fitted
   to measurements). Against [Calisto](glossary.md#example-rockets)'s curve, the one real
-  [RASAero II](glossary.md#rasaero-ii) export, the drag reads 5.1% to 14.9% low from Mach 1.2 to
-  2.0. It's lowest at Mach 2
+  [RASAero II](glossary.md#rasaero-ii) export, the drag reads 10.2% low to 16.5% high from Mach
+  0.85 to 1.15. From Mach 1.2 to 2.0 it reads 5.1% to 15.0% low, the most at Mach 2
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2);
   [the drag against RASAero II](decisions-and-roadmap.md#m1-8b2);
   [what backs it](evidence.md#g26)).

@@ -414,7 +414,7 @@ check, on random strip and tile layouts, that every place reads the pixel it's p
 check, too, that a file with bytes changed is read or refused without a crash.
 
 The places are random, so none sits exactly on a pixel's edge. Rounding can put a place on either
-side of an edge, in HPR Sim and in GDAL. It takes a place closer to the edge than about 10⁻¹³ of a
+side of an edge, in HPR Sim and in GDAL. That happens only for a place closer to the edge than about 10⁻¹³ of a
 pixel's width. A coordinate typed to a few decimals never comes that close.
 
 ### What the file reader leaves out

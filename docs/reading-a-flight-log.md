@@ -84,17 +84,9 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
 > those speeds a barometer's port may read the flow over the nose.
 >
-> If a charge's spike climbs into the top no faster than a coast can, it's read as the apogee.
-> That holds however high it stands
-> ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761)). Some tops withheld as
-> `disturbed_top` are the rocket's own
-> ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The main's opening leaves
-> out a canopy's filling time ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)).
-> A fall under no canopy is read as one canopy's
-> ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
->
-> A board's three axes give no top acceleration
-> ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). For a record or a
+> The known gaps, each an open issue, are listed with each reading
+> ([What the readings say](#what-the-readings-say)) and under
+> [What it doesn't do yet](#what-it-doesnt-do-yet). For a record or a
 > certification, the altimeter's own reading is the one to log. The rules behind each reading are
 > on [Flight-log readings](physics/log-readings.md), with what they were checked against. A
 > reading the log can't support is left out and says why, rather than printed as a number.

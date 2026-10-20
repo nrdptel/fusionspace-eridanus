@@ -664,9 +664,9 @@ The rocket has centering rings, rail buttons, a parachute and a shock cord as pa
 a 38 mm Cesaroni I175. A program in the repository writes the files in that folder, so edit a copy
 rather than the file.
 
-**The format is provisional.** It's the simulator's own. The open design format,
-[a documented and versioned design file with a schema](decisions-and-roadmap.md#m3-3), will
-replace it and convert the repository's own designs.
+**The file holds the rocket alone.** It's the `rocket` key of the open design format, a
+[documented and versioned design file with a schema](decisions-and-roadmap.md#m3-3), without the
+rest of a [`.hpr` file](format/hpr.md). The repository's own designs are still kept this way.
 
 ### What else a design can hold
 
@@ -721,7 +721,7 @@ What the example can't do yet, and where to go from here.
   [a boattail's drag faster than sound](decisions-and-roadmap.md#m1-8b3), and the rest is only
   partly explained.
 - If your rocket goes supersonic, its drag there may be off either way. It may read low with a
-  steep boattail. With thin, sharp fins, the drag of all but the base read 29.8% to 154% high from
+  steep boattail. With thin, sharp fins, the drag of all but the base read 29.8% to 154.1% high from
   Mach 1.2 against the wind tunnel above. Treat a supersonic flight's apogee as rough.
 - Staging needs its settings. A motor lights at launch unless its `ignition` says otherwise. So a
   two-stage design flies with both stages burning at once, until you give the sustainer its
