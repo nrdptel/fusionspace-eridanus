@@ -52,6 +52,14 @@
 // only what is on screen. The page check follows a link to each sheet's heading from the top of
 // each page at its narrowest width and fails a heading that doesn't land where it would with
 // nothing skipped.
+//
+// The sidebar's list at rest: mdBook scrolls it to put the current chapter in its middle, or to
+// keep a link just clicked where it was, and under 960 px the switch then takes the top of the
+// sidebar, which shortens the list. Wherever that leaves the list, an entry can sit cut by its
+// top edge, or from 960 px under the 4 px strip along the window's top. So as the page loads,
+// once its fonts are in and when the switch moves, an entry cut there is brought down to stand
+// whole, 4 px below the edge. The reader's own scrolling is left alone. The page check fails text
+// cut by the strip, or by the top of a box the page leaves scrolled as it loads.
 'use strict';
 
 document.addEventListener('click', function (event) {
@@ -255,4 +263,27 @@ document.addEventListener('click', function (event) {
         draw(first);
         first.scrollIntoView({ block: 'start' });
     }
+})();
+
+(function () {
+    const list = document.querySelector('#mdbook-sidebar .sidebar-scrollbox');
+    if (!list) return;
+    // The strip the system's theme fixes along the window's top, as the body's `::before`.
+    const strip = function () {
+        const before = window.getComputedStyle(document.body, '::before');
+        if (before.position !== 'fixed' || parseFloat(before.top) !== 0) return 0;
+        return parseFloat(before.height) || 0;
+    };
+    const settle = function () {
+        if (list.scrollTop <= 0) return;
+        const edge = Math.max(list.getBoundingClientRect().top, strip());
+        const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
+            const box = entry.getBoundingClientRect();
+            return box.top < edge && box.bottom > edge;
+        });
+        if (cut) list.scrollTop -= edge + 4 - cut.getBoundingClientRect().top;
+    };
+    settle();
+    if (document.fonts) document.fonts.ready.then(settle);
+    window.matchMedia('(min-width: 960px)').addEventListener('change', settle);
 })();

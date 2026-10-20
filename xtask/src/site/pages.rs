@@ -101,7 +101,11 @@
 //!   - **a header off the system's** (`web.md`, *Page anatomy*; ADR-229): each lockup must be
 //!     24 px tall, filled in the ink role of the page's theme, drawn whole inside every box that
 //!     clips it and the window, and kept a quarter of its height (the brand's clear space) from
-//!     the window's sides and every icon and text in its header. The menu button is drawn at
+//!     the window's sides and every icon and text in its header. Where the page fixes a strip
+//!     along the window's top (the body's `::before`, as the system's theme draws its 4 px
+//!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
+//!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
+//!     the current chapter in its middle. The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -251,7 +255,10 @@
 //! sidebar opened under 720 px, and, in the header at every width, one with buttons 32 px tall,
 //! one in Archivo, one
 //! with its pressed button unfilled and one drawn with scripts off; sheets that skip their layout
-//! off screen, which a link to the last one's name stops short of; and an ordinary page
+//! off screen, which a link to the last one's name stops short of; a box's top rule under a
+//! strip fixed along the window's top and one below it, which must pass, and a list the page
+//! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
+//! must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -513,7 +520,9 @@ enum Kind {
     /// clear space; no menu button; a sidebar put away from 720 px on a first visit, one the menu
     /// button or a drag to the window's side doesn't put away, or one a screen reader or the
     /// keyboard reaches while put away, or can't while drawn (#384); a search field that opens
-    /// off the column or less than 16 px above the page.
+    /// off the column or less than 16 px above the page; text or a top rule under the strip
+    /// fixed along the window's top, or text cut by the top edge of a box the page leaves
+    /// scrolled as it loads.
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, its edges off the column's, or something drawn below it (#384).
@@ -1030,6 +1039,28 @@ macro_rules! skipping_sheets {
     };
 }
 
+/// A 4 px strip fixed along the window's top, as the system's mdBook theme draws its gradient,
+/// in the ink, and a box with a top rule fixed near it (`.rule`), on screen, for the strip
+/// canaries.
+macro_rules! strip {
+    () => {
+        "<style>@media screen { body::before { content: \"\"; position: fixed; top: 0; left: 0; \
+         right: 0; height: 4px; background: #0B0F1C; z-index: 1000; } .rule { position: fixed; \
+         right: 16px; width: 40px; height: 16px; border-top: 1px solid #0B0F1C; } }</style>"
+    };
+}
+
+/// A box of eight lines that scrolls up and down, and the start of the script that scrolls it
+/// as the page loads, to the number of pixels that follows, for the list canaries.
+macro_rules! scrolled_list {
+    () => {
+        "<div style=\"height: 96px; overflow-y: auto\"><p style=\"margin: 0\">Launch-day \
+         weather<br>Weather-balloon soundings<br>Forecasts<br>Motors<br>Recovery<br>Staging<br>\
+         Moving mass<br>Released mass</p></div><script>\
+         document.currentScript.previousElementSibling.scrollTop = "
+    };
+}
+
 /// The theme switch's buttons as `switch.rs` writes them, Auto pressed, as `theme/hpr.js` marks
 /// it for a first-time reader.
 macro_rules! switch_buttons {
@@ -1171,7 +1202,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 182] = [
+const CANARIES: [Canary; 186] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2327,6 +2358,34 @@ const CANARIES: [Canary; 182] = [
         expect: &[Kind::Landing],
         inside: skipping_sheets!(),
         after: "",
+    },
+    Canary {
+        file: "canary-strip-rule.html",
+        what: "a box's top rule under a 4 px strip fixed along the window's top",
+        expect: &[Kind::Header],
+        inside: "",
+        after: concat!(strip!(), "<div class=\"rule\" style=\"top: 2px\"></div>"),
+    },
+    Canary {
+        file: "canary-strip-clear.html",
+        what: "the same box with its rule below the strip, which must pass",
+        expect: &[],
+        inside: "",
+        after: concat!(strip!(), "<div class=\"rule\" style=\"top: 6px\"></div>"),
+    },
+    Canary {
+        file: "canary-list-cut.html",
+        what: "a list the page leaves scrolled as it loads, its top line cut by its edge",
+        expect: &[Kind::Header],
+        inside: "",
+        after: concat!(scrolled_list!(), "10;</script>"),
+    },
+    Canary {
+        file: "canary-list-whole.html",
+        what: "the same list scrolled to a line's edge, which must pass",
+        expect: &[],
+        inside: "",
+        after: concat!(scrolled_list!(), "24;</script>"),
     },
     Canary {
         file: "canary-chip-released.html",

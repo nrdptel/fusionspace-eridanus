@@ -1660,6 +1660,7 @@
       }
     }
     probeHeader(win, doc, note);
+    probeTop(win, doc, note);
     probeNoScript(win, doc, note);
     probeFallbacks(win, doc, note);
     probeTitleBlock(win, doc, note);
@@ -1675,6 +1676,92 @@
     const r = el.getBoundingClientRect();
     return r.width > HIDDEN_BOX_PX && r.height > HIDDEN_BOX_PX
       && win.getComputedStyle(el).visibility !== 'hidden';
+  }
+
+  // The window's top as the page loads (`web.md`, *Page anatomy*, which puts the header under
+  // the strip). Where the page fixes a strip along the window's top (the body's `::before`, as
+  // the system's theme draws its 4 px gradient), no box may have its top rule under it while the
+  // box shows below it, and no text may show cut by it. And in a box that scrolls up and down and
+  // that the page left scrolled as it loaded, as mdBook leaves its sidebar's list with the
+  // current chapter in its middle, no text may show cut by the box's top edge, where the reader
+  // didn't put it. Text wholly out of sight, under the strip or above the edge, is not cut.
+  function probeTop(win, doc, note) {
+    const round = function (v) { return Math.round(v * 10) / 10; };
+    const view = { x0: 0, x1: win.innerWidth, y0: 0, y1: win.innerHeight };
+    const rect = function (r) { return { x0: r.left, x1: r.right, y0: r.top, y1: r.bottom }; };
+    const empty = function (b) { return b.x1 - b.x0 <= SLACK_PX || b.y1 - b.y0 <= SLACK_PX; };
+    // The part of `r` inside every box from `from` up that clips it, up to a fixed box, which
+    // nothing outside it clips; and inside the window, unless `below` (a box below the window
+    // shows as it loaded once the page is scrolled to it).
+    const seen = function (from, r, below) {
+      let box = below ? rect(r) : intersect(rect(r), view);
+      for (let a = from; a && a !== doc.body && a !== doc.documentElement; a = a.parentElement) {
+        const s = win.getComputedStyle(a);
+        if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
+          const b = a.getBoundingClientRect();
+          const left = b.left + a.clientLeft, top = b.top + a.clientTop;
+          box = intersect(box, { x0: left, x1: left + a.clientWidth, y0: top,
+            y1: top + a.clientHeight });
+        }
+        if (s.position === 'fixed') break;
+      }
+      return box;
+    };
+    const visible = function (el) {
+      const s = win.getComputedStyle(el);
+      return s.visibility !== 'hidden' && s.opacity !== '0';
+    };
+    const before = win.getComputedStyle(doc.body, '::before');
+    const strip = before.content !== 'none' && before.position === 'fixed'
+      && parseFloat(before.top) === 0 ? parseFloat(before.height) || 0 : 0;
+    // Each line of an element's own text whose top is out of sight while the rest shows: `scrolled`
+    // names the edge of the scrolled box that hides it, for a line inside one.
+    const cutLines = function (el, scrolled) {
+      for (const n of Array.from(el.childNodes)) {
+        if (n.nodeType !== 3 || !/\S/.test(n.data)) continue;
+        const range = doc.createRange();
+        range.selectNodeContents(n);
+        for (const r of Array.from(range.getClientRects())) {
+          if (r.width === 0 || r.height === 0) continue;
+          const shown = seen(el, r, scrolled !== null);
+          const under = shown.y0 < strip;
+          if (under) shown.y0 = strip;
+          if (empty(shown) || shown.y0 <= r.top + SLACK_PX) continue;
+          const by = under ? 'the ' + strip + ' px strip along the window\'s top'
+            : scrolled === null ? null : 'the top of the box it scrolls in, at '
+              + round(scrolled) + ' px, as the page loads';
+          if (by) note('header', selector(el), 'text', '"' + snippet(n.data) + '" cut by ' + by);
+        }
+      }
+    };
+    const all = Array.from(doc.body.querySelectorAll('*'));
+    if (strip > 0) {
+      for (const el of all) {
+        const r = el.getBoundingClientRect();
+        if (r.top >= strip || r.bottom <= 0 || r.width === 0 || !visible(el)) continue;
+        const s = win.getComputedStyle(el);
+        const rule = parseFloat(s.borderTopWidth);
+        const box = seen(el.parentElement, r);
+        if (rule > 0 && s.borderTopStyle !== 'none' && s.borderTopStyle !== 'hidden'
+          && !/^(transparent|rgba\(.*,\s*0\))$/.test(s.borderTopColor)
+          && box.y0 < strip && box.y1 > strip + rule && !empty(box)) {
+          note('header', selector(el), 'top rule', 'at ' + round(r.top) + ' px, under the '
+            + strip + ' px strip along the window\'s top');
+        }
+        cutLines(el, null);
+      }
+    }
+    for (const box of all) {
+      if (box.scrollTop <= 0) continue;
+      const y = win.getComputedStyle(box).overflowY;
+      if (y !== 'auto' && y !== 'scroll') continue;
+      const edge = box.getBoundingClientRect().top + box.clientTop;
+      for (const el of [box].concat(Array.from(box.querySelectorAll('*')))) {
+        // A line the strip cuts was noted with the strip's.
+        if (!visible(el) || (strip > 0 && el.getBoundingClientRect().top < strip)) continue;
+        cutLines(el, edge);
+      }
+    }
   }
 
   // The header (#384; `web.md`, *Page anatomy*). Each lockup (`.fs-lockup`, which `xtask site`
