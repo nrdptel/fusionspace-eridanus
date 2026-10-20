@@ -38,19 +38,14 @@ trailing edge. The moment reference is 5.5 d from the nose [F1 §3.1, PDF p. 16,
 - **BRL 711's fins** are thicker: its Fig. 8 draws a 0.125 in trailing edge on a 0.786 in body, 0.16 d [F2 PDF p. 30].
 
 **DREV-TM-9703** (Dupuis and Hathaway, August 1997) [F1]: a spark-range free-flight test of 30 mm models, Mach 1.06
-to 4.47, small yaw. Table IX (PDF pp. 48–49) gives multiple fits from Mach 1.077 to 4.300:
+to 4.47, small yaw. Table IX (PDF pp. 48–49) gives multiple fits of C_X0, C_Nα, C_mα about 5.5 d, C_mq and C_lp
+from Mach 1.077 to 4.300; this note uses its rows at Mach 1.832, 2.375, 2.718 and 3.147 (C_Nα's probable errors 2%
+to 4% where printed). The readings are cached locally under `refs/`: the terms of release bar redistribution (#619).
 
-| Mach | C_X0 | C_Nα /rad | C_mα (5.5 d) | CP from nose, d (Inference) | C_mq | C_lp |
-|--:|--:|--:|--:|--:|--:|--:|
-| 1.832 | 0.585 | 11.78 (±4%) | −27.98 | 7.87 | −377.7 | −22.35 |
-| 2.375 | 0.484 | 10.52 (±2%) | −18.90 | 7.30 | −306.5 | −18.31 |
-| 2.718 | 0.435 | 9.01 (±2%) | −15.20 | 7.19 | −335.5 | −16.65 |
-| 3.147 | 0.373 | 8.69 | −12.46 | 6.93 | −260.1 | −13.50 |
-
-- CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, being fitted shot by shot (PDF p. 23).
+- The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
 - **Gap:** no round flew between Mach 1.377 and 1.799 (Table VIII, PDF pp. 44–47): Mach 1.5 has no DREV point.
-- **Convention (Inference).** DREV doesn't state the rate's denominator (PDF pp. 12–13); its −17.7 at Mach 2.5,
-  interpolated, matches AEDC's −17.5, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
+- **Convention (Inference).** DREV doesn't state the rate's denominator (PDF pp. 12–13); its C_lp interpolated to
+  Mach 2.5 lies within 2% of AEDC's −17.5, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
 
 **Other measured sets, Mach 1.5–3,** converted to C_lp per p·d/(2V) on area πd²/4 and length d:
 
@@ -74,14 +69,16 @@ HPR Sim's values are Barrowman's Fig. 5-7 points times one minus the shortfalls 
 [ADR-031](../decisions/0031-roll-from-canted-fins-and-roll-damping-by.md), not flown here; measured values are
 interpolated linearly in Mach (**Inference**).
 
-| Mach | Fig. 5-7 (Nicolaides) | HPR Sim | DREV | BRL | NOL | Fig. 5-7 / DREV | HPR Sim vs DREV; vs NOL |
-|--:|--:|--:|--:|--:|--:|--:|---|
-| 1.51 | −33.60 | −31.6 | none | −25.0 (1.59) | −24.4 (1.53) | n/a | +26% vs BRL; +30% |
-| 1.82 | −27.45 | −25.3 | −22.35 (1.832) | −24.3 | −21.5 | 1.23 | +13%; +18% |
-| 2.27 | −23.48 | −20.1 | −19.1 | −19.5 | −17.0 | 1.23 | +5%; +18% |
-| 2.60 | −20.92 | −17.6 | −17.2 | −18.7 | −15.7 | 1.21 | +2%; +12% (+5% vs AEDC, at 2.5) |
-| 3.00 | −18.32 | −15.4 | −14.6 | none | −13.8 | 1.26 | +5%; +11% |
+| Mach | Fig. 5-7 (Nicolaides) | HPR Sim | BRL | NOL | HPR Sim vs NOL |
+|--:|--:|--:|--:|--:|---|
+| 1.51 | −33.60 | −31.6 | −25.0 (1.59) | −24.4 (1.53) | +30% (+26% vs BRL) |
+| 1.82 | −27.45 | −25.3 | −24.3 | −21.5 | +18% |
+| 2.27 | −23.48 | −20.1 | −19.5 | −17.0 | +18% |
+| 2.60 | −20.92 | −17.6 | −18.7 | −15.7 | +12% (+5% vs AEDC, at 2.5) |
+| 3.00 | −18.32 | −15.4 | none | −13.8 | +11% |
 
+- **Against DREV** (readings cached under `refs/`, §1), at Mach 1.82 to 3.00 (its 1.832 row, then interpolated), HPR
+  Sim reads +2% to +13% high (mean +6.6%), and Fig. 5-7's points are 1.21 to 1.26 times DREV's (mean 1.23).
 - **The ratio is nearly constant,** close to 4/π = 1.273. **Inference:** a reference-area slip between TN-100A and
   Fig. 5-7 would fit, unproven while TN-100A is unread; Barrowman doesn't state the points' accuracy.
 - **What changes.** On the measured consensus the row's sign flips: HPR Sim overstates the Basic Finner's
@@ -161,11 +158,13 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 
 ## What this suggests
 
-1. **Re-point the roll-damping row** to DREV Table IX (Mach 1.83–3.15), with BRL 711 and ARL-TR-846 for
-   1.59–2.68 and NOL for 1.53–2.76. Expected: the row turns from −5.9…−16.2% to about +2…+13% at Mach
-   1.82–3.00 and +26 to +30% near Mach 1.5. Keep Nicolaides' points as a disputed set until TN-100A is found.
-2. **Fly the Basic Finner against DREV Table IX** for M1.14b: C_Nα and CP at Mach 1.83, 2.38 and 2.72, and C_X0
-   with Table VIII's per-shot errors. Expect C_X0 to read low by up to 0.04–0.08, from the missing wedge base.
+1. **Re-point the roll-damping row** to the measured sets: BRL 711 and ARL-TR-846 for 1.59–2.68 and NOL for
+   1.53–2.76 as committed points, and DREV Table IX (Mach 1.83–3.15) scored locally from the cached readings, its
+   error statistics published, never its values (#619). Expected: the row turns from −5.9…−16.2% to about +2…+13%
+   at Mach 1.82–3.00 and +26 to +30% near Mach 1.5. Keep Nicolaides' points as a disputed set until TN-100A is found.
+2. **Fly the Basic Finner against DREV Table IX** for M1.14b, locally, publishing only the errors: C_Nα and CP at
+   Mach 1.83, 2.38 and 2.72, and C_X0 with Table VIII's per-shot errors. Expect C_X0 to read low by up to 0.04–0.08,
+   from the missing wedge base.
 3. **Record ARL-TN-1128 as refused** under M1.14b, giving the reason: no coefficients. Correct "HSARV" to HARV.
 4. **Record the Mach 2.45 point as refused:** the authors doubt it, and its license bars a fixture.
 5. **AGARD Model B** as a C_Nα and CP check across the Mach 2.0 leading-edge switch (NACA TN 3300).
@@ -196,5 +195,6 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 - **B3.** Iijima et al., JAXA-RR-06-046, 2007. <https://jaxa.repo.nii.ac.jp/record/2185/files/63877000.pdf>
 - **A1.** Svorcan et al., OTEH 2024, pp. 24–27. <https://doi.org/10.5937/OTEH24005S>
 
-US Government reports (F2–F7, B1) and DREV (Crown copyright) are approved for public release. Committing readings of
-their tables as fixtures is the maintainer's call, as for the existing roll fixture.
+US Government reports (F2–F7, B1) are approved for public release. DREV-TM-9703 (F1) is Crown copyright, and its terms
+of release bar release to third parties without DRDC's consent: its readings stay cached under the gitignored `refs/`,
+and only statistics computed from them are published (issue #619).

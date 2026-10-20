@@ -41,8 +41,15 @@ From the 2026-10-10 planning review:
   Moves: no scoreboard cell today (every compared apogee is barometric); it would let logs whose
   only apogee is GNSS join `accuracy.collection`. *Done when:* a synthetic log with that lag reads
   the barometric apogee within its stated error and a mutation trusting GNSS in boost fails a test.
+- SOON: one altitude formula for every logged apogee ([#701][i-701]). User: a flyer comparing two
+  altimeters on one flight, or a log with a simulation. Workflow: `hpr analyze` derives height from
+  logged pressure by the standard atmosphere from the pad, beside the logger's column, each family's
+  conversion named sourced or assumed. Moves: `accuracy.public`, `accuracy.collection`,
+  `bias.public` and `bias.collection`, their reference apogees on one formula. *Done when:* #701's,
+  and the real-flight and fixture reports give those rows both ways.
 
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [gnss-thread]: https://www.rocketryforum.com/threads/mitigating-gnss-issues-in-boost.199286/
+[i-701]: https://github.com/nrdptel/fusionspace-eridanus/issues/701

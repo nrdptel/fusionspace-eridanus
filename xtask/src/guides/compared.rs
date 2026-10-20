@@ -138,7 +138,8 @@ pub(super) fn quotes() -> Vec<Quote> {
                 Ok(vec![
                     count(r, "interop.changed", "openrocket")?.to_string(),
                     fixed(value(r, "interop.changed", "openrocket")?, 0),
-                    percent(threshold(r)?, 1),
+                    // ADR-286's bar, 0.002%, needs three decimals.
+                    percent(threshold(r)?, 3),
                 ])
             },
         },

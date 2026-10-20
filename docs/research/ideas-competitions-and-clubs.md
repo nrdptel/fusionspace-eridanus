@@ -37,6 +37,15 @@ rules templates carry a source date, a stale-after date and "not legal advice".
   its docs. *Done when:* tests pin the score at both edges of the duration window and either side
   of the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
 
+- SOON: a second-method report for Student Launch, whose reviews ask for data from a different
+  calculation method. User: a team's simulation lead. Workflow: `hpr crosscheck design.ork` sets HPR
+  Sim's apogee, rail-exit margin and speed, landing energies and descent time beside the file's
+  stored OpenRocket results, each against its requirement in the [2027 handbook][sl27], each gap
+  split by cause. Moves: a new steps row, `steps.sl-crosscheck`. *Done when:* the five numbers print
+  for both tools on every public Student Launch design (count stated), tests pin them, and the page
+  cites the handbook (source and stale-after dates) and names any HPR Sim feature its rule 1.1.1
+  bars (none today).
+
 ## Club operations (LATER)
 
 - LATER: a tablet check for the range safety officer (RSO) and launch control officer (LCO):
@@ -77,3 +86,4 @@ From the 2026-10-15 planning review:
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
+[sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf

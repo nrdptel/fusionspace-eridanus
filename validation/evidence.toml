@@ -17,7 +17,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-10-17"
+as_of = "2026-10-20"
 
 [[row]]
 id = "G1"
@@ -38,6 +38,11 @@ issue = 654
 on = "2026-10-17"
 looked = "the download pages and documents of Featherweight, AltOS, Eggfinder, Missile Works and BigRedBee, and public repositories of flight logs"
 found = "no openly downloadable GPX of a real rocket flight: the dedicated trackers write KML, CSV or raw NMEA, and GPX comes from phone apps, handheld receivers and mapping tools"
+
+[[row.searched]]
+on = "2026-10-20"
+looked = "Rocketry Forum thread 135349's attachments, fetched from the forum's attachment links, and the GPX files among them counted for `geoidheight`; GitHub code search for GPX files with `geoidheight`, with and without rocketry words; OpenStreetMap traces tagged rocket; Zenodo, figshare, Kaggle and other data sites; phone-app posts (the survey in docs/research/public-logs-evidence-gaps.md)"
+found = "cite only: thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights, none with `geoidheight`, and the receiver's raw NMEA, whose GGA sentences state the geoid separation; GitHub's GPX files with `geoidheight` are everyday phone tracks (#645)"
 
 [[row]]
 id = "G2"
@@ -392,6 +397,11 @@ pages = ["motor-stock.md#motor-stock-and-prices"]
 kind = "spec"
 wanted = "spec"
 wanted_adr = "ADR-278"
+
+[[row.searched]]
+on = "2026-10-20"
+looked = "ThrustCurve.org's pages for a license on its motor records (the site's footer, its API and contribute pages), the site's own source repository JohnCoker/thrustcurve3 with its API client, and GitHub's other copies of the site's data"
+found = "no license for the records (the footer reserves all rights; the API page states none); a lead: JohnCoker/thrustcurve3 (ISC, commit 3325878d) holds a 2016 sample dump of 280 real motor records with the fields the stand-ins leave out, but ISC grants rights in 'this software', so using the data is a licensing question; cached under refs/samples-search/G23"
 
 [[row]]
 id = "G24"

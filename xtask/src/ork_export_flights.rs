@@ -27,7 +27,7 @@ use crate::ork_supply::sha256;
 pub const USAGE: &str = "\
   ork-export-flights [--check]
                            Compare OpenRocket's flights of the reference corpus's designs with
-                           its flights of hpr's export of them (0.5% of the apogee); write
+                           its flights of hpr's export of them (0.002% of the apogee); write
                            validation/reports/openrocket-export-flights.{json,md}, counts only.";
 
 /// OpenRocket's flights of the originals: `flights.py corpus-out/openrocket-flights.json` with
@@ -49,8 +49,13 @@ const PAGE: &str = "validation/reports/openrocket-export-flights.md";
 const GUIDE: &str = "https://hpr.fusionspace.co/format/ork.html#checked-in-openrocket";
 const ROADMAP_ROW: &str = "https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-2";
 
-/// M3.2's bar: the export's apogee within this share of the original's, in percent.
-pub(crate) const TOLERANCE_PERCENT: f64 = 0.5;
+/// M3.2's bar: the export's apogee within this share of the original's, in percent. 0.5% until
+/// ADR-286 (2026-10-20): the writer is value-exact, so what is left is OpenRocket's own run-to-run
+/// spread, 0.000509% over 43 fresh flights of the same file on its most sensitive configuration
+/// (its reported apogee is a sampled row, and a last-bit change can move its step grid). 0.002% is
+/// 3.9 times that, on the corpus's designs, not a bound; at 0.5%, rounding every written number to
+/// 6 decimals (Loft lesson L68's bug) passed all 55 public configurations, and at 0.002%, 20 fail.
+pub(crate) const TOLERANCE_PERCENT: f64 = 0.002;
 
 /// Digits kept of a published percentage.
 const DIGITS: i32 = 6;
@@ -720,7 +725,7 @@ mod tests {
             design("refs/openrocket/OpenRocket-24.12.jar!datafiles/examples/d.ork", vec![flight("1", 50.0)]),
         ]});
         let exports = json!({"designs": [
-            design("corpus-out/ork-export/refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.4)]),
+            design("corpus-out/ork-export/refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.002)]),
             design("corpus-out/ork-export/refs/other/b.ork", vec![flight("1", 101.0)]),
             refused("corpus-out/ork-export/refs/other/c.ork", "no"),
             refused("corpus-out/ork-export/refs/other/e.ork", "other"),
@@ -734,7 +739,7 @@ mod tests {
         );
         assert_eq!(
             (library.designs_compared, library.largest_percent),
-            (1, 0.2)
+            (1, 0.001)
         );
         let elsewhere = &tallies["elsewhere under refs/"];
         assert_eq!(
@@ -784,18 +789,18 @@ mod tests {
         }
     }
 
-    /// The bar's edge: 0.5% passes, a hair more fails; an apogee at the launch compares only to
+    /// The bar's edge: 0.002% passes, a hair more fails; an apogee at the launch compares only to
     /// itself.
     #[test]
     fn the_tolerance_is_inclusive_and_a_zero_apogee_is_not_divided_by() {
         let at = |after: f64| {
             one(
-                design(FILE, vec![flight("1", 200.0)]),
+                design(FILE, vec![flight("1", 50_000.0)]),
                 design("", vec![flight("1", after)]),
             )
         };
-        assert!(at(201.0).met());
-        assert!(!at(201.0 + 1e-9).met());
+        assert!(at(50_001.0).met());
+        assert!(!at(50_001.0 + 1e-9).met());
         let zero = |after: f64| {
             one(
                 design(FILE, vec![flight("1", 0.0)]),

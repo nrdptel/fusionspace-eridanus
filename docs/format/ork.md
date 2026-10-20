@@ -11,7 +11,7 @@ without being typed again.
 **What works today:** HPR Sim reads the three `.ork` container forms and turns the XML into a design tree.
 It keeps what it doesn't model, and writes a design back out as a `.ork` that reads back as the
 same design ([writing a `.ork` back out](#writing-a-ork-back-out)). OpenRocket 24.12 opens each
-written file whose original it opens, and flies it to the original's apogee within 0.5%
+written file whose original it opens, and flies it to the original's apogee within 0.002%
 ([checked in OpenRocket](#checked-in-openrocket)). Layout is normalized; comments, processing instructions
 and XML namespaces are dropped.
 
@@ -120,8 +120,8 @@ coast with no drag after its split.
 >   default of 25 mm (0.98 in), with a warning
 >   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
 > - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.5%, and 143 exactly. This checks
->   the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
+>   flies both ways, all 151 reach the original's apogee within 0.002%, and 143 exactly. This
+>   checks the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
 
@@ -3397,7 +3397,7 @@ written file gives the same design, bit for bit, for each of the 73 designs HPR 
 `.ork` files the checks use ([which files](#checked-in-openrocket)). Some are other people's
 private designs, so the counts are published but those files are not. OpenRocket 24.12 opens
 every written file whose original it opens, and flies each configuration it can fly (151) to
-the original's apogee within 0.5%: the largest difference is 0.000191%.
+the original's apogee within 0.002%: the largest difference is 0.000191%.
 
 The written file is not a copy of the original. It is laid out afresh, and it states some values
 the original left to OpenRocket's defaults, such as each part's roll angle. Its root's `creator`
@@ -3406,7 +3406,7 @@ product system, as every file HPR Sim writes does:
 `creator="FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001"` (`hpr-sim` before release 0.1's
 rename; a file with that `creator` still reads).
 The measurements above were remade on 2026-10-11 with files written in this form: OpenRocket
-opens and flies them within the same 0.5% bar.
+opens and flies them within the same bar.
 
 **How it is written.** Each part of the design is written as the tags HPR Sim reads it from. What
 HPR Sim keeps but doesn't model goes back where it was
@@ -3501,7 +3501,7 @@ How this was decided is in [ADR-109][adr-109].
 **In short.** OpenRocket 24.12 flew each design twice: as the original file, and as HPR Sim's export
 of it. Every export opened where its original did, and every
 [configuration](../glossary.md#configuration) that flew both ways reached the same apogee within
-0.5%. Both flights are OpenRocket's, so this checks the file HPR Sim writes, not HPR Sim's physics;
+0.002%. Both flights are OpenRocket's, so this checks the file HPR Sim writes, not HPR Sim's physics;
 how HPR Sim's own flights compare is in
 [HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets). HPR Sim
 itself flies a written file exactly as it flies the original, since it reads back the same design.
@@ -3520,11 +3520,13 @@ OpenRocket's examples and most of the other files are public.
 
 **How they are flown.** Each flight takes its launch conditions from the file's
 [first stored simulation](#what-openrocket-last-did-stored-simulations), or OpenRocket's defaults
-when it has none, in calm air, with random seed 1. So a difference between the two flights comes
-from the file alone. A configuration passes when the export's apogee is within 0.5% of the
-original's. The 0.5% is the roadmap's bar
-([M3.2](../decisions-and-roadmap.md#m3-2), writing `.ork` files), set before measuring. The
-flights agree about 2,600 times more closely, so the report also gives the largest difference.
+when it has none, in calm air, with random seed 1. A configuration passes when the export's
+apogee is within 0.002% of the original's. The roadmap's bar
+([M3.2](../decisions-and-roadmap.md#m3-2), writing `.ork` files) was 0.5% until
+[ADR-286](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md)
+set it near four times OpenRocket's own spread (below): a writer that rounded every number to six
+decimals, a bug an earlier tool had, passed 0.5% but fails 0.002% on 20 of 55 public
+configurations. The bar is measured on these designs, not derived.
 
 | quantity | count |
 |---|--:|
@@ -3535,7 +3537,7 @@ flights agree about 2,600 times more closely, so the report also gives the large
 | configurations of the opened designs | 169 |
 | configurations flown neither way | 18 |
 | configurations flown both ways | 151 |
-| within 0.5% of the original's apogee | 151 |
+| within 0.002% of the original's apogee | 151 |
 | the same apogee to the last bit | 143 |
 | largest apogee difference | 0.000191% |
 
@@ -3544,9 +3546,12 @@ flights agree about 2,600 times more closely, so the report also gives the large
 - **23 opened designs have nothing to fly.** They have no configuration, or none with a motor.
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
-- **Eight configurations differ, but by very little.** All eight are in the private design
-  library (the report's row ending `imported/loft-fixtures`). The largest
-  difference is 0.000191%. Their cause has not been traced.
+- **Eight configurations differ, by OpenRocket's own spread.** All eight are in six private
+  designs (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. Every
+  number the two files share is the same to the bit, and the same file flown again in a fresh
+  session differs as much (43 flights spread over 0.000509%): OpenRocket reports the highest of
+  its 0.05 s steps, so a last-bit change that moves its step grid moves the apogee by millimeters.
+  How many come out the same to the bit varies by session: 142 to 144 of 151.
 
 The committed report,
 [`openrocket-export-flights.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md),

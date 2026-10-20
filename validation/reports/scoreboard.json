@@ -377,7 +377,7 @@
     {
       "id": "interop.changed",
       "axis": "interop",
-      "label": "Configurations whose apogee moves by more than 0.5%, or that fly only one way, after HPR Sim reads the tool's file and writes it back",
+      "label": "Configurations whose apogee moves by more than 0.002%, or that fly only one way, after HPR Sim reads the tool's file and writes it back",
       "unit": "",
       "decimals": 0,
       "count_words": "of {n}",

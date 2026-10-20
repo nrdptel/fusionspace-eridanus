@@ -61,7 +61,7 @@
       "within": 88
     }
   },
-  "tolerance_percent": 0.5,
+  "tolerance_percent": 0.002,
   "total": {
     "compared": 151,
     "configurations": 169,

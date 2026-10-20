@@ -2199,6 +2199,7 @@ impl Simulation {
                 observer: &mut *observer,
                 failure: None,
                 cache: None,
+                previous: None,
             };
             let outcome = integrator.advance(&mut system, next);
             if let Some(error) = system.failure.take() {
@@ -3400,6 +3401,10 @@ struct PhaseSystem<'a> {
     /// The last evaluation: the integrator evaluates the derivative at a step's end before the
     /// events there.
     cache: Option<(f64, [f64; STATE_LEN], Evaluation)>,
+    /// The cache as the last accepted step left it: that step's end, which is the next step's
+    /// start, where the observers ask again. The integrator's stages have replaced the cache by the
+    /// time the next step is accepted.
+    previous: Option<(f64, [f64; STATE_LEN], Evaluation)>,
 }
 
 impl PhaseSystem<'_> {
@@ -3565,8 +3570,11 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
             step,
             memo: Default::default(),
             held: self.cache.as_ref(),
+            previous: self.previous.as_ref(),
         };
-        match self.observer.step(&view) {
+        let flow = self.observer.step(&view);
+        self.previous.clone_from(&self.cache);
+        match flow {
             Ok(()) => ControlFlow::Continue(()),
             Err(error) => {
                 self.failure.get_or_insert(error);
@@ -3601,6 +3609,9 @@ struct StepView<'a> {
     /// both integrators it always holds the step's end, so today the time alone decides; the state
     /// is compared too, so a change to the integrator can't hand over another state's evaluation.
     held: Option<&'a (f64, [f64; STATE_LEN], Evaluation)>,
+    /// The evaluation the integrator held when the step before was accepted: its end, this step's
+    /// start. Used on the same terms as `held`, the time and the state bit for bit.
+    previous: Option<&'a (f64, [f64; STATE_LEN], Evaluation)>,
 }
 
 impl StepView<'_> {
@@ -3627,9 +3638,13 @@ impl StepView<'_> {
         let y = self.step.state_at(t_s);
         let same =
             |held: &[f64; STATE_LEN]| held.iter().zip(&y).all(|(a, b)| a.to_bits() == b.to_bits());
-        let e = match self.held {
-            Some((ht, hy, he)) if shared && ht.to_bits() == key && same(hy) => *he,
-            _ => self.simulation.evaluate(
+        let reused = [self.held, self.previous]
+            .into_iter()
+            .flatten()
+            .find(|(ht, hy, _)| shared && ht.to_bits() == key && same(hy));
+        let e = match reused {
+            Some((_, _, he)) => *he,
+            None => self.simulation.evaluate(
                 self.vehicle,
                 self.phase,
                 self.window,

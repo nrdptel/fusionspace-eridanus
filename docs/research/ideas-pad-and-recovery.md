@@ -65,3 +65,16 @@ From the 2026-10-08 planning review:
   landings inside the 50% and 90% regions, not measured today. *Done when:* the fixture report gives
   both shares with Clopper–Pearson bounds over every flight with a tracked landing, failed runs
   counted.
+- LATER: a shear-pin break series on the ground-test bench (M13.7), so the charge sizing's high end
+  is checked against measured breaks; and a main's opening load from a load cell on a flight
+  computer (M13.3), against the opening-load estimate (M12.2). Moves: new rows `accuracy.shear-pin`
+  and `accuracy.opening-load` ([shear pins](shear-pin-strength.md), [opening loads](canopy-opening-loads.md)).
+
+## In scope, low priority (Neer's scope call, 2026-10-03)
+
+- WITHDRAWN by [ADR-193, the control scope][adr-193] (Neer, 2026-10-07: no pitch or yaw
+  control): thrust vector control (TVC) and active fins with a controller in the loop.
+- LATER: GPS-steered gliding parachutes (with TVC, forum threads of about 520 and 311 replies).
+- LATER: rocket-boosted gliders.
+
+[adr-193]: ../decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md
