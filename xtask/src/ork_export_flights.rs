@@ -48,12 +48,14 @@ const PAGE: &str = "validation/reports/openrocket-export-flights.md";
 /// Where the guide explains the check, and the roadmap's row for M3.2.
 const GUIDE: &str = "https://hpr.fusionspace.co/format/ork.html#checked-in-openrocket";
 const ROADMAP_ROW: &str = "https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-2";
+/// The record that tightened the bar from 0.5%.
+const TIGHTENED_BY: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md";
 
 /// M3.2's bar: the export's apogee within this share of the original's, in percent. 0.5% until
 /// ADR-286 (2026-10-20): where the flights differ, every number both files carry is the same to
-/// the bit, so what is left is OpenRocket's own run-to-run spread, 0.00064% over 45 flights of the
+/// the bit, so what is left is OpenRocket's own run-to-run spread, 0.00051% over 45 flights of the
 /// original and the export on its most sensitive configuration (its reported apogee is a sampled
-/// row, and a last-bit change can move its step grid). 0.002% is 3.1 times that, on the corpus's
+/// row, and a last-bit change can move its step grid). 0.002% is 3.9 times that, on the corpus's
 /// designs, not a bound; at 0.5%, rounding every written number to 6 decimals (Loft lesson L68's
 /// bug) passed all 55 public configurations, and at 0.002%, 20 fail.
 pub(crate) const TOLERANCE_PERCENT: f64 = 0.002;
@@ -607,7 +609,8 @@ pub(crate) fn page(report: &Value) -> Result<String, String> {
     );
     let _ = writeln!(
         out,
-        "\nThe bar, from the roadmap's [M3.2]({ROADMAP_ROW}) (writing `.ork` files): every export \
+        "\nThe bar, from the roadmap's [M3.2]({ROADMAP_ROW}) (writing `.ork` files), tightened from 0.5% \
+         by [ADR-286]({TIGHTENED_BY}): every export \
          opens where its original does and is refused for the same reason where it does not, and \
          every configuration flown both ways is within {TOLERANCE_PERCENT}%. **{}.**",
         if total.met() { "Met" } else { "Not met" }

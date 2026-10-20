@@ -1,7 +1,7 @@
 # ADR-286: The 2026-10-20 review: the export bar tightened (2026-10-20)
 
 - **Status:** accepted; tightens [M3.2][m3-2]'s bar from [ADR-110][adr-110] (the export's apogee in OpenRocket within 0.5% of the original's) to 0.002%; places four ideas; no done-when is loosened and no release moves
-- **Summary:** The only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00064% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
+- **Summary:** The only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas.
 
 [m3-2]: ../decisions-and-roadmap.md#m3-2
 [m0-14]: ../decisions-and-roadmap.md#m0-14
@@ -44,13 +44,14 @@ Where the eight differences come from was traced before tightening:
   from their own record in 8 of the 151 configurations, and two more sessions of the export files
   differ from each other in 7: always the same 10 configurations in those six designs, and never
   any of the other 141. Forty-three more flights of the most sensitive configuration, 25 of the
-  original and 18 of the export, each in a fresh JVM, overlap; with the two recorded flights, the
-  45 spread over 0.00064%.
-- **Why a last bit moves the apogee at all.** OpenRocket reports the highest of its 0.05 s steps,
-  which can sit up to $g\,\Delta t^2/8$ below the true peak: 3.07 mm (0.12 in) at 0.05 s. A
-  difference in the last bit that shifts the step grid near apogee moves the reported apogee by
-  millimeters, here up to about 0.0006% of it. On the corpus's lowest flights the sampling term
-  alone reaches 0.0135% of the apogee; those flights match to the bit only because their step
+  original and 18 of the export, each in a fresh OpenRocket launch, overlap; with the two recorded
+  flights, the 45 spread over 0.00051%.
+- **Why a last bit moves the apogee at all.** OpenRocket reports the highest of its steps (each
+  file sets its own: 0.01 s to 0.2 s in the corpus, 0.05 s on most), which can sit up to
+  $g\,\Delta t^2/8$ below the true peak: 3.06 mm (0.12 in) at 0.05 s. A difference in the last bit
+  that shifts the step grid near apogee moves the reported apogee by millimeters, here up to about
+  0.0005% of it. The sampling term alone reaches 0.0095% of the apogee on the corpus's lowest
+  flight, a public example; the flights where it is largest match to the bit because their step
   grids don't move between the two files.
 
 So no closed form bounds the difference: the sampling part has one, but the step grid's part
@@ -61,7 +62,7 @@ event. The bar is therefore set from the measurement and said to be.
 
 1. **M3.2's bar becomes 0.002%.** Every export opens where its original does and is refused for
    the same reason where it does not (unchanged), and every configuration flown both ways reaches
-   the original's apogee within 0.002% (was 0.5%). That is 3.1 times the largest run-to-run
+   the original's apogee within 0.002% (was 0.5%). That is 3.9 times the largest run-to-run
    spread measured and 10 times today's largest difference, on the corpus's designs, not a bound
    for any design. The rounding probe above fails it on 20 of its 55 configurations. `TOLERANCE_PERCENT`
    in `xtask/src/ork_export_flights.rs` carries it, with the edge test at exactly 0.002%; the
@@ -69,11 +70,11 @@ event. The bar is therefore set from the measurement and said to be.
    archived entry and ADR-110 keep their words as records of what was decided then.
 2. **What a failure means.** A design added to the corpus whose export moves by more than 0.002%
    fails the gate's `refs` checks. The cause is traced: a writer fault is fixed, and an OpenRocket
-   spread larger than 0.00064% is measured the same way (fresh sessions of the original and the
-   export) and recorded in a decision record before the bar moves, never widened to pass.
+   spread larger than 0.00051% is measured the same way (fresh OpenRocket launches of the original
+   and the export) and recorded in a decision record before the bar moves, never widened to pass.
 3. **The format page is corrected.** It said a difference between the two flights "comes from
    the file alone" and that the eight differences' cause "has not been traced"; it now gives the
-   cause above, and that the count identical to the bit is 142 to 144 of 151 by session.
+   cause above, and that the count identical to the bit is 142 to 144 of 151 by run.
 4. **Ideas placed.** Four ideas join [the backlog][ideas], each with its user, workflow, the
    scoreboard number it moves and a *done when*: OpenRocket's whole-rocket aero tables read and
    flown (after [#879][i-879], which refuses such a file until then), a canopy's drag area fitted

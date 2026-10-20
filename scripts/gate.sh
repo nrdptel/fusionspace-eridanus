@@ -223,6 +223,10 @@ why() {
 
 failed=""
 times=""
+# The tree as the run found it, for the history line below: HEAD, and whether anything differed
+# from it, untracked files included.
+head=$(git rev-parse HEAD 2>/dev/null)
+dirty=0; [ -z "$(git status --porcelain 2>/dev/null)" ] || dirty=1
 start_all=$(date +%s)
 for step in $STEPS; do
   cmd=$(cmd_for "$step")
@@ -261,12 +265,16 @@ total=$(( $(date +%s) - start_all ))
 # One line a run in the git directory, where `cargo clean` can't reach it, so gate times and failed
 # runs can be compared across weeks: UTC time, HEAD, whether the tree had changes, whether every
 # default step ran, the result, the seconds, and each step's seconds (`:FAIL` marks a failed one).
-history="${HPR_GATE_HISTORY:-$(git rev-parse --git-common-dir 2>/dev/null)/gate-history.tsv}"
+history="${HPR_GATE_HISTORY:-}"
+if [ -z "$history" ] && gitdir=$(git rev-parse --git-common-dir 2>/dev/null); then
+  history="$gitdir/gate-history.tsv"
+fi
 full=1
 for s in $ALL; do case " $STEPS " in *" $s "*) ;; *) full=0 ;; esac; done
-dirty=0; git diff --quiet HEAD 2>/dev/null || dirty=1
-printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(git rev-parse HEAD 2>/dev/null)" \
-  "$dirty" "$full" "$([ -n "$failed" ] && echo FAIL || echo PASS)" "$total" "${times# }" >> "$history" 2>/dev/null || true
+if [ -n "$history" ]; then
+  { printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$head" "$dirty" "$full" \
+      "$([ -n "$failed" ] && echo FAIL || echo PASS)" "$total" "${times# }" >> "$history"; } 2>/dev/null || true
+fi
 if [ -n "$failed" ]; then
   echo "GATE FAILED in ${total}s:$failed"
   exit 1

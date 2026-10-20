@@ -13,4 +13,4 @@ OpenRocket did not open 4 design(s) as written: of those, 2 hpr can't read, so i
 
 A design is compared when at least one of its configurations flies both ways. A configuration is flown neither way when it has no motor, or OpenRocket aborted or refused it for the same cause, both times. One flown only one way, left unflown for different reasons, or found only one way, is unmatched.
 
-The bar, from the roadmap's [M3.2](https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-2) (writing `.ork` files): every export opens where its original does and is refused for the same reason where it does not, and every configuration flown both ways is within 0.002%. **Met.**
+The bar, from the roadmap's [M3.2](https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-2) (writing `.ork` files), tightened from 0.5% by [ADR-286](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md): every export opens where its original does and is refused for the same reason where it does not, and every configuration flown both ways is within 0.002%. **Met.**

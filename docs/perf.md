@@ -12,17 +12,22 @@ the command, so a later run can be compared like for like.
   it when the time and all 13 state components match bit for bit. In one profile of the K940's
   flights (macOS `sample`, not committed) the metrics fell from 35% of a flight to 28%.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main e247ddfe against the change,
-  alternating, with the commands below:
+  alternating: `cargo bench -p fusionspace-hpr --features parallel --bench ten_thousand` for the
+  10,000 flights (each figure the fastest of three), `cargo bench -p fusionspace-hpr-sim --bench
+  flight -- "flight metrics"`, and the wall time of a release `hpr mc
+  validation/fixtures/ork/guides/level-1.ork --runs 10000`:
 
   | measurement | before | after |
   |---|---|---|
   | Valetudo: 10,000 flights on 10 threads | 2.57 / 2.52 s | 2.36 / 2.38 s (−7%) |
   | K940: 10,000 flights on 10 threads | 7.85 / 7.85 s | 7.18 / 7.33 s (−7 to −9%) |
   | "Valetudo K400C with its flight metrics" | 2.036 / 2.032 ms | 1.875 / 1.857 / 1.877 ms (−8%) |
-  | `hpr mc level-1.ork --runs 10000` | 3.18 / 3.23 / 3.30 s | 2.95 / 3.01 / 3.04 s (−7%) |
+  | `hpr mc level-1.ork --runs 10000` | 3.27 / 3.34 / 3.37 s | 3.08 / 3.10 / 3.12 s (−7%) |
 
 - **What moves.** No output bit. `shared_step_evaluations_change_no_output_bit` (below) covers the
-  new path, and dropping its time check fails it; the committed reports reproduce byte for byte.
+  new path: a flight held on the pad, where the state stays the same to the bit while the time
+  moves, sampled inside its 1 ms steps, fails it if the step before's evaluation is taken on the
+  state alone. The committed reports and `hpr mc`'s output reproduce byte for byte.
 
 ## A step's evaluations shared by its observers (2026-10-15)
 

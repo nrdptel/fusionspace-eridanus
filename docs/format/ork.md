@@ -3524,9 +3524,12 @@ when it has none, in calm air, with random seed 1. A configuration passes when t
 apogee is within 0.002% of the original's. The roadmap's bar
 ([M3.2](../decisions-and-roadmap.md#m3-2), writing `.ork` files) was 0.5% until
 [ADR-286](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md)
-set it at about three times OpenRocket's own spread (below): a writer that rounded every number to six
-decimals, a bug an earlier tool had, passed 0.5% but fails 0.002% on 20 of 55 public
-configurations. The bar is measured on these designs, not derived.
+set it at about four times OpenRocket's own spread (below): a writer that rounded every number to
+six decimals, a bug an earlier `.ork` writer had, passed 0.5% but fails 0.002% on 20 of the 55
+public example configurations (a one-off check recorded in ADR-286, not in the committed report).
+The bar is a margin measured on these designs, not derived and not a bound for any design: if a new
+design or OpenRocket release differs by more, the check fails, the cause is traced, and a
+decision record comes before the bar moves.
 
 | quantity | count |
 |---|--:|
@@ -3548,10 +3551,13 @@ configurations. The bar is measured on these designs, not derived.
   other one both times, for the same cause.
 - **Eight configurations differ, by OpenRocket's own spread.** All eight are in six private
   designs (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. Every
-  number the two files share is the same to the bit, and the files flown again in fresh sessions
-  differ as much (45 flights spread over 0.00064%): OpenRocket reports the highest of
-  its 0.05 s steps, so a last-bit change that moves its step grid moves the apogee by millimeters.
-  How many come out the same to the bit varies by session: 142 to 144 of 151.
+  number the two files share is the same to the bit, and the originals flown again differ from
+  their own record in 8 of the 151 configurations; one configuration flown 45 times, each in a
+  fresh OpenRocket launch, spread over 0.00051% (one-off reruns recorded in ADR-286, not in the
+  committed report). OpenRocket reports the highest of its time steps (0.05 s on most designs), so a
+  last-bit change that moves its step grid moves the apogee by up to about 3 mm (0.12 in) at a 0.05 s
+  step. How many
+  come out the same to the bit varies by run: 142 to 144 of 151.
 
 The committed report,
 [`openrocket-export-flights.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md),

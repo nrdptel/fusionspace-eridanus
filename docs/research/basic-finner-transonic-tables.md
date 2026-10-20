@@ -102,7 +102,7 @@ Mach 0.5 to 1.20, from −0.02 to +0.04 caliber (mean +0.01). The 45° runs read
   range fit at 1.077, in C_Nα and C_mα together [D3] (**Inference**, this note's ratios). The report calls the Mach
   1.06 point 10% above the others in C_mα (PDF p. 33) and notes the tunnel's Reynolds number is half the range's
   transonically (PDF p. 27). Wall interference, Reynolds number and the sting could each contribute; the report
-  bounds none alone, so each is **unbounded** on its own; together they bound the gap at 7% to 12%.
+  bounds none alone, so each is **unbounded** on its own; the 7% to 12% gap bounds only their sum.
 - **The range's own scatter: ±14% to ±17% in C_Nα.** The low yaw (mean squared yaw 1.1 to 2.3 deg², Table 7) leaves
   C_Nα loose while C_mα is held to 1%; the report blames the range's low CP on this (PDF p. 33). **Inference:** its CP
   inherits C_Nα's error: at Mach 1.105 that error alone moves the arm C_mα/C_Nα by most of the range CP's gap to
