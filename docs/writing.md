@@ -103,8 +103,8 @@ this voice.
 
 ### Where "I" goes
 
-Use "I" where a person is talking: the README, the landing pages, the pages that say why
-something exists, the guides and the release notes. It's one person's project, so there's no
+Use "I" where a person is talking: the README, the contributing guide, the landing pages, the
+pages that say why something exists, the guides and the release notes. It's one person's project, so there's no
 company "we". The bottom line still comes first ([rule 1](#the-rules)), and the why follows it,
 in the maintainer's words. Reference pages stay impersonal: a model's equations, a file format, a
 command's options, the glossary. There the program is the subject, and "you" gives the steps, as
@@ -159,10 +159,10 @@ the configurations of OpenRocket's example designs that HPR Sim can fly, in 15 o
 ### Paragraphs and lists
 
 Write a thought as a paragraph. Use a list for what really is a list: steps, options, parts. Give
-a list as many items as there are, not three of the same shape because three sounds finished. A
-bold label opens an item only where a reader scans for it, as in a list of options or a model
-page's *In short* box, whose items still count toward the limit. A line that opens with a bold
-label reads like a form.
+a list as many items as there are, not three of the same shape because three sounds finished.
+Open an item with a bold label only where a reader scans for it, as in a list of options or a
+model page's *In short* box. Those items still count toward the limit. A line that opens with a
+bold label reads like a form, as this pair shows.
 
 *Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
 0.2 goes on here."
@@ -180,8 +180,8 @@ so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds fli
 before their logs are read."
 
 *After*: "Neither set is held out. Both were seen during development, so neither is a blind test.
-That waits for flights predicted before their logs are read, which is planned work ([held-out
-flights](decisions-and-roadmap.md#m2-7))."
+That waits for the planned milestone that holds flights out, predicted before their logs are read
+([held-out flights](decisions-and-roadmap.md#m2-7))."
 
 ### Honest, once
 
@@ -215,8 +215,8 @@ limit. A page over one is where to look first; it doesn't fail the build.
 Hedges leave out a capital "May" and "could not". Minimizers leave out "just" before a word of
 place or time ("just below") and "how quick" or "how quickly", which measure something here.
 First person leaves out a capital I that is a numeral or a symbol ("Type I", "an I motor", "where
-I is the inertia"). A quotation inside one sentence isn't read for these counts or for who's
-talking, though the stock list reads it.
+I is the inertia"). A quotation inside one sentence isn't read for hedges, minimizers, signposts,
+first person or who's talking, though the stock list reads it.
 
 The sentence limit comes from the target this guide already set: fewer than 10% of sentences
 over 25 words, at about 20 words a sentence. That's 0.5 per 100 words. On a page of shorter
@@ -235,7 +235,8 @@ First person on a reference page gets 0, because the program is the subject ther
 set against these pages as they stood on October 19, 2026, when most of them were over the
 sentence and bold-label limits. The report gives the current counts.
 
-Who's talking has no limit, and the report prints it per page: "I", "we", "you" and contractions
+Who's talking has no limit, since the right amount depends on the kind of page. The report
+prints it per page: "I", "we", "you" and contractions
 per 100 words. For scale, the survey found 1.0 to 3.5 contractions per 100 words on most personal
 pages and 0 to 0.25 on reference pages. One author wrote about 3 "I" per 100 words on a blog and
 none on the project's reference pages.
@@ -248,10 +249,11 @@ and fails on a stock phrase. A test fails when the report and the pages disagree
 editing a page; the site's build runs the check too. Give it paths, such as
 `cargo xtask voice ../fusionspace-site/site`, and it reads those instead (Markdown, HTML or text)
 and prints the report. That's how fusionspace.co's pages and the design system's get checked.
+In the report, a rate in bold is over its limit, and `ref` marks a reference page.
 
-Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups,
-each named by a published list (a style guide, a study, or Wikipedia's pages on word choice and on
-signs of generated writing) or by the design system's own writing rules:
+Of what it counts, only the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
+is named by a published list or by the design system's own writing rules. The lists are style
+guides, studies, and Wikipedia's pages on word choice and on signs of generated writing:
 
 - puffery: `seamless`, `cutting-edge`
 - inflated words: `pivotal`, `testament`

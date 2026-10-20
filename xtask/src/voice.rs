@@ -37,7 +37,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+use pulldown_cmark::{Event, LinkType, Parser, Tag, TagEnd};
 
 pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
@@ -45,8 +45,8 @@ pub const USAGE: &str =
                            signposts against the writing guide's limits, and the register. With
                            no path it reads this repository's pages and writes
                            validation/reports/voice.md; given paths, it reads each file, or each
-                           page under a directory, and prints the report. Fails only on a stock
-                           phrase.";
+                           page under a directory, and prints the report (after `--`, a path may
+                           start with `-`). Fails only on a stock phrase.";
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
@@ -654,9 +654,14 @@ impl Reading {
 /// `cargo xtask voice`: with no path, writes [`REPORT`] for the repository's pages; with paths,
 /// prints the report for those. Fails on a stock phrase, a missing path or bad usage.
 pub fn run(args: &[String]) -> Result<(), String> {
-    if args.iter().any(|arg| arg.starts_with('-')) {
-        return Err(format!("usage:\n{USAGE}"));
-    }
+    // After `--`, every argument is a path, even one that starts with `-`.
+    let args = match args.split_first() {
+        Some((first, rest)) if first == "--" => rest,
+        _ if args.iter().any(|arg| arg.starts_with('-')) => {
+            return Err(format!("usage:\n{USAGE}"));
+        }
+        _ => args,
+    };
     let root = crate::designs::root()?;
     let pages = if args.is_empty() {
         let pages = repository_pages(&root)?;
@@ -856,8 +861,10 @@ fn walk(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
             .file_name()
             .map(|name| name.to_string_lossy().into_owned())
             .unwrap_or_default();
+        // A linked folder isn't followed, so a link back up can't loop.
+        let linked = fs::symlink_metadata(&path).is_ok_and(|meta| meta.file_type().is_symlink());
         if path.is_dir() {
-            if !name.starts_with('.') && !SKIPPED_DIRS.contains(&name.as_str()) {
+            if !linked && !name.starts_with('.') && !SKIPPED_DIRS.contains(&name.as_str()) {
                 walk(&path, files)?;
             }
         } else if extension(&path).is_some_and(|ext| EXTENSIONS.contains(&ext.as_str())) {
@@ -878,6 +885,7 @@ fn read_markdown(source: &str) -> Reading {
     let mut code_block = 0usize;
     let mut image = 0usize;
     let mut item_opening = false;
+    let mut autolink = 0usize;
     for (event, range) in Parser::new_ext(source, crate::site::options()).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => code_block += 1,
@@ -885,6 +893,29 @@ fn read_markdown(source: &str) -> Reading {
             Event::Start(Tag::Image { .. }) => image += 1,
             Event::End(TagEnd::Image) => image = image.saturating_sub(1),
             _ if code_block > 0 || image > 0 => {}
+            // An HTML block's text shows on the page, so the HTML reader reads it, its marks moved
+            // to the block's place in the file.
+            Event::Start(Tag::HtmlBlock) => {
+                let block = read_html(&source[range.clone()]);
+                reading.bold_labels += block.bold_labels;
+                for mut run in block.runs {
+                    for mark in &mut run.marks {
+                        mark.1 += range.start;
+                    }
+                    reading.runs.push(run);
+                }
+                reading.open(Block::Prose);
+            }
+            // An autolink's or email link's text is its address, which no writer can reword.
+            Event::Start(Tag::Link {
+                link_type: LinkType::Autolink | LinkType::Email,
+                ..
+            }) => autolink += 1,
+            Event::End(TagEnd::Link) if autolink > 0 => autolink -= 1,
+            Event::Text(text) if autolink > 0 => {
+                item_opening = false;
+                reading.push(&as_code(&text), range.start);
+            }
             Event::Start(Tag::Heading { .. }) => reading.open(Block::Heading),
             Event::Start(Tag::TableCell) => reading.open(Block::Cell),
             Event::Start(Tag::Paragraph) => reading.open(Block::Prose),
@@ -902,7 +933,7 @@ fn read_markdown(source: &str) -> Reading {
                 if !text.trim().is_empty() {
                     item_opening = false;
                 }
-                reading.push(&text, range.start);
+                reading.push(&addresses_as_code(&text), range.start);
             }
             Event::Code(_) | Event::InlineMath(_) | Event::DisplayMath(_) => {
                 item_opening = false;
@@ -916,6 +947,37 @@ fn read_markdown(source: &str) -> Reading {
         }
     }
     reading
+}
+
+/// `text` read as one code word, padded with spaces to its length so later marks still line up.
+fn as_code(text: &str) -> String {
+    let mut out = String::from(CODE);
+    let pad = text.len().saturating_sub(CODE.len_utf8());
+    out.extend(std::iter::repeat_n(' ', pad));
+    out
+}
+
+/// `text` with each web address in it ("https://...", "www....") read as one code word, its
+/// length kept: an address isn't prose, and no writer can reword it.
+fn addresses_as_code(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while !rest.is_empty() {
+        let token_end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        let token = &rest[..token_end];
+        if token.contains("://") || token.starts_with("www.") {
+            out.push_str(&as_code(token));
+        } else {
+            out.push_str(token);
+        }
+        rest = &rest[token_end..];
+        let space_end = rest
+            .find(|c: char| !c.is_whitespace())
+            .unwrap_or(rest.len());
+        out.push_str(&rest[..space_end]);
+        rest = &rest[space_end..];
+    }
+    out
 }
 
 /// Elements whose content a reader doesn't read as prose. `code` stands in as one word.
@@ -975,11 +1037,18 @@ fn read_html(source: &str) -> Reading {
         }
         let text = &source[text_from..start];
         if !text.is_empty() {
-            let decoded = decode_entities(text);
-            if !decoded.trim().is_empty() {
+            if !decode_entities(text).trim().is_empty() {
                 item_opening = false;
             }
-            reading.push(&decoded, text_from);
+            // Each piece from one `&` to the next decodes alone, with its own mark, so a hit's
+            // line stays exact after an entity that decodes shorter than it's written.
+            let mut piece = 0;
+            for (amp, _) in text.match_indices('&').chain([(text.len(), "")]) {
+                if amp > piece {
+                    reading.push(&decode_entities(&text[piece..amp]), text_from + piece);
+                }
+                piece = amp;
+            }
         }
         if lower[start..].starts_with("<!--") {
             at = lower[start..]
@@ -1927,6 +1996,82 @@ mod tests {
         assert!(row(0, 0, 0).starts_with("| `p.md` | 100 | 0.0 | 0% |"));
         // 9.1% of sentences over 25 words shows 10%, not inside "fewer than 10%".
         assert!(row(220, 11, 1).starts_with("| `p.md` | 100 | 20.0 | 10% |"));
+    }
+
+    #[test]
+    fn html_blocks_are_read_and_addresses_are_not() {
+        let block = markdown("Before.\n\n<div>\nIt is pivotal.\n</div>\n\n<!-- delve -->\n");
+        assert_eq!(block.stock.len(), 1, "{:?}", block.stock);
+        assert_eq!(block.stock[0].line, 4);
+        assert_eq!(block.words, 4);
+        for text in [
+            "See <https://example.com/innovative/thing>.",
+            "Mail <someone@seamless.example>.",
+            "See https://example.com/innovative/thing for it.",
+            "See www.innovative.example for it.",
+        ] {
+            assert!(entries(text).is_empty(), "{text}: {:?}", entries(text));
+        }
+        assert_eq!(
+            entries("An innovative tool, at https://example.com/x."),
+            ["innovative"]
+        );
+        // After entities that decode shorter than they're written, a hit keeps its line.
+        let source = format!("<p>a\n{}\nb\nc\nIt is pivotal.</p>", "&rsquo;".repeat(30));
+        let page = page_from("p.html", &source, read_html(&source), false);
+        assert_eq!(page.stock[0].line, 5);
+    }
+
+    #[test]
+    fn given_paths_read_files_and_folders_but_not_linked_folders() {
+        let dir = std::env::temp_dir().join(format!("voice-given-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("sub")).unwrap();
+        fs::write(dir.join("a.md"), "We delve.\n").unwrap();
+        fs::write(dir.join("b.html"), "<p>It is pivotal.</p>").unwrap();
+        fs::write(dir.join("c.txt"), "Plain words.\n").unwrap();
+        fs::write(dir.join("sub/d.md"), "Short.\n").unwrap();
+        fs::write(dir.join("e.rs"), "// delve\n").unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&dir, dir.join("sub/up")).unwrap();
+        let root = crate::designs::root().unwrap();
+        let pages = given_pages(&root, &[dir.to_string_lossy().into_owned()]).unwrap();
+        assert_eq!(pages.len(), 4);
+        assert_eq!(pages.iter().map(|page| page.stock.len()).sum::<usize>(), 2);
+        let one = given_pages(&root, &[dir.join("b.html").to_string_lossy().into_owned()]);
+        assert_eq!(one.unwrap()[0].stock.len(), 1);
+        let missing = given_pages(&root, &[dir.join("none.md").to_string_lossy().into_owned()]);
+        assert!(missing.unwrap_err().contains("no such file or directory"));
+        fs::remove_dir_all(&dir).unwrap();
+        assert!(
+            run(&["-x.md".to_string()])
+                .unwrap_err()
+                .starts_with("usage")
+        );
+        let after = run(&["--".to_string(), "/no/such/-x.md".to_string()]);
+        assert!(after.unwrap_err().contains("no such file or directory"));
+    }
+
+    #[test]
+    fn the_guide_states_the_limits_and_the_list_as_the_code_has_them() {
+        let root = crate::designs::root().unwrap();
+        let guide = fs::read_to_string(root.join("docs/writing.md")).unwrap();
+        for pattern in Pattern::ALL {
+            let limit = match pattern.limit() {
+                0.0 => "0".to_string(),
+                limit => format!("{limit:.1}"),
+            };
+            assert!(
+                guide
+                    .lines()
+                    .any(|line| line.starts_with(&format!("| {} |", pattern.name()))
+                        && line.ends_with(&format!("| {limit} |"))),
+                "the guide's limits table has no row `| {} | ... | {limit} |`",
+                pattern.name()
+            );
+        }
+        let list = format!("It holds {} entries in {} groups", STOCK.len(), groups());
+        assert!(guide.contains(&list), "the guide doesn't say \"{list}\"");
     }
 
     #[test]

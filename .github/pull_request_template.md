@@ -9,8 +9,8 @@ https://hpr.fusionspace.co/writing.html#voice
 
 ## How I checked it
 
-<!-- The commands you ran and what they printed: the tests, `scripts/gate.sh`, a comparison
-against a reference, with the numbers. -->
+<!-- With the numbers: the commands you ran and what they printed, such as the tests,
+`scripts/gate.sh` or a comparison against a reference. -->
 
 
 ## What's left

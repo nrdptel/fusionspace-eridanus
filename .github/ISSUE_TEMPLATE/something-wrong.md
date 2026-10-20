@@ -4,9 +4,10 @@ about: A crash, a result that looks wrong, or a page that's wrong or hard to fol
 ---
 
 <!--
-Say it plainly, the way the writing guide's voice section asks:
-https://hpr.fusionspace.co/writing.html#voice. A number helps most with its unit and what you
-compared it with. Don't attach a design or a flight log you aren't free to share.
+Say it plainly, the way the writing guide's voice section asks. It's at
+https://hpr.fusionspace.co/writing.html#voice
+
+A number helps most with its unit and what you compared it with. Don't attach a design or a flight log you aren't free to share.
 -->
 
 ## What happened

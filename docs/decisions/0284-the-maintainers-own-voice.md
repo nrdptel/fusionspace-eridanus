@@ -131,5 +131,6 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   of contents. Its report is `validation/reports/voice.md`; a test holds the report to the
   pages, and `cargo xtask site` fails on a stock phrase.
 - *The design system.* Its writing rules take the same section
-  ([fusionspace-design#7](https://github.com/nrdptel/fusionspace-design/pull/7)). This
-  repository's pin of the design system stays where it was: moving it reopens the design audit.
+  ([fusionspace-design#7](https://github.com/nrdptel/fusionspace-design/pull/7), with wording
+  fixes in [#8](https://github.com/nrdptel/fusionspace-design/pull/8) and
+  [#9](https://github.com/nrdptel/fusionspace-design/pull/9)). This repository's pin of the design system stays where it was: moving it reopens the design audit.
