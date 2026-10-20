@@ -1,6 +1,6 @@
 # ADR-284: The maintainer's own voice on every page (2026-10-18)
 
-- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget); amended 2026-10-19 for M0.14a
+- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget); amended 2026-10-19 for M0.14a and for M0.14b
 - **Summary:** The project's pages read as if they came off a template, not from a person. M0.14 rewrites what people read (the README, the docs site, fusionspace.co, the design system's writing rules and README, `hpr`'s own messages and the repositories' About text) in the maintainer's plain voice, with a voice section in the writing guide and a `cargo xtask voice` check. Decision records, the archive and tools due to be replaced stay as they are.
 
 [m0-14]: ../decisions-and-roadmap.md#m0-14
@@ -137,3 +137,34 @@ milestone. The maintainer asked for it to be done carefully, across everything p
   fixes in [#8](https://github.com/nrdptel/fusionspace-design/pull/8),
   [#9](https://github.com/nrdptel/fusionspace-design/pull/9) and
   [#10](https://github.com/nrdptel/fusionspace-design/pull/10)). This repository's pin of the design system stays where it was: moving it reopens the design audit.
+
+**Amendment for M0.14b, the front doors (2026-10-19).** Written before the rewriting starts, as
+[ADR-282][adr-282] asks of a milestone's tasks.
+
+- *The pages.* The README; the docs site's landing page, `docs/start-here.md`; the guides' landing
+  pages, which so far are one, HPR Sim's (`docs/the-simulator.md`); fusionspace.co, which is its
+  two pages (`site/index.html`, `site/404.html`) and its repository's README, the front door to
+  the site's source; the design system's README; the profile README; and the About texts of the
+  five repositories §5 names, plus the profile repository's, which has none yet.
+- *Passing.* Each page has no stock phrase and every rate at or under its limit, as
+  `cargo xtask voice <path>` prints it. Each About text is scored on its own, as a text file.
+- *The tasks,* each done end to end on the PR's final commit by a reviewer who didn't write the
+  pages, the way a flyer would:
+  1. From the README alone, say what HPR Sim does and how far its numbers are trusted, then
+     install `hpr` and fly the README's first example with the commands it gives.
+  2. On the built docs site, from the landing page, find what works and what doesn't, how
+     accurate the simulator is, and the way to install it; each in at most two clicks.
+  3. From the simulator guide's landing page, reach its tour and its comparison with other
+     simulators, and say who the simulator is for.
+  4. On fusionspace.co, say what FusionSpace makes, and reach HPR Sim's guide, its source and its
+     latest release; an address that doesn't exist leads back to the front page.
+  5. From the design system's README, find how to start a project on the system and where its
+     writing rules are.
+  6. From the profile README, say what the maintainer builds and reach each project's page.
+  7. Read each About text on its repository's page and say what the repository holds.
+- *Screens.* The docs pages and fusionspace.co's pages pass their sites' layout checks at every
+  width and theme (`cargo xtask site`, `node checks/check.mjs`), and captures at 320, 768, 1,280
+  and 1,920 px in each theme are looked at, corners and edges on purpose. GitHub lays out the
+  READMEs and About texts, so their check is the read on GitHub's page.
+- *The cold read,* as §7 asks: a reader who knows none of the code checks each page against each
+  rule of the voice section and lists what it finds.
