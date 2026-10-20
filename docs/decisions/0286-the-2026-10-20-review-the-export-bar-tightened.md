@@ -5,7 +5,7 @@
 
 [m3-2]: ../decisions-and-roadmap.md#m3-2
 [m0-14]: ../decisions-and-roadmap.md#m0-14
-[m0-9]: ../decisions-and-roadmap.md#m0-9
+[m0-9]: ../decisions-and-roadmap.md#m0-9f
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [adr-110]: 0110-m3-2b-openrocket-flies-the-export-only-counts.md
 [adr-109]: 0109-m3-2-split-and-a-ork-written-from-the-design.md
@@ -50,8 +50,8 @@ Where the eight differences come from was traced before tightening:
   which can sit up to $g\,\Delta t^2/8$ below the true peak: about 3.1 mm (0.12 in) for a 0.05 s
   step. Each file sets its own step (0.01 s to 0.2 s in the corpus, 0.05 s on most), and the steps
   around apogee can be longer than the setting. A difference in the last bit that shifts the step
-  grid near apogee moves the reported apogee by millimeters, here up to about 0.0005% of it. At the
-  0.05 s setting that ceiling is 0.0095% of the apogee on the corpus's lowest flight, a public
+  grid near apogee moves the reported apogee by millimeters, here up to 0.00051% of it. For a
+  0.05 s step that ceiling is 0.0096% of the apogee on the corpus's lowest flight, a public
   example whose export matches its original to the bit.
 
 So no closed form bounds the difference: the sampling part has one for a known step, but the step grid's part

@@ -3550,13 +3550,14 @@ decision record comes before the bar moves.
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
 - **Eight configurations differ, by OpenRocket's own spread.** All eight are in six private designs
-  (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. Every number in the
-  rocket that the two files share is the same to the bit, and the originals flown again differ from
-  their own record in 8 of the 151 configurations; one configuration flown 45 times, each in a fresh
-  OpenRocket launch, spread over 0.00051% (one-off reruns recorded in the decision that tightened
-  the bar, not in the committed report). OpenRocket reports the highest of its time steps (0.05 s on
-  most designs), so a last-bit change that moves its step grid moves the reported apogee by
-  millimeters. How many come out the same to the bit varies by run: 142 to 144 of 151.
+  (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. In those six
+  designs, every number in the rocket that the two files share is the same to the bit, and the
+  originals flown again differ from their own record in 8 of the 151 configurations; one
+  configuration flown 45 times (43 in fresh OpenRocket launches) spread over 0.00051% (one-off
+  reruns recorded in the decision that tightened the bar, not in the committed report). OpenRocket
+  reports the highest of its time steps (0.05 s on most designs), so a last-bit change that moves
+  its step grid moves the reported apogee by millimeters. How many come out the same to the bit
+  varies by run: 142 to 144 of 151.
 
 The committed report,
 [`openrocket-export-flights.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md),

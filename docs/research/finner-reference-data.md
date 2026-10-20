@@ -79,7 +79,7 @@ interpolated linearly in Mach (**Inference**).
 
 - **Against DREV** (readings cached under `refs/`, §1), at Mach 1.82 to 3.00 (its 1.832 row, then interpolated), HPR
   Sim reads +2% to +13% high, and Fig. 5-7's points sit above DREV's.
-- **Fig. 5-7's points sit above DREV's** (in magnitude) at every Mach number. **Inference:** a reference-area slip
+- **Fig. 5-7's points sit above DREV's** (in magnitude) at the four Mach numbers compared. **Inference:** a reference-area slip
   between TN-100A and Fig. 5-7 could explain it, unproven while TN-100A is unread; Barrowman doesn't state their accuracy.
 - **What changes.** On the measured consensus the row's sign flips: HPR Sim overstates the Basic Finner's
   supersonic roll damping, and the aero page's account (first-order theory reads low for want of a thickness

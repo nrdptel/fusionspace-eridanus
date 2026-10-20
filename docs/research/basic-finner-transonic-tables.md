@@ -144,7 +144,7 @@ redistribution. The seven Mach numbers are 0.652, 0.782, 0.910, 0.992, 1.142, 1.
 deviation runs 3% to 26% across them, C_mα's 0% to 1%.
 
 - **Inference:** C_mα jumps 55% from Mach 0.910 to 0.992, and the CP (4.8 d less C_mα/C_Nα) moves about 0.7 caliber
-  aft, then forward again by Mach 1.5. C_Nα is least certain at that jump (error up to 26%), so the shift is not well
+  aft, then forward again by Mach 1.5. C_Nα is least certain at that jump (by the range above), so the shift is not well
   determined.
 - The authors find their C_Nα "a bit below" Eglin's from Mach 0.6 to 1.2, blaming their low yaw (PDF p. 24).
   Eglin's report, AFATL-TR-81-87, was not reached (DTIC down; not in the Internet Archive's DTIC collection).
