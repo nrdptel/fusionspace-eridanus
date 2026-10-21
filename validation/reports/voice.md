@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 37 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 438476 words, 0 stock phrases. 42 pages are within every limit.
+82 pages, 438484 words, 0 stock phrases. 42 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -34,11 +34,11 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/accuracy.md` (`held`) | 15625 | 13.3 | 0% | 0.23 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
 | `docs/api.md` | 2185 | 16.9 | 24% | 0.19 | **1.56** | 0.42 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.19 | 0.10 |
 | `docs/checking-a-claim.md` (`held`) | 1572 | 14.7 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
-| `docs/cli.md` (`ref`, `held`) | 17594 | 13.4 | 0% | 0.24 | 0.02 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.61 |
+| `docs/cli.md` (`ref`, `held`) | 17601 | 13.4 | 0% | 0.24 | 0.02 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.61 |
 | `docs/custom-models.md` (`held`) | 1842 | 13.7 | 0% | 0.00 | 0.00 | 0.00 | 0.22 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.93 | 1.09 |
 | `docs/drag-through-mach-1.md` (`held`) | 1996 | 14.8 | 2% | 0.36 | 0.00 | 0.11 | 0.16 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.81 |
 | `docs/elevation.md` (`held`) | 4082 | 14.4 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.32 | 0.79 |
-| `docs/evidence.md` (`held`) | 6505 | 12.7 | 0% | 0.00 | 0.02 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.33 |
+| `docs/evidence.md` (`held`) | 6506 | 12.7 | 0% | 0.00 | 0.02 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.33 |
 | `docs/exporting-a-flight.md` (`held`) | 1937 | 14.6 | 0% | 0.00 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.21 | 0.93 |
 | `docs/fly-your-ork.md` (`held`) | 1420 | 12.6 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.78 | 0.64 |
 | `docs/format/eng.md` (`ref`) | 2260 | 16.2 | 16% | 0.40 | 0.31 | **0.93** | 0.14 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.18 |

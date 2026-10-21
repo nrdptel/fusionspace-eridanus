@@ -130,7 +130,7 @@ The register holds 32 rows, as of October 20, 2026.
 
   It found no openly downloadable GPX of a real rocket flight. The dedicated trackers write KML, CSV or raw NMEA. GPX comes from phone apps, handheld receivers and mapping tools.
 - [G1](#g1), October 20, 2026, looked at:
-  - Rocketry Forum thread 135349's attachments, fetched from its attachment links, their GPX files counted for `geoidheight`
+  - Rocketry Forum thread 135349's attachments, fetched from the forum's attachment links, their GPX files counted for `geoidheight`
   - GitHub code search for GPX files with `geoidheight`, with and without rocketry words
   - OpenStreetMap traces tagged rocket
   - Zenodo, figshare, Kaggle and other data sites
