@@ -78,8 +78,8 @@ input. [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   equations in $L$ add the Coriolis term $-2\boldsymbol{\Omega} \times \mathbf{v}$. The centrifugal term is already inside normal
   gravity and must not be added again ([Gravity](gravity.md)).
 - $L$ is a tangent plane, so $z_L$ is not altitude. A point at $z_L = 0$ at horizontal distance
-  $d$ from the pad is about $d^2/(2N)$ above the ellipsoid, with $N$ as in
-  [Geodesy](geodesy.md). At 10 km (6.2 mi), that is
+  $d$ from the pad is about $d^2/(2\rho)$ above the ellipsoid, with $\rho$ the Earth's
+  radius of curvature at the pad. At 10 km (6.2 mi), that is
   7.8 m (26 ft). Height above the ellipsoid comes from `LaunchFrame::geodetic_from_enu`. The
   flight engine detects apogee and ground contact with that height, not with $z_L$
   ([Rigid-body flight](flight.md), [Loft's lesson on apogee height](../decisions-and-roadmap.md#l35)).
@@ -194,7 +194,8 @@ $$
   - angles → quaternion → angles (off vertical), and quaternion → angles → quaternion (everywhere,
     exactly vertical included);
   - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2000 km (1,243 mi) and up to 1000 km (621 mi) high;
-  - named attitudes, and the tangent-plane rise $d^2/(2N)$.
+  - named attitudes, and the tangent-plane rise $d^2/(2\rho)$ due east, $\rho$ there being the
+    radius [Geodesy](geodesy.md) calls $N$.
 - In `hpr_core::attitude::tests`: the kinematic equation checked against a closed-form coning
   motion, and norm drift ≤ 1e-12 over 1e6 RK4 steps with attitude error < 1e-9 rad.
 

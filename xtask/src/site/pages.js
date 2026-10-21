@@ -2297,9 +2297,10 @@
   // border, one corner chamfered (a `clip-path` polygon). Each `h2` in `main` must be a sheet's
   // name, in its rail (`section.fs-sheet > .fs-sheet-rail > h2`); each sheet must be drawn under
   // a 2 px solid rule in the ink role, with its number in Cascadia Mono 12 px drawn above its
-  // name and reading `SHEET n / N`, counted from each intro (a chapter, on the print page). Each
-  // status chip (`.fs-intro-row > .fs-status`) must be drawn after its tag, beside it or wrapped
-  // under it, and above its title, in [`CHIP_PX`] Cascadia Mono at [`CHIP_WEIGHT`] in capitals,
+  // name and reading `SHEET n / N`, counted from each intro (a chapter, on the print page), and
+  // its name no wider than the rail, which a word in code that can't wrap would cross into the
+  // text beside it. Each status chip (`.fs-intro-row > .fs-status`) must be drawn after its tag,
+  // beside it or wrapped under it, and above its title, in [`CHIP_PX`] Cascadia Mono at [`CHIP_WEIGHT`] in capitals,
   // at least [`CHIP_MIN_PX`] tall, its icon drawn [`CHIP_ICON_PX`] square, in its state's
   // colors; and each lead (`.fs-intro > .fs-lead`) under its title in `lead` type and the muted
   // ink.
@@ -2376,6 +2377,17 @@
         if (!name || number.getBoundingClientRect().bottom > name.getBoundingClientRect().top
           + SLACK_PX) {
           note('sheet', selector(number), 'position', 'a sheet\'s number not above its name');
+        }
+        // The name is a grid item, so a word that can't wrap widens its box past the rail's
+        // rather than overflowing the name's own: compare the edges.
+        if (name) {
+          const rail = name.parentElement.getBoundingClientRect();
+          const box = name.getBoundingClientRect();
+          const right = box.left + Math.max(box.width, name.scrollWidth);
+          if (box.left < rail.left - SLACK_PX || right > rail.right + SLACK_PX) {
+            note('sheet', selector(name), 'width', 'a sheet\'s name reaching '
+              + Math.round(right - rail.left) + ' px across its rail\'s ' + Math.round(rail.width) + ' px');
+          }
         }
       });
     }

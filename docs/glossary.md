@@ -1244,7 +1244,7 @@ A public database of motor thrust curves and data. HPR Sim bundles 32 of its cur
 statistics code to check its own. A file downloaded from it can be read and flown
 ([A motor from a file](physics/motor.md#a-motor-from-a-file)). The library can search it and
 download a motor's files itself
-([matching motors](motor-stock.md#matching-motors-to-thrustcurveorg)).
+([matching motors](motor-stock.md#matching-motors-to-thrustcurves-records)).
 `hpr sim` and `hpr motors fetch` fetch a motor the bundled catalog lacks into the simulator's cache
 ([the command line](cli.md#motors-from-thrustcurveorg)). See
 [Solid motors](physics/motor.md).

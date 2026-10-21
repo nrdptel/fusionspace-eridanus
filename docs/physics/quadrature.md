@@ -46,7 +46,9 @@ routine `qk15` has the rule's nodes and weights to 33 digits.
 - The relative tolerance never goes below $50\,\varepsilon$. A NaN or infinite sample is an error
   (`QuadratureNotFinite`), never a silent zero.
 
-## Verification (`quadrature::tests`)
+## Verification
+
+The tests are in `quadrature::tests`.
 
 - The rule is the published one:
   - The Gauss nodes are roots of $P_7$ to 1e-15.

@@ -36,7 +36,7 @@ the library, as below.
 > them. Prices are in U.S. dollars.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
-matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurveorg)). Each
+matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
 matched record's size, impulse, average thrust and burn time equal the motor finder's.
 
 The tests replay saved answers, and CI never contacts either live site. Both were contacted by
@@ -131,7 +131,7 @@ Asking for a motor the site doesn't list gets the site's "not found" page. The s
 as an error naming the address, and doesn't save it. The makers can be named in full or by their
 short names, `aerotech`, `cesaroni` and `loki`, in any case.
 
-## Matching motors to ThrustCurve.org
+## Matching motors to ThrustCurve's records
 
 The motor finder carries no thrust curves, and no ThrustCurve.org id. ThrustCurve.org has both. It
 aims to hold a record for every certified motor, each with its own id (24 hexadecimal digits, such
@@ -285,7 +285,7 @@ vendors had the motor in stock. On that morning no L motor in stock cost \$150 o
 cheapest was \$260.99.
 
 The last lines come from ThrustCurve.org, under its own credit line, except the records. The 297
-records come from the stand-in searches ([above](#matching-motors-to-thrustcurveorg)), so the count
+records come from the stand-in searches ([above](#matching-motors-to-thrustcurves-records)), so the count
 is theirs. The match runs on the finder's own copy of ThrustCurve.org's figures
 ([evidence row G23](evidence.md#g23)).
 
@@ -372,7 +372,7 @@ the recording keeps them:
 The tests in [`crates/hpr-net/tests/thrustcurve.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/thrustcurve.rs)
 replay two answers recorded from ThrustCurve.org on 1 October 2026 at 08:22 UTC. They're AeroTech
 J450DM's `.eng` file and AeroTech F27R/L's `.rse` file, both public domain. The tests also replay
-the three stand-in searches described [above](#matching-motors-to-thrustcurveorg)
+the three stand-in searches described [above](#matching-motors-to-thrustcurves-records)
 ([evidence row G23](evidence.md#g23)). They check that:
 
 - each answer, read and written back out, holds exactly the recording's fields and values and

@@ -90,7 +90,9 @@ $m$ is the end interval's secant for a linear table and the spline's end slope $
 for a cubic one. So linear extrapolation of a natural spline stays twice differentiable. A lookup
 at NaN is an error under every policy.
 
-## Tests that pin this (`crates/hpr-core/src/interp.rs`)
+## Tests that pin this
+
+The tests are in `crates/hpr-core/src/interp.rs`.
 
 - `natural_spline_matches_the_three_knot_closed_form`: knots $(0,0)$, $(1,1)$, $(2,0)$ give slopes
   $(3/2, 0, -3/2)$ and $y = 3x/2 - x^3/2$ on $[0, 1]$, symmetric about $x = 1$.
