@@ -143,6 +143,36 @@ the pages, the way a flyer would:
    how to send a sample. From the validation plan, say what proves a model right, which programs
    serve as oracles, and where the real flight data comes from.
 
+**M0.14c4's tasks,** done the same way, on the PR's final commit:
+
+1. From The API reference, build the reference as the page says and open it. Say which crate to
+   start from to fly a design from your own program, which crate holds the atmosphere, and how
+   far the page says to trust the reference.
+2. From How a release is built, say what a release holds and how each file is checked. Run
+   *Checking a file yourself*'s smoke test on release 0.1's download for this machine; it ends
+   with `passed`.
+3. From the glossary, look up angle of attack, the launch frame, ECEF, normal gravity, magnetic
+   declination and Dryden turbulence. Say what each means, and follow each entry's link to the
+   page it leads to.
+4. From Writing these pages, run `cargo xtask voice` on one page as *The check* says and read its
+   counts against *The limits*. Say which rule two of its before-and-after pairs show, and what
+   the bold-label count leaves out on a model page.
+5. From Plan, say what each release holds and in what order, how the page rates two of its goals,
+   and what only the maintainer can do.
+6. From Frames and sign conventions, say which way each axis of the launch frame and the body
+   frame points, and what a positive angle of attack and sideslip mean. From Geodesy, say how a
+   place's latitude, longitude and height become ECEF coordinates, and how closely the distance
+   and bearing match their reference.
+7. From Gravity and Earth rotation, say how gravity is checked against its source and which
+   gravity the flight engine uses in a like-for-like case with RocketPy. From The magnetic field
+   and declination, run its example and get the page's output, and say how far a compass can be
+   trusted.
+8. From Atmosphere, say what a barometric altimeter reads. From Wind, run its example and get the
+   page's output, and say which height each wind model takes. From Turbulence, say what it leaves
+   out for rockets. From Interpolation tables, say what a table does outside its range; from
+   Adaptive quadrature, how closely its tests match their references. For each of the nine model
+   pages, say from its *In short* how well it is validated.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
