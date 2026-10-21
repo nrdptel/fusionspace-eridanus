@@ -9,10 +9,10 @@ of mass, stability margin and flight.
   along the rocket's axis in flight on a trigger. The rocket's
   [center of mass](../glossary.md#center-of-gravity-cg) and inertia follow the part, and so do
   the equations of motion. Use it to see what a payload that moves, or ballast moved on purpose,
-  does to the [stability margin](../glossary.md#stability-margin) and the flight. It was added
-  in [the moving-mass milestone](../decisions-and-roadmap.md#m1-12a).
+  does to the [stability margin](../glossary.md#stability-margin) and the flight. The model was
+  added in [the moving-mass milestone](../decisions-and-roadmap.md#m1-12a).
 - **Sources:** the [parallel-axis theorem](../glossary.md#parallel-axis-theorem) and the kinetics
-  of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. They're
+  of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. Both are
   applied to the equations of motion on [Rigid-body flight](flight.md). The cycloidal motion of
   cam design is from Norton's *Design of Machinery*.
 - **How well it is validated:** against exact answers only. No other simulator or real flight has
@@ -41,8 +41,8 @@ A `MassShift` names the part, how far it moves, how long it takes, and when it s
 | `travel_m` | how far along the axis, in meters: positive toward the tail, negative toward the nose |
 | `duration_s` | how long the move takes, in seconds: at least 0.01 s |
 
-In code, a part with the id `ballast` slides 0.3 m (0.98 ft) toward the tail over 1 s, starting 5 s
-after launch:
+In code, this slides a part with the id `ballast` 0.3 m (0.98 ft) toward the tail over 1 s,
+starting 5 s after launch:
 
 ```rust,ignore
 let simulation = simulation.with_shifts(vec![MassShift::new(
@@ -147,7 +147,7 @@ The equations of motion ([Rigid-body flight](flight.md)) are written about the n
 point fixed in the airframe, in body axes. $\boldsymbol{\omega}$ is the airframe's rate of turn and $\mathbf{r}$ the center
 of mass seen from $O$. The equations already allow for a center of mass that moves through the
 airframe and an inertia that changes, because burning propellant does both. Primes there, as
-below, mean how fast something changes as seen from the airframe. Then $\mathbf{r}'$ and $\mathbf{r}''$ are the
+below, mean how fast something changes with time, as seen from the airframe. Then $\mathbf{r}'$ and $\mathbf{r}''$ are the
 center of mass's velocity and acceleration through the airframe. $I'$ is how fast the inertia
 about $O$ changes. A part that moves adds to those terms, and adds one term more.
 
@@ -169,7 +169,7 @@ moves at the same $\boldsymbol{\rho}'$. When the part is on the axis, $\boldsymb
 is zero. When it is off the axis, $\mathbf{h}$ is not zero, and the simulator carries it. The sum is over the
 parts that move, each with its own $m$, $\boldsymbol{\rho}$ and $\boldsymbol{\rho}'$. On the Rigid-body flight page, $\mathbf{T}_{21}$ is the
 name the equations (from RocketPy's documentation) give the sum of the moments about the nose tip.
-It subtracts $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$.
+$\mathbf{T}_{21}$ subtracts $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$.
 
 The simulator works out how fast the center of mass and the inertia change exactly, from the
 cycloid. For a burning motor it still estimates them from points 0.1 ms apart. The two add, so a
@@ -197,7 +197,7 @@ The example
 [`moving_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/moving_ballast.rs)
 flies the project's 54 mm (2.1 in) test design (`validation/designs/synthetic-54mm-three-fin.json`, a
 body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) motor.
-Its airframe carries 200 g of ballast. The ballast is a cylinder 50 mm (2.0 in) long on the axis, its
+The design carries 200 g of ballast in its airframe. The ballast is a cylinder 50 mm (2.0 in) long on the axis, its
 center 0.375 m (1.23 ft) aft of the nose tip. At 5 s, well after the 2.5 s burn, it slides 0.3 m (0.98 ft) toward
 the tail over one second. What the example prints (the transverse inertia is about an axis across
 the rocket through its center of mass, the one it pitches about):
@@ -296,7 +296,7 @@ The decision record is [ADR-087][adr-087].
 ### References
 
 - **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*. Chapter 4 (kinetics
-  of systems of particles) sums the force and moment equations over particles, and takes angular
+  of systems of particles) sums the force and moment equations over particles. It also covers angular
   momentum about a moving point. Appendix B has the parallel-axis theorem and the inertia tensor.
 - **[N]** R. L. Norton, *Design of Machinery*, the chapter on cam design, with the cycloidal
   displacement

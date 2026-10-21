@@ -16,22 +16,23 @@ as its motor burns.
   declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
   difference is +1.783%, a peak acceleration on the rail ([validation report][report],
   [whole flights against RocketPy](#whole-flights-against-rocketpy)). The path agrees as well,
-  except for rockets that leave the rail slowly in a wind and NDRT 2020's apogee drift. There
-  HPR Sim's apogee drift is −4.333% to −38.158% from RocketPy's ([validation report][report]).
-  The causes are HPR Sim's [body lift](../glossary.md#body-lift), which RocketPy's normal force
-  leaves out, and its later release from the rail ([ADR-026][adr-026]). For Juno III, so is
-  HPR Sim's simpler fin model. A sixth, Prometheus 2022, passes Mach 1 on its drag table and
+  except the apogee drift of NDRT 2020 and of rockets that leave the rail slowly in a wind. In
+  those, HPR Sim's apogee drift is −4.333% to −38.158% from RocketPy's
+  ([validation report][report]). The causes are HPR Sim's
+  [body lift](../glossary.md#body-lift), which RocketPy's normal force leaves out, and its later
+  release from the rail ([ADR-026][adr-026]). For Juno III, another cause is HPR Sim's simpler
+  fin model. A sixth, Prometheus 2022, passes Mach 1 on its drag table and
   agrees as well. Its drifts again differ from RocketPy's through body lift. With HPR Sim's own
   drag, against RocketPy flying the drag its examples ship, HPR Sim's heights differ from
   RocketPy's by −7.280% to +10.302% ([validation report][report]). The gaps are larger where the two drags differ most.
   HPR Sim's is well below the example's for two rockets. For Prometheus 2022 it is above the
-  example's at high speed. On HPR Sim's drag that rocket flies through Mach 1
-  ([drag through Mach 1](../decisions-and-roadmap.md#m1-8b1),
-  [Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
-  compared with their teams' altitude logs, apogee and climb only, and
-  [53 more][fixture-report] on apogee alone
+  example's at high speed. That rocket has flown through Mach 1 on HPR Sim's drag since
+  [the drag through Mach 1](../decisions-and-roadmap.md#m1-8b1) was built
+  ([Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
+  compared with their teams' altitude logs, apogee and climb only. [53 more][fixture-report] have
+  been compared with their logs, on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
-- **What it leaves out:** staging and delayed ignition (on [Staging](staging.md)), tip-off (the
+- **What it leaves out:** staging and delayed ignition (modeled on [Staging](staging.md)), tip-off (the
   pivot as the rocket leaves the rail), turbulence and thrust misalignment. Its
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
@@ -408,11 +409,11 @@ default settings. The numbers were measured on 2026-09-17.
 - Two runs of one `Simulation` record the same bits for every channel at every step
   ([Loft lesson L24](../decisions-and-roadmap.md#l24)). So does a second `Simulation` built the
   same way.
-- A normal flight hits the ground. A rail with $\mu = 20$ at 60° gives
+- A normal flight hits the ground ([Loft lesson L25](../decisions-and-roadmap.md#l25)). A rail with $\mu = 20$ at 60° gives
   `NoLiftoff` at rest. A 5 s cap gives `TimeCap` at exactly 5 s, and a 40-step limit gives
   `StepLimit`.
-- On a 3 m (9.8 ft) rail tilted to 1.3 rad, the rail exit comes at the last button's travel to
-  1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
+- A 3 m (9.8 ft) rail is tilted to 1.3 rad ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
+  The rail exit comes at the last button's travel to 1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
   Friction ($\mu = 0.3$) delays the exit and slows it.
 - From a 1 m (3.3 ft) rod tilted 5 to 20 degrees, HPR Sim's rocket is on OpenRocket's bearing at
   apogee to within 0.03 degrees. It loses the same apogee to within 0.27 percentage points

@@ -140,7 +140,7 @@ These conventions were set in [the decision on component geometry and mass prope
     $3h/8$ above the flange. Its inertia is $\tfrac25 m a^2$ about its own axis and
     $m(a^2/5 + 19h^2/320)$ across it through its center. The last is half the ellipsoid's
     $m(a^2 + h^2)/5$ about its base's diameter, moved by the parallel-axis theorem. With $a = h$
-    these are a solid hemisphere's textbook $3R/8$ and $\tfrac25 mR^2$. It carries no drag, and
+    these are a solid hemisphere's textbook $3R/8$ and $\tfrac25 mR^2$. The head carries no drag, and
     OpenRocket's comparison is [below](#fins-rail-buttons-and-roll-inertia).
   - Buttons and lugs may repeat along the axis (`count`, `spacing_m`).
 - **Shoulder:** a hollow cylinder beyond the profile's end. A capped shoulder adds a disc of its
@@ -160,7 +160,7 @@ These conventions were set in [the decision on component geometry and mass prope
   - Freeform: a simple polygon from the root leading edge $[0, 0]$ to the root trailing edge
     $[c_r, h_r]$, closed along the root through its root points. On a body tube the root is level,
     $h_r = 0$ with no root points. On a nose cone or a transition it follows the surface
-    ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md)).
+    ([the decision on a fin root along the surface](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md)).
     The heights are measured from the radius $R_b$ at the root leading edge. Each root point lies
     within a micron of the surface. Crossing edges and points below the root leading edge are
     errors. So are outlines that turn below their root or don't run from the origin aft. The test
@@ -282,10 +282,10 @@ are copies of OpenRocket's examples), so there are 51 different files by content
 of mass agree closely on most, and every file outside 1% has a named cause. The roll inertia is a
 median 1.619% apart. That's OpenRocket's shortcut for fins
 ([below](#fins-rail-buttons-and-roll-inertia)) and, on the cluster designs, its stacking of their
-tubes on the axis ([below](#clusters-and-fillets)). [A decision][adr-060] records how it was
+tubes on the axis ([below](#clusters-and-fillets)). [The decision on this comparison][adr-060] records how it was
 decided. The numbers below are from the current scratch-excluding rerun after HPR Sim
 [weighed every tube of a cluster](../decisions-and-roadmap.md#m1-9b)
-([below](#clusters-and-fillets)). Before that, [another step](../decisions-and-roadmap.md#m2-2b4)
+([below](#clusters-and-fillets)). Before that, [the step on clusters and fillets](../decisions-and-roadmap.md#m2-2b4)
 settled two more of the survey's causes ([next section](#what-a-ork-leaves-unsaid-and-overrides)).
 
 **What you can check yourself.** The private files are not public, so only counts come from them.
@@ -415,12 +415,12 @@ less the spread of the clusters' own tubes, is within 1% of OpenRocket's. The tw
 +2.08% apart, and +0.04% and +0.00% without the spread.
 
 The pitch inertia is within 1% on 58 of 71. Two of the 13 outside are the two copies of OpenRocket's
-*Tube fin rocket*, 1.98% below. OpenRocket's pitch rule for tube fins accounts for them
+*Tube fin rocket*, 1.98% below. OpenRocket's pitch rule for tube fins accounts for that gap
 ([below](#tube-fins)). The other 11 have no named cause yet, and no bound is known. On the fin
 probes below, pitch differs by up to 0.41% where the fins weigh the same.
 
-**What it leaves out.** Motors: this is the structure alone, and motors are
-[a milestone of their own](../decisions-and-roadmap.md#m2-2c). Only the design's selected
+**What it leaves out.** Motors: this is the structure alone, and a motor's mass is left to
+[the milestone on the motors OpenRocket flies](../decisions-and-roadmap.md#m2-2c). Only the design's selected
 [configuration](../glossary.md#configuration) (the one OpenRocket opens it with) is weighed. The 4
 files OpenRocket 24.12 does not open are not compared.
 
@@ -455,11 +455,11 @@ parts inside it both have an [override](../glossary.md#override) (a mass or cent
 designer typed in), which wins? OpenRocket, which writes these files, has an answer to each. Its
 answer is what the file means to the person who wrote it. So this project
 [asks it](../decisions-and-roadmap.md#m2-2b1), with 32 small *probe designs*, each a rocket of a few
-parts built to ask one question. `validation/oracles/openrocket/conventions.py` writes them among
-others, runs OpenRocket 24.12 on them and records its answers. The test module
+parts built to ask one question. `validation/oracles/openrocket/conventions.py` writes them, and
+this page's later probes too. It runs OpenRocket 24.12 on all of them and records its answers. The test module
 `hpr_validate::openrocket::tests` reads the same designs with HPR Sim and holds it to them. Where
 HPR Sim keeps a rule of its own, the test pins how far apart the two are. The decisions are in
-[a decision record][adr-061].
+[the decision on what a `.ork` leaves unsaid][adr-061].
 
 > **How far to trust it.** Each probe asks about one kind of part at one size, so each reading is
 > measured, not proven for every case. OpenRocket's defaults were read with its preferences as a
@@ -506,7 +506,7 @@ HPR Sim and OpenRocket agree on which override wins, and on where a center is me
 - A center-of-gravity override alone, written to cover the parts inside, sets the whole assembly's
   center. (The two place the parts inside differently, which shows only in the inertia: below.)
 
-This settles [a Loft lesson](../decisions-and-roadmap.md#l51). Its rule for this came from
+This settles [a Loft lesson](../decisions-and-roadmap.md#l51). Loft's rule for this came from
 OpenRocket's source and was unsettled by up to 133 mm (5.2 in). The test is
 `override_precedence_matches_oracle`.
 
@@ -566,7 +566,7 @@ the fins. OpenRocket works out a fin set's roll inertia with a shortcut, and HPR
 the fin exactly. The shortcut was [measured](../decisions-and-roadmap.md#m2-2b2) on 33 more probe
 designs, each a tube and one part. HPR Sim keeps its own: a *departure*, a rule it keeps on purpose,
 measured and pinned by a test. The same probes settle how each fin section is weighed and where a
-rail button sits. The decisions are in [a decision record][adr-062].
+rail button sits. The decisions are in [the decision on fins and rail buttons][adr-062].
 
 > **How far to trust it.** The shortcut is inferred from OpenRocket's output. Its source is GPL, so
 > the project does not read it. It matches every fin probe but two to 1e-12, and those two are
@@ -580,7 +580,7 @@ its probe's, and a launch lug's pitch inertia by 0.03% (below).
 
 **OpenRocket's shortcut.** For a set of two or more fins, OpenRocket spreads the set's mass $m$
 evenly along a thin rod. The rod runs straight out from the body, at radius $R$, to $R + h_e$, and
-OpenRocket takes its roll inertia. $h_e$ is an *effective span*:
+OpenRocket takes the rod's roll inertia. $h_e$ is an *effective span*:
 
 $$
 \begin{aligned}
@@ -668,7 +668,7 @@ and with a row of two.
 **A rail button's screw head is weighed.** HPR Sim [reads](../decisions-and-roadmap.md#m4-5i) a
 `.ork` button's `<screwheight>` and weighs the head as half a solid ellipsoid on the flange. The
 model is above, under *Standard solids*. Before, it left the head off with a warning, and a rocket
-with one did not fly ([a decision][adr-168]). A 10 mm (0.39 in) button with a 2 mm (0.079 in) screw, in Delrin at
+with one did not fly ([the powered pods decision][adr-168]). A 10 mm (0.39 in) button with a 2 mm (0.079 in) screw, in Delrin at
 1,420 kg/m³, gains a head of
 
 $$
@@ -742,7 +742,7 @@ unit inertia can exceed $(R + 2r)^2$. For two tubes or more, OpenRocket's does:
 | OpenRocket 24.12's | 0.3047 m², about 38 times that |
 
 HPR Sim keeps its own figure, which is below that bound, as it must be. For a single tube the two
-agree. OpenRocket puts its center at $R + r$, where HPR Sim does. Its unit inertia about the tube's
+agree. OpenRocket puts its center at $R + r$, where HPR Sim does. OpenRocket's unit inertia about the tube's
 own axis is $(r^2 + r_i^2)/2$, with $r_i$ the tube's inner radius, as HPR Sim's is.
 
 **Pitch inertia, the second departure.** Pitch is turning end over end, about an axis across the
@@ -781,8 +781,8 @@ pitch match their closed forms to 1e-13.
 A [cluster](../glossary.md#cluster) is a motor mount with more than one motor tube. HPR Sim
 [weighs every tube](../decisions-and-roadmap.md#m1-9b) where it sits, each with its own
 [parallel-axis](../glossary.md#parallel-axis-theorem) term. It repeats what a tube holds in every
-tube ([Clusters](design.md#clusters)). OpenRocket 24.12, asked on 25 probes
-([a decision][adr-075]), agrees on the mass and the center of mass to 1e-12, but not on the inertia.
+tube ([Clusters](design.md#clusters)). OpenRocket 24.12 was asked on 25 probes
+([the decision on clusters][adr-075]). It agrees on the mass and the center of mass to 1e-12, but not on the inertia.
 It weighs a cluster's tubes as if stacked on the cluster's axis. A 3-ring at scale 1 and at scale
 1.5 have the same inertias in OpenRocket. It does weigh an engine block inside each tube where it
 sits. HPR Sim does not copy the stacking, since the tubes are not on the axis.
@@ -807,7 +807,7 @@ one. That left it 12.85% light, 5.95 mm (0.23 in) forward, 2.43% low in roll and
 A [fin fillet](../glossary.md#fillet) is the rounded glue joint along a fin's root, where the fin
 meets the tube. HPR Sim [weighs fillets](../decisions-and-roadmap.md#m2-2e7) as OpenRocket 24.12
 does ([the decision on fillets][adr-096]). Before, it left them out with a warning. The 5 mm (0.20 in) and
-10 mm (0.39 in) probes were then 0.808% and 2.79% light ([a decision][adr-064]).
+10 mm (0.39 in) probes were then 0.808% and 2.79% light ([the decision on clusters, fillets and unread parts][adr-064]).
 
 **The shape.** A fillet fills the corner between the tube and the fin's side. Its concave face is a
 circle of the fillet's radius that touches both. Its section is bounded by three edges: the tube's
@@ -861,7 +861,7 @@ $2.552\,\mathrm{cm^3} \times 0.680\,\mathrm{g/cm^3}$ = 1.735 g. A unit test pins
 (`the_worked_fillet_example_is_the_docs` in `hpr_design::fins`).
 
 **How well.** Nine probe designs measure it: the 5 mm (0.20 in) and 10 mm (0.39 in) probes of
-[an earlier step](../decisions-and-roadmap.md#m2-2b4), and seven
+[the earlier fillets step](../decisions-and-roadmap.md#m2-2b4), and seven
 [new ones](../decisions-and-roadmap.md#m2-2e7):
 
 - fillets of 30 mm (1.2 in);
@@ -878,7 +878,7 @@ the fin section's factor ([above](#fins-rail-buttons-and-roll-inertia)), not fro
 probe's pitch inertia is apart by −0.0077% to −0.638% on the eight with more than one fin, growing
 with the fillets' mass. On the single fin it is +0.425%, near the +0.406% a single fin reads
 without fillets. HPR Sim's figure is the exact prism's. How OpenRocket works out a fin's pitch
-inertia has not been measured ([a decision][adr-062]). The roll rows use OpenRocket's fin shortcut, as every fin probe
+inertia has not been measured ([the decision on fins and rail buttons][adr-062]). The roll rows use OpenRocket's fin shortcut, as every fin probe
 does. `each_part_alone_is_openrocket_s_or_pinned` pins every row.
 
 **What it leaves out.** The fillets' drag and lift: the aerodynamics ignores them
@@ -895,7 +895,7 @@ A parachute, streamer, shock cord or mass component (an altimeter, a battery, ba
 as a solid cylinder ([above](#standard-solids-mk)). The cylinder is its packed length and packed
 radius, where it sits in the tube. Two cases need a rule of their own. HPR Sim now
 [takes OpenRocket's](../decisions-and-roadmap.md#m2-2b3) for both, measured on probe designs
-OpenRocket 24.12 reads ([a decision][adr-063]). Like every OpenRocket rule on this page, they are
+OpenRocket 24.12 reads ([the decision on packed parts][adr-063]). Like every OpenRocket rule on this page, they are
 inferred from what OpenRocket prints, not read from its source.
 
 **A file that writes no packed size.** OpenRocket packs the part 25 mm (0.98 in) long and 12.5 mm (0.49 in) in radius.

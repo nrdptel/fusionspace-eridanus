@@ -20,7 +20,7 @@ measured overrides, mounts motors and flags impossible designs.
   of [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) are
   compared, each a given structure with its motor placed. At the times RocketPy computed, mass,
   center and inertia agree within 8.0e-10 (relative). Between those times, mass agrees within
-  1.3e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.4e-9 and 4.9e-5 of
+  1.3e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.4e-9 at those times and 4.9e-5 between them, of
   its initial value. Placement, automatic radii and overrides are checked by hand. On 71 designs
   compared with OpenRocket, the whole structure is within 1% in mass on 70 and in center of mass
   on 70 ([mass properties](mass.md#checked-against-openrocket)). Body radii are checked against
@@ -81,7 +81,8 @@ never reads OpenRocket's source code, whose license (GPL) is incompatible with t
 clean-room rule). So
 [the OpenRocket import](../decisions-and-roadmap.md#m3-1), which reads `.ork` files, and
 [the OpenRocket comparison](../decisions-and-roadmap.md#m2-2) mapped them by running OpenRocket
-itself.
+itself. Which way OpenRocket turns a roll angle is the exception
+([not settled](../format/ork.md#which-way-round)).
 
 ## Building the tree
 
@@ -214,7 +215,7 @@ mark the new values. They apply in this order:
 1. A mass $m'$ scales the tensor, $I' = I\,m'/m$, and keeps the center. The body keeps its shape. A
    body with $m = 0$ becomes a point mass $m'$ at $\mathbf{c}$. A packed part (a mass component,
    parachute, streamer or shock cord) with $m = 0$ instead becomes a solid cylinder of $m'$ filling
-   its packing. So does OpenRocket's ([Packed parts](mass.md#packed-parts)).
+   its packing. OpenRocket's does the same ([Packed parts](mass.md#packed-parts)).
 2. A center $a$ (`cg_aft_m`) sets $c'_z = -(s_{\mathrm{fore}} + a)$, where $s_{\mathrm{fore}}$ is the station of
    the component's own forward end, whether or not the children are covered. For a stage it is the
    stage's forward end, and it is never a shoulder's.
@@ -242,7 +243,7 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
   overriding part's own inertia. And when a mass override covers the parts inside and gives no
   center, it puts the center at the overriding part's own. The two agree on which override wins,
   and where a center override is measured from
-  ([Loft lesson L51](../decisions-and-roadmap.md#l51)). Probe designs measured this in
+  ([Loft lesson L51](../decisions-and-roadmap.md#l51)). Probe designs measured all of this in
   [M2.2b1](../decisions-and-roadmap.md#m2-2b1)
   ([Mass properties](mass.md#what-a-ork-leaves-unsaid-and-overrides)).
 
@@ -295,7 +296,7 @@ How motors, clusters, pods and parallel stages join the rocket.
   - A two-stage design fires in sequence when its motors are given their ignitions, and drops its
     booster at a separation ([Staging](staging.md)). Its design file alone lights every motor at
     launch, booster and sustainer together, unless it says otherwise.
-- In RocketPy [RP], `total_mass(t)` and `center_of_mass(t)` are the same combination.
+- RocketPy's `total_mass(t)` and `center_of_mass(t)` [RP] are this same combination.
   RocketPy names the moment of inertia in pitch and yaw `I_11` and the one in roll `I_33`. Its
   `I_11(t)` is taken about the center of dry mass (the rocket without propellant), so HPR Sim's
   tensor is moved there before comparing. `I_33` sums the axial moments (every element is on the
@@ -374,7 +375,7 @@ $$
 is 1.32 mm (0.052 in). The structure's own center, 0.10 mm (0.0039 in) off the axis from its rail
 buttons, adds the rest. The two lit motors sit at $x = -A/2$ each, so about the center of mass
 their thrust has the lever $A/2 + c_x$ twice. The flight's equations give the same angular
-acceleration to 3.7e-7. There the full inertia tensor, not only $I_{yy}$, turns the moment into a turn. The difference is the
+acceleration to 3.7e-7. There the full inertia tensor, not only $I_{yy}$, turns the moment into a turn. The 3.7e-7 difference is the
 mass-flow terms: the center of mass moving as two motors burn and one doesn't, and the jets. With
 all three lit, the thrusts balance. The rocket then turns 225 times slower (0.186 rad/s²), from
 its center of mass sitting 0.033 mm (0.0013 in) off the axis. The numbers are pinned by the test
@@ -481,8 +482,8 @@ and 0 by default). It holds two pods 50 mm (2.0 in) from the axis. Each is a 0.3
 **Worked example.** The same two pods sit at 0° and 180°. Each is a cardboard tube (790 kg/m³,
 radius 12 mm (0.47 in), wall 1 mm (0.039 in), 0.3 m (0.98 ft) long). A 50 g mass is added inside
 each, a solid cylinder 0.1 m (0.33 ft) long and 8 mm (0.31 in) in radius. Its top is 0.02 m
-(0.066 ft) below the pod's. They hang on the tests' 54 mm (2.1 in) airframe (radius 27 mm
-(1.1 in)), so each stands 11 mm (0.43 in) clear of it. They hang from a body tube whose top is
+(0.066 ft) below the pod's. The pods hang on the tests' 54 mm (2.1 in) airframe, 27 mm
+(1.1 in) in radius. So each stands 11 mm (0.43 in) clear of it. They hang from a body tube whose top is
 0.2 m (0.66 ft) aft of the nose tip.
 The pod starts 0.3 m (0.98 ft) aft of the nose tip (at [station](../glossary.md#station) 0.3 m (0.98 ft)). Each pod,
 about its own axis and center:
@@ -729,7 +730,7 @@ That's past the 0.8 mm (0.031 in) tolerance of a 50 mm (2.0 in) bore, so it's an
 **On real designs.** `cargo xtask design-checks`, a developer command in this repository, counts
 the findings over the reference library ([the release 0.1 decision][adr-185] has the table of
 counts). Its default set is the repository's gitignored folder of reference designs and
-OpenRocket's examples (72 designs that open), where this rule adds no error. It adds 3 more
+OpenRocket's examples (72 designs that open). There this rule adds no error, only 3 more
 tight-fit warnings, 1 wedged and 8 more packed-part warnings. On the private flight collection
 (560 files that open, many of them versions of one design), it adds 16 errors in 11 files newly
 refused. All are tubes too wide even at the profile's widest. It also adds 14 tight-fit, 33
@@ -767,7 +768,7 @@ the axis, with 10.5 mm (0.41 in) of room. Packing the payload into its room woul
 $0.0142 \times (0.0125^2 - 0.0105^2)/4$ = 1.6e-7 kg m² off the rocket's inertia across its axis.
 The parachute adds a term of its own. The file was flown both ways, with both parts narrowed in a
 copy. The five configurations' apogees differ by 12 µm at most, 7.5e-8 of the apogee. Their
-landing times agree to 1 ms ([the decision's table][adr-170]).
+landing times agree to 1 ms ([the packed-part decision's table][adr-170]).
 
 #### A nominal motor in its matching tube
 

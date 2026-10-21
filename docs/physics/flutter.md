@@ -33,7 +33,7 @@ other, to your fins and your rocket's flight.
 
 ## The model
 
-What flutter is, Martin's criterion for its speed, and the line his data draw.
+What flutter is, Martin's criterion for its speed, and what that speed means against the line his data draw.
 
 ### What flutter is
 

@@ -12,14 +12,14 @@ of mass, inertia and surface area.
   of the published *OpenRocket technical documentation* v13.05 (2013).
 - **How well it is validated:** by analytic tests, the first of four [kinds of evidence][levels].
   Filled shapes match closed forms to 1e-10 (relative). They match independent high-precision
-  integrals to 1e-12 on 22 noses and transitions, and 20 walls match to 1e-10. Three walled probe
-  parts weigh OpenRocket's mass within 3.9e-5 ([the probes][probes]). Not compared with
-  weighed parts or a real flight.
-- **What it leaves out:** a wall measured radially, not square to the surface as HPR Sim and
-  OpenRocket (on its probes) measure it. That changes wall volume by 1.4% on a cone three calibers (base
-  diameters) long. Nor does HPR Sim cut a steep end square to the axis, as OpenRocket cuts its
-  probe transition. A square cut adds up to 2.24% of wall mass in this page's examples
-  ([Walls](#solids-of-revolution)).
+  integrals to 1e-12 on 22 noses and transitions, and 20 walls match to 1e-10. HPR Sim weighs three
+  walled probe parts within 3.9e-5 (relative) of OpenRocket's mass ([the probes][probes]). Not
+  compared with weighed parts or a real flight.
+- **What it leaves out:** a wall measured radially. HPR Sim measures it square to the surface, as
+  OpenRocket does on its probes. Measuring it radially instead changes wall volume by 1.4% on a
+  cone three calibers (base diameters) long. HPR Sim also does not cut a steep end square to the
+  axis, as OpenRocket cuts its probe transition. A square cut adds up to 2.24% of wall mass in this
+  page's examples ([Walls](#solids-of-revolution)).
 
 ## Code and sources
 
@@ -179,7 +179,7 @@ parallel-axis theorem. $S$ excludes the end faces.
       transition over 15 mm (0.59 in, 56°) gains 1.26% of wall mass. One from 20 to 37.3 mm (0.79 to 1.47 in) over
       10 mm (0.39 in, 60°) gains 2.24%.
     - OpenRocket weighs its one probe transition, a shallow cone, heavier than this model by
-      2.8e-6 of its mass. That is the sliver a square cut adds ([the probes][probes]). No
+      2.8e-6 (relative). That is the sliver a square cut adds ([the probes][probes]). No
       steep end or real part has been compared.
     - The sliver grows without bound only as the end turns vertical. There, a square cut (made by
       extending the surface along its tangent) closes the end with a disc of thickness $t$.
@@ -189,7 +189,7 @@ parallel-axis theorem. $S$ excludes the end faces.
     surface point moves between the lateral surface and a rim, since both are kinks.
   - [TD] doesn't say how OpenRocket measures thickness, and [CR] measures it radially. The two
     differ by a factor $\sqrt{1 + y'^2}$ in wall volume, 1.4% for a cone three calibers long.
-    OpenRocket weighs a probe cone of that shape as this model does, within 3.9e-5
+    OpenRocket weighs a probe cone of that shape as this model does, within 5.1e-7
     ([the probes][probes]).
 
 ## Verification
@@ -209,7 +209,7 @@ parallel-axis theorem. $S$ excludes the end faces.
 
     integrated in $\theta$.
   - Loft's tangent-ogive value, $R = 0.04\,\mathrm{m}$, $L = 0.25\,\mathrm{m}$ gives 6.7509e-4 m³
-    ([the lesson](../decisions-and-roadmap.md#l91)).
+    ([a lesson from Loft](../decisions-and-roadmap.md#l91)).
 - mpmath references (`solids::tests::filled_solids_match_the_mpmath_references`):
   - 22 noses and transitions of every family, in both directions, clipped and not.
   - All seven quantities, to 1e-12 relative (worst measured 2.4e-14).

@@ -189,9 +189,10 @@ The example reads a `.eng` file in four steps:
    gives the size in millimeters and the masses in kilograms. So the example multiplies the size
    by 0.001 and passes the masses as they are. **Check that step yourself:** the motor can't tell
    a size left in millimeters. The [units check](#the-effective-exhaust-velocity-is-a-units-check)
-   looks at the impulse and the propellant mass, not the size. If the same size goes into the
-   rocket, the design checks stop a diameter too wide for the mount. A length too long only draws
-   a warning ([Putting it in a rocket](#putting-it-in-a-rocket)).
+   looks at the impulse and the propellant mass, not the size, so any positive size is accepted.
+   If the same size goes into the rocket, the design checks stop the flight for a diameter too
+   wide for the mount. A length too long for it only draws a warning
+   ([Putting it in a rocket](#putting-it-in-a-rocket)).
 
 For a `.rse` file, use `rse::parse` ([`rse::parse`](../api/hpr_motor/rse/fn.parse.html)) instead.
 Its motors are in `engines` rather than `entries`. Its masses are in grams (`initial_mass_g`,
@@ -518,7 +519,7 @@ of the propellant mass, not a filter on propellant:
 - It lets through every real motor checked. The 1,708 ThrustCurve.org files with a catalog
   propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s). Their median is 1,867, and 90% of them are
   between 928 and 2,210. The 32 bundled motors run from **708.59 m/s** (2,324.8 ft/s, a
-  black-powder C) to **2,651.64 m/s** (8,699.6 ft/s, a K). That is with their files' own
+  black-powder C) to **2,651.64 m/s** (8,699.6 ft/s, a K). They use their files' own
   propellant masses.
 - It is tightest at the floor: the lowest real value is 1.2x above it. Estes and Quest normally
   count the delay grain and the ejection charge as propellant, so their small black-powder motors
@@ -563,9 +564,9 @@ $$
   at sea level, can have its flow come away from the nozzle wall (separate). Then the conversion
   doesn't hold ([SP] pp. 32–34).
 - HPR Sim applies it strictly inside the burn, $0 < t < t_{\mathrm{end}}$ ($t_{\mathrm{end}}$ the curve's last time), as
-  RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]). It applies the term
-  only where the curve's thrust is positive; RocketPy also adds it inside zero-thrust gaps, where
-  nothing flows. HPR Sim never lets thrust go negative. Without a known nozzle it returns the
+  RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]). HPR Sim applies the
+  term only where the curve's thrust is positive; RocketPy also adds it inside zero-thrust gaps,
+  where nothing flows. HPR Sim never lets thrust go negative. Without a known nozzle it returns the
   curve. Commercial motor files carry no exit diameter: `.eng` has no field for one, and the
   `.rse` format's `exitDia` attribute is always 0 ([`.rse` files](../format/rse.md#engine-attributes)).
   So a motor read from a file or the catalog gets no correction.

@@ -7,9 +7,9 @@ part lands.
 
 - **What it models:** a part carried inside the airframe, such as ballast or a payload, let go
   during the flight on a trigger. The rest of the rocket flies on in
-  [six degrees of freedom](../glossary.md#6-dof-six-degrees-of-freedom). Its mass,
+  [six degrees of freedom](../glossary.md#6-dof-six-degrees-of-freedom). The rocket's mass,
   [center of mass](../glossary.md#center-of-gravity-cg) and inertia change at once to those of
-  what remains. The part falls to the ground on its own. It was added in
+  what remains. The part falls to the ground on its own. The model was added in
   [the released-mass milestone](../decisions-and-roadmap.md#m1-12b).
 - **Sources:** the [parallel-axis theorem](../glossary.md#parallel-axis-theorem) and the kinetics
   of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. The part's
@@ -123,9 +123,9 @@ a part or a parachute set to a height above the apogee still goes there, as
 falling lets a part waiting for the apogee go at its start. It records an apogee only if the
 rest later rises and falls again.
 
-**The rest can land at the release.** A rocket falling nose up can let go of a part forward of its
-center of mass, just above the ground. That steps the rest's center down, to the ground or below
-it. The rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
+**The rest can land at the release.** A rocket falling nose up can let go of a part just above the
+ground. When the part is forward of the center of mass, that steps the rest's center down, to the
+ground or below it. The rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
 the rocket as it was before the part left. A release that steps the rest below the ground while
 it is still climbing is an error instead.
 
@@ -158,7 +158,7 @@ give the parachute's drag area; it is taken as open from the instant the part le
 ### Reading a release back
 
 - `EventKind::MassRelease(i)` among the flight's events marks release $i$ (its place in the list
-  given to `with_releases`). Its sample is the rocket just before the part left.
+  given to `with_releases`). The event's sample is the rocket just before the part left.
 - `FlightResult::released` holds each part's flight (`ReleasedFlight`): its start, its events, its
   landing. The separated bodies of a separation or an ejection are elsewhere, in
   `FlightResult::bodies`.
@@ -171,7 +171,7 @@ The example
 [`released_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/released_ballast.rs)
 flies the project's 54 mm (2.1 in) test design
 ([`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json),
-a body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) motor. Its airframe
+a body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) motor. The airframe
 carries 200 g of ballast, a cylinder 50 mm (2.0 in) long and 30 mm (1.2 in) across. The ballast is on the axis, its
 center 0.375 m (1.23 ft) aft of the nose tip. The rocket flies in calm standard air from a site in New Mexico 1,400 m (4,593 ft)
 up. A drogue with a drag area of 0.3 m² opens at apogee. At 5 s, well after the 2.5 s burn, the ballast is let
@@ -282,8 +282,8 @@ A part that moves along the airframe without leaving it is [Moving mass](moving-
 ### References
 
 - **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*. Chapter 4 (kinetics
-  of systems of particles) sums a system's momentum and angular momentum over its particles,
-  conserved with no external force. Appendix B has the parallel-axis theorem and the inertia
+  of systems of particles) sums a system's momentum and angular momentum over its particles.
+  It also covers their conservation with no external force. Appendix B has the parallel-axis theorem and the inertia
   tensor.
 - The equations of motion the rest flies on: the RocketPy technical documentation, "Equations of
   Motion" v0 and v1 ([Rigid-body flight](flight.md)).

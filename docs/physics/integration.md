@@ -80,8 +80,8 @@ Sources:
   - A final interval within the rounding of $t$, where $0.1\,h$ is at most
     $\max(\lvert t \rvert, 1) \cdot \mathrm{uround}$, counts as reached, instead of failing as too
     small.
-  - A step can be shortened to land on a stop time. The next call starts from the larger of
-    the controller's proposal and the step it wanted before shortening.
+  - A step can be shortened to land on a stop time. After that, the next call starts from the
+    larger of the controller's proposal and the step the controller wanted before shortening.
   - The step size overflowing to infinity (a problem with zero error and no stop) is an error.
   - There is no stiffness detection.
 - For the starting step ([HNW] §II.4; `HINIT`), $h_0 = 0.01\, \lVert y_0 \rVert / \lVert f_0 \rVert$, then one Euler step estimates
