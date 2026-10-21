@@ -22,7 +22,7 @@
 //! A [`container`] (`.hprz`) carries a design with other files, such as its flight logs.
 //!
 //! TypeScript and Python programs read a document through types generated from the schema, under
-//! `schema/format/typescript/` and `schema/format/python/`, each with a reader that checks it
+//! `schema/format/typescript/` and `schema/format/python/`, each with a reader that checks a document against it
 //! ([the format page][format-page], [M3.3c][m3-3c]).
 //!
 //! ```

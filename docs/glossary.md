@@ -298,7 +298,7 @@ about +7.75°. HPR Sim computes it from the [World Magnetic Model](#world-magnet
 ### DEM (digital elevation model)
 
 A grid of ground heights, one per cell. An example is the US Geological Survey's (USGS) 1-arc-second map of the United States,
-whose cells are about 30 m (98 ft) across. Most are published as [GeoTIFF](#geotiff) files. See
+whose cells are about 30 m (98 ft) across. Most DEMs are published as [GeoTIFF](#geotiff) files. See
 [A launch site's elevation](elevation.md#from-an-elevation-file-of-your-own).
 
 ### Deployment
@@ -873,8 +873,8 @@ of pressure, flown in place of HPR Sim's own. See
 ### Parallel stage
 
 A stage strapped beside the rocket instead of stacked behind it, such as a set of boosters around
-a sustainer. The stage's copies are placed around a body tube, like [pods](#pod). They burn with the
-core and drop at a separation of their own. OpenRocket calls it a *parallel stage* or *booster set*. See
+a sustainer. The stage's copies are placed around a body tube, like [pods](#pod). The copies burn with
+the core and drop at a separation of their own. OpenRocket calls it a *parallel stage* or *booster set*. See
 [The design tree: Parallel stages](physics/design.md#parallel-stages) and
 [Staging: Boosters beside the core](physics/staging.md#boosters-beside-the-core).
 
@@ -1088,10 +1088,10 @@ The International System of Units: meters, kilograms and seconds, and units buil
 
 A way to work out the air's forces on a long, thin body from how fast its cross-section grows
 along its length. At any Mach number, it gives a nose as wide as the reference a normal-force slope of 2 per
-radian, whatever its shape. A transition gets $2\Delta A/A_{\mathrm{ref}}$, and a plain tube nothing. Barrowman's method uses it
+radian, whatever its shape. A transition gets $2\Delta A/A_{\mathrm{ref}}$ and a plain tube nothing, at any Mach number too. Barrowman's method uses it
 for every body part. HPR Sim uses it below Mach 1.2, and at every speed for bodies the
-shock-expansion method can't take. These are steps and a nose too blunt for its cap. So is a widening
-shape that isn't a cone, isn't flush with the part ahead of it, or rides in a boattail's wake. NASA's wind tunnel
+shock-expansion method can't take. These are steps and a nose too blunt for its cap. A third is a
+widening shape that isn't a cone, isn't flush with the part ahead of it, or rides in a boattail's wake. NASA's wind tunnel
 shows a real body lifting more past Mach 3. See
 [Aerodynamics](physics/aero.md#bodies-of-revolution).
 

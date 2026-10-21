@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 51 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 438988 words, 0 stock phrases. 56 pages are within every limit.
+82 pages, 439000 words, 0 stock phrases. 56 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -50,7 +50,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/pf2.md` (`ref`) | 809 | 15.1 | 10% | 0.00 | 0.13 | 0.50 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.24 |
 | `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4155 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
-| `docs/glossary.md` (`ref`, `held`) | 13089 | 13.2 | 0% | 0.00 | 0.10 | 0.00 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
+| `docs/glossary.md` (`ref`, `held`) | 13097 | 13.2 | 0% | 0.00 | 0.10 | 0.00 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
 | `docs/how-a-flight-is-simulated.md` (`held`) | 2127 | 14.2 | 0% | 0.33 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.15 | 0.33 |
 | `docs/monte-carlo.md` (`held`) | 3572 | 13.8 | 0% | 0.23 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.45 | 0.73 |
 | `docs/motor-stock.md` (`held`) | 3538 | 13.7 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.26 | 1.11 |
@@ -65,7 +65,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/flutter.md` (`ref`) | 2835 | 15.4 | 12% | 0.36 | 0.15 | **0.60** | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.18 |
 | `docs/physics/frames.md` (`ref`, `held`) | 1313 | 12.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/geodesy.md` (`ref`, `held`) | 1737 | 12.2 | 0% | 0.24 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.12 | 0.06 |
-| `docs/physics/gravity.md` (`ref`, `held`) | 1134 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| `docs/physics/gravity.md` (`ref`, `held`) | 1137 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/integration.md` (`ref`) | 2063 | 13.1 | 8% | **1.27** | 0.25 | **0.59** | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.25 |
 | `docs/physics/interpolation.md` (`ref`, `held`) | 538 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/log-readings.md` (`ref`) | 16192 | 24.5 | 40% | 0.33 | 0.13 | **1.34** | 0.17 | 0.00 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
@@ -83,11 +83,11 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/turbulence.md` (`ref`, `held`) | 1292 | 11.2 | 0% | 0.31 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.24 |
 | `docs/physics/wind.md` (`ref`, `held`) | 2987 | 14.6 | 0% | 0.37 | 0.07 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.31 | 0.27 |
 | `docs/pick-a-motor.md` (`held`) | 1166 | 13.3 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.46 | 0.35 |
-| `docs/plan.md` (`held`) | 1045 | 10.4 | 0% | 0.00 | 0.20 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.58 |
+| `docs/plan.md` (`held`) | 1044 | 10.4 | 0% | 0.00 | 0.20 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.58 |
 | `docs/python.md` (`held`) | 4634 | 14.2 | 1% | 0.07 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.46 | 0.78 |
 | `docs/reading-a-flight-log.md` (`held`) | 2329 | 13.7 | 0% | 0.48 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.82 |
 | `docs/recording-a-trajectory.md` (`held`) | 821 | 14.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.74 |
-| `docs/releasing.md` (`held`) | 2582 | 14.2 | 0% | 0.28 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.74 |
+| `docs/releasing.md` (`held`) | 2585 | 14.2 | 0% | 0.28 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.74 |
 | `docs/sensitivity.md` (`held`) | 2301 | 14.5 | 0% | 0.27 | 0.00 | 0.00 | 0.14 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.57 | 0.66 |
 | `docs/simulator-compared.md` (`held`) | 2588 | 12.8 | 4% | 0.00 | 0.00 | 0.28 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.04 | 0.00 | 0.16 | 0.70 |
 | `docs/simulator-tour.md` (`held`) | 1573 | 13.9 | 0% | 0.45 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.32 | 0.51 |
@@ -100,6 +100,6 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/trusting-a-simulation.md` (`held`) | 1555 | 15.2 | 2% | 0.00 | 0.00 | 0.13 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 1.03 |
 | `docs/weather.md` (`held`) | 1974 | 13.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.87 |
 | `docs/when-fins-flutter.md` (`held`) | 1773 | 14.9 | 1% | 0.23 | 0.00 | 0.06 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.17 | 0.68 |
-| `docs/writing.md` (`held`) | 9519 | 14.3 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.96 |
+| `docs/writing.md` (`held`) | 9518 | 14.3 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.96 |
 | `docs/your-own-logger.md` (`held`) | 2407 | 14.5 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4489 | 14.5 | 0% | 0.36 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.67 |

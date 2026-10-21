@@ -42,7 +42,7 @@ entry: what it holds, what works, how far to trust it, and its known gaps.
 
 Each file is built and tested on the platform it's for, on that platform's own CPU
 ([the six platforms](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0222-six-platforms-tested-on-every-pull-request.md)).
-Five run now: Linux and Windows, each on x86-64 and on 64-bit ARM, and Macs with Apple silicon. Release
+Five of the six run now: Linux and Windows, each on x86-64 and on 64-bit ARM, and Macs with Apple silicon. Release
 0.1 had the x86-64 Linux, Apple silicon and x86-64 Windows files only. The ARM Linux and ARM
 Windows files start with release 0.2. Intel Macs follow
 ([issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438)). Anywhere else,

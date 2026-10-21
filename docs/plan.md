@@ -53,7 +53,7 @@ pass, and any changes that pass turns up.
 | File interop: OpenRocket, RockSim, RASAero, RocketPy | high | OpenRocket's files fly today. The others follow known formats and earlier work. |
 | Competition design and submission packs | high | Mostly well-defined calculations from cited models. Testing that each safety number errs the safe way adds work, not risk. |
 | Flight forensics: logs, fits, diagnosis | high; medium for diagnosis | Importers and fits are well defined. Diagnosis must name the right fault first for at least 80% of 200 simulated faulty flights; real anomalous flights depend on finding logs of them. |
-| The app: editor, 3D replay, web app | medium | The code can be built steadily. Whether it is good to use is judged by people: the project's own acceptance pass checks each milestone. |
+| The app: editor, 3D replay, web app | medium | The code can be built steadily. Whether it is good to use is judged by the project's own acceptance pass on each milestone. |
 | Phone apps and accounts | medium | They need an app-store account and a hosting provider, both Neer's choices. Neither is part of 1.0. |
 | CAD files | high for meshes and drawings; medium-low for STEP | Few permissively licensed libraries read or write STEP's exact solids. STEP import may need a licensing decision. |
 | Motor design | high for solid motors; medium for hybrids and liquids | Hybrid and liquid design waits first on a decision about US export rules for rocket propulsion. |
