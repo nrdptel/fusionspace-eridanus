@@ -141,7 +141,7 @@ checkable items.
   GitHub pages, should sound like him, written plainly, and asked for it to be done carefully.
 - **2026-10-21, every motor offline** ([ADR-288, every solid motor ships in the package](decisions/0288-every-solid-motor-ships-in-the-package.md)).
   Neer decided the package should carry every motor's data, so it works offline with nothing to
-  fetch, with as much data and as many options as possible. Solid motors come first.
+  fetch, with as much data and as many options as possible. Solid motors come first; hybrids wait for release 1.0.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,

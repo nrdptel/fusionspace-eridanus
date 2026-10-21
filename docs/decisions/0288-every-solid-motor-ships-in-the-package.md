@@ -96,9 +96,13 @@ the program does.
   together, and M0.9f's check on long `hpr sim` warnings will then cover M5.7's new warning.
   Release 0.2's milestones don't depend on M5.7, but it goes ahead of them, so release 0.2 moves
   back by its length.
-- The checks that hold the bundle to 1% today keep holding over every file stored as passing:
-  [lesson L42][l42]'s test, `every_bundled_curve_impulse_within_1pct_of_thrustcurve`, and
-  `cargo xtask motor-catalog`'s failure over 1%.
+- The checks that hold the bundle to 1% today keep holding, over every file stored as passing:
+  [lesson L42][l42]'s test (`every_bundled_curve_impulse_within_1pct_of_thrustcurve`), the test
+  against ThrustCurve.org's own statistics code
+  (`every_bundled_curve_matches_thrustcurve_statistics_code`), with its oracle fixture regenerated
+  to cover each file, and `cargo xtask motor-catalog`'s failure over 1%, run in CI rather than only
+  where the uncommitted captures are. A recount from the raw snapshot, outside the stored results,
+  must agree with them, so a file can't escape the checks by being marked failing.
 - The 32 bundled curves keep [ADR-066][adr-066]'s check: hpr's total impulse within 0.1% of
   OpenRocket's integration of the same file. M5.7 doesn't extend that check to the other files.
   If the default rule picks a different file for one of the 32, M5.7's PR regenerates the reports

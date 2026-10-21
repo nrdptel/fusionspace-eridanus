@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 51,000 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 52,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -299,7 +299,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - each file stores its ADR-005 1% check (definition A); the default is a passing file where one
     exists; `hpr motors show` lists every file, its check and label; flying a failing file warns
     with each figure's signed gap (tests: a pass, the 1% edge, each figure alone; a mutation probe);
-  - the L42 test and `xtask motor-catalog`'s 1% failure hold over every file stored as passing;
+  - the L42 and statistics-code tests run over every file stored as passing, the oracle fixture
+    covering each, and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees;
   - `hpr motors update` adds a newer motor or file from a recorded answer, and offline names the
     bundle's date; the motor page gives the date, counts, passing motors and size, from the tool.
 
