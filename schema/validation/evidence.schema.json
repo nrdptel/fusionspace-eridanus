@@ -196,12 +196,16 @@
       "type": "object",
       "properties": {
         "found": {
-          "description": "What it found, nothing included.",
+          "description": "What it found, nothing included, as short sentences. The report writes it after \"It\nfound\", so its first sentence goes on from those words, in lower case.",
           "type": "string"
         },
         "looked": {
-          "description": "Where it looked: the sites, archives and collections searched.",
-          "type": "string"
+          "description": "Where it looked, one place each: a site, an archive, a search or a collection, as a short\nphrase. The report lists each place as its own item.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
         },
         "on": {
           "description": "The day of the search, `YYYY-MM-DD`.",
