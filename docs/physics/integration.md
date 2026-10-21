@@ -9,14 +9,14 @@ events such as apogee and landing.
   steps to an error tolerance, or fixed-step Runge–Kutta (RK4). It lands exactly on set times such
   as burnout, and finds events such as apogee.
 - **Sources:** Dormand and Prince (1980); Hairer, Nørsett and Wanner's *Solving Ordinary
-  Differential Equations I* (1993), whose `DOPRI5` code the port follows; Brent (1973), for the
-  root finding that locates events.
+  Differential Equations I* (1993), whose `DOPRI5` code the port follows. Brent (1973) gives
+  the root finding that locates events.
 - **How well it is validated:** by analytic and unit tests only, not yet on its own against another
   simulator or a real flight. Its step counts match an independent transcription of `DOPRI5`, and
   its error shrinks as theory predicts. In an exactly solvable flight with drag, apogee, deployment
   and landing times are right to 1.5e-8 s at default tolerances.
 - **What it leaves out:** it can't detect a stiff problem, where very fast, heavily damped motion
-  forces tiny steps; the run then stops with an error. Fixed 10 ms RK4 steps can diverge for a
+  forces tiny steps. The run then stops with an error. Fixed 10 ms RK4 steps can diverge for a
   light body under a big canopy. An event that crosses zero and back within one step goes unseen.
 
 ## Code and sources
@@ -30,11 +30,11 @@ Sources:
   *J. Comput. Appl. Math.* 6 (1980) 19–26, doi:10.1016/0771-050X(80)90013-3. Cited, not fetched
   (the publisher refuses scripted downloads).
 - **[HNW]** E. Hairer, S. P. Nørsett and G. Wanner, *Solving Ordinary Differential Equations I*,
-  2nd ed., Springer, 1993: §II.1 (RK4, table 1.2), §II.2 (order conditions, table 2.2), §II.4
+  2nd ed., Springer, 1993. §II.1 (RK4, table 1.2), §II.2 (order conditions, table 2.2), §II.4
   (error norm, step control, starting step), §II.5 (DOPRI5, table 5.2), §II.6 (dense output).
   The PI controller is §IV.2 of volume II. Cited, not fetched.
 - **[D5]** E. Hairer and G. Wanner, `DOPRI5` (Fortran, version of 2004), BSD-2-Clause, pinned as
-  `hairer-dopri5` in `validation/refs.lock.toml`. It is the book's code, and the port follows it:
+  `hairer-dopri5` in `validation/refs.lock.toml`. It is the book's code. The port follows it:
   coefficients (`CDOPRI`), the error norm and controller (`DOPCOR`), the starting step (`HINIT`) and
   the dense output (`CONTD5`).
 - **[B73]** R. P. Brent, *Algorithms for Minimization without Derivatives*, Prentice-Hall, 1973,
@@ -42,14 +42,12 @@ Sources:
 
 ## Stepping and events
 
-The two integration methods, how a step lands on a set time, how events are found, and the defaults.
-
 ### Methods
 
-- **Dormand–Prince 5(4)** ([DP80]; [HNW] table 5.2). Seven stages, first-same-as-last, so six new
+- Dormand–Prince 5(4) ([DP80]; [HNW] table 5.2) has seven stages, first-same-as-last, so six new
   evaluations per step. The step advances with the fifth-order solution (local extrapolation), and
   the embedded fourth-order solution estimates the error: $\mathrm{err}_i = h \sum_j (b_j - \hat{b}_j)\, k_j$.
-- **Error norm** ([HNW] eq. 4.11; [D5]):
+- The error norm ([HNW] eq. 4.11; [D5]) is:
 
   $$
   \begin{aligned}
@@ -63,7 +61,7 @@ The two integration methods, how a step lands on a set time, how events are foun
   The weights $w_i$ come from
   `OdeSystem::absolute_tolerance_weights`, so components in different units share one $\mathrm{atol}$.
   A step is accepted when $\lVert \mathrm{err} \rVert \le 1$.
-- **Step control** ([HNW] II, §IV.2; [D5] defaults). The PI controller, with $\beta = 0.04$:
+- The step control ([HNW] II, §IV.2; [D5] defaults) is the PI controller, with $\beta = 0.04$:
 
   $$
   \begin{aligned}
@@ -73,7 +71,7 @@ The two integration methods, how a step lands on a set time, how events are foun
   $$
 
   After a rejection, $h_{\mathrm{new}} = h/\min(5, \lVert \mathrm{err} \rVert^{0.17}/0.9)$, and the step after a rejection can't grow.
-- **Departures from `DOPRI5`.**
+- Departures from `DOPRI5`:
   - A non-finite error estimate, or a derivative that fails in stages 2–7, counts as a rejection
     that shrinks $h$ five times. A long step's stages can probe states off the trajectory
     (negative mass, a Mach number past a table's end). The failure is reported only once the step
@@ -82,11 +80,11 @@ The two integration methods, how a step lands on a set time, how events are foun
   - A final interval within the rounding of $t$, where $0.1\,h$ is at most
     $\max(\lvert t \rvert, 1) \cdot \mathrm{uround}$, counts as reached, instead of failing as too
     small.
-  - After a step shortened to land on a stop time, the next call starts from the larger of the
-    controller's proposal and the step the controller wanted before shortening.
+  - A step can be shortened to land on a stop time. The next call starts from the larger of
+    the controller's proposal and the step it wanted before shortening.
   - The step size overflowing to infinity (a problem with zero error and no stop) is an error.
   - There is no stiffness detection.
-- **Starting step** ([HNW] §II.4; `HINIT`): $h_0 = 0.01\, \lVert y_0 \rVert / \lVert f_0 \rVert$, then one Euler step estimates
+- For the starting step ([HNW] §II.4; `HINIT`), $h_0 = 0.01\, \lVert y_0 \rVert / \lVert f_0 \rVert$, then one Euler step estimates
   the second derivative and
 
   $$
@@ -97,7 +95,7 @@ The two integration methods, how a step lands on a set time, how events are foun
   \end{aligned}
   $$
 
-- **Dense output** ([HNW] §II.6; `CONTD5`). With $\theta = (t - t_0)/h$ and $\Delta = y_1 - y_0$:
+- With $\theta = (t - t_0)/h$ and $\Delta = y_1 - y_0$, the dense output ([HNW] §II.6; `CONTD5`) is:
 
   $$
   \begin{aligned}
@@ -111,14 +109,14 @@ The two integration methods, how a step lands on a set time, how events are foun
 
   It is a continuous extension of order 4, so its error inside a step is
   $O(h^5)$.
-- **RK4** ([HNW] table 1.2): weights 1/6, 2/6, 2/6, 1/6 at 0, ½, ½, 1, with a fixed step. Its
+- RK4 ([HNW] table 1.2) has weights 1/6, 2/6, 2/6, 1/6 at 0, ½, ½, 1, with a fixed step. Its
   dense output is the cubic Hermite interpolant of $y_0$, $y_1$, $f_0$, $f_1$ in the same nested form without
   $r_4$ (error $O(h^4)$ inside a step). $f_1$ is the next step's $k_1$, so it costs nothing extra.
 
 ### Stop times and discontinuities
 
 - `Integrator::advance(system, t_stop)` never steps past `t_stop`. Like `DOPRI5`, it stretches the
-  last step up to 1% to land on it exactly (never past `max_step_s`), and `time_s()` equals
+  last step up to 1% to land on it exactly (never past `max_step_s`). Then `time_s()` equals
   `t_stop` bit for bit.
 - The system is one `OdeSystem<N>`: the derivative, optional tolerance weights, optional events
   (`event_count`, `event_direction`, `event_value`), and `accept_step`. `accept_step` sees every
@@ -126,7 +124,7 @@ The two integration methods, how a step lands on a set time, how events are foun
   can record from, and stop on, its own state.
 - A discontinuity in the right-hand side (burnout, a staging, a phase change) must be a stop time.
   An RK step across a jump drops to first order ([Loft lesson L23](../decisions-and-roadmap.md#l23)).
-- **Which side a stop time belongs to.** The last stage of the step ending at `t_stop` is evaluated
+- The last stage of the step ending at `t_stop` is evaluated
   *at* `t_stop` and belongs to the phase before it. The first stage of the next call belongs to the
   phase after it. A system that picks its phase from $t$ alone gets one of the two wrong, so the
   caller sets the phase between calls (`integrator::tests::a_discontinuity_inside_a_step_...`).
@@ -140,16 +138,16 @@ The two integration methods, how a step lands on a set time, how events are foun
 - After each accepted step, `advance` evaluates every $g$ at the step's end. For each sign change it
   finds the zero of $g(t, y_{\mathrm{dense}}(t))$ on the step with Brent's method ([B73]) to
   `EVENT_TIME_RESOLUTION_S = 1e-12 s` (plus $4\varepsilon \lvert t \rvert$). The earliest zero sets the stop.
-- **Where it stops.** The integrator stops at the end of Brent's final bracket on the far side of
+- The integrator stops at the end of Brent's final bracket on the far side of
   the zero, with the dense output's state there. It returns `Advance::Events`, and
   `fired_events()` lists every event past its zero at that state, ascending. Coincident events,
   such as two devices set to deploy at apogee, fire together. $g$ is already past zero (or
   exactly zero) for all of them when the next call starts, so none is reported twice. The system's
   `accept_step` sees the shortened step.
-- **Accuracy.** The event time is as accurate as the solution: the root finder adds at most about
-  `2e-12 s`. The state at the event is the dense output's, which is fourth order for
+- The event time is as accurate as the solution. The root finder adds at most about `2e-12 s`.
+  The state at the event is the dense output's, which is fourth order for
   Dormand–Prince and third for RK4.
-- **Limits.**
+- Limits:
   - A function that crosses zero and returns inside one step goes unseen. Bound the step with
     `Adaptive::max_step_s` where that can happen.
   - A function that crosses and comes back to exactly zero at the step's end is reported at the
@@ -163,18 +161,18 @@ The two integration methods, how a step lands on a set time, how events are foun
 
 - `rtol = atol = 1e-8`, no maximum step, and a limit of 10⁶ attempted steps.
 - The flight keeps these defaults with unit weights. On Valetudo's flight on a K400C motor they
-  take 1.13 ms, and put the apogee within 1.1e-6 m of a run at 1e-11
+  took 1.13 ms, and put the apogee within 1.1e-6 m of a run at 1e-11
   ([Rigid-body flight](flight.md#integration-settings)).
 - A stiff flight phase shows up as `StepTooSmall` or the step limit.
-- **A fixed step has to respect the drag's own time scale.** Quadratic drag $\dot{v} = -k \lvert v \rvert v$, with
-  $k = \rho C_D S/(2m)$, linearizes to $\lambda = 2k \lvert v \rvert$, and RK4 is stable only for $h \lesssim 2.78/\lambda$. A light
-  body under a big canopy is the worst case in HPR Sim: a 0.55 kg sustainer arriving at 168 m/s (551 ft/s)
-  under 2 m² gives $\lambda \approx 740\,\mathrm{1/s}$, so RK4 needs $h \lesssim 3.8\,\mathrm{ms}$ and diverges at 10 ms (found in review;
-  it surfaces as a geodesy error from an absurd position, not as a stability message). The adaptive
-  method has no such limit. Recovery descents are the place this bites, because a separated body
-  can be a tenth of the stack's mass under a canopy sized for it.
-- Integration runs forward only. `t_stop` may be infinite, to run until an event or a stop from
-  `accept_step`. After any error, the integrator stays at its last accepted step and can resume;
+- A fixed step has to respect the drag's own time scale. Quadratic drag $\dot{v} = -k \lvert v \rvert v$, with
+  $k = \rho C_D S/(2m)$, linearizes to $\lambda = 2k \lvert v \rvert$. RK4 is stable only for $h \lesssim 2.78/\lambda$. A light
+  body under a big canopy is the worst case in HPR Sim. A 0.55 kg sustainer arriving at 168 m/s (551 ft/s)
+  under 2 m² gives $\lambda \approx 740\,\mathrm{1/s}$. So RK4 needs $h \lesssim 3.8\,\mathrm{ms}$ and diverges at 10 ms (found in review).
+  The divergence surfaces as a geodesy error from an absurd position, not as a stability message.
+  The adaptive method has no such limit. Recovery descents are the place this bites, because a
+  separated body can be a tenth of the stack's mass under a canopy sized for it.
+- Integration runs forward only. `t_stop` can be infinite, to run until an event or a stop from
+  `accept_step`. After any error, the integrator stays at its last accepted step and can resume.
   `set_step_limit` raises a spent limit.
 
 ## Verification
@@ -182,36 +180,36 @@ The two integration methods, how a step lands on a set time, how events are foun
 Unit tests in `hpr_sim::integrator::tests` and `hpr_sim::events::tests`. The numbers quoted were
 measured on 2026-09-17.
 
-- **Tableau.** Rows sum to $c$. The fifth-order weights satisfy all 17 order conditions to
+- In the tableau, rows sum to $c$. The fifth-order weights satisfy all 17 order conditions to
   order 5 ([HNW] table 2.2) to 1e-14. The embedded weights satisfy orders 1–4 and miss at least one
   fifth-order condition by more than 1e-4. The dense output's weights $b(\theta)$ satisfy the conditions
   to order 4 at $\theta$ = 0.1 to 0.9, which pins `D1`–`D7`.
-- **The port is `DOPRI5`.** On Hairer's driver problem, the Arenstorf orbit, at `rtol = atol` = 1e-4,
-  1e-7 and 1e-10, the evaluations (494, 1442, 5060), attempted steps (82, 240, 843) and accepted
-  steps (64, 216, 841) equal those of an independent line-by-line transcription of `DOPCOR` and
-  `HINIT`. So do the end positions, to 1e-9. This pins the controller, the starting step and the
-  error norm.
-- **Step-halving convergence** on the nonlinear, non-autonomous $y' = -2ty^2$, $y = 1/(1 + t^2)$ on
+- The port matches `DOPRI5` on Hairer's driver problem, the Arenstorf orbit, at
+  `rtol = atol` = 1e-4, 1e-7 and 1e-10. The evaluations (494, 1442, 5060) and attempted steps
+  (82, 240, 843) equal those of an independent line-by-line transcription of `DOPCOR` and `HINIT`.
+  So do the accepted steps (64, 216, 841), and the end positions to 1e-9. This pins the
+  controller, the starting step and the error norm.
+- Step-halving convergence on the nonlinear, non-autonomous $y' = -2ty^2$, $y = 1/(1 + t^2)$ on
   $[0, 2]$, driven through `advance`:
-  - Dormand–Prince at a fixed step (first and largest step $h$, tolerances too loose to reject),
-    10 to 160 steps: orders 5.88, 5.53, 5.31, 5.17, falling toward 5. At 320 steps the error, 6e-15,
-    reaches rounding. The dense output at $\theta$ = ¼, ½, ¾ gives 4.81, 4.97, 4.99, 4.99.
+  - Dormand–Prince runs at a fixed step $h$, its first and largest, with tolerances too loose to
+    reject. Over 10 to 160 steps its orders are 5.88, 5.53, 5.31, 5.17, falling toward 5.
+    At 320 steps the error, 6e-15, reaches rounding. The dense output at $\theta$ = ¼, ½, ¾ gives
+    4.81, 4.97, 4.99, 4.99.
   - RK4, 20 to 160 steps: orders 4.04, 4.02, 4.01. Its Hermite dense output gives 3.96, 3.99, 4.00.
-- **Tolerance proportionality.** Over $[0, 10]$ with `rtol = atol` from 1e-4 to 1e-9, the error
-  falls from 2.7e-5 to 2.2e-10, 0.22 to 0.28 of the tolerance throughout (asserted within 0.07 to
-  0.85).
-- **Apogee under tolerance halving ([Loft lesson L21](../decisions-and-roadmap.md#l21)).** A vertical flight with quadratic
-  drag, $v' = -g - kv \lvert v \rvert$, has a closed-form apogee (`testing::closed_form_quadratic_drag`). As the
-  tolerance halves from 1e-5 to 2e-8, the apogee time error falls from 5.7e-4 s to 1.2e-8 s and the
-  height error from 3.4e-4 m to 8.3e-8 m. The fall is not monotone step by step: $v \lvert v \rvert$ has a kink
-  at apogee. The log–log slope of the height error against the tolerance is 1.36, and the worst
+- Over $[0, 10]$ with `rtol = atol` from 1e-4 to 1e-9, the error falls from 2.7e-5 to 2.2e-10.
+  It is 0.22 to 0.28 of the tolerance throughout (asserted within 0.07 to 0.85).
+- A vertical flight with quadratic drag, $v' = -g - kv \lvert v \rvert$, has a closed-form apogee
+  (`testing::closed_form_quadratic_drag`, [Loft lesson L21](../decisions-and-roadmap.md#l21)). As the
+  tolerance halves from 1e-5 to 2e-8, the apogee time error falls from 5.7e-4 s to 1.2e-8 s. The
+  height error falls from 3.4e-4 m to 8.3e-8 m. The fall is not monotone step by step: $v \lvert v \rvert$ has a kink
+  at apogee. The log–log slope of the height error against the tolerance is 1.36. The worst
   errors are 117·tol (time) and 91·tol (height).
-- **Vacuum with constant thrust ([Loft lesson L23](../decisions-and-roadmap.md#l23)).** Burnout is a stop time. At burnout
-  the state matches Tsiolkovsky's equation with gravity loss to 1e-9 relative, for both methods. The
-  coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi, Dormand–Prince, 20 steps) and 4e-11 s and
-  1.6e-8 m (RK4, 0.01 s). Integrated straight through the jump, RK4 misses the velocity by
-  0.56 m/s (1.8 ft/s); with the stop time the miss is 1e-12 m/s.
-- **Events within 1e-6 s ([Loft lesson L22](../decisions-and-roadmap.md#l22)).**
+- In a vacuum with constant thrust, burnout is a stop time ([Loft lesson L23](../decisions-and-roadmap.md#l23)). At burnout
+  the state matches Tsiolkovsky's equation with gravity loss to 1e-9 relative, for both methods.
+  The coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi) with Dormand–Prince (20
+  steps). RK4 (0.01 s) comes within 4e-11 s and 1.6e-8 m. Integrated straight through the
+  jump, RK4 misses the velocity by 0.56 m/s (1.8 ft/s). With the stop time the miss is 1e-12 m/s.
+- Events are located within 1e-6 s ([Loft lesson L22](../decisions-and-roadmap.md#l22)):
   - For the quadratic-drag flight, the apogee, a 300 m (984 ft) descending deploy and landing are all
     located against the closed forms. Errors: 1.2e-8, 1.5e-8 and 1.4e-8 s at the default
     tolerances, and 3e-12 to 1.3e-11 s with RK4 at 0.01 s. $g$ at the stop is below 1e-13.
@@ -222,16 +220,18 @@ measured on 2026-09-17.
   - Three crossings inside one RK4 step come out in time order, to 1e-12 s.
   - Where the dense output is exact ($y' = 1$), nonlinear event functions stop between 0 and
     2.5e-12 s past their roots, on the far side.
-- **Brent.** Checked on a smooth root to 1e-14, a triple root, a step discontinuity (under 60
-  evaluations, far side returned), exact zeros at the ends, a bracket that doesn't bracket and a
-  NaN.
-- **Failures.** These are reported as errors, never as a quiet stop:
+- Brent's method is checked on:
+  - a smooth root, to 1e-14;
+  - a triple root;
+  - a step discontinuity (under 60 evaluations, far side returned);
+  - exact zeros at the ends, a bracket that doesn't bracket and a NaN.
+- These failures are reported as errors, never as a quiet stop:
   - a failing derivative (the adaptive method closes to within 1e-9 s of where it fails);
   - a blow-up ($y' = y^2$ stops near $t = 1$);
   - a step overflowing to infinity;
   - the step limit (and resuming after raising it);
   - bad settings, a backward stop and zero weights.
-- **Robustness.** Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1000 s are reached. Steps respect
+- Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1000 s are reached. Steps respect
   `max_step_s`. `accept_step` can stop a run. Repeated runs are bit-identical. Unknown fields and
   the old tag names are refused in settings files.
 

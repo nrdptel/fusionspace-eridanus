@@ -5,46 +5,45 @@ as its motor burns.
 
 ## In short
 
-- **What it models:** a rocket's flight from the pad to the ground, rail included: a rigid body
-  free to move and turn in every direction (six degrees of freedom) that gets lighter as its motor
-  burns.
-- **Sources:** the equations of motion in RocketPy's technical documentation (RocketPy 1.13.0),
-  and the RocketPy paper (Ceotto et al., 2021), which is cited but was not fetched.
-- **How well it is validated:** by analytic and unit tests (a tumbling rocket's center of mass
-  stays on the exact parabola in a vacuum to 1.7e-6 m over 22 s), and against RocketPy. Five of
-  its example rockets, flown from the pad to the ground by both codes with the same declared drag,
-  agree on height, speed, time and acceleration within 3%; the largest scored difference is
-  +1.783%, a peak acceleration on the rail ([validation report][report],
-  [whole flights against RocketPy](#whole-flights-against-rocketpy)). So does the path, except
-  for rockets that leave the rail slowly in a wind. There HPR Sim's
-  [body lift](../glossary.md#body-lift), which RocketPy's normal force leaves out, its later
-  release from the rail and, for Juno III, its simpler fin model put the apogee drift −4.333% to
-  −38.158% from RocketPy's ([validation report][report]; the causes in [ADR-026][adr-026]). A
-  sixth, Prometheus 2022, passes Mach 1 on its drag table
-  and agrees as well, its drifts again apart from RocketPy's by body lift. With HPR Sim's own drag, against RocketPy flying the drag its
-  examples ship, HPR Sim's heights differ from RocketPy's by −7.280% to +10.302%
-  ([validation report][report]), the larger gaps where
-  the two drags differ most: HPR Sim's is well below the example's for two rockets, and above it at
-  high speed for Prometheus 2022, which flies through Mach 1 on HPR Sim's drag since
-  [M1.8b1](../decisions-and-roadmap.md#m1-8b1) (drag through Mach 1)
-  ([Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
-  compared with their teams' altitude logs, apogee and climb only
+- **What it models:** a rocket's flight from the pad to the ground, rail included. The rocket is
+  a rigid body free to move and turn in every direction (six degrees of freedom). It gets lighter
+  as its motor burns.
+- **Sources:** the equations of motion in RocketPy's technical documentation (RocketPy 1.13.0).
+  The RocketPy paper (Ceotto et al., 2021) is cited but was not fetched.
+- **How well it is validated:** by analytic and unit tests, and against RocketPy. In a vacuum, a
+  tumbling rocket's center of mass stays on the exact parabola to 1.7e-6 m over 22 s. Five of
+  RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
+  declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
+  difference is +1.783%, a peak acceleration on the rail ([validation report][report],
+  [whole flights against RocketPy](#whole-flights-against-rocketpy)). The path agrees as well,
+  except for rockets that leave the rail slowly in a wind and NDRT 2020's apogee drift. There
+  HPR Sim's apogee drift is −4.333% to −38.158% from RocketPy's ([validation report][report]).
+  The causes are HPR Sim's [body lift](../glossary.md#body-lift), which RocketPy's normal force
+  leaves out, and its later release from the rail ([ADR-026][adr-026]). For Juno III, so is
+  HPR Sim's simpler fin model. A sixth, Prometheus 2022, passes Mach 1 on its drag table and
+  agrees as well. Its drifts again differ from RocketPy's through body lift. With HPR Sim's own
+  drag, against RocketPy flying the drag its examples ship, HPR Sim's heights differ from
+  RocketPy's by −7.280% to +10.302% ([validation report][report]). The gaps are larger where the two drags differ most.
+  HPR Sim's is well below the example's for two rockets. For Prometheus 2022 it is above the
+  example's at high speed. On HPR Sim's drag that rocket flies through Mach 1
+  ([drag through Mach 1](../decisions-and-roadmap.md#m1-8b1),
+  [Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
+  compared with their teams' altitude logs, apogee and climb only, and
+  [53 more][fixture-report] on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
-- **What it leaves out:** staging and delayed ignition, tip-off (the pivot as the rocket leaves the
-  rail), turbulence and thrust misalignment. Its
+- **What it leaves out:** staging and delayed ignition (on [Staging](staging.md)), tip-off (the
+  pivot as the rocket leaves the rail), turbulence and thrust misalignment. Its
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
   aerodynamic models, stops with an error.
 
 ## About the model
 
-What the equations do in plain words, and where the code and its sources are.
-
 ### What the equations do
 
 At each instant of a flight, HPR Sim adds up every force on the rocket and every turning effect (a
-moment): the thrust, the weight, the air's forces, and the effects of the propellant burning away.
-From those it works out how fast the rocket speeds up and how fast its turning changes. The
+moment). They come from the thrust, the weight, the air and the propellant burning away. From
+those it works out how fast the rocket speeds up and how fast its turning changes. The
 integrator ([Time integration](integration.md)) then carries the rocket forward, one short step
 at a time.
 
@@ -62,7 +61,7 @@ events are in [Time integration](integration.md), and the frames in [Frames](fra
 Sources:
 
 - **[RP-EOM]** RocketPy technical documentation, "Equations of Motion" v0 (Kane's method with the
-  Reynolds transport theorem) and v1 (the form solved), `docs/technical/equations_of_motion.rst`
+  Reynolds transport theorem) and v1 (the form solved). They are `docs/technical/equations_of_motion.rst`
   and `equations_of_motion_v1.rst` in RocketPy 1.13.0 (`refs/rocketpy`, MIT).
 - **[C21]** G. H. Ceotto, R. N. Schmitt, G. F. Alves, L. A. Pezente and B. S. Carmo, "RocketPy:
   Six Degree-of-Freedom Rocket Trajectory Simulator", *J. Aerosp. Eng.* 34(6), 2021,
@@ -70,19 +69,17 @@ Sources:
 
 ## The equations
 
-The state the engine carries, its equations of motion, and how it applies the aerodynamic
-coefficients.
-
 ### State
 
-- **Components.** The state is the nose tip $O$'s position $\mathbf{r}_O$ and velocity $\mathbf{v}_O$ in the
-  [launch frame](../glossary.md#launch-frame-enu) $L$, the attitude quaternion $q$ (four numbers
-  that give the rocket's orientation, turning body axes into $L$'s), and the body rates $\boldsymbol{\omega}$ (how
-  fast it turns about each [body axis](../glossary.md#body-frame)) relative to $L$, in body axes:
-  13 components.
-- **Why the nose tip.** It is fixed in the body and is the body origin ([ADR-007][adr-007], the
-  design tree). The center of mass $\mathbf{r}$ (from $O$, body axes) moves as propellant burns.
-- **The quaternion.** Its norm (its length, 1 for a pure rotation) drifts slightly between steps.
+- The state holds the nose tip $O$'s position $\mathbf{r}_O$ and velocity $\mathbf{v}_O$ in the
+  [launch frame](../glossary.md#launch-frame-enu) $L$. It also holds the attitude quaternion $q$,
+  four numbers that give the rocket's orientation, turning body axes into $L$'s. Last come the
+  body rates $\boldsymbol{\omega}$ (how fast it turns about each [body axis](../glossary.md#body-frame)) relative to
+  $L$, in body axes: 13 components in all.
+- The state follows the nose tip because it is fixed in the body and is the body origin
+  ([the design-tree decision][adr-007]).
+  The center of mass $\mathbf{r}$ (from $O$, body axes) moves as propellant burns.
+- The norm of the quaternion (its length, 1 for a pure rotation) drifts slightly between steps.
   Every use normalizes it, and it is never reset at an event ([Time integration](integration.md)).
 
 ### Equations of motion
@@ -96,9 +93,8 @@ about a point fixed in the body. It uses two standard tools:
 
 Its assumptions:
 
-- the gas flow inside the motor is quasi-steady (it changes slowly enough to treat as steady at
-  each instant), so the integrals over the space it flows through, the control volume, don't
-  change;
+- the gas flow inside the motor is quasi-steady, changing slowly enough to treat as steady at each
+  instant. So the integrals over the space it flows through, the control volume, don't change;
 - the flow is axisymmetric: the same all round the rocket's axis;
 - the exhaust momentum is lumped into the thrust at the nozzle exit.
 
@@ -113,14 +109,14 @@ be matched against it:
 - $\mathbf{T}_{04}$ is the thrust $\mathbf{T}$ with the propellant's internal-momentum terms (*Measured thrust curves
   and the internal-momentum terms*, below).
 - $\mathbf{T}_{20}$ gathers every force: $\mathbf{T}_{04}$, the weight $\mathbf{W}$, the air force $\mathbf{A}$, and two terms from the
-  rotation, $\boldsymbol{\omega} \times \mathbf{T}_{03}$ and $-\boldsymbol{\omega} \times (\boldsymbol{\omega} \times m\mathbf{r})$, the second because the center of mass is not at $O$.
-- $\mathbf{T}_{21}$ gathers every moment about $O$: from the rotation itself, from the jet and the changing
-  inertia ($\sum_k \dot{m}_k S_k - I_O'$), and from the weight, the air and the thrust. Its last term,
-  $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$, is for parts that move along the airframe, with $\mathbf{h}$ their angular momentum about $O$
-  relative to it: zero for a part on the axis, and zero when nothing moves
+  rotation. They are $\boldsymbol{\omega} \times \mathbf{T}_{03}$ and $-\boldsymbol{\omega} \times (\boldsymbol{\omega} \times m\mathbf{r})$, the second because the center of mass is not at $O$.
+- $\mathbf{T}_{21}$ gathers every moment about $O$. They come from the rotation itself, from the jet and the changing
+  inertia ($\sum_k \dot{m}_k S_k - I_O'$), and from the weight, the air and the thrust. The last term of $\mathbf{T}_{21}$,
+  $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$, is for parts that move along the airframe. Here $\mathbf{h}$ is their angular momentum about $O$,
+  relative to the airframe. The term is zero for a part on the axis, and zero when nothing moves
   ([Moving mass](moving-mass.md)).
-- The last lines give the angular acceleration $\dot{\boldsymbol{\omega}}$, the nose tip's acceleration $\mathbf{a}_O$ (and from it
-  $\mathbf{a}_L$ in $L$), and the rate at which the attitude $q$ changes.
+- The last lines give the angular acceleration $\dot{\boldsymbol{\omega}}$ and the nose tip's acceleration $\mathbf{a}_O$ (and from it
+  $\mathbf{a}_L$ in $L$). Then comes the rate at which the attitude $q$ changes.
 
 $$
 \begin{aligned}
@@ -140,17 +136,17 @@ $$
 \end{aligned}
 $$
 
-- **Mass terms.**
+- Mass terms:
   - $m$, $\dot{m} = \sum_k \dot{m}_k \le 0$ and $\ddot{m}_k$ are the mass, its rate and each motor's mass acceleration.
   - $I_O$ and $I_c$ are the inertia about $O$ and about the center of mass ($I_O = I_c + m(\lvert \mathbf{r} \rvert^2 \mathbf{1} - \mathbf{r}\mathbf{r}^{\mathrm{T}})$).
   - $\mathbf{n}_k$ is motor $k$'s nozzle exit.
-- **Forces and moments.**
+- Forces and moments:
   - $\mathbf{T}$ is the thrust along $\mathbf{z}_B$, the motors' `thrust_at_pressure_n`, with moment $\mathbf{M}_T = \sum_k \mathbf{n}_k \times \mathbf{T}_k$ about $O$.
   - $\mathbf{W}$ is the weight: normal gravity (centrifugal term included) plus the Coriolis force
     $-2m\, \boldsymbol{\Omega} \times \mathbf{v}_{\mathrm{cg}}$, both acting at the center of mass.
   - $\mathbf{A}$ and $\mathbf{M}_A$ are the aerodynamic force and its moment about $O$ (below).
-- **Nozzle gyration tensor.** $S_k$ describes how the exhaust leaving motor $k$'s exit disc is
-  spread about $O$; times the mass flow $\dot{m}_k$, it gives the jet damping in $\mathbf{T}_{21}$:
+- The nozzle gyration tensor $S_k$ describes how the exhaust leaving motor $k$'s exit disc is
+  spread about $O$. Times the mass flow $\dot{m}_k$, it gives the jet damping in $\mathbf{T}_{21}$:
 
   $$
   \begin{aligned}
@@ -169,11 +165,10 @@ $$
 
   - RocketPy 1.13.0's code (`rocket.py:984-985`, `evaluate_nozzle_gyration_tensor`) uses
     $0.25\, n^2$ for the transverse distance term instead of $n^2$. Its $n$ is measured from the center
-    of dry mass, not from the nose tip, so the entries can't be compared directly. The RocketPy
-    code-to-code suite ([M2.1](../decisions-and-roadmap.md#m2-1)) should compare the jet-damping coefficient about the
-    center of mass.
+    of dry mass, not from the nose tip, so the entries can't be compared directly. The
+    RocketPy comparison below corrects that term to $n^2$.
   - A motor that gives no nozzle exit radius contributes $r_e = 0$.
-- **The classical limit.** For an axisymmetric rocket turning slowly about a transverse axis, the
+- For an axisymmetric rocket turning slowly about a transverse axis, the
   equations reduce exactly to the classical jet damping about the center of mass,
 
   $$
@@ -183,7 +178,7 @@ $$
   with $l$ from the center of mass to the nozzle exit. The
   $\dot{m}\, l^2$ part damps, and the falling inertia partly offsets it
   (`dynamics::tests::jet_damping_matches_the_classical_form`).
-- **Time derivatives of the mass properties.**
+- Time derivatives of the mass properties:
   - $\mathbf{r}'$, $\mathbf{r}''$, $\dot{m}$ and $I_O'$ come from central differences of `Assembly::mass_properties` with a
     half-width of 1e-4 s.
   - The stencil, the times each difference samples, is kept inside the current integration
@@ -191,56 +186,57 @@ $$
     change in the thrust's slope. Near an interval's end the derivative is taken at the nearest
     valid center and extended linearly.
   - $\ddot{m}_k$ differences each motor's mass flow the same way.
-  - After burnout (an interval starting past every burnout) the rates are zero, and so are they over
-    intervals shorter than 2e-5 s, where differences would be rounding noise.
+  - After burnout (an interval starting past every burnout) the rates are zero. They are also zero
+    over intervals shorter than 2e-5 s, where differences would be rounding noise.
   - A part that moves along the airframe adds its own rates in closed form, not by differences
     ([Moving mass](moving-mass.md)).
-- **Motors at the ends of an interval.** A motor that burns through an interval is evaluated at
-  its one-sided limit inside the burn, $t$ clamped to $(0, t_{\mathrm{end}})$. The last stage of the step
-  ending at burnout (or the first after ignition) then sees the burning motor, including the
-  pressure correction that switches off at $t_{\mathrm{end}}$. Without this, fixed-step RK4 converged at
+- A motor that burns through an interval is evaluated at its one-sided limit inside the burn, $t$
+  clamped to $(0, t_{\mathrm{end}})$. The last stage of the step ending at burnout (or the first after
+  ignition) then sees the burning motor. It sees the pressure correction too, which switches off at
+  $t_{\mathrm{end}}$. Without this, fixed-step RK4 converged at
   first order (5.1 mm (0.20 in) of apogee at 2 ms).
 - **Measured thrust curves and the internal-momentum terms.** A static test measures
   $\mathbf{T}_{\mathrm{exit}} - \mathrm{d}\mathbf{P}_{\mathrm{int}}/\mathrm{d}t$, where $\mathbf{P}_{\mathrm{int}} = m\mathbf{r}' - \dot{m}(\mathbf{n} - \mathbf{r})$ is the internal momentum of the burning
   propellant, so a `.eng` curve already contains it. $\mathbf{T}_{04}$ subtracts $-m\mathbf{r}'' - 2\dot{m}\mathbf{r}' + \ddot{m}(\mathbf{n} - \mathbf{r})$
   again.
-  - HPR Sim keeps the terms as RocketPy does, for parity in the RocketPy comparison ([M2.1](../decisions-and-roadmap.md#m2-1)).
+  - HPR Sim keeps the terms as RocketPy does, for parity in
+    [the RocketPy comparison](../decisions-and-roadmap.md#m2-1).
     The form is exact for the [RP-EOM] model, not for a measured curve.
   - The size of the double count on Valetudo: it lifts off at 1.56 ms with 73 N of thrust against
-    95 N of weight, 21 N coming from $\ddot{m}(\mathbf{n} - \mathbf{r})$, and it changes the burnout speed by at most
-    0.05 m/s (0.16 ft/s).
-- **Earth's rotation.** It enters only through the Coriolis force. The rotational equations use
-  $\boldsymbol{\omega}$ relative to $L$, which differs from the inertial rate by at most 7.3e-5 rad/s ([Frames](frames.md),
-  and the rigid-body flight decision [ADR-011][adr-011]).
+    95 N of weight. At liftoff 21 N comes from $\ddot{m}(\mathbf{n} - \mathbf{r})$. The double count changes the burnout
+    speed by at most 0.05 m/s (0.16 ft/s).
+- Earth's rotation enters only through the Coriolis force. The rotational equations use
+  $\boldsymbol{\omega}$ relative to $L$, which differs from the inertial rate by at most 7.3e-5 rad/s
+  ([Frames](frames.md) and [the flight decision][adr-011]).
 
 ### Aerodynamics in flight
 
 `hpr-aero` gives coefficients at a flow condition ([Aerodynamics](aero.md)). The engine applies them as follows.
 
-- **Airspeed.** The air velocity uses the wind at the center of mass's height. Wind vectors are
+- The air velocity uses the wind at the center of mass's height. Wind vectors are
   taken in $L$'s axes.
-- **Axial force.** $-q A C_A \mathbf{z}_B$ from the whole rocket's drag, at the center of mass's airspeed,
-  Mach number, angle of attack and Reynolds number per meter ($V/\nu$). The drag is power-on
+- The axial force is $-q A C_A \mathbf{z}_B$, from the whole rocket's drag. It is taken at the center of mass's
+  airspeed, Mach number, angle of attack and Reynolds number per meter ($V/\nu$). The drag is power-on
   (`DragConditions::thrusting`, with the burning motors' cross-section) while any motor burns in
   the interval. `Simulation::with_full_base_drag_under_power` keeps the whole base's drag instead,
   as OpenRocket does, for comparisons with it ([base drag under power](aero.md#drag)). The force
   acts along the axis, so it has no moment about $O$.
-- **Normal and side forces, component by component.** Each body and fin set is evaluated at its
-  own local flow: $\mathbf{v}_O - \mathbf{v}_{\mathrm{wind}} + \boldsymbol{\omega} \times \mathbf{p}_i$ at the station $\mathbf{p}_i$ the aerodynamics gives it
+- Normal and side forces are taken component by component. Each body and fin set is evaluated at
+  its own local flow: $\mathbf{v}_O - \mathbf{v}_{\mathrm{wind}} + \boldsymbol{\omega} \times \mathbf{p}_i$ at the station $\mathbf{p}_i$ the aerodynamics gives it
   (`AeroModel::component_station_m`). That station is the component's small-angle center of
   pressure wherever one model carries the component. Faster than sound, where the
   [shock-expansion method and slender-body theory share one](aero.md#the-body-faster-than-sound-in-a-flight),
-  it is not: the station is joined between the two models while the force joins their slopes and
-  moments, and the two agree only at the ends of the join. On a body that sits between the models
-  at every speed (a lip riding half in its boattail's wake), a tube's station can sit two
+  it is not. There the station is joined between the two models while the force joins their slopes
+  and moments. The two agree only at the ends of the join. A body can sit between the models at
+  every speed (a lip riding half in its boattail's wake). There a tube's station can sit two
   calibers from its own center of pressure
-  ([issue #106](https://github.com/nrdptel/fusionspace-eridanus/issues/106)), which moves the lever arm the
-  damping below uses by that much; the margins don't use the station, but the apogee and the
+  ([issue #106](https://github.com/nrdptel/fusionspace-eridanus/issues/106)). That moves the lever
+  arm the damping below uses by that much. The margins don't use the station. The apogee and the
   drift may lean either way, so a flight inside the join warns of it
-  ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). Its $C_N$ acts along the crossing air $\hat{\mathbf{w}}$ and its $C_Y$
-  along $\mathbf{z}_B \times \hat{\mathbf{w}}$ ([Frames](frames.md)), with moments $-qA\, M_N (\mathbf{z}_B \times \hat{\mathbf{w}}) + qA\, M_Y \hat{\mathbf{w}}$ about $O$ from the
-  component's moment coefficients.
-- **Fins at any angle of attack.** A fin set's normal force follows the crossflow $V \sin\alpha$: its
+  ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). A component's $C_N$ acts along the crossing air $\hat{\mathbf{w}}$ and its $C_Y$
+  along $\mathbf{z}_B \times \hat{\mathbf{w}}$ ([Frames](frames.md)), with moments $-qA\, M_N (\mathbf{z}_B \times \hat{\mathbf{w}}) + qA\, M_Y \hat{\mathbf{w}}$ about $O$ from its
+  moment coefficients.
+- At any angle of attack, a fin set's normal force follows the crossflow $V \sin\alpha$. Its
   model's $C_N = C_{N\alpha}\, \alpha$ is used as $C_{N\alpha} \sin\alpha$, the substitution Niskanen keeps for bodies (eq.
   3.16–3.17). No source in hand gives a large-angle fin model, and stall is not modeled.
   - At small angles nothing changes (1.5% less at 0.3 rad).
@@ -248,56 +244,53 @@ $$
   - A force linear in $\alpha$ stays large at $\alpha = \pi$ and flips with rounding noise in the lateral
     velocity. A calm vertical flight falling tail first after apogee then collapsed the step size
     and never landed (`tests::a_calm_vertical_flight_falls_tail_first_and_lands`).
-- **Damping.** The rotation's contribution to each local flow is the only aerodynamic pitch and
+- The rotation's contribution to each local flow is the only aerodynamic pitch and
   yaw damping. At a component's station the rotation adds a velocity $\boldsymbol{\omega} \times \mathbf{p}_i$, which changes the
-  angle at which the air meets that component. The station is the lever arm, so where it is not
-  the center of pressure (above) the damping is levered from the wrong point by the same
-  distance.
+  angle at which the air meets that component. The station is the lever arm. Where it is not the
+  center of pressure (above), the damping is levered from the wrong point by the same distance.
   - Only components with a [normal-force slope](../glossary.md#normal-force-slope) damp this way:
     nose cones, transitions and fin sets. A boattail's slope is negative, so it takes some away.
   - Body tubes give none at small angles: their own slope is 0, and their body lift grows with
     $\sin^2 \alpha$.
-  - `hpr-aero` has no pitch or yaw damping coefficients; they would have to replace the
+  - `hpr-aero` has no pitch or yaw damping coefficients. They would have to replace the
     local-flow damping, not add to it.
   - A flight on another tool's normal force keeps this damping. The table
     ([The normal force from RASAero II](aero.md#the-normal-force-from-rasaero-ii)) gives the
-    normal force at the center of mass's airflow, and each component adds only its force in its
-    own local flow minus its force in the center of mass's airflow: the part the rotation makes.
+    normal force at the center of mass's airflow. Each component adds only its force in its own
+    local flow minus its force in the center of mass's airflow: the part the rotation makes.
     Without rotation that part is exactly zero ([ADR-032][adr-032]).
-- **Roll.** The fins' cant drives the roll and the roll rate damps it: a moment
-  $qAd\, (C_{l0} \cos\alpha + C_{lp}\, pd/(2V))$ about $\mathbf{z}_B$, with $q$ the dynamic pressure, $A$ and $d$ the
+- The fins' cant drives the roll and the roll rate damps it. The moment about $\mathbf{z}_B$ is
+  $qAd\, (C_{l0} \cos\alpha + C_{lp}\, pd/(2V))$, at the center of mass's Mach number. Here $q$ is the dynamic pressure, $A$ and $d$ the
   reference area and diameter, $C_{l0}$ the cant's rolling moment, $C_{lp}$ the damping and
-  $p = \omega_z$, at the center of mass's Mach number; the cant's forcing follows the axial flow,
+  $p = \omega_z$. The cant's forcing follows the axial flow,
   $\cos\alpha$, so it vanishes broadside and reverses tail first
   (`AeroModel::roll`, [Roll: forcing and damping](aero.md#roll-forcing-and-damping)). The damping
   is written $\rho V A d^2 C_{lp}\, p/4$, so it fades smoothly as the airspeed does. The roll rate also
-  changes through inertia coupling (turning about one axis driving turning about another) for a
-  rocket whose mass isn't symmetric about its axis, and, while a motor burns, through the jet and
-  the falling inertia in $\mathbf{T}_{21}$. At constant speed a canted rocket spins up to the steady rate
+  changes through inertia coupling (turning about one axis driving turning about another) when a
+  rocket's mass isn't symmetric about its axis. While a motor burns, it also changes through the
+  jet and the falling inertia in $\mathbf{T}_{21}$. At constant speed a canted rocket spins up to the steady rate
   where cant and damping balance, as the closed form gives
   (`tests::canted_fins_spin_to_the_analytic_balance`).
-- **Limits.**
+- Limits:
   - The models are small-angle: no stall, and body lift and fins extended by $\sin\alpha$. They
     overstate the forces at large $\alpha$. In normal flights large $\alpha$ occurs near apogee, where the
     dynamic pressure is small, and off the rail in strong crosswinds. `Sample::angle_of_attack_rad`
     shows where it happens.
   - The normal force and the drag buildup cover Mach 0 to 5
     ([Fins through Mach 1](aero.md#fins-through-mach-1),
-    [Drag through Mach 1](aero.md#drag-through-mach-1), and [ADR-028][adr-028], the drag's
-    decision); a fin set's CP moves with the Mach number, and each component takes its local
-    airflow at its CP for the center of mass's Mach number. At Mach 5 or faster they refuse the
+    [Drag through Mach 1](aero.md#drag-through-mach-1), [the drag's decision][adr-028]). A fin
+    set's CP moves with the Mach number. Each component takes its local airflow at its CP for the
+    center of mass's Mach number. At Mach 5 or faster they refuse the
     flow, and the flight stops with `SimError::Aero`. A drag override table covers drag at any
     Mach, but the normal force still stops at Mach 5.
 
 ## Running a flight
 
-The phases a flight passes through, the events that end them, and the integrator's settings.
-
 ### Phases
 
 - **Pad.**
-  - The rocket starts with its aft end (its body's aft end or its aft-most nozzle exit) at the
-    rail's foot, at rest, with the rail's attitude.
+  - The rocket starts at rest with the rail's attitude. Its aft end (its body's aft end or its
+    aft-most nozzle exit) is at the rail's foot.
   - It stays until the force along the rail, $\mathbf{T}_{20} \cdot \mathbf{z}_B$ with $\boldsymbol{\omega} = 0$, exceeds friction
     $\mu \lvert \mathbf{T}_{20\perp} \rvert$ (the liftoff event). $\mathbf{T}_{20\perp}$ is the rail's reaction: the weight, the aerodynamic
     force and the mass terms across the axis.
@@ -308,7 +301,7 @@ The phases a flight passes through, the events that end them, and the integrator
   $$
 
   - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
-    rail, or the aft end with no guides (Rail geometry, below).
+    rail. With no guides, it ends when the aft end does (Rail geometry, below).
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
@@ -327,26 +320,26 @@ The phases a flight passes through, the events that end them, and the integrator
 
 ### Events and termination
 
-- **Stop times.** Thrust-curve knots, burnouts and the time cap. A burnout that is reached records
+- Thrust-curve knots, burnouts and the time cap are stop times. A burnout that is reached records
   a `Burnout` event.
-- **Liftoff and stall.** Liftoff is the pad force margin rising through zero (checked also at
-  each interval's start, for a thrust that jumps at a knot). Stall is the speed along the rail
+- Liftoff is the pad force margin rising through zero. It is checked also at each interval's
+  start, for a thrust that jumps at a knot. Stall is the speed along the rail
   falling through zero.
-- **Rail exit.** The travel along the rail reaching the exit travel.
-- **Apogee.** The center of mass's ellipsoidal-height rate, $\hat{\mathbf{u}}(\mathbf{r}_{\mathrm{cg}}) \cdot \mathbf{v}_{\mathrm{cg}}$, falling through
+- Rail exit is the travel along the rail reaching the exit travel.
+- Apogee is the center of mass's ellipsoidal-height rate, $\hat{\mathbf{u}}(\mathbf{r}_{\mathrm{cg}}) \cdot \mathbf{v}_{\mathrm{cg}}$, falling through
   zero. $\hat{\mathbf{u}}$ is the ellipsoid normal at its position. A flight that has let a part go records one
   apogee ([Released mass](released-mass.md)).
-- **Ground hit.** The center of mass's ellipsoidal height reaching the launch site's, descending
+- Ground hit is the center of mass's ellipsoidal height reaching the launch site's, descending
   ([Frames](frames.md), [Loft lesson L35](../decisions-and-roadmap.md#l35)).
-- **User events.** A function of the `Sample`, in free flight.
-- **Mass shifts and releases.** A part starting to move along the airframe (`Shift`) or leaving it
-  (`MassRelease`), on its trigger ([Moving mass](moving-mass.md),
+- A user event is a function of the `Sample`, in free flight.
+- A mass shift (`Shift`) is a part starting to move along the airframe, and a release
+  (`MassRelease`) a part leaving it. Each comes on its trigger ([Moving mass](moving-mass.md),
   [Released mass](released-mass.md)).
-- **Heights.** Atmosphere and wind heights are $h - N$, the height
-  [above sea level](../glossary.md#height-above-sea-level-msl): $h$ is the ellipsoidal height, and
-  the geoid undulation $N$, the height of sea level above the ellipsoid, is given in `Environment`
+- Atmosphere and wind heights are $h - N$, the height
+  [above sea level](../glossary.md#height-above-sea-level-msl). $h$ is the ellipsoidal height.
+  The geoid undulation $N$, the height of sea level above the ellipsoid, is given in `Environment`
   (no geoid model).
-- **Termination** ([Loft lesson L25](../decisions-and-roadmap.md#l25)). The flight ends in exactly one of these ways:
+- The flight ends in exactly one of these ways ([Loft lesson L25](../decisions-and-roadmap.md#l25)):
   - `GroundHit`;
   - `NoLiftoff` (the last burnout passes on the pad);
   - `StalledOnRail` (it lifted off, then stopped on the rail after burnout);
@@ -354,16 +347,16 @@ The phases a flight passes through, the events that end them, and the integrator
   - `StepLimit`.
 
   Any other failure is an error.
-- **Not yet modeled.** Turbulence and thrust misalignment. Recovery is modeled, and has
-  [its own page](recovery.md); so are motors lit at their own times and a powered separation,
+- Turbulence and thrust misalignment are not modeled in a flight. Recovery is modeled, and has
+  [its own page](recovery.md). So are motors lit at their own times and a powered separation,
   on [Staging](staging.md).
 
 ### Integration settings
 
-- **Defaults.** `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
+- `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.
-- **Accuracy against cost.** Measured on Valetudo (K400C), with a 5 m/s (16 ft/s) wind from the west,
-  compared with the apogee at 1e-11 (873.98272 m (2,867.3974 ft)):
+- Accuracy against cost was measured on 2026-09-17, on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
+  from the west. Each apogee is compared with the one at 1e-11 (873.98272 m (2,867.3974 ft)):
 
   | `rtol = atol` | apogee error | flight time (release) |
   |--:|--:|--:|
@@ -377,68 +370,69 @@ The phases a flight passes through, the events that end them, and the integrator
 Unit tests in `hpr_sim::tests`, `hpr_sim::dynamics::tests` and `hpr_sim::rail::tests`, at the
 default settings. The numbers were measured on 2026-09-17.
 
-- **Vacuum ballistic.** A tumbling, spinning Valetudo in a vacuum, from the nose tip at 500 m (1,640 ft) with
+- A tumbling, spinning Valetudo in a vacuum starts from the nose tip at 500 m (1,640 ft) with
   $\mathbf{v} = (30, -20, 80)$ m/s.
   - The center of mass stays on the closed-form parabola to 1.7e-6 m over 22 s.
   - The angular momentum stays constant to 7.8e-7 (relative).
   - Apogee and ground contact are within 4.7e-7 s and 1.1e-8 s of the parabola's. Those times are
     located (root-found) on the exact ellipsoidal height.
-- **Terminal velocity.** Falling nose down through uniform air with $C_D = 0.5$, the speed follows
-  $v_t \tanh(g t/v_t)$ to 5.5e-9 $v_t$, and is $v_t$ to 1e-5 after 150 s.
-- **Torque-free precession** (the wobble of a spinning body with no torque on it). Valetudo
+- Falling nose down through uniform air with $C_D = 0.5$, the speed follows $v_t \tanh(g t/v_t)$
+  to 5.5e-9 $v_t$. It is the terminal velocity $v_t$ to 1e-5 after 150 s.
+- Torque-free precession is the wobble of a spinning body with no torque on it. Valetudo
   ($I_a/I_t$ = 0.0019) spinning at 25 rad/s with a transverse rate turns in body axes at
   $\Omega = (I_a - I_t)\, \omega_z/I_t$ = −24.95 rad/s. The rate matches to 4.7e-7 rad/s over 3 s, and the
   angular momentum in $L$ holds to 1.5e-6.
-- **Pitch oscillation against linear theory.** At 100 m/s (328 ft/s) with no drag or gravity, the two-state
-  linear model (path turning, restoring moment $K_1$, rotational damping $K_2$) predicts a
-  1.44954 s period. The flight measures 1.44965 s (8e-5), and the decay per half period is within
+- The pitch oscillation is checked against linear theory at 100 m/s (328 ft/s), with no drag or
+  gravity. The two-state linear model (path turning, restoring moment $K_1$, rotational damping
+  $K_2$) predicts a 1.44954 s period. The flight measures 1.44965 s (8e-5), and the decay per half period is within
   0.2% of the model's.
-- **Jet damping.** The flight equations give the classical jet damping to 1e-6, and the mass rate
-  equals the motor's $-F/c$ to 1e-6, including stencils clipped by an interval's end.
-- **Powered climb.** A vertical climb in vacuum from 0.5 s to 3.0 s ends at the speed of the axial
+- The flight equations give the classical jet damping to 1e-6. The mass rate equals the motor's
+  $-F/c$ to 1e-6, including stencils clipped by an interval's end.
+- A powered vertical climb in vacuum runs from 0.5 s to 3.0 s. It ends at the speed of the axial
   equation, integrated independently from the motor and the assembly, to 4.3e-8 m/s.
-- **Rail friction.** At 60°, $\mu = 0.3$ removes exactly $\mu g \cos E$ from the acceleration along the
+- On a rail at 60°, friction with $\mu = 0.3$ removes exactly $\mu g \cos E$ from the acceleration along the
   rail.
-- **[Loft lesson L20](../decisions-and-roadmap.md#l20), weathercocking.** In a 5 m/s (16 ft/s) wind from the west, Valetudo's unit
-  axis has an east component of −0.12 at burnout. Its apogee is 96 m (315 ft) upwind, against 1.0 m (3.3 ft, Earth
+- Valetudo weathercocks ([Loft lesson L20](../decisions-and-roadmap.md#l20)). In a 5 m/s (16 ft/s)
+  wind from the west, its unit axis has an east component of −0.12 at burnout. Its apogee is 96 m (315 ft) upwind, against 1.0 m (3.3 ft, Earth
   rotation) in calm air.
-- **Calm vertical.** With no wind and no Earth rotation the rocket falls tail first after apogee
-  and still lands, in under 20,000 evaluations.
-- **Solvers agree.** RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand–Prince to 1.2e-5 m
+- In a calm vertical flight with no Earth rotation, the rocket falls tail first after apogee and
+  still lands, in under 20,000 evaluations.
+- RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand–Prince to 1.2e-5 m
   and 2.1e-7 s.
-- **Burnout at an event.** A user event on the thrust fires at burnout, and burnout is still
+- A user event on the thrust fires at burnout, and burnout is still
   recorded once.
-- **`StalledOnRail`.** A 2000 m (6,562 ft) rail gives it, with only liftoff and burnout recorded.
-- **Errors and reuse.** Observer errors end the flight with that error. Starts before ignition
+- A 2000 m (6,562 ft) rail gives `StalledOnRail`, with only liftoff and burnout recorded.
+- Observer errors end the flight with that error. Starts before ignition
   or underground are refused. A cleared recorder records the same rows again. `Simulation`,
   `Environment` and `Recorder` are `Send + Sync`.
-- **[Loft lesson L24](../decisions-and-roadmap.md#l24).** Two runs of one `Simulation`, and a second `Simulation` built the
-  same way, record the same bits for every channel at every step.
-- **[Loft lesson L25](../decisions-and-roadmap.md#l25).** A normal flight hits the ground. A rail with $\mu = 20$ at 60° gives
+- Two runs of one `Simulation` record the same bits for every channel at every step
+  ([Loft lesson L24](../decisions-and-roadmap.md#l24)). So does a second `Simulation` built the
+  same way.
+- A normal flight hits the ground. A rail with $\mu = 20$ at 60° gives
   `NoLiftoff` at rest. A 5 s cap gives `TimeCap` at exactly 5 s, and a 40-step limit gives
   `StepLimit`.
-- **[Loft lesson L26](../decisions-and-roadmap.md#l26).** On a 3 m (9.8 ft) rail tilted to 1.3 rad, the rail exit comes at the last
-  button's travel to 1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
+- On a 3 m (9.8 ft) rail tilted to 1.3 rad, the rail exit comes at the last button's travel to
+  1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
   Friction ($\mu = 0.3$) delays the exit and slows it.
-- **A tilted rail against OpenRocket.** From a 1 m (3.3 ft) rod tilted 5 to 20 degrees, HPR Sim's rocket is on
-  OpenRocket's bearing at apogee to within 0.03 degrees and loses the same apogee to within 0.27
-  percentage points ([`.ork`: a tilted launch rod](../format/ork.md#a-tilted-launch-rod)).
-- **Events and recorder.** Events come in order: liftoff, rail exit, burnout, apogee, ground hit.
+- From a 1 m (3.3 ft) rod tilted 5 to 20 degrees, HPR Sim's rocket is on OpenRocket's bearing at
+  apogee to within 0.03 degrees. It loses the same apogee to within 0.27 percentage points
+  ([`.ork`: a tilted launch rod](../format/ork.md#a-tilted-launch-rod)).
+- Events come in order: liftoff, rail exit, burnout, apogee, ground hit.
   Apogee's vertical speed is below 1e-6 m/s and ground contact's height below 1e-6 m. Recorder rows
   fall on the interval or at events.
-- **Through Mach 1.** The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands, both on
-  HPR Sim's own drag and on a constant drag table.
-- **Cost.** About 1.1 ms per Valetudo flight to the ground (`docs/perf.md`).
+- The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands. It does both on HPR
+  Sim's own drag and on a constant drag table.
+- A Valetudo flight to the ground costs about 1.3 ms, measured on 2026-10-09 (`docs/perf.md`).
 
 ### Whole flights against RocketPy
 
-`cargo xtask validate` flies six of RocketPy's example rockets from the pad to the ground and
+`cargo xtask validate` flies six of RocketPy's example rockets from the pad to the ground. It
 compares fifteen numbers of each with RocketPy 1.13.0's own flight
 ([ADR-021][adr-021], the whole-flight comparison). Both codes fly one declared drag coefficient,
 a constant $C_{D0}$ of 0.5 on the same reference area. So what is compared is the equations of
 motion, the motor and the air, not the drag. The rest is RocketPy's where HPR Sim has it: its gravity
-formula, standard atmosphere, frictionless rail, the example's rail angles, parachutes and motor,
-and a declared wind.
+formula, standard atmosphere and frictionless rail. So are the example's rail angles, parachutes
+and motor, and a declared wind.
 
 | result | value |
 |---|---|
@@ -451,22 +445,22 @@ and a declared wind.
 
 What the two codes still do differently, and how much it moves:
 
-- **The wind.** A rocket that leaves the rail slowly in a wind meets the air at a steep angle:
-  Juno III at 18 m/s (59 ft/s) in an 8.5 m/s (28 ft/s) wind, 26° off the airflow. There HPR Sim's normal force includes
+- **The wind.** A rocket that leaves the rail slowly in a wind meets the air at a steep angle.
+  Juno III, at 18 m/s (59 ft/s) in an 8.5 m/s (28 ft/s) wind, is 26° off the airflow. There HPR Sim's normal force includes
   body lift ([Aerodynamics](aero.md#bodies-of-revolution)), which RocketPy's leaves out. Much of
-  it acts ahead of the center of mass, the nose's above all, so it moves the center of pressure
-  forward and weakens the turn into the wind, and HPR Sim turns into it less: Juno III's apogee
-  is 245.3 m (805 ft) from the pad in HPR Sim and 396.6 m (1,301 ft) in RocketPy. Given HPR Sim's body lift, its rail
-  release and its flat-plate fin slope (it cannot model the airfoil lift curve Juno III's example
-  gives its fins), RocketPy puts it 248.3 m (815 ft) out, and every windy drift within 1.3% of HPR Sim's
-  ([ADR-026][adr-026]). HPR Sim's growth of drag with the angle of attack moves no drift by more than
-  0.1%.
+  it acts ahead of the center of mass, the nose's above all. So it moves the center of pressure
+  forward and weakens the turn into the wind. HPR Sim turns into it less: Juno III's apogee is
+  245.3 m (805 ft) from the pad, against 396.6 m (1,301 ft) in RocketPy. HPR Sim cannot model the
+  airfoil lift curve Juno III's example gives its fins, so it flies a flat-plate fin slope. Given
+  HPR Sim's body lift, its rail release and that fin slope, RocketPy puts Juno III's apogee
+  248.3 m (815 ft) out. Every windy drift then comes within 1.3% of HPR Sim's ([ADR-026][adr-026]).
+  HPR Sim's growth of drag with the angle of attack moves no drift by more than 0.1%.
 - **RocketPy's equations, corrected.** HPR Sim's equations of motion follow RocketPy's technical
   documentation, which measures the center of mass from the
   [center of dry mass](../glossary.md#center-of-dry-mass). RocketPy 1.13.0's code reads that
-  vector the other way round, so during the burn it takes the turning moments about the wrong point
-  and its rockets turn into the wind too far. The fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
-  still open, built on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188) but not yet released; RocketPy 1.13.0 as installed still has
+  vector the other way round. So during the burn it takes the turning moments about the wrong
+  point, and its rockets turn into the wind too far. The fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
+  still open. It is built on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188) but not yet released. RocketPy 1.13.0 as installed still has
   the error, and the comparison applies both fixes. Without them,
   HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee and +151% beyond it at
   landing ([ADR-026][adr-026],
@@ -478,20 +472,21 @@ What the two codes still do differently, and how much it moves:
   RocketPy frees it at the first.
 - **Calisto's two peaks.** Its acceleration peaks twice, 0.9% apart, and the rail terms make
   HPR Sim's maximum the other peak. So the time of the peak (−96.8%) is reported but not scored.
-- **The parachutes.** RocketPy counts the air a canopy drags along (added mass); HPR Sim has none. So
+- **The parachutes.** RocketPy counts the air a canopy drags along (added mass). HPR Sim has none. So
   the peak deceleration as NDRT 2020's main opens is 83% higher in HPR Sim, and that number is
   reported but not scored. The speeds at landing agree within 0.03%.
 
-The metrics are measured as RocketPy defines them: speeds and accelerations at the center of dry
-mass; heights from that point's height at launch, since RocketPy's starts at the ground; and the
-rail exit when the rocket has traveled RocketPy's `effective_1rl`, the forward button at the top
-of the rail, where HPR Sim's own rail-exit event waits for the last one. Each case file argues its
-tolerances; [Accuracy][accuracy] gives every result.
+The metrics are measured as RocketPy defines them. Speeds and accelerations are at the center of
+dry mass. Heights are from that point's height at launch, since RocketPy's starts at the ground.
+The rail exit comes when the rocket has traveled RocketPy's `effective_1rl`, the forward button at
+the top of the rail. HPR Sim's own rail-exit event waits for the last one. Each case file argues
+its tolerances. [Accuracy][accuracy] gives every result.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-032]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0032-normal-force-overrides-from-rasaero-ii-the.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
+[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [adr-021]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md
 [adr-026]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md

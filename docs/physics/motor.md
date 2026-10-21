@@ -6,24 +6,25 @@ burn, mass and ejection delay.
 ## In short
 
 - **What it models:** commercial solid motors: the thrust curve and its statistics (total
-  impulse, burn time, average thrust, class), how the propellant burns away, the motor's mass,
-  center of mass and inertia as it burns, thrust at altitude, and ejection delays.
+  impulse, burn time, average thrust, class), and how the propellant burns away. It also
+  models the motor's mass, center of mass and inertia as it burns, thrust at altitude, and
+  ejection delays.
 - **Sources:** NASA SP-8039 (1971), the National Association of Rocketry's *Standard Motor
   Codes*, ThrustCurve.org's glossary, statistics page and code, and RocketPy 1.13.0's motor code.
 - **How well it is validated:** by *analytic* tests (exact answers worked out by hand) and by
-  *another code* ([code-to-code](../glossary.md#code-to-code-comparison)), the first and third of
-  the four [kinds of evidence][levels]. Small numbers here are in
+  *another code* ([code-to-code](../glossary.md#code-to-code-comparison)). Those are the first and
+  third of the four [kinds of evidence][levels]. Small numbers here are in
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
   compared. ThrustCurve.org's own statistics code agrees to 1.8e-15, relative, on all 32 bundled
   curves. On three of them, RocketPy's total mass and inertias agree within 7.9e-5 relative. The
-  two centers of mass differ by under 5.8e-6 of the motor's length, and the propellant's own mass
-  and inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12, handed the same
-  curve files, reads exactly the same total impulse, peak thrust, burn-time window and curve
-  duration on all 32 bundled curves; its average thrust divides by the same window but counts only
-  the impulse inside it, so HPR Sim's is +0.0107% to +0.3147% higher. Nothing else in this model is
-  compared with OpenRocket (not the propellant's burn-back, its mass and inertias, or the delays),
-  and nothing here is compared with a real flight.
+  two centers of mass differ by under 5.8e-6 of the motor's length. The propellant's own mass and
+  inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same curve
+  files. On all 32 bundled curves it gets exactly the same total impulse, peak thrust, burn-time
+  window and curve duration. Its average thrust divides by the same window but counts only the
+  impulse inside it, so HPR Sim's is +0.0107% to +0.3147% higher. Nothing else in this model is
+  compared with OpenRocket: not the propellant's burn-back, its mass and inertias, or the delays.
+  Nothing here is compared with a real flight.
 - **What it leaves out:** anything but [commercial off-the-shelf](../glossary.md#cots-motor)
   solids. Only 32 curves are bundled, none in class A. Propellant burns in proportion to the
   impulse delivered, an approximation. With only catalog data, the center of mass stays at
@@ -50,9 +51,9 @@ cargo run --example motors -p fusionspace-hpr-sim
 ```
 
 It prints this. The output is committed in
-[`motors.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/motors.output.txt),
-and CI runs the program on macOS, Windows and Linux and fails if it prints anything else, so the
-list below is always the list the code bundles.
+[`motors.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/motors.output.txt).
+CI runs the program on macOS, Windows and Linux and fails if it prints anything else. So the list
+below is always the list the code bundles.
 
 <!-- quote: crates/hpr-sim/examples/motors.output.txt -->
 ```text
@@ -103,16 +104,16 @@ Valetudo on the I377CT: 8.82 kg at liftoff
 Not yet validated: see the Accuracy page before trusting these numbers.
 ```
 
-The whole program is at the end of this page, in [The example program](#the-example-program).
+The whole program is [at the end of this page](#the-example-program).
 
 ### The bundled motors
 
-**License:** each curve is a ThrustCurve.org file marked public domain, bundled unchanged. Every
-number in the catalog comes from the file itself: the size, masses and delays from its header,
-and the rest worked out from its curve. Each curve file carries the license its uploader chose.
-ThrustCurve.org's own motor records, the figures its site and API publish for each motor, are
-another matter: it grants no license for them and reserves copyright (its site reads "All rights
-under copyright reserved"), so none of those figures is bundled
+Each curve is a ThrustCurve.org file marked public domain, bundled unchanged. Each curve file
+carries the license its uploader chose. Every number in the catalog comes from the file itself.
+The size, masses and delays come from its header, and the rest is worked out from its curve.
+ThrustCurve.org's own motor records are the figures its site and API publish for each motor. The
+site grants no license for them and reserves copyright (it reads "All rights under copyright
+reserved"). None of those figures is bundled
 ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295);
 [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
 `cargo xtask motor-catalog` writes the catalog from the files, and a test fails if the committed
@@ -134,20 +135,19 @@ How the 32 were chosen:
 
 - They are public-domain ThrustCurve.org curves of motors in production.
 - When they were chosen (2026-09-17), each curve's total impulse, burn time and average thrust
-  were within 1% of the values ThrustCurve.org publishes for the motor. Those values are not
-  bundled; with ThrustCurve.org's catalog saved outside the repository, `cargo xtask
+  were within 1% of the values ThrustCurve.org publishes for the motor. With ThrustCurve.org's catalog saved outside the repository, `cargo xtask
   motor-catalog` measures the gap again and fails over 1%. Total impulse runs from 0.83% below
-  ThrustCurve.org's to 0.72% above, average thrust from 0.81% below to 0.95% above, and burn time
-  from 0.95% below to 0.99% above. Peak thrust is not held to it: it runs from 16.7% below
+  ThrustCurve.org's to 0.72% above. Average thrust runs from 0.81% below to 0.95% above, and burn
+  time from 0.95% below to 0.99% above. Peak thrust is not held to it: it runs from 16.7% below
   (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR).
 - The files' headers differ from ThrustCurve.org's records in a few places, and the header is
-  what the simulator flies: 5 lengths differ (from 1.2% shorter, the B4, to 1.3% longer, the
-  N3300R), 7 propellant masses (from 2.7% lighter, the C5, to 52% heavier, the 26E31-15A) and 6
-  loaded masses (from 4.0% lighter, the C5, to 2.3% heavier, the D5). For the 26E31-15A the header is the
-  likelier: its 16.9 g of propellant gives 26.1 N·s at an effective exhaust velocity of 1,543 m/s (5,062 ft/s),
-  where the record's 11.1 g would need 2,350 m/s (7,710 ft/s), more than every other bundled motor but the
-  K400C. The delays are the header's too, which often lists fewer
-  settings than the maker sells.
+  what the simulator flies. Five lengths differ, from 1.2% shorter (the B4) to 1.3% longer (the
+  N3300R). So do 7 propellant masses, from 2.7% lighter (the C5) to 52% heavier (the 26E31-15A).
+  So do 6 loaded masses, from 4.0% lighter (the C5) to 2.3% heavier (the D5). For the 26E31-15A
+  the header is the likelier. Its 16.9 g of propellant gives 26.1 N·s at an effective exhaust
+  velocity of 1,543 m/s (5,062 ft/s). The record's 11.1 g would need 2,350 m/s (7,710 ft/s), more
+  than every other bundled motor but the K400C. The delays are the header's too, which often
+  lists fewer settings than the maker sells.
 - There are up to three per impulse class, from different manufacturers. None is in class A.
 - The selection, and the curves left out, are in
   [the ThrustCurve.org data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md).
@@ -159,9 +159,9 @@ by its designation or common name, ignoring case, spaces and hyphens. It returns
 `entry.bundled_motor()` builds the motor
 ([`CatalogMotor`](../api/hpr_motor/catalog/struct.CatalogMotor.html)), with the catalog's size and
 masses. The catalog doesn't say where inside the motor its mass sits, so the simulator uses a
-rough guess, the *envelope default*: the propellant and the rest of the motor (case, nozzle and closures) are
-each spread evenly along its length, so the center of mass stays at mid-length as it burns
-([The whole motor](#the-whole-motor) gives the details).
+rough guess, the *envelope default*. The propellant and the rest of the motor (case, nozzle and
+closures) are each spread evenly along its length. So the center of mass stays at mid-length as
+it burns ([The whole motor](#the-whole-motor) gives the details).
 
 ### A motor from a file
 
@@ -174,33 +174,30 @@ Motor files come in two formats, and ThrustCurve.org serves both:
 
 The example reads a `.eng` file in four steps:
 
-1. **Read the text.** For a file you downloaded, use `std::fs::read_to_string("my-motor.eng")?`.
+1. Read the text. For a file you downloaded, use `std::fs::read_to_string("my-motor.eng")?`.
    The motor crate never opens files itself. The example builds one of the bundled files into
    the program with `include_str!` instead, so that it runs anywhere.
-2. **Parse it.** `eng::parse(&text)?` ([`eng::parse`](../api/hpr_motor/eng/fn.parse.html))
+2. Parse it. `eng::parse(&text)?` ([`eng::parse`](../api/hpr_motor/eng/fn.parse.html))
    returns the file's entries, one per motor (a file can hold several), and a list of warnings.
    The reader is lenient: it accepts the oddities real files have and reports each one, with its
    line number ([reader policy](../format/eng.md#reader-policy-lenient-with-diagnostics)). This
    file reads with no warnings.
-3. **Take the curve.** `entry.thrust_curve()?` makes the [thrust curve](#thrust-curve), starting
+3. Take the curve. `entry.thrust_curve()?` makes the [thrust curve](#thrust-curve), starting
    it from zero thrust at ignition.
-4. **Build the motor.** `SolidMotor::from_envelope(curve, diameter_m, length_m, propellant_kg,
+4. Build the motor with `SolidMotor::from_envelope(curve, diameter_m, length_m, propellant_kg,
    loaded_kg)` ([`SolidMotor`](../api/hpr_motor/motor/struct.SolidMotor.html)). A `.eng` header
-   gives the size in millimeters and the masses in kilograms, so the example multiplies the size
+   gives the size in millimeters and the masses in kilograms. So the example multiplies the size
    by 0.001 and passes the masses as they are. **Check that step yourself:** the motor can't tell
    a size left in millimeters. The [units check](#the-effective-exhaust-velocity-is-a-units-check)
-   looks at the impulse and the propellant mass, not the size, and any positive size is accepted.
-   The design checks catch part of it later, if the same size goes into the rocket
-   ([Putting it in a rocket](#putting-it-in-a-rocket)): a diameter too wide for the mount stops
-   the flight, but a length too long for it only draws a warning.
+   looks at the impulse and the propellant mass, not the size. If the same size goes into the
+   rocket, the design checks stop a diameter too wide for the mount. A length too long only draws
+   a warning ([Putting it in a rocket](#putting-it-in-a-rocket)).
 
 For a `.rse` file, use `rse::parse` ([`rse::parse`](../api/hpr_motor/rse/fn.parse.html)) instead.
-Its motors are in `engines` rather than `entries`, and its masses are in grams
-(`initial_mass_g`, `propellant_mass_g`), so multiply those by 0.001 too. Forget it for the
-propellant, and the units check catches it: grams read as kilograms make the exhaust velocity
-1,000 times too small, and the motor is refused. The check sees only the propellant mass, so a
-loaded mass left in grams, with the propellant converted, is accepted as a 1,000-times-heavier
-motor.
+Its motors are in `engines` rather than `entries`. Its masses are in grams (`initial_mass_g`,
+`propellant_mass_g`), so multiply those by 0.001 too. Forget it for the propellant, and the units
+check catches it: the exhaust velocity is 1,000 times too small, and the motor is refused. Forget
+it only for the loaded mass, and the motor is accepted as 1,000 times heavier.
 
 The file here is Loki Research's I377. The program prints what it read, `38 mm by 292 mm` (1.50 by 11.5 in), 560 g
 loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I motor, averaging
@@ -208,21 +205,20 @@ loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I mo
 
 Three things to know about a motor built from a file:
 
-- **The header can be wrong.** Whoever made the file typed its size and masses. Of
-  ThrustCurve.org's 554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the
-  catalog's, and 5 a diameter more than 0.5 mm (0.020 in) off
+- The header can be wrong. Whoever made the file typed its size and masses. Of ThrustCurve.org's
+  554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the catalog's.
+  Five give a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
   section 4). This file says 292 mm (11.5 in) where ThrustCurve.org's record says 292.1 mm (11.50 in). The 32 bundled
-  motors fly their headers' values too; `cargo xtask motor-catalog` refuses a reload whose case
-  names another diameter than its header ([Loft lesson L43](../decisions-and-roadmap.md#l43): one
-  header listed a 54 mm motor as a 75 mm motor). For any other motor, check the header against the
-  motor's page on ThrustCurve.org.
-- **Where its mass sits is a rough guess.** `from_envelope` spreads the propellant through the
-  whole case, so the center of mass stays at mid-length as it burns
+  motors fly their headers' values too. `cargo xtask motor-catalog` refuses a reload whose case
+  names another diameter than its header. In Loft, one header listed a 54 mm motor as a 75 mm
+  motor ([Loft lesson L43](../decisions-and-roadmap.md#l43)). For any other motor, check the
+  header against the motor's page on ThrustCurve.org.
+- Where its mass sits is a rough guess, the *envelope default*
   ([The whole motor](#the-whole-motor)). If you know the grain sizes, `SolidMotor::new` with
   `Propellant::Grains` does better
   ([Where the propellant is](#where-the-propellant-is)).
-- **Its nozzle size is unknown**, so its thrust is not corrected for altitude
+- Its nozzle size is unknown, so its thrust is not corrected for altitude
   ([Thrust at altitude](#thrust-at-altitude)).
 
 ### Putting it in a rocket
@@ -243,13 +239,13 @@ holding one [`MountedMotor`](../api/hpr_design/config/struct.MountedMotor.html).
 
 Valetudo's mount is 43 mm (1.7 in) inside, so this 38 mm motor fits. `Simulation::new(&rocket,
 "from-file", ...)` then flies the configuration by its id: straight up from a 3 m (9.8 ft) rail, in calm
-air, with no parachutes. The rocket weighs 8.82 kg at liftoff, leaves the rail at 17.7 m/s (58 ft/s), and
-reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not validated
-([evidence row G24](../evidence.md#g24)); see
-[Accuracy](../accuracy.md) before trusting them.
+air, with no parachutes. The rocket weighs 8.82 kg at liftoff and leaves the rail at 17.7 m/s
+(58 ft/s). It reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not
+validated ([evidence row G24](../evidence.md#g24)). See [Accuracy](../accuracy.md) before
+trusting them.
 
-A design file holds configurations in the same form, as JSON, with the motor written out in full:
-see the `configurations` list at the end of
+A design file holds configurations in the same form, as JSON, with the motor written out in full.
+See the `configurations` list at the end of
 [the Valetudo design](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/rocketpy-valetudo.json).
 Every motor lights at launch, $t = 0$, unless its `ignition` says otherwise: at a time, after
 another motor's burnout, or after its stage separates ([Staging](staging.md)). It then burns on its
@@ -266,9 +262,9 @@ Code: `hpr_motor` ([API reference](../api/hpr_motor/index.html)), in its modules
 [`.eng` files](../format/eng.md) and [`.rse` files](../format/rse.md).
 
 Each source has a short key in square brackets, used below. A source that can be downloaded is
-*pinned*: its address and a checksum of its bytes are in the
+*pinned*. Its address and a checksum of its bytes are in the
 [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml),
-under the name given, so anyone can fetch the same copy ([Checking a claim](../checking-a-claim.md)).
+under the name given. So anyone can fetch the same copy ([Checking a claim](../checking-a-claim.md)).
 
 - **[SP]** NASA SP-8039, *Solid Rocket Motor Performance Analysis and Prediction* (1971),
   [free from NASA][sp], pinned as `nasa-sp-8039`. Page notes:
@@ -288,13 +284,13 @@ Line numbers below, such as "lines 40–91", link to those lines of the source.
 
 ### Conventions
 
-- **Time** $t$ is seconds from ignition.
-- **Motor axis:** positions are meters along the motor's axis **from the nozzle exit plane (where
-  the exhaust leaves) toward the forward closure (the motor's front end)**, so $+z$ points toward
-  the nose like the body frame ([Frames](frames.md)). The design model (from [M1.4](../decisions-and-roadmap.md#m1-4), the
-  design and mass-properties milestone) places the motor's nozzle exit in the body frame.
-- **Inertia:** every part is symmetric about the axis. $I_a$ is about the axis and $I_t$ about a
-  transverse axis, both through the part's own center of mass (RocketPy's `I_33` and `I_11`).
+- Time $t$ is seconds from ignition.
+- Positions are meters along the motor's axis **from the nozzle exit plane (where the exhaust
+  leaves) toward the forward closure (the motor's front end)**. So $+z$ points toward the nose,
+  like the body frame ([Frames](frames.md)). The design model places the motor's nozzle exit in
+  the body frame ([its milestone](../decisions-and-roadmap.md#m1-4)).
+- Every part is symmetric about the axis. $I_a$ is about the axis and $I_t$ about a transverse
+  axis, both through the part's own center of mass (RocketPy's `I_33` and `I_11`).
 - Motor files keep their own units (mm, kg or g). The model is SI: meters, kilograms and seconds.
 
 ## The model
@@ -309,34 +305,34 @@ lists it.
 - Samples $(t_i, F_i)$ joined by straight lines, as [RP] reads them (`interpolation_method`
   `"linear"`). Before the first sample the curve starts from $(0, 0)$ when $t_0 > 0$, as the RASP
   format specifies ([`.eng` files](../format/eng.md#thrust-curve-r-data-r-problems)) and [TC-A]
-  integrates. From the last sample on $F = 0$, that instant included: like any step, the end
-  takes the later value, so at burnout the thrust, the mass flow and the propellant left are all
+  integrates. From the last sample on $F = 0$, that instant included. Like any step, the end
+  takes the later value. So at burnout the thrust, the mass flow and the propellant left are all
   zero together.
 - Equal consecutive times are a **step**: the later value holds from that time on. Real files use
   them for an abrupt burnout. Decreasing times and negative thrust are rejected, and so is a curve
   with no impulse or no burn time (defined below).
 - A sample is **delivered** when it starts or ends a stretch of the curve that lasts some time
-  ($t_i < t_{i+1}$ or $t_{i-1} < t_i$). The thrust then really takes its value: at its own instant
-  when it starts a stretch, or ever closer to it as time runs up to its instant when it ends one. A
-  sample strictly inside a run of three or more equal times is never delivered: the step jumps
-  straight past it. Nor is the first sample of a step at the curve's start, or the last of a step
-  at its end. **Peak thrust** is the largest delivered sample, which is exactly the most the
-  curve's thrust reaches, and the burn-time crossings below compare only delivered samples with
-  the threshold. For example, times `0, 1, 1, 1, 2` s and thrusts `10, 10, 1000, 10, 0` N hold
-  15 N·s and never exceed 10 N: the 1000 N sample is skipped, the peak is 10 N, and the burn runs
-  from 0 to 1.95 s. Counting the skipped sample would set the 5% threshold at 50 N, above
-  anything the curve delivers, and refuse the curve
-  ([ADR-150 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md),
+  ($t_i < t_{i+1}$ or $t_{i-1} < t_i$). The thrust then really takes its value. A sample that
+  starts a stretch is reached at its own instant. One that ends a stretch is approached ever
+  closer as time runs up to its instant. A sample strictly inside a run of three or more equal
+  times is never delivered: the step jumps straight past it. Nor is the first sample of a step at
+  the curve's start, or the last of a step at its end. **Peak thrust** is the largest delivered
+  sample, which is exactly the most the curve's thrust reaches. The burn-time crossings below
+  compare only delivered samples with the threshold. For example, times `0, 1, 1, 1, 2` s and
+  thrusts `10, 10, 1000, 10, 0` N hold 15 N·s. The step skips the 1000 N sample, so the thrust
+  never exceeds 10 N, and 10 N is the peak. The burn runs from 0 to 1.95 s. Counting the skipped sample would set the
+  5% threshold at 50 N, above anything the curve delivers. The curve would then be refused
+  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md),
   [issue #10](https://github.com/nrdptel/fusionspace-eridanus/issues/10), the report of the refusal). A one-off
-  run over the surveyed ThrustCurve.org files, with scripts that are not committed, found no file
-  whose statistics change (the [ADR-150 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md)
-  has the counts).
-- **Where [TC-A] differs.** Before integrating, ThrustCurve's code drops leading points below
-  500 µN and averages points closer than 50 µs ([lines 40–91][tc-a-40]); HPR Sim keeps leading
-  zeros and treats equal times as steps. The results are identical on every bundled curve. ThrustCurve.org
-  held 1712 solid-motor files when surveyed. On the 1710 of them that read, the two agree to 1e-9
-  except 17 with repeated times, where they differ by up to 1.1% in average thrust. HPR Sim keeps the
-  step because a vertical drop is what the file draws.
+  run over the surveyed ThrustCurve.org files found no file whose statistics change. Its scripts
+  are not committed; the [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md)
+  has the counts.
+- Before integrating, [TC-A] drops leading points below 500 µN and averages points closer than
+  50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps. The
+  results are identical on every bundled curve. On the 1710 of ThrustCurve.org's 1712 surveyed
+  solid-motor files that read, the two agree to 1e-9, except 17 with repeated times.
+  On those they differ by up to 1.1% in average thrust. HPR Sim keeps the step because a vertical
+  drop is what the file draws.
 - **Total impulse:** the exact integral of the lines
   ([SP] glossary p. 96: $I = \int F\,\mathrm{d}t$),
 
@@ -348,11 +344,12 @@ lists it.
   $$
 
   $I(t)$ is the same sum up to $t$, with the partial interval.
-- **Burn time**, by the rule of [NFPA 1125](../glossary.md#nfpa-1125), the US National Fire
-  Protection Association's code for making model and high-power rocket motors, as ThrustCurve.org
-  applies it: from the moment the thrust first reaches 5% of peak to the moment it last falls to
-  5% of peak, each crossing interpolated on its segment ([TC-G] "Burn Time"; [TC-S]; [TC-A]
-  [lines 165–203][tc-a-165]). The peak and the crossings use delivered samples only (above). The last sample's time is not the burn time
+- **Burn time** follows the rule of [NFPA 1125](../glossary.md#nfpa-1125), as ThrustCurve.org
+  applies it. NFPA 1125 is the US National Fire Protection Association's code for making model and
+  high-power rocket motors. The burn runs from the moment the thrust first reaches 5% of peak to
+  the moment it last falls to 5% of peak. Each crossing is interpolated on its segment ([TC-G]
+  "Burn Time"; [TC-S]; [TC-A] [lines 165–203][tc-a-165]). The peak and the crossings use
+  delivered samples only (above). The last sample's time is not the burn time
   ([Loft lesson L39](../decisions-and-roadmap.md#l39): Loft took it as the burn time).
 - **Average thrust:** total impulse over the NFPA 1125 burn time ([TC-G] "Average Thrust"; [TC-A]
   [line 231][tc-a-231]).
@@ -361,16 +358,16 @@ lists it.
     ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md)).
     HPR Sim follows the glossary and the site's code.
 - **Impulse class:** each letter covers twice the total impulse of the one before. `A` goes up to
-  2.5 N·s, `B` to 5, `C` to 10, and so on: $\mathrm{upper}(k) = 1.25 \cdot 2^k\,\mathrm{N\,s}$, from `1/8A` ($k = -2$) to
-  `O` ($k = 15$), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR] states `C` as
-  "5.01 to 10.0 N-sec". Loft gave `B` for 2.5 N·s ([Loft lesson L38](../decisions-and-roadmap.md#l38)).
+  2.5 N·s, `B` to 5, `C` to 10, and so on. In general $\mathrm{upper}(k) = 1.25 \cdot 2^k\,\mathrm{N\,s}$, from `1/8A`
+  ($k = -2$) to `O` ($k = 15$), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR]
+  states `C` as "5.01 to 10.0 N-sec". Loft gave `B` for 2.5 N·s ([Loft lesson L38](../decisions-and-roadmap.md#l38)).
 
 ### Propellant consumption
 
 The [effective exhaust velocity](../glossary.md#effective-exhaust-velocity) $c$ is the thrust
 divided by the rate at which propellant mass leaves, $c = F/\dot{m}$ ([SP] glossary p. 95). **Held
 constant** through the burn, it makes the propellant burned proportional to the impulse delivered
-so far: when half the impulse has been delivered, half the propellant is gone. With $I$ the total
+so far. When half the impulse has been delivered, half the propellant is gone. With $I$ the total
 impulse, $I(t)$ the impulse delivered by time $t$, and $m_{p0}$ the propellant at ignition:
 
 $$
@@ -384,11 +381,11 @@ $$
 - This is [RP] `SolidMotor` ([`solid_motor.py:401-418`][rp-401]; [`motor.py:483-524`][rp-483]).
   ThrustCurve's `.rse` files tabulate their mass column the same way
   ([`.rse` files](../format/rse.md)).
-- **It is an approximation.** [SP] defines $c$ only instantaneously. Measured
+- Holding $c$ constant is an approximation. [SP] defines $c$ only instantaneously. Measured
   [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the same quantity divided by
-  standard gravity) drifts during a burn, as the pressure inside the motor changes and the nozzle
-  erodes ([SP] p. 14), so real consumption is not exactly proportional. No data published for
-  commercial motors resolves the difference.
+  standard gravity) drifts during a burn. It drifts as the pressure inside the motor changes and
+  the nozzle erodes ([SP] p. 14), so real consumption is not exactly proportional. No data
+  published for commercial motors resolves the difference.
 - All propellant is gone at the last sample. The whole burned mass leaves as exhaust. Inert
   material that also leaves (bits of liner and igniter) is not modeled.
 
@@ -408,12 +405,12 @@ $$
   model ([`motor.py:1580-1648`][rp-1580], a solid cylinder).
 - **BATES grains** (`Propellant::Grains`): $N$ identical [BATES grains](../glossary.md#bates-grain)
   $(R, r_0, h_0)$ (outer radius, starting bore radius, starting height), spaced $h_0 + s$ apart, with
-  a gap $s$ between them. Each burns on its bore, the hole along its axis, and on both ends unless
-  the ends are inhibited: coated so that they can't burn ([RP]
+  a gap $s$ between them. Each burns on its bore, the hole along its axis. It also burns on both
+  ends unless the ends are inhibited: coated so that they can't burn ([RP]
   [`solid_motor.py:487-632`][rp-487]).
-  - Every grain needs a bore ($r_0 > 0$). A solid end burner, a grain with no hole that burns only
-    on one face, shortens without widening, which this regression (the way the grain burns back)
-    doesn't describe, and neither does RocketPy's.
+  - Every grain needs a bore ($r_0 > 0$). A solid end burner is a grain with no hole that burns
+    only on one face. It shortens without widening. This regression (the way the grain burns
+    back) doesn't describe that, and neither does RocketPy's.
   - Facing ends burn even with no gap, as in [RP].
   - Every burning surface recedes by the same depth $x$, the web burned so far (the web is the
     thickness of propellant between the burning surfaces). The first formula holds with the ends
@@ -438,11 +435,11 @@ $$
   Here $V$ is one grain's volume and $\rho$ the propellant's density, so the last line says the $N$
   grains hold the propellant left.
 
-  - [RP] integrates $\dot{r} = -\dot{V}/A_b$, $\dot{h} = -2\dot{r}$ in time, with $A_b$ the burning area, using LSODA: a
-    general-purpose solver for ordinary differential equations (ODEs), from the Python library
-    SciPy. Because $\mathrm{d}V/\mathrm{d}x = -A_b$, that ODE is the relation above. HPR Sim solves it for $x$ by
+  - [RP] integrates $\dot{r} = -\dot{V}/A_b$, $\dot{h} = -2\dot{r}$ in time, with $A_b$ the burning area. It uses
+    LSODA, a general-purpose solver for ordinary differential equations (ODEs), from the Python
+    library SciPy. Because $\mathrm{d}V/\mathrm{d}x = -A_b$, that ODE is the relation above. HPR Sim solves it for $x$ by
     safeguarded Newton iteration, exactly at any time. That is Newton's method, which improves a
-    guess using the slope, kept inside an interval known to hold the answer: a step that would
+    guess using the slope, kept inside an interval known to hold the answer. A step that would
     leave the interval halves it instead.
   - $m_{p0} = N \rho\, V(0)$ comes from the geometry, as in [RP].
   - About the stack's center, which doesn't move:
@@ -462,7 +459,7 @@ $$
 
 ### The whole motor
 
-- **Dry mass** (case, closures, liner, nozzle: everything but the propellant) is one element:
+- The dry mass (case, closures, liner, nozzle: everything but the propellant) is one element:
   mass, center and inertias about its own center. `with_added_dry_mass` joins more hardware, such
   as a retainer (the cap or clip that holds the motor in its mount). It must be positive: at
   burnout it is the whole motor, and with no mass it has no center.
@@ -479,54 +476,54 @@ $$
 
   This is [RP] `Motor.I_11`
   ([`motor.py:585-666`][rp-585]).
-- **Envelope default** (`SolidMotor::from_envelope`), when only the motor's size and masses are
-  known, as from a catalog entry or a motor file's header:
+- The *envelope default* (`SolidMotor::from_envelope`) applies when only the motor's size and
+  masses are known, as from a catalog entry or a motor file's header:
   - the propellant is a solid column of radius $D/2$ filling the length, centered at $L/2$;
   - the dry mass (loaded minus propellant) is a thin tube, $I_a = m r^2$ and
     $I_t = m (r^2/2 + L^2/12)$, also centered at $L/2$.
 
   **These are crude:** the center of mass stays at $L/2$ throughout. Loft fixed the CG at the
-  midpoint with no inertia of its own ([Loft lesson L40](../decisions-and-roadmap.md#l40)); HPR Sim gives
-  the parts inertia, and moves the CG as soon as the dry and propellant centers differ.
+  midpoint with no inertia of its own ([Loft lesson L40](../decisions-and-roadmap.md#l40)). HPR Sim
+  gives the parts inertia, and moves the CG as soon as the dry and propellant centers differ.
   - ThrustCurve's loaded mass includes the reusable case ([TC-G] "Total Weight": "propellant and
     case").
   - [RP] `GenericMotor.load_from_eng` sets its chamber radius to the motor **diameter**
-    ([`motor.py:1759-1761`][rp-1759]), which quadruples the $r^2$ inertia terms (and the default
+    ([`motor.py:1759-1761`][rp-1759]). That quadruples the $r^2$ inertia terms (and the default
     nozzle area it derives from that radius). HPR Sim uses $D/2$.
-- **Catalog envelope:** diameter, length and masses are the curve file's header values;
-  `cargo xtask motor-catalog` refuses a reload whose case names another diameter than its header
-  ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header listed a 54 mm motor as a 75 mm motor).
-  ThrustCurve.org's own records differ in a few places ([the bundled motors](#the-bundled-motors)).
+- A catalog entry's diameter, length and masses are its curve file's header values
+  ([A motor from a file](#a-motor-from-a-file)). ThrustCurve.org's own records differ in a few
+  places ([the bundled motors](#the-bundled-motors)).
 
 #### The effective exhaust velocity is a units check
 
-Both constructors, `SolidMotor::new` and `SolidMotor::from_envelope`, refuse a motor whose curve
-and propellant mass imply an effective exhaust velocity $c = I/m_p$ outside **200 to 5,000 m/s (656 to 16,404 ft/s)**.
-It is a guard against a slip in the units of the propellant mass, not a filter on propellant:
+Both constructors, `SolidMotor::new` and `SolidMotor::from_envelope`, work out the effective
+exhaust velocity $c = I/m_p$ from the curve and the propellant mass. They refuse a motor whose $c$
+is outside **200 to 5,000 m/s (656 to 16,404 ft/s)**. It is a guard against a slip in the units
+of the propellant mass, not a filter on propellant:
 
-- **What it catches.** A propellant mass in grams typed where kilograms belong, such as a `.rse`
-  file's `propellant_mass_g` passed unconverted, which moves $c$ by a factor of 1,000. Nothing
-  else in the API notices: the 411I175's envelope typed in millimeters and grams,
-  `from_envelope(curve, 38.0, 245.0, 228.9, 437.5)`, has positive, finite dimensions and a
-  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s). It is the grams that
-  give it away.
-- **What it can't catch.** A size in the wrong unit. $c$ doesn't depend on the diameter or the
-  length, and the motor accepts any positive size: the example's I377 with its size left in
-  millimeters, `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
+- It catches a propellant mass in grams typed where kilograms belong, such as a `.rse` file's
+  `propellant_mass_g` passed unconverted. That moves $c$ by a factor of 1,000. Nothing else in the
+  API notices. Take the 411I175's envelope typed in millimeters and grams,
+  `from_envelope(curve, 38.0, 245.0, 228.9, 437.5)`. It has positive, finite dimensions and a
+  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s).
+- It can't catch a size in the wrong unit. $c$ doesn't depend on the diameter or the length, and
+  the motor accepts any positive size. The example's I377 with its size left in millimeters,
+  `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
   2103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
   ([Checks](design.md#checks)). A diameter wider than the mount's bore is an error,
-  `motor_wider_than_mount`, and the flight refuses to start; within a nominal size's slack for its
+  `motor_wider_than_mount`, and the flight refuses to start. Within a nominal size's slack for its
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
   Nor does $c$ involve the loaded mass, so a loaded mass in grams passes too.
-- **What it lets through.** Every real motor checked. The 1,708 ThrustCurve.org files with a
-  catalog propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s), with a median of 1,867 and 90% of them
-  between 928 and 2,210. The 32 bundled motors, with their files' own propellant masses, run
-  from **708.59 m/s** (2,324.8 ft/s, a black-powder C) to **2,651.64 m/s** (8,699.6 ft/s, a K).
-- **Where it is tight.** The lowest real value is 1.2x above the floor. Estes and Quest normally
+- It lets through every real motor checked. The 1,708 ThrustCurve.org files with a catalog
+  propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s). Their median is 1,867, and 90% of them are
+  between 928 and 2,210. The 32 bundled motors run from **708.59 m/s** (2,324.8 ft/s, a
+  black-powder C) to **2,651.64 m/s** (8,699.6 ft/s, a K). That is with their files' own
+  propellant masses.
+- It is tightest at the floor: the lowest real value is 1.2x above it. Estes and Quest normally
   count the delay grain and the ejection charge as propellant, so their small black-powder motors
-  read low; [issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the fallback if one
-  ever falls below 200 m/s (656 ft/s).
+  read low. [Issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the
+  fallback if one ever falls below 200 m/s (656 ft/s).
 
 $I$ here is the curve's own impulse, uncorrected for air pressure. The reasoning in full, the
 table of percentiles, and two figures that were once got wrong are in
@@ -534,18 +531,17 @@ table of percentiles, and two figures that were once got wrong are in
 
 ### Thrust at altitude
 
-A motor pushes harder in thinner air. Its thrust has two parts: the momentum of the exhaust, and a
-pressure term, the exhaust's pressure at the nozzle exit less the air's, times the exit area
-([SP] eq. 2, p. 3; SP-8039's unit constant $g_c$ is 1 in SI):
+A motor pushes harder in thinner air. Its thrust has two parts. One is the momentum of the
+exhaust. The other is a pressure term: the exhaust's pressure at the nozzle exit less the air's,
+times the exit area ([SP] eq. 2, p. 3; SP-8039's unit constant $g_c$ is 1 in SI):
 
 $$
 F = \dot{m}\, u_e + (p_e - p_a)\, A_e
 $$
 
-Here
-$\dot{m}$ is the mass flow, $u_e$ the exhaust speed at the exit, $p_e$ the exit pressure, $p_a$ the
-ambient (air) pressure and $A_e$ the exit area. With the flow unchanged, a curve measured at
-reference pressure $p_{\mathrm{ref}}$ gives, at ambient $p_a$,
+Here $\dot{m}$ is the mass flow and $u_e$ the exhaust speed at the exit. $p_e$ is the exit
+pressure, $p_a$ the ambient (air) pressure and $A_e$ the exit area. With the flow unchanged, a
+curve measured at reference pressure $p_{\mathrm{ref}}$ gives, at ambient $p_a$,
 
 $$
 \begin{aligned}
@@ -559,38 +555,39 @@ $$
 - $p_{\mathrm{ref}}$ is the air pressure at the static test site, where the motor was fired on a test stand
   to measure its curve. It is stored with the nozzle (`Nozzle::reference_pressure_pa`). Motor
   files and catalogs don't record it, so a design gives it, or gives none (below). Standard
-  sea-level pressure (101 325 Pa) suits a motor tested near sea level, but it is a guess: for a
-  test at 1500 m (4,921 ft) elevation (84.6 kPa in the 1976
-  [standard atmosphere](../glossary.md#standard-atmosphere)), it makes the term 16.8 kPa × $A_e$
-  too large at every altitude.
+  sea-level pressure (101 325 Pa) suits a motor tested near sea level, but it is a guess. Take a
+  test at 1500 m (4,921 ft) elevation, 84.6 kPa in the 1976
+  [standard atmosphere](../glossary.md#standard-atmosphere). For that motor, sea-level pressure
+  makes the term 16.8 kPa × $A_e$ too large at every altitude.
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
-  at sea level, can have its flow come away from the nozzle wall (separate), and then it doesn't
-  ([SP] pp. 32–34).
+  at sea level, can have its flow come away from the nozzle wall (separate). Then the conversion
+  doesn't hold ([SP] pp. 32–34).
 - HPR Sim applies it strictly inside the burn, $0 < t < t_{\mathrm{end}}$ ($t_{\mathrm{end}}$ the curve's last time), as
-  RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]), but only where the
-  curve's thrust is positive (RocketPy also adds it inside zero-thrust gaps, where nothing flows),
-  and never lets thrust go negative. Without a known nozzle it returns the curve. Commercial motor
-  files carry no exit diameter: `.eng` has no field for one, and the `.rse` format's `exitDia`
-  attribute is always 0 ([`.rse` files](../format/rse.md#engine-attributes)). So a motor read from
-  a file or the catalog gets no correction.
-- **No reference pressure, no correction.** A nozzle may leave `reference_pressure_pa` empty
-  (`None`, `null` in a design file). The curve is then flown as it is at every pressure, which is
-  what RocketPy does by default: its `Motor(reference_pressure=None)` makes `pressure_thrust`
-  zero ([`motor.py:1188-1189`][rp-1173]). The designs transcribed from RocketPy's examples say
-  `None` for that reason ([ADR-021][adr-021]). With the sea-level stand-in, the Valetudo of
-  [Getting started](../getting-started.md), at a 1,400 m (4,593 ft) site, carried about 23 N of thrust
-  (15.7 kPa × 1.47e-3 m²) that RocketPy's example never flies, and reached 874 m (2,867 ft) where it now
-  reaches 779 m (2,556 ft). A design must say which it means: the key is required, `null` for none, so
+  RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]). It applies the term
+  only where the curve's thrust is positive; RocketPy also adds it inside zero-thrust gaps, where
+  nothing flows. HPR Sim never lets thrust go negative. Without a known nozzle it returns the
+  curve. Commercial motor files carry no exit diameter: `.eng` has no field for one, and the
+  `.rse` format's `exitDia` attribute is always 0 ([`.rse` files](../format/rse.md#engine-attributes)).
+  So a motor read from a file or the catalog gets no correction.
+- A nozzle may leave `reference_pressure_pa` empty (`None`, `null` in a design file). The curve is
+  then flown as it is at every pressure, which is what RocketPy does by default: its
+  `Motor(reference_pressure=None)` makes `pressure_thrust` zero ([`motor.py:1188-1189`][rp-1173]).
+  The designs transcribed from RocketPy's examples say `None` for that reason
+  ([ADR-021][adr-021]). Take the Valetudo of [Getting started](../getting-started.md), at a
+  1,400 m (4,593 ft) site. With the sea-level stand-in it carried about 23 N of thrust
+  (15.7 kPa × 1.47e-3 m²) that RocketPy's example never flies. It reached 874 m (2,867 ft), where it now
+  reaches 779 m (2,556 ft). A design must say which it means. The key is required, `null` for none, so
   leaving it out is an error rather than a silent choice. The unit test
   `hpr_motor::motor::tests::pressure_correction_uses_the_exit_area` pins both forms and the
   missing key.
-- **Limits.** The full-flow term steps in just after ignition and steps to zero at $t_{\mathrm{end}}$ (the
-  integrator should treat both as [events](../glossary.md#event)). In the ignition transient (the
-  first moments, while the pressure inside the motor builds) and the tail-off (the end of the
-  burn, while it falls), the real exit pressure is far from its full-flow value, so the term
-  misstates thrust there. In the tail-off, where the exit pressure falls with the chamber's, it
-  overstates it: on the 411I175 (a 9.5 mm (0.37 in) exit) in vacuum it adds 3.9 N·s in the 0.14 s after the
-  NFPA 1125 burn ends, which delivers 0.45 N·s itself; that is 0.95% of total impulse.
+- The full-flow term steps in just after ignition and steps to zero at $t_{\mathrm{end}}$ (the
+  integrator should treat both as [events](../glossary.md#event)). The ignition transient is the
+  first moments, while the pressure inside the motor builds. The tail-off is the end of the burn,
+  while that pressure falls. In both, the real exit pressure is far from its full-flow value, so
+  the term misstates thrust there. In the tail-off, where the exit pressure falls with the
+  chamber's, the term overstates thrust. Take the 411I175, with a 9.5 mm (0.37 in) exit, in vacuum. In the 0.14 s
+  after the NFPA 1125 burn ends, the term adds 3.9 N·s, and the curve itself delivers 0.45 N·s.
+  The 3.9 N·s is 0.95% of total impulse.
 
 ### Delays
 
@@ -598,9 +595,9 @@ A motor's [ejection delay](../glossary.md#ejection-delay) is the time from burno
 charge, which deploys the recovery. [TC-G] lists every achievable delay, adjustable ones included.
 A plugged motor has no ejection charge, and files mark it `P`. See
 [`hpr_motor::delay`](../api/hpr_motor/delay/index.html) and [`.eng` files](../format/eng.md) for
-the markers files use. A `0` is read as its own "zero or plugged" setting, because the RASP spec
-says it means ejection at burnout but most files mean plugged. HPR Sim never turns it into an
-ejection event by itself: the user has to decide.
+the markers files use. A `0` is read as its own "zero or plugged" setting. The RASP spec says it
+means ejection at burnout, but most files mean plugged. HPR Sim never turns it into an ejection
+event by itself: the user has to decide.
 
 ## Validation and example
 
@@ -609,50 +606,52 @@ The tests that pin the motor model, and the whole example program.
 ### Validation
 
 - **Catalog** (`catalog::tests`): every figure the catalog states is its curve file's own, bit for
-  bit, so what `hpr motors` lists is what flies, and all 32 are within 1% of the total impulse,
-  average thrust and burn time ThrustCurve.org's code works out from the same files (the next
-  item). Against ThrustCurve.org's published values, 1% was **the bundling rule**, so it held by
-  construction; `cargo xtask motor-catalog` measures it again where ThrustCurve.org's catalog is
-  saved outside the repository ([Loft lesson L42](../decisions-and-roadmap.md#l42): in Loft, a
-  mis-sourced curve flew about 26% high). Of 554 public-domain curves, 196 passed
+  bit. So what `hpr motors` lists is what flies. All 32 are within 1% of the total impulse,
+  average thrust and burn time ThrustCurve.org's code works out from the same files (next item).
+  Against ThrustCurve.org's published values, 1% was **the bundling rule**, so it held by
+  construction. `cargo xtask motor-catalog` measures it again where ThrustCurve.org's catalog is
+  saved outside the repository. In Loft, a mis-sourced curve flew about 26% high
+  ([Loft lesson L42](../decisions-and-roadmap.md#l42)). Of 554 public-domain curves, 196 passed
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
   which also list the four motors whose stored values are printed coarser than 1%). Each bundled
-  file is public domain, and its bytes match the SHA-256 checksum (a fingerprint of a file's exact
-  bytes) recorded when it was downloaded (Loft lessons [L41](../decisions-and-roadmap.md#l41) to [L43](../decisions-and-roadmap.md#l43), on curve licenses,
-  loose impulse checks and wrong headers).
+  file is public domain. Its bytes match the SHA-256 checksum (a fingerprint of a file's exact
+  bytes) recorded when it was downloaded. These checks enforce Loft lessons
+  [L41](../decisions-and-roadmap.md#l41) to [L43](../decisions-and-roadmap.md#l43), on curve
+  licenses, loose impulse checks and wrong headers.
 - **ThrustCurve's code** (`catalog::tests::every_bundled_curve_matches_thrustcurve_statistics_code`):
   [`validation/oracles/thrustcurve/analyze_stats.js`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/thrustcurve/analyze_stats.js)
   runs [TC-A] unchanged on every bundled curve, and writes its results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
-  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15, so the
-  definitions, not only the 1% rule, are checked.
+  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15. So the
+  definitions are checked, not only the 1% rule.
 - **OpenRocket** (`catalog::tests::openrocket_s_total_impulse_matches_every_bundled_curve`):
   [`validation/oracles/openrocket/motors.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motors.py)
-  hands each bundled file to OpenRocket 24.12's own motor loader and records what it makes of it in
+  hands each bundled file to OpenRocket 24.12's own motor loader. It records what the loader makes
+  of it in
   [`validation/fixtures/motor/openrocket-curve-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/openrocket-curve-stats.json),
   tied to each file by its SHA-256. The two codes are compared on the **same bytes**, so what is
   measured is the arithmetic, not two catalogs' data for one motor. Four numbers are **identical**,
-  to the last bit of an `f64`, on all 32 curves: total impulse, peak thrust, the 5%-of-peak burn-time
-  window (OpenRocket's `getBurnTimeEstimate`) and the curve's whole duration (its `getBurnTime`,
-  which is the last listed time rather than a window). The test holds the impulse to the 0.1% that
-  [M2.2c](../decisions-and-roadmap.md#m2-2c) asks for (met with everything to spare) and asserts
-  the bit-for-bit equality besides, so this paragraph cannot go stale while the suite stays green.
-  Both codes integrate the listed points as straight lines, and both prepend `(0, 0)` to a file
-  whose first point is after ignition (29 of the 32 start between 1 and 40 ms), so the point counts
-  match as well and nothing rounds differently.
-  - **One definition genuinely differs**, and is recorded rather than held
-    ([ADR-066][adr-066]): the **average thrust**. Both codes divide by the same 5% window, but
-    OpenRocket's numerator is the impulse *inside* it while HPR Sim's, following [TC-A], is the
-    whole curve's. The tails below 5% are the difference, so HPR Sim's average is the higher on
-    every one of the 32, by **+0.0107% to +0.3147%** (median +0.0965%); the test prints all three. Carrying an
-    average thrust between the two codes means saying which numerator it used.
-  - **Curves outside this repository are held to the same bound.** They are not committed, so
-    `cargo xtask ork` checks them on the machine that has them, and fails if one is outside 0.1%
+  to the last bit of an `f64`, on all 32 curves. They are total impulse, peak thrust, the
+  5%-of-peak burn-time window (OpenRocket's `getBurnTimeEstimate`) and the curve's whole duration.
+  That duration is OpenRocket's `getBurnTime`, the last listed time rather than a window. The test
+  holds the impulse to the 0.1% that [M2.2c](../decisions-and-roadmap.md#m2-2c) asks for, met
+  with everything to spare. It also asserts the bit-for-bit equality, so this paragraph cannot go
+  stale while the suite stays green. Both codes integrate the listed points as straight lines.
+  Both prepend `(0, 0)` to a file whose first point is after ignition (29 of the 32 start between
+  1 and 40 ms). So the point counts match as well, and nothing rounds differently.
+  - One definition genuinely differs, and is recorded rather than held ([ADR-066][adr-066]): the
+    **average thrust**. Both codes divide by the same 5% window. OpenRocket's numerator is the
+    impulse *inside* it, while HPR Sim's, following [TC-A], is the whole curve's. The tails below
+    5% are the difference. So HPR Sim's average is the higher on every one of the 32, by
+    **+0.0107% to +0.3147%** (median +0.0965%). The test prints all three. Carrying an average
+    thrust between the two codes means saying which numerator it used.
+  - Curves outside this repository are held to the same bound. They are not committed, so
+    `cargo xtask ork` checks them on the machine that has them. It fails if one is outside 0.1%
     ([M2.2c2](../decisions-and-roadmap.md#m2-2c2), [ADR-067][adr-067]):
-    - **The curves the reference library's designs embed**, which are other people's data. HPR Sim
+    - The curves the reference library's designs embed, which are other people's data. HPR Sim
       parses each file itself, so these are real checks. All 3 agree to the last bit.
-    - **Every solid curve in the motor database OpenRocket 24.12 ships**: 1,288 of its 1,452
+    - Every solid curve in the motor database OpenRocket 24.12 ships: 1,288 of its 1,452
       motors, the rest hybrids. The survey supplies them to designs that name a curve by
       [digest](../glossary.md#digest) without carrying it. Both codes integrate the samples
       OpenRocket has already parsed, so agreement to the last bit proves the hand-off, not two
@@ -661,27 +660,30 @@ The tests that pin the motor model, and the whole example program.
     The counts, and what the database motors' masses leave out, are on the
     [`.ork` format page](../format/ork.md#motors-in-the-reference-library).
 - **RocketPy** (`motor::tests::matches_rocketpy_solid_motor_for_three_bundled_motors`): three
-  bundled curves with BATES loads cover grains that burn out radially (the bore reaches the outer
-  wall first) and axially (the burning ends meet first), inhibited ends, and both of RocketPy's
-  axis directions (positions measured from the nozzle forward, or toward the nozzle).
+  bundled curves with BATES loads. They cover grains that burn out radially (the bore reaches the
+  outer wall first) and axially (the burning ends meet first). They also cover inhibited ends, and
+  both of RocketPy's axis directions (positions measured from the nozzle forward, or toward the
+  nozzle).
   [`validation/oracles/rocketpy/solid_motor.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/rocketpy/solid_motor.py)
   writes
   [`validation/fixtures/motor/rocketpy-solid-motor.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/rocketpy-solid-motor.json),
   and regenerates it byte for byte.
-  - On 203 times per motor, total mass, $I_t$ and $I_a$ agree with RocketPy within 7.9e-5 of
-    RocketPy's own values, and the center of mass within 5.8e-6 of the motor length.
-  - Quantities that go to zero are compared against a fixed scale: propellant mass and inertias
-    against their ignition values, grain height against its initial height, centers against the
-    motor length. On that scale they agree within 1e-4. Relative to their own tiny values in the
-    last grams of propellant they differ by up to 39%. That comes from RocketPy: it interpolates
-    between the points its ODE solver stored, and its solver stops slightly early.
+  - On 203 times per motor, total mass, $I_t$ and $I_a$ agree within 7.9e-5 of
+    RocketPy's own values. At the same times the center of mass agrees within 5.8e-6 of the motor
+    length.
+  - Quantities that go to zero are compared against a fixed scale. Propellant mass and inertias
+    are compared against their ignition values, grain height against its initial height, and
+    centers against the motor length. On that scale they agree within 1e-4. Relative to their own
+    tiny values in the last grams of propellant they differ by up to 39%. That comes from
+    RocketPy: it interpolates between the points its ODE solver stored, and its solver stops
+    slightly early.
   - The test holds 0.1% on these scales.
 - **Files:** 1710 of ThrustCurve's 1712 solid-motor files read, and write back out and read again
   with every value identical to the last bit. The other two have times that go backwards
   ([`.rse` files](../format/rse.md#checked-against-real-files)).
-- **Unit and property tests** (property tests check a rule on many random inputs): exact impulse
-  integration, burn windows, grain volume inversion, the parallel-axis theorem, and the
-  impulse-fraction flow integrating to $m_{p0}$.
+- **Unit and property tests** cover exact impulse integration, burn windows, grain volume
+  inversion, the parallel-axis theorem, and the impulse-fraction flow integrating to $m_{p0}$.
+  Property tests check a rule on many random inputs.
 
 ### The example program
 
