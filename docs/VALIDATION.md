@@ -323,8 +323,9 @@ to write down why, and a blank reason fails outright. The metric is still measur
 printed with both numbers and the difference. It never counts as a pass. The whole excused set is
 pinned by `hpr_validate::tests::the_metrics_that_are_not_scored_are_these_and_no_others`.
 
-It was written for Valetudo's northward drift, which read 28x RocketPy's. The right answer there
-turned out to be to fix the comparison rather than to excuse the number. The same held for the drifts in
+It was written for Valetudo's northward drift, which read 28x RocketPy's
+([the harness decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0015-the-validation-harness-cases-references.md)).
+The right answer there turned out to be to fix the comparison rather than to excuse the number. The same held for the drifts in
 wind (issue #50): RocketPy's equations were at fault, and the comparison now flies them corrected
 ([the wind decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md)).
 Eleven whole-flight metrics use it today ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)),
@@ -586,7 +587,7 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   same file. It's the level-3 reference for
   [the drag through Mach 1](decisions-and-roadmap.md#m1-8b1) ([its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md)), compared in
   `validation/fixtures/aero/drag-vs-mach.json` and checked by `hpr_aero::tests::drag_against_mach`.
-  Of 44 rows, 8 are within the 10% target set before measuring, HPR Sim reading high
+  Of 44 rows, 2 are within the 10% target set before measuring, HPR Sim reading high
   (`docs/physics/aero.md`). Their roll effectiveness (TN D-4014 Fig. 14) is for
   [roll and damping](decisions-and-roadmap.md#m1-8c).
 - **Stoney, zero-lift drag of bodies of revolution:** NASA TR R-100 (1961), NTRS 19630004995.
@@ -603,8 +604,8 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   methods, not a measurement, so it's a code-to-code reference. It's compared in
   `validation/fixtures/aero/drag-vs-mach.json` and checked by
   `hpr_aero::tests::drag_against_mil_hdbk_762_sample` ([drag against RASAero II](decisions-and-roadmap.md#m1-8b2),
-  [the sample calculation](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0029-drag-against-rasaero-ii-through-mach-2-the-gap.md)). Of 12 rows, 2 are within 10%, HPR Sim reading high
-  (`docs/physics/aero.md`).
+  [the sample calculation](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0029-drag-against-rasaero-ii-through-mach-2-the-gap.md)). Of 12 rows, 6 are within 10%. HPR Sim reads
+  +12.3% to +31.9% high from Mach 0.9 to 1.2 (`docs/physics/aero.md`).
 - D. J. Martin's NACA TN 4197 (1958), NTRS 19930085030, for fin flutter. NTRS serves it with a
   436-byte header before `%PDF`, and the lock pins the bytes as served.
 - T. W. Knacke's *Parachute Recovery Systems Design Manual*, NWC TP 6575 (1991), DTIC ADA247666,

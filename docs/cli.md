@@ -594,13 +594,9 @@ The parts are numbered in the order they drop.
 
 OpenRocket's *Three stage low power rocket* is one of the example designs OpenRocket ships. Its
 booster is part 1 and its middle stage part 2, and the file names both `Booster stage`. On its first
-configuration, an A8-5 above two B6-0s, the note begins:
-
-```text
-the stack comes apart under power 2 times: at 0.857 s part 1, `Booster stage`, drops away, at 1.714 s part 2, `Booster stage`, drops away; the sustainer, part 0, flies on
-```
-
-The output then prints `landing, part 1` and `landing, part 2`, each marked rough like a booster's.
+configuration, an A8-5 above two B6-0s, the note says the stack comes apart under power 2 times.
+Part 1, `Booster stage`, drops away at 0.857 s, and part 2, `Booster stage`, at 1.714 s. The
+sustainer, part 0, flies on. The output then prints `landing, part 1` and `landing, part 2`, each marked rough like a booster's.
 
 - **Against OpenRocket, on its own thrust curves.** All three configurations separate at
   OpenRocket's times. Their apogees are within 1.48% and their largest speeds within 1.64% of
@@ -622,7 +618,7 @@ The [M4.5g2 milestone](decisions-and-roadmap.md#m4-5g2) shipped this. Its
 **Boosters strapped beside the core fly too**, on a rocket of one stage on the axis. They form a
 [parallel stage](glossary.md#parallel-stage), which burns with the core and drops at its own
 separation. On OpenRocket's *Parallel booster staging*, the boosters' E12s light with the core's
-I115W at launch. The note reads "the stack comes apart under power at 2.440 s: part 1,
+I115W at launch. The note begins "the stack comes apart under power at 2.440 s: part 1,
 `Booster Set`, drops away". Boosters with no motor that lights stay on to the landing, as OpenRocket
 flies them.
 
@@ -669,7 +665,7 @@ separation at …". To fly it, set one of the payload's devices to open at the s
 that's its deployment event "Lower stage separation" with no delay.
 
 The payload is part 0, and its apogee is the flight's. Its own events, such as its apogee and its
-landing, follow the stack's in the events table. The note reads "the stack comes apart at 4.860 s
+landing, follow the stack's in the events table. The note begins "the stack comes apart at 4.860 s
 with nothing left to burn: part 1, `Booster`, drops away". A dropped part that climbs higher gets a
 note, "part 1 peaks at … above the flight's apogee". It matters because a waiver's height is the
 highest any part reaches.
@@ -812,8 +808,10 @@ way. So its climb tips away from the vertical. The wind does most of it.
 `hpr sim` refuses, with the reason, rather than fly something other than the design:
 
 - with `--motor`, a configuration with motors in more than one mount, as `--motor` flies one;
-- a rocket whose stages separate unpowered before apogee, at or after apogee beside another
-  separation, or before the separation behind it ([Separation](#separation));
+- a rocket whose stages separate in a way `hpr sim` doesn't fly ([Separation](#separation)):
+  - unpowered before apogee, with no device open on the part that keeps the nose;
+  - at or after apogee, beside another separation;
+  - before the separation behind it;
 - a motor lit by a stage's separation, in a design that states no separation, such as a rocket's
   `.json`;
 - with `--motor`, a `.ork` rocket of more than one stage, or a configuration that switches a
@@ -1598,8 +1596,8 @@ Some things come back written differently, though they mean the same:
 A `.rse` file also gives figures a `.eng` file has no place for. They're the motor's type, its
 total impulse, average and peak thrust, burn time, mass fraction,
 [specific impulse](glossary.md#specific-impulse), and nozzle throat and exit diameters. Two flags
-say whether RockSim works the mass and center of gravity out itself, and the file gives both at
-each point of the curve. The simulator doesn't use them for a solid motor. It works the mass and
+say whether RockSim works the mass and center of gravity out itself. The file gives both figures
+at each point of the curve. The simulator doesn't use them for a solid motor. It works the mass and
 center of gravity out from the curve and the masses, whichever format it reads.
 
 Going to `.eng`, they're dropped, and a warning names them. Going to `.rse`, they're filled in the
@@ -2323,9 +2321,10 @@ you press Tab. Save it where your shell looks for completions:
 
 ## What it leaves out
 
-- **Unpowered stage separations, a dropped stage's accuracy, and a rocket `.json`'s parachutes.**
-  `hpr sim` flies powered separations, one or several in turn, but not an unpowered one before
-  apogee. A dropped stage flies as a point under its devices' drag, so its landing is rough. It flies a
+- **Some unpowered separations, a dropped stage's accuracy, and a rocket `.json`'s parachutes.**
+  `hpr sim` flies powered separations, one or several in turn. It flies an unpowered one before
+  apogee only if the part that keeps the nose has a device open by then. A dropped stage flies as
+  a point under its devices' drag, so its landing is rough. It flies a
   `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **Readings within bounds, not intervals.** `hpr analyze` gives each reading within a bound or
