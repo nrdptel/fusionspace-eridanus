@@ -1,6 +1,6 @@
 # ADR-005: Solid motors: statistics, consumption, grains, file models and the bundled catalog (2026-09-17)
 
-- **Status:** accepted; the peak thrust and burn-time crossings refined by ADR-150 (delivered samples only); the catalog-metadata bullet replaced by ADR-186 (every figure from the curve file itself); its reading of ThrustCurve.org's figures as facts restored by ADR-287
+- **Status:** accepted; the peak thrust and burn-time crossings refined by ADR-150 (delivered samples only); the catalog-metadata bullet replaced by ADR-186 (every figure from the curve file itself); its reading of ThrustCurve.org's figures as facts restored by ADR-287; the bundle widened by ADR-288 to every solid motor, the 1% check stored with each file rather than choosing them
 - **Summary:** Solid motors: statistics, consumption, grains, file models and the bundled catalog
 
 **Context.** M1.3 builds `hpr-motor`. Loft's motor code went wrong in eight ways (lessons L36–L43):

@@ -1,6 +1,6 @@
 # ADR-154: Motors fetched from ThrustCurve.org by name, cached, and named when offline (2026-10-04)
 
-- **Status:** accepted; the file order (§2) and a `.ork` motor's fetch (§4) amended by ADR-161, which takes first the file holding OpenRocket's curve for the digest
+- **Status:** accepted; the file order (§2) and a `.ork` motor's fetch (§4) amended by ADR-161, which takes first the file holding OpenRocket's curve for the digest; ADR-288 bundles the whole solid catalog, so a fetch is needed only for a motor newer than the bundle
 - **Summary:** M4.5b: `hpr sim` fetches a motor the bundled catalog lacks from ThrustCurve.org, by name for `--motor` and by manufacturer and designation for a `.ork` motor with no curve, through `hpr_net`'s cache; `hpr motors fetch` pre-loads; offline and uncached, the refusal names the exact command. One rule picks the file; nothing is bundled
 
 **Context.** [ADR-144](0144-the-2026-10-03-planning-review-leaner-bookkeeping.md) §8b asks that
