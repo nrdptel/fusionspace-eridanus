@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 51 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 439346 words, 0 stock phrases. 56 pages are within every limit.
+82 pages, 439385 words, 0 stock phrases. 56 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -32,7 +32,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/VALIDATION.md` (`held`) | 10069 | 13.7 | 0% | 0.26 | 0.00 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.57 |
 | `docs/VISION.md` | 3648 | 15.4 | 15% | **1.10** | **3.62** | **0.58** | 0.20 | 0.00 | 0.09 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
 | `docs/accuracy.md` (`held`) | 15625 | 13.3 | 0% | 0.23 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
-| `docs/api.md` (`held`) | 2439 | 13.1 | 0% | 0.17 | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.29 |
+| `docs/api.md` (`held`) | 2469 | 13.1 | 0% | 0.17 | 0.00 | 0.00 | 0.13 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.41 | 0.33 |
 | `docs/checking-a-claim.md` (`held`) | 1572 | 14.7 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
 | `docs/cli.md` (`ref`, `held`) | 17601 | 13.4 | 0% | 0.24 | 0.02 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.61 |
 | `docs/custom-models.md` (`held`) | 1842 | 13.7 | 0% | 0.00 | 0.00 | 0.00 | 0.22 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.93 | 1.09 |
@@ -63,7 +63,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/design.md` (`ref`) | 9093 | 19.9 | 31% | **0.73** | 0.31 | **1.38** | 0.10 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.26 |
 | `docs/physics/flight.md` (`ref`) | 4631 | 15.2 | 15% | **1.32** | 0.46 | **0.91** | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 |
 | `docs/physics/flutter.md` (`ref`) | 2835 | 15.4 | 12% | 0.36 | 0.15 | **0.60** | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.18 |
-| `docs/physics/frames.md` (`ref`, `held`) | 1357 | 12.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| `docs/physics/frames.md` (`ref`, `held`) | 1366 | 12.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/geodesy.md` (`ref`, `held`) | 1737 | 12.2 | 0% | 0.24 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.12 | 0.06 |
 | `docs/physics/gravity.md` (`ref`, `held`) | 1134 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/integration.md` (`ref`) | 2063 | 13.1 | 8% | **1.27** | 0.25 | **0.59** | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.25 |

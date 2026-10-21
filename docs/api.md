@@ -48,7 +48,7 @@ So `hpr` is the package `fusionspace-hpr`, `hpr_core` is `fusionspace-hpr-core`,
 | [`hpr_design`](api/hpr_design/index.html) | The rocket: its tree of parts, their shapes and materials, mass properties and design checks | | [The design tree](physics/design.md), [Shapes](physics/shapes.md), [Mass properties](physics/mass.md) |
 | [`hpr_format`](api/hpr_format/index.html) | The HPR design format: a design as one JSON document (`.hpr`) with its JSON Schema, read from and written to `.ork`, in a zip container with other files (`.hprz`), older versions migrated | None. [Its TypeScript and Python types](decisions-and-roadmap.md#m3-3c) are done, outside the crate | [The HPR design format](format/hpr.md) |
 | [`hpr_aero`](api/hpr_aero/index.html) | Aerodynamics: normal force, center of pressure and drag to Mach 5, tables from other programs for the drag and the normal force, and drag models of your own ([Models of your own](custom-models.md)) | Faster than sound, some shapes are checked on one case or not at all, and some use a theory that reads low past Mach 3 ([below](#aerodynamics-faster-than-sound)) | [Aerodynamics](physics/aero.md) |
-| [`hpr_sim`](api/hpr_sim/index.html) | The flight: the launch rail, the equations of motion, time integration, events and recovery | Staging, air starts and clusters are checked by tests and against OpenRocket; parts that leave the airframe, against exact answers only ([below](#staging-clusters-and-parts-that-leave)) | [How a flight is simulated](how-a-flight-is-simulated.md), [Rigid-body flight](physics/flight.md), [Time integration](physics/integration.md), [Recovery](physics/recovery.md), [Staging](physics/staging.md) |
+| [`hpr_sim`](api/hpr_sim/index.html) | The flight: the launch rail, the equations of motion, time integration, events and recovery | Staging, air starts and clusters are checked by tests and against OpenRocket, a dropped stage's own flight not at all, and parts that leave the airframe against exact answers only ([below](#staging-clusters-and-parts-that-leave)) | [How a flight is simulated](how-a-flight-is-simulated.md), [Rigid-body flight](physics/flight.md), [Time integration](physics/integration.md), [Recovery](physics/recovery.md), [Staging](physics/staging.md) |
 | [`hpr_flightdata`](api/hpr_flightdata/index.html) | Reading a flight log on its own, with no design and no simulation, and the readings taken from it ([below](#flight-logs)) | Not yet: formats no sample holds ([listed as needing samples](format/flight-logs.md#formats-that-need-samples), [evidence row G9](evidence.md#g9)); readings from a GPS track; the top acceleration from a board's three axes ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)); the Mach number; a [90% interval on each reading](decisions-and-roadmap.md#m7-2e) | [Reading a flight log](reading-a-flight-log.md), [Flight-log readings](physics/log-readings.md), [`.pf2` files](format/pf2.md), [Flight logs](format/flight-logs.md) |
 | [`hpr_validate`](api/hpr_validate/index.html) | The validation harness: cases, [whole flights against RocketPy](decisions-and-roadmap.md#m2-1b2) among them, reference data, metrics and reports | None | [Accuracy](accuracy.md), [Checking a claim](checking-a-claim.md) |
 | [`hpr_py`](api/hpr_py/index.html) | The `fusionspace-hpr` Python package (`fusionspace.hpr`): the builder's environment, motor, rocket and flight from Python ([more below](#the-python-package)) | | [Python](python.md) |
@@ -97,7 +97,8 @@ Faster than sound, what `hpr_aero` flies depends on the body's shape:
   with OpenRocket's two-stage, cluster and air-start examples. Each flight is within 5% of OpenRocket's in apogee and
   largest speed ([a two-stage and a cluster design against OpenRocket](decisions-and-roadmap.md#m1-9c)).
   Three cluster apogees are compared with OpenRocket's flight with no parachute, since its
-  parachute opened before apogee.
+  parachute opened before apogee. The flight of a dropped booster or middle stage after its split
+  isn't validated at all ([evidence row G13](evidence.md#g13)).
 - A [cluster](glossary.md#cluster) flies, one mount of several tubes or one mount per motor, and
   so does a motor out. Tests check them against a hand calculation.
 - A nose cone, a section or a payload can leave the airframe, optionally pushed by its charge. It
@@ -174,10 +175,11 @@ operating system, and it's on PyPI as `fusionspace-hpr`.
 
 Each powered separation in a `.ork` comes out as a
 [`Staging`](api/hpr_io/ork/staging/struct.Staging.html), from the tail forward
-(`MotorConfiguration::stagings`). Its time is known before the flight. At that time a motor ahead
-of it is still burning or yet to light, and none behind it is. Any other separation that could come before apogee is refused, a sustainer already burnt out
-at the split included. The configuration's rocket doesn't carry the `Staging`. These functions in
-`hpr` carry it, and the recovery settings, into the flight:
+(`MotorConfiguration::stagings`). A powered separation's time is known before the flight. At that
+time a motor ahead of it is still burning or yet to light, and none behind it is. Any other
+separation that could come before apogee is refused, a sustainer already burnt out at the split
+included. The configuration's rocket doesn't carry the `Staging`. These functions in `hpr` carry it,
+and the recovery settings, into the flight:
 
 - [`hpr::ork::separation`](api/hpr/ork/fn.separation.html) turns one into the flight's
   separation, and [`hpr::ork::separations`](api/hpr/ork/fn.separations.html) a configuration's
@@ -211,8 +213,8 @@ at the split included. The configuration's rocket doesn't carry the `Staging`. T
 - Optimization ([Optimization](optimization.md)). CMA-ES searches over numbers and choices such
   as a motor, within limits such as a minimum margin. NSGA-II takes two goals at once.
   [EGO](optimization.md#few-evaluations-ego) (efficient global optimization) is for models too
-  slow for more than tens of evaluations. On a rocket, its answers are only as good as the simulator's
-  flight models.
+  slow for more than tens of evaluations. On a rocket, each gives answers only as good as the
+  simulator's flight models.
 - Planned: [competition rule files](decisions-and-roadmap.md#m6-3).
 
 ## Using it from your own program

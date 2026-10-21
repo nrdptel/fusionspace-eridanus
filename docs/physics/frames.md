@@ -78,9 +78,9 @@ input. [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   equations in $L$ add the Coriolis term $-2\boldsymbol{\Omega} \times \mathbf{v}$. The centrifugal term is already inside normal
   gravity and must not be added again ([Gravity](gravity.md)).
 - $L$ is a tangent plane, so $z_L$ is not altitude. A point at $z_L = 0$ at horizontal distance
-  $d$ from the pad is about $d^2/(2\rho)$ above the ellipsoid. Here $\rho$ is the
-  Earth's radius of curvature at the pad. At 10 km (6.2 mi), that is
-  7.8 m (26 ft). Height above the ellipsoid comes from `LaunchFrame::geodetic_from_enu`. The
+  $d$ from the pad stands about $d^2/(2\rho)$ higher above the ellipsoid than the pad. Here $\rho$
+  is the Earth's radius of curvature at the pad, plus the pad's height. At 10 km (6.2 mi), the
+  rise is 7.8 m (26 ft). Height above the ellipsoid comes from `LaunchFrame::geodetic_from_enu`. The
   flight engine detects apogee and ground contact with that height, not with $z_L$
   ([Rigid-body flight](flight.md), [Loft's lesson on apogee height](../decisions-and-roadmap.md#l35)).
 
