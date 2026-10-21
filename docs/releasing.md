@@ -34,15 +34,15 @@ entry: what it holds, what works, how far to trust it, and its known gaps.
 | `fusionspace-hpr-<version>-aarch64-apple-darwin.tar.gz` | the command line for Macs with Apple silicon | the GitHub release |
 | `fusionspace-hpr-<version>-x86_64-pc-windows-msvc.zip` | the command line for Windows on x86-64 | the GitHub release |
 | `fusionspace-hpr-<version>-aarch64-pc-windows-msvc.zip` | the command line for Windows on ARM | the GitHub release |
-| `fusionspace_hpr-<version>-cp310-abi3-<platform>.whl` | the Python package, one wheel per platform, for CPython 3.10 and later (3.11 on Windows on ARM, its oldest); it imports as `fusionspace.hpr` | PyPI, as `fusionspace-hpr` |
-| `fusionspace_hpr-<version>.tar.gz` | the Python package's source; installing it compiles it, so it needs Rust | PyPI |
+| `fusionspace_hpr-<version>-cp310-abi3-<platform>.whl` | the Python package, one wheel per platform, for CPython 3.10 and later (3.11 on Windows on ARM, its oldest); it imports as `fusionspace.hpr` | PyPI, as `fusionspace-hpr`, and the GitHub release |
+| `fusionspace_hpr-<version>.tar.gz` | the Python package's source; installing it compiles it, so it needs Rust | PyPI and the GitHub release |
 | `fusionspace-hpr.rb` | the Homebrew formula for the Mac and Linux archives, from release 0.2; 0.1's was written afterwards by the same script and put in the tap by hand | the GitHub release, then [the tap](https://github.com/nrdptel/homebrew-tap) |
 | `fusionspace-hpr.json` | the Scoop manifest for the Windows archives, from release 0.2; 0.1's was written afterwards by the same script and put in the bucket by hand | the GitHub release, then [the bucket](https://github.com/nrdptel/scoop-bucket) |
 | 14 crates | `fusionspace-hpr`, the library's front door, the 12 `fusionspace-hpr-*` crates under it, and `fusionspace-hpr-cli`, the command line | crates.io |
 
 Each file is built and tested on the platform it's for, on that platform's own CPU
 ([the six platforms](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0222-six-platforms-tested-on-every-pull-request.md)).
-They're Linux and Windows, each on x86-64 and on 64-bit ARM, and Macs with Apple silicon. Release
+Five run now: Linux and Windows, each on x86-64 and on 64-bit ARM, and Macs with Apple silicon. Release
 0.1 had the x86-64 Linux, Apple silicon and x86-64 Windows files only. The ARM Linux and ARM
 Windows files start with release 0.2. Intel Macs follow
 ([issue #438](https://github.com/nrdptel/fusionspace-eridanus/issues/438)). Anywhere else,
@@ -152,7 +152,7 @@ publishes 14, so 9 of them wait. `scripts/release/publish-crates.sh` publishes t
 time, each after the crates it depends on. Once the first five new names are out, it waits 10.5
 minutes before each next one. That's 9 waits, about 95 minutes, plus the time to build each crate.
 A name already on crates.io that `nrdptel` doesn't own stops the run. A later release adds versions
-to crates that exist. crates.io allows 30 of those at once, so it doesn't wait.
+to crates that exist. crates.io allows 30 new versions at once, so it doesn't wait.
 
 **Later releases publish without a stored token.** The release workflow uses crates.io's
 [trusted publishing](https://crates.io/docs/trusted-publishing). Each crate's settings on crates.io
@@ -179,7 +179,7 @@ SHA-256 hash and how to install it. A *tap* is a Git repository of formulas outs
 Scoop's equivalents are a *manifest*, a JSON file, and a *bucket*, a repository of manifests.
 
 `scripts/release/package_managers.py` writes both files from the archives' names and hashes. Each
-has an entry for each archive the release has, and none for a system it lacks. So release 0.1's
+has an entry for each of its archives the release has, and none for a system it lacks. So release 0.1's
 formula refuses an Intel Mac rather than install a program it can't run. `cargo test -p xtask`
 runs the script on invented archives. It compares the formula with the expected one byte for byte,
 and the manifest as parsed JSON, written with Unix line ends. The release attaches both files, and
@@ -222,7 +222,7 @@ the workflow as disabled. Turn it back on with *Enable workflow* on its Actions 
 `nrdptel/scoop-bucket`). Then run it once by hand.
 
 **`cargo binstall fusionspace-hpr-cli` reads where the archives are from the crate's own
-manifest** (`[package.metadata.binstall]` in `crates/hpr-cli/Cargo.toml`). It gives the release's
+manifest** (`[package.metadata.binstall]` in `crates/hpr-cli/Cargo.toml`). Those lines give the release's
 tag, the archive's name, and `hpr` in the folder inside it. QuickInstall, a
 third-party service that builds and hosts crates' programs, is binstall's fallback, and it's turned
 off. So binstall takes only this repository's archives, or compiles. The crate on crates.io carries those lines from release 0.2.

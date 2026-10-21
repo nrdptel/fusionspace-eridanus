@@ -9,8 +9,8 @@ and measures distance and bearing between places.
   the poles). It converts between latitude, longitude and height and Earth-centered x, y, z. It
   gives the local east, north and up directions, and the distance and bearing between two places.
 - **Sources:** the NGA's WGS 84 standard, NGA.STND.0036 (2014). C. F. F. Karney, *Geodesics on
-  an ellipsoid of revolution* (2011), appendix B, and *Algorithms for geodesics* (2013), through
-  the `geographiclib-rs` crate.
+  an ellipsoid of revolution* (2011), appendix B. Karney, *Algorithms for geodesics* (2013),
+  through the `geographiclib-rs` crate.
 - **How well it is validated:** for the conversions, the derived ellipsoid values reproduce the
   standard's Table 3.5 to its printed digits. Unit tests make random round trips from −10 km (−6.2 mi)
   to +1000 km (621 mi). They return latitude within 1e-14 rad and height within 2e-8 m. The
@@ -177,8 +177,8 @@ surface, and the direct problem's end has no height until you give it one.
 
 **Method.** The code is Karney's GeographicLib, as georust's `geographiclib-rs` 0.2.7 (MIT) ports
 it. The simulator uses the crate rather than a port of its own, so the code is Karney's line for
-line ([its decision record][adr-127]). [Karney2013] maps the ellipsoid onto an auxiliary sphere,
-where a geodesic is a great circle (the sphere's shortest path). It corrects distance and
+line ([the geodesics decision record][adr-127]). [Karney2013] maps the ellipsoid onto an auxiliary sphere,
+where a geodesic is a great circle (the sphere's shortest path). [Karney2013] corrects distance and
 longitude with series in the flattening to sixth order (§2). The inverse finds $\alpha_1$ by Newton's
 method (§4), from a starting guess (§5).
 
@@ -226,7 +226,7 @@ at most 1e-13 m, so any azimuth error reads as no miss. Their distance and landi
 
 **Mirror lines: two paths of the same length.** Suppose the second place's latitude is exactly
 the first's negated ($\varphi_2 = -\varphi_1$) and the two azimuths differ ($\alpha_1 \ne \alpha_2$). Then two geodesics of the
-same length join the places, one the mirror of the other. The second has $\alpha_1$ and $\alpha_2$ swapped
+same length join the places, one the mirror of the other. The second geodesic has $\alpha_1$ and $\alpha_2$ swapped
 (GeographicLib's `GeodSolve` manual, *Multiple solutions*). Either answer is right. Where
 $\alpha_1 = \alpha_2$, as on the between-vertices lines, the geodesic is unique.
 

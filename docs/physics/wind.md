@@ -142,7 +142,7 @@ station. Each law blows from one direction at every height.
     can lengthen it. A flight through such a span warns of it
     ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). The warning is for a
     level at or below 1.5 m/s (4.9 ft/s) turning by any angle against its neighbor. 1.5 m/s (4.9 ft/s) is the top of
-    Beaufort force 1, light air. That is 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
+    Beaufort force 1, light air. Force 1 spans 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
     [MeteoSwiss's Beaufort table](https://www.meteoswiss.admin.ch/dam/jcr:c1064242-4a6e-4df2-8d21-96e68d1def7a/Beaufort_Tabelle_en.pdf),
     and 1 to 3 knots in the [Met Office's scale](https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale).
     Light air's direction is "shown by smoke drift, but not by wind vanes" in the
@@ -467,7 +467,7 @@ other fields are that model's inputs:
 - Reporting during a flight that the wind was held beyond a table's levels.
 
 A flight takes one wind model, so it can't join a power or log law near the ground to a table of
-levels aloft. [The planned weather milestone](../decisions-and-roadmap.md#m5-2) decides how to.
+levels aloft. How to join them isn't decided yet.
 
 ## Tests that pin this
 

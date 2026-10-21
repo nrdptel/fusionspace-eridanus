@@ -174,8 +174,8 @@ pressure unchanged, the ratio is exactly $(T_0 + \Delta T)/T_0 = 308.15/288.15$.
 **Where it is used.** The simulator's flights don't use it: they fly in the air of the day. The
 real-flight comparison reads the simulator's height through it when the log is barometric
 (`hpr_validate::real_flight::Barometer`). It takes the ERA5 pressure at the center of mass. Two logs
-record their pressure, Prometheus's and Juno III's. Their height column is this reading less the
-first row's. Over the rows compared it agrees to 0.195 m (0.64 ft) and 1.321 m (4.33 ft)
+record their pressure, Prometheus's and Juno III's. Over the rows compared, their height column is
+this reading less the first row's, to 0.195 m (0.64 ft) and 1.321 m (4.33 ft)
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 
 ## Moist air and weather
@@ -205,7 +205,7 @@ $$
   radiosondes report it ([WMO] §12.1.2). No enhancement factor is applied. Near the surface it
   would raise $e$ by about 0.47%. That changes density by at most 0.013% (at 40 °C and
   saturation), and less in cooler or drier air.
-- Its accuracy:
+- The moist-air model's accuracy:
   - Density agrees with CIPM-2007 (a real-gas equation) to 0.047% over its range: 15–27 °C,
     600–1100 hPa, dry to saturated. Ignoring humidity entirely is 0.4% off at 20 °C and 50% RH.
   - Water vapor's $C_p$ is taken as $4R^*$, and its real value near 300 K is about 1% higher.
@@ -289,7 +289,8 @@ These are findings from reading `refs/rocketpy` for the RocketPy comparison of
   - Every quantity, pressure included, is linear in height above sea level, with constant
     extrapolation.
   - Linear pressure is off hydrostatic by up to 0.06% between 1000 and 925 hPa, and 1.15%
-    between 700 and 500 hPa. Between 50 and 30 hPa it is up to 3.4% off (`conventions.py`).
+    between 700 and 500 hPa (`conventions.py`). Between 50 and 30 hPa it is up to 3.4% off
+    (`conventions.py`).
   - [Those comparisons](../decisions-and-roadmap.md#m2-1) need a RocketPy-compatible option or levels dense enough that
     this doesn't matter.
 - Humidity is not used anywhere.

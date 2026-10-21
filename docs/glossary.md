@@ -78,7 +78,7 @@ to be built; see [The API reference](api.md).
 The highest point of a flight, where the rocket stops climbing. HPR Sim finds it as the moment the
 center of mass's rate of climb above the [WGS 84](#wgs-84) ellipsoid falls through zero. It does
 not use the launch frame's up axis, whose flat plane rises above the curved Earth with
-distance. It is 7.8 m (26 ft) at 10 km (6.2 mi). See [Rigid-body flight](physics/flight.md#events-and-termination).
+distance. The rise is 7.8 m (26 ft) at 10 km (6.2 mi). See [Rigid-body flight](physics/flight.md#events-and-termination).
 
 ### Average thrust
 
@@ -297,7 +297,7 @@ about +7.75°. HPR Sim computes it from the [World Magnetic Model](#world-magnet
 
 ### DEM (digital elevation model)
 
-A grid of ground heights, one per cell. One is the US Geological Survey's (USGS) 1-arc-second map of the United States,
+A grid of ground heights, one per cell. An example is the US Geological Survey's (USGS) 1-arc-second map of the United States,
 whose cells are about 30 m (98 ft) across. Most are published as [GeoTIFF](#geotiff) files. See
 [A launch site's elevation](elevation.md#from-an-elevation-file-of-your-own).
 
@@ -350,7 +350,7 @@ method, takes steps of a fixed size. See [Time integration](physics/integration.
 A recovery device's drag coefficient times the area that coefficient is measured on, $C_D S$, in m².
 The drag force is the [dynamic pressure](#dynamic-pressure) times it. HPR Sim takes it directly
 (RocketPy's `cd_s`) or from a canopy's diameter and its coefficient on the
-[nominal area](#nominal-area). It adds up the drag areas of every open device. See
+[nominal area](#nominal-area). HPR Sim adds up the drag areas of every open device. See
 [Recovery](physics/recovery.md#drag-area).
 
 ### Drag coefficient
@@ -571,8 +571,8 @@ GFS starts a run every 6 hours and its RAP every hour. See
 
 Two ways a validation result is held to a bound. A **gate** fails the test suite when a number
 falls outside it, so a change that breaks agreement cannot merge. A **target** is the same kind of
-bound, but a miss is only reported, with its explanation in the case file. It never fails the
-suite, and is used where neither side of the comparison is known to be right. That is the case for
+bound, but a miss is only reported, with its explanation in the case file. A target never fails
+the suite, and is used where neither side of the comparison is known to be right. That is the case for
 HPR Sim's own drag against the drag RocketPy's examples ship. Either way the report is committed, so any number
 that moves shows up in review. See [Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag).
 Separately from both, the [accuracy census](#accuracy-census) fails CI when any number it counts
@@ -625,7 +625,7 @@ site, weighting each more as the site nears it (bilinear interpolation). See
 ### Height above sea level (MSL)
 
 Height above mean sea level, as field elevations and soundings give it. HPR Sim queries the
-atmosphere and the wind with it. It gets it from [ellipsoidal height](#ellipsoidal-height) by
+atmosphere and the wind with it. HPR Sim gets it from [ellipsoidal height](#ellipsoidal-height) by
 subtracting the geoid undulation $N$. That is the height of sea level above the ellipsoid, up to about
 100 m (328 ft). The simulator has no geoid model, so a flight takes $N$ at the site as an input. See
 [Atmosphere](physics/atmosphere.md#height-datum) and
@@ -855,7 +855,7 @@ An independent program run to produce [reference values](#reference-value-and-fi
 tests. Usually it is another simulator: RocketPy 1.13.0, and OpenRocket 24.12. OpenRocket serves so far for mass,
 flights, and the reading of `.ork` design files and `.orc` parts catalogs. Other oracles are scripts that
 evaluate a published formula in high precision, ThrustCurve.org's own statistics code, and GDAL
-(through rasterio) for elevation files. All of them live under `validation/oracles/`. See
+(through rasterio) for elevation files. All the oracles live under `validation/oracles/`. See
 [Recovery](physics/recovery.md#against-rocketpy) and the [list of simulator oracles][oracles].
 
 ### Override
@@ -873,8 +873,8 @@ of pressure, flown in place of HPR Sim's own. See
 ### Parallel stage
 
 A stage strapped beside the rocket instead of stacked behind it, such as a set of boosters around
-a sustainer. Its copies are placed around a body tube, like [pods](#pod), burn with the core, and drop
-at a separation of their own. OpenRocket calls it a *parallel stage* or *booster set*. See
+a sustainer. The stage's copies are placed around a body tube, like [pods](#pod). They burn with the
+core and drop at a separation of their own. OpenRocket calls it a *parallel stage* or *booster set*. See
 [The design tree: Parallel stages](physics/design.md#parallel-stages) and
 [Staging: Boosters beside the core](physics/staging.md#boosters-beside-the-core).
 
@@ -950,7 +950,7 @@ A library of routines for computing integrals numerically, published by Piessens
 
 Rail exit is the moment the rocket leaves the launch rail and starts to fly free; the rail-exit
 velocity is its speed then. HPR Sim keeps the rocket guided until the aft edge of its aft-most rail
-button or launch lug passes the top of the rail. RocketPy stops at the forward button. The rocket
+button or launch lug passes the top of the rail. RocketPy stops guiding it at the forward button. The rocket
 leaves with no rotation, since [tip-off](#tip-off) is not modeled. The slower the exit in a
 crosswind, the larger the [angle of attack](#angle-of-attack) just after it, where HPR Sim's models
 are least trustworthy. See [Rigid-body flight](physics/flight.md#phases).
@@ -1090,7 +1090,7 @@ A way to work out the air's forces on a long, thin body from how fast its cross-
 along its length. At any Mach number, it gives a nose as wide as the reference a normal-force slope of 2 per
 radian, whatever its shape. A transition gets $2\Delta A/A_{\mathrm{ref}}$, and a plain tube nothing. Barrowman's method uses it
 for every body part. HPR Sim uses it below Mach 1.2, and at every speed for bodies the
-shock-expansion method can't take. They are steps and a nose too blunt for its cap. Another is a widening
+shock-expansion method can't take. These are steps, a nose too blunt for its cap, and a widening
 shape that isn't a cone, isn't flush with the part ahead of it, or rides in a boattail's wake. NASA's wind tunnel
 shows a real body lifting more past Mach 3. See
 [Aerodynamics](physics/aero.md#bodies-of-revolution).
@@ -1102,7 +1102,7 @@ The share of a result's [variance](#variance) that one uncertain input causes: a
 ### Sounding
 
 A measured or forecast profile of the air against height: pressure, temperature and wind, and
-sometimes humidity. It comes from a weather balloon (a [radiosonde](#radiosonde)) or a forecast service. HPR Sim can fly one in place of
+sometimes humidity. A sounding comes from a weather balloon (a [radiosonde](#radiosonde)) or a forecast service. HPR Sim can fly one in place of
 the [standard atmosphere](#standard-atmosphere), which carries on above its top level. Flights
 above a few kilometers need one, because an offset to the standard for field conditions holds all
 the way up. See [Atmosphere](physics/atmosphere.md#sounding-and-forecast-profiles).
@@ -1188,7 +1188,7 @@ detect stiffness: the run stops with an error when its steps get too small or to
 ### Stop time
 
 A time the integrator steps to exactly rather than across, because the equations change there.
-Stop times are thrust-curve points, burnouts, deployments and the end of a canopy's filling. A Runge–Kutta step
+Stop times include thrust-curve points, burnouts, deployments and the end of a canopy's filling. A Runge–Kutta step
 across such a jump loses most of its accuracy. See
 [Time integration and events](physics/integration.md#stop-times-and-discontinuities).
 
@@ -1343,7 +1343,7 @@ The square of the [standard deviation](#standard-deviation): the mean squared di
 The surface heights are measured from. NAVD88, the North American Vertical Datum of 1988, is
 within a meter or two of the geoid. EGM2008, a worldwide model of the geoid, is too. So HPR Sim
 takes heights above them as [heights above sea level](#height-above-sea-level-msl). NAVD88, set
-by leveling, is about half a meter off and tilted about a meter coast to coast
+by leveling, is about half a meter off the geoid and tilted about a meter coast to coast
 ([NGS](https://geodesy.noaa.gov/datums/newdatums/index.shtml)). An
 [ellipsoidal height](#ellipsoidal-height) is measured from the ellipsoid instead. See
 [A launch site's elevation](elevation.md#what-the-height-means).
@@ -1370,7 +1370,7 @@ pressure pushing back on the surface. Behind a [boattail](#boattail) the opposit
 expands around it, its pressure falls, and that pulls back on the boattail. It is much of the
 steep rise in drag near Mach 1. HPR Sim has no separate term for it. It is part of the pressure drag
 of each nose, shoulder and step, which Niskanen's 2009 method carries through Mach 1. It is also part of each
-boattail's ([Boattails faster than sound](physics/aero.md#boattails-faster-than-sound)). For
+boattail's pressure drag ([Boattails faster than sound](physics/aero.md#boattails-faster-than-sound)). For
 fins, the simulator uses a blunt leading edge's formula, which reads far high for thin, sharp fins
 ([Drag limits](physics/aero.md#drag-limits)). See
 [Aerodynamics](physics/aero.md#drag-through-mach-1).

@@ -11,8 +11,8 @@ Coriolis push the spinning Earth gives it.
 - **Sources:** the NGA's WGS 84 standard, NGA.STND.0036 (2014), chapter 4 and appendix B.
 - **How well it is validated:** the derived constants reproduce the standard's printed values to
   their last digit. At 11 points, both poles and heights up to 200 km (124 mi) included, gravity's
-  strength matches the published formulas within 2e-14 relative. The formulas are evaluated in
-  40-digit arithmetic. HPR Sim's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
+  strength matches the published formulas within 2e-14 relative. A reference script evaluates the
+  formulas in 40-digit arithmetic. HPR Sim's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
   relative. No real-flight check.
 - **What it leaves out:** the real Earth's gravity anomalies, typically within ±1e-4 relative.
   RocketPy's formula, an option for like-for-like comparisons, differs from the exact field by
@@ -109,8 +109,9 @@ $$
   \end{aligned}
   $$
 
-  RocketPy uses this form. Its error against the exact field is 1e-8 relative at 1.4 km (0.87 mi)
-  and 3e-7 at 30 km (19 mi). It is 1.4e-5 at 100 km (62 mi) and 1.1e-4 at 200 km (124 mi, fixture values below).
+  RocketPy uses this form. Its error against the exact field, in the fixture values below, is 1e-8
+  relative at 1.4 km (0.87 mi) and 3e-7 at 30 km (19 mi). It is 1.4e-5 at 100 km (62 mi) and
+  1.1e-4 at 200 km (124 mi).
 - For the exact field (eqs. 4-5 to 4-13), ellipsoidal-harmonic coordinates $(u, \beta)$ give the components
   $\gamma_u$ and $\gamma_\beta$. The code rotates them into ECEF with $R_1$ (eq. 4-18). Eq. 4-8 is
   used in the equivalent form

@@ -15,7 +15,7 @@ true heading you give HPR Sim.
   2025–2030: Technical Report*, NOAA NCEI (2025). With it, NCEI's coefficient file
   `WMM2025.COF`, which NCEI places in the public domain.
 - **How well it is validated:** the simulator reproduces all 12 of the report's test points (its
-  Table 6) to their last printed digit. In declination that is 0.005°. NCEI's file of 100 points is
+  Table 6) to their last printed digit, declination to 0.005°. NCEI's file of 100 points is
   printed to 1e-6 nT and angles to 0.01°. It matches to its last digit in declination,
   inclination, the east component and four rates. Its north component differs at 97 points, by
   up to 7.18e-4 nT (2.11e-8 of the total field). The horizontal and total intensities differ with
@@ -232,7 +232,7 @@ whose cause is not known. HPR Sim's $\dot{X}'$ passes the same derivative check.
 follow from $X$ and its rate.
 
 So the file's $X$, $H$, $F$ and $Z$ are held to the measured differences, not to the file's
-printing. So are the rates of $X$, $H$ and $F$. [ADR-125][adr-125] records the decision. For a flight
+printing. So are the rates of $X$, $H$ and $F$. [The WMM2025 decision][adr-125] records the choice. For a flight
 the difference is immaterial: 7.18e-4 nT turns the declination by about a millionth of a degree.
 
 Every comparison with Table 6 and NCEI's file first allows 64 units in the last place of the
@@ -240,7 +240,7 @@ point's total field, about 7e-10 nT. The allowance covers the rounding in both p
 about 700 times below half the finest printed digit.
 
 A property test also checks, at random places and times, that $H$, $F$, $I$ and $D$ agree with
-$X$, $Y$, $Z$ by their definitions. It checks that $F$ lies between 20,000 and 70,000 nT. The
+$X$, $Y$, $Z$ by their definitions. At the same places and times it checks that $F$ lies between 20,000 and 70,000 nT. The
 report's Table 1 rounds the surface range to 23,000 to 67,000 nT. But the model itself falls to
 about 21,900 nT over South America by 2030, which a test pins at 26° S, 61° W.
 

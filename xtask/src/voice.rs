@@ -1143,11 +1143,11 @@ fn read_markdown(source: &str, model: bool) -> Reading {
 }
 
 /// Where a Markdown reader is, for a model page's *In short* box: the section under its
-/// `## In short` heading, up to the next heading of level 1 or 2 (as `site.rs` finds it). The
-/// box is the one place the guide asks a reader to scan, so the label each of its items opens
-/// with, one of [`site::IN_SHORT_ITEMS`], isn't counted as a bold-label item: each of the four
-/// once, on a top-level item of the box (ADR-285 §5). Any other bold label counts, there or
-/// elsewhere.
+/// `## In short` heading, up to the next heading of level 1 or 2 (as `site.rs` finds it). A
+/// reader scans the box, and on a short page its four labels alone pass the bold-label limit, so
+/// the label each of its items opens with, one of [`site::IN_SHORT_ITEMS`], isn't counted as a
+/// bold-label item: each of the four once, on a top-level item of the box (ADR-285 §5). Any
+/// other bold label counts, there or elsewhere.
 #[derive(Debug, Default)]
 struct InShort {
     /// In a model page's *In short* section.
