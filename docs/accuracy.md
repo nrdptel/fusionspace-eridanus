@@ -261,7 +261,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [Wind](physics/wind.md) | ✓ | no | ✓ RocketPy, in the descents only | no |
 | [Turbulence](physics/turbulence.md) | ✓ | no | no | no |
 | [Design tree](physics/design.md) | ✓ | no | ✓ RocketPy, mass properties only | no |
-| [Shapes](physics/shapes.md) | ✓ | no | no | no |
+| [Shapes](physics/shapes.md) | ✓ | no | ✓ OpenRocket, three walled probe parts only | no |
 | [Mass properties](physics/mass.md) | ✓ | no | ✓ OpenRocket, the structure without motors, and the parts of its parts catalog | no |
 | [Solid motors](physics/motor.md) | ✓ | no | ✓ RocketPy, ThrustCurve.org; OpenRocket for a curve file's own numbers | no |
 | [Aerodynamics](physics/aero.md) | ✓ | ✓ Barrowman's examples; MIL-HDBK-762's drag example, fins left out: 6 of 12 within 10%, the body reading 6% to 10% low faster than sound | partial: drag and the normal force against RASAero II to Mach 2, the drag with the fins and finish guessed and 5% to 15% low faster than sound; and in whole flights, against a target | partial: in seven flights, four of the five apogees past 5% are consistent with its drag ([real flights](#real-flights), [report][real-report]); wind tunnel ✓: normal force, drag and boattails; the Arcas Robin's drag reads high at every speed |
@@ -308,6 +308,7 @@ its reference and still pass.
 | [Shapes](physics/shapes.md) | exact formulas (closed forms) for filled noses and transitions | within 1e-10 relative |
 | [Shapes](physics/shapes.md) | separately computed high-precision integrals, for 22 noses and transitions | within 1e-12 relative |
 | [Shapes](physics/shapes.md) | the same kind of integrals, for 20 hollow shells of a given wall thickness | within 1e-10 relative |
+| [Shapes](physics/shapes.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass of three walled probe parts: a conical and an ogive nose and a conical transition ([probes](format/ork.md#inside-a-nose-cone-or-a-transition)) | within 3.9e-5 relative |
 | [Mass properties](physics/mass.md) | a cone, a tube, four fins and an off-axis payload, added up by hand | within 1e-11 relative |
 | [Mass properties](physics/mass.md) | fin cross-sections, against exact numerical integration | within 1e-13 relative |
 | [Mass properties](physics/mass.md) | material densities, converted from the units their sources print | the sources' values, such as white ash at 678 kg/m³ |
@@ -1170,7 +1171,8 @@ rest.
   doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
   A nose cone's wall thickness can be measured straight out from the axis or square to its surface.
   On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
-  the two ([Shapes](physics/shapes.md)).
+  the two. On its probe parts OpenRocket measures it square to the surface, as HPR Sim does
+  ([Shapes](physics/shapes.md)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles
