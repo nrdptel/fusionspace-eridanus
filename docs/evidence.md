@@ -9,9 +9,10 @@ The pages say plainly when a file reader, a model or a check rests on less than 
 - a value assumed because no sample states it;
 - a model checked only against another program.
 
-Each such statement is a row of the register, [`validation/evidence.toml`][register], and links
-it here, so the gap has a place to be closed. A row short of the evidence it wants keeps an open issue labeled [`needs-sample`][label] until a
-real sample or measurement settles it. [A decision record][adr] set this up.
+Each such statement is a row of the register, [`validation/evidence.toml`][register]. The page
+that states the gap links its row here, so the gap has a place to be closed. A row short of the
+evidence it wants keeps an open issue labeled [`needs-sample`][label] until a real sample or
+measurement settles it. [A decision record][adr] set this up.
 
 > **How far to trust it.** This page is a ledger, not a grade. It counts rows by the kind of
 > evidence behind them and never adds the kinds into one score. A calibration and a code to code
@@ -55,7 +56,7 @@ evidence by date: each place it looked and what it found, so the next doesn't re
 
 If you have a file a row asks for, attach it to the row's issue. Or say there where it can be
 downloaded, and under what license. A sample is kept outside the repository, in the `refs/` folder
-the checks fetch into. Its hash makes every check read the same bytes.
+the checks fetch into. Its hash lets every check confirm it reads the same bytes.
 [Checking a claim](checking-a-claim.md) shows how a pinned file is fetched and verified.
 
 ## The register

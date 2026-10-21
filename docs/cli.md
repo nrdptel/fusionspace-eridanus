@@ -813,7 +813,7 @@ that way. So its climb tips away from the vertical. The wind does most of it.
   - a lone split with nothing left to burn before apogee, with no device open on the part that
     keeps the nose;
   - a split at or after apogee, beside another separation;
-  - one before the separation behind it;
+  - a split that comes before the one behind it;
 - a motor lit by a stage's separation, in a design that states no separation, such as a rocket's
   `.json`;
 - with `--motor`, a `.ork` rocket of more than one stage, or a configuration that switches a
