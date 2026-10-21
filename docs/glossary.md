@@ -688,7 +688,7 @@ The frame fixed at the launch pad, which the flight's position and velocity are 
 are $x_L$ east, $y_L$ north and $z_L$ up along the ellipsoid's normal at the pad, hence East-North-Up (ENU).
 It turns with the Earth, so the equations add the
 [Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so $z_L$ is not altitude. At
-10 km (6.2 mi) from the pad the plane is 7.8 m (26 ft) above the ellipsoid. See
+10 km (6.2 mi) east of the pad the plane is 7.8 m (26 ft) higher above the ellipsoid than the pad. See
 [Frames](physics/frames.md#launch-frame-l-east-north-up).
 
 ### Liftoff

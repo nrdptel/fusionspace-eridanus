@@ -176,9 +176,11 @@ operating system, and it's on PyPI as `fusionspace-hpr`.
 Each powered separation in a `.ork` comes out as a
 [`Staging`](api/hpr_io/ork/staging/struct.Staging.html), from the tail forward
 (`MotorConfiguration::stagings`). A powered separation's time is known before the flight. At that
-time a motor ahead of it is still burning or yet to light, and none behind it is. Any other
-separation that could come before apogee is refused, a sustainer already burnt out at the split
-included. The configuration's rocket doesn't carry the `Staging`. These functions in `hpr` carry it,
+time a motor ahead of it is still burning or yet to light. None behind it is, but at a stage's
+first burnout its own other motors may still burn, and they drop burning. A separation may have
+nothing ahead of it left to burn, as when the sustainer has burnt out by the split. Such a
+separation is read only when it's the configuration's only one. The other separations that could come before apogee
+are refused. The configuration's rocket doesn't carry the `Staging`. These functions in `hpr` carry it,
 and the recovery settings, into the flight:
 
 - [`hpr::ork::separation`](api/hpr/ork/fn.separation.html) turns one into the flight's
