@@ -2380,7 +2380,7 @@
         }
         // The name is a grid item, so a word that can't wrap widens its box past the rail's
         // rather than overflowing the name's own: compare the edges.
-        if (name) {
+        if (name && drawn(win, name)) {
           const rail = name.parentElement.getBoundingClientRect();
           const box = name.getBoundingClientRect();
           const right = box.left + Math.max(box.width, name.scrollWidth);

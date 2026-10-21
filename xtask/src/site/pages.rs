@@ -247,7 +247,8 @@
 //! pass, and a title block hidden on paper, printed without its date and able to split; an
 //! intro and sheets drawn as the system's, which must pass, sheets under a 1 px rule and under
 //! a rule's color, numbered out of order, a section's name outside a sheet, a sheet's number in
-//! Archivo and one below its name, and a designation tag with no chamfer, below its title, at
+//! Archivo and one below its name, a sheet's name that can't wrap in a rail narrower than it, and
+//! a designation tag with no chamfer, below its title, at
 //! 14 px and in a dashed border; a theme switch drawn and working as the system's, which must
 //! pass, one offering Navy for Dark, one with Light pressed for a first-time reader, one beside
 //! mdBook's theme button drawn, one that sets no theme when pressed, one that keeps a saved Coal,
@@ -540,8 +541,9 @@ enum Kind {
     Print,
     /// An intro or a sheet off the system's: a designation tag not in Cascadia Mono 12, not
     /// chamfered, not inside a 1 px border or not above its title; a section's name outside a
-    /// sheet's rail; a sheet without its 2 px ink rule on top, or with its number not drawn,
-    /// not `SHEET n / N` in order, not in Cascadia Mono 12 or not above its name (#384).
+    /// sheet's rail, or reaching past the rail's edges; a sheet without its 2 px ink rule on top,
+    /// or with its number not drawn, not `SHEET n / N` in order, not in Cascadia Mono 12 or not
+    /// above its name (#384).
     Sheet,
     /// A theme switch off the system's: not in the header from 960 px or in the sidebar under
     /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14;
@@ -1202,7 +1204,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 186] = [
+const CANARIES: [Canary; 187] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2686,6 +2688,20 @@ const CANARIES: [Canary; 186] = [
         inside: concat!(
             sheets!(
                 "<style>.fs-sheet-rail { display: flex !important; flex-direction: column-reverse; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-name-wide.html",
+        what: "a sheet's name wider than its rail",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-sheet-rail { width: 120px; } .fs-sheet-rail > h2 { white-space: nowrap; }</style>",
                 "SHEET 1 / 2",
                 "SHEET 2 / 2"
             ),
@@ -4679,8 +4695,8 @@ mod tests {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
-            (Kind::Sheet, 25, "canary-sheets.html"),
-            (Kind::Sheet, 25, "canary-chip-released.html"),
+            (Kind::Sheet, 26, "canary-sheets.html"),
+            (Kind::Sheet, 26, "canary-chip-released.html"),
             (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES
