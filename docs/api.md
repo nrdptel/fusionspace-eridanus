@@ -208,10 +208,10 @@ at the split included. The configuration's rocket doesn't carry the `Staging`. T
   spread of its results, and landing ellipses ([Monte Carlo dispersion](monte-carlo.md)).
 - Sensitivity analysis, Morris screening and Sobol' indices
   ([Sensitivity analysis](sensitivity.md)).
-- Optimization ([Optimization](optimization.md)): CMA-ES over numbers and choices such as a
-  motor, within limits such as a minimum margin; NSGA-II for two goals at once; and
-  [EGO](optimization.md#few-evaluations-ego) (efficient global optimization) for models too slow
-  for more than tens of evaluations. On a rocket, its answers are only as good as the simulator's
+- Optimization ([Optimization](optimization.md)). CMA-ES searches over numbers and choices such
+  as a motor, within limits such as a minimum margin. NSGA-II takes two goals at once.
+  [EGO](optimization.md#few-evaluations-ego) (efficient global optimization) is for models too
+  slow for more than tens of evaluations. On a rocket, its answers are only as good as the simulator's
   flight models.
 - Planned: [competition rule files](decisions-and-roadmap.md#m6-3).
 
