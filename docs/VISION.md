@@ -220,7 +220,7 @@ Decisions Neer confirmed at kickoff:
 | V53 | Awareness and care: a banner and a footer line through the year (heritage and awareness months, health, access, science and space, rocketry safety) from a dated, sourced table, regions named, solemn days alone, a checked help page; then a code of conduct, a page on getting involved and a way to report a barrier ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)) | M0.13a, M0.13b, ADR-275 |
 | V54 | A flyer's own altimeter or GPS tracker read from the command line and Python by a column mapping or record layout, and GPX tracks read | M7.1d1, M7.1d2, ADR-276 |
 | V55 | Everything people read (the README, the docs site, the program's messages, fusionspace.co, the design system's writing rules and the repositories' About text) sounds like the maintainer wrote it, plainly, not a template | M0.14, ADR-284 |
-| V56 | Every solid motor on ThrustCurve.org is in the package offline, each with a curve flown from it, each curve's check against its motor's published figures shown, with a dated snapshot and an optional update | M5.7, ADR-288 |
+| V56 | Every solid motor on ThrustCurve.org is in the package offline, and each with a curve flies from it, each curve's check against its motor's published figures shown, with a dated snapshot and an optional update | M5.7, ADR-288 |
 
 ## North stars
 

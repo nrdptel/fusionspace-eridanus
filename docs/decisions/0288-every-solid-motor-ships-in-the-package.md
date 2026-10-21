@@ -30,7 +30,8 @@ with nothing to fetch, and said more data and more options are better.
 The catalog is small ([the size note][tc-size]). The 2026-09-17 capture held 1,004 solid motors,
 278 of them out of production, and 1,712 curve files. That's about 2.7 MB as text (2.05 MB of
 curve files, 0.61 MB of records) and about 0.4 MB compressed with xz. 726 motors have two to four
-files: a certification test's, the maker's, users'. 80 motors have no file.
+files. 666 of those hold one RASP and one RockSim file, and 335 have files from more than one
+source (a certification test, the maker, a user). 80 motors have no file.
 
 **Decision.**
 
@@ -53,7 +54,7 @@ files: a certification test's, the maker's, users'. 80 motors have no file.
      file's label is kept beside it, so the 33 (2026-10-17) can be found and taken out if anyone
      asks. 7 motors had no other file (2026-09-17).
 
-   This line is the project's own reading, put to the maintainer with the recommendation. It
+   This line is the project's own reading, told to the maintainer with the recommendation. It
    isn't legal advice.
 3. **Every file keeps its check, and the check moves to the flight.** ADR-287 §4 bundled only a
    curve that passes the bundle's rule ([ADR-005][adr-005]): within 1% of its motor's published
@@ -67,7 +68,7 @@ files: a certification test's, the maker's, users'. 80 motors have no file.
 
    Only 416 of the 1,712 files passed in the 2026-09-17 survey ([the ThrustCurve note][tc-note],
    section 5), so the warning will be common. It says by how much, so a flyer can judge it.
-4. **The bundle has a date, and the network is optional.** Each release refreshes the snapshot,
+4. **The bundle has a date, and the network is optional.** A release can refresh the snapshot,
    and the motor page states its date and counts. `hpr motors update` adds motors and files newer
    than the bundle to the cache when online. Offline it says the bundle's date. `hpr motors fetch`
    stays.
@@ -83,6 +84,6 @@ files: a certification test's, the maker's, users'. 80 motors have no file.
 - The 32 bundled curves keep [ADR-066][adr-066]'s check: hpr's total impulse within 0.1% of
   OpenRocket's integration of the same file. M5.7 doesn't extend that check to the other files.
 - The idea placed by ADR-287 leaves [the ideas list][ideas]. M5.7 takes over its done-when, a
-  search's figures equal to the records.
+  listing's figures equal to the records.
 - Certification and maker data sheets might give curves for some of the 80 motors without one.
   That needs research first.
