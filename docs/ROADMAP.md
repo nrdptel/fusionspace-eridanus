@@ -26,8 +26,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
 1. M0.14 The maintainer's own voice
-2. M5.7 Every solid motor, offline
-3. M0.9f The rest of the words
+2. M0.9f The rest of the words
+3. M5.7 Every solid motor, offline
 4. M7.2 Readings, reconstruction and ghost data
 5. M7.3 A flight against its simulation
 6. M10.2 Release 0.2: the flight analyzer
@@ -291,16 +291,16 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Monte Carlo, CG and inertia with it; the margin and descent rate report its worst end, a test
     pinning the direction.
 - [ ] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
-  whole solid catalog ships compiled in ([research](research/thrustcurve-data.md)).
+  solid catalog ships compiled in ([research](research/thrustcurve-data.md)).
   *Done when:*
-  - a dated snapshot's every solid motor and every file but a restricted one is in `hpr-motor`;
-    offline, `hpr motors list` and `hpr sim --motor` reach each, a tool's counts equal to the
-    snapshot's;
+  - a dated snapshot's every solid motor's record and every file hpr reads but a restricted one
+    are in `hpr-motor`, figures equal to the snapshot's; offline, `hpr motors list` lists each
+    motor and `hpr sim --motor` flies each with a curve, a tool's counts equal to the snapshot's;
   - each file stores its check against its motor's published figures (ADR-005's 1%); the default
     is a passing file where one exists; `hpr motors show` lists every file; flying a failing file
     warns with the gap (a test and a mutation probe);
-  - `hpr motors update` adds a newer motor from a recorded answer, and offline names the bundle's
-    date;
+  - `hpr motors update` adds a newer motor or file from a recorded answer, and offline names the
+    bundle's date;
   - the motor page gives the snapshot's date, its counts and the size it adds, from the tool.
 
 ## Phase 3: Uncertainty, optimization, challenges
