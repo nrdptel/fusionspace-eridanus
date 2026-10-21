@@ -4,68 +4,75 @@ Judge how far to trust HPR Sim's numbers from its checks against other programs 
 model by model, with every known gap.
 
 This page gathers every check HPR Sim has passed so far, and every known gap, in words and
-numbers; [Trusting a simulation](trusting-a-simulation.md) explains what they mean for a flier. Start with the bottom line: **when both codes fly the same drag
-([same-drag](glossary.md#same-drag-and-predicted-mode)), HPR Sim's whole flights match RocketPy's
-in height, speed and time, and in where they land without wind. In wind they agree for a rocket
-that leaves the rail fast. For one that leaves it slowly they differ, in large part because HPR Sim
-includes a sideways force on the body that RocketPy leaves out.** With each code's own drag
-([predicted](glossary.md#same-drag-and-predicted-mode)), HPR Sim's heights differ from RocketPy's by
-−7.280% to +10.302% ([report][report]), the larger gaps where its drag differs most from the
-example's. **Against the logs of seven real flights, HPR Sim's apogees miss by 6.04% on average,
-outside the 5% target, and by −8.90% to +10.40% one by one** ([real flights](#real-flights),
-[report][real-report]) ([evidence row G24](evidence.md#g24)); four of the five misses past 5% are
-consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
-kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)). **Against 53 more
-flights from a private collection, HPR Sim's apogees are +8.73% above the logs on average and miss
-by 12.95% (mean absolute), also outside the target; OpenRocket's are +7.79% above**
-([private collection](#real-flights-of-the-private-collection), [report][fixture-report]). Neither
-set is held out: both were seen during development, so neither is a blind test until
-[M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted before their logs are read.
+numbers. [Trusting a simulation](trusting-a-simulation.md) explains what they mean for a flier.
 
-> **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
+**When both codes fly the same drag ([same-drag](glossary.md#same-drag-and-predicted-mode)), HPR
+Sim's whole flights match RocketPy's in height, speed and time. Without wind they also land where
+RocketPy's do. In wind they agree for a rocket that leaves the rail fast. For one that leaves it
+slowly they differ, in large part because HPR Sim includes a sideways force on the body that
+RocketPy leaves out.**
+
+With each code's own drag ([predicted](glossary.md#same-drag-and-predicted-mode)), HPR Sim's heights
+differ from RocketPy's by −7.280% to +10.302% ([report][report]). The larger gaps are where its drag
+differs most from the example's.
+
+**Against the logs of seven real flights, HPR Sim's apogees miss by 6.04% on average, outside the
+5% target ([evidence row G24](evidence.md#g24)). One by one they miss by −8.90% to +10.40%**
+([real flights](#real-flights), [report][real-report]). Four of the five misses past 5% are
+consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
+kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
+
+**Against 53 more flights from a private collection, HPR Sim's apogees are +8.73% above the logs on
+average. They miss by 12.95% (mean absolute), also outside the target. OpenRocket's are +7.79%
+above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
+
+Neither set is held out. Both were seen during development, so neither is a blind test. That waits
+for [held-out flights](decisions-and-roadmap.md#m2-7), predicted before their logs are read.
+
+> **How far to trust it.** Comparisons, most of them with other programs. Agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
-> Only the real flights are measurements. On the seven public ones the apogee misses by 6.04% on
-> average ([report][real-report]); on the 53 flights of the private collection it misses by
-> 12.95% (mean absolute), +8.73% high on average ([report][fixture-report]). Both are outside the 5%
-> target ([evidence row G24](evidence.md#g24)). The [census](#the-census), the table below of where
-> each check stands, adds no evidence of its own: it is exactly as good as the reports it counts.
-> Where a number matters, plan with the whole range a row gives, not one figure, and log the flight
-> with your own altimeter.
+> Only the real flights are measurements.
+>
+> On the seven public ones the apogee misses by 6.04% on average ([report][real-report]). On the 53
+> flights of the private collection it misses by 12.95% (mean absolute), +8.73% high on average
+> ([report][fixture-report]). Both are outside the 5% target ([evidence row G24](evidence.md#g24)).
+>
+> The [census](#the-census), the table below of where each check stands, adds no evidence of its
+> own. It's exactly as good as the reports it counts. Where a number matters, plan with the whole
+> range a row gives, not one figure, and log the flight with your own altimeter.
 
 What has been checked so far:
 
-- each model on its own, against exact answers, its published source and, in places,
-  [RocketPy](glossary.md#rocketpy), an open-source flight simulator;
-- the descent under a parachute, against RocketPy, for five rockets;
-- whole flights from the pad to the ground, against RocketPy, for six rockets flown with one
-  declared drag coefficient, one of them past Mach 1: heights, speeds and times agree, and so does
-  the path, except for rockets that leave the rail slowly in a wind;
-- the same flights with each code's own drag, reported against a target rather than gated, the one
-  past Mach 1 included;
-- seven real flights, flown in the weather of their day and compared with their altitude logs:
-  the apogee and the climb to it ([real flights](#real-flights));
+- Each model on its own, against exact answers, its published source and, in places,
+  [RocketPy](glossary.md#rocketpy), an open-source flight simulator.
+- The descent under a parachute, against RocketPy, for five rockets.
+- Whole flights from the pad to the ground, against RocketPy, for six rockets flown with one
+  declared drag coefficient. One flies past Mach 1. Heights, speeds and times agree. So does
+  the path, except for rockets that leave the rail slowly in a wind.
+- The same flights with each code's own drag, reported against a target rather than gated, the one
+  past Mach 1 included.
+- Seven real flights, flown in the weather of their day. Their apogee and the climb to it are
+  compared with their altitude logs ([real flights](#real-flights)).
 - 53 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
-  their day and compared with their logged apogees as aggregates
-  ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]);
-- the normal force and center of pressure from Mach 0.6 to 4.63, against NASA's wind-tunnel tests
-  of a sounding rocket, and against [RASAero II](glossary.md#rasaero-ii), another code
-  ([fixture][nf-fixture]);
-- drag from Mach 0.6 to 4.63 against the same wind-tunnel tests, the forebody only
-  ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel));
-- a boattail's own drag and the base pressure behind it, from Mach 0.3 to 3.24, against measured
-  boattails in six NACA and NASA reports ([drag fixture][drag-fixture]);
-- the roll that [canted](glossary.md#cant) fins give, from Mach 1.5 to 4.63, against NASA's
-  Arcas Robin wind-tunnel tests, and the roll damping from Mach 1.5 to 3 against the Basic
-  Finner's, a standard finned test body ([roll fixture][roll-fixture]);
-- drag from Mach 0.1 to 2.0 against the curves labeled RASAero II in RocketPy's example rockets
-  ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)), and from Mach 0.5 to
+  their day. They're compared with their logged apogees as aggregates
+  ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
+- The normal force and center of pressure from Mach 0.6 to 4.63, against NASA's wind-tunnel tests
+  of a sounding rocket. Also against [RASAero II](glossary.md#rasaero-ii), another code
+  ([fixture][nf-fixture]).
+- Drag from Mach 0.6 to 4.63 against the same wind-tunnel tests, the forebody only
+  ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
+- A boattail's own drag and its base pressure, from Mach 0.3 to 3.24, against measured boattails
+  in six NACA and NASA reports ([drag fixture][drag-fixture]).
+- The roll that [canted](glossary.md#cant) fins give, from Mach 1.5 to 4.63, against NASA's
+  Arcas Robin wind-tunnel tests. The roll damping from Mach 1.5 to 3, against the Basic Finner's,
+  a standard finned test body ([roll fixture][roll-fixture]).
+- Drag from Mach 0.1 to 2.0 against the curves labeled RASAero II in RocketPy's example rockets
+  ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)). Drag from Mach 0.5 to
   3.2 against a worked example in MIL-HDBK-762, the U.S. Army's handbook for designing unguided
-  rockets
-  ([Aerodynamics](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation));
-- the readings `hpr analyze` takes from a flight log, against an invented log whose every
-  reading is known, each within the bound its rounding and filter allow
-  ([Flight-log readings](physics/log-readings.md#checked-against))
-  ([evidence row G10](evidence.md#g10)).
+  rockets ([Aerodynamics](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation)).
+- The readings `hpr analyze` takes from a flight log, against an invented log whose every
+  reading is known ([evidence row G10](evidence.md#g10)). Each is within the bound its rounding
+  and filter allow ([Flight-log readings](physics/log-readings.md#checked-against)).
 
 Every number here links to the page or file it comes from. [Checking a claim](checking-a-claim.md)
 shows how to follow one back to its source and its test, and
@@ -73,14 +80,15 @@ shows how to follow one back to its source and its test, and
 
 ## The census
 
-**In short: the census counts the numbers the validation reports hold HPR Sim to, once each, and
-says what each group was compared with, how, how many flights it holds and how fast they flew. It is
-also a check: CI fails when any of those numbers moves, better or worse, until the change is
-accepted with a written reason.** A code-to-code line measures how closely HPR Sim agrees with
-another simulator, not which of the two is right; only the real flights are measurements. CI
-flies the harness's RocketPy comparisons again on every change. The OpenRocket and real-flight
-reports need files that CI doesn't have, so CI holds their committed numbers, and a change to the
-code that would move them is caught only when someone runs them again and commits the result.
+**In short: the census counts the numbers the validation reports hold HPR Sim to, once each. It
+says what each group was compared with, how, how many flights it holds and how fast they flew.
+It's also a check: CI fails when any of those numbers moves, better or worse, until the change is
+accepted with a written reason.**
+
+A code-to-code line measures how closely HPR Sim agrees with another simulator, not which of the two
+is right. CI flies the harness's RocketPy comparisons again on every change. The OpenRocket and
+real-flight reports need files that CI doesn't have, so CI holds their committed numbers. A change
+to the code that would move them is caught only when someone runs them again and commits the result.
 
 <!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
 
@@ -98,10 +106,10 @@ code that would move them is caught only when someone runs them again and commit
 **Reading the table.**
 
 - *Compared with* names the reference and its version ([census][census]):
-  [RocketPy](glossary.md#rocketpy), "patched" where RocketPy 1.13.0 runs with two fixes from
-  RocketPy's own pull requests, which correct the point it takes the burn's turning moments about
-  (see [whole flights against RocketPy](#whole-flights-against-rocketpy)),
-  [OpenRocket](glossary.md#openrocket), or the teams' altimeter logs.
+  [RocketPy](glossary.md#rocketpy), [OpenRocket](glossary.md#openrocket) or the teams' altimeter
+  logs. "Patched" means RocketPy 1.13.0 runs with two fixes from RocketPy's own pull requests.
+  They correct the point it takes the burn's turning moments about
+  ([whole flights against RocketPy](#whole-flights-against-rocketpy)).
 - *Kind* says whether both programs flew the same inputs, each flew its own model, or HPR Sim was
   compared with a measurement.
 - *Held to* is what each report holds its numbers to ([gate and target](glossary.md#gate-and-target)).
@@ -110,9 +118,10 @@ code that would move them is caught only when someone runs them again and commit
   cause.
 - *Flights (speed)* classes each flight by its largest [Mach number](glossary.md#mach-number):
   subsonic below 0.8, transonic from 0.8 to 1.2, supersonic above 1.2 ([census][census]). For the
-  harness's flights that is RocketPy's largest Mach number, for OpenRocket's flights OpenRocket's,
-  and for the logged flights HPR Sim's own, since a log has none. A configuration an OpenRocket
-  report lists and HPR Sim doesn't fly yet is counted as "not flown", with the report's reason.
+  harness's flights that's RocketPy's largest Mach number, and for OpenRocket's flights
+  OpenRocket's. For the logged flights it's HPR Sim's own, since a log has none. A configuration an
+  OpenRocket report lists and HPR Sim doesn't fly yet is counted as "not flown", with the report's
+  reason.
 
 **What it counts.** Each of these is one row of the census ([census][census]):
 
@@ -121,8 +130,8 @@ code that would move them is caught only when someone runs them again and commit
 - each OpenRocket flight's apogee, largest speed, stability margin, mass at launch and at rod
   clearance, and center of mass there, and each configuration not flown.
 
-It leaves out the figures the reports give to explain a difference rather than to measure one, such
-as a real flight's apogee on its team's own drag.
+It leaves out the reports' figures that explain a difference rather than measure one. A real
+flight's apogee on its team's own drag is one.
 
 **The check.** The census accepted last is committed, with a page of its own
 ([census][census]). `cargo xtask validate --check`, which CI runs on macOS, Windows and Linux,
@@ -134,52 +143,59 @@ holds every row of the committed reports to it. To run it yourself, clone the re
 - a row comes or goes, for instance a flight HPR Sim used to refuse and now flies;
 - a group's reference changes, such as a new version of OpenRocket.
 
-A row's slack is 0.1% of its scale, and for a harness row never less than the harness's
-reproduction bound, 2e-6 in the metric's own unit or 1e-7 of the value, whichever is larger. The scale is the row's own
-tolerance where it has one, and otherwise the bar of its kind: 3% of its reference for a harness
-metric not scored, 5% for an OpenRocket apogee or largest speed, 1% for an OpenRocket mass, 0.5
-calibers for a stability margin or center of mass, 5% for a logged apogee, and 3% of the apogee for a logged climb's RMS, the
-bound the RocketPy comparisons hold a whole flight's height RMS to ([census][census]). For example, a 3% tolerance on a 1000 m (3,281 ft) apogee allows 30 m (98 ft), and the census lets
-the difference move by 0.03 m (0.098 ft) before it fails.
+A row's slack is 0.1% of its scale. For a harness row it's at least the harness's reproduction
+bound: the larger of 2e-6 in the metric's own unit and 1e-7 of the value. The scale is the row's own
+tolerance where it has one. Otherwise it's the bar of its kind. That's 3% of its reference for a
+harness metric not scored, 5% for an OpenRocket apogee or largest speed and 1% for an OpenRocket
+mass. It's 0.5 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
+logged climb's RMS gets 3% of the apogee, the bound the RocketPy comparisons hold a whole flight's
+height RMS to ([census][census]). For example, a 3% tolerance on a 1000 m (3,281 ft) apogee allows
+30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
 
 So the census holds a number to where it was, not to its target. A flight on each code's own drag,
-whose 3% is only a target, is held that way too ([census][census]): HPR Sim's own aerodynamics can't
-drift unseen inside the target.
+whose 3% is only a target, is held that way too ([census][census]). That keeps HPR Sim's own
+aerodynamics from drifting unseen inside the target.
 
 **Accepting a change.** `cargo xtask census --accept --reason "<why>"` writes the new census and
-the table above. The reason and the list of what changed go into the census page, so a worse number
-can still merge, but only in writing, in the change that brings it. An improvement has to be
-accepted too; otherwise it could slip back later without anyone seeing.
+the table above. The reason and the list of what changed go into the census page. So a worse
+number can still merge, but only in writing, in the change that brings it. An improvement has to
+be accepted too. Otherwise it could slip back later without anyone seeing.
 
 ### The scoreboard
 
 **In short: the [scoreboard][scoreboard] sets HPR Sim beside OpenRocket and RocketPy, one table
-per axis the project judges itself by.** The axes are accuracy against logged flights, bias,
-whether predicted ranges hold real flights, speed, round trips through each tool's design file,
-features, and steps to a first answer. Every number is read from a committed report. Many cells
-are not measured yet: each says so and links the milestone that will measure it. The page opens
-with how many cells are measured for each tool, and, on each row where HPR Sim and another tool
-both are, which is ahead.
+per axis the project judges itself by.** The axes are:
 
-It is also a check. CI fails when one of HPR Sim's numbers there gets worse than the one main
-holds, counts fewer flights, or stops being measured, unless a decision record accepts that cell
-for the release the change ships in
-([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md),
-how the scoreboard works). The other tools' numbers are shown, not held. `cargo xtask scoreboard`
-writes it from the committed reports.
+- accuracy against logged flights;
+- bias;
+- whether predicted ranges hold real flights;
+- speed;
+- round trips through each tool's design file;
+- features;
+- steps to a first answer.
+
+Every number is read from a committed report. Many cells aren't measured yet. Each says so and
+links the milestone that will measure it. The page opens with how many cells are measured for each
+tool. On each row where HPR Sim and another tool both are, it says which is ahead.
+
+It's also a check. CI fails when one of HPR Sim's numbers there gets worse than the one main
+holds, counts fewer flights, or stops being measured. The exception is a cell a decision record
+accepts for the release the change ships in
+([how the scoreboard works](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md)).
+The other tools' numbers are shown, not held. `cargo xtask scoreboard` writes it from the
+committed reports.
 
 Its steps rows count how many steps it takes to open a design's `.ork` file, fly it once and get
-its landing spread: commands, script lines, clicks and typed entries, each kind counted apart.
-These are counts of documented steps, not timings, and installing isn't counted
-([ADR-241](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md),
-what counts as a step).
+its landing spread. Commands, script lines, clicks and typed entries are each counted apart. These
+are counts of documented steps, not timings, and installing isn't counted
+([what counts as a step](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md)).
 
 - **HPR Sim:** 2 commands, or 10 lines of Python, from files a test runs, so every counted step
   works. It has no window yet ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
-- **OpenRocket 24.12:** 7 clicks to open and fly a design, from its documentation; it has no
+- **OpenRocket 24.12:** 7 clicks to open and fly a design, from its documentation. It has no
   Monte Carlo to spread the landing, and no command or documented script that flies a design
   ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
-- **RocketPy 1.13.0:** it reads no `.ork` file; a rocket is typed in as Python instead
+- **RocketPy 1.13.0:** it reads no `.ork` file. A rocket is typed in as Python instead
   ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
 
 The scoreboard lists every step with its source under *Steps, one by one*.
@@ -191,22 +207,22 @@ How the numbers are written, and the four kinds of check they come from.
 ### How to read the numbers
 
 - **Powers of ten.** Very small and very large numbers are written the way programs print them.
-  The number after the `e` says how many places the decimal point moves, to the left when it is
+  The number after the `e` says how many places the decimal point moves, to the left when it's
   negative. So 1e-12 is a millionth of a millionth, a 1 in the twelfth decimal place, and 1e6 is a
   million. Both appear in the two [Frames](physics/frames.md) rows of the results table below.
-- **Absolute differences** carry a unit: they say how far apart two values are, in that unit.
+- **Absolute differences** carry a unit. They say how far apart two values are, in that unit.
   [Geodesy](physics/geodesy.md)'s round trips return heights within 2e-8 m, twenty billionths of a
   meter.
-- **Relative differences** are marked *relative*: the difference as a fraction of the value it is
-  compared with. [Gravity](physics/gravity.md) within 2e-14 relative means within two parts in a
-  hundred million million. A percentage is a relative difference counted in hundredths.
-- **Signs.** A signed difference is HPR Sim's value less the one it is compared with, over that one.
+- **Relative differences** are marked *relative*: the difference as a fraction of the value
+  it's compared with. [Gravity](physics/gravity.md) within 2e-14 relative means within two parts
+  in a hundred million million. A percentage is a relative difference counted in hundredths.
+- **Signs.** A signed difference is HPR Sim's value less the one it's compared with, over that one.
   A plus means HPR Sim's value is the larger in size, a minus the smaller.
 
 ### Four kinds of evidence
 
 A model can be checked in four ways, from the weakest to the strongest evidence that it matches
-reality. They are set out in the project's [validation plan][plan].
+reality. They're set out in the project's [validation plan][plan].
 
 | kind | what is compared | what agreement shows |
 |---|---|---|
@@ -215,12 +231,14 @@ reality. They are set out in the project's [validation plan][plan].
 | **Another code** | HPR Sim against another simulator, such as RocketPy, flying the same inputs | The two codes agree on the physics; not that either matches reality |
 | **Real flights** | HPR Sim against measured flights | The model matches reality, within the flight's own uncertainty, which here is not measured |
 
-The first three check the code. Only the fourth checks the physics against the world. Seven
-flights have been compared so far, each as a whole: the apogee and the climb to it, not each model
-on its own ([real flights](#real-flights)). Besides them, two recovery models are checked against
-published drop tests ([Recovery](physics/recovery.md)), and the normal force against NASA's
-wind-tunnel tests of the Arcas Robin sounding rocket
-([Aerodynamics](physics/aero.md#normal-force-through-mach-1)): measurements, but not flights.
+The first three check the code. Only the fourth checks the physics against the world.
+
+Seven flights have been compared so far, each as a whole. That's the apogee and the climb to it,
+not each model on its own ([real flights](#real-flights)). Two recovery models are also checked
+against published drop tests ([Recovery](physics/recovery.md)). So is the normal force, against
+NASA's wind-tunnel tests of the Arcas Robin sounding rocket
+([Aerodynamics](physics/aero.md#normal-force-through-mach-1)). These are measurements, but not
+flights.
 
 ## Model by model
 
@@ -229,8 +247,8 @@ Which checks each model has passed, then its headline result.
 ### Where each model stands
 
 A tick means the model has been checked that way; a "no" means it hasn't yet. *In the descents
-only* means RocketPy's air density and wind were compared with HPR Sim's at just the 23 heights its
-parachute descents sample, as part of that comparison, and nowhere else
+only* means RocketPy's air density and wind were compared with HPR Sim's at the 23 heights its
+parachute descents sample. That was part of the descent comparison, and nowhere else
 ([Recovery](physics/recovery.md#against-rocketpy)).
 
 | model | analytic | published source | another code | real flights |
@@ -262,9 +280,9 @@ parachute descents sample, as part of that comparison, and nowhere else
 
 ### Results by model
 
-The headline results, one check to a row. Each model page opens with *In short*, and its
-verification section lists every test and its [tolerance](glossary.md#tolerance), how far a result
-may be from its reference and still pass.
+The headline results, one check to a row. Each model page opens with *In short*. Its verification
+section lists every test and its [tolerance](glossary.md#tolerance): how far a result may be from
+its reference and still pass.
 
 | model | compared with | how close |
 |---|---|---|
@@ -293,7 +311,7 @@ may be from its reference and still pass.
 | [Mass properties](physics/mass.md) | a cone, a tube, four fins and an off-axis payload, added up by hand | within 1e-11 relative |
 | [Mass properties](physics/mass.md) | fin cross-sections, against exact numerical integration | within 1e-13 relative |
 | [Mass properties](physics/mass.md) | material densities, converted from the units their sources print | the sources' values, such as white ash at 678 kg/m³ |
-| [Mass properties](physics/mass.md#checked-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's structure (every stage, no motor), on 71 compared designs in the current scratch-excluding survey | mass within 1% on 70 and center of mass within 1% of length on 70, the one file outside with a named cause: airfoil fins OpenRocket weighs by a factor, a cause named only when weighing them its way brings the design within both thresholds; pitch inertia within 1% on 58, the 13 outside with no named cause yet but the two copies of OpenRocket's tube fin example (below); roll inertia a median 1.619% apart, which OpenRocket's shortcut for fins accounts for, and on the cluster designs its stacking of their tubes on the axis ([clusters](physics/mass.md#clusters-and-fillets)): with the shortcut in HPR Sim's place the median is 0.001%, and 12 files (8 distinct designs) remain outside 1% with a named cause. A ring of tube fins departs in both inertias, kept on purpose: OpenRocket's roll inertia for it is more than any mass inside the ring could have, and its pitch inertia leaves out how far the tubes sit from the axis, which accounts for the tube fin example's pitch inertia being 1.98% below OpenRocket's ([tube fins](physics/mass.md#tube-fins)). HPR Sim's airfoil fins are 19.4% lighter than OpenRocket's, a departure kept on purpose ([fins](physics/mass.md#fins-rail-buttons-and-roll-inertia)). What a file leaves unsaid (a wall of no thickness, no material), which override wins, held to OpenRocket's on 32 probe designs, and each fin section and each kind of part alone on 50 more, packed parts among them ([packed parts](physics/mass.md#packed-parts)). Fin fillets, on 9 of those, agree to 1e-15 in the fillets' mass and center of mass (the test holds 1e-12), the whole probe's pitch inertia up to 0.64% apart ([fillets](physics/mass.md#fin-fillets)). An automatic radius inside a nose cone, on 14 more (13 of which HPR Sim flies), puts every part inside but one packed mass component ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)) at OpenRocket's mass to 1e-14 and station to 1e-15, as the test holds them; the nose cones' and the transition's own walls keep their earlier gaps, up to 3.9e-5 of mass and 2.5e-6 m ([the format guide](format/ork.md#inside-a-nose-cone-or-a-transition)). A tube fin set whose radius OpenRocket works out from the body, on 19 more, has OpenRocket's radius and wall within 1e-15 and every part's mass within 1e-14 but the one nose cone among those probes, within 5e-5 ([the format guide](format/ork.md#tube-fins-sized-from-the-body)). On those that ask what a file leaves unsaid: mass within 0.001%, center of mass within 0.001 mm (0.000039 in), bar an elliptical fin's 0.18%, and an attached tube that writes no thickness (−2.4% on the committed probe; measured in [ADR-061][adr-061], the `.ork` conventions decision). On the override probes: two rules kept as measured departures, and flags that disagree (4.7 mm (0.19 in)) ([probes](physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)) |
+| [Mass properties](physics/mass.md#checked-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's structure (every stage, no motor), on 71 compared designs in the current scratch-excluding survey | mass within 1% on 70 and center of mass within 1% of length on 70, the one file outside with a named cause: airfoil fins OpenRocket weighs by a factor, a cause named only when weighing them its way brings the design within both thresholds; pitch inertia within 1% on 58, the 13 outside with no named cause yet but the two copies of OpenRocket's tube fin example (below); roll inertia a median 1.619% apart, which OpenRocket's shortcut for fins accounts for, and on the cluster designs its stacking of their tubes on the axis ([clusters](physics/mass.md#clusters-and-fillets)): with the shortcut in HPR Sim's place the median is 0.001%, and 12 files (8 distinct designs) remain outside 1% with a named cause. A ring of tube fins departs in both inertias, kept on purpose: OpenRocket's roll inertia for it is more than any mass inside the ring could have, and its pitch inertia leaves out how far the tubes sit from the axis, which accounts for the tube fin example's pitch inertia being 1.98% below OpenRocket's ([tube fins](physics/mass.md#tube-fins)). HPR Sim's airfoil fins are 19.4% lighter than OpenRocket's, a departure kept on purpose ([fins](physics/mass.md#fins-rail-buttons-and-roll-inertia)). What a file leaves unsaid (a wall of no thickness, no material), which override wins, held to OpenRocket's on 32 probe designs, and each fin section and each kind of part alone on 50 more, packed parts among them ([packed parts](physics/mass.md#packed-parts)). Fin fillets, on 9 of those, agree to 1e-15 in the fillets' mass and center of mass (the test holds 1e-12), the whole probe's pitch inertia up to 0.64% apart ([fillets](physics/mass.md#fin-fillets)). An automatic radius inside a nose cone, on 14 more (13 of which HPR Sim flies), puts every part inside but one packed mass component ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)) at OpenRocket's mass to 1e-14 and station to 1e-15, as the test holds them; the nose cones' and the transition's own walls keep their earlier gaps, up to 3.9e-5 of mass and 2.5e-6 m ([the format guide](format/ork.md#inside-a-nose-cone-or-a-transition)). A tube fin set whose radius OpenRocket works out from the body, on 19 more, has OpenRocket's radius and wall within 1e-15 and every part's mass within 1e-14 but the one nose cone among those probes, within 5e-5 ([the format guide](format/ork.md#tube-fins-sized-from-the-body)). On those that ask what a file leaves unsaid: mass within 0.001%, center of mass within 0.001 mm (0.000039 in), bar an elliptical fin's 0.18%, and an attached tube that writes no thickness (−2.4% on the committed probe; measured in [the `.ork` conventions decision][adr-061]). On the override probes: two rules kept as measured departures, and flags that disagree (4.7 mm (0.19 in)) ([probes](physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)) |
 | [Mass properties](physics/mass.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass and center of mass of the parts in its [parts catalog](format/orc.md) that the builder makes (all 3,449 but four it refuses) ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/tests/catalog_openrocket.rs), [The builder](the-builder.md#the-masses-against-openrocket)) | tubes, rings, bulkheads, lugs, parachutes and streamers within 1e-14 of the mass; nose cones and transitions within 1e-3 of the mass, and their center of mass within 1e-3 of the part's length (largest 6.3e-4 and 9.7e-4); but four blunt hollow nose cones, up to 4.8e-3 heavier here and 1.7e-3 of their length apart in center, where the two codes define a wall differently; masses stated in ounces, 8.8 parts in 10 billion apart (OpenRocket's rounded ounce); and one streamer, whose stated mass OpenRocket ignores. A hollow part's shoulder weighs nothing in OpenRocket and has the part's wall here, and is taken out before comparing |
 | [Solid motors](physics/motor.md) | [ThrustCurve.org](glossary.md#thrustcurveorg)'s own statistics code (total impulse, burn time, average and peak thrust), on all 32 bundled curves | within 1.8e-15 relative |
 | [Solid motors](physics/motor.md#validation) | [OpenRocket](glossary.md#openrocket) 24.12's own reading of the same 32 bundled curve files (total impulse, peak thrust, the 5%-of-peak burn-time window and the curve's duration) | every one bit for bit equal. Its average thrust divides the window's own impulse by the window where HPR Sim divides the whole curve's, so HPR Sim's is +0.0107% to +0.3147% higher (median +0.0965%). Nothing else in the motor model is compared with OpenRocket |
@@ -304,7 +322,7 @@ may be from its reference and still pass.
 | [Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2) | the same curves every 0.05 from Mach 0.1 to 2.0, as far as each reaches; Calisto's, the one real RASAero II export, to Mach 2 | Calisto within 10% at 15 of 15 subsonic Mach numbers, 3 of 7 transonic and 8 of 17 supersonic, where HPR Sim reads −14.9% to −5.1%, lowest at Mach 2 (−29.8% to −24.4% before the boattail's supersonic wave drag) ([evidence row G26](evidence.md#g26)). Other plausible fins put 14 to 17 of the 17 within 10%, though none puts every row within it, so most of what is left is within the unrecorded inputs; part of it is HPR Sim's body, which reads low faster than sound against MIL-HDBK-762 too |
 | [Aerodynamics](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation) | MIL-HDBK-762's worked drag example, a rocket whose every term the handbook calculates, from Mach 0.5 to 3.2: a calculation with every input known, not a measurement. Its fins are sharp-edged wedges, which HPR Sim can't represent, so their pressure drag is left out on both sides | 6 of 12 within 10%. From Mach 0.9 to 1.2, +12.3% to +31.9%, mostly the nose and the base; from Mach 1.6, −6.0% to −9.6%, friction and the base |
 | [Rigid-body flight](physics/flight.md) | the exact motion of a tumbling, spinning rocket in a vacuum, over 22 s | the center of mass within 1.7e-6 m of the exact parabola |
-| [Aerodynamics](physics/aero.md) | NASA's wind-tunnel tests of the half-scale Arcas Robin and a longer version, Mach 0.6 to 4.63: [normal-force slope](glossary.md#normal-force-slope) and center of pressure, 22 readings at 12 Mach numbers ([fixture][nf-fixture]) | from Mach 1.5, every slope within target: +8.8% to −3.3% (short) and +9.4% to −2.3% (long), since the committed designs fly the shock-expansion method to their base; the center of pressure within 0.53 [calibers](glossary.md#caliber), which misses the half-caliber target on the long model at Mach 1.8 and 2.3, where that model's body alone reads 15% to 19% high (fins off, the short model's reads as much as 38% high at Mach 1.5: the crossflow excess sized by [M1.8e6](decisions-and-roadmap.md#m1-8e6)); from Mach 0.8 to 1.2, 2 of 9 within 15% and half a caliber |
+| [Aerodynamics](physics/aero.md) | NASA's wind-tunnel tests of the half-scale Arcas Robin and a longer version, Mach 0.6 to 4.63: [normal-force slope](glossary.md#normal-force-slope) and center of pressure, 22 readings at 12 Mach numbers ([fixture][nf-fixture]) | from Mach 1.5, every slope within target: +8.8% to −3.3% (short) and +9.4% to −2.3% (long), since the committed designs fly the shock-expansion method to their base; the center of pressure within 0.53 [calibers](glossary.md#caliber), which misses the half-caliber target on the long model at Mach 1.8 and 2.3, where that model's body alone reads 15% to 19% high (fins off, the short model's reads as much as 38% high at Mach 1.5: the crossflow excess [sized at every speed](decisions-and-roadmap.md#m1-8e6)); from Mach 0.8 to 1.2, 2 of 9 within 15% and half a caliber |
 | [Aerodynamics](physics/aero.md) | RASAero II's normal-force slope and center of pressure for Calisto, Mach 0.1 to 2.0 ([fixture][nf-fixture]) | within 15% and half a caliber at 11 of 15 Mach numbers; HPR Sim's slope rises with Mach through subsonic flow where RASAero II's stays flat (+21.9% at Mach 0.9), and from Mach 1.5, where its von Kármán nose flies the shock-expansion method behind a [Newtonian cap](physics/aero.md#blunt-tips), reads +8.3% to +12.9% |
 | [Aerodynamics](physics/aero.md#checking-the-shock-expansion-method) | the body faster than sound, by a method no flight uses yet: the tables of NACA TN 3527, its source, for 144 cone- and ogive-cylinders at Mach 3 to 6.28, both its authors' own values and their wind-tunnel measurements of the normal-force slope and center of pressure ([fixture][se-fixture]) | against the measurements, 117 of 120 slopes within ±0.2 per radian (−0.278 to +0.251) and 109 of 120 centers of pressure within 0.2 calibers (−0.540 to +0.328); against the authors' values, 102 of 144 slopes within 0.05 (−0.134 to +0.146) and 125 of 144 centers of pressure within 0.1 calibers (−0.670 to +0.257), so the targets are not met, where a separate implementation of the same equations, an uncommitted script, agrees with HPR Sim outside the 12 rows at the method's limit ([#81](https://github.com/nrdptel/fusionspace-eridanus/issues/81)) |
 | [Aerodynamics](physics/aero.md#checking-the-shock-expansion-method) | the same method on the Arcas Robin's nose and cylinder, against its measured body alone, Mach 1.5 to 4.63, 11 readings; no target, since the measurement includes the boattail and crossflow ([fixture][se-fixture]) | the short model within 5% from Mach 1.8 to 2.96, +16.4% at 1.5, −15.0% and −18.7% at 3.96 and 4.63; the long model −13.7% to −26.4% |
@@ -316,9 +334,9 @@ may be from its reference and still pass.
 | [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | NASA's wind-tunnel tests of the two Arcas Robin models, Mach 1.5 to 4.63: [roll forcing](glossary.md#roll-damping-and-roll-forcing), the rolling moment per degree of cant, 11 readings ([roll fixture][roll-fixture]) | from Mach 2.3, all 8 within 5.3%; at Mach 1.5 and 1.8, +14.3% to +47.8% |
 | [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | The Basic Finner's roll damping measured in a wind tunnel, Mach 1.5 to 3.0, and Barrowman's computed value at Mach 0.07 ([roll fixture][roll-fixture]) | −5.9% to −16.2% against the wind tunnel, lower as the Mach number grows; −2.0% against Barrowman's computed value (a theory curve, not a measurement; it confirmed how HPR Sim reads his method) |
 | [Aerodynamics](physics/aero.md#boattails-faster-than-sound) | conical boattails measured in six NACA and NASA reports, jet off, Mach 0.3 to 3.24: the boattail's own pressure drag and the base pressure behind it ([drag fixture][drag-fixture]) | attached boattails of 3° to 10° from Mach 1.2: −21.9% to +28.3%, within 0.0123 (58 readings); from Mach 1.0 to 1.1, −18.2% to −5.4% (4), and −46.2% to +60.0% at points near Mach 1 their report calls questionable (27); through the rise from Mach 0.85 to 0.95, −77.5% to +7.6% (28); under Niskanen's rule to Mach 0.8, −100% to −83.5% (58). 16° in a boundary layer a fifth of the diameter thick, +26.4% to +54.2% (9). Separated 30° and 45°, −2.8% to +6.6% (3, which set the separation angles). The base drag behind them within 0.0102 of the measured on the cylinder's area, though behind small bases that is up to about 40% of the base's own drag (8 of the 12 set the ratio below Mach 2.5) |
-| [Aerodynamics](physics/aero.md#tube-fins-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's normal-force slope and center of pressure for tube fins, on 14 probe designs and its *Tube fin rocket*, at Mach 0.05 to 0.75 ([ADR-102][adr-102], the decision that measured it); a code-to-code comparison. Tube fins as a whole are unvalidated ([evidence row G27](evidence.md#g27)): no measurement of a tube fin's lift or center was found | not within the quarter caliber that [lesson L19](decisions-and-roadmap.md#l19) asks: HPR Sim's center of pressure is 0.42 to 3.0 calibers forward of OpenRocket's on every probe up to Mach 0.5, and 1.07 on the *Tube fin rocket*. From Mach 0.6, where OpenRocket moves the tubes' center to their leading edge, 5 of 28 are within it. OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's, and up to Mach 0.5 it puts their center at a quarter of their length, ahead of which HPR Sim's lies. All 70 probe gaps, and the *Tube fin rocket*'s, are pinned by a test |
-| [Rigid-body flight](physics/flight.md) | RocketPy's whole flights from the pad to the ground, for six rockets, one past Mach 1, both codes flying one declared drag coefficient | heights, speeds, times and accelerations within 3% ([below](#whole-flights-against-rocketpy)), the largest +1.783% in the [report][report]; the path too, except the drifts of Juno III, Bella Lui and Prometheus 2022 in wind and NDRT 2020's apogee drift, reported, not scored, as measured differences between the models ([ADR-026][adr-026]) |
-| [Rigid-body flight](format/ork.md#the-simulators-flights-against-openrockets) | [OpenRocket](glossary.md#openrocket) 24.12's calm flights of the 54 configurations of its examples that HPR Sim flies, each figure by OpenRocket's own definition: apogee, largest speed, and the [stability margin](glossary.md#stability-margin) at rod clearance ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md)); a code-to-code comparison, with no target set. OpenRocket aborts one, so the figures are over the other 53, and that one is compared at two points up to the abort ([flights OpenRocket aborted](format/ork.md#flights-openrocket-aborted)) | margin within 0.016 calibers on 41 of 53, taken with the air along the axis as OpenRocket's is; the *Tube fin rocket*'s is 1.08 calibers below OpenRocket's ([tube fins](physics/aero.md#tube-fins)), the three-stage example's three are 0.039 to 0.058 below, cause not yet sized ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)), and the five of *Pods--airframes and winglets* are 0.071 to 0.076 above, the flattering side ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326), two open causes in the fins), and the three of *Pods--powered with recovery deployment* are 0.070 above, cause not yet traced. With no named cause, apogee −4.34% to +1.95% (36 flights), and largest speed −0.69% to +6.10% (51 flights). The two-stage, three-stage, cluster, air-start and parallel-booster examples are within 5% in apogee and largest speed on every flight, the bar the [M1.9c](decisions-and-roadmap.md#m1-9c) milestone set before measuring; three cluster apogees and two three-stage ones are compared with OpenRocket's flight with no parachute, since its parachute opened before apogee. One named cause moves the apogee more than 5%: OpenRocket's parachute opening while the rocket still climbs (HPR Sim's flight compared here flies none), up to +13.80%. OpenRocket flying those six again without it brings four within 5% ([M2.2e4](decisions-and-roadmap.md#m2-2e4), sizing the causes). The other two are *Base drag hack (short-wide)* on a D12-3 and an E12-4, whose part set to no drag now flies as OpenRocket flies it ([M4.5h](decisions-and-roadmap.md#m4-5h), a part's drag override): against OpenRocket's flight with nothing deployed they read +5.84% and +8.92%, and within 0.10% when HPR Sim flies OpenRocket's own drag, so their gap is the drag coefficient, by OpenRocket's breakdown the very blunt nose's. With recovery in both, the basis [M4.5o](decisions-and-roadmap.md#m4-5o) judged, the D12-3 is within 5% (+4.52%) and only the E12-4 is over (+7.80%). HPR Sim keeps a value for that nose read between Hoerner's measured round heads, so the gap stays ([ADR-173](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0173-a-blunt-ellipsoid-s-subsonic-pressure-drag-from-hoerner.md), [#177](https://github.com/nrdptel/fusionspace-eridanus/issues/177)). A seventh, the *Tube fin rocket*, reads +6.95%, and within 0.03% when HPR Sim flies OpenRocket's own drag, so the gap is HPR Sim's tube-fin drag, which probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228)). The flight OpenRocket aborts, *Pods--powered with recovery deployment*'s first configuration, is within 5% at both points (height −1.17% and −1.18%, speed −0.04% and +4.02%), weaker evidence than an apogee ([M4.5n](decisions-and-roadmap.md#m4-5n)) |
+| [Aerodynamics](physics/aero.md#tube-fins-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's normal-force slope and center of pressure for tube fins, on 14 probe designs and its *Tube fin rocket*, at Mach 0.05 to 0.75 ([the decision that measured it][adr-102]); a code-to-code comparison. Tube fins as a whole are unvalidated ([evidence row G27](evidence.md#g27)): no measurement of a tube fin's lift or center was found | not within the quarter caliber that [the tube-fin lesson](decisions-and-roadmap.md#l19) asks: HPR Sim's center of pressure is 0.42 to 3.0 calibers forward of OpenRocket's on every probe up to Mach 0.5, and 1.07 on the *Tube fin rocket*. From Mach 0.6, where OpenRocket moves the tubes' center to their leading edge, 5 of 28 are within it. OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's, and up to Mach 0.5 it puts their center at a quarter of their length, ahead of which HPR Sim's lies. All 70 probe gaps, and the *Tube fin rocket*'s, are pinned by a test |
+| [Rigid-body flight](physics/flight.md) | RocketPy's whole flights from the pad to the ground, for six rockets, one past Mach 1, both codes flying one declared drag coefficient | heights, speeds, times and accelerations within 3% ([below](#whole-flights-against-rocketpy)), the largest +1.783% in the [report][report]; the path too, except the drifts of Juno III, Bella Lui and Prometheus 2022 in wind and NDRT 2020's apogee drift, reported, not scored, as measured differences between the models ([the decision][adr-026]) |
+| [Rigid-body flight](format/ork.md#the-simulators-flights-against-openrockets) | [OpenRocket](glossary.md#openrocket) 24.12's calm flights of the 54 configurations of its examples that HPR Sim flies, each figure by OpenRocket's own definition: apogee, largest speed, and the [stability margin](glossary.md#stability-margin) at rod clearance ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md)); a code-to-code comparison, with no target set. OpenRocket aborts one, so the figures are over the other 53, and that one is compared at two points up to the abort ([flights OpenRocket aborted](format/ork.md#flights-openrocket-aborted)) | margin within 0.016 calibers on 41 of 53, taken with the air along the axis as OpenRocket's is; the *Tube fin rocket*'s is 1.08 calibers below OpenRocket's ([tube fins](physics/aero.md#tube-fins)), the three-stage example's three are 0.039 to 0.058 below, cause not yet sized ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)), and the five of *Pods--airframes and winglets* are 0.071 to 0.076 above, the flattering side ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326), two open causes in the fins), and the three of *Pods--powered with recovery deployment* are 0.070 above, cause not yet traced. With no named cause, apogee −4.34% to +1.95% (36 flights), and largest speed −0.69% to +6.10% (51 flights). The two-stage, three-stage, cluster, air-start and parallel-booster examples are within 5% in apogee and largest speed on every flight, the bar [the staging milestone](decisions-and-roadmap.md#m1-9c) set before measuring; three cluster apogees and two three-stage ones are compared with OpenRocket's flight with no parachute, since its parachute opened before apogee. One named cause moves the apogee more than 5%: OpenRocket's parachute opening while the rocket still climbs (HPR Sim's flight compared here flies none), up to +13.80%. OpenRocket flying those six again without it brings four within 5% ([sizing the causes](decisions-and-roadmap.md#m2-2e4)). The other two are *Base drag hack (short-wide)* on a D12-3 and an E12-4, whose part set to no drag now flies as OpenRocket flies it ([a part's drag override](decisions-and-roadmap.md#m4-5h)): against OpenRocket's flight with nothing deployed they read +5.84% and +8.92%, and within 0.10% when HPR Sim flies OpenRocket's own drag, so their gap is the drag coefficient, by OpenRocket's breakdown the very blunt nose's. With recovery in both, the basis [the E12-4's milestone](decisions-and-roadmap.md#m4-5o) judged, the D12-3 is within 5% (+4.52%) and only the E12-4 is over (+7.80%). HPR Sim keeps a value for that nose read between Hoerner's measured round heads, so the gap stays ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0173-a-blunt-ellipsoid-s-subsonic-pressure-drag-from-hoerner.md), [#177](https://github.com/nrdptel/fusionspace-eridanus/issues/177)). A seventh, the *Tube fin rocket*, reads +6.95%, and within 0.03% when HPR Sim flies OpenRocket's own drag, so the gap is HPR Sim's tube-fin drag, which probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228)). The flight OpenRocket aborts, *Pods--powered with recovery deployment*'s first configuration, is within 5% at both points (height −1.17% and −1.18%, speed −0.04% and +4.02%), weaker evidence than an apogee ([its milestone](decisions-and-roadmap.md#m4-5n)) |
 | [Rigid-body flight](format/ork.md#the-simulators-flights-of-the-private-designs) | [OpenRocket](glossary.md#openrocket) 24.12's calm flights of the 35 configurations of 11 private designs that HPR Sim flies, published only as differences under anonymized ids ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)); a code-to-code comparison, with no target set | covers 11 of the 12 private designs. Apogee −4.84% to +13.60%. One is more than 5% off: the one supersonic flight, `C06/1`, +13.60% in apogee and +7.98% in largest speed, whose cause is the drag coefficient: flown on OpenRocket's own drag, HPR Sim reads +1.11% and +1.04%; the [supersonic pressure drag](glossary.md#wave-drag) (mostly wave drag) and HPR Sim's unvalidated base drag under power are open ([#222: HPR Sim's supersonic pressure drag is about twice OpenRocket's](https://github.com/nrdptel/fusionspace-eridanus/issues/222)) ([evidence row G14](evidence.md#g14)). The rest: largest speed −0.65% to +2.28%. Margin −0.0166 to +0.1108 calibers. HPR Sim calls four designs clearly more stable than OpenRocket does: `C09` by 0.0350 to 0.0478 and `C03` by 0.0564 to 0.0730 on every flight, cause not yet traced ([#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172)); `C08`, a two-stage design, by 0.1108, a center-of-mass gap with a lead but no measured cause ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)); and `C06/1` by +0.0604, most of it a center of mass 0.0447 calibers forward of OpenRocket's, with a lead but no measured cause: its airfoil fins, which OpenRocket weighs by a factor of 0.85 (the [mass survey's fin-section cause](physics/mass.md#checked-against-openrocket), sized on the structure alone). A fifth, `C12`, launched from a tilted rod, reads 0.0125 to 0.0366, most of it OpenRocket's rocket clearing the rod at an angle of attack: at that angle HPR Sim reads 0.0033 to 0.0074 ([a tilted launch rod](format/ork.md#a-tilted-launch-rod)) |
 | [Time integration](physics/integration.md) | a separate line-by-line transcription of `DOPRI5`, the published Fortran integrator by Hairer and Wanner that HPR Sim's [Dormand–Prince](glossary.md#dormandprince-and-rk4) stepper follows, on the problem Hairer's own example program for `DOPRI5` solves: the Arenstorf orbit, the closed, looping path of a small body pulled by two large ones that circle each other | the same step counts |
 | [Time integration](physics/integration.md) | a vertical flight with drag that has an exact solution | apogee, deployment and landing times within 1.5e-8 s |
@@ -337,10 +355,10 @@ The descents and whole flights compared with RocketPy, on the same drag and on e
 
 ### The descent under a parachute, against RocketPy
 
-This is one of the two comparisons the validation harness runs; the other is
+This is one of the two comparisons the validation harness runs. The other is
 [whole flights](#whole-flights-against-rocketpy). The harness is the program behind
-`cargo xtask validate`, which flies every [validation case](glossary.md#validation-case) and
-writes the committed report.
+`cargo xtask validate`. It flies every [validation case](glossary.md#validation-case) and writes
+the committed report.
 
 Five of RocketPy's [example rockets](glossary.md#example-rockets) are flown down in both codes,
 set up the same way:
@@ -348,26 +366,26 @@ set up the same way:
 - the same starting state near apogee, with the first parachute opening at once;
 - the same [drag areas](glossary.md#drag-area), deployment triggers and wind;
 - the random noise RocketPy can add to each parachute switched off, so its runs repeat exactly;
-- RocketPy's gravity formula, and its way of interpolating the wind (by its east and north
-  components), in place of HPR Sim's own defaults, to compare like with like.
+- RocketPy's gravity formula and its way of interpolating the wind (by its east and north
+  components), in place of HPR Sim's defaults.
 
-The committed [validation report][report] gives the six numbers below for each descent. All of
-them were scored and all are within tolerance; the largest difference is +2.865%.
+The committed [validation report][report] gives the six numbers below for each descent. All were
+scored, and all are within tolerance. The largest difference is +2.865%.
 
-Each metric must agree within 3% of RocketPy's value, with no absolute floor (a fixed allowance,
-in meters or seconds, that would pass any smaller difference). Each case file argues why, for
-example [NDRT's][ndrt-case]. The metrics:
+Each metric must agree within 3% of RocketPy's value, with no absolute floor. Each case file
+argues why, for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
+seconds, that passes any smaller difference. The metrics:
 
 - `descent_time_s`: the time from the shared start to landing.
-- `impact_speed_m_s`: the vertical speed at landing; the wind adds to the speed over the ground.
+- `impact_speed_m_s`: the vertical speed at landing. The wind adds to the speed over the ground.
 - `mean_descent_rate_m_s`: the start's height over the descent time, so it repeats the descent
   time in another form.
-- `drift_m`, `drift_east_m` and `drift_north_m`: how far the rocket lands from where the descent
-  started, not from the pad, and that distance's east and north parts. A drift to the south or
-  west is negative.
+- `drift_m`: how far the rocket lands from where the descent started, not from the pad.
+  `drift_east_m` and `drift_north_m` are its east and north parts. A drift to the south or west
+  is negative.
 
-A difference is HPR Sim's value less RocketPy's, over RocketPy's. So a positive one means HPR Sim's
-value is larger in size, in the same direction: NDRT drifts south, and HPR Sim carries it further
+A difference is HPR Sim's value less RocketPy's, over RocketPy's. A positive one means HPR Sim's
+value is larger in size, in the same direction. NDRT drifts south, and HPR Sim carries it further
 south.
 
 Every result of the report, as HPR Sim's difference from RocketPy:
@@ -382,30 +400,30 @@ Every result of the report, as HPR Sim's difference from RocketPy:
 
 Each case is named after the RocketPy example it flies. Three names carry more:
 
-- `descent-calisto-tests-motor-at-minus-1.373` is Calisto as RocketPy's own tests build it, with
-  the motor at −1.373 m (−4.50 ft) in RocketPy's coordinates, where its getting-started notebook puts it at
-  −1.255 m (−4.12 ft, [notes on RocketPy's example rockets][rocket-notes]).
+- `descent-calisto-tests-motor-at-minus-1.373` is Calisto as RocketPy's own tests build it. They
+  put the motor at −1.373 m (−4.50 ft) in RocketPy's coordinates. RocketPy's getting-started
+  notebook puts it at −1.255 m (−4.12 ft, [notes on RocketPy's example rockets][rocket-notes]).
 - `descent-ndrt-2020-nose-to-tail` is the NDRT 2020 rocket, which RocketPy's example measures from
   the nose toward the tail ([notes on RocketPy's example rockets][rocket-notes]).
 - `descent-prometheus-2022-generic-motor` is Prometheus 2022, whose motor RocketPy describes with
-  its generic-motor model, which treats the propellant as a solid cylinder
+  its generic-motor model. That model treats the propellant as a solid cylinder
   ([notes on RocketPy's example rockets][rocket-notes],
   [Recovery](physics/recovery.md#against-rocketpy)).
 
-The Valetudo case flies RocketPy's own Valetudo example, not the flight on
-[Getting started](getting-started.md). From the shared start, 800 m (2,625 ft) above the ground, it falls in
-still air under the example's one drogue, with RocketPy's drag area of 0.4537 m², and lands at
-17.627 m/s (57.83 ft/s). Getting started flies the same airframe from the pad, with its own drogue, a main
-parachute and a 5 m/s (16 ft/s) wind ([case file][valetudo-case],
-[Recovery](physics/recovery.md#against-rocketpy)).
+The Valetudo case flies RocketPy's own example, not the flight on
+[Getting started](getting-started.md). From the shared start, 800 m (2,625 ft) above the ground,
+it falls in still air under the example's one drogue. With RocketPy's drag area of 0.4537 m², it
+lands at 17.627 m/s (57.83 ft/s). Getting started flies the same airframe from the pad. That
+flight has its own drogue and a main parachute, in a 5 m/s (16 ft/s) wind
+([case file][valetudo-case], [Recovery](physics/recovery.md#against-rocketpy)).
 
 In still air, Valetudo's drift, 0.19 m (0.62 ft), comes only from the Earth's rotation (the
-[Coriolis acceleration](glossary.md#coriolis-acceleration)), and its north part is 19 µm. So a
-small difference there is a large fraction ([Recovery](physics/recovery.md#against-rocketpy)).
+[Coriolis acceleration](glossary.md#coriolis-acceleration)). Its north part is 19 µm. So a small
+difference there is a large fraction ([Recovery](physics/recovery.md#against-rocketpy)).
 
-The largest gap, NDRT's north drift, most likely comes from [added mass](glossary.md#added-mass):
-RocketPy counts the air a canopy drags along, 15.9 kg for NDRT's main against the rocket's 20.8 kg,
-and HPR Sim has no such term, so the two respond differently as the canopy opens
+The largest gap, NDRT's north drift, most likely comes from [added mass](glossary.md#added-mass).
+RocketPy counts the air a canopy drags along: 15.9 kg for NDRT's main, against the rocket's
+20.8 kg. HPR Sim has no such term, so the two respond differently as the canopy opens
 ([Recovery](physics/recovery.md#against-rocketpy)). That explanation fits the size of the gap, but
 no test has isolated it yet.
 
@@ -414,50 +432,55 @@ either matches a real parachute on a real day.
 
 ### Whole flights against RocketPy
 
-Six of RocketPy's example rockets are flown from the pad to the ground in both codes: Calisto,
-Valetudo, NDRT 2020, Juno III, Bella Lui and Prometheus 2022. They are set up the same way
-([ADR-021][adr-021], the whole-flight comparison):
+Six of RocketPy's example rockets are flown from the pad to the ground in both codes. They're
+Calisto, Valetudo, NDRT 2020, Juno III, Bella Lui and Prometheus 2022. They're set up the same
+way ([the decision on what's compared][adr-021]):
 
-- one declared [drag coefficient](glossary.md#drag-coefficient), a constant 0.5
-  ([case file][juno-case]), on the same reference area;
-- the example's launch rail, site, parachutes and motor, with the thrust curve flown as measured
-  and no correction for the thinner air at the site, as RocketPy's examples fly it;
-- RocketPy's gravity formula, standard atmosphere and frictionless rail, and a declared wind;
-- the random noise RocketPy can add to each parachute switched off.
+- One declared [drag coefficient](glossary.md#drag-coefficient), a constant 0.5
+  ([case file][juno-case]), on the same reference area.
+- The example's launch rail, site, parachutes and motor. The thrust curve is flown as measured,
+  with no correction for the site's thinner air, as RocketPy's examples fly it.
+- RocketPy's gravity formula, standard atmosphere and frictionless rail, and a declared wind.
+- The random noise RocketPy can add to each parachute switched off.
 
 This is [same-drag](glossary.md#same-drag-and-predicted-mode) mode. It checks the equations of
 motion, the motor and the air, not the drag. HPR Sim's own drag is compared
 [below](#whole-flights-with-each-codes-own-drag).
 
-**In short: how high, how fast and how long agree, and so does where the rocket goes, except for
-rockets that leave the rail slowly in a wind.** The heights, speeds, times and accelerations of
-six flights, one of them past Mach 1, and of three of them again in calm air, agree within the 3%
-of each case's gate ([case file][juno-case]); the largest difference is +1.783%
-([report][report]). Here *still air*
-is an example flown with no wind (Valetudo's), and *calm air* a windy case flown again with its
-wind switched off. The apogee and landing points agree too, within 2.2%, in every flight without
-wind and for Calisto in wind ([ADR-026][adr-026]). Juno III and Bella Lui leave the rail slowly
-in the wind, at a steep angle to the airflow. There HPR Sim's [body lift](glossary.md#body-lift),
-which RocketPy leaves out, its later release from the rail and, for Juno III, its simpler fin
-model put their drifts 10.195% to 38.158% from RocketPy's. Prometheus 2022's differ by −7.292% and
-+4.505%, from body lift and the rail release. NDRT 2020's apogee drift differs by −4.333%, mostly from the rail
-release. These seven drifts are reported, not scored. So the landing offset
-that [M2.1](decisions-and-roadmap.md#m2-1) asks for is met except where the two codes' models
-differ.
+**In short: how high, how fast and how long agree. So does where the rocket goes, except for
+rockets that leave the rail slowly in a wind.** One of the six flights passes Mach 1, and three
+fly again in calm air. In all nine, the heights, speeds, times and accelerations agree within the
+3% of each case's gate ([case file][juno-case]). The largest difference is +1.783%
+([report][report]).
 
-Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor, or
-say in its case file why it is not scored. Each case file argues why, for example
-[Juno III's][juno-case]. Two more numbers compare the whole trace; they are explained after the
-tables.
+*Still air* means an example flown with no wind (Valetudo's). *Calm air* is a windy case flown
+again with its wind switched off. The apogee and landing points agree too, within 2.2%, in every
+flight without wind and for Calisto in wind ([the wind-path decision][adr-026]).
+
+Juno III and Bella Lui leave the rail slowly in the wind, at a steep angle to the airflow. There
+HPR Sim's [body lift](glossary.md#body-lift), which RocketPy leaves out, moves their drifts. So do
+its later release from the rail and, for Juno III, its simpler fin model. Together they put the
+drifts 10.195% to 38.158% from RocketPy's ([report][report]).
+
+Prometheus 2022's drifts differ by −7.292% and +4.505%, from body lift and the rail release. NDRT
+2020's apogee drift differs by −4.333%, mostly from the rail release. These seven drifts are
+[reported][report], not scored. So [the validation milestone's](decisions-and-roadmap.md#m2-1)
+landing offset is met except where the two codes' models differ.
+
+Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
+Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
+reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
 The numbers are measured as RocketPy defines them, with one exception. Each code's solver advances
 the flight in [time steps](glossary.md#adaptive-time-step) and keeps the state at each step's end.
-RocketPy takes each maximum (top speed, top Mach, top acceleration) only at those step ends. HPR Sim
-also searches between its own step ends for the true peak, so that its number does not depend on
-where its solver happened to step. That search can only raise a maximum. Against HPR Sim's old
-step-end readings it raised them by at most 6.3e-5 of themselves (NDRT 2020's top speed). How much
-RocketPy's own step ends miss was not measured. Either way it is far inside the 3% gate
-([ADR-023][adr-023], the decision that also sets how peaks are found in both modes).
+RocketPy takes each maximum (top speed, top Mach, top acceleration) only at those step ends. HPR
+Sim also searches between its own step ends for the true peak. So its number doesn't depend on
+where its solver happened to step.
+
+That search can only raise a maximum. Against HPR Sim's old step-end readings it raised them by at
+most 6.3e-5 of themselves (NDRT 2020's top speed). How much RocketPy's own step ends miss wasn't
+measured. Either way it's far inside the 3% gate
+([the decision that also sets how peaks are found in both modes][adr-023]).
 
 The definitions:
 
@@ -472,19 +495,19 @@ The definitions:
 - `impact_speed_m_s`: the vertical speed at landing.
 - `max_acceleration_power_on_m_s2`: the largest acceleration while the motor burns.
 - `max_acceleration_m_s2` and `max_acceleration_time_s`: the largest over the whole flight, and
-  when. For NDRT 2020 that is its main parachute opening, not a flight load
+  when. For NDRT 2020 that's its main parachute opening, not a flight load
   ([case file][ndrt-flight-case]).
 - `apogee_drift_m` and `landing_drift_m`: how far from the pad, along the ground, the apogee and
   the landing point are.
 
 Speeds and accelerations are those of the rocket's [center of dry mass](glossary.md#center-of-dry-mass),
-the point RocketPy's flight follows; HPR Sim's own output follows the center of mass of the loaded
-rocket. Heights are measured from where that point starts, as RocketPy's are. A difference is
+the point RocketPy's flight follows. Heights are measured from where that point starts, as
+RocketPy's are. HPR Sim's own output follows the loaded rocket's center of mass. A difference is
 HPR Sim's value less RocketPy's, over RocketPy's.
 
-The [validation report][report] scores all but eleven of the numbers of the nine flights (the
-six, and Juno III, Calisto and Bella Lui again in calm air), and all of the scored ones are within
-tolerance. The eleven are measured and reported but not scored, each for a reason written in its
+The nine flights are the six, and Juno III, Calisto and Bella Lui again in calm air. The
+[validation report][report] scores all but eleven of their numbers, and all the scored ones are
+within tolerance. The eleven are measured and reported but not scored, each for a reason in its
 case file (below). Every result of the report, as HPR Sim's difference from RocketPy:
 
 | case | `apogee_agl_m` | `apogee_time_s` | `flight_time_s` | `max_speed_m_s` | `max_mach` |
@@ -524,26 +547,29 @@ case file (below). Every result of the report, as HPR Sim's difference from Rock
 | [`flight-bella-lui-calm`][report] | +1.778% | +1.778% | +0.001% | −1.155% | −1.791% |
 
 The last two numbers compare the whole trace, not one point of it. The series height RMS
-(`series_height_rms_m`) is the root mean square of HPR Sim's height less RocketPy's: square each
-difference, average the squares, and take the square root. The series speed RMS
-(`series_speed_rms_m_s`) is the same for speed. Both follow the center of mass without propellant,
-at RocketPy's 120 series times, from ignition until HPR Sim lands. Both codes' clocks start at
-ignition on the rail, so no time shift is fitted: a fitted shift would hide a real difference in the
-burn or on the rail ([case file][juno-case]). The center of mass without propellant is the point
-RocketPy's series records. Every time counts the same, so the long descent weighs most; a
-difference during the burn shows in the burnout and top-speed numbers instead.
+(`series_height_rms_m`) is the root mean square of HPR Sim's height less RocketPy's. To get it,
+square each difference, average the squares and take the square root. The series speed RMS
+(`series_speed_rms_m_s`) is the same for speed. Both follow the center of mass without
+propellant, the point RocketPy's series records.
 
-Exact agreement would give 0, so these two are given in meters and meters per second, not as a
-percentage. Each is held to 3% of RocketPy's apogee (for height) or top speed (for speed). That is
-[M2.1](decisions-and-roadmap.md#m2-1)'s 3% for one number, applied to the whole trace
-([case file][juno-case]).
+Both are taken at RocketPy's 120 series times, from ignition until HPR Sim lands. Both codes'
+clocks start at ignition on the rail, so no time shift is fitted. A fitted shift would hide a real
+difference in the burn or on the rail ([case file][juno-case]). Every time counts the same, so the
+long descent weighs most. A difference during the burn shows in the burnout and top-speed numbers
+instead.
+
+Exact agreement would give 0, so these two are in meters and meters per second, not percentages.
+Each is held to 3% of RocketPy's apogee (for height) or top speed (for speed). That's
+[the validation milestone's](decisions-and-roadmap.md#m2-1) 3% for one number, applied to the
+whole trace ([case file][juno-case]).
 
 All nine flights pass, each well inside its bound. The largest height RMS is Prometheus 2022's,
-35.350931 m (115.98074 ft) against its 110.3 m (362 ft) bound, about a third of it; its apogee is also the furthest off,
-+1.208%. Body lift accounts for that too: RocketPy flown with HPR Sim's body lift and rail release
-reaches 3723.8 m (12,217 ft), against HPR Sim's 3723.6 ([case file][prometheus-case]). Juno III's is 14.550622 m (47.73826 ft)
-against 78.4 m (257 ft), about a fifth, and the other seven are at an eighth of theirs or less. The speed
-RMS runs from 0.022685 to 1.553509 m/s (0.07443 to 5.09681 ft/s, [report][report]).
+35.350931 m (115.98074 ft), about a third of its 110.3 m (362 ft) bound. Its apogee is also the
+furthest off, +1.208%. Body lift accounts for that too. RocketPy flown with HPR Sim's body lift and
+rail release reaches 3723.8 m (12,217 ft), against HPR Sim's 3723.6 ([case file][prometheus-case]).
+Juno III's height RMS is 14.550622 m (47.73826 ft) against 78.4 m (257 ft), about a fifth. The
+other seven are at an eighth of theirs or less. The speed RMS runs from 0.022685 to 1.553509 m/s
+(0.07443 to 5.09681 ft/s, [report][report]).
 
 | case | `series_height_rms_m` | height bound, m | `series_speed_rms_m_s` | speed bound, m/s |
 |---|--:|--:|--:|--:|
@@ -560,97 +586,100 @@ RMS runs from 0.022685 to 1.553509 m/s (0.07443 to 5.09681 ft/s, [report][report
 What the two codes still do differently, and what it moves:
 
 - **In wind: body lift, the rail release and Juno III's fins.** A rocket that leaves the rail
-  slowly in a wind meets the airflow at a steep angle: Juno III leaves at 18 m/s (59 ft/s) in an 8.5 m/s (28 ft/s)
-  wind, 26° off it ([ADR-026][adr-026]). Three things differ there.
+  slowly in a wind meets the airflow at a steep angle. Juno III leaves at 18 m/s (59 ft/s) in an
+  8.5 m/s (28 ft/s) wind, 26° off it ([the wind-path decision][adr-026]). Three things differ
+  there.
   - HPR Sim's normal force includes [body lift](glossary.md#body-lift), which grows with the square
-    of that angle; RocketPy's does not. Much of it acts ahead of the rocket's center of mass, the
-    nose's above all, so it moves the center of pressure forward and weakens the moment that
-    [turns the rocket into the wind](glossary.md#weathercocking): HPR Sim turns into it less.
+    of that angle. RocketPy's doesn't. Much of it acts ahead of the rocket's center of mass, the
+    nose's above all. So it moves the center of pressure forward and weakens the moment that
+    [turns the rocket into the wind](glossary.md#weathercocking). HPR Sim turns into it less.
   - HPR Sim keeps the rocket guided until its last
-    [rail button](glossary.md#rail-exit-and-rail-exit-velocity) leaves the rail; RocketPy frees it
+    [rail button](glossary.md#rail-exit-and-rail-exit-velocity) leaves the rail. RocketPy frees it
     at the first.
-  - Juno III's example gives its fins an airfoil lift curve, which RocketPy uses and HPR Sim cannot
-    model. RocketPy's fin slope is 7.6% steeper than HPR Sim's flat-plate one ([ADR-026][adr-026]).
+  - Juno III's example gives its fins an airfoil lift curve, which RocketPy uses and HPR Sim can't
+    model. RocketPy's fin slope is 7.6% steeper than HPR Sim's flat-plate one
+    ([the wind-path decision][adr-026]).
 
-  Juno III's apogee is 245.3 m (805 ft) from the pad in HPR Sim and 396.6 m (1,301 ft) in RocketPy (−38.158%). Adding
-  HPR Sim's choices to RocketPy one at a time moves RocketPy's to 360.7 m (1,183 ft) with HPR Sim's rail
-  release, 286.5 m (940 ft) with its body lift too, and 248.3 m (815 ft) with its fin slope as well
-  ([ADR-026][adr-026], measured by
+  Juno III's apogee is 245.3 m (805 ft) from the pad in HPR Sim and 396.6 m (1,301 ft) in RocketPy
+  (−38.158%). Adding HPR Sim's choices to RocketPy one at a time moves RocketPy's apogee drift
+  ([the wind-path decision][adr-026], measured by
   [`wind_response.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/rocketpy/wind_response.py)).
-  Every windy drift lands within 1.3% of HPR Sim's the same way. Bella Lui's drifts are −10.195%
-  and −21.686%, Prometheus 2022's −7.292% and +4.505% (within 0.1% of HPR Sim's once RocketPy has
-  its body lift and rail release; [case file][prometheus-case]), and NDRT 2020's apogee drift
-  −4.333%, mostly its rail release. These seven are reported but not scored, as measured
-  differences between the models. Every other drift is scored and passes: Calisto's in wind,
-  Valetudo's in still air, NDRT 2020's landing, and all six in calm air ([report][report],
-  [case file][juno-case]).
+  It's 360.7 m (1,183 ft) with HPR Sim's rail release and 286.5 m (940 ft) with its body lift
+  too. With its fin slope as well, it's 248.3 m (815 ft). Every windy drift lands within 1.3% of
+  HPR Sim's the same way. Bella Lui's drifts are −10.195% and −21.686%. Prometheus 2022's are
+  −7.292% and +4.505%: within 0.1% of HPR Sim's once RocketPy has its body lift and rail release
+  ([case file][prometheus-case]). NDRT 2020's apogee drift is −4.333%, mostly its rail release.
+  These seven are reported but not scored, as measured differences between the models. Every
+  other drift is scored and passes. That's Calisto's in wind, Valetudo's in still air, NDRT
+  2020's landing and all six in calm air ([report][report], [case file][juno-case]).
 - **RocketPy's own equations, corrected.** RocketPy 1.13.0 takes the turning moments during the
-  burn about the wrong point: as far in front of the rocket's
+  burn about the wrong point. That point is as far in front of the rocket's
   [center of dry mass](glossary.md#center-of-dry-mass) as the real center of mass is behind it.
   That makes its rockets too stable while the motor burns, so they turn into the wind too far. The
-  fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196), still open, built on
-  [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188) but not yet released. RocketPy 1.13.0 as installed still has the
-  error; the comparison applies both fixes ([ADR-026][adr-026]). Without them, Juno III's apogee drift was
-  582.4 m (1,911 ft), and HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee and +151%
-  beyond it at landing (the question of
-  [issue #50][issue-50]).
+  fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
+  still open. It builds on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188)
+  but not yet released. RocketPy 1.13.0 as installed still has the error, and the comparison
+  applies both fixes ([the wind-path decision][adr-026]). Without them, Juno III's apogee drift
+  was 582.4 m (1,911 ft). HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee
+  and +151% beyond it at landing (the question of [issue #50][issue-50]).
 - **On the rail,** HPR Sim keeps the terms for the center of mass moving inside the body as the
-  propellant burns, and RocketPy's rail equation leaves them out. At a sharp ignition spike, with
-  thrust and mass the same to five digits, HPR Sim's acceleration is 1.2 to 1.3 m/s² higher. That is
-  Bella Lui's +1.783%, whose peak is 7 ms after ignition ([report][report],
+  propellant burns. RocketPy's rail equation leaves them out. At a sharp ignition spike, with
+  thrust and mass the same to five digits, HPR Sim's acceleration is 1.2 to 1.3 m/s² higher.
+  That's Bella Lui's +1.783%, whose peak is 7 ms after ignition ([report][report],
   [case file][bella-case]).
 - **Calisto's two peaks.** Calisto's acceleration peaks twice, 0.9% apart: on the rail at 0.05 s
-  and at 1.568 s. The same rail terms make HPR Sim's first peak the higher, so
-  `max_acceleration_time_s` moves from one peak to the other (−96.811%); it is reported but not
-  scored. The peak's size is scored, but its +0.099% compares two instants; at 0.05 s HPR Sim is
-  1.05% higher ([report][report], [case file][calisto-case]).
+  and at 1.568 s. The same rail terms make HPR Sim's first peak the higher. So
+  `max_acceleration_time_s` moves from one peak to the other (−96.811%), and it's reported but
+  not scored. The peak's size is scored, but its +0.099% compares two instants. At 0.05 s HPR Sim
+  is 1.05% higher ([report][report], [case file][calisto-case]).
 - **The main opening.** RocketPy adds the air a canopy drags along
   ([added mass](glossary.md#added-mass)), and HPR Sim has none. So NDRT's peak deceleration as its
-  main opens is +83.059% in HPR Sim, and Prometheus 2022's +19.062%, reported but not scored. Their
-  times are scored, since both codes put them where the main opens ([report][report],
-  [case file][ndrt-flight-case]).
+  main opens is +83.059% in HPR Sim, and Prometheus 2022's is +19.062%. Both are reported but not
+  scored. Their times are scored, since both codes put them where the main opens
+  ([report][report], [case file][ndrt-flight-case]).
 
 **Prometheus 2022 flies through Mach 1.** RocketPy's flight peaks at Mach 1.013 and HPR Sim's at
-1.010371 (−0.235%). Until [M1.8a](decisions-and-roadmap.md#m1-8a) HPR Sim stopped any flight at Mach
-1, and the case was a known gap; with the normal force carried past Mach 1
-([Aerodynamics](physics/aero.md#fins-through-mach-1)) it flies on its drag table to the ground.
-Its scored numbers agree within 1.208% ([report][report], [case file][prometheus-case]). This flight
-is a light test of the transonic normal force: no committed check measures its angle of attack
-there, but a local probe found it below 0.11 degrees from Mach 0.8 to 1.2
-([case file][prometheus-case]).
+1.010371 (−0.235%). Until [the normal force through Mach 1](decisions-and-roadmap.md#m1-8a), HPR
+Sim stopped any flight at Mach 1, and the case was a known gap. Now it flies on its drag table to
+the ground ([Aerodynamics](physics/aero.md#fins-through-mach-1)). Its scored numbers agree within
+1.208% ([report][report]). This flight is a light test of the transonic normal force. No committed
+check measures its angle of attack there. A local probe found it below 0.11 degrees from Mach 0.8
+to 1.2 ([case file][prometheus-case]).
 
 What this shows: with the drag given, the two codes agree on how high, how fast and how long a
-rocket flies, and on where it goes, except for rockets that leave the rail slowly in a wind,
-where their models differ. [M2.1](decisions-and-roadmap.md#m2-1)'s landing offset is met
-everywhere else ([ADR-026][adr-026]). Which code is nearer the truth for those is for real flights
-to say; the [real flights](#real-flights) so far compare heights, not drift.
-Nothing here says anything about HPR Sim's own drag, which the next section compares, or about a
-real flight. The comparison with OpenRocket is on its own page
-([HPR Sim's flights against OpenRocket's](format/ork.md#the-simulators-flights-against-openrockets)), and the
-real flights are below.
+rocket flies. They agree on where it goes too, except for rockets that leave the rail slowly in a
+wind, where their models differ. Which code is nearer the truth for those is for real flights to
+say. The [real flights](#real-flights) below so far compare heights, not drift. This says nothing
+about HPR Sim's own drag, which the next section compares, or about a real flight. The comparison
+with OpenRocket is on its own page
+([HPR Sim's flights against OpenRocket's](format/ork.md#the-simulators-flights-against-openrockets)).
 
 ### Whole flights with each code's own drag
 
-The same six flights again, in [predicted](glossary.md#same-drag-and-predicted-mode) mode: HPR Sim
-flies its own drag, from each design's shape, where same-drag mode gives it the declared one; both
-modes use HPR Sim's own [normal force](physics/aero.md), so only the drag differs. RocketPy flies the drag each of its examples ships, as RocketPy 1.13.0 flies the example:
-a drag curve for Calisto, Valetudo and Juno III, a function of Mach for Prometheus 2022
-([case file][prometheus-predicted-case]), a constant for NDRT 2020 (0.44,
+The same six flights fly again, in [predicted](glossary.md#same-drag-and-predicted-mode) mode.
+HPR Sim flies its own drag, from each design's shape, where same-drag mode gives it the declared
+one. Both modes use HPR Sim's own [normal force](physics/aero.md), so only the drag differs.
+Everything else is set up as in the same-drag flights above
+([the predicted-mode decision][adr-023]).
+
+RocketPy flies the drag each of its examples ships, as RocketPy 1.13.0 flies the example. That's a
+drag curve for Calisto, Valetudo and Juno III, and a function of Mach for Prometheus 2022
+([case file][prometheus-predicted-case]). It's a constant for NDRT 2020 (0.44,
 [case file][ndrt-predicted-case]) and Bella Lui (0.43, [case file][bella-predicted-case]).
-Everything else is set up as in the same-drag flights above ([ADR-023][adr-023], the
-predicted-mode comparison).
 
 **In short: HPR Sim's heights are within 3% of RocketPy's for Calisto (−0.609%), Bella Lui
-(+0.971%) and Juno III (+2.097%), well above for Valetudo (+10.113%) and NDRT 2020 (+10.302%),
-where its drag is well below the example's, and below for Prometheus 2022 (−7.280%), where its
-drag is above the example's through the coast** ([report][report]). These are
-results, not a pass or fail. Neither code's drag is the truth: each example's drag came from
-RASAero, OpenRocket or its team's own estimate. So each number is compared with the same 3% as the
-same-drag flights ([M2.1](decisions-and-roadmap.md#m2-1), the validation milestone), but only as a
-[target](glossary.md#gate-and-target). A miss is reported and explained in its case file
-([Valetudo's][valetudo-predicted-case] and [NDRT 2020's][ndrt-predicted-case], for example), and
-does not fail the test suite. The report is committed, so any number that moves shows up in
-review.
+(+0.971%) and Juno III (+2.097%).** They're well above for Valetudo (+10.113%) and NDRT 2020
+(+10.302%), where HPR Sim's drag is well below the example's. They're below for Prometheus 2022
+(−7.280%), where its drag is above the example's through the coast ([report][report]). These are
+results, not a pass or fail.
+
+Neither code's drag is the truth. Each example's drag came from RASAero, OpenRocket or its team's
+own estimate. So each number is compared with the same-drag flights' 3%
+([the validation milestone](decisions-and-roadmap.md#m2-1)), but only as a
+[target](glossary.md#gate-and-target). A miss doesn't fail the test suite. It's reported and
+explained in its case file ([Valetudo's][valetudo-predicted-case] and
+[NDRT 2020's][ndrt-predicted-case], for example). The report is committed, so any number that
+moves shows up in review.
 
 Every predicted result of the report, as HPR Sim's difference from RocketPy:
 
@@ -681,13 +710,13 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 | [`predicted-juno-iii`][report] | +0.105% | +0.105% | +0.002% | −36.078% | +40.482% |
 | [`predicted-bella-lui`][report] | +1.797% | +1.797% | −0.029% | −9.390% | −20.805% |
 
-The whole-trace numbers, in meters and meters per second, defined as for the same-drag flights
-above. [Valetudo's][valetudo-predicted-case], [NDRT 2020's][ndrt-predicted-case] and
-[Prometheus 2022's][prometheus-predicted-case] height RMS are outside the target, and so is NDRT
-2020's speed RMS, for the same reason as their apogees: HPR Sim's own drag differs from those
-examples' drag. Each bound is 3% of that case's own RocketPy
-apogee or top speed, so it differs from the same-drag bound: Juno III's 54.699661 m (179.46083 ft) is inside its
-83.9 m (275 ft) here ([report][report]).
+The whole-trace numbers, in meters and meters per second, are defined as for the same-drag
+flights. [Valetudo's][valetudo-predicted-case], [NDRT 2020's][ndrt-predicted-case] and
+[Prometheus 2022's][prometheus-predicted-case] height RMS are outside the target. So is NDRT
+2020's speed RMS. They miss for the reason their apogees do: HPR Sim's own drag differs from those
+examples' drag. Each bound is 3% of that case's own RocketPy apogee or top speed, so it differs
+from the same-drag bound. Juno III's 54.699661 m (179.46083 ft) is inside its 83.9 m (275 ft) here
+([report][report]).
 
 | case | `series_height_rms_m` | height bound, m | `series_speed_rms_m_s` | speed bound, m/s |
 |---|--:|--:|--:|--:|
@@ -701,112 +730,115 @@ apogee or top speed, so it differs from the same-drag bound: Juno III's 54.69966
 Why the misses, largest first:
 
 - **Valetudo and NDRT 2020 fly high: the drag.** HPR Sim's drag coefficient at Mach 0.3 is −47.0%
-  from Valetudo's table, a hand-edited table 1.44 times the drag of the OpenRocket export for the
-  same rocket ([Aerodynamics](physics/aero.md#verification)). For NDRT 2020 it is 0.318 against
-  the example's constant 0.44 ([case file][ndrt-predicted-case]). These drags are compared at Mach
-  0.3 only. Flown on the same drag, the apogees agree with RocketPy's to +0.112% and +0.064%
-  ([report][report]). Less drag also means a
-  later apogee, a longer descent and further to drift, which moves their times and drifts too.
+  from Valetudo's table. That table is hand-edited, at 1.44 times the drag of the OpenRocket
+  export for the same rocket ([Aerodynamics](physics/aero.md#verification)). For NDRT 2020 it's
+  0.318 against the example's constant 0.44 ([case file][ndrt-predicted-case]). These drags are
+  compared at Mach 0.3 only. Flown on the same drag, the apogees agree with RocketPy's to +0.112%
+  and +0.064% ([report][report]). Less drag also means a later apogee, a longer descent and
+  further to drift. That moves their times and drifts too.
 - **HPR Sim's drag here is for the design as transcribed.** Where RocketPy's examples say nothing,
-  the designs' fin thickness and edges and their surface finish are placeholders, so these results
-  compare HPR Sim's drag for those designs, not for the rockets as built. For Valetudo, the rocket's
-  own OpenRocket finish and launch lugs take HPR Sim's drag coefficient from 0.5566 to 0.714
-  ([Aerodynamics](physics/aero.md#drag-verification)). So a miss here is not a gap for HPR Sim
-  to close toward the example's drag.
-- **The drifts of Juno III and Bella Lui in wind:** HPR Sim's body lift and rail release, and Juno
-  III's fin slope, as in same-drag mode ([ADR-026][adr-026]).
-- **Prometheus 2022 flies low: the drag again, the other way.** It passes Mach 1 on HPR Sim's own
-  drag since [M1.8b1](decisions-and-roadmap.md#m1-8b1), the drag through Mach 1, peaking at Mach
-  1.060 against RocketPy's 1.048. Its coasting drag rises to about 0.49 at Mach 0.8, where the
-  example's falls to 0.30, so HPR Sim peaks −7.280% low and sooner, and its drifts and times follow.
-  Flown on the same drag the apogees agree to +1.208% ([report][report],
+  the designs' fin thickness and edges and their surface finish are placeholders. These results
+  compare HPR Sim's drag for those designs, not for the rockets as built. For Valetudo, the
+  rocket's own OpenRocket finish and launch lugs take HPR Sim's drag coefficient from 0.5566 to
+  0.714 ([Aerodynamics](physics/aero.md#drag-verification)). So a miss here isn't a gap for HPR
+  Sim to close toward the example's drag.
+- **The drifts of Juno III and Bella Lui in wind:** HPR Sim's body lift and rail release, and
+  Juno III's fin slope. They act as in same-drag mode ([the wind-path decision][adr-026]).
+- **Prometheus 2022 flies low: the drag again, the other way.** Since
+  [the drag through Mach 1](decisions-and-roadmap.md#m1-8b1), it passes Mach 1 on HPR Sim's own
+  drag. It peaks at Mach 1.060 against RocketPy's 1.048. Its coasting drag rises to about 0.49 at
+  Mach 0.8, where the example's falls to 0.30. So HPR Sim peaks −7.280% low and sooner, and its
+  drifts and times follow. Flown on the same drag, the apogees agree to +1.208% ([report][report],
   [case file][prometheus-predicted-case]).
 - **NDRT 2020's and Prometheus 2022's peak deceleration** at their main openings, +83.059% and
   +19.062%, are the added-mass difference explained above. Their times move +9.646% and −6.903%
   with the apogee ([report][report], [case file][ndrt-predicted-case]).
 
 What this shows: with its own drag, HPR Sim's heights differ from RocketPy's by −7.280% to +10.302%
-([report][report]), and the larger gaps are the two drags differing, not the flight. It does not
-say which drag is right; the [real flights](#real-flights) below start to, one rocket at a time.
+([report][report]). The larger gaps are the two drags differing, not the flight. It doesn't say
+which drag is right. The [real flights](#real-flights) below start to, one rocket at a time.
 
 ## Real flights
 
-This section covers [M2.3b](decisions-and-roadmap.md#m2-3b), RocketPy's logged flights
-([ADR-082][adr-082], the decision). **In short: HPR Sim flew seven rockets whose teams logged their
-flights, in the weather of the day. Read the way each log's altimeter reads the air, HPR Sim's
-[apogees](glossary.md#apogee) miss the logs' by 6.04% on average, outside the 5% target
-([evidence row G24](evidence.md#g24)); with its
-sign the mean is −0.25%, so these seven show no bias high or low. Five miss by more than 5%. Each
-has an explanation checked against the report's numbers: four are consistent with HPR Sim's drag,
-and one with the motor's impulse ([report][real-report]).** Four of the seven altimeters' kinds are
-assumed, none is calibrated, and the designs' fin edges are guesses, so read the numbers as those
-seven flights', not as a bound on every rocket ([evidence row G21](evidence.md#g21)).
+**In short: HPR Sim flew seven of RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b) in
+the weather of the day ([the decision][adr-082]). Read the way each log's altimeter reads the air,
+HPR Sim's [apogees](glossary.md#apogee) miss the logs' by 6.04% on average. That's outside the 5%
+target ([evidence row G24](evidence.md#g24)). With its sign the mean is −0.25%, so these seven show
+no bias high or low. Five miss by more than 5%. Each has an explanation checked against the report's
+numbers: four are consistent with HPR Sim's drag, and one with the motor's impulse
+([report][real-report]).**
+
+Four of the seven altimeters' kinds are assumed, none is calibrated, and the designs' fin edges are
+guesses ([evidence row G21](evidence.md#g21)). So read the numbers as those seven flights', not as a
+bound on every rocket.
 
 **What is flown.** [RocketPy](glossary.md#rocketpy)'s documentation flies more than a dozen
-rockets against their teams' logs. HPR Sim flies seven of them the way a user would: the design
-built from the example's masses and shapes, HPR Sim's own aerodynamics, and the example's own thrust
-file, read as RocketPy reads it, to the same total impulse. It flies from the example's launch rail
-and site, in the weather of the launch hour from the example's ERA5 file, a
-[reanalysis](glossary.md#reanalysis) of the atmosphere ([ERA5 weather files](format/era5.md)).
-Genesis and Lince were added to the public designs for this.
+rockets against their teams' logs. HPR Sim flies seven of them the way a user would. The design is
+built from the example's masses and shapes, with HPR Sim's own aerodynamics. The thrust is the
+example's own file, read as RocketPy reads it, to the same total impulse.
+
+It flies from the example's launch rail and site. The weather is the launch hour's, from the
+example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
+([ERA5 weather files](format/era5.md)). Genesis and Lince were added to the public designs for this.
 
 **What is left out, and why.** The sample is the documented flights HPR Sim can fly today:
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11 | their weather file is in a newer format that needs converting first ([ADR-082][adr-082]); Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s |
-| Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([ADR-082][adr-082]) |
-| Valetudo, Defiance | their logs give an apogee, not a climb ([ADR-082][adr-082]) |
-| Valkyrie | its inputs are only in a data file ([ADR-082][adr-082]) |
+| Astra, Andromeda, Erebus 11 | their weather file is in a newer format that needs converting first ([decision][adr-082]); Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s |
+| Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
+| Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
+| Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
 
-Juno III flies its team's own motor too, but its design was already public, and HPR Sim flies the
-thrust file as it would any other: nothing of the motor is modeled ([ADR-082][adr-082]).
+Juno III flies its team's own motor too, but its design was already public. HPR Sim flies the
+thrust file as it would any other: nothing of the motor is modeled ([decision][adr-082]).
 
-The [private designs](format/ork.md#the-simulators-flights-of-the-private-designs) add none: none of them
-is the rocket of a flight in the [private collection of logs](VALIDATION.md#real-flight-data), so
-none has a log to compare with ([ADR-083][adr-083]). A private flight collection added on
-2026-10-04 pairs designs with their flights' logs; its 53 compared flights are
+The [private designs](format/ork.md#the-simulators-flights-of-the-private-designs) add none. None is
+the rocket of a flight in the [private collection of logs](VALIDATION.md#real-flight-data), so none
+has a log to compare with ([the decision][adr-083]). A private flight collection added on
+2026-10-04 pairs designs with their flights' logs. Its 53 compared flights are
 [below](#real-flights-of-the-private-collection).
 
 **Reading the logs.** Every log here comes from a [barometric
 altimeter](glossary.md#barometric-altimeter), or is assumed to
 ([evidence row G21](evidence.md#g21)). Such an altimeter turns pressure
 into the [standard atmosphere](glossary.md#standard-atmosphere)'s altitude. On a day warmer than the
-standard it reads less than the height climbed, 6.5% less on a day 20 K warmer ([worked
-example](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)), and more on a
-cold one. Two logs record their pressure, and their heights are that reading, to 0.195 m (0.64 ft) and 1.321 m (4.33 ft)
+standard it reads less than the height climbed, and more on a cold one. It reads 6.5% less on a day
+20 K warmer ([worked example](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
+
+Two logs record their pressure, and their heights are that reading, to 0.195 m (0.64 ft) and 1.321 m (4.33 ft)
 ([report][real-report]). So HPR Sim's height is read the same way, from the ERA5 pressure at its
 center of mass. The table gives HPR Sim's apogee both ways. The reading moves it from −7.9% (Juno
 III, in June at Spaceport America) to +1.7% (NDRT 2020, in February) ([report][real-report],
-[ADR-082][adr-082]).
+[decision][adr-082]).
 
 The kind of four altimeters is assumed rather than known
-([evidence row G21](evidence.md#g21)); each row of the
+([evidence row G21](evidence.md#g21)). Each row of the
 [report][real-report] gives its evidence. Reading all seven as heights would give a mean of
 4.47%, but three logs are known to be barometric. Reading only the four assumed ones as heights
-gives 6.63%, so the target is missed either way. Read that way, Lince (+7.99%) would miss by more
-than 5% with no checked explanation, and Genesis would not ([report][real-report],
-[ADR-082][adr-082]).
+gives 6.63%: the target is missed either way. Read that way, Lince (+7.99%) would miss by more
+than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
+[decision][adr-082]).
 
 Two logs also carry satellite (GNSS) heights, a geometric reference. Their barometric apogees are
-0.943 and 0.935 of the satellite ones, and HPR Sim's conversion makes its own apogee 0.932 and 0.921
-of its height ([report][real-report]). That is the same direction and nearly the same size, 1 to
+0.943 and 0.935 of the satellite ones. HPR Sim's conversion makes its own apogee 0.932 and 0.921
+of its height ([report][real-report]). That's the same direction and nearly the same size, 1 to
 2 points lower on both, on the side of both flights' misses. Juno III's log is cut up to 20 m (66 ft)
-below its apogee, which would put its own ratio as high as 0.941 ([ADR-082][adr-082]).
+below its apogee, which would put its own ratio as high as 0.941 ([decision][adr-082]).
 
 Three logs are cut by hand just before a pressure transient at their apogee, where the reading
-jumps. Juno III's rises 62 m (203 ft) in 0.3 s as it levels off, and the team's reported apogee is that
-spike. At the cut its own velocity column still reads 17.5 m/s (57 ft/s) up, so its apogee may be 10 m (33 ft) to
+jumps. Juno III's rises 62 m (203 ft) in 0.3 s as it levels off. The team's reported apogee is that
+spike. At the cut its own velocity column still reads 17.5 m/s (57 ft/s) up. So its apogee may be 10 m (33 ft) to
 20 m (66 ft) low ([report][real-report]).
 
 **What is compared.**
 
-- **The apogee:** the log's highest reading, against HPR Sim's highest point read the same way. A
+- The apogee: the log's highest reading, against HPR Sim's highest point read the same way. A
   plus means HPR Sim flies higher.
-- **The climb:** the root mean square (RMS) of HPR Sim's height less the log's over the ascent, the
-  report's *trace RMS*. A log's clock starts when its altimeter says so, not at ignition, so both
+- The climb: the root mean square (RMS) of HPR Sim's height less the log's over the ascent, the
+  report's *trace RMS*. A log's clock starts when its altimeter says so, not at ignition. So both
   clocks are set to zero where each first reaches 30 m (98 ft). The RMS runs from there to the first of
-  the two apogees ([report][real-report]). The descent is not compared: which parachute opened,
+  the two apogees ([report][real-report]). The descent isn't compared: which parachute opened,
   and when, was the team's.
 
 The logs, thrust files and weather files are other people's data, so they stay out of the
@@ -823,98 +855,107 @@ repository. `cargo xtask real-flights` reads them from a pinned copy of RocketPy
 | [Genesis, EuRoC 2023][real-report] | 2916.7 | 2746.0 | **−5.85%** | 2875.3 | 95.2 | −0.08% |
 | [Lince, EuRoC 2023][real-report] | 3587.7 | 3709.2 | +3.39% | 3874.3 | 63.9 | −12.20% |
 
-¹ Flown in the weather of the same day a year later, 2023, as RocketPy's example flies it: no
+¹ Flown in the weather of the same day a year later, 2023, as RocketPy's example flies it. No
 file of the flight's day is available ([report][real-report]).
 
 The mean absolute apogee error is 6.04%, against the 5% target of the
 [validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
 Juno III's, 7.26% of its apogee ([report][real-report]). No target is set on the climb. The
 [census](#the-census) counts each climb against a bar of 3% of its apogee, the bound the RocketPy
-comparisons hold a height RMS to; Bella Lui and Lince are within it ([census][census]).
+comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
 
-**The last column is a diagnostic, not a prediction.** It flies each flight again with HPR Sim's
-drag replaced by the drag the example's RocketPy notebook specifies: the team's estimate, a table, a
-curve from RASAero II or a CFD analysis, or a constant the notebook gives no source for. When the
-error falls inside 5%, the miss is consistent with HPR Sim's drag. Neither drag is the truth, and a
-team may have tuned its drag to this very flight. On the teams' drag the mean absolute error is
-3.50% ([report][real-report]). Where a notebook reshapes its thrust file to a stated burn time and
-total impulse, as Juno III's does, a second diagnostic flies the file as recorded.
+**The last column is a diagnostic, not a prediction.** It flies each flight again on the drag the
+example's RocketPy notebook specifies, in place of HPR Sim's. That drag is the team's estimate, a
+table, a curve from RASAero II or a CFD analysis, or a constant given with no source. When the error
+falls inside 5%, the miss is consistent with HPR Sim's drag. Neither drag is the truth. A team may
+have tuned its drag to this very flight. On the teams' drag the mean absolute error is 3.50%
+([report][real-report]).
+
+A notebook can reshape its thrust file to a stated burn time and total impulse, as Juno III's does.
+Where one does, a second diagnostic flies the file as recorded.
 
 **The five flights past 5%.** Each explanation is a claim the report checks against its own
 numbers. A change to HPR Sim that makes one false fails `cargo xtask real-flights --check`, which
 runs only where the pinned RocketPy copy is. CI checks each claim against the committed numbers
-([ADR-082][adr-082]).
+([decision][adr-082]).
 
-- **NDRT 2020, +10.40%: consistent with HPR Sim's drag.** On the team's constant drag coefficient,
+- NDRT 2020 is +10.40%, consistent with HPR Sim's drag. On the team's constant drag coefficient,
   0.44, the apogee is +0.17% ([report][real-report]). HPR Sim's own drag is lower, as it was against
   RocketPy flying the same constant.
-- **Prometheus, −8.90%: consistent with HPR Sim's drag.** On the team's drag table the apogee is
+- Prometheus is −8.90%, consistent with HPR Sim's drag. On the team's drag table the apogee is
   +0.45% ([report][real-report]). The barometric reading uses the temperatures of 24 June 2023,
   a year after the flight. Against the satellite heights, HPR Sim's conversion reads 1 to 2 points
-  below the altimeter both here and on Juno III, which flew in its own day's weather, so the
+  below the altimeter, both here and on Juno III. Juno III flew in its own day's weather, so the
   wrong day's share of the miss can't be told apart.
-- **Juno III, −7.24%: consistent with the motor's impulse.** The notebook reshapes the team's
+- Juno III is −7.24%, consistent with the motor's impulse. The notebook reshapes the team's
   own motor curve to 8800 N s, 4.9% less than the file. On the file as recorded (9251.7 N s, its
-  negative end read as zero) the apogee is +1.13%, while on the team's drag it is −9.05%
+  negative end read as zero) the apogee is +1.13%. On the team's drag it's −9.05%
   ([report][real-report]).
-- **Cavour, +5.63%: consistent with HPR Sim's drag.** On the curves the team labels RASAero II the
+- Cavour is +5.63%, consistent with HPR Sim's drag. On the curves the team labels RASAero II the
   apogee is −2.29% ([report][real-report]). HPR Sim's drag is below those curves, 8.3% at Mach 0.3
   with the motor off and 18.3% with it burning ([Aerodynamics](physics/aero.md#drag-verification)).
-- **Genesis, −5.85%: consistent with HPR Sim's drag.** On the team's curves the apogee is −0.08%
+- Genesis is −5.85%, consistent with HPR Sim's drag. On the team's curves the apogee is −0.08%
   ([report][real-report]).
 
-These are consistent explanations, not proofs: the teams' drags, and the impulse a notebook sets,
-are estimates too. Lince, inside the target on HPR Sim's drag, is −12.20% on its team's; that is not
+These are consistent explanations, not proofs. The teams' drags, and the impulse a notebook sets,
+are estimates too. Lince, inside the target on HPR Sim's drag, is −12.20% on its team's. That isn't
 investigated ([report][real-report]).
 
-> **How far to trust it.** Measurements, but from altimeters not calibrated here: a barometer's error, the filter
+> **How far to trust it.** Measurements, but from altimeters not calibrated here. A barometer's error, the filter
 > of the four that are filtered, and the assumed kind of four of them all sit in the reference.
-> Drift and landing are not compared, nor speeds. HPR Sim's designs of these rockets have placeholder
+> Drift and landing aren't compared, nor speeds. HPR Sim's designs of these rockets have placeholder
 > fin edges and surface finish, which move its drag.
 
 ### Real flights of the private collection
 
-This covers [M2.3c1](decisions-and-roadmap.md#m2-3c1), the logged apogees of a private collection
-([ADR-184][adr-184], the decision), and [M2.3c5](decisions-and-roadmap.md#m2-3c5), their recheck
-against the collection's catalog ([ADR-238][adr-238]). **In short: 53 real flights, each a design
-paired with the log of the same flight, were flown by HPR Sim and by
-[OpenRocket](glossary.md#openrocket) in the weather of their day. Both over-predict: HPR Sim's
-[apogees](glossary.md#apogee) are +8.73% above the logs on average (mean absolute 12.95%),
-OpenRocket's +7.79% (12.02%). HPR Sim and OpenRocket agree with each other within 5% on 52 of the
+These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c1)
+([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
+catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
+53 real flights in the weather of their day. Each pairs a design with the log of the same flight.
+Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +8.73% above the logs on average
+(mean absolute 12.95%), OpenRocket's +7.79% (12.02%). The two codes agree within 5% on 52 of the
 53 ([report][fixture-report]). Neither meets the 5% target.**
-The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
+
+The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on. Its bins
 below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
 height climbed in the day's air, the altimeter's reading corrected for the weather as the report
 sets out.
-HPR Sim and OpenRocket agree with each other far better than with the logs, so the gap is not a
-difference between the two codes; what causes it is not shown here. The flights' owners allow only
-aggregate statistics, so no flight is named here, and the logs' readings were taken by hand from
-free text.
+
+HPR Sim and OpenRocket agree with each other far better than with the logs. So the gap isn't a
+difference between the two codes. What causes it isn't shown here. The flights' owners allow only
+aggregate statistics, so no flight is named here. The logs' readings were taken by hand from free
+text.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
-([ADR-151](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
+([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
 Of its 89 best-documented flights, 83 have an OpenRocket `.ork` design
 ([report][fixture-report]). Those 89 are its tier A, the collection's first grading. Its catalog, a
-second reading of each flight's sources made later, proposes a tier for each again: A when the
-design, motor, log, day and site are each tied to the flight; B when one of them is inferred, most
-often the motor; C when the design is not shown to be the rocket flown ([ADR-238][adr-238]). HPR Sim flies the whole ERA5 profile of the launch hour: temperature,
-pressure and wind at every level. OpenRocket 24.12 can take only a temperature and pressure at
-the pad, with the standard atmosphere above, so it gets those, and the same wind every 50 m (164 ft). Both
-fly OpenRocket's curve for the motor the file names, from the same rail, with no parachute
-opened, so each apogee is the climb's. A third row flies HPR Sim in OpenRocket's air, which shows
+second reading of each flight's sources made later, proposes a tier for each again
+([recheck][adr-238]):
+
+- A: the design, motor, log, day and site are each tied to the flight;
+- B: one of them is inferred, most often the motor;
+- C: the design isn't shown to be the rocket flown.
+
+HPR Sim flies the whole ERA5 profile of the launch hour: temperature, pressure and wind at every
+level. OpenRocket 24.12 can take only a temperature and pressure at the pad, with the standard
+atmosphere above. So it gets those, and the same wind every 50 m (164 ft) ([report][fixture-report]).
+Both fly OpenRocket's curve for the motor the file names, from the same rail, with no parachute
+opened. So each apogee is the climb's. A third row flies HPR Sim in OpenRocket's air, which shows
 how much of the difference between the codes is the atmosphere.
 
 **What each log says.** Every log here is a [barometric
 altimeter](glossary.md#barometric-altimeter)'s. Such an altimeter turns pressure into the
-[standard atmosphere](glossary.md#standard-atmosphere)'s altitude and subtracts the pad's, so on a
-warm day it reads less than the height climbed: 6.5% less on a day 20 K warmer than the standard
+[standard atmosphere](glossary.md#standard-atmosphere)'s altitude and subtracts the pad's. So on a
+warm day it reads less than the height climbed
 ([worked example](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
+
 The comparison turns each reading back into a height through the day's ERA5 air. Across these
 flights the heights came out 1.0360 times the readings on average, from 0.9601 to 1.0777 times
 ([report][fixture-report]). Where a log's highest value was an ejection charge's pressure spike,
-the reading before the charge was taken; 24 of the 83 readings differ from the collection's own
-figure by more than 0.5%, each with its reason recorded ([ADR-184][adr-184]).
+the reading before the charge was taken. Of the 83 readings, 24 differ from the collection's own
+figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 
 | [report][fixture-report] | flights |
 |---|---:|
@@ -934,38 +975,40 @@ figure by more than 0.5%, each with its reason recorded ([ADR-184][adr-184]).
 | [HPR Sim in OpenRocket's air][fixture-report] | +8.89% | +9.67% | 13.06% | 9 | 25 |
 | [HPR Sim against OpenRocket][fixture-report] | +0.81% | +0.41% | 1.62% | 52 | 53 |
 
-Each error is the simulated apogee less the logged one, over the logged one, in percent, so a
+Each error is the simulated apogee less the logged one, over the logged one, in percent. So a
 positive error is a prediction above the log. The mean absolute error averages the errors without
-their signs. The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's, so a positive
+their signs.
+
+The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positive
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
 **Early deployments.** On 19 of the 53, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
-put each at under 1.5 s before the peak and a few meters of climb, so the apogee barely moves
-([ADR-184][adr-184]). Without them, over 34 flights, HPR Sim is +3.95% (mean absolute 10.26%) and
+put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
+([decision][adr-184]). Without them, over 34 flights, HPR Sim is +3.95% (mean absolute 10.26%) and
 OpenRocket +3.19% (9.49%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
 **The recheck.** The catalog flagged 68 of the 83 flights where its reading and this
-comparison's differed, and each flag was settled against the flight's log and sources
-([ADR-238][adr-238]). Most changed nothing: a simulator's miss, a spin or a recovery fault after
+comparison's differed. Each flag was settled against the flight's log and sources
+([decision][adr-238]). Most changed nothing: a simulator's miss, a spin or a recovery fault after
 apogee stays in the comparison. Four flights changed, and every flight gained its proposed tier:
 
 - one launch day moved to the event's date;
-- one logged apogee dropped 0.23%, to the reading before a drogue charge ([ADR-238][adr-238]);
+- one logged apogee dropped 0.23%, to the reading before a drogue charge ([decision][adr-238]);
 - one flight left the errors because it tumbled through its climb, which the drawn design, at over
   3 [calibers](glossary.md#caliber) of margin, can't show;
 - one left because its posted design is the flier's later, heavier rebuild.
 
 **Nothing in HPR Sim changed; the comparison's flights did.** HPR Sim's mean went from +9.83%
-over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling flight,
-whose error was the largest in the set by a wide margin, is more than the whole move: leaving it
-out lowers HPR Sim's mean by 1.28 points, and leaving out the rebuild raises it by 0.19
-([ADR-238][adr-238], which gives each step). Without the early deployments the mean went from
-+5.88% to +3.95%, mostly for the same reason. The median, +9.47%, did not move.
+over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling flight's
+error was the largest in the set by a wide margin. Leaving it out lowers HPR Sim's mean by 1.28
+points, more than the whole move. Leaving out the rebuild raises it by 0.19
+([decision][adr-238], which gives each step). Without the early deployments the mean went from
++5.88% to +3.95%, mostly for the same reason. The median, +9.47%, didn't move.
 
-The catalog proposes 15 flights below tier A ([ADR-238][adr-238]). Over the 44 compared flights it
+The catalog proposes 15 flights below tier A ([decision][adr-238]). Over the 44 compared flights it
 keeps in tier A ([report][fixture-report]):
 
 | [over 44 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
@@ -974,30 +1017,39 @@ keeps in tier A ([report][fixture-report]):
 | [OpenRocket 24.12][fixture-report] | +6.99% | +6.34% | 11.28% | 8 | 22 |
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 61, and each cause of the rest has an open
-issue ([report][fixture-report]). Most are small reading problems in HPR Sim's `.ork` importer that
-OpenRocket accepts: a fin tab a few tens of microns past its root (6 flights, [#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357)), a
-fin outline with a repeated point (3, [#358](https://github.com/nrdptel/fusionspace-eridanus/issues/358)), rail buttons spaced forward (1,
-[#359](https://github.com/nrdptel/fusionspace-eridanus/issues/359)), unread surface
-finishes (3, [#360](https://github.com/nrdptel/fusionspace-eridanus/issues/360)), two override flags read as one (1, [#361](https://github.com/nrdptel/fusionspace-eridanus/issues/361)), and a part in
-an off-axis inner tube (2, [#181](https://github.com/nrdptel/fusionspace-eridanus/issues/181)). Three fly motors whose curve OpenRocket's database
-lacks ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). In three more the collection itself falls short: two designs don't hold
-the flown motor ([#363](https://github.com/nrdptel/fusionspace-eridanus/issues/363)) and one flight's day has no weather file ([#364](https://github.com/nrdptel/fusionspace-eridanus/issues/364)).
-OpenRocket flies 79, missing the motor in one ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)).
+issue ([report][fixture-report]). OpenRocket flies 79, missing the motor in one
+([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). For HPR Sim, most are small
+reading problems in its `.ork` importer that OpenRocket accepts:
 
-> **How far to trust it.** Logged measurements, read from free text and logs by hand, checked for
-> form, then rechecked flight by flight against the collection's catalog, a second reading of the
-> same sources ([ADR-238][adr-238]). Of the 83 flights, 26 have no known
-> launch hour and fly at local noon ([report][fixture-report]); the altimeters are not calibrated; the designs are
-> what their fliers drew, whose masses some fliers measured and some did not. Both codes
-> over-predicting alike is common in hobby rocketry, where the real airframe carries rail buttons,
-> paint and joints a design leaves out, but this comparison does not show which. The six tier-A
-> flights in other formats wait for [M3.4 to M3.6](decisions-and-roadmap.md#m3-4), and the climb
-> traces for [M2.3c2](decisions-and-roadmap.md#m2-3c2).
+- a fin tab a few tens of microns past its root (6 flights, [#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357));
+- a fin outline with a repeated point (3, [#358](https://github.com/nrdptel/fusionspace-eridanus/issues/358));
+- rail buttons spaced forward (1, [#359](https://github.com/nrdptel/fusionspace-eridanus/issues/359));
+- unread surface finishes (3, [#360](https://github.com/nrdptel/fusionspace-eridanus/issues/360));
+- two override flags read as one (1, [#361](https://github.com/nrdptel/fusionspace-eridanus/issues/361));
+- a part in an off-axis inner tube (2, [#181](https://github.com/nrdptel/fusionspace-eridanus/issues/181)).
+
+Three fly motors whose curve OpenRocket's database lacks
+([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). In three more the collection
+itself falls short: two designs don't hold the flown motor
+([#363](https://github.com/nrdptel/fusionspace-eridanus/issues/363)) and one flight's day has no
+weather file ([#364](https://github.com/nrdptel/fusionspace-eridanus/issues/364)).
+
+> **How far to trust it.** Logged measurements, read by hand from free text and logs and checked for
+> form. Then each flight was rechecked against the collection's catalog, a second reading of the
+> same sources ([the recheck][adr-238]). Of the 83 flights, 26 have no known
+> launch hour and fly at local noon ([report][fixture-report]). The altimeters aren't calibrated. The
+> designs are what their fliers drew, whose masses some fliers measured and some didn't.
+>
+> Both codes over-predicting alike is common in hobby rocketry, where the real airframe carries rail buttons,
+> paint and joints a design leaves out. But this comparison doesn't show which. The six tier-A
+> flights in other formats wait until HPR Sim reads [RockSim](decisions-and-roadmap.md#m3-4),
+> [RASAero](decisions-and-roadmap.md#m3-5) and [RocketPy](decisions-and-roadmap.md#m3-6) files.
+> The climb traces wait for [their logs to be read](decisions-and-roadmap.md#m2-3c2).
 
 **Sources.** The flights are published by university rocketry teams, rocketry courses and
 hobbyists on GitHub, team websites and The Rocketry Forum. The weather is ERA5, generated using
 Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate
-Change Service information 2026; neither the European Commission nor ECMWF is responsible for any
+Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any
 use made of it. The [report][fixture-report] gives the full attribution and the ERA5 citations.
 
 ## Known gaps
@@ -1006,85 +1058,86 @@ These are the largest known differences and missing pieces. Each model page's *I
 rest.
 
 - **HPR Sim's own drag in a whole flight.** Its heights are +10.113% and +10.302% above RocketPy's
-  for Valetudo and NDRT 2020, where its drag is well below the examples', and −7.280% below for
-  Prometheus 2022, where it is above ([report][report]). Against real flights, four of the five
-  apogees more than 5% from their logs are consistent with HPR Sim's drag: NDRT 2020 +10.40% and
-  Cavour +5.63%, Prometheus −8.90% and Genesis −5.85% ([real flights](#real-flights),
+  for Valetudo and NDRT 2020, where its drag is well below the examples'. Prometheus 2022's is
+  −7.280% below, where its drag is above ([report][report]). Against real flights, four of the five
+  apogees more than 5% from their logs are consistent with HPR Sim's drag. They're NDRT 2020 +10.40%
+  and Cavour +5.63%, Prometheus −8.90% and Genesis −5.85% ([real flights](#real-flights),
   [real-flight report][real-report]).
-- **Drag faster than sound reads high** against NASA's wind tunnel, above all with fins: with the
-  fins on, +39.4% at Mach 1.5 to +154.0% at 4.63. The fins take a blunt leading edge's formula,
-  and nothing models a thin, sharp fin's own wave drag. Niskanen's cone, which ogives share,
+- **Drag faster than sound reads high** against NASA's wind tunnel, above all with fins. With the
+  fins on, it's +39.4% at Mach 1.5 to +154.0% at 4.63. The fins take a blunt leading edge's formula.
+  Nothing models a thin, sharp fin's own wave drag. Niskanen's cone, which ogives share,
   reads 45% to 105% above a measured cone through the rise near Mach 1
   ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
-- **A steep boattail's drag reads high** in a thick boundary layer: 16° boattails +26.4% to
-  +54.2% from Mach 1.0 to 1.28, and the Arcas Robin's 15° boattail puts its forebody, fins off,
-  +13.5% to +24.1% high from Mach 1.5 and +20.3% to +50.8% from Mach 1.0 to 1.2. No cited
+- **A steep boattail's drag reads high** in a thick boundary layer. Boattails of 16° read +26.4% to
+  +54.2% from Mach 1.0 to 1.28. The Arcas Robin's 15° boattail puts its forebody, fins off,
+  +13.5% to +24.1% high from Mach 1.5. From Mach 1.0 to 1.2 it's +20.3% to +50.8%. No cited
   correction exists in the sources used (issue [#72](https://github.com/nrdptel/fusionspace-eridanus/issues/72);
   [Aerodynamics](physics/aero.md#boattails-faster-than-sound)).
 - **Drag past Mach 1.6 reads low against RASAero II's Calisto**, to −14.9% at Mach 2, with the fins
-  and finish the Mach 0.3 check declares; other plausible fins bring most rows within 10%. Part of
+  and finish the Mach 0.3 check declares. Other plausible fins bring most rows within 10%. Part of
   it is HPR Sim's body, which reads 6% to 10% low faster than sound against MIL-HDBK-762's worked
   example as well
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)).
 - **Roll: the forcing high near Mach 1.5, the damping low, nothing measured below Mach 1.5.**
   The roll forcing from canted fins reads +47.8% at Mach 1.5
-  and +14.3% to +17.8% at 1.8 against NASA's wind tunnel, where linear theory's load climbs toward
-  Mach 1 faster than the fins' does; the roll damping reads 5.9% to 16.2% low against the Basic
+  and +14.3% to +17.8% at 1.8 against NASA's wind tunnel. There, linear theory's load climbs toward
+  Mach 1 faster than the fins' does. The roll damping reads 5.9% to 16.2% low against the Basic
   Finner's. Nothing measured checks either below Mach 1.5
   ([Aerodynamics](physics/aero.md#roll-forcing-and-damping)).
-- **A flared rocket's supersonic normal force rests on one measured flare.** A conical flare flies
-  the shock-expansion method since [M1.8e17](decisions-and-roadmap.md#m1-8e17), which moves the
-  [center of pressure](glossary.md#center-of-pressure-cp) of a test rocket with a 10° flare
-  forward by 0.089 to 0.238 [calibers](glossary.md#caliber) against the model it had before, growing
-  with Mach number ([evidence row G28](evidence.md#g28)). The one measurement beside it is NASA TN
-  D-4865's model 2, an 18.5° flare on a 2.75° cone, and it is not that rocket
+- **A flared rocket's supersonic normal force rests on one measured flare.** A conical flare now
+  flies the shock-expansion method ([the change](decisions-and-roadmap.md#m1-8e17)). On a test
+  rocket with a 10° flare, its [center of pressure](glossary.md#center-of-pressure-cp) moves 0.089 to
+  0.238 [calibers](glossary.md#caliber) forward of the old model's ([evidence row G28](evidence.md#g28)).
+  The move grows with Mach number. The one measurement beside it is NASA TN
+  D-4865's model 2, an 18.5° flare on a 2.75° cone. It isn't that rocket
   ([Aerodynamics](physics/aero.md#what-a-marched-flare-is-worth)). No other flare angle has been
-  checked, and the reading a flare steeper than its corner's limit gets has been checked against
+  checked. The reading a flare steeper than its corner's limit gets has been checked against
   nothing at all. A flare shallow enough to *reduce* its own element (a few thousandths of a degree
-  on that rocket) is read by the older generalized method instead, which no measurement checks
-  either, and which leaves a step where the corner's pressure crosses its tangent cone's
+  on that rocket) takes the older generalized method instead. No measurement checks that
+  either. It leaves a step where the corner's pressure crosses its tangent cone's
   ([Aerodynamics](physics/aero.md#a-near-flat-flare)). On a body with a short shoulder that crossing
-  is not near-flat at all (0.7° to 4.6°) and the step reaches +4.3% of the body's normal force and
-  0.19 calibers; its exact size for any conical flare is on that page.
+  isn't near-flat at all (0.7° to 4.6°). There the step reaches +4.3% of the body's normal force and
+  0.19 calibers. Its exact size for any conical flare is on that page.
 - **Some shapes fall back to [slender-body theory](glossary.md#slender-body-theory) faster than
-  sound, and read more stable.** Past Mach 1.2, a body with a step in its radius
-  ([#87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)), a flare behind a boattail too long for
-  its wake ([#120](https://github.com/nrdptel/fusionspace-eridanus/issues/120)), a pointed tip steeper than 30°
-  ([#121](https://github.com/nrdptel/fusionspace-eridanus/issues/121)) or a vertical tip steeper than its cap's
-  handover keeps slender-body theory for the whole body. The sizes are measured at Mach 3 and 4°
-  on two test bodies: −8.65%, −27.5%, −7.7% and −7.0% in normal force, with the center of pressure
-  1.03, 0.29, 0.81 and 0.64 calibers aft, so the body reads more stable than it is. The flare's is
-  measured on a finless body, so its share is of a body's normal force alone; the other three are
-  on a straight rocket with four fins, so the two kinds of share don't compare
+  sound, and read more stable.** Past Mach 1.2, four shapes keep slender-body theory for the whole
+  body. Two are a step in a body's radius ([#87](https://github.com/nrdptel/fusionspace-eridanus/issues/87))
+  and a flare behind a boattail too long for its wake
+  ([#120](https://github.com/nrdptel/fusionspace-eridanus/issues/120)). The others are a pointed tip
+  steeper than 30° ([#121](https://github.com/nrdptel/fusionspace-eridanus/issues/121)) and a vertical
+  tip steeper than its cap's handover. The sizes are measured at Mach 3 and 4° on two test bodies.
+  In normal force they're −8.65%, −27.5%, −7.7% and −7.0%, with the center of pressure 1.03, 0.29,
+  0.81 and 0.64 calibers aft. So the body reads more stable than it is. The flare's is measured on a
+  finless body, so its share is of a body's normal force alone. The other three are on a straight
+  rocket with four fins, so the two kinds of share don't compare
   ([Aerodynamics](physics/aero.md#the-body-faster-than-sound-in-a-flight)). No size inside the core
-  band, below Mach 2.5, is pinned yet. They are first in
-  [M1.14d](decisions-and-roadmap.md#m1-14d), supersonic accuracy, and in
-  [M1.14h](decisions-and-roadmap.md#m1-14h) above Mach 2.5.
+  band, below Mach 2.5, is pinned yet. They're first in
+  [supersonic accuracy](decisions-and-roadmap.md#m1-14d), and in
+  [the extended band](decisions-and-roadmap.md#m1-14h) above Mach 2.5.
 - **The normal force near and far past Mach 1.** Against NASA's wind tunnel, between Mach 0.8
-  and 1.2 HPR Sim's slope runs up to +27.1% high and its center of pressure up to 2.36
+  and 1.2 HPR Sim's slope runs up to +27.1% high. Its center of pressure is up to 2.36
   [calibers](glossary.md#caliber) off. From Mach 1.5 up its slope holds to within 9.4%
-  ([fixture][nf-fixture], [Aerodynamics](physics/aero.md#normal-force-through-mach-1)) and its
-  center of pressure to 0.53 calibers, which misses the half-caliber target on the long model at
-  Mach 1.8 and 2.3, where the body alone reads 15% to 19% above the tunnel
+  ([fixture][nf-fixture], [Aerodynamics](physics/aero.md#normal-force-through-mach-1)). Its
+  center of pressure holds to 0.53 calibers, which misses the half-caliber target on the long model
+  at Mach 1.8 and 2.3. There the body alone reads 15% to 19% above the tunnel
   ([Aerodynamics: body lift](physics/aero.md#body-lift)).
 - **Tube fins' center of pressure is unmeasured, and OpenRocket's differs.** HPR Sim's is 0.42 to
-  3.0 calibers forward of OpenRocket 24.12's on 14 probe designs up to Mach 0.5, and 1.07 on its
-  *Tube fin rocket*, whose margin HPR Sim gives as 0.79 calibers to OpenRocket's 1.87. Neither code
-  has been checked against a measured tube-fin rocket; HPR Sim leaves out the body's interference,
-  which slender-body theory predicts
-  ([#234](https://github.com/nrdptel/fusionspace-eridanus/issues/234)), and its tube-fin drag
+  3.0 calibers forward of OpenRocket 24.12's on 14 probe designs up to Mach 0.5. On OpenRocket's
+  *Tube fin rocket* it's 1.07, and HPR Sim gives the margin as 0.79 calibers to OpenRocket's 1.87.
+  Neither code has been checked against a measured tube-fin rocket. HPR Sim leaves out the body's
+  interference, which slender-body theory predicts
+  ([#234](https://github.com/nrdptel/fusionspace-eridanus/issues/234)). Its tube-fin drag
   probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228); [tube
   fins](physics/aero.md#tube-fins-against-openrocket)). Check a tube-fin design in both programs and
   treat the smaller margin as the more cautious estimate, not a bound.
-- **Drag against the RASAero curves** at Mach 0.3 is within 10% in four of seven cases, with the
-  fins and surface finish guessed, because the curves don't record them. Cavour power-on is
+- **Drag against the RASAero curves** at Mach 0.3 is within 10% in four of seven cases. The fins
+  and surface finish are guessed, because the curves don't record them. Cavour power-on is
   −18.3%, cause open. Valetudo's −47.0% and −50.4% are against a table 1.44 times the drag in the
   OpenRocket export for the same rocket ([Aerodynamics](physics/aero.md#verification)).
 - **Six fins.** The [normal-force slope](glossary.md#normal-force-slope) of Barrowman's six-fin
-  Recruiter is +2.87% above his printed value, and +3.42% on the fins alone, mostly because HPR Sim
-  uses a different six-fin rule ([Aerodynamics](physics/aero.md#verification)).
-- **Tumbling** is −10 to +19% off its source's own drop tests, and is used far outside the fit
-  behind it. That fit comes from small models falling at 5.0 to 6.6 m/s (16 to 22 ft/s); if Valetudo came down
+  Recruiter is +2.87% above his printed value, and +3.42% on the fins alone. The cause is mostly HPR
+  Sim's different six-fin rule ([Aerodynamics](physics/aero.md#verification)).
+- **Tumbling** is −10 to +19% off its source's own drop tests. It's used far outside the fit
+  behind it. That fit comes from small models falling at 5.0 to 6.6 m/s (16 to 22 ft/s). If Valetudo came down
   tumbling, with nothing deployed, HPR Sim would bring it down at 36 m/s (118 ft/s). The default streamer model
   reads +58% fast on a pleated streamer ([Recovery](physics/recovery.md)).
 - **Opening loads,** the force on the rocket as a canopy opens, are no safe bound either way. With
@@ -1093,30 +1146,31 @@ rest.
   slows while the canopy fills. The deployment speed can itself read high: a
   [separated](glossary.md#separation) body falls with no drag until its device opens
   ([Recovery](physics/recovery.md#inflation)).
-- **No added mass under a canopy,** the likely cause of the 2.86% drift difference above
-  ([Recovery](physics/recovery.md#against-rocketpy)), and the cause of NDRT's +83.059% and
+- **No added mass under a canopy.** It's the likely cause of the 2.86% drift difference above
+  ([Recovery](physics/recovery.md#against-rocketpy)). It also causes NDRT's +83.059% and
   Prometheus 2022's +19.062% peaks as their mains open in the whole flight ([report][report],
   [case file][ndrt-flight-case]).
-- **Body lift in wind.** A slow rocket leaves the rail at a steep angle to a crosswind, and there
-  HPR Sim's body lift, which RocketPy leaves out, is the largest reason its drift differs: Juno
+- **Body lift in wind.** A slow rocket leaves the rail at a steep angle to a crosswind. There
+  HPR Sim's body lift, which RocketPy leaves out, is the largest reason its drift differs. Juno
   III's apogee drift is −38.158% against RocketPy's ([report][report]). How much body lift a rocket
   body makes is itself uncertain. HPR Sim takes it from Jorgensen's crossflow term
   ([Aerodynamics](physics/aero.md#bodies-of-revolution)), whose factor is about 0.9 for these
   rockets at low speed. Flown in RocketPy with HPR Sim's rail release and fins, that puts Juno III's
-  apogee 248.3 m (815 ft) from the pad, against HPR Sim's own 245.3 m (805 ft, [case file][juno-case]). In the same
-  runs, Galejs's constant $K$, which HPR Sim used before, gives 240.2 m (788 ft) at 1.0, 231.1 m (758 ft) at 1.1 and
-  194.1 m (637 ft) at 1.5, across its source's range, and the drift would be 328.0 m (1,076 ft) with no body lift at
-  all ([ADR-026][adr-026]). Only real flights can say which is right, and the
-  [real flights](#real-flights) so far compare heights, not drift.
-- **Airfoil fins.** HPR Sim's fins use the flat-plate lift slope. It cannot model an airfoil lift
+  apogee 248.3 m (815 ft) from the pad. HPR Sim's own is 245.3 m (805 ft, [case file][juno-case]). The same
+  runs set Galejs's constant $K$, which HPR Sim used before, across its source's range. It gives
+  240.2 m (788 ft) at 1.0, 231.1 m (758 ft) at 1.1 and 194.1 m (637 ft) at 1.5. With no body lift at
+  all, the drift would be 328.0 m (1,076 ft) ([the decision][adr-026]). Only real flights can say
+  which is right. The [real flights](#real-flights) so far compare heights, not drift.
+- **Airfoil fins.** HPR Sim's fins use the flat-plate lift slope. It can't model an airfoil lift
   curve such as the one Juno III's example gives its fins, which makes RocketPy's fin slope 7.6%
-  steeper ([ADR-026][adr-026]).
+  steeper ([decision][adr-026]).
 - **Turbulence** is an aircraft model, unvalidated for rockets, and no flight uses it yet
   ([Turbulence](physics/turbulence.md)) ([evidence row G12](evidence.md#g12)).
 - **Wall and fin mass** may follow different conventions from OpenRocket's, which its documentation
-  doesn't state; six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)). Measuring a nose cone's wall thickness straight out from the axis, rather than
-  square to its surface, changes the wall's volume by 1.4% on a cone three
-  [calibers](glossary.md#caliber) long ([Shapes](physics/shapes.md)).
+  doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
+  A nose cone's wall thickness can be measured straight out from the axis or square to its surface.
+  On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
+  the two ([Shapes](physics/shapes.md)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles

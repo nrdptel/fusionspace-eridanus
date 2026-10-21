@@ -134,9 +134,12 @@ pub(crate) struct Search {
     /// The day of the search, `YYYY-MM-DD`.
     #[schemars(regex(pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))]
     pub on: String,
-    /// Where it looked: the sites, archives and collections searched.
-    pub looked: String,
-    /// What it found, nothing included.
+    /// Where it looked, one place each: a site, an archive, a search or a collection, as a short
+    /// phrase. The report lists each place as its own item.
+    #[schemars(length(min = 1))]
+    pub looked: Vec<String>,
+    /// What it found, nothing included, as short sentences. The report writes it after "It
+    /// found", so its first sentence goes on from those words, in lower case.
     pub found: String,
 }
 
@@ -469,12 +472,13 @@ pub(crate) fn structure(register: &Register, decisions: &BTreeMap<u32, String>) 
         let mut texts = vec![("surface", row.surface.as_str()), ("claim", &row.claim)];
         texts.extend(row.not_checked.as_deref().map(|text| ("not_checked", text)));
         for search in &row.searched {
-            texts.extend([("looked", search.looked.as_str()), ("found", &search.found)]);
+            texts.extend(search.looked.iter().map(|place| ("looked", place.as_str())));
+            texts.push(("found", &search.found));
         }
         for (field, text) in texts {
             if text.contains(['\n', '\r']) {
                 problems.push(at(format!(
-                    "its {field} holds a line break, which the report's table can't"
+                    "its {field} holds a line break: the register keeps each text on one line"
                 )));
             }
         }
@@ -544,16 +548,66 @@ pub(crate) fn structure(register: &Register, decisions: &BTreeMap<u32, String>) 
                     search.on, register.as_of
                 )));
             }
-            if search.looked.trim().is_empty() || search.found.trim().is_empty() {
+            // An empty list, or an empty place in it, is as bare as an empty `found`.
+            let no_place = search.looked.is_empty()
+                || (search.looked.iter()).any(|place| place.trim().is_empty());
+            if no_place || search.found.trim().is_empty() {
                 problems.push(at(format!(
                     "its search on {} needs both where it looked and what it found",
                     search.on
                 )));
             }
+            for place in &search.looked {
+                if let Some(what) = opens_as_structure(place) {
+                    problems.push(at(format!(
+                        "its search on {} has a place that opens as {what} in the report's list: \
+                         `{}`",
+                        search.on,
+                        place.trim()
+                    )));
+                }
+            }
             previous = Some(day);
         }
     }
     problems
+}
+
+/// What a place would open as at the start of its item in the report's list, where Markdown reads
+/// it as structure rather than text: a list marker, a heading, a quote, a code fence, a thematic
+/// break or an HTML tag. `None` for a place that reads as text, such as "#645's thread" or "1.5 m
+/// tubes".
+fn opens_as_structure(place: &str) -> Option<&'static str> {
+    let text = place.trim_start();
+    // Whether the marker of `len` bytes at the start ends the text or is followed by a space.
+    let marker = |len: usize| text[len..].chars().next().is_none_or(char::is_whitespace);
+    let marks: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    let hashes = text.chars().take_while(|&c| c == '#').count();
+    let digits = text.chars().take_while(char::is_ascii_digit).count();
+    if text.starts_with("```") || text.starts_with("~~~") {
+        Some("a code fence")
+    } else if marks.len() >= 3
+        && ["-", "*", "_"]
+            .iter()
+            .any(|c| marks.replace(c, "").is_empty())
+    {
+        Some("a thematic break")
+    } else if text.starts_with(['-', '+', '*']) && marker(1) {
+        Some("a list marker")
+    } else if (1..=6).contains(&hashes) && marker(hashes) {
+        Some("a heading")
+    } else if text.starts_with('>') {
+        Some("a quote")
+    } else if text.starts_with('<') {
+        Some("an HTML tag")
+    } else if (1..=9).contains(&digits)
+        && text[digits..].starts_with(['.', ')'])
+        && marker(digits + 1)
+    {
+        Some("a numbered list marker")
+    } else {
+        None
+    }
 }
 
 /// What breaks the rule for a row's decision record: one exactly when it wants less than `real`,

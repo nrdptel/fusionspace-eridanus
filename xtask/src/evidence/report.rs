@@ -1,6 +1,8 @@
 //! The register's report, which `docs/evidence.md` holds between [`REGION_START`] and
 //! [`REGION_END`]: the rows counted by kind and surface, with no combined score; the rows short
-//! of their wanted kind; every row; the rows due a search; and the searches so far.
+//! of their wanted kind; every row; the rows due a search; and the searches so far, each with
+//! the places it looked as a list and what it found as a paragraph. No sentence it writes runs
+//! over 25 words, whatever the counts, so the page holds to the writing guide's voice.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -75,14 +77,14 @@ pub(crate) fn region(
         1 if rows.len() == 1 => {
             let _ = writeln!(
                 out,
-                "Its one row doesn't yet have the kind of evidence it wants; it has an open issue \
+                "Its one row doesn't yet have the kind of evidence it wants. It has an open issue \
                  labeled `{LABEL}`, linked in its row below."
             );
         }
         1 => {
             let _ = writeln!(
                 out,
-                "1 of the {} doesn't yet have the kind of evidence it wants; it has an open issue \
+                "1 of the {} doesn't yet have the kind of evidence it wants. It has an open issue \
                  labeled `{LABEL}`, linked in its row below.",
                 counted(rows.len(), "row", "rows")
             );
@@ -90,7 +92,7 @@ pub(crate) fn region(
         short => {
             let _ = writeln!(
                 out,
-                "{short} of the {} rows don't yet have the kind of evidence they want; each has \
+                "{short} of the {} rows don't yet have the kind of evidence they want. Each has \
                  an open issue labeled `{LABEL}`, linked in its row below.",
                 rows.len()
             );
@@ -132,33 +134,38 @@ pub(crate) fn region(
         );
     }
 
-    // Due a search.
+    // Due a search: a list, so no sentence grows with the number of rows due.
     let due = due(register)?;
     let _ = write!(
         out,
         "\n**Due a search.** A row is due one when it has none yet, or its last was more than \
-         {DUE_AFTER_DAYS} days before {as_of}: "
+         {DUE_AFTER_DAYS} days before {as_of}:"
     );
     if due.is_empty() {
-        out.push_str("none.\n");
+        out.push_str(" none.\n");
     } else {
-        let links: Vec<String> = due.iter().map(|row| anchor_link(row)).collect();
-        let _ = writeln!(out, "{}.", list(&links));
+        out.push_str("\n\n");
+        for row in due {
+            let _ = writeln!(out, "- {}", anchor_link(row));
+        }
     }
 
-    // Searches so far.
+    // Searches so far: each a list item holding its places, one nested item each, and then
+    // what it found, a paragraph of its own.
     if rows.iter().any(|row| !row.searched.is_empty()) {
         out.push_str("\n**Searches so far.**\n\n");
         for row in rows {
             for search in &row.searched {
                 let _ = writeln!(
                     out,
-                    "- {}, {}: looked at {}; found {}",
+                    "- {}, {}, looked at:",
                     anchor_link(row),
-                    prose_date(&search.on)?,
-                    words(&search.looked),
-                    sentence(&search.found)
+                    prose_date(&search.on)?
                 );
+                for place in &search.looked {
+                    let _ = writeln!(out, "  - {}", words(place));
+                }
+                let _ = writeln!(out, "\n  It found {}", sentence(&search.found));
             }
         }
     }
@@ -236,15 +243,6 @@ fn capitalized(words: &str) -> String {
 /// A count with its noun: "1 row", "24 rows".
 fn counted(count: usize, one: &str, many: &str) -> String {
     format!("{count} {}", if count == 1 { one } else { many })
-}
-
-/// Items joined as a sentence lists them: "a", "a and b", "a, b and c".
-fn list(items: &[String]) -> String {
-    match items {
-        [] => String::new(),
-        [one] => one.clone(),
-        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
-    }
 }
 
 /// The page's report as it stands, markers included, or why it can't be found: each marker must

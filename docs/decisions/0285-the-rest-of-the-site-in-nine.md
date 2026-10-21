@@ -122,6 +122,27 @@ the pages, the way a flyer would:
    a flight is simulated, say in a few sentences what the simulator does from the pad to the
    ground and how far its numbers are trusted, with the page's numbers.
 
+**M0.14c3's tasks,** done the same way, on the PR's final commit:
+
+1. From The command line's *Running it* and *Flying a design*, fly the page's example design as
+   it says, and say what each part of the output means, the accuracy note included.
+2. From its `hpr mc` section, run its example and say what the spread means, which inputs it
+   scatters, and how to write every flight to a file.
+3. From its `hpr motors` and `hpr convert` sections, show a motor's figures and convert a design
+   as the page says, and say what a conversion keeps and what it drops.
+4. From its `hpr analyze`, `hpr weather` and *Scripting and shells* sections, read a log, ask for
+   the weather with no network as the page says, get JSON output, and say what exit code a
+   refusal gives.
+5. From Accuracy, say how far the simulator's apogee is from real flights and from RocketPy's,
+   with the page's numbers, and which of the four kinds of evidence backs each.
+6. From Accuracy's *Model by model* and *Known gaps*, pick a model, say what it was compared with
+   and how well it did, and name one gap with its issue.
+7. From Checking a claim, follow one of its two examples end to end: the source, the test that
+   pins the number, and the comparison, by the page's steps.
+8. From What backs each claim, find a surface's rows, say what kind of evidence backs each, and
+   how to send a sample. From the validation plan, say what proves a model right, which programs
+   serve as oracles, and where the real flight data comes from.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has

@@ -96,7 +96,7 @@ const REFERENCE: [&str; 4] = [
 
 /// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
 /// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 32] = [
+const HELD: [&str; 37] = [
     // M0.14b, the front doors.
     "README.md",
     "docs/start-here.md",
@@ -132,6 +132,12 @@ const HELD: [&str; 32] = [
     "docs/your-own-logger.md",
     "docs/your-own-rocket.md",
     "docs/how-a-flight-is-simulated.md",
+    // M0.14c3, the command line and the evidence.
+    "docs/cli.md",
+    "docs/accuracy.md",
+    "docs/checking-a-claim.md",
+    "docs/evidence.md",
+    "docs/VALIDATION.md",
 ];
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...

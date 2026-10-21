@@ -90,6 +90,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14a The guide and the check ([Phase 0](#phase-0-foundations))
 - M0.14c1 The first guides ([Phase 0](#phase-0-foundations))
 - M0.14c2 Studies, data and logs ([Phase 0](#phase-0-foundations))
+- M0.14c3 The command line and the evidence ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -622,6 +623,8 @@ One line per milestone or increment, in the order it was archived within its pha
       CI, within its limits and the sentence targets, with an acceptance pass.
     - [x] **M0.14c2 Studies, data and logs.** *Done when:* its 13 pages are held by `xtask voice`
       in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [x] **M0.14c3 The command line and the evidence.** *Done when:* its 5 pages are held by
+      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

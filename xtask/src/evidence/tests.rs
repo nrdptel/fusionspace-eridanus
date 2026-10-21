@@ -22,7 +22,7 @@ issue = 645
 
 [[row.searched]]
 on = "2026-10-17"
-looked = "the trackers' download pages"
+looked = ["the trackers' download pages", "public repositories of flight logs"]
 found = "no openly downloadable GPX of a real rocket flight"
 
 [[row]]
@@ -44,7 +44,7 @@ wanted = "real"
 
 [[row.searched]]
 on = "2026-09-01"
-looked = "a club's archive"
+looked = ["a club's archive"]
 found = "one CSV with its license"
 
 [[row.sample]]
@@ -251,6 +251,14 @@ impl Case {
         );
     }
 
+    /// Asserts the check finds no problem, with the report's page written from this case's
+    /// register.
+    fn passes(mut self) {
+        self.page = Some(page_for(&self.register));
+        let problems = self.check().problems;
+        assert!(problems.is_empty(), "{problems:#?}");
+    }
+
     /// Asserts one of the check's problems holds `expected`.
     fn fails(&self, expected: &str) {
         let problems = self.check().problems;
@@ -451,13 +459,13 @@ fn evidence_each_register_rule_fails_its_row() {
     alone(
         "found = \"no openly downloadable GPX of a real rocket flight\"\n",
         "found = \"no openly downloadable GPX of a real rocket flight\"\n\n[[row.searched]]\n\
-         on = \"2026-10-01\"\nlooked = \"a forum\"\nfound = \"nothing\"\n",
+         on = \"2026-10-01\"\nlooked = [\"a forum\"]\nfound = \"nothing\"\n",
         "G1: its search on 2026-10-01 isn't after the one before it",
     );
     alone(
         "found = \"no openly downloadable GPX of a real rocket flight\"\n",
         "found = \"no openly downloadable GPX of a real rocket flight\"\n\n[[row.searched]]\n\
-         on = \"2026-10-17\"\nlooked = \"a forum\"\nfound = \"nothing\"\n",
+         on = \"2026-10-17\"\nlooked = [\"a forum\"]\nfound = \"nothing\"\n",
         "G1: its search on 2026-10-17 isn't after the one before it",
     );
     alone(
@@ -465,10 +473,22 @@ fn evidence_each_register_rule_fails_its_row() {
         "on = \"2026-10-18\"",
         "G1: its search on 2026-10-18 is after as_of, 2026-10-17",
     );
+    // Where a search looked: a list of places, not empty (and none of them empty, below) nor
+    // broken across lines.
     alone(
-        "looked = \"a club's archive\"",
-        "looked = \"\"",
+        "looked = [\"a club's archive\"]",
+        "looked = []",
         "G3: its search on 2026-09-01 needs both where it looked and what it found",
+    );
+    alone(
+        "found = \"one CSV with its license\"",
+        "found = \" \"",
+        "G3: its search on 2026-09-01 needs both where it looked and what it found",
+    );
+    alone(
+        "looked = [\"a club's archive\"]",
+        "looked = [\"a club's\\narchive\"]",
+        "G3: its looked holds a line break",
     );
 }
 
@@ -912,7 +932,7 @@ The register holds 3 rows, as of October 17, 2026.
 | The motor finder | 0 | 0 | 1 | 1 |
 | All | 1 | 1 | 1 | 3 |
 
-**Short of what's wanted.** 1 of the 3 rows doesn't yet have the kind of evidence it wants; it \
+**Short of what's wanted.** 1 of the 3 rows doesn't yet have the kind of evidence it wants. It \
 has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
@@ -929,13 +949,22 @@ gpxpy on an invented file. **Not checked:** what a writer puts in `ele`. | code 
 real | none | 2026-09-01 |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days \
-before October 17, 2026: [G2](#g2) and [G3](#g3).
+before October 17, 2026:
+
+- [G2](#g2)
+- [G3](#g3)
 
 **Searches so far.**
 
-- [G1](#g1), October 17, 2026: looked at the trackers' download pages; found no openly \
-downloadable GPX of a real rocket flight.
-- [G3](#g3), September 1, 2026: looked at a club's archive; found one CSV with its license.
+- [G1](#g1), October 17, 2026, looked at:
+  - the trackers' download pages
+  - public repositories of flight logs
+
+  It found no openly downloadable GPX of a real rocket flight.
+- [G3](#g3), September 1, 2026, looked at:
+  - a club's archive
+
+  It found one CSV with its license.
 
 {REGION_END}"
     );
@@ -960,6 +989,167 @@ downloadable GPX of a real rocket flight.
              {REGION_END}"
         )
     );
+}
+
+/// Each place a search looked is an item of its own, in a list nested in the search's item, and
+/// what it found is a paragraph of the search's item after that list, as the site's parser reads
+/// the report; a search's list with an empty place in it fails the check.
+#[test]
+fn evidence_each_place_it_looked_is_its_own_item() {
+    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+    let register = Register::parse(REGISTER_TEXT).unwrap();
+    let region = report::region(&register, &decision_files()).unwrap();
+    let (_, searches) = region.split_once("**Searches so far.**").unwrap();
+    // Each item's own text, by its depth: 1 for a search, 2 for a place it looked. Each block
+    // of an item's own text ends in a line break.
+    let mut items: Vec<(usize, String)> = Vec::new();
+    let mut open: Vec<usize> = Vec::new();
+    for event in Parser::new_ext(searches, crate::site::options()) {
+        match event {
+            Event::Start(Tag::Item) => {
+                items.push((open.len() + 1, String::new()));
+                open.push(items.len() - 1);
+            }
+            Event::End(TagEnd::Item) => {
+                let item = open.pop().unwrap();
+                if !items[item].1.ends_with('\n') {
+                    items[item].1.push('\n');
+                }
+            }
+            Event::End(TagEnd::Paragraph) => {
+                if let Some(&item) = open.last() {
+                    items[item].1.push('\n');
+                }
+            }
+            Event::Text(text) | Event::Code(text) => {
+                if let Some(&item) = open.last() {
+                    items[item].1.push_str(&text);
+                }
+            }
+            _ => {}
+        }
+    }
+    assert_eq!(
+        items,
+        [
+            (
+                1,
+                "G1, October 17, 2026, looked at:\n\
+                 It found no openly downloadable GPX of a real rocket flight.\n"
+                    .to_owned()
+            ),
+            (2, "the trackers' download pages\n".to_owned()),
+            (2, "public repositories of flight logs\n".to_owned()),
+            (
+                1,
+                "G3, September 1, 2026, looked at:\nIt found one CSV with its license.\n"
+                    .to_owned()
+            ),
+            (2, "a club's archive\n".to_owned()),
+        ]
+    );
+    // A place in the register is one item in the report, whatever it holds.
+    let mut wide = register.clone();
+    wide.row[2].searched[0].looked = vec![
+        "a club's archive, 2016 to 2024".to_owned(),
+        "a forum".to_owned(),
+    ];
+    let region = report::region(&wide, &decision_files()).unwrap();
+    assert!(
+        region
+            .contains("looked at:\n  - a club's archive, 2016 to 2024\n  - a forum\n\n  It found"),
+        "{region}"
+    );
+    // An empty place, among others or alone, fails as an empty list does, and only it.
+    for looked in [
+        "[\"a club's archive\", \" \"]",
+        "[\"\", \"a forum\"]",
+        "[\"\"]",
+    ] {
+        Case::register(
+            "looked = [\"a club's archive\"]",
+            &format!("looked = {looked}"),
+        )
+        .fails_only("G3: its search on 2026-09-01 needs both where it looked and what it found");
+    }
+    // A place opens its item in the report's list, so one that Markdown would read as structure
+    // fails, and one that only looks like it reads as text.
+    for (place, what) in [
+        ("- a forum", "a list marker"),
+        ("* a forum", "a list marker"),
+        ("1. a forum", "a numbered list marker"),
+        ("12) a forum", "a numbered list marker"),
+        ("# a forum", "a heading"),
+        ("> a forum", "a quote"),
+        ("---", "a thematic break"),
+        ("_ _ _", "a thematic break"),
+        ("```", "a code fence"),
+        ("<div>a forum", "an HTML tag"),
+    ] {
+        Case::register(
+            "looked = [\"a club's archive\"]",
+            &format!("looked = [\"a club's archive\", \"{place}\"]"),
+        )
+        .fails_only(&format!(
+            "G3: its search on 2026-09-01 has a place that opens as {what} in the report's list: \
+             `{place}`"
+        ));
+    }
+    for place in [
+        "#645's thread",
+        "1.5 m tubes",
+        "-40 °C logs",
+        "a forum - 2016",
+        "2016 to 2024, a forum",
+    ] {
+        Case::register(
+            "looked = [\"a club's archive\"]",
+            &format!("looked = [\"{place}\"]"),
+        )
+        .passes();
+    }
+    // A place's spaces are the report's to set: leading ones would make it a code block.
+    let mut spaced = register.clone();
+    spaced.row[2].searched[0].looked = vec!["      a club's archive".to_owned()];
+    let region = report::region(&spaced, &decision_files()).unwrap();
+    assert!(
+        region.contains("looked at:\n  - a club's archive\n"),
+        "{region}"
+    );
+}
+
+/// No sentence the report writes itself runs over 25 words, the writing guide's limit, however
+/// many rows are short of their wanted kind or due a search: the rows due are a list.
+#[test]
+fn evidence_the_report_s_own_sentences_stay_short() {
+    let longest = |register: &Register| -> usize {
+        let region = report::region(register, &decision_files()).unwrap();
+        // The report's own words, as a reader sees them: not the tables, nor what the searches
+        // found.
+        let (own, _) = region
+            .split_once("**Searches so far.**")
+            .unwrap_or((&region, ""));
+        let own = own.replace("**", "");
+        (own.lines())
+            .filter(|line| !line.starts_with('|') && !line.starts_with("<!--"))
+            .flat_map(|line| line.split(". "))
+            .map(|sentence| sentence.split_whitespace().count())
+            .max()
+            .unwrap_or_default()
+    };
+    let mut register = Register::parse(REGISTER_TEXT).unwrap();
+    assert!(longest(&register) <= 25, "{}", longest(&register));
+    // 200 rows, all short of their wanted kind and all due a search.
+    for number in 4..=200 {
+        let mut row = register.row[0].clone();
+        row.id = format!("G{number}");
+        row.searched.clear();
+        register.row.push(row);
+    }
+    assert!(longest(&register) <= 25, "{}", longest(&register));
+    // One row, short of its wanted kind.
+    register.row.truncate(1);
+    assert!(longest(&register) <= 25, "{}", longest(&register));
 }
 
 /// A row is due a search with none yet, or with its last more than 30 days before as_of: 30
@@ -1019,6 +1209,11 @@ fn evidence_the_schema_takes_the_register_and_refuses_strays() {
         ("pages = [\"motors.md#the-finder\"]", "pages = []"),
         ("issue = 645", "issue = \"645\""),
         ("sha256 = \"b009", "sha256 = \"B009"),
+        (
+            "looked = [\"a club's archive\"]",
+            "looked = \"a club's archive\"",
+        ),
+        ("looked = [\"a club's archive\"]", "looked = []"),
     ] {
         let text = swap(REGISTER_TEXT, from, to);
         assert!(!errors(&text).is_empty(), "the schema takes {to:?}");
@@ -1027,6 +1222,10 @@ fn evidence_the_schema_takes_the_register_and_refuses_strays() {
     for (from, to) in [
         ("issue = 645\n", "issue = 645\nshade = \"red\"\n"),
         ("kind = \"spec\"", "kind = \"guess\""),
+        (
+            "looked = [\"a club's archive\"]",
+            "looked = \"a club's archive\"",
+        ),
     ] {
         assert!(
             Register::parse(&swap(REGISTER_TEXT, from, to)).is_err(),
