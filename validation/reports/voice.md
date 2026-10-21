@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 51 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 439510 words, 0 stock phrases. 56 pages are within every limit.
+82 pages, 439514 words, 0 stock phrases. 56 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -30,7 +30,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
 | `docs/VALIDATION.md` (`held`) | 10069 | 13.7 | 0% | 0.26 | 0.00 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.57 |
-| `docs/VISION.md` | 3725 | 15.5 | 15% | **1.11** | **3.63** | **0.60** | 0.19 | 0.00 | 0.09 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
+| `docs/VISION.md` | 3729 | 15.4 | 15% | **1.10** | **3.63** | **0.59** | 0.19 | 0.00 | 0.09 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
 | `docs/accuracy.md` (`held`) | 15625 | 13.3 | 0% | 0.23 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
 | `docs/api.md` (`held`) | 2509 | 13.1 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1572 | 14.7 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |

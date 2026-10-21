@@ -291,17 +291,17 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Monte Carlo, CG and inertia with it; the margin and descent rate report its worst end, a test
     pinning the direction.
 - [ ] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
-  solid catalog ships compiled in ([research](research/thrustcurve-data.md)).
-  *Done when:*
-  - a dated snapshot's every solid motor's record and every file hpr reads but a restricted one
-    are in `hpr-motor`, figures equal to the snapshot's; offline, `hpr motors list` lists each
-    motor and `hpr sim --motor` flies each with a curve, a tool's counts equal to the snapshot's;
-  - each file stores its check against its motor's published figures (ADR-005's 1%); the default
-    is a passing file where one exists; `hpr motors show` lists every file; flying a failing file
-    warns with the gap (a test and a mutation probe);
+  solid catalog compiled in ([research](research/thrustcurve-data.md)). *Done when:*
+  - a fresh snapshot's every solid motor and every file but a restricted one are in `hpr-motor`,
+    figures and labels equal to the snapshot's; each file left out is listed with its reason, and
+    one past the snapshot's named refusals fails; offline, `hpr motors list` lists each motor and
+    `hpr sim --motor` flies each with a curve, the counts taken from the raw snapshot;
+  - each file stores its ADR-005 1% check (definition A); the default is a passing file where one
+    exists; `hpr motors show` lists every file, its check and label; flying a failing file warns
+    with each figure's signed gap (tests: a pass, the 1% edge, each figure alone; a mutation probe);
+  - the L42 test and `xtask motor-catalog`'s 1% failure hold over every file stored as passing;
   - `hpr motors update` adds a newer motor or file from a recorded answer, and offline names the
-    bundle's date;
-  - the motor page gives the snapshot's date, its counts and the size it adds, from the tool.
+    bundle's date; the motor page gives the date, counts, passing motors and size, from the tool.
 
 ## Phase 3: Uncertainty, optimization, challenges
 

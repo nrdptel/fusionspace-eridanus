@@ -156,7 +156,7 @@ For ADR-288, read from the 2026-09-17 POST captures (`refs/samples/thrustcurve/d
 pinned `motors.json`, the 152 motors typed `hybrid` left out:
 
 - 1004 solid motors and 1712 files. 726 motors have 2 to 4 files; 80 have none (53 out of production).
-  Of the 726, 666 hold one RASP and one RockSim file, and 335 have files from more than one source.
+  Of the 726, 666 have exactly two, one RASP and one RockSim file; 335 have more than one source.
 - 7 motors' only files are `free` (none `other`): 4 in production (Cesaroni 699J145-19A, 518I165-17A
   and 6268M1401-P; AMW K475) and 3 out of production.
 - Size: the files' bytes 2052500 (xz 330824, zlib level 9 460016); the records as compact JSON
