@@ -6,29 +6,29 @@ of mass, stability margin and flight.
 ## In short
 
 - **What it models:** a part carried inside the airframe, such as ballast or a payload, sliding
-  along the rocket's axis during the flight on a trigger. The rocket's
+  along the rocket's axis in flight on a trigger. The rocket's
   [center of mass](../glossary.md#center-of-gravity-cg) and inertia follow the part, and so do
   the equations of motion. Use it to see what a payload that moves, or ballast moved on purpose,
-  does to the [stability margin](../glossary.md#stability-margin) and the flight. This is new
-  with [M1.12a](../decisions-and-roadmap.md#m1-12a) (a mass that moves along the airframe).
+  does to the [stability margin](../glossary.md#stability-margin) and the flight. It was added
+  in [the moving-mass milestone](../decisions-and-roadmap.md#m1-12a).
 - **Sources:** the [parallel-axis theorem](../glossary.md#parallel-axis-theorem) and the kinetics
-  of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*, applied to
-  the equations of motion on [Rigid-body flight](flight.md); the cycloidal motion of cam design,
-  from Norton's *Design of Machinery*.
+  of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. They're
+  applied to the equations of motion on [Rigid-body flight](flight.md). The cycloidal motion of
+  cam design is from Norton's *Design of Machinery*.
 - **How well it is validated:** against exact answers only. No other simulator or real flight has
   been compared with it. The mass properties match a hand calculation to 1e-15, and the static
   margin to 1e-12 [calibers](../glossary.md#caliber). In free flight with nothing acting
   on the rocket, its angular momentum is kept to 6.9e-12 of itself and its center's velocity to
   2.6e-12 m/s.
 - **What it leaves out:** a mass that leaves the rocket, which is
-  [Released mass](released-mass.md); a shift in a flight that also separates, ejects pieces or
-  releases a mass; a shift before the rocket leaves the rail; a part that moves across the axis
-  or turns; and the shock of a part hitting a stop. The motion's shape is a choice made here, not
-  something a source gives for rockets.
+  [Released mass](released-mass.md). A shift can't come in a flight that also separates, ejects
+  pieces or releases a mass, or before the rocket leaves the rail. A part can't move across the
+  axis or turn, and the shock of it hitting a stop isn't modeled. The motion's shape is a choice
+  made here, not something a source gives for rockets.
 
 ## The model
 
-How a shift is described, and what it changes in the mass properties and the equations of motion.
+How a shift is described, and what it changes.
 
 ### Describing a shift
 
@@ -41,7 +41,7 @@ A `MassShift` names the part, how far it moves, how long it takes, and when it s
 | `travel_m` | how far along the axis, in meters: positive toward the tail, negative toward the nose |
 | `duration_s` | how long the move takes, in seconds: at least 0.01 s |
 
-In code, for a part with the id `ballast` that slides 0.3 m (0.98 ft) toward the tail over 1 s, starting 5 s
+In code, a part with the id `ballast` slides 0.3 m (0.98 ft) toward the tail over 1 s, starting 5 s
 after launch:
 
 ```rust,ignore
@@ -58,11 +58,11 @@ The part is any internal component of your design, such as a mass component. Eac
 starts is recorded as an `EventKind::Shift` event. `Simulation::mass_properties(flight, t)` gives
 the mass, center of mass and inertia the flight had at any time.
 
-Shifts of one part add up. The simulator can't know before the flight which triggers will fire, so
-it adds all of a part's moves toward the nose, and separately all of its moves toward the tail, and
-refuses either total if it would take the part out of the component that holds it. A part the
-design already places partly outside its holder, such as a weight in a nose cone's shoulder, may
-go as far as it already reaches.
+Shifts of one part add up. The simulator can't know before the flight which triggers will fire.
+So it adds all of a part's moves toward the nose, and separately all of its moves toward the tail.
+It refuses either total that would take the part out of the component that holds it. A part the
+design already places partly outside its holder can go as far as it already reaches. A weight in
+a nose cone's shoulder is one.
 
 Some parts can't move, and the simulator says which rule a refused one breaks:
 
@@ -70,15 +70,15 @@ Some parts can't move, and the simulator says which rule a refused one breaks:
 - a part holding a motor, since the motor would not go with it;
 - a part inside another part that moves;
 - one tube of a [cluster](../glossary.md#cluster);
-- a part covered by an [override](../glossary.md#override) of mass: an override on its stage, or
-  one on a component around it that covers what that component holds. The override doesn't say
-  how much of that mass is the part's.
+- a part covered by a mass [override](../glossary.md#override) on its stage, or by one on a
+  component around it that covers what that component holds. The override doesn't say how much
+  of that mass is the part's.
 
 A flight with a separation or ejections can't have shifts yet. A shift can't start before the
-rocket leaves the rail either: the rail has no stop at its foot, so a part thrown toward the tail
+rocket leaves the rail either. The rail has no stop at its foot. So a part thrown toward the tail
 on the pad could push the rocket up the rail and leave it hanging there. The simulator stops the
 flight with an error if one would. A shift timed close to the rail exit can therefore fly in one
-flight and stop another that leaves the rail later; time it from the burnout or the apogee instead.
+flight and stop another that leaves the rail later. Time it from the burnout or the apogee instead.
 
 **The motion.** A part doesn't jump from one place to the next. It follows a cycloid, the curve a
 cam designer calls cycloidal motion. It starts at rest, speeds up, and slows to rest again. Its
@@ -90,8 +90,8 @@ s(\tau) = \tau - \frac{\sin(2\pi\tau)}{2\pi}, \qquad 0 \le \tau \le 1
 $$
 
 At $\tau = \tfrac12$ it is exactly halfway, moving fastest, at twice the average speed. Its acceleration
-peaks at $2\pi \times \text{travel}/T^2$ for a move taking $T$. A move shorter than 10 ms is refused: the peak
-there is 63 km/s² for each meter of travel, which is closer to an impact than a motion.
+peaks at $2\pi \times \text{travel}/T^2$ for a move taking $T$. A move shorter than 10 ms is refused. The peak
+there is 63 km/s² for each meter of travel, closer to an impact than a motion.
 
 The move's time is cut into 16 equal parts by [stop times](../glossary.md#stop-time), so the
 integrator takes at least 16 steps across it. That matters with fixed-step
@@ -109,11 +109,11 @@ $$
 $$
 
 The inertia changes as well. The simulator takes the part's contribution out where it was and puts
-it back where it is, both about the new center of mass, by the parallel-axis theorem. The part's own
+it back where it is, both about the new center of mass. It uses the parallel-axis theorem. The part's own
 inertia about its own center goes with it unchanged. Write $\mathbf{c}_0$ for the part's center where the
-design puts it, $\boldsymbol{\delta}$ for the move, $\mathbf{cg}_{\mathrm{new}}$ for the rocket's new center, $I_{\mathrm{new}}$ for its inertia
-about that center, $I_{\mathrm{was}}$ for the rocket's inertia with the part where it was, taken
-about $\mathbf{cg}_{\mathrm{new}}$, and $J(\mathbf{v}) = \lvert\mathbf{v}\rvert^2 E - \mathbf{v}\mathbf{v}^{\mathrm{T}}$ (with $E$ the unit matrix):
+design puts it and $\boldsymbol{\delta}$ for the move. $\mathbf{cg}_{\mathrm{new}}$ is the rocket's new center and $I_{\mathrm{new}}$ its inertia
+about that center. $I_{\mathrm{was}}$ is the rocket's inertia with the part where it was, taken
+about $\mathbf{cg}_{\mathrm{new}}$. With $E$ the unit matrix, $J(\mathbf{v}) = \lvert\mathbf{v}\rvert^2 E - \mathbf{v}\mathbf{v}^{\mathrm{T}}$:
 
 $$
 \begin{aligned}
@@ -129,7 +129,7 @@ reduced mass and $\mathbf{L}$ is the line from the rest's center to the part's. 
 only $\mathbf{L}$. The tests check the simulator's inertia against this formula.
 
 **The stability margin.** The static margin is the distance from the center of mass back to the
-[center of pressure](../glossary.md#center-of-pressure-cp), in calibers of the rocket's diameter
+[center of pressure](../glossary.md#center-of-pressure-cp). It's in calibers of the rocket's diameter
 $d$ ([Flight metrics: stability margins](metrics.md#stability-margins)). It takes the center of
 pressure with the air along the axis at Mach 0, which doesn't depend on where the mass is. So a
 part moving $\Delta$ toward the tail changes it by:
@@ -147,8 +147,8 @@ The equations of motion ([Rigid-body flight](flight.md)) are written about the n
 point fixed in the airframe, in body axes. $\boldsymbol{\omega}$ is the airframe's rate of turn and $\mathbf{r}$ the center
 of mass seen from $O$. The equations already allow for a center of mass that moves through the
 airframe and an inertia that changes, because burning propellant does both. Primes there, as
-below, mean how fast something changes with time as seen from the airframe: $\mathbf{r}'$ and $\mathbf{r}''$ are the
-center of mass's velocity and acceleration through the airframe, and $I'$ how fast the inertia
+below, mean how fast something changes as seen from the airframe. Then $\mathbf{r}'$ and $\mathbf{r}''$ are the
+center of mass's velocity and acceleration through the airframe. $I'$ is how fast the inertia
 about $O$ changes. A part that moves adds to those terms, and adds one term more.
 
 Sum Newton's law over every particle of the rocket. Each particle's acceleration is the nose
@@ -168,8 +168,8 @@ part's center and $\boldsymbol{\rho}'$ its velocity inside the airframe. A part 
 moves at the same $\boldsymbol{\rho}'$. When the part is on the axis, $\boldsymbol{\rho}$ and $\boldsymbol{\rho}'$ both lie along the axis and $\mathbf{h}$
 is zero. When it is off the axis, $\mathbf{h}$ is not zero, and the simulator carries it. The sum is over the
 parts that move, each with its own $m$, $\boldsymbol{\rho}$ and $\boldsymbol{\rho}'$. On the Rigid-body flight page, $\mathbf{T}_{21}$ is the
-name the equations (from RocketPy's documentation) give the sum of the moments about the nose tip;
-it subtracts $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$.
+name the equations (from RocketPy's documentation) give the sum of the moments about the nose tip.
+It subtracts $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$.
 
 The simulator works out how fast the center of mass and the inertia change exactly, from the
 cycloid. For a burning motor it still estimates them from points 0.1 ms apart. The two add, so a
@@ -186,8 +186,8 @@ I' &= I_a' + \sum m \bigl(2(\mathbf{c}\cdot\boldsymbol{\delta}')\,E \\
 $$
 
 The sums are over the parts that move, each with its own $m$, $\boldsymbol{\delta}$ and $\mathbf{c}$. Here $\mathbf{r}_a$ and $I_a$
-are the rocket's with every part where the design puts it, $M'$ and $M''$
-are how fast its mass changes and how fast that changes (both zero once the motor is out), $\boldsymbol{\delta}'$
+are the rocket's with every part where the design puts it. $M'$ and $M''$
+are how fast the rocket's mass changes and how fast that changes, both zero once the motor is out. $\boldsymbol{\delta}'$
 and $\boldsymbol{\delta}''$ are the part's velocity and acceleration along its move, and $\mathbf{c} = \mathbf{c}_0 + \boldsymbol{\delta}$ is the
 part's center now.
 
@@ -196,8 +196,8 @@ part's center now.
 The example
 [`moving_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/moving_ballast.rs)
 flies the project's 54 mm (2.1 in) test design (`validation/designs/synthetic-54mm-three-fin.json`, a
-body 56.3 mm (2.2 in) across) on an I175 motor ([motor designation](../glossary.md#motor-designation)),
-with 200 g of ballast in its airframe. The ballast is a cylinder 50 mm (2.0 in) long on the axis, its
+body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) motor.
+Its airframe carries 200 g of ballast. The ballast is a cylinder 50 mm (2.0 in) long on the axis, its
 center 0.375 m (1.23 ft) aft of the nose tip. At 5 s, well after the 2.5 s burn, it slides 0.3 m (0.98 ft) toward
 the tail over one second. What the example prints (the transverse inertia is about an axis across
 the rocket through its center of mass, the one it pitches about):
@@ -226,7 +226,7 @@ up near the center of mass. The two-body check gives the change too:
   $$
 
   aft of the tip.
-- The ballast's center moves from 0.375 m (1.23 ft) to 0.675 m (2.21 ft), so its distance from the rest's center
+- The ballast's center moves from 0.375 m (1.23 ft) to 0.675 m (2.21 ft). So its distance from the rest's center
   shrinks from 0.3878 m (1.272 ft) to 0.0878 m (0.288 ft).
 - The inertia changes by
 
@@ -245,7 +245,7 @@ values. By hand it is $-0.0733 / 0.0563 = -1.302$, with $d = 0.0563$ m. The apog
 
 ## Checks, limits and sources
 
-How the model is checked, what it leaves out, and the sources it rests on.
+How the model is checked, what it leaves out, and its sources.
 
 ### How it is checked
 
@@ -265,13 +265,13 @@ measured, where it records it, and in brackets the bound it holds the code to.
 | `a_shift_starts_at_apogee_or_at_its_height_on_the_way_down` | the triggers the flight watches for start the move at the apogee, and at 200 m (656 ft) on the way down | (1e-6 m) |
 
 The free-flight test is the one that checks the new term. Without $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$, its error would be
-the size of the ballast's own angular momentum relative to the airframe, which peaks at 1.8% of
+the size of the ballast's own angular momentum relative to the airframe. That peaks at 1.8% of
 the rocket's angular momentum. It measures 6.9e-12.
 
-A first version took the part's rates from differences 0.1 ms apart, as the motor's are. In free
-flight it kept the center's velocity only to 1e-8 m/s, the error of the difference itself, so the
-rates were made exact. A check with RK4 taking a 10 ms move in a single step found the center's
-velocity off by 0.071 m/s (0.23 ft/s); the 16 stop times across each move bring it to 1.2e-4.
+A first version took the part's rates from differences 0.1 ms apart. In free flight it kept the
+center's velocity only to 1e-8 m/s, the error of the difference itself, so the rates were made
+exact. A check with RK4 taking a 10 ms move in a single step found the center's
+velocity off by 0.071 m/s (0.23 ft/s). The 16 stop times across each move bring it to 1.2e-4.
 
 Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be_made_are_refused`,
 `refusals_that_need_a_design_of_their_own` and
@@ -279,26 +279,25 @@ Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be
 
 ### What it leaves out
 
-- **Releasing a mass.** Ballast or a payload that leaves the rocket while the rest flies on is
-  [Released mass](released-mass.md), added with [M1.12b](../decisions-and-roadmap.md#m1-12b).
-- **Shifts with a separation, ejections or a release.** Their pieces and parts are fixed before
-  the flight, with every part where the design puts it.
-- **Shifts on the pad or the rail**, as above.
-- **Other motions.** A part can only slide along the axis, at whatever distance from the axis the
-  design puts it. It can't move across the axis or turn.
-- **Stops.** The cycloid brings the part to rest smoothly. A real mechanism may stop it with a
-  shock, which a rigid airframe can't model.
-- **Warnings.** The simulator doesn't warn when a shift takes the margin below a safe value; read
-  the margin from the flight's metrics ([Flight metrics](metrics.md#stability-margins)).
+- Ballast or a payload that leaves the rocket while the rest flies on is
+  [Released mass](released-mass.md), added in
+  [the released-mass milestone](../decisions-and-roadmap.md#m1-12b).
+- A separation, ejections or a release can't come with shifts. Their pieces and parts are fixed
+  before the flight, with every part where the design puts it.
+- A part can only slide along the axis, at whatever distance from the axis the design puts it. It
+  can't move across the axis or turn.
+- The cycloid brings the part to rest smoothly. A real mechanism may stop it with a shock, which a
+  rigid airframe can't model.
+- The simulator doesn't warn when a shift takes the margin below a safe value. Read the margin
+  from the flight's metrics ([Flight metrics](metrics.md#stability-margins)).
 
 The decision record is [ADR-087][adr-087].
 
 ### References
 
-- **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*: chapter 4 (kinetics
-  of systems of particles: the force and moment equations summed over particles, and angular
-  momentum about a moving point) and appendix B (the parallel-axis theorem and the inertia
-  tensor).
+- **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*. Chapter 4 (kinetics
+  of systems of particles) sums the force and moment equations over particles, and takes angular
+  momentum about a moving point. Appendix B has the parallel-axis theorem and the inertia tensor.
 - **[N]** R. L. Norton, *Design of Machinery*, the chapter on cam design, with the cycloidal
   displacement
 
