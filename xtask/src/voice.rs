@@ -3,7 +3,7 @@
 //!
 //! A page can be correct and still read as if nobody in particular wrote it. `cargo xtask voice`
 //! counts, per page and per 100 words, the patterns behind that ([`Pattern`]): bold-label list
-//! items, internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
+//! items (less the four labels of a model page's *In short* box, [`InShort`]), internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
 //! ("simply", "just"), signposts ("In this section"), and first person on a reference page. It
 //! also reports the register, which has no limit of its own beyond first person on a reference
 //! page: "I", "we", "you" and contractions per 100 words,
@@ -40,7 +40,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use pulldown_cmark::{Event, LinkType, Parser, Tag, TagEnd};
+use pulldown_cmark::{Event, HeadingLevel, LinkType, Parser, Tag, TagEnd};
+
+use crate::site;
 
 pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
@@ -891,7 +893,7 @@ fn repository_pages(root: &Path) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        let mut page = read_page(&path, &text, is_reference(&path));
+        let mut page = read_page(&path, &text, is_reference(&path), is_model_page(&path));
         page.held = is_held(&path);
         pages.push(page);
     }
@@ -946,6 +948,14 @@ fn is_reference(path: &str) -> bool {
     REFERENCE.iter().any(|entry| leaves(entry, path))
 }
 
+/// Whether a page, by its path from the repository's root, is a model page: a file directly under
+/// `docs/physics/`, which opens with *In short* (`site.rs`). The four labels of that box aren't
+/// counted as bold-label items (ADR-285 §5).
+fn is_model_page(path: &str) -> bool {
+    path.strip_prefix(&format!("{}/{}/", site::SOURCE, site::MODELS))
+        .is_some_and(|name| name.ends_with(".md") && !name.contains('/'))
+}
+
 /// The pages at `args`: each file, and each page under each directory, read whether tracked or
 /// not. A path inside this repository is classed as its pages are; any other is not a reference
 /// page.
@@ -967,19 +977,18 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
         let text = String::from_utf8_lossy(&bytes);
         let shown = file.display().to_string();
-        let inside = fs::canonicalize(&file)
-            .ok()
-            .and_then(|full| {
-                full.strip_prefix(&root)
-                    .ok()
-                    .map(|p| p.to_string_lossy().replace('\\', "/"))
-            })
-            .is_some_and(|relative| is_reference(&relative));
+        let inside = fs::canonicalize(&file).ok().and_then(|full| {
+            full.strip_prefix(&root)
+                .ok()
+                .map(|p| p.to_string_lossy().replace('\\', "/"))
+        });
+        let reference = inside.as_deref().is_some_and(is_reference);
+        let model = inside.as_deref().is_some_and(is_model_page);
         let html = matches!(extension(&file).as_deref(), Some("html" | "htm"));
         let mut page = if html {
-            page_from(&shown, &text, read_html(&text), inside)
+            page_from(&shown, &text, read_html(&text), reference)
         } else {
-            read_page(&shown, &text, inside)
+            read_page(&shown, &text, reference, model)
         };
         page.path = shown;
         pages.push(page);
@@ -1018,18 +1027,20 @@ fn walk(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
     Ok(())
 }
 
-/// A Markdown (or plain text) page, read.
-fn read_page(path: &str, text: &str, reference: bool) -> Page {
-    page_from(path, text, read_markdown(text), reference)
+/// A Markdown (or plain text) page, read; `model` if it's a model page ([`is_model_page`]).
+fn read_page(path: &str, text: &str, reference: bool, model: bool) -> Page {
+    page_from(path, text, read_markdown(text, model), reference)
 }
 
-/// The text a reader sees on a Markdown page, as runs.
-fn read_markdown(source: &str) -> Reading {
+/// The text a reader sees on a Markdown page, as runs. On a model page, the four labels its
+/// *In short* box opens its items with aren't bold-label items ([`InShort`]).
+fn read_markdown(source: &str, model: bool) -> Reading {
     let mut reading = Reading::default();
     let mut code_block = 0usize;
     let mut image = 0usize;
     let mut item_opening = false;
     let mut autolink = 0usize;
+    let mut in_short = InShort::default();
     for (event, range) in Parser::new_ext(source, crate::site::options()).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => code_block += 1,
@@ -1060,7 +1071,16 @@ fn read_markdown(source: &str) -> Reading {
                 item_opening = false;
                 reading.push(&as_code(&text), range.start);
             }
-            Event::Start(Tag::Heading { .. }) => reading.open(Block::Heading),
+            Event::Start(Tag::Heading { level, .. }) => {
+                in_short.heading = Some((level, String::new()));
+                reading.open(Block::Heading);
+            }
+            Event::End(TagEnd::Heading(_)) => {
+                in_short.close_heading(model);
+                reading.open(Block::Prose);
+            }
+            Event::Start(Tag::List(_)) => in_short.lists += 1,
+            Event::End(TagEnd::List(_)) => in_short.lists = in_short.lists.saturating_sub(1),
             Event::Start(Tag::TableCell) => reading.open(Block::Cell),
             Event::Start(Tag::Paragraph) => reading.open(Block::Prose),
             Event::Start(Tag::Item) => {
@@ -1069,28 +1089,96 @@ fn read_markdown(source: &str) -> Reading {
             }
             Event::Start(Tag::Strong) => {
                 if item_opening {
-                    reading.bold_labels += 1;
+                    if in_short.inside && in_short.lists == 1 && in_short.label.is_none() {
+                        in_short.label = Some(String::new());
+                    } else {
+                        reading.bold_labels += 1;
+                    }
                 }
                 item_opening = false;
+            }
+            Event::End(TagEnd::Strong) => {
+                if let Some(label) = in_short.label.take()
+                    && !in_short.leave_out(&label)
+                {
+                    reading.bold_labels += 1;
+                }
             }
             Event::Text(text) => {
                 if !text.trim().is_empty() {
                     item_opening = false;
                 }
+                in_short.read(&text);
                 reading.push(&addresses_as_code(&text), range.start);
             }
             Event::Code(_) | Event::InlineMath(_) | Event::DisplayMath(_) => {
                 item_opening = false;
+                // A label with code or math in it isn't one of the box's four.
+                in_short.read(&format!(" {CODE} "));
                 reading.push(&format!(" {CODE} "), range.start);
             }
             Event::SoftBreak | Event::HardBreak => reading.push(" ", range.start),
-            Event::End(
-                TagEnd::Heading(_) | TagEnd::TableCell | TagEnd::Paragraph | TagEnd::Item,
-            ) => reading.open(Block::Prose),
+            Event::End(TagEnd::TableCell | TagEnd::Paragraph | TagEnd::Item) => {
+                reading.open(Block::Prose);
+            }
             _ => {}
         }
     }
     reading
+}
+
+/// Where a Markdown reader is, for a model page's *In short* box: the section under its
+/// `## In short` heading, up to the next heading of level 1 or 2 (as `site.rs` finds it). The
+/// box is the one place the guide asks a reader to scan, so the label each of its items opens
+/// with, one of [`site::IN_SHORT_ITEMS`], isn't counted as a bold-label item: each of the four
+/// once, on a top-level item of the box (ADR-285 §5). Any other bold label counts, there or
+/// elsewhere.
+#[derive(Debug, Default)]
+struct InShort {
+    /// In a model page's *In short* section.
+    inside: bool,
+    /// The heading being read: its level and its text so far.
+    heading: Option<(HeadingLevel, String)>,
+    /// How deep in lists the reader is.
+    lists: usize,
+    /// The bold text a top-level item of the box opens with, read so far.
+    label: Option<String>,
+    /// Which of [`site::IN_SHORT_ITEMS`] have been left out already.
+    left_out: [bool; 4],
+}
+
+impl InShort {
+    /// Text read: part of the heading or the label being read, if either is.
+    fn read(&mut self, text: &str) {
+        if let Some(label) = self.label.as_mut() {
+            label.push_str(text);
+        }
+        if let Some((_, heading)) = self.heading.as_mut() {
+            heading.push_str(text);
+        }
+    }
+
+    /// A heading ends: one of level 1 or 2 starts the box, on a model page, or ends it.
+    fn close_heading(&mut self, model: bool) {
+        if let Some((level, text)) = self.heading.take()
+            && matches!(level, HeadingLevel::H1 | HeadingLevel::H2)
+        {
+            self.inside = model && level == HeadingLevel::H2 && text.trim() == site::IN_SHORT;
+        }
+    }
+
+    /// Whether `label`, the whole bold text a top-level item of the box opens with, is one of the
+    /// box's four labels not left out yet; if so, it's left out from now on.
+    fn leave_out(&mut self, label: &str) -> bool {
+        let found = site::IN_SHORT_ITEMS
+            .iter()
+            .position(|item| *item == label)
+            .filter(|&at| !self.left_out[at]);
+        if let Some(at) = found {
+            self.left_out[at] = true;
+        }
+        found.is_some()
+    }
 }
 
 /// `text` read as one code word, padded with spaces to its length so later marks still line up.
@@ -1812,7 +1900,7 @@ mod tests {
     use super::*;
 
     fn markdown(text: &str) -> Page {
-        read_page("page.md", text, false)
+        read_page("page.md", text, false, false)
     }
 
     fn entries(text: &str) -> Vec<&'static str> {
@@ -1977,6 +2065,75 @@ mod tests {
         assert_eq!(loose.bold_labels, 2);
         let html = read_html("<ul><li><strong>A:</strong> b</li><li>c <b>d</b></li></ul>");
         assert_eq!(html.bold_labels, 1);
+    }
+
+    /// A model page's *In short* box, as `site.rs` holds it, with `extra` added to its list.
+    fn box_with(extra: &str) -> String {
+        format!(
+            "# A model\n\nWhat it covers.\n\n## In short\n\n- **What it models:** a thing.\n\
+             - **Sources:** a paper.\n- **How well it is validated:** tests.\n\
+             - **What it leaves out:** the rest.\n{extra}\n## Method\n\nWords.\n"
+        )
+    }
+
+    /// `text` read as a model page.
+    fn model_page(text: &str) -> Page {
+        read_page("docs/physics/a-model.md", text, true, true)
+    }
+
+    #[test]
+    fn a_model_pages_in_short_labels_are_left_out_and_nothing_else() {
+        // The box's four labels, on a model page: none counted. On any other page: all four.
+        assert_eq!(model_page(&box_with("")).bold_labels, 0);
+        assert_eq!(markdown(&box_with("")).bold_labels, 4);
+        // A fifth bold label in the box, a label given twice, a nested item's label, a label
+        // with other words or with code in it: each counts.
+        for extra in [
+            "- **Also:** more.\n",
+            "- **Sources:** another paper.\n",
+            "  - **Sources:** nested.\n",
+            "- **What it models** with no colon.\n",
+            "- **Sources: `a`** in code.\n",
+        ] {
+            assert_eq!(model_page(&box_with(extra)).bold_labels, 1, "{extra:?}");
+        }
+        // The four labels under another heading, or under `### In short`, count.
+        let later = format!("{}\n- **Sources:** again.\n", box_with(""));
+        assert_eq!(model_page(&later).bold_labels, 1);
+        let deeper = box_with("").replace("## In short", "### In short");
+        assert_eq!(model_page(&deeper).bold_labels, 4);
+        // A level-3 heading inside the box doesn't end it, as `site.rs`'s span has it.
+        let sub = box_with("").replace("- **Sources:**", "### Sub\n\n- **Sources:**");
+        assert_eq!(model_page(&sub).bold_labels, 0);
+        // `site.rs`'s labels are the ones left out, so a renamed label in either place fails.
+        assert_eq!(site::IN_SHORT_ITEMS[0], "What it models:");
+        assert_eq!(site::IN_SHORT, "In short");
+    }
+
+    #[test]
+    fn every_model_page_leaves_out_exactly_its_boxs_four_labels() {
+        let root = crate::designs::root().unwrap();
+        let physics = tracked(&root, &["docs/physics"]).unwrap();
+        let models: Vec<&String> = physics.iter().filter(|path| is_model_page(path)).collect();
+        assert!(models.len() >= 20, "{} model pages", models.len());
+        assert!(!is_model_page("docs/physics/sub/page.md"));
+        assert!(!is_model_page("docs/physics.md"));
+        assert!(!is_model_page("docs/glossary.md"));
+        for path in models {
+            let text = fs::read_to_string(root.join(path)).unwrap();
+            let counted = read_page(path, &text, true, false).bold_labels;
+            let model = read_page(path, &text, true, true).bold_labels;
+            assert_eq!(model + 4, counted, "{path}");
+        }
+        // A model page given by its path, as `cargo xtask voice docs/physics/...` reads it, is
+        // read as one.
+        let path = "docs/physics/quadrature.md";
+        let given = given_pages(&root, &[root.join(path).display().to_string()]).unwrap();
+        let text = fs::read_to_string(root.join(path)).unwrap();
+        assert_eq!(
+            given[0].bold_labels,
+            read_page(path, &text, true, true).bold_labels
+        );
     }
 
     #[test]
@@ -2334,7 +2491,7 @@ mod tests {
         assert!(physics.len() >= 20, "{} model pages", physics.len());
         for path in physics.iter().filter(|path| path.ends_with(".md")) {
             let text = fs::read_to_string(root.join(path)).unwrap();
-            let page = read_page(path, &text, true);
+            let page = read_page(path, &text, true, is_model_page(path));
             assert!(page.stock.is_empty(), "{path}: {:?}", page.stock);
         }
     }
