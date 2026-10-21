@@ -1,7 +1,7 @@
 # ADR-288: Every solid motor ships in the package (2026-10-21)
 
 - **Status:** accepted; replaces ADR-287 §2's "free usage" line and §4's rule that only a passing curve is bundled; ADR-154's fetch stays for motors and files newer than the bundle
-- **Summary:** M5.7: ThrustCurve.org's solid-motor catalog, every record and every curve file hpr reads but a restricted one, is compiled into `hpr-motor`, so no motor in the snapshot needs a fetch; each file carries its check against its motor's published figures, a motor's default file is a passing one where it has one, flying a failing file warns, and `hpr motors update` adds newer motors and files when online.
+- **Summary:** M5.7: ThrustCurve.org's solid-motor catalog, every record and every curve file HPR Sim reads but a restricted one, is compiled into `hpr-motor`, so no motor in the snapshot needs a fetch; each file carries its check against its motor's published figures, a motor's default file is a passing one where it has one, flying a failing file warns, and `hpr motors update` adds newer motors and files when online.
 
 [adr-005]: 0005-solid-motors-statistics-consumption-grains-file.md
 [adr-066]: 0066-every-curve-hpr-flies-is-integrated-as.md
@@ -36,9 +36,9 @@ source (a certification test, the maker, a user). 80 motors have no file.
 **Decision.**
 
 1. **The whole solid catalog is compiled in.** Every solid motor's record and every curve file
-   hpr reads go into `hpr-motor`, from one dated snapshot. Out-of-production motors are included.
+   HPR Sim reads go into `hpr-motor`, from one dated snapshot. Out-of-production motors are included.
    - A motor with no curve is listed but can't fly.
-   - hpr's reader refuses 2 of the 1,712 files, RockSim files whose times run backwards
+   - HPR Sim's reader refuses 2 of the 1,712 files, RockSim files whose times run backwards
      ([the motor page][motor] counts the 1,710 that read). Both motors have a RASP file that reads.
    - A file whose uploader marked it "other (restricted)" stays out. On 2026-10-17 the site had
      none.
