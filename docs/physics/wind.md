@@ -5,22 +5,22 @@ read from a forecast's table of levels.
 
 ## In short
 
-- **What it models:** the steady wind's speed and direction at each height: constant, growing
-  with height from one measured wind (a power or log law), or from a table of levels, such as a
-  forecast.
+- **What it models:** the steady wind's speed and direction at each height. The wind can be
+  constant, or grow with height from one measured wind (a power or log law). It can also come
+  from a table of levels, such as a forecast.
 - **Sources:** the US military flying-qualities specification MIL-F-8785C (1980), NASA's climatic
   criteria for aerospace vehicles NASA/TM-2008-215633 (2008), and the World Meteorological
   Organization's observing guide WMO-No. 8 (2023).
-- **How well it is validated:** tests with exact answers pin each model: with speed and direction interpolated
-  separately (the default), halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30° a table gives 8 m/s (26 ft/s)
-  from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents, HPR Sim's wind,
-  interpolated by components as RocketPy does, matches RocketPy's samples to 1e-9 m/s (in
-  [scientific notation](../glossary.md#scientific-notation): a thousand-millionth of a meter per
-  second). That includes the wind of NDRT 2020, one of the
+- **How well it is validated:** tests with exact answers pin each model. By default a table
+  interpolates speed and direction separately. Halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30°, it
+  gives 8 m/s (26 ft/s) from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents,
+  HPR Sim's wind is interpolated by components, as RocketPy does. It matches RocketPy's samples
+  to 1e-9 m/s (in [scientific notation](../glossary.md#scientific-notation): a
+  thousand-millionth of a meter per second). That includes the wind of NDRT 2020, one of the
   [example rockets](../glossary.md#example-rockets), which changes with height. In the four
   descents with wind, the total [drift](../glossary.md#drift) agrees within 0.28%, and each east or
   north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Seven real flights have been
-  flown in the ERA5 winds of their day, but only their heights are compared, not their drift
+  flown in the ERA5 winds of their day. Only their heights are compared, not their drift
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** wind varying in time or across the field, vertical wind, terrain, and
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or
@@ -36,9 +36,9 @@ Code: [`hpr_atmos::wind`](../api/hpr_atmos/wind/index.html) in the API reference
 top of the steady wind are in [Turbulence](turbulence.md). The example program under
 [An example of each](#an-example-of-each) builds every model.
 
-Sources. Each is pinned under the id given, in the [reference lock file][lock], which records where
-to download it and its SHA-256 hash ([Checking a claim](../checking-a-claim.md#the-trail) explains
-how to fetch and check it):
+Sources. [Checking a claim](../checking-a-claim.md#the-trail) explains how to fetch and check
+each one. Each is pinned under the id given, in the [reference lock file][lock], which records
+where to download it and its SHA-256 hash:
 
 - **[8785C]** MIL-F-8785C, *Flying Qualities of Piloted Airplanes* (1980), §3.7.3.2, pinned as
   `mil-f-8785c`.
@@ -48,20 +48,20 @@ how to fetch and check it):
 
 ### Conventions
 
-- **Velocity:** a wind model returns the velocity of the air, in m/s, along the east, north and up
+- A wind model returns the velocity of the air, in m/s, along the east, north and up
   axes of the [launch frame](../glossary.md#launch-frame-enu). The flight engine's airspeed is the
   rocket's velocity minus this. Mean wind (the steady wind, without gusts) is horizontal, so its up
   part is zero.
-- **Direction:** [meteorological](../glossary.md#wind-direction): the direction the wind blows
+- The direction is [meteorological](../glossary.md#wind-direction): the direction the wind blows
   **from**, clockwise from true north, in radians. For a wind of speed $V$ from direction $\theta$, the
   east and north parts are $v_E = -V \sin\theta$ and $v_N = -V \cos\theta$. A wind from the west ($3\pi/2$,
   270°) blows toward the east, $+E$. RocketPy's *heading* is the direction the wind blows toward,
   $\theta + \pi$.
-- **Height:** a flight asks every model for the wind at a height above mean sea level, as it asks
+- A flight asks every model for the wind at a height above mean sea level, as it asks
   the [atmosphere](atmosphere.md#height-datum). Some models are built from heights above the
   ground instead: [Which height?](#which-height) says which.
-- **Flags:** each answer a wind model gives carries a flag, which is set when the height is
-  outside what the model covers. That is below a table's lowest level or above its highest, or
+- Each answer a wind model gives carries a flag, which is set when the height is outside what
+  the model covers. That is below a table's lowest level or above its highest, or
   below the ground for a power or log law.
   - The model still answers: a table holds its end level's wind, and a law gives calm below the
     ground. The flag says that the answer was filled in, not taken from the model's data.
@@ -81,7 +81,7 @@ one.
 
 ### Models
 
-In the laws below, $V$ is the wind speed at height $z$ above the ground, and $V_{\mathrm{ref}}$ the speed
+In the laws below, $V$ is the wind speed at height $z$ above the ground. $V_{\mathrm{ref}}$ is the speed
 measured at a reference height $z_{\mathrm{ref}}$ above the ground, such as the 10 m (33 ft) mast of a weather
 station. Each law blows from one direction at every height.
 
@@ -98,8 +98,9 @@ station. Each law blows from one direction at every height.
     your field.
   - [The example](#an-example-of-each) uses $\alpha = 1/7$ (about 0.14) with a 10 m (33 ft) reference height,
     the pairing of [TM] eq. 2.22. Its *power law* column shows what that does to a 5.0 m/s (16 ft/s) wind at
-    10 m (33 ft): 4.0 m/s (13 ft/s) at 2 m (6.6 ft), 6.9 m/s (23 ft/s) at 100 m (328 ft), and 10.7 m/s (35 ft/s) at 2,000 m (6,562 ft), where it is still growing.
-  - The law describes the surface layer: the air nearest the ground, where friction with the
+    10 m (33 ft). The wind is 4.0 m/s (13 ft/s) at 2 m (6.6 ft) and 6.9 m/s (23 ft/s) at 100 m (328 ft). At 2,000 m (6,562 ft) it is
+    10.7 m/s (35 ft/s), and still growing.
+  - The law describes the surface layer, the air nearest the ground. There friction with the
     ground sets how fast the wind grows with height ([TM] fits it below 150 m (492 ft)). Above that layer the
     law keeps growing, so pair it with measured winds aloft.
 - **`LogLawWind`:** the speed grows with the logarithm of height,
@@ -113,17 +114,17 @@ station. Each law blows from one direction at every height.
     how rough the ground is (see the values below).
   - This is the neutral surface-layer law $V = (u_*/\kappa) \ln(z/z_0)$ ([WMO] ch. 5 annex; [TM] eq.
     2.8 with $\Psi = 0$), written through a reference wind. There $u_*$ is the friction velocity, a
-    speed that measures how hard the wind drags on the ground, and $\kappa$ is the von Kármán
-    constant, a fixed number of the theory. Writing the law through the wind measured at $z_{\mathrm{ref}}$
+    speed that measures how hard the wind drags on the ground. The von Kármán constant $\kappa$
+    is a fixed number of the theory. Writing the law through the wind measured at $z_{\mathrm{ref}}$
     cancels both, so the simulator needs neither.
-  - $\Psi$ in [TM] eq. 2.8 corrects for the air's stability: air warmed from below mixes more, and
+  - $\Psi$ in [TM] eq. 2.8 corrects for the air's stability. Air warmed from below mixes more, and
     air cooled from below mixes less, which changes how the wind grows with height. $\Psi = 0$ is
     neutral air, where neither happens. The simulator has only the neutral law.
   - [8785C] §3.7.3.2 uses it with $z_{\mathrm{ref}} = 20\,\mathrm{ft}$.
-  - Roughness lengths: 0.03 m (0.098 ft) for open flat terrain with grass ([WMO]; this is class 3 of the
+  - [WMO] gives a roughness length of 0.03 m (0.098 ft) for open flat terrain with grass. That is class 3 of the
     Davenport–Wieringa classification there, which gives a roughness length for each kind of
-    terrain); 0.001–0.01 m (0.0033–0.033 ft) for mown grass and 0.01–0.04 m (0.033–0.13 ft) for low grass or steppe ([TM] Table
-    2-21).
+    terrain. [TM] Table 2-21 gives 0.001–0.01 m (0.0033–0.033 ft) for mown grass and 0.01–0.04 m (0.033–0.13 ft) for low grass or
+    steppe.
 - **`LayeredWind`:** speed and direction tabulated at heights, as from a
   [sounding](../glossary.md#sounding) or a forecast. Between levels it interpolates in one of two
   ways, set by `WindInterpolation`.
@@ -134,17 +135,17 @@ station. Each law blows from one direction at every height.
     reports give calm as "0 from 0°". Without that rule a wind growing out of calm would swing
     through a meaningless direction and create a crosswind neither level has.
   - A near-calm level that isn't exactly 0 still turns the direction
-    ([issue #8](https://github.com/nrdptel/fusionspace-eridanus/issues/8)): 0.1 m/s (0.33 ft/s) from 0° under 10 m/s (33 ft/s)
-    from 270° gives (3.57, −3.57) m/s at the midpoint: 3.57 m/s (11.7 ft/s) blowing south, where the levels
+    ([issue #8](https://github.com/nrdptel/fusionspace-eridanus/issues/8)). Take 0.1 m/s (0.33 ft/s) from 0° under 10 m/s (33 ft/s)
+    from 270°. At the midpoint that gives (3.57, −3.57) m/s: 3.57 m/s (11.7 ft/s) blowing south. The levels
     blow 0.1 m/s (0.33 ft/s) and nothing that way. Where
-    the other levels share one direction the swing likely shortens the drift; where they turn it
-    can lengthen it. A flight through such a span, a level at or below 1.5 m/s (4.9 ft/s) turning by any
-    angle against its neighbor, warns of it
-    ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). 1.5 m/s (4.9 ft/s) is the top of
-    Beaufort force 1, light air, 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
-    [MeteoSwiss's Beaufort table](https://www.meteoswiss.admin.ch/dam/jcr:c1064242-4a6e-4df2-8d21-96e68d1def7a/Beaufort_Tabelle_en.pdf)
-    (1 to 3 knots in the [Met Office's scale](https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale)),
-    whose direction is "shown by smoke drift, but not by wind vanes" in the
+    the other levels share one direction the swing likely shortens the drift. Where they turn it
+    can lengthen it. A flight through such a span warns of it
+    ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). The warning is for a
+    level at or below 1.5 m/s (4.9 ft/s) turning by any angle against its neighbor. 1.5 m/s (4.9 ft/s) is the top of
+    Beaufort force 1, light air. That is 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
+    [MeteoSwiss's Beaufort table](https://www.meteoswiss.admin.ch/dam/jcr:c1064242-4a6e-4df2-8d21-96e68d1def7a/Beaufort_Tabelle_en.pdf),
+    and 1 to 3 knots in the [Met Office's scale](https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale).
+    Light air's direction is "shown by smoke drift, but not by wind vanes" in the
     [Hong Kong Observatory's land criteria](https://my.weather.gov.hk/en/education/weather/wind-and-pressure/00112a-Beaufort_Land_Sea_Criterion.html).
   - `Components` interpolates the east and north parts linearly, as RocketPy does. Between levels
     90° apart the speed dips by up to 29%.
@@ -154,9 +155,9 @@ station. Each law blows from one direction at every height.
 - **`WindModel`:** any one of the four, as a flight or a file takes it. In JSON its `model` field
   names which one ([In JSON](#in-json)).
 
-**[Loft lesson L6](../decisions-and-roadmap.md#l6)**, a mistake found in Loft, the project before
-FusionSpace HPR: design-file runs used one wind vector, and forecast profiles stepped at the lowest
-level instead of blending from the surface.
+Loft, the project before FusionSpace HPR, got this wrong
+([Loft lesson L6](../decisions-and-roadmap.md#l6)). Its design-file runs used one wind vector, and
+its forecast profiles stepped at the lowest level instead of blending from the surface.
 
 ### Which height?
 
@@ -179,16 +180,16 @@ name says which height it is: `_msl_` is above mean sea level, and `_agl_` is ab
 So a table's levels, from a forecast or a sounding, are **above sea level**. At a site 1,400 m (4,593 ft)
 above sea level, a forecast's 10 m (33 ft) wind goes in at 1,410 m (4,626 ft). Entered at 10 m (33 ft) instead, the whole
 profile sits 1,400 m (4,593 ft) too low. The [example](#an-example-of-each)'s last column shows what the
-flight would then see: 11.6 m/s (38 ft/s) from 298° near the pad instead of 5.0 m/s (16 ft/s) from 270°, and the top
-level's 12.0 m/s (39 ft/s) from 300° from 100 m (328 ft) up. Above that, every sample is
+flight would then see. Near the pad it sees 11.6 m/s (38 ft/s) from 298° instead of 5.0 m/s (16 ft/s) from 270°.
+From 100 m (328 ft) up it sees the top level's 12.0 m/s (39 ft/s) from 300°. Above that, every sample is
 [flagged](#conventions) as beyond the table, which is the sign to look for.
 
-**What to enter for your field's elevation.** The launch site's height, the third number in
-`Geodetic::from_degrees(latitude, longitude, height)`, is an
+**What to enter for your field's elevation.** The launch site's height is the third number in
+`Geodetic::from_degrees(latitude, longitude, height)`. It is an
 [ellipsoidal height](../glossary.md#ellipsoidal-height): height above the
 [WGS 84](../glossary.md#wgs-84) ellipsoid, the smooth shape the simulator gives the Earth. A field's
 elevation, as a map gives it, is height above sea level instead. The two differ by the geoid
-undulation $N$, the height of sea level above the ellipsoid at that place, which can be up to
+undulation $N$, the height of sea level above the ellipsoid at that place. $N$ can be up to
 about 100 m (328 ft). The simulator has no map of $N$, so there are two ways to set up a site:
 
 - **The simple way, which the examples take.** Enter your field's elevation above sea level as
@@ -207,9 +208,9 @@ whole profile is shifted up or down by the error.
 
 Three more things to watch:
 
-- **Geopotential heights.** Soundings and forecasts often give heights in geopotential meters
-  above sea level, not geometric meters (the meters a tape measure would give).
-  - A geopotential meter measures height by the work done lifting a mass against gravity: it is
+- Soundings and forecasts often give heights in geopotential meters above sea level, not
+  geometric meters (the meters a tape measure would give).
+  - A geopotential meter measures height by the work done lifting a mass against gravity. It is
     the climb that takes as much work as one meter does where gravity is 9.80665 m/s².
   - Gravity varies with height and latitude, so the two differ by an amount that depends on
     both. 30 km (19 mi) above sea level is 29.7785 km (18.504 mi) of geopotential at the equator and 29.932 km (18.60 mi) at
@@ -217,11 +218,11 @@ Three more things to watch:
   - Convert them first with
     [`geometric_from_wmo_geopotential_m`](../api/hpr_atmos/profile/fn.geometric_from_wmo_geopotential_m.html)
     ([Atmosphere](atmosphere.md#sounding-and-forecast-profiles) explains).
-- **A sounding's wind** is a `LayeredWind` (`SoundingProfile::wind`). A flight flies it only if
+- A sounding's wind is a `LayeredWind` (`SoundingProfile::wind`). A flight flies it only if
   you also pass it to `with_wind`: the atmosphere and the wind are separate parts of
   `Environment`.
-- **The flags.** A table flags a height below or above its levels, and a law a height below the
-  ground ([Conventions](#conventions) says how to read a flag). A flight doesn't report flags yet
+- A table flags a height below or above its levels, and a law flags one below the ground.
+  [Conventions](#conventions) says how to read a flag. A flight doesn't report flags yet
   ([issue #45](https://github.com/nrdptel/fusionspace-eridanus/issues/45)), so ask the model yourself before
   flying a table, as the example does.
 
@@ -279,17 +280,17 @@ above ground (m)      constant      power law        log law        layered    w
 
 Reading it:
 
-- **Each law passes through its reference wind,** 5.0 m/s (16 ft/s) at 10 m (33 ft), and blows from 270° at every
+- Each law passes through its reference wind, 5.0 m/s (16 ft/s) at 10 m (33 ft), and blows from 270° at every
   height.
-- **The power and log laws** agree near their reference height and part away from it: 4.0 against
-  3.6 m/s (12 ft/s) at 2 m (6.6 ft), and 10.7 against 9.6 m/s (31 ft/s) at 2,000 m (6,562 ft). Both keep growing far above the surface
+- The power and log laws agree near their reference height and part away from it. At 2 m (6.6 ft)
+  they give 4.0 against 3.6 m/s (12 ft/s). At 2,000 m (6,562 ft) they give 10.7 against 9.6 m/s (31 ft/s). Both keep growing far above the surface
   layer they describe, which is why winds aloft should come from a table.
-- **The layered wind** blends from 5.0 m/s (16 ft/s) from 270° at 10 m (33 ft) to 8.0 m/s (26 ft/s) from 280° at 500 m (1,640 ft),
-  turning with height. At 2 m (6.6 ft), below its lowest level, it holds the 10 m (33 ft) wind; at 2,000 m (6,562 ft), above
+- The layered wind blends up from 5.0 m/s (16 ft/s) from 270° at 10 m (33 ft), turning with height. At 500 m (1,640 ft) it
+  reaches 8.0 m/s (26 ft/s) from 280°. At 2 m (6.6 ft), below its lowest level, it holds the 10 m (33 ft) wind. At 2,000 m (6,562 ft), above
   its top level, it holds 12.0 m/s (39 ft/s) from 300°. The star marks both as flagged.
-- **The wrong datum** column is the same table with its heights entered above the ground by
+- The *wrong datum* column is the same table with its heights entered above the ground by
   mistake ([Which height?](#which-height)).
-- **The JSON** at the end is the layered wind as a file holds it ([In JSON](#in-json)).
+- The JSON at the end is the layered wind as a file holds it ([In JSON](#in-json)).
 
 To fly one of them, give it to the flight's environment, as the program does for each column:
 `Environment::standard(site)?.with_wind(wind)`. Then build the `Simulation` from that environment,
@@ -466,23 +467,23 @@ other fields are that model's inputs:
 - Reporting during a flight that the wind was held beyond a table's levels.
 
 A flight takes one wind model, so it can't join a power or log law near the ground to a table of
-levels aloft. The planned weather milestone ([M5.2](../decisions-and-roadmap.md#m5-2)) decides how to.
+levels aloft. [The planned weather milestone](../decisions-and-roadmap.md#m5-2) decides how to.
 
 ## Tests that pin this
 
-- **`wind::tests::layered_wind_interpolates_speed_and_heading`** ([Loft lesson L6](../decisions-and-roadmap.md#l6), the
+- `wind::tests::layered_wind_interpolates_speed_and_heading` ([Loft lesson L6](../decisions-and-roadmap.md#l6), the
   forecast profile that stepped at its lowest level):
-  - Halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30°, the wind is 8 m/s (26 ft/s) from 10°, turning
+  - Halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30°, the wind is 8 m/s (26 ft/s) from 10°. It turns
     through north.
   - There is no step just above the surface level.
-- **`components_interpolation_averages_the_vectors`**, **`opposite_directions_turn_clockwise`**
-  and **`wind_grows_out_of_calm_without_turning`**.
-- **`layered_wind_holds_and_flags_beyond_its_levels`**.
-- **`meteorological_direction_convention`**, plus the power and log laws through their
+- `components_interpolation_averages_the_vectors`, `opposite_directions_turn_clockwise`
+  and `wind_grows_out_of_calm_without_turning`.
+- `layered_wind_holds_and_flags_beyond_its_levels`.
+- `meteorological_direction_convention`, plus the power and log laws through their
   references, below ground, and at $z_0$.
-- **`invalid_inputs_are_rejected`**, and **`wind_models_round_trip_through_json`**: each model
+- `invalid_inputs_are_rejected`, and `wind_models_round_trip_through_json`: each model
   written to JSON and read back gives the same wind.
-- **Against RocketPy**, in the recovery test `descent_matches_rocketpy_examples`
+- Against RocketPy, in the recovery test `descent_matches_rocketpy_examples`
   ([Recovery](recovery.md#against-rocketpy)):
   - At every height its parachute descents sample, HPR Sim's wind matches RocketPy's within 1e-9 m/s
     in its east and north parts.

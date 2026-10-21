@@ -11,17 +11,17 @@ each table does past its ends.
 - **Sources:** the slope form of the cubic spline in C. de Boor, *A Practical Guide to Splines*
   (Springer, 2001).
 - **How well it is validated:** analytic and unit tests only. The spline through (0, 0), (1, 1)
-  and (2, 0) matches its closed form, $y = 3x/2 - x^3/2$ on $[0, 1]$, and property tests check
-  that both kinds hit every point. Not compared with another simulator or a flight.
+  and (2, 0) matches its closed form, $y = 3x/2 - x^3/2$ on $[0, 1]$. Property tests check that
+  both kinds hit every point. Not compared with another simulator or a flight.
 - **What it leaves out:** tables of more than one input. A natural spline can overshoot where data
-  turn sharply (a thrust spike, a transonic drag peak), and there is no overshoot-free (monotone)
+  turn sharply (a thrust spike, a transonic drag peak). There is no overshoot-free (monotone)
   cubic yet, so use linear tables there.
 
 ## Code and sources
 
-Code: `hpr_core::interp` (`Table1D`). Today it carries the drag tables that override HPR Sim's own
-drag, $C_D(M)$ ([Aerodynamics](aero.md)); thrust curves and soundings interpolate on their own
-([Solid motors](motor.md), [Atmosphere](atmosphere.md)). Every table states how it interpolates and
+Code: `hpr_core::interp` (`Table1D`). Today it carries the tables that override HPR Sim's own
+drag, $C_D(M)$, and normal force ([Aerodynamics](aero.md)). Thrust curves and soundings interpolate
+on their own ([Solid motors](motor.md), [Atmosphere](atmosphere.md)). Every table states how it interpolates and
 what happens outside its range, and every lookup reports whether it extrapolated.
 
 ## Knots
@@ -34,8 +34,8 @@ deserialization both enforce this.
 
 Inside $[x_0, x_{n-1}]$, with $t = (x - x_i)/h_i$ on interval $i$:
 
-- **Linear:** $y = (1 - t)\, y_i + t\, y_{i+1}$. This form returns the knot values exactly.
-- **Natural cubic spline:** the cubic Hermite form with knot slopes $s_i$:
+- Linear: $y = (1 - t)\, y_i + t\, y_{i+1}$. This form returns the knot values exactly.
+- Natural cubic spline: the cubic Hermite form with knot slopes $s_i$:
 
   $$
   \begin{aligned}
@@ -87,15 +87,15 @@ peak). Use linear tables for such data; a monotone cubic can be added when a mod
 | `error` | `CoreError::OutOfRange` | `CoreError::OutOfRange` |
 
 $m$ is the end interval's secant for a linear table and the spline's end slope $s_0$ or $s_{n-1}$
-for a cubic one, so linear extrapolation of a natural spline stays twice differentiable. A lookup
+for a cubic one. So linear extrapolation of a natural spline stays twice differentiable. A lookup
 at NaN is an error under every policy.
 
 ## Tests that pin this (`crates/hpr-core/src/interp.rs`)
 
 - `natural_spline_matches_the_three_knot_closed_form`: knots $(0,0)$, $(1,1)$, $(2,0)$ give slopes
   $(3/2, 0, -3/2)$ and $y = 3x/2 - x^3/2$ on $[0, 1]$, symmetric about $x = 1$.
-- Property tests: both kinds reproduce the knots exactly; linear values stay within each
-  interval's end values; the spline's second derivative is continuous at interior knots and zero
-  at the ends; the spline reproduces straight lines, extrapolation included; each policy behaves
-  as in the table above; a JSON round trip rebuilds an identical table.
+- Property tests: both kinds reproduce the knots exactly. Linear values stay within each
+  interval's end values. The spline's second derivative is continuous at interior knots and zero
+  at the ends. The spline reproduces straight lines, extrapolation included. Each policy behaves
+  as in the table above. A JSON round trip rebuilds an identical table.
 - `rejects_malformed_knots`, `deserializing_checks_the_knots`: malformed input fails.
