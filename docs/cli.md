@@ -42,7 +42,7 @@ Its other commands are registered but not available yet. Each refuses and names 
 >   [thrust curve](glossary.md#thrust-curve) with the same code a flight uses. On all 32 bundled
 >   curves, that code matches ThrustCurve.org's own statistics code to 1.8e-15, relative
 >   ([Solid motors](physics/motor.md#validation)). `hpr motors list` gives the same figures for
->   the bundled motors.
+>   the bundled motors, by the same code.
 > - `hpr convert` keeps the thrust curve, the size and the masses. Each of the 32 bundled motor
 >   files, converted to the other format and back, reads as before in the simulator. That holds bit
 >   for bit, except two masses written with 17 digits, each flagged by a warning

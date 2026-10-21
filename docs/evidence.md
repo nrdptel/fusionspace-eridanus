@@ -9,8 +9,8 @@ The pages say plainly when a file reader, a model or a check rests on less than 
 - a value assumed because no sample states it;
 - a model checked only against another program.
 
-Each such statement is a row of the register, [`validation/evidence.toml`][register]. The page
-that states the gap links its row here, so the gap has a place to be closed. A row short of the
+Each such statement is a row of the register, [`validation/evidence.toml`][register]. A page that
+states a gap in one of the check's phrases links its row here, so the gap has a place to be closed. A row short of the
 evidence it wants keeps an open issue labeled [`needs-sample`][label] until a real sample or
 measurement settles it. [A decision record][adr] set this up.
 
@@ -130,7 +130,7 @@ The register holds 32 rows, as of October 20, 2026.
 
   It found no openly downloadable GPX of a real rocket flight. The dedicated trackers write KML, CSV or raw NMEA. GPX comes from phone apps, handheld receivers and mapping tools.
 - [G1](#g1), October 20, 2026, looked at:
-  - Rocketry Forum thread 135349's attachments, their GPX files counted for `geoidheight`
+  - Rocketry Forum thread 135349's attachments, fetched from its attachment links, their GPX files counted for `geoidheight`
   - GitHub code search for GPX files with `geoidheight`, with and without rocketry words
   - OpenStreetMap traces tagged rocket
   - Zenodo, figshare, Kaggle and other data sites
