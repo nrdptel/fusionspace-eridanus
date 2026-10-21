@@ -176,8 +176,8 @@ Write a thought as a paragraph. Use a list for what really is a list: steps, opt
 a list as many items as there are, not three of the same shape because three sounds finished.
 
 Open an item with a bold label only where a reader scans for it, as in a list of options. A model
-page's *In short* box is another such place. Such items still count toward the limit, all but the
-four labels of that box ([below](#measured-not-gated)). A line that opens with a bold label reads
+page's *In short* box is another such place. Bold-label items count toward the limit, except the
+four labels of a model page's *In short* box ([below](#measured-not-gated)). A line that opens with a bold label reads
 like a form, as this pair shows.
 
 *Before*, in the README: "**Status: RELEASED.** Version 0.1.0, released October 8, 2026; work toward
@@ -325,11 +325,12 @@ rate over its limit, or one sentence target missed, fails the build. The report 
 `held`. The rest join as they're rewritten, until every site page is held
 ([the plan for the rest of the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-The site also holds a model page's *In short* box to its shape: four bulleted items, each opening
-with its label in bold. The four labels are what it models, its sources, how well it is validated
-and what it leaves out. A reader scans the box, and on a short page its four labels alone would
-exceed the limit. So the check doesn't count them as bold-label items. Any other bold label on a
-model page counts.
+The site also holds a model page's *In short* box to its shape. It's four bulleted items, each
+opening with its label in bold: `**What it models:**`, `**Sources:**`, `**How well it is
+validated:**` and `**What it leaves out:**`, in that order. A reader scans the box, and on a short
+page its four labels alone would exceed the limit. So on a box of that shape the check doesn't
+count those four labels as bold-label items. A box the site refuses keeps them in the count, and
+any other bold label on a model page counts.
 A cap of about 150 words on the box was planned and isn't built yet.
 
 The targets for user pages are at most 20 words a sentence on average and fewer than 10% of

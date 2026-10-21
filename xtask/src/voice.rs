@@ -3,7 +3,7 @@
 //!
 //! A page can be correct and still read as if nobody in particular wrote it. `cargo xtask voice`
 //! counts, per page and per 100 words, the patterns behind that ([`Pattern`]): bold-label list
-//! items (less the four labels of a model page's *In short* box, [`InShort`]), internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
+//! items (less the four labels of a model page's *In short* box, [`read_page`]), internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
 //! ("simply", "just"), signposts ("In this section"), and first person on a reference page. It
 //! also reports the register, which has no limit of its own beyond first person on a reference
 //! page: "I", "we", "you" and contractions per 100 words,
@@ -40,7 +40,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use pulldown_cmark::{Event, HeadingLevel, LinkType, Parser, Tag, TagEnd};
+use pulldown_cmark::{Event, LinkType, Parser, Tag, TagEnd};
 
 use crate::site;
 
@@ -965,7 +965,7 @@ fn is_reference(path: &str) -> bool {
 
 /// Whether a page, by its path from the repository's root, is a model page: a file directly under
 /// `docs/physics/`, which opens with *In short* (`site.rs`). The four labels of that box aren't
-/// counted as bold-label items (ADR-285 §5).
+/// counted as bold-label items ([`read_page`], ADR-285 §5).
 fn is_model_page(path: &str) -> bool {
     path.strip_prefix(&format!("{}/{}/", site::SOURCE, site::MODELS))
         .is_some_and(|name| name.ends_with(".md") && !name.contains('/'))
@@ -1043,19 +1043,30 @@ fn walk(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
 }
 
 /// A Markdown (or plain text) page, read; `model` if it's a model page ([`is_model_page`]).
+///
+/// A model page's *In short* box is the one list the guide asks every model page to open with,
+/// and a reader scans it; on a short page its four labels alone would pass the bold-label limit.
+/// So on a model page whose box has the form `site.rs` holds it to ([`site::in_short`]), the
+/// count leaves out four: that form is four top-level items, each opening with one of
+/// [`site::IN_SHORT_ITEMS`] in bold, which [`read_markdown`] counted (ADR-285 §5). A box the
+/// site refuses, or the same box on any other page, keeps its labels in the count.
 fn read_page(path: &str, text: &str, reference: bool, model: bool) -> Page {
-    page_from(path, text, read_markdown(text, model), reference)
+    let mut reading = read_markdown(text);
+    if model && site::in_short(text).is_none() {
+        reading.bold_labels = reading
+            .bold_labels
+            .saturating_sub(site::IN_SHORT_ITEMS.len());
+    }
+    page_from(path, text, reading, reference)
 }
 
-/// The text a reader sees on a Markdown page, as runs. On a model page, the four labels its
-/// *In short* box opens its items with aren't bold-label items ([`InShort`]).
-fn read_markdown(source: &str, model: bool) -> Reading {
+/// The text a reader sees on a Markdown page, as runs.
+fn read_markdown(source: &str) -> Reading {
     let mut reading = Reading::default();
     let mut code_block = 0usize;
     let mut image = 0usize;
     let mut item_opening = false;
     let mut autolink = 0usize;
-    let mut in_short = InShort::default();
     for (event, range) in Parser::new_ext(source, crate::site::options()).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => code_block += 1,
@@ -1086,16 +1097,7 @@ fn read_markdown(source: &str, model: bool) -> Reading {
                 item_opening = false;
                 reading.push(&as_code(&text), range.start);
             }
-            Event::Start(Tag::Heading { level, .. }) => {
-                in_short.heading = Some((level, String::new()));
-                reading.open(Block::Heading);
-            }
-            Event::End(TagEnd::Heading(_)) => {
-                in_short.close_heading(model);
-                reading.open(Block::Prose);
-            }
-            Event::Start(Tag::List(_)) => in_short.lists += 1,
-            Event::End(TagEnd::List(_)) => in_short.lists = in_short.lists.saturating_sub(1),
+            Event::Start(Tag::Heading { .. }) => reading.open(Block::Heading),
             Event::Start(Tag::TableCell) => reading.open(Block::Cell),
             Event::Start(Tag::Paragraph) => reading.open(Block::Prose),
             Event::Start(Tag::Item) => {
@@ -1104,96 +1106,28 @@ fn read_markdown(source: &str, model: bool) -> Reading {
             }
             Event::Start(Tag::Strong) => {
                 if item_opening {
-                    if in_short.inside && in_short.lists == 1 && in_short.label.is_none() {
-                        in_short.label = Some(String::new());
-                    } else {
-                        reading.bold_labels += 1;
-                    }
-                }
-                item_opening = false;
-            }
-            Event::End(TagEnd::Strong) => {
-                if let Some(label) = in_short.label.take()
-                    && !in_short.leave_out(&label)
-                {
                     reading.bold_labels += 1;
                 }
+                item_opening = false;
             }
             Event::Text(text) => {
                 if !text.trim().is_empty() {
                     item_opening = false;
                 }
-                in_short.read(&text);
                 reading.push(&addresses_as_code(&text), range.start);
             }
             Event::Code(_) | Event::InlineMath(_) | Event::DisplayMath(_) => {
                 item_opening = false;
-                // A label with code or math in it isn't one of the box's four.
-                in_short.read(&format!(" {CODE} "));
                 reading.push(&format!(" {CODE} "), range.start);
             }
             Event::SoftBreak | Event::HardBreak => reading.push(" ", range.start),
-            Event::End(TagEnd::TableCell | TagEnd::Paragraph | TagEnd::Item) => {
-                reading.open(Block::Prose);
-            }
+            Event::End(
+                TagEnd::Heading(_) | TagEnd::TableCell | TagEnd::Paragraph | TagEnd::Item,
+            ) => reading.open(Block::Prose),
             _ => {}
         }
     }
     reading
-}
-
-/// Where a Markdown reader is, for a model page's *In short* box: the section under its
-/// `## In short` heading, up to the next heading of level 1 or 2 (as `site.rs` finds it). A
-/// reader scans the box, and on a short page its four labels alone pass the bold-label limit, so
-/// the label each of its items opens with, one of [`site::IN_SHORT_ITEMS`], isn't counted as a
-/// bold-label item: each of the four once, on a top-level item of the box (ADR-285 §5). Any
-/// other bold label counts, there or elsewhere.
-#[derive(Debug, Default)]
-struct InShort {
-    /// In a model page's *In short* section.
-    inside: bool,
-    /// The heading being read: its level and its text so far.
-    heading: Option<(HeadingLevel, String)>,
-    /// How deep in lists the reader is.
-    lists: usize,
-    /// The bold text a top-level item of the box opens with, read so far.
-    label: Option<String>,
-    /// Which of [`site::IN_SHORT_ITEMS`] have been left out already.
-    left_out: [bool; 4],
-}
-
-impl InShort {
-    /// Text read: part of the heading or the label being read, if either is.
-    fn read(&mut self, text: &str) {
-        if let Some(label) = self.label.as_mut() {
-            label.push_str(text);
-        }
-        if let Some((_, heading)) = self.heading.as_mut() {
-            heading.push_str(text);
-        }
-    }
-
-    /// A heading ends: one of level 1 or 2 starts the box, on a model page, or ends it.
-    fn close_heading(&mut self, model: bool) {
-        if let Some((level, text)) = self.heading.take()
-            && matches!(level, HeadingLevel::H1 | HeadingLevel::H2)
-        {
-            self.inside = model && level == HeadingLevel::H2 && text.trim() == site::IN_SHORT;
-        }
-    }
-
-    /// Whether `label`, the whole bold text a top-level item of the box opens with, is one of the
-    /// box's four labels not left out yet; if so, it's left out from now on.
-    fn leave_out(&mut self, label: &str) -> bool {
-        let found = site::IN_SHORT_ITEMS
-            .iter()
-            .position(|item| *item == label)
-            .filter(|&at| !self.left_out[at]);
-        if let Some(at) = found {
-            self.left_out[at] = true;
-        }
-        found.is_some()
-    }
 }
 
 /// `text` read as one code word, padded with spaces to its length so later marks still line up.
@@ -2082,14 +2016,16 @@ mod tests {
         assert_eq!(html.bold_labels, 1);
     }
 
-    /// A model page's *In short* box, as `site.rs` holds it, with `extra` added to its list.
-    fn box_with(extra: &str) -> String {
+    /// A model page's opening, `box_` its *In short* list, then a section with `after` in it.
+    fn model_with(box_: &str, after: &str) -> String {
         format!(
-            "# A model\n\nWhat it covers.\n\n## In short\n\n- **What it models:** a thing.\n\
-             - **Sources:** a paper.\n- **How well it is validated:** tests.\n\
-             - **What it leaves out:** the rest.\n{extra}\n## Method\n\nWords.\n"
+            "# A model\n\nWhat it covers.\n\n## In short\n\n{box_}\n## Method\n\nWords.\n\n{after}"
         )
     }
+
+    /// The *In short* list as `site.rs` holds it.
+    const BOX: &str = "- **What it models:** a thing.\n- **Sources:** a paper.\n\
+                       - **How well it is validated:** tests.\n- **What it leaves out:** the rest.\n";
 
     /// `text` read as a model page.
     fn model_page(text: &str) -> Page {
@@ -2097,32 +2033,56 @@ mod tests {
     }
 
     #[test]
-    fn a_model_pages_in_short_labels_are_left_out_and_nothing_else() {
-        // The box's four labels, on a model page: none counted. On any other page: all four.
-        assert_eq!(model_page(&box_with("")).bold_labels, 0);
-        assert_eq!(markdown(&box_with("")).bold_labels, 4);
-        // A fifth bold label in the box, a label given twice, a nested item's label, a label
-        // with other words or with code in it: each counts.
-        for extra in [
-            "- **Also:** more.\n",
-            "- **Sources:** another paper.\n",
-            "  - **Sources:** nested.\n",
-            "- **What it models** with no colon.\n",
-            "- **Sources: `a`** in code.\n",
+    fn a_model_pages_in_short_labels_are_left_out_only_in_the_form_the_site_holds() {
+        // The box as the site holds it: its four labels are left out on a model page, and only
+        // those four; on any other page they count.
+        let held = model_with(BOX, "- **Option.** One.\n- **Other.** Two.\n");
+        assert_eq!(site::in_short(&held), None);
+        assert_eq!(model_page(&held).bold_labels, 2);
+        assert_eq!(markdown(&held).bold_labels, 6);
+        // A label wrapped over two lines, or written in code, is one the site reads as its own.
+        for box_ in [
+            BOX.replace("is validated:**", "is\n  validated:**"),
+            BOX.replace("**Sources:**", "**`Sources:`**"),
         ] {
-            assert_eq!(model_page(&box_with(extra)).bold_labels, 1, "{extra:?}");
+            let text = model_with(&box_, "");
+            assert_eq!(site::in_short(&text), None, "{box_:?}");
+            assert_eq!(model_page(&text).bold_labels, 0, "{box_:?}");
         }
-        // The four labels under another heading, or under `### In short`, count.
-        let later = format!("{}\n- **Sources:** again.\n", box_with(""));
-        assert_eq!(model_page(&later).bold_labels, 1);
-        let deeper = box_with("").replace("## In short", "### In short");
+        // A box the site refuses keeps every label in the count: a fifth item, a renamed or
+        // nested label, the labels out of order, `### In short`, the box after another section,
+        // in a quote or in a numbered list.
+        let refused = [
+            (format!("{BOX}- **Also:** more.\n"), 5),
+            (BOX.replace("**Sources:**", "**Source:**"), 4),
+            (
+                BOX.replace(
+                    "- **Sources:** a paper.",
+                    "- **Other:** x.\n  - **Sources:** a paper.",
+                ),
+                5,
+            ),
+            (BOX.replace("**Sources:**", "**Sources: `a`**"), 4),
+            (
+                BOX.replace("**What it models:** a thing.", "**Sources:** a thing.")
+                    .replacen("**Sources:** a paper.", "**What it models:** a paper.", 1),
+                4,
+            ),
+            (BOX.replace("- ", "1. "), 4),
+            (BOX.lines().map(|line| format!("> {line}\n")).collect(), 4),
+        ];
+        for (box_, labels) in &refused {
+            let text = model_with(box_, "");
+            assert!(site::in_short(&text).is_some(), "{box_:?}");
+            assert_eq!(model_page(&text).bold_labels, *labels, "{box_:?}");
+        }
+        let deeper = model_with(BOX, "").replace("## In short", "### In short");
+        assert!(site::in_short(&deeper).is_some());
         assert_eq!(model_page(&deeper).bold_labels, 4);
-        // A level-3 heading inside the box doesn't end it, as `site.rs`'s span has it.
-        let sub = box_with("").replace("- **Sources:**", "### Sub\n\n- **Sources:**");
-        assert_eq!(model_page(&sub).bold_labels, 0);
-        // `site.rs`'s labels are the ones left out, so a renamed label in either place fails.
-        assert_eq!(site::IN_SHORT_ITEMS[0], "What it models:");
-        assert_eq!(site::IN_SHORT, "In short");
+        let later =
+            model_with(BOX, "").replace("## In short", "## Before\n\nWords.\n\n## In short");
+        assert!(site::in_short(&later).is_some());
+        assert_eq!(model_page(&later).bold_labels, 4);
     }
 
     #[test]
@@ -2136,6 +2096,11 @@ mod tests {
         assert!(!is_model_page("docs/glossary.md"));
         for path in models {
             let text = fs::read_to_string(root.join(path)).unwrap();
+            // The site holds the box, so its four items each open with a bold label, which the
+            // count leaves out; a bold label nested in an answer still counts.
+            assert_eq!(site::in_short(&text), None, "{path}");
+            let span = site::in_short_span(&text).unwrap();
+            assert!(read_markdown(&text[span]).bold_labels >= 4, "{path}");
             let counted = read_page(path, &text, true, false).bold_labels;
             let model = read_page(path, &text, true, true).bold_labels;
             assert_eq!(model + 4, counted, "{path}");

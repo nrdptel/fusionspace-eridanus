@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 51 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 439000 words, 0 stock phrases. 56 pages are within every limit.
+82 pages, 439011 words, 0 stock phrases. 56 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -100,6 +100,6 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/trusting-a-simulation.md` (`held`) | 1555 | 15.2 | 2% | 0.00 | 0.00 | 0.13 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 1.03 |
 | `docs/weather.md` (`held`) | 1974 | 13.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.87 |
 | `docs/when-fins-flutter.md` (`held`) | 1773 | 14.9 | 1% | 0.23 | 0.00 | 0.06 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.17 | 0.68 |
-| `docs/writing.md` (`held`) | 9518 | 14.3 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.96 |
+| `docs/writing.md` (`held`) | 9529 | 14.3 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.97 |
 | `docs/your-own-logger.md` (`held`) | 2407 | 14.5 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4489 | 14.5 | 0% | 0.36 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.67 |
