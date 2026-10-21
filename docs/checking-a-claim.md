@@ -3,11 +3,9 @@
 Trace any number HPR Sim computes to its published source, the test that pins it and any comparison
 with another program or a flight.
 
-Every number HPR Sim computes, and every number on this site, should lead back to the published
-source of the model behind it. It should also lead to a test that pins it and, where one exists, a
-comparison with another program or a real flight. This page shows how to follow that trail, with two
-worked examples. It's for anyone who would rather check a claim than trust it. If a trail breaks,
-that's a bug, and the last section says how to report it.
+Every number HPR Sim computes, and every number on this site, should have that trail. This page
+shows how to follow it, with two worked examples. It's for anyone who would rather check a claim
+than trust it. If a trail breaks, that's a bug, and the last section says how to report it.
 
 > **How far to trust it.** This page is a method, not a result. Its two worked examples follow
 > trails that exist today. One is gravity at the equator, 9.7803253359 m/s² as Table 3.6 of the

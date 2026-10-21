@@ -42,8 +42,7 @@ Its other commands are registered but not available yet. Each refuses and names 
 >   [thrust curve](glossary.md#thrust-curve) with the same code a flight uses. On all 32 bundled
 >   curves, that code matches ThrustCurve.org's own statistics code to 1.8e-15, relative
 >   ([Solid motors](physics/motor.md#validation)). `hpr motors list` gives the same figures for
->   the bundled motors, worked out by the same code from the same
->   [ThrustCurve.org](glossary.md#thrustcurveorg) files.
+>   the bundled motors.
 > - `hpr convert` keeps the thrust curve, the size and the masses. Each of the 32 bundled motor
 >   files, converted to the other format and back, reads as before in the simulator. That holds bit
 >   for bit, except two masses written with 17 digits, each flagged by a warning
@@ -65,9 +64,10 @@ Its other commands are registered but not available yet. Each refuses and names 
 
 ## Running it
 
-There is no ready-built download yet. `hpr` needs Rust and a copy of the repository, set up as
-[Getting started](getting-started.md#build-it-and-fly) shows. From that copy, run it through
-Cargo:
+Release 0.1 has downloads for Linux and Windows on x86-64 and for Macs with Apple silicon
+([Install a release](getting-started.md#install-a-release)). To run `hpr` from a copy of the
+repository instead, set it up as [Getting started](getting-started.md#build-it-and-fly) shows,
+then run it through Cargo:
 
 ```bash
 cargo run -p fusionspace-hpr-cli -- motors list
@@ -255,8 +255,8 @@ folder isn't there either, the folder is named instead.
 
 A motor the bundled catalog lacks is named with the catalog's motors whose designation or common
 name begins with what you typed. `H5` begins `H54`, the common name of `168H54-10A`. The refusal
-adds what [ThrustCurve.org](#motors-from-thrustcurveorg) says of it. That's the command that fetches
-it, or, once the cache holds its answer, the motors that answer the name:
+also gives [ThrustCurve.org](#motors-from-thrustcurveorg)'s answer: the command that fetches the
+motor, or, once the cache holds the answer, the motors that match the name:
 
 <!-- cli: example `hpr motors show H5`, exits 1 -->
 
@@ -313,8 +313,7 @@ only the files each command really reads. "Not yet" commands exit with [status 3
 
 It reads an [OpenRocket](glossary.md#openrocket) `.ork` file, or a design in
 [the HPR design format](format/hpr.md): `.hpr`, or `.hprz` with its attachments. It also reads a
-rocket's JSON (`.json`, the tree [Your own rocket](your-own-rocket.md) describes). It runs the same
-simulation code as the Rust library. So a Rust program flying the same design gets the same numbers.
+rocket's JSON (`.json`, the tree [Your own rocket](your-own-rocket.md) describes).
 
 A `.hpr` or `.hprz` flies exactly as the `.ork` it was converted from
 ([converting a design](#converting-a-design)). It doesn't print the `.ork` reader's warnings,
@@ -452,7 +451,7 @@ copy in the cache, `hpr sim` refuses and names the command that fetches it (abri
 
 ```text
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it: no thrust curve for H128W: ...; AeroTech H128W is not in hpr's cache of ThrustCurve.org, and the run is offline
+error: configuration [H128W-0] can't be flown as the file has it: no thrust curve for H128W: ...; AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
 help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
 help: give a motor with --motor
 ```
@@ -584,7 +583,7 @@ only tumbles lands with "not a prediction".
 
 In the JSON, a device's `body` is `null` for the sustainer and the part's index otherwise. `added`
 is true for a tumble the simulator added, and a tumble opened at the split has `opens_at`
-`separation`. The [M4.5g1 milestone](decisions-and-roadmap.md#m4-5g1) shipped this. The
+`separation`. [The powered separation milestone](decisions-and-roadmap.md#m4-5g1) shipped this. The
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md)
 says why each part needs a device.
 
@@ -611,7 +610,7 @@ sustainer, part 0, flies on. The output then prints `landing, part 1` and `landi
   [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
   ([evidence row G13](evidence.md#g13)).
 
-The [M4.5g2 milestone](decisions-and-roadmap.md#m4-5g2) shipped this. Its
+[The several separations milestone](decisions-and-roadmap.md#m4-5g2) shipped this. Its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0160-several-powered-separations.md)
 (several powered separations) has the numbers.
 
@@ -625,7 +624,7 @@ flies them.
 Both configurations' apogees are within 1.23% of OpenRocket's
 ([Staging: Boosters beside the core](physics/staging.md#boosters-beside-the-core)). The dropped
 boosters' own flight is not validated, like a booster's ([evidence row G13](evidence.md#g13)). The
-[M4.5m milestone](decisions-and-roadmap.md#m4-5m) shipped this. Its
+[parallel staging milestone](decisions-and-roadmap.md#m4-5m) shipped this. Its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md)
 says how a parallel stage is read and flown.
 
@@ -650,7 +649,7 @@ printed assumes it stays upright, and why the two differ is not traced
 `hpr sim` warns that the rocket is unstable under power and marks that apogee as not a prediction
 ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)). The
-[M4.5n milestone](decisions-and-roadmap.md#m4-5n) shipped this
+[pods milestone](decisions-and-roadmap.md#m4-5n) shipped this
 ([Staging: A booster dropped still burning](physics/staging.md#a-booster-dropped-still-burning)).
 
 **A payload dropped with nothing left to burn flies when its own parachute opens at the split.**
@@ -692,7 +691,7 @@ width sets only their own inertia
   ends where it comes apart. After that, each part's flight is in the events and landings only, and
   a note says so.
 
-The [M4.5g3 milestone](decisions-and-roadmap.md#m4-5g3) shipped this. Its
+[The unpowered separation milestone](decisions-and-roadmap.md#m4-5g3) shipped this. Its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)
 (a separation with nothing left to burn) has the numbers.
 
@@ -766,9 +765,9 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-It climbs about 4% higher than the same rocket at sea level, in the first example, not the 8% the
-altitude alone gives. The rocket turns into the wind as it climbs, and the rail already leans that
-way. So its climb tips away from the vertical. The wind does most of it.
+In this flight the rocket climbs about 4% higher than in the first example, at sea level, not the
+8% the altitude alone gives. The rocket turns into the wind as it climbs, and the rail already leans
+that way. So its climb tips away from the vertical. The wind does most of it.
 
 #### The motor and the configuration
 
@@ -808,10 +807,13 @@ way. So its climb tips away from the vertical. The wind does most of it.
 `hpr sim` refuses, with the reason, rather than fly something other than the design:
 
 - with `--motor`, a configuration with motors in more than one mount, as `--motor` flies one;
-- a rocket whose stages separate in a way `hpr sim` doesn't fly ([Separation](#separation)):
-  - unpowered before apogee, with no device open on the part that keeps the nose;
-  - at or after apogee, beside another separation;
-  - before the separation behind it;
+- a rocket whose stages separate in a way `hpr sim` doesn't fly. Powered splits fly, one or
+  several ([Separation](#separation)). These don't:
+  - a split with nothing left to burn, beside another separation;
+  - a lone split with nothing left to burn before apogee, with no device open on the part that
+    keeps the nose;
+  - a split at or after apogee, beside another separation;
+  - one before the separation behind it;
 - a motor lit by a stage's separation, in a design that states no separation, such as a rocket's
   `.json`;
 - with `--motor`, a `.ork` rocket of more than one stage, or a configuration that switches a
@@ -824,9 +826,9 @@ way. So its climb tips away from the vertical. The wind does most of it.
 
 #### Exporting the recording
 
-`--export FILE` writes the flight's recording: every quantity the simulator tracks, every 0.01 s
-and at every event. `--interval` sets the step, down to 0.001 s. The file's extension picks the
-format. Repeat `--export` for several files. `hpr sim` won't write over a file it reads.
+`--export FILE` writes the flight's recording: every quantity the simulator tracks, every 0.01 s and
+at every event. `--interval` sets the recording interval, down to 0.001 s. The file's extension
+picks the format. Repeat `--export` for several files. `hpr sim` won't write over a file it reads.
 
 | extension | what it holds |
 |---|---|
@@ -898,9 +900,8 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
   [the landing](#the-landing) gives. The example below has no hatching, as its drogue opens at
   apogee.
 
-The figure is drawn in the chart style of the FusionSpace product system. That system holds the
-design rules HPR Sim shares with its sister tools
-([the decision to follow them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)).
+The figure is drawn in the chart style of the
+[FusionSpace product system](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md).
 In that style, magenta marks a prediction, and every line here is one. There's no legend box. A
 caption under the title says once what the lines mean:
 
@@ -984,9 +985,8 @@ In a narrower window it shrinks to fit, and a click shows it at full size.
 
 Every chart in the FusionSpace product system gives its data as well as its picture. That's for
 a reader who can't see the figure or wants the numbers. So `--plot sim-plot.svg` also writes
-`sim-plot.plot.csv`, with one row for each point the figure draws. The points are every
-`--interval`, every event, and the start and end of each integration step. Its header names each
-column with its unit in brackets:
+`sim-plot.plot.csv`, with one row for each point the figure draws. Its header names each column
+with its unit in brackets:
 
 ```text
 time [s],altitude [m AGL],speed [m/s],vertical speed [m/s],acceleration [m/s^2],vertical acceleration [m/s^2]
@@ -1014,18 +1014,11 @@ line for each of the three files. `--json` names the two beside the figure under
   burn ([separation](#separation)). Otherwise it's refused.
 - **Separation, beyond powered splits.** A `.ork` configuration whose
   [booster](glossary.md#booster) drops away under power flies. So does one that drops several
-  stages under power in turn, such as OpenRocket's *Three stage low power rocket*
-  ([separation](#separation)). A design whose only separation can come only after apogee flies
-  as one [stack](glossary.md#stage), with a note. So does a design with no separation stated. A
-  payload dropped with nothing left to burn flies when its own device opens at the split. These
-  are refused by name:
-  - such a payload whose device opens later, or that has none;
-  - a separation with nothing left to burn beside another;
-  - a separation at or after apogee beside another separation;
-  - one that comes before the separation behind it.
-
-  With your own `--motor`, a staged configuration is refused too, since that motor can't be told
-  when the stages separate.
+  stages under power in turn ([separation](#separation)). A design whose only separation can come
+  only after apogee flies as one [stack](glossary.md#stage), with a note. So does a design with no
+  separation stated. A payload dropped with nothing left to burn flies when its own device opens
+  at the split. The rest, and a staged configuration with your own `--motor`, are refused by name
+  ([the refusals](#the-motor-and-the-configuration)).
 - **Real weather.** One wind at every height, in the standard atmosphere.
   [`hpr weather`](#hpr-weather) writes a launch day's profile, but `hpr sim` doesn't fly it yet
   (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
@@ -1102,7 +1095,7 @@ median and 95th percentile. Each quantity is in meters, then in feet on the row 
 landing's center and the ellipses' axes give feet in parentheses. A failed flight counts as tried
 with no value.
 
-The landing ellipses are the [Landing ellipses](monte-carlo.md#landing-ellipses) section's. The
+[Monte Carlo dispersion](monte-carlo.md#landing-ellipses) explains the landing ellipses. The
 50% and 95% ellipses hold that share of a normal scatter with the run's mean and spread. The last
 allows for the run's spread being only an estimate, so the next flight lands inside it 95% of the
 time. `flights inside` counts the run's own landings inside each, a failed flight counted
@@ -1646,8 +1639,7 @@ wrote  demo.hpr: "Loft Demo 38mm — motor comparison", 2 motor configurations, 
 
 The document holds everything the simulator read from the `.ork`, including what it doesn't model.
 So `hpr convert demo.hpr demo.ork` writes the `.ork` the simulator would write from the original,
-byte for byte. `hpr sim demo.hpr` flies it to the same flight as the `.ork`, without the `.ork`
-reader's warnings. The simulator prints those only when it reads the `.ork` itself. A document of
+byte for byte. `hpr sim demo.hpr` flies it to the same flight as the `.ork`. A document of
 an older version of the format is migrated as it's read, and the output says from which version.
 
 `hpr sim` may refuse `--motor` for a version 0.1 document, which didn't record whether the rocket
@@ -2058,9 +2050,9 @@ yet ([Files in JPEG 2000](nomads.md#files-in-jpeg-2000)).
 
 #### An example
 
-This reads a recorded answer from Open-Meteo's archive, for Spaceport America in New Mexico at
-15:30 UTC on 21 June 2025. It writes the profile to `profile.json`. (`hpr` names the folder it
-wrote to in full; here that folder is shown as `<the scratch folder>`.)
+This reads a recorded answer from Open-Meteo's archive, for Spaceport America in New Mexico at 15:30
+UTC on 21 June 2025. It writes the profile to `profile.json`. (The page's run writes into a scratch
+folder, shown as `<the scratch folder>`; `hpr` prints the path you give it.)
 
 <!-- cli: example `hpr weather open-meteo --time 2025-06-21T15:30Z --from crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json --output profile.json`; written by `cargo xtask cli`; do not edit -->
 
@@ -2322,10 +2314,10 @@ you press Tab. Save it where your shell looks for completions:
 ## What it leaves out
 
 - **Some unpowered separations, a dropped stage's accuracy, and a rocket `.json`'s parachutes.**
-  `hpr sim` flies powered separations, one or several in turn. It flies an unpowered one before
-  apogee only if the part that keeps the nose has a device open by then. A dropped stage flies as
-  a point under its devices' drag, so its landing is rough. It flies a
-  `.ork` file's parachutes and streamers, but a rocket's `.json` comes down with no recovery
+  `hpr sim` flies powered separations, one or several in turn. It flies a lone unpowered one
+  before apogee only if the part that keeps the nose has a device open by then. A dropped stage
+  flies as a point under its devices' drag, so its landing is rough. It flies a `.ork` file's
+  parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **Readings within bounds, not intervals.** `hpr analyze` gives each reading within a bound or
   withheld, on every layout it reads. It gives no Mach number and takes no top acceleration from a
@@ -2342,14 +2334,13 @@ you press Tab. Save it where your shell looks for completions:
   ([evidence row G25](evidence.md#g25)); whether RockSim does isn't checked.
 - **`hpr sim` doesn't fly the weather.** [`hpr weather`](#hpr-weather) writes a profile that only
   a program reads so far (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
-- **Stock from one site.** `hpr motors search` covers what motor.fusionspace.co does: U.S.
-  vendors, prices in dollars, and AeroTech, Cesaroni and Loki motors of class D and up
+- **Stock from one site.** `hpr motors search` covers only what motor.fusionspace.co does
   ([what it leaves out](motor-stock.md#what-it-leaves-out)). It has no filter by total impulse or
   by reload case.
 - **Only 32 motors are built in.** Any other motor needs its `.eng` or `.rse` file, or its curve
   [fetched from ThrustCurve.org](#motors-from-thrustcurveorg) into the cache. `hpr motors search`
   lists motors you can buy, not their curves.
-- **Downloads for three systems.** Release 0.1 has them for Linux and Windows on x86-64 and for
-  Macs with Apple silicon. On other systems, `hpr` is built from source with Rust.
+- **Downloads for three systems** ([Running it](#running-it)). On other systems, `hpr` is built
+  from source with Rust.
 - **The text output is for people.** Its layout may change between versions. Scripts should read
   `--json`, whose schemas are published.

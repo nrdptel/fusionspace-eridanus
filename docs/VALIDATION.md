@@ -181,15 +181,15 @@ Seven more warn where the stability margin reads high
 | [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326) | a kinked freeform fin's center of pressure sits 1.6 mm (0.063 in) aft of OpenRocket 24.12's, about 0.047 calibers of that example's gap; other freeform outlines are unprobed | every freeform fin set, at any speed ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md)) |
 
 Mach 1.2 is where the method first joins slender-body theory, so the three switches can't move a
-number below it. The aerodynamics report which switch stopped the method, so the warning follows
-the code that switches. #172 has no known condition. It gives the gap's size and sets no
+number below it. The aerodynamics code records which switch stopped the method, so the warning
+follows the code that switches. #172 has no known condition. It gives the gap's size and sets no
 threshold, since the margin you need is the range safety officer's (RSO's) and the safety code's
 call. #325's rule in OpenRocket is unsized between overlapping roots and a common aft station, so
 the warning takes the wider: roots that overlap or touch.
 
-They print as `warning: stability:` lines, with `kind` `"stability"` in the JSON and in Python. A
-flight on a drag of your own keeps them, as its normal force is still HPR Sim's. A model given a
-normal-force table of its own prints none, #172 included.
+The stability warnings above print as `warning: stability:` lines, with `kind` `"stability"` in the
+JSON and in Python. A flight on a drag of your own keeps them, as its normal force is still HPR
+Sim's. A model given a normal-force table of its own prints none, #172 included.
 
 A staged flight asks the whole stack's body, the upper stage at its front. So a switch in the
 booster can warn with the upper stage's top speed: it can over-warn. Whether it can miss one isn't
@@ -289,28 +289,28 @@ A case (`validation/cases/<id>.toml`) says what to fly and which metrics to comp
 own tolerance. It also names the reference to compare against (`validation/fixtures/**`, written
 by a generator under `validation/oracles/`).
 
-The rules the harness enforces, each from a Loft lesson:
+The rules the harness enforces each come from a lesson of Loft, the project before this one:
 
 - A run **reads** references and never writes them. A reference moves only when its generator runs
-  ([the lesson](decisions-and-roadmap.md#l76)). There's no flag to update one.
+  ([references that followed Loft's drag](decisions-and-roadmap.md#l76)). There's no flag to update one.
 - Every reference value carries a source naming the oracle, the generator and the field. The
   report carries the reference file's SHA-256, so an edited reference shows up in it
-  ([the lesson](decisions-and-roadmap.md#l77)).
+  ([Loft's hand-written results](decisions-and-roadmap.md#l77)).
 - Every metric a case reports is either held to a tolerance that bounds something or declared, in
   writing, not scored. A case is refused if HPR Sim measures a metric it doesn't account for, or if
-  the reference publishes one the case ignores ([the lesson](decisions-and-roadmap.md#l79)).
+  the reference publishes one the case ignores ([ungated metrics](decisions-and-roadmap.md#l79)).
 - The cases that must run are locked. A missing one fails, and so does a committed case that isn't
   locked. `--fast` can leave out only cases the lock marks slow, and it names them
-  ([the lesson](decisions-and-roadmap.md#l78)).
+  ([Loft's suites that skipped and passed](decisions-and-roadmap.md#l78)).
 - A case's inputs come from the reference's own record of what the oracle flew, never from HPR
   Sim's output. That includes which design it flew, what that weighed and, for a whole flight, the
-  area its drag table is on ([the lesson](decisions-and-roadmap.md#l75), `hpr_validate::rocketpy::tests::oracle_inputs_come_from_the_case_file_not_hpr_outputs`).
+  area its drag table is on ([Loft's RocketPy check](decisions-and-roadmap.md#l75), `hpr_validate::rocketpy::tests::oracle_inputs_come_from_the_case_file_not_hpr_outputs`).
 - A case may declare a **known gap**, a limit of HPR Sim's it runs into. The only one accepted is
   HPR Sim's refusal of a Mach number past its models' range. Since the work on
   [drag through Mach 1](decisions-and-roadmap.md#m1-8b1), that range ends at Mach 5 for the normal
   force and the drag buildup alike. The reference must reach Mach 5, and HPR Sim must refuse the
   flight with that error. A gap that HPR Sim starts flying fails the run
-  ([the lesson](decisions-and-roadmap.md#l85)). A gap scores nothing and is listed in the report's
+  ([Loft's half-tolerance gap check](decisions-and-roadmap.md#l85)). A gap scores nothing and is listed in the report's
   own section, and the set is pinned
   ([the whole-flight decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md)).
   No case declares one. Prometheus 2022 was one on the declared drag until the work on
@@ -510,7 +510,7 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean is 6.04% over seven flights, outside the target. Five are outside 5%: NDRT 2020,
+Today the mean absolute error is 6.04% over seven flights, outside the target. Five are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
 impulse. Four of the seven altimeters' kinds are assumed barometric
 ([evidence row G21](evidence.md#g21)). With those four read as heights instead, the mean is 6.63%.
@@ -605,7 +605,8 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   `validation/fixtures/aero/drag-vs-mach.json` and checked by
   `hpr_aero::tests::drag_against_mil_hdbk_762_sample` ([drag against RASAero II](decisions-and-roadmap.md#m1-8b2),
   [the sample calculation](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0029-drag-against-rasaero-ii-through-mach-2-the-gap.md)). Of 12 rows, 6 are within 10%. HPR Sim reads
-  +12.3% to +31.9% high from Mach 0.9 to 1.2 (`docs/physics/aero.md`).
+  +12.3% to +31.9% high from Mach 0.9 to 1.2. It reads 6% to 10% low from Mach 1.6, and 10.3% low
+  at Mach 0.5 (`docs/physics/aero.md`).
 - D. J. Martin's NACA TN 4197 (1958), NTRS 19930085030, for fin flutter. NTRS serves it with a
   436-byte header before `%PDF`, and the lock pins the bytes as served.
 - T. W. Knacke's *Parachute Recovery Systems Design Manual*, NWC TP 6575 (1991), DTIC ADA247666,

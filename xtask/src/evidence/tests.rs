@@ -251,6 +251,14 @@ impl Case {
         );
     }
 
+    /// Asserts the check finds no problem, with the report's page written from this case's
+    /// register.
+    fn passes(mut self) {
+        self.page = Some(page_for(&self.register));
+        let problems = self.check().problems;
+        assert!(problems.is_empty(), "{problems:#?}");
+    }
+
     /// Asserts one of the check's problems holds `expected`.
     fn fails(&self, expected: &str) {
         let problems = self.check().problems;
@@ -1064,6 +1072,50 @@ fn evidence_each_place_it_looked_is_its_own_item() {
         )
         .fails_only("G3: its search on 2026-09-01 needs both where it looked and what it found");
     }
+    // A place opens its item in the report's list, so one that Markdown would read as structure
+    // fails, and one that only looks like it reads as text.
+    for (place, what) in [
+        ("- a forum", "a list marker"),
+        ("* a forum", "a list marker"),
+        ("1. a forum", "a numbered list marker"),
+        ("12) a forum", "a numbered list marker"),
+        ("# a forum", "a heading"),
+        ("> a forum", "a quote"),
+        ("---", "a thematic break"),
+        ("_ _ _", "a thematic break"),
+        ("```", "a code fence"),
+        ("<div>a forum", "an HTML tag"),
+    ] {
+        Case::register(
+            "looked = [\"a club's archive\"]",
+            &format!("looked = [\"a club's archive\", \"{place}\"]"),
+        )
+        .fails_only(&format!(
+            "G3: its search on 2026-09-01 has a place that opens as {what} in the report's list: \
+             `{place}`"
+        ));
+    }
+    for place in [
+        "#645's thread",
+        "1.5 m tubes",
+        "-40 °C logs",
+        "a forum - 2016",
+        "2016 to 2024, a forum",
+    ] {
+        Case::register(
+            "looked = [\"a club's archive\"]",
+            &format!("looked = [\"{place}\"]"),
+        )
+        .passes();
+    }
+    // A place's spaces are the report's to set: leading ones would make it a code block.
+    let mut spaced = register.clone();
+    spaced.row[2].searched[0].looked = vec!["      a club's archive".to_owned()];
+    let region = report::region(&spaced, &decision_files()).unwrap();
+    assert!(
+        region.contains("looked at:\n  - a club's archive\n"),
+        "{region}"
+    );
 }
 
 /// No sentence the report writes itself runs over 25 words, the writing guide's limit, however

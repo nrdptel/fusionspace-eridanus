@@ -9,9 +9,8 @@ The pages say plainly when a file reader, a model or a check rests on less than 
 - a value assumed because no sample states it;
 - a model checked only against another program.
 
-Each such statement is a row of the register, [`validation/evidence.toml`][register]. A page that
-states a gap in one of the check's phrases links its row here, so the gap has a place to be closed.
-A row short of the evidence it wants keeps an open issue labeled [`needs-sample`][label] until a
+Each such statement is a row of the register, [`validation/evidence.toml`][register], and links
+it here, so the gap has a place to be closed. A row short of the evidence it wants keeps an open issue labeled [`needs-sample`][label] until a
 real sample or measurement settles it. [A decision record][adr] set this up.
 
 > **How far to trust it.** This page is a ledger, not a grade. It counts rows by the kind of
@@ -56,7 +55,7 @@ evidence by date: each place it looked and what it found, so the next doesn't re
 
 If you have a file a row asks for, attach it to the row's issue. Or say there where it can be
 downloaded, and under what license. A sample is kept outside the repository, in the `refs/` folder
-the checks fetch into. Its hash is in the register, so every check reads the same bytes.
+the checks fetch into. Its hash makes every check read the same bytes.
 [Checking a claim](checking-a-claim.md) shows how a pinned file is fetched and verified.
 
 ## The register
@@ -130,13 +129,13 @@ The register holds 32 rows, as of October 20, 2026.
 
   It found no openly downloadable GPX of a real rocket flight. The dedicated trackers write KML, CSV or raw NMEA. GPX comes from phone apps, handheld receivers and mapping tools.
 - [G1](#g1), October 20, 2026, looked at:
-  - Rocketry Forum thread 135349's attachments, fetched from its attachment links, their GPX files counted for `geoidheight`
+  - Rocketry Forum thread 135349's attachments, their GPX files counted for `geoidheight`
   - GitHub code search for GPX files with `geoidheight`, with and without rocketry words
   - OpenStreetMap traces tagged rocket
   - Zenodo, figshare, Kaggle and other data sites
   - phone-app posts (the survey in docs/research/public-logs-evidence-gaps.md)
 
-  It found cite only: thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights. None has `geoidheight`. Beside them is the receiver's raw NMEA, whose GGA sentences state the geoid separation. GitHub's GPX files with `geoidheight` are everyday phone tracks (#645).
+  It found a source to cite only. Thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights. None has `geoidheight`. Beside them is the receiver's raw NMEA, whose GGA sentences state the geoid separation. GitHub's GPX files with `geoidheight` are everyday phone tracks (#645).
 - [G2](#g2), October 17, 2026, looked at:
   - GitHub code search for `.FIPa` and `.rtx` files and semicolon-separated altimeter exports (mDACS, Eggtimer and Blue Raven headers split by `;`)
   - the Harvey Mudd College advanced rocketry course's flight data page (its 11 workbooks fetched)
@@ -150,20 +149,20 @@ The register holds 32 rows, as of October 20, 2026.
   - each repository's license
   - PSAS's launch repositories
 
-  It found partial: real packets of 3 of the 11 undecoded types under MIT, but no flight and no export beside them. A TeleMega's pad recording is in lunng/HART_CS_2020 (MIT): types 0x08 and 0x09, 538 of each, never leaving the pad. UCC-Rocket-and-Space-Exploration/CosmoSoft (MIT) holds a TeleMini v3's pad packets (type 0x11), beside an AltosUI CSV of a later flight that a spreadsheet re-saved. Flights with types 0x08, 0x09 and 0x14 exist with no license (Maeswoon/UNHSEDS, with AltosUI's telemetry CSV beside it; AIAANortheastern/KarmanSims; Mines-Rocketry-Club/JEFF-modular-rocket-system). No export found has a GPS ground speed, climb rate or course column.
+  It found a partial answer: real packets of 3 of the 11 undecoded types under MIT, but no flight and no export beside them. A TeleMega's pad recording is in lunng/HART_CS_2020 (MIT): types 0x08 and 0x09, 538 of each. UCC-Rocket-and-Space-Exploration/CosmoSoft (MIT) holds a TeleMini v3's pad packets (type 0x11), beside an AltosUI CSV of a later flight that a spreadsheet re-saved. Flights with types 0x08, 0x09 and 0x14 exist with no license (Maeswoon/UNHSEDS, with AltosUI's telemetry CSV beside it; AIAANortheastern/KarmanSims; Mines-Rocketry-Club/JEFF-modular-rocket-system). No export found has a GPS ground speed, climb rate or course column.
 - [G4](#g4), October 17, 2026, looked at:
   - the JSON headers of 17 public `.eeprom` files from GitHub code search (`log_format` in `.eeprom`)
   - PSAS's launch repositories (psas/flight_data-2010.06.27, Launch-8, Launch-10 to Launch-14)
   - Mines-Rocketry-Club's flight data
 
-  It found partial, cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its 2010-10-17 and 2013-06-30 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
+  It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its 2010-10-17 and 2013-06-30 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
 - [G5](#g5), October 17, 2026, looked at:
   - the ARTS2 User Manual V1.0.0 (pp. 7, 9, 16)
   - PSAS's launch repositories for ARTS2 flights beyond the samples (2009-05-31, 2010-06-27, 2010-10-17)
   - PSAS's ARTS-2 checklist page
   - web searches for DataAnalyzer documents
 
-  It found partial: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and 2010-06-27 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
+  It found a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and 2010-06-27 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
 - [G6](#g6), October 17, 2026, looked at:
   - GitHub code search for mDACS's export header
   - listings of team flight data repositories
@@ -190,7 +189,7 @@ The register holds 32 rows, as of October 20, 2026.
 - [G10](#g10), October 17, 2026, looked at:
   - team flight data repositories on GitHub with a license and a logger's own figures beside its log: RIT-Launch-Initiative/flight-data, RMIT-Hive-Rocketry/GCS, Lmx154/RL-RocketPy-Notebook, AerospaceTeamGraz/RocketFlightData, ISSUIUC/flight-data, curtscraw/osu_rocketry_data
 
-  It found under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files, whose summary statistics the team's note describes. RIT's two Blue Raven flights' summaries state the peak, the first burnout's time and each channel's firing time. RMIT-Hive-Rocketry/GCS has a Blue Raven flight with its summary. None is in the private collection but 5 of the RRC3 exports. The other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds.
+  It found these, under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files, whose summary statistics the team's note describes. RIT's two Blue Raven flights' summaries state the peak, the first burnout's time and each channel's firing time. RMIT-Hive-Rocketry/GCS has a Blue Raven flight with its summary. None is in the private collection but 5 of the RRC3 exports. The other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds.
 - [G11](#g11), October 17, 2026, looked at:
   - team repositories whose own flight computer's files come with a stated layout and another record of the same flight: RIT-Launch-Initiative/flight-data, Lmx154/RL-RocketPy-Notebook, curtscraw/osu_rocketry_data, ISSUIUC/flight-data
 
@@ -206,7 +205,7 @@ The register holds 32 rows, as of October 20, 2026.
   - ISSUIUC/flight-data
   - Minnesota Space Grant's Midwest Rocketry Competition reports, whose rockets drop a booster after burnout
 
-  It found partial, cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On 2023-11-18 they're two StratoLoggers; on 2024-03-23, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (2023-10-01). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
+  It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On 2023-11-18 they're two StratoLoggers; on 2024-03-23, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (2023-10-01). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
 - [G14](#g14), October 17, 2026, looked at:
   - Craven, College of Aeronautics Report 129 (1960): its record and full text at Cranfield
   - NACA free-flight reports on base pressure with rocket motors burning, by web search
@@ -216,12 +215,12 @@ The register holds 32 rows, as of October 20, 2026.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 
-  It found nothing usable: only simulation and dispersion analyses were found, none a logged flight with a known offset.
+  It found nothing usable: only simulation and dispersion analyses, none a logged flight with a known offset.
 - [G16](#g16), October 17, 2026, looked at:
   - OpenRocket's user guide (basic rocket design page) and wiki
   - openrocket/openrocket issues found by searching for angle, rotation, rail button and mirror (#940, #1548, #1640)
 
-  It found partial: #940 puts 0 degrees at the top of the rocket and #1548 discusses pods' angles with rear-view pictures. No source states which way the angle turns. The OpenRocket 24.12 jar, run on a probe with one part turned by a known angle, remains the way to settle it. This search didn't run it.
+  It found a partial answer: #940 puts 0 degrees at the top of the rocket and #1548 discusses pods' angles with rear-view pictures. No source states which way the angle turns. The OpenRocket 24.12 jar, run on a probe with one part turned by a known angle, remains the way to settle it. This search didn't run it.
 - [G17](#g17), October 17, 2026, looked at:
   - web searches for logged two-stage flights whose sustainer went unstable after the split
   - The Rocketry Forum staging threads
@@ -233,13 +232,13 @@ The register holds 32 rows, as of October 20, 2026.
 - [G18](#g18), October 17, 2026, looked at:
   - the private collection's 714 .ork files (copies included), opened and counted for inner tubes and centering rings set to `auto`
 
-  It found no file holds OpenRocket's computed radii, as the issue says, but the designs exist. 43 files have an inner tube with an automatic outer radius (43 tubes), 446 have rings with an automatic bore (1,179 rings), 35 have both. Reading OpenRocket's own values for them needs the OpenRocket jar run on them as an oracle. A GitHub code search is no help, as .ork files are zipped.
+  It found that no file holds OpenRocket's computed radii, as the issue says, but the designs exist. 43 files have an inner tube with an automatic outer radius (43 tubes), 446 have rings with an automatic bore (1,179 rings), 35 have both. Reading OpenRocket's own values needs its jar run on them as an oracle. A GitHub code search is no help, as .ork files are zipped.
 - [G19](#g19), October 17, 2026, looked at:
   - GitHub code search for .CDX1 design files and RASAero II's export header ("CD Power-Off" with "CN Potential", "CA Power-Off", extension:csv)
   - the repositories found: anbanpillay/ASRI-PyROPS, rkuhlf/rocket-simulation, activecontrols/Propulsion, stanford-ssi/rockets-irec, spaceconcordia/rocketry-performance, AIAANortheastern/KarmanSims
   - the private collection's RASAero designs, counted only
 
-  It found partial: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export (rocketpy_migration/data/aerodynamics/rasaero_data.csv) to Mach 5 at 0°, 2° and 4°. Its workbooks Inputs/RASAeroII15 Detailed.xlsx and RASAeroII15.xlsx hold RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5. These would check the values assumed past 4° and at 0° faster than Mach 1.3. No license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files (copies included) and no exports. 12 of their flights carry a log, a few of them past about 255 m/s (837 ft/s) by a plausible logged speed. So exports made from them in RASAero II would meet the row.
+  It found a partial answer: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export (rocketpy_migration/data/aerodynamics/rasaero_data.csv) to Mach 5 at 0°, 2° and 4°. Its workbooks Inputs/RASAeroII15 Detailed.xlsx and RASAeroII15.xlsx hold RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5. These would check the values assumed past 4° and at 0° faster than Mach 1.3. No license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files (copies included) and no exports. 12 of their flights carry a log, a few of them past about 255 m/s (837 ft/s) by a plausible logged speed. So RASAero II exports of them would meet the row.
 - [G20](#g20), October 17, 2026, looked at:
   - web searches for measured deployments: onboard video or accelerometer traces of ejection, nose cone and drogue separation
   - student post-flight reports (Stanford SSI wiki, NAU capstone)
@@ -251,7 +250,7 @@ The register holds 32 rows, as of October 20, 2026.
   - CATS's EuRoC 2023 team data (github.com/catsystems/euroc23-team-data, GPL-3.0) and the CATS Vega paper (arXiv 2511.04725, ESA symposium 2024), for Cavour, Genesis and Lince
   - EPFL Rocket Team's repositories (EPFLRocketTeam/BellaLui, MorgesHAB/ERT2020GS) and RocketPy's Bella Lui data, for Bella Lui
 
-  It found partial: the Vega paper (§2.4, p. 3) says its one-axis Kalman filter trusts the IMU most during the burn. As the speed falls in the coast, the filter weights the barometer more, so a Vega height near apogee rests mostly on its barometer. The euroc23 ground-station CSVs give only altitude and velocity, and the raw .cfl logs' layout is published only in GPL code. EPFLRocketTeam/BellaLui (no license, cite only) has driver folders for a BME280 barometer and a BNO055 IMU on the 2020 flight computer. Nothing says which made the logged height; no fin-edge drawings were found for any of the four.
+  It found a partial answer: the Vega paper (§2.4, p. 3) says its one-axis Kalman filter trusts the IMU most during the burn. As the speed falls in the coast, the filter weights the barometer more, so a Vega height near apogee rests mostly on its barometer. The euroc23 ground-station CSVs give only altitude and velocity, and the raw .cfl logs' layout is published only in GPL code. EPFLRocketTeam/BellaLui (no license, cite only) has driver folders for a BME280 barometer and a BNO055 IMU on the 2020 flight computer. Nothing says which made the logged height; no fin-edge drawings were found for any of the four.
 - [G22](#g22), October 17, 2026, looked at:
   - web searches for measured flutter of hobby-size fins (wind tunnel, ground test, logged failure)
   - Cal Poly's 2013 Fin Flutter Analysis (digitalcommons.calpoly.edu/aerosp/109)
@@ -272,7 +271,7 @@ The register holds 32 rows, as of October 20, 2026.
   - GitHub repository and code searches for EuRoC designs (extension:ork)
   - the private collection's catalog, counted only
 
-  It found partial: euroc21-team-data@ef54912c holds three loggers' records of one 2021 flight (STA-CARL2: AltiMAX, RRC3, Eggtimer), but no design file was found for it. The private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far. So the samples a held-out set needs exist. RIT-Launch-Initiative/flight-data (MIT) also holds public pairs: `rocket.ork` designs beside their Featherweight flight logs and an OpenRocket simulation export (2026/AirbrakesL1Tests). What's missing is the held-out protocol: a set fixed and predictions written before its logs are read.
+  It found a partial answer: three loggers' records of one 2021 flight in euroc21-team-data@ef54912c (STA-CARL2: AltiMAX, RRC3, Eggtimer). No design file was found for it. The private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far. So the samples a held-out set needs exist. RIT-Launch-Initiative/flight-data (MIT) also holds public pairs: `rocket.ork` designs beside their Featherweight flight logs and an OpenRocket simulation export (2026/AirbrakesL1Tests). What's missing is the held-out protocol: a set fixed and predictions written before its logs are read.
 - [G25](#g25), October 17, 2026, looked at:
   - Apogee Components' RockSim information page
   - OpenRocket's documentation and wiki on importing and exporting
@@ -284,13 +283,13 @@ The register holds 32 rows, as of October 20, 2026.
   - RocketPy's data/rockets folder
   - RocketPy-Team/RocketPaper (MIT)
 
-  It found partial: no RASAero design file or measured drag curve of any of them was found. RocketPaper@23d9271d holds Valetudo's real RRC3 log (Valetudo_RRC3/RRC3_original.csv, MIT, with a note that some values make no sense). Valetudo's RASAero II curve is one of those compared, and a drag could be inferred from its coast once its mass and motor are settled.
+  It found a partial answer: no RASAero design file or measured drag curve of any of them was found. RocketPaper@23d9271d holds Valetudo's real RRC3 log (Valetudo_RRC3/RRC3_original.csv, MIT, with a note that some values make no sense). Valetudo's RASAero II curve is one of those compared, and a drag could be inferred from its coast once its mass and motor are settled.
 - [G27](#g27), October 17, 2026, looked at:
   - web searches for wind-tunnel or flight measurements of tube fins' normal force and center of pressure (NARAM R&D reports, DTIC, NTRS)
   - PSAS's fin design references
   - the private collection's .ork files, counted only
 
-  It found nothing measured: no wind-tunnel or flight measurement of a tube fin's lift or center was found. The private collection has 8 .ork files (copies included) with a tube fin set. 1 of their flights has a parsing log, which can check an apogee but not the lift or center.
+  It found no wind-tunnel or flight measurement of a tube fin's lift or center. The private collection has 8 .ork files (copies included) with a tube fin set. 1 of their flights has a parsing log, which can check an apogee but not the lift or center.
 - [G28](#g28), October 17, 2026, looked at:
   - NTRS, for reports on flared bodies
   - NASA TM X-653 (Jorgensen, Spahr and Hill, 1962)
@@ -322,7 +321,7 @@ The register holds 32 rows, as of October 20, 2026.
   - RocketPy's Juno III data
   - the private collection's RRC3 logs and the other loggers on their flights, counted only
 
-  It found partial: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1, read as °C by the pairing rule. No other logger on that flight records temperature. RocketPaper@23d9271d's Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column, a real file that names the unit. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units.
+  It found a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1, read as °C by the pairing rule. No other logger on that flight records temperature. RocketPaper@23d9271d's real Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units.
 - [G32](#g32), October 17, 2026, looked at:
   - the public logs the sensor noise note measured at rest (five Blue Raven flights, ten StratoLoggerCF, five AltOS, one RRC3, one team-built board)
   - the makers' datasheets it cites

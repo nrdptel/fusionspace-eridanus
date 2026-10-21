@@ -557,10 +557,57 @@ pub(crate) fn structure(register: &Register, decisions: &BTreeMap<u32, String>) 
                     search.on
                 )));
             }
+            for place in &search.looked {
+                if let Some(what) = opens_as_structure(place) {
+                    problems.push(at(format!(
+                        "its search on {} has a place that opens as {what} in the report's list: \
+                         `{}`",
+                        search.on,
+                        place.trim()
+                    )));
+                }
+            }
             previous = Some(day);
         }
     }
     problems
+}
+
+/// What a place would open as at the start of its item in the report's list, where Markdown reads
+/// it as structure rather than text: a list marker, a heading, a quote, a code fence, a thematic
+/// break or an HTML tag. `None` for a place that reads as text, such as "#645's thread" or "1.5 m
+/// tubes".
+fn opens_as_structure(place: &str) -> Option<&'static str> {
+    let text = place.trim_start();
+    // Whether the marker of `len` bytes at the start ends the text or is followed by a space.
+    let marker = |len: usize| text[len..].chars().next().is_none_or(char::is_whitespace);
+    let marks: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    let hashes = text.chars().take_while(|&c| c == '#').count();
+    let digits = text.chars().take_while(char::is_ascii_digit).count();
+    if text.starts_with("```") || text.starts_with("~~~") {
+        Some("a code fence")
+    } else if marks.len() >= 3
+        && ["-", "*", "_"]
+            .iter()
+            .any(|c| marks.replace(c, "").is_empty())
+    {
+        Some("a thematic break")
+    } else if text.starts_with(['-', '+', '*']) && marker(1) {
+        Some("a list marker")
+    } else if (1..=6).contains(&hashes) && marker(hashes) {
+        Some("a heading")
+    } else if text.starts_with('>') {
+        Some("a quote")
+    } else if text.starts_with('<') {
+        Some("an HTML tag")
+    } else if (1..=9).contains(&digits)
+        && text[digits..].starts_with(['.', ')'])
+        && marker(digits + 1)
+    {
+        Some("a numbered list marker")
+    } else {
+        None
+    }
 }
 
 /// What breaks the rule for a row's decision record: one exactly when it wants less than `real`,
