@@ -245,7 +245,7 @@ holds the 15 nm bound without comparing the table.
 sea level. Only WGS 84 is measured. On any other ellipsoid up to a flattening of 1/150, the
 accuracy is Karney's claim, not something this project has measured. A distance of many trips
 round the Earth carries its own rounding: one step of `f64` in the distance. That is at least
-15 nm past 67,109 km (41,700 mi). Nothing in a flight uses geodesics yet, and `hpr` has no command for them.
+14.9 nm past 67,109 km (41,700 mi). Nothing in a flight uses geodesics yet, and `hpr` has no command for them.
 
 [Karney2013]: https://arxiv.org/abs/1109.4448
 [GeodTest]: https://doi.org/10.5281/zenodo.32156

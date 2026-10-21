@@ -78,7 +78,8 @@ input. [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   equations in $L$ add the Coriolis term $-2\boldsymbol{\Omega} \times \mathbf{v}$. The centrifugal term is already inside normal
   gravity and must not be added again ([Gravity](gravity.md)).
 - $L$ is a tangent plane, so $z_L$ is not altitude. A point at $z_L = 0$ at horizontal distance
-  $d$ from the pad is about $d^2/(2R)$ above the ellipsoid. At 10 km (6.2 mi), that is
+  $d$ from the pad is about $d^2/(2N)$ above the ellipsoid, with $N$ as in
+  [Geodesy](geodesy.md). At 10 km (6.2 mi), that is
   7.8 m (26 ft). Height above the ellipsoid comes from `LaunchFrame::geodetic_from_enu`. The
   flight engine detects apogee and ground contact with that height, not with $z_L$
   ([Rigid-body flight](flight.md), [Loft's lesson on apogee height](../decisions-and-roadmap.md#l35)).
@@ -105,6 +106,8 @@ The rocket's angles to the airflow, its attitude, and the launch angles used for
 - The flow roll $\varphi$ is the direction in which the air crosses the body, measured in the $x_B$–$y_B$
   plane from $x_B$ toward $y_B$. Fin $k$ of a set sits at $\Lambda_k = \theta_0 + 2\pi k/N - \varphi$ from the lateral
   airflow, with $\theta_0$ the set's base angle.
+- There is no separate sideslip angle: $\alpha$ says how far the air crosses the body and $\varphi$
+  which way.
 - With $\hat{\mathbf{w}} = (\cos\varphi, \sin\varphi, 0)$ the lateral air direction in $B$, the normal
   and side forces are
 

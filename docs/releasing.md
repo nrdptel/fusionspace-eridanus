@@ -233,8 +233,8 @@ Packages for winget and conda-forge are planned
 
 ## Checking a file yourself
 
-From a copy of the repository at the release's commit, with [uv](https://docs.astral.sh/uv/)
-installed:
+From a copy of the repository at the release's commit, with cargo and
+[uv](https://docs.astral.sh/uv/) installed:
 
 ```text
 scripts/release/smoke-cli.sh fusionspace-hpr-0.1.0-aarch64-apple-darwin.tar.gz

@@ -20,7 +20,8 @@ true heading you give HPR Sim.
   inclination, the east component and four rates. Its north component differs at 97 points, by
   up to 7.18e-4 nT (2.11e-8 of the total field). The horizontal and total intensities differ with
   it. An independent check in the tests does not use HPR Sim's derivative formula. It places that
-  difference in NCEI's file, not in HPR Sim ([The test values](#the-test-values)). That shows the model is computed correctly. The model itself is only as good as the Earth
+  difference in NCEI's file, not in HPR Sim ([The test values](#the-test-values)).
+  That shows the model is computed correctly. The model itself is only as good as the Earth
   allows. Its own error estimate for declination is 0.29° at best and 0.35° to 0.56° at the
   example's sites, more near the magnetic poles. Each result carries that estimate.
 - **What it leaves out:** local magnetic rocks, magnetic storms and the steel near a compass.

@@ -109,8 +109,8 @@ $$
   \end{aligned}
   $$
 
-  RocketPy uses this form. The reference values under [Tests that pin this](#tests-that-pin-this)
-  give its error against the exact field. It is 1e-8 relative at 1.4 km (0.87 mi) and 3e-7 at
+  RocketPy uses this form. The reference values in
+  `validation/fixtures/earth/wgs84-normal-gravity.json` give its error against the exact field. It is 1e-8 relative at 1.4 km (0.87 mi) and 3e-7 at
   30 km (19 mi). At 100 km (62 mi) it is 1.4e-5,
   and at 200 km (124 mi) 1.1e-4.
 - For the exact field (eqs. 4-5 to 4-13), ellipsoidal-harmonic coordinates $(u, \beta)$ give the components
