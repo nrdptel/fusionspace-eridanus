@@ -118,7 +118,7 @@ pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N]
                            for CI to spread over N machines.";
 
 /// The site's source directory, relative to the workspace root, as `book.toml` sets it.
-const SOURCE: &str = "docs";
+pub(crate) const SOURCE: &str = "docs";
 /// The site's list of pages, relative to [`SOURCE`].
 const SUMMARY: &str = "SUMMARY.md";
 /// Where `book.toml` has mdBook write the site, relative to the workspace root.
@@ -131,13 +131,13 @@ const ON_MAIN: [&str; 3] = ["blob/main/", "tree/main/", "raw/main/"];
 const COVERED: [&str; 2] = ["physics", "format"];
 /// The directory under [`SOURCE`] that holds the model pages, one per model. Each opens with
 /// *In short*.
-const MODELS: &str = "physics";
+pub(crate) const MODELS: &str = "physics";
 /// The heading of the section a model page opens with.
 const IN_SHORT: &str = "In short";
 /// The bold labels that open the items of a model page's *In short* list, in this order: what it
 /// models, its source, how well it is validated, and what it leaves out (M0.4 in
 /// `docs/ROADMAP.md`).
-const IN_SHORT_ITEMS: [&str; 4] = [
+pub(crate) const IN_SHORT_ITEMS: [&str; 4] = [
     "What it models:",
     "Sources:",
     "How well it is validated:",
@@ -2478,7 +2478,7 @@ fn normalized(text: &str) -> String {
 
 /// Where a page's *In short* section is, from its heading to the next heading of level 1 or 2,
 /// in bytes; `None` if it has none.
-fn in_short_span(text: &str) -> Option<std::ops::Range<usize>> {
+pub(crate) fn in_short_span(text: &str) -> Option<std::ops::Range<usize>> {
     let mut start = None;
     let mut heading: Option<(usize, String)> = None;
     for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
@@ -2522,7 +2522,7 @@ type Spanned<'a> = (Event<'a>, std::ops::Range<usize>);
 
 /// What is wrong with the *In short* a model page opens with, if anything, as (line, message):
 /// the first thing that departs from [`IN_SHORT_FORM`].
-fn in_short(text: &str) -> Option<(usize, String)> {
+pub(crate) fn in_short(text: &str) -> Option<(usize, String)> {
     let line = line_index(text);
     let fail = |offset: usize, what: &str| Some((line(offset), format!("{what}: {IN_SHORT_FORM}")));
     let events: Vec<Spanned<'_>> = Parser::new_ext(text, options())

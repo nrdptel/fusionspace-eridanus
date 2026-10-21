@@ -2696,7 +2696,7 @@ Its height above sea level the file doesn't say, as its elevation states no datu
 marks the pad as a waypoint at 17:03:40 UTC, read as the figure `waypoint Pad time`, 24 s
 before the zero, −24 s.
 
-## PerfectFlite's other files
+## Other PerfectFlite files
 
 Besides the `.pf2`, which has [a page of its own](pf2.md), PerfectFlite's software exports a
 flight as CSV or text, and an older PerfectFlite altimeter saves its flights as a `.pfa`.

@@ -3,7 +3,7 @@
 //!
 //! A page can be correct and still read as if nobody in particular wrote it. `cargo xtask voice`
 //! counts, per page and per 100 words, the patterns behind that ([`Pattern`]): bold-label list
-//! items, internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
+//! items (less the four labels of a model page's *In short* box, [`read_page`]), internal labels, sentences over 25 words, hedges and stacked hedges, minimizers
 //! ("simply", "just"), signposts ("In this section"), and first person on a reference page. It
 //! also reports the register, which has no limit of its own beyond first person on a reference
 //! page: "I", "we", "you" and contractions per 100 words,
@@ -41,6 +41,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use pulldown_cmark::{Event, LinkType, Parser, Tag, TagEnd};
+
+use crate::site;
 
 pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
@@ -96,7 +98,7 @@ const REFERENCE: [&str; 4] = [
 
 /// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
 /// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 37] = [
+const HELD: [&str; 51] = [
     // M0.14b, the front doors.
     "README.md",
     "docs/start-here.md",
@@ -138,6 +140,21 @@ const HELD: [&str; 37] = [
     "docs/checking-a-claim.md",
     "docs/evidence.md",
     "docs/VALIDATION.md",
+    // M0.14c4, reference and the environment.
+    "docs/api.md",
+    "docs/releasing.md",
+    "docs/glossary.md",
+    "docs/writing.md",
+    "docs/plan.md",
+    "docs/physics/frames.md",
+    "docs/physics/geodesy.md",
+    "docs/physics/gravity.md",
+    "docs/physics/magnetic.md",
+    "docs/physics/atmosphere.md",
+    "docs/physics/wind.md",
+    "docs/physics/turbulence.md",
+    "docs/physics/interpolation.md",
+    "docs/physics/quadrature.md",
 ];
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...
@@ -891,7 +908,7 @@ fn repository_pages(root: &Path) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        let mut page = read_page(&path, &text, is_reference(&path));
+        let mut page = read_page(&path, &text, is_reference(&path), is_model_page(&path));
         page.held = is_held(&path);
         pages.push(page);
     }
@@ -946,6 +963,14 @@ fn is_reference(path: &str) -> bool {
     REFERENCE.iter().any(|entry| leaves(entry, path))
 }
 
+/// Whether a page, by its path from the repository's root, is a model page: a file directly under
+/// `docs/physics/`, which opens with *In short* (`site.rs`). The four labels of that box aren't
+/// counted as bold-label items ([`read_page`], ADR-285 §5).
+fn is_model_page(path: &str) -> bool {
+    path.strip_prefix(&format!("{}/{}/", site::SOURCE, site::MODELS))
+        .is_some_and(|name| name.ends_with(".md") && !name.contains('/'))
+}
+
 /// The pages at `args`: each file, and each page under each directory, read whether tracked or
 /// not. A path inside this repository is classed as its pages are; any other is not a reference
 /// page.
@@ -967,19 +992,18 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
         let text = String::from_utf8_lossy(&bytes);
         let shown = file.display().to_string();
-        let inside = fs::canonicalize(&file)
-            .ok()
-            .and_then(|full| {
-                full.strip_prefix(&root)
-                    .ok()
-                    .map(|p| p.to_string_lossy().replace('\\', "/"))
-            })
-            .is_some_and(|relative| is_reference(&relative));
+        let inside = fs::canonicalize(&file).ok().and_then(|full| {
+            full.strip_prefix(&root)
+                .ok()
+                .map(|p| p.to_string_lossy().replace('\\', "/"))
+        });
+        let reference = inside.as_deref().is_some_and(is_reference);
+        let model = inside.as_deref().is_some_and(is_model_page);
         let html = matches!(extension(&file).as_deref(), Some("html" | "htm"));
         let mut page = if html {
-            page_from(&shown, &text, read_html(&text), inside)
+            page_from(&shown, &text, read_html(&text), reference)
         } else {
-            read_page(&shown, &text, inside)
+            read_page(&shown, &text, reference, model)
         };
         page.path = shown;
         pages.push(page);
@@ -1018,9 +1042,22 @@ fn walk(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
     Ok(())
 }
 
-/// A Markdown (or plain text) page, read.
-fn read_page(path: &str, text: &str, reference: bool) -> Page {
-    page_from(path, text, read_markdown(text), reference)
+/// A Markdown (or plain text) page, read; `model` if it's a model page ([`is_model_page`]).
+///
+/// A model page's *In short* box is the one list the guide asks every model page to open with,
+/// and a reader scans it; on a short page its four labels alone would pass the bold-label limit.
+/// So on a model page whose box has the form `site.rs` holds it to ([`site::in_short`]), the
+/// count leaves out four: that form is four top-level items, each opening with one of
+/// [`site::IN_SHORT_ITEMS`] in bold, which [`read_markdown`] counted (ADR-285 §5). A box the
+/// site refuses, or the same box on any other page, keeps its labels in the count.
+fn read_page(path: &str, text: &str, reference: bool, model: bool) -> Page {
+    let mut reading = read_markdown(text);
+    if model && site::in_short(text).is_none() {
+        reading.bold_labels = reading
+            .bold_labels
+            .saturating_sub(site::IN_SHORT_ITEMS.len());
+    }
+    page_from(path, text, reading, reference)
 }
 
 /// The text a reader sees on a Markdown page, as runs.
@@ -1812,7 +1849,7 @@ mod tests {
     use super::*;
 
     fn markdown(text: &str) -> Page {
-        read_page("page.md", text, false)
+        read_page("page.md", text, false, false)
     }
 
     fn entries(text: &str) -> Vec<&'static str> {
@@ -1977,6 +2014,106 @@ mod tests {
         assert_eq!(loose.bold_labels, 2);
         let html = read_html("<ul><li><strong>A:</strong> b</li><li>c <b>d</b></li></ul>");
         assert_eq!(html.bold_labels, 1);
+    }
+
+    /// A model page's opening, `box_` its *In short* list, then a section with `after` in it.
+    fn model_with(box_: &str, after: &str) -> String {
+        format!(
+            "# A model\n\nWhat it covers.\n\n## In short\n\n{box_}\n## Method\n\nWords.\n\n{after}"
+        )
+    }
+
+    /// The *In short* list as `site.rs` holds it.
+    const BOX: &str = "- **What it models:** a thing.\n- **Sources:** a paper.\n\
+                       - **How well it is validated:** tests.\n- **What it leaves out:** the rest.\n";
+
+    /// `text` read as a model page.
+    fn model_page(text: &str) -> Page {
+        read_page("docs/physics/a-model.md", text, true, true)
+    }
+
+    #[test]
+    fn a_model_pages_in_short_labels_are_left_out_only_in_the_form_the_site_holds() {
+        // The box as the site holds it: its four labels are left out on a model page, and only
+        // those four; on any other page they count.
+        let held = model_with(BOX, "- **Option.** One.\n- **Other.** Two.\n");
+        assert_eq!(site::in_short(&held), None);
+        assert_eq!(model_page(&held).bold_labels, 2);
+        assert_eq!(markdown(&held).bold_labels, 6);
+        // A label wrapped over two lines, or written in code, is one the site reads as its own.
+        for box_ in [
+            BOX.replace("is validated:**", "is\n  validated:**"),
+            BOX.replace("**Sources:**", "**`Sources:`**"),
+        ] {
+            let text = model_with(&box_, "");
+            assert_eq!(site::in_short(&text), None, "{box_:?}");
+            assert_eq!(model_page(&text).bold_labels, 0, "{box_:?}");
+        }
+        // A box the site refuses keeps every label in the count: a fifth item, a renamed or
+        // nested label, the labels out of order, `### In short`, the box after another section,
+        // in a quote or in a numbered list.
+        let refused = [
+            (format!("{BOX}- **Also:** more.\n"), 5),
+            (BOX.replace("**Sources:**", "**Source:**"), 4),
+            (
+                BOX.replace(
+                    "- **Sources:** a paper.",
+                    "- **Other:** x.\n  - **Sources:** a paper.",
+                ),
+                5,
+            ),
+            (BOX.replace("**Sources:**", "**Sources: `a`**"), 4),
+            (
+                BOX.replace("**What it models:** a thing.", "**Sources:** a thing.")
+                    .replacen("**Sources:** a paper.", "**What it models:** a paper.", 1),
+                4,
+            ),
+            (BOX.replace("- ", "1. "), 4),
+            (BOX.lines().map(|line| format!("> {line}\n")).collect(), 4),
+        ];
+        for (box_, labels) in &refused {
+            let text = model_with(box_, "");
+            assert!(site::in_short(&text).is_some(), "{box_:?}");
+            assert_eq!(model_page(&text).bold_labels, *labels, "{box_:?}");
+        }
+        let deeper = model_with(BOX, "").replace("## In short", "### In short");
+        assert!(site::in_short(&deeper).is_some());
+        assert_eq!(model_page(&deeper).bold_labels, 4);
+        let later =
+            model_with(BOX, "").replace("## In short", "## Before\n\nWords.\n\n## In short");
+        assert!(site::in_short(&later).is_some());
+        assert_eq!(model_page(&later).bold_labels, 4);
+    }
+
+    #[test]
+    fn every_model_page_leaves_out_exactly_its_boxs_four_labels() {
+        let root = crate::designs::root().unwrap();
+        let physics = tracked(&root, &["docs/physics"]).unwrap();
+        let models: Vec<&String> = physics.iter().filter(|path| is_model_page(path)).collect();
+        assert!(models.len() >= 20, "{} model pages", models.len());
+        assert!(!is_model_page("docs/physics/sub/page.md"));
+        assert!(!is_model_page("docs/physics.md"));
+        assert!(!is_model_page("docs/glossary.md"));
+        for path in models {
+            let text = fs::read_to_string(root.join(path)).unwrap();
+            // The site holds the box, so its four items each open with a bold label, which the
+            // count leaves out; a bold label nested in an answer still counts.
+            assert_eq!(site::in_short(&text), None, "{path}");
+            let span = site::in_short_span(&text).unwrap();
+            assert!(read_markdown(&text[span]).bold_labels >= 4, "{path}");
+            let counted = read_page(path, &text, true, false).bold_labels;
+            let model = read_page(path, &text, true, true).bold_labels;
+            assert_eq!(model + 4, counted, "{path}");
+        }
+        // A model page given by its path, as `cargo xtask voice docs/physics/...` reads it, is
+        // read as one.
+        let path = "docs/physics/quadrature.md";
+        let given = given_pages(&root, &[root.join(path).display().to_string()]).unwrap();
+        let text = fs::read_to_string(root.join(path)).unwrap();
+        assert_eq!(
+            given[0].bold_labels,
+            read_page(path, &text, true, true).bold_labels
+        );
     }
 
     #[test]
@@ -2334,7 +2471,7 @@ mod tests {
         assert!(physics.len() >= 20, "{} model pages", physics.len());
         for path in physics.iter().filter(|path| path.ends_with(".md")) {
             let text = fs::read_to_string(root.join(path)).unwrap();
-            let page = read_page(path, &text, true);
+            let page = read_page(path, &text, true, is_model_page(path));
             assert!(page.stock.is_empty(), "{path}: {:?}", page.stock);
         }
     }

@@ -21,7 +21,9 @@
 //! [`schema/format/hpr-design-0.2.schema.json`][schema-file] beside the older versions' schemas.
 //! A [`container`] (`.hprz`) carries a design with other files, such as its flight logs.
 //!
-//! Generated TypeScript and Python types come with the format's third step, [M3.3c][m3-3c].
+//! TypeScript and Python programs read a document through types generated from the schema, under
+//! `schema/format/typescript/` and `schema/format/python/`, each with a reader that checks a document against it
+//! ([the format page][format-page], [M3.3c][m3-3c]).
 //!
 //! ```
 //! use hpr_format::{DesignFile, Provenance, from_json, to_json};
@@ -38,6 +40,7 @@
 //! [adr-111]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-111-m33-the-hpr-design-format-its-extensions-versions-and-crate-2026-09-29
 //! [schema-file]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/format/hpr-design-0.2.schema.json
 //! [m3-3c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m3-3c
+//! [format-page]: https://hpr.fusionspace.co/format/hpr.html#typescript-and-python
 
 use std::collections::BTreeSet;
 use std::fmt;

@@ -471,7 +471,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c1"></a>[M0.14c1][done-0] | The first guides | done |
 | <a id="m0-14c2"></a>[M0.14c2][done-0] | Studies, data and logs | done |
 | <a id="m0-14c3"></a>[M0.14c3][done-0] | The command line and the evidence | done |
-| <a id="m0-14c4"></a>[M0.14c4][phase-0] | Reference and the environment | not yet done |
+| <a id="m0-14c4"></a>[M0.14c4][done-0] | Reference and the environment | done |
 | <a id="m0-14c5"></a>[M0.14c5][phase-0] | The rocket and its flight | not yet done |
 | <a id="m0-14c6"></a>[M0.14c6][phase-0] | Aerodynamics | not yet done |
 | <a id="m0-14c7"></a>[M0.14c7][phase-0] | Recovery, staging and readings | not yet done |
@@ -690,7 +690,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-3c2"></a>[M5.3c2][done-2] | A launch site's elevation from a GeoTIFF file the user gives, checked against GDAL's reading through rasterio on seven files and a whole USGS tile ([ADR-128][adr-128], [A launch site's elevation](elevation.md#from-an-elevation-file-of-your-own)) | done |
 | <a id="m5-4"></a>[M5.4][done-2] | Motor stock and prices from motor.fusionspace.co, joined with ThrustCurve.org's motors; split in three ([ADR-129][adr-129]) | done |
 | <a id="m5-4a"></a>[M5.4a][done-2] | The motor finder's files (its build, every motor, those in stock, the vendors, one motor's page) read through the cache, so they work offline, each carrying the credit the site asks for ([ADR-129][adr-129]; its CC BY 4.0 credit, [ADR-145][adr-145]; [Motor stock and prices](motor-stock.md)) | done |
-| <a id="m5-4b"></a>[M5.4b][done-2] | ThrustCurve.org's search and a motor's thrust curve through the cache, and the motors in stock matched to ThrustCurve.org's by name, with a report of the misses: 282 of 282 matched ([ADR-130][adr-130]; the tests' stand-in searches, [ADR-145][adr-145]; [Motor stock and prices](motor-stock.md#matching-motors-to-thrustcurveorg)) | done |
+| <a id="m5-4b"></a>[M5.4b][done-2] | ThrustCurve.org's search and a motor's thrust curve through the cache, and the motors in stock matched to ThrustCurve.org's by name, with a report of the misses: 282 of 282 matched ([ADR-130][adr-130]; the tests' stand-in searches, [ADR-145][adr-145]; [Motor stock and prices](motor-stock.md#matching-motors-to-thrustcurves-records)) | done |
 | <a id="m5-4c"></a>[M5.4c][done-2] | `hpr motors search`: motors in stock by class and price, from the network, a saved list or offline, with both sources' credit on every list ([ADR-131][adr-131], [Motors you can buy](cli.md#motors-you-can-buy)) | done |
 | <a id="m5-5"></a>[M5.5][done-2] | A catalog of parts: OpenRocket's parts files, looked up by maker and part number, and parts from them in a design; split in two ([ADR-132][adr-132]) | done |
 | <a id="m5-5a"></a>[M5.5a][done-2] | The 16 `.orc` parts files OpenRocket ships, bundled and read, every part held to OpenRocket's own reading: 3,449 parts, 17,911 values to the bit, the rest counted with their causes ([ADR-132][adr-132], [OpenRocket `.orc` parts catalogs](format/orc.md)) | done |
