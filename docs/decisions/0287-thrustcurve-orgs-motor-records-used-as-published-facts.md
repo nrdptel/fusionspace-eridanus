@@ -60,8 +60,8 @@ comes from ThrustCurve.org too ([ADR-067][adr-067]).
    replayed as recorded, never edited to agree with its curve. A curve is bundled only if it passes
    the bundle's accuracy rule. That matters: on 2026-10-17 only 198 of the site's 588 public-domain
    files came within 1% of their motor's published figures. In the first survey, 41 of 554 missed
-   their motor's total impulse by more than 5% ([the ThrustCurve note][tc-note]). More data makes the simulator safer only
-   where the checks catch the wrong records.
+   their motor's total impulse by more than 5% ([the ThrustCurve note][tc-note]). More data makes
+   the simulator safer only where the checks catch the wrong records.
 5. **If ThrustCurve.org's maintainer objects,** the data comes out of `main` and the notices say
    so. Git history keeps it: removing it there would need a force-push, which the project's rules
    forbid.
