@@ -16,7 +16,7 @@ read from a forecast's table of levels.
   gives 8 m/s (26 ft/s) from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents,
   HPR Sim's wind is interpolated by components, as RocketPy does. It matches RocketPy's samples
   to 1e-9 m/s (in [scientific notation](../glossary.md#scientific-notation): a
-  thousand-millionth of a meter per second). That includes the wind of NDRT 2020, one of the
+  billionth of a meter per second). That includes the wind of NDRT 2020, one of the
   [example rockets](../glossary.md#example-rockets), which changes with height. In the four
   descents with wind, the total [drift](../glossary.md#drift) agrees within 0.28%, and each east or
   north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Seven real flights have been
@@ -467,7 +467,8 @@ other fields are that model's inputs:
 - Reporting during a flight that the wind was held beyond a table's levels.
 
 A flight takes one wind model, so it can't join a power or log law near the ground to a table of
-levels aloft. How to join them isn't decided yet.
+levels aloft. How to join them isn't decided yet
+([issue #890](https://github.com/nrdptel/fusionspace-eridanus/issues/890)).
 
 ## Tests that pin this
 

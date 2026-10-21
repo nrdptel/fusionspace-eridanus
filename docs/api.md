@@ -62,8 +62,8 @@ Six more crates are partly built or not yet begun, and each front page says what
 | [`hpr_net`](api/hpr_net/index.html) | Optional online data, cached for offline use: weather, soundings, elevation and motor data ([below](#online-data)) | Done: [the cache](decisions-and-roadmap.md#m5-1), [Open-Meteo's weather](decisions-and-roadmap.md#m5-2a), [soundings](decisions-and-roadmap.md#m5-2b), [GFS and RAP](decisions-and-roadmap.md#m5-2c), [`hpr weather`](decisions-and-roadmap.md#m5-2d1), whole GRIB2 files in [complex packing](decisions-and-roadmap.md#m5-2d2) and [JPEG 2000](decisions-and-roadmap.md#m5-2d3), [elevation](decisions-and-roadmap.md#m5-3b) and [motor stock](decisions-and-roadmap.md#m5-4a) |
 | [`hpr_analysis`](api/hpr_analysis/index.html) | Monte Carlo dispersion, sensitivity analysis and optimization ([below](#analysis)) | [Monte Carlo](decisions-and-roadmap.md#m6-1) done; [optimization](decisions-and-roadmap.md#m6-2) done, [EGO on six variables](decisions-and-roadmap.md#m6-2d2) too, but for [robust designs](decisions-and-roadmap.md#m6-2e); [competition rules](decisions-and-roadmap.md#m6-3) not yet |
 | [`hpr_forensics`](api/hpr_forensics/index.html) | A flown flight against a simulation of it: what will differ, what that says about drag, mass, impulse and wind, and what went wrong | [Residuals and fits to a log](decisions-and-roadmap.md#m7-3) and [diagnosis](decisions-and-roadmap.md#m7-4) |
-| [`hpr_ffi`](api/hpr_ffi/index.html) | A C interface, for other languages | [M4.4](decisions-and-roadmap.md#m4-4) |
-| [`hpr_wasm`](api/hpr_wasm/index.html) | WebAssembly bindings, for the browser | [M4.4](decisions-and-roadmap.md#m4-4) |
+| [`hpr_ffi`](api/hpr_ffi/index.html) | A C interface, for other languages | [use from C and in the browser](decisions-and-roadmap.md#m4-4) |
+| [`hpr_wasm`](api/hpr_wasm/index.html) | WebAssembly bindings, for the browser | [use from C and in the browser](decisions-and-roadmap.md#m4-4) |
 
 The command-line tool, the package `fusionspace-hpr-cli`, is a program rather than a library, so it has no reference here.
 [The command line](cli.md) documents its commands, output and exit codes.

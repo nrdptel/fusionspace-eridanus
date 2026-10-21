@@ -305,7 +305,7 @@ These are findings from reading `refs/rocketpy` for the RocketPy comparison of
   [the atmosphere and wind milestone](../decisions-and-roadmap.md#m1-2):
   - It covers $T$, $T_M$, $H$, $P$, $\rho$, $a$, $\mu$ and $\nu$ at 32 altitudes from −2 to 86 km (−1.2 to 53 mi).
   - Every value is within 0.1%, and within one count of its last printed digit.
-  - The exceptions are those above (80–85.5 km (50–53 mi), where the printed $T$ equals $T_M$) and the
+  - The exceptions to the last-digit match are those above (80–85.5 km (50–53 mi), where the printed $T$ equals $T_M$) and the
     84 km (52 mi) density. The latter prints 9.6940E-6 where the equations give 9.69387e-6; the row's
     own $\rho/\rho_0$ agrees with the equations.
   - The fixture was transcribed from the page images and cross-checked by
