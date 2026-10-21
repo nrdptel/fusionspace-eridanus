@@ -3,47 +3,45 @@
 Read the order of FusionSpace HPR's releases, what each one will include, and how likely each goal
 is to work out.
 
-**This page says what each FusionSpace HPR release holds, in what order, and how likely each goal
-is to work out.** It was made on October 6, 2026, from the roadmap as it stood that day. It goes
-out of date as work ships or the roadmap changes. It gives no dates: releases come at product
-boundaries.
+**The plan was made on October 6, 2026, from the roadmap as it stood that day.** It goes out of
+date as work ships or the roadmap changes. It gives no dates: releases come at product boundaries.
 
-> **How far to trust it.**
-> - **What kind of figure:** a judgment of each goal's outlook, from the work done so far.
-> - **Based on:** the roadmap and the validation results as of October 6, 2026.
-> - **What to rely on instead:** [the roadmap](decisions-and-roadmap.md) for what comes next and
->   in what order; a published release for what is done.
+> **How far to trust it.** Each goal's outlook here is a judgment, from the work done so far. It's
+> based on the roadmap and the validation results as of October 6, 2026. For what comes next and in
+> what order, rely on [the roadmap](decisions-and-roadmap.md) instead, and for what's done, on a
+> published release.
 
 ## In short
 
 Releases come in this order. A release is out once Neer, the project's owner, publishes it.
 
-- **Release 0.1, the simulator.**
-- **Release 0.2, the flight analyzer.**
-- **Release 0.3, accuracy and fault diagnosis.**
-- **Release 0.4, the competition kit.**
-- **Release 0.5, the app preview.** It is out once the project's own acceptance pass is done
-  ([ADR-282](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0282-the-project-tests-each-ui-milestone-itself.md)) and any changes it turns
-  up are made.
-- **Release 1.0, the app.** It is out, again, once its acceptance pass is done.
-- **Everything else on the roadmap that is software** comes after 1.0.
-- **The one goal that is not only software,** an avionics board built and flown, follows Neer's
-  build and the launch calendar, so spring 2027 at the earliest.
+1. Release 0.1, the simulator.
+2. Release 0.2, the flight analyzer.
+3. Release 0.3, accuracy and fault diagnosis.
+4. Release 0.4, the competition kit.
+5. Release 0.5, the app preview. It's out once
+   [the project's own acceptance pass](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0282-the-project-tests-each-ui-milestone-itself.md)
+   is done and any changes it turns up are made.
+6. Release 1.0, the app. It's out, again, once its acceptance pass is done.
+7. Everything else on the roadmap that's software comes after 1.0.
+
+The one goal that isn't only software, an avionics board built and flown, follows Neer's build
+and the launch calendar. So it comes in spring 2027 at the earliest.
 
 ## The releases
 
 | release | what it adds | also waits on |
 |---|---|---|
-| 0.1 the simulator | Monte Carlo from the command line and Python ([M4.6](decisions-and-roadmap.md#m4-6); [Monte Carlo](glossary.md#monte-carlo) flies many copies of a flight with its inputs scattered); logged apogees from real flights ([M2.3c1](decisions-and-roadmap.md#m2-3c1)); release builds and named fixes ([M10.1](decisions-and-roadmap.md#m10-1)) | Neer publishing it |
-| 0.2 the flight analyzer | flight-log importers ([M7.1](decisions-and-roadmap.md#m7-1)); readings and smoothing ([M7.2](decisions-and-roadmap.md#m7-2)); a flight against its simulation ([M7.3](decisions-and-roadmap.md#m7-3)) | Neer publishing it |
-| 0.3 accuracy and diagnosis | the accuracy campaign from [Mach](glossary.md#mach-number) 0 to 2.5 ([M1.14b to M1.14g](decisions-and-roadmap.md#m1-14)); logged traces ([M2.3c2](decisions-and-roadmap.md#m2-3c2)); fault diagnosis ([M7.4](decisions-and-roadmap.md#m7-4)) | Neer publishing it |
-| 0.4 the competition kit | optimizing a Monte Carlo result ([M6.2e](decisions-and-roadmap.md#m6-2e)); challenge presets ([M6.3](decisions-and-roadmap.md#m6-3)); airbrakes ([M6.4](decisions-and-roadmap.md#m6-4)); submission packs ([M6.6](decisions-and-roadmap.md#m6-6)); ejection charges ([M6.7](decisions-and-roadmap.md#m6-7)); RASAero and RocketPy files ([M3.5](decisions-and-roadmap.md#m3-5), [M3.6](decisions-and-roadmap.md#m3-6)) | Neer publishing it |
-| 0.5 the app preview | C and WebAssembly bindings ([M4.4](decisions-and-roadmap.md#m4-4)); the user-interface choice ([M9.0](decisions-and-roadmap.md#m9-0)); 3D replay of a real flight beside its simulated ghost ([M9.2](decisions-and-roadmap.md#m9-2)) | Neer using it, then publishing it |
-| 1.0 the app | the desktop editor ([M9.1](decisions-and-roadmap.md#m9-1)); the web app that works offline ([M9.3](decisions-and-roadmap.md#m9-3)); the design assistant ([M8.1](decisions-and-roadmap.md#m8-1)); undo and edits ([M8.2](decisions-and-roadmap.md#m8-2)); RockSim files ([M3.4](decisions-and-roadmap.md#m3-4)) | Neer using it, then publishing it |
+| 0.1 the simulator | [Monte Carlo from the command line and Python](decisions-and-roadmap.md#m4-6) ([Monte Carlo](glossary.md#monte-carlo) flies many copies of a flight with its inputs scattered); [logged apogees from real flights](decisions-and-roadmap.md#m2-3c1); [release builds and named fixes](decisions-and-roadmap.md#m10-1) | Neer publishing it |
+| 0.2 the flight analyzer | [flight-log importers](decisions-and-roadmap.md#m7-1); [readings and smoothing](decisions-and-roadmap.md#m7-2); [a flight against its simulation](decisions-and-roadmap.md#m7-3) | Neer publishing it |
+| 0.3 accuracy and diagnosis | the accuracy campaign from [Mach](glossary.md#mach-number) 0 to 2.5 ([M1.14b to M1.14g](decisions-and-roadmap.md#m1-14)); [logged traces](decisions-and-roadmap.md#m2-3c2); [fault diagnosis](decisions-and-roadmap.md#m7-4) | Neer publishing it |
+| 0.4 the competition kit | [optimizing a Monte Carlo result](decisions-and-roadmap.md#m6-2e); [challenge presets](decisions-and-roadmap.md#m6-3); [airbrakes](decisions-and-roadmap.md#m6-4); [submission packs](decisions-and-roadmap.md#m6-6); [ejection charges](decisions-and-roadmap.md#m6-7); [RASAero](decisions-and-roadmap.md#m3-5) and [RocketPy](decisions-and-roadmap.md#m3-6) files | Neer publishing it |
+| 0.5 the app preview | [C and WebAssembly bindings](decisions-and-roadmap.md#m4-4); [the user-interface choice](decisions-and-roadmap.md#m9-0); [3D replay of a real flight beside its simulated ghost](decisions-and-roadmap.md#m9-2) | Neer seeing it, then publishing it |
+| 1.0 the app | [the desktop editor](decisions-and-roadmap.md#m9-1); [the web app that works offline](decisions-and-roadmap.md#m9-3); [the design assistant](decisions-and-roadmap.md#m8-1); [undo and edits](decisions-and-roadmap.md#m8-2); [RockSim files](decisions-and-roadmap.md#m3-4) | Neer seeing it, then publishing it |
 | after 1.0 | canards, CAD files, phone apps, accounts, the extended Mach band, motor, parachute and avionics design | see below |
 
-A release is out when Neer publishes it. For 0.5 and 1.0 it also takes his own use of the app, and
-any changes that use turns up.
+A release is out when Neer publishes it. For 0.5 and 1.0 it also takes the project's own acceptance
+pass, and any changes that pass turns up.
 
 ## How feasible each goal is
 
@@ -65,7 +63,7 @@ any changes that use turns up.
 ## What only Neer can do
 
 - Publish each release.
-- Use the 0.5 and 1.0 apps before they count as done.
+- See the 0.5 and 1.0 apps before they go out. His look never holds up their milestones.
 - Choose an app-store account and a hosting provider, when phone apps and accounts come up.
 - Decide how US export rules apply, before hybrid and liquid design.
 - Build and fly the avionics board.
@@ -74,10 +72,10 @@ None of these blocks the work before release 0.5.
 
 ## What could change the plan
 
-1. **New goals.** The plan covers the roadmap as it stood on October 6, 2026.
-2. **Bug reports.** 96 issues were open that day, 29 of them high priority. Critical ones come
+1. New goals, since the plan covers the roadmap as it stood on October 6, 2026.
+2. Bug reports. On that day 96 issues were open, 29 of them high priority, and critical ones come
    before milestone work.
-3. **Hard milestones growing more than expected.** Accuracy, diagnosis and the app are the most
+3. Hard milestones growing more than expected. Accuracy, diagnosis and the app are the most
    open-ended.
 
 ## What 1.0 includes, and what comes after
