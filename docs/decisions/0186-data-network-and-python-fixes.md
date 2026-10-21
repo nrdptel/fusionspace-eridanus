@@ -1,6 +1,6 @@
 # ADR-186: The data, network and Python fixes of release 0.1 (2026-10-06)
 
-- **Status:** accepted
+- **Status:** accepted; #295's license reasoning replaced by ADR-287 (ThrustCurve.org's records used as published facts)
 - **Summary:** M10.1b fixes five issues. The bundled motor catalog is written from its 32 public-domain curve files alone by `cargo xtask motor-catalog`, every figure the file's own (#295). `.hprz` attachment names are compared after canonical decomposition as well as case folding (#252). Open-Meteo and NOMADS write a site's coordinates to 5 decimals so a radians round trip keeps the cache key (#272). Three pages' accuracy figures are the report's, and the site's number trace now checks them (#298). A pytest pins Python's `recovery=True` flight to `hpr sim`'s bit for bit (#308).
 
 **Context.** ADR-185 split release 0.1 (M10.1) in four; M10.1b holds the five issues that touch the

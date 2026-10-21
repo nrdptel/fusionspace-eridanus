@@ -315,6 +315,7 @@ until someone rewrites it in plainer words.
 | [ADR-284: The maintainer's own voice on every page][adr-284] | The project's pages read as if they came off a template, not from a person. [M0.14](#m0-14) rewrites what people read (the README, the docs site, fusionspace.co, the design system's writing rules and README, `hpr`'s own messages and the repositories' About text) in the maintainer's plain voice, with a voice section in the writing guide and a `cargo xtask voice` check. Decision records, the archive and tools due to be replaced stay as they are. |  |
 | [ADR-285: The rest of the site in nine increments, each held to the voice limits as it lands][adr-285] | The 71 site pages [M0.14c](#m0-14c) covers hold 413,377 words, too many for one rewrite. They go in nine increments by the site's sections. From the first, `cargo xtask voice` fails when a page [M0.14](#m0-14) has rewritten goes over a voice limit or misses the guide's sentence targets, so a page that passes stays passing while the rest are done. The last increment holds every site page, a new one included. |  |
 | [ADR-286: The 2026-10-20 review: the export bar tightened][adr-286] | In the corpus, the only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas. |  |
+| [ADR-287: ThrustCurve.org's motor records used as published facts][adr-287] | ThrustCurve.org's motor records are published facts about motors anyone can buy, so the project uses them, from the site, its API or the site's 2016 sample dump, with ThrustCurve.org's credit; curve files marked public domain or with no license may be committed too, files marked "free usage" or "other (restricted)" are fetched only when a user asks, and every accuracy check stays. |  |
 
 ## The roadmap
 
@@ -1201,6 +1202,7 @@ is the milestone that added or will add that test.
 [adr-284]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0284-the-maintainers-own-voice.md
 [adr-285]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md
 [adr-286]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
