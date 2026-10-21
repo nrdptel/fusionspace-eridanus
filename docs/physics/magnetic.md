@@ -15,7 +15,7 @@ true heading you give HPR Sim.
   2025–2030: Technical Report*, NOAA NCEI (2025). With it, NCEI's coefficient file
   `WMM2025.COF`, which NCEI places in the public domain.
 - **How well it is validated:** the simulator reproduces all 12 of the report's test points (its
-  Table 6) to their last printed digit, declination to 0.005°. NCEI's file of 100 points is
+  Table 6) to their last printed digit. Declination is held to 0.005°. NCEI's file of 100 points is
   printed to 1e-6 nT and angles to 0.01°. It matches to its last digit in declination,
   inclination, the east component and four rates. Its north component differs at 97 points, by
   up to 7.18e-4 nT (2.11e-8 of the total field). The horizontal and total intensities differ with

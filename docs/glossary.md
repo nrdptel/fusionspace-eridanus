@@ -1090,7 +1090,7 @@ A way to work out the air's forces on a long, thin body from how fast its cross-
 along its length. At any Mach number, it gives a nose as wide as the reference a normal-force slope of 2 per
 radian, whatever its shape. A transition gets $2\Delta A/A_{\mathrm{ref}}$, and a plain tube nothing. Barrowman's method uses it
 for every body part. HPR Sim uses it below Mach 1.2, and at every speed for bodies the
-shock-expansion method can't take. These are steps, a nose too blunt for its cap, and a widening
+shock-expansion method can't take. These are steps and a nose too blunt for its cap. So is a widening
 shape that isn't a cone, isn't flush with the part ahead of it, or rides in a boattail's wake. NASA's wind tunnel
 shows a real body lifting more past Mach 3. See
 [Aerodynamics](physics/aero.md#bodies-of-revolution).

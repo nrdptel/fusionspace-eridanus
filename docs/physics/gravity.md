@@ -109,9 +109,9 @@ $$
   \end{aligned}
   $$
 
-  RocketPy uses this form. Its error against the exact field, in the fixture values below, is 1e-8
-  relative at 1.4 km (0.87 mi) and 3e-7 at 30 km (19 mi). It is 1.4e-5 at 100 km (62 mi) and
-  1.1e-4 at 200 km (124 mi).
+  RocketPy uses this form. Its error against the exact field is in the fixture values below. It is
+  1e-8 relative at 1.4 km (0.87 mi) and 3e-7 at 30 km (19 mi). At 100 km (62 mi) it is 1.4e-5,
+  and at 200 km (124 mi) 1.1e-4.
 - For the exact field (eqs. 4-5 to 4-13), ellipsoidal-harmonic coordinates $(u, \beta)$ give the components
   $\gamma_u$ and $\gamma_\beta$. The code rotates them into ECEF with $R_1$ (eq. 4-18). Eq. 4-8 is
   used in the equivalent form

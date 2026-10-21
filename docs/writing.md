@@ -328,7 +328,7 @@ rate over its limit, or one sentence target missed, fails the build. The report 
 The site also holds a model page's *In short* box to its shape: four bulleted items, each opening
 with its label in bold. The four labels are what it models, its sources, how well it is validated
 and what it leaves out. A reader scans the box, and on a short page its four labels alone would
-pass the limit, so the check doesn't count them as bold-label items. Any other bold label on a
+pass the limit. So the check doesn't count them as bold-label items. Any other bold label on a
 model page counts.
 A cap of about 150 words on the box was planned and isn't built yet.
 
@@ -856,9 +856,9 @@ sets, Google's "good":
   drawn: at most 2.5 s;
 - **Cumulative Layout Shift (CLS)**, how far what is drawn moves afterwards, as a share of the
   screen: at most 0.1;
-- **Interaction to Next Paint (INP)**, how long the page takes to answer a key or a tap: at most
-  200 ms. The check presses Tab and taps the menu button twice, and takes the slowest of those.
-  Search, scrolling and the other buttons aren't tried.
+- **Interaction to Next Paint (INP)**, how long the page takes to answer a key or a tap. The
+  check presses Tab and taps the menu button twice; search, scrolling and the other buttons
+  aren't tried. The slowest of the three must take at most 200 ms.
 
 The phone and the network are the ones Google's
 [Lighthouse](https://developer.chrome.com/docs/lighthouse) uses for a phone. That's a screen 412
