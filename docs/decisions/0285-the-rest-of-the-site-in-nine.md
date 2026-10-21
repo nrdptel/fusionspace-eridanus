@@ -173,6 +173,36 @@ the pages, the way a flyer would:
    Adaptive quadrature, how closely its tests match their references. For each of the nine model
    pages, say from its *In short* how well it is validated.
 
+**M0.14c5's tasks,** done the same way, on the PR's final commit:
+
+1. From The design tree, configurations and checks, say where a part's position is measured
+   from, what an automatic radius is taken from, and what an override replaces. Name one design
+   the checks refuse and what the refusal says, and follow one of the page's worked examples (a
+   cluster, the pods or the parallel stage) to its numbers.
+2. From Nose cones, transitions and solids of revolution, name the shapes it draws and say how a
+   wall's thickness is measured. Say what measuring it another way changes, with the page's
+   figures, and how closely the shapes match their closed forms.
+3. From Mass properties of components, say how a structure's mass and center of mass compare with
+   OpenRocket's on the compared designs, with the page's counts, and the cause it gives for the
+   design outside them. Say what a `.ork` leaves unsaid about a part's mass and how an override
+   fills it.
+4. From Solid motors, run its example program as the page says, and get the page's output. Say
+   how the motor's mass and center of mass move as it burns, what its thrust does at altitude, and
+   how closely the bundled curves' statistics match ThrustCurve.org's.
+5. From Rigid-body flight, say what the state holds, what happens in each phase from the rail to
+   the ground, and what ends a flight. From its *Whole flights against RocketPy*, say how closely
+   the two codes agree on the example rockets, with the page's numbers, and where the path
+   doesn't.
+6. From Time integration and events, say which two methods step a flight and what each is for,
+   how a step lands on burnout, how apogee is found, the defaults it runs with, and what it can't
+   detect.
+7. From Moving mass and Released mass, describe a shift and a release as each page says, follow
+   each worked example to its numbers, and say how far each model is validated and what it leaves
+   out.
+8. From Fin flutter, follow one of Martin's worked examples and the rocket's fins to their
+   numbers. Say which of the two readings decides, why the speed ratio alone isn't a safe line,
+   which way each reading can err, and where a fin's shear modulus comes from.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
