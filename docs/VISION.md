@@ -140,8 +140,8 @@ checkable items.
   Neer decided that everything people read, from the README and the docs to fusionspace.co and the
   GitHub pages, should sound like him, written plainly, and asked for it to be done carefully.
 - **2026-10-21, every motor offline** ([ADR-288, every solid motor ships in the package](decisions/0288-every-solid-motor-ships-in-the-package.md)).
-  Neer asked for every solid motor's data in the package, so it works offline with nothing to
-  fetch, and said more data and more options are better.
+  Neer decided the package should carry every solid motor's data, so it works offline with nothing
+  to fetch, and that more data and more options are better.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
