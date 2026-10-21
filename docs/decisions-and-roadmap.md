@@ -472,7 +472,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c2"></a>[M0.14c2][done-0] | Studies, data and logs | done |
 | <a id="m0-14c3"></a>[M0.14c3][done-0] | The command line and the evidence | done |
 | <a id="m0-14c4"></a>[M0.14c4][done-0] | Reference and the environment | done |
-| <a id="m0-14c5"></a>[M0.14c5][phase-0] | The rocket and its flight | not yet done |
+| <a id="m0-14c5"></a>[M0.14c5][done-0] | The rocket and its flight | done |
 | <a id="m0-14c6"></a>[M0.14c6][phase-0] | Aerodynamics | not yet done |
 | <a id="m0-14c7"></a>[M0.14c7][phase-0] | Recovery, staging and readings | not yet done |
 | <a id="m0-14c8"></a>[M0.14c8][phase-0] | The file formats | not yet done |
