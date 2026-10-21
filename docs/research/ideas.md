@@ -142,6 +142,17 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
   task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
   replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
 
+## 2026-10-20: ThrustCurve.org's records
+
+Placed by [ADR-287][adr-287], which lets the project commit ThrustCurve.org's motor records.
+
+- SOON: ThrustCurve.org's whole motor catalog, offline. User: a flyer at a field with no signal
+  who wants every 54 mm K motor, not only the 32 bundled ones. Workflow: the motor search reads a
+  bundled copy of ThrustCurve.org's records, with its date and credit, when the network is out,
+  and says how old it is. Moves: `features.count`. *Done when:* with no network, the search lists
+  every motor of a recorded search at the bundle's date, each figure equal to the recording's, and
+  a test fails if the answer leaves out the bundle's date.
+
 ## MAINTAINER'S CALL (money, outreach)
 
 - Bids to be the official simulator of US competitions.
@@ -190,6 +201,7 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
 [m2-11]: ../decisions-and-roadmap.md#m2-11
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[adr-287]: ../decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
 [i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
 [hpcd]: hobby-parachute-cd.md

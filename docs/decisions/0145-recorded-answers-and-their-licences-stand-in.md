@@ -1,6 +1,6 @@
 # ADR-145: Recorded answers and their licences: stand-in ThrustCurve searches, CC BY 4.0 for the motor finder (2026-10-03)
 
-- **Status:** accepted
+- **Status:** accepted; §1's license reasoning replaced by ADR-287 (ThrustCurve.org's records used as published facts)
 - **Summary:** Recorded answers and their licences: ThrustCurve.org's three searches replaced by stand-ins (five invented motors per maker, and the in-stock motors' records carrying the motor finder's CC BY 4.0 values); motor.fusionspace.co's answers under CC BY 4.0, credited "Motor stock data from motor.fusionspace.co"
 
 **Context.** ADR-130 §7 committed five ThrustCurve.org answers as test fixtures: three makers'

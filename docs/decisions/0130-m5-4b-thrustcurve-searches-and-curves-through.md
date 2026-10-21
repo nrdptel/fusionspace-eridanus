@@ -1,6 +1,6 @@
 # ADR-130: M5.4b, ThrustCurve searches and curves through the cache, and the in-stock join (2026-10-01)
 
-- **Status:** accepted; the three searches (§7) superseded by ADR-145
+- **Status:** accepted; the three searches (§7) superseded by ADR-145; the records' license reading replaced by ADR-287 (ThrustCurve.org's records used as published facts)
 - **Summary:** M5.4b: ThrustCurve.org's search and download in `hpr_net::thrustcurve` through the cache, a day's TTL; the join by exact maker and designation, misses reported not guessed; three makers' searches and two public-domain files committed as fixtures; the join's report in `validation/reports/thrustcurve-join.md`
 
 **Context.** M5.4b (ADR-129 §1) asks for ThrustCurve.org's search and a motor's curve through the
