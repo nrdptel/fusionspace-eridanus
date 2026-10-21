@@ -116,8 +116,8 @@ simulator. It reads:
 - AltOS's CSV, its radio telemetry (`.telem`) and raw downloads (`.eeprom`), and its radio
   telemetry decoded to a table. It also reads AltOS's CSV re-saved by a spreadsheet, its formulas
   kept as text, or cut to its columns.
-- The Raven's FIP CSV and the Blue Raven's, the Raven's `.FIPa` raw download, and a Raven FIP
-  export pasted below no header, under a header you state.
+- The Raven's FIP CSV and the Blue Raven's, and the Raven's `.FIPa` raw download.
+- A Raven FIP export pasted below no header, under a header you state.
 - A Blue Raven's USB download, each line held to its CRC.
 - RRC3's CSV and the RRC3's `.rff` raw download.
 - Eggtimer's CSV, an Eggtimer TRS's terminal text, and an Eggtimer's download saved as RTF.
@@ -133,12 +133,13 @@ simulator. It reads:
 - An AltiMAX altimeter's `.xls` export and its own `.ALS` file.
 - A MARSA altimeter's download.
 - A course's Teensy data logger, and one team's radio telemetry packets, `255:…:254`.
-- GPS tracks from Featherweight's GPS CSV, KML, NMEA, Missile Works' RTx (its `.rtx` file and
-  exports) and GPX (checked on invented files only, [evidence row G1](evidence.md#g1)).
+- GPS tracks from Featherweight's GPS CSV, KML, NMEA and Missile Works' RTx (its `.rtx` file and
+  exports).
+- GPS tracks in GPX, checked on invented files only ([evidence row G1](evidence.md#g1)).
 - Tables from loggers no other reader knows, by the units their headers state.
 - Binary records, from a raw file or a console capture, by a layout you state.
-- Tables whose headers state too little, by a column mapping you state (its clock turning over,
-  its rows written as lists or behind a date and time, its columns left out).
+- Tables whose headers state too little, by a column mapping you state. Such a table may have a clock
+  that turns over, rows written as lists or behind a date and time, or columns left out.
 
 From any logger's barometric altitude or pressure it reads liftoff, apogee, the top speed,
 landing, the flight time and the descent under each canopy. From an accelerometer along the
