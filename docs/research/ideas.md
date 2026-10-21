@@ -141,7 +141,7 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
   caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves: a new
   task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
   replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
-- SOON ([ADR-287][adr-287]): ThrustCurve.org's whole catalog bundled, for a flyer with no signal. *Done
+- SOON ([ADR-287][adr-287]): ThrustCurve.org's records, all bundled, for a flyer with no signal. *Done
   when:* an offline search lists a recorded search's motors, figures equal, and names the bundle's date.
 
 ## MAINTAINER'S CALL (money, outreach)

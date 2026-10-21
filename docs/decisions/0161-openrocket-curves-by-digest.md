@@ -1,6 +1,6 @@
 # ADR-161: A `.ork` motor fetched from ThrustCurve takes the file holding OpenRocket's curve for its digest (2026-10-04)
 
-- **Status:** accepted; §3's license reasoning replaced by ADR-287 (ThrustCurve.org's records used as published facts)
+- **Status:** accepted; §3's reasoning on ThrustCurve.org's license replaced by ADR-287 (OpenRocket's database still states no terms) (ThrustCurve.org's records used as published facts)
 - **Summary:** amends ADR-154 §2 and §4: a fetch may name a ThrustCurve data file to take ahead of the rank's order (`Wanted::prefer`, `hpr motors fetch --file`). `hpr sim` names one for a `.ork` motor whose digest a committed table holds: the file whose curve is the one OpenRocket flies. `cargo xtask ork-curves` writes the table for the motors of OpenRocket's examples by comparing curves; it holds ids alone. With it, OpenRocket's three-stage example's first configuration reads +0.31% of OpenRocket's largest speed in `hpr sim`, not +5.7%, and every configuration is within 2.48% of OpenRocket's apogee
 
 **Context.** [ADR-154](0154-motors-fetched-from-thrustcurve-by-name.md) fetches a `.ork` motor
