@@ -284,6 +284,7 @@ pages = [
   "physics/recovery.md#from-an-openrocket-file",
   "physics/staging.md#in-short",
   "format/ork.md#openrocket-ork-design-files",
+  "api.md#staging-clusters-and-parts-that-leave",
 ]
 kind = "none"
 wanted = "real"
