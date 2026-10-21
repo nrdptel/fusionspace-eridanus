@@ -141,6 +141,8 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
   caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves: a new
   task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
   replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
+- SOON ([ADR-287][adr-287]): ThrustCurve.org's solid-motor records bundled. User: a flyer with no signal.
+  *Done when:* an offline search lists a recorded search's motors, figures equal, with the bundle's date.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -190,6 +192,7 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
 [m2-11]: ../decisions-and-roadmap.md#m2-11
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[adr-287]: ../decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
 [i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
 [hpcd]: hobby-parachute-cd.md
