@@ -195,7 +195,7 @@ $$
     exactly vertical included);
   - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2000 km (1,243 mi) and up to 1000 km (621 mi) high;
   - named attitudes, and the tangent-plane rise $d^2/(2\rho)$ due east, $\rho$ there being the
-    radius [Geodesy](geodesy.md) calls $N$.
+    radius [Geodesy](geodesy.md) calls $N$, plus the site's height.
 - In `hpr_core::attitude::tests`: the kinematic equation checked against a closed-form coning
   motion, and norm drift ≤ 1e-12 over 1e6 RK4 steps with attitude error < 1e-9 rad.
 

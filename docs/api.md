@@ -51,7 +51,7 @@ So `hpr` is the package `fusionspace-hpr`, `hpr_core` is `fusionspace-hpr-core`,
 | [`hpr_sim`](api/hpr_sim/index.html) | The flight: the launch rail, the equations of motion, time integration, events and recovery | How staging, air starts, clusters and parts that leave the airframe are checked ([below](#staging-clusters-and-parts-that-leave)) | [How a flight is simulated](how-a-flight-is-simulated.md), [Rigid-body flight](physics/flight.md), [Time integration](physics/integration.md), [Recovery](physics/recovery.md), [Staging](physics/staging.md) |
 | [`hpr_flightdata`](api/hpr_flightdata/index.html) | Reading a flight log on its own, with no design and no simulation, and the readings taken from it ([below](#flight-logs)) | Formats no sample holds ([listed as needing samples](format/flight-logs.md#formats-that-need-samples), [evidence row G9](evidence.md#g9)); readings from a GPS track; the top acceleration from a board's three axes ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)); the Mach number; a [90% interval on each reading](decisions-and-roadmap.md#m7-2e) | [Reading a flight log](reading-a-flight-log.md), [Flight-log readings](physics/log-readings.md), [`.pf2` files](format/pf2.md), [Flight logs](format/flight-logs.md) |
 | [`hpr_validate`](api/hpr_validate/index.html) | The validation harness: cases, [whole flights against RocketPy](decisions-and-roadmap.md#m2-1b2) among them, reference data, metrics and reports | None | [Accuracy](accuracy.md), [Checking a claim](checking-a-claim.md) |
-| [`hpr_py`](api/hpr_py/index.html) | The `fusionspace-hpr` Python package (`fusionspace.hpr`): the builder's environment, motor, rocket and flight from Python ([more below](#the-python-package)) | |
+| [`hpr_py`](api/hpr_py/index.html) | The `fusionspace-hpr` Python package (`fusionspace.hpr`): the builder's environment, motor, rocket and flight from Python ([more below](#the-python-package)) | | [Python](python.md) |
 
 Six more crates are partly built or not yet begun, and each front page says what it will hold.
 `hpr_ffi` and `hpr_wasm` hold no code yet; the other four already hold some:
@@ -93,8 +93,8 @@ Faster than sound, what `hpr_aero` flies depends on the body's shape:
 
 ### Staging, clusters and parts that leave
 
-- Staging and [air starts](glossary.md#air-start) fly. Tests check them, and so do OpenRocket's
-  two-stage, cluster and air-start examples. Each flight is within 5% of OpenRocket's in apogee and
+- Staging and [air starts](glossary.md#air-start) fly. Tests check them, and so does a comparison
+  with OpenRocket's two-stage, cluster and air-start examples. Each flight is within 5% of OpenRocket's in apogee and
   largest speed ([a two-stage and a cluster design against OpenRocket](decisions-and-roadmap.md#m1-9c)).
   Three cluster apogees are compared with OpenRocket's flight with no parachute, since its
   parachute opened before apogee.
@@ -173,9 +173,8 @@ operating system, and it's on PyPI as `fusionspace-hpr`.
 
 Each powered separation in a `.ork` comes out as a
 [`Staging`](api/hpr_io/ork/staging/struct.Staging.html), from the tail forward
-(`MotorConfiguration::stagings`). A powered separation is one whose time is known before the
-flight. At that time a motor ahead of it is still burning or yet to light, and none behind it
-is. Any other separation that could come before apogee is refused, a sustainer already burnt out
+(`MotorConfiguration::stagings`). Its time is known before the flight. At that time a motor ahead
+of it is still burning or yet to light, and none behind it is. Any other separation that could come before apogee is refused, a sustainer already burnt out
 at the split included. The configuration's rocket doesn't carry the `Staging`. These functions in
 `hpr` carry it, and the recovery settings, into the flight:
 
