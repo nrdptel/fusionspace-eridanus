@@ -5,8 +5,8 @@ public type, function and constant.
 
 **The API reference documents FusionSpace HPR's code: every public type, function and constant,
 generated from the source by rustdoc, Rust's documentation tool.** Use it when you write a program
-with the `hpr` library, as [Getting started](getting-started.md) does. The library is pre-alpha,
-and none of its interface is stable yet: any of it can change. The simplest way in is the `hpr`
+with the `hpr` library, as [Getting started](getting-started.md) does. The library is released (0.1.0)
+but not yet at 1.0, so none of its interface is stable: any of it can change. The simplest way in is the `hpr`
 crate's builder ([The builder](the-builder.md)).
 
 **Where to read it.** On the site, the crate names below open the reference. On GitHub they lead

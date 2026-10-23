@@ -196,10 +196,10 @@ its inverse sometimes fails to converge (§7).
 | bearing from the pad $\alpha_1$ | 31.567° |
 | azimuth on arrival $\alpha_2$ | 31.571° |
 
-The other way round, 2 km (1.2 mi) from the same pad on a bearing of 60° reaches 32.999415° N,
-106.956466° W, heading 60.010°. At this range a flat map gives the same distance if it uses
-the ellipsoid's curvature at the middle latitude. That gives 1,249.614 m (4,099.78 ft) again, to
-under a millimeter. The geodesic matters over long paths, where a flat map's error grows. A unit test,
+At this range a flat map gives the same distance if it uses the ellipsoid's curvature at the
+middle latitude: 1,249.614 m (4,099.78 ft) again, to under a millimeter. The other way round,
+2 km (1.2 mi) from the same pad on a bearing of 60° reaches 32.999415° N, 106.956466° W, heading
+60.010°. The geodesic matters over long paths, where a flat map's error grows. A unit test,
 `the_guides_worked_example`, holds these numbers.
 
 **Validation.** [GeodTest] is Karney's set of 500,000 WGS 84 geodesics. They were worked

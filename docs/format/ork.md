@@ -355,8 +355,8 @@ departs from [F] but leaves the file readable is a warning that travels with the
 | `Unusual` | read as it stands | a schema version past 1.11; no `creator` attribute; a design entry not called `rocket.ork`; a surface finish or an axial-offset method this reader has no rule for; an automatic radius with nothing to take, given OpenRocket's 25 mm (0.98 in) default; a part inside an inner tube set off the body's axis, placed from the body's axis ([below](#clusters)); a `<rocket>` holding nothing |
 
 **Observed:** reading the corpus's containers and documents raises **no warnings at all**: every
-file that opens is ordinary. Building a *rocket* from those documents raises 21 warnings over 73
-readable files: 4 dropped, 8 skipped and 9 unusual ([below](#measured-on-the-reference-library)). Every kind of warning the container and document readers
+file that opens is ordinary. Building a *rocket* from those documents raises 10 warnings over 73
+readable files: 1 skipped and 9 unusual ([what they are](#what-the-warnings-are)). Every kind of warning the container and document readers
 can raise is therefore exercised by a test rather than by a file anyone shipped.
 
 Only these stop a read:
@@ -414,7 +414,7 @@ the per-file detail goes to a gitignored `corpus-out/`, and only counts are publ
 | files found | 75 |
 | opened | 73 |
 | written and read back unchanged | 73 |
-| warnings raised reading the container and the document | 0 (building a *rocket* from them raises 39; see [below](#measured-on-the-reference-library)) |
+| warnings raised reading the container and the document | 0 (building a *rocket* from them raises 10; see [below](#what-the-warnings-are)) |
 | refused, not well-formed XML | 2 |
 | deepest nesting | 17 |
 | elements holding text beside children | 48, in 19 files |
@@ -431,16 +431,16 @@ read);
 the 17 example designs inside the OpenRocket jar (also under `refs/`) are counted with it unless a
 table lists them apart.
 
-**Every other file imports without an error.** An import error is a file that does not read, or a
+**Apart from the two Loft fixtures, every file imports without an error.** An import error is a file that does not read, or a
 design that reads but does not lay out. Warnings are not errors, because a warning never stops an
-import. The survey counts both kinds of error for each source. On 2026-09-23, excluding generated
+import. The survey counts both kinds of error for each source. On 2026-10-23, excluding generated
 `scratch/` files from the default scan:
 
 | source | files | read | laid out | errors |
 |---|--:|--:|--:|---|
 | the private design library (`loft-fixtures`, now copied into the private flight collection) | 27 | 27 | 27 | 0 |
 | the OpenRocket 24.12 jar's examples | 17 | 17 | 17 | 0 |
-| everything else under `refs/` | 34 | 32 | 31 | 2 (the two Loft fixtures that are not XML) |
+| everything else under `refs/` | 31 | 29 | 28 | 2 (the two Loft fixtures that are not XML) |
 
 One file in the last row reads but holds no design, so it has nothing to lay out.
 
@@ -1611,8 +1611,8 @@ How it was decided, and the sources quoted in full, are in [ADR-054][adr-054].
 
 #### Measured on the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-09-23, with the rows for parts left out
-and warnings raised from 2026-09-28:
+`cargo xtask ork`, over the 73 readable files, on 2026-09-23, with the row for parts left out
+from 2026-09-28 and the row for warnings raised from 2026-10-23:
 
 | | |
 |---|---|
@@ -1626,7 +1626,7 @@ and warnings raised from 2026-09-28:
 | automatic dimensions marked for the layout to resolve | 320, plus the 7 above given the default: 327 in the files |
 | parts left out, with a reason | 2; 4 before [M2.2e8](../decisions-and-roadmap.md#m2-2e8) read tube fins sized from the body, 5 before [M2.2e7](../decisions-and-roadmap.md#m2-2e7) read a coupler inside a nose cone |
 | parts that lay out weighing nothing | 14, every one explained (below) |
-| warnings raised | 16: 2 dropped, 5 skipped, 9 unusual (below); 18 before tube fins sized from the body were read ([M2.2e8](../decisions-and-roadmap.md#m2-2e8)), 21 before fin fillets and the coupler inside a nose cone were read ([M2.2e7](../decisions-and-roadmap.md#m2-2e7)), 31 before the old override flag was read as OpenRocket reads it ([M2.2e6](../decisions-and-roadmap.md#m2-2e6)), 35, with 12 skipped, before pods were read ([Pods](#pods)) |
+| warnings raised | 10: 1 skipped, 9 unusual ([what they are, and how many there were before each milestone that cut them](#what-the-warnings-are)) |
 | tags no milestone reads yet | none since parallel stages are read ([Parallel stages](#parallel-stages)); 3 `parallelstage` before, and 9 `podset` too before pods were read ([Pods](#pods)) |
 
 **The 14 parts that weigh nothing** are worth checking, because a structural part with no mass is
