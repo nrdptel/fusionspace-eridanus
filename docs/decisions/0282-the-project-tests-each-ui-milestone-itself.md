@@ -1,6 +1,6 @@
 # ADR-282: The project tests each UI milestone itself (2026-10-18)
 
-- **Status:** accepted; amends [ADR-144][adr-144]'s UI rule, [ADR-162][adr-162] §2 and §4, [ADR-163][adr-163] §2, [ADR-191][adr-191]'s site rule, and [ADR-196][adr-196] §4
+- **Status:** accepted, amended 2026-10-23 (Screens); amends [ADR-144][adr-144]'s UI rule, [ADR-162][adr-162] §2 and §4, [ADR-163][adr-163] §2, [ADR-191][adr-191]'s site rule, and [ADR-196][adr-196] §4
 - **Summary:** No milestone waits on the maintainer's use any more. A milestone that adds or changes something a user sees counts as done once its PR records the project's own acceptance pass: user tasks written before the work and done end to end on the built product by a reviewer that didn't build it, every screen captured at its real size and shape and checked for clipping, and a cold reader's run through the guide. The app and the field kit also post a short recording for the maintainer to look at, which informs but never blocks. Turning off his sites, publishing, tags and finding M10.5's outside flyers stay his.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
@@ -55,6 +55,13 @@ look by him that informs but never blocks.
      the site check's widths in every theme the surface has, phone and watch screens on the
      platform's device shapes with their published safe areas. Each capture passes the automated
      clipping check (boxes against the safe shape) and is looked at, corners and edges on purpose.
+     *Amended 2026-10-23:* an increment that changes only the words on pages, with no change to the
+     site's styles, templates, theme or layout checks and no new kind of element (a table, figure,
+     code block or equation) on a page where there was none, captures the pages at the phone width
+     (320 px) and one desktop width (1280 px), in every theme. The automated clipping check still
+     runs on every page at every width in CI. The first such pass, 190 captures for nine pages
+     whose layout had not changed, cost most of a working session to look at, and the narrow
+     screens are where these pages have clipped (#429, #498, #541).
    - **Someone else runs it.** A reviewer that did not build the milestone runs the tasks and
      judges the captures. What blocks a task is fixed in the PR; only defects off every task's path
      may be filed as issues instead.
