@@ -455,8 +455,7 @@ parts inside it both have an [override](../glossary.md#override) (a mass or cent
 designer typed in), which wins? OpenRocket, which writes these files, has an answer to each. Its
 answer is what the file means to the person who wrote it. So this project
 [asks it](../decisions-and-roadmap.md#m2-2b1), with 32 small *probe designs*, each a rocket of a few
-parts built to ask one question. `validation/oracles/openrocket/conventions.py` writes them, and
-this page's later probes too. It runs OpenRocket 24.12 on all of them and records its answers. The test module
+parts built to ask one question. `validation/oracles/openrocket/conventions.py` writes them. It runs OpenRocket 24.12 on all of them and records its answers. The test module
 `hpr_validate::openrocket::tests` reads the same designs with HPR Sim and holds it to them. Where
 HPR Sim keeps a rule of its own, the test pins how far apart the two are. The decisions are in
 [the decision on what a `.ork` leaves unsaid][adr-061].

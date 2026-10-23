@@ -268,7 +268,7 @@ The free-flight test is the one that checks the new term. Without $\boldsymbol{\
 the size of the ballast's own angular momentum relative to the airframe. That peaks at 1.8% of
 the rocket's angular momentum. It measures 6.9e-12.
 
-A first version took the part's rates from differences 0.1 ms apart. In free flight it kept the
+A first version took the part's rates from differences 0.1 ms apart, as the motor's are. In free flight it kept the
 center's velocity only to 1e-8 m/s, the error of the difference itself, so the rates were made
 exact. A check with RK4 taking a 10 ms move in a single step found the center's
 velocity off by 0.071 m/s (0.23 ft/s). The 16 stop times across each move bring it to 1.2e-4.

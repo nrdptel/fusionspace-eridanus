@@ -9,7 +9,8 @@ part lands.
   during the flight on a trigger. The rest of the rocket flies on in
   [six degrees of freedom](../glossary.md#6-dof-six-degrees-of-freedom). The rocket's mass,
   [center of mass](../glossary.md#center-of-gravity-cg) and inertia change at once to those of
-  what remains. The part falls to the ground on its own. The model was added in
+  what remains. The part falls to the ground on its own. Use it to see what dropping ballast or a
+  payload does to the flight, and where the part comes down. The model was added in
   [the released-mass milestone](../decisions-and-roadmap.md#m1-12b).
 - **Sources:** the [parallel-axis theorem](../glossary.md#parallel-axis-theorem) and the kinetics
   of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. The part's
@@ -123,9 +124,9 @@ a part or a parachute set to a height above the apogee still goes there, as
 falling lets a part waiting for the apogee go at its start. It records an apogee only if the
 rest later rises and falls again.
 
-**The rest can land at the release.** A rocket falling nose up can let go of a part just above the
-ground. When the part is forward of the center of mass, that steps the rest's center down, to the
-ground or below it. The rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
+**The rest can land at the release.** Take a rocket falling nose up, just above the ground, that
+lets go of a part forward of its center of mass. That steps the rest's center down, to the ground
+or below it. The rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
 the rocket as it was before the part left. A release that steps the rest below the ground while
 it is still climbing is an error instead.
 

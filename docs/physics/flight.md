@@ -32,7 +32,7 @@ as its motor burns.
   compared with their teams' altitude logs, apogee and climb only. [53 more][fixture-report] have
   been compared with their logs, on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
-- **What it leaves out:** staging and delayed ignition (modeled on [Staging](staging.md)), tip-off (the
+- **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)), tip-off (the
   pivot as the rocket leaves the rail), turbulence and thrust misalignment. Its
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the

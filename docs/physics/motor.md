@@ -197,8 +197,9 @@ The example reads a `.eng` file in four steps:
 For a `.rse` file, use `rse::parse` ([`rse::parse`](../api/hpr_motor/rse/fn.parse.html)) instead.
 Its motors are in `engines` rather than `entries`. Its masses are in grams (`initial_mass_g`,
 `propellant_mass_g`), so multiply those by 0.001 too. Forget it for the propellant, and the units
-check catches it: the exhaust velocity is 1,000 times too small, and the motor is refused. Forget
-it only for the loaded mass, and the motor is accepted as 1,000 times heavier.
+check catches it: the exhaust velocity is 1,000 times too small, and the motor is refused. The
+check sees only the propellant mass. Forget it only for the loaded mass, and the motor is accepted
+as 1,000 times heavier.
 
 The file here is Loki Research's I377. The program prints what it read, `38 mm by 292 mm` (1.50 by 11.5 in), 560 g
 loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I motor, averaging
@@ -506,7 +507,8 @@ of the propellant mass, not a filter on propellant:
   `propellant_mass_g` passed unconverted. That moves $c$ by a factor of 1,000. Nothing else in the
   API notices. Take the 411I175's envelope typed in millimeters and grams,
   `from_envelope(curve, 38.0, 245.0, 228.9, 437.5)`. It has positive, finite dimensions and a
-  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s).
+  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s). The grams
+  give it away, and the check refuses it.
 - It can't catch a size in the wrong unit. $c$ doesn't depend on the diameter or the length, and
   the motor accepts any positive size. The example's I377 with its size left in millimeters,
   `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
@@ -616,7 +618,7 @@ The tests that pin the motor model, and the whole example program.
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
   which also list the four motors whose stored values are printed coarser than 1%). Each bundled
   file is public domain. Its bytes match the SHA-256 checksum (a fingerprint of a file's exact
-  bytes) recorded when it was downloaded. These checks enforce Loft lessons
+  bytes) recorded when it was downloaded. These checks answer Loft lessons
   [L41](../decisions-and-roadmap.md#l41) to [L43](../decisions-and-roadmap.md#l43), on curve
   licenses, loose impulse checks and wrong headers.
 - **ThrustCurve's code** (`catalog::tests::every_bundled_curve_matches_thrustcurve_statistics_code`):

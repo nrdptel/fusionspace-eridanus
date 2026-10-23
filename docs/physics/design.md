@@ -80,9 +80,9 @@ OpenRocket has its own conventions for positions, automatic radii and overrides.
 never reads OpenRocket's source code, whose license (GPL) is incompatible with this project's (the
 clean-room rule). So
 [the OpenRocket import](../decisions-and-roadmap.md#m3-1), which reads `.ork` files, and
-[the OpenRocket comparison](../decisions-and-roadmap.md#m2-2) mapped them by running OpenRocket
-itself. Which way OpenRocket turns a roll angle is the exception
-([not settled](../format/ork.md#which-way-round)).
+[the OpenRocket comparison](../decisions-and-roadmap.md#m2-2) mapped most of them by running
+OpenRocket itself. Some readings aren't measured yet, such as which way OpenRocket turns a roll
+angle ([readings that are not settled](../format/ork.md#not-settled)).
 
 ## Building the tree
 
