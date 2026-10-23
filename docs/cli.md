@@ -2202,7 +2202,7 @@ Units are SI, and each field's name says its unit: `total_impulse_ns` is in newt
 Numbers aren't rounded, so a converted value can end in digits such as `0.0036000000000000003`. A
 motor's figures carry no more precision than its curve file.
 
-FusionSpace HPR is pre-alpha, so the fields may still change. The schemas are published beside the
+FusionSpace HPR is released but not yet at 1.0, so the fields may still change. The schemas are published beside the
 code, and a change to a document changes its schema in the same commit.
 
 <!-- cli: example `hpr motors show B4 --json`; written by `cargo xtask cli`; do not edit -->
