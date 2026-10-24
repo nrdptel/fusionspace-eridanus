@@ -925,7 +925,9 @@ mod tests {
     /// Measured: every error is below 1e-4. At RocketPy's own ODE knots hpr's exact web matches
     /// RocketPy's bore and height to about 1e-9, so the residual is RocketPy's linear interpolation
     /// between knots. The test holds 0.1%, ten times tighter than the done-when, so a regression
-    /// shows long before 1%. Because inputs and outputs share the frame mapping, loaded and
+    /// shows long before 1%. It also pins the two figures the motor page quotes: the largest
+    /// propellant-mass gap relative to RocketPy's own value before burnout, and the largest
+    /// center-of-mass gap. Because inputs and outputs share the frame mapping, loaded and
     /// burned-out centers are also checked against values worked by hand from the cases' layouts.
     #[test]
     fn matches_rocketpy_solid_motor_for_three_bundled_motors() {
@@ -936,6 +938,10 @@ mod tests {
         assert_eq!(oracle.oracle, "rocketpy 1.13.0");
         assert_eq!(oracle.cases.len(), 3);
         let catalog = crate::catalog::Catalog::bundled().unwrap();
+        // The largest propellant-mass gap relative to RocketPy's own value, its case and
+        // RocketPy's mass there; and the largest center-of-mass gap over the motor's length.
+        let mut own_gap = (0.0, String::new(), 0.0);
+        let mut center_gap: f64 = 0.0;
         for case in &oracle.cases {
             let inputs = &case.inputs;
             let (entry, curve) = catalog
@@ -1071,6 +1077,15 @@ mod tests {
                         scalars.propellant_initial_mass_kg,
                     ),
                 );
+                // Before burnout, also relative to RocketPy's own propellant mass. After it,
+                // RocketPy keeps a residue under 1e-10 kg where hpr's is zero.
+                if t < scalars.burn_out_time_s {
+                    let gap = relative(state.propellant.mass_kg, series.propellant_mass[i]);
+                    assert!(gap.is_finite(), "{} at {t} s", case.name);
+                    if gap > own_gap.0 {
+                        own_gap = (gap, case.name.clone(), series.propellant_mass[i]);
+                    }
+                }
                 record(
                     "total mass",
                     relative(state.total.mass_kg, series.total_mass[i]),
@@ -1083,10 +1098,10 @@ mod tests {
                         length,
                     ),
                 );
-                record(
-                    "center of mass",
-                    scaled(state.total.cg_m, to_hpr(series.center_of_mass[i]), length),
-                );
+                let center = scaled(state.total.cg_m, to_hpr(series.center_of_mass[i]), length);
+                assert!(center.is_finite(), "{} at {t} s", case.name);
+                center_gap = center_gap.max(center);
+                record("center of mass", center);
                 record(
                     "grain bore radius",
                     relative(shape.inner_radius_m, series.grain_inner_radius[i]),
@@ -1135,6 +1150,16 @@ mod tests {
                 );
             }
         }
+        // The figures docs/physics/motor.md quotes. In the last milligrams of the 38 mm I case
+        // the masses differ by 69% of RocketPy's value, from its interpolation between the
+        // points its solver stored; on the fixed scale above that is about 2e-5.
+        let (gap, gap_case, gap_theirs_kg) = own_gap;
+        eprintln!("propellant, own: {gap:.4e} in {gap_case} at {gap_theirs_kg:.3e} kg");
+        eprintln!("center of mass: {center_gap:.4e} of the motor length");
+        assert!((0.688..0.689).contains(&gap), "{gap}");
+        assert_eq!(gap_case, "cti-411i175-38mm-radial-burnout");
+        assert!((6.9e-6..7.0e-6).contains(&gap_theirs_kg), "{gap_theirs_kg}");
+        assert!((5.8e-6..5.9e-6).contains(&center_gap), "{center_gap}");
     }
 
     #[test]
