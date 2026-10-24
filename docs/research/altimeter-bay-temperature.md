@@ -9,7 +9,7 @@ one radiosonde paper and textbook heat transfer. **Inference** marks this note's
 sea level unless stated). Read 2026-10-19.
 
 **In short.** By apogee the sensor still reads its pad temperature: the temperature term is a few tenths of a meter
-below 4 km, under the noise, and far under the ±8–11 m per-flight band bias of altimeter-sensor-noise §6.
+below 4 km, far under the ±8–11 m per-flight band bias of altimeter-sensor-noise §6.
 - **The sensor barely moves on the way up.** In 86 logs from commercial altimeters (55 flights, apogees 259 m to
   18.9 km, median 2.3 km), the logged temperature at apogee is within ±0.6 K of the pad's in 76; 10–90% −0.30 to
   +0.60 K. The outside air cools 7–37 K over the same climbs (10–90%), so the sensor sees about 0 ± 3% of it (§2).
@@ -135,7 +135,7 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 
 | Case | ΔT | k, Pa/K | Error at apogee |
 |---|---|---|---|
-| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–4 | ±0.03–0.27 m at 3 km; ≤ ±0.21 m (0.07%) at 300 m |
+| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–4 | ±0.03–0.27 m at 3 km; ≤ ±0.21 m (0.07%) at 300 m; under 0.36 m at 4 km above a 1,500 m pad, up to +15 K (0.6 K, 4 Pa/K) |
 | Over 4 km, typical warm | +0.7 to +2.6 K | 0.5–4 | ±0.05–1.6 m at 6 km (≤ 0.03%) |
 | Largest logged | +6.7 K | 0.5–4 | ±0.5–4.1 m at 6 km (≤ 0.07%) |
 | Stress case | 20 K | 4 | ±6.9 m at 300 m (2.3%), ±9.0 m at 3 km |
@@ -146,7 +146,7 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 ## What this suggests
 
 1. **M7.2's synthetic logs can keep the temperature term out, now on a measurement.** Below 4 km the term is under
-   0.3 m at apogee, below the rest noise (0.16–1.14 m) and the ±8–11 m band bias. A stress option would draw
+   0.3 m at apogee from a sea-level pad on a standard day (under 0.36 m from a 1,500 m one at up to +15 K), far under the ±8–11 m band bias. A stress option would draw
    k_T·ΔT with k_T ±0.5–4 Pa/K and ΔT ±0.6 K below 4 km, 0 to +2.6 K above (+6.7 K rare); the physics page's reason
    ("no source gives a bay's change") can cite §2 instead.
 2. **apogee-bias's measurement term:** at 4 Pa/K the temperature part is under 0.1% of apogee in all 86 logs

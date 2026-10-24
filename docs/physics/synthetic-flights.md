@@ -313,17 +313,17 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
 
 ### What it leaves out
 
-- **Fast flights.** The fastest of the 2,200 flights stays below Mach 1.18 (the census rounds
-  its greatest up), so from there to the Mach 3.5 that HPR Sim is built for
-  ([the operating envelope](../VALIDATION.md#operating-envelope)) there is no synthetic flight.
-  A reading checked here is checked only below Mach 1.18.
-- **The bay's vent lag.** A bay's pressure lags the outside air through its vent holes. In the
-  Mach error note's invented flight, three invented bays vented by the makers' rules moved the
+- **Fast flights.** None of the 2,200 reaches Mach 1.18 (the census rounds its greatest up), so
+  from there to the Mach 3.5 HPR Sim is built for ([the operating envelope](../VALIDATION.md#operating-envelope))
+  there is no synthetic flight.
+- **The bay's vent lag.** A bay's pressure lags the outside air through its vent holes. In an
+  invented flight, three invented bays vented by the makers' rules moved the
   apogee by at most 2.1 cm (0.07 ft), but lagged the height by 0.4 to 135 m (1.3 to 443 ft)
   through Mach 0.9 to 1.07 ([the Mach error note][mach] §5, an inference; no hobby bay's lag has
-  been measured). Left out, the synthetic logs are cleaner in boost than a real one may be.
-- **A temperature term.** No source gives how far a bay's temperature changes in flight, so the
-  sensor's temperature error isn't drawn.
+  been measured).
+- **A temperature term.** Not drawn. Below 4 km (2.5 mi) above the pad it is under 0.36 m (1.2 ft)
+  at apogee on every site and day drawn, 0.3 m (1 ft) from sea level on a standard day, at a 4 Pa/K
+  ceiling ([bay temperature][baytemp], an inference).
 - **Clock drift.** The logger's clock is taken as exact.
 - **The logger's own speed column.** Each logger filters its own speed its own way, so the
   synthetic logs carry none.
@@ -379,6 +379,7 @@ The tests that pin the flights, and the sources they follow.
 
 [noise]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-sensor-noise.md
 [mach]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-mach-error.md
+[baytemp]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-bay-temperature.md
 [gnss]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md
 [heights]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-height-formulas.md
 [smoothing]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-smoothing-methods.md
