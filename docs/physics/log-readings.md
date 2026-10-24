@@ -1085,10 +1085,10 @@ truth beside the logs, that doesn't say how each rocket came down.
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
 - **Disturbed tops, both ways.** Some bumps come less than about a second after apogee, before the
   track has fallen past its noise and step. Such a bump can't be told from the top unless it is a
-  spike. Its
+  spike. The bump's
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
-  fast, is read as the top. An early parachute and a charge make those shapes on a good
-  top. A spike that climbs in no faster than a coast is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
+  fast, is read as the top. That is because an early parachute and a charge make those shapes
+  on a good top. A spike that climbs in no faster than a coast is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
   withholds a good apogee. How many of the sample logs' 76 such tops are good isn't measured
   ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)). The synthetic flights
   model no charge's transient, so the bounds aren't tested against one
