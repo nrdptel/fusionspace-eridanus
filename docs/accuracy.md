@@ -261,7 +261,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [Wind](physics/wind.md) | ✓ | no | ✓ RocketPy, in the descents only | no |
 | [Turbulence](physics/turbulence.md) | ✓ | no | no | no |
 | [Design tree](physics/design.md) | ✓ | no | ✓ RocketPy, mass properties only | no |
-| [Shapes](physics/shapes.md) | ✓ | no | ✓ OpenRocket, three walled probe parts only | no |
+| [Shapes](physics/shapes.md) | ✓ | no | ✓ OpenRocket, probe parts and the parts catalog | no |
 | [Mass properties](physics/mass.md) | ✓ | no | ✓ OpenRocket, the structure without motors, and the parts of its parts catalog | no |
 | [Solid motors](physics/motor.md) | ✓ | no | ✓ RocketPy, ThrustCurve.org; OpenRocket for a curve file's own numbers | no |
 | [Aerodynamics](physics/aero.md) | ✓ | ✓ Barrowman's examples; MIL-HDBK-762's drag example, fins left out: 6 of 12 within 10%, the body reading 6% to 10% low faster than sound | partial: drag and the normal force against RASAero II to Mach 2, the drag with the fins and finish guessed and 5% to 15% low faster than sound; and in whole flights, against a target | partial: in seven flights, four of the five apogees past 5% are consistent with its drag ([real flights](#real-flights), [report][real-report]); wind tunnel ✓: normal force, drag and boattails; the Arcas Robin's drag reads high at every speed |
@@ -1169,10 +1169,9 @@ rest.
   ([Turbulence](physics/turbulence.md)) ([evidence row G12](evidence.md#g12)).
 - **Wall and fin mass** may follow different conventions from OpenRocket's, which its documentation
   doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
-  A nose cone's wall thickness can be measured straight out from the axis or square to its surface.
-  On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
-  the two. OpenRocket's masses follow a third wall, measured across each station: HPR Sim's on a
-  cone, up to 0.48% apart on blunt noses ([Shapes](physics/shapes.md)).
+  OpenRocket's nose cone walls are measured across each station, HPR Sim's square to the surface:
+  the same on a cone, OpenRocket's about 0.48% lighter on three blunt noses
+  ([Shapes](physics/shapes.md)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles

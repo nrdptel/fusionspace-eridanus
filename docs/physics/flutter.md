@@ -165,7 +165,7 @@ axis, each a small box read off the same scan:
 ### A rocket's fins
 
 The example program `fin_flutter` (in `crates/hpr/examples/`) takes the repository's synthetic
-54 mm (2.1 in) rocket. Its three fins are 3.2 mm (0.13 in) thick. Each has a 150 mm (5.9 in) root, a 60 mm (2.4 in) tip
+54 mm (2.1 in) rocket. Its three fins are 3.175 mm (0.125 in) thick. Each has a 150 mm (5.9 in) root, a 60 mm (2.4 in) tip
 and a 70 mm (2.8 in) span.
 It flies the rocket on an I175 motor from a site 200 m (656 ft) up, and prints:
 
@@ -189,7 +189,7 @@ The columns `V_f 0 m` and `V_f 3 km` are eq. 18's flutter speed in standard air 
 
 - **Aluminum** passes both readings. Its figure 3 ratio is well below the band, and at max q the
   rocket flies at under a third of $V_f$.
-- **Carbon fiber** at 3.2 mm (0.13 in) has $V_f/V$ of 1.46. But its figure 3 ratio, 0.45, is above
+- **Carbon fiber** at 3.175 mm (0.125 in) has $V_f/V$ of 1.46. But its figure 3 ratio, 0.45, is above
   the band, where most of Martin's wings fluttered or failed: not shown to be safe. Its
   modulus is a unidirectional ply's of one aerospace prepreg. A ±45° layup of it would be stiffer,
   but wet-laid or woven hobby sheet may be softer.
@@ -230,7 +230,7 @@ an airfoiled fin's modulus, and a booster's max q.
   $G_E = 6JG/(c t^3)$ (eq. 12), assumes a thin airfoil's torsion constant $J \approx c t^3/6$ (eq. 10).
   A flat plate's is $c t^3/3$, which would double $G_E$ and raise the flutter speed by $\sqrt{2}$. The
   simulator keeps the lower reading. The exception runs the other way. For a fin with an airfoil
-  section, eq. 12 gives $0.946\,G$, so the simulator's $V_f$ for such a fin is up to 2.8% high ($1/\sqrt{0.946}$).
+  section, eq. 12 gives $0.946\,G$, so the simulator's $V_f$ for such a fin is up to 2.9% high ($1/\sqrt{0.946} = 1.028$).
 - **Martin's taper factor.** His derivation carries a factor $1/(f_1^2 f_2^2)$. Here $f_1$ corrects the
   twisting frequency for taper (his eq. 8) and $f_2$ gives the chord three-quarters of the way out
   (his eq. 14). He replaces the factor with $(\lambda + 1)/2$. The two agree at $\lambda = 1$ and are 3% apart

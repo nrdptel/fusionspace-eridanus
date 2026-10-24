@@ -14,13 +14,13 @@ of mass, inertia and surface area.
   and against another code. Filled shapes match closed forms to 1e-10 (relative). They match
   independent high-precision integrals to 1e-12 on 22 noses and transitions, and 20 walls match to
   1e-10. HPR Sim weighs three walled probe parts within 3.93e-5 (relative) of OpenRocket's mass
-  ([the probes][probes]); the ogive's, the largest, has no traced cause. Not compared with weighed
-  parts or a real flight.
+  ([the probes][probes]); the ogive's, the largest, has no traced cause. The parts catalog's noses
+  and transitions are compared too ([the masses against OpenRocket][builder-masses]). Not compared
+  with weighed parts or a real flight.
 - **What it leaves out:** OpenRocket's wall, measured across each station. It is this model's on
-  a cone and up to 0.48% apart on blunt elliptical noses
-  ([the masses against OpenRocket][builder-masses]). HPR Sim also does not cut a steep end square
-  to the axis, as OpenRocket cuts its probe transition. That adds up to 2.24% of wall mass in this
-  page's examples ([Walls](#solids-of-revolution)).
+  a cone; this model weighs about 0.48% more on three blunt elliptical noses. HPR Sim also does
+  not cut a steep end square to the axis, as OpenRocket cuts its probe transition. That adds 1.28% and
+  2.29% of this model's wall mass in this page's examples ([Walls](#solids-of-revolution)).
 
 ## Code and sources
 
@@ -177,9 +177,9 @@ parallel-axis theorem. $S$ excludes the end faces.
     - A square cut would add a sliver of $t^2 (\tan\varphi - \varphi)/2$ of section per unit rim
       length, with $\varphi$ the surface's angle to the axis. That is 3.1e-4 $t^2$ at 7°.
     - On steep ends it matters, here with $t = 2\,\mathrm{mm}$. Cut square, a transition from
-      radius 27 to 49 mm (1.1 to 1.9 in) over 15 mm (0.59 in, 56°) gains 1.26% of wall mass. One
-      from radius 20 to 37.3 mm (0.79 to 1.47 in) over 10 mm (0.39 in, 60°) gains 2.24%. Both come
-      from the sliver formula above; no test pins them.
+      radius 27 to 49 mm (1.1 to 1.9 in) over 15 mm (0.59 in, 56°) gains 1.28% of this model's
+      wall mass. One from radius 20 to 37.3 mm (0.79 to 1.47 in) over 10 mm (0.39 in, 60°) gains
+      2.29%. Both integrate the sliver around the rim; no test pins them.
     - OpenRocket weighs its one probe transition, a shallow cone, heavier than this model by
       2.85e-6 (relative). That is the sliver a square cut adds ([the probes][probes]). No
       steep end or real part has been compared.
@@ -195,8 +195,8 @@ parallel-axis theorem. $S$ excludes the end faces.
   - OpenRocket's masses follow a wall measured across each [station](../glossary.md#station),
     inner radius $r - t\sqrt{1 + r'^2}$. On a straight profile that is this model's wall: a probe
     cone of that shape weighs the same within 5.1e-7 ([the probes][probes]). On a curved one they
-    differ, up to 0.48% on four elliptical catalog noses ([the masses against
-    OpenRocket][builder-masses]). Whether that is the probe ogive's 3.93e-5 is not traced.
+    differ: this model weighs about 0.48% more on three short elliptical catalog noses ([the masses
+    against OpenRocket][builder-masses]). Whether that is the probe ogive's 3.93e-5 is not traced.
 
 ## Verification
 
