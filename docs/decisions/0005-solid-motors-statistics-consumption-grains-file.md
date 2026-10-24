@@ -24,7 +24,7 @@ Several choices had no single right answer (`docs/physics/motor.md`).
 - **Propellant layout:** a fixed-shape column (the default, RocketPy's `GenericMotor` model) or
   BATES grains. The grain regression is solved exactly in burned mass instead of RocketPy's ODE in
   time. Motor mass and inertias agree with RocketPy within 7.9e-5 relative, and the centre of
-  mass within 5.8e-6 of the motor length.
+  mass within 5.9e-6 of the motor length.
 - **Envelope default:** from a catalog entry alone, the propellant is a solid column and the dry
   mass a thin tube, both over the full length and centred. Crude, and documented as such; motors
   with data use `SolidMotor::new`. Catalog metadata overrides the curve file's header.

@@ -17,8 +17,8 @@ burn, mass and ejection delay.
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
   compared. ThrustCurve.org's own statistics code agrees to 1.8e-15, relative, on all 32 bundled
-  curves. On three of them, RocketPy's total mass and inertias agree within 7.9e-5 relative. The
-  two centers of mass differ by under 5.8e-6 of the motor's length. The propellant's own mass and
+  curves. On three of them, RocketPy's total mass and inertias agree within 7.9e-5 relative, the
+  centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
   inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same curve
   files. On all 32 bundled curves it gets exactly the same total impulse, peak thrust, burn-time
   window and curve duration. Its average thrust divides by the same window but counts only the
@@ -404,7 +404,7 @@ $$
   $$
 
   This is [RP] `GenericMotor`'s
-  model ([`motor.py:1580-1648`][rp-1580], a solid cylinder).
+  model ([`motor.py:1580-1649`][rp-1580], a solid cylinder).
 - **BATES grains** (`Propellant::Grains`): $N$ identical [BATES grains](../glossary.md#bates-grain)
   $(R, r_0, h_0)$ (outer radius, starting bore radius, starting height), spaced $h_0 + s$ apart, with
   a gap $s$ between them. Each burns on its bore, the hole along its axis. It also burns on both
@@ -672,14 +672,13 @@ The tests that pin the motor model, and the whole example program.
   [`validation/fixtures/motor/rocketpy-solid-motor.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/rocketpy-solid-motor.json),
   and regenerates it byte for byte.
   - On 203 times per motor, total mass, $I_t$ and $I_a$ agree within 7.9e-5 of
-    RocketPy's own values. At the same times the center of mass agrees within 5.8e-6 of the motor
+    RocketPy's own values. At the same times the center of mass agrees within 5.9e-6 of the motor
     length.
   - Quantities that go to zero are compared against a fixed scale. Propellant mass and inertias
-    are compared against their ignition values, grain height against its initial height, and
-    centers against the motor length. On that scale they agree within 1e-4. Relative to their own
-    tiny values in the last grams of propellant they differ by up to 39%. That comes from
-    RocketPy: it interpolates between the points its ODE solver stored, and its solver stops
-    slightly early.
+    use their ignition values, grain height its initial height, and centers the motor length. On
+    that scale they agree within 1e-4. Relative to their own values they differ by up to 69%, in
+    the 38 mm motor's last 6.9 mg. That comes from RocketPy: it interpolates between its ODE
+    solver's stored points, and the solver stops slightly early.
   - The test holds 0.1% on these scales.
 - **Files:** 1710 of ThrustCurve's 1712 solid-motor files read, and write back out and read again
   with every value identical to the last bit. The other two have times that go backwards
@@ -901,7 +900,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 [rp-solid]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/solid_motor.py
 [rp-401]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/solid_motor.py#L401-L418
 [rp-483]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/motor.py#L483-L524
-[rp-1580]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/motor.py#L1580-L1648
+[rp-1580]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/motor.py#L1580-L1649
 [rp-487]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/solid_motor.py#L487-L632
 [rp-724]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/solid_motor.py#L724-L740
 [rp-784]: https://github.com/RocketPy-Team/RocketPy/blob/v1.13.0/rocketpy/motors/solid_motor.py#L784-L789
