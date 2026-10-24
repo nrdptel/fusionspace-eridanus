@@ -722,7 +722,7 @@ withheld; liftoff is still given.
   is smaller than gravity. So it climbs no more than $g \Delta^2$ in its last $\Delta$, as a body
   slowing at twice gravity would. And nothing falls from its top faster than gravity pulls it. A
   track holds a spike, such as a charge's, if two things happen near its
-  top. Near means within a second either side, or two samples on a slower track. It climbs into the top faster than $g \Delta^2$. And it falls from
+  top. Near means within a second either side, or two samples on a slower track. It climbs into the top by more than $g \Delta^2$ in its last $\Delta$. And it falls from
   it faster than a body at rest there can. Each exceeds its limit by more than twice the track's
   noise and step. The fall allows
   for the filtered top trailing the true one. That allowance is the speed a fall from rest gathers

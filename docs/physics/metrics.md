@@ -9,10 +9,10 @@ stability margin and landing point.
   Mach number, and the peak [dynamic pressure](../glossary.md#dynamic-pressure) ("max q"). Then
   come the boost's peak acceleration and, kept apart, the opening shock. The metrics also give the
   [stability margin](../glossary.md#stability-margin) from the rail exit to apogee or the first
-  [deployment](../glossary.md#deployment). It gives the largest
+  [deployment](../glossary.md#deployment). They give the largest
   [angle of attack](../glossary.md#angle-of-attack) that counts toward the envelope's
-  high-angle flag ([below](#the-largest-angle-of-attack)). It says whether the rocket is unstable
-  while a motor burns ([below](#unstable-under-power)). It gives the
+  high-angle flag ([below](#the-largest-angle-of-attack)). They say whether the rocket is unstable
+  while a motor burns ([below](#unstable-under-power)). They give the
   [ejection delay](../glossary.md#ejection-delay) that would fire the charge at apogee, and each
   landing's latitude and longitude. Anything that didn't happen is `None`, never a zero.
 - **Sources:** the margin is [Barrowman's](../glossary.md#barrowmans-method) center of pressure
