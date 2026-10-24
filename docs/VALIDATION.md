@@ -49,7 +49,8 @@ provenance.
   - Every miss is explained in the report.
 
   Since [the harness](decisions-and-roadmap.md#m2-1a) wrote its first report, the code-to-code 3%
-  is a gate in same-drag mode. It stays a target in predicted mode, where neither code's drag is
+  is a gate in same-drag mode (0.2% on four speeds and 0.5% on six apogees since
+  [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md)). It stays a target in predicted mode, where neither code's drag is
   the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)).
   A predicted miss is explained in its case file, and a test pins the set of misses.
 
@@ -339,13 +340,20 @@ RocketPy, `wind_response.py` lands every windy drift within 1.3% of HPR Sim's. C
 peak acceleration uses it too, in wind and in calm air: its two peaks are 0.9% apart. So do NDRT
 2020's and Prometheus 2022's whole-flight peaks, their main openings, where RocketPy has added mass
 and HPR Sim has none. No case carries an absolute floor: every gate is the milestone's 3% or
-tighter. Since [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md)
-every speed is held to 0.2% (burnout, largest, rail exit and landing) and the apogee of the six
-flights with no written model difference to 0.5%. The largest of those differences in [the
-report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)
-are +0.056% (Juno III's burnout speed) and +0.112% (Valetudo's apogee), and RocketPy's own solver
-moves them far less (the decision gives its figures), so a drifting speed or apogee fails long
-before it nears 3%.
+tighter.
+
+Some gates are tighter ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md)):
+
+- Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate and the
+  largest Mach number keep 3%.
+- The apogee of the six flights with no written model difference: 0.5%. Juno III, Bella Lui and
+  Prometheus 2022 in wind keep 3%, for the rail release and body lift their case files measure.
+- Why: the largest of those differences in [the
+  report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)
+  are +0.056% (Juno III's burnout speed) and +0.112% (Valetudo's apogee), and RocketPy's own
+  solver moves them far less (the decision gives its figures), so a drifting speed or apogee
+  fails long before it nears 3%. The margins are measured on RocketPy's six example rockets, and
+  they bound agreement between two codes, not accuracy against a flight.
 
 ### In CI, and regenerating the references
 

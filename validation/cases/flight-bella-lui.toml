@@ -59,7 +59,10 @@
 # be scored until M1.8. Its weather in the example is an ERA5 file, so the generator declares a
 # 3.6 m/s wind. The worst scored difference is the power-on maximum at +1.78%: the peak is the 7 ms
 # ignition spike on the rail, where hpr's variable-mass terms add 1.28 m/s^2 (74.14 against 72.84),
-# with thrust and mass the same as RocketPy's to five digits.
+# with thrust and mass the same as RocketPy's to five digits. The apogee is +0.34% (532.12 m against
+# 530.31) and keeps 3% while the six without a cause are held to 0.5% (ADR-289): flown with hpr's
+# release at the last button, RocketPy's apogee is 531.3 m, and with hpr's body lift added 532.0 m
+# (`wind_response.py bella-lui`), so the two together account for all but 0.1 m of it.
 id = "flight-bella-lui"
 title = "Bella Lui from the pad to the ground, same-drag"
 reference = "validation/fixtures/flight/rocketpy-whole-flight.json"

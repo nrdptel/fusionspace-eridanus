@@ -165,7 +165,7 @@ impl Group {
         match self {
             Self::Descent => "gate: each metric's tolerance, at most 3%; the landing speed 0.2%",
             Self::SameDrag => {
-                "gate: each metric's tolerance, at most 3%; speeds 0.2%, six apogees 0.5%"
+                "gate: each metric's tolerance, at most 3%; four speeds 0.2%, six apogees 0.5%"
             }
             Self::Predicted => "target: 3% on each metric, reported, not enforced",
             Self::OpenRocketExamples | Self::OpenRocketLibrary => {

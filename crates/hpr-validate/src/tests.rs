@@ -248,12 +248,12 @@ fn no_committed_gate_is_looser_than_the_milestone_says() {
 
 #[test]
 fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
-    // ADR-289 holds every speed of the same-drag flights and descents to 0.2%, and the apogee of
-    // the six flights with no written model difference to 0.5%: the largest differences measured
-    // were 0.056% and 0.112%, RocketPy's own solver moves them by at most 0.0031% and 0.00064%.
-    // Juno III and Bella Lui in wind and Prometheus 2022 near Mach 1 keep 3% on their apogee for
-    // the causes their case files give. A case file widened back, or a new same-drag case added at
-    // the old bound, fails here.
+    // ADR-289 holds the burnout, largest, rail-exit and landing speeds of the same-drag flights
+    // and descents to 0.2%, and the apogee of the six flights with no written model difference to
+    // 0.5%: the largest differences measured were 0.056% and 0.112%, and RocketPy's own solver
+    // moves them by at most 0.0032% and 0.00064%. Juno III, Bella Lui and Prometheus 2022 in wind
+    // keep 3% on their apogee for the causes their case files measure (hpr's rail release and body
+    // lift). A case file widened back, or a new same-drag case added at the old bound, fails here.
     const SPEEDS: [&str; 4] = [
         "burnout_speed_m_s",
         "max_speed_m_s",

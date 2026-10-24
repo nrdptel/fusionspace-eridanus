@@ -118,36 +118,34 @@ the 2026-10-20 review's four ([ADR-286][adr-286]) to flight data and the ecosyst
 Placed by [ADR-289][adr-289], which tightens the RocketPy comparisons' speed and apogee gates
 rather than promote an idea.
 
-- SOON: early deployments flown as they happened. User: an L2 flyer whose delay charge fired
-  before apogee, so the flight as designed reads far above the log. Workflow: the fixture report
-  flies each early-deployment flight again with its first deployment at the time its log records
-  ([M7.2][m7-2]'s readings), for both tools, beside the flight as designed. Moves: a new row,
-  `accuracy.collection-early`, the mean absolute apogee error on those 19 flights flown as they
-  happened (today only the as-designed figure exists: 10.26% on the 34 flights without one, 12.95%
-  on all 53). *Done when:* the report gives the row for both tools, each deployment time's source
-  counted (event or pressure), and a synthetic flight with a known early deployment reads its
-  logged apogee within the log's stated error, a mutation ignoring the time failing that test.
+- SOON: designs that fly as saved, counted against OpenRocket. User: a flyer opening an old `.ork`
+  from a forum or a club's archive. Workflow: `hpr sim` flies it or refuses with one named reason;
+  the scoreboard counts, from the committed reports, what each tool flies as saved and the rest by
+  reason. Moves: a new row, `flies.as-saved`: today hpr flies 61 of the collection's 83 flights
+  whose design is a `.ork`, OpenRocket 79 ([the fixture report][fixture-report]), and hpr 54 of the
+  57 configurations of OpenRocket's examples. *Done when:* the row reads both tools' counts from
+  the reports, and a check fails when hpr's count falls.
 - SOON: a second observable for each logged flight. User: a university team's simulation lead who
-  needs to know whether a high apogee came from too much impulse or too little drag. Workflow: the
-  real-flight and fixture reports score time to apogee (every barometric log) and burnout speed
-  (logs with an accelerometer) for both tools; a high apogee with a high burnout speed points at
-  thrust or mass, one with the burnout speed on the log at coast drag. Moves: new rows
+  must know whether a high apogee came from too much impulse or too little drag. Workflow: the
+  real-flight and fixture reports score time to apogee (listed today, unscored, for hpr only) and
+  burnout speed (logs with an accelerometer) for both tools; a high apogee with a high burnout
+  speed points at thrust or mass, one with the log's burnout speed at coast drag. Moves: new rows
   `accuracy.time-to-apogee` and `accuracy.burnout-speed`, signed and mean absolute, with counts.
   *Done when:* both reports give the rows for both tools, and in a test synthetic flights with 10%
   more impulse and with 10% less drag are told apart by their burnout-speed error.
 - SOON: where the miss lives. User: an L1 flyer asking how far to trust a prediction for a rocket
   like theirs. Workflow: the fixture report splits the apogee error by top Mach band, impulse class
-  and body diameter; a cell of 8 or more flights shows its signed and mean absolute error with a 90%
-  bootstrap interval, a smaller one only its count, and `hpr sim` names the cell a design falls in.
-  Moves: `accuracy.collection` and `bias.collection`, by cell, naming which cells carry the +8.73%
-  bias. *Done when:* the report gives every cell or its count, a test pins the under-8 rule, and the
-  page names each cell whose interval excludes zero, or says none does.
+  and body diameter; a cell of 8 or more flights from 5 or more designs shows its signed and mean
+  absolute error with a 90% bootstrap interval, any other only its count; `hpr sim` names a
+  design's cell. Moves: `accuracy.collection` and `bias.collection` by cell, naming which carry
+  the +8.73% bias. *Done when:* the report gives every cell or its count, a test pins both size
+  rules, and the page names each cell whose interval excludes zero, or says none does.
 - SOON: the same flight on every platform. User: a university team whose members fly one design on
   macOS, Windows and Linux and compare the numbers in a design review. Workflow: each CI target
-  writes the apogee, burnout speed and landing time of the 20 validation cases; one job compares
-  the six targets and commits the largest difference. Moves: a new row, `determinism.platforms`,
-  the largest relative difference between any two targets. *Done when:* the report gives that
-  number over the 20 cases and six targets, and CI fails when it passes 1e-6 of the value.
+  writes the apogee, burnout speed and landing time of the validation cases that have them; a job
+  compares the five targets (six once [#438][i-438] lets Intel macOS run) and reports the largest
+  relative difference. Moves: a new row, `determinism.platforms`. *Done when:* the report gives
+  that number over every target CI runs, and CI fails when it passes 1e-6 of the value.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -198,3 +196,5 @@ rather than promote an idea.
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[i-438]: https://github.com/nrdptel/fusionspace-eridanus/issues/438
