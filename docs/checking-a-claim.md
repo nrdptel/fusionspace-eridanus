@@ -90,9 +90,9 @@ the parachute differs from RocketPy's by +2.865%, inside the 3% tolerance its ca
    the metric `drift_north_m`. It gives HPR Sim −50.83 m (−166.8 ft) and RocketPy −49.42 m
    (−162.1 ft). The difference is +2.865%, the tolerance 3.000%, and the verdict *pass*.
 2. The case file, [`descent-ndrt-2020-nose-to-tail.toml`][ndrt-case], names the rocket's design
-   and the reference file, and holds each [metric](glossary.md#metric) to 3%. Its opening comment
-   argues why there's no absolute floor, a fixed allowance in meters that would pass any smaller
-   difference. A floor big enough to excuse a drift component near zero would hide a real error
+   and the reference file, and holds each [metric](glossary.md#metric) to 3% (its landing speed to
+   0.2%). Its opening comment argues why there's no absolute floor, a fixed allowance in meters
+   that would pass any smaller difference. A floor big enough to excuse a drift component near zero would hide a real error
    in a large one.
 3. The reference values come from [`rocketpy-descent.json`][descent-fixture], which the report
    names with its hash. The script [`recovery.py`][recovery-oracle] wrote it by flying RocketPy
