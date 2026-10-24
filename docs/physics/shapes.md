@@ -176,10 +176,10 @@ parallel-axis theorem. $S$ excludes the end faces.
     bulged ogive.
     - A square cut would add a sliver of $t^2 (\tan\varphi - \varphi)/2$ of section per unit rim
       length, with $\varphi$ the surface's angle to the axis. That is 3.1e-4 $t^2$ at 7°.
-    - On steep ends it matters, here with $t = 2\,\mathrm{mm}$. Cut square, a transition from
-      radius 27 to 49 mm (1.1 to 1.9 in) over 15 mm (0.59 in, 56°) gains 1.28% of this model's
-      wall mass. One from radius 20 to 37.3 mm (0.79 to 1.47 in) over 10 mm (0.39 in, 60°) gains
-      2.29%. Both integrate the sliver around the rim; no test pins them.
+    - On steep ends it matters, here with $t = 2\,\mathrm{mm}$. Cut square, a transition of
+      radii 27 to 49 mm (1.1 to 1.9 in) over 15 mm (0.59 in, 56°) gains 1.28% of its wall. One of
+      radii 20 to 37.3 mm (0.79 to 1.47 in) over 10 mm (0.39 in, 60°) gains 2.29%. Both are the
+      sliver integrated around the rim, over this model's wall; no test pins them.
     - OpenRocket weighs its one probe transition, a shallow cone, heavier than this model by
       2.85e-6 (relative). That is the sliver a square cut adds ([the probes][probes]). No
       steep end or real part has been compared.
