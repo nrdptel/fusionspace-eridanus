@@ -28,10 +28,9 @@ repository, and Erebus 11 flew a COTS Cesaroni motor, not the team motor the rec
 ### RocketPy's other measured flights
 
 RocketPy's examples page lists 16 rockets with a simulated and a measured apogee
-([RocketPy](https://github.com/RocketPy-Team/RocketPy) v1.13.0, `docs/examples/index.rst`); HPR Sim
-flies 7. No example ships a design file: HPR Sim builds each design from the notebook's Python
-inputs ([ADR-082: real flights read from refs](../decisions/0082-real-flights-read-from-refs-compared-over-the.md)).
-The other 9:
+([RocketPy](https://github.com/RocketPy-Team/RocketPy) v1.13.0, `docs/examples/index.rst`); HPR Sim flies 7. No example
+ships a design file: HPR Sim builds each design from the notebook's Python inputs ([ADR-082: real flights read from
+refs](../decisions/0082-real-flights-read-from-refs-compared-over-the.md)). The other 9:
 
 | rocket (year) | measured apogee | log | motor | status |
 |---|---|---|---|---|
@@ -102,15 +101,11 @@ Caveats, each unbounded until the team's own flight report is read:
 - **UTRGV's** figures are the Blue Raven's own summary: 1,143 ft/s (348 m/s, about Mach 1.0 at its
   66 °F pad), with the gyro saturated at 0.1 s and 38° tilt at burnout; not checked against the log.
 
-Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m
-against a 9,100 m prediction, cause unstated. Notre Dame's air-brake computers log a 30 Hz BMP390
-barometer and an IMU ([sl-weighed-mass-flights §4](sl-weighed-mass-flights.md#4-logs-as-data-without-a-weighed-mass)).
-`EamonTracey/apogee` (MIT, 2023-24) holds 4 flights, the brakes commanded open in coast on all.
-`EamonTracey/apogee2` (MIT, 2024-25) holds 2 subscale logs with no servo column, 4 full-scale
-flights and one log with only ground rows; the brakes were commanded open in coast on three of the
-four, and Huntsville's stayed at 0°. Neither states a motor per flight or a launch-day wind. The 10
-license-less repositories, among them Stanford's `rockets-irec` and Ohio State's `irec`, can only
-be cited.
+Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m against a 9,100 m
+prediction, cause unstated. Notre Dame's `EamonTracey/apogee` (MIT) holds 4 flights, `apogee2` (MIT) 2 subscale logs
+with no servo column, 4 full-scale flights and a log of ground rows; the air brakes were commanded open in coast on
+all but `apogee2`'s Huntsville flight, and neither states a motor per flight. The 10 license-less repositories, among
+them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
 
 ## Large, cited only: no license or no design file
 
