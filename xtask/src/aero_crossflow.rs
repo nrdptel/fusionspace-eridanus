@@ -500,9 +500,9 @@ mod tests {
             signed(errors[3][0]),
             signed(errors[3][1]),
         );
-        for quote in [before, now] {
-            assert!(joined.contains(&quote), "aero.md doesn't say `{quote}`");
-        }
+        // One after the other, as one claim: the figures before, then the ones now.
+        let quote = format!("{before} {now}");
+        assert!(joined.contains(&quote), "aero.md doesn't say `{quote}`");
         // The guide's table of Washington and Pettis's increments on the short model.
         for increment in &increments {
             assert!(

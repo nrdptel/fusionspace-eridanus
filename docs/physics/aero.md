@@ -44,8 +44,7 @@ and, less certainly, supersonic.
     +2.87% high for the rocket and +3.42% for its fins, mostly from a different six-fin rule.
     Against the same wind tunnel, Mach 0.6 to 4.63, from Mach 1.5: slope within +9.4% to −3.3% and
     center of pressure within 0.53 [calibers](../glossary.md#caliber). The long model misses the
-    half-caliber target at Mach 1.8 and 2.3, where its body reads high. Between Mach 0.8 and 1.2
-    the slope and the center of pressure both miss ([Normal force through Mach 1](#normal-force-through-mach-1)).
+    half-caliber target at Mach 1.8 and 2.3, where its body reads high. From Mach 0.8 to 1.2 the short model misses at four of five rows. The long one misses at all three from 0.9 ([Normal force through Mach 1](#normal-force-through-mach-1)).
   - *The body faster than sound*, by the method a flight blends in over 0.3 in Mach from Mach 1.2 at
     the earliest. On the bodies it covers, against its report's wind-tunnel measurements of 120
     cone- and ogive-cylinders from Mach 3 to 6.28. There, 117 slopes are within ±0.2 per radian and
@@ -62,7 +61,7 @@ and, less certainly, supersonic.
 
     HPR Sim's committed Arcas Robin designs fly that method to their base since
     [M1.8e8](../decisions-and-roadmap.md#m1-8e8). Like for like, the short model's body reads 3.02
-    to 3.95 per radian from Mach 1.5. The tunnel reads 2.19 to 4.15 ([Normal force through Mach 1](#normal-force-through-mach-1)).
+    to 3.95 per radian from Mach 1.5. From Mach 1.5 the tunnel reads 2.19 to 4.15 ([Normal force through Mach 1](#normal-force-through-mach-1)).
   - *In whole flights* in wind, body lift, which RocketPy leaves out, is the largest reason a slow
     rocket's drift differs from RocketPy's ([ADR-026][adr-026]). Nothing against a real flight.
   - *Roll*: the spin that [canted](../glossary.md#cant) fins give, against NASA's measured roll
@@ -87,7 +86,14 @@ and, less certainly, supersonic.
     0.79 calibers, against OpenRocket's 1.87. The gap to OpenRocket is measured on 14 probe
     designs and pinned by a test; nothing measured says which code is nearer
     ([Tube fins](#tube-fins), [#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228)).
-- **What it leaves out:** large angles and [stall](../glossary.md#stall), though a flight uses these models at every angle. Faster than sound ([transonic and supersonic](../glossary.md#transonic-and-supersonic)), a steep boattail's drag in a thick boundary layer reads high, and nothing corrects for it. Faster than sound the fins' drag takes a blunt edge's formula, which reads far high for thin, sharp fins. Faster than sound nothing models a thin fin's own wave drag or the drag where fins meet the body. Faster than sound a flight takes a pointed nose and its cylinder from the method that adds the cylinder's lift. Faster than sound a boattail behind them comes from a measured correlation of boattails of 4° to 9.5°, an extrapolation for steeper ones. HPR Sim stops reading it past the angle where the flow separates ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)). A nose with a vertical tip (power-series, Haack, elliptical) takes a Newtonian cap ahead of the method, checked on a sphere-cone only ([Blunt tips](#blunt-tips)). A lip inside a boattail's wake carries nothing ([A lip in a boattail's wake](#a-lip-in-a-boattails-wake)). A **conical** [flare](../glossary.md#flare) flush with the tube ahead of it flies the method too and ends the run, while its corner's shock stays attached. Checked against **one** measured flare, it reads −1.9% and +7.0% at Mach 1.9 and 2.3 and +13.4% at 2.96. It reads +51.5% and +50.4% at 3.95 and 4.63 ([What a marched flare is worth](#what-a-marched-flare-is-worth)). A flare shallow enough to turn the flow almost not at all is read by an older, rougher method instead. Nothing measures it ([A near-flat flare](#a-near-flat-flare)). A rocket with any other widening shape, or any step, behind the nose keeps slender-body theory for its whole body at every speed. A motor retainer behind a step down counts: the step ends the run. That theory reads low past Mach 3 ([A step in radius](#a-step-in-radius): −8.65% and 1.03 calibers at the threshold). Body lift leaves out the fall in crossflow drag past the critical crossflow Reynolds number ([Body lift](#body-lift)). It reads too large at the few degrees a slope is fitted over. The body alone misses the 15% target the milestone set on six of eleven wind-tunnel rows, by +37.7% at worst. It is within 5% at Mach 3.96 and 4.63 ([The body alone, against the 15% target](#the-body-alone-against-the-15-target)). There are no damping coefficients for pitch and yaw: a flight takes that damping from each part's own local flow. The roll forcing near Mach 1.5 reads high, and nothing measured checks roll below it ([Roll: forcing and damping](#roll-forcing-and-damping)).
+- **What it leaves out:** large angles and [stall](../glossary.md#stall), though a flight uses these models at every angle. Faster than sound ([transonic and supersonic](../glossary.md#transonic-and-supersonic)):
+  - A steep boattail's drag in a thick boundary layer reads high, and nothing corrects for it.
+  - The fins' drag takes a blunt edge's formula, which reads far high for thin, sharp fins.
+  - Nothing models a thin fin's own wave drag or the drag where fins meet the body.
+  - A flight takes a pointed nose and its cylinder from the shock-expansion method, which marches along the body and adds the cylinder's lift.
+  - A boattail behind them comes from a measured correlation of boattails of 4° to 9.5°, an extrapolation for steeper ones. HPR Sim stops reading it past the angle where the flow separates ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
+
+  A nose with a vertical tip (power-series, Haack, elliptical) takes a Newtonian cap ahead of the method, checked on a sphere-cone only ([Blunt tips](#blunt-tips)). A lip inside a boattail's wake carries nothing ([A lip in a boattail's wake](#a-lip-in-a-boattails-wake)). A **conical** [flare](../glossary.md#flare) flush with the tube ahead of it flies the method too, last in its run, while its corner's shock stays attached. Checked against **one** measured flare, it reads −1.9% and +7.0% at Mach 1.9 and 2.3 and +13.4% at 2.96. It reads +51.5% and +50.4% at 3.95 and 4.63 ([What a marched flare is worth](#what-a-marched-flare-is-worth)). A flare shallow enough to turn the flow almost not at all is read by an older, rougher method instead. Nothing measures it ([A near-flat flare](#a-near-flat-flare)). A rocket with any other widening shape, or any step, behind the nose keeps slender-body theory for its whole body at every speed. A motor retainer behind a step down counts: the step ends the run. That theory reads low past Mach 3 ([A step in radius](#a-step-in-radius): −8.65% and 1.03 calibers at the threshold). Body lift leaves out the fall in crossflow drag past the critical crossflow Reynolds number ([Body lift](#body-lift)). It reads too large at the few degrees a slope is fitted over. The body alone misses the 15% target the milestone set on six of eleven wind-tunnel rows, by +37.7% at worst. It is within 5% at Mach 3.96 and 4.63 ([The body alone, against the 15% target](#the-body-alone-against-the-15-target)). There are no damping coefficients for pitch and yaw: a flight takes that damping from each part's own local flow. The roll forcing near Mach 1.5 reads high, and nothing measured checks roll below it ([Roll: forcing and damping](#roll-forcing-and-damping)).
 
 ## Code and conventions
 
@@ -1328,8 +1334,7 @@ boundary layer separating *ahead* of the juncture and reattaching behind it (pri
 pitching moment. Nor does its method carry a separation signature on this body. It reads +24.8% at
 Mach 1.90 and +31.6% at 2.30, both attached rows, against +28.8% and +20.3% at the separated ones.
 The report's method is uniformly high on model 2 and near the tunnel on model 1. This is a large offset this milestone has not explained. So read the separation as **consistent with** the two fast
-rows rather than measured by them. Nothing here settles why separation costs 0.9 points at Mach
-2.96, where the report says it has already begun. At 3.95 the cost is twenty times that.
+rows rather than measured by them. Nothing here settles why it costs 0.9 points at Mach 2.96, where the report says separation has already begun, or twenty times that at 3.95.
 
 **Where the method has no reading.** At Mach 1.50 HPR Sim refuses model 2 outright. The refusal is
 worth following, because it is not the rule the section above describes. Two limits decide what the
@@ -2610,8 +2615,7 @@ measured, tight enough to catch a broken pod rule. A pod fin's body interference
 airframe's radius would move a margin by some 0.04 calibers. The whole table is in the
 [committed report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#pod-probes).
 
-The first probes stated no surface finish. HPR Sim flew them 6.0% to 7.3% high because OpenRocket reads
-a part with no finish as regular paint, 60 µm. HPR Sim's reader gives it HPR Sim's own default,
+The first probes stated no surface finish. HPR Sim flew them 6.0% to 7.3% high because the two programs' defaults differ. OpenRocket reads a part with no finish as regular paint, 60 µm. HPR Sim's reader gives it HPR Sim's own default,
 20 µm ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216), which gives the
 run). The probes now state their finish.
 
@@ -2752,7 +2756,7 @@ base drag behind ([Drag](#drag), eqs. 3.90 and 3.92).
 
 - Mach 0.8 and faster. No source covers tube fins near the speed of sound, where the flow through
   a tube can choke. A flight that reaches it stops with the tube-fin model's error, even on an override table, which still takes the model's tube stations and roll.
-- Fewer than three tubes, where the body's own flow does not cancel in the sum.
+- Fewer than three tubes. The body's own flow cancels in the sum only around three or more evenly spaced tubes.
 - Solid tubes, with a wall as thick as the radius.
 - Tube fins on a pod.
 - A ring shorter than a third of its diameter ($A > 3$), past Fletcher's rings.
@@ -3335,8 +3339,7 @@ terms already had faster-than-sound forms in the table above. These are friction
 base drag's $0.25/M$, the fins' leading and trailing edges, and the stagnation pressure on blunt
 faces. The code is [`hpr_aero::nose_drag`](../api/hpr_aero/nose_drag/index.html); the decision
 record is [ADR-028][adr-028]. How far it holds against a wind tunnel is under
-[Verification](#drag-against-the-arcas-robin-wind-tunnel). It reads high except near Mach 1, most
-of all with fins on past Mach 1.2.
+[Verification](#drag-against-the-arcas-robin-wind-tunnel). It reads high at every Mach number, least near Mach 1 and most with fins on past Mach 1.2.
 
 A nose's or shoulder's pressure-drag coefficient, on the area it adds, has three parts:
 
@@ -3433,7 +3436,7 @@ eq. B.4, so the von Kármán's wave drag is 38% lower. The test
 - **Steps.** A step up in radius, or a body with no nose cone, is a flat face, the blunt
   cylinder's $0.85\,q_{\mathrm{stag}}/q$ at every Mach number. The value is 0.85 at rest, 0.9947 at Mach 0.8, 1.0888 at
   Mach 1 and 1.4118 at Mach 2. Eq. 3.86 "does not take into account the effect of extremely blunt
-  nose cones (length less than half of the diameter)" ([N09] p. 47). A step has no length, so it is excluded.
+  nose cones (length less than half of the diameter)" ([N09] p. 47). A step has no length, so eq. 3.86 does not cover it.
   Before [M1.8b1](../decisions-and-roadmap.md#m1-8b1) it was eq. 3.86's 0.8 at every speed.
 - **Blunt ellipsoids.** An elliptical nose has its own curve below Mach 1.2, from Hoerner's
   measurement ([blunt ellipsoids](#blunt-ellipsoids-below-mach-08)).
@@ -3772,8 +3775,7 @@ other programs.
   force. Much of it acts ahead of the rocket's center of mass, the nose's above all. So body lift moves
   the center of pressure forward and weakens the moment that
   [turns the rocket into the wind](../glossary.md#weathercocking). HPR Sim turns into it less than
-  RocketPy, whose normal force has no body term. Its sideways push alone is about a sixth of
-  body lift's effect on the drift. Juno III's apogee ends 245.3 m (805 ft) from the pad in HPR Sim and
+  RocketPy, whose normal force has no body term. Body lift's sideways push alone is about a sixth of its effect on the drift. Juno III's apogee ends 245.3 m (805 ft) from the pad in HPR Sim and
   396.6 m (1,301 ft) in RocketPy. Body lift is about half of that difference, and HPR Sim's rail release and
   fin slope most of the rest. Flown in RocketPy with HPR Sim's
   model, Juno III's apogee drift is 248.3 m (815 ft) with Jorgensen's crossflow.
@@ -3844,7 +3846,7 @@ other programs.
   - Supersonic linear theory on a rectangle, whose slope and CP have closed forms, including a tip cone that crosses the root.
   - Outlines of each planform; where linear theory starts.
   - A proptest (a rule checked on many random inputs): scaling every length leaves slopes unchanged and scales the CP; the reference diameter scales slopes only.
-  - Refusals: nine fins, Mach 5 for the normal force and Mach 1 for the drag buildup, angles out of range.
+  - Refusals: nine fins, Mach 5 for the normal force and for the drag buildup, angles out of range.
 
 #### Normal force through Mach 1
 
@@ -4131,7 +4133,7 @@ by cell. What is left at Mach 1.5 to 2.96 can't be split between body lift and t
 $\alpha \to 0$ from these readings, as [M1.8e5](../decisions-and-roadmap.md#m1-8e5) found. On the short
 model at Mach 1.5 and 1.8 the tunnel's points from −5° to +4° barely curve. The factors on body lift are 0.32 ± 0.24
 and 0.07 ± 0.25, where HPR Sim uses about 0.9. HPR Sim's slope at $\alpha \to 0$ (1.93
-and 2.17) lies within about one standard error of the tunnel's. The tunnel's values are 1.78 ± 0.32 and 2.52 ± 0.33, and HPR Sim's is 1.1 below the second. There most of the excess is body lift. At 6° it is about half of HPR Sim's normal force, and the points at 6° need a factor of 0.47 and 0.58 on it. From Mach 2.3 the points do curve. Their curvature gives factors of 0.66 to 1.05, each within about one standard error (±0.18 to ±0.23) of Jorgensen's, five of the eight below it. The fixture also holds each of the 62 points above +4° and
+and 2.17) lies within about one standard error of the tunnel's. The tunnel's values are 1.78 ± 0.32 and 2.52 ± 0.33, and HPR Sim's is 1.1 standard errors below the second. There most of the excess is body lift. At 6° it is about half of HPR Sim's normal force, and the points at 6° need a factor of 0.47 and 0.58 on it. From Mach 2.3 the points do curve. Their curvature gives factors of 0.66 to 1.05, each within about one standard error (±0.18 to ±0.23) of Jorgensen's, five of the eight below it. The fixture also holds each of the 62 points above +4° and
 the boattail's share at $\alpha \to 0$ under each rule. One caution on the long model: its points from
 −5° to +4° are [M1.8a](../decisions-and-roadmap.md#m1-8a)'s reading. That reading may carry a skew of the
 page that puts its slope 3% to 5% high
@@ -4363,7 +4365,7 @@ HPR Sim's through subsonic flow, from −8.3% at Mach 0.3 to −12.6% at 0.85. J
 [boattail](../glossary.md#boattail): 0.47 calibers long, narrowing to 69% of the diameter, a
 slope of 18.4°. Until [M1.8b3](../decisions-and-roadmap.md#m1-8b3) HPR Sim gave it only a share of
 the base drag, 0.083 at Mach 1.2 and 0.050 at 2.0. HPR Sim read −29.8% to −24.4% from Mach 1.2. The boattail's supersonic wave drag ([Boattails faster than sound](#boattails-faster-than-sound)) is 0.283 at
-Mach 1.2, 0.190 at 1.5 and 0.120 at 2.0. Its base drag falls by a third. Together they close
+Mach 1.2, 0.190 at 1.5 and 0.120 at 2.0. Calisto's base drag falls by a third. Together they close
 the gap from 0.204 to 0.035 at Mach 1.2 and from 0.128 to 0.077 at 2.0. RASAero II lists such drag as its own
 term, "other body wave" drag. Calisto's 18.4° boattail is steeper than any attached boattail
 measured here. 16° boattails read 26% to 54% high. So this agreement is not support for the

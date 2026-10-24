@@ -53,8 +53,10 @@ pub const USAGE: &str =
                            page under a directory, and prints the report (after `--`, a path may
                            start with `-`). Fails on a stock phrase, and with no path on a
                            held page over a limit or missing a sentence target (ADR-285).
-  voice --long PATH...     List each sentence over 25 words on the pages at PATH, one a line
-                           with its file, line and length, code and math shown as `…`.";
+  voice --long [--] PATH...
+                           List each sentence over 25 words on the pages at PATH, one a line
+                           with its file, line and length, code and math shown as `…`. It
+                           fails only on bad usage or a missing path.";
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
@@ -176,6 +178,9 @@ const MEAN_TARGET: usize = 20;
 
 /// ...and fewer than one sentence in this many over 25 words (under 10%).
 const LONG_SHARE_TARGET: usize = 10;
+
+/// A sentence longer than this many words is a long one, for the report and for `--long`.
+const LONG_WORDS: usize = 25;
 
 /// The committed per-page report, relative to the workspace root.
 pub(crate) const REPORT: &str = "validation/reports/voice.md";
@@ -768,7 +773,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 count += 1;
             }
         }
-        println!("{count} sentences over 25 words");
+        let noun = if count == 1 { "sentence" } else { "sentences" };
+        println!("{count} {noun} over {LONG_WORDS} words");
         return Ok(());
     }
     let root = crate::designs::root()?;
@@ -1077,7 +1083,7 @@ fn long_sentences(path: &str, source: &str, html: bool) -> Vec<String> {
     for run in reading.runs.iter().filter(|run| run.block == Block::Prose) {
         for sentence in sentences(&run.text) {
             let length = word_count(sentence);
-            if length <= 25 {
+            if length <= LONG_WORDS {
                 continue;
             }
             // `sentences` returns slices of `run.text`, so the pointers' difference is the
@@ -1672,7 +1678,7 @@ fn page_from(path: &str, source: &str, reading: Reading, reference: bool) -> Pag
             let length = word_count(sentence);
             page.sentences += 1;
             page.sentence_words += length;
-            if length > 25 {
+            if length > LONG_WORDS {
                 page.long += 1;
             }
             read_sentence(sentence, &mut page);
@@ -2543,6 +2549,18 @@ mod tests {
         );
         let after = run(&["--".to_string(), "/no/such/-x.md".to_string()]);
         assert!(after.unwrap_err().contains("no such file or directory"));
+        let args = |list: &[&str]| list.iter().map(|arg| arg.to_string()).collect::<Vec<_>>();
+        assert!(run(&args(&["--long"])).unwrap_err().starts_with("usage"));
+        assert!(
+            run(&args(&["a.md", "--long"]))
+                .unwrap_err()
+                .starts_with("usage")
+        );
+        let missing = run(&args(&["--long", "--", "/no/such/-x.md"])).unwrap_err();
+        assert!(
+            missing.contains("/no/such/-x.md: no such file"),
+            "{missing}"
+        );
     }
 
     #[test]
