@@ -6,27 +6,27 @@ stability margin and landing point.
 ## In short
 
 - **What it models:** the numbers a flight is judged by. These are the apogee, the top speed and
-  Mach number, the peak [dynamic pressure](../glossary.md#dynamic-pressure) ("max q"), the boost's
-  peak acceleration and, kept apart, the opening shock. It also gives the
+  Mach number, the peak [dynamic pressure](../glossary.md#dynamic-pressure) ("max q") and the boost's
+  peak acceleration. The opening shock is kept apart. It also gives the
   [stability margin](../glossary.md#stability-margin) from the rail exit to apogee or the first
-  [deployment](../glossary.md#deployment), the largest
+  [deployment](../glossary.md#deployment). It gives the largest
   [angle of attack](../glossary.md#angle-of-attack) that counts toward the envelope's
-  high-angle flag ([below](#the-largest-angle-of-attack)), whether the rocket is unstable while a
-  motor burns ([below](#unstable-under-power)), the
+  high-angle flag ([below](#the-largest-angle-of-attack)). It says whether the rocket is unstable
+  while a motor burns ([below](#unstable-under-power)). It gives the
   [ejection delay](../glossary.md#ejection-delay) that would fire the charge at apogee, and each
   landing's latitude and longitude. Anything that didn't happen is `None`, never a zero.
 - **Sources:** the margin is [Barrowman's](../glossary.md#barrowmans-method) center of pressure
   (to Mach 0.8; faster, as [Aerodynamics](aero.md#your-rockets-center-of-pressure) describes)
-  against the [center of mass](../glossary.md#center-of-gravity-cg) (the CG), defined as [RocketPy](../glossary.md#rocketpy) defines its static
-  margin and stability margin. The peak search is Kiefer's golden-section search
+  against the [center of mass](../glossary.md#center-of-gravity-cg) (the CG). It is defined as
+  [RocketPy](../glossary.md#rocketpy) defines its static margin and stability margin. The peak search is Kiefer's golden-section search
   ([References](#references)). Latitude and longitude come from HPR Sim's WGS 84 conversions
   ([Geodesy](geodesy.md)).
 - **How well it is validated:** each number is only as good as the flight it comes from. The
   flight is checked against RocketPy and OpenRocket ([Accuracy](../accuracy.md)), and the metrics
   add no physics of their own. Tests check each against a hand calculation or against the simulator's
-  own models evaluated directly ([Tests](#tests)). The margin in the weakest plane is checked against
-  the simulator's own scan of 3,600 planes in a test, and against one OpenRocket run that is not
-  committed. None is validated against a real flight.
+  own models evaluated directly ([Tests](#tests)). In a test, the margin in the weakest plane is checked against
+  the simulator's own scan of 3,600 planes. It is also checked against one OpenRocket run that is
+  not committed. None is validated against a real flight.
 - **What it leaves out:**
   - Fin flutter, which has its own page: [Fin flutter](flutter.md). Its margin comes from the
     max q found here.
@@ -37,10 +37,10 @@ stability margin and landing point.
   - A damping ratio: how fast a wobble dies out. Both margins here are static quantities.
   - The margin at the flight's [angle of attack](../glossary.md#angle-of-attack). Both margins
     take the air along the rocket's axis, in the weakest direction it can cross
-    ([Stability margins](#stability-margins)). In the simulator's model a rocket meeting the air at
-    an angle, as it does leaving a rail in wind, can have a smaller or a larger margin than these,
-    depending on where its body's lift acts ([Stability margins](#stability-margins) says why they
-    leave it out).
+    ([Stability margins](#stability-margins)). A rocket meets the air at an angle when it leaves
+    a rail in wind. In the simulator's model its margin there can be smaller or larger than these,
+    depending on where its body's lift acts. [Stability margins](#stability-margins) says why they
+    leave it out.
 
 ## Purpose and use
 
@@ -109,17 +109,17 @@ The 6 s delay is too short:
 - The charge fires at 9.26 s, and the canopy opens at 9.76 s: about 4 s (13.83 − 9.76) before
   the apogee it would have reached.
 - The rocket still rises 1.4 s more, to an apogee of 714.0 m (2,343 ft).
-- With the charge held, it would have coasted to 778.7 m (2,555 ft) at 13.83 s: the apogee of the
+- With the charge held, it would have coasted to 778.7 m (2,555 ft) at 13.83 s. That is the apogee of the
   [Getting started](../getting-started.md) flight, whose drogue fires at apogee.
 - So the optimum delay is 10.6 s. The opening shock, 153.4 m/s², is three times the boost's
   47.2 m/s², and it is not counted as the boost's peak.
 - Don't size a shock cord from the 153.4 m/s²; it is no bound either way. The canopy reaches
-  full drag at line stretch, 0.5 s after the charge, with no filling time (the simulator's default),
-  so the rocket doesn't slow while it fills: that reads high. The simulator also leaves out a
+  full drag at line stretch, 0.5 s after the charge. It has no filling time (the simulator's default),
+  so the rocket doesn't slow while it fills. That reads high. The simulator also leaves out a
   canopy's drag overshoot near the end of filling: that reads low
   ([The opening load](recovery.md#the-opening-load)).
 
-Top speed comes at 3.00 s, before the 3.26 s burnout, because in the thrust curve's last moments
+Top speed comes at 3.00 s, before the 3.26 s burnout. That is because in the thrust curve's last moments
 the motor pushes less than drag and gravity pull back.
 
 ## Heights and peaks
@@ -149,15 +149,15 @@ Each peak comes with its time and its height. The watcher looks at every step th
 1. It evaluates the equations of motion at each step's start, middle and end.
 2. It fits a parabola through the three values. When the parabola bends down with its top inside
    the step, the peak may lie inside. A golden-section search then looks for it on the step's
-   dense output, the integrator's smooth curve through the step, to a billionth of the time
-   since launch (or of 1 s early in the flight).
+   dense output (the integrator's smooth curve through the step). The search runs to a billionth
+   of the time since launch, or of 1 s early in the flight.
 3. It keeps the largest of what the search finds and the three samples.
 
 Thrust-curve knots, the times where a motor's tabulated thrust changes slope, end steps. So a spike
 in the thrust curve is a step's end, and is never averaged away. Loft took its peak acceleration
 from a finite difference of the recorded speed, and read it low. Valetudo in a vacuum shows how
-much: the watcher's peak matches the hand value from the motor and the masses within the test's
-1e-6, and a finite difference of the speed recorded at 100 Hz reads it more than 1% low.
+much. The watcher's peak matches the hand value from the motor and the masses within the test's
+1e-6. A finite difference of the speed recorded at 100 Hz reads it more than 1% low.
 
 | Peak | What it is |
 |---|---|
@@ -168,8 +168,8 @@ much: the watcher's peak matches the hand value from the motor and the masses wi
 | Opening shock | The largest acceleration while a device is open, the [opening load](../glossary.md#opening-load) over the mass. It follows the simulator's inflation model ([Recovery](recovery.md)) |
 
 The accelerations are of the nose tip, which is the body's origin in the simulator's
-[frames](frames.md). It differs from the center of mass's only by the rocket's turning, which is
-small in a straight boost, and by the center of mass's slow drift forward as propellant burns. The accelerations are relative to the
+[frames](frames.md). It differs from the center of mass's only by the rocket's turning and by the
+center of mass's slow drift forward as propellant burns. The turning is small in a straight boost. The accelerations are relative to the
 [launch frame](../glossary.md#launch-frame-enu) and straight from the equations of motion, so they
 include gravity's pull, as a trajectory's acceleration does. An accelerometer reads something
 else: it does not feel gravity.
@@ -201,31 +201,31 @@ instant:
 - **Static margin:** the center of pressure at zero angle of attack and Mach 0, against the center
   of mass of that instant. This is RocketPy's `static_margin`. It changes only as propellant burns.
 - **Flight margin:** the center of pressure at the flight's own Mach number, still with the air
-  along the axis, against the center of mass of that instant. It is defined as RocketPy's
+  along the axis, against that instant's center of mass. It is defined as RocketPy's
   `stability_margin` is. RocketPy's `min_stability_margin` takes the least over its whole flight,
-  on the rail and in the descent too, at its solver's steps, so it can differ from HPR Sim's least
-  below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, in calm air at
-  rod clearance, where a rocket is still slow, HPR Sim's margin at the flight's Mach number is
-  within 0.016 calibers on 41 of the 53 flights of OpenRocket's own examples. This comparison takes
-  HPR Sim's margin with the air along the rocket's axis (the 0° plane), as OpenRocket's margin is,
-  not in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
-  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis,
-  while `hpr sim` prints a least margin of −4.21 in the weakest plane. Where the two programs
-  differ: on the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
-  [tube fins](aero.md#tube-fins); on the three-stage example's three flights 0.039 to 0.058 below,
-  cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185); and on
-  the five of *Pods--airframes and winglets* 0.071 to 0.076 above, the flattering side,
+  on the rail and in the descent too. It reads it at its solver's steps, so it can differ from HPR Sim's least
+  below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, HPR Sim's margin at the
+  flight's Mach number is within 0.016 calibers on 41 of the 53 flights of OpenRocket's own
+  examples. That is in calm air at rod clearance, where a rocket is still slow. HPR Sim's margin in
+  this comparison has the air along the rocket's axis (the 0° plane), as OpenRocket's does. It isn't
+  the margin in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
+  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis.
+  But `hpr sim` prints a least margin of −4.21 in the weakest plane. The two programs differ as
+  follows. On the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
+  [tube fins](aero.md#tube-fins). On the three-stage example's three flights it is 0.039 to 0.058
+  below, cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185).
+  On the five of *Pods--airframes and winglets* it is 0.071 to 0.076 above, the flattering side,
   [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
-  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326); and on the three of
-  *Pods--powered with recovery deployment* 0.070 above, also not yet traced. On 35 flights of
+  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326). On the three of
+  *Pods--powered with recovery deployment* it is 0.070 above, also not yet traced. On 35 flights of
   private designs it is from 0.017 lower to 0.11 higher, cause not yet traced
-  ([Accuracy](../accuracy.md)). Near Mach 1 HPR Sim puts the Arcas Robin's center of pressure up to
+  ([Accuracy](../accuracy.md)). Near Mach 1, HPR Sim puts the Arcas Robin's center of pressure up to
   2.36 calibers behind the wind tunnel's
-  ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)), so there its flight margin
+  ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)). So there its flight margin
   reads high.
 
   The Mach number moves the center of pressure. On a rocket with fins only at the tail it
-  generally moves aft up to where supersonic theory starts for the fins, Mach 1.2 or later: their
+  generally moves aft until supersonic theory starts for the fins, Mach 1.2 or later. Their
   slope grows, and from Mach 0.8 their own center moves aft too. Past that their slope falls and
   the body's lift can grow, and the center of pressure mostly moves forward again
   ([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
@@ -233,8 +233,8 @@ instant:
 
 **Both margins are the weakest direction's.** The air can cross a rocket from any direction around
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
-breaks that: it carries $\sum_k \sin^2(\varphi - \theta_k)$ of its force in the plane at roll angle $\varphi$, for fins at
-angles $\theta_k$ (Niskanen 2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
+breaks that. It carries $\sum_k \sin^2(\varphi - \theta_k)$ of its force in the plane at roll angle $\varphi$, for fins at
+angles $\theta_k$. The share is Niskanen's (2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
 each direction, and the simulator gives the least, the direction it was found in as `roll_rad`.
 Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), the simulator's margins were the 0°
 direction's alone, which can be the strongest. A rocket whose fin sets each have three or more fins,
@@ -242,16 +242,16 @@ or that flies a normal-force table, keeps its one margin, bit for bit.
 
 A worked case: the sustainer of OpenRocket's *Pods--powered with recovery deployment* example has
 a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the booster drops, its
-margin is +1.86 calibers with the air crossing at 0°, where the single fin lies edge-on and the
+margin is +1.86 calibers with the air crossing at 0°. There the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
-fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run (not
-committed), puts its center of pressure at 0.2954 m (0.969 ft) with $C_{N\alpha}$ 3.49; HPR Sim's are 0.2993 m (0.982 ft) and
+fin works: −3.44, unstable. OpenRocket 24.12 was asked for that sustainer at 90° in a scratch run (not
+committed). It puts its center of pressure at 0.2954 m (0.969 ft) with $C_{N\alpha}$ 3.49. HPR Sim's are 0.2993 m (0.982 ft) and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
 calibers and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
-the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
-a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
-that configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
-HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
+the booster drops. Its own motor is just lit and still full, and the air is at Mach 0.07. The −3.44
+is a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
+that configuration turn over before apogee. Its site is at 28.61° N, where the Earth's rotation tips
+HPR Sim's flight. HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
 equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m (824 ft)
 ([the format guide](../format/ork.md#the-simulators-flights-against-openrockets)).
 
@@ -282,12 +282,12 @@ model, and a direction where no margin can be given wins over any number.
 Both margins leave out the [angle of attack](../glossary.md#angle-of-attack). In the simulator,
 [body lift](aero.md#body-lift) grows with the angle and acts at each body's side-view centroid, and
 the center of pressure moves toward it. Where that centroid lies ahead of the zero-angle center of
-pressure, the margin at an angle shrinks; on a long body with small fins it can lie behind, and the
+pressure, the margin at an angle shrinks. On a long body with small fins it can lie behind, and the
 margin grows. No test pins either direction. But the angle is not a steady property of
-the rocket. Valetudo leaves its rail 17.2° off the oncoming air in the example's 5 m/s (16 ft/s) crosswind,
-and near apogee the angle swings toward 90° as the rocket slows and tips over. If the least margin
-followed the angle, it would land wherever the simulator chose to stop counting large angles, and
-the simulator models no fin [stall](../glossary.md#stall) that could say where that is. For the
+the rocket. Valetudo leaves its rail 17.2° off the oncoming air in the example's 5 m/s (16 ft/s) crosswind.
+Near apogee the angle swings toward 90° as the rocket slows and tips over. If the least margin
+followed the angle, it would land wherever the simulator chose to stop counting large angles. The
+simulator models no fin [stall](../glossary.md#stall) that could say where that is. For the
 margin at a given angle, call [`margin`](../api/hpr_sim/metrics/fn.margin.html) with
 [`Flow::new(mach, angle_rad, roll_rad)`](../api/hpr_aero/model/struct.Flow.html#method.new).
 
@@ -296,13 +296,13 @@ and ends at apogee or when a recovery device opens, whichever comes first. Befor
 rail holds the rocket, so its margin says nothing about how it flies.
 
 The summary's least margins cover the same span. Each is looked for inside every step, as a peak
-is ([Peaks](#peaks)): wherever the margin is defined at a step's start, middle and end and the
-parabola through them bends up with its bottom inside the step, a golden-section search finds the
-bottom. A later least replaces an earlier one only when lower by more than rounding, so a flat
+is ([Peaks](#peaks)). Wherever the margin is defined at a step's start, middle and end, a parabola
+goes through the three values. When it bends up with its bottom inside the step, a golden-section
+search finds the bottom. A later least replaces an earlier one only when lower by more than rounding, so a flat
 least keeps its first time. A margin with a sharp corner
 near a step's end can still hide from the parabola.
 
-- On four test flights, and in the example, both leasts come at the rail exit, where the rocket is
+- On four test flights, and in the example, both leasts come at the rail exit. There the rocket is
   heaviest and its center of mass furthest aft. Flown in steps of at most 1 ms, those flights give
   the same leasts to a millionth of a caliber.
 - On a two-stage test flight the least flight margin comes inside a step, after the split. There
@@ -328,10 +328,10 @@ center of pressure then lies within $\kappa L$ of every station. So a fractional
 part's slope moves the center of pressure by at most about $\varepsilon \kappa^2 L$ (to first order). A part that
 is a pure couple on its own (below) has no station, and $\kappa$ doesn't count it.
 
-- A rocket whose parts all push the same way has $\kappa = 1$, and a 1% error moves its center of
+- A rocket whose parts all push the same way has $\kappa = 1$. A 1% error then moves its center of
   pressure by at most 1% of its length. All 13 designs in
   [`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) stay
-  below 1.5 at Mach 0, 0.3, 0.8, 1.2 and 2 and at angles of attack of 0°, 5°, 10° and 20°.
+  below 1.5. That holds at Mach 0, 0.3, 0.8, 1.2 and 2 and at angles of attack of 0°, 5°, 10° and 20°.
 - At $\kappa = \sqrt{10} = 3.16$, a 1% error in one slope can move the center of pressure by a tenth of the
   rocket. Past that, or when the net slope is not positive, the simulator gives no margin and no
   center of pressure: `None`. The limit is a chosen bound on that sensitivity, not a measurement.
@@ -349,7 +349,7 @@ A negative $C_{m\alpha}$ turns the nose back into the wind. With a margin define
 
 A worked case, with no fins, pinned by a test:
 
-- The rocket is a conical nose 0.3 m (0.98 ft) long of radius $R$ = 0.05 m, a 0.5 m (1.6 ft) tube, and a conical
+- The rocket has a conical nose 0.3 m (0.98 ft) long of radius $R$ = 0.05 m, then a 0.5 m (1.6 ft) tube. Last comes a conical
   boattail 0.4 m (1.3 ft) long, narrowing to a radius $r$. So $d$ = 0.1 m.
 - Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets $2((r/R)^2 - 1)$, at a distance
   in meters of
@@ -381,7 +381,7 @@ checks.
 ### The largest angle of attack
 
 `max_angle_of_attack_rad` is the largest angle between the rocket's axis and the air flowing past
-it, in radians, over the span the envelope's high-angle flag watches
+it, in radians. Its span is the one the envelope's high-angle flag watches
 ([Validation plan: the operating envelope](../VALIDATION.md#operating-envelope);
 [ADR-179](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0179-the-envelope-flags.md)):
 
@@ -399,18 +399,17 @@ it, in radians, over the span the envelope's high-angle flag watches
   [dynamic pressure](../glossary.md#dynamic-pressure), $d$ the reference diameter and $C_{N\alpha}$ the
   flight margin's normal-force slope.
 
-The angle is read at each step's start, middle and end, without the search between them that the
-peaks have, so an excursion inside one step can be missed. Above 15°, the flight's
+The angle is read at each step's start, middle and end. Unlike the peaks, it has no search between them, so an excursion inside one step can be missed. Above 15°, the flight's
 `envelope_flags` include `high_angle_of_attack`.
 
-The floor is there because near apogee every flight whose path turns over passes 15°, while the air
+The floor is there because near apogee every flight whose path turns over passes 15°. There the air
 is too weak to turn it: gravity does. Valetudo, one of RocketPy's examples, launched off an 84° rail
-in calm air, passes 15° about 0.9 s before apogee, at 16.7 m/s (55 ft/s) through the air, a little faster
+in calm air, passes 15° about 0.9 s before apogee. It is then at 16.7 m/s (55 ft/s) through the air, a little faster
 than its 16.2 m/s (53 ft/s) rail exit. There a 15° angle would give a normal force of 1.0% to 1.5% of its
-weight, so an error in the aerodynamics at that angle barely moves it. A wind layer met at speed is
-different: Valetudo climbing into 30 m/s (98 ft/s) of wind 300 m (984 ft) up passes 15° where that force is 62% of its
-weight, and the flag is raised. On the tests' RocketPy rockets, turn-overs give 0.7% to 5.0% and
-wind layers met at speed 62% to 141%; the fifth, chosen rather than measured, sits between. The
+weight. So an error in the aerodynamics at that angle barely moves it. A wind layer met at speed is
+different. Valetudo climbing into 30 m/s (98 ft/s) of wind 300 m (984 ft) up passes 15° where that force is 62% of its
+weight. The flag is raised. On the tests' RocketPy rockets, turn-overs give 0.7% to 5.0% and
+wind layers met at speed 62% to 141%. The fifth, chosen rather than measured, sits between. The
 tests `a_tilted_calm_climb_passes_15_degrees_only_with_too_little_force`,
 `a_wind_layer_met_at_speed_raises_the_high_angle_flag` and
 `a_wind_layer_met_in_a_fast_coast_raises_the_high_angle_flag` (in the flight engine's `metrics.rs`) fly
@@ -427,28 +426,28 @@ at most one of the two flags.
 
 - `unstable_under_power`: the static margin falls below zero while a motor burns. The center of
   pressure is then ahead of the center of mass.
-- `unstable_without_margin`: where the simulator can give no static margin while a motor burns
-  ([When there is no margin](#when-there-is-no-margin)), the pitching moment's slope $C_{m\alpha}$ is
+- `unstable_without_margin`: no static margin can be given while a motor burns
+  ([When there is no margin](#when-there-is-no-margin)), and the pitching moment's slope $C_{m\alpha}$ is
   above zero. It is raised only when the first flag isn't.
 
-`min_powered_static_margin_cal` is the margin the first flag reads. It is the least static margin,
-in the weakest plane ([Stability margins](#stability-margins)), from the rail exit to apogee or
-the first deployment, over the moments a motor burns. It is found inside steps, as the other least
+`min_powered_static_margin_cal` is the margin the first flag reads. It is the least static margin
+in the weakest plane ([Stability margins](#stability-margins)), over the moments a motor burns.
+The span runs from the rail exit to apogee or the first deployment. It is found inside steps, as the other least
 margins are. A step counts when the thrust at its middle is above zero. The simulator ends a step at
-every ignition, thrust-curve point and burnout, so a motor that burns at a step's middle burns
+every ignition, thrust-curve point and burnout. So a motor that burns at a step's middle burns
 through all of it, and the margin at the burnout itself counts. A margin of exactly zero raises
 nothing; any margin below it does.
 
-`max_powered_moment_slope_per_rad` is what the second flag reads. Where the parts' normal-force
-slopes nearly cancel, or their sum is not positive, the simulator gives no margin, since the center
+`max_powered_moment_slope_per_rad` is what the second flag reads. The simulator gives no margin where the
+parts' normal-force slopes nearly cancel, or their sum is not positive. There the center
 of pressure would be noise. The moment about the center of mass is still well defined there:
 
 $$
 C_{m\alpha} = -\frac{\sum_i C_{N\alpha,i}\, x_i - C_{N\alpha}\, x_{\mathrm{cg}}}{d}
 $$
 
-with $C_{N\alpha,i}$ and $x_i$ the normal-force slope and station of part $i$, $C_{N\alpha}$ their sum, $x_{\mathrm{cg}}$
-the center of mass, every station aft of the nose tip, and $d$ the reference diameter. A negative
+with $C_{N\alpha,i}$ and $x_i$ the normal-force slope and station of part $i$, $C_{N\alpha}$ their sum, and $x_{\mathrm{cg}}$
+the center of mass. Every station is aft of the nose tip, and $d$ is the reference diameter. A negative
 $C_{m\alpha}$ turns the rocket back toward its path; a positive one turns it away. The simulator keeps the
 largest $C_{m\alpha}$ at each powered step's start, middle and end where the margin is undefined, without
 searching between them. A $C_{m\alpha}$ of exactly zero raises nothing; any above it does. Without this
@@ -457,8 +456,8 @@ milder one would.
 
 Only the moments under power count. A rocket that turns then is driven along its new heading by
 its own motor, so the path flown follows the turn. A rocket that is unstable only in the coast,
-after its motors burn out, raises neither flag: it has no thrust to carry it off its path, and
-the least static margin over the whole span, `min_static_margin_cal`, still prints its margin
+after its motors burn out, raises neither flag. It has no thrust to carry it off its path. The
+least static margin over the whole span, `min_static_margin_cal`, still prints its margin
 there.
 
 For example, OpenRocket's example *Pods--powered with recovery deployment*, flown on `[C6-7; B6-0]`
@@ -471,9 +470,9 @@ apogee                251.3 m above the site at 5.74 s, not a prediction: unstab
 warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns: the rocket is unstable under power, so the air turns it away from its path rather than back, and its apogee is not a prediction
 ```
 
-For the second flag, take RocketPy's Valetudo with its fins taken off and a conical tail that
+For the second flag, take RocketPy's Valetudo with its fins taken off. Give it a conical tail that
 narrows from the body's 40.45 mm (1.6 in) radius to 22 mm (0.87 in) over 0.08 m (0.26 ft). At the rail exit its net slope is
-0.59 per radian against a sum of sizes of 3.41, too small for a margin, but $C_{m\alpha}$ is +43.9 per
+0.59 per radian against a sum of sizes of 3.41. That is too small for a margin, but $C_{m\alpha}$ is +43.9 per
 radian:
 
 ```text
@@ -485,10 +484,10 @@ With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 
 fires in its place. These figures are from a run on 2026-10-06; the test
 (`sim_flags_a_rocket_unstable_where_it_has_no_margin`) pins only the flag and a slope above 1.
 
-`hpr sim` prints the `warning: unstable:` line and marks the apogee for either flag, and its JSON
-lists the flag under `flags`; the library has it in `FlightSummary::envelope_flags`, and Python in
+`hpr sim` prints the `warning: unstable:` line and marks the apogee for either flag. Its JSON
+lists the flag under `flags`. The library has it in `FlightSummary::envelope_flags`, and Python in
 `Flight.envelope_flags`. When this was written (2026-10-06), none of the 25 public `.ork` files
-and 12 validation designs that `hpr sim` flies offline raised either flag, on their default
+and 12 validation designs that `hpr sim` flies offline raised either flag. That was on their default
 configurations off an 85° rail in calm air and in 8 m/s (26 ft/s) of wind. No test or report pins that
 count.
 
@@ -496,20 +495,13 @@ What it leaves out:
 
 - A rocket unstable only after its motors burn out raises no flag, as above.
 - It reads the static margin and $C_{m\alpha}$ at Mach 0, not at the flight's Mach number.
-- $C_{m\alpha}$ is read only at each step's start, middle and end, not searched between: a moment
+- $C_{m\alpha}$ is read only at each step's start, middle and end, not searched between. A moment
   slope above zero for less than half a step, with no margin, can pass unseen.
 - A flight that tips over above 15° raises the high-angle flag
-  ([The largest angle of attack](#the-largest-angle-of-attack)) as well; a stable rocket in a
+  ([The largest angle of attack](#the-largest-angle-of-attack)) as well. A stable rocket in a
   strong wind can raise that one alone.
 
-The tests `the_powered_margin_counts_only_while_a_motor_burns`,
-`a_moment_slope_without_a_margin_counts_only_while_a_motor_burns` and
-`a_rocket_without_fins_is_unstable_under_power` (in the flight engine's `metrics.rs`), and
-`the_stability_flag_starts_just_below_a_zero_margin` and
-`the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` (in `envelope.rs`) pin
-it: a margin of −2⁻³⁰ calibers at a burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 caliber
-in the coast that follows; with no margin, a $C_{m\alpha}$ of +2⁻³⁰ per radian under power raises the
-second flag, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout. In `hpr-cli`,
+Five of the tests in [Tests](#tests) pin these flags, four at their edges. In `hpr-cli`,
 `sim_flags_a_rocket_unstable_where_it_has_no_margin` flies the Valetudo example above.
 
 ## Ejection and landing
@@ -527,7 +519,7 @@ even shorter delay. HPR Sim gives the same optimum for delays of 1 s and 20 s.
 
 - A [separation](../glossary.md#separation) with nothing ahead of it left to burn is part of the
   recovery, so it is held too. A two-stage rocket that separates some seconds after its last burnout gets
-  the same optimum for a 3 s delay as for a 30 s one.
+  the same optimum for delays of 3 s and 30 s.
 - A powered separation still happens. The motors in the booster it drops have no optimum: their
   charges fire in the booster, which never reaches the [sustainer's](../glossary.md#sustainer)
   apogee.
@@ -537,10 +529,10 @@ even shorter delay. HPR Sim gives the same optimum for delays of 1 s and 20 s.
 ### Landing points
 
 A landing is where the center of mass came back down to the site's height. It is given as a WGS 84
-latitude and longitude, as east and north meters from the site in its local frame, and as the speed
-at the ground hit. The flight's own landing is the stack's (the whole rocket before any
+latitude and longitude, and as east and north meters from the site in its local frame. The speed
+at the ground hit is given too. The flight's own landing is the stack's (the whole rocket before any
 separation), or after a powered separation the sustainer's. Each separated body that lands has its
-own landing, with its body number: 0 keeps the nose, and 1 is the stages aft of the split.
+own landing, with its body number. Body 0 keeps the nose, and 1 is the stages aft of the split.
 
 A flight that did not land has no landing and no ground-hit speed: `None`. A test checks this for a
 flight stopped by its time cap, and the JSON it writes, where the missing values are `null`.
