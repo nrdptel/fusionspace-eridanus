@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 60 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 439844 words, 0 stock phrases. 65 pages are within every limit.
+82 pages, 439840 words, 0 stock phrases. 65 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -31,7 +31,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
 | `docs/VALIDATION.md` (`held`) | 10069 | 13.7 | 0% | 0.26 | 0.00 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.57 |
 | `docs/VISION.md` | 3734 | 15.4 | 15% | **1.10** | **3.62** | **0.59** | 0.19 | 0.00 | 0.09 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
-| `docs/accuracy.md` (`held`) | 15653 | 13.3 | 1% | 0.23 | 0.00 | 0.01 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
+| `docs/accuracy.md` (`held`) | 15654 | 13.3 | 1% | 0.23 | 0.00 | 0.01 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
 | `docs/api.md` (`held`) | 2514 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1572 | 14.7 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
 | `docs/cli.md` (`ref`, `held`) | 17606 | 13.4 | 0% | 0.24 | 0.02 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.61 |
@@ -46,7 +46,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/flight-logs.md` (`ref`) | 43721 | 24.1 | 41% | 0.22 | 0.22 | **1.50** | 0.08 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.01 | 0.04 | 0.46 |
 | `docs/format/hpr.md` (`ref`) | 5338 | 19.4 | 25% | 0.40 | 0.08 | **1.05** | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.81 |
 | `docs/format/orc.md` (`ref`) | 2349 | 16.4 | 19% | **0.69** | 0.13 | **0.94** | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.35 |
-| `docs/format/ork.md` (`ref`) | 36922 | 19.0 | 25% | 0.22 | **0.56** | **1.10** | 0.10 | 0.00 | 0.02 | 0.02 | 0.00 | 0.00 | 0.00 | 0.04 | 0.14 |
+| `docs/format/ork.md` (`ref`) | 36904 | 19.0 | 25% | 0.22 | **0.56** | **1.10** | 0.10 | 0.00 | 0.02 | 0.02 | 0.00 | 0.00 | 0.00 | 0.04 | 0.14 |
 | `docs/format/pf2.md` (`ref`) | 809 | 15.1 | 10% | 0.00 | 0.13 | 0.50 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.24 |
 | `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4155 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
@@ -62,7 +62,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/atmosphere.md` (`ref`, `held`) | 2347 | 12.2 | 0% | 0.13 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.18 |
 | `docs/physics/design.md` (`ref`, `held`) | 9149 | 14.2 | 0% | 0.14 | 0.18 | 0.00 | 0.10 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.46 |
 | `docs/physics/flight.md` (`ref`, `held`) | 4652 | 13.7 | 0% | 0.26 | 0.33 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 |
-| `docs/physics/flutter.md` (`ref`, `held`) | 2832 | 13.4 | 0% | 0.36 | 0.08 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.18 |
+| `docs/physics/flutter.md` (`ref`, `held`) | 2834 | 13.3 | 0% | 0.36 | 0.08 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.18 |
 | `docs/physics/frames.md` (`ref`, `held`) | 1369 | 12.4 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/geodesy.md` (`ref`, `held`) | 1735 | 12.3 | 1% | 0.24 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.12 | 0.06 |
 | `docs/physics/gravity.md` (`ref`, `held`) | 1134 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
@@ -77,7 +77,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/quadrature.md` (`ref`, `held`) | 494 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/recovery.md` (`ref`) | 12570 | 17.8 | 21% | **0.71** | 0.22 | **0.94** | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
 | `docs/physics/released-mass.md` (`ref`, `held`) | 2801 | 13.8 | 0% | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.43 |
-| `docs/physics/shapes.md` (`ref`, `held`) | 2003 | 12.9 | 0% | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
+| `docs/physics/shapes.md` (`ref`, `held`) | 2014 | 13.0 | 0% | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
 | `docs/physics/staging.md` (`ref`) | 7178 | 18.6 | 26% | 0.46 | 0.24 | **1.23** | 0.20 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.10 |
 | `docs/physics/synthetic-flights.md` (`ref`) | 4072 | 22.9 | 35% | 0.45 | 0.08 | **1.33** | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 |
 | `docs/physics/turbulence.md` (`ref`, `held`) | 1292 | 11.2 | 0% | 0.31 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.24 |

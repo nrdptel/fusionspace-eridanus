@@ -1170,7 +1170,7 @@ rest.
 - **Wall and fin mass** may follow different conventions from OpenRocket's, which its documentation
   doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
   OpenRocket's nose cone walls are measured across each station, HPR Sim's square to the surface:
-  the same on a cone, OpenRocket's about 0.48% lighter on three blunt noses
+  the same on a cone, OpenRocket's up to 0.48% lighter on three blunt noses
   ([Shapes](physics/shapes.md)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml

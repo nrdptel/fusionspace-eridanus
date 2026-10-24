@@ -17,10 +17,11 @@ of mass, inertia and surface area.
   ([the probes][probes]); the ogive's, the largest, has no traced cause. The parts catalog's noses
   and transitions are compared too ([the masses against OpenRocket][builder-masses]). Not compared
   with weighed parts or a real flight.
-- **What it leaves out:** OpenRocket's wall, measured across each station. It is this model's on
-  a cone; this model weighs about 0.48% more on three blunt elliptical noses. HPR Sim also does
-  not cut a steep end square to the axis, as OpenRocket cuts its probe transition. That adds 1.28% and
-  2.29% of this model's wall mass in this page's examples ([Walls](#solids-of-revolution)).
+- **What it leaves out:** OpenRocket measures a wall across each station, not square to the
+  surface. The two agree on a cone; on three blunt elliptical catalog noses this model weighs up to
+  0.48% more. HPR Sim also does not cut a steep end square to the axis, as OpenRocket cuts its
+  probe transition. A square cut would add 1.28% and 2.29% of the wall in this page's examples
+  ([Solids of revolution](#solids-of-revolution)).
 
 ## Code and sources
 
@@ -195,7 +196,7 @@ parallel-axis theorem. $S$ excludes the end faces.
   - OpenRocket's masses follow a wall measured across each [station](../glossary.md#station),
     inner radius $r - t\sqrt{1 + r'^2}$. On a straight profile that is this model's wall: a probe
     cone of that shape weighs the same within 5.1e-7 ([the probes][probes]). On a curved one they
-    differ: this model weighs about 0.48% more on three short elliptical catalog noses ([the masses
+    differ: this model weighs up to 0.48% more on three short elliptical catalog noses ([the masses
     against OpenRocket][builder-masses]). Whether that is the probe ogive's 3.93e-5 is not traced.
 
 ## Verification

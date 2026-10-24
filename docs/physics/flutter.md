@@ -230,7 +230,8 @@ an airfoiled fin's modulus, and a booster's max q.
   $G_E = 6JG/(c t^3)$ (eq. 12), assumes a thin airfoil's torsion constant $J \approx c t^3/6$ (eq. 10).
   A flat plate's is $c t^3/3$, which would double $G_E$ and raise the flutter speed by $\sqrt{2}$. The
   simulator keeps the lower reading. The exception runs the other way. For a fin with an airfoil
-  section, eq. 12 gives $0.946\,G$, so the simulator's $V_f$ for such a fin is up to 2.9% high ($1/\sqrt{0.946} = 1.028$).
+  section, eq. 12 gives $0.946\,G$. The simulator's $V_f$ for such a fin is then up to 2.9% high
+  ($1/\sqrt{0.946} = 1.0281$, rounded up).
 - **Martin's taper factor.** His derivation carries a factor $1/(f_1^2 f_2^2)$. Here $f_1$ corrects the
   twisting frequency for taper (his eq. 8) and $f_2$ gives the chord three-quarters of the way out
   (his eq. 14). He replaces the factor with $(\lambda + 1)/2$. The two agree at $\lambda = 1$ and are 3% apart

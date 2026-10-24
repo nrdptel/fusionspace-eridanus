@@ -30,7 +30,7 @@ use hpr_design::{Component, FinSet, Part, Rocket, materials};
 use hpr_sim::flutter::FIGURE_3_BAND;
 use hpr_sim::{Environment, FlightMetrics, FlightSettings, FlutterPanel, Rail, Simulation};
 
-/// The repository's synthetic 54 mm rocket: three 3.2 mm fins, 150 mm root, 60 mm tip, 70 mm span.
+/// The repository's synthetic 54 mm rocket: three 3.175 mm fins, 150 mm root, 60 mm tip, 70 mm span.
 const DESIGN: &str = include_str!("../../../validation/designs/synthetic-54mm-three-fin.json");
 
 /// The first fin set among `components` and their children.
