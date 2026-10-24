@@ -163,7 +163,7 @@ impl Group {
     #[must_use]
     pub const fn bar(self) -> &'static str {
         match self {
-            Self::Descent => "gate: each metric's tolerance, at most 3%; the landing speed 0.2%",
+            Self::Descent => "gate: each metric's tolerance, at most 3%; landing speed 0.2%",
             Self::SameDrag => {
                 "gate: each metric's tolerance, at most 3%; four speeds 0.2%, six apogees 0.5%"
             }

@@ -94,7 +94,7 @@ to the code that would move them is caught only when someone runs them again and
 
 | compared with | kind | held to | flights (speed) | result |
 |---|---|---|---|---|
-| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, at most 3%; the landing speed 0.2% | 5 descents | 30 of 30 gated metrics pass |
+| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, at most 3%; landing speed 0.2% | 5 descents | 30 of 30 gated metrics pass |
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, at most 3%; four speeds 0.2%, six apogees 0.5% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: 3% on each metric, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2 calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2 calibers on 54 of 54; 3 values withheld by the report |
@@ -373,8 +373,8 @@ set up the same way:
 The committed [validation report][report] gives the six numbers below for each descent. All were
 scored, and all are within tolerance. The largest difference is +2.865%.
 
-Each metric must agree within 3% of RocketPy's value, the landing speed within 0.2%
-([the tighter gates][adr-289]), with no absolute floor. Each case file argues why,
+Each metric must agree within 3% of RocketPy's value (landing speed 0.2%, [the tighter
+gates][adr-289]), with no absolute floor. Each case file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -470,7 +470,7 @@ Prometheus 2022's drifts differ by −7.292% and +4.505%, from body lift and the
 landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
-Four speeds must agree within 0.2%, and six apogees within 0.5% ([the tighter gates][adr-289]).
+Four speeds must agree within 0.2%, six apogees within 0.5% ([the tighter gates][adr-289]).
 Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
