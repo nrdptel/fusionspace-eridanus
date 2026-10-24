@@ -215,7 +215,7 @@ source states a bias left after the pad's zero. So the 0.05 g is assumed ([the s
 | low-g IMU axis | 0.16 to 0.4 mg/√Hz | 64/65,536 g | ±32 g | ±3% |
 
 Each sample's noise is the density times $\sqrt{1.57 \cdot f_s/2}$. That is the noise bandwidth of a
-single-pole filter at half the rate $f_s$ the logger samples at while climbing. The whole form is an
+single-pole filter at half the rate $f_s$ the logger samples at while climbing. That bandwidth is an
 inference in [the sensor noise note][noise] §4. The AltOS profile's high-g part at 100 Hz has
 44.3 mg (0.434 m/s²) per sample. It has the same after apogee too, when it logs at 10 Hz. The
 part's filter doesn't change with what the logger writes. Past 32 g the low-g part clips: the high-range part that

@@ -567,8 +567,8 @@ written is left out with its reason, never flown some other way:
 
 A motor set `never`, or lit by an event that never comes, flies unlit and loaded, as OpenRocket
 flies it ([M2.2e10](../decisions-and-roadmap.md#m2-2e10), probed by
-`validation/oracles/openrocket/unlit_motors.py`). These are two cases: one in the bottom stage lit at the
-stage below's burnout or charge, and one lit by a plugged motor's charge. A stage that separates at the burnout or
+`validation/oracles/openrocket/unlit_motors.py`). Such a motor is one in the bottom stage lit at the
+stage below's burnout or charge, or one lit by a plugged motor's charge. A stage that separates at the burnout or
 charge of its own motor that never lights stays on. A stage below with no motor is still refused:
 OpenRocket's reading of it has not been probed.
 

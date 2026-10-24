@@ -1084,7 +1084,7 @@ truth beside the logs, that doesn't say how each rocket came down.
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
 - **Disturbed tops, both ways.** A bump comes less than about a second after apogee, before the track
-  has fallen past its noise and step. Unless it is a spike, it can't be told from the top. A bump's
+  has fallen past its noise and step. Unless it is a spike, it can't be told from the top, and its
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
   fast, is read as the top. An early parachute and a charge make those shapes on a good
   top. A spike that climbs in no faster than a coast is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
