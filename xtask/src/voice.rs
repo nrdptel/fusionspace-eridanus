@@ -52,7 +52,11 @@ pub const USAGE: &str =
                            validation/reports/voice.md; given paths, it reads each file, or each
                            page under a directory, and prints the report (after `--`, a path may
                            start with `-`). Fails on a stock phrase, and with no path on a
-                           held page over a limit or missing a sentence target (ADR-285).";
+                           held page over a limit or missing a sentence target (ADR-285).
+  voice --long [--] PATH...
+                           List each sentence over 25 words on the pages at PATH, one a line
+                           with its file, line and length, code and math shown as `…`. It
+                           fails only on bad usage or a missing path.";
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
@@ -98,7 +102,7 @@ const REFERENCE: [&str; 4] = [
 
 /// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
 /// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 60] = [
+const HELD: [&str; 61] = [
     // M0.14b, the front doors.
     "README.md",
     "docs/start-here.md",
@@ -165,6 +169,8 @@ const HELD: [&str; 60] = [
     "docs/physics/moving-mass.md",
     "docs/physics/released-mass.md",
     "docs/physics/flutter.md",
+    // M0.14c6, aerodynamics.
+    "docs/physics/aero.md",
 ];
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...
@@ -172,6 +178,9 @@ const MEAN_TARGET: usize = 20;
 
 /// ...and fewer than one sentence in this many over 25 words (under 10%).
 const LONG_SHARE_TARGET: usize = 10;
+
+/// A sentence longer than this many words is a long one, for the report and for `--long`.
+const LONG_WORDS: usize = 25;
 
 /// The committed per-page report, relative to the workspace root.
 pub(crate) const REPORT: &str = "validation/reports/voice.md";
@@ -651,9 +660,9 @@ const S_CONTRACTIONS: [&str; 11] = [
 ];
 
 /// Words ending in a period that don't end a sentence.
-const ABBREVIATIONS: [&str; 22] = [
+const ABBREVIATIONS: [&str; 23] = [
     "e.g.", "i.e.", "etc.", "vs.", "cf.", "al.", "approx.", "fig.", "figs.", "eq.", "eqs.", "no.",
-    "nos.", "dr.", "mr.", "ms.", "st.", "jr.", "ca.", "pp.", "vol.", "ref.",
+    "nos.", "dr.", "mr.", "ms.", "st.", "jr.", "ca.", "p.", "pp.", "vol.", "ref.",
 ];
 
 /// What the check found on one page.
@@ -741,6 +750,10 @@ impl Reading {
 /// prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
 /// path on a held page that misses.
 pub fn run(args: &[String]) -> Result<(), String> {
+    let (long, args) = match args.split_first() {
+        Some((first, rest)) if first == "--long" => (true, rest),
+        _ => (false, args),
+    };
     // After `--`, every argument is a path, even one that starts with `-`.
     let args = match args.split_first() {
         Some((first, rest)) if first == "--" => rest,
@@ -749,6 +762,21 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
         _ => args,
     };
+    if long {
+        if args.is_empty() {
+            return Err(format!("usage:\n{USAGE}"));
+        }
+        let mut count = 0;
+        for (shown, text, html) in given_files(args)? {
+            for line in long_sentences(&shown, &text, html) {
+                println!("{line}");
+                count += 1;
+            }
+        }
+        let noun = if count == 1 { "sentence" } else { "sentences" };
+        println!("{count} {noun} over {LONG_WORDS} words");
+        return Ok(());
+    }
     let root = crate::designs::root()?;
     if args.is_empty() {
         let pages = repository_pages(&root)?;
@@ -985,17 +1013,7 @@ fn is_model_page(path: &str) -> bool {
 /// not. A path inside this repository is classed as its pages are; any other is not a reference
 /// page.
 fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
-    let mut files = Vec::new();
-    for arg in args {
-        let path = PathBuf::from(arg);
-        if path.is_dir() {
-            walk(&path, &mut files)?;
-        } else if path.is_file() {
-            files.push(path);
-        } else {
-            return Err(format!("{arg}: no such file or directory"));
-        }
-    }
+    let files = given_paths(args)?;
     let root = fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
     let mut pages = Vec::new();
     for file in files {
@@ -1019,6 +1037,88 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
         pages.push(page);
     }
     Ok(pages)
+}
+
+/// Each file at `args`, and each page under each directory.
+fn given_paths(args: &[String]) -> Result<Vec<PathBuf>, String> {
+    let mut files = Vec::new();
+    for arg in args {
+        let path = PathBuf::from(arg);
+        if path.is_dir() {
+            walk(&path, &mut files)?;
+        } else if path.is_file() {
+            files.push(path);
+        } else {
+            return Err(format!("{arg}: no such file or directory"));
+        }
+    }
+    Ok(files)
+}
+
+/// Each page at `args` as `(path shown, text, whether it's HTML)`.
+fn given_files(args: &[String]) -> Result<Vec<(String, String, bool)>, String> {
+    let mut found = Vec::new();
+    for file in given_paths(args)? {
+        let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
+        let html = matches!(extension(&file).as_deref(), Some("html" | "htm"));
+        found.push((
+            file.display().to_string(),
+            String::from_utf8_lossy(&bytes).into_owned(),
+            html,
+        ));
+    }
+    Ok(found)
+}
+
+/// Each sentence over 25 words in `source`, as `path:line: N words: sentence`, read as the
+/// report reads it: prose only, with code and math shown as `…`.
+fn long_sentences(path: &str, source: &str, html: bool) -> Vec<String> {
+    let reading = if html {
+        read_html(source)
+    } else {
+        read_markdown(source)
+    };
+    let line_starts = line_starts(source);
+    let mut found = Vec::new();
+    for run in reading.runs.iter().filter(|run| run.block == Block::Prose) {
+        for sentence in sentences(&run.text) {
+            let length = word_count(sentence);
+            if length <= LONG_WORDS {
+                continue;
+            }
+            // `sentences` returns slices of `run.text`, so the pointers' difference is the
+            // sentence's offset in it.
+            let at = sentence.as_ptr() as usize - run.text.as_ptr() as usize;
+            let shown: Vec<String> = sentence
+                .split_whitespace()
+                .map(|token| token.replace(CODE, "`…`"))
+                .collect();
+            found.push(format!(
+                "{path}:{}: {length} words: {}",
+                source_line(run, at, &line_starts),
+                shown.join(" ")
+            ));
+        }
+    }
+    found
+}
+
+/// Where each line of `source` starts.
+fn line_starts(source: &str) -> Vec<usize> {
+    std::iter::once(0)
+        .chain(source.match_indices('\n').map(|(i, _)| i + 1))
+        .collect()
+}
+
+/// The source line, from 1, of offset `at` in `run`'s text.
+fn source_line(run: &Run, at: usize, line_starts: &[usize]) -> usize {
+    // The marks are in text order, so the last one at or before `at` is a binary search.
+    let source_at = run
+        .marks
+        .partition_point(|&(offset, _)| offset <= at)
+        .checked_sub(1)
+        .map_or(0, |k| run.marks[k].1 + (at - run.marks[k].0));
+    line_starts.partition_point(|&start| start <= source_at)
 }
 
 /// A path's extension in lower case.
@@ -1557,23 +1657,14 @@ fn page_from(path: &str, source: &str, reading: Reading, reference: bool) -> Pag
         bold_labels: reading.bold_labels,
         ..Page::default()
     };
-    let line_starts: Vec<usize> = std::iter::once(0)
-        .chain(source.match_indices('\n').map(|(i, _)| i + 1))
-        .collect();
+    let line_starts = line_starts(source);
     for run in &reading.runs {
         page.words += word_count(&run.text);
         page.labels += crate::site::labels(&run.text).len();
         let all = words(&run.text);
         for (i, entry, found) in stock_in(&all) {
-            let at = all[i].at;
-            // The marks are in text order, so the last one at or before the hit is a binary search.
-            let source_at = run
-                .marks
-                .partition_point(|&(offset, _)| offset <= at)
-                .checked_sub(1)
-                .map_or(0, |k| run.marks[k].1 + (at - run.marks[k].0));
             page.stock.push(Hit {
-                line: line_starts.partition_point(|&start| start <= source_at),
+                line: source_line(run, all[i].at, &line_starts),
                 found,
                 entry: entry.forms[0],
                 kind: entry.kind,
@@ -1587,7 +1678,7 @@ fn page_from(path: &str, source: &str, reading: Reading, reference: bool) -> Pag
             let length = word_count(sentence);
             page.sentences += 1;
             page.sentence_words += length;
-            if length > 25 {
+            if length > LONG_WORDS {
                 page.long += 1;
             }
             read_sentence(sentence, &mut page);
@@ -1860,6 +1951,30 @@ mod tests {
 
     fn markdown(text: &str) -> Page {
         read_page("page.md", text, false, false)
+    }
+
+    /// `--long` lists the sentences the report counts as long, each at its own source line, and
+    /// shows code as `…`.
+    #[test]
+    fn long_sentences_are_the_ones_the_report_counts() {
+        let long = "This sentence runs on and on with one word after another, more words than the \
+                    writing guide's target allows, past twenty-five of them `here` in all.";
+        let text = format!(
+            "# A page\n\nA short one. {long}\n\n- A list item.\n  {long}\n\n| {long} |\n|---|\n"
+        );
+        let found = long_sentences("page.md", &text, false);
+        assert_eq!(found.len(), markdown(&text).long);
+        assert_eq!(found.len(), 2, "{found:?}");
+        assert!(
+            found[0].starts_with("page.md:3: 26 words: This sentence"),
+            "{found:?}"
+        );
+        assert!(found[0].ends_with("of them `…` in all."), "{found:?}");
+        assert!(found[1].starts_with("page.md:6: 26 words: "), "{found:?}");
+        let html = format!("<p>A short one.</p>\n<p>{long}</p>");
+        let found = long_sentences("page.html", &html, true);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(found[0].starts_with("page.html:2: "), "{found:?}");
     }
 
     fn entries(text: &str) -> Vec<&'static str> {
@@ -2147,7 +2262,8 @@ mod tests {
     #[test]
     fn sentences_end_at_stops_not_abbreviations() {
         let text = "Use a margin, e.g. two calibers. Compare it vs. OpenRocket in Fig. 3. \
-                    A. C. Carruthers measured 1.5 m. It works (mostly). Done! Is it? yes it is.";
+                    A. C. Carruthers measured 1.5 m. It works (mostly). Done! Is it? yes it is. \
+                    The report says so (p. 49) and shows it (pp. 3-4).";
         let found = sentences(text);
         assert_eq!(
             found,
@@ -2157,7 +2273,8 @@ mod tests {
                 "A. C. Carruthers measured 1.5 m.",
                 "It works (mostly).",
                 "Done!",
-                "Is it? yes it is."
+                "Is it? yes it is.",
+                "The report says so (p. 49) and shows it (pp. 3-4)."
             ]
         );
     }
@@ -2432,6 +2549,18 @@ mod tests {
         );
         let after = run(&["--".to_string(), "/no/such/-x.md".to_string()]);
         assert!(after.unwrap_err().contains("no such file or directory"));
+        let args = |list: &[&str]| list.iter().map(|arg| arg.to_string()).collect::<Vec<_>>();
+        assert!(run(&args(&["--long"])).unwrap_err().starts_with("usage"));
+        assert!(
+            run(&args(&["a.md", "--long"]))
+                .unwrap_err()
+                .starts_with("usage")
+        );
+        let missing = run(&args(&["--long", "--", "/no/such/-x.md"])).unwrap_err();
+        assert!(
+            missing.contains("/no/such/-x.md: no such file"),
+            "{missing}"
+        );
     }
 
     #[test]
