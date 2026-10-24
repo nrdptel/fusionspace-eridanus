@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 61 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 439932 words, 0 stock phrases. 66 pages are within every limit.
+82 pages, 439937 words, 0 stock phrases. 66 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -58,7 +58,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/online-data.md` (`held`) | 2165 | 14.6 | 0% | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 1.02 |
 | `docs/optimization.md` (`held`) | 7642 | 14.2 | 0% | 0.23 | 0.00 | 0.00 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.28 | 0.59 |
 | `docs/perf.md` | 5426 | 17.3 | 24% | **1.88** | **0.78** | **1.17** | 0.02 | 0.00 | 0.02 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.17 |
-| `docs/physics/aero.md` (`ref`, `held`) | 58698 | 14.4 | 0% | 0.35 | 0.35 | 0.00 | 0.07 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.02 | 0.12 |
+| `docs/physics/aero.md` (`ref`, `held`) | 58703 | 14.4 | 0% | 0.35 | 0.35 | 0.00 | 0.07 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.02 | 0.12 |
 | `docs/physics/atmosphere.md` (`ref`, `held`) | 2347 | 12.5 | 0% | 0.13 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.18 |
 | `docs/physics/design.md` (`ref`, `held`) | 9149 | 14.2 | 0% | 0.14 | 0.18 | 0.00 | 0.10 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.46 |
 | `docs/physics/flight.md` (`ref`, `held`) | 4652 | 13.7 | 0% | 0.26 | 0.33 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 |
