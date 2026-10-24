@@ -1171,10 +1171,8 @@ rest.
   doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
   A nose cone's wall thickness can be measured straight out from the axis or square to its surface.
   On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
-  the two. OpenRocket's masses follow a third wall, measured across each station. It equals HPR
-  Sim's square-to-surface wall on a cone and differs on curved noses, by up to 0.48% on four blunt
-  elliptical catalog noses ([Shapes](physics/shapes.md),
-  [the masses against OpenRocket](the-builder.md#the-masses-against-openrocket)).
+  the two. OpenRocket's masses follow a third wall, measured across each station: HPR Sim's on a
+  cone, up to 0.48% apart on blunt noses ([Shapes](physics/shapes.md)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles

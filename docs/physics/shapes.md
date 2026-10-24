@@ -14,17 +14,13 @@ of mass, inertia and surface area.
   and against another code. Filled shapes match closed forms to 1e-10 (relative). They match
   independent high-precision integrals to 1e-12 on 22 noses and transitions, and 20 walls match to
   1e-10. HPR Sim weighs three walled probe parts within 3.93e-5 (relative) of OpenRocket's mass
-  ([the probes][probes]). The largest, the ogive nose's, has no traced cause. The two programs
-  define a wall differently: the same solid on a cone, up to 0.48% apart on blunt elliptical noses
-  ([the masses against OpenRocket][builder-masses]). Not compared with weighed parts or a real
-  flight.
-- **What it leaves out:** OpenRocket's wall. HPR Sim's wall is every point within its thickness
-  of the outer surface. OpenRocket's masses follow a wall measured across each
-  [station](../glossary.md#station), with inner radius $r - t\sqrt{1 + r'^2}$. The two are the
-  same solid on a cone and differ on a curved profile, by up to 0.48% on four blunt elliptical
-  catalog noses. Whether that is the probe ogive's 3.93e-5 is not traced. HPR Sim also does not
-  cut a steep end square to the axis, as OpenRocket cuts its probe transition. A square cut adds
-  up to 2.24% of wall mass in this page's examples ([Walls](#solids-of-revolution)).
+  ([the probes][probes]); the ogive's, the largest, has no traced cause. Not compared with weighed
+  parts or a real flight.
+- **What it leaves out:** OpenRocket's wall, measured across each station. It is this model's on
+  a cone and up to 0.48% apart on blunt elliptical noses
+  ([the masses against OpenRocket][builder-masses]). HPR Sim also does not cut a steep end square
+  to the axis, as OpenRocket cuts its probe transition: up to 2.24% of wall mass in this page's
+  examples ([Walls](#solids-of-revolution)).
 
 ## Code and sources
 
@@ -196,12 +192,11 @@ parallel-axis theorem. $S$ excludes the end faces.
   - [TD] doesn't say how OpenRocket measures thickness, and [CR] measures it radially. A radial
     wall differs from this one by a factor $\sqrt{1 + y'^2}$ in wall volume, 1.4% for a cone three
     calibers (base diameters) long.
-  - OpenRocket's masses follow a third wall, measured across each station: inner radius
-    $r - t\sqrt{1 + r'^2}$. On a straight profile that is exactly this model's wall, so OpenRocket
-    weighs a probe cone of that shape as this model does, within 5.1e-7 ([the probes][probes]).
-    On a curved profile the two differ, up to 0.48% heavier here on four short elliptical catalog
-    noses ([the masses against OpenRocket][builder-masses]). The probe ogive is 3.93e-5 apart;
-    whether the wall is the cause is not traced.
+  - OpenRocket's masses follow a wall measured across each [station](../glossary.md#station),
+    inner radius $r - t\sqrt{1 + r'^2}$. On a straight profile that is this model's wall: a probe
+    cone of that shape weighs the same within 5.1e-7 ([the probes][probes]). On a curved one they
+    differ, up to 0.48% on four elliptical catalog noses ([the masses against
+    OpenRocket][builder-masses]). Whether that is the probe ogive's 3.93e-5 is not traced.
 
 ## Verification
 
