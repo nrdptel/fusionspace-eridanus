@@ -1,7 +1,7 @@
 # ADR-289: The 2026-10-24 review: the RocketPy speed and apogee gates tightened (2026-10-24)
 
 - **Status:** accepted; tightens [M2.1][m2-1]'s gates on the RocketPy comparisons flown on the same inputs: each burnout, largest, rail-exit and landing speed from 3% to 0.2%, and the apogee of the six flights with no written model difference from 3% to 0.5%; places four ideas; no done-when is loosened and no release moves
-- **Summary:** In the RocketPy comparisons flown on the same inputs, the burnout, largest, rail-exit and landing speeds agree within 0.056% and the apogees of the six flights with no written model difference within 0.112%, while RocketPy's own solver moves them by at most 0.0032% and 0.00064%; a 3% gate was 53 times the largest speed difference, so they become 0.2% and 0.5%, and the planning review places four new ideas.
+- **Summary:** In the RocketPy comparisons flown on the same inputs, the burnout, largest, rail-exit and landing speeds agree within 0.056% and the apogees of the six flights with no written model difference within 0.113%, while RocketPy's own solver moves them by at most 0.0032% and 0.00064%; a 3% gate was 53 times the largest speed difference, so they become 0.2% and 0.5%, and the planning review places four new ideas.
 
 [m2-1]: ../decisions-and-roadmap.md#m2-1
 [m0-14]: ../decisions-and-roadmap.md#m0-14
@@ -35,9 +35,10 @@ flights and five descents), the largest differences are +0.056% (Juno III's burn
 (rail exit), each rounded up. The apogees of the six flights whose case files give no cause for
 one (Calisto in wind and calm air, Valetudo, NDRT 2020, and Juno III and Bella Lui in calm air)
 differ by +0.038% to +0.112%. The other three apogees have a measured cause in their case files,
-the two HPR Sim keeps on purpose: Juno III in wind (+0.641%, its path stays steeper) and
-Prometheus 2022 (+1.208%), both hpr's rail release and body lift ([ADR-026][adr-026]); and Bella
-Lui in wind (+0.342%, 532.12 m against 530.31), whose case file now records that RocketPy flown
+differences HPR Sim keeps on purpose ([ADR-026][adr-026]): Juno III in wind (+0.641%; RocketPy
+flown with hpr's rail release, body lift and thin-plate fins reaches 2,631.0 m against hpr's
+2,631.57), Prometheus 2022 (+1.208%; rail release and body lift, 3,723.8 m against 3,723.6), and
+Bella Lui in wind (+0.342%, 532.12 m against 530.31), whose case file now records that RocketPy flown
 with hpr's release at the last button reaches 531.3 m and with hpr's body lift added 532.0 m.
 
 RocketPy's own numerical error is far smaller. Its [reference][fixture] records each metric
@@ -55,7 +56,7 @@ re-baseline any row, and the gate is the only bound a re-accepted change still h
    difference measured (0.056%) and 62 times RocketPy's largest solver movement on one of them
    (3.2e-5). The mean descent rate keeps 3% (its largest difference, NDRT 2020's, is 0.70%), and
    so does the largest Mach number: it differs by up to 0.235% (Prometheus 2022), and by 0.105%
-   and 0.123% in calm air (Calisto, Juno III), while the largest speeds agree within 0.051%, so
+   and 0.123% in calm air (Calisto, Juno III), while the largest speeds agree within 0.052%, so
    the two codes' speed of sound at the peak, or how they read Mach, differs. That offset is not
    traced and is left until it is.
 2. **Apogees with no written cause: 0.5%.** The six apogees above are held to 0.5%: 4.4 times

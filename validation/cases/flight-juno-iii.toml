@@ -62,7 +62,9 @@
 # RocketPy's 397 m, both upwind. In RocketPy (`wind_response.py`), freeing the rocket at the last
 # button moves its apogee to 361 m from the pad, hpr's body lift to 287 m, and thin-plate fins to
 # 248 m: the example gives Juno III's fins an airfoil lift curve that hpr does not model, which
-# makes RocketPy's fin slope 7.6% steeper. As released, RocketPy put the apogee 582 m out.
+# makes RocketPy's fin slope 7.6% steeper. As released, RocketPy put the apogee 582 m out. The
+# same three steps take RocketPy's apogee from 2,614.8 m to 2,619.1, 2,627.3 and 2,631.0 m, against
+# hpr's 2,631.57, so it keeps 3% while the six without a cause are held to 0.5% (ADR-289).
 id = "flight-juno-iii"
 title = "Juno III from the pad to the ground, same-drag"
 reference = "validation/fixtures/flight/rocketpy-whole-flight.json"

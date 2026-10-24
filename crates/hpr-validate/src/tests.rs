@@ -253,7 +253,8 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
     // 0.5%: the largest differences measured were 0.056% and 0.112%, and RocketPy's own solver
     // moves them by at most 0.0032% and 0.00064%. Juno III, Bella Lui and Prometheus 2022 in wind
     // keep 3% on their apogee for the causes their case files measure (hpr's rail release and body
-    // lift). A case file widened back, or a new same-drag case added at the old bound, fails here.
+    // lift, and Juno III's fins). A case file widened back, or a new same-drag case added at the
+    // old bound, fails here.
     const SPEEDS: [&str; 4] = [
         "burnout_speed_m_s",
         "max_speed_m_s",

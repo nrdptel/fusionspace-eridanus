@@ -347,7 +347,8 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 - Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate and the
   largest Mach number keep 3%.
 - The apogee of the six flights with no written model difference: 0.5%. Juno III, Bella Lui and
-  Prometheus 2022 in wind keep 3%, for the rail release and body lift their case files measure.
+  Prometheus 2022 in wind keep 3%, for the model differences their case files measure (the rail
+  release and body lift; Juno III's thin-plate fins too).
 - Why: the largest of those differences in [the
   report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)
   are +0.056% (Juno III's burnout speed) and +0.112% (Valetudo's apogee), and RocketPy's own
