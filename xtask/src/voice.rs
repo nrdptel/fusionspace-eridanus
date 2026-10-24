@@ -100,7 +100,7 @@ const REFERENCE: [&str; 4] = [
 
 /// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
 /// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 60] = [
+const HELD: [&str; 61] = [
     // M0.14b, the front doors.
     "README.md",
     "docs/start-here.md",
@@ -167,6 +167,8 @@ const HELD: [&str; 60] = [
     "docs/physics/moving-mass.md",
     "docs/physics/released-mass.md",
     "docs/physics/flutter.md",
+    // M0.14c6, aerodynamics.
+    "docs/physics/aero.md",
 ];
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...
@@ -653,9 +655,9 @@ const S_CONTRACTIONS: [&str; 11] = [
 ];
 
 /// Words ending in a period that don't end a sentence.
-const ABBREVIATIONS: [&str; 22] = [
+const ABBREVIATIONS: [&str; 23] = [
     "e.g.", "i.e.", "etc.", "vs.", "cf.", "al.", "approx.", "fig.", "figs.", "eq.", "eqs.", "no.",
-    "nos.", "dr.", "mr.", "ms.", "st.", "jr.", "ca.", "pp.", "vol.", "ref.",
+    "nos.", "dr.", "mr.", "ms.", "st.", "jr.", "ca.", "p.", "pp.", "vol.", "ref.",
 ];
 
 /// What the check found on one page.
@@ -2251,7 +2253,8 @@ mod tests {
     #[test]
     fn sentences_end_at_stops_not_abbreviations() {
         let text = "Use a margin, e.g. two calibers. Compare it vs. OpenRocket in Fig. 3. \
-                    A. C. Carruthers measured 1.5 m. It works (mostly). Done! Is it? yes it is.";
+                    A. C. Carruthers measured 1.5 m. It works (mostly). Done! Is it? yes it is. \
+                    The report says so (p. 49) and shows it (pp. 3-4).";
         let found = sentences(text);
         assert_eq!(
             found,
@@ -2261,7 +2264,8 @@ mod tests {
                 "A. C. Carruthers measured 1.5 m.",
                 "It works (mostly).",
                 "Done!",
-                "Is it? yes it is."
+                "Is it? yes it is.",
+                "The report says so (p. 49) and shows it (pp. 3-4)."
             ]
         );
     }
