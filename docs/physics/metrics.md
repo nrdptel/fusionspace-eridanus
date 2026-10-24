@@ -6,8 +6,8 @@ stability margin and landing point.
 ## In short
 
 - **What it models:** the numbers a flight is judged by. These are the apogee, the top speed and
-  Mach number, the peak [dynamic pressure](../glossary.md#dynamic-pressure) ("max q") and the boost's
-  peak acceleration. The opening shock is kept apart. It also gives the
+  Mach number, and the peak [dynamic pressure](../glossary.md#dynamic-pressure) ("max q"). Then
+  come the boost's peak acceleration and, kept apart, the opening shock. The metrics also give the
   [stability margin](../glossary.md#stability-margin) from the rail exit to apogee or the first
   [deployment](../glossary.md#deployment). It gives the largest
   [angle of attack](../glossary.md#angle-of-attack) that counts toward the envelope's
@@ -115,7 +115,7 @@ The 6 s delay is too short:
   47.2 m/s², and it is not counted as the boost's peak.
 - Don't size a shock cord from the 153.4 m/s²; it is no bound either way. The canopy reaches
   full drag at line stretch, 0.5 s after the charge. It has no filling time (the simulator's default),
-  so the rocket doesn't slow while it fills. That reads high. The simulator also leaves out a
+  so the rocket doesn't slow while it fills. The shock reads high. The simulator also leaves out a
   canopy's drag overshoot near the end of filling: that reads low
   ([The opening load](recovery.md#the-opening-load)).
 
@@ -210,7 +210,7 @@ instant:
   this comparison has the air along the rocket's axis (the 0° plane), as OpenRocket's does. It isn't
   the margin in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
   deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis.
-  But `hpr sim` prints a least margin of −4.21 in the weakest plane. The two programs differ as
+  But `hpr sim` prints a least margin of −4.21 in the weakest plane. HPR Sim and OpenRocket differ as
   follows. On the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
   [tube fins](aero.md#tube-fins). On the three-stage example's three flights it is 0.039 to 0.058
   below, cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185).
@@ -409,7 +409,7 @@ than its 16.2 m/s (53 ft/s) rail exit. There a 15° angle would give a normal fo
 weight. So an error in the aerodynamics at that angle barely moves it. A wind layer met at speed is
 different. Valetudo climbing into 30 m/s (98 ft/s) of wind 300 m (984 ft) up passes 15° where that force is 62% of its
 weight. The flag is raised. On the tests' RocketPy rockets, turn-overs give 0.7% to 5.0% and
-wind layers met at speed 62% to 141%. The fifth, chosen rather than measured, sits between. The
+wind layers met at speed 62% to 141%. The floor of a fifth, chosen rather than measured, sits between. The
 tests `a_tilted_calm_climb_passes_15_degrees_only_with_too_little_force`,
 `a_wind_layer_met_at_speed_raises_the_high_angle_flag` and
 `a_wind_layer_met_in_a_fast_coast_raises_the_high_angle_flag` (in the flight engine's `metrics.rs`) fly

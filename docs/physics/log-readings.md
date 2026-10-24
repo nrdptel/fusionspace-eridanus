@@ -260,9 +260,9 @@ pressure behind an ogive's shoulder jumps on its way to Mach 1.0 ([the Mach erro
 So a speed derived from the heights there can be far off. Debrief's two refusals stay (`implausible_speed` and `noisy_speed`; [When a reading is
 withheld](#when-a-reading-is-withheld)).
 
-**Landing** is the first sample within the pad's allowance, at least Debrief's 2 m (6.6 ft). From
-that sample the track stays under the allowance and 3 m (9.8 ft) more, and a step, for Debrief's
-second. So it comes before touchdown by the time the last few meters took. That is about 0.4 s
+**Landing** is the first sample within the pad's allowance, at least Debrief's 2 m (6.6 ft), that
+meets one more test. From it, the track stays under the allowance and 3 m (9.8 ft) more, and a
+step, for Debrief's second. So it comes before touchdown by the time the last few meters took. That is about 0.4 s
 under a main at 6 m/s (20 ft/s) on a PerfectFlite's log. A barometer drifts during a flight, so the ground
 can read a little above or below the pad. The mean descent rate covers the drogue and the main
 together. Each canopy's own rate is read from the shape of the descent
@@ -326,8 +326,8 @@ or not the logger takes gravity out. Each reads within 0.25 g of its level:
   Nearer 0 says nothing;
 - **the thrust,** on the cleaned trace, found as the burns are (both below), from liftoff's
   earliest time. The first span, in either sign, that holds past 2 g for 0.5 s says its sign.
-  The exception is a span of the other sign that comes before it. A short burn's does before a
-  heavy drag's, and so does a knock's rebound before the thrust. Then it says nothing. Where no span holds that long, the
+  The exception is a span of the other sign that comes first. A short burn's span does so before
+  a heavy drag's, and a knock's rebound before the thrust. The thrust then says nothing. Where no span holds that long, the
   sign every span shares says, a short burn's; spans both ways, or none, say nothing. The
   span that says must rise by liftoff's latest time, as the thrust is what lifts the rocket.
   Where liftoff is withheld because the log starts in the climb, it must rise within 0.5 s of the log's
@@ -481,8 +481,8 @@ gives no burnout, or the log has none, burnout is a floor. Its reading is the to
 and the floor is that time less its bound. Burnout came no sooner than the floor, and may have come
 later by any amount. A motor whose thrust tails off below the drag and the weight burns on after
 the rocket stops gaining speed. The bound adds three times. The first is the time a coast slowing
-at $g$ takes to lose twice the speed's 5 m/s (16 ft/s) noise. The fit can place the peak late by
-that noise. The others are half the 0.5 s fit and an interval. On the invented PerfectFlite
+at $g$ takes to lose twice the speed's 5 m/s (16 ft/s) noise. The fit can place the peak that
+much late. The others are half the 0.5 s fit and an interval. On the invented PerfectFlite
 flight, which has no accelerometer, the first is $2 \times 5/9.81 = 1.02$ s. That, half the fit's
 0.25 s and the 0.05 s interval add to 1.32 s. So `hpr analyze` reads burnout no sooner than 0.88
 s, the top speed's time, 2.20 s, less that bound. The true burnout is 2.10 s, 0.10 s before the top
@@ -722,7 +722,7 @@ withheld; liftoff is still given.
   is smaller than gravity. So it climbs no more than $g \Delta^2$ in its last $\Delta$, as a body
   slowing at twice gravity would. And nothing falls from its top faster than gravity pulls it. A
   track holds a spike, such as a charge's, if two things happen near its
-  top. Near means within a second either side, or two samples on a slower track. It climbs into the top faster than that. And it falls from
+  top. Near means within a second either side, or two samples on a slower track. It climbs into the top faster than $g \Delta^2$. And it falls from
   it faster than a body at rest there can. Each exceeds its limit by more than twice the track's
   noise and step. The fall allows
   for the filtered top trailing the true one. That allowance is the speed a fall from rest gathers
@@ -857,7 +857,7 @@ The report also gives each reading's errors over every tuning flight and every l
 gives them beside the mean bound the readings stated
 ([Errors on the tuning set](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#errors-on-the-tuning-set)).
 An error is the reading less the truth. Each error is held to its own reading's bound. That bound
-differs from flight to flight and log to log, so the least or the most may pass the mean bound. A canopy's rates are compared with the truth over the span the reader chose,
+differs from flight to flight and log to log, so the least or the most may pass the mean bound. The mean is for scale. A canopy's rates are compared with the truth over the span the reader chose,
 its leg's ends. So an opening read early or late shows in the opening's error, not in the rates'.
 A floor is counted apart, as it may lie any amount below the truth. A floor is a burnout from the
 top speed or a top acceleration that clipped or whose thrust has no end on the channel. The least, the most and
@@ -1083,8 +1083,9 @@ truth beside the logs, that doesn't say how each rocket came down.
   on the synthetic flights' test sets, kept apart from any tuning.
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
-- **Disturbed tops, both ways.** A bump comes less than about a second after apogee, before the track
-  has fallen past its noise and step. Unless it is a spike, it can't be told from the top, and its
+- **Disturbed tops, both ways.** Some bumps come less than about a second after apogee, before the
+  track has fallen past its noise and step. Such a bump can't be told from the top unless it is a
+  spike. Its
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
   fast, is read as the top. An early parachute and a charge make those shapes on a good
   top. A spike that climbs in no faster than a coast is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top

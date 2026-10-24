@@ -28,8 +28,8 @@ part drifts and lands.
     predicts a descent +9% faster than Kidwell's one flat streamer.
   - A `.ork` file's parachutes and streamers fly as [OpenRocket](../glossary.md#openrocket) flies
     them. The landing speed is within 0.02% of OpenRocket's on 50 of its 53 example flights and
-    within 0.12% on all 53. Take the 51 with no named cause for an apogee gap, less the *Base drag
-    hack*'s three. The flight time of those 48 is −1.57% to +3.16% off
+    within 0.12% on all 53. Of the 51 with no named cause for an apogee gap, drop the *Base drag
+    hack*'s three. The flight time of the other 48 is −1.57% to +3.16% off
     ([From an OpenRocket file](#from-an-openrocket-file)).
   - Ejected pieces are a nose cone or payload that lands on its own
     ([ejection](../glossary.md#ejection)). They are checked against exact answers only: no
@@ -673,7 +673,7 @@ The push is equal and opposite:
 - The momenta still add up exactly, which is a test.
 - Which way is "toward the nose"? While the airframe flies whole with nothing open, it is
   its axis at that instant. A device that opens at the same instant as the parting doesn't count
-  as open yet. Otherwise the body has no attitude to go by. A body flying on its own is a point
+  as open yet. In every other case the body has no attitude to go by. A body flying on its own is a point
   mass. A whole airframe that has hung from a device since earlier has only the attitude it
   had when the device opened. So the simulator goes by the body's velocity through the air:
   - Take a device (any but a tumble) that was open just before that instant, deployed before it

@@ -426,7 +426,7 @@ and drop at a separation of their own. From a `.ork`, they are flown on a rocket
 the split. The split is a powered separation like any other
 ([Powered separation](#powered-separation)). The core flies on with its own shape and mass. The
 boosters fly as a point with only their devices' drag, tumbling side-on from the split, as a
-dropped booster does. Their own flight after the split is not validated
+dropped booster does in the simulator. Their own flight after the split is not validated
 ([evidence row G13](../evidence.md#g13)). Their peak
 and landing are likely too low and too close to the pad
 ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
@@ -504,7 +504,9 @@ still burning ([M4.5n](../decisions-and-roadmap.md#m4-5n), a stage's first burno
   section gives it.
 
 The sustainer's flight is not affected: it keeps no thrust from the dropped motors in either
-program.
+program. The dropped booster's own flight is not validated
+([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179))
+([evidence row G13](../evidence.md#g13)).
 
 ## Validation
 
@@ -561,8 +563,8 @@ written is left out with its reason, never flown some other way:
 - a motor lit at a word HPR Sim does not know, or by a stage below that holds no motor. A motor lit
   by the charge of a stage below with motors in more than one mount. Which fires its charge first
   is not measured. A motor lit by the charge of a motor below that states no delay;
-- a separation at the ignition of a motor that never lights, or at launch. HPR Sim's flight
-  fires a separation only once the rocket is off the rod;
+- a separation at the ignition of a motor that never lights, or at launch. One at launch is left out
+  since HPR Sim's flight fires a separation only once the rocket is off the rod;
 - a configuration in which no motor lights.
 
 A motor set `never`, or lit by an event that never comes, flies unlit and loaded, as OpenRocket
