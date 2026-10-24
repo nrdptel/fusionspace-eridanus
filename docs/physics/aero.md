@@ -3339,7 +3339,7 @@ terms already had faster-than-sound forms in the table above. These are friction
 base drag's $0.25/M$, the fins' leading and trailing edges, and the stagnation pressure on blunt
 faces. The code is [`hpr_aero::nose_drag`](../api/hpr_aero/nose_drag/index.html); the decision
 record is [ADR-028][adr-028]. How far it holds against a wind tunnel is under
-[Verification](#drag-against-the-arcas-robin-wind-tunnel). It reads high at every Mach number, least near Mach 1 and most with fins on past Mach 1.2.
+[Verification](#drag-against-the-arcas-robin-wind-tunnel). It reads high at every Mach number, least with fins on near Mach 1 and most with fins on past Mach 1.2.
 
 A nose's or shoulder's pressure-drag coefficient, on the area it adds, has three parts:
 
