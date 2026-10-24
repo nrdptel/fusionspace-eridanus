@@ -318,6 +318,7 @@ until someone rewrites it in plainer words.
 | [ADR-287: ThrustCurve.org's motor records used as published facts][adr-287] | ThrustCurve.org's motor records are published facts about motors anyone can buy, so the project uses them, from the site, its API or the site's 2016 sample dump, with ThrustCurve.org's credit; curve files marked public domain or with no license may be committed too, files marked "free usage" or "other (restricted)" are fetched only when a user asks, and every accuracy check stays. |  |
 | [ADR-288: Every solid motor ships in the package][adr-288] | [M5.7](#m5-7) will compile ThrustCurve.org's solid-motor catalog into `hpr-motor`: every record, and every curve file HPR Sim reads but a restricted one, so no motor in the snapshot needs a fetch. Each file carries its check against its motor's published figures. A motor's default file passes where one does, and flying a failing file warns. `hpr motors update` adds newer motors and files when online. Until then, 32 motors come built in. |  |
 | [ADR-289: The 2026-10-24 review: the RocketPy speed and apogee gates tightened][adr-289] | In the RocketPy comparisons flown on the same inputs, the burnout, largest, rail-exit and landing speeds agree within 0.056% and the apogees of the six flights with no written model difference within 0.113%, while RocketPy's own solver moves them by at most 0.0032% and 0.00064%; a 3% gate was 53 times the largest speed difference, so they become 0.2% and 0.5%, and the planning review places four new ideas. |  |
+| [ADR-290: The control abort's 30° measured from the launch elevation, and TP-1353's aileron points to Mach 2.96][adr-290] | The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as IREC's rule §7.3.1 words it, not on a tilt of 30° from vertical; and [M6.5](#m6-5)'s supersonic tab check compares against NASA TP-1353's tail-fin ailerons at Mach 1.6 to 2.96, the range of the report's Figure 18 points, not 1.6 to 2.86. |  |
 
 ## The roadmap
 
@@ -1208,6 +1209,7 @@ is the milestone that added or will add that test.
 [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[adr-290]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0290-the-control-abort-attitude-from-the-launch-elevation.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
