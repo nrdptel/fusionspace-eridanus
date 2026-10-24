@@ -283,8 +283,7 @@ pages disagree, so run it after editing a page. The site's build runs the check 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
 (Markdown, HTML or text) and prints the report. That's how fusionspace.co's pages and the design
 system's get checked. In the report, a rate in bold is over its limit, and `ref` marks a
-reference page. With `--long` first, it lists each sentence over 25 words instead, with its file
-and line.
+reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
 
 On any page, the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
 is named by a published list or by the design system's own writing rules. The lists are style
