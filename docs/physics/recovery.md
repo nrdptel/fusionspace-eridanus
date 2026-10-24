@@ -6,47 +6,48 @@ part drifts and lands.
 ## In short
 
 - **What it models:** how a rocket comes down under a parachute, a
-  [streamer](../glossary.md#streamer) or tumbling: when each device fires, how a canopy fills, the
-  descent in the wind, and a stack that splits into parts
-  ([separation](../glossary.md#separation)), or lets out a nose cone or a payload
-  ([ejection](../glossary.md#ejection)), that each land.
+  [streamer](../glossary.md#streamer) or tumbling. It covers when each device fires, how a canopy
+  fills and the descent in the wind. A stack can split into parts
+  ([separation](../glossary.md#separation)), or let out a nose cone or a payload
+  ([ejection](../glossary.md#ejection)), and each part lands.
 - **Sources:** Knacke's *Parachute Recovery Systems Design Manual* (1991) for parachutes;
   Carruthers and Filippone's streamer tests (2005) and the OpenRocket technical documentation for
   streamers and tumbling.
 - **How well it is validated:** against another simulator and against drop tests; no descent has
   been compared with a real flight yet.
   - The descent under a parachute matches [RocketPy](../glossary.md#rocketpy)'s for five example
-    rockets, started from the same state near apogee: all 30 metrics within 3%, the largest
+    rockets, started from the same state near apogee. All 30 metrics are within 3%, the largest
     +2.865% ([validation report][report]). [Drift](../glossary.md#drift) is measured from that
     shared start, not from the pad.
-  - That comparison flies RocketPy's gravity formula and RocketPy's way of interpolating the wind,
-    and HPR Sim's defaults differ from both (the full gravity vector, and a wind table interpolated
-    by speed and direction). Under HPR Sim's own gravity, Calisto's drift read a little closer,
+  - That comparison flies RocketPy's gravity formula and RocketPy's way of interpolating the wind.
+    HPR Sim's defaults differ from both: the full gravity vector, and a wind table interpolated
+    by speed and direction. Under HPR Sim's own gravity, Calisto's drift read a little closer,
     once, before the comparison switched (Against RocketPy, below); no test pins that. What
     HPR Sim's default wind interpolation does to drift has not been measured.
   - Against measured drop tests, tumbling is −10 to +19% off, and the default streamer model
     predicts a descent +9% faster than Kidwell's one flat streamer.
   - A `.ork` file's parachutes and streamers fly as [OpenRocket](../glossary.md#openrocket) flies
     them. The landing speed is within 0.02% of OpenRocket's on 50 of its 53 example flights and
-    within 0.12% on all 53. On the 51 with no named cause for an apogee gap, less the *Base drag
-    hack*'s three, the flight time is −1.57% to +3.16% off
+    within 0.12% on all 53. Of the 51 with no named cause for an apogee gap, drop the *Base drag
+    hack*'s three. The flight time of the other 48 is −1.57% to +3.16% off
     ([From an OpenRocket file](#from-an-openrocket-file)).
-  - Ejected pieces (a nose cone or payload that lands on its own, [ejection](../glossary.md#ejection))
-    are checked against exact answers only: no simulator or flight has been compared with them yet.
+  - Ejected pieces are a nose cone or payload that lands on its own
+    ([ejection](../glossary.md#ejection)). They are checked against exact answers only: no
+    simulator or flight has been compared with them yet.
 - **What it leaves out:**
-  - Two effects on the [opening load](../glossary.md#opening-load): the drag overshoot as a canopy
-    fills, and, when the canopy opens at once (the default), the way a light rocket slows while it
-    fills. So the simulator's peak opening load is no safe bound either way. Don't size recovery
+  - Two effects on the [opening load](../glossary.md#opening-load) are left out. One is the drag
+    overshoot as a canopy fills. The other is the way a light rocket slows while it fills, when the
+    canopy opens at once (the default). So the simulator's peak opening load is no safe bound either way. Don't size recovery
     hardware from it: use a dedicated opening-load method and the hardware's own ratings.
   - Airframe drag: a separated body falls with no drag until its device opens, so its
-    [deployment](../glossary.md#deployment) speed can read high, and the airframe's own drag under
+    [deployment](../glossary.md#deployment) speed can read high. The airframe's own drag under
     a canopy is left out too. The same holds for an ejected piece.
   - The push of a separation's charge on the two stages (an ejection's is modeled, a
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at
     deployment), and streamer pleats (+58% fast on a pleated one).
   - [Tumbling](../glossary.md#tumble-recovery) is used far outside its fit: 36 m/s (118 ft/s) for Valetudo,
-    against 5.0 to 6.6 m/s (16 to 22 ft/s), and a nose cone tumbling on its own is outside it too.
+    against 5.0 to 6.6 m/s (16 to 22 ft/s). A nose cone tumbling on its own is outside it too.
 
 ## Code and sources
 
@@ -65,12 +66,12 @@ Sources:
   `rocketpy/rocket/parachute.py`, for the point-mass descent that the parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) is compared against.
 - A. C. Carruthers and A. Filippone, "Aerodynamic Drag of Streamers and Flags", *Journal of
-  Aircraft* 42(4), 2005, pp. 976–982, DOI [10.2514/1.9754](https://doi.org/10.2514/1.9754), and the
-  OpenRocket technical documentation v13.05 (CC BY-SA), Appendix C, for streamers; the same
-  documentation's §3.5 for tumbling bodies, and its §4.2.5 for a `.ork` file's parachutes and
-  descent; and C. Kidwell's drop tests (2001), a research report for NARAM-43, the National
-  Association of Rocketry's annual meet, as the measurement both streamer models are checked
-  against.
+  Aircraft* 42(4), 2005, pp. 976–982, DOI [10.2514/1.9754](https://doi.org/10.2514/1.9754), for
+  streamers.
+- The OpenRocket technical documentation v13.05 (CC BY-SA): Appendix C for streamers, §3.5 for
+  tumbling bodies, and §4.2.5 for a `.ork` file's parachutes and descent.
+- C. Kidwell's drop tests (2001), a research report for NARAM-43, the National Association of
+  Rocketry's annual meet. Both streamer models are checked against this measurement.
 
 ## Drag of each device
 
@@ -82,33 +83,33 @@ A device's drag is set by its [drag area](../glossary.md#drag-area) $C_D S$, in 
 coefficient times the area that coefficient is measured on. The simulator takes it in one of two
 ways:
 
-- **Given directly** (`DeviceDrag::DragArea`), which is RocketPy's `cd_s`.
-- **From a canopy** (`DeviceDrag::Canopy`): $C_D S = C_{D0} \cdot \pi D_0^2/4$, with $D_0$ the nominal
-  diameter and $C_{D0}$ the drag coefficient on the **nominal** area $S_0 = \pi D_0^2/4$, Knacke's
-  convention (printed page 5-2; $D_0 = \sqrt{4 S_0/\pi}$, so $S_0$ includes the vent and every opening).
+- Given directly (`DeviceDrag::DragArea`), which is RocketPy's `cd_s`.
+- From a canopy (`DeviceDrag::Canopy`): $C_D S = C_{D0} \cdot \pi D_0^2/4$. Here $D_0$ is the nominal
+  diameter and $C_{D0}$ the drag coefficient on the **nominal** area $S_0 = \pi D_0^2/4$. That is
+  Knacke's convention (printed page 5-2; $D_0 = \sqrt{4 S_0/\pi}$, so $S_0$ includes the vent and every opening).
 
 `CanopyType` carries Knacke's printed data for thirteen canopy types:
 
-- **The $C_{D0}$ range** (Table 5-1 for solid textile canopies, Table 5-2 for slotted). Knacke prints
-  a **range** for every type and no single value; the simulator's default is the middle of the range
+- The $C_{D0}$ range (Table 5-1 for solid textile canopies, Table 5-2 for slotted). Knacke prints
+  a **range** for every type and no single value. The simulator's default is the middle of the range
   (flat circular: 0.75 to 0.80, so 0.775).
-- **The fill constant $n$** (Table 5-6), which sets how long the canopy takes to fill: the filling
+- The fill constant $n$ (Table 5-6). It sets how long the canopy takes to fill: the filling
   time is $n$ nominal diameters divided by the speed at line stretch ([Inflation](#inflation)).
   The simulator takes it from the table's *unreefed* column, for a canopy that opens freely.
   (Reefing is a line round a canopy's edge that holds it partly closed at first, to cut the opening
   load.)
-- **The drag-area growth exponent of Pflanz's method** (Figure 5-51). Pflanz's method, in
+- The drag-area growth exponent of Pflanz's method (Figure 5-51). Pflanz's method, in
   Knacke's manual, works out the opening force with a drag area that grows as a power of the time
   since line stretch.
-- **The infinite-mass opening-force coefficient $C_x$**: the peak force as the canopy opens, over
-  its steady drag at the same speed, for a load so heavy that it doesn't slow while the canopy
+- The infinite-mass opening-force coefficient $C_x$: the peak force as the canopy opens, over
+  its steady drag at the same speed. It is defined for a load so heavy that it doesn't slow while the canopy
   fills. The simulator reports it; its equations don't use it ([Inflation](#inflation)).
 
 Where Knacke prints "insufficient data" the simulator has `None`, and the user has to supply the
 number.
 
-RocketPy's default parachute $C_D$ of 1.4 is not a $C_{D0}$ in this sense: it is a hemispherical
-canopy's coefficient on the projected area, which it uses only to turn `cd_s` into a radius for its
+RocketPy's default parachute $C_D$ of 1.4 is not a $C_{D0}$ in this sense. It is a hemispherical
+canopy's coefficient on the projected area. RocketPy uses it only to turn `cd_s` into a radius for its
 added mass. Knacke's hemispherical range on $S_0$ is 0.62 to 0.77.
 
 ### Streamers
@@ -117,8 +118,8 @@ A [streamer](../glossary.md#streamer) is a strip of fabric of length $l$ and wid
 planform (one-side) area $S = lw$ and an aspect ratio $\mathrm{AR} = l/w$. `StreamerModel` picks the
 correlation, the curve fitted to measurements that gives its drag coefficient:
 
-- **`Filippone`** (the default), on $S$, from wind-tunnel tests of cotton streamers **clamped at
-  the leading edge** at $\mathrm{AR}$ 3.3 to 30 and 6 to 18.9 m/s (20 to 62 ft/s). The paper fits one power curve per
+- **`Filippone`** (the default), on $S$. It comes from wind-tunnel tests of cotton streamers
+  **clamped at the leading edge**. The tests ran at $\mathrm{AR}$ 3.3 to 30 and 6 to 18.9 m/s (20 to 62 ft/s). The paper fits one power curve per
   planform area, and prints all three:
 
   | planform area | curve | where |
@@ -127,20 +128,20 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
   | 0.05 m² | $C_D = 0.6514\, \mathrm{AR}^{-0.6075}$ | the trend line on Figure 3; the text does not repeat it |
   | 0.075 m² | $C_D = 0.405\, \mathrm{AR}^{-0.494}$ | eq. 1 (Figure 4 reads $0.4046\, \mathrm{AR}^{-0.494}$) |
 
-  **The simulator** interpolates between *neighboring* curves, linearly in the logarithm of the
-  area ($\ln S$), and holds the end curve outside the fitted areas; that is the simulator's choice,
+  The simulator interpolates between *neighboring* curves, linearly in the logarithm of the
+  area ($\ln S$). Outside the fitted areas it holds the end curve. Both are the simulator's choice,
   not the paper's. All three curves are needed, because $C_D$ is far from linear in $\ln S$. At
   $\mathrm{AR} = 3.3$, the middle area's $C_D$ (0.3154) sits 0.3% *below* the smallest area's (0.3163), not
-  partway down to the largest's (0.2245); a straight line in $\ln S$ would put it 63% of the way
+  partway down to the largest's (0.2245). A straight line in $\ln S$ would put it 63% of the way
   there. Blending only the two end curves would read 18% low there.
 
   Three of the paper's own findings bear on how to read it, and none is in its curves:
 
   - a **free** leading edge gives more drag than the clamped mounting these curves come from;
   - lighter, smoother fabric gives less (polyester at 64 g/m² against cotton at 177);
-  - at the largest area it finds a [drag crisis](../glossary.md#drag-crisis), a sudden change in
-    the drag coefficient over a narrow range of [Reynolds number](../glossary.md#reynolds-number),
-    near $\mathrm{Re}$ = 7.2e5.
+  - at the largest area it finds a [drag crisis](../glossary.md#drag-crisis) near $\mathrm{Re}$ =
+    7.2e5. That is a sudden change in the drag coefficient over a narrow range of
+    [Reynolds number](../glossary.md#reynolds-number).
 
   A rocket's streamer is free and light, so the first two pull in opposite directions.
 - **`OpenRocket`**, on $S$:
@@ -154,16 +155,17 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
 
   with $C_{Dm}$ the streamer's drag coefficient on $S$, $\rho_m$
   the fabric's mass per square meter (Appendix C, eq. C.6, printed page 117). It was fitted to
-  model-rocket streamers ($w$ 0.01 to 0.09 m (0.033 to 0.30 ft), $l$ 0.2 to 1.0 m (0.66 to 3.3 ft), 10 to 80 g/m², 6 to 12 m/s (20 to 39 ft/s)), with a
-  stated 12 to 27% error on an independent set. It is the only one of the two that uses the
+  model-rocket streamers. The fit covers $w$ 0.01 to 0.09 m (0.033 to 0.30 ft) and $l$ 0.2 to 1.0 m
+  (0.66 to 3.3 ft). It covers 10 to 80 g/m² and 6 to 12 m/s (20 to 39 ft/s). Its stated error is 12
+  to 27% on an independent set. It is the only one of the two that uses the
   material.
 
 #### Which model is right?
 
-The two disagree by a factor that depends on the fabric: at $\mathrm{AR} = 10$ and $l = 1.016\,\mathrm{m}$ the ratio
+The two disagree by a factor that depends on the fabric. At $\mathrm{AR} = 10$ and $l = 1.016\,\mathrm{m}$ the ratio
 of their drag areas is 5.8 at 10 g/m², 3.5 at 32 and 1.9 at 80.
 
-C. Kidwell's NARAM-43 drop tests (2001) settle it as far as one dataset can: sixteen 4 in × 40 in
+C. Kidwell's NARAM-43 drop tests (2001) settle it as far as one dataset can. The tests used sixteen 4 in × 40 in
 streamers, each with about 5 g at one corner, dropped 20.1 m (66 ft).
 
 Two details of his method decide how to compare, and both were got wrong here before review:
@@ -183,31 +185,32 @@ average, from the [closed-form](../glossary.md#closed-form) fall:
 
 What the table shows:
 
-- **The flat streamer.** Kidwell's crêpe streamer is the one he left flat, and a flat correlation
+- Kidwell's crêpe streamer is the one he left flat, and a flat correlation
   predicts it to 9%. Appendix C reads 88% fast.
-- **The pleated ones.** His other materials were folded in ¾ in pleats, which more than doubles the
+- His other materials were folded in ¾ in pleats, which more than doubles the
   drag again. **The simulator models no pleats**, so it predicts a faster descent for a pleated
   streamer, which is the safe direction for a landing.
-- **Both are a little outside both fits:** 0.1032 m² of planform against Filippone's largest
-  0.075 m², and 0.1016 m (0.333 ft) wide by 1.016 m (3.33 ft) long against appendix C's $w \le 0.09$, $l \le 1.0$.
+- Kidwell's streamers are a little outside both fits: 0.1032 m² of planform against
+  Filippone's largest 0.075 m². They are 0.1016 m (0.333 ft) wide by 1.016 m (3.33 ft) long against
+  appendix C's $w \le 0.09$, $l \le 1.0$.
 
 #### Streamers larger than the fits
 
 Above 0.075 m², the simulator's **clamp** holds the largest area's curve. Kidwell's streamers are
 above it, so his drops test the clamp, and the evidence pulls two ways:
 
-- **The paper's trend says the clamp reads high.** Its $C_D$ falls as the area grows: the two end
-  curves at $\mathrm{AR} = 10$ imply $C_D \propto S^{-0.326}$, which extrapolated to Kidwell's 0.1032 m² would give
+- The paper's trend says the clamp reads high. Its $C_D$ falls as the area grows. The two end
+  curves at $\mathrm{AR} = 10$ imply $C_D \propto S^{-0.326}$. Extrapolated to Kidwell's 0.1032 m², that would give
   $C_D = 0.117$ where the clamp gives 0.130. The steeper inner pair, $S^{-0.53}$, would give 0.110.
-- **The drop says it reads low.** The drop itself implies 0.155, higher than any of them.
-- **What the simulator does.** It holds the end curve rather than extrapolating, because that is the
+- The drop says it reads low. The drop itself implies 0.155, higher than any of them.
+- The simulator holds the end curve rather than extrapolating, because that is the
   closer of the two to the one free-drop measurement in hand. It says so here rather than claiming
   the trend.
-- **Two caveats.** That rests on a single point, at one aspect ratio, with a fabric nothing like
+- Two caveats apply. That rests on a single point, at one aspect ratio, with a fabric nothing like
   the paper's cotton. And it holds partly because the correlation, measured with the leading edge
   clamped, is itself biased low, so two errors cancel.
-- **Nothing is measured** anywhere near 0.225 m², the 1.5 m (4.9 ft) by 0.15 m (0.49 ft) streamer one of the
-  simulator's tests flies on the clamp.
+- Nothing is measured anywhere near 0.225 m². That is the 1.5 m (4.9 ft) by 0.15 m (0.49 ft)
+  streamer one of the simulator's tests flies on the clamp.
 
 The simulator therefore defaults to `Filippone` and keeps `OpenRocket` for comparing with OpenRocket
 ([ADR-013][adr-013], streamer and tumble drag).
@@ -225,19 +228,19 @@ $$
 - $A_{\mathrm{bt}}$ is the body's side profile area, the outer diameter integrated along the axis, $\int d\, \mathrm{d}x$.
   The simulator takes a tube's diameter times its length, and integrates each nose cone's and
   transition's own curve.
-- $A_f$ is, for each fin set, **one** fin's planform area times an efficiency factor by fin count:
-  0.50, 1.00, 1.50, 1.41, 1.81, 1.73, 1.90, 1.85 for 1 to 8 fins (Table 3.4). It is a fit, not a
+- $A_f$ is, for each fin set, **one** fin's planform area times an efficiency factor by fin count
+  (Table 3.4). The factors are 0.50, 1.00, 1.50, 1.41, 1.81, 1.73, 1.90, 1.85 for 1 to 8 fins. It is a fit, not a
   model: four fins are 1.41 of one fin, not 2, and it is not monotonic. More than eight fins is
   refused.
 - Tube fins are refused: the model has no factor for them.
 - A [pod](../glossary.md#pod)'s tubes and fins count as the airframe's do, once per pod. The
-  documentation's model has no term for pods, nor for one part shading another from the air, so a
+  documentation's model has no term for pods, nor for one part shading another from the air. So a
   rocket with pods tumbles at a drag area the fit was never checked on.
 - The documentation notes 0.56 is half a circular cylinder's 1.12 in crossflow (air flowing across
-  it, side-on), as expected of a cylinder falling at a random angle, and that 1.42 is "similar to
-  that of a flat plate 1.17 or an open hemispherical cup 1.42". Those come from Hoerner's
-  *Fluid-Dynamic Drag* (1965), which is copyrighted with no legal free copy; NASA TN D-540 and TR
-  R-474 carry the same numbers and are free (`docs/research/streamer-and-tumble-drag.md`).
+  it, side-on). It calls that expected of a cylinder falling at a random angle. It also notes that
+  1.42 is "similar to that of a flat plate 1.17 or an open hemispherical cup 1.42". Those come from
+  Hoerner's *Fluid-Dynamic Drag* (1965), which is copyrighted with no legal free copy. NASA TN D-540
+  and TR R-474 carry the same numbers and are free (`docs/research/streamer-and-tumble-drag.md`).
 - Until [M1.11b](../decisions-and-roadmap.md#m1-11b) the simulator took each component's **end**
   diameters, which under-counts a curved nose. For Valetudo's tangent ogive that was 0.0111 m²
   against the true 0.0148 m², 25% low on the nose. Integrating the curve brought Valetudo's
@@ -245,9 +248,10 @@ $$
   pieces).
 
 **How well it does.** The documentation says its fit predicts its own five drop-test models within
-3 to 14%. The simulator does not reproduce that. Replaying Table 3.3 (printed page 54: five models,
-22 m (72 ft), $\rho$ = 1.31 kg/m³, the descent rate $v_0$ read from video to ±0.3 m/s (0.98 ft/s)) through the simulator's
-reading of the model (`the_tumble_model_against_its_own_drop_tests`):
+3 to 14%. The simulator does not reproduce that. Table 3.3 (printed page 54) gives five models,
+22 m (72 ft) and $\rho$ = 1.31 kg/m³. The descent rate $v_0$ is read from video to ±0.3 m/s
+(0.98 ft/s). Replaying Table 3.3 through the simulator's reading of the model
+(`the_tumble_model_against_its_own_drop_tests`) gives:
 
 | model | fins | measured | HPR Sim |
 |---|---|--:|--:|
@@ -257,7 +261,7 @@ reading of the model (`the_tumble_model_against_its_own_drop_tests`):
 | #4 | none | 5.4 m/s (18 ft/s) | 6.43 (**+19.0%**) |
 | #5 | fins only | 5.0 m/s (16 ft/s) | 4.50 (−10.0%) |
 
-So the spread is −10 to +19%, and the finless tube is the outlier: it wants a body coefficient
+So the spread is −10 to +19%. The finless tube is the outlier: it wants a body coefficient
 near 0.79 where the model prints 0.56.
 
 The text pins neither the body-profile nor the fin-area convention (exactly which areas to
@@ -265,25 +269,25 @@ measure). So either the simulator reads the areas differently from whoever fitte
 the claim is not reproducible. The table above is what the simulator can demonstrate, so it is what
 the simulator states.
 
-**Where it stops being true.** The fit covers 44 to 103 mm (1.7 to 4.1 in) bodies of 6.8 to 160 g descending at
+**Where it stops being true.** The fit covers 44 to 103 mm (1.7 to 4.1 in) bodies of 6.8 to 160 g. They descend at
 5.0 to 6.6 m/s (16 to 22 ft/s). A high-power booster is far outside it: Valetudo tumbling comes out at 36 m/s (118 ft/s).
 
 - A cylinder's crossflow drag falls by roughly half above a
   [Reynolds number](../glossary.md#reynolds-number) near 2e5, its
-  [drag crisis](../glossary.md#drag-crisis). A 100 mm (3.9 in) body reaches that at about 30 m/s (98 ft/s), and
+  [drag crisis](../glossary.md#drag-crisis). A 100 mm (3.9 in) body reaches that at about 30 m/s (98 ft/s).
   Valetudo's 80 mm (3.1 in) at 36 m/s (118 ft/s) is right at it.
 - So a real body that size would descend faster than the simulator says.
 - The simulator does not model that fall, and nothing in the pinned sources covers it.
 
 **A piece on its own.** `DeviceDrag::tumbling(&assembly)` covers the whole airframe, and
-`DeviceDrag::tumbling_stages(&assembly, (first, last))` a run of whole stages. For an ejected piece
-that is part of a stage, `Simulation::tumbling_piece(k)` sums the same model over piece $k$'s own
-body components and fins ([Ejected pieces](#ejected-pieces)). A payload is refused: it has no
+`DeviceDrag::tumbling_stages(&assembly, (first, last))` a run of whole stages.
+`Simulation::tumbling_piece(k)` is for an ejected piece that is part of a stage. It sums the same
+model over piece $k$'s own body components and fins ([Ejected pieces](#ejected-pieces)). A payload is refused: it has no
 tube or fin of its own. A nose cone tumbling on its own is outside the fit, which was made on
-whole rockets, so its speed is the model's, not a measured one.
+whole rockets. Its speed is the model's, not a measured one.
 
 A tumbling body is a device like any other: give it a trigger, and it starts at that moment.
-The simulator does not decide by itself when a rocket tumbles: nothing citable says when a stage
+The simulator does not decide by itself when a rocket tumbles. Nothing citable says when a stage
 becomes unstable enough (the same documentation declines to model the analogous streamer regime).
 
 ## Deployment and descent
@@ -309,8 +313,8 @@ A device's charge fires at its `Trigger`:
   apogee is already below the setting fires at apogee, because no crossing follows. That is
   RocketPy's numeric trigger: vertical velocity negative and height below the setting
   (`parachute.py:354-364`). After the flight's recorded apogee the rocket counts as descending
-  even if its center of mass rises for a moment, as it can when a part is let go there
-  ([Released mass](released-mass.md#what-happens-at-the-release)); without a release that is
+  even if its center of mass rises for a moment. It can rise when a part is let go there
+  ([Released mass](released-mass.md#what-happens-at-the-release)). Without a release that is
   the same rule.
 - `Time { time_s }`: a time after launch.
 - `MotorDelay { motor }`: that motor's [ejection delay](../glossary.md#ejection-delay) after its
@@ -321,7 +325,7 @@ A device's charge fires at its `Trigger`:
   ([Staging](staging.md#powered-separation)). A motor that never lights fires neither this nor
   `MotorDelay`.
 
-Charges are only checked in free flight and during the descent, so a `Time` or `MotorDelay`
+Charges are only checked in free flight and during the descent. So a `Time` or `MotorDelay`
 trigger whose time passes while the rocket is still on the pad or the rail fires at
 [rail exit](../glossary.md#rail-exit-and-rail-exit-velocity).
 
@@ -331,21 +335,21 @@ and starts to fill. The first deployment of a flight switches it to the descent 
 A device can name another whose opening **releases** it (`released_by`), which is how a drogue is
 cut away under a main:
 
-- **The release waits until the releasing device is fully open**, not its line stretch. Cutting the
-  drogue at line stretch would leave the rocket under an empty canopy: the drag area would collapse
-  and the descent speed up (found in review; measured at 0.45 m² → 0.02 m² and 18.3 to 22.0 m/s (60.0 to 72.2 ft/s)
-  before the fix).
-- **A released device contributes nothing** from its release.
-- **One released before its own charge fires never deploys at all:** its `Trigger` is recorded and
+- The release waits until the releasing device is fully open, not its line stretch. Cutting the
+  drogue at line stretch would leave the rocket under an empty canopy. The drag area would collapse
+  and the descent speed up. That was found in review. Before the fix it measured 0.45 m² → 0.02 m²
+  and 18.3 to 22.0 m/s (60.0 to 72.2 ft/s).
+- A released device contributes nothing from its release.
+- One released before its own charge fires never deploys at all: its `Trigger` is recorded and
   no `Deployment` follows.
 
 Events, in the order a two-device flight records them: `Apogee`, `Trigger(drogue)`,
 `Deployment(drogue)`, `Trigger(main)`, `Deployment(main)`, `Release(drogue)` (at the end of the
 main's filling), `GroundHit`.
 
-Trigger times that are known before the flight (a time, or a motor delay) and every deployment and
-end of filling are [stop times](../glossary.md#stop-time), so no integration step straddles a change
-in the drag area.
+Trigger times known before the flight (a time, or a motor delay) are
+[stop times](../glossary.md#stop-time), and so is every deployment and end of filling. So no
+integration step straddles a change in the drag area.
 
 ### Inflation
 
@@ -372,13 +376,13 @@ The exponent sets the shape of the growth:
 
 - `Instant` (the default): $t_f = 0$, the full drag area at line stretch. This is RocketPy's model.
   For a deployment well above the canopy's terminal speed it gives the simulator's highest opening
-  load; near terminal speed, as at apogee, a filling time can give a higher one, because the rocket
+  load. Near terminal speed, as at apogee, a filling time can give a higher one, because the rocket
   speeds up while the canopy fills.
 - `FillingTime { time_s, exponent }`: a filling time fixed in advance.
 - `FillConstant { constant, exponent }`: Knacke's $t_f = n D_0/v$ (printed page 5-43), with $v$ the
-  airspeed at line stretch and $n$ the canopy fill constant, from Table 5-6's **unreefed** column
+  airspeed at line stretch. The canopy fill constant $n$ is from Table 5-6's **unreefed** column
   (printed page 5-44): 8 for a flat circular canopy. A deployment at rest has no filling time in
-  this law ($n D_0/v$ diverges), so the canopy is taken as open at once and fills as the rocket
+  this law ($n D_0/v$ diverges). So the canopy is taken as open at once and fills as the rocket
   picks up speed.
 
 #### The fill constant at hobby speeds
@@ -391,8 +395,8 @@ Knacke states the linear form only "in the medium-velocity range of about 150 to
   It is a dimensional form (feet and ft/s) that cannot be used in SI as printed, so the simulator
   does not use it.
 - So outside the range the filling time, and with it the peak load the simulator reports, is an
-  extrapolation. At 25 m/s (82 ft/s) the linear form gives a 2.5 m (8.2 ft) main $t_f = 0.8\,\mathrm{s}$, from a correlation
-  fitted at three to six times that speed.
+  extrapolation. At 25 m/s (82 ft/s) the linear form gives a 2.5 m (8.2 ft) main $t_f = 0.8\,\mathrm{s}$. That comes from a correlation
+  fitted at 1.8 to 6.1 times that speed.
 
 #### The opening load
 
@@ -401,28 +405,28 @@ as $F = (C_D S)\, q\, C_x X_1$ (printed page 5-50), with $q$ the
 [dynamic pressure](../glossary.md#dynamic-pressure) at line stretch. Its two factors fare
 differently in the simulator:
 
-- **The overshoot, $C_x$, is left out.** Knacke's measured drag area **overshoots** the steady
+- The overshoot, $C_x$, is left out. Knacke's measured drag area **overshoots** the steady
   value by 10 to 80% near the end of filling (Figure 5-40, printed page 5-47). His infinite-mass
   opening-force coefficient is $C_x = 1.7$ for a flat circular canopy; the simulator's is 1 in every
   mode.
-- **The slowing, $X_1$, depends on the mode.** $X_1$ allows for the rocket slowing while the canopy
-  fills. It is 1 at infinite mass (a load too heavy to slow), and as low as 0.02 for a
+- The slowing, $X_1$, depends on the mode. $X_1$ allows for the rocket slowing while the canopy
+  fills. It is 1 at infinite mass (a load too heavy to slow). It is as low as 0.02 for a
   final-descent parachute with a low canopy loading (little weight for the canopy's size).
-  - **With a filling time** (`FillingTime` or `FillConstant`), the simulator already includes the
-    slowing: it integrates the rocket's deceleration while the drag area grows, which is Pflanz's
+  - With a filling time (`FillingTime` or `FillConstant`), the simulator already includes the
+    slowing. It integrates the rocket's deceleration while the drag area grows. That is Pflanz's
     method done step by step, without the overshoot. Don't apply $X_1$ on top of the simulator's
     peak, or the slowing is counted twice and the load reads low.
-  - **Opening at once** (`Instant`, the default), there is no slowing: the peak is Knacke's
+  - Opening at once (`Instant`, the default), there is no slowing: the peak is Knacke's
     infinite-mass case with $C_x = 1$.
 
 So the peak load the simulator reports is **no safe bound** on the real one, in either direction:
 
-- **With a filling time,** the missing overshoot alone can only raise the real peak, but the growth
+- With a filling time, the missing overshoot alone can only raise the real peak. The growth
   law and the filling time, extrapolated at hobby speeds, can move it either way.
-- **Opening at once,** the simulator applies the full drag area at line stretch: the infinite-mass
+- Opening at once, the simulator applies the full drag area at line stretch: the infinite-mass
   case. A big main on a light rocket can therefore see far less than the simulator's instant peak.
-- **For scale,** the 1.5 m (4.9 ft) flat circular canopy deployed at 60 m/s (197 ft/s) in
-  [Verification](#verification) peaks at 1.6 kN filling and 3.0 kN opening instantly. Knacke's
+- For scale, take the 1.5 m (4.9 ft) flat circular canopy deployed at 60 m/s (197 ft/s) in
+  [Verification](#verification). It peaks at 1.6 kN filling and 3.0 kN opening instantly. Knacke's
   infinite-mass $C_x = 1.7$ on the same dynamic pressure would be 5.1 kN.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
@@ -432,10 +436,11 @@ candidates for a later [milestone](../glossary.md#milestone).
 ### The descent
 
 Once a device is open the rocket is a point mass: all of its mass at the center of mass, with no
-rotation. In the [launch frame](../glossary.md#launch-frame-enu), with $m$ the mass, $\mathbf{v}_{\mathrm{cg}}$ and
-$\mathbf{a}_{\mathrm{cg}}$ the center of mass's velocity and acceleration, $\mathbf{w}$ the wind, $\rho$ the density at its height,
-$\mathbf{g}$ [normal gravity](../glossary.md#normal-gravity), $\mathbf{a}_{\mathrm{Coriolis}}$ the
-[Coriolis acceleration](../glossary.md#coriolis-acceleration) and $\mathbf{T}$ the thrust:
+rotation. In the [launch frame](../glossary.md#launch-frame-enu), the motion follows the equation
+below. Here $m$ is the mass, $\mathbf{v}_{\mathrm{cg}}$ and $\mathbf{a}_{\mathrm{cg}}$ are the center of mass's
+velocity and acceleration, and $\mathbf{w}$ is the wind. Also $\rho$ is the density at its height,
+$\mathbf{g}$ is [normal gravity](../glossary.md#normal-gravity), $\mathbf{a}_{\mathrm{Coriolis}}$ is the
+[Coriolis acceleration](../glossary.md#coriolis-acceleration) and $\mathbf{T}$ is the thrust:
 
 $$
 \begin{aligned}
@@ -445,42 +450,40 @@ m\, \mathbf{a}_{\mathrm{cg}} &= -\tfrac12 \rho\, (C_D S)(t)\, \lvert \mathbf{v}_
 \end{aligned}
 $$
 
-- **In code it is the free-flight equation.** The simulator uses the translational equation of
+- In code it is the free-flight equation. The simulator uses the translational equation of
   [Rigid-body flight](flight.md#equations-of-motion) with the body's rotation rate $\boldsymbol{\omega} = 0$ and the
   canopy drag in place of the airframe's aerodynamics. Two things carry over:
-  - The terms for a motor that is still burning: the center of mass moving inside the body as
+  - The terms for a still-burning motor: the center of mass moving inside the body as
     propellant burns ($-m\mathbf{r}'' - 2\dot{m}\mathbf{r}'$) and the exhaust jet's terms. That page sums them, with the
     forces, into $\mathbf{T}_{20}$. After [burnout](../glossary.md#burnout) every one of them is zero.
   - The point the integrator follows is still the nose tip $O$, not the center of mass. With no
     rotation and nothing burning the two move together, so the nose tip's acceleration $\mathbf{a}_O$
     equals $\mathbf{a}_{\mathrm{cg}}$ and the equation is the one above.
-- **No moment.** The drag acts at the center of mass along the air's relative velocity, so it exerts
+- No moment. The drag acts at the center of mass along the air's relative velocity, so it exerts
   no turning moment.
-- **The attitude freezes at deployment.** The body rates are set to zero, and the nose tip keeps its
+- The attitude freezes at deployment. The body rates are set to zero. The nose tip keeps its
   rigid offset from the center of mass, $\mathbf{r}_{\mathrm{cg}}$ (the center of mass's position from the nose tip, in
   body axes). As the rates go, the nose tip's velocity is shifted by $\boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$ (turned from body
-  axes into the launch frame), so that the center of mass keeps the velocity it had. Whatever stops the rotation acts through the lines and the canopy, inside the
+  axes into the launch frame). That way the center of mass keeps the velocity it had. Whatever stops the rotation acts through the lines and the canopy, inside the
   system, so it can't change the center of mass's momentum.
-- **The airframe's own drag is left out**, as RocketPy leaves it out. A rocket's attitude under a
+- The airframe's own drag is left out, as it is in RocketPy, the
+  [oracle](../glossary.md#oracle) this is compared with. A rocket's attitude under a
   canopy, and so the area it presents, is not modeled. For a drogue whose drag area is close to
-  the airframe's broadside area this is a real omission. It is the same omission RocketPy, the
-  [oracle](../glossary.md#oracle) this is compared with, makes. The tumble model
+  the airframe's broadside area this is a real omission. The tumble model
   ([M1.7b](../decisions-and-roadmap.md#m1-7b), streamers and tumble) is where a body's own drag
   belongs.
-- **The thrust $\mathbf{T}$ is kept**, along the frozen axis, so a device that opens while a motor still
+- The thrust $\mathbf{T}$ is kept, along the frozen axis. So a device that opens while a motor still
   burns (an off-nominal case) is not silently thrust-free. Its direction is wrong the moment the
   rocket would have swung under the canopy.
-- **The rest is shared.** Gravity, the Coriolis force, the atmosphere and the wind are the same
+- The rest is shared. Gravity, the Coriolis force, the atmosphere and the wind are the same
   models the rest of the flight uses ([Rigid-body flight](flight.md)).
-- **[Added mass](../glossary.md#added-mass) is not modeled.**
+- [Added mass](../glossary.md#added-mass) is not modeled.
   - Knacke gives no closed-form apparent mass (printed page 5-40 says only that it is the enclosed
-    volume times density times a form factor), and RocketPy's $m_a = k_a \rho\, (2/3)\, \pi R^2 H$ has no
+    volume times density times a form factor). RocketPy's $m_a = k_a \rho\, (2/3)\, \pi R^2 H$ has no
     citation in its code.
-  - It carries no weight in RocketPy either, so it changes no equilibrium descent rate, only the
-    transient right after an opening.
-  - It is not small: the fixture records 5.6 kg for Calisto's main against a 16.2 kg rocket and
-    15.9 kg for NDRT's against a 20.8 kg one (both at the start height; both grow with density as
-    the rocket descends). The comparison below shows what leaving it out costs.
+  - It is not small. The fixture records 5.6 kg for Calisto's main against a 16.2 kg rocket. It
+    records 15.9 kg for NDRT's against a 20.8 kg one. Both are at the start height, and both grow
+    with density as the rocket descends. The comparison below shows what leaving it out costs.
 
 The equilibrium descent speed is Knacke's (printed page 5-128), and `recovery::terminal_speed_m_s`
 computes it:
@@ -505,30 +508,30 @@ bodies:
 Each body flies on as a point mass under the devices that name it (`Device::on_body`). The ascent
 ends there: its `FlightResult` has `Termination::Separated`, a `Separation` event, and one
 `BodyFlight` per body in `bodies`. The exception is a powered separation, where body 0 still has a
-motor to burn: it flies on as a sustainer, and only body 1 descends here
+motor to burn. It flies on as a sustainer, and only body 1 descends here
 ([Staging](staging.md#powered-separation)).
 
 This section describes the unpowered case, and the booster's descent after a powered one.
 
 **What happens at a separation:**
 
-- **Each body is its own stages and their motors.** `body_mass_properties` sums the stages'
-  `MassProperties` and the motors mounted in them, so the bodies' masses add to the whole rocket's
+- Each body is its own stages and their motors. `body_mass_properties` sums the stages'
+  `MassProperties` and the motors mounted in them. So the bodies' masses add to the whole rocket's
   at that instant, which is a test.
-- **Nothing pushes the bodies apart.** Each body starts at its **own** center of mass, with the
-  velocity that point already had: the nose tip's velocity plus the rotation's share,
+- Nothing pushes the bodies apart. Each body starts at its **own** center of mass, with the
+  velocity that point already had. That is the nose tip's velocity plus the rotation's share,
   $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$, in the launch frame. So the bodies' **linear** momenta add to the stack's,
   which is a test.
-- **Their spin is dropped.** Each body's center keeps moving round the stack's as it was, but each
-  body's spin about its own center is lost, so angular momentum is not conserved. In the test,
+- Their spin is dropped. Each body's center keeps moving round the stack's as it was, but each
+  body's spin about its own center is lost. So angular momentum is not conserved. In the test,
   spinning at 0.6 rad/s, the lost spin is 31% of the angular momentum, and 0.02 J of energy.
-- **Only body 0's devices act before the separation.** A device meant for another body has a drag
-  area computed for that body (a booster's tumbling area, say), which is not a model of the whole
-  stack, so it waits for its body. With no separation every device is body 0's.
-- **Each body finds its own apogee**, whatever its devices are triggered by. The ascent ends at
-  the separation, so this is the only place a staged flight can record a peak, and without it a
+- Only body 0's devices act before the separation. A device meant for another body has a drag
+  area computed for that body (a booster's tumbling area, say). That is not a model of the whole
+  stack, so the device waits for its body. With no separation every device is body 0's.
+- Each body finds its own apogee, whatever its devices are triggered by. The ascent ends at
+  the separation, so this is the only place a staged flight can record a peak. Without it a
   body separated while climbing would never fire an apogee charge (found in review, now a test).
-- **The bodies descend independently**, each with the same point-mass equations as the descent
+- The bodies descend independently, each with the same point-mass equations as the descent
   phase, less the thrust:
 
   $$
@@ -546,43 +549,43 @@ This section describes the unpowered case, and the booster's descent after a pow
 
 **Limits:**
 
-- **No push at a separation, and no [tip-off](../glossary.md#tip-off).** A separation's charge or
+- No push at a separation, and no [tip-off](../glossary.md#tip-off). A separation's charge or
   spring adds no impulse (an ejection's can: see [Ejected pieces](#ejected-pieces)), and the
   tumbling a tip-off would start is not modeled.
-- **A body must start above the ground**, as a free flight must: the ground event is a falling
-  crossing, so a body that started below the site would go on integrating underground until the
+- A body must start above the ground, as a free flight must. The ground event is a falling
+  crossing. So a body that started below the site would go on integrating underground until the
   flight's time limit.
-- **Every body must carry a device, and it must open.** The descent has no airframe drag (the
+- Every body must carry a device, and it must open. The descent has no airframe drag (the
   descent-phase decision, [ADR-012][adr-012]), so a body with nothing open would fall as if in a
-  vacuum. A flight whose bodies are not all covered is refused when it is set up, and a body that
+  vacuum. A flight whose bodies are not all covered is refused when it is set up. A body that
   reaches the ground without a single deployment (a timer set after that body lands, say) is a
-  flight-time error rather than a landing at the speed of a fall with no drag (both found in
-  review). A device on a body that nothing makes is refused when the flight starts, since an
-  ejection given later could still make it. A device that opened on the stack before the
-  separation counts as open.
-- **A body coasts with no drag at all until its first device opens**, which is the same omission
-  as the descent phase's and hurts more here: a 0.55 kg forward body that separates at 2 km (1.2 mi) and waits
-  for a 300 m (984 ft) main arrives at **168 m/s (551 ft/s)** where an airframe would have held it near 60 to 70, so
-  its deployment speed, and any opening load taken from it, read high. Give a body a device that
+  flight-time error. It is an error rather than a landing at the speed of a fall with no drag. Both
+  were found in review. A device on a body that nothing makes is refused when the flight starts,
+  since an ejection given later could still make it.
+- A body coasts with no drag at all until its first device opens. That is the same omission
+  as the descent phase's, and it hurts more here. A 0.55 kg forward body separates at 2 km (1.2 mi)
+  and waits for a 300 m (984 ft) main. It arrives at **168 m/s (551 ft/s)** where an airframe would
+  have held it near 60 to 70. So its deployment speed, and any opening load taken from it, read
+  high. Give a body a device that
   opens at once (`DeviceDrag::tumbling_stages` over its own stages is the cited way) if the coast
-  matters; after a powered separation the simulator requires it
+  matters. After a powered separation the simulator requires it
   ([Staging](staging.md#powered-separation)). A spent booster's device is usually
   `DeviceDrag::tumbling_stages(&assembly, its stages)`, which is §3.5's model over that body's own
   components rather than the whole stack's.
-- **The aft body's motors must have burned out**, because a body's mass is held constant through
-  its descent. A trigger that fires while one burns is an error, before the flight when its time is
-  known and in flight otherwise, not a silent approximation. A release across the separation is
+- The aft body's motors must have burned out, because a body's mass is held constant through
+  its descent. A trigger that fires while one burns is an error, not a silent approximation. It is
+  raised before the flight when its time is known, and in flight otherwise. A release across the separation is
   refused too: a line cuts a device on its own body. A forward body with a motor still to burn
   flies on as a sustainer ([Staging](staging.md)).
 
 ### Ejected pieces
 
 An ejection lets a piece of the airframe go at a joint of your choosing, not only at a stage
-boundary: a nose cone pushed off its airframe, a body section, or a payload carried inside. Each
+boundary. The piece can be a nose cone pushed off its airframe, a body section, or a payload carried inside. Each
 piece then comes down on its own, under its own parachute or tumbling, and lands somewhere of its
 own. The charge can push the pieces apart. This is new with
-[M1.11a](../decisions-and-roadmap.md#m1-11a) and [M1.11b](../decisions-and-roadmap.md#m1-11b),
-and is checked against exact answers only: no other simulator or real flight has been compared
+[M1.11a](../decisions-and-roadmap.md#m1-11a) and [M1.11b](../decisions-and-roadmap.md#m1-11b).
+It is checked against exact answers only: no other simulator or real flight has been compared
 with it yet.
 
 A few words first:
@@ -595,20 +598,20 @@ A few words first:
   part, or a payload.
 - A **body** is whatever flies as one: the pieces still joined together.
 
-**How you give one.** An `Ejection` is a trigger, the same kinds a parachute has (apogee, a
-height, a time, a motor's delay), and a place where the airframe parts:
+**How you give one.** An `Ejection` is a trigger and a place where the airframe parts. The
+triggers are the same kinds a parachute has (apogee, a height, a time, a motor's delay):
 
 - `Ejection::aft_of(trigger, "nose")` parts the airframe at the joint just aft of the body
   component with that id. The side toward the nose keeps its body number. The new piece is the
-  side aft of the joint, back to the next joint you have also given an ejection or a separation
-  for, or to the tail. So ejecting a nose cone is written as parting the joint aft of it: the
-  nose cone keeps body 0, and the airframe behind it becomes the new body.
+  side aft of the joint. It runs back to the next joint you have also given an ejection or a
+  separation for, or to the tail. So ejecting a nose cone is written as parting the joint aft of
+  it. The nose cone keeps body 0, and the airframe behind it becomes the new body.
 - `Ejection::payload(trigger, "payload")` lets an internal component, and everything inside it,
   out of the piece that carries it. It must be inside the airframe, and not inside another
   payload.
 
-Pieces tied together by a shock cord fly as one, so a nose cone on a shock cord is not an
-ejection at all: leave it out, and the rocket comes down in one piece.
+Pieces tied together by a shock cord fly as one. So a nose cone on a shock cord is not an
+ejection at all. Leave it out, and the rocket comes down in one piece.
 
 **Which body is which.** A body takes the number of the piece nearest the nose among those still
 joined, and a payload flying alone takes its own:
@@ -621,7 +624,7 @@ joined, and a payload flying alone takes its own:
 
 Each body needs a device that names it (`Device::on_body`). A flight whose bodies are not all
 covered is refused when you give the ejections. A device on a body that nothing makes is refused
-when the flight starts, since a separation given later could still make it: `run` returns an
+when the flight starts, since a separation given later could still make it. `run` returns an
 error naming that body.
 
 **When devices act.** Only body 0's devices act before the airframe first comes apart. After
@@ -630,28 +633,28 @@ that, a device acts only once its own body flies on its own. So a parachute on t
 logged in the flight's own events, as the example below shows, and its drag acts on the nose cone
 alone from then on. A device on a piece that
 hasn't left yet waits for it, even if its trigger has come. Give a piece a trigger that follows
-its ejection. A drogue on the airframe, with the nose cone only ejected at 300 m (984 ft), would leave the
-whole rocket falling from apogee to 300 m (984 ft) with nothing open.
+its ejection. Suppose a drogue is on the airframe and the nose cone is only ejected at 300 m (984 ft). The
+whole rocket would fall from apogee to 300 m (984 ft) with nothing open.
 
 **What happens at each parting:**
 
-- **When the airframe first comes apart**, each body starts at its own center of mass with the
-  velocity that point had, $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$ (defined under [Separation](#separation)), as at a
+- When the airframe first comes apart, each body starts at its own center of mass. Its velocity is
+  the one that point had, $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$ (defined under [Separation](#separation)), as at a
   separation, plus the charge's push below. The linear momenta add to the stack's, which is a
   test.
-- **When a body parts again on the way down**, it is already a point mass with no attitude, so
-  there is nothing to place its pieces by. Both pieces start at the body's position and velocity,
+- When a body parts again on the way down, it is already a point mass with no attitude. There is
+  nothing to place its pieces by. Both pieces start at the body's position and velocity,
   plus the push, and its mass steps down by the piece that left. Their true starting points could
   be up to a rocket's length apart, which is small against a descent of hundreds of meters. That
   body's event for the parting records its state just before (`BodyEvent::sample`) and just after
   (`BodyEvent::after`): its lower mass, and its pushed velocity.
-- **Each piece's mass is its own components'.** A stage that stays in one piece is counted by its
+- Each piece's mass is its own components'. A stage that stays in one piece is counted by its
   own mass, overrides and all. A stage that parts is counted component by component. An override
   that doesn't say how its mass divides is refused rather than guessed. That means a stage's mass
   override, or a component's override that covers what it holds. OpenRocket designs often
   override a stage's mass, and such a stage can't be parted. The pieces' masses add to the
   rocket's to 1e-12, which is a test.
-- **Every motor must have burned out** by the time an ejection fires, because every body is a
+- Every motor must have burned out by the time an ejection fires, because every body is a
   point mass of constant mass from then on. An ejection known to come earlier is refused when it is
   given, and one that fires early in flight is an error then.
 
@@ -659,8 +662,8 @@ whole rocket falling from apogee to 300 m (984 ft) with nothing open.
 Give it as an impulse $J$: the push summed over its short duration, in newton-seconds, as a
 motor's [total impulse](../glossary.md#total-impulse) is. For example,
 `Ejection::aft_of(Trigger::Apogee, "nose").with_impulse(1.0)`. Without one there is no push. The
-simulator doesn't work $J$ out from a charge's size: as a rough guide, $J \approx m v$ for the speed $v$
-you expect a piece of mass $m$ to leave at, so 1 N·s puts 15.9 m/s (52 ft/s) on the example's 63 g nose cone.
+simulator doesn't work $J$ out from a charge's size. As a rough guide, $J \approx m v$ for the speed $v$
+you expect a piece of mass $m$ to leave at. So 1 N·s puts 15.9 m/s (52 ft/s) on the example's 63 g nose cone.
 The push is equal and opposite:
 
 - The side forward of the joint gets $+J$ toward the nose, and the side aft of it $-J$. A payload
@@ -668,15 +671,15 @@ The push is equal and opposite:
 - Each side's velocity changes by $J/m$, for its own mass $m$, so the light side moves most. One
   newton-second is 4 m/s (13 ft/s) on a 250 g payload, and 1.8 m/s (5.9 ft/s) on the 556 g airframe it leaves.
 - The momenta still add up exactly, which is a test.
-- **Which way is "toward the nose"?** While the airframe flies whole with nothing open, it is
+- Which way is "toward the nose"? While the airframe flies whole with nothing open, it is
   its axis at that instant. A device that opens at the same instant as the parting doesn't count
-  as open yet. Otherwise the body has no attitude to go by: a body flying on its own is a point
-  mass, and a whole airframe that has hung from a device since earlier has only the attitude it
+  as open yet. In every other case the body has no attitude to go by. A body flying on its own is a point
+  mass. A whole airframe that has hung from a device since earlier has only the attitude it
   had when the device opened. So the simulator goes by the body's velocity through the air:
-  - A body hanging from a device (any but a tumble) that was open just before that instant,
-    deployed before it and not yet released, points its forward end against that velocity
+  - Take a device (any but a tumble) that was open just before that instant, deployed before it
+    and not yet released. A body hanging from it points its forward end against that velocity
     (upward, as it falls), toward the device. The simulator assumes the device
-    left through that end, as a main does once the nose cone is off: a payload let out under the
+    left through that end, as a main does once the nose cone is off. A payload let out under the
     airframe's parachute is pushed up, toward it. For a drogue that left between the booster and
     the avionics bay, the airframe more likely hangs near level, and this direction is a guess.
   - A body with nothing open, or only tumbling, points its nose along that velocity, as a stable
@@ -685,15 +688,15 @@ The push is equal and opposite:
 
   These are assumptions, not measurements ([ADR-086][adr-086])
   ([evidence row G20](../evidence.md#g20)). All the partings that fire on a
-  body at one instant part it together, each final body taking the pushes of the joints on its
-  sides, so the order you list them in doesn't matter.
-- A separation has no push. A payload always leaves forward, so a push on a payload in the nose's
+  body at one instant part it together. Each final body takes the pushes of the joints on its
+  sides. So the order you list them in doesn't matter.
+- A separation has no push. A payload always leaves forward. So a push on a payload in the nose's
   own section, which is closed at the nose, is refused when the flight starts. A pushed payload
   whose section's forward joint hasn't parted by the time it leaves is an error in flight.
 
-In the example below, where every piece's device opens as it leaves, 1 N·s at each parting moves
-the airframe's landing by 0.0 m (0.0 ft) and the payload's by 1.3 m (4.3 ft): the drag takes the push away within
-seconds. A piece that coasts with nothing open keeps its push longer.
+In the example below, every piece's device opens as it leaves. There 1 N·s at each parting moves
+the airframe's landing by 0.0 m (0.0 ft) and the payload's by 1.3 m (4.3 ft). The drag takes the
+push away within seconds. A piece that coasts with nothing open keeps its push longer.
 
 **A piece that tumbles.** A piece needs some drag of its own, or it falls as if in a vacuum. The
 simulator can treat a nose cone with no parachute as tumbling; a real one may instead fall point
@@ -705,16 +708,12 @@ as the example below does.
 - Piece $k$ is the piece nearest the nose in body $k$, numbered as in the table above.
 - It is that piece's own area. A body that still carries another section, until that section's
   own parting, tumbles with its first piece's area only.
-- The pieces of an airframe cut into sections have drag areas that add up to the whole
-  airframe's, which is a test.
-- The model was fitted on whole model rockets, so for a lone nose cone the speed is the model's
-  answer, not a measured one.
 
 **A worked example.** The example
 [`ejected_pieces.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/ejected_pieces.rs)
-flies the 54 mm (2.1 in) test rocket on an I175 with a 250 g payload in its airframe, in a 4 m/s (13 ft/s) wind from
-the west. The nose cone leaves at apogee (16.23 s, 1,747 m (5,732 ft)) under a 0.45 m (1.5 ft) canopy. The airframe
-comes down under a 0.9 m (3.0 ft) one, and lets the payload out at 300 m (984 ft) under a 0.6 m (2.0 ft) one. Each lands at
+flies the 54 mm (2.1 in) test rocket on an I175 with a 250 g payload in its airframe. The wind is
+4 m/s (13 ft/s) from the west. The nose cone leaves at apogee (16.23 s, 1,747 m (5,732 ft)) under a 0.45 m (1.5 ft) canopy. The airframe
+comes down under a 0.9 m (3.0 ft) one. It lets the payload out at 300 m (984 ft) under a 0.6 m (2.0 ft) one. Each lands at
 its own terminal speed, $v_e$ above, for its own mass and canopy in the air at the ground:
 
 | Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) |
@@ -729,8 +728,8 @@ flight's own event list ends at the first parting. What happens to each body aft
 its canopy opening and the payload leaving the airframe, is in that body's own list
 (`FlightResult::bodies`).
 
-The example then flies the same rocket again with a 1 N·s push at each parting, and with no
-canopy on the nose cone, which tumbles:
+The example then flies the same rocket again with a 1 N·s push at each parting. The nose cone has
+no canopy and tumbles:
 
 | Body | Mass (kg) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) | Moved from the first flight (m) |
 |---|--:|--:|--:|--:|--:|--:|
@@ -740,8 +739,8 @@ canopy on the nose cone, which tumbles:
 
 Tumbling, the nose cone comes down nearly five times as fast as under its canopy, and lands 1.8 km (1.1 mi)
 nearer the pad. The push barely moves the other two. At 300 m (984 ft) it changes the payload's velocity by
-4.00 m/s (13.1 ft/s), up toward the airframe's parachute, and the airframe's by 1.80 m/s (5.9 ft/s), down: $J/m$ for
-each (the example prints the upward parts, +4.00 and −1.80 m/s (−5.9 ft/s)). Within seconds the drag has
+4.00 m/s (13.1 ft/s), up toward the airframe's parachute. It changes the airframe's by 1.80 m/s (5.9 ft/s), down. That is $J/m$ for
+each. The example prints the upward parts, +4.00 and −1.80 m/s (−5.9 ft/s). Within seconds the drag has
 taken that away.
 
 **Limits:**
@@ -749,10 +748,10 @@ taken that away.
 - **A piece coasts with no drag until its device opens,** as every separated body does. Give it
   a parachute, or its tumble from the moment it leaves.
 - **The push's direction is assumed** whenever the airframe isn't flying whole with nothing open
-  ([evidence row G20](../evidence.md#g20)):
-  it goes by the velocity through the air, as above. A payload always leaves forward.
+  ([evidence row G20](../evidence.md#g20)).
+  It goes by the velocity through the air, as above. A payload always leaves forward.
 - **No powered separation with ejections.** A sustainer flies on a design cut at its stage
-  boundary, whose components aren't the pieces the ejections were given for, so it is refused,
+  boundary, whose components aren't the pieces the ejections were given for. So it is refused,
   and so is an ejection ahead of a separation that would light a motor.
 - **A piece's spin and attitude are not tracked**, as for a separated body.
 - **A `.ork` file's recovery settings don't make ejections**, and HPR Sim has no names for pieces:
@@ -767,10 +766,10 @@ How a `.ork` file's recovery is read and flown, and the tests and comparisons th
 
 ### From an OpenRocket file
 
-**A `.ork` file's parachutes and streamers fly as OpenRocket flies them, and land at OpenRocket's
+**A `.ork` file's parachutes and streamers fly as OpenRocket flies them. They land at OpenRocket's
 speed to within 0.02% on 50 of its 53 example flights, and within 0.12% on all 53.** The function
 [`hpr::ork::recovery`](../api/hpr/ork/fn.recovery.html) turns each parachute and streamer of the
-configuration flown into one of the devices above, and [`hpr sim`](../cli.md#hpr-sim) flies a
+configuration flown into one of the devices above. [`hpr sim`](../cli.md#hpr-sim) flies a
 `.ork` file's devices through it. The model is OpenRocket's, not Knacke's, as the file's author
 chose it. This is a check against another program only: no descent from a `.ork` has been
 compared with a real flight. The decision record on flying a `.ork`'s recovery,
@@ -796,7 +795,7 @@ How each device flies:
 
 **A worked example.** A parachute 0.6 m (2.0 ft) across, with $C_D$ set to `auto`, has a canopy of
 $\pi \times 0.6^2/4 = 0.283\,\mathrm{m^2}$, and a drag area of $0.8 \times 0.283 = 0.226\,\mathrm{m^2}$. `hpr sim` prints it as
-`recovery: Main at apogee, 0.226 m² of drag area`, then when it opened.
+``recovery: `Main` at apogee, 0.226 m² of drag area``, then when it opened.
 
 Some devices never open, and some are refused:
 
@@ -804,8 +803,8 @@ Some devices never open, and some are refused:
   given, gives no device. `hpr sim` notes "`Main` never opens", with why.
 - **No motor lights in its stage.** A device set to `ejection` opens at its own stage's charge
   (OpenRocket labels the setting "First ejection charge of this stage"). In a stage where no motor
-  lights, it never opens, as in OpenRocket 24.12: probed, a charge from another stage never opens
-  it, whether the stages are joined or apart, and neither does a stage with no motor, a motor
+  lights, it never opens, as in OpenRocket 24.12. The probe showed that a charge from another stage never
+  opens it, whether the stages are joined or apart. Neither does a stage with no motor, a motor
   that never lights, or a plugged one. `hpr sim` notes "`Main` never opens: it opens at its
   stage's ejection charge, and no motor of its stage lights", and flies the other devices. Until
   [M4.5i](../decisions-and-roadmap.md#m4-5i), HPR Sim refused the configuration's whole recovery for
@@ -813,50 +812,50 @@ Some devices never open, and some are refused:
 - **Refused by name.** A device inside a part HPR Sim doesn't read, and one set to open by a word
   HPR Sim doesn't know. One set
   to open at `lowerstageseparation` opens at the split right behind its stage when that split
-  comes with nothing left to burn ([Staging](staging.md#a-payload-dropped-with-nothing-left-to-burn)),
-  and is refused otherwise. The flight then falls on its airframe alone, with the reason in its notes.
+  comes with nothing left to burn ([Staging](staging.md#a-payload-dropped-with-nothing-left-to-burn)).
+  It is refused otherwise. The flight then falls on its airframe alone, with the reason in its notes.
 - **A height above the apogee.** HPR Sim opens such a device at apogee, as an altimeter below its
   main's height at apogee would fire. OpenRocket's one probed run never opened it
   ([what the words mean](../format/ork.md#what-the-words-mean)). `hpr sim` notes when this
   happens.
 - **The height's zero.** HPR Sim counts a height from the ground. OpenRocket counts it from where the
-  center of mass starts on the pad, so HPR Sim opens a device set to a height that much lower.
+  center of mass starts on the pad. So HPR Sim opens a device set to a height that much lower.
 
 **How close it is.** `cargo xtask ork-flights` flies each configuration of OpenRocket's examples
-that HPR Sim flies a second time, with its devices, and compares it with OpenRocket 24.12's own
-flight ([the report's descents][ork-descents]). The targets were set before measuring: each
-deployment within 0.1 s or 2% of OpenRocket's time, whichever is larger, and the landing speed and
-the flight time within 5%. All 53 descents are compared. On the 7 configurations that drop stages
-under power, it is the sustainer's descent, and on the 6 that drop a payload with nothing left to
-burn, the payload's: in each, the branch OpenRocket's record keeps
+that HPR Sim flies a second time, with its devices. It compares the result with OpenRocket 24.12's own
+flight ([the report's descents][ork-descents]). The targets were set before measuring. Each
+deployment is to be within 0.1 s or 2% of OpenRocket's time, whichever is larger. The landing speed
+and the flight time are to be within 5%. All 53 descents are compared. On the 7 configurations that
+drop stages under power, it is the sustainer's descent. On the 6 that drop a payload with nothing
+left to burn, it is the payload's. In each, it is the branch OpenRocket's record keeps
 ([Separation](#separation-in-a-ork-file)).
 
-- **48 flights: the report's 51 with no named cause for an apogee gap, less the *Base drag
-  hack*'s three (below).** The landing speed is +0.00% to +0.02% off
+- 48 flights: the report's 51 with no named cause for an apogee gap, less the *Base drag
+  hack*'s three (below). The landing speed is +0.00% to +0.02% off
   OpenRocket's, and the flight time −1.57% to +3.16% (0.68% on average, either way). Among them
-  are two of *Pods--powered with recovery deployment*: on its booster's flight, the two pods'
+  are two of *Pods--powered with recovery deployment*. On its booster's flight, the two pods'
   parachutes open at launch + 5.35 s in both programs, and the flight time is −1.02% off.
-- **40 of those 48 meet every target as written.** The other 8 miss only on a deployment's time.
+- 40 of those 48 meet every target as written. The other 8 miss only on a deployment's time.
   All 8 reach an apogee 0.63% to 4.34% below OpenRocket's, a climb gap the same report shows. And
-  OpenRocket opens a device set to a height at the end of its time step: 0.06 to 12.64 m (0.20 to 41.5 ft) below
-  that height over the 15 such deployments, 0.36 to 11.15 m (1.2 to 36.6 ft) on the 8 that miss. With those two taken out, every deployment is within its target; the largest left
+  OpenRocket opens a device set to a height at the end of its time step. That is 0.06 to 12.64 m (0.20 to 41.5 ft) below
+  that height over the 15 such deployments. It is 0.36 to 11.15 m (1.2 to 36.6 ft) on the 8 that miss. With those two taken out, every deployment is within its target; the largest left
   is 0.33 s. That is what "met once sized" means in the report: each deployment that misses is
   held instead by what is left of it. For a device opened at apogee this holds by construction,
-  as it takes out the apogee's own time; the evidence on the descent itself is the landing speed,
-  and on the dual-deploy flights the drogue's speed as the main opens, within 0.07% on 5 of 6.
-- **The *Base drag hack*'s three flights** have no named cause either, but read high in apogee
+  as it takes out the apogee's own time. The evidence on the descent itself is the landing speed.
+  On the dual-deploy flights it is also the drogue's speed as the main opens, within 0.07% on 5 of 6.
+- The *Base drag hack*'s three flights have no named cause either, but read high in apogee
   ([a part set to no drag](../format/ork.md#a-part-set-to-no-drag)). They land 0.11% to 0.12%
   faster than OpenRocket, and their flight times are +1.84% to +7.23% off; the last misses its
   target.
-- **2 flights with a named cause for an apogee gap.** One is put down to HPR Sim's tube-fin drag, and
-  in the other, `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, the sustainer turns
+- 2 flights with a named cause for an apogee gap. One is put down to HPR Sim's tube-fin drag.
+  In the other, `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, the sustainer turns
   over before apogee in both programs. Both land at OpenRocket's speed (+0.00%), but their flight
   times are −52.64% and +5.78% off.
-- **The private designs.** On 34 descents, published only as differences
+- The private designs. On 34 descents, published only as differences
   ([report][library-report]), the landing speed is −1.53% to +0.04% off OpenRocket's and the
-  flight time −4.98% to +3.72%. 31 of 34 meet every target as written, and all 34 once each
-  deployment that misses is held by what is left of it; that sizing rests on numbers the private
-  report does not publish, and the −1.53% landing speed is not explained.
+  flight time −4.98% to +3.72%. 31 of 34 meet every target as written. All 34 do once each
+  deployment that misses is held by what is left of it. That sizing rests on numbers the private
+  report does not publish. The −1.53% landing speed is not explained.
 
 <a id="separation-in-a-ork-file"></a>**A stage that drops away under power.** Each device rides
 the part its stage is in ([`hpr::ork::separated_recovery`](../api/hpr/ork/fn.separated_recovery.html)),
@@ -868,14 +867,14 @@ sustainer with no device of its own tumbles from its apogee. `hpr sim` flies it 
 ([Separation](../cli.md#separation)). On the *Two stage high power rocket*'s two configurations,
 the sustainer's landing speed is +0.00% off OpenRocket's and its flight time +0.32% and +0.73%.
 On the first, the H148R-0 and H148R-0 configuration, the main opens 1.09 s before OpenRocket's,
-past its target. Its apogee is 1.79% lower and OpenRocket opens it 8.9 m (29 ft) below its set height;
-with both taken out, as *How close it is* above does, 0.065 s is left
+past its target. Its apogee is 1.79% lower and OpenRocket opens it 8.9 m (29 ft) below its set height.
+With both taken out, as *How close it is* above does, 0.065 s is left
 ([ADR-159][adr-159], powered separation in `hpr sim`).
 
 **What it leaves out.** The booster's own descent is not validated
 ([evidence row G13](../evidence.md#g13)): OpenRocket flies it as a rigid
 body, and its record keeps only the sustainer's branch. A tumbling booster falls side-on from the
-split, where a real one flies nose-first for a while, so its peak and landing are likely too low
+split, where a real one flies nose-first for a while. So its peak and landing are likely too low
 and too close to the pad ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). `hpr sim`
 flies a configuration whose separation can only come after apogee as one stack, with a note.
 Several separations under power fly, one after another
@@ -955,14 +954,14 @@ HPR Sim's descent is compared with RocketPy's for five of RocketPy's example roc
 within 3%, and most within 0.1%** (22 of the 30 in the [validation report][report]). The largest
 gaps, in order:
 
-- **NDRT 2020's north drift: +2.86%.** HPR Sim carries it 50.8 m (167 ft) south, 2.86% further than RocketPy
-  does. NDRT's main has a drag area of 16 m², and RocketPy's
-  [added mass](../glossary.md#added-mass), which HPR Sim leaves out, is the likely cause; no test has
+- NDRT 2020's north drift: +2.86%. HPR Sim carries it 50.8 m (167 ft) south, 2.86% further than RocketPy
+  does. NDRT's main has a drag area of 16 m². RocketPy's
+  [added mass](../glossary.md#added-mass), which HPR Sim leaves out, is the likely cause. No test has
   isolated it yet.
-- **Valetudo's north drift: −1.77%.** That drift is 19 µm, from the Earth's rotation alone, so a
+- Valetudo's north drift: −1.77%. That drift is 19 µm, from the Earth's rotation alone, so a
   tiny difference is a large fraction ([its own section](#valetudos-north-drift) below).
-- **Valetudo's whole drift: −0.89%**, of 0.19 m (0.62 ft), also from the Earth's rotation alone.
-- **NDRT 2020's descent time: +0.71%** longer in HPR Sim, likely the same added mass.
+- Valetudo's whole drift: −0.89%, of 0.19 m (0.62 ft), also from the Earth's rotation alone.
+- NDRT 2020's descent time: +0.71% longer in HPR Sim, likely the same added mass.
 
 **How the comparison is run:**
 
@@ -971,7 +970,7 @@ gaps, in order:
   [`validation/fixtures/recovery/rocketpy-descent.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/recovery/rocketpy-descent.json).
   The test `descent_matches_rocketpy_examples` replays each case in HPR Sim.
 - Both codes start from the same declared state after burnout, near apogee. The first device opens
-  at once: its lag is overridden to zero, so no ballistic stretch, flown under each code's own
+  at once. Its lag is overridden to zero, so no ballistic stretch, flown under each code's own
   rocket aerodynamics, comes between them.
 - Both get the same $C_D S$, the same deployment settings and the same wind. RocketPy's random
   noise on each parachute is set to zero, and HPR Sim flies RocketPy's formula for gravity (see
@@ -994,19 +993,20 @@ gaps, in order:
 | Prometheus 2022 (drogue 0.467 m², main 5.78 m² at 457.2 m (1,500 ft)) | +0.08% (153.50 s) | −0.01% (26.400 m/s (86.61 ft/s)) | −0.03% (7.323 m/s (24.03 ft/s)) | +0.08% (1,237.1 m (4,059 ft)) | +0.09% |
 | Juno III (drogue 0.885 m²) | −0.02% (53.56 s) | n/a | −0.01% (22.431 m/s (73.59 ft/s)) | −0.02% (457.9 m (1,502 ft)) | −0.02% |
 
-- **Every metric is inside the 3%** that the parachute milestone
+- Every metric is inside the 3% that the parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) set. The descent rate under the drogue, where a
   case has a main, agrees to 0.01%.
-- **The later devices' trigger heights** agree to −0.01%, −0.17% and −0.01%. RocketPy's trigger
+- The later devices' trigger heights agree to −0.01%, −0.17% and −0.01%. RocketPy's trigger
   sampling (below) accounts for them.
-- **Both simulators land within 1% of Knacke's $v_e$** for the device that is open, computed from
+- Both simulators land within 1% of Knacke's $v_e$ for the device that is open, computed from
   HPR Sim's own air and gravity at the site.
-- **These numbers use RocketPy's gravity and wind interpolation, not HPR Sim's defaults.**
+- These numbers use RocketPy's gravity and wind interpolation, not HPR Sim's defaults.
   - Gravity: the comparison has flown RocketPy's gravity model since
     [issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27). Under HPR Sim's own
-    gravity the drifting cases read a little closer (Calisto +0.06% rather than +0.08%, measured
-    once when the comparison switched and not pinned by a test), because the vertical's turn
-    downrange pushes the rocket back toward the pad and cancels part of a real difference. The
+    gravity the drifting cases read a little closer (Calisto +0.06% rather than +0.08%). That was
+    measured once when the comparison switched, and no test pins it. The drifting cases read closer because the
+    vertical's turn downrange pushes the rocket back toward the pad and cancels part of a real
+    difference. The
     like-for-like number is the honest one.
   - Wind: here both codes interpolate the wind by its east and north components, as RocketPy does.
     For a table of wind levels, HPR Sim's default is to interpolate speed and direction instead
@@ -1024,23 +1024,25 @@ gaps, in order:
     the smaller drift component by 2.86%.
   - A cited apparent-mass model would show whether it closes that gap.
 - **When a trigger fires.** RocketPy checks its triggers on a grid of `1/sampling_rate` (100 or
-  105 Hz), anchored at $t = 0$, and only over the span after its first accepted step. HPR Sim has no
+  105 Hz), anchored at $t = 0$. It checks only over the span after its first accepted step. HPR Sim has no
   sampling rate: its [event](../glossary.md#event) finder locates the crossing.
   - So RocketPy's first deployment is 2.5 ms late in the four 105 Hz cases, and 13 ms late in
     Prometheus's.
-  - Its test, height below the setting ($h < \text{setting}$), can fire only at or **below** the setting,
-    by at most one sample of fall, the descent speed over the sampling rate ($v_z/\text{rate}$): 0.17 m (0.56 ft)
+  - Its test, height below the setting ($h < \text{setting}$), can fire only at or **below** the setting.
+    The overshoot is at most one sample of fall, the descent speed over the sampling rate
+    ($v_z/\text{rate}$). That is 0.17 m (0.56 ft)
     for Calisto and 0.27 m (0.89 ft) for NDRT (about 0.01 s of descent).
-  - The heights the fixture records at those triggers (800.07 m (2,624.9 ft), 167.93 m (551.0 ft), 457.26 m (1,500.2 ft)) come from
+  - The fixture records the heights at those triggers: 800.07 m (2,624.9 ft), 167.93 m (551.0 ft),
+    457.26 m (1,500.2 ft). They come from
     the spline RocketPy fits through its stored samples for *reporting*, not from the continuous
-    solution between steps that its trigger read, so they sit just above the setting instead.
+    solution between steps that its trigger read. So they sit just above the setting instead.
   - The table compares HPR Sim's trigger heights with those reported values, the closest the fixture
     can come. The difference is the same size either way.
 - **Release against replacement.** HPR Sim sums its open devices, and releases the drogue when the
   main is full; RocketPy holds one $C_D S$ and replaces it. For these cases, whose canopies open
   instantly, the two are the same.
 - **Wind: no difference.** Both codes interpolate the declared wind by its east and north
-  components, and the test holds HPR Sim's to RocketPy's samples within 1e-9 m/s in each, NDRT's
+  components. The test holds HPR Sim's to RocketPy's samples within 1e-9 m/s in each, NDRT's
   sheared profile included.
 - **Atmosphere.** HPR Sim evaluates the 1976
   [standard atmosphere](../glossary.md#standard-atmosphere); RocketPy interpolates a 100-point
@@ -1054,17 +1056,17 @@ gaps, in order:
     where only `az` carries a gravity term).
   - HPR Sim's default, `GravityModel::Ellipsoidal`, uses the full normal-gravity **vector**. Above
     the ellipsoid it tilts slightly toward the equator ([Gravity](gravity.md)), in proportion to
-    height above the ellipsoid: 4.0e-6 m/s² sideways at Valetudo's site at ground level, and 8.7e-6
+    height above the ellipsoid. That is 4.0e-6 m/s² sideways at Valetudo's site at ground level, and 8.7e-6
     m/s² at 1,468 m (4,816 ft), where Valetudo's descent starts.
   - Over the fixture's 23 gravity samples the tilt runs from +6.9e-6 m/s² (north) at Valetudo's
-    top sample, 1,168 m (3,832 ft), to −3.3e-5 m/s² (south) at Calisto's 4,400 m (14,436 ft).
-  - HPR Sim's vector also turns with the local vertical downrange, by $g \cdot d/R$, with $d$ the distance
-    drifted and $R$ the Earth's radius: 2.1e-3 m/s² at Calisto's 1.4 km (0.87 mi) of drift. Wherever a rocket
+    top sample, 1,168 m (3,832 ft). It reaches −3.3e-5 m/s² (south) at Calisto's 4,400 m (14,436 ft).
+  - HPR Sim's vector also turns with the local vertical downrange, by $g \cdot d/R$. Here $d$ is the distance
+    drifted and $R$ the Earth's radius. That is 2.1e-3 m/s² at Calisto's 1.4 km (0.87 mi) of drift. Wherever a rocket
     drifts at all, that is much the larger of the two.
   - The parachute milestone's test ([M1.7a](../decisions-and-roadmap.md#m1-7a)) used to compare
     gravity by its size alone, so it could see neither. This comparison and the validation suite
-    now both fly `GravityModel::VerticalTaylor`, which HPR Sim ships as RocketPy's own formula for
-    like-for-like comparisons, and both check the gravity **vector**, not its length.
+    now both fly `GravityModel::VerticalTaylor`. HPR Sim ships it as RocketPy's own formula for
+    like-for-like comparisons. Both check the gravity **vector**, not its length.
 - **Geometry.** HPR Sim flies over the curved ellipsoid and measures heights along its perpendicular
   ([ellipsoidal height](../glossary.md#ellipsoidal-height)); RocketPy's height $z$ is measured in a
   flat frame. Over Calisto's 1.4 km (0.87 mi) of drift the curvature is 0.15 m (0.49 ft) of height, 0.03 s of descent.
@@ -1074,23 +1076,23 @@ gaps, in order:
 This tiny number is worth its own section, because it is the one that found the gravity difference
 above.
 
-- **What to expect.** In still air, Valetudo's north drift comes from the
+- What to expect. In still air, Valetudo's north drift comes from the
   [Coriolis acceleration](../glossary.md#coriolis-acceleration) alone. The falling rocket picks up a
-  small eastward velocity $v_{\mathrm{east}}$ from it, and the same acceleration acting on that eastward
+  small eastward velocity $v_{\mathrm{east}}$ from it. The same acceleration acting on that eastward
   motion pushes it slightly north (Valetudo's site is in the southern hemisphere). The horizontal
-  velocity relaxes to a drag balance in about $v_t/g \approx 1.8\,\mathrm{s}$, with $v_t$ the terminal speed, so
+  velocity relaxes to a drag balance in about $v_t/g \approx 1.8\,\mathrm{s}$, with $v_t$ the terminal speed. So
   $v_{\mathrm{north}} \approx -2\omega_z v_{\mathrm{east}} \cdot v_t/g$, with $\omega_z$ the vertical part of the Earth's rotation. That
   integrates to 2.0e-5 m over the descent. RocketPy gives 1.9653e-5 m.
-- **What HPR Sim gave at first.** The parachute milestone
+- What HPR Sim gave at first. The parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) didn't compare this component; the validation harness
   ([M2.1a](../decisions-and-roadmap.md#m2-1a)) does. When it first did, HPR Sim read 28 times
   RocketPy's: 5.51e-4 m (0.55 mm (0.022 in)), under HPR Sim's default gravity. The tilt of that gravity,
-  integrated down the 800 m (2,625 ft) of descent, $(1/g) \int_0^{800} g_{\mathrm{north}}\, \mathrm{d}z$ = 5.2e-4 m, accounts for the
+  integrated down the 800 m (2,625 ft) of descent, $(1/g) \int_0^{800} g_{\mathrm{north}}\, \mathrm{d}z$ = 5.2e-4 m. That accounts for the
   difference to within a few percent
   ([issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27)).
-- **What it gives now.** Flown against RocketPy's own gravity formula, as the validation suite
+- What it gives now. Flown against RocketPy's own gravity formula, as the validation suite
   does, HPR Sim gives 1.93e-5 m, −1.8% ([validation report][report]). Both codes carry the same
-  Coriolis term (HPR Sim in `dynamics.rs`; RocketPy in `flight.py:2779-2783`), and on this evidence
+  Coriolis term (HPR Sim in `dynamics.rs`; RocketPy in `flight.py:2779-2783`). On this evidence
   neither is wrong: they were being asked different questions.
 
 [adr-012]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0012-recovery-drag-areas-triggers-inflation-and-the.md

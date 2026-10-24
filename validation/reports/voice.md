@@ -2,15 +2,15 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 61 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 66 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 440137 words, 0 stock phrases. 66 pages are within every limit.
+82 pages, 440240 words, 0 stock phrases. 71 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
-| Bold-label items | 0.50 | 8 | 1.88, `docs/perf.md` |
+| Bold-label items | 0.50 | 7 | 1.88, `docs/perf.md` |
 | Labels | 0.50 | 4 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 14 | 1.51, `docs/format/flight-logs.md` |
+| Sentences over 25 words | 0.50 | 9 | 1.51, `docs/format/flight-logs.md` |
 | Hedges | 1.00 | 0 | 0.26, `docs/checking-a-claim.md` |
 | Stacked hedges | 0.10 | 0 | 0.02, `docs/physics/design.md` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
@@ -68,18 +68,18 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/gravity.md` (`ref`, `held`) | 1134 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/integration.md` (`ref`, `held`) | 2058 | 12.5 | 0% | 0.20 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.25 |
 | `docs/physics/interpolation.md` (`ref`, `held`) | 547 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `docs/physics/log-readings.md` (`ref`) | 16192 | 24.5 | 40% | 0.33 | 0.13 | **1.35** | 0.17 | 0.00 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
+| `docs/physics/log-readings.md` (`ref`, `held`) | 16234 | 14.7 | 0% | 0.33 | 0.13 | 0.00 | 0.17 | 0.00 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
 | `docs/physics/magnetic.md` (`ref`, `held`) | 2229 | 13.9 | 0% | 0.14 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.00 |
 | `docs/physics/mass.md` (`ref`, `held`) | 9793 | 12.9 | 1% | 0.21 | 0.04 | 0.02 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.10 | 0.35 |
-| `docs/physics/metrics.md` (`ref`) | 5555 | 17.9 | 21% | 0.04 | 0.22 | **1.00** | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.13 |
+| `docs/physics/metrics.md` (`ref`, `held`) | 5566 | 14.3 | 0% | 0.04 | 0.22 | 0.00 | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.11 |
 | `docs/physics/motor.md` (`ref`, `held`) | 5636 | 13.7 | 1% | 0.32 | 0.22 | 0.02 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.18 |
 | `docs/physics/moving-mass.md` (`ref`, `held`) | 2491 | 13.5 | 0% | 0.09 | 0.05 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 | 0.65 |
 | `docs/physics/quadrature.md` (`ref`, `held`) | 494 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `docs/physics/recovery.md` (`ref`) | 12570 | 17.8 | 21% | **0.71** | 0.22 | **0.94** | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
+| `docs/physics/recovery.md` (`ref`, `held`) | 12598 | 14.0 | 0% | 0.20 | 0.22 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
 | `docs/physics/released-mass.md` (`ref`, `held`) | 2801 | 13.8 | 0% | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.43 |
 | `docs/physics/shapes.md` (`ref`, `held`) | 2014 | 13.0 | 0% | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
-| `docs/physics/staging.md` (`ref`) | 7178 | 18.6 | 26% | 0.46 | 0.24 | **1.23** | 0.20 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.10 |
-| `docs/physics/synthetic-flights.md` (`ref`) | 4067 | 23.0 | 36% | 0.45 | 0.08 | **1.36** | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
+| `docs/physics/staging.md` (`ref`, `held`) | 7211 | 14.3 | 0% | 0.46 | 0.24 | 0.00 | 0.20 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.10 |
+| `docs/physics/synthetic-flights.md` (`ref`, `held`) | 4056 | 14.4 | 0% | 0.45 | 0.08 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
 | `docs/physics/turbulence.md` (`ref`, `held`) | 1292 | 11.3 | 0% | 0.31 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.24 |
 | `docs/physics/wind.md` (`ref`, `held`) | 2989 | 14.6 | 0% | 0.37 | 0.07 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.31 | 0.27 |
 | `docs/pick-a-motor.md` (`held`) | 1166 | 13.3 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.46 | 0.35 |
