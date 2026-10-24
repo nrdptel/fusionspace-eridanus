@@ -7,31 +7,31 @@ part lands.
 
 - **What it models:** a part carried inside the airframe, such as ballast or a payload, let go
   during the flight on a trigger. The rest of the rocket flies on in
-  [six degrees of freedom](../glossary.md#6-dof-six-degrees-of-freedom), its mass,
-  [center of mass](../glossary.md#center-of-gravity-cg) and inertia changing at once to those of
+  [six degrees of freedom](../glossary.md#6-dof-six-degrees-of-freedom). The rocket's mass,
+  [center of mass](../glossary.md#center-of-gravity-cg) and inertia change at once to those of
   what remains. The part falls to the ground on its own. Use it to see what dropping ballast or a
-  payload does to the flight, and where the part comes down. This is new with
-  [M1.12b](../decisions-and-roadmap.md#m1-12b) (a mass released in flight).
+  payload does to the flight, and where the part comes down. The model was added in
+  [the released-mass milestone](../decisions-and-roadmap.md#m1-12b).
 - **Sources:** the [parallel-axis theorem](../glossary.md#parallel-axis-theorem) and the kinetics
   of a system of particles, from Meriam and Kraige's *Engineering Mechanics: Dynamics*. The part's
   fall uses the equations a separated body already has ([Recovery](recovery.md#the-descent)).
 - **How well it is validated:** against exact answers only. No other simulator or real flight has
   been compared with it. The mass properties after a release match a hand calculation, and the
-  design built without the part, within the tests' bound of 1e-15 (kg, m, kg·m²). In free flight
-  with nothing acting on the rocket, the rest and the part together keep the rocket's momentum to
-  a relative error of 1.5e-13, and its angular momentum to 7.3e-12.
-- **What it leaves out:** a push that throws the part out; a release in a flight that also
-  separates, ejects pieces or moves a mass; a release before the rocket leaves the rail;
-  parachutes on the part; and the part's own spin once it is out. Where and how fast the part
-  lands depends on its [drag area](../glossary.md#drag-area), which you give. HPR Sim doesn't warn
-  when a release leaves the rocket unstable: dropping a part forward of the center of mass moves
-  the center aft, and the [stability margin](../glossary.md#stability-margin) falls by 1.683
-  [calibers](../glossary.md#caliber) in the example below. Read it from the flight's
+  design built without the part. The tests' bound is 1e-15 (kg, m, kg·m²). In free flight with
+  nothing acting on the rocket, the rest and the part together keep the rocket's momentum to a
+  relative error of 1.5e-13. They keep its angular momentum to 7.3e-12.
+- **What it leaves out:** a push that throws the part out, parachutes on the part, and the part's
+  own spin once it is out. A release can't come in a flight that also separates, ejects pieces or
+  moves a mass, or before the rocket leaves the rail. Where and how fast the part lands depends on
+  its [drag area](../glossary.md#drag-area), which you give. HPR Sim doesn't warn when a release
+  leaves the rocket unstable. Dropping a part forward of the center of mass moves the center aft.
+  In the example below, the [stability margin](../glossary.md#stability-margin) falls by 1.683
+  [calibers](../glossary.md#caliber). Read it from the flight's
   metrics ([Flight metrics](metrics.md#stability-margins)).
 
 ## The model
 
-How a release is described, what it does to the rocket, how the part falls and how it is read back.
+How a release is described, what it does and how it is read back.
 
 ### Describing a release
 
@@ -54,14 +54,16 @@ the part and the rule:
 - one of several copies in a [cluster](../glossary.md#cluster) of tubes;
 - a part that holds a motor: the rocket's motors stay with it;
 - a part whose mass is set by an [override](../glossary.md#override), on its stage or on a
-  component around it that includes it, because the override doesn't say how much of the mass is
-  the part's;
+  component around it that includes it. The override doesn't say how much of the mass is the
+  part's;
 - a part released twice, or inside another part that is released;
 - a part with no mass, or releases that would leave the airframe, its motors aside, with none;
 - a drag area that is zero, negative or not finite. A part with no drag would fall as if in a
   vacuum, which is a wrong number rather than a model;
-- a trigger a parachute couldn't have either: a time before launch, a height that isn't positive,
-  a motor that isn't there, has no ejection delay, or is set to fail to light.
+- a trigger a parachute couldn't have either:
+  - a time before launch;
+  - a height that isn't positive;
+  - a motor that isn't there, has no ejection delay, or is set to fail to light.
 
 A release that would come on the pad or the rail makes `Simulation::run` return an error, with no
 flight: the part has nowhere to go. A flight can't combine a release with a separation, ejected
@@ -71,8 +73,8 @@ pieces or a [moving mass](moving-mass.md) yet.
 
 At the instant the part leaves, three things happen.
 
-**The rocket becomes the rest.** With $M$ the rocket's mass and $\mathbf{cg}$ its center, $m$ the part's
-mass, $\mathbf{c}$ its center and $I_p$ its own inertia about $\mathbf{c}$, the rest has
+**The rocket becomes the rest.** $M$ is the rocket's mass and $\mathbf{cg}$ its center. The part has mass
+$m$, center $\mathbf{c}$ and its own inertia $I_p$ about $\mathbf{c}$. The rest has
 
 $$
 \begin{aligned}
@@ -84,25 +86,25 @@ I' &= I_{\mathrm{moved}} - \bigl(I_p \\
 \end{aligned}
 $$
 
-where $I_{\mathrm{moved}}$ is the rocket's inertia moved to the new center by the parallel-axis theorem,
-$E$ is the identity matrix, and the bracket is the part's inertia about that center. It is the
+where $I_{\mathrm{moved}}$ is the rocket's inertia moved to the new center by the parallel-axis theorem.
+$E$ is the identity matrix, and the bracket is the part's inertia about that center. It's the
 sum that builds a rocket from its parts, run backwards. The aerodynamics don't change: the part
 was inside the airframe.
 
 **The rest flies on from the same state.** The flight's state is the nose tip's position and
 velocity, the attitude and the turning rates ([Rigid-body flight](flight.md#state)). The rest
-keeps the nose tip, so none of these changes. The mass properties step, and the integrator (the
-numerical method that steps the flight forward in time) starts afresh at the same instant, as it
-does when a [sustainer](../glossary.md#sustainer) flies on after a separation
+keeps the nose tip, so none of these changes. The mass properties step. The integrator (the
+numerical method that steps the flight forward in time) starts afresh at the same instant. It does
+the same when a [sustainer](../glossary.md#sustainer) flies on after a separation
 ([Staging](staging.md#powered-separation)). What the flight reports about the center of mass
-steps too: its position moves by $\mathbf{cg}' - \mathbf{cg}$ (9.5 cm (3.7 in) aft in the example), and its height with it.
+steps too. Its position moves by $\mathbf{cg}' - \mathbf{cg}$ (9.5 cm (3.7 in) aft in the example), and its height with it.
 
-**The part leaves with the velocity it had.** Every point of a rigid body moves at $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}$,
-with $\mathbf{v}_O$ the nose tip's velocity, $\boldsymbol{\omega}$ the rocket's turning rate and $\mathbf{r}$ the point's place in
+**The part leaves with the velocity it had.** Every point of a rigid body moves at $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}$.
+Here $\mathbf{v}_O$ is the nose tip's velocity, $\boldsymbol{\omega}$ the rocket's turning rate and $\mathbf{r}$ the point's place in
 the rocket. The part leaves from where it was, with its center's velocity $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{c}$, and the
 rest's center goes on at $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{cg}'$. Nothing pushes the two apart, so every bit of the rocket
-keeps its velocity: once the motor has burned out, the rest's momentum plus the part's is the
-rocket's just before, and the same holds for the angular momentum.
+keeps its velocity. Once the motor has burned out, the rest's momentum plus the part's is the
+rocket's just before. The same holds then for the angular momentum.
 
 While the motor burns, the center of mass drifts along the airframe as propellant is used, and the
 reported center-of-mass velocity includes that drift. A release steps the center by $\mathbf{cg}' - \mathbf{cg}$, so
@@ -111,20 +113,20 @@ $\dot{M}\,(\mathbf{cg}' - \mathbf{cg})$, with $\dot{M}$ the propellant's mass fl
 [launch frame](../glossary.md#launch-frame-enu). No part of the rocket changes its velocity; only
 the reported center does.
 
-**The flight has one apogee.** The rest's center is not where the rocket's was, so on a flight
-that turns, it can rise for a moment after the rocket's apogee, or already be falling when a part
-leaves just before it. The flight records one [apogee](../glossary.md#apogee): the rocket's, or
+**The flight has one apogee.** The rest's center is not where the rocket's was. So on a flight
+that turns, it can rise for a moment after the rocket's apogee. Or it can already be falling when
+a part leaves just before the apogee. The flight records one [apogee](../glossary.md#apogee): the rocket's, or
 the release itself when it leaves the rest already falling. A part let go at apogee leaves at
-that one, even when another part leaving first sets the rest rising again, and whatever order
-the parts are listed in. Past the recorded apogee the rocket counts as coming down, so a part or
-a parachute set to a height above the apogee still goes there, as
+that one, whatever order the parts are listed in. It does so even when another part leaving
+first sets the rest rising again. Past the recorded apogee the rocket counts as coming down. So
+a part or a parachute set to a height above the apogee still goes there, as
 [Recovery: triggers](recovery.md#triggers-lag-and-release) describes. A flight started part way (`Simulation::run_free`) already
-falling lets a part waiting for the apogee go at its start; it records an apogee only if the
+falling lets a part waiting for the apogee go at its start. It records an apogee only if the
 rest later rises and falls again.
 
-**The rest can land at the release.** A part let go just above the ground, forward of the center
-of mass of a rocket falling nose up, steps the rest's center down, to the ground or below it. The
-rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
+**The rest can land at the release.** Take a rocket falling nose up, just above the ground, that
+lets go of a part forward of its center of mass. That steps the rest's center down, to the ground
+or below it. The rocket has then landed, at the release. A recorded trajectory's last row is at that time, but of
 the rocket as it was before the part left. A release that steps the rest below the ground while
 it is still climbing is an error instead.
 
@@ -148,7 +150,7 @@ If it left climbing, its own apogee is recorded.
 The drag area is yours to give. For a part tumbling at random, the tumble model's body term gives
 0.56 times its side profile, its diameter times its length
 ([Recovery: tumble](recovery.md#tumble)). That is half the 1.12 of a cylinder broadside. It was
-fitted to whole rockets 44 to 103 mm (1.7 to 4.1 in) across falling at 5 to 6.6 m/s (16 to 22 ft/s), and its one drop test without
+fitted to whole rockets 44 to 103 mm (1.7 to 4.1 in) across, falling at 5 to 6.6 m/s (16 to 22 ft/s). Its one drop test without
 fins wanted 0.79, which gives a speed 16% lower. So treat a tumbling part's landing speed as
 uncertain by at least that much. The simulator doesn't build the area for you, because its tumble
 model needs body tubes and fins, and a released part has neither. If the part carries a parachute,
@@ -157,7 +159,7 @@ give the parachute's drag area; it is taken as open from the instant the part le
 ### Reading a release back
 
 - `EventKind::MassRelease(i)` among the flight's events marks release $i$ (its place in the list
-  given to `with_releases`); its sample is the rocket just before the part left.
+  given to `with_releases`). The event's sample is the rocket just before the part left.
 - `FlightResult::released` holds each part's flight (`ReleasedFlight`): its start, its events, its
   landing. The separated bodies of a separation or an ejection are elsewhere, in
   `FlightResult::bodies`.
@@ -170,11 +172,10 @@ The example
 [`released_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/released_ballast.rs)
 flies the project's 54 mm (2.1 in) test design
 ([`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json),
-a body 56.3 mm (2.2 in) across) on an I175 motor
-([motor designation](../glossary.md#motor-designation)), with 200 g of ballast in its airframe: a
-cylinder 50 mm (2.0 in) long and 30 mm (1.2 in) across, on the axis, its center 0.375 m (1.23 ft) aft of the nose tip. It flies
-in calm standard air from a site in New Mexico 1,400 m (4,593 ft) up, and a drogue with a drag area of 0.3 m²
-opens at apogee. At 5 s, well after the 2.5 s burn, the ballast is let
+a body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) motor. The airframe
+carries 200 g of ballast, a cylinder 50 mm (2.0 in) long and 30 mm (1.2 in) across. The ballast is on the axis, its
+center 0.375 m (1.23 ft) aft of the nose tip. The rocket flies in calm standard air from a site in New Mexico 1,400 m (4,593 ft)
+up. A drogue with a drag area of 0.3 m² opens at apogee. At 5 s, well after the 2.5 s burn, the ballast is let
 go to tumble down under $0.56 \times 0.05 \times 0.03 = 0.00084$ m², the tumble model's body term.
 
 In the table the transverse inertia is about an axis across the rocket through its center of
@@ -195,13 +196,13 @@ $$
 \end{aligned}
 $$
 
-aft of the tip. It moves 0.09474 m (0.3108 ft) aft, because the ballast sat forward of the center, and the static margin
+aft of the tip. It moves 0.09474 m (0.3108 ft) aft, because the ballast sat forward of the center. The static margin
 falls by $0.09474 / 0.05630 = 1.683$ calibers (the body's diameter is 0.05630 m (0.1847 ft)), from 4.297 to
 2.615: still stable.
 
 At the release the rocket carries 131.5839 kg·m/s of upward momentum. Every point of the airframe
-moves at $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}$, so it divides between the rest, 99.4433, and the ballast, 32.1406; the
-free-flight test below checks that the flight keeps it so.
+moves at $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}$, so the momentum divides between the rest, 99.4433, and the ballast, 32.1406.
+The free-flight test below checks that the flight keeps it so.
 
 | | apogee (m) | lands at (s after launch) | landing speed (m/s) |
 |---|---:|---:|---:|
@@ -209,10 +210,10 @@ free-flight test below checks that the flight keeps it so.
 | the ballast | 1496.5 | 40.0 | 66.74 |
 | the rocket, ballast kept | 1749.9 | 253.5 | 7.07 |
 
-- **The rocket climbs 80 m (262 ft) less** without its ballast: the same drag slows a lighter rocket more.
-- **It comes down more slowly** under the same drogue, and so lands later. A terminal speed goes
+- The rocket climbs 80 m (262 ft) less without its ballast. The same drag slows a lighter rocket more.
+- It comes down more slowly under the same drogue, and so lands later. A terminal speed goes
   as the square root of the mass: $7.07 \times \sqrt{0.6188 / 0.8188}$ $= 6.15$ m/s.
-- **The ballast peaks lower than the rocket**, having more drag for its mass. Its terminal speed
+- The ballast peaks lower than the rocket, having more drag for its mass. Its terminal speed
   at the ground is
 
   $$
@@ -222,13 +223,13 @@ free-flight test below checks that the flight keeps it so.
   \end{aligned}
   $$
 
-  with the standard air's density 1.069 kg/m³ at the site, 1,400 m (4,593 ft) up ([Atmosphere](atmosphere.md)), and gravity
+  with the standard air's density 1.069 kg/m³ at the site ([Atmosphere](atmosphere.md)), and gravity
   9.79 m/s² there ([Gravity](gravity.md)). It lands a little faster, 66.74 m/s (219.0 ft/s), because it is
   still slowing as the air thickens.
 
 ## Checks, limits and sources
 
-How the model is checked, what it leaves out, and the sources it rests on.
+How the model is checked, what it leaves out, and its sources.
 
 ### How it is checked
 
@@ -263,28 +264,28 @@ Every refusal has a test that checks which rule fired, in `releases_that_cannot_
 
 ### What it leaves out
 
-- **A push.** Nothing throws the part out: a spring or a charge would add to its velocity and
-  take from the rocket's, as an ejection's impulse does
-  ([Recovery: ejected pieces](recovery.md#ejected-pieces)).
-- **Releases with a separation, ejections or mass shifts.** The simulator can't combine these yet.
-- **Releases on the pad or the rail**, as above.
-- **Parachutes on the part.** It falls under one drag area from the instant it leaves; it has no
-  devices of its own, and no opening time.
-- **The part's spin.** Its spin is dropped: 1.5e-3 of the rocket's angular momentum in the
-  free-flight test.
-- **Warnings.** The simulator doesn't warn when a release leaves the rocket unstable, as above.
+- Nothing throws the part out. A spring or a charge would add to its velocity and take from the
+  rocket's, as an ejection's impulse does ([Recovery: ejected pieces](recovery.md#ejected-pieces)).
+- The simulator can't combine a release with a separation, ejections or mass shifts yet.
+- The part falls under one drag area from the instant it leaves. It has no devices of its own,
+  such as a parachute, and no opening time.
+- The part's spin is dropped: 1.5e-3 of the rocket's angular momentum in the free-flight test.
+- The simulator doesn't warn when a release leaves the rocket unstable.
 
-The decision record, [ADR-088][adr-088], sets out these choices: the rest flying on from the same
-state, the part leaving at its own velocity and falling under a drag area you give, and what is
-refused. A part that moves along the airframe without leaving it is
-[Moving mass](moving-mass.md).
+The decision record, [ADR-088][adr-088], sets out these choices:
+
+- the rest flying on from the same state;
+- the part leaving at its own velocity and falling under a drag area you give;
+- what is refused.
+
+A part that moves along the airframe without leaving it is [Moving mass](moving-mass.md).
 
 ### References
 
-- **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*: chapter 4 (kinetics
-  of systems of particles: the momentum and angular momentum of a system summed over its
-  particles, and their conservation with no external force) and appendix B (the parallel-axis
-  theorem and the inertia tensor).
+- **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*. Chapter 4 (kinetics
+  of systems of particles) sums a system's momentum and angular momentum over its particles.
+  It also covers their conservation with no external force. Appendix B has the parallel-axis theorem and the inertia
+  tensor.
 - The equations of motion the rest flies on: the RocketPy technical documentation, "Equations of
   Motion" v0 and v1 ([Rigid-body flight](flight.md)).
 - The tumble model's body term: the OpenRocket technical documentation, §3.5

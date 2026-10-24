@@ -1728,7 +1728,7 @@ mod tests {
     /// OpenRocket's station to 1e-15.
     ///
     /// The nose cones and the transition carry the gaps their walls already had: 5.1e-7 of the
-    /// cone's mass, 3.9e-5 of the ogive's and 2.8e-6 of the transition's, and centers within
+    /// cone's mass, 3.93e-5 of the ogive's and 2.85e-6 of the transition's, and centers within
     /// 2.5e-6 m (hpr measures a wall normal to the surface). One mass component is pinned apart: packed with an
     /// automatic radius inside the coupler, OpenRocket shortens it to 8.49 mm, keeping the volume
     /// of its 12.5 mm by 50 mm default, and hpr keeps its written 50 mm, 20.75 mm further aft of

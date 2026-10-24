@@ -893,8 +893,10 @@ the test holds the mass to 1e-14 and the station to 1e-15. Three things are pinn
   OpenRocket's. OpenRocket shortens its packed length to keep its volume, and HPR Sim keeps the
   written length
   ([#186: OpenRocket repacks a part that does not fit](https://github.com/nrdptel/fusionspace-eridanus/issues/186)).
-- The nose cones' and the transition's own walls keep the gaps they already had: up to 3.9e-5 of
-  the mass and 2.5e-6 m in the center, since HPR Sim measures a wall square to the surface.
+- The nose cones' and the transition's own walls keep the gaps they already had: up to 3.93e-5 of
+  the mass and 2.5e-6 m in the center. The ogive's 3.93e-5 has no traced cause; the test
+  holds all three to 5e-5 of mass. The transition's 2.85e-6 is the sliver OpenRocket's square-cut end adds
+  ([Nose cones, transitions and solids of revolution](../physics/shapes.md#solids-of-revolution)).
 - The coupler at the tip is the 14th probe. HPR Sim refuses it, and OpenRocket weighs it as nothing.
 
 The test `an_automatic_radius_inside_a_nose_reads_as_openrocket_does` in `hpr-validate` holds
