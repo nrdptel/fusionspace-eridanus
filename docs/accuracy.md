@@ -1173,7 +1173,8 @@ rest.
   On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
   the two. OpenRocket's masses follow a third wall, measured across each station. It equals HPR
   Sim's square-to-surface wall on a cone and differs on curved noses, by up to 0.48% on four blunt
-  elliptical catalog noses ([the masses against OpenRocket](the-builder.md#the-masses-against-openrocket)).
+  elliptical catalog noses ([Shapes](physics/shapes.md),
+  [the masses against OpenRocket](the-builder.md#the-masses-against-openrocket)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles
