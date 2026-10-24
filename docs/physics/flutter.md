@@ -229,7 +229,7 @@ an airfoiled fin's modulus, and a booster's max q.
   aluminum's modulus (p. 6), and the simulator does the same. His definition,
   $G_E = 6JG/(c t^3)$ (eq. 12), assumes a thin airfoil's torsion constant $J \approx c t^3/6$ (eq. 10).
   A flat plate's is $c t^3/3$, which would double $G_E$ and raise the flutter speed by $\sqrt{2}$. The
-  simulator keeps the lower reading. The exception runs the other way. For a fin with an airfoil
+  simulator keeps the lower reading. The exception runs the other way. For a fin with a NACA four-digit
   section, eq. 12 gives $0.946\,G$. The simulator's $V_f$ for such a fin is then up to 2.9% high
   (rounded up from $1/\sqrt{0.946} = 1.0281$).
 - **Martin's taper factor.** His derivation carries a factor $1/(f_1^2 f_2^2)$. Here $f_1$ corrects the
