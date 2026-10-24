@@ -31,7 +31,7 @@ past it.
 The speeds sit far inside it. In the committed [report][report], over the 41 speed rows (burnout
 speed, largest speed and rail-exit speed of the nine flights, and the landing speed of the nine
 flights and five descents), the largest differences are +0.056% (Juno III's burnout speed),
-+0.051% (its largest speed), 0.031% (Prometheus 2022's landing under its parachute) and 0.015%
++0.052% (its largest speed), 0.031% (Prometheus 2022's landing under its parachute) and 0.015%
 (rail exit), each rounded up. The apogees of the six flights whose case files give no cause for
 one (Calisto in wind and calm air, Valetudo, NDRT 2020, and Juno III and Bella Lui in calm air)
 differ by +0.038% to +0.112%. The other three apogees have a measured cause in their case files,
