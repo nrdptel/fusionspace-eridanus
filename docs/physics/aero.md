@@ -1709,8 +1709,8 @@ It is not a new question, though. It is the loading through a tangent-cone cross
 [what a crossing costs](#what-a-crossing-is-and-what-it-costs) inside a segment. It is open as [issue #108: the loading through a
 crossing](https://github.com/nrdptel/fusionspace-eridanus/issues/108). This part of it, at Mach
 2.90 to 2.95, is inside the [operating envelope](../VALIDATION.md#operating-envelope)'s extended
-band. So it is part of [M1.14h: the extended band](../decisions-and-roadmap.md#m1-14h). Only
-#108's part above Mach 4 is deferred ([ADR-143][adr-143]).
+band. So it is part of [M1.14h: the extended band](../decisions-and-roadmap.md#m1-14h).
+Only #108's part above Mach 4 is deferred ([ADR-143][adr-143]).
 The region's other edge, the balance, has no step at all. There $\eta$ is zero, so the exponential
 form and the generalized method are the same reading, and the two branches meet.
 
