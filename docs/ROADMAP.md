@@ -692,7 +692,7 @@ Avionics (VISION V39):
   has bench-tested neutral on power loss and on each abort condition; and a flight on 5 kN·s or
   less lands inside the 95% Monte Carlo band of M6.4 or M6.5's simulation for apogee and the roll
   rate's history.
-- [ ] **M13.7 Ground-test bench** (ADR-194; public tier: it flies nothing and moves no control
+- [ ] **M13.7 Ground-test bench** (ADR-194, ADR-291; public tier: it flies nothing and moves no control
   surface). A pressure logger for a sealed chamber and a wired firing box under the product
   system's ground-test rules, both writing M6.8's ground-test log. *Done when:* Neer has built and
   bench-tested both; the logger reads within its transducer's rated accuracy of a reference gauge

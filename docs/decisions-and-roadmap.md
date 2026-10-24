@@ -319,6 +319,7 @@ until someone rewrites it in plainer words.
 | [ADR-288: Every solid motor ships in the package][adr-288] | [M5.7](#m5-7) will compile ThrustCurve.org's solid-motor catalog into `hpr-motor`: every record, and every curve file HPR Sim reads but a restricted one, so no motor in the snapshot needs a fetch. Each file carries its check against its motor's published figures. A motor's default file passes where one does, and flying a failing file warns. `hpr motors update` adds newer motors and files when online. Until then, 32 motors come built in. |  |
 | [ADR-289: The 2026-10-24 review: the RocketPy speed and apogee gates tightened][adr-289] | In the RocketPy comparisons flown on the same inputs, the burnout, largest, rail-exit and landing speeds agree within 0.056% and the apogees of the six flights with no written model difference within 0.113%, while RocketPy's own solver moves them by at most 0.0032% and 0.00064%; a 3% gate was 53 times the largest speed difference, so they become 0.2% and 0.5%, and the planning review places four new ideas. |  |
 | [ADR-290: The control abort's 30° measured from the launch elevation, and TP-1353's aileron points to Mach 2.96][adr-290] | The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as the IREC student competition's rule §7.3.1 words it, not 30° from vertical. [M6.5](#m6-5)'s supersonic tab check compares against NASA TP-1353's tail-fin ailerons from Mach 1.6 to 2.96, the range of the report's Figure 18 points. |  |
+| [ADR-291: The bench's chamber test from Fetter's seven printed peaks, as a two-sample t-test][adr-291] | [M13.7](#m13-7)'s seven 0.5 g shots in an empty chamber are compared with the seven peaks Fetter's Fig. 7-5 lists by a two-sample t-test at 95% (pooled deviation, 12 degrees of freedom). With shots as spread as Fetter's, a mean within 28.8 ± 5.1 psi passes. The figure's printed mean and deviation, 28.49 and 4.04 psi, don't match its own peaks, so they are not used. |  |
 
 ## The roadmap
 
@@ -1210,6 +1211,7 @@ is the milestone that added or will add that test.
 [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-290]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0290-the-control-abort-attitude-from-the-launch-elevation.md
+[adr-291]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0291-the-chamber-test-from-fetters-printed-peaks.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
