@@ -41,7 +41,8 @@ The research is in [the roll and drag control note](../research/roll-and-drag-co
      design allows it. Otherwise the stuck-surface check covers each actuator.
 3. **The flight rules become checks:**
    - neutral through boost (IREC §7.4);
-   - neutral on an abort, a power loss, or a tilt past 30° (§7.3);
+   - neutral on an abort, a power loss, or an attitude more than 30° from the launch elevation
+     (§7.3.1);
    - stable when inert (§7.2.1).
 4. **Tabs before canards for roll.** M6.5 models both. Tabs come first: they sit on the tail, so
    no tail can cancel them, and they don't move the center of pressure forward. Canards carry a
