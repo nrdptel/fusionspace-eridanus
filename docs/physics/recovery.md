@@ -388,7 +388,7 @@ The exponent sets the shape of the growth:
 #### The fill constant at hobby speeds
 
 Knacke states the linear form only "in the medium-velocity range of about 150 to 500 ft/s"
-(45.7 to 152.4 m/s (150 to 500 ft/s); `Inflation::FILL_CONSTANT_RANGE_M_S`). A hobby main is slower:
+(45.7 to 152.4 m/s; `Inflation::FILL_CONSTANT_RANGE_M_S`). A hobby main is slower:
 
 - A main opening at 20 to 30 m/s (66 to 98 ft/s) is **below** that range.
 - There, his alternative for solid flat circular canopies is $t_f = n D_0/v^{0.85}$ with $n = 4.0$.
@@ -396,7 +396,7 @@ Knacke states the linear form only "in the medium-velocity range of about 150 to
   does not use it.
 - So outside the range the filling time, and with it the peak load the simulator reports, is an
   extrapolation. At 25 m/s (82 ft/s) the linear form gives a 2.5 m (8.2 ft) main $t_f = 0.8\,\mathrm{s}$. That comes from a correlation
-  fitted at three to six times that speed.
+  fitted at 1.8 to 6.1 times that speed.
 
 #### The opening load
 
