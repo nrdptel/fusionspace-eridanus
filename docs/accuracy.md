@@ -373,8 +373,8 @@ set up the same way:
 The committed [validation report][report] gives the six numbers below for each descent. All were
 scored, and all are within tolerance. The largest difference is +2.865%.
 
-Each metric must agree within 3% of RocketPy's value, and the landing speed within 0.2%
-([the decision that tightened it][adr-289]), with no absolute floor. Each case file argues why,
+Each metric must agree within 3% of RocketPy's value, the landing speed within 0.2%
+([the tighter gates][adr-289]), with no absolute floor. Each case file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -470,10 +470,8 @@ Prometheus 2022's drifts differ by −7.292% and +4.505%, from body lift and the
 landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
-The burnout, largest, rail-exit and landing speeds must agree within 0.2%, and the apogee within
-0.5% except in the three flights whose case files measure a cause for it (Juno III, Bella Lui and
-Prometheus 2022 in wind: HPR Sim's rail release and body lift), which keep 3% ([the decision that
-tightened them][adr-289]). Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
+Four speeds must agree within 0.2%, and six apogees within 0.5% ([the tighter gates][adr-289]).
+Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
 The numbers are measured as RocketPy defines them, with one exception. Each code's solver advances
