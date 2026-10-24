@@ -1959,7 +1959,10 @@ mod tests {
         let found = long_sentences("page.md", &text, false);
         assert_eq!(found.len(), markdown(&text).long);
         assert_eq!(found.len(), 2, "{found:?}");
-        assert!(found[0].starts_with("page.md:3: 26 words: This sentence"), "{found:?}");
+        assert!(
+            found[0].starts_with("page.md:3: 26 words: This sentence"),
+            "{found:?}"
+        );
         assert!(found[0].ends_with("of them `…` in all."), "{found:?}");
         assert!(found[1].starts_with("page.md:6: 26 words: "), "{found:?}");
         let html = format!("<p>A short one.</p>\n<p>{long}</p>");
