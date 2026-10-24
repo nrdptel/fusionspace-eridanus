@@ -697,10 +697,11 @@ Avionics (VISION V39):
   system's ground-test rules, both writing M6.8's ground-test log. *Done when:* Neer has built and
   bench-tested both; the logger reads within its transducer's rated accuracy of a reference gauge
   across its range, with a rise time of 2 ms or less, its sample rate and port damping recorded;
-  seven 0.5 g FFFFg shots (by volume, as Fetter's) in an empty 150.8 in³ chamber pass a two-sided,
-  two-sample t-test at 95% against the seven peaks Fetter's Fig. 7-5 lists (pooled deviation, 12
-  degrees of freedom, t = 2.179): with shots as spread as Fetter's (sample deviation 4.36 psi), a
-  mean peak within 28.8 ± 5.1 psi (the figure's printed 28.49 and 4.04 don't match its own peaks:
-  4.04 is their population deviation), or the gap is recorded in an ADR with the measurement; with a
-  fresh battery and shorted leads, the continuity test stays below the named e-match's rated test
-  current (0.04 A for MJG's Firewire); and each interlock blocks firing in a test.
+  seven 0.5 g FFFFg shots (by volume, as Fetter's) in an empty 150.8 in³ chamber give a mean peak
+  from 23.68 to 33.85 psi (28.76 ± 5.08, about 28.8 ± 5.1; 95%, the difference of two 7-shot means,
+  from the seven peaks Fetter's Fig. 7-5 lists and their sample deviation, 4.36 psi, t = 2.179), the
+  band fixed so a logger's own scatter can't widen it and the shots' sample deviation recorded; the
+  figure's printed 28.49 and 4.04 don't match its own peaks (4.04 is their population deviation); or
+  the gap is recorded in an ADR with the measurement; with a fresh battery and shorted leads, the
+  continuity test stays below the named e-match's rated test current (0.04 A for MJG's Firewire);
+  and each interlock blocks firing in a test.
