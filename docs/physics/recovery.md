@@ -29,7 +29,7 @@ part drifts and lands.
   - A `.ork` file's parachutes and streamers fly as [OpenRocket](../glossary.md#openrocket) flies
     them. The landing speed is within 0.02% of OpenRocket's on 50 of its 53 example flights and
     within 0.12% on all 53. Take the 51 with no named cause for an apogee gap, less the *Base drag
-    hack*'s three. Their flight time is −1.57% to +3.16% off
+    hack*'s three. The flight time of those 48 is −1.57% to +3.16% off
     ([From an OpenRocket file](#from-an-openrocket-file)).
   - Ejected pieces are a nose cone or payload that lands on its own
     ([ejection](../glossary.md#ejection)). They are checked against exact answers only: no
@@ -102,7 +102,7 @@ ways:
   Knacke's manual, works out the opening force with a drag area that grows as a power of the time
   since line stretch.
 - The infinite-mass opening-force coefficient $C_x$: the peak force as the canopy opens, over
-  its steady drag at the same speed. The load is so heavy that it doesn't slow while the canopy
+  its steady drag at the same speed. It is defined for a load so heavy that it doesn't slow while the canopy
   fills. The simulator reports it; its equations don't use it ([Inflation](#inflation)).
 
 Where Knacke prints "insufficient data" the simulator has `None`, and the user has to supply the
@@ -250,7 +250,7 @@ $$
 **How well it does.** The documentation says its fit predicts its own five drop-test models within
 3 to 14%. The simulator does not reproduce that. Table 3.3 (printed page 54) gives five models,
 22 m (72 ft) and $\rho$ = 1.31 kg/m³. The descent rate $v_0$ is read from video to ±0.3 m/s
-(0.98 ft/s). Replaying it through the simulator's reading of the model
+(0.98 ft/s). Replaying Table 3.3 through the simulator's reading of the model
 (`the_tumble_model_against_its_own_drop_tests`) gives:
 
 | model | fins | measured | HPR Sim |
@@ -560,7 +560,8 @@ This section describes the unpowered case, and the booster's descent after a pow
   vacuum. A flight whose bodies are not all covered is refused when it is set up. A body that
   reaches the ground without a single deployment (a timer set after that body lands, say) is a
   flight-time error. It is an error rather than a landing at the speed of a fall with no drag. Both
-  were found in review.
+  were found in review. A device on a body that nothing makes is refused when the flight starts,
+  since an ejection given later could still make it.
 - A body coasts with no drag at all until its first device opens. That is the same omission
   as the descent phase's, and it hurts more here. A 0.55 kg forward body separates at 2 km (1.2 mi)
   and waits for a 300 m (984 ft) main. It arrives at **168 m/s (551 ft/s)** where an airframe would
@@ -1003,7 +1004,7 @@ gaps, in order:
   - Gravity: the comparison has flown RocketPy's gravity model since
     [issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27). Under HPR Sim's own
     gravity the drifting cases read a little closer (Calisto +0.06% rather than +0.08%). That was
-    measured once when the comparison switched, and no test pins it. The reason is that the
+    measured once when the comparison switched, and no test pins it. The drifting cases read closer because the
     vertical's turn downrange pushes the rocket back toward the pad and cancels part of a real
     difference. The
     like-for-like number is the honest one.

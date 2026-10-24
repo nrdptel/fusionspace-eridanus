@@ -248,9 +248,9 @@ fin works: −3.44, unstable. OpenRocket 24.12 was asked for that sustainer at 9
 committed). It puts its center of pressure at 0.2954 m (0.969 ft) with $C_{N\alpha}$ 3.49. HPR Sim's are 0.2993 m (0.982 ft) and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
 calibers and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
-the booster drops. Its own motor is just lit and still full, and the air is at Mach 0.07. The −3.44
+the booster drops. The sustainer's own motor is just lit and still full, and the air is at Mach 0.07. The −3.44
 is a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
-that configuration turn over before apogee. Its site is at 28.61° N, where the Earth's rotation tips
+that configuration turn over before apogee. OpenRocket's record has its site at 28.61° N, where the Earth's rotation tips
 HPR Sim's flight. HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
 equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m (824 ft)
 ([the format guide](../format/ork.md#the-simulators-flights-against-openrockets)).
@@ -432,7 +432,7 @@ at most one of the two flags.
 
 `min_powered_static_margin_cal` is the margin the first flag reads. It is the least static margin
 in the weakest plane ([Stability margins](#stability-margins)), over the moments a motor burns.
-The span runs from the rail exit to apogee or the first deployment. It is found inside steps, as the other least
+The span runs from the rail exit to apogee or the first deployment. The margin is found inside steps, as the other least
 margins are. A step counts when the thrust at its middle is above zero. The simulator ends a step at
 every ignition, thrust-curve point and burnout. So a motor that burns at a step's middle burns
 through all of it, and the margin at the burnout itself counts. A margin of exactly zero raises

@@ -25,7 +25,7 @@ will be tested.
   ([the GNSS note][gnss]). The wind's limit is the NAR's [high-power safety code][hprcode].
 - **How well it is validated:** not against real logs. The noise follows datasheets and a few
   public logs, and the flights are HPR Sim's own. So a check on them shows how well a method
-  recovers a known trajectory, not how real flights behave. A test pins each drawn noise term.
+  recovers a known trajectory, not how real flights behave. Each drawn noise term has its own test.
   It holds the term to its stated value on a truth built for it, and fails when the term is
   changed. The tests show the generator draws what it says, not that the terms are right. A flight drawn
   again is the same to the bit, on one platform. No test yet shows that the terms together look
@@ -154,8 +154,8 @@ A charge adds an eighth, the ejection pulse, at each charge's time.
 **What each profile's part gives.** An MS5607 zeroed on the pad holds ±1.0 mbar from 0 to 50 °C,
 stated over 700 to 1,100 mbar (§2). Read as a gain, that is ±0.25% of the change from the pad.
 That is an inference, as the datasheet doesn't say how the error grows with the change.
-PerfectFlite names no part, so its profile takes an MS5607's offset, which is an assumption. Its
-gain is its maker's stated ±0.1% of the height (§1). It has no white noise beyond the noise
+PerfectFlite names no part, so its profile takes an MS5607's offset, which is an assumption. It
+takes its maker's stated ±0.1% of the height as a gain (§1). It has no white noise beyond the noise
 measured on real logs. Eggtimer and Featherweight name no part on most of their boards (§1). So
 the Eggtimer and 500 Hz IMU profiles take a Bosch BMP3xx or DPS310-class part, an assumption. Its
 white noise is 0.2 to 6.6 Pa by its setting, and its gain is ±0.08% relative (§2, §6). The offset
@@ -215,7 +215,7 @@ source states a bias left after the pad's zero. So the 0.05 g is assumed ([the s
 | low-g IMU axis | 0.16 to 0.4 mg/√Hz | 64/65,536 g | ±32 g | ±3% |
 
 Each sample's noise is the density times $\sqrt{1.57 \cdot f_s/2}$. That is the noise bandwidth of a
-single-pole filter at half the rate $f_s$ the logger samples at while climbing. It's an
+single-pole filter at half the rate $f_s$ the logger samples at while climbing. The whole form is an
 inference in [the sensor noise note][noise] §4. The AltOS profile's high-g part at 100 Hz has
 44.3 mg (0.434 m/s²) per sample. It has the same after apogee too, when it logs at 10 Hz. The
 part's filter doesn't change with what the logger writes. Past 32 g the low-g part clips: the high-range part that
@@ -349,7 +349,7 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
   steady lag.
 - `hpr_forensics::synthetic::logger`: each drawn pressure, acceleration and GNSS term held and
   failing when changed. Also the fast noise's correlation at 100 and 500 Hz and the slow noise's
-  time constant. And the log's span, each part's
+  time constant. And the GNSS noise's 3 m (9.8 ft) on each axis. Last, the log's span, each part's
   rate, each profile's step and channels, and the height formulas.
 - `hpr_forensics::synthetic::held`: the 500 Hz IMU's part set to ±8 g, with its range stated to the
   readings. A true top past it is read as clipped at the range, a floor that holds. A part with

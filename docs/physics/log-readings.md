@@ -46,7 +46,7 @@ withholds one instead of guessing.
   bound ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)). A fall under no
   canopy is read as one canopy's
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)). A canopy far above the
-  tropopause is out. Accelerometer noise that runs from sample to sample would narrow burnout's
+  tropopause is out. Accelerometer noise that runs from sample to sample is out; it would narrow burnout's
   bound ([#787](https://github.com/nrdptel/fusionspace-eridanus/issues/787)). A top clipped at
   the high-g part's range is out; no tuning flight reaches one. A board's three axes give no top acceleration
   ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781); [What it leaves
@@ -269,7 +269,7 @@ together. Each canopy's own rate is read from the shape of the descent
 ([The canopies](#the-canopies)).
 
 The **flight time** is a reading of its own, `flight_time`: landing's time less liftoff's, its
-bound the sum of theirs, so it needs both.
+bound the sum of theirs, so it needs both. Landing's reading doesn't carry it.
 
 The **top acceleration** comes only from an accelerometer, never from the heights. Differencing
 twice turns a track's steps into spikes: at 20 samples a second, a one-foot step differenced twice
@@ -596,7 +596,8 @@ true rate is 21.74 m/s (71.3 ft/s).
 ### What each bound holds
 
 Each reading states the bound its error stays within. A bound is a sum of terms, each the size of
-one error the synthetic flights draw, or measured on the log itself.
+one error the synthetic flights draw, or measured on the log itself. Most of an apogee's bound
+is the day's air.
 
 - **Apogee height.** The day's air and the barometer's gain as shares of the height $h$. The
   noise, the pad's error and the drift since the log began. Last, a step at the pad and one at the
@@ -728,7 +729,7 @@ withheld; liftoff is still given.
   within the median's window and twice the noise and step. Then comes gravity's fall from there.
 
 The ballistic coefficient is the mass over the drag coefficient times the frontal area. Drag's
-upward share stays under gravity over a last second for any coefficient over 150 kg/m², even at
+upward share stays under gravity over a last second for any ballistic coefficient over 150 kg/m², even at
 120 m/s (394 ft/s) across. A rocket 29 mm (1.1 in) across, of 0.3 kg, has about 800. That covers a 1 s span. On a slower track the span is two
 samples, up to 4 s at half a sample a second. There the argument holds only over about 380 kg/m²
 on a vertical coast, and about 700 kg/m² at 120 m/s (394 ft/s) across. Below that a coast can climb
@@ -824,8 +825,8 @@ stopped before the rocket did.
 HPR Sim simulated, each with its truth and the log a simulated logger would write. Of the tuning
 set's 200 flights, 171 carry a barometer; the other 29, a GNSS tracker's, give no reading by rule.
 `cargo xtask synthetic` reads each of the 171 as its own logger wrote it. It then reads each
-again at every rate from 500 to half a sample a second. It reads it at every step from none
-to 10 m (33 ft) or 1 to 100 Pa, 36 ways in all. Last, it reads each cut 6 ways, as
+again 36 ways in all. They cover every rate from 500 to half a sample a second, and every
+step from none to 10 m (33 ft) or 1 to 100 Pa. Last, it reads each cut 6 ways, as
 loggers that record from launch write them. Each is 20 samples a second, in feet or in 10 Pa
 steps. Each starts 0.3 s before liftoff, 0.1 s after, or 0.5 s after with the zero first.
 The 71 flights whose logger has an accelerometer are the AltOS-like and the IMU profiles. They are read
@@ -882,7 +883,7 @@ average, by 0.72 s. Its bound holds the time a canopy takes to slow the fall and
 
 No tuning flight's true top acceleration reaches the range its own part clips at: the nearest comes
 to 0.492 of it, the report says. So the 500 Hz IMU profile's 38 flights are logged once more with
-the part set to ±8 g. The BMX160 and the MPU-6000 offer that full scale. Of their true tops, 28 reach
+the part set to ±8 g. The BMX160 and the MPU-6000 offer that full scale. Of the 38 flights' true tops, 28 reach
 that range, and 10 don't. Of the 32 tops read as floors, 28 are clipped at the range, all on that
 log, each a floor that holds. The floors' mean error, −48 m/s², is mostly how far those clipped tops
 lie below their truth, as a floor may by any amount. The other 4 are held flat at their top, all on
@@ -967,7 +968,7 @@ reads the trace as the altimeter does, not that either is the true height. A Fea
 flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
 
 **The sample logs.** `cargo xtask logs` takes the readings from every record the project's sample
-logs hold. Those are other flyers' files kept outside the repository. It counts each reading given or
+logs hold. Those are other flyers' files kept outside the repository. The command counts each reading given or
 withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 593, liftoff from
@@ -1056,7 +1057,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   Burnout then comes from the speed's peak, a floor. A second burn that holds past 2 g for less
   than 0.5 s is taken for a shock. So its top is missed and burnout is the first burn's end. A shock
   that holds there longer reads as a burn. Where liftoff is withheld, a knock on the pad wider than
-  the cleaning takes out joins the burn. It can be taken for the top
+  the cleaning takes out joins the burn. The knock can be taken for the top
   ([#789](https://github.com/nrdptel/fusionspace-eridanus/issues/789)). A part that reads above zero
   all through the coast, as a part that zeroed off its pad's level can, never ends its burn. So its
   top is searched to apogee and given as a floor, and its burnout comes from the speed's peak.
@@ -1082,8 +1083,8 @@ truth beside the logs, that doesn't say how each rocket came down.
   on the synthetic flights' test sets, kept apart from any tuning.
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
-- **Disturbed tops, both ways.** A bump less than about a second after apogee, before the track
-  has fallen past its noise and step, can't be told from the top. A spike is the exception. Its
+- **Disturbed tops, both ways.** A bump comes less than about a second after apogee, before the track
+  has fallen past its noise and step. Unless it is a spike, it can't be told from the top. A bump's
   time may pass the apogee's time bound. A transient that only climbs in fast, or only falls out
   fast, is read as the top. An early parachute and a charge make those shapes on a good
   top. A spike that climbs in no faster than a coast is read as the apogee, however high it stands. The other way, a brief dip in the coast in the last 4 s before the top
