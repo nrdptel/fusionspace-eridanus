@@ -63,7 +63,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 32 rows, as of October 24, 2026.
+The register holds 32 rows, as of October 20, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -87,40 +87,40 @@ The register holds 32 rows, as of October 24, 2026.
 
 | Row | Surface | Claim | Evidence | Wanted | Issue | Last search |
 |---|---|---|---|---|---|---|
-| <a id="g1"></a>G1 | Flight-log readers | GPX tracks are read as the GPX 1.0 and 1.1 schemas define them, checked against gpxpy on three invented files. **Not checked:** what a real tracker or phone writes, and what its elevation (`ele`) is measured from. | code to code | real | [#654](https://github.com/nrdptel/fusionspace-eridanus/issues/654) | 2026-10-24 |
+| <a id="g1"></a>G1 | Flight-log readers | GPX tracks are read as the GPX 1.0 and 1.1 schemas define them, checked against gpxpy on three invented files. **Not checked:** what a real tracker or phone writes, and what its elevation (`ele`) is measured from. | code to code | real | [#654](https://github.com/nrdptel/fusionspace-eridanus/issues/654) | 2026-10-20 |
 | <a id="g2"></a>G2 | Flight-log readers | Paths no sample log reaches are checked by the readers' tests alone: decimal commas, workbooks dated from 1904, a Raven `.FIPa` temperature below zero, an RTx fix at (0, 0). **Not checked:** a real file that takes any of these paths. | spec | real | [#655](https://github.com/nrdptel/fusionspace-eridanus/issues/655) | 2026-10-17 |
-| <a id="g3"></a>G3 | Flight-log readers | AltOS radio telemetry is decoded from AltOS's documents for the packet types the samples hold. **Not checked:** the eleven packet types no sample holds, which are left out; the GPS ground speed, climb rate and course, which nothing checks. | spec | real | [#656](https://github.com/nrdptel/fusionspace-eridanus/issues/656) | 2026-10-24 |
-| <a id="g4"></a>G4 | Flight-log readers | AltOS `.eeprom` logs are read in formats 1, 6, 7, 14, 15, 16 and 22, with the TeleMetrum v1's converter assumed. **Not checked:** that the TeleMetrum v1's converter measures against the pressure sensor's own supply, which no document states; the TeleMega v4's IMU, which its one sample never ran; 4 of the 14 sample files, with neither an export nor telemetry beside them; formats 5, 9 and 19, refused. | reasoning | real | [#657](https://github.com/nrdptel/fusionspace-eridanus/issues/657) | 2026-10-24 |
+| <a id="g3"></a>G3 | Flight-log readers | AltOS radio telemetry is decoded from AltOS's documents for the packet types the samples hold. **Not checked:** the eleven packet types no sample holds, which are left out; the GPS ground speed, climb rate and course, which nothing checks. | spec | real | [#656](https://github.com/nrdptel/fusionspace-eridanus/issues/656) | 2026-10-17 |
+| <a id="g4"></a>G4 | Flight-log readers | AltOS `.eeprom` logs are read in formats 1, 6, 7, 14, 15, 16 and 22, with the TeleMetrum v1's converter assumed. **Not checked:** that the TeleMetrum v1's converter measures against the pressure sensor's own supply, which no document states; the TeleMega v4's IMU, which its one sample never ran; 4 of the 14 sample files, with neither an export nor telemetry beside them; formats 5, 9 and 19, refused. | reasoning | real | [#657](https://github.com/nrdptel/fusionspace-eridanus/issues/657) | 2026-10-17 |
 | <a id="g5"></a>G5 | Flight-log readers | ARTS2 raw data is timed at 50 records a second, the rate the maker's DataAnalyzer gives every file. **Not checked:** where the file stores its rate, if it does, and a file recorded at another rate. | code to code | real | [#658](https://github.com/nrdptel/fusionspace-eridanus/issues/658) | 2026-10-17 |
-| <a id="g6"></a>G6 | Flight-log readers | Some layouts rest on one sample or on no export to compare with: the AltiMAX `.ALS`, the AIM `.xtra` and raw dump, 7 of 63 raw downloads, 5 of 6 RRC3 `.rff` files, and each case of an AltOS CSV re-saved by a spreadsheet. **Not checked:** a second flight of each layout read beside its maker's export; the raw downloads with no export beside them. | code to code | real | [#659](https://github.com/nrdptel/fusionspace-eridanus/issues/659) | 2026-10-24 |
+| <a id="g6"></a>G6 | Flight-log readers | Some layouts rest on one sample or on no export to compare with: the AltiMAX `.ALS`, the AIM `.xtra` and raw dump, 7 of 63 raw downloads, 5 of 6 RRC3 `.rff` files, and each case of an AltOS CSV re-saved by a spreadsheet. **Not checked:** a second flight of each layout read beside its maker's export; the raw downloads with no export beside them. | code to code | real | [#659](https://github.com/nrdptel/fusionspace-eridanus/issues/659) | 2026-10-17 |
 | <a id="g7"></a>G7 | Flight-log readers | Featherweight summaries are checked on their maximum and pad altitude only. **Not checked:** the speeds, accelerations, times and the rest, converted from the unit the file writes and checked against nothing. | none | real | [#660](https://github.com/nrdptel/fusionspace-eridanus/issues/660) | 2026-10-17 |
 | <a id="g8"></a>G8 | Flight-log readers | GPS heights are kept in the unit the file writes: a phone app's altitude as written, KML heights the least sure. **Not checked:** each height's unit and what it is measured from, beside a barometric log of the same flight. | reasoning | real | [#661](https://github.com/nrdptel/fusionspace-eridanus/issues/661) | 2026-10-17 |
-| <a id="g9"></a>G9 | Flight-log readers | Formats with no sample on terms that let their bytes be tested (CATS's and the others listed) have no reader of their own. **Not checked:** the formats the list names, of which no sample can be tested on its terms. | none | real | [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) | 2026-10-24 |
-| <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, the flights their bounds were tuned on, where each of the 171 tuning flights with a barometer is logged 43 ways, the 71 with an accelerometer 3 more and the 500 Hz IMU's 38 once more with its part set to ±8 g, which 28 of their tops reach, and every reading given stays within its bound (`cargo xtask synthetic`). **Not checked:** the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a high-g part held at its stated range, which no tuning flight reaches, where the low-g part set to ±8 g is; a thrust's plateau read as held flat and so given only as a floor, consistent with a quiet part writing it as one value; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once. | calibration | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-24 |
-| <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | 2026-10-24 |
-| <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | 2026-10-24 |
-| <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | 2026-10-24 |
-| <a id="g14"></a>G14 | Aerodynamics | Base drag with the motor burning takes the motor case off the base. **Not checked:** any measurement of base drag under power. | reasoning | real | [#667](https://github.com/nrdptel/fusionspace-eridanus/issues/667) | 2026-10-24 |
+| <a id="g9"></a>G9 | Flight-log readers | Formats with no sample on terms that let their bytes be tested (CATS's and the others listed) have no reader of their own. **Not checked:** the formats the list names, of which no sample can be tested on its terms. | none | real | [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) | 2026-10-17 |
+| <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, the flights their bounds were tuned on, where each of the 171 tuning flights with a barometer is logged 43 ways, the 71 with an accelerometer 3 more and the 500 Hz IMU's 38 once more with its part set to ±8 g, which 28 of their tops reach, and every reading given stays within its bound (`cargo xtask synthetic`). **Not checked:** the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a high-g part held at its stated range, which no tuning flight reaches, where the low-g part set to ±8 g is; a thrust's plateau read as held flat and so given only as a floor, consistent with a quiet part writing it as one value; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once. | calibration | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-17 |
+| <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | 2026-10-17 |
+| <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | 2026-10-17 |
+| <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | 2026-10-17 |
+| <a id="g14"></a>G14 | Aerodynamics | Base drag with the motor burning takes the motor case off the base. **Not checked:** any measurement of base drag under power. | reasoning | real | [#667](https://github.com/nrdptel/fusionspace-eridanus/issues/667) | 2026-10-17 |
 | <a id="g15"></a>G15 | Flight models | Thrust about a center of gravity off the axis turns the rocket in HPR Sim, and not in OpenRocket. **Not checked:** which of the two is right, which nothing measures. | reasoning | real | [#668](https://github.com/nrdptel/fusionspace-eridanus/issues/668) | 2026-10-17 |
 | <a id="g16"></a>G16 | `.ork` import | A part's roll angle in an `.ork` file turns the way HPR Sim assumes. **Not checked:** which direction OpenRocket turns it. | reasoning | real | [#669](https://github.com/nrdptel/fusionspace-eridanus/issues/669) | 2026-10-17 |
 | <a id="g17"></a>G17 | Flight models | The apogee printed for an unstable sustainer assumes it stays upright, and flights off a rod and off a rail differ. **Not checked:** an unstable sustainer's real flight; where the rod and the rail differ, not traced. | reasoning | real | [#670](https://github.com/nrdptel/fusionspace-eridanus/issues/670) | 2026-10-17 |
 | <a id="g18"></a>G18 | `.ork` import | An inner tube's automatic outer radius is held to OpenRocket only on fourteen probe designs, and a ring's automatic bore rests on its unit tests. **Not checked:** OpenRocket's values for a real design's automatic radii, which the library's files never cache, and for a ring's automatic bore. | spec | real | [#671](https://github.com/nrdptel/fusionspace-eridanus/issues/671) | 2026-10-17 |
-| <a id="g19"></a>G19 | Aerodynamics | RASAero II's exported tables are flown from one real export, to Mach 0.75. **Not checked:** a real export flown faster, checked by unit tests alone; past the export's last angle, and at 0° faster than Mach 1.3, the values are assumed. | spec | real | [#672](https://github.com/nrdptel/fusionspace-eridanus/issues/672) | 2026-10-24 |
+| <a id="g19"></a>G19 | Aerodynamics | RASAero II's exported tables are flown from one real export, to Mach 0.75. **Not checked:** a real export flown faster, checked by unit tests alone; past the export's last angle, and at 0° faster than Mach 1.3, the values are assumed. | spec | real | [#672](https://github.com/nrdptel/fusionspace-eridanus/issues/672) | 2026-10-17 |
 | <a id="g20"></a>G20 | Flight models | A pushed part leaves through the end the simulator assumes, from the way its body points as it falls. **Not checked:** a measured deployment; the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess. | reasoning | real | [#673](https://github.com/nrdptel/fusionspace-eridanus/issues/673) | 2026-10-17 |
 | <a id="g21"></a>G21 | Accuracy against real flights | Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses. **Not checked:** each of the four altimeters' sensor, none of them calibrated; each design's fin edges. | reasoning | real | [#674](https://github.com/nrdptel/fusionspace-eridanus/issues/674) | 2026-10-17 |
-| <a id="g22"></a>G22 | Fin flutter | Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew. **Not checked:** a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings. | spec | real | [#675](https://github.com/nrdptel/fusionspace-eridanus/issues/675) | 2026-10-24 |
+| <a id="g22"></a>G22 | Fin flutter | Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew. **Not checked:** a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings. | spec | real | [#675](https://github.com/nrdptel/fusionspace-eridanus/issues/675) | 2026-10-17 |
 | <a id="g23"></a>G23 | The motor finder | The motor finder is replayed on three stand-in searches in ThrustCurve.org's shape. | spec | spec ([ADR-278](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md)) | none | 2026-10-20 |
-| <a id="g24"></a>G24 | Accuracy against real flights | The simulation's apogees miss seven public real flights by 6.04% on average and 53 private ones by 12.95%, both outside the 5% target. **Not checked:** a flight held out from every choice of model and every fit, predicted before its log is read. | calibration | real | [#676](https://github.com/nrdptel/fusionspace-eridanus/issues/676) | 2026-10-24 |
-| <a id="g25"></a>G25 | Design export | The `.ork` files `hpr convert` writes are checked by opening them in OpenRocket. **Not checked:** whether RockSim opens them. | code to code | real | [#677](https://github.com/nrdptel/fusionspace-eridanus/issues/677) | 2026-10-24 |
-| <a id="g26"></a>G26 | Aerodynamics | Drag is compared with the RASAero II curves of RocketPy's example rockets, of which Calisto's is the one real RASAero II export. **Not checked:** a measured drag of any of them; the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; and the comparison misses past Mach 1.6, where against Calisto's export HPR Sim is within 10% at 8 of the 17 rows from Mach 1.2 to 2.0. | code to code | real | [#678](https://github.com/nrdptel/fusionspace-eridanus/issues/678) | 2026-10-24 |
-| <a id="g27"></a>G27 | Aerodynamics | Tube fins' normal force and center of pressure are compared with OpenRocket 24.12's on 14 probe designs and its tube fin rocket. **Not checked:** a measured tube fin's lift or center, of which none was found; which code is right, as OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's at every Mach number; the interference between tubes, an unchecked estimate. | code to code | real | [#679](https://github.com/nrdptel/fusionspace-eridanus/issues/679) | 2026-10-24 |
+| <a id="g24"></a>G24 | Accuracy against real flights | The simulation's apogees miss seven public real flights by 6.04% on average and 53 private ones by 12.95%, both outside the 5% target. **Not checked:** a flight held out from every choice of model and every fit, predicted before its log is read. | calibration | real | [#676](https://github.com/nrdptel/fusionspace-eridanus/issues/676) | 2026-10-17 |
+| <a id="g25"></a>G25 | Design export | The `.ork` files `hpr convert` writes are checked by opening them in OpenRocket. **Not checked:** whether RockSim opens them. | code to code | real | [#677](https://github.com/nrdptel/fusionspace-eridanus/issues/677) | 2026-10-17 |
+| <a id="g26"></a>G26 | Aerodynamics | Drag is compared with the RASAero II curves of RocketPy's example rockets, of which Calisto's is the one real RASAero II export. **Not checked:** a measured drag of any of them; the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; and the comparison misses past Mach 1.6, where against Calisto's export HPR Sim is within 10% at 8 of the 17 rows from Mach 1.2 to 2.0. | code to code | real | [#678](https://github.com/nrdptel/fusionspace-eridanus/issues/678) | 2026-10-17 |
+| <a id="g27"></a>G27 | Aerodynamics | Tube fins' normal force and center of pressure are compared with OpenRocket 24.12's on 14 probe designs and its tube fin rocket. **Not checked:** a measured tube fin's lift or center, of which none was found; which code is right, as OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's at every Mach number; the interference between tubes, an unchecked estimate. | code to code | real | [#679](https://github.com/nrdptel/fusionspace-eridanus/issues/679) | 2026-10-17 |
 | <a id="g28"></a>G28 | Aerodynamics | A flared body's supersonic normal force rests on one measured flare, and a flare past its corner's limit flies a rule checked against nothing. **Not checked:** a second measured flare; any flare past its corner's limit; the attachment test, a wedge's limit rather than a flare's own; a near-flat flare, read by the older generalized method. | reasoning | real | [#680](https://github.com/nrdptel/fusionspace-eridanus/issues/680) | 2026-10-17 |
 | <a id="g29"></a>G29 | Aerodynamics | Faster than sound, a boattail's share of the body's force comes from the shock-expansion method, and a blunt tip flies it behind a Newtonian cap. **Not checked:** the boattail's share, unvalidated; a blunt tip, checked on a sphere-cone only. | spec | real | [#681](https://github.com/nrdptel/fusionspace-eridanus/issues/681) | 2026-10-17 |
 | <a id="g30"></a>G30 | Flight-log readers | The AltiMAX's Excel export keeps its voltages as the file states them. **Not checked:** the voltages, which nothing checks. | none | real | [#682](https://github.com/nrdptel/fusionspace-eridanus/issues/682) | 2026-10-17 |
 | <a id="g31"></a>G31 | Flight-log readers | An RRC3's Temperature and Voltages columns, which state no unit, are read in the units its manual pairs with the file's altitude unit. **Not checked:** the units, which are assumed; a file whose temperature or voltage can be checked against another record of the same flight. | reasoning | real | [#683](https://github.com/nrdptel/fusionspace-eridanus/issues/683) | 2026-10-17 |
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 24, 2026: none.
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 20, 2026: none.
 
 **Searches so far.**
 
@@ -137,11 +137,6 @@ The register holds 32 rows, as of October 24, 2026.
   - phone-app posts (the survey in docs/research/public-logs-evidence-gaps.md)
 
   It found a source to cite only. Thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights. None has `geoidheight`. Beside them is the receiver's raw NMEA, whose GGA sentences state the geoid separation. GitHub's GPX files with `geoidheight` are everyday phone tracks (#645).
-- [G1](#g1), October 24, 2026, looked at:
-  - GitHub code search for GPX files mentioning rocket or altimeter, and for KML files mentioning altimeter
-  - Rocketry Forum and rocket-team repositories, re-read for GPX attachments
-
-  It found nothing new: the GPX hits are hiking, mapping and geocaching files with no rocket flight in them. Thread 135349's four files remain the only rocket GPX found, with no terms stated.
 - [G2](#g2), October 17, 2026, looked at:
   - GitHub code search for `.FIPa` and `.rtx` files and semicolon-separated altimeter exports (mDACS, Eggtimer and Blue Raven headers split by `;`)
   - the Harvey Mudd College advanced rocketry course's flight data page (its 11 workbooks fetched)
@@ -156,22 +151,12 @@ The register holds 32 rows, as of October 24, 2026.
   - PSAS's launch repositories
 
   It found a partial answer: real packets of 3 of the 11 undecoded types under MIT, but no flight and no export beside them. A TeleMega's pad recording is in lunng/HART_CS_2020 (MIT): types 0x08 and 0x09, 538 of each. UCC-Rocket-and-Space-Exploration/CosmoSoft (MIT) holds a TeleMini v3's pad packets (type 0x11), beside an AltosUI CSV of a later flight that a spreadsheet re-saved. Flights with types 0x08, 0x09 and 0x14 exist with no license (Maeswoon/UNHSEDS, with AltosUI's telemetry CSV beside it; AIAANortheastern/KarmanSims; Mines-Rocketry-Club/JEFF-modular-rocket-system). No export found has a GPS ground speed, climb rate or course column.
-- [G3](#g3), October 24, 2026, looked at:
-  - GitHub code search for `.telem` files, listed and compared with the 2026-10-17 list
-  - osu-bsli/irec's flight data folder, its file tree
-
-  It found one file to cite only: osu-bsli/irec (no license) holds a TeleGPS `.telem` of a 2026-06-17 competition flight, GPS packets with the types the reader already decodes. No file holds a type the samples lack.
 - [G4](#g4), October 17, 2026, looked at:
   - the JSON headers of 17 public `.eeprom` files from GitHub code search (`log_format` in `.eeprom`)
   - PSAS's launch repositories (psas/flight_data-2010.06.27, Launch-8, Launch-10 to Launch-14)
   - Mines-Rocketry-Club's flight data
 
   It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its 2010-10-17 and 2013-06-30 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
-- [G4](#g4), October 24, 2026, looked at:
-  - GitHub code search for `.eeprom` files by `log_format` and by `serial-` names, 21 files in 11 repositories whose headers were read
-  - the text-form `.eeprom` files of cmontalvo251/aerospace and robderstadt/Rockets
-
-  It found nothing that closes the row. All the JSON headers are an EasyMini v1.0, v2.0 or v3.0 (formats 6 and 14) or a TeleMetrum v2.0 or v4.0 (format 7), in repositories with no license. Two older text-form files (config 1.15 and 1.22) carry an `IMU cal` line, so a TeleMega-class board with an IMU, but no TeleMega v4 and no format 5, 9 or 19 turned up.
 - [G5](#g5), October 17, 2026, looked at:
   - the ARTS2 User Manual V1.0.0 (pp. 7, 9, 16)
   - PSAS's launch repositories for ARTS2 flights beyond the samples (2009-05-31, 2010-06-27, 2010-10-17)
@@ -186,10 +171,6 @@ The register holds 32 rows, as of October 24, 2026.
   - M0WW0M/European-FlightData, for AltiMAX files
 
   It found 7 RRC3 `.rff` files in RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44), saved by mDACS 1.61 from 3 launches in 2023 and 2024. 6 have mDACS's CSV export beside them. 4 of the exports have units typed into their headers by hand, as the team's procedure says. The team's notes record avionics-bay failures in flight on two vehicles. The private collection holds 5 of the exports and none of the `.rff`; all are cached under refs/samples-search/G6/rit-flight-data. AIM `.xtra`: the course page lists 15 `.xtra` files of 2017 beside AIM CSV exports. Every `.xtra` link returned HTTP 404 and the mirror's one link is an empty file; only the CSVs download. AltiMAX: the only public `.ALS` found is the sample already held. A second AltiMAX flight in the same GPL-3.0 repository has its Excel export only.
-- [G6](#g6), October 24, 2026, looked at:
-  - GitHub code search for Featherweight summaries (`Rocket Name`, `Launch time UTC`) and Blue Raven rate files (`Flight_Time_(s)`)
-
-  It found nothing for the row's layouts. New hits (ckeegan12/AeroBing_Data_Filtering, prs2026/Procyon, legomyleg/BYU_Telemetry_HUD, Terrapin-Rocket-Team/Astra-Rocket) have no license and are Featherweight tracker summaries or Blue Raven files in layouts the samples hold. No AltiMAX `.ALS`, AIM `.xtra` or RRC3 `.rff` was among them.
 - [G7](#g7), October 17, 2026, looked at:
   - GitHub code search for Featherweight's summary header (`Rocket Name`, `Launch time UTC`) in CSV files
 
@@ -206,61 +187,32 @@ The register holds 32 rows, as of October 24, 2026.
   - M0WW0M/European-FlightData
 
   It found nothing usable for the listed formats. The CATS hits are the GPL-3.0 catsystems/cats-logs and euroc21 files already known. The only new logger files are two Eggtimer Quantum CSVs (lower-case header, GPL-3.0, Skyward's 2022 flight), a device the list doesn't name.
-- [G9](#g9), October 24, 2026, looked at:
-  - GitHub code search for CATS `.cfl` files and for `.fdr`, `.rff` and `.FIPa` files
-  - Zenodo's records API for rocket flight and altimeter data
-  - Kaggle, by web search
-
-  It found nothing usable. The code search finds no `.cfl` outside the GPL-3.0 repositories already known. The `.rff` hits are fonts and unrelated files. Zenodo's rocketry records are papers and presentations without logs. No Kaggle rocket log turned up beyond the Blue Jay set already found.
 - [G10](#g10), October 17, 2026, looked at:
   - team flight data repositories on GitHub with a license and a logger's own figures beside its log: RIT-Launch-Initiative/flight-data, RMIT-Hive-Rocketry/GCS, Lmx154/RL-RocketPy-Notebook, AerospaceTeamGraz/RocketFlightData, ISSUIUC/flight-data, curtscraw/osu_rocketry_data
 
   It found these, under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files, whose summary statistics the team's note describes. RIT's two Blue Raven flights' summaries state the peak, the first burnout's time and each channel's firing time. RMIT-Hive-Rocketry/GCS has a Blue Raven flight with its summary. None is in the private collection but 5 of the RRC3 exports. The other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds.
-- [G10](#g10), October 24, 2026, looked at:
-  - osu-bsli/irec's flight data folder (a 2026-06-17 competition flight), its file tree and headers
-
-  It found a lead, no license so cite only. The folder holds two EasyMini v2.0 `.eeprom` files, a TeleGPS `.telem` and the team's own flight computer log with a 24-column CSV, all from one flight. Each logger's own figures would have to be read from the files.
 - [G11](#g11), October 17, 2026, looked at:
   - team repositories whose own flight computer's files come with a stated layout and another record of the same flight: RIT-Launch-Initiative/flight-data, Lmx154/RL-RocketPy-Notebook, curtscraw/osu_rocketry_data, ISSUIUC/flight-data
 
   It found RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44): the team's airbrake controller writes `data.csv` with units in each column name (`accel_x__m_s2`), a `params.csv` and a raw capture. The airbrake-test README states the files' columns, units and meanings. On the two testbed flights a Blue Raven flew beside it. None of these files is in the private collection; they're cached under refs/samples-search/G11/rit-flight-data. Lmx154's flight computer log with unit-named columns and alignment notes is already held privately; curtscraw/osu_rocketry_data states its units in `data_units.txt` but has no license.
-- [G11](#g11), October 24, 2026, looked at:
-  - osu-bsli/irec's flight computer log and its decoder source layout, for a stated column layout
-
-  It found a lead, no license so cite only: a 24-column CSV from the team's own board (a BMI323 IMU, an ADXL375 accelerometer, GPS) of a 2026-06-17 flight, with the headers naming each column and a unit-free layout, beside the other loggers' files of the same flight.
 - [G12](#g12), October 17, 2026, looked at:
   - web searches for measured against predicted dispersion of small and sounding rockets, with the wind measured
   - web searches for Dryden or other turbulence models checked against rocket flights
   - the team repositories found for the rows above, for wind records beside their logs
 
   It found nothing usable: the dispersion work found is simulation or wind-weighting studies. No team repository found holds a measured wind profile beside its flight logs.
-- [G12](#g12), October 24, 2026, looked at:
-  - web search for wind profiles measured with rocket flights at launch sites
-  - Zenodo's records API
-
-  It found nothing usable: the wind datasets found are radar and balloon profiles with no rocket flight, and no rocket log came with a measured wind.
 - [G13](#g13), October 17, 2026, looked at:
   - GitHub repository and code search for staged flights with the booster's own log
   - ISSUIUC/flight-data
   - Minnesota Space Grant's Midwest Rocketry Competition reports, whose rockets drop a booster after burnout
 
   It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On 2023-11-18 they're two StratoLoggers; on 2024-03-23, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (2023-10-01). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
-- [G13](#g13), October 24, 2026, looked at:
-  - web search for two-stage high power flights with a booster altimeter log or design file
-  - Minnesota Space Grant competition reports for booster logs
-
-  It found nothing new to use: the reports and slides describe separations, one with a StratoLogger acceleration against its simulation, but publish no booster log or design file.
 - [G14](#g14), October 17, 2026, looked at:
   - Craven, College of Aeronautics Report 129 (1960): its record and full text at Cranfield
   - NACA free-flight reports on base pressure with rocket motors burning, by web search
   - measurements of base pressure on hobby rockets in flight
 
   It found nothing beyond the 2026-10-17 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
-- [G14](#g14), October 24, 2026, looked at:
-  - NASA's technical reports server and web search for base pressure measured in flight with the engine running
-  - NASA TN D-1056 (Saltzman, 1961) and TN D-3612 (Wasko, 1966), their records
-
-  It found a candidate, not hobby scale: NASA TN D-1056 (US government work, public use permitted) measured base pressure on the X-15 in powered and unpowered flight at Mach 1.1 to 3.2, and found that the engines cut the base drag by 25 to 35 percent. It is a rocket aircraft with a large jet, so it would check the sign and rough size of the power-on effect, not a hobby rocket's. TN D-3612 is a wind-tunnel test of the Saturn S-IC base to Mach 3.5.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 
@@ -288,11 +240,6 @@ The register holds 32 rows, as of October 24, 2026.
   - the private collection's RASAero designs, counted only
 
   It found a partial answer: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export (rocketpy_migration/data/aerodynamics/rasaero_data.csv) to Mach 5 at 0°, 2° and 4°. Its workbooks Inputs/RASAeroII15 Detailed.xlsx and RASAeroII15.xlsx hold RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5. These would check the values assumed past 4° and at 0° faster than Mach 1.3. No license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files (copies included) and no exports. 12 of their flights carry a log, a few of them past about 255 m/s (837 ft/s) by a plausible logged speed. So RASAero II exports of them would meet the row.
-- [G19](#g19), October 24, 2026, looked at:
-  - rasaero.com's flight comparison page and its downloads
-  - GitHub code search for `.CDX1` files and RASAero II exports
-
-  It found no export to fly. The comparison page lists 36 flights and says the `.CDX1` files come with the RASAero II download, with no flight logs or tables to download and no terms stated. New `.CDX1` files (tritonrocketclub/Propulsion, matthewsimpsonaero/High-Powered-Rocketry, tamusrt/dynamics, Terrapin-Rocket-Team/Solids, none licensed) are designs with no export tables beside them.
 - [G20](#g20), October 17, 2026, looked at:
   - web searches for measured deployments: onboard video or accelerometer traces of ejection, nose cone and drogue separation
   - student post-flight reports (Stanford SSI wiki, NAU capstone)
@@ -313,11 +260,6 @@ The register holds 32 rows, as of October 24, 2026.
   - the same group's Materials 2025 test of 3D-printed PLA plates, cited in the hardware line's note
 
   It found a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analysis of Tapered Composite Fins: Analysis and Experiment', FME Transactions 50 (2022) 576 to 585. In its Table 4, p. 583, five clamped e-glass fins fluttered at 19.6 to 21.5 m/s (64 to 71 ft/s) in a wind tunnel. They're 0.65 mm (0.026 in) thick, 180 mm (7.1 in) root, 90 mm (3.5 in) tip, 262 mm (10.3 in) span. The paper evaluates TN 4197's speed on thickness over the mean chord and an effective shear modulus of 7.96 GPa. That gives 15.3 m/s (50 ft/s), 21.9% to 28.8% below. HPR Sim's reading, thickness over the root chord, gives about 10.7 m/s (35 ft/s) at sea level on that modulus, 45% to 50% below. Both are on the safe side for the speed, on that one fin, which HPR Sim's deciding check (Martin's figure 3) doesn't score yet. The paper is copyright the Faculty of Mechanical Engineering, Belgrade, all rights reserved, so cite only. Its fins are clamped plates at low speed, not fins glued to a tube. The Materials 2025 plates, which fluttered at about 10 to 12 m/s (33 to 39 ft/s), are the same group's, so not an independent test. The Cal Poly report found no measured flutter speed, and the WPI report says flutter wasn't tested. The 2024 Aerospace article (CC BY) couldn't be reached (HTTP 403).
-- [G22](#g22), October 24, 2026, looked at:
-  - web search for measured flutter of hobby-size fins
-  - Zenodo's records API for fin flutter and model rocket fins
-
-  It found nothing beyond the candidate already found. The search again returns the 2008 WPI project, the Cal Poly aluminum model and the MIT team's calculated margins (a computed Mach 2.73, no test). Zenodo's model-rocket records are design papers without a flutter measurement.
 - [G23](#g23), October 20, 2026, looked at:
   - ThrustCurve.org's pages, for a license on its motor records: the site's footer, its API and contribute pages
   - the site's own source repository, JohnCoker/thrustcurve3, with its API client
@@ -331,42 +273,24 @@ The register holds 32 rows, as of October 24, 2026.
   - the private collection's catalog, counted only
 
   It found a partial answer: three loggers' records of one 2021 flight in euroc21-team-data@ef54912c (STA-CARL2: AltiMAX, RRC3, Eggtimer). No design file was found for it. The private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far. So the samples a held-out set needs exist. RIT-Launch-Initiative/flight-data (MIT) also holds public pairs: `rocket.ork` designs beside their Featherweight flight logs and an OpenRocket simulation export (2026/AirbrakesL1Tests). What's missing is the held-out protocol: a set fixed and predictions written before its logs are read.
-- [G24](#g24), October 24, 2026, looked at:
-  - osu-bsli/irec: a design file and the logs of the 2026-06-17 competition flight
-  - tritonrocketclub/Propulsion and the other repositories with `.CDX1` files, for a log beside a design
-
-  It found a lead, no license so cite only: osu-bsli/irec holds an OpenRocket design file named for 4.22.26 in an archived folder, and logs of a later competition flight (two EasyMini v2.0, a TeleGPS, the team's board). Whether the design is the as-flown rocket isn't stated. The `.CDX1` repositories hold no logs.
 - [G25](#g25), October 17, 2026, looked at:
   - Apogee Components' RockSim information page
   - OpenRocket's documentation and wiki on importing and exporting
   - The Rocketry Forum threads on RockSim and OpenRocket files
 
   It found nothing usable: no source says whether RockSim opens .ork files. OpenRocket's documents describe only OpenRocket writing RockSim's .rkt files. The maker's page offers RockSim 11 for Mac and Windows with a 30-day trial, so the check needs RockSim itself run on files `hpr convert` wrote.
-- [G25](#g25), October 24, 2026, looked at:
-  - web search for RockSim opening `.ork` files, and OpenRocket's import and export documents
-
-  It found nothing usable: the documents describe OpenRocket writing RockSim files and one forum report of a stage lost in a RockSim file opened in OpenRocket. None says whether RockSim 11 opens an `.ork`.
 - [G26](#g26), October 17, 2026, looked at:
   - GitHub code searches for RASAero design files of RocketPy's example rockets (Valetudo, Calisto, Juno III, extension:CDX1)
   - RocketPy's data/rockets folder
   - RocketPy-Team/RocketPaper (MIT)
 
   It found a partial answer: no RASAero design file or measured drag curve of any of them was found. RocketPaper@23d9271d holds Valetudo's real RRC3 log (Valetudo_RRC3/RRC3_original.csv, MIT, with a note that some values make no sense). Valetudo's RASAero II curve is one of those compared, and a drag could be inferred from its coast once its mass and motor are settled.
-- [G26](#g26), October 24, 2026, looked at:
-  - GitHub code search for RASAero II `.CDX1` and CSV exports of RocketPy's example rockets
-
-  It found nothing new: no design file or drag curve for Valetudo, Calisto or Juno III turned up, only other teams' `.CDX1` designs.
 - [G27](#g27), October 17, 2026, looked at:
   - web searches for wind-tunnel or flight measurements of tube fins' normal force and center of pressure (NARAM R&D reports, DTIC, NTRS)
   - PSAS's fin design references
   - the private collection's .ork files, counted only
 
   It found no wind-tunnel or flight measurement of a tube fin's lift or center. The private collection has 8 .ork files (copies included) with a tube fin set. 1 of their flights has a parsing log, which can check an apogee but not the lift or center.
-- [G27](#g27), October 24, 2026, looked at:
-  - web search for wind-tunnel or flight measurements of tube fins
-  - Zenodo's records API for tube fins
-
-  It found nothing usable: the results are Barrowman's and McAtee's reports, which compare solid fins with a wind tunnel, and unrelated heat exchanger papers. No tube fin lift or center of pressure measurement.
 - [G28](#g28), October 17, 2026, looked at:
   - NTRS, for reports on flared bodies
   - NASA TM X-653 (Jorgensen, Spahr and Hill, 1962)
