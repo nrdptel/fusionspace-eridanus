@@ -203,6 +203,31 @@ the pages, the way a flyer would:
    numbers. Say which of the two readings decides, why the speed ratio alone isn't a safe line,
    which way each reading can err, and where a fin's shear modulus comes from.
 
+**M0.14c6's tasks,** done the same way, on the PR's final commit:
+
+1. From Aerodynamics' *In short*, say what the model covers and over what Mach range, which
+   sources it rests on, how well its drag is validated faster than sound, and what it leaves out.
+2. From *Code and conventions*, find the crate and function that compute one part's normal force,
+   and the source the page gives for it. From *Your rocket's center of pressure*, get a rocket's
+   CP and $C_{N\alpha}$ by the page's steps, and say where the CP is measured from.
+3. From *Bodies of revolution*, say how a body's lift is found below and above Mach 1, and how a
+   boattail or a flare is handled in a flight faster than sound. Say what a blunt tip's cap is
+   worth, with the page's numbers.
+4. From *Fins* and *Fins through Mach 1*, say how a fin set's normal force and CP are found, and
+   what changes through Mach 1. From *Roll: forcing and damping*, say what makes a rocket roll and
+   what slows it.
+5. From *Pods* and *Tube fins*, say how each is modeled and what each leaves out. From *The normal
+   force from RASAero II*, say what the export holds, how a flight uses it, and how it was checked.
+6. From *Drag*, name the parts of a rocket's drag and say what a part's stated drag coefficient
+   replaces. From *Drag through Mach 1* and *Boattails faster than sound*, say how the drag moves
+   through Mach 1, and how far a boattail's drag is from its measurements, with the page's numbers.
+7. From *Validity and open questions*, say where the model stops and name one open question with
+   its issue.
+8. From *Verification*, say how the normal force through Mach 1 compares with its target, and how
+   the drag compares with the Arcas Robin wind tunnel, with RASAero II through Mach 2 and with
+   MIL-HDBK-762's sample calculation, with the page's numbers. Say how the roll compares with the
+   Arcas Robin and the Basic Finner.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
