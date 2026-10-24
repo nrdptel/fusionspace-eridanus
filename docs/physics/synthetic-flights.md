@@ -322,8 +322,8 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
   apogee by at most 2.1 cm (0.07 ft), but lagged the height by 0.4 to 135 m (1.3 to 443 ft)
   through Mach 0.9 to 1.07 ([the Mach error note][mach] §5, an inference; no hobby bay's lag has
   been measured). Left out, the synthetic logs are cleaner in boost than a real one may be.
-- **A temperature term.** It isn't drawn: below 4 km (2.5 mi) it moves the apogee by under 0.3 m
-  (1 ft), less than the loggers' rest noise ([the bay temperature note][baytemp] §2, §7).
+- **A temperature term.** Not drawn: below 4 km (2.5 mi) it is under 0.3 m (1 ft) at apogee, less
+  than rest noise ([bay temperature][baytemp]).
 - **Clock drift.** The logger's clock is taken as exact.
 - **The logger's own speed column.** Each logger filters its own speed its own way, so the
   synthetic logs carry none.
