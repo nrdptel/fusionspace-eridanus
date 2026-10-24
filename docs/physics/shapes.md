@@ -19,8 +19,8 @@ of mass, inertia and surface area.
 - **What it leaves out:** OpenRocket's wall, measured across each station. It is this model's on
   a cone and up to 0.48% apart on blunt elliptical noses
   ([the masses against OpenRocket][builder-masses]). HPR Sim also does not cut a steep end square
-  to the axis, as OpenRocket cuts its probe transition: up to 2.24% of wall mass in this page's
-  examples ([Walls](#solids-of-revolution)).
+  to the axis, as OpenRocket cuts its probe transition. That adds up to 2.24% of wall mass in this
+  page's examples ([Walls](#solids-of-revolution)).
 
 ## Code and sources
 

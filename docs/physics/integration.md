@@ -161,7 +161,7 @@ Sources:
 
 - `rtol = atol = 1e-8`, no maximum step, and a limit of 10⁶ attempted steps.
 - The flight keeps these defaults with unit weights. On Valetudo's flight on a K400C motor they
-  took 1.13 ms to run (a release build), and put the apogee within 1.1e-6 m of a run at 1e-11
+  took 1.13 ms to run, in a release build. The apogee came within 1.1e-6 m of a run at 1e-11
   ([Rigid-body flight](flight.md#integration-settings)).
 - A stiff flight phase shows up as `StepTooSmall` or the step limit.
 - A fixed step has to respect the drag's own time scale. Quadratic drag $\dot{v} = -k \lvert v \rvert v$, with
