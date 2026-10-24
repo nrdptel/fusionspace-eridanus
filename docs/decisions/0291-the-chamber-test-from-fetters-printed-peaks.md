@@ -33,9 +33,11 @@ The logger's seven shots have their sample deviation recorded beside the mean.
 
 The band is not quite a 95% band. Its s comes from Fetter's seven shots alone, which carry 6
 degrees of freedom, so a correct logger with Fetter's scatter lands inside it with probability
-P(|t₆| < 2.179) = 0.928, about 93%. The band keeps that 7% chance of a false fail on purpose: a
-true 95% band is wider and passes a logger that reads high more easily. A correct logger that
-fails has the done-when's own way out, the gap recorded in an ADR with the measurement.
+P(|t₆| < 2.179) = 0.928, about 93%. That is the chance before either set of shots is drawn,
+counting the chance in Fetter's own seven. The band keeps that 7% chance of a false fail on
+purpose: a true 95% band is wider and passes a logger that reads high more easily. A correct
+logger that fails has the done-when's own way out, the gap recorded in an ADR with the
+measurement.
 
 Two other rules were weighed and refused:
 
