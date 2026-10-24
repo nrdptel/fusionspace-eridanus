@@ -356,7 +356,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - Design checks: stable with every surface neutral and with any one stuck at its limit (the trim
     angle reported); a stuck surface's steady roll rate against the pitch natural frequency (roll
     lock-in); neutral through boost and on an abort, a power loss or an attitude more than 30° from
-    the launch elevation (IREC §7.3.1).
+    the launch elevation (IREC §7.3.1, §7.4).
   - Steering to a target point, and pitch or yaw control, are out of scope (ADR-193).
 
   *Done when:*
