@@ -29,19 +29,19 @@ window, and Rev C, the same day, makes the column the limit instead.
    the longest line of prose on any page 156 characters". The highest medians come from wide
    windows, where the text beside each sheet's rail is 904 px wide. That is longer
    than print's 45 to 75 and the US Web Design System's 90, by choice. On screen, long lines read
-   faster: 100 characters against 25 (Dyson and Kipping, *Visible Language* 32, 1998), and 95
-   the fastest of 35 to 95 (Shaikh and Chaparro, Human Factors and Ergonomics Society 49th
-   Annual Meeting, 2005). Dyson and Kipping's comprehension measure was a check that people had
-   read the text: readers ticked whether five questions could be answered from it. Line length
-   didn't change it. Their readers rated 55 characters easiest and 100 hardest, with 25 fifth
-   of six, so they favored medium lines, not short ones. Shaikh and Chaparro's readers had no
-   significant preference: 30% liked 35 characters best and 30% liked 95. The same lab's fuller
-   comprehension test points the other way from the speed results: 55 characters were
-   understood better than 100, F(2, 68) = 3.17, p < .05 (Dyson and Haselgrove, *International
-   Journal of Human-Computer Studies* 54, 2001, p. 598). No study found separates 60 to 75
-   characters from 95 to 110 on comprehension, so the choice stands as a trade, not a finding
-   ([prose measure on screen](../research/prose-measure-on-screen.md), §1 and §3). A reader
-   who wants shorter lines can narrow the window.
+   faster: 100 characters against 25 (Dyson and Kipping, *Visible Language* 32, 1998), and 95 the
+   fastest of 35 to 95 (Shaikh and Chaparro, Human Factors and Ergonomics Society 49th Annual
+   Meeting, 2005). Dyson and Kipping's comprehension measure was a check that people had read the
+   text: readers ticked whether five questions could be answered from it. Line length didn't
+   change it. In their first experiment readers rated 55 characters easiest and 100 hardest, with
+   25 fifth of six, so they favored medium lines, not short ones. Shaikh and Chaparro's readers
+   had no significant preference: 30% liked 35 characters best and 30% liked 95. Dyson's lab ran
+   a fuller comprehension test, and it points the other way from the speed results: 55 characters
+   were understood better than 100, F(2, 68) = 3.17, p < .05 (Dyson and Haselgrove,
+   *International Journal of Human-Computer Studies* 54, 2001, p. 598). No study found separates
+   60 to 75 characters from 95 to 110 on comprehension, so the choice stands as a trade, not a
+   finding ([prose measure on screen](../research/prose-measure-on-screen.md), §1 and §3). A
+   reader who wants shorter lines can narrow the window.
 2. **A reading scale** (`foundations.md`, *Type*): a reading page (documentation, a report, an
    article) grows the whole type scale together, ×1 up to a 1,024 px window, ×1.125 from 1,600
    px, linear between, so body text goes from 16 to 18 px (17.7 px at 1,512). It is a clamp() of
