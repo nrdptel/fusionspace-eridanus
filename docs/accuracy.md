@@ -308,7 +308,7 @@ its reference and still pass.
 | [Shapes](physics/shapes.md) | exact formulas (closed forms) for filled noses and transitions | within 1e-10 relative |
 | [Shapes](physics/shapes.md) | separately computed high-precision integrals, for 22 noses and transitions | within 1e-12 relative |
 | [Shapes](physics/shapes.md) | the same kind of integrals, for 20 hollow shells of a given wall thickness | within 1e-10 relative |
-| [Shapes](physics/shapes.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass of three walled probe parts: a conical and an ogive nose and a conical transition ([probes](format/ork.md#inside-a-nose-cone-or-a-transition)) | within 3.93e-5 relative |
+| [Shapes](physics/shapes.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass of three walled probe parts: a conical and an ogive nose and a conical transition ([probes](format/ork.md#inside-a-nose-cone-or-a-transition)) | within 3.93e-5 relative (the test holds 5e-5) |
 | [Mass properties](physics/mass.md) | a cone, a tube, four fins and an off-axis payload, added up by hand | within 1e-11 relative |
 | [Mass properties](physics/mass.md) | fin cross-sections, against exact numerical integration | within 1e-13 relative |
 | [Mass properties](physics/mass.md) | material densities, converted from the units their sources print | the sources' values, such as white ash at 678 kg/m³ |
@@ -1171,8 +1171,9 @@ rest.
   doesn't state. Six are measured so far ([Mass properties](physics/mass.md#checked-against-openrocket)).
   A nose cone's wall thickness can be measured straight out from the axis or square to its surface.
   On a cone three [calibers](glossary.md#caliber) long, the wall's volume differs by 1.4% between
-  the two. On its probe parts OpenRocket measures it square to the surface, as HPR Sim does
-  ([Shapes](physics/shapes.md)).
+  the two. OpenRocket's masses follow a third wall, measured across each station. It equals HPR
+  Sim's square-to-surface wall on a cone and differs on curved noses, by up to 0.48% on four blunt
+  elliptical catalog noses ([the masses against OpenRocket](the-builder.md#the-masses-against-openrocket)).
 
 [ndrt-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/descent-ndrt-2020-nose-to-tail.toml
 [plan]: VALIDATION.md#principles

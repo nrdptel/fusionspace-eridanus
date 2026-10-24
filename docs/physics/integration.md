@@ -161,13 +161,13 @@ Sources:
 
 - `rtol = atol = 1e-8`, no maximum step, and a limit of 10⁶ attempted steps.
 - The flight keeps these defaults with unit weights. On Valetudo's flight on a K400C motor they
-  took 1.13 ms, and put the apogee within 1.1e-6 m of a run at 1e-11
+  took 1.13 ms to run (a release build), and put the apogee within 1.1e-6 m of a run at 1e-11
   ([Rigid-body flight](flight.md#integration-settings)).
 - A stiff flight phase shows up as `StepTooSmall` or the step limit.
 - A fixed step has to respect the drag's own time scale. Quadratic drag $\dot{v} = -k \lvert v \rvert v$, with
   $k = \rho C_D S/(2m)$, linearizes to $\lambda = 2k \lvert v \rvert$. RK4 is stable only for $h \lesssim 2.78/\lambda$. A light
   body under a big canopy is the worst case in HPR Sim. A 0.55 kg sustainer arriving at 168 m/s (551 ft/s)
-  under 2 m² gives $\lambda \approx 740\,\mathrm{1/s}$. So RK4 needs $h \lesssim 3.8\,\mathrm{ms}$ and diverges at 10 ms (found in review).
+  under 2 m² gives $\lambda \approx 740\,\mathrm{1/s}$. So RK4 needs $h \lesssim 3.8\,\mathrm{ms}$ and diverges at 10 ms.
   The divergence surfaces as a geodesy error from an absurd position, not as a stability message.
   The adaptive method has no such limit. Recovery descents are the place this bites, because a
   separated body can be a tenth of the stack's mass under a canopy sized for it.

@@ -356,10 +356,10 @@ $$
 
 - `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.
-- Accuracy against cost was measured on 2026-09-17, on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
+- Accuracy against cost was measured on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
   from the west. Each apogee is compared with the one at 1e-11 (873.98272 m (2,867.3974 ft)):
 
-  | `rtol = atol` | apogee error | flight time (release) |
+  | `rtol = atol` | apogee error | run time (release build) |
   |--:|--:|--:|
   | 1e-4 | 2.3e-2 m | 0.36 ms |
   | 1e-6 | 6.8e-5 m | 0.59 ms |

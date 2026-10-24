@@ -49,8 +49,8 @@
 //! solid wing he takes the material's own (his p. 6), which this module does. His definition,
 //! `G_E = 6 J G / (c t³)` (eq. 12), would give a flat plate, whose torsion constant is
 //! `J = c t³/3`, about twice that, and a flutter speed `√2` higher; the lower reading is kept. For
-//! a NACA four-digit section it gives `0.946 G`, so an airfoiled fin's `V_f` here is up to 2.7%
-//! high.
+//! a NACA four-digit section it gives `0.946 G`, so an airfoiled fin's `V_f` here is up to 2.8%
+//! high (`1/√0.946`).
 //!
 //! **Left out.** Sweep, the fin's mounting and the body's own modes (Martin's figure 8), stall
 //! flutter at high angles of attack, Mach number effects such as a transonic dip, and every other
