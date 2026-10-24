@@ -698,7 +698,9 @@ Avionics (VISION V39):
   bench-tested both; the logger reads within its transducer's rated accuracy of a reference gauge
   across its range, with a rise time of 2 ms or less, its sample rate and port damping recorded;
   seven 0.5 g FFFFg shots (by volume, as Fetter's) in an empty 150.8 in³ chamber give a mean
-  peak within 28.5 ± 4.7 psi (95%, the difference of two 7-shot means), or the gap is recorded
-  in an ADR with the measurement; with a fresh battery and shorted leads, the continuity test
-  stays below the named e-match's rated test current (0.04 A for MJG's Firewire); and each
-  interlock blocks firing in a test.
+  peak within 28.8 ± 5.1 psi (95%, the difference of two 7-shot means, t = 2.179 at 12 degrees of
+  freedom), from the seven peaks Fetter's Fig. 7-5 lists and their sample deviation, 4.36 psi (the
+  figure's printed 28.49 and 4.04 don't match its own peaks: 4.04 is their population deviation), or
+  the gap is recorded in an ADR with the measurement; with a fresh battery and shorted leads, the
+  continuity test stays below the named e-match's rated test current (0.04 A for MJG's Firewire);
+  and each interlock blocks firing in a test.
