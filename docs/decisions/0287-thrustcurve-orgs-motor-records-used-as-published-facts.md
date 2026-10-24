@@ -1,6 +1,6 @@
 # ADR-287: ThrustCurve.org's motor records used as published facts (2026-10-20)
 
-- **Status:** accepted; replaces the license reasoning in ADR-145 §1, ADR-161 §3 and ADR-186 (that ThrustCurve.org's lack of a license keeps its records out of the repository); returns to ADR-005's first reading; no done-when changes
+- **Status:** accepted; replaces the license reasoning in ADR-145 §1, ADR-161 §3 and ADR-186 (that ThrustCurve.org's lack of a license keeps its records out of the repository); returns to ADR-005's first reading; no done-when changes; §2's "free usage" line and §4's passing-only bundle replaced by ADR-288
 - **Summary:** ThrustCurve.org's motor records are published facts about motors anyone can buy, so the project uses them, from the site, its API or the site's 2016 sample dump, with ThrustCurve.org's credit; curve files marked public domain or with no license may be committed too, files marked "free usage" or "other (restricted)" are fetched only when a user asks, and every accuracy check stays.
 
 [adr-005]: 0005-solid-motors-statistics-consumption-grains-file.md

@@ -139,6 +139,9 @@ checkable items.
 - **2026-10-18, the maintainer's own voice** ([ADR-284, the maintainer's own voice](decisions/0284-the-maintainers-own-voice.md)).
   Neer decided that everything people read, from the README and the docs to fusionspace.co and the
   GitHub pages, should sound like him, written plainly, and asked for it to be done carefully.
+- **2026-10-21, every motor offline** ([ADR-288, every solid motor ships in the package](decisions/0288-every-solid-motor-ships-in-the-package.md)).
+  Neer decided the package should carry every motor's data, so it works offline with nothing to
+  fetch, with as much data and as many options as possible. Solid motors come first; hybrids come after release 1.0.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
@@ -217,6 +220,7 @@ Decisions Neer confirmed at kickoff:
 | V53 | Awareness and care: a banner and a footer line through the year (heritage and awareness months, health, access, science and space, rocketry safety) from a dated, sourced table, regions named, solemn days alone, a checked help page; then a code of conduct, a page on getting involved and a way to report a barrier ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)) | M0.13a, M0.13b, ADR-275 |
 | V54 | A flyer's own altimeter or GPS tracker read from the command line and Python by a column mapping or record layout, and GPX tracks read | M7.1d1, M7.1d2, ADR-276 |
 | V55 | Everything people read (the README, the docs site, the program's messages, fusionspace.co, the design system's writing rules and the repositories' About text) sounds like the maintainer wrote it, plainly, not a template | M0.14, ADR-284 |
+| V56 | A dated snapshot of ThrustCurve.org's solid motors in the package, so each motor with a curve flies offline; each curve's check against its motor's published figures shown; an optional update adds newer motors and files | M5.7, ADR-288 |
 
 ## North stars
 

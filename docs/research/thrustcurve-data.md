@@ -150,6 +150,21 @@ The counts above are the 2026-09-17 survey's and held then. On 2026-10-17 (API r
   `swagger.json` v1.0.3) are byte-identical to their pins or, for the last two, to the hashes
   under Pins; every quote stands.
 
+## 7. The whole solid catalog, 2026-10-21
+
+For ADR-288, read from the 2026-09-17 POST captures (`refs/samples/thrustcurve/download/`) and the
+pinned `motors.json`, the 152 motors typed `hybrid` left out:
+
+- 1004 solid motors and 1712 files. 726 motors have 2 to 4 files; 80 have none (53 out of production).
+  Of the 726, 666 have exactly two, one RASP and one RockSim file; 335 have more than one source.
+- 7 motors' only files are `free` (none `other`): 4 in production (Cesaroni 699J145-19A, 518I165-17A
+  and 6268M1401-P; AMW K475) and 3 out of production.
+- Size: the files' bytes 2052500 (xz 330824, zlib level 9 460016); the records as compact JSON
+  605620 (xz 44484).
+- hpr refuses 2 RockSim files whose times run backwards (AMW SK-38-640, AeroTech J1299N); both
+  motors' RASP files read with `hpr motors show`.
+- A one-off script, not committed, gave these counts; M5.7's tool prints its own.
+
 ## Pins
 
 - Pinned in M1.3 (`validation/refs.lock.toml`): the glossary, motor-statistics, contribute, RASP

@@ -316,6 +316,7 @@ until someone rewrites it in plainer words.
 | [ADR-285: The rest of the site in nine increments, each held to the voice limits as it lands][adr-285] | The 71 site pages [M0.14c](#m0-14c) covers hold 413,377 words, too many for one rewrite. They go in nine increments by the site's sections. From the first, `cargo xtask voice` fails when a page [M0.14](#m0-14) has rewritten goes over a voice limit or misses the guide's sentence targets, so a page that passes stays passing while the rest are done. The last increment holds every site page, a new one included. |  |
 | [ADR-286: The 2026-10-20 review: the export bar tightened][adr-286] | In the corpus, the only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas. |  |
 | [ADR-287: ThrustCurve.org's motor records used as published facts][adr-287] | ThrustCurve.org's motor records are published facts about motors anyone can buy, so the project uses them, from the site, its API or the site's 2016 sample dump, with ThrustCurve.org's credit; curve files marked public domain or with no license may be committed too, files marked "free usage" or "other (restricted)" are fetched only when a user asks, and every accuracy check stays. |  |
+| [ADR-288: Every solid motor ships in the package][adr-288] | [M5.7](#m5-7) will compile ThrustCurve.org's solid-motor catalog into `hpr-motor`: every record, and every curve file HPR Sim reads but a restricted one, so no motor in the snapshot needs a fetch. Each file carries its check against its motor's published figures. A motor's default file passes where one does, and flying a failing file warns. `hpr motors update` adds newer motors and files when online. Until then, 32 motors come built in. |  |
 
 ## The roadmap
 
@@ -700,6 +701,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-6b"></a>[M5.6b][phase-2] | Parachutes and recovery hardware | not yet done |
 | <a id="m5-6c"></a>[M5.6c][phase-2] | Motor hardware and rail buttons | not yet done |
 | <a id="m5-6d"></a>[M5.6d][phase-2] | More makers and electronics | not yet done |
+| <a id="m5-7"></a>[M5.7][phase-2] | Every solid motor, offline | not yet done |
 | <a id="m6-1"></a>[M6.1][done-3] | Monte Carlo runs and sensitivity; split in four ([ADR-134][adr-134]) | done |
 | <a id="m6-1a"></a>[M6.1a][done-3] | Seeded dispersion of mass, center of mass, drag, motor, wind, rail and recovery delays; each flight the same whatever the run's size or thread count; failed flights counted; the apogee's spread ([ADR-134][adr-134], [Monte Carlo dispersion](monte-carlo.md)) | done |
 | <a id="m6-1b"></a>[M6.1b][done-3] | Landing ellipses holding a chosen share of the landings, checked against normal spreads with known answers; the next flight's ellipse; the landings each holds counted ([ADR-135][adr-135], [Landing ellipses](monte-carlo.md#landing-ellipses)) | done |
@@ -1203,6 +1205,7 @@ is the milestone that added or will add that test.
 [adr-285]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md
 [adr-286]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
+[adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
