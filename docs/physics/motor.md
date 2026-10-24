@@ -676,9 +676,9 @@ The tests that pin the motor model, and the whole example program.
     length.
   - Quantities that go to zero are compared against a fixed scale. Propellant mass and inertias
     use their ignition values, grain height its initial height, and centers the motor length. On
-    that scale they agree within 1e-4. Relative to their own values they differ by up to 69%, in
-    the 38 mm motor's last 6.9 mg. That comes from RocketPy: it interpolates between its ODE
-    solver's stored points, and the solver stops slightly early.
+    that scale they agree within 1e-4. Before burnout the propellant mass differs by up to 69% of
+    RocketPy's own value, where RocketPy holds 6.9 mg in the 38 mm motor. That comes from
+    RocketPy's interpolation between the points its ODE solver stored.
   - The test holds 0.1% on these scales.
 - **Files:** 1710 of ThrustCurve's 1712 solid-motor files read, and write back out and read again
   with every value identical to the last bit. The other two have times that go backwards

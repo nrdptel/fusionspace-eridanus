@@ -1081,6 +1081,7 @@ mod tests {
                 // RocketPy keeps a residue under 1e-10 kg where hpr's is zero.
                 if t < scalars.burn_out_time_s {
                     let gap = relative(state.propellant.mass_kg, series.propellant_mass[i]);
+                    assert!(gap.is_finite(), "{} at {t} s", case.name);
                     if gap > own_gap.0 {
                         own_gap = (gap, case.name.clone(), series.propellant_mass[i]);
                     }
@@ -1098,6 +1099,7 @@ mod tests {
                     ),
                 );
                 let center = scaled(state.total.cg_m, to_hpr(series.center_of_mass[i]), length);
+                assert!(center.is_finite(), "{} at {t} s", case.name);
                 center_gap = center_gap.max(center);
                 record("center of mass", center);
                 record(
@@ -1150,7 +1152,7 @@ mod tests {
         }
         // The figures docs/physics/motor.md quotes. In the last milligrams of the 38 mm I case
         // the masses differ by 69% of RocketPy's value, from its interpolation between the
-        // points its solver stored; on the fixed scales above that is far below 1e-4.
+        // points its solver stored; on the fixed scale above that is about 2e-5.
         let (gap, gap_case, gap_theirs_kg) = own_gap;
         eprintln!("propellant, own: {gap:.4e} in {gap_case} at {gap_theirs_kg:.3e} kg");
         eprintln!("center of mass: {center_gap:.4e} of the motor length");
