@@ -93,6 +93,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c3 The command line and the evidence ([Phase 0](#phase-0-foundations))
 - M0.14c4 Reference and the environment ([Phase 0](#phase-0-foundations))
 - M0.14c5 The rocket and its flight ([Phase 0](#phase-0-foundations))
+- M0.14c6 Aerodynamics ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -632,6 +633,8 @@ One line per milestone or increment, in the order it was archived within its pha
       and the bold-label count leaves out the four labels of a model page's *In short* box.
     - [x] **M0.14c5 The rocket and its flight.** *Done when:* its 9 pages are held by
       `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
+    - [x] **M0.14c6 Aerodynamics.** *Done when:* the aerodynamics page is held by `xtask voice`
+      in CI, within its limits and the sentence targets, with an acceptance pass.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
