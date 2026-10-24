@@ -338,7 +338,14 @@ which RocketPy leaves out, and frees the rocket at the last rail button. With bo
 RocketPy, `wind_response.py` lands every windy drift within 1.3% of HPR Sim's. Calisto's time of
 peak acceleration uses it too, in wind and in calm air: its two peaks are 0.9% apart. So do NDRT
 2020's and Prometheus 2022's whole-flight peaks, their main openings, where RocketPy has added mass
-and HPR Sim has none. No case carries an absolute floor: every gate is the milestone's 3%.
+and HPR Sim has none. No case carries an absolute floor: every gate is the milestone's 3% or
+tighter. Since [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md)
+every speed is held to 0.2% (burnout, largest, rail exit and landing) and the apogee of the six
+flights with no written model difference to 0.5%. The largest of those differences in [the
+report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)
+are +0.056% (Juno III's burnout speed) and +0.112% (Valetudo's apogee), and RocketPy's own solver
+moves them far less (the decision gives its figures), so a drifting speed or apogee fails long
+before it nears 3%.
 
 ### In CI, and regenerating the references
 
@@ -420,7 +427,7 @@ flew, and the harness checks HPR Sim's against it. Heights are measured from the
 mass's height at launch, since RocketPy's starts at the ground. The rail exit is taken at
 RocketPy's `effective_1rl`.
 
-Every scored metric agrees within 3%. Since [RocketPy's equations were corrected](decisions-and-roadmap.md#m2-1d3), that
+Every scored metric agrees within its gate: 3%, or 0.2% for the speeds and 0.5% for six apogees. Since [RocketPy's equations were corrected](decisions-and-roadmap.md#m2-1d3), that
 includes every drift but seven ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md); [the path in wind](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md)). One is NDRT 2020's
 apogee drift. The rest are those of the three rockets that leave the rail slowly for the wind they
 meet: Prometheus 2022, Juno III and Bella Lui.

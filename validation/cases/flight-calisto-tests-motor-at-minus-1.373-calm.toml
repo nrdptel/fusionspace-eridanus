@@ -6,6 +6,8 @@
 # differences holds here. What differs: with no wind, the horizontal path comes only from the
 # rail's inclination and heading, so the apogee and landing drifts are scored at the milestone's 3%
 # like every other metric (its acceleration time is not scored, for its windy case's reason).
+# The speeds are held to 0.2% and the apogee to 0.5% (ADR-289), many times RocketPy's own
+# solver noise and still several times the largest difference measured in any of these flights.
 # In wind, where the two codes' normal force differs at the rail exit's angle of attack, some
 # drifts are reported as measured model differences (ADR-026); these cases fly the same rockets
 # without it.
@@ -20,13 +22,13 @@ design = "rocketpy-calisto-tests-motor-at-minus-1.373"
 configuration = "example"
 
 [metrics.apogee_agl_m]
-relative = 0.03
+relative = 0.005
 
 [metrics.apogee_time_s]
 relative = 0.03
 
 [metrics.max_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.max_mach]
 relative = 0.03
@@ -41,7 +43,7 @@ not_scored = "as in the windy case, whose figures these are (in calm air RocketP
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.rail_exit_time_s]
 relative = 0.03
@@ -50,7 +52,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.burnout_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.flight_time_s]
 relative = 0.03
@@ -62,7 +64,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

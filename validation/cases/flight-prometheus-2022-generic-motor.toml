@@ -18,9 +18,9 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor. That is the
-# milestone's bar, not a model bound: most metrics agree far inside it. The differences that remain
-# have these sources, measured where stated:
+# Every scored metric is held to the milestone's 3%, with no absolute floor, and the speeds to 0.2%
+# (ADR-289). The 3% is the milestone's bar, not a model bound: most metrics agree far inside it. The
+# differences that remain have these sources, measured where stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -83,7 +83,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.max_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.max_mach]
 relative = 0.03
@@ -98,7 +98,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.rail_exit_time_s]
 relative = 0.03
@@ -107,7 +107,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.burnout_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.flight_time_s]
 relative = 0.03
@@ -119,7 +119,7 @@ not_scored = "a measured model difference, not an open miss (ADR-026): hpr's apo
 not_scored = "a measured model difference, as the apogee drift is (ADR-026): hpr lands 4.5% further out (1444.8 m against 1382.6). With hpr's rail release RocketPy lands 1382.7 m out, and with its body lift too 1444.3 m (validation/oracles/rocketpy/wind_response.py), within 0.1% of hpr. Reported, not scored, for the apogee drift's reason."
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

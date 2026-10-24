@@ -1,6 +1,6 @@
 # ndrt-2020-nose-to-tail: RocketPy's own parachute phase, replayed from the state and the devices its generator
 # recorded (`validation/oracles/rocketpy/recovery.py`, M1.7a). Every metric is held to the
-# milestone's 3%, with no absolute floor: a floor large enough to carry a drift component that is
+# milestone's 3% (the landing speed to 0.2%, ADR-289), with no absolute floor: a floor large enough to carry a drift component that is
 # essentially zero would also be looser than 3% of the drift itself, which would hide a real
 # regression rather than report one.
 #
@@ -20,7 +20,7 @@ configuration = "example"
 relative = 0.03
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.mean_descent_rate_m_s]
 relative = 0.03

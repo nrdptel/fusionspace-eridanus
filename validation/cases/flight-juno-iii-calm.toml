@@ -10,6 +10,8 @@
 # button, and its path stays steeper (ADR-025). Freed where hpr frees it, RocketPy's drifts are
 # 551.2 and 630.2 m, within 0.5% of hpr's (`wind_response.py`). Against RocketPy as released
 # they missed by 3.7% and were not scored (ADR-025); the corrected reference (ADR-026) scores them.
+# The speeds are held to 0.2% and the apogee to 0.5% (ADR-289), many times RocketPy's own
+# solver noise and still several times the largest difference measured in any of these flights.
 # In wind, where the two codes' normal force differs at the rail exit's angle of attack, some
 # drifts are reported as measured model differences (ADR-026); these cases fly the same rockets
 # without it.
@@ -24,13 +26,13 @@ design = "rocketpy-juno-iii"
 configuration = "example"
 
 [metrics.apogee_agl_m]
-relative = 0.03
+relative = 0.005
 
 [metrics.apogee_time_s]
 relative = 0.03
 
 [metrics.max_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.max_mach]
 relative = 0.03
@@ -45,7 +47,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.rail_exit_time_s]
 relative = 0.03
@@ -54,7 +56,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.burnout_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.flight_time_s]
 relative = 0.03
@@ -66,7 +68,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

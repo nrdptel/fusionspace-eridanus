@@ -317,6 +317,7 @@ until someone rewrites it in plainer words.
 | [ADR-286: The 2026-10-20 review: the export bar tightened][adr-286] | In the corpus, the only apogee differences OpenRocket shows between a design and HPR Sim's export of it are OpenRocket's own run-to-run spread, 0.00051% on the most sensitive configuration, while a probe that rounded every number to six decimals still passed the 0.5% bar, so the bar is tightened to 0.002% and the planning review places four new ideas. |  |
 | [ADR-287: ThrustCurve.org's motor records used as published facts][adr-287] | ThrustCurve.org's motor records are published facts about motors anyone can buy, so the project uses them, from the site, its API or the site's 2016 sample dump, with ThrustCurve.org's credit; curve files marked public domain or with no license may be committed too, files marked "free usage" or "other (restricted)" are fetched only when a user asks, and every accuracy check stays. |  |
 | [ADR-288: Every solid motor ships in the package][adr-288] | [M5.7](#m5-7) will compile ThrustCurve.org's solid-motor catalog into `hpr-motor`: every record, and every curve file HPR Sim reads but a restricted one, so no motor in the snapshot needs a fetch. Each file carries its check against its motor's published figures. A motor's default file passes where one does, and flying a failing file warns. `hpr motors update` adds newer motors and files when online. Until then, 32 motors come built in. |  |
+| [ADR-289: The 2026-10-24 review: the RocketPy speed and apogee gates tightened][adr-289] | In the RocketPy comparisons flown on the same inputs, the speeds agree within 0.056% and the six cause-free apogees within 0.112%, while RocketPy's own solver moves them by at most 0.0031% and 0.00064%, so the 3% gates could not see a regression fifty times the largest difference; they become 0.2% and 0.5%, and the planning review places four new ideas. |  |
 
 ## The roadmap
 
@@ -1206,6 +1207,7 @@ is the milestone that added or will add that test.
 [adr-286]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
+[adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

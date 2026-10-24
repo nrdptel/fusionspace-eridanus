@@ -75,6 +75,18 @@ never write numbers or make safety calls: every number comes from the engine.
 - LATER: a curriculum partner, in the style of PhET (the University of Colorado's free
   interactive science simulations).
 
+From the 2026-10-20 planning review ([ADR-286][adr-286]):
+
+- SOON: OpenRocket's whole-rocket aero tables, read and flown. User: a flyer whose `.ork` from
+  OpenRocket's next release carries drag and stability tables by Mach ([its guide][or-aero]).
+  Workflow: `hpr sim` flies them as OpenRocket does, held at their edges, names them and flags the
+  flight past their last Mach; until then such a file is refused ([#879][i-879]). Moves:
+  `features.count`. *Done when:* a probe `.ork` with both tables flies within 0.5% of that
+  release's apogee (pinned as 24.12 is), and tests hold the edge rule both ways.
+
 [m1-14g]: ../decisions-and-roadmap.md#m1-14g
 [m4-5e]: ../decisions-and-roadmap.md#m4-5e
 [m2-9]: ../decisions-and-roadmap.md#m2-9
+[adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
+[i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
