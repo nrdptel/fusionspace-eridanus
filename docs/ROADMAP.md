@@ -328,7 +328,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     (seeded noise) and commands deployment. A reference apogee-targeting controller ships.
   - Drag only (ADR-193): every flap follows the one deployment command, with no pitch or yaw
     channel; a single flap out is a fault, not a command. The brakes stay retracted until burnout
-    and retract on an abort, a power loss or a tilt past 30° (IREC §7.3, §7.4).
+    and retract on an abort, a power loss or an attitude more than 30° from the launch elevation
+    (IREC §7.3.1, §7.4).
 
   *Done when:*
   - RocketPy's air-brakes example, flown with the same drag table and controller, matches RocketPy
@@ -354,12 +355,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     deflected for roll, a warning where the tail's exposed span exceeds 0.75 of the canards'.
   - Design checks: stable with every surface neutral and with any one stuck at its limit (the trim
     angle reported); a stuck surface's steady roll rate against the pitch natural frequency (roll
-    lock-in); neutral through boost and on an abort, a power loss or a tilt past 30°.
+    lock-in); neutral through boost and on an abort, a power loss or an attitude more than 30° from
+    the launch elevation (IREC §7.3.1).
   - Steering to a target point, and pitch or yaw control, are out of scope (ADR-193).
 
   *Done when:*
   - The subsonic tab effectiveness reproduces Glauert's closed form at c_f/c = 0.1, 0.2 and 0.3
-    to 1e-12, and the error against NASA TP-1353's tail-fin ailerons (Mach 1.6–2.86, Figure 18
+    to 1e-12, and the error against NASA TP-1353's tail-fin ailerons (Mach 1.6–2.96, Figure 18
     digitized by pixel) is published with its sign.
   - The canard–tail interference term's error against a public canard–tail wind-tunnel case (TP-2157
     or TM X-3070, picked in the milestone's ADR before running) is published with its sign, and a
