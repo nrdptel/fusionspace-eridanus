@@ -142,8 +142,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - [ ] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
     passes `xtask voice` in CI, within its limits and `writing.md`'s sentence targets, with an
     acceptance pass. Split in nine by the site's sections; ADR-285 lists each one's pages:
-    - [ ] **M0.14c7 Recovery, staging and readings.** *Done when:* its 5 pages are held by
-      `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
     - [ ] **M0.14c8 The file formats.** *Done when:* its 7 pages are held by `xtask voice` in CI,
       within its limits and the sentence targets, with an acceptance pass.
     - [ ] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
