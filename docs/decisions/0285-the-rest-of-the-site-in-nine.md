@@ -228,6 +228,36 @@ the pages, the way a flyer would:
    MIL-HDBK-762's sample calculation, with the page's numbers. Say how the roll compares with the
    Arcas Robin and the Basic Finner.
 
+**M0.14c7's tasks,** done the same way, on the PR's final commit:
+
+1. From Recovery's *In short* and *Drag of each device*, say what a parachute's, a streamer's
+   and a tumbling part's drag rests on. From *Which model is right?*, say how a streamer's model
+   is chosen and how far each fit is from its measurements, with the page's numbers.
+2. From *Deployment and descent*, say what opens a device and when, how its inflation and opening
+   load are found, and what the fill constant is at hobby speeds. Say what the descent rate rests
+   on.
+3. From *Parts that come apart*, say how a separation and an ejected piece are flown. From *From
+   an OpenRocket file*, say what is read from a `.ork`'s recovery devices and what `hpr sim` notes
+   when a device never opens. From *Against RocketPy*, say how closely the descent agrees, with
+   the page's numbers, Valetudo's north drift included.
+4. From Staging's *Ignition and separation*, say when an upper stage's motor lights and how a
+   powered separation is flown. Run *A worked example*'s program as the page says, get the page's
+   output, and follow the example to its numbers.
+5. From *More stages and boosters*, say how several separations, a payload dropped with nothing
+   left to burn, boosters beside the core and a booster dropped still burning are flown. From
+   *Against OpenRocket*, say how closely the staged flights agree, with the page's numbers.
+6. From Flight metrics, run *Getting the numbers*' example as the page says and get the page's
+   output. Say how the stability margin is defined and in which plane it is taken, what *The
+   largest angle of attack* counts, what *Unstable under power* flags, and how the optimum ejection
+   delay and the landing point are found.
+7. From Flight-log readings, say how the height track, the pad and the climb are found and what
+   each reading is. Follow *A worked example* to its numbers, say what each bound holds and when a
+   reading is withheld, and how the readings compare with what they're checked against, with the
+   page's numbers.
+8. From Synthetic flights, say why the flights are simulated, what a flight draws and which
+   loggers it copies. Say what each noise term is and its source, follow *A worked example* to its
+   numbers, and say what the flights were checked against and what they leave out.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
