@@ -795,7 +795,7 @@ How each device flies:
 
 **A worked example.** A parachute 0.6 m (2.0 ft) across, with $C_D$ set to `auto`, has a canopy of
 $\pi \times 0.6^2/4 = 0.283\,\mathrm{m^2}$, and a drag area of $0.8 \times 0.283 = 0.226\,\mathrm{m^2}$. `hpr sim` prints it as
-`recovery: Main at apogee, 0.226 m² of drag area`, then when it opened.
+``recovery: `Main` at apogee, 0.226 m² of drag area``, then when it opened.
 
 Some devices never open, and some are refused:
 
