@@ -140,8 +140,9 @@ bias ([accuracy](../accuracy.md#real-flights)).
 4. **Notre Dame's and NC State's MIT logs could feed a flight-derived Cd** where the brakes stayed shut (the Huntsville
    2025 flight, the 2025-03-08 VDF), as in [flight-derived-cd](flight-derived-cd.md), if mass and motor are taken
    from the reports. For Notre Dame the reports are missing.
-5. **[public-flights](public-flights.md) understates `apogee2`:** it says two subscale flights with air brakes. The
-   repository holds 7 logs: 2 subscale with no servo column, 4 full-scale flights and one log with no flight.
+5. **[public-flights](public-flights.md) understated `apogee2`:** it said two subscale flights with air brakes. The
+   repository holds 7 logs: 2 subscale with no servo column, 4 full-scale flights and one log with no flight. Fixed
+   there (#777), with `apogee`'s 4 flights.
 
 ## Open questions
 

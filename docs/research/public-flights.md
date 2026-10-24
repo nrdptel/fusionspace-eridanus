@@ -103,9 +103,14 @@ Caveats, each unbounded until the team's own flight report is read:
   66 °F pad), with the gyro saturated at 0.1 s and 38° tilt at burnout; not checked against the log.
 
 Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m
-against a 9,100 m prediction, cause unstated; Notre Dame's `EamonTracey/apogee2` (MIT) has two
-subscale flights on a team-built logger, with air brakes. The 10 license-less repositories, among
-them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
+against a 9,100 m prediction, cause unstated. Notre Dame's air-brake computers log a 30 Hz BMP390
+barometer and an IMU ([sl-weighed-mass-flights §4](sl-weighed-mass-flights.md#4-logs-as-data-without-a-weighed-mass)).
+`EamonTracey/apogee` (MIT, 2023-24) holds 4 flights, the brakes commanded open in coast on all.
+`EamonTracey/apogee2` (MIT, 2024-25) holds 2 subscale logs with no servo column, 4 full-scale
+flights and one log with only ground rows; the brakes were commanded open in coast on three of the
+four, and Huntsville's stayed at 0°. Neither states a motor per flight or a launch-day wind. The 10
+license-less repositories, among them Stanford's `rockets-irec` and Ohio State's `irec`, can only
+be cited.
 
 ## Large, cited only: no license or no design file
 
