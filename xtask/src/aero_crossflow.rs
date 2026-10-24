@@ -488,19 +488,21 @@ mod tests {
                 }
             }
         }
-        let quote = format!(
+        let before = format!(
             "HPR Sim put it {:.2} to {:.2} calibers aft of the tunnel's on the short model and {:.2} \
-             to {:.2} on the long; now {} to {} and {} to {}",
-            errors[0][0],
-            errors[0][1],
-            errors[1][0],
-            errors[1][1],
+             to {:.2} on the long.",
+            errors[0][0], errors[0][1], errors[1][0], errors[1][1],
+        );
+        let now = format!(
+            "Now it is {} to {} and {} to {}.",
             signed(errors[2][0]),
             signed(errors[2][1]),
             signed(errors[3][0]),
             signed(errors[3][1]),
         );
-        assert!(joined.contains(&quote), "aero.md doesn't say `{quote}`");
+        for quote in [before, now] {
+            assert!(joined.contains(&quote), "aero.md doesn't say `{quote}`");
+        }
         // The guide's table of Washington and Pettis's increments on the short model.
         for increment in &increments {
             assert!(
