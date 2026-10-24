@@ -103,9 +103,9 @@ Caveats, each unbounded until the team's own flight report is read:
 
 Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m against a 9,100 m
 prediction, cause unstated. Notre Dame's `EamonTracey/apogee` (MIT) holds 4 flights, `apogee2` (MIT) 2 subscale logs
-with no servo column, 4 full-scale flights and a log of ground rows; the air brakes were commanded open in coast on
-all but `apogee2`'s Huntsville flight, and neither states a motor per flight. The 10 license-less repositories, among
-them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
+with no servo column, 4 full-scale flights and a log of ground rows; the air brakes were commanded open before the
+peak on `apogee`'s 4 flights and on three of `apogee2`'s 4 (not Huntsville), and neither states a motor per flight.
+The 10 license-less repositories, among them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
 
 ## Large, cited only: no license or no design file
 
