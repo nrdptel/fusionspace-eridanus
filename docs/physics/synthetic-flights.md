@@ -17,7 +17,8 @@ will be tested.
   [Mach number](../glossary.md#mach-number).
 - **Sources:** the pressure sensors' and accelerometers' datasheets and the noise measured in
   public logs ([the sensor noise note][noise]). Some terms are assumed where no source states
-  them ([The noise, term by term](#the-noise-term-by-term)). The port error comes from a
+  them ([The noise, term by term](#the-noise-term-by-term);
+  [evidence row G32](../evidence.md#g32)). The port error comes from a
   wind-tunnel test of the static pressure along an ogive-cylinder through Mach 1
   ([the Mach error note][mach]). The ejection pulse comes from the public Pnut log that Debrief
   ships. The GNSS lag follows that of hobby receivers in boost
