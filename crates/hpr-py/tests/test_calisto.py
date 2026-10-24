@@ -1,5 +1,6 @@
-"""RocketPy's Calisto, flown from Python by `examples/calisto.py`: within M2.1's 3% of RocketPy on
-every metric the validation suite scores as a share of RocketPy's value (its two trajectory rows
+"""RocketPy's Calisto, flown from Python by `examples/calisto.py`: within the suite's own bound of
+RocketPy (M2.1's 3%, and since ADR-289 0.2% on four speeds and 0.5% on the apogee) on every metric
+the validation suite scores as a share of RocketPy's value (its two trajectory rows
 have absolute bounds, and are the suite's alone), measured as the suite measures them, and
 printing what the guide's Python page shows."""
 
@@ -32,9 +33,10 @@ def test_calisto_flies_within_three_percent_of_rocketpy(repo, monkeypatch):
     # Every metric the suite holds to a share of RocketPy's value, and nothing else.
     assert set(metrics) == set(scored)
     for name, row in scored.items():
-        assert row["tolerance"]["relative"] == 0.03
+        tolerance = row["tolerance"]["relative"]
+        assert tolerance <= 0.03, name
         difference = abs(metrics[name] - row["reference"]) / abs(row["reference"])
-        assert difference <= 0.03, name
+        assert difference <= tolerance, name
         # The same flight as the suite's, measured the same way: its committed hpr numbers. The
         # example reads the recording at the integrator's steps, the suite inside them too; on
         # 2026-09-29 the largest gap was the top speed's, 3.2e-6, and a wrong gravity model or a

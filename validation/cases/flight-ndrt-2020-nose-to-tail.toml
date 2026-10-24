@@ -18,9 +18,9 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor. That is the
-# milestone's bar, not a model bound: most metrics agree far inside it. The differences that remain
-# have these sources, measured where stated:
+# Every scored metric is held to the milestone's 3%, with no absolute floor, and the speeds to 0.2%
+# and the apogee to 0.5% (ADR-289). The 3% is the milestone's bar, not a model bound: most metrics
+# agree far inside it. The differences that remain have these sources, measured where stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -72,13 +72,13 @@ design = "rocketpy-ndrt-2020-nose-to-tail"
 configuration = "example"
 
 [metrics.apogee_agl_m]
-relative = 0.03
+relative = 0.005
 
 [metrics.apogee_time_s]
 relative = 0.03
 
 [metrics.max_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.max_mach]
 relative = 0.03
@@ -93,7 +93,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.rail_exit_time_s]
 relative = 0.03
@@ -102,7 +102,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.burnout_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.flight_time_s]
 relative = 0.03
@@ -114,7 +114,7 @@ not_scored = "a measured model difference, not an open miss (ADR-026): hpr's apo
 relative = 0.03
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

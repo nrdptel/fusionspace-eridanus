@@ -247,6 +247,59 @@ fn no_committed_gate_is_looser_than_the_milestone_says() {
 }
 
 #[test]
+fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
+    // ADR-289 holds the burnout, largest, rail-exit and landing speeds of the same-drag flights
+    // and descents to 0.2%, and the apogee of the six flights with no written model difference to
+    // 0.5%: the largest differences measured were 0.056% and 0.112%, and RocketPy's own solver
+    // moves them by at most 0.0032% and 0.00064%. Juno III, Bella Lui and Prometheus 2022 in wind
+    // keep 3% on their apogee for the causes their case files measure (hpr's rail release and body
+    // lift, and Juno III's fins). A case file widened back, or a new same-drag case added at the
+    // old bound, fails here.
+    const SPEEDS: [&str; 4] = [
+        "burnout_speed_m_s",
+        "max_speed_m_s",
+        "rail_exit_speed_m_s",
+        "impact_speed_m_s",
+    ];
+    const APOGEE_WITH_A_CAUSE: [&str; 3] = [
+        "flight-juno-iii",
+        "flight-bella-lui",
+        "flight-prometheus-2022-generic-motor",
+    ];
+    let (mut speeds, mut apogees) = (0, 0);
+    for case in cases() {
+        if !(case.id.starts_with("flight-") || case.id.starts_with("descent-")) {
+            continue;
+        }
+        for (name, metric) in &case.metrics {
+            let bound = if SPEEDS.contains(&name.as_str()) {
+                speeds += 1;
+                0.002
+            } else if name == "apogee_agl_m" && !APOGEE_WITH_A_CAUSE.contains(&case.id.as_str()) {
+                apogees += 1;
+                0.005
+            } else {
+                continue;
+            };
+            assert_eq!(
+                (
+                    metric.relative,
+                    metric.absolute,
+                    metric.not_scored.as_deref()
+                ),
+                (Some(bound), None, None),
+                "{}'s {name} is held to {bound} relative, with no floor (ADR-289)",
+                case.id
+            );
+        }
+    }
+    // Nine flights carry burnout, max, rail-exit and landing speeds; five descents their landing
+    // speed. Six apogees: Calisto in wind and calm, Valetudo, NDRT 2020, Juno III and Bella Lui
+    // calm.
+    assert_eq!((speeds, apogees), (9 * 4 + 5, 6));
+}
+
+#[test]
 fn the_metrics_that_are_not_scored_are_these_and_no_others() {
     // Loft excused its two largest misses as "no single target" (L82). A metric that is measured
     // but not scored is the same move made honestly: it is printed with both numbers and a written

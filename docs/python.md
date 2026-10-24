@@ -358,8 +358,8 @@ impact_speed_m_s                     5.4549     5.4560      -0.02%
 largest difference 1.26%, within 3%: True
 ```
 
-Every metric is within 3% of RocketPy's, the bound the validation suite holds this flight to
-([the comparisons with RocketPy](decisions-and-roadmap.md#m2-1)). These are the suite's numbers. A
+Every metric is within 3% of RocketPy's, the widest of [the suite's
+gates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md). These are the suite's numbers. A
 test holds each to within 0.001% of what the suite's report records for the same flight
 ([`test_calisto.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_calisto.py)).
 

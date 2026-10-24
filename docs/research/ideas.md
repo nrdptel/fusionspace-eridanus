@@ -103,44 +103,49 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-17)
+## Earlier planning reviews (2026-10-08 to 2026-10-20)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
 ([M2.3c6][m2-3c6], [ADR-273][adr-273]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
 Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]), the
 post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]), fin flutter held to
-measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the
-[theme notes](#theme-notes).
+measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the [theme notes](#theme-notes);
+the 2026-10-20 review's four ([ADR-286][adr-286]) to flight data and the ecosystem.
 
-## The 2026-10-20 planning review
+## The 2026-10-24 planning review
 
-Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promote an idea.
+Placed by [ADR-289][adr-289], which tightens the RocketPy comparisons' speed and apogee gates
+rather than promote an idea.
 
-- SOON: OpenRocket's whole-rocket aero tables, read and flown. User: a flyer whose `.ork` from
-  OpenRocket's next release carries drag and stability tables by Mach ([its guide][or-aero]).
-  Workflow: `hpr sim` flies them as OpenRocket does, held at their edges, names them and flags the
-  flight past their last Mach; until then such a file is refused ([#879][i-879]). Moves:
-  `features.count`. *Done when:* a probe `.ork` with both tables flies within 0.5% of that
-  release's apogee (pinned as 24.12 is), and tests hold the edge rule both ways.
-- SOON: a canopy's drag area fitted from the flyer's own log. User: an L2 flyer whose main lands
-  faster or slower than the maker's table. Workflow: `hpr analyze` on a barometric log, canopy and
-  descent mass named, prints C_D·S with a 90% interval from each canopy's descent rate ([M7.2][m7-2])
-  beside the maker's figure. Moves: a new row, `accuracy.canopy-cd` (one maker's canopies read 17%
-  to 36% under their table on 29 balloon descents, [the parachute note][hpcd]). *Done when:* synthetic descents of known
-  C_D·S are recovered inside the interval at its stated rate, and a public log gets its C_D·S.
-- SOON: the stability margin through the flight, with each change's cause. User: a flyer whose
-  rocket passes Mach 1 and whose tool shows 2.6 calibers growing to 4.8 with no reason given ([a
-  forum thread][stab-thread], 2026-10). Workflow: `hpr sim` prints the margin at rail exit, top Mach,
-  least and greatest, and splits each change into the CG's move and the CP's by part (nose, body
-  lift, fins' lift slope). Moves: `features.count`. *Done when:* on a public supersonic design the
-  parts sum to the change to rounding, and a mutation dropping one part fails the test.
-- SOON: a past day's ERA5 column with no account. User: a flyer comparing an old flight's log with
-  its simulation in that day's air. Workflow: `hpr weather era5` with a site and a UTC hour, no
-  file, asks NSF NCAR's GDEX copy of ERA5 for the pressure levels (CC BY 4.0, no login, about 2 KB),
-  caches them with the credit, and `hpr sim` flies them offline ([the note][slth]). Moves: a new
-  task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
-  replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
+- SOON: designs that fly as saved, counted against OpenRocket. User: a flyer opening an old `.ork`
+  from a forum or a club's archive. Workflow: `hpr sim` flies it or refuses with one named reason;
+  the scoreboard counts, from the committed reports, what each tool flies as saved and the rest by
+  reason. Moves: a new row, `flies.as-saved`: today hpr flies 61 of the collection's 83 flights
+  whose design is a `.ork`, OpenRocket 79 ([the fixture report][fixture-report]), and hpr 54 of the
+  57 configurations of OpenRocket's examples. *Done when:* the row reads both tools' counts from
+  the reports, and a check fails when hpr's count falls.
+- SOON: a second observable for each logged flight. User: a university team's simulation lead who
+  must know whether a high apogee came from too much impulse or too little drag. Workflow: the
+  real-flight and fixture reports score time to apogee (listed today, unscored, for hpr only) and
+  burnout speed (logs with an accelerometer) for both tools; a high apogee with a high burnout
+  speed points at thrust or mass, one with the log's burnout speed at coast drag. Moves: new rows
+  `accuracy.time-to-apogee` and `accuracy.burnout-speed`, signed and mean absolute, with counts.
+  *Done when:* both reports give the rows for both tools, and in a test synthetic flights with 10%
+  more impulse and with 10% less drag are told apart by their burnout-speed error.
+- SOON: where the miss lives. User: an L1 flyer asking how far to trust a prediction for a rocket
+  like theirs. Workflow: the fixture report splits the apogee error by top Mach band, impulse class
+  and body diameter; a cell of 8 or more flights from 5 or more designs shows its signed and mean
+  absolute error with a 90% bootstrap interval, any other only its count; `hpr sim` names a
+  design's cell. Moves: `accuracy.collection` and `bias.collection` by cell, naming which carry
+  the +8.73% bias. *Done when:* the report gives every cell or its count, a test pins both size
+  rules, and the page names each cell whose interval excludes zero, or says none does.
+- SOON: the same flight on every platform. User: a university team whose members fly one design on
+  macOS, Windows and Linux and compare the numbers in a design review. Workflow: each CI target
+  writes the apogee, burnout speed and landing time of the validation cases that have them; a job
+  compares the five targets (six once [#438][i-438] lets Intel macOS run) and reports the largest
+  relative difference. Moves: a new row, `determinism.platforms`. *Done when:* the report gives
+  that number over every target CI runs, and CI fails when it passes 1e-6 of the value.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -190,8 +195,6 @@ Placed by [ADR-286][adr-286], which tightens M3.2's export bar rather than promo
 [m2-11]: ../decisions-and-roadmap.md#m2-11
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
-[or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
-[i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
-[hpcd]: hobby-parachute-cd.md
-[stab-thread]: https://www.rocketryforum.com/threads/stability-concerns-regarding-my-mach-1-l2.199218/
-[slth]: sl-true-height.md
+[adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[i-438]: https://github.com/nrdptel/fusionspace-eridanus/issues/438

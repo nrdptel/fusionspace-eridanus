@@ -18,9 +18,9 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor. That is the
-# milestone's bar, not a model bound: most metrics agree far inside it. The differences that remain
-# have these sources, measured where stated:
+# Every scored metric is held to the milestone's 3%, with no absolute floor, and the speeds to 0.2%
+# (ADR-289). The 3% is the milestone's bar, not a model bound: most metrics agree far inside it. The
+# differences that remain have these sources, measured where stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -62,7 +62,9 @@
 # RocketPy's 397 m, both upwind. In RocketPy (`wind_response.py`), freeing the rocket at the last
 # button moves its apogee to 361 m from the pad, hpr's body lift to 287 m, and thin-plate fins to
 # 248 m: the example gives Juno III's fins an airfoil lift curve that hpr does not model, which
-# makes RocketPy's fin slope 7.6% steeper. As released, RocketPy put the apogee 582 m out.
+# makes RocketPy's fin slope 7.6% steeper. As released, RocketPy put the apogee 582 m out. The
+# same three steps take RocketPy's apogee from 2,614.8 m to 2,619.1, 2,627.3 and 2,631.0 m, against
+# hpr's 2,631.57, so it keeps 3% while the six without a cause are held to 0.5% (ADR-289).
 id = "flight-juno-iii"
 title = "Juno III from the pad to the ground, same-drag"
 reference = "validation/fixtures/flight/rocketpy-whole-flight.json"
@@ -79,7 +81,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.max_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.max_mach]
 relative = 0.03
@@ -94,7 +96,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.rail_exit_time_s]
 relative = 0.03
@@ -103,7 +105,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.burnout_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 [metrics.flight_time_s]
 relative = 0.03
@@ -115,7 +117,7 @@ not_scored = "a measured model difference, not an open miss (ADR-026): hpr's apo
 not_scored = "a measured model difference, as the apogee drift is (ADR-026): the landing point follows the apogee's, so hpr lands 36.7% further out (654.0 m against 478.5). With hpr's rail release, body lift and thin-plate fins, RocketPy lands 650.1 m out (validation/oracles/rocketpy/wind_response.py), within 0.7% of hpr. Reported, not scored, for the apogee drift's reason."
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

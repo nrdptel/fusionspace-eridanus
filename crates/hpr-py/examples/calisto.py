@@ -251,7 +251,8 @@ metrics = {
 #
 # The validation suite holds each of these to 3% of RocketPy's value, the bound it set for
 # comparisons with RocketPy when it was built (milestone M2.1,
-# https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-1).
+# https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-1), and since a later review the four
+# speeds to 0.2% and the apogee to 0.5% (ADR-289). This page checks the widest, 3%.
 
 # %%
 TOLERANCE = 0.03
