@@ -135,7 +135,7 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 
 | Case | ΔT | k, Pa/K | Error at apogee |
 |---|---|---|---|
-| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–4 | ±0.03–0.27 m at 3 km; ≤ ±0.21 m (0.07%) at 300 m; under 0.36 m at 4 km above a 1,500 m pad (0.6 K, 4 Pa/K) |
+| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–4 | ±0.03–0.27 m at 3 km; ≤ ±0.21 m (0.07%) at 300 m; under 0.36 m at 4 km above a 1,500 m pad, up to +15 K (0.6 K, 4 Pa/K) |
 | Over 4 km, typical warm | +0.7 to +2.6 K | 0.5–4 | ±0.05–1.6 m at 6 km (≤ 0.03%) |
 | Largest logged | +6.7 K | 0.5–4 | ±0.5–4.1 m at 6 km (≤ 0.07%) |
 | Stress case | 20 K | 4 | ±6.9 m at 300 m (2.3%), ±9.0 m at 3 km |
@@ -146,7 +146,7 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 ## What this suggests
 
 1. **M7.2's synthetic logs can keep the temperature term out, now on a measurement.** Below 4 km the term is under
-   0.3 m at apogee from a sea-level pad (under 0.36 m from a 1,500 m one), far under the ±8–11 m band bias. A stress option would draw
+   0.3 m at apogee from a sea-level pad on a standard day (under 0.36 m from a 1,500 m one at up to +15 K), far under the ±8–11 m band bias. A stress option would draw
    k_T·ΔT with k_T ±0.5–4 Pa/K and ΔT ±0.6 K below 4 km, 0 to +2.6 K above (+6.7 K rare); the physics page's reason
    ("no source gives a bay's change") can cite §2 instead.
 2. **apogee-bias's measurement term:** at 4 Pa/K the temperature part is under 0.1% of apogee in all 86 logs
