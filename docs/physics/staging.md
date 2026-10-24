@@ -356,7 +356,7 @@ How to read it:
 a point with only its own devices' drag. So `hpr sim` flies it only when the part that keeps the
 nose has a device of its own open by then.** That is how a payload section usually leaves. The
 booster's ejection charge pushes it off after the motor has burned out, sometimes before apogee,
-and its parachute opens at once. Each part is a point mass under its
+and its parachute opens at once. No new physics is involved. Each part is a point mass under its
 open devices, the descent model of [Recovery](recovery.md#separation), from the instant it
 separates. This is how OpenRocket flies a descent (its technical documentation v13.05, §4.2.5).
 
@@ -422,7 +422,7 @@ has all six. The [M4.5g3 milestone](../decisions-and-roadmap.md#m4-5g3) shipped 
 ### Boosters beside the core
 
 **Boosters strapped beside the core, a [parallel stage](design.md#parallel-stages), burn with it
-and drop at a separation of their own. From a `.ork`, they are flown on a rocket of one stage on the axis.** The stack flies whole until
+and drop at a separation of their own. From a `.ork`, they are flown on a rocket of one stage on the axis.** No new physics is involved. The stack flies whole until
 the split. The split is a powered separation like any other
 ([Powered separation](#powered-separation)). The core flies on with its own shape and mass. The
 boosters fly as a point with only their devices' drag, tumbling side-on from the split, as a
