@@ -825,7 +825,7 @@ stopped before the rocket did.
 HPR Sim simulated, each with its truth and the log a simulated logger would write. Of the tuning
 set's 200 flights, 171 carry a barometer; the other 29, a GNSS tracker's, give no reading by rule.
 `cargo xtask synthetic` reads each of the 171 as its own logger wrote it. It then reads each
-again 36 ways in all. They cover every rate from 500 to half a sample a second, and every
+again 36 ways in all. They cover every rate from 500 to half a sample a second. They cover every
 step from none to 10 m (33 ft) or 1 to 100 Pa. Last, it reads each cut 6 ways, as
 loggers that record from launch write them. Each is 20 samples a second, in feet or in 10 Pa
 steps. Each starts 0.3 s before liftoff, 0.1 s after, or 0.5 s after with the zero first.
