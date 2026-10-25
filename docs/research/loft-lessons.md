@@ -5,11 +5,11 @@ what it modeled, where it was wrong or weak, the format quirks it found, the tes
 and the process mistakes to avoid. It covers Loft at `553da8298a`; evidence paths are relative to
 `refs/fusionspace-loft`. Private-corpus facts appear only as counts and error statistics.
 
-**Rules.** Each `L` row names its milestones (the first owns the tests) and the tests to write.
-Each named milestone's `ROADMAP.md` entry lists the id; a checked-off milestone's tests must exist
-as live tests (`xtask/src/docs.rs` checks both). Renames that keep the assertion are fine (note them
-in the PR); moving a lesson later or dropping one needs an ADR. `P` rows name a process guard.
-Loft's claims are leads: every test re-derives its numbers from a primary source or an oracle.
+**Rules.** Each `L` row names its milestones (the first owns the tests) and the tests to write. Each named milestone's
+`ROADMAP.md` entry lists the id; a checked-off milestone's tests must exist as live tests (`xtask/src/docs.rs` checks
+both). Renames that keep the assertion are fine (say so in the PR); moving a lesson later or dropping one needs an
+ADR. `P` rows name a process guard. Loft's claims are leads: each test re-derives its numbers from a primary source or
+an oracle.
 
 ## What Loft was
 
@@ -28,12 +28,11 @@ Loft's claims are leads: every test re-derives its numbers from a primary source
 - **From OpenRocket's GPL Java, by Loft's own comments:** CG and override precedence
   (`lib/sim/mass.ts:250-350`), parachute Cd 0.8 (`lib/sim/recovery-defaults.ts:38-60`), the ring
   auto bore (`lib/ork/adapt.ts:1350-1393`), the 24.12 ground-hit frame (`lib/ork/adapt.ts:84-108`).
-- **Blanket rule:** any Loft text that names a `.java` file, quotes Java or OpenRocket's message
-  strings, or says it was read from OpenRocket's source is off limits. Known places: Loft's
-  `ROADMAP.md` (1355, 2080-2096, 2258-2266, 2486-2496, 2605-2640, 3545-3560),
-  `BACKLOG.md:1428,2841`, `COMPETITION.md` rows 35, 36, 41, 47, `lib/ork/adapt.test.ts:968-980`,
-  `lib/corpus/sweep.test.ts:160-162`, the RockSim shape codes (`lib/rkt/adapt.ts:68-106`), the
-  methods page's auto-radius text.
+- **Blanket rule:** any Loft text that names a `.java` file, quotes Java or OpenRocket's message strings, or says it
+  was read from OpenRocket's source is off limits. Known places: Loft's `ROADMAP.md` (1355, 2080-2096, 2258-2266,
+  2486-2496, 2605-2640, 3545-3560), `BACKLOG.md:1428,2841`, `COMPETITION.md` rows 35, 36, 41, 47,
+  `lib/ork/adapt.test.ts:968-980`, `lib/corpus/sweep.test.ts:160-162`, the RockSim shape codes
+  (`lib/rkt/adapt.ts:68-106`), the methods page's auto-radius text.
 - **Example files:** OpenRocket's example `.ork` files are GPL data: inputs only, never committed.
 
 ## Numbers not to reuse as references
@@ -132,7 +131,9 @@ Loft's claims are leads: every test re-derives its numbers from a primary source
 | L70 | RockSim mixes units (mm, g, radians, °C, a barometer inferred as mmHg); `Stage3Parts` is the top; negative delay means plugged; `UseKnownCG` marks cached values | lib/rkt/adapt.ts:11-15,195-290,609-662 | M3.4 | `hpr_io::rkt::tests::units_stages_delays_and_cached_cg` |
 | L71 | RockSim stores no canopy Cd or deploy event; deploying at apogee flew one design about 545% high | lib/rkt/adapt.ts:512-541 | M3.4 | `hpr_io::rkt::tests::recovery_deploys_at_ejection_charge` |
 | L72 | RASAero `<Location>` never read, so parts were stacked end to end (+11.7% and +14.3% length) | BACKLOG.md:278,488 | M3.5 | `hpr_io::cdx1::tests::parts_placed_at_absolute_location` |
-| L73 | RASAero fin `<Location>` datum unsettled (6 of 8 equal the chord); needs a primary source | lib/rasaero/adapt.ts:105-106; BACKLOG.md:407 | M3.5 | `hpr_io::cdx1::tests::fin_location_datum` |
+| L73 | RASAero fin `<Location>` runs from the root leading edge to the parent tube's aft end (RASAero II manual p. 13; the 20 installer designs shipped in both RASAero formats agree to 0.01 in, [CDX1 note](cdx1-format.md) §2); Loft measured it from the tube's front | lib/rasaero/adapt.ts:105-106; BACKLOG.md:407 | M3.5 | `hpr_io::cdx1::tests::fin_location_datum` |
+| L98 | RASAero parachute `Size1/2` read as feet; the file holds the flat diameter in inches (manual Fig. 98, p. 82), so its canopies come in 12 times too wide (read from its code, not measured) | lib/rasaero/adapt.ts:443 | M3.5 | `hpr_io::cdx1::tests::parachute_size_is_inches` |
+| L99 | RASAero `Event1/2` check boxes ignored, so an unchecked event still deployed; an event fires only when checked (manual p. 81), and 6 installer files would deploy chutes RASAero II leaves off | lib/rasaero/adapt.ts:440-442 | M3.5 | `hpr_io::cdx1::tests::unchecked_event_never_deploys` |
 | L74 | RASAero boattail described twice, LV-Haack given the Von Kármán parameter, protuberance drag dropped, mass per simulation | lib/rasaero/adapt.ts:68-72,154-188,581-618 | M3.5 | `hpr_io::cdx1::tests::boattail_once_lv_haack_and_launch_weight_per_simulation` |
 
 ## Validation
