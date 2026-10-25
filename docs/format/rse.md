@@ -23,7 +23,7 @@ unchanged. The other two have a time that goes backwards
 > delays from the file as written, and estimates nothing. On 2026-09-17, 821 of the 823 RockSim
 > files ThrustCurve.org held read, and write back with every value unchanged. The other two are
 > refused, naming the line where time goes backwards. Real files carry typos (one states a
-> propellant mass ten times its curve's). When a motor's numbers matter, check them against
+> propellant mass ten times its curve's). So when a motor's numbers matter, check them against
 > the maker's published data and the motor's certification.
 
 Code: `hpr_motor::rse` ([API reference](../api/hpr_motor/rse/index.html)), written for the

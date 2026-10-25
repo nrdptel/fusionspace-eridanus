@@ -70,12 +70,13 @@ The two dropped variables are labels the classic format can't hold: a 64-bit who
 text value. Older files, like most of the ones RocketPy ships, are classic already. If the simulator
 can't read a file, its error says which kind the file is and gives this conversion.
 
-This conversion is checked. The test takes NDRT 2020's launch day. It was downloaded from the Data Store
-in 2021 as a classic file, and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
+This conversion is checked. The test takes NDRT 2020's launch day. It was downloaded from the Data
+Store in 2021 as a classic file, and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
 University of Notre Dame's rocket for NASA's 2020 Student Launch. The two files agree at every
-level to 0.23 m²/s² of [geopotential](../glossary.md#geopotential-height) (about 2 cm (0.79 in) of height). Temperature agrees to 0.35 thousandths of a kelvin and wind
-to 0.11 mm/s. The older file stores its values as 16-bit whole numbers. The newer one carries the
-rounding of ECMWF's own archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
+level. [Geopotential](../glossary.md#geopotential-height) agrees to 0.23 m²/s² (about 2 cm (0.79 in)
+of height). Temperature agrees to 0.35 thousandths of a kelvin, and wind to 0.11 mm/s. The older
+file stores its values as 16-bit whole numbers. The newer one carries the rounding of ECMWF's own
+archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
 
 ### Reading it
 
@@ -182,9 +183,9 @@ level it is 9.780 m/s² at the equator and 9.832 m/s² at the poles.
 
 How far off each is depends on how ERA5's model builds the geopotential of its own ground, which
 ECMWF doesn't say. Taking it as $g_0$ times the ground's height, HPR Sim's reading is off by a fixed
-amount at every height. ECMWF's is off by an amount that grows with height above the ground. With
-RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the Earth's
-center at the site), neither is always the smaller:
+amount at every height. Taken that way, ECMWF's is off by an amount that grows with height above the
+ground. With RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the
+Earth's center at the site), neither is always the smaller:
 
 | model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km (1.9 mi) above it |
 |---|--:|--:|--:|
@@ -218,10 +219,11 @@ the two classic kinds from Unidata's published specification. They are the origi
 The first row matters for ERA5. Many ERA5 files store each value as a 16-bit whole number with a
 fill of −32767, and a few values sit at −32768. Two of RocketPy's other ERA5 files (both netCDF-4)
 have them. One has 102 of 5,241,600 geopotential values and 4 temperatures. The other has 298 of
-5,184,000 geopotential values and 2 temperatures. HPR Sim reads those as missing. Among neighbors
-near 301 K, netCDF4-python returns a number, a temperature of 198.66 K for example. Such values look like damaged data, so reading them as missing is the safer choice.
-`Era5Profile::read` then refuses the whole reading, naming the level, rather than print a wrong
-number. None of the files the tests read has such values.
+5,184,000 geopotential values and 2 temperatures. HPR Sim reads those as missing, where
+netCDF4-python returns a number. Among neighbors near 301 K, it returns 198.66 K, for example. Such
+values look like damaged data, so reading them as missing is the safer choice. `Era5Profile::read`
+then refuses the whole reading, naming the level, rather than print a wrong number. None of the
+files the tests read has such values.
 
 netCDF-4 files, and the rarer 64-bit data format (files beginning `CDF` and 5), are refused with
 the conversion above.

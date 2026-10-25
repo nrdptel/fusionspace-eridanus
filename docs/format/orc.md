@@ -252,7 +252,7 @@ HPR Sim keeps both numbers.
 The test shows that a stated mass is the cause on all 207. The oracle also reads each file with
 every `<Mass>` taken out, and then OpenRocket's density equals HPR Sim's on every part, these 207
 included. On the 54 of them that are simple solids, the test also checks the stated mass. It checks that
-OpenRocket's replaced density times the part's volume gives it, to 1 part in 10¹⁵. They are 7 body
+OpenRocket's replaced density times the part's volume gives it, to 1 part in 10¹⁵. The 54 are 7 body
 tubes, 4 bulkheads, and 43 filled conical parts: 34 nose cones and 9 transitions.
 The builder ([Parts from a catalog](../the-builder.md#parts-from-a-catalog)) makes a part that
 states its mass weigh that mass. It scales the density to do so, as OpenRocket does for rigid parts.

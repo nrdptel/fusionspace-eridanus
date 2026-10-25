@@ -121,8 +121,8 @@ What real files do, and what the reader and writer do with each case.
 - **Delays:** 574 dash lists, 143 `P`, 4 comma lists (`5,8,11`), 8 lists ending in `P`
   (`6-10-14-P`), 1 lowercase `p`, and 4 malformed (`4-7-10,`, `-`, `1-3--4-6-7-9-10`). 58 lists
   are descending (`14-12-10-8-6`). 27 contain `100` or `1000`. Checked against ThrustCurve search
-  metadata, `100`/`1000` mean plugged in 14 of 14 cases. `0` means plugged in 120 of 149, against
-  the spec's "no delay". Loft read `100` and `1000` as seconds
+  metadata, `100`/`1000` mean plugged in 14 of 14 cases. Against the same metadata, `0` means
+  plugged in 120 of 149, against the spec's "no delay". Loft read `100` and `1000` as seconds
   ([Loft lesson L37](../decisions-and-roadmap.md#l37)).
 - **Curve:** 32 entries have an explicit first point at $t = 0$ with nonzero thrust. Loft's bundle
   also had an explicit (0, 0). 4 entries don't end at zero thrust. 4 have equal consecutive
@@ -167,12 +167,12 @@ What real files do, and what the reader and writer do with each case.
    (read as it stands).
 9. Comments: store the text after `;` verbatim, but drop comments that are empty after trimming.
    Comments between two entries belong to the next entry; comments after the last entry are file
-   trailer comments. **Policy:** a comment that names the simulator as the file's writer
-   (`FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001`; see the writer policy)
-   is dropped when reading. It says who wrote the file, not anything about the motor. So is the
-   line that builds before release 0.1's rename wrote. It has the earlier name `hpr-sim` with that
-   designation or with `FS · SW · TOOL 005`. The second is the designation builds wrote before
-   October 2026, when FusionSpace named its products after stars
+   trailer comments. **Policy:** a comment that names the simulator as the file's writer is dropped
+   when reading. The reason is that it says who wrote the file, not anything about the motor. Such a
+   comment reads `FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001` (see the writer
+   policy). So is the line written by builds from before release 0.1's rename. That line has
+   the earlier name `hpr-sim` with that designation or with `FS · SW · TOOL 005`. The second is the
+   designation builds wrote before October 2026, when FusionSpace named its products after stars
    ([the new designation](../decisions-and-roadmap.md#m10-1d7);
    [project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)
    §4). So a file they stamped writes back with one stamp, this build's. Like any comment, it
@@ -191,7 +191,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   `; FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001`. The `·` is a middle dot, the file's
   only non-ASCII character unless its comments hold others; the file is UTF-8. A comment carried
   over from the source that is itself such a line, from any version, is left out. So is the
-  line that builds before release 0.1's rename wrote under the earlier name. It is left out with
+  line that builds from before release 0.1's rename wrote under the earlier name. It is left out with
   either designation (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`; rule 9 of the reader
   policy above). A file converted again then holds one such line, not two. Whether other programs (RockSim,
   OpenRocket, a flight computer's tools) accept the middle dot in a comment has not been checked.
@@ -215,8 +215,8 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 - Converting to and from `.rse` (`hpr_motor::convert`, `hpr convert`, since
   [M4.2c](../decisions-and-roadmap.md#m4-2c), the command-line conversion) is described with
   that format's [writer policy](rse.md#writer-policy-strict-round-trip-stable). From `.rse`, a
-  code or maker of several words joins them with `_`, as no real file has more than seven header
-  fields. OpenRocket 24.12 also refuses eight
+  code or maker of several words joins them with `_`. That is because no real file has more than seven header
+  fields and OpenRocket 24.12 refuses eight
   ([`motor_files.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py)
   checks it). `hpr convert` joins a maker read from a `.eng` file the same way. A leading
   `(0, 0)` point is dropped when the next is after ignition, and the comment text becomes one
@@ -226,7 +226,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 
 On 2026-09-17, all 889 RASP files in ThrustCurve.org's solid-motor survey
 ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md))
-and the 721 entries of its manufacturer sets read. Write-parse-write reproduces every value bit
+and the 721 entries of its manufacturer sets read. For both, write-parse-write reproduces every value bit
 for bit. The files are cached under `refs/samples/`
 and never committed; the committed test covers the bundled curves.
 

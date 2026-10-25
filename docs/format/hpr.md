@@ -5,7 +5,7 @@ designs, and how to convert, read and write it.
 
 An `.hpr` file is a rocket design written as one JSON document in the HPR design format. The format
 is FusionSpace HPR's own, open and described by a published [JSON Schema](#the-schema). It holds
-everything HPR Sim reads from an OpenRocket `.ork`. That is the rocket's parts, every motor
+everything HPR Sim reads from an OpenRocket `.ork`. That includes the rocket's parts, every motor
 [configuration](../glossary.md#configuration), when each parachute opens and each stage separates,
 and the simulations the file stored. It also carries what the file holds that the simulator doesn't
 model. It carries the other files inside it as well, such as an embedded thrust curve or a decal
@@ -49,7 +49,7 @@ What the format is called, what a document holds, and the zip container that car
 | format id | `hpr-design` | every document's `format` key |
 | media type | `application/vnd.fusionspace.hpr+json` | a `.hpr` file served over the web, or named by an app that opens it |
 
-The media type is FusionSpace's ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)
+The media type is FusionSpace's ([the decision on FusionSpace HPR's public names](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)
 §4). It is in the vendor tree of [RFC 6838](https://www.rfc-editor.org/rfc/rfc6838) with the `+json`
 suffix, since a document is JSON any JSON tool reads. It isn't registered with IANA. Rust programs
 take it from `hpr_format::MEDIA_TYPE`. A `.hprz` has no media type of its own yet; as a zip
@@ -238,7 +238,7 @@ key it doesn't know.
   document, so it is held to every current rule. A newer version is refused as "written by a newer
   program". A key the reader doesn't know is refused too. So a document from a later build of the
   simulator, with a key added within the same version, is refused as an unknown key.
-- **While the major number is 0**, the current version can change in place only if every document
+- **While the major number is 0**, the current version may change in place only if every document
   already written stays readable, with the same meaning. Any other change takes a new minor version,
   with a migration from the one before. `provenance.designation` was added to 0.2 this way: it is
   optional, so a document written without it reads as before. The old version's schema stays
@@ -266,8 +266,8 @@ of this project's checks, the migration:
 Converting the `.ork` again gives a 0.2 document that knows. To see whether a 0.1 document was
 marked unknown, convert it to a `.hpr` and look at `provenance.source.airframe_not_as_written`.
 
-The reasons are in two decisions. [The first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md) set the extensions and the first version policy.
-[The second](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md) added the container and the first migration.
+The reasons are in two decisions. [The decision on the format and its extensions](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md) set the extensions and the first version policy.
+[The decision on the container and migrations](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md) added the container and the first migration.
 
 ### Extensions and unknown keys
 
@@ -327,15 +327,15 @@ source tree. Both are `MIT OR Apache-2.0`, like the rest of FusionSpace HPR.
 
 - TypeScript: the file is an ES module, so your `package.json` needs `"type": "module"`. Where the
   compiler only checks types (`noEmit`), import `./hpr-design.ts` with `allowImportingTsExtensions`,
-  as this project's tests do. That is the case with a bundler, or with Node.js running TypeScript as
-  it is. Where it writes JavaScript, import `./hpr-design.js` under `module: nodenext`. This
-  project's tests don't try that.
+  as this project's tests do. A bundler, or Node.js running TypeScript as it is, is such a case.
+  Where it writes JavaScript, import `./hpr-design.js` under `module: nodenext`. This project's tests
+  don't try that.
 - Python: put `hpr_design.py` beside your code or on `PYTHONPATH`.
 - A reader takes a `.hpr` file's text. For a `.hprz`, unzip it and read the `design.hpr` inside
   ([the container](#the-container-hprz)).
 
 **What the file holds.** A type for every object in the schema, named as the schema names it, with
-the schema's descriptions as its comments. They are `DesignFile` for a whole document, `Rocket`,
+the schema's descriptions as its comments. The names are `DesignFile` for a whole document, `Rocket`,
 `Component`, `NoseCone` and so on. In TypeScript they are interfaces and unions; in Python,
 `TypedDict`s (typed dictionaries) and `Literal`s. A document stays plain JSON data: objects and
 arrays (dictionaries and lists in Python). So a program can write it back with its own JSON writer.
@@ -520,7 +520,7 @@ The tests also cover the rest of this page:
   cover each way the airframe can be recovered, found read as written, or marked unknown. They also
   cover old documents that already hold a 0.2 key, which are refused. A last one migrates each of
   the 17 public designs from its 0.1 shape, plus two made from them. One has a parallel stage the
-  simulator leaves out, and one has an invented embedded curve. Each comes back as the document
+  simulator leaves out, and one has an invented embedded curve. All 19 come back as the document
   first written, but for the airframe's answer, which is never wrong. With no motor catalog in these
   tests, no public design's configuration flies. So all 17 come out unknown, and only the
   invented-curve design's answer is recovered.
