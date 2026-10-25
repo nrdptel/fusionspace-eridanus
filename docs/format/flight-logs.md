@@ -17,17 +17,19 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > and the notes of Debrief, the project owner's earlier flight-log analyzer. Each unit is checked
 > where the files allow. Where a header names no unit, the reader decides it from the file and says
 > how in a note ([units the file decides](#units-the-file-decides)). The few units no source states
-> are named [below](#units-no-source-states). Where checks decide a unit and don't settle it, the
-> reader keeps the file's number as written, with no SI value made from it. The Raven's `.FIPa` and the RRC3's
-> `.rff` raw downloads match their makers' exports of the same flights wherever an export sits
+> are named [below](#units-no-source-states). In the four layouts read since
+> [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written.
+> The file's number is stored unchanged, with no SI value made from it. So many of their columns
+> keep the file's own numbers, and their readings come only from a height or pressure whose unit
+> was read. The Raven's `.FIPa` and the RRC3's `.rff` raw downloads match their makers' exports of the same flights wherever an export sits
 > beside them. Of their 63 sample files, 7 have no export beside them, and those 7 are unchecked
 > ([raw downloads](#raw-downloads)) ([evidence row G6](../evidence.md#g6)). The Featherweight
 > app's flight summaries hold the logger's own figures and no samples. Only their maximum and pad
 > altitudes are checked, against the files of samples beside them
 > ([Featherweight's summaries](#featherweights-summaries)) ([evidence row G7](../evidence.md#g7)).
 > No document describes the bytes of the AltiMAX's `.ALS` or the AIM's `.xtra`, so each of those
-> layouts rests on one sample flight. Each layout's section below opens with how far to trust its
-> reading. Other layouts are refused, not guessed at. The layouts the roadmap names with no sample
+> layouts rests on one sample flight. Many of the sections below open with their own note on how far to
+> trust their layout's reading. Other layouts are refused, not guessed at. The layouts the roadmap names with no sample
 > are [listed](#formats-that-need-samples), with what a reader would need
 > ([evidence row G9](../evidence.md#g9)).
 
@@ -63,7 +65,7 @@ boards the column is then the barometer's estimate. The file shows this by havin
 inertial unit's columns nor a GPS receiver's. A board's three axes don't say which lies along the
 rocket, so they give neither. Nor does an axial column whose pad, coast and thrust don't settle
 which way up it reads. Nor does one that shows no thrust (`direction_unstated`). Six records of the
-sample logs are like this: three AltOS CSV, two Entacore AIM CSV and a Raven CSV ([the
+sample logs have such an axial column: three AltOS CSV, two Entacore AIM CSV and a Raven CSV ([the
 accelerometer](../physics/log-readings.md#the-accelerometer)). The survey's report counts the
 readings each family gives and withholds ([how it was checked](#how-it-was-checked)).
 
@@ -1454,11 +1456,11 @@ the export's cells. The header puts `[Altitude (Accel-Ft)]` in those columns. As
 shift left where channels stop, the two columns cover different channels' cells in different rows.
 Given the pasted columns, a channel whose sample, in any row, has a cell in them is left out whole.
 A note names it and counts the rows. Every other channel is read. To walk a row, each channel must
-still show whether it has a sample there. It can show it by a cell of its time or value outside the
-pasted columns that isn't empty. Or else it shows it by the cell after the pasted columns. That cell
-shows it if it is a sample's status cell, `b` and digits, or, for a stopped channel, the next
-channel's time. A row is refused if its pasted cells hide that. That happens when the cell after the
-pasted columns is pasted over or empty too.
+still show whether it has a sample there. One sign is a cell of its time or value outside the pasted
+columns that isn't empty. Failing that, the sign is the cell after the pasted columns. That cell
+must be a sample's status cell, `b` and digits, or, for a stopped channel, the next channel's time.
+A row is refused if its pasted cells hide that: the cell after the pasted columns is pasted over or
+empty too.
 
 In that sheet the rule leaves out `[Altitude (Accel-Ft)]` (covered in 1,259 rows),
 `[Velocity (Accel-Ft/Sec)]` (11,331) and `[Velocity (Accel-MPH)]` (23,921). It reads the other 13
@@ -1910,10 +1912,15 @@ Most units come from the file's own column names or from the maker's manual. A f
 
 ### Units the file decides
 
-These layouts leave some units out of their headers: the RRC3's, Eggtimer's, the Blue Raven's and
-AltimeterCloud's. The Eggtimer's are its CSV and terminal text, and that text saved as RTF. So do
-Entacore AIM's, a Fluctus's, an ARTS2's, a phone app's, and AerospaceNU's flight computer board's
-and its ground station's. A `.pfa` states none ([below](#perfectflites-older-pfa)). A SillyGoose's
+These layouts leave some units out of their headers:
+
+- the RRC3's;
+- the Eggtimer's: its CSV and terminal text, and that text saved as RTF;
+- the Blue Raven's and AltimeterCloud's;
+- Entacore AIM's, a Fluctus's and an ARTS2's;
+- AerospaceNU's flight computer board's and its ground station's, and a phone app's.
+
+A `.pfa` states none ([below](#perfectflites-older-pfa)). A SillyGoose's
 header names units that one file's values contradict. For some, the reader works the unit out from
 the file as it reads it. For the rest, it takes the unit the maker's manual gives. It checks that
 unit against the file where the file can show a disagreement. Either way the reader writes a note
@@ -2031,10 +2038,10 @@ decisions over the sample logs:
   - *The summary's times:* the block at the top of a Nano log gives the apogee's and the landing's
     times with no unit. The apogee time is read in seconds when the log's highest altitude falls
     within half a second of it. In all 7 sample logs with a summary, the two agree within 0.01 s.
-    The landing time is read in seconds when two tests pass. Read so, it comes after the highest
-    altitude. And the log's altitude there is the summary's landing height within 0.01 m (0.033
-    ft). Read in milliseconds, the log's altitude there isn't within that bound. The manual's
-    *Flight info page* gives the landing as "when it landed, and the height it came to rest at". In all 7, the two agree
+    The landing time is read in seconds when it passes two tests read so, but not read in
+    milliseconds. First, the time comes after the highest altitude. Second, the log's altitude there
+    is the summary's landing height within 0.01 m (0.033 ft). Read in milliseconds, the time must
+    fail at least one of them. The manual's *Flight info page* gives the landing as "when it landed, and the height it came to rest at". In all 7, the two agree
     within 0.001 m (0.0033 ft). Read in milliseconds, the time falls on the climb, more than a
     meter from the landing height. A time the altitude doesn't bear out is left out, with a note
     saying why.
@@ -2305,7 +2312,7 @@ decisions over the sample logs:
   [the packets' reader](#one-teams-radio-telemetry-packets), not this one.
 
 Where one of these layouts holds a barometric altitude or a pressure, the readings come from it,
-as from every logger's. A file with neither in a unit read gives none
+as from every logger's. A file with neither gives none
 ([Flight-log readings](../physics/log-readings.md)).
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
@@ -3078,7 +3085,7 @@ What the reader does with the records:
   Truncating toward zero instead gives different pressures below 20 °C, and a unit test pins the
   floor. Second checks: the pad's pressure must lie from 10 to 120 kPa and within 1% of the flight
   record's. The pad's temperature must lie within the chip's operating range, −40 to 85 °C (p. 8).
-  If any of these fails, the file is refused.
+  If any second check fails, the file is refused.
 - **Pressure, TeleMetrum v1:** its MP3H6115A's output is `Vout = Vs (0.009 P − 0.095)`, P in kPa
   (Freescale, *MP3H6115A*, rev. 5.1, p. 5). The converter of the CC1111, the board's radio
   microcontroller, reads that output. The converter's single-ended result reaches 2,047 at its
@@ -3704,8 +3711,8 @@ PerfectFlite's exports: four with no header row and one that names its temperatu
 A Blue Raven high-rate file with no date is held to the Blue Raven's reader. Its low-rate partner
 was edited by a person in a spreadsheet (a column with no name, two columns named in words the app
 doesn't write). It was counted as damaged until [M7.1c13](../decisions-and-roadmap.md#m7-1c13). It
-is now read as a [table by its header](#tables-read-by-their-headers), and 30 other files filed as
-generic CSV. Three more are an ARTS2's raw CSV, held to its reader. Nine are mDACS's exports of an
+is now read as a [table by its header](#tables-read-by-their-headers), as are 30 other files filed
+as generic CSV. Three more are an ARTS2's raw CSV, held to its reader. Nine are mDACS's exports of an
 RTx's fixes, five CSV and four text, held to their reader. Six more filed as text, and a ground
 station's conversion of a SillyGoose flight, are tables a mapping holds to physics
 ([above](#tables-a-mapping-holds-to-physics)). So is one workbook. The conversion has its columns in

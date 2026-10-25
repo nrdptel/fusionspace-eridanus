@@ -110,6 +110,11 @@ const CONTENTS: &str = "docs/SUMMARY.md";
 /// repository's front page (M0.14b), and the site's 404 page (M0.14c1).
 const HELD_BESIDE: [&str; 2] = ["README.md", "docs/404.md"];
 
+/// The one page [`LEFT_OUT`] names that the table of contents lists: the records page, which
+/// ADR-284 §5 leaves as it is. Any other link to a page [`LEFT_OUT`] covers is refused, so a site
+/// page can't leave the hold by moving under a left-out directory.
+const LISTED_LEFT_OUT: &str = "docs/decisions-and-roadmap.md";
+
 /// The writing guide's sentence targets: at most this many words a sentence on average...
 const MEAN_TARGET: usize = 20;
 
@@ -760,9 +765,10 @@ fn held_paths(root: &Path) -> Result<Vec<String>, String> {
 }
 
 /// The held pages, given the table of contents: each page it links, as a path from the
-/// workspace root, less [`LEFT_OUT`], and [`HELD_BESIDE`], sorted. A draft entry, which links
-/// nothing, has no page. A link that isn't a Markdown page under `docs/` is refused, and so is a
-/// table of contents that links no page, so the hold can't empty itself.
+/// workspace root, less [`LISTED_LEFT_OUT`], and [`HELD_BESIDE`], sorted. A draft entry, which
+/// links nothing, has no page. A link that isn't a Markdown page under `docs/` is refused, and so
+/// are a link to any other page [`LEFT_OUT`] covers and a table of contents that links no page,
+/// so the hold can't shrink unnoticed.
 fn held_from(contents: &str) -> Result<Vec<String>, String> {
     let mut held: Vec<String> = HELD_BESIDE.iter().map(|path| (*path).to_owned()).collect();
     let mut listed = 0;
@@ -786,7 +792,14 @@ fn held_from(contents: &str) -> Result<Vec<String>, String> {
         }
         listed += 1;
         let path = format!("docs/{page}");
-        if !LEFT_OUT.iter().any(|(left, _)| leaves(left, &path)) && !held.contains(&path) {
+        if let Some((_, reason)) = LEFT_OUT.iter().find(|(left, _)| leaves(left, &path)) {
+            if path != LISTED_LEFT_OUT {
+                return Err(format!(
+                    "{CONTENTS} links `{dest_url}`, a page the voice check leaves out ({reason}); \
+                     a site page is held, so it can't sit there"
+                ));
+            }
+        } else if !held.contains(&path) {
             held.push(path);
         }
     }
@@ -2779,12 +2792,17 @@ mod tests {
         );
     }
 
-    /// A link the hold can't read as a page under `docs/` is refused, and so is a table of
-    /// contents that links none, rather than holding fewer pages.
+    /// A link the hold can't read as a page under `docs/` is refused, and so are a link to a page
+    /// the check leaves out, other than the records page, and a table of contents that links none,
+    /// rather than holding fewer pages.
     #[test]
     fn the_hold_refuses_a_contents_it_cannot_read() {
         for link in [
             "https://example.com/page.md",
+            "mailto:x.md",
+            "C:x.md",
+            "research/a-note.md",
+            "ROADMAP.md",
             "/abs/page.md",
             "../README.md",
             "format//ork.md",
