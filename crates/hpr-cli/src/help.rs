@@ -300,7 +300,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         path: &["completions"],
         examples: &[
             Example {
-                what: "Complete the commands and options in zsh, from a folder on $fpath",
+                what: "Complete the commands and options in zsh, in a folder you add to $fpath",
                 line: "hpr completions zsh > ~/.zfunc/_hpr",
             },
             Example {

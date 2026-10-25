@@ -41,12 +41,12 @@ pub const NFPA_1125_THRESHOLD: f64 = 0.05;
 /// and the `.eng` and `.rse` readers refuse it.
 ///
 /// The RASP format says "the final point must have a thrust of zero" (`docs/format/eng.md`), but
-/// real files don't always: of the 2,575 curves the two readers read from the 286 `.eng` and
-/// `.rse` files under the project's reference checkouts on 2026-10-25, 8 end above zero, the
+/// real files don't always: of the 2,575 curves the two readers read from 284 of the 286 `.eng`
+/// and `.rse` files under the project's reference checkouts on 2026-10-25, 8 end above zero, the
 /// highest at 10.5% of its peak (`tests/reference_curves.rs` prints the figures where the
 /// checkouts are present). Those stop in the tail-off and are read, with a warning. A file cut
 /// off during the burn stops near full thrust, and read as a motor it understates the impulse: a
-/// G84 curve cut at its middle line reads as an F motor. Half the peak sits nearly five times
+/// G84 curve cut after 13 of its 29 points reads as an F motor. Half the peak sits nearly five times
 /// above the highest real end. A cut where the thrust is under half its peak, in the tail-off or
 /// in a boost-sustain motor's sustain phase, isn't caught, and keeps the warning.
 pub const CUT_OFF_SHARE: f64 = 0.5;

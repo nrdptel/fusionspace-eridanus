@@ -20,7 +20,7 @@ Options:
           [possible values: auto, always, never]
 
       --file <ID>
-          A ThrustCurve.org data file to use, by its id, when the motor has it and it can be read. Otherwise HPR Sim picks one in its usual order
+          The ThrustCurve.org data file to take first, by its id, when the motor has it and it can be read. Otherwise the fetch takes the files in the usual order
 
       --offline
           Answer from the cache only, never the network

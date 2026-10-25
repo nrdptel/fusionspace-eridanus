@@ -1,6 +1,6 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
-- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help
+- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass
 - **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
@@ -52,8 +52,8 @@ split. ADR-285's hold carries over: once an increment's text passes, a check kee
    - each example's caption.
 
    Left out as code: the `Usage:` line, the section titles, the names of options, arguments and
-   commands, bracketed notes (`[default: auto]`, and the same form written by hand), the example
-   commands and the guide's address. So a default that needs words is written as a sentence. Text in backticks is code, as on a page. The help is a reference page ([ADR-284][adr-284]
+   commands, the notes clap writes in brackets at a line's end (`[default: auto]`, and the same
+   form written by hand), the example commands and the guide's address. So a default that needs words is written as a sentence. Text in backticks is code, as on a page. The help is a reference page ([ADR-284][adr-284]
    §2), so first person counts against a limit of zero.
 3. **The snapshots.** `crates/hpr-cli/tests/help/` holds one file a command, named by its path
    (`hpr-motors-show.help`). A test walks the command tree `hpr` parses, so a new command needs
@@ -115,11 +115,11 @@ it finds; each finding is fixed in the PR or filed.
 
 **Amendment for M0.14d1's acceptance pass (2026-10-25).** Task 4's hostile file, a `.eng` cut off
 mid-curve, wasn't refused when cut at a line's end. The file is still well formed, and its curve
-just stops: a G84 curve cut at its middle line read as an F motor of 79.1 N·s, with only a warning
+just stops: a G84 curve cut after 13 of its 29 points read as an F motor of 79.1 N·s, with only a warning
 that the curve ends above zero thrust. The task stands as written. The fix is in the motor readers:
 the `.eng` and `.rse` readers, and their writers, refuse a curve whose last thrust is above half its
-peak. The RASP format says the final point must have zero thrust, but real files don't always. Of
-the 2,575 curves the readers read from the 286 motor files under the project's reference
+peak; in a file of several, only that entry is skipped, with a warning. The RASP format says the final point must have zero thrust, but real files don't always. Of
+the 2,575 curves the readers read from 284 of the 286 motor files under the project's reference
 checkouts, 8 end above zero, the highest at 10.5% of its peak, so half the peak refuses none of
 them. A test reads those files and prints the figures wherever the checkouts are. A cut where the
 thrust is under half its peak, in the tail-off or a sustain phase, keeps the warning.

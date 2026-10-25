@@ -329,8 +329,8 @@ contents is held from its first commit
 The command-line tool's help is held the same way. A test pins each command's `--help` in a snapshot under
 `crates/hpr-cli/tests/help/`, and the check holds every snapshot. It reads only the help's prose:
 what a command does, what each option and argument says, each command's summary in a list of
-commands, and the examples' captions. The names of options, a bracketed note such as
-`[default: 0]` and the example commands are code to it, so a default that needs words goes in a
+commands, and the examples' captions. The names of options, a note in brackets at a line's
+end, such as `[default: 0]`, and the example commands are code to it, so a default that needs words goes in a
 sentence. Change a command's help and
 the test fails until you write the snapshots again with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`

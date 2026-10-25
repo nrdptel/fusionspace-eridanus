@@ -25,7 +25,7 @@ Options:
           Print version
 
 Examples:
-  Complete the commands and options in zsh, from a folder on $fpath:
+  Complete the commands and options in zsh, in a folder you add to $fpath:
       hpr completions zsh > ~/.zfunc/_hpr
   In bash, from bash-completion's folder:
       hpr completions bash > ~/.local/share/bash-completion/completions/hpr
