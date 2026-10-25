@@ -266,7 +266,8 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
         // (`commonName=NOPE`: "Invalid commonName value"), so the name is what to check.
         Failure::library(
             printable(&format!(
-                "{words}: ThrustCurve.org has no motor by this name (it answered http status: 400)"
+                "{words}: ThrustCurve.org refused the search for this name (it answered http status: \
+                 400)"
             )),
             NOT_FOUND_HELP,
         )

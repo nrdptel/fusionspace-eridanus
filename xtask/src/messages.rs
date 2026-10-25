@@ -658,8 +658,9 @@ const ITEM_WORDS: [&str; 15] = [
 /// Where the code under an outer `#[cfg(test)]` starting at `start` ends. An item or a `let`
 /// ends after its `;` outside any bracket, or after the `}` that closes its first top-level brace
 /// (a function's body, a module's, an `impl`'s). Anything else (an enum's variant, a struct's
-/// field, a match arm, an expression) ends at a `,` or `;` outside any bracket, or before the
-/// bracket that closes the list it's in.
+/// field, a match arm, an expression) ends at a `,` or `;` outside any bracket, after a brace
+/// that closes back to its own level (with a `,` after it), or before the bracket that closes
+/// the list it's in.
 fn item_end(tokens: &[Token], start: usize) -> usize {
     let mut first = start;
     if tokens.get(first) == Some(&Token::Word("pub".to_owned())) {
@@ -680,6 +681,16 @@ fn item_end(tokens: &[Token], start: usize) -> usize {
                 depth -= 1;
                 if depth == 0 && item {
                     return k + 1;
+                }
+                // Anything else whose braces close (an arm's block, a block, a macro's braces)
+                // ends there, with a `,` after it, unless the code goes on (`.`, `?`, `else`).
+                if depth == 0 {
+                    match tokens.get(k + 1) {
+                        Some(Token::Punct('.' | '?')) => {}
+                        Some(Token::Word(word)) if word == "else" || word == "as" => {}
+                        Some(Token::Punct(',')) => return k + 2,
+                        _ => return k + 1,
+                    }
                 }
             }
             Token::Punct(';') if depth == 0 => return k + 1,
@@ -813,6 +824,24 @@ const LAST: &str = "read after the skipped items";
                  _ => \"the other arm\" } }"
             ),
             ["the other arm"]
+        );
+        assert_eq!(
+            read(
+                "fn f(x: u8) -> &'static str { match x { #[cfg(test)] 0 => { \"a test block\" } \
+                 _ => \"the arm after a block\", } }"
+            ),
+            ["the arm after a block"]
+        );
+        assert_eq!(
+            read(
+                "fn f() { #[cfg(test)] { let _ = \"a test block\"; } let _ = \"after the block\"; } \
+                 #[cfg(test)] thread_local! { static A: u8 = 1; } const C: &str = \"after a macro\";"
+            ),
+            ["after the block", "after a macro"]
+        );
+        assert_eq!(
+            read("enum E { #[cfg(test)] A { x: u8 }, #[error(\"the next variant\")] B }"),
+            ["the next variant"]
         );
         assert_eq!(
             read(
