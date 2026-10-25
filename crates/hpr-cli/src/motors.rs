@@ -168,7 +168,51 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         },
         motors,
     };
-    to.emit(&list, |out, _| list_text(&list, out))
+    // Filters that match nothing say so, with the catalog's span to choose within.
+    let none_matches = list.motors.is_empty().then(|| catalog_span(&catalog));
+    to.emit(&list, |out, diagnostics| {
+        list_text(&list, out)?;
+        if let Some((help, span)) = &none_matches {
+            diagnostics.line(Level::Note, span)?;
+            diagnostics.line(Level::Help, help)?;
+        }
+        Ok(())
+    })
+}
+
+/// What `hpr motors list` says when its filters match no motor: a note of the catalog's classes
+/// and diameters, and the help.
+fn catalog_span(catalog: &Catalog) -> (String, String) {
+    let by_impulse =
+        |a: &&CatalogMotor, b: &&CatalogMotor| a.total_impulse_ns.total_cmp(&b.total_impulse_ns);
+    let by_diameter =
+        |a: &&CatalogMotor, b: &&CatalogMotor| a.diameter_mm.total_cmp(&b.diameter_mm);
+    let classes = catalog
+        .motors
+        .iter()
+        .min_by(by_impulse)
+        .zip(catalog.motors.iter().max_by(by_impulse));
+    let diameters = catalog
+        .motors
+        .iter()
+        .min_by(by_diameter)
+        .zip(catalog.motors.iter().max_by(by_diameter));
+    let span = match (classes, diameters) {
+        (Some((low, high)), Some((narrow, wide))) => format!(
+            "no motor in the bundled catalog matches every filter given. Its motors run from class \
+             {} to {}, and from {} mm to {} mm across",
+            low.impulse_class.label(),
+            high.impulse_class.label(),
+            narrow.diameter_mm,
+            wide.diameter_mm
+        ),
+        _ => "the bundled catalog holds no motor".to_owned(),
+    };
+    (
+        "drop a filter or change it; `hpr motors fetch` finds a motor on ThrustCurve.org by name"
+            .to_owned(),
+        span,
+    )
 }
 
 /// The class label `--class` names, as [`ImpulseClass::label`] writes it, or a refusal.

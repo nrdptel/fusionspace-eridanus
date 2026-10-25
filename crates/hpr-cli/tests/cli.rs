@@ -294,6 +294,18 @@ fn motors_list_is_the_catalog() {
         "motors-list.schema.json",
     );
     assert!(none["motors"].as_array().unwrap().is_empty());
+    // As text, a filter that matches nothing says so, with the catalog's span, on standard error.
+    let output = hpr(&["motors", "list", "--class", "Z"]);
+    assert_eq!(output.status.code(), Some(0));
+    let said = text(&output.stderr);
+    assert!(
+        said.starts_with("note: no motor in the bundled catalog matches every filter given. Its \
+             motors run from class ")
+            && said.contains(" mm across\nhelp: drop a filter or change it"),
+        "{said}"
+    );
+    let listed = text_ok(&["motors", "list", "--class", "J"]);
+    assert!(!listed.contains("matches every filter"), "{listed}");
 
     let table = text_ok(&["motors", "list", "--class", "J"]);
     assert!(table.starts_with(&format!("{expected} motors from ThrustCurve.org")));
@@ -6039,10 +6051,12 @@ fn launch_options_are_refused_by_name_and_unit() {
         ("--longitude", "180.5", "from -180 to 180"),
         ("--elevation", "nan", "a number, in meters"),
         ("--rail-length", "0", "greater than 0"),
+        ("--rail-length", "-1", "greater than 0"),
         ("--inclination", "0", "more than 0 and at most 90"),
         ("--inclination", "90.5", "more than 0 and at most 90"),
         ("--heading", "inf", "clockwise from true north"),
         ("--wind", "inf", "at least 0"),
+        ("--wind", "-3", "at least 0"),
         ("--wind-from", "nan", "clockwise from north"),
     ] {
         let mut args = vec!["sim", probe.as_str(), "--motor", "H54", flag, value];

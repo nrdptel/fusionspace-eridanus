@@ -63,7 +63,7 @@ pub struct SimArgs {
     #[arg(long, value_name = "FILE")]
     pub plot: Option<String>,
     /// The recording's interval, s, at least 0.001; a row is also recorded at every event
-    #[arg(long, value_name = "S", default_value_t = DEFAULT_INTERVAL_S, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "S", default_value_t = DEFAULT_INTERVAL_S, value_parser = crate::typed::number::<f64>())]
     pub interval: f64,
 }
 
@@ -88,7 +88,7 @@ pub struct FlightArgs {
     /// The ejection delay of the motor --motor names: seconds from burnout to the charge (0 fires
     /// it at burnout), or P for a plugged motor. It needs --motor. Without it, the motor fires no
     /// charge
-    #[arg(long, value_name = "S_OR_P", requires = "motor", value_parser = DelayArg)]
+    #[arg(long, allow_hyphen_values = true, value_name = "S_OR_P", requires = "motor", value_parser = DelayArg)]
     pub delay: Option<Delay>,
     /// The launch site's latitude, degrees north (south is negative)
     #[arg(
@@ -118,16 +118,16 @@ pub struct FlightArgs {
     )]
     pub elevation: f64,
     /// The rail's length, m, from the rocket's aft end to the rail's top
-    #[arg(long, value_name = "M", default_value_t = DEFAULT_RAIL_LENGTH_M, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "M", default_value_t = DEFAULT_RAIL_LENGTH_M, value_parser = crate::typed::number::<f64>())]
     pub rail_length: f64,
     /// The rail's angle above the horizon, degrees [default: 90, vertical]
-    #[arg(long, value_name = "DEG", value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "DEG", value_parser = crate::typed::number::<f64>())]
     pub inclination: Option<f64>,
     /// The direction the rail leans toward, degrees clockwise from true north [default: 0]
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub heading: Option<f64>,
     /// A wind of this speed at every height, m/s [default: calm]
-    #[arg(long, value_name = "M_S", value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "M_S", value_parser = crate::typed::number::<f64>())]
     pub wind: Option<f64>,
     /// The direction the wind blows from, degrees clockwise from true north
     #[arg(
@@ -2106,8 +2106,13 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
                 "{path}: hpr sim reads an OpenRocket .ork file, an HPR design (.hpr or .hprz), or \
                  a rocket's JSON (.json)"
             ),
-            // A typo'd extension, or another program's design, which OpenRocket may open.
+            // A motor file given as the design, a typo'd extension, or another program's
+            // design, which OpenRocket may open.
             match closest_extension(path, &["ork", "hpr", "hprz", "json"]) {
+                _ if is_motor_file(path) => format!(
+                    "{} is a motor file: give it with --motor, after the design's file",
+                    crate::printable(path)
+                ),
                 Some(extension) => format!(
                     "is it {}? hpr sim reads a design by its file's extension",
                     crate::printable(&with_extension(path, extension))
@@ -2119,6 +2124,16 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             },
         )),
     }
+}
+
+/// Whether `path` names a motor file by its extension, `.eng` or `.rse` in any case.
+fn is_motor_file(path: &str) -> bool {
+    std::path::Path::new(path)
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| {
+            extension.eq_ignore_ascii_case("eng") || extension.eq_ignore_ascii_case("rse")
+        })
 }
 
 impl Read {
