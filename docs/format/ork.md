@@ -126,7 +126,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   OpenRocket's own default of 25 mm (0.98 in). It also gets a warning
 >   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
 > - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.002%, and 143 exactly. This
+>   flies both ways, all 151 reach the original's apogee within 0.002%, and 142 exactly. This
 >   checks the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
@@ -1088,12 +1088,12 @@ skin-friction coefficient of whatever part says `polished`. In the corpus that i
 components**. No file in the
 corpus writes any word but the five, so nothing here can settle it; the
 [OpenRocket oracle](../decisions-and-roadmap.md#m2-2) can. A word HPR Sim has no sourced roughness
-for is read as OpenRocket reads it, regular paint, and a warning says so.
+for is read as OpenRocket reads it, regular paint on an outside part, and a warning says so.
 
 **A part with no `<finish>`** is read as OpenRocket reads it: an outside part, from nose cone to
 rail button, as regular paint, 60 µm, and a part inside the body with none. With every finish
-taken out of its 17 example designs, OpenRocket 24.12 reads all 134 outside parts so
-([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). Before that fix, HPR Sim
+taken out of its 17 example designs, OpenRocket 24.12 reads all 134 outside parts so, as
+`validation/oracles/openrocket/finish.py` shows when run ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). Before that fix, HPR Sim
 gave such a part its own default, 20 µm, and flew the pod probes 6.0% to 7.3% high. OpenRocket
 writes a finish on every outside part it saves, so this touches hand-written files and other
 tools' files. When HPR Sim writes a file, an outside part left at its 20 µm default is written
