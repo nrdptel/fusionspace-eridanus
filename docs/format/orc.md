@@ -293,7 +293,7 @@ left out with a warning, and reading goes on:
 
 A file with more than 1,000 warnings lists the first 1,000 and then says how many more there were.
 
-The project's notes list `in/64` (sixty-fourths of an inch) as a length unit. It is refused,
+The project's notes list `in/64` (sixty-fourths of an inch) as a length unit. HPR Sim refuses it,
 because OpenRocket reads it as whole inches: `3` in `in/64` would come out as 3 inches.
 
 On the built-in files there are 55 warnings, all of kinds listed above:

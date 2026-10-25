@@ -25,8 +25,8 @@ from the schema, each with a reader that checks a document
 > 73. Each of the 73 goes `.ork` → `.hpr` → `.ork` and comes back as the same design, bit for bit.
 > It also comes back as the `.ork` the simulator writes from the original, byte for byte. That `.ork`
 > is close to the original file but not the same:
-> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 109 motor configurations
-> that fly are spread over 30 of the designs. Each reaches the same apogee, bit for bit, from the
+> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 145 motor configurations
+> that fly are spread over 41 of the designs. Each reaches the same apogee, bit for bit, from the
 > `.ork`, from the document, and from the `.ork` written from the document. These counts come from a
 > run on the developers' machine that includes other people's private designs. The automatic checks
 > repeat the checks, not the counts, on the 17 public ones
@@ -259,8 +259,8 @@ reason, such as a missing thrust curve, or there is none, nothing shows it. The 
 it unknown, and `hpr sim` refuses to fly another motor in the rocket, saying so. On the 73 designs
 of this project's checks, the migration:
 
-- recovers 5 of the 8 reasons, and marks the other 3 unknown;
-- marks 28 of the 65 designs read as written unknown too, so 31 of 73 in all are unknown;
+- recovers 0 of the 3 reasons, and marks all 3 unknown;
+- marks 28 of the 70 designs read as written unknown too, so 31 of 73 in all are unknown;
 - gives no wrong answer.
 
 Converting the `.ork` again gives a 0.2 document that knows. To see whether a 0.1 document was
@@ -328,8 +328,8 @@ source tree. Both are `MIT OR Apache-2.0`, like the rest of FusionSpace HPR.
 - TypeScript: the file is an ES module, so your `package.json` needs `"type": "module"`. Where the
   compiler only checks types (`noEmit`), import `./hpr-design.ts` with `allowImportingTsExtensions`,
   as this project's tests do. A bundler, or Node.js running TypeScript as it is, also leaves the
-  compiler only checking types.
-  Where it writes JavaScript, import `./hpr-design.js` under `module: nodenext`. This project's tests
+  compiler only checking types. Where the TypeScript compiler itself writes the JavaScript, import
+  `./hpr-design.js` under `module: nodenext`. This project's tests
   don't try that.
 - Python: put `hpr_design.py` beside your code or on `PYTHONPATH`.
 - A reader takes a `.hpr` file's text. For a `.hprz`, unzip it and read the `design.hpr` inside
@@ -475,8 +475,8 @@ only counts are published. `cargo xtask ork` takes each one through the format:
 | the `.ork` written from it is the `.ork` the simulator writes from the file itself, other files and all, byte for byte | 73 of 73 |
 | that `.ork` reads back as the design first read, bit for bit | 73 of 73 |
 | the document, rewritten by the check in version 0.1's shape, migrates back to the same document, but for whether the airframe was read as written, which 0.1 didn't record | 73 of 73 |
-| of the 8 whose airframe was not read exactly as written, the migration recovers the reason | 5 of 8; 3 marked unknown |
-| of the 65 read as written, the migration marks unknown | 28 of 65 |
+| of the 3 whose airframe was not read exactly as written, the migration recovers the reason | 0 of 3; 3 marked unknown |
+| of the 70 read as written, the migration marks unknown | 28 of 70 |
 
 Between them, the documents carry the files' 55 other files: 3 as text, the thrust curves the
 designs embed, and 52 as base64, their images.
@@ -489,15 +489,15 @@ Then each motor configuration that flies is flown three ways:
 
 Each flight is in calm air of the [standard atmosphere](../glossary.md#standard-atmosphere) at sea
 level, off a 1.5 m (4.9 ft) vertical rail. Its stages separate if they do. Of the designs' 170
-configurations, **109 fly, and each reaches the same apogee all three ways, bit for bit**. The
+configurations, **145 fly, and each reaches the same apogee all three ways, bit for bit**. The
 format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 part in 10⁹.
 
-These 109 fly because the check supplies OpenRocket's own motor database for the curves the files
+These 145 fly because the check supplies OpenRocket's own motor database for the curves the files
 name but don't carry. With only the files' own curves and the simulator's bundled motors, 4 fly
-([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 61
+([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 25
 have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
-first reason it finds. Of the 61, 24 are left out for want of a thrust curve and 19 for stages the
-simulator can't separate as written. Another 18 are left out for other reasons
+first reason it finds. Of the 25, 24 lack a thrust curve, and 1 has stages the simulator can't
+separate as written
 ([which configurations fly](ork.md#which-configurations-the-rocket-flies)).
 
 **In CI**, the automatic checks that run on every change don't have the private designs. So

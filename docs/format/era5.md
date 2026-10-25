@@ -221,7 +221,7 @@ The first row matters for ERA5. Many ERA5 files store each value as a 16-bit who
 fill of −32767, and a few values sit at −32768. Two of RocketPy's other ERA5 files (both netCDF-4)
 have them. One has 102 of 5,241,600 geopotential values and 4 temperatures. The other has 298 of
 5,184,000 geopotential values and 2 temperatures. HPR Sim reads those as missing, where
-netCDF4-python returns a number. Among neighbors near 301 K, it returns 198.66 K, for example. Such
+netCDF4-python returns a number (198.66 K, for example, among neighbors near 301 K). Such
 values look like damaged data, so reading them as missing is the safer choice. `Era5Profile::read`
 then refuses the whole reading, naming the level, rather than print a wrong number. None of the
 files the tests read has such values.

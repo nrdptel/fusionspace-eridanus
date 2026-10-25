@@ -161,7 +161,7 @@ What real files do, and what the reader and writer do with each case.
    "zero or plugged" setting, with a warning (spec: no delay; files: usually plugged). It reads
    other pieces as seconds. A `0` never becomes an ejection at burnout without a decision. Physics
    should prefer catalog metadata for delays.
-8. When other entries in the file read, an entry with an error is skipped, with the error as a
+8. When other entries in the file can be read, an entry with an error is skipped, with the error as a
    warning. The reader resumes at the next comment line. With no entry read, the first error returns.
    Every warning carries a kind: skipped (an entry lost), dropped (a value ignored) or unusual
    (read as it stands).
@@ -170,7 +170,7 @@ What real files do, and what the reader and writer do with each case.
    trailer comments. **Policy:** a comment that names the simulator as the file's writer is dropped
    when reading. The reason is that it says who wrote the file, not anything about the motor. Such a
    comment reads `FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001` (see the writer
-   policy). So is the line written by builds from before release 0.1's rename. That line has
+   policy). A comment written by builds from before release 0.1's rename is dropped too. It has
    the earlier name `hpr-sim` with that designation or with `FS · SW · TOOL 005`. The second is the
    designation builds wrote before October 2026, when FusionSpace named its products after stars
    ([the new designation](../decisions-and-roadmap.md#m10-1d7);
@@ -191,7 +191,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   `; FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001`. The `·` is a middle dot, the file's
   only non-ASCII character unless its comments hold others; the file is UTF-8. A comment carried
   over from the source that is itself such a line, from any version, is left out. So is the
-  line that builds from before release 0.1's rename wrote under the earlier name. It is left out with
+  line written under the earlier name by builds from before release 0.1's rename. It is left out with
   either designation (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`; rule 9 of the reader
   policy above). A file converted again then holds one such line, not two. Whether other programs (RockSim,
   OpenRocket, a flight computer's tools) accept the middle dot in a comment has not been checked.

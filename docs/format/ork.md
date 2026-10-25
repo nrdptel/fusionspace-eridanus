@@ -56,8 +56,8 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   51 with no named cause for an apogee gap, less the *Base drag hack*'s three. On these, HPR Sim's
 >   flight time is −1.57% to +3.16% off
 >   ([flown as OpenRocket flies them](#flown-as-openrocket-flies-them)). A stage separation is flown
->   when two things hold at that moment. A motor ahead of it is still burning or yet to light. None
->   behind it is. A configuration's several such separations are flown in turn, from the tail
+>   when two things hold at that moment. A motor ahead of it is still burning or yet to light. No
+>   motor behind it is burning or yet to light. A configuration's several such separations are flown in turn, from the tail
 >   forward. One at a stage's first burnout may drop the stage's other motors still burning, as
 >   OpenRocket does
 >   ([when parachutes open and stages separate](#when-parachutes-open-and-stages-separate)). A lone
@@ -74,12 +74,12 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   rod agrees within 0.016 calibers, taken with the air along the rocket's axis as OpenRocket's is.
 >   On the *Tube fin rocket* it is 1.08 calibers below OpenRocket's
 >   ([tube fins](../physics/aero.md#tube-fins)). On the three-stage example's three configurations
->   it is 0.039 to 0.058 calibers below. On the five of *Pods--airframes and winglets* it is 0.071
+>   it is 0.039 to 0.058 calibers below. On the five flights of *Pods--airframes and winglets* it is 0.071
 >   to 0.076 calibers above, the flattering side
 >   ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
 >   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). On the three of
 >   *Pods--powered with recovery deployment* it is 0.070 calibers above. Where nothing named
->   explains a difference, HPR Sim's apogee is from 4.34% low to 2.06% high. Parachutes that open
+>   explains a difference, HPR Sim's apogee is from 4.34% low to 1.95% high. Parachutes that open
 >   while the rocket still climbs move six apogees by more than 5%, and HPR Sim's tube-fin drag a
 >   seventh. The eighth, 37.93% low, is a pod example's sustainer that turns over before apogee in
 >   both programs in the conditions of OpenRocket's record. OpenRocket aborts its own flight of that
@@ -204,10 +204,11 @@ entry is kept byte for byte as an *attachment*: `thrustcurves/*.rse` motor curve
 `preview.png`, lookup tables. **Observed:** 38 `.png`, 11 `.jpg`, 3 `.gif` and 3 `.rse` attachments
 across the corpus. All three `.rse` curves come from the single schema 1.11 file. So the 1.11
 attachments that
-[the milestone that reads motors, recovery and stages](../decisions-and-roadmap.md#m3-1c) will read
+[the milestone that reads motors, recovery and stages](../decisions-and-roadmap.md#m3-1c) reads
 are a sample of one. Loft threw such attachments away
-([the Loft lesson](../decisions-and-roadmap.md#l57)). Nothing reads them yet. They are kept so that
-[that milestone](../decisions-and-roadmap.md#m3-1c) can, and so an export can put them back.
+([the Loft lesson](../decisions-and-roadmap.md#l57)). The motor reader takes a curve from them
+first ([where the thrust curve comes from](#where-the-thrust-curve-comes-from)). They are kept
+too, so an export can put them back.
 
 ### The schema version
 
@@ -905,9 +906,9 @@ a design holding one flies as OpenRocket flies it. A `tubecoupler`
 or an `engineblock` written `auto` fills its parent as above.
 
 **Measured.** Fourteen probe designs in `validation/oracles/openrocket/conventions.py` ask
-OpenRocket these questions. Some hold a coupler of automatic radius at a nose's bottom, past its
-base, and with a shoulder. Some hold one long from its middle, one at the tip, and one with a wall
-thicker than its bore. Others hold an ogive nose, a transition, an engine block, a centering ring
+OpenRocket these questions. Six hold a coupler of automatic radius, each placed one way. Three sit at a
+nose's bottom, past its base and with a shoulder. The others are long from its middle, at the tip,
+and with a wall thicker than its bore. Others hold an ogive nose, a transition, an engine block, a centering ring
 and a bulkhead. The rest hold a mass component inside, and an inner tube written `auto`, in a nose
 and in a tube. HPR Sim flies 13 of the
 14. Every part inside a nose cone, transition or tube but one weighs OpenRocket's mass at
@@ -1331,7 +1332,7 @@ parallel stage left out is kept whole for writing the file back
 ([what HPR Sim keeps](#what-the-simulator-keeps-for-writing-the-file-back)).
 
 **Measured.** OpenRocket's *Parallel booster staging* example flies both its configurations as
-saved. Under OpenRocket's stored conditions, recovery as saved
+saved. They are flown under OpenRocket's stored conditions, with recovery as saved
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md)).
 A configuration is named by its motors, stage by stage with the sustainer first, the stages
 separated by `;`. For example, `[I115W-10; 2× E12-0]` is an I115W-10 in the core above two E12-0s in
@@ -1423,8 +1424,9 @@ the [C6-5] would reach 204.4 m (671 ft).
 - **Cockpit normal force.** Across the airflow, the cockpit's own normal force is 31.5% above
   OpenRocket's (0.2784 against 0.2117 per radian at Mach 0.3). The cockpit's center of pressure is
   0.13 mm (0.0051 in) from OpenRocket's. The curved root isn't the cause
-  ([#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). The cockpit's normal force
-  acts forward of the center of mass, so it shortens HPR Sim's margin, the safe side.
+  ([#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). HPR Sim's larger cockpit
+  normal force acts forward of the center of mass. So it shortens HPR Sim's margin against
+  OpenRocket's, the safe side.
 
 A fin set there is left out, with its reason, when:
 
@@ -2559,7 +2561,7 @@ OpenRocket's on ordinary hobby rockets.
   where OpenRocket's recorded mass falls as if every motor of the booster's type burned from
   launch ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)). Whether that
   accounts for the gap is not sized.
-- On the 36 flights with no named cause, HPR Sim's apogee is from 4.34% low to 2.06% high. Only 14
+- On the 36 flights with no named cause, HPR Sim's apogee is from 4.34% low to 1.95% high. Only 14
   read high:
   - the five *Airstart timing* flights
   - the *ARC payload rocket*
@@ -2591,7 +2593,7 @@ OpenRocket's on ordinary hobby rockets.
   The two of the six still over 5% are the *Base drag hack* on a D12-3 and an E12-4. With
   nothing deployed in OpenRocket either, HPR Sim reads 5.84% and 8.92% high. Flown on OpenRocket's
   own drag along that flight, HPR Sim comes within 0.10%. So what is left is the drag coefficient.
-  By OpenRocket's part-by-part breakdown, that coefficient is the nose's
+  By OpenRocket's part-by-part breakdown, the gap is in the nose's drag
   ([#177](https://github.com/nrdptel/fusionspace-eridanus/issues/177), a very blunt nose's drag; see
   [below](#a-part-set-to-no-drag)).
 
@@ -2720,7 +2722,7 @@ on an A8-5, is also the one whose margin is 0.0580 cal short.
   where HPR Sim is 1.65% heavier. The second is the three-stage example on C6 motors, 3.26% heavier
   (see [below](#staged-clustered-and-air-start-flights)). The other two are the two
   *Parallel booster staging* flights, 0.041% and 0.063% heavier. The 36th, the *Base drag hack* on
-  a C11-5, is 0.21% heavier, which would lower its apogee, yet it reads 2.06% high. On the largest
+  a C11-5, is 0.21% heavier, which would lower its apogee, yet it reads 1.95% high. On the largest
   miss, *Dual parachute deployment* with a J570W (−4.34%), HPR Sim is 0.01% *lighter* as it leaves
   the rod. That would raise its apogee, not lower it.
 - **The largest launch-mass differences are on the *Base drag hack*.** Its three flights are
