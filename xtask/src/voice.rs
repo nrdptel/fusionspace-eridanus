@@ -2006,7 +2006,9 @@ fn report(pages: &[Page]) -> String {
          `held` that's over a limit or misses a sentence target. The {} held pages are every page \
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
-         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).\n\n\
+         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), and each \
+         snapshot of an `hpr` command's `--help` \
+         ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.iter().filter(|page| page.held).count(),
         pages.len()

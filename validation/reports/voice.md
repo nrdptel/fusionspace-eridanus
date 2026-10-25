@@ -2,7 +2,7 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 94 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 94 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), and each snapshot of an `hpr` command's `--help` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
 102 pages, 445485 words, 0 stock phrases. 98 pages are within every limit.
 
