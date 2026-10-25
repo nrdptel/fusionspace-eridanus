@@ -1937,8 +1937,8 @@ decisions over the sample logs:
   second, miles per hour, meters per second and kilometers per hour, the one two measures agree on
   within 3% is taken. Where they don't, or the record stops before the rocket is halfway down, the
   column is kept as written, with a note. The time is in seconds where its step is the RRC3's 20
-  samples a second. Of the 50 RRC3 exports among the sample logs, 46 are read in feet from the
-  pressure and 4 state feet. Of the speeds, 36 are in feet per second and 8 in miles per hour.
+  samples a second. Of the 51 RRC3 exports among the sample logs, 47 are read in feet from the
+  pressure and 4 state feet. Of the speeds, 36 are in feet per second and 9 in miles per hour.
   Another 4 state feet per second. The remaining 2, whose records stop early, keep their speeds as
   written.
 - **An RRC3 export saved by a European locale.** mDACS's export in a European locale's form is
@@ -2567,7 +2567,8 @@ download as an `.rtx` file. The program exports that file to CSV, text and KML (
 Manual*, revision 1.71, May 2024, p16). The KML is read as [above](#gps-logs). The `.rtx` and the
 CSV and text exports are read by `hpr_flightdata::rtx`. Neither manual describes the files. What
 follows was worked out from two sets of files. They are the 5 `.rtx` files among the sample logs
-and the 13 exports beside them (8 CSV and text, 5 KML). No other program's source was read
+and the 13 exports beside them (8 CSV and text, 5 KML). The sample logs hold one more CSV
+export, beside no `.rtx`. No other program's source was read
 ([ADR-267, reading the RTx before the other layouts](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)).
 Like every GPS log here, an RTx file feeds no reading. That is because the readings need a
 barometer's track (see [GPS logs](#gps-logs)).
@@ -2977,8 +2978,8 @@ prints a row every tick of the Raven's clock and holds each channel's latest sam
 raw sample must show at a row of its own time, none skipped. Only the velocity may stop before the
 raw file's last sample, as the FIP stops it at apogee. The velocity's samples after the stop are
 counted apart. `cargo xtask logs --check` fails on a raw file with an export beside it that matches
-none. The [survey's report](#how-it-was-checked) prints the counts, in its section on the raw
-downloads:
+none. The [survey's report](#how-it-was-checked) prints the counts, in its paragraph that opens
+"The raw downloads against their makers' exports":
 
 | Layout | Files | With an export beside | Matching | Raw samples compared | Velocity after the stop | Worst value, steps | Worst time, s |
 |---|---:|---:|---:|---:|---:|---:|---:|
