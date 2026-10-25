@@ -19,7 +19,8 @@ It currently builds supported stages, body components, tubes, rings, fins, lugs,
 pods, recovery gear, motor configurations, recovery settings and stored simulations. Staged,
 clustered and air-start configurations fly, with each stage separation under power, one or several
 in turn ([staged, clustered and air-start flights](#staged-clustered-and-air-start-flights)). Two
-more cases fly. One is a payload dropped with nothing left to burn, when its own device opens at the split. The
+more cases fly. One is a payload dropped with nothing left to burn, when its own device opens at
+the split. The
 other is boosters strapped beside the core on a rocket of one stage on the axis
 ([Parallel stages](#parallel-stages)). Unsupported shapes and recovery behavior are not fully
 modeled. The trust limits below are measured against OpenRocket 24.12 and the current reference
@@ -57,7 +58,8 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   flight time is −1.57% to +3.16% off
 >   ([flown as OpenRocket flies them](#flown-as-openrocket-flies-them)). A stage separation is flown
 >   when two things hold at that moment. A motor ahead of it is still burning or yet to light. No
->   motor behind it is burning or yet to light. A configuration's several such separations are flown in turn, from the tail
+>   motor behind it is burning or yet to light. A configuration's several such separations are
+>   flown in turn, from the tail
 >   forward. One at a stage's first burnout may drop the stage's other motors still burning, as
 >   OpenRocket does
 >   ([when parachutes open and stages separate](#when-parachutes-open-and-stages-separate)). A lone
@@ -179,7 +181,8 @@ real files.
   given over those 55. Every count below is printed by `cargo xtask ork` unless it names another
   source.
 - OpenRocket's own Java source is **not** consulted. It is GPL, so it can't be read
-  ([the decision to keep the document whole][adr-051]), and this project is MIT OR Apache-2.0. The project is built from
+  ([the decision to keep the document whole][adr-051]), and this project is MIT OR Apache-2.0. The
+  project is built from
   published documentation and real files, never from another program's source, which is what "clean
   room" means here.
 
