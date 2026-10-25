@@ -8,8 +8,9 @@
 //! the census reads more than the messages. That holds a stock phrase or first person anywhere
 //! in the code's prose, though the extra prose also dilutes the rates:
 //!
-//! - **The files** ([`CRATES`]): each tracked `.rs` file under a crate's `src/`, less test code (an
-//!   item under `#[cfg(test)]`, and a module declared under it with the modules inside it) and
+//! - **The files** ([`CRATES`]): each tracked `.rs` file under a crate's `src/`, less test code (what
+//!   a `#[cfg(test)]` marks, by [`item_end`]'s rule, and a module declared under it with the
+//!   modules inside it) and
 //!   less [`LEFT_OUT`], the files of M0.14d3's commands.
 //! - **What it reads**: each `#[error("…")]` text, and each other string literal in the code that
 //!   reads as prose ([`is_prose`]), less markup ([`is_markup`]). Not comments, doc comments, byte
@@ -680,7 +681,7 @@ fn item_end(tokens: &[Token], start: usize) -> usize {
             Token::Punct(')' | ']') => depth -= 1,
             Token::Punct('}') => {
                 depth -= 1;
-                if depth == 0 && !goes_on(tokens.get(k + 1)) {
+                if depth == 0 && !goes_on(&tokens[k + 1..]) {
                     return if tokens.get(k + 1) == Some(&Token::Punct(',')) {
                         k + 2
                     } else {
@@ -696,16 +697,14 @@ fn item_end(tokens: &[Token], start: usize) -> usize {
     tokens.len()
 }
 
-/// Whether the token after a closing brace goes on with the same code: a method or `?`, an
-/// `else` or `as`, or a binary operator (a pattern's `=>`, an or-pattern's `|`, `+` or `==`).
-/// A `-`, `&` or `!` is left out: each can also start the next arm or statement, and ending there
-/// reads more of the code, not less.
-fn goes_on(next: Option<&Token>) -> bool {
-    match next {
-        Some(Token::Punct(c)) => matches!(
-            c,
-            '.' | '?' | '=' | '|' | '+' | '*' | '/' | '%' | '^' | '<' | '>'
-        ),
+/// Whether the token after a closing brace goes on with the same code: a method or a field
+/// (`.`, not the `..` of a range), `?`, `else` or `as`, or an operator no statement or arm can
+/// start with (a pattern's `=>`, `+`, `/`, `%`, `^`, `>`). Where a token could do either (`*`,
+/// `<`, `|`, `-`, `&`, `!`), the code ends at the brace: that reads more of the file, never less.
+fn goes_on(after: &[Token]) -> bool {
+    match after.first() {
+        Some(Token::Punct('.')) => after.get(1) != Some(&Token::Punct('.')),
+        Some(Token::Punct(c)) => matches!(c, '?' | '=' | '+' | '/' | '%' | '^' | '>'),
         Some(Token::Word(word)) => word == "else" || word == "as",
         _ => false,
     }
@@ -859,7 +858,19 @@ const LAST: &str = "read after the skipped items";
                  match c { #[cfg(test)] A { x } | B { x } => { \"a test block\" } \
                  _ => \"the next live arm\" } }"
             ),
-            ["the live arm", "the next live arm"]
+            // An or-pattern ends at its first brace, as a `|` can also start the next arm: the
+            // test arm's block is read, which makes the hold stricter, never looser.
+            ["the live arm", "a test block", "the next live arm"]
+        );
+        // After a test-only brace, code that starts with `*`, `..`, `<` or `|` is live.
+        assert_eq!(
+            read(
+                "fn f() { #[cfg(test)] fn h() {} *p = \"a live deref\"; \
+                 match c { #[cfg(test)] A => { \"t t t\" } ..=5 => \"a live range\", \
+                 #[cfg(test)] B => { \"t t t\" } <T as X>::K => \"a live path\", \
+                 #[cfg(test)] C => { \"t t t\" } | D => \"a live lead\", _ => 1 } }"
+            ),
+            ["a live deref", "a live range", "a live path", "a live lead"]
         );
         assert_eq!(
             read(

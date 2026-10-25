@@ -231,8 +231,8 @@ pub(crate) fn read_help(error: &hpr_format::FormatError) -> String {
         FormatError::Unsupported {
             found, supported, ..
         } if found > supported => "a newer HPR Sim wrote it; update HPR Sim to read it".to_owned(),
-        FormatError::Unsupported { .. } => "an HPR Sim older than any this one reads from wrote \
-             it; convert it to a newer version with an HPR Sim between the two first"
+        FormatError::Unsupported { .. } => "an HPR Sim too old for this one to read wrote it. \
+             Convert it to a newer version with an HPR Sim in between first"
             .to_owned(),
         FormatError::Json(_) | FormatError::NotADesign { .. } => {
             "give a .hpr or .hprz design HPR Sim wrote; this file isn't one".to_owned()
