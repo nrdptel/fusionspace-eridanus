@@ -472,7 +472,7 @@ calibers with its C6 still burning. On `[C6-7; B6-0]`:
 ```text
 static margin         2.05 calibers off the rail; least -4.21 calibers, at 0.86 s, before apogee
 apogee                251.3 m above the site at 5.74 s, not a prediction: unstable under power
-warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns: the rocket is unstable under power, so the air turns it away from its path rather than back, and its apogee is not a prediction
+warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns. The rocket is unstable under power: the air turns it away from its path rather than back, and its apogee is not a prediction
 ```
 
 For the second flag, take RocketPy's Valetudo with its fins taken off. Give it a conical tail that
