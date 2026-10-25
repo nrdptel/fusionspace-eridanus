@@ -179,7 +179,7 @@ real files.
   given over those 55. Every count below is printed by `cargo xtask ork` unless it names another
   source.
 - OpenRocket's own Java source is **not** consulted. It is GPL, and this project is MIT OR
-  Apache-2.0 ([the decision to keep the document whole][adr-051]). The project is built from
+  Apache-2.0 ([the decision to keep the document whole says so][adr-051]). The project is built from
   published documentation and real files, never from another program's source, which is what "clean
   room" means here.
 
@@ -276,7 +276,7 @@ specification, because `.ork` has none. Code: `hpr_io::ork::value`
 [the decision on what a value means][adr-052].
 
 **A dimension may be automatic.** `<aftradius>auto 0.025</aftradius>` means "OpenRocket works this
-out from the neighboring components, and 0.025 m (0.082 ft) is what it last worked out". So That is
+out from the neighboring components, and 0.025 m (0.082 ft) is what it last worked out". That is
 how OpenRocket 24.12 writes it; older releases may differ
 ([see below](#checked-against-the-answers-openrocket-cached)). A bare `auto`
 (`<outerradius>auto</outerradius>`) is the same with nothing worked out yet. It is the commoner
@@ -1504,7 +1504,7 @@ argument for them, until an OpenRocket oracle reads those parts too. The one
 [below](#held-against-openrocket-itself) reads body radii only. The rest belongs to
 [the OpenRocket reference-program milestone](../decisions-and-roadmap.md#m2-2). `cargo xtask ork`
 prints the per-tag denominators and names the tags nothing reaches, so the gap is in the report
-rather than only here. Since [the nose-cone coupler milestone](../decisions-and-roadmap.md#m2-2e7),
+rather than only here. Since [the fin-fillet and inner-tube milestone](../decisions-and-roadmap.md#m2-2e7),
 fourteen probe designs run in OpenRocket do reach an inner tube's automatic outer radius, a ring's
 and a bulkhead's. They do so inside a nose cone, a transition and a body tube
 ([above](#inside-a-nose-cone-or-a-transition)). The library's own files still cache no such number.
@@ -1678,7 +1678,7 @@ Of the rest, 1 is a mass object the file says weighs 0 kg, and 2 are transitions
 *override* to zero mass. That override is OpenRocket's
 ["base drag hack"](https://openrocket.readthedocs.io/en/latest/): a massless, dragless transition
 added only to change the base geometry. `cargo xtask ork` counts them by kind, so a new one would
-show up. Before [the default-material part of that milestone](../decisions-and-roadmap.md#m2-2b1)
+show up. Before [the milestone on what a `.ork` leaves unsaid](../decisions-and-roadmap.md#m2-2b1)
 there were 21. The 7 more (2 body tubes, 2 fin sets, 2 inner tubes and a nose cone) name no
 material, and now take OpenRocket's default.
 
@@ -2019,7 +2019,7 @@ and 2 are refused. *Deployable payload*'s five fly with warnings. Its payload an
 drawn 25 mm (0.98 in) across in a 21 mm (0.83 in) bore, so they can't fit as drawn. But a packed
 part's width sets only its own inertia
 ([a packed part wider than its bore](../physics/design.md#a-packed-part-wider-than-its-bore),
-[the milestone that added it](../decisions-and-roadmap.md#m4-5l)). *Parallel booster staging*'s two
+[the milestone on such a part](../decisions-and-roadmap.md#m4-5l)). *Parallel booster staging*'s two
 fly since [the parallel-stage milestone](../decisions-and-roadmap.md#m4-5m) read its boosters
 ([Parallel stages](#parallel-stages)). *Pods--powered with recovery deployment*'s first flies since
 [the first-burnout milestone](../decisions-and-roadmap.md#m4-5n) read its booster's burnout as its
@@ -3595,7 +3595,7 @@ OpenRocket's own examples flew 0.6% to 0.9% low and a private design 10% to 11% 
 
 After an edit to the design, a kept tag's text still wins over the edit. Change a ring written as
 a row in HPR Sim and its original `<instancecount>` is written as it was. A rail button's screw height is the
-design's since [M4.5i](../decisions-and-roadmap.md#m4-5i), so an edit to it is written.
+design's since [the screw-head work](../decisions-and-roadmap.md#m4-5i), so an edit to it is written.
 
 **Checked on the reference library.** `cargo xtask ork` writes every design out, reads it back,
 compares the two, and writes the design read back once more. It fails on any difference. On

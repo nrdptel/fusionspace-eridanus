@@ -8,8 +8,8 @@ is FusionSpace HPR's own, open and described by a published [JSON Schema](#the-s
 everything HPR Sim reads from an OpenRocket `.ork`. That includes the rocket's parts, every motor
 [configuration](../glossary.md#configuration), when each parachute opens and each stage separates,
 and the simulations the file stored. It also carries what the file holds that the simulator doesn't
-model. It carries the other files inside it as well, such as an embedded thrust curve or a decal
-image. It is plain text, so a design can be kept in git and a change to it reads as a small diff.
+model. It also carries the other files inside the `.ork`, such as an embedded thrust curve or a
+decal image. It is plain text, so a design can be kept in git and a change to it reads as a small diff.
 A `.hprz` is the same document in a zip archive, with other files beside it, such as the design's
 flight logs and photographs ([the container](#the-container-hprz)).
 
@@ -327,7 +327,8 @@ source tree. Both are `MIT OR Apache-2.0`, like the rest of FusionSpace HPR.
 
 - TypeScript: the file is an ES module, so your `package.json` needs `"type": "module"`. Where the
   compiler only checks types (`noEmit`), import `./hpr-design.ts` with `allowImportingTsExtensions`,
-  as this project's tests do. A bundler, or Node.js running TypeScript as it is, is such a case.
+  as this project's tests do. A bundler, or Node.js running TypeScript as it is, also leaves the
+  compiler only checking types.
   Where it writes JavaScript, import `./hpr-design.js` under `module: nodenext`. This project's tests
   don't try that.
 - Python: put `hpr_design.py` beside your code or on `PYTHONPATH`.

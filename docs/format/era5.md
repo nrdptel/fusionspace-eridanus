@@ -72,9 +72,10 @@ can't read a file, its error says which kind the file is and gives this conversi
 
 This conversion is checked. The test takes NDRT 2020's launch day. It was downloaded from the Data
 Store in 2021 as a classic file, and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
-University of Notre Dame's rocket for NASA's 2020 Student Launch. The two files agree at every
-level. [Geopotential](../glossary.md#geopotential-height) agrees to 0.23 m²/s² (about 2 cm (0.79 in)
-of height). Temperature agrees to 0.35 thousandths of a kelvin, and wind to 0.11 mm/s. The older
+University of Notre Dame's rocket for NASA's 2020 Student Launch. At every level, the two files'
+[geopotential](../glossary.md#geopotential-height) agrees to 0.23 m²/s² (about 2 cm (0.79 in) of
+height). Their temperature agrees to 0.35 thousandths of a kelvin, and their wind to 0.11 mm/s,
+at every level too. The older
 file stores its values as 16-bit whole numbers. The newer one carries the rounding of ECMWF's own
 archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
 
