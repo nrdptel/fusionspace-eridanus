@@ -472,7 +472,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
 | <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
 | <a id="m0-14a"></a>[M0.14a][done-0] | The guide and the check | done |
-| <a id="m0-14b"></a>[M0.14b][phase-0] | The front doors | blocked |
+| <a id="m0-14b"></a>[M0.14b][done-0] | The front doors | done |
 | <a id="m0-14c"></a>[M0.14c][done-0] | The rest of the site | done |
 | <a id="m0-14c1"></a>[M0.14c1][done-0] | The first guides | done |
 | <a id="m0-14c2"></a>[M0.14c2][done-0] | Studies, data and logs | done |
