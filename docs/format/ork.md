@@ -16,12 +16,12 @@ written file whose original it opens. OpenRocket flies each one to the original'
 instructions and XML namespaces are dropped.
 
 It currently builds supported stages, body components, tubes, rings, fins, lugs, rail buttons,
-recovery gear, motor configurations, recovery settings and stored simulations. Staged, clustered and
-air-start configurations fly, with each stage separation under power, one or several in turn
-([staged, clustered and air-start flights](#staged-clustered-and-air-start-flights)). Two more cases
-fly. One is a payload dropped with nothing left to burn, when its own device opens at the split. The
+pods, recovery gear, motor configurations, recovery settings and stored simulations. Staged,
+clustered and air-start configurations fly, with each stage separation under power, one or several
+in turn ([staged, clustered and air-start flights](#staged-clustered-and-air-start-flights)). Two
+more cases fly. One is a payload dropped with nothing left to burn, when its own device opens at the split. The
 other is boosters strapped beside the core on a rocket of one stage on the axis
-([Parallel stages](#parallel-stages)). Pods, unsupported shapes and recovery behavior are not fully
+([Parallel stages](#parallel-stages)). Unsupported shapes and recovery behavior are not fully
 modeled. The trust limits below are measured against OpenRocket 24.12 and the current reference
 corpus. A Rust program reads a file with `hpr_io::ork`. From a terminal,
 [`hpr sim`](../cli.md#hpr-sim) flies one, with its parachutes and streamers. It refuses what it
@@ -35,7 +35,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   cone, the transitions, the fin sets, where each sits, and the body radius. Over 71 designs in
 >   the current scratch-excluding survey, HPR Sim's value is within the survey's 1-in-$10^9$
 >   comparison tolerance of OpenRocket's for all 1,171 numbers. The survey found 75 files, 73
->   readable and 72 with a design that lays out; four readable designs are not opened by OpenRocket.
+>   readable and 72 with a design that lays out; two readable designs are not opened by OpenRocket.
 >   Where parts sit is checked against OpenRocket alone. Mass and the center of gravity are checked
 >   in [Mass properties](../physics/mass.md#checked-against-openrocket)
 >   ([checked against RocketSerializer](#checked-against-rocketserializer)).
@@ -220,8 +220,8 @@ embedded `.rse` curves, CSV lookup tables, a gravity model and `preview.png`.
 
 | schema version | files | written by |
 |---|--:|---|
-| 1.4 | 4 | OpenRocket 13.05, 15.03 |
-| 1.5 | 10 | OpenRocket 15.03 |
+| 1.4 | 2 | OpenRocket 13.05, 15.03 |
+| 1.5 | 9 | OpenRocket 15.03 |
 | 1.8 | 5 | OpenRocket 22.02 |
 | 1.9 | 3 | OpenRocket 23.09 |
 | 1.10 | 53 | OpenRocket 24.12, and hand-written fixtures |
@@ -281,18 +281,19 @@ out from the neighboring components, and 0.025 m (0.082 ft) is what it last work
 how OpenRocket 24.12 writes it; older releases may differ
 ([see below](#checked-against-the-answers-openrocket-cached)). A bare `auto`
 (`<outerradius>auto</outerradius>`) is the same with nothing worked out yet. It is the commoner
-form: 309 of the 413 automatic dimensions in the corpus cache no number. So a reader that resolves
-them cannot treat the cached value as a shortcut. HPR Sim keeps both halves: which it is, and the
-cached number. Keeping only the number is [a Loft lesson](../decisions-and-roadmap.md#l58): it
-turned automatic dimensions into hand-typed ones the next time the design was saved. **Observed:**
-413 automatic dimensions across the corpus, on seven tags.
+form: at least 290 of the 407 automatic dimensions in the corpus cache no number. Those are all the
+`cd`, `innerradius` and `outerradius` ones. So a reader that resolves them cannot treat the cached
+value as a shortcut. HPR Sim keeps both halves: which it is, and the cached number. Keeping only
+the number is [a Loft lesson](../decisions-and-roadmap.md#l58): it turned automatic dimensions into
+hand-typed ones the next time the design was saved. **Observed:** 407 automatic dimensions across
+the corpus, on seven tags.
 
 | tag | automatic |
 |---|--:|
 | `outerradius` | 131 |
 | `innerradius` | 80 |
 | `cd` | 79 |
-| `radius` | 43 |
+| `radius` | 37 |
 | `packedradius` | 36 |
 | `aftradius` | 30 |
 | `foreradius` | 14 |
@@ -321,7 +322,7 @@ attribute (the frame the number is measured in) that the older name never carrie
 
 For a long time HPR Sim read neither name of any of them. The two angle pairs agree on the number
 every time and differ on the frame every time. `radiusoffset` (on 106 elements) and `radialposition`
-(on 542) are never written together at all, so nothing about *them* had been measured. Reading one
+(on 536) are never written together at all, so nothing about *them* had been measured. Reading one
 as the other would move a component without saying so.
 
 [The step that read all three](../decisions-and-roadmap.md#m3-1b3) settled them without ever having
@@ -592,7 +593,7 @@ The 110 differences, by cause:
 **Stations rest on OpenRocket.** RocketSerializer does not read a station, or a transition's
 radius, from the file. It loads the design into OpenRocket and walks OpenRocket's tree, adding up
 lengths as it goes. That is where the worked example's extra 0.08 m (0.26 ft) comes from. So its
-stations are not an independent reading. It agrees with HPR Sim on 8 of the 96 fin sets' stations
+stations are not an independent reading. It agrees with HPR Sim on 5 of the 93 fin sets' stations
 and 18 of the 22 transitions'. The rest are among the 110 above, where HPR Sim's station is
 OpenRocket's. For stations this is really a check against OpenRocket alone. For lengths, chords, spans, counts and
 cant, which RocketSerializer reads from the file, it agrees with HPR Sim every time.
@@ -623,7 +624,7 @@ numbers:
 - **A shape word.** An ogive of shape parameter 0 is a cone
   ([the spine](#the-spine-stages-and-body-components) says why). To tell which shape OpenRocket
   really draws, the script records OpenRocket's radius a quarter, a half and three quarters of the
-  way along the nose. HPR Sim's profile is compared with those three radii: all 72 noses
+  way along the nose. HPR Sim's profile is compared with those three radii: all 69 noses
   RocketSerializer reports match. So a
   nose's shape counts as OpenRocket's when OpenRocket draws HPR Sim's profile, whatever word it
   uses.
@@ -714,7 +715,7 @@ weigh nothing, as in OpenRocket 24.12. That was measured in
 
 | what the file says | how it is read | why it is in doubt |
 | --- | --- | --- |
-| no `shapeclipped` on a transition | clipped | it is the shape that reaches both radii; only 1 of the 21 transitions in the corpus states it |
+| no `shapeclipped` on a transition | clipped | it is the shape that reaches both radii; only 1 of the 23 transitions in the corpus states it |
 | an angle, **which way it turns** | the same way HPR Sim's own frames turn | HPR Sim measures a roll angle right-handed about an axis pointing at the **nose**; OpenRocket's technical documentation puts its own $x$ axis along the centerline pointing **aft** and leaves the rest unstated. If it means what that implies, every angle read here is mirrored; see [below](#which-way-round) |
 | a `polished` finish | 2 µm | the number is the author's, from 2013; a newer OpenRocket may have moved it ([below](#the-surface-finish)) |
 
@@ -722,7 +723,7 @@ weigh nothing, as in OpenRocket 24.12. That was measured in
 out. Across 92 stages they hold 274 body components: 178 body tubes, 73 nose cones, 23 transitions. Two
 of the stages, and two nose cones and two body tubes, are parallel stages, read since
 [M4.5m](../decisions-and-roadmap.md#m4-5m) ([Parallel stages](#parallel-stages)). The
-survey marked 327 automatic dimensions, including 7 body radii that took OpenRocket's 25 mm (0.98 in) default.
+survey marked 328 automatic dimensions, including 7 body radii that took OpenRocket's 25 mm (0.98 in) default.
 The counts are what may be published; the per-file detail stays in the gitignored `corpus-out/`.
 
 *(When this was written, 3 designs did not lay out, and they were thought to be waiting on parts that
@@ -805,7 +806,7 @@ files of the reference library raise 10 between them, and this page explains eve
 meters, which invites reading an angle as radians. Read that way, `<angleoffset>180</angleoffset>`
 would be more than twenty-eight turns instead of half of one.
 
-**Observed:** of the **993** angles the corpus writes, **188** are not zero. **178 of those are
+**Observed:** of the **977** angles the corpus writes, **184** are not zero. **174 of those are
 larger than $2\pi$**, more than a whole turn, which no component is written at. The values themselves
 are 180, 90, 45, 30 and 120, carrying the float dust (`119.99999999999999`) of a conversion that
 went through radians and came back. `cargo xtask ork` prints all three counts, and
@@ -827,7 +828,7 @@ tag; it is read flush with its parent's forward end, with a warning.
 **How far off the axis** a part sits is `radialposition` on some tags and `radiusoffset` on others.
 [ADR-052][adr-052] read neither, for want of a source saying what the older name measures from.
 
-That question need not be answered, because **the two never meet**. `radialposition` (542 elements)
+That question need not be answered, because **the two never meet**. `radialposition` (536 elements)
 is written on the parts *inside* a body. `radiusoffset` (106) is written on the parts *on* it and
 on the pods. No element carries both. They are two tags on different components, not two names
 for one. So
@@ -1655,8 +1656,7 @@ How it was decided, and the sources quoted in full, are in
 
 #### Measured on the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-09-23, with the row for parts left out
-from 2026-09-28 and the row for warnings raised from 2026-10-23:
+`cargo xtask ork`, over the 73 readable files, on 2026-10-24:
 
 | | |
 |---|---|
@@ -1664,25 +1664,33 @@ from 2026-09-28 and the row for warnings raised from 2026-10-23:
 | documents that hold no design | 1, among the 73 readable files |
 | automatic radii given OpenRocket's default, 25 mm (0.98 in) | 7, in 2 designs: 5 on body tubes, 1 on a nose cone, 1 on a transition |
 | body radii against OpenRocket 24.12 run on the same file | 67 of 67 agree, over 18 of the 19 files it was run on |
-| body components | 270 |
-| parts on and inside them | 752 |
-| by kind | 194 centering rings, 156 inner tubes, 132 parachutes, 104 fin sets, 81 mass components, 40 shock cords, 27 launch lugs, 16 rail buttons, 2 streamers |
-| automatic dimensions marked for the layout to resolve | 320, plus the 7 above given the default: 327 in the files |
-| parts left out, with a reason | 2; 4 before [M2.2e8](../decisions-and-roadmap.md#m2-2e8) read tube fins sized from the body, 5 before [M2.2e7](../decisions-and-roadmap.md#m2-2e7) read a coupler inside a nose cone |
-| parts that lay out weighing nothing | 14, every one explained (below) |
+| body components | 274 |
+| parts on and inside them | 802 |
+| by kind | 198 centering rings, 161 inner tubes, 134 parachutes, 114 fin sets, 82 mass components, 42 shock cords, 28 launch lugs, 16 rail buttons, 9 pod sets, 8 body tubes, 4 nose cones, 2 streamers, 2 transitions, 2 tube fin sets |
+| automatic dimensions marked for the layout to resolve | 321, plus the 7 above given the default: 328 in the files |
+| parts left out, with a reason | none; 2 before [M4.5g4](../decisions-and-roadmap.md#m4-5g4) read a fin set on a nose cone, 4 before [M2.2e8](../decisions-and-roadmap.md#m2-2e8) read tube fins sized from the body, 5 before [M2.2e7](../decisions-and-roadmap.md#m2-2e7) read a coupler inside a nose cone |
+| parts that lay out weighing nothing | 25, every one explained (below) |
 | warnings raised | 10: 1 skipped, 9 unusual ([what they are, and how many there were before each milestone that cut them](#what-the-warnings-are)) |
 | tags no milestone reads yet | none since parallel stages are read ([Parallel stages](#parallel-stages)); 3 `parallelstage` before, and 9 `podset` too before pods were read ([Pods](#pods)) |
 
-**The 14 parts that weigh nothing** are worth checking. A structural part with no mass is silent by
-nature: the design lays out, the report is written, and the mass is missing. All 14 are accounted
-for: 7 are inner tubes (couplers among them) and 4 are launch lugs whose wall the file states as
-zero. OpenRocket gives those no mass too ([the decision on what a `.ork` leaves unsaid][adr-061]).
-Of the rest, 1 is a mass object the file says weighs 0 kg, and 2 are transitions the designs
-*override* to zero mass. That override is OpenRocket's
-["base drag hack"](https://openrocket.readthedocs.io/en/latest/): a massless, dragless transition
-added only to change the base geometry. `cargo xtask ork` counts them by kind, so a new one would
-show up. Before [the milestone on what a `.ork` leaves unsaid](../decisions-and-roadmap.md#m2-2b1)
-there were 21. The 7 more (2 body tubes, 2 fin sets, 2 inner tubes and a nose cone) name no
+**The 25 parts that weigh nothing** are worth checking. A structural part with no mass is silent by
+nature: the design lays out, the report is written, and the mass is missing. All 25 are accounted
+for:
+
+- 11 are pod sets. A pod set weighs nothing of its own, and a parallel stage is laid out as one
+  ([Pods](#pods), [Parallel stages](#parallel-stages)).
+- 8 are inner tubes (couplers among them) whose wall the file states as zero. OpenRocket gives those
+  no mass too ([the decision on what a `.ork` leaves unsaid][adr-061]).
+- 3 are body tubes of no length, no wall and no radius. Each is the "phantom" tube that a pod's
+  parts hang from ([A pod of no length](#pods)).
+- 1 is a mass object the file says weighs 0 kg.
+- 2 are transitions the designs *override* to zero mass. That override is OpenRocket's
+  ["base drag hack"](https://openrocket.readthedocs.io/en/latest/): a massless, dragless transition
+  added only to change the base geometry.
+
+`cargo xtask ork` counts them by kind, so a new one would show up. Before
+[the milestone on what a `.ork` leaves unsaid](../decisions-and-roadmap.md#m2-2b1) the survey
+counted 21 here. The 7 extra (2 body tubes, 2 fin sets, 2 inner tubes and a nose cone) name no
 material, and now take OpenRocket's default.
 
 <a id="what-the-warnings-are"></a>**What the 10 warnings are.** Every one is a reading this page
@@ -1822,7 +1830,7 @@ so HPR Sim reads its `0` as "zero or plugged" ([ejection delay](../glossary.md#e
 ([issue #2090](https://github.com/openrocket/openrocket/issues/2090)), few authors knew to type
 `none`. Some used `0` to mean plugged, as OpenRocket's own examples did
 ([issue #2111](https://github.com/openrocket/openrocket/issues/2111)). So a `0` in an older design
-may be meant as plugged; HPR Sim reads it as the file says, as OpenRocket does. 23 motors in the
+may be meant as plugged; HPR Sim reads it as the file says, as OpenRocket does. 21 motors in the
 reference library have one.
 
 A configuration's own `<ignitionconfiguration>` replaces the mount's event and delay one at a time:
@@ -2806,10 +2814,10 @@ OpenRocket's flight, is left at +2.63%, but that pair is not like for like. In O
 with nothing deployed the payload still drops its booster and climbs on alone. HPR Sim's
 flight compared here climbs as the whole stack. The *Base drag hack* reads high on all three motors,
 +1.95% to +8.92% with nothing deployed in either program, more so on bigger motors. That is more
-than any other flight with no named cause reads high: 20 of those 32 read low. The other 11
-that read high are at most +1.05%. They are the five *Airstart timing* flights and four
-*Pods--airframes and winglets* flights. The rest are the two payload examples': the *ARC payload
-rocket* and the *Deployable payload* on an A8-3.
+than any other flight with no named cause reads high. Of the 35 other such flights, 22 read low.
+The 13 that read high are at most +1.23%. They are the five *Airstart timing* flights, four
+*Pods--airframes and winglets* flights and the two *Parallel booster staging* flights. The rest
+are the two payload examples': the *ARC payload rocket* and the *Deployable payload* on an A8-3.
 
 A one-off check compared the two programs' drag part by part at the same speeds. It is not part of
 the report. It suggested two candidates, both on the side of HPR Sim flying higher. The
@@ -3230,7 +3238,7 @@ and part on the coast, where drag matters most.
   reads high once and low four times. `C05`, flown since the old override flag is read as
   OpenRocket reads it, reads high four times and low once, all within 0.26%. `C12`, flown since a
   tilted rod flies, reads high once and low twice. Most of the public report's flights with no
-  named cause read low as well (16 of 21). Every public flight launches at sea level: its
+  named cause read low as well (22 of 36). Every public flight launches at sea level: its
   [record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-flights.json)
   gives a launch altitude of 0 m (0.0 ft) throughout. So altitude does not yet explain the sign.
   [The apogee-cause work](../decisions-and-roadmap.md#m2-2e4) sized only the apogees more than 5%
@@ -3365,13 +3373,13 @@ The drag curves are OpenRocket's numbers for private designs, so they stay in th
 
 ### Stored simulations in the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-09-25:
+`cargo xtask ork`, over the 73 readable files, on 2026-10-24:
 
 | quantity | count |
 |---|---|
 | stored simulations | 174, in 61 documents: 139 `uptodate`, 17 `external`, 11 `outdated`, 7 `notsimulated` |
 | stored reference screen | 91 eligible, 83 excluded: 47 inconsistent, 17 external, 11 outdated, 7 not-simulated and 1 missing simulator; only the 91 may enter a stored-data reference denominator (the count of runs used to calculate a reference statistic) |
-| HPR Sim reproduction screen | of those 91, 40 can be reproduced when [OpenRocket's database](#motors-in-the-reference-library) is supplied (1 without it); 51 can't: 40 because their configuration can't be flown, 11 because the design is reduced |
+| HPR Sim reproduction screen | of those 91, 82 can be reproduced when [OpenRocket's database](#motors-in-the-reference-library) is supplied (1 without it); 9 can't, because their configuration can't be flown |
 | with launch conditions | 173; 129 state the wind's direction, and 135 launch into the wind |
 | atmosphere | 172 `isa`, 1 not written |
 | with a summary | 162 |
