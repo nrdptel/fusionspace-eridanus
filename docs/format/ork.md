@@ -178,8 +178,8 @@ real files.
   OpenRocket and 18 were hand-authored. So where a count says what a real OpenRocket writes, it is
   given over those 55. Every count below is printed by `cargo xtask ork` unless it names another
   source.
-- OpenRocket's own Java source is **not** consulted. It is GPL, and this project is MIT OR
-  Apache-2.0 ([the decision to keep the document whole says so][adr-051]). The project is built from
+- OpenRocket's own Java source is **not** consulted. It is GPL, so it can't be read
+  ([the decision to keep the document whole][adr-051]), and this project is MIT OR Apache-2.0. The project is built from
   published documentation and real files, never from another program's source, which is what "clean
   room" means here.
 
@@ -276,7 +276,7 @@ specification, because `.ork` has none. Code: `hpr_io::ork::value`
 [the decision on what a value means][adr-052].
 
 **A dimension may be automatic.** `<aftradius>auto 0.025</aftradius>` means "OpenRocket works this
-out from the neighboring components, and 0.025 m (0.082 ft) is what it last worked out". That is
+out from the neighboring components, and 0.025 m (0.082 ft) is what it last worked out". This form is
 how OpenRocket 24.12 writes it; older releases may differ
 ([see below](#checked-against-the-answers-openrocket-cached)). A bare `auto`
 (`<outerradius>auto</outerradius>`) is the same with nothing worked out yet. It is the commoner
@@ -3595,7 +3595,7 @@ OpenRocket's own examples flew 0.6% to 0.9% low and a private design 10% to 11% 
 
 After an edit to the design, a kept tag's text still wins over the edit. Change a ring written as
 a row in HPR Sim and its original `<instancecount>` is written as it was. A rail button's screw height is the
-design's since [the screw-head work](../decisions-and-roadmap.md#m4-5i), so an edit to it is written.
+design's since [the powered-pods milestone, which weighed rail-button screw heads](../decisions-and-roadmap.md#m4-5i), so an edit to it is written.
 
 **Checked on the reference library.** `cargo xtask ork` writes every design out, reads it back,
 compares the two, and writes the design read back once more. It fails on any difference. On

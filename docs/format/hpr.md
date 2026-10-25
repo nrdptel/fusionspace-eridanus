@@ -8,7 +8,7 @@ is FusionSpace HPR's own, open and described by a published [JSON Schema](#the-s
 everything HPR Sim reads from an OpenRocket `.ork`. That includes the rocket's parts, every motor
 [configuration](../glossary.md#configuration), when each parachute opens and each stage separates,
 and the simulations the file stored. It also carries what the file holds that the simulator doesn't
-model. It also carries the other files inside the `.ork`, such as an embedded thrust curve or a
+model. Beyond that, it holds the other files inside the `.ork`, such as an embedded thrust curve or a
 decal image. It is plain text, so a design can be kept in git and a change to it reads as a small diff.
 A `.hprz` is the same document in a zip archive, with other files beside it, such as the design's
 flight logs and photographs ([the container](#the-container-hprz)).
