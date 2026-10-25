@@ -762,7 +762,9 @@ Code: [`hpr_io::ork::attached`](../api/hpr_io/ork/attached/index.html), decided 
 ([motors and their configurations](#motors-and-their-configurations)).
 
 This is the doctest on [`hpr_io::ork::rocket`](../api/hpr_io/ork/component/fn.rocket.html), which CI runs.
-Hand it the bytes of a `.ork`, and what comes back is a design and the warnings reading it raised:
+Its hidden first lines set `xml` to a small design. To run it, use
+`cargo test -p fusionspace-hpr-io --doc ork::component::rocket`. Hand it the bytes of a `.ork`,
+and what comes back is a design and the warnings reading it raised:
 
 ```rust
 let read = hpr_io::ork::read(xml)?;
@@ -1457,11 +1459,11 @@ comes back through the reader's.
 One more thing is read as the simpler part HPR Sim models: a **row** of more than one ring read as
 one. A warning makes what is missing from a mass visible. It is a measured departure, not a silent
 compatibility claim ([the decision on visible departures][adr-064]). A rail button's **screw head**
-(2) was another until [the screw head was weighed](../decisions-and-roadmap.md#m4-5i)
+was another until [the screw head was weighed](../decisions-and-roadmap.md#m4-5i)
 ([Mass properties](../physics/mass.md#fins-rail-buttons-and-roll-inertia);
-[its decision record][adr-168]). A **cluster** of motor tubes was a third (4) until
+[its decision record][adr-168]). A **cluster** of motor tubes was a third until
 [every tube was read](../decisions-and-roadmap.md#m1-9b) ([above](#clusters)). A fin's **fillets**
-(5) were another until [they were weighed](../decisions-and-roadmap.md#m2-2e7) as OpenRocket does
+were another until [they were weighed](../decisions-and-roadmap.md#m2-2e7) as OpenRocket does
 ([Mass properties](../physics/mass.md#fin-fillets)).
 
 **A tube of no wall thickness carries no mass**, among them couplers in two of OpenRocket's own
@@ -2272,7 +2274,7 @@ has the model and the full results. The reasoning is in
 - **How close.** On 48 of OpenRocket's example flights, the landing speed is +0.00% to +0.02% off
   OpenRocket's and the flight time −1.57% to +3.16%. The 48 are the report's 51 with no named cause
   for an apogee gap, less the *Base drag hack*'s three. The flight time of those three runs up to
-  +7.23%. 40 meet every target set before measuring. The other 8 miss only on a deployment's time,
+  +7.07%. 40 meet every target set before measuring. The other 8 miss only on a deployment's time,
   which the climb's own apogee gap and OpenRocket's time step explain
   ([the report's descents](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#descents)).
 - **The limits.** A device inside a part HPR Sim doesn't read and an unknown event are refused. The
@@ -2397,7 +2399,7 @@ figures (100,796.6 Pa is stored as 100,800). `NaN` means “not a number”. Ope
 that quantity at that step. HPR Sim stores it as Rust's `None` value, meaning no numeric value is
 available. A design with stored results therefore survives being saved as JSON and read back.
 
-This is from the test [`stored_results_are_read_back`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-io/src/ork/tests.rs#L2777): a stored run reads back through `design.simulations`, and a column comes out by its name.
+This is from the test [`stored_results_are_read_back`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-io/src/ork/tests.rs#L3578): a stored run reads back through `design.simulations`, and a column comes out by its name.
 
 [`hpr_io::ork::StoredSimulation::reference_exclusion`](https://hpr.fusionspace.co/api/hpr_io/ork/simulations/struct.StoredSimulation.html#method.reference_exclusion) then classifies the stored run without
 altering it. An explicitly `uptodate` run must name both `RK4Simulator` and `BarrowmanCalculator`,
@@ -2773,7 +2775,7 @@ its causes taken out.
   2.99 s before the apogee the same flight reaches with nothing deployed. OpenRocket's apogee is
   280.2 m (919 ft), and HPR Sim's, with no parachute, is 318.9 m (1,046 ft): +13.80%. Flown again
   with nothing deployed, OpenRocket climbs to 322.4 m (1,058 ft), and against that HPR Sim reads
-  −1.07%. On the *3D printable nose cone and fins* example the same pair reads +12.19% and
+  −1.07%. On the *3D printable nose cone and fins* example the same pair reads +12.18% and
   −0.16%, and on the *Clustered motors* example +9.43% and −0.72%.
 - **The check both ways.** A test (`a_parachute_moves_openrockets_apogee_only_when_it_opens_before_it`
   in `xtask/src/ork_flights.rs`) runs over all 56 flights of OpenRocket's record that finished.

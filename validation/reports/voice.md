@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 73 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 441363 words, 0 stock phrases. 77 pages are within every limit.
+82 pages, 441375 words, 0 stock phrases. 77 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -46,7 +46,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/flight-logs.md` (`ref`) | 43721 | 24.7 | 42% | 0.22 | 0.22 | **1.51** | 0.08 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.01 | 0.04 | 0.46 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5413 | 13.9 | 0% | 0.39 | 0.02 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.80 |
 | `docs/format/orc.md` (`ref`, `held`) | 2418 | 13.3 | 0% | 0.38 | 0.13 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.21 | 0.38 |
-| `docs/format/ork.md` (`ref`, `held`) | 37801 | 14.1 | 0% | 0.21 | 0.13 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.05 | 0.14 |
+| `docs/format/ork.md` (`ref`, `held`) | 37813 | 14.0 | 0% | 0.21 | 0.13 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.05 | 0.14 |
 | `docs/format/pf2.md` (`ref`, `held`) | 815 | 13.9 | 0% | 0.00 | 0.13 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.23 |
 | `docs/format/rse.md` (`ref`, `held`) | 2185 | 13.6 | 0% | 0.28 | 0.10 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4155 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
