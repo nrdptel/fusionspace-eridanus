@@ -20,8 +20,8 @@ fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
 }
 
 /// The common export: seven columns, feet and ft/s decided from the file, the temperature kept as
-/// written (its unit unstated, #852) and volts assumed,
-/// the last three rows without their temperature and voltage; a byte-order mark and CR LF.
+/// written (its unit unstated, #852) and volts assumed, the last three rows without their
+/// temperature and voltage; a byte-order mark and CR LF.
 #[test]
 fn the_common_export_decides_feet_and_feet_per_second() {
     let log = import::read(include_bytes!("samples/rrc3-feet.csv")).unwrap();
@@ -49,7 +49,8 @@ fn the_common_export_decides_feet_and_feet_per_second() {
     let speed = log.vertical_speed_m_s.as_deref().unwrap();
     assert!((speed[1] - 65.80 * FOOT_M).abs() < 1e-12);
     // The temperature as written: 71.6, its unit unstated.
-    let temperature = &log.channels[3].values;
+    let temperature = &log.channels.iter().find(|c| c.column == "Temperature");
+    let temperature = &temperature.unwrap().values;
     assert_eq!(temperature[1], 71.6);
     // The last three rows leave the temperature and voltage out: gaps, not the event cell.
     assert!(temperature[60].is_finite());
@@ -426,6 +427,7 @@ fn two_public_exports_in_feet_keep_their_temperature_as_written() {
             .copied()
             .filter(|t| t.is_finite())
             .collect();
+        assert!(!written.is_empty(), "{file}");
         assert_eq!((written[0], written[written.len() - 1]), (first, last));
     }
 }

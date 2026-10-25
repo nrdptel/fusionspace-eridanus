@@ -322,11 +322,11 @@ The register holds 32 rows, as of October 20, 2026.
   - RocketPy's Juno III data
   - the private collection's RRC3 logs and the other loggers on their flights, counted only
 
-  It found a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1, read as °C by the pairing rule. No other logger on that flight records temperature. RocketPaper@23d9271d's real Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units.
+  It found a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1. No other logger on that flight records temperature. RocketPaper@23d9271d's real Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units.
 - [G31](#g31), October 20, 2026, looked at:
-  - public flight-log repositories on GitHub
+  - public flight-log repositories on GitHub, and airport weather records
 
-  It found two RRC3 exports in feet, one in °C and one in °F, each settled by other sensors or an airport's air.
+  It found two RRC3 exports in feet, one in °C by three other sensors on its flight and one in °F by its airport's air, named in [§4 of the public-logs note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-logs-evidence-gaps.md#4-reader-paths-second-flights-and-units-g2-g6-g7-g30-g31). Their voltages fit volts, a weak check.
 - [G32](#g32), October 17, 2026, looked at:
   - the public logs the sensor noise note measured at rest (five Blue Raven flights, ten StratoLoggerCF, five AltOS, one RRC3, one team-built board)
   - the makers' datasheets it cites
