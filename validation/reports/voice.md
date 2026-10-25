@@ -2,15 +2,15 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 73 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 74 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 441380 words, 0 stock phrases. 77 pages are within every limit.
+82 pages, 442003 words, 0 stock phrases. 78 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
 | Bold-label items | 0.50 | 4 | 1.88, `docs/perf.md` |
 | Labels | 0.50 | 3 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 4 | 1.51, `docs/format/flight-logs.md` |
+| Sentences over 25 words | 0.50 | 3 | 1.17, `docs/perf.md` |
 | Hedges | 1.00 | 0 | 0.26, `docs/checking-a-claim.md` |
 | Stacked hedges | 0.10 | 0 | 0.02, `docs/physics/design.md` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
@@ -43,7 +43,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/fly-your-ork.md` (`held`) | 1420 | 12.6 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.78 | 0.64 |
 | `docs/format/eng.md` (`ref`, `held`) | 2307 | 13.2 | 0% | 0.40 | 0.22 | 0.00 | 0.14 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.18 |
 | `docs/format/era5.md` (`ref`, `held`) | 2437 | 13.5 | 0% | 0.42 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.42 | 0.25 |
-| `docs/format/flight-logs.md` (`ref`) | 43721 | 24.7 | 42% | 0.22 | 0.22 | **1.51** | 0.08 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.01 | 0.04 | 0.46 |
+| `docs/format/flight-logs.md` (`ref`, `held`) | 44303 | 13.1 | 0% | 0.21 | 0.21 | 0.00 | 0.08 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5413 | 13.9 | 0% | 0.39 | 0.02 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.80 |
 | `docs/format/orc.md` (`ref`, `held`) | 2418 | 13.3 | 0% | 0.38 | 0.13 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.21 | 0.38 |
 | `docs/format/ork.md` (`ref`, `held`) | 37818 | 14.0 | 0% | 0.21 | 0.13 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.05 | 0.14 |
@@ -100,6 +100,6 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/trusting-a-simulation.md` (`held`) | 1555 | 15.2 | 2% | 0.00 | 0.00 | 0.13 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 1.03 |
 | `docs/weather.md` (`held`) | 1974 | 13.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.31 | 0.87 |
 | `docs/when-fins-flutter.md` (`held`) | 1773 | 14.9 | 1% | 0.23 | 0.00 | 0.06 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.17 | 0.68 |
-| `docs/writing.md` (`held`) | 9548 | 14.4 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.97 |
+| `docs/writing.md` (`held`) | 9589 | 14.4 | 1% | 0.40 | 0.17 | 0.05 | 0.18 | 0.00 | 0.03 | 0.00 | | 0.03 | 0.02 | 0.06 | 0.96 |
 | `docs/your-own-logger.md` (`held`) | 2407 | 14.5 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4489 | 14.5 | 0% | 0.36 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.67 |

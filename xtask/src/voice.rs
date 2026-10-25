@@ -9,8 +9,9 @@
 //! page: "I", "we", "you" and contractions per 100 words,
 //! the mean sentence length and the share of sentences over 25 words (the guide's sentence
 //! targets). The counted patterns are held to the limits the guide sets ([`Pattern::limit`]) in
-//! the report, and on a [`HELD`] page they fail the check (ADR-285): a page M0.14 has rewritten
-//! stays within every limit and both sentence targets.
+//! the report, and on a held page they fail the check (ADR-285): every page the site's table of
+//! contents lists ([`CONTENTS`]) and the two it shows beside it ([`HELD_BESIDE`]) stays within
+//! every limit and both sentence targets.
 //!
 //! It fails on every page on [`STOCK`], the stock phrases: puffery ("seamless"), inflated words
 //! ("pivotal"), the vocabulary that spread with generated text ("delve"), buzz verbs
@@ -100,92 +101,19 @@ const REFERENCE: [&str; 4] = [
     "docs/glossary.md",
 ];
 
-/// The pages held to every limit and both sentence targets (ADR-285): the ones M0.14 has
-/// rewritten, each increment adding its own. One that misses ([`misses`]) fails the check.
-const HELD: [&str; 73] = [
-    // M0.14b, the front doors.
-    "README.md",
-    "docs/start-here.md",
-    "docs/the-simulator.md",
-    // M0.14c1, the first guides.
-    "docs/404.md",
-    "docs/getting-started.md",
-    "docs/fly-your-ork.md",
-    "docs/pick-a-motor.md",
-    "docs/stability-for-certification.md",
-    "docs/recording-a-trajectory.md",
-    "docs/exporting-a-flight.md",
-    "docs/the-builder.md",
-    "docs/python.md",
-    "docs/custom-models.md",
-    "docs/simulator-tour.md",
-    "docs/simulator-compared.md",
-    "docs/trusting-a-simulation.md",
-    "docs/stability-in-flight.md",
-    "docs/when-fins-flutter.md",
-    "docs/drag-through-mach-1.md",
-    // M0.14c2, studies, data and logs.
-    "docs/monte-carlo.md",
-    "docs/sensitivity.md",
-    "docs/optimization.md",
-    "docs/online-data.md",
-    "docs/weather.md",
-    "docs/soundings.md",
-    "docs/nomads.md",
-    "docs/elevation.md",
-    "docs/motor-stock.md",
-    "docs/reading-a-flight-log.md",
-    "docs/your-own-logger.md",
-    "docs/your-own-rocket.md",
-    "docs/how-a-flight-is-simulated.md",
-    // M0.14c3, the command line and the evidence.
-    "docs/cli.md",
-    "docs/accuracy.md",
-    "docs/checking-a-claim.md",
-    "docs/evidence.md",
-    "docs/VALIDATION.md",
-    // M0.14c4, reference and the environment.
-    "docs/api.md",
-    "docs/releasing.md",
-    "docs/glossary.md",
-    "docs/writing.md",
-    "docs/plan.md",
-    "docs/physics/frames.md",
-    "docs/physics/geodesy.md",
-    "docs/physics/gravity.md",
-    "docs/physics/magnetic.md",
-    "docs/physics/atmosphere.md",
-    "docs/physics/wind.md",
-    "docs/physics/turbulence.md",
-    "docs/physics/interpolation.md",
-    "docs/physics/quadrature.md",
-    // M0.14c5, the rocket and its flight.
-    "docs/physics/design.md",
-    "docs/physics/shapes.md",
-    "docs/physics/mass.md",
-    "docs/physics/motor.md",
-    "docs/physics/flight.md",
-    "docs/physics/integration.md",
-    "docs/physics/moving-mass.md",
-    "docs/physics/released-mass.md",
-    "docs/physics/flutter.md",
-    // M0.14c6, aerodynamics.
-    "docs/physics/aero.md",
-    // M0.14c7, recovery, staging and readings.
-    "docs/physics/recovery.md",
-    "docs/physics/staging.md",
-    "docs/physics/metrics.md",
-    "docs/physics/log-readings.md",
-    "docs/physics/synthetic-flights.md",
-    // M0.14c8, the file formats.
-    "docs/format/hpr.md",
-    "docs/format/ork.md",
-    "docs/format/orc.md",
-    "docs/format/eng.md",
-    "docs/format/rse.md",
-    "docs/format/era5.md",
-    "docs/format/pf2.md",
-];
+/// The site's table of contents. Every page it lists is held to every limit and both sentence
+/// targets (ADR-285 §1), less [`LEFT_OUT`], so a page added to it is held from its first commit.
+/// One that misses ([`misses`]) fails the check.
+const CONTENTS: &str = "docs/SUMMARY.md";
+
+/// The pages the site shows outside its table of contents, held with it: the README, the
+/// repository's front page (M0.14b), and the site's 404 page (M0.14c1).
+const HELD_BESIDE: [&str; 2] = ["README.md", "docs/404.md"];
+
+/// The one page [`LEFT_OUT`] names that the table of contents lists: the records page, which
+/// ADR-284 §5 leaves as it is. Any other link to a page [`LEFT_OUT`] covers is refused, so a site
+/// page can't leave the hold by moving under a left-out directory.
+const LISTED_LEFT_OUT: &str = "docs/decisions-and-roadmap.md";
 
 /// The writing guide's sentence targets: at most this many words a sentence on average...
 const MEAN_TARGET: usize = 20;
@@ -524,7 +452,7 @@ const STOCK: &[Stock] = &[
 ];
 
 /// A pattern counted per 100 words and held to a limit in the report, and in the build on a
-/// [`HELD`] page (ADR-285).
+/// held page (ADR-285, [`held_paths`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Pattern {
     BoldLabels,
@@ -684,7 +612,7 @@ const ABBREVIATIONS: [&str; 23] = [
 struct Page {
     path: String,
     reference: bool,
-    /// On [`HELD`], and read as one of this repository's pages, so the check holds it.
+    /// Held ([`held_paths`]), and read as one of this repository's pages, so the check holds it.
     held: bool,
     words: usize,
     sentences: usize,
@@ -793,12 +721,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let root = crate::designs::root()?;
     if args.is_empty() {
-        let pages = repository_pages(&root)?;
+        let held = held_paths(&root)?;
+        let pages = repository_pages(&root, &held)?;
         fs::write(root.join(REPORT), report(&pages))
             .map_err(|e| format!("writing {REPORT}: {e}"))?;
         println!("voice: wrote {REPORT}");
         println!("{}", summary(&pages));
-        return failures(&pages);
+        return failures(&pages, &held);
     }
     let pages = given_pages(&root, args)?;
     print!("{}", report(&pages));
@@ -809,14 +738,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
 /// and so does a held page that misses.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
-    let pages = repository_pages(root)?;
+    let held = held_paths(root)?;
+    let pages = repository_pages(root, &held)?;
     println!("{}", summary(&pages));
-    failures(&pages)
+    failures(&pages, &held)
 }
 
 /// Both failures on this repository's pages: the stock phrases and the held pages that miss.
-fn failures(pages: &[Page]) -> Result<(), String> {
-    let errors: Vec<String> = [stock_failure(pages), held_failure(pages)]
+fn failures(pages: &[Page], held: &[String]) -> Result<(), String> {
+    let errors: Vec<String> = [stock_failure(pages), held_failure(pages, held)]
         .into_iter()
         .filter_map(Result::err)
         .collect();
@@ -827,9 +757,59 @@ fn failures(pages: &[Page]) -> Result<(), String> {
     }
 }
 
-/// Whether a page is on [`HELD`].
-fn is_held(path: &str) -> bool {
-    HELD.contains(&path)
+/// The held pages, as paths from `root`: [`held_from`] on [`CONTENTS`].
+fn held_paths(root: &Path) -> Result<Vec<String>, String> {
+    let contents =
+        fs::read_to_string(root.join(CONTENTS)).map_err(|e| format!("{CONTENTS}: {e}"))?;
+    held_from(&contents)
+}
+
+/// The held pages, given the table of contents: each page it links, as a path from the
+/// workspace root, less [`LISTED_LEFT_OUT`], and [`HELD_BESIDE`], sorted. A draft entry, which
+/// links nothing, has no page. A link that isn't a Markdown page under `docs/` is refused, and so
+/// are a link to any other page [`LEFT_OUT`] covers and a table of contents that links no page,
+/// so the hold can't shrink unnoticed.
+fn held_from(contents: &str) -> Result<Vec<String>, String> {
+    let mut held: Vec<String> = HELD_BESIDE.iter().map(|path| (*path).to_owned()).collect();
+    let mut listed = 0;
+    for event in Parser::new(contents) {
+        let Event::Start(Tag::Link { dest_url, .. }) = event else {
+            continue;
+        };
+        if dest_url.is_empty() {
+            continue;
+        }
+        let page = dest_url.split('#').next().unwrap_or_default();
+        let page = page.strip_prefix("./").unwrap_or(page);
+        let outside = page.starts_with('/')
+            || page.contains(':')
+            || page.split('/').any(|part| part == ".." || part.is_empty());
+        if outside || !page.ends_with(".md") {
+            return Err(format!(
+                "{CONTENTS} links `{dest_url}`, which isn't a page under docs/ the voice check \
+                 can hold"
+            ));
+        }
+        listed += 1;
+        let path = format!("docs/{page}");
+        if let Some((_, reason)) = LEFT_OUT.iter().find(|(left, _)| leaves(left, &path)) {
+            if path != LISTED_LEFT_OUT {
+                return Err(format!(
+                    "{CONTENTS} links `{dest_url}`, a page the voice check leaves out ({reason}); \
+                     a site page is held, so it can't sit there"
+                ));
+            }
+        } else if !held.contains(&path) {
+            held.push(path);
+        }
+    }
+    if listed == 0 {
+        return Err(format!(
+            "{CONTENTS} links no page, so the voice check would hold none"
+        ));
+    }
+    held.sort();
+    Ok(held)
 }
 
 /// What keeps a page from passing: each rate over its limit, and each sentence target missed.
@@ -862,11 +842,11 @@ fn misses(page: &Page) -> Vec<String> {
 }
 
 /// An error naming each way a held page misses, and each held page that isn't read, or `Ok`.
-fn held_failure(pages: &[Page]) -> Result<(), String> {
+fn held_failure(pages: &[Page], held: &[String]) -> Result<(), String> {
     let mut message = String::new();
     let mut failing = 0;
-    for path in HELD {
-        let Some(page) = pages.iter().find(|page| page.path == path) else {
+    for path in held {
+        let Some(page) = pages.iter().find(|page| &page.path == path) else {
             failing += 1;
             let _ = writeln!(
                 message,
@@ -889,7 +869,7 @@ fn held_failure(pages: &[Page]) -> Result<(), String> {
         message,
         "held pages that miss the voice section's limits or its sentence targets: {failing} of {} \
          (docs/writing.md#voice; ADR-285); rewrite the sentences, don't drop the page",
-        HELD.len()
+        held.len()
     );
     Err(message)
 }
@@ -955,13 +935,14 @@ fn stock_failure(pages: &[Page]) -> Result<(), String> {
     Err(message)
 }
 
-/// This repository's pages: the tracked Markdown under [`SCOPE`], less [`LEFT_OUT`].
-fn repository_pages(root: &Path) -> Result<Vec<Page>, String> {
+/// This repository's pages: the tracked Markdown under [`SCOPE`], less [`LEFT_OUT`], each marked
+/// held when it's on `held`.
+fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
         let mut page = read_page(&path, &text, is_reference(&path), is_model_page(&path));
-        page.held = is_held(&path);
+        page.held = held.contains(&path);
         pages.push(page);
     }
     Ok(pages)
@@ -1873,10 +1854,12 @@ fn report(pages: &[Page]) -> String {
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
          inside a target it misses. A stock phrase fails the build, and so does a page marked \
-         `held` that's over a limit or misses a sentence target: the {} pages already rewritten \
+         `held` that's over a limit or misses a sentence target. The {} held pages are every page \
+         the site's table of contents lists, with the README and the 404 page, less the records \
+         page \
          ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
-        HELD.len(),
+        pages.iter().filter(|page| page.held).count(),
         pages.len()
     );
     let _ = writeln!(
@@ -2705,18 +2688,24 @@ mod tests {
         assert!(misses(&empty).is_empty());
     }
 
+    /// A held list for the tests: the two pages held beside the table of contents and one it lists.
+    fn held_for_tests() -> Vec<String> {
+        held_from("# Summary\n\n[Start here](start-here.md)\n").unwrap()
+    }
+
     #[test]
     fn a_held_page_that_misses_or_isnt_read_fails_and_an_unheld_one_does_not() {
-        let mut pages: Vec<Page> = HELD.iter().map(|path| counted(path)).collect();
+        let held = held_for_tests();
+        let mut pages: Vec<Page> = held.iter().map(|path| counted(path)).collect();
         pages.push(Page {
             bold_labels: 50,
             ..counted("docs/unheld.md")
         });
-        assert_eq!(held_failure(&pages), Ok(()));
+        assert_eq!(held_failure(&pages, &held), Ok(()));
         pages[0].long = 5;
-        let error = held_failure(&pages).unwrap_err();
+        let error = held_failure(&pages, &held).unwrap_err();
         assert!(
-            error.starts_with(&format!("{}: 5 of 50 sentences over 25 words", HELD[0])),
+            error.starts_with(&format!("{}: 5 of 50 sentences over 25 words", held[0])),
             "{error}"
         );
         assert!(
@@ -2724,11 +2713,11 @@ mod tests {
             "{error}"
         );
         pages.remove(0);
-        let error = held_failure(&pages).unwrap_err();
+        let error = held_failure(&pages, &held).unwrap_err();
         assert!(
             error.starts_with(&format!(
                 "{} is held, but it isn't one of the pages read",
-                HELD[0]
+                held[0]
             )),
             "{error}"
         );
@@ -2737,26 +2726,122 @@ mod tests {
     /// The site's check reports both failures at once: a stock phrase and a held page that misses.
     #[test]
     fn the_check_fails_on_a_stock_phrase_and_on_a_held_page() {
-        let mut pages: Vec<Page> = HELD.iter().map(|path| counted(path)).collect();
-        assert_eq!(failures(&pages), Ok(()));
+        let held = held_for_tests();
+        let mut pages: Vec<Page> = held.iter().map(|path| counted(path)).collect();
+        assert_eq!(failures(&pages, &held), Ok(()));
         pages[0].long = 5;
         pages.push(markdown("Run it in order to check the margin."));
-        let error = failures(&pages).unwrap_err();
+        let error = failures(&pages, &held).unwrap_err();
         assert!(error.contains("is on the stock-phrase list"), "{error}");
         assert!(error.contains("held pages that miss"), "{error}");
     }
 
+    /// Every page the table of contents links is held, a nested entry and one with a link title
+    /// too, a draft entry has no page, the records page [`LEFT_OUT`] names isn't, and the two
+    /// pages beside it are. A link in an HTML comment or in inline code isn't an entry, and
+    /// holds nothing.
+    #[test]
+    fn the_table_of_contents_holds_its_pages() {
+        let contents = "# Summary\n\n[Start here](start-here.md)\n\n# Formats\n\n\
+                        - [Flight logs](format/flight-logs.md)\n  \
+                        - [A part of it](./format/flight-logs.md#gps-logs)\n    \
+                        - [Nested deeper](format/ork.md \"With a title\")\n\
+                        - [A draft]()\n\
+                        <!-- - [Hidden](hidden.md) -->\n\
+                        - `[In code](code.md)`\n\
+                        - [Decisions and the roadmap](decisions-and-roadmap.md)\n";
+        assert_eq!(
+            held_from(contents).unwrap(),
+            [
+                "README.md",
+                "docs/404.md",
+                "docs/format/flight-logs.md",
+                "docs/format/ork.md",
+                "docs/start-here.md"
+            ]
+        );
+    }
+
+    /// A page added to the table of contents is held from that commit, before anything else
+    /// names it: on a scratch copy of the repository's contents with a new page, the new page is
+    /// held, and when it misses a target the check fails on it.
+    #[test]
+    fn a_new_page_in_the_contents_is_held() {
+        let root = crate::designs::root().unwrap();
+        let contents = fs::read_to_string(root.join(CONTENTS)).unwrap();
+        let before = held_from(&contents).unwrap();
+        let added = format!("{contents}\n- [A new page](a-new-page.md)\n");
+        let after = held_from(&added).unwrap();
+        assert!(!before.contains(&"docs/a-new-page.md".to_owned()));
+        assert!(after.contains(&"docs/a-new-page.md".to_owned()));
+        assert_eq!(after.len(), before.len() + 1);
+        let mut pages: Vec<Page> = after.iter().map(|path| counted(path)).collect();
+        assert_eq!(held_failure(&pages, &after), Ok(()));
+        let new = pages
+            .iter_mut()
+            .find(|page| page.path == "docs/a-new-page.md")
+            .unwrap();
+        new.sentence_words = 1001;
+        let error = held_failure(&pages, &after).unwrap_err();
+        assert!(
+            error.starts_with(
+                "docs/a-new-page.md: 1001 words in 50 sentences, over the target of 20 words a \
+                 sentence"
+            ),
+            "{error}"
+        );
+    }
+
+    /// A link the hold can't read as a page under `docs/` is refused, and so are a link to a page
+    /// the check leaves out, other than the records page, and a table of contents that links none,
+    /// rather than holding fewer pages.
+    #[test]
+    fn the_hold_refuses_a_contents_it_cannot_read() {
+        for link in [
+            "https://example.com/page.md",
+            "mailto:x.md",
+            "C:x.md",
+            "research/a-note.md",
+            "ROADMAP.md",
+            "/abs/page.md",
+            "../README.md",
+            "format//ork.md",
+            "page.html",
+            "format/",
+        ] {
+            let contents = format!("# Summary\n\n[Start here](start-here.md)\n- [Bad]({link})\n");
+            let error = held_from(&contents).unwrap_err();
+            assert!(error.contains(&format!("`{link}`")), "{link}: {error}");
+        }
+        for contents in ["", "# Summary\n\nNo links here.\n", "- [Draft]()\n"] {
+            let error = held_from(contents).unwrap_err();
+            assert!(error.contains("links no page"), "{contents:?}: {error}");
+        }
+    }
+
+    /// The repository's hold: every page the site's table of contents lists, less the records
+    /// page, and the README and the 404 page; each one read, and each one passing.
     #[test]
     fn the_held_pages_pass() {
         let root = crate::designs::root().unwrap();
-        let pages = repository_pages(&root).unwrap();
-        assert_eq!(held_failure(&pages), Ok(()));
+        let held = held_paths(&root).unwrap();
+        assert!(held.contains(&"docs/format/flight-logs.md".to_owned()));
+        assert!(held.contains(&"README.md".to_owned()));
+        assert!(!held.contains(&"docs/decisions-and-roadmap.md".to_owned()));
+        let pages = repository_pages(&root, &held).unwrap();
+        assert_eq!(
+            pages.iter().filter(|page| page.held).count(),
+            held.len(),
+            "a held page isn't read"
+        );
+        assert_eq!(held_failure(&pages, &held), Ok(()));
     }
 
     #[test]
     fn the_committed_report_matches_the_pages() {
         let root = crate::designs::root().unwrap();
-        let pages = repository_pages(&root).unwrap();
+        let held = held_paths(&root).unwrap();
+        let pages = repository_pages(&root, &held).unwrap();
         let committed = fs::read_to_string(root.join(REPORT)).unwrap_or_default();
         assert!(
             committed == report(&pages),

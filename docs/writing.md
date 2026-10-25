@@ -215,8 +215,8 @@ field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-fla
 ### The limits
 
 `cargo xtask voice` counts these on each page, per 100 words, and its report marks a page over a
-limit. A page over one is where to look first. On a page not yet held, it doesn't fail the build
-([the check](#the-check)).
+limit. A page over one is where to look first. On a page that isn't held, it doesn't fail the
+build ([the check](#the-check)).
 
 | Counted | What it counts | Limit per 100 words |
 |---|---|---:|
@@ -276,8 +276,8 @@ none on the project's reference pages.
 
 `cargo xtask voice` reads this repository's pages, writes
 [the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md)
-and fails on a stock phrase. With no path, it also fails when a page already rewritten in this
-voice goes over a limit or misses a sentence target (below). A test fails when the report and the
+and fails on a stock phrase. With no path, it also fails when a held page goes over a limit or
+misses a sentence target ([below](#measured-not-gated)). A test fails when the report and the
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
@@ -319,11 +319,16 @@ against these rules too.
 
 ### Measured, not gated
 
-On a page not yet rewritten in this voice, readability is measured, not used to fail a build. The
-counts show where to look, and a person decides what to change. A rewritten page is held: one
-rate over its limit, or one sentence target missed, fails the build. The report marks those pages
-`held`. The rest join as they're rewritten, until every site page is held
-([the plan for the rest of the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Every site page is held: each page the site's table of contents lists, and the README and the
+404 page beside them. The one exception is the decisions and roadmap page, a record written from
+the roadmap and the decision records. On a held page, one rate over its limit, or one sentence
+target missed, fails the build. The report marks those pages `held`. A page added to the table of
+contents is held from its first commit
+([the plan that rewrote the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+
+On the other pages the check reads, such as the changelog and the vision, readability is
+measured, not used to fail a build. The counts show where to look, and a person decides what to
+change.
 
 The site also holds a model page's *In short* box to its shape. It's four bulleted items, each
 opening with its label in bold: `**What it models:**`, `**Sources:**`, `**How well it is
