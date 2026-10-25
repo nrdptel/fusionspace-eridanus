@@ -99,7 +99,7 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
     let records = central_records(bytes, start);
     if records != archive.len() {
         return Err(refused(format!(
-            "its central directory holds {records} entries, and the zip reader keeps {}: two \
+            "its central directory holds {records} entries, and the zip reader keeps {}. Two \
              have the same name, and one would be lost, or the directory is damaged",
             archive.len()
         )));

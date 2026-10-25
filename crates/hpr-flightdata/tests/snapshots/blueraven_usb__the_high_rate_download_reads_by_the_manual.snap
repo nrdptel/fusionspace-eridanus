@@ -294,7 +294,7 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "a high-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.120, whose date the manual says starts from the firmware's build date unless the phone has set it",
+    "a high-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.120. The manual says that clock's date starts from the firmware's build date unless the phone has set it",
     "the high-rate record holds 12 values where the manual lists 10: the manual's read in its order, the other 2 kept as written"
   ]
 }

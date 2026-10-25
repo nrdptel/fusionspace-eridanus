@@ -452,9 +452,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
 
     let end = offset(records.len());
     let mut notes = vec![format!(
-        "the clock isn't stored: each record is {FAST_STEP_S} s after the one before, or \
-         {SLOW_STEP_S} s where its kind's bit 2 is set, the 200 and 40 samples a second the \
-         maker's manual gives"
+        "the clock isn't stored. Each record is {FAST_STEP_S} s after the one before, or \
+         {SLOW_STEP_S} s where its kind's bit 2 is set. Those are the 200 and 40 samples a \
+         second the maker's manual gives"
     )];
     if records.len() < stated {
         notes.push(format!(
