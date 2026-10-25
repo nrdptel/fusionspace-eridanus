@@ -3,31 +3,34 @@
 This page describes the HPR design format, FusionSpace HPR's own open JSON format for rocket
 designs, and how to convert, read and write it.
 
-An `.hpr` file is a rocket design written as one JSON document in the HPR design format, FusionSpace
-HPR's own format, open and described by a published [JSON Schema](#the-schema). It holds everything
-HPR Sim reads from an OpenRocket `.ork`: the rocket's parts, every motor
+An `.hpr` file is a rocket design written as one JSON document in the HPR design format. The format
+is FusionSpace HPR's own, open and described by a published [JSON Schema](#the-schema). It holds
+everything HPR Sim reads from an OpenRocket `.ork`. That is the rocket's parts, every motor
 [configuration](../glossary.md#configuration), when each parachute opens and each stage separates,
-the simulations the file stored, what the file holds that the simulator doesn't model, and the other
-files inside it, such as an embedded thrust curve or a decal image. It is plain text, so a design
-can be kept in git and a change to it reads as a small diff. A `.hprz` is the same document in a zip
-archive, with other files beside it, such as the design's flight logs and photographs
-([the container](#the-container-hprz)).
+and the simulations the file stored. It also carries what the file holds that the simulator doesn't
+model. It carries the other files inside it as well, such as an embedded thrust curve or a decal
+image. It is plain text, so a design can be kept in git and a change to it reads as a small diff.
+A `.hprz` is the same document in a zip archive, with other files beside it, such as the design's
+flight logs and photographs ([the container](#the-container-hprz)).
 
-**What works today:** `hpr convert` turns a `.ork` into a `.hpr` or `.hprz` and back, and `hpr sim`
+**What works today:** `hpr convert` turns a `.ork` into a `.hpr` or `.hprz` and back. `hpr sim`
 flies a `.hpr` or `.hprz` as it flies the `.ork` ([reading and writing one](#reading-and-writing-one)).
 A document of the older version 0.1 is migrated when it is read. Rust programs can do all of this
-through the `hpr_format` library, and TypeScript and Python programs through types generated from
-the schema, each with a reader that checks a document ([TypeScript and Python](#typescript-and-python)).
+through the `hpr_format` library. TypeScript and Python programs can do it through types generated
+from the schema, each with a reader that checks a document
+([TypeScript and Python](#typescript-and-python)).
 
-> **How far to trust it.** A copy of what was read. Converting keeps everything the simulator read from the `.ork` except the
-> reader's warnings. This project's checks use 75 `.ork` files and read 73. Each of the 73 goes `.ork`
-> → `.hpr` → `.ork` and comes back as the same design, bit for bit, and as the `.ork` the simulator
-> writes from the original, byte for byte. That `.ork` is close to the original file but not the same:
-> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 109 motor configurations that
-> fly, spread over 30 of the designs, reach the same apogee from the `.ork`, from the document, and
-> from the `.ork` written from the document, bit for bit. These counts come from a run on the
-> developers' machine that includes other people's private designs; the automatic checks repeat the
-> checks, not the counts, on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
+> **How far to trust it.** A copy of what was read. Converting keeps everything the simulator read
+> from the `.ork` except the reader's warnings. This project's checks use 75 `.ork` files and read
+> 73. Each of the 73 goes `.ork` → `.hpr` → `.ork` and comes back as the same design, bit for bit.
+> It also comes back as the `.ork` the simulator writes from the original, byte for byte. That `.ork`
+> is close to the original file but not the same:
+> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 109 motor configurations
+> that fly are spread over 30 of the designs. Each reaches the same apogee, bit for bit, from the
+> `.ork`, from the document, and from the `.ork` written from the document. These counts come from a
+> run on the developers' machine that includes other people's private designs. The automatic checks
+> repeat the checks, not the counts, on the 17 public ones
+> ([checked on real designs](#checked-on-real-designs)).
 
 **Keep your `.ork` too.** The format is version 0.2, a draft until FusionSpace HPR's first release.
 A document of version 0.1 still reads, but 0.1 didn't record whether the rocket's airframe was read
@@ -46,8 +49,8 @@ What the format is called, what a document holds, and the zip container that car
 | format id | `hpr-design` | every document's `format` key |
 | media type | `application/vnd.fusionspace.hpr+json` | a `.hpr` file served over the web, or named by an app that opens it |
 
-The media type is FusionSpace's ([ADR-199](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)
-§4), in the vendor tree of [RFC 6838](https://www.rfc-editor.org/rfc/rfc6838) with the `+json`
+The media type is FusionSpace's ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md)
+§4). It is in the vendor tree of [RFC 6838](https://www.rfc-editor.org/rfc/rfc6838) with the `+json`
 suffix, since a document is JSON any JSON tool reads. It isn't registered with IANA. Rust programs
 take it from `hpr_format::MEDIA_TYPE`. A `.hprz` has no media type of its own yet; as a zip
 archive it is `application/zip` to a program that doesn't know it.
@@ -109,15 +112,19 @@ before FusionSpace HPR, as a document:
                 "base_radius_m": 0.019,
 ```
 
-A stage strapped beside the airframe, such as a pair of boosters, is a *parallel stage*: it comes
-in `stages` after the stage it hangs on, with an optional `parallel` key holding the id of its
-body tube (`on`), its place along that tube (`position`) and its copies (`pods`), laid out as a
-pod set's. A stage on the axis leaves `parallel` out, so a 0.2 document written before it reads
+A stage strapped beside the airframe, such as a pair of boosters, is a *parallel stage*. It comes
+in `stages` after the stage it hangs on. Its optional `parallel` key holds:
+
+- the id of its body tube (`on`);
+- its place along that tube (`position`);
+- its copies (`pods`), laid out as a pod set's.
+
+A stage on the axis leaves `parallel` out, so a 0.2 document written before it reads
 the same ([Parallel stages](../physics/design.md#parallel-stages)).
 
 A motor that flies is written out in full, its thrust curve included, so a document flies with no
 motor database. That has a consequence for sharing. When a program supplies curves from a motor
-database, as this project's checks supply OpenRocket's, the document holds those curves, and
+database, as this project's checks supply OpenRocket's, the document holds those curves.
 OpenRocket's database publishes no terms for reusing them
 ([where the curves come from](ork.md#motors-in-the-reference-library)). Check before sharing such a
 document.
@@ -145,35 +152,36 @@ file, so unzipping a container gives a `.hpr` any reader of the format takes. Ev
 an attachment, kept byte for byte, under its name, in its order.
 
 - **Names are relative paths**, with `/` between folders, such as `logs/flight-1.csv`. No part of a
-  name may be empty, `.` or `..`, and a name holds no `\`, `:` or control character, so no name can
+  name may be empty, `.` or `..`. A name holds no `\`, `:` or control character. So no name can
   climb out of the folder a container is unpacked into. No attachment may be named `design.hpr`, in
   any mix of capitals, nor sit in a top-level folder of that name (`design.hpr/notes.txt`).
-- **Names that would unpack as one file are refused**: two names the same but for capitals, a name
-  that is also another's folder (`logs` beside `logs/a.csv`), and, for Windows, a part ending in `.`
-  or a space, or named as a device (`CON`, `NUL`, `COM1` and the like, with or without an
-  extension). No part of a name is longer than 255 bytes, the most common file systems' limit.
-  Capitals are compared as Unicode maps them, which also takes `ß` for `ss`, so `straße.csv` beside
-  `strasse.csv` is refused though Windows would keep both. Two spellings of one accented letter
-  are refused too, as macOS would merge them: `é` can be written as one character or as `e`
-  followed by a combining accent, and the names are compared with every accent written the second
-  way ([Unicode's canonical decomposition, NFD](https://unicode.org/reports/tr15/)). The refusal
-  names both spellings, with the combining accent written out (`cafe\u{301}.txt`), since the two
-  look alike on screen.
-- **At most 256 MiB, unpacked.** The design and its attachments together hold no more: the simulator
-  refuses to write a bigger container, and to read one, so a small, hostile archive can't fill
-  memory.
+- **Names that would unpack as one file are refused.** Two names the same but for capitals, and a
+  name that is also another's folder (`logs` beside `logs/a.csv`), are such cases. For Windows, a
+  part ending in `.` or a space is refused. So is a part named as a device (`CON`, `NUL`, `COM1`
+  and the like, with or without an extension). No part of a name is longer than 255 bytes, the most
+  common file systems' limit. Capitals are compared as Unicode maps them, which also takes `ß` for
+  `ss`, so `straße.csv` beside `strasse.csv` is refused though Windows would keep both. Two
+  spellings of one accented letter are refused too, as macOS would merge them. `é` can be written as
+  one character or as `e` followed by a combining accent. The names are compared with every accent
+  written the second way
+  ([Unicode's canonical decomposition, NFD](https://unicode.org/reports/tr15/)). The refusal names
+  both spellings, with the combining accent written out (`cafe\u{301}.txt`), since the two look
+  alike on screen.
+- **At most 256 MiB, unpacked.** The design and its attachments together hold no more. The
+  simulator refuses to write a bigger container, and to read one, so a small, hostile archive can't
+  fill memory.
 - **The same design and files give the same bytes.** Every entry is compressed with deflate, zip's
   usual method, and dated 1 January 1980, zip's zero date, never the clock. (This holds for one
   build of the simulator; another deflate library could give other bytes that read back the same.)
 - **Reading is held to the same rules**, so a container made by another program is refused with the
   reason rather than half read. The reader checks every name before it unpacks anything. It takes
-  the design wherever the archive holds it, and passes over a folder's own entry, which some zip
-  tools write, as long as it is empty. It refuses a symbolic link. It refuses a name beyond plain
-  ASCII that isn't marked as UTF-8 (each entry carries a flag for it), and a name that is marked
-  but isn't valid UTF-8. It refuses two entries of one name, which the zip library the simulator
-  uses would otherwise read as one, dropping the other without a word. A refused link or name is
-  quoted in the message. To get past a name refusal, rename that file inside the archive to plain
-  ASCII, or pack the archive again with a tool that marks UTF-8 names.
+  the design wherever the archive holds it. It passes over a folder's own entry, which some zip
+  tools write, as long as the entry is empty. It refuses a symbolic link. It refuses a name beyond
+  plain ASCII that isn't marked as UTF-8 (each entry carries a flag for it). It also refuses a name
+  that is marked but isn't valid UTF-8. It refuses two entries of one name, which the zip library
+  the simulator uses would otherwise read as one, dropping the other without a word. A refused link
+  or name is quoted in the message. To get past a name refusal, rename that file inside the archive
+  to plain ASCII. Or pack the archive again with a tool that marks UTF-8 names.
 
 A `.hpr` has no place for attachments, and a `.ork` keeps only the source file's own. So
 `hpr convert` names each attachment it leaves out, as a warning.
@@ -207,33 +215,33 @@ from it carries an edit to the airframe, the recovery or the simulations. (`hpr 
 parachutes and streamers, as it does a `.ork`'s, and its powered separations
 ([Separation](../cli.md#separation)).) The motors are the exception: they are held twice
 ([what is not there yet](#what-is-not-there-yet)). `hpr sim` flies the motors under
-`rocket.configurations`, and the `.ork` writer takes its motors from `motors.configurations`, so
-change a motor in both places, or convert the `.ork` again. Nothing warns when the two disagree. Any
+`rocket.configurations`. The `.ork` writer takes its motors from `motors.configurations`. So change
+a motor in both places, or convert the `.ork` again. Nothing warns when the two disagree. Any
 program that checks JSON against a JSON Schema can check an edited document before the simulator
 reads it ([the schema](#the-schema)). No other design program reads `.hpr` or `.hprz` yet.
 
-The text is canonical, meaning there is exactly one way to write a given design: two-space indents,
+The text is canonical: there is exactly one way to write a given design. It uses two-space indents,
 keys in the order above, and a final newline. So the same design always gives the same bytes.
 
-Before it returns, the writer reads its own text back and
-compares it with the design. A value JSON can't carry, such as an infinite number, is refused with
-an error rather than written as something else.
+Before it returns, the writer reads its own text back and compares it with the design. A value JSON
+can't carry, such as an infinite number, is refused with an error rather than written as something
+else.
 
 ### Versions
 
 A version is two numbers, `major.minor`. The reader checks `format` and `version` before anything
-else, so a file of another kind or another version is refused with that reason, not with the
-first key it doesn't know.
+else. So a file of another kind or another version is refused with that reason, not with the first
+key it doesn't know.
 
 - **A reader takes its own version and migrates older ones.** A migration rewrites an old document
-  into the current version's shape, one version at a time, and then reads it as a current document,
-  so it is held to every current rule. A newer version is refused as "written by a newer program". A
-  key the reader doesn't know is refused too, so a document from a later build of the simulator,
-  with a key added within the same version, is refused as an unknown key.
-- **While the major number is 0**, the current version may change in place only in a way that
-  leaves every document already written readable, with the same meaning. Any other change takes a
-  new minor version, with a migration from the one before. `provenance.designation` was added to
-  0.2 this way: it is optional, so a document written without it reads as before. The old version's schema stays
+  into the current version's shape, one version at a time. The reader then reads it as a current
+  document, so it is held to every current rule. A newer version is refused as "written by a newer
+  program". A key the reader doesn't know is refused too. So a document from a later build of the
+  simulator, with a key added within the same version, is refused as an unknown key.
+- **While the major number is 0**, the current version can change in place only if every document
+  already written stays readable, with the same meaning. Any other change takes a new minor version,
+  with a migration from the one before. `provenance.designation` was added to 0.2 this way: it is
+  optional, so a document written without it reads as before. The old version's schema stays
   committed, with a document its program wrote, which a test migrates.
 - **From 1.0**, a new minor version only adds, and a change that breaks old documents takes a new
   major version, with a migration.
@@ -245,11 +253,11 @@ first key it doesn't know.
 **What the 0.1 migration can't recover.** 0.1 recorded why a `.ork`'s airframe wasn't read exactly
 as written only in a motor configuration left out for that reason. The `.ork` reader asks it after
 the configuration's motors and before its stages' separation. So a configuration left out for the
-airframe gives the reason, and one that flies, or is left out only for its separation, shows the
-airframe was read as written. When every configuration was left out for an earlier reason, such as
-a missing thrust curve, or there is none, nothing shows it: the migration marks it unknown, and
-`hpr sim` refuses to fly another motor in the rocket, saying so. On the 73 designs of this project's
-checks, the migration:
+airframe gives the reason. A configuration that flies, or is left out only for its separation,
+shows the airframe was read as written. When every configuration was left out for an earlier
+reason, such as a missing thrust curve, or there is none, nothing shows it. The migration then marks
+it unknown, and `hpr sim` refuses to fly another motor in the rocket, saying so. On the 73 designs
+of this project's checks, the migration:
 
 - recovers 5 of the 8 reasons, and marks the other 3 unknown;
 - marks 28 of the 65 designs read as written unknown too, so 31 of 73 in all are unknown;
@@ -258,15 +266,15 @@ checks, the migration:
 Converting the `.ork` again gives a 0.2 document that knows. To see whether a 0.1 document was
 marked unknown, convert it to a `.hpr` and look at `provenance.source.airframe_not_as_written`.
 
-The reasons are in [ADR-111](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md), which set the extensions and the first version policy, and
-[ADR-112](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md), which added the container and the first migration.
+The reasons are in two decisions. [The first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md) set the extensions and the first version policy.
+[The second](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md) added the container and the first migration.
 
 ### Extensions and unknown keys
 
-What a source file holds that the simulator doesn't model is kept under `extensions`, in a
+What a source file holds that the simulator doesn't model is kept under `extensions`. It goes in a
 namespace: a key that starts with `x-` and names the program the data belongs to. Version 0.2 has
-one, `x-openrocket`: the parts, sections, tags and attributes of a `.ork` that the simulator doesn't
-read, each kept whole with where it was
+one, `x-openrocket`. It holds the parts, sections, tags and attributes of a `.ork` that the
+simulator doesn't read. Each is kept whole with where it was
 ([what the simulator keeps](ork.md#what-the-simulator-keeps-for-writing-the-file-back)). That is how
 a `.ork` written from a document gets them back.
 
@@ -278,18 +286,22 @@ program's namespace as it is waits for a later version.
 
 [`schema/format/hpr-design-0.2.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/format/hpr-design-0.2.schema.json)
 is the document's JSON Schema. A JSON Schema is a machine-readable description of a JSON document's
-keys and types, which many languages can check a file against; this one follows the standard's
+keys and types, which many languages can check a file against. This one follows the standard's
 2020-12 edition. It is generated from the Rust types by `cargo xtask format` (one of the
 repository's development commands), and a test fails if the committed file is stale. Its
 descriptions are the types' documentation. It refuses every key the version doesn't define, as the
 reader does. The simulator's reader refuses what the schema refuses, such as a
-`provenance.source.sha256` that isn't 64 lowercase hexadecimal digits, and names the place; tests
+`provenance.source.sha256` that isn't 64 lowercase hexadecimal digits, and names the place. Tests
 hold it to the schema on thousands of altered documents
-([how the readers are checked](#how-the-readers-are-checked)). A few rules the schema can't
-express, so a document can pass the schema and still be refused by the simulator: a source file's
-base64 must decode, no two source files share a name, a name can't be `rocket.ork` or a folder's,
-and every embedded thrust curve must be among the source files. Version 0.1's schema stays beside
-it,
+([how the readers are checked](#how-the-readers-are-checked)). The schema can't express a few rules,
+so a document can pass the schema and still be refused by the simulator:
+
+- a source file's base64 must decode;
+- no two source files share a name;
+- a name can't be `rocket.ork` or a folder's;
+- every embedded thrust curve must be among the source files.
+
+Version 0.1's schema stays beside this one,
 [`hpr-design-0.1.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/format/hpr-design-0.1.schema.json).
 
 ### TypeScript and Python
@@ -314,27 +326,27 @@ Three limits come first:
 source tree. Both are `MIT OR Apache-2.0`, like the rest of FusionSpace HPR.
 
 - TypeScript: the file is an ES module, so your `package.json` needs `"type": "module"`. Where the
-  compiler only checks types (`noEmit`, as with a bundler or with Node.js running TypeScript as it
-  is), import `./hpr-design.ts` with `allowImportingTsExtensions`, as this project's tests do. Where
-  it writes JavaScript, import `./hpr-design.js` under `module: nodenext`; this project's tests
-  don't try that.
+  compiler only checks types (`noEmit`), import `./hpr-design.ts` with `allowImportingTsExtensions`,
+  as this project's tests do. That is the case with a bundler, or with Node.js running TypeScript as
+  it is. Where it writes JavaScript, import `./hpr-design.js` under `module: nodenext`. This
+  project's tests don't try that.
 - Python: put `hpr_design.py` beside your code or on `PYTHONPATH`.
 - A reader takes a `.hpr` file's text. For a `.hprz`, unzip it and read the `design.hpr` inside
   ([the container](#the-container-hprz)).
 
 **What the file holds.** A type for every object in the schema, named as the schema names it, with
-the schema's descriptions as its comments: `DesignFile` for a whole document, `Rocket`, `Component`,
-`NoseCone` and so on. In TypeScript they are interfaces and unions; in Python, `TypedDict`s (typed
-dictionaries) and `Literal`s. A document stays plain JSON data, objects and arrays (dictionaries and
-lists in Python), so a program can write it back with its own JSON writer. The simulator reads the
-result as the same design, but numbers may be spelled differently (`1850` for `1850.0`).
-`hpr convert edited.hpr tidy.hpr` writes it back in the simulator's own spelling; replace the
-original with `tidy.hpr` so diffs in git stay small. To check a document your program built or
-changed, pass its text through the reader: `readDesign(JSON.stringify(design))` or
+the schema's descriptions as its comments. They are `DesignFile` for a whole document, `Rocket`,
+`Component`, `NoseCone` and so on. In TypeScript they are interfaces and unions; in Python,
+`TypedDict`s (typed dictionaries) and `Literal`s. A document stays plain JSON data: objects and
+arrays (dictionaries and lists in Python). So a program can write it back with its own JSON writer.
+The simulator reads the result as the same design, but numbers may be spelled differently (`1850`
+for `1850.0`). `hpr convert edited.hpr tidy.hpr` writes it back in the simulator's own spelling.
+Replace the original with `tidy.hpr` so diffs in git stay small. To check a document your program
+built or changed, pass its text through the reader: `readDesign(JSON.stringify(design))` or
 `read_design(json.dumps(design))`.
 
-**The reader**, `readDesign` in TypeScript and `read_design` in Python, takes a document's text and
-checks it against the schema, which is copied into the file, before handing it back typed. It
+**The reader** is `readDesign` in TypeScript and `read_design` in Python. It takes a document's text
+and checks it against the schema, which is copied into the file, before handing it back typed. It
 refuses, with a `DesignFormatError`:
 
 - a document of another version: `hpr convert` rewrites an older one, and a newer one needs the file
@@ -412,18 +424,19 @@ Both are checked on every change:
   configurations as a count of the same JSON in Rust.
 - Each language's own JSON writer (`JSON.stringify`, Python's `json.dumps`) writes the 18
   documents back out, and the simulator reads each as the same design.
-- Tests make 4,910 altered copies of two of those documents: a key added or removed, an array
-  lengthened or shortened, or a value replaced by another (a different type, an out-of-range
-  number, an unknown word, or a string with a final newline). The schema refuses 4,124 of them. Each reader takes a copy exactly when a separate schema checker, the Rust `jsonschema`
-  library, does.
-- The TypeScript compiler (at `target` ES2020) and mypy, both at their strictest, accept the 18
-  documents written out as values of type `DesignFile`, and the two examples, and refuse a
+- Tests make 4,910 altered copies of two of those documents. In them a key is added or removed, an
+  array is lengthened or shortened, or a value is replaced by another. The replacement is a
+  different type, an out-of-range number, an unknown word, or a string with a final newline. The
+  schema refuses 4,124 of them. Each reader takes a copy exactly when a separate schema checker, the
+  Rust `jsonschema` library, does.
+- The TypeScript compiler (at `target` ES2020) and mypy are both at their strictest. They accept the
+  18 documents written out as values of type `DesignFile`, and the two examples. They refuse a
   document with a misspelt fixed word.
-- Like the simulator's reader, both refuse a number too large for a 64-bit float (`1e400`), a lone
-  UTF-16 surrogate (`"\ud800"`), and arrays nested 128 levels deep. Tests hold each to the
-  simulator's own reader.
+- Like the simulator's reader, both refuse a number too large for a 64-bit float (`1e400`) and a
+  lone UTF-16 surrogate (`"\ud800"`). Both also refuse arrays nested 128 levels deep, as that
+  reader does. Tests hold each to the simulator's own reader.
 
-A reader checks what the schema says, so it shares the schema's blind spots: a document it takes can
+A reader checks what the schema says, so it shares the schema's blind spots. A document it takes can
 still be refused by the simulator for the [few rules the schema can't express](#the-schema). The two
 readers also differ from the simulator's on three details of JSON:
 
@@ -437,11 +450,16 @@ Each row of the table, and each refusal in the list above, is tested against the
 reader.
 
 The other way round, the simulator's own reader refuses each of the altered copies the schema
-refuses, so a document the simulator reads, the readers read too. Until
+refuses. So a document the simulator reads, the readers read too. Until
 [#253](https://github.com/nrdptel/fusionspace-eridanus/issues/253) was fixed, the simulator read
-four kinds the schema refuses: a `provenance.source.sha256` that isn't 64 lowercase hexadecimal
-digits, an array where the schema has an object, another key beside `"model": "isa"`, and
-`"value": null` beside a plugged delay. Tests now hold the simulator to the schema on each.
+four kinds the schema refuses:
+
+- a `provenance.source.sha256` that isn't 64 lowercase hexadecimal digits;
+- an array where the schema has an object;
+- another key beside `"model": "isa"`;
+- `"value": null` beside a plugged delay.
+
+Tests now hold the simulator to the schema on each.
 
 ## Checked on real designs
 
@@ -462,29 +480,35 @@ only counts are published. `cargo xtask ork` takes each one through the format:
 Between them, the documents carry the files' 55 other files: 3 as text, the thrust curves the
 designs embed, and 52 as base64, their images.
 
-Then each motor configuration that flies is flown three ways: the design first read, the design
-read back from its document, and the design read back from the `.ork` written from the document.
+Then each motor configuration that flies is flown three ways:
+
+- the design first read;
+- the design read back from its document;
+- the design read back from the `.ork` written from the document.
+
 Each flight is in calm air of the [standard atmosphere](../glossary.md#standard-atmosphere) at sea
-level, off a 1.5 m (4.9 ft) vertical rail, with its stages separating if they do. Of the designs' 170
+level, off a 1.5 m (4.9 ft) vertical rail. Its stages separate if they do. Of the designs' 170
 configurations, **109 fly, and each reaches the same apogee all three ways, bit for bit**. The
 format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 part in 10⁹.
 
 These 109 fly because the check supplies OpenRocket's own motor database for the curves the files
 name but don't carry. With only the files' own curves and the simulator's bundled motors, 4 fly
-([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 61 have no
-flight to compare: the `.ork` reader leaves them out of the rocket all three ways, by the first reason it finds: 24 for want of a
-thrust curve, 19 for stages the simulator can't separate as written, and 18 for other reasons
+([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 61
+have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
+first reason it finds. Of the 61, 24 are left out for want of a thrust curve and 19 for stages the
+simulator can't separate as written. Another 18 are left out for other reasons
 ([which configurations fly](ork.md#which-configurations-the-rocket-flies)).
 
 **In CI**, the automatic checks that run on every change don't have the private designs. So
 `hpr-format`'s tests take the 17 public `.ork` designs under `validation/fixtures/ork/` through the
 same checks. None carries a curve the simulator can fly, so
-[bundled motors](../physics/motor.md#the-bundled-motors) stand in: each motor gets the bundled motor
+[bundled motors](../physics/motor.md#the-bundled-motors) stand in. Each motor gets the bundled motor
 of its designation, or the one nearest its diameter. 18 configurations fly, one per design and two
 for `demo-multi-config`. From the document they reach the same apogee bit for bit. Through the
-written `.ork` the test holds them to 1 part in 10⁹: the stand-in motors are not written into a
-`.ork`, so they are supplied again when it is read. A test also takes each key out of two documents
-in turn, and checks that the schema and the reader agree on whether the document is still valid.
+written `.ork` the test holds them to 1 part in 10⁹, because the stand-in motors are not written
+into a `.ork`. They are supplied again when it is read. A test also takes each key out of two
+documents in turn. It checks that the schema and the reader agree on whether the document is still
+valid.
 
 The tests also cover the rest of this page:
 
@@ -492,19 +516,25 @@ The tests also cover the rest of this page:
   [`embedded-curve-0.1.hpr`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-format/fixtures/embedded-curve-0.1.hpr).
   0.1's schema takes it and 0.2's doesn't. It reads as 0.2, key for key the old document with
   `attachments` renamed. It is the document the current reader makes from the same `.ork`, flies on
-  the curve it embeds, and writes that `.ork` back. Other tests migrate edited 0.1 documents: each
-  way the airframe can be recovered, found read as written, or marked unknown, and old documents
-  that already hold a 0.2 key, which are refused. A last one migrates each of the 17 public designs
-  from its 0.1 shape, plus two made from them: one with a parallel stage the simulator leaves out,
-  and one with an invented embedded curve. Each comes back as the document first written, but for
-  the airframe's answer, which is never wrong. With no motor catalog in these tests, no public
-  design's configuration flies, so all 17 come out unknown, and only the invented-curve design's
-  answer is recovered.
+  the curve it embeds, and writes that `.ork` back. Other tests migrate edited 0.1 documents. They
+  cover each way the airframe can be recovered, found read as written, or marked unknown. They also
+  cover old documents that already hold a 0.2 key, which are refused. A last one migrates each of
+  the 17 public designs from its 0.1 shape, plus two made from them. One has a parallel stage the
+  simulator leaves out, and one has an invented embedded curve. Each comes back as the document
+  first written, but for the airframe's answer, which is never wrong. With no motor catalog in these
+  tests, no public design's configuration flies. So all 17 come out unknown, and only the
+  invented-curve design's answer is recovered.
 - **The container**: a design with four attachments (a text file, an image, an empty file and a
-  name in accents) reads back the same and writes the same bytes again. Each name rule above, two
-  entries of one name, a symbolic link, a name beyond ASCII that isn't marked as UTF-8, a name
-  marked as UTF-8 that isn't valid UTF-8, a folder's entry that holds bytes, a missing or damaged
-  design, and a container past 256 MiB, written or read, are each refused with the reason.
+  name in accents) reads back the same. It writes the same bytes again. Each of these is refused
+  with the reason:
+  - each name rule above;
+  - two entries of one name;
+  - a symbolic link;
+  - a name beyond ASCII that isn't marked as UTF-8;
+  - a name marked as UTF-8 that isn't valid UTF-8;
+  - a folder's entry that holds bytes;
+  - a missing or damaged design;
+  - a container past 256 MiB, written or read.
 - **The command line**: `hpr convert` takes a public design `.ork` → `.hpr` → `.hprz` → `.ork`, each
   file the library's own, byte for byte. `hpr sim` flies a public design from its `.hpr` and its
   `.hprz` to the same output as from its `.ork`. It refuses another motor in a rocket whose airframe
@@ -512,10 +542,10 @@ The tests also cover the rest of this page:
 
 ## How it compares with other design formats
 
-Four other formats hold a hobby rocket design. HPR Sim reads `.ork` and writes it back; it doesn't
-read the other three yet
-([OpenRocket's flights of the private designs](ork.md#openrockets-flights-of-the-private-designs)
-lists the reference library's `.rkt` and `.CDX1` files it leaves out).
+Four other formats hold a hobby rocket design. HPR Sim reads `.ork` and writes it back. It doesn't
+read the other three yet.
+[OpenRocket's flights of the private designs](ork.md#openrockets-flights-of-the-private-designs)
+lists the reference library's `.rkt` and `.CDX1` files it leaves out.
 
 | | OpenRocket `.ork` | RockSim `.rkt` | RASAero II `.CDX1` | RocketPy `.rpy` | HPR design format `.hpr` / `.hprz` |
 |---|---|---|---|---|---|
@@ -528,18 +558,22 @@ lists the reference library's `.rkt` and `.CDX1` files it leaves out).
 | another program's data | a simulation's extension settings | none found | none found | none | `extensions`, one namespace per program |
 | what it is | a design | a design | a design, as its outer shape for aerodynamics | a saved `Flight`: the rocket, its environment and the results | a design |
 
-Sources: OpenRocket's
-[file format page](https://openrocket.readthedocs.io/en/latest/dev_guide/file_specification.html)
-and HPR Sim's own reading of 73 files ([`.ork` design files](ork.md)); Apogee's
-[SMARTSim manual](https://www.apogeerockets.com/downloads/PDFs/SMARTSim_manual.pdf), which says
-RockSim's rocket files are XML with data "stored using prescribed default units", and sends the
-reader to SMARTSim's own help for the elements; RASAero II's author on its
-[file format](https://www.rocketryforum.com/threads/openrocket-cnalpha-accuracy.171000/page-2) and
-its [user's manual](https://www.rasaero.com/dl_manual_ii.htm), which gives every dimension in
-inches; the four `.rkt` and four `.CDX1` files in this project's reference library, of which only
-these facts are published; and RocketPy's code at the version this project's checks pin, where
-`.rpy` came with version 1.10.0
-([`save_to_rpy` and `load_from_rpy`](https://github.com/RocketPy-Team/RocketPy/blob/9bd6ad3af8f97bafa3201d4e70eba2877e66e040/rocketpy/utilities.py#L716)).
+Sources:
+
+- OpenRocket's
+  [file format page](https://openrocket.readthedocs.io/en/latest/dev_guide/file_specification.html)
+  and HPR Sim's own reading of 73 files ([`.ork` design files](ork.md)).
+- Apogee's [SMARTSim manual](https://www.apogeerockets.com/downloads/PDFs/SMARTSim_manual.pdf),
+  which says RockSim's rocket files are XML with data "stored using prescribed default units". It
+  sends the reader to SMARTSim's own help for the elements.
+- RASAero II's author on its
+  [file format](https://www.rocketryforum.com/threads/openrocket-cnalpha-accuracy.171000/page-2) and
+  its [user's manual](https://www.rasaero.com/dl_manual_ii.htm), which gives every dimension in
+  inches.
+- The four `.rkt` and four `.CDX1` files in this project's reference library, of which only these
+  facts are published.
+- RocketPy's code at the version this project's checks pin, where `.rpy` came with version 1.10.0
+  ([`save_to_rpy` and `load_from_rpy`](https://github.com/RocketPy-Team/RocketPy/blob/9bd6ad3af8f97bafa3201d4e70eba2877e66e040/rocketpy/utilities.py#L716)).
 
 **Why FusionSpace HPR didn't adopt one of them:**
 
@@ -551,8 +585,8 @@ these facts are published; and RocketPy's code at the version this project's che
   help of another of its maker's programs. Its units are implied, not stated.
 - **`.CDX1`**: undocumented, in English units, and it describes the rocket's outer shape for
   aerodynamics, not a design to build.
-- **`.rpy`**: a saved state of one Python library's objects, not a design format. It has no schema,
-  holds one motor and no stages, and a function in it (a parachute's trigger, say) is stored as a
+- **`.rpy`**: a saved state of one Python library's objects, not a design format. It has no schema
+  and holds one motor and no stages. A function in it (a parachute's trigger, say) is stored as a
   Python pickle, which runs code when the file is loaded. So a `.rpy` from someone else is only as
   safe as a program from them.
 
@@ -561,15 +595,15 @@ these facts are published; and RocketPy's code at the version this project's che
 - **The generated types aren't on npm or PyPI.** Copy the file you need from the repository
   ([TypeScript and Python](#typescript-and-python)).
 - **Reading `.rkt`, `.CDX1` or `.rpy`**: no milestone yet.
-- **The motors are held twice**: under `motors.configurations`, every configuration in the file as
-  the `.ork` holds it, and under `rocket.configurations`, the ones that fly, each motor ready to
-  fly. `hpr sim` uses the second and the `.ork` writer the first. Editing one doesn't change the
-  other, and nothing checks that they agree yet.
+- **The motors are held twice.** `motors.configurations` holds every configuration in the file as
+  the `.ork` holds it. `rocket.configurations` holds the ones that fly, each motor ready to fly.
+  `hpr sim` uses the second and the `.ork` writer the first. Editing one doesn't change the other,
+  and nothing checks that they agree yet.
 - **An embedded curve is held twice**: as the file's text under `source_files`, and as the motor
   built from it in the configuration. A flight uses the motor; a `.ork` written from the document
   uses the text. Editing one doesn't change the other, and nothing checks that they agree yet.
 - **Some type names come from `.ork`**, such as `OrkMotor`, because the document holds the design
   as the simulator's `.ork` reader models it. A later version can rename them, with a migration.
 - **A container's attachments aren't read by anything yet.** `hpr sim` flies the design and says how
-  many it leaves unread; reading a flight log from a `.hprz` waits for the commands that compare a
+  many it leaves unread. Reading a flight log from a `.hprz` waits for the commands that compare a
   flight with its simulation.

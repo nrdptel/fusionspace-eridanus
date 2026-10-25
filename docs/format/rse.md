@@ -16,14 +16,14 @@ as attributes, and a table of thrust, mass and [center of gravity](../glossary.m
 This page is the reference for HPR Sim's reader and writer. The spec is thin and disagrees with
 every real file on element and attribute names, so a reader must follow the observed structure. Of
 the 823 RockSim files ThrustCurve.org held on 2026-09-17, 821 read and write back with every value
-unchanged; the other two have a time that goes backwards
+unchanged. The other two have a time that goes backwards
 ([Checked against real files](#checked-against-real-files)).
 
 > **How far to trust it.** Copied values: the reader takes the curve, the masses, the CG and the
 > delays from the file as written, and estimates nothing. On 2026-09-17, 821 of the 823 RockSim
-> files ThrustCurve.org held read, and write back with every value unchanged; the other two are
+> files ThrustCurve.org held read, and write back with every value unchanged. The other two are
 > refused, naming the line where time goes backwards. Real files carry typos (one states a
-> propellant mass ten times its curve's), so when a motor's numbers matter, check them against
+> propellant mass ten times its curve's). When a motor's numbers matter, check them against
 > the maker's published data and the motor's certification.
 
 Code: `hpr_motor::rse` ([API reference](../api/hpr_motor/rse/index.html)), written for the
@@ -32,17 +32,17 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
 
 ## Sources
 
-- **[P]** "RockSim & EngEdit – Engine File (.rse) Format Guide", 3 pp., PDF hosted by ThrustCurve.org,
-  pinned as `rocksim-rse-spec` (sha256 `c47a04f4…`) in the
-  [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml),
-  which records each source's address and checksum, and fetched to
+- **[P]** "RockSim & EngEdit – Engine File (.rse) Format Guide", 3 pp., PDF hosted by ThrustCurve.org.
+  Pinned as `rocksim-rse-spec` (sha256 `c47a04f4…`) in the
+  [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
+  The lock file records each source's address and checksum. The PDF was fetched to
   `refs/papers/rocksim-rse-spec.pdf`, a local folder that is never committed. Cited as [P p.N].
 - **[S]** ThrustCurve.org, "Flight Simulators", RockSim section,
   <https://www.thrustcurve.org/info/simulators.html>, captured 2026-09-17 and pinned as
   `thrustcurve-simulators` (sha256 `5bb2bad7…`).
 - **[X]** W3C, *XML 1.0* 5th ed., <https://www.w3.org/TR/xml/>, §2.11 (end of line), §3.3.3 (attributes).
 - **Observed:** 715 engines and 15,149 points in the ThrustCurve manufacturer file sets (9 `.rse`
-  sets) and 10 single-motor API downloads, fetched 2026-09-17 into a local cache,
+  sets) and 10 single-motor API downloads. They were fetched 2026-09-17 into a local cache,
   `refs/samples/formats/`, that is never committed.
 
 ## What a file holds
@@ -129,19 +129,19 @@ What else real files do, and what the reader and writer do with each case.
 
 ### Observed in real files (other)
 
-- **Delays:** missing in 5. Always comma integers; never `P`. Descending lists are common
+- Delays: missing in 5. Always comma integers; never `P`. Descending lists are common
   (`15,12,10,8,6`). Checked against ThrustCurve search metadata, `1000` means plugged in 126 of 128
   single-token cases and `0` in 24 of 25. Lists can end in `1000` (`10,14,1000`).
-- **Strings:** `mfg` has 20+ spellings, including leading or trailing spaces (` Aerotech`), commas
+- Strings: `mfg` has 20+ spellings, including leading or trailing spaces (` Aerotech`), commas
   (`Estes Industries, Inc.`) and underscores. `code` can hold spaces (`Micro Maxx II`), commas and
   parentheses.
-- **Numbers:** 6 significant digits, like C `%g`, with a trailing `.` on integral values (`35.`,
+- Numbers: 6 significant digits, like C `%g`, with a trailing `.` on integral values (`35.`,
   `0.`, `-0.`). One exponent (`1.51982e-05`); some padded (`0.00`).
-- **XML text:** start tags wrap over several lines; two spaces after the element name. Attribute
+- XML text: start tags wrap over several lines; two spaces after the element name. Attribute
   order is either RockSim's (490) or alphabetical (220); XML gives order no meaning. 6 of 19 files
   use CRLF, and many lack a final newline. `<comments>` spans lines in 197 engines; 2 use CDATA, one
   holding a raw `&`. There are no entity references, and everything is ASCII.
-- **Bad values:** `propWt` 10× $m_0$ (a typo), and `cg` 0.1 × len/2. Five engines (four hybrids)
+- Bad values: `propWt` 10× $m_0$ (a typo), and `cg` 0.1 × len/2. Five engines (four hybrids)
   have every `m` and `cg` = 0, so $m_0 = 0$ cannot mean "no propellant".
 
 ### Reader policy (lenient, with diagnostics)
@@ -170,11 +170,12 @@ What else real files do, and what the reader and writer do with each case.
 5. Numbers: trim XML whitespace, then parse with Rust's f64 parser. Reject non-finite values:
    Rust accepts `inf`, `infinity` and `NaN`. Warn if `propWt` ≥ `initWt`.
    Keep file units (g, mm) in the file model, in fields named for them (`initial_mass_g`). Convert
-   to SI only when building the physical motor: g → kg → g is not bit-exact (`4030.` comes back
-   as `4030.0000000000005`; 14 of 1330 distinct mass and length values in the sets fail).
+   to SI only when building the physical motor. The round trip g → kg → g is not bit-exact
+   (`4030.` comes back as `4030.0000000000005`). 14 of 1330 distinct mass and length values in
+   the sets fail.
 6. Keep strings verbatim, including the spaces in `mfg`; normalize names in the catalog layer.
    Delays: keep the raw string; interpret it as in [`.eng` files](eng.md) (`1000`/`100` → plugged, `0` ambiguous).
-7. Point checks match `.eng`: error on negative or decreasing `t`; warn on a last `f` ≠ 0, on
+7. Point checks match `.eng`. Error on negative or decreasing `t`. Warn on a last `f` ≠ 0, on
    negative thrust, and on an `Itot` or `peakThrust` that disagrees with the curve by more than 1%.
    `burn-time` is not checked: files round it from the last time.
 
@@ -186,8 +187,8 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   endings, a final newline, UTF-8, and no XML declaration (none was observed; whether RockSim
   accepts one is unverified).
 - **Policy:** the first line is an XML comment naming the program that wrote the file, its version
-  and its designation in the FusionSpace product system, as every file the simulator writes
-  does: `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`. XML readers skip comments,
+  and its designation in the FusionSpace product system. Every file the simulator writes has this
+  line: `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`. XML readers skip comments,
   the simulator's too, so the file reads back to the same values and writing it again gives the
   same bytes. Whether RockSim and OpenRocket accept a comment before `<engine-database>` has not
   been checked.
@@ -203,8 +204,8 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 - Flags are written `1` or `0`. The rendering attributes are not kept, so they are not written.
 - Apart from that comment, the writer adds nothing by itself. Converting from `.eng` is a separate step,
   `hpr_motor::convert` or `hpr convert` (since [M4.2c](../decisions-and-roadmap.md#m4-2c), the
-  command-line conversion), and it fills what `.eng` lacks the way the observed files do. The
-  counts are out of the files that give each attribute: 715 engines, of which 710 give `massFrac`
+  command-line conversion). It fills what `.eng` lacks the way the observed files do. The
+  counts are out of the files that give each attribute. Of 715 engines, 710 give `massFrac`
   and `Isp`, and 700 have a propellant mass above zero for `m`'s shape:
 
   | attribute | filled as | observed in |

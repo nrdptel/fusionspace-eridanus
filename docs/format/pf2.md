@@ -5,18 +5,18 @@ heights and speeds, and what it refuses.
 
 A `.pf2` file is the flight log a PerfectFlite altimeter's software saves: the Pnut's, the
 StratoLogger's and the StratoLoggerCF's alike. It is plain text: a few lines about the altimeter
-and the flight, then one row per sample, about 20 a second, with the time, altitude, speed,
-temperature and battery voltage. A PerfectFlite has a barometer and no accelerometer, so every
+and the flight, then one row per sample, about 20 a second. Each row holds the time, altitude,
+speed, temperature and battery voltage. A PerfectFlite has a barometer and no accelerometer, so every
 height and speed in it comes from air pressure.
 
 **To read a flight from one**, run [`hpr analyze`](../cli.md#hpr-analyze) on it, or see
 [Flight-log readings](../physics/log-readings.md) for what is read and how.
 
 This page is the reference for HPR Sim's reader. PerfectFlite publishes no specification of the
-format, so everything here was learned from exported files, by Debrief, the project owner's
-earlier flight-log analyzer, whose reader this one follows. Every `.pf2` among the project's sample
-logs is read: 175 files, 101 of them a StratoLoggerCF's, 39 a Pnut's and 35 a StratoLogger
-(SL100)'s ([the survey](flight-logs.md#how-it-was-checked)).
+format, so everything here was learned from exported files. Debrief, the project owner's earlier
+flight-log analyzer, learned it that way, and this reader follows Debrief's. Every `.pf2` among
+the project's sample logs is read: 175 files. Of them, 101 are a StratoLoggerCF's, 39 a Pnut's
+and 35 a StratoLogger (SL100)'s ([the survey](flight-logs.md#how-it-was-checked)).
 
 > **How far to trust it.** The layout below is what those files and Debrief's reader agree on. A
 > variant it doesn't cover is refused or noted, not guessed at.
@@ -107,8 +107,8 @@ was written from exported files and cites no document. HPR Sim's reader differs 
 
 - Debrief assumes the column order; HPR Sim takes it from the `Data:` line when there is one.
 - Debrief skips any line that isn't a row; HPR Sim refuses one after the rows have begun.
-- Debrief reads a stated apogee only when it is marked `'`; HPR Sim also accepts `ft` and `feet`,
-  and refuses a height marked with another unit.
+- Debrief reads a stated apogee only when it is marked `'`. HPR Sim also accepts `ft` and
+  `feet`, and refuses a height marked with another unit.
 
 The public Pnut log marks its apogee with `'`, as `1009' AGL`, and its rows agree with that
 figure ([Flight-log readings](../physics/log-readings.md#checked-against)).
