@@ -1585,7 +1585,7 @@ const REGULAR_PAINT_M: f64 = 60e-6;
 /// **An outside part with no finish, or one of a word not in the table, is read as regular paint,
 /// 60 µm,** as OpenRocket reads it ([issue #216][216]). Run on its 17 bundled example designs with
 /// every `<finish>` taken out (`validation/oracles/openrocket/finish.py`, run 2026-10-25; it
-/// prints and commits nothing), OpenRocket 24.12 reports `Regular paint (60 µm)` and a roughness of
+/// writes nothing), OpenRocket 24.12 reports `Regular paint (60 µm)` and a roughness of
 /// `6e-05` m (`getFinish`, `getRoughnessSize`) for all 134 outside parts: nose cones, body tubes,
 /// transitions, the three kinds of fin set, tube fins, launch lugs and rail buttons. With the word
 /// `gilt` in place of each finish it reports the same. The parts inside the body have no finish in

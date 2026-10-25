@@ -1122,9 +1122,10 @@ impl<'a> Writer<'a> {
     /// OpenRocket and HPR Sim's reader take an outside part with none as regular paint, 60 µm
     /// (`super::super::attached::finish`), so a part left at the design's default finish gets that
     /// default's word. A finish whose roughness is none of OpenRocket's five is left out, with a
-    /// warning that OpenRocket will read the part as regular paint. A finish word the design keeps from the file
-    /// replaces the one written here ([`super::kept`]). The word is found by roughness, to within
-    /// 1 pm, since a named finish's roughness is a product (`20.0 * 1e-6` is not `20e-6`).
+    /// warning that, on an outside part, says OpenRocket will read the part as regular paint. A
+    /// finish word the design keeps from the file replaces the one written here ([`super::kept`]).
+    /// The word is found by roughness, to within 1 pm, since a named finish's roughness is a
+    /// product (`20.0 * 1e-6` is not `20e-6`).
     fn finish(&mut self, element: &mut Element, at: &str, component: &Component) {
         let outside = matches!(
             component.part,
