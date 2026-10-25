@@ -1515,6 +1515,18 @@
     // part), a float or a box out of the flow is sized on purpose and skipped.
     const main = doc.querySelector('main');
     if (main) {
+      // An opening quote mark drawn straight after inline code, emphasis, a link or a formula
+      // (#932): smart punctuation curls `'` by the character before it in the source, a span's
+      // closing delimiter, so "`hpr`'s" showed as "hpr ‘s". There the mark closes or is an
+      // apostrophe, never opens.
+      for (const el of main.querySelectorAll('code, em, strong, del, a, math')) {
+        if (el.closest('pre')) continue;
+        const next = el.nextSibling;
+        if (next && next.nodeType === 3 && /^[‘“]/.test(next.data)) {
+          note('type', selector(el), 'an opening quote after it',
+            snippet(el.textContent.slice(-20) + next.data.slice(0, 10)));
+        }
+      }
       const round = function (v) { return Math.round(v * 10) / 10; };
       for (const n of FS.narrow(win, main)) {
         note('narrow', selector(n.block), 'prose held to ' + round(n.width) + ' px',

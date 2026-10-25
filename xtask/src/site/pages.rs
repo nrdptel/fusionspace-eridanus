@@ -77,7 +77,10 @@
 //!     fallback must draw at the face's widths, at 400 and 600, in the browser that runs the
 //!     check (#468). A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
-//!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
+//!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped. An
+//!     opening quote mark (`‘`, `“`) drawn straight after inline code, emphasis, a link or a
+//!     formula in `main`, outside a code block, fails too: there it closes or is an apostrophe,
+//!     and smart punctuation curled it the wrong way (#932);
 //!   - **prose narrower than its column** (`foundations.md`, *Type*; ADR-250): each paragraph,
 //!     list item, quote or caption in `main`, outside tables and code, and each box around one,
 //!     as wide as the box that holds it allows. One narrower is drawn again with no max-width and
@@ -201,7 +204,9 @@
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
 //! that does, which must pass, text at 15 px, on mdBook's 23.2 px line, in a serif, without
 //! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a superscript
-//! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
+//! at 11 px, an opening quote right after inline code and one after emphasis, an apostrophe
+//! after code and a link and a quote opened after a space, which must pass, a chapter link in
+//! Archivo, a current page with no underline and one underlined 1 px,
 //! prose held to 10 em by a max-width, by a width and in a box centered by its margins, and to a
 //! fifth of its column by a max-width in percent, prose filling its column in paragraphs, a
 //! list, a definition list and a grid's and a flex box's cells, beside a classic scrollbar and
@@ -478,8 +483,8 @@ enum Kind {
     Motion,
     /// Text off the system's type scale, Archivo without tabular figures, a family without its
     /// metric-matched fallback second, Cascadia Mono's fallback at other widths than the face's
-    /// (#468), or navigation not in Cascadia Mono 14 px with the current page underlined 2 px
-    /// (#384).
+    /// (#468), navigation not in Cascadia Mono 14 px with the current page underlined 2 px
+    /// (#384), or an opening quote mark straight after inline code, emphasis or a link (#932).
     Type,
     /// Prose held narrower than the box that holds it, by a max-width, a width or margins set to
     /// auto (#384, ADR-250).
@@ -1204,7 +1209,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 187] = [
+const CANARIES: [Canary; 190] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1442,6 +1447,30 @@ const CANARIES: [Canary; 187] = [
         what: "a paragraph at 16 px on mdBook's 1.45 em line, 23.2 px, not the system's 24",
         expect: &[Kind::Type],
         inside: "<p style=\"line-height: 1.45em\">A paragraph on mdBook's line height</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-quote.html",
+        what: "an opening quote drawn straight after inline code, as smart punctuation curls \
+               \"`hpr`'s\" (#932)",
+        expect: &[Kind::Type],
+        inside: "<p>The <code>hpr</code>‘s help</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-quote-emphasis.html",
+        what: "an opening double quote drawn straight after emphasis (#932)",
+        expect: &[Kind::Type],
+        inside: "<p>The word <em>closed</em>“ here</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-quote-closed.html",
+        what: "an apostrophe after inline code, and an opening quote after a space, which must \
+               pass",
+        expect: &[],
+        inside: "<p>The <code>hpr</code>’s help and <em>emphasis</em> ‘quoted’, then \
+                 <a href=\"#\">a link</a>’s end</p>",
         after: "",
     },
     Canary {
