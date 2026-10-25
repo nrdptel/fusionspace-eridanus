@@ -762,7 +762,7 @@ Code: [`hpr_io::ork::attached`](../api/hpr_io/ork/attached/index.html), decided 
 ([motors and their configurations](#motors-and-their-configurations)).
 
 This is the doctest on [`hpr_io::ork::rocket`](../api/hpr_io/ork/component/fn.rocket.html), which CI runs.
-Its hidden first lines set `xml` to a small design. To run it, use
+The snippet leaves out the lines before it, which set `xml` to a small design. To run it, use
 `cargo test -p fusionspace-hpr-io --doc ork::component::rocket`. Hand it the bytes of a `.ork`,
 and what comes back is a design and the warnings reading it raised:
 
