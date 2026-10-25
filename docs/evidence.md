@@ -326,7 +326,7 @@ The register holds 32 rows, as of October 20, 2026.
 - [G31](#g31), October 20, 2026, looked at:
   - public flight-log repositories on GitHub
 
-  It found two RRC3 exports in feet, one in °C and one in °F by other sensors or an airport's air.
+  It found two RRC3 exports in feet, one in °C and one in °F, each settled by other sensors or an airport's air.
 - [G32](#g32), October 17, 2026, looked at:
   - the public logs the sensor noise note measured at rest (five Blue Raven flights, ten StratoLoggerCF, five AltOS, one RRC3, one team-built board)
   - the makers' datasheets it cites

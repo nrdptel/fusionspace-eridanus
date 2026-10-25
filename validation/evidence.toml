@@ -684,7 +684,7 @@ on = "2026-10-20"
 looked = [
   "public flight-log repositories on GitHub",
 ]
-found = "two RRC3 exports in feet, one in °C and one in °F by other sensors or an airport's air"
+found = "two RRC3 exports in feet, one in °C and one in °F, each settled by other sensors or an airport's air"
 
 [[row]]
 id = "G32"
