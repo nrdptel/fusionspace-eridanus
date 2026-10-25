@@ -109,11 +109,12 @@ pub struct OpenMeteoArgs {
 /// `hpr weather wyoming`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct WyomingArgs {
-    /// The station's WMO number, such as 72364; not with --from, whose sounding names its own
-    /// place and time
+    /// The station's number from the World Meteorological Organization (WMO), such as 72364.
+    /// Needed unless --from is given, and not with it: its sounding names its own place and time
     #[arg(long, required_unless_present = "from", conflicts_with = "from")]
     pub station: Option<String>,
-    /// The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it
+    /// The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it.
+    /// Needed unless --from is given
     #[arg(
         long,
         value_name = "TIME",
@@ -159,7 +160,7 @@ pub struct NomadsArgs {
 /// `hpr weather era5`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct Era5Args {
-    /// The ERA5 pressure-level file, netCDF classic
+    /// The ERA5 pressure-level file, netCDF classic, from the Copernicus Climate Data Store
     pub file: String,
     /// The site's latitude, degrees north (south is negative)
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]

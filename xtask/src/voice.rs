@@ -52,8 +52,9 @@ pub const USAGE: &str =
                            no path it reads this repository's pages and writes
                            validation/reports/voice.md; given paths, it reads each file, or each
                            page under a directory (a `.help` file as a command's help), and
-                           prints the report (after `--`, a path may start with `-`). Fails on a stock phrase, and with no path on a
-                           held page over a limit or missing a sentence target (ADR-285).
+                           prints the report (after `--`, a path may start with `-`). Fails on
+                           a stock phrase, and with no path on a held page over a limit or
+                           missing a sentence target (ADR-285).
   voice --long [--] PATH...
                            List each sentence over 25 words on the pages at PATH, one a line
                            with its file, line and length, code and math shown as `…`. It
@@ -1361,6 +1362,9 @@ const HTML_BLOCKS: [&str; 30] = [
 /// what it says about it more.
 const HELP_DESCRIPTION_INDENT: usize = 8;
 
+/// How far clap indents a command's name in a list of commands.
+const HELP_NAME_INDENT: usize = 2;
+
 /// The notes clap adds in brackets after an option's description, which are its values, not prose.
 const HELP_NOTES: [&str; 4] = ["default: ", "possible values: ", "aliases: ", "env: "];
 
@@ -1394,9 +1398,11 @@ fn read_help(source: &str) -> Reading {
             text
         } else {
             match section {
-                // `  name  summary`: the name is code.
+                // `  name  summary`: the name is code. A name too long for the column has its
+                // summary on the next line, indented deeper.
                 "Commands" => match text.split_once("  ") {
                     Some((_, summary)) => summary.trim_start(),
+                    None if indent > HELP_NAME_INDENT => text,
                     None => continue,
                 },
                 "Options" | "Arguments" if indent < HELP_DESCRIPTION_INDENT => {
@@ -1414,9 +1420,14 @@ fn read_help(source: &str) -> Reading {
         if prose.is_empty() {
             continue;
         }
-        // `prose` is a slice of `source`, so the pointers' difference is its offset.
+        // `prose` is a slice of `source` (every step above trims or splits it, never copies), so
+        // the pointers' difference is its offset; were it ever a copy, the offset would point
+        // elsewhere, so this holds the invariant in every build.
         let offset = prose.as_ptr() as usize - source.as_ptr() as usize;
-        debug_assert!(offset >= at && offset < start);
+        assert!(
+            offset >= at && offset < start,
+            "help prose outside its line"
+        );
         reading.open(Block::Prose);
         let mut rest = prose;
         let mut from = offset;
@@ -3012,6 +3023,8 @@ mod tests {
         \n\
         Commands:\n\
         \x20 list    List the motors, with their figures\n\
+        \x20 a-command-name-too-long-for-the-column\n\
+        \x20         Fly it the long way\n\
         \x20 help    Print this message\n\
         \n\
         Arguments:\n\
@@ -3048,6 +3061,7 @@ mod tests {
                 "Fly a design and print its flight",
                 &format!("It reads  {code}  files.")[..],
                 "List the motors, with their figures",
+                "Fly it the long way",
                 "Print this message",
                 "The design to fly",
                 "A wind at every height, m/s",

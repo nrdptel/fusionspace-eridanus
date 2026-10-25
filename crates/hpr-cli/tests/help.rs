@@ -121,6 +121,7 @@ fn each_snapshot_is_a_commands() {
                 .to_string_lossy()
                 .into_owned()
         })
+        .filter(|name| name.ends_with(".help"))
         .collect();
     found.sort();
     let mut sorted = expected.clone();
@@ -132,4 +133,31 @@ fn each_snapshot_is_a_commands() {
     // The walk reaches the nested commands too.
     assert!(expected.contains(&"hpr-motors-show.help".to_owned()));
     assert!(expected.contains(&"hpr-weather-era5.help".to_owned()));
+}
+
+/// The usage lines say `hpr` whatever the binary's file is called, as on Windows, where it's
+/// `hpr.exe`: clap would otherwise take the name it was started by.
+#[test]
+fn the_usage_line_says_hpr_whatever_the_file_is_called() {
+    for args in [
+        &["C:\\tools\\hpr.exe", "--help"][..],
+        &["/usr/local/bin/hpr.exe", "sim", "--help"],
+        &["hpr-0.2", "motors", "show", "--help"],
+    ] {
+        let Err(error) = hpr_cli::command().try_get_matches_from(args) else {
+            panic!("{args:?}: no help");
+        };
+        assert_eq!(
+            error.kind(),
+            clap::error::ErrorKind::DisplayHelp,
+            "{args:?}"
+        );
+        let help = error.render().to_string();
+        let usage = help
+            .lines()
+            .find(|line| line.starts_with("Usage: "))
+            .unwrap_or_else(|| panic!("{args:?}\n{help}"));
+        let words: Vec<&str> = usage.split(' ').collect();
+        assert_eq!(words[1], "hpr", "{args:?}: {usage}");
+    }
 }

@@ -85,12 +85,13 @@ const DISPLAY_NAME: &str = hpr::hpr_core::tool::NAME;
 /// The command line as clap parses it: [`Cli`]'s derived command, with [`DISPLAY_NAME`] on it and
 /// on every command under it, and each command's examples and guide after its help
 /// ([`help::with_examples`]). Without the name, clap names a command's version by its
-/// binary's name and the command's, joined with a hyphen.
+/// binary's name and the command's, joined with a hyphen. The binary's name is set to `hpr`, so
+/// the usage lines say `hpr` whatever the file is called (`hpr.exe` on Windows).
 pub fn command() -> clap::Command {
     fn named(command: clap::Command) -> clap::Command {
         command.display_name(DISPLAY_NAME).mut_subcommands(named)
     }
-    help::with_examples(named(Cli::command()))
+    help::with_examples(named(Cli::command())).bin_name("hpr")
 }
 
 /// How a run of `hpr` ended: its process exit status.
@@ -167,16 +168,15 @@ pub enum Command {
     Motors(motors::MotorsCommand),
     /// Fetch a launch day's weather, or read a weather file, as a profile of air and wind
     ///
-    /// For a launch still to come, ask open-meteo, gfs, or in the contiguous U.S., rap. For one
-    /// already flown, ask open-meteo with --historical, read a wyoming balloon sounding, or read
-    /// an era5 file.
+    /// For a launch still to come, use `open-meteo` or `gfs`, or `rap` in the contiguous U.S. and
+    /// nearby. For one already flown, use `open-meteo --historical`, `wyoming` or `era5`.
     #[command(subcommand)]
     Weather(weather::WeatherCommand),
     /// Fly a design many times with its inputs scattered at random, and print how its apogee and
     /// landing spread; save every flight with --export
     ///
     /// A spread given as a fraction is one standard deviation as a share of the value: 0.03 is
-    /// 3%.
+    /// 3%. Every spread is 0 unless given, so only the inputs given one are scattered.
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),

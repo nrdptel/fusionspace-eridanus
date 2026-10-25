@@ -121,8 +121,10 @@ impl RseEngine {
 /// elements nested more than [`MAX_ELEMENT_DEPTH`] deep, or no `<engine>` elements; and, when no
 /// engine reads, the first engine's error: a missing required attribute (`code`, `dia`, `len`,
 /// `initWt`, `propWt`), an unreadable or non-finite number, a non-positive diameter or length, a
-/// negative mass, fewer than two points, a point without `t` or `f`, or negative or decreasing
-/// time.
+/// negative mass, fewer than two points, a point without `t` or `f`, negative or decreasing
+/// time, or a curve that ends above half its peak thrust, as cut off ([`CUT_OFF_SHARE`]).
+///
+/// [`CUT_OFF_SHARE`]: crate::curve::CUT_OFF_SHARE
 pub fn parse(text: &str) -> Result<Parsed<RseFile>, MotorError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     check_nesting(text)?;
@@ -217,7 +219,8 @@ impl Lines {
 /// # Errors
 ///
 /// - [`MotorError::Inconsistent`] for no engines, an engine with fewer than two points, points of
-///   which only some carry `m` or `cg`, or text holding a character XML 1.0 can't carry.
+///   which only some carry `m` or `cg`, text holding a character XML 1.0 can't carry, or a curve
+///   that ends above half its peak thrust, which the reader would refuse as cut off.
 /// - [`MotorError::Domain`] for the values the reader rejects: non-finite numbers, a
 ///   non-positive diameter or length, negative masses or times, and decreasing times.
 pub fn write(file: &RseFile) -> Result<String, MotorError> {

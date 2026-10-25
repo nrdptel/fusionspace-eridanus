@@ -239,14 +239,22 @@ pub fn command_table(links: Links) -> String {
 /// site's typography would draw them as a dash.
 fn options_as_code(text: &str) -> String {
     text.split(' ')
-        .map(|word| match word.strip_prefix("--") {
-            Some(rest) if rest.starts_with(|c: char| c.is_ascii_alphanumeric()) => {
-                let end = 2 + rest
-                    .find(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
-                    .unwrap_or(rest.len());
-                format!("`{}`{}", &word[..end], &word[end..])
+        .map(|word| {
+            // Punctuation may open the word, as in `(--export)`.
+            let start = word
+                .find(|c: char| c.is_ascii_alphanumeric() || c == '-')
+                .unwrap_or(word.len());
+            match word[start..].strip_prefix("--") {
+                Some(rest) if rest.starts_with(|c: char| c.is_ascii_alphanumeric()) => {
+                    let end = start
+                        + 2
+                        + rest
+                            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+                            .unwrap_or(rest.len());
+                    format!("{}`{}`{}", &word[..start], &word[start..end], &word[end..])
+                }
+                _ => word.to_owned(),
             }
-            _ => word.to_owned(),
         })
         .collect::<Vec<_>>()
         .join(" ")
@@ -350,8 +358,16 @@ mod tests {
             "save it with `--export`, or `--plot-file`."
         );
         assert_eq!(options_as_code("a -- dash and --"), "a -- dash and --");
+        assert_eq!(
+            options_as_code("(--export) or \"--plot\""),
+            "(`--export`) or \"`--plot`\""
+        );
         let table = command_table(Links::Guide);
         assert!(table.contains("`--export`"), "{table}");
-        assert!(!table.contains(" --"), "{table}");
+        // No option name is left outside code, whatever opens its word.
+        for row in table.lines().filter(|row| !row.starts_with("|---")) {
+            let outside: String = row.split('`').step_by(2).collect();
+            assert!(!outside.contains("--"), "{row}");
+        }
     }
 }

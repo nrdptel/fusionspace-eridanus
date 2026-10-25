@@ -139,7 +139,8 @@ pub struct FlightArgs {
         value_parser = crate::typed::number::<f64>()
     )]
     pub wind_from: f64,
-    /// Fly a design whose checks find errors, such as a motor wider than its mount
+    /// Fly a design whose checks find errors, such as a motor wider than its mount. The flight
+    /// may not be physical
     #[arg(long)]
     pub accept_design_errors: bool,
     /// Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only,

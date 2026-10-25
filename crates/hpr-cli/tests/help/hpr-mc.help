@@ -1,6 +1,6 @@
 Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with --export
 
-A spread given as a fraction is one standard deviation as a share of the value: 0.03 is 3%.
+A spread given as a fraction is one standard deviation as a share of the value: 0.03 is 3%. Every spread is 0 unless given, so only the inputs given one are scattered.
 
 Usage: hpr mc [OPTIONS] <DESIGN>
 
@@ -65,7 +65,7 @@ Options:
           [default: 0]
 
       --accept-design-errors
-          Fly a design whose checks find errors, such as a motor wider than its mount
+          Fly a design whose checks find errors, such as a motor wider than its mount. The flight may not be physical
 
       --offline
           Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only, never on the network

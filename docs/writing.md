@@ -332,7 +332,7 @@ what a command does, what each option and argument says, each command's summary 
 commands, and the examples' captions. The names of options, a note in brackets at a line's
 end, such as `[default: 0]`, and the example commands are code to it, so a default that needs words goes in a
 sentence. Change a command's help and
-the test fails until you write the snapshots again with
+the test fails until you regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
 

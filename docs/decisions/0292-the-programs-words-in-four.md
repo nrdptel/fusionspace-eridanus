@@ -37,8 +37,8 @@ split. ADR-285's hold carries over: once an increment's text passes, a check kee
    | Increment | What | Size on main |
    |---|---|---|
    | M0.14d1 The help | each command's `--help`, a snapshot of each, and the voice check reading them | 20 screens, 4,394 words |
-   | M0.14d2 What the design commands say | the errors, warnings and notes `hpr sim`, `hpr mc`, `hpr convert` and `hpr motors` print, from `hpr-cli` and the crates under them: `hpr`, `hpr-sim`, `hpr-io`, `hpr-motor`, `hpr-design`, `hpr-aero`, `hpr-core`, `hpr-format`, `hpr-atmos` | 160 `#[error]` attributes; roughly 25,000 words of literals |
-   | M0.14d3 What the data commands say | the same for `hpr weather`, `hpr motors fetch` and `search`, and `hpr analyze`: `hpr-net`, `hpr-flightdata`, `hpr-analysis`, `hpr-forensics` | 96 `#[error]` attributes; roughly 30,000 words of literals |
+   | M0.14d2 What the design commands say | the errors, warnings and notes `hpr sim`, `hpr mc`, `hpr convert`, `hpr motors list` and `hpr motors show` print, from `hpr-cli` and the crates under them: `hpr`, `hpr-sim`, `hpr-io`, `hpr-motor`, `hpr-design`, `hpr-aero`, `hpr-core`, `hpr-format`, `hpr-atmos` | 160 `#[error]` attributes; roughly 25,000 words of literals |
+   | M0.14d3 What the data commands say | the same for `hpr weather`, `hpr motors fetch` and `search`, and `hpr analyze`, from `hpr-cli` and `hpr-net`, `hpr-flightdata`, `hpr-analysis`, `hpr-forensics` | 96 `#[error]` attributes; roughly 30,000 words of literals |
    | M0.14d4 The Python package and the crates' front pages | the Python package's README, module and docstrings, `hpr-py`'s own messages, and each crate's `//!` docs; with M0.14d's own *done when* | about 9,400 words of docs, and about 65 of `hpr-py`'s literals |
 
    `hpr-validate` is left out: it builds the validation reports, isn't published and prints
@@ -119,7 +119,7 @@ just stops: a G84 curve cut after 13 of its 29 points read as an F motor of 79.1
 that the curve ends above zero thrust. The task stands as written. The fix is in the motor readers:
 the `.eng` and `.rse` readers, and their writers, refuse a curve whose last thrust is above half its
 peak; in a file of several, only that entry is skipped, with a warning. The RASP format says the final point must have zero thrust, but real files don't always. Of
-the 2,575 curves the readers read from 284 of the 286 motor files under the project's reference
+the 3,585 curves the readers read from 1,294 of the 1,301 motor files under the project's reference
 checkouts, 8 end above zero, the highest at 10.5% of its peak, so half the peak refuses none of
 them. A test reads those files and prints the figures wherever the checkouts are. A cut where the
 thrust is under half its peak, in the tail-off or a sustain phase, keeps the warning.

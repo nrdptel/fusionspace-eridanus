@@ -1,6 +1,6 @@
 Fetch a launch day's weather, or read a weather file, as a profile of air and wind
 
-For a launch still to come, ask open-meteo, gfs, or in the contiguous U.S., rap. For one already flown, ask open-meteo with --historical, read a wyoming balloon sounding, or read an era5 file.
+For a launch still to come, use `open-meteo` or `gfs`, or `rap` in the contiguous U.S. and nearby. For one already flown, use `open-meteo --historical`, `wyoming` or `era5`.
 
 Usage: hpr weather [OPTIONS] <COMMAND>
 

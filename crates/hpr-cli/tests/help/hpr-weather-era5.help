@@ -4,7 +4,7 @@ Usage: hpr weather era5 [OPTIONS] --latitude <DEG> --longitude <DEG> --time <TIM
 
 Arguments:
   <FILE>
-          The ERA5 pressure-level file, netCDF classic
+          The ERA5 pressure-level file, netCDF classic, from the Copernicus Climate Data Store
 
 Options:
       --json

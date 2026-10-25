@@ -102,7 +102,9 @@ fn is_stamp(comment: &str) -> bool {
 /// When no entry reads, the first entry's error: [`MotorError::Syntax`], with the line number,
 /// for a header without seven fields, a bad number, a line that is neither a point nor a header,
 /// an entry with no points, negative or decreasing time, a non-finite value, a non-positive
-/// diameter or length, or a negative mass. A file with no entries at all is also an error.
+/// diameter or length, a negative mass, or a curve that ends above half its peak thrust, as cut
+/// off ([`CUT_OFF_SHARE`](crate::curve::CUT_OFF_SHARE)). A file with no entries at all is also an
+/// error.
 pub fn parse(text: &str) -> Result<Parsed<EngFile>, MotorError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let text = text.replace("\r\n", "\n").replace('\r', "\n");
@@ -217,7 +219,8 @@ fn add_point(entry: &mut EngEntry, fields: &[&str], line: usize) -> Result<(), M
 /// - [`MotorError::Inconsistent`] for a name that is empty, holds whitespace or starts with `;`;
 ///   delays that are empty or hold whitespace; a manufacturer that is empty or isn't its words
 ///   joined by single spaces; a comment that is empty, holds a line break or ends in whitespace;
-///   an entry with no points; or a file with no entries. The reader would not read these back
+///   an entry with no points; a curve that ends above half its peak thrust, which the reader
+///   refuses as cut off; or a file with no entries. The reader would not read these back
 ///   unchanged.
 /// - [`MotorError::Domain`] for the values the reader rejects: non-finite numbers, a
 ///   non-positive diameter or length, negative masses or times, and decreasing times.

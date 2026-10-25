@@ -41,14 +41,15 @@ pub const NFPA_1125_THRESHOLD: f64 = 0.05;
 /// and the `.eng` and `.rse` readers refuse it.
 ///
 /// The RASP format says "the final point must have a thrust of zero" (`docs/format/eng.md`), but
-/// real files don't always: of the 2,575 curves the two readers read from 284 of the 286 `.eng`
-/// and `.rse` files under the project's reference checkouts on 2026-10-25, 8 end above zero, the
+/// real files don't always: of the 3,585 curves the two readers read from 1,294 of the 1,301
+/// `.eng` and `.rse` files under the project's reference checkouts on 2026-10-25, 11 end above zero, the
 /// highest at 10.5% of its peak (`tests/reference_curves.rs` prints the figures where the
 /// checkouts are present). Those stop in the tail-off and are read, with a warning. A file cut
 /// off during the burn stops near full thrust, and read as a motor it understates the impulse: a
 /// G84 curve cut after 13 of its 29 points reads as an F motor. Half the peak sits nearly five times
 /// above the highest real end. A cut where the thrust is under half its peak, in the tail-off or
-/// in a boost-sustain motor's sustain phase, isn't caught, and keeps the warning.
+/// in a boost-sustain motor's sustain phase, isn't caught, and keeps the warning; nor is a file cut
+/// inside a number, when the digits left read as a small thrust.
 pub const CUT_OFF_SHARE: f64 = 0.5;
 
 /// `Some((last, peak))`, in newtons, when a curve's last thrust is above [`CUT_OFF_SHARE`] of its
@@ -661,7 +662,7 @@ mod tests {
         let cut = |thrusts: &[f64]| cut_off(thrusts.iter().copied());
         assert_eq!(cut(&[0.0, 100.0, 60.0]), Some((60.0, 100.0)));
         assert_eq!(cut(&[100.0]), Some((100.0, 100.0)));
-        // Exactly half, and the tail-off ends of real files, aren't.
+        // Exactly half isn't, nor a tail-off end like a real file's, nor an invented end at 16%.
         assert_eq!(cut(&[0.0, 100.0, 50.0]), None);
         assert_eq!(cut(&[0.0, 3081.74, 14.3561]), None);
         assert_eq!(cut(&[0.0, 2200.0, 350.0]), None);

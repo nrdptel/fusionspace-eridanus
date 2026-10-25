@@ -63,7 +63,7 @@ Options:
           [default: 0]
 
       --accept-design-errors
-          Fly a design whose checks find errors, such as a motor wider than its mount
+          Fly a design whose checks find errors, such as a motor wider than its mount. The flight may not be physical
 
       --offline
           Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only, never on the network
