@@ -89,7 +89,7 @@
       "$ref": "#/$defs/Stated"
     },
     "temperature_k": {
-      "description": "The logger's temperature sensor, K; `None` if the file has no such column. It sits in the\nelectronics bay, so it reads the bay, not the air.",
+      "description": "The logger's temperature sensor, K; `None` if the file has no such column, or if its unit\ncan't be told (the column is then kept as written in `channels`). It sits in the\nelectronics bay, so it reads the bay, not the air.",
       "type": [
         "array",
         "null"
