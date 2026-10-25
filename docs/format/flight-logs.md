@@ -2033,8 +2033,8 @@ decisions over the sample logs:
     within half a second of it. In all 7 sample logs with a summary, the two agree within 0.01 s.
     The landing time is read in seconds when two tests pass. Read so, it comes after the highest
     altitude. And the log's altitude there is the summary's landing height within 0.01 m (0.033
-    ft). Read in milliseconds, the log's altitude there isn't within 0.01 m of it. The manual's *Flight info page* gives
-    the landing as "when it landed, and the height it came to rest at". In all 7, the two agree
+    ft). Read in milliseconds, the log's altitude there isn't within that bound. The manual's
+    *Flight info page* gives the landing as "when it landed, and the height it came to rest at". In all 7, the two agree
     within 0.001 m (0.0033 ft). Read in milliseconds, the time falls on the climb, more than a
     meter from the landing height. A time the altitude doesn't bear out is left out, with a note
     saying why.
