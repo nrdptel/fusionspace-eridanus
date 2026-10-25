@@ -656,8 +656,9 @@ One line per milestone or increment, in the order it was archived within its pha
   - [x] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the
     guides' landing pages, fusionspace.co, the design repo's README, the profile README and
     ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
-    Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged. They
-    went live on 2026-10-20, and the live texts were scored and read on 2026-10-25.
+    Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged. The
+    About texts went live on 2026-10-20, and were scored and read live on 2026-10-25 ([PR
+    #838](https://github.com/nrdptel/fusionspace-eridanus/pull/838) holds the rewrite).
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
