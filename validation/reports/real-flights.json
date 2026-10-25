@@ -298,8 +298,8 @@
       "recorded_thrust": null,
       "pressure_reading_max_m": null,
       "gnss_apogee_m": null,
-      "inputs_sha256": "318adbc5c84fe7c774eea58c2b4bb03b9a48564f44a68ea7d48828fd8a3b952e",
-      "note": "the log is read to 23.6 s, the first row the ground station tags Drogue: past it, the radio telemetry's filtered height rises to 2789 m, most likely moved by the ejection charge's pressure pulse; the coast's peak before it is 2785 m",
+      "inputs_sha256": "4212e85d577618472d71b5fc07632315cd7587f955f70a0a99c265fb73e82a0a",
+      "note": "the log is read to 23.6 s, the first row the team's ground-station log tags Drogue: past it, the radio telemetry's filtered height rises 8 m in 0.2 s, to 2789 m, faster than the rocket can climb and about 2 s before the drogue charge fires (its continuity holds to 25.6 s); the coast's peak before it is 2785 m",
       "explanation_kind": "drag",
       "explanation": "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power off and 18.3% below power on (the aerodynamics page's comparison; the power-on gap's cause is open), and the design's fin edges are placeholders, since the example records none."
     },

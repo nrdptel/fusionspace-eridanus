@@ -829,10 +829,13 @@ of its height ([report][real-report]). That's the same direction and nearly the 
 2 points lower on both, on the side of both flights' misses. Juno III's log is cut up to 20 m (66 ft)
 below its apogee, which would put its own ratio as high as 0.941 ([decision][adr-082]).
 
-Three logs are cut by hand just before a pressure transient at their apogee, where the reading
-jumps. Juno III's rises 62 m (203 ft) in 0.3 s as it levels off. The team's reported apogee is that
+Four logs are cut by hand just before a transient at their apogee, where the reading jumps. Juno
+III's rises 62 m (203 ft) in 0.3 s as it levels off. The team's reported apogee is that
 spike. At the cut its own velocity column still reads 17.5 m/s (57 ft/s) up. So its apogee may be 10 m (33 ft) to
-20 m (66 ft) low ([report][real-report]).
+20 m (66 ft) low ([report][real-report]). Cavour's is read to its apogee event, where its coast
+peaked at 2,785 m (9,137 ft). Two rows later its filtered height reads 2,789 m (9,150 ft), the
+team's official apogee: a rise of 8 m (26 ft) in 0.2 s from a fall of 5 m/s (16 ft/s), which the
+rocket can't fly. It comes about 2 s before the drogue charge fires ([decision][adr-293]).
 
 **What is compared.**
 
@@ -1182,6 +1185,7 @@ rest.
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
