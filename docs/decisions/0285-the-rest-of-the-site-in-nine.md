@@ -289,6 +289,33 @@ the pages, the way a flyer would:
    reading compares with RocketPy's and what it leaves out. From the `.pf2` page, say what the
    layout holds and what is refused.
 
+**M0.14c9's tasks,** done the same way, on the PR's final commit:
+
+1. From the flight-log formats page's opening and *How far to trust it*, say which sample logs
+   aren't read and why, what a reader does with a unit no header names, and how a layout the
+   page doesn't know is treated, with the page's counts.
+2. From *To read a flight*, say how a program and the command line read a file, and which
+   readings a record gives and when one is withheld. Read the page's worked example file
+   (`crates/hpr-flightdata/tests/samples/perfectflite-export.csv`) with `hpr analyze` and say
+   whether its output agrees with *A worked example*.
+3. From *The layouts read*, *Zip archives* and *Excel workbooks*, say how a layout is recognized,
+   how an archive's files and a workbook's sheets are read, and what is left out, with the page's
+   counts.
+4. From *Tables read by their headers*, *Mappings a publisher states* and *Tables a mapping holds
+   to physics*, say how a table's columns and units are decided, which units a physical check
+   holds, and what a mapping you write is held to.
+5. From *Binary records by a stated layout* and the binary layouts after it, say what a layout
+   must state, how each was checked and on how many files, and what the page says rests on one
+   sample.
+6. From *The record*, *Units no source states* and *Units the file decides*, say what a record
+   holds, which units no source states, and how a reader decides a unit, with one example the
+   page gives.
+7. From *GPS logs* and *Raw downloads*, say which tracks and raw files are read, how a raw
+   download compares with its maker's export, and which files have no export beside them, with
+   the page's counts.
+8. From *How it was checked*, say what `cargo xtask logs` reads and leaves out, what its report
+   holds, and how a reader of the page finds the counts the page quotes.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has
