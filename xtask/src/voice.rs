@@ -2723,14 +2723,19 @@ mod tests {
         assert!(error.contains("held pages that miss"), "{error}");
     }
 
-    /// Every page the table of contents links is held, a draft entry has no page, the records
-    /// page [`LEFT_OUT`] names isn't, and the two pages beside it are.
+    /// Every page the table of contents links is held, a nested entry and one with a link title
+    /// too, a draft entry has no page, the records page [`LEFT_OUT`] names isn't, and the two
+    /// pages beside it are. A link in an HTML comment or in inline code isn't an entry, and
+    /// holds nothing.
     #[test]
     fn the_table_of_contents_holds_its_pages() {
         let contents = "# Summary\n\n[Start here](start-here.md)\n\n# Formats\n\n\
                         - [Flight logs](format/flight-logs.md)\n  \
-                        - [A part of it](./format/flight-logs.md#gps-logs)\n\
+                        - [A part of it](./format/flight-logs.md#gps-logs)\n    \
+                        - [Nested deeper](format/ork.md \"With a title\")\n\
                         - [A draft]()\n\
+                        <!-- - [Hidden](hidden.md) -->\n\
+                        - `[In code](code.md)`\n\
                         - [Decisions and the roadmap](decisions-and-roadmap.md)\n";
         assert_eq!(
             held_from(contents).unwrap(),
@@ -2738,6 +2743,7 @@ mod tests {
                 "README.md",
                 "docs/404.md",
                 "docs/format/flight-logs.md",
+                "docs/format/ork.md",
                 "docs/start-here.md"
             ]
         );
