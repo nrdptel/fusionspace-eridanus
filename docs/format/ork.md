@@ -906,11 +906,12 @@ a design holding one flies as OpenRocket flies it. A `tubecoupler`
 or an `engineblock` written `auto` fills its parent as above.
 
 **Measured.** Fourteen probe designs in `validation/oracles/openrocket/conventions.py` ask
-OpenRocket these questions. Six hold a coupler of automatic radius, each placed one way. Three sit at a
-nose's bottom, past its base and with a shoulder. The others are long from its middle, at the tip,
-and with a wall thicker than its bore. Others hold an ogive nose, a transition, an engine block, a centering ring
-and a bulkhead. The rest hold a mass component inside, and an inner tube written `auto`, in a nose
-and in a tube. HPR Sim flies 13 of the
+OpenRocket these questions. Ten hold a coupler of automatic radius. Two hold it at a nose's
+bottom, in a plain and in an ogive nose. Two hold it past a nose's base, with and without a
+shoulder. One holds a long coupler from a nose's middle, and one holds it at the tip. Two hold one
+whose wall is thicker than its bore, in a nose and in a tube. One holds a mass inside it, and
+one is in a transition. Of the other four, one holds an engine block, and one a centering ring and
+a bulkhead. Two hold an inner tube written `auto`, in a nose and in a tube. HPR Sim flies 13 of the
 14. Every part inside a nose cone, transition or tube but one weighs OpenRocket's mass at
 OpenRocket's station. The test holds the mass to 1e-14 and the station to 1e-15. Three things are
 pinned apart:
