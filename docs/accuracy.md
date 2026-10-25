@@ -832,8 +832,8 @@ below its apogee, which would put its own ratio as high as 0.941 ([decision][adr
 Four logs are cut by hand just before a transient at their apogee, where the reading jumps. Juno
 III's rises 62 m (203 ft) in 0.3 s as it levels off. The team's reported apogee is that
 spike. At the cut its own velocity column still reads 17.5 m/s (57 ft/s) up. So its apogee may be 10 m (33 ft) to
-20 m (66 ft) low ([report][real-report]). Cavour's is read to its apogee event, 0.3 s to 0.5 s
-after its coast reached its peak of 2,785 m (9,137 ft). Two rows later its filtered height reads 2,789 m (9,150 ft),
+20 m (66 ft) low ([report][real-report]). Cavour's is read to its apogee event, just after its
+coast reached its peak of 2,785 m (9,137 ft). Two rows later its filtered height reads 2,789 m (9,150 ft),
 the team's official apogee: a rise of 8 m (26 ft) in 0.2 s from a fall of 5 m/s (16 ft/s), which
 the rocket can't fly. It comes about 2 s before the drogue charge most likely fires
 ([decision][adr-293]).
