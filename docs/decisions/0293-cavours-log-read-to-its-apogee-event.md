@@ -38,7 +38,8 @@ within 0.6 m (2 ft) of a noise-free barometric apogee, and the computer's height
 1976 standard atmosphere's differ by up to 0.7 m (2 ft) ([filtered column][filtered], its summary
 and §3). So Cavour's filtered peak, 2,785 m to 2,786 m before rounding down, is within about
 1.3 m (4 ft) of its barometric apogee. The scored 2,785 m is then between 1.3 m (4 ft) above and
-2.3 m (8 ft) below it: up to 0.08 points either way on Cavour's +5.78%.
+2.3 m (8 ft) below it. Against those two ends, Cavour's +5.78% would read +5.83% and +5.69%:
+0.05 points one way and 0.09 the other.
 
 **Decision.** Cavour's record reads its log to 23.6 s (`until_s`, the last time read), the
 drogue event's row. Its note says why, and its altimeter text says what the log holds. A test
