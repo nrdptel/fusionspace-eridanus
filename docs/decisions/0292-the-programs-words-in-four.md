@@ -1,6 +1,6 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
-- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help
+- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help
 - **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 3,300 words, but the messages are about 270 error types and over a hundred warning sites in 15 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
