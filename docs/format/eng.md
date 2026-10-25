@@ -154,17 +154,13 @@ What real files do, and what the reader and writer do with each case.
    `inf`, `infinity` and `NaN`**. Reject every non-finite value.
 6. Points are kept verbatim; no implicit origin is inserted into the file model. Errors: no points,
    negative time, time decreasing, and a last thrust above half the entry's peak
-   ([`CUT_OFF_SHARE`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/curve.rs)). That last one means the file looks cut off: a G84 curve
-   cut after 13 of its 29 points would read as an F motor. In a file of several entries, only that
-   entry is skipped, with a warning.
-   - Real files end at 10.5% of their peak at most. Of the 3,585 curves read from 1,294 motor
-     files in the project's reference checkouts, which aren't in the repository, 11 end above zero
-     ([`reference_curves.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). So half the peak refuses
-     none of them.
-   - A cut below half the peak, in the tail-off or a sustain phase, isn't caught. Nor is a cut
-     inside a number that leaves a small thrust. Those read, with the warning below.
-   - Warnings, on the header's line: a lower last thrust $\ne 0$, negative thrust, and delay pieces
-     the delay reader drops or flags. Equal consecutive times are accepted
+   ([`CUT_OFF_SHARE`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/curve.rs)): the file looks cut off, and a G84 curve cut after 13 of
+   its 29 points would read as an F motor. In a file of several entries, only that entry is
+   skipped, with a warning. Of 3,585 curves in the project's reference checkouts (not in the
+   repository), 11 end above zero, at 10.5% of the peak at most
+   ([a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). A lower cut, or one inside a number,
+   reads with a warning. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
+   thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
 7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
    with a warning. It maps `P`/`p` → plugged and `100`/`1000` → plugged. It reads `0` as its own

@@ -177,7 +177,8 @@ What else real files do, and what the reader and writer do with each case.
    Delays: keep the raw string; interpret it as in [`.eng` files](eng.md) (`1000`/`100` → plugged, `0` ambiguous).
 7. Point checks match `.eng`. Error on negative or decreasing `t`, and on a last `f` above half the
    curve's peak, where the file looks cut off. When other engines in the file read, that engine is
-   skipped, with a warning. Warn on a lower last `f` ≠ 0, on negative thrust, and on an `Itot` or `peakThrust` that disagrees with the curve by more than 1%.
+   skipped, with a warning. Warn on a lower last `f` ≠ 0, on negative thrust, and on an `Itot` or
+   `peakThrust` that disagrees with the curve by more than 1%.
    `burn-time` is not checked: files round it from the last time.
 
 ### Writer policy (strict, round-trip stable)

@@ -281,7 +281,8 @@ misses a sentence target ([below](#measured-not-gated)). A test fails when the r
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
-(Markdown, HTML, text, or a command's help in a `.help` file) and prints the report. That's how fusionspace.co's pages and the design
+(Markdown, HTML, text, or a command's help in a `.help` file) and prints the report. That's how
+fusionspace.co's pages and the design
 system's get checked. In the report, a rate in bold is over its limit, and `ref` marks a
 reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
 
@@ -326,13 +327,11 @@ target missed, fails the build. The report marks those pages `held`. A page adde
 contents is held from its first commit
 ([the plan that rewrote the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-The command-line tool's help is held the same way. A test pins each command's `--help` in a snapshot under
-`crates/hpr-cli/tests/help/`, and the check holds every snapshot. It reads only the help's prose:
-what a command does, what each option and argument says, each command's summary in a list of
-commands, and the examples' captions. The names of options, a note in brackets at a line's
-end, such as `[default: 0]`, and the example commands are code to it, so a default that needs words goes in a
-sentence. Change a command's help and
-the test fails until you regenerate the snapshots with
+The command-line tool's help is held the same way. A test pins each command's `--help` in a
+snapshot under `crates/hpr-cli/tests/help/`, and the check holds every snapshot. It reads only the
+help's prose: option names, notes such as `[default: 0]` and example commands are code to it, so a
+default that needs words goes in a sentence. Change a command's help and the test fails until you
+regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
 
