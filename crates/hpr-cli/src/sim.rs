@@ -74,19 +74,19 @@ pub struct FlightArgs {
     /// or a rocket's JSON (.json)
     pub design: String,
     /// The motor configuration to fly: its number in the list the output shows, its name, or its
-    /// id [default: the design's default, or its only one]
+    /// id. Without it, the design's default flies, or its only one
     #[arg(long, value_name = "NAME")]
     pub config: Option<String>,
     /// Fly this motor in place of the configuration's, lit at launch: a catalog designation or
     /// common name, or a .eng or .rse file
     #[arg(long, value_name = "NAME_OR_FILE")]
     pub motor: Option<String>,
-    /// The motor mount that --motor goes in, by its name or its component id [default: the
-    /// configuration's, or the design's only one]
+    /// The motor mount that --motor goes in, by its name or its component id. Without it, the
+    /// motor goes in the configuration's mount, or the design's only one
     #[arg(long, value_name = "NAME", requires = "motor")]
     pub mount: Option<String>,
     /// The ejection delay of --motor's motor: seconds from burnout to its charge (0 fires it at
-    /// burnout), or P for a plugged motor [default: none, so it fires no charge]
+    /// burnout), or P for a plugged motor. Without it, the motor fires no charge
     #[arg(long, value_name = "S_OR_P", requires = "motor", value_parser = DelayArg)]
     pub delay: Option<Delay>,
     /// The launch site's latitude, degrees north (south is negative)

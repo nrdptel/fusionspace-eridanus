@@ -5,11 +5,11 @@ Every command prints text, or one JSON document with --json. A command marked "n
 Usage: hpr [OPTIONS] <COMMAND>
 
 Commands:
-  sim          Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail, print its flight, and export its recording
+  sim          Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail and print its flight; save its recording with --export
   convert      Convert a motor file between .eng and .rse, write a catalog motor as either, or convert a design between .ork, .hpr and .hprz
   motors       Look up motors in the bundled catalog, read a .eng or .rse motor file, fetch a curve from ThrustCurve.org, or search vendors' stock and prices
   weather      Fetch a launch day's weather, or read a weather file, as a profile of air and wind
-  mc           Fly a design many times with its inputs scattered at random, print how its apogee and landing spread, and export every flight
+  mc           Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with --export
   optimize     Search a design's parameters for a goal (not available yet)
   compare      Compare a flight log with its simulation (not available yet)
   analyze      Read a flight log and print its readings, with no design file

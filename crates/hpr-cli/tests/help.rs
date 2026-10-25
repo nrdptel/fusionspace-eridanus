@@ -4,6 +4,16 @@
 //! `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`. `cargo xtask voice` reads the
 //! snapshots and holds each one to the writing guide's voice limits (M0.14d1).
 
+#![allow(
+    clippy::disallowed_methods,
+    clippy::disallowed_types,
+    reason = "the tests run the built `hpr` and read and write the snapshots; not the pure core"
+)]
+#![allow(
+    clippy::panic,
+    reason = "the helpers stop at the failure, as `#[test]` functions may (clippy.toml)"
+)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;

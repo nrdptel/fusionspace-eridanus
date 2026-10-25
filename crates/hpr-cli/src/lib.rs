@@ -155,8 +155,8 @@ pub struct Cli {
 /// The commands, in the order `hpr --help` lists them.
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail, print its flight, and
-    /// export its recording
+    /// Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail and print its flight; save
+    /// its recording with --export
     Sim(sim::SimArgs),
     /// Convert a motor file between .eng and .rse, write a catalog motor as either, or convert a
     /// design between .ork, .hpr and .hprz
@@ -168,8 +168,8 @@ pub enum Command {
     /// Fetch a launch day's weather, or read a weather file, as a profile of air and wind
     #[command(subcommand)]
     Weather(weather::WeatherCommand),
-    /// Fly a design many times with its inputs scattered at random, print how its apogee and
-    /// landing spread, and export every flight
+    /// Fly a design many times with its inputs scattered at random, and print how its apogee and
+    /// landing spread; save every flight with --export
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),
@@ -927,7 +927,7 @@ mod tests {
             command().render_help().to_string(),
             command().render_long_help().to_string(),
         ] {
-            assert!(help.starts_with("FusionSpace HPR · Sim: "), "{help}");
+            assert!(help.starts_with("FusionSpace HPR · Sim "), "{help}");
             assert!(help.contains("Usage: hpr "), "{help}");
         }
     }

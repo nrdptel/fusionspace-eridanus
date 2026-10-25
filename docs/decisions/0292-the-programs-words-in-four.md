@@ -1,7 +1,7 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
 - **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help
-- **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 3,300 words, but the messages are about 270 error types and over a hundred warning sites in 15 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
+- **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
 [adr-282]: 0282-the-project-tests-each-ui-milestone-itself.md
@@ -16,12 +16,14 @@ On 2026-10-25, main (094d49dc) has:
   `--help`, counted by `wc -w`. Nothing pins them, and `xtask voice` can't read them yet. It reads
   a text file as Markdown, so an option's description, indented ten spaces, is a code block to it:
   of `hpr sim --help`'s 472 words it scores 145.
-- **The errors and warnings.** 267 `#[error]` attributes in 15 crates, and, by a rough count, over a hundred
-  places that build a warning. The crates' library code holds about 60,000 words in string
-  literals of four words or more. That's an upper bound on the messages, since it also counts
-  column names, sample text and report wording. No check reads any of it.
-- **The Python docs.** The package's README (425 words), its module's 133 words, and about 4,500
-  words of docstrings written as Rust doc comments in `crates/hpr-py/src`.
+- **The errors and warnings.** 267 `#[error]` attributes in 14 crates, and 80 to 90 calls that
+  push a warning (76 and 89, by two counts). The crates' library code holds roughly 60,000 words in string literals of four
+  words or more, before any test module, comments left out (two counts differ by up to a tenth).
+  That's only a rough measure of the messages: it also counts the help, column names, sample text and report wording, and it misses
+  the shortest messages. No check reads any of it.
+- **The Python docs.** The package's README (425 words), its module's docstring (about 100
+  words), and about 4,200 words of docstrings written as Rust doc comments in
+  `crates/hpr-py/src`.
 - **The crates' top-level docs.** The `//!` comments of the 18 crates' `lib.rs`, about 4,700
   words in all, which docs.rs shows as each crate's front page.
 
@@ -35,9 +37,9 @@ split. ADR-285's hold carries over: once an increment's text passes, a check kee
    | Increment | What | Size on main |
    |---|---|---|
    | M0.14d1 The help | each command's `--help`, a snapshot of each, and the voice check reading them | 20 screens, 4,394 words |
-   | M0.14d2 What the design commands say | the errors, warnings and notes `hpr sim`, `hpr mc`, `hpr convert` and `hpr motors` print, from `hpr-cli` and the crates under them: `hpr`, `hpr-sim`, `hpr-io`, `hpr-motor`, `hpr-design`, `hpr-aero`, `hpr-core`, `hpr-format`, `hpr-atmos` | 160 `#[error]` attributes; at most about 25,000 words of literals |
-   | M0.14d3 What the data commands say | the same for `hpr weather`, `hpr motors fetch` and `search`, and `hpr analyze`: `hpr-net`, `hpr-flightdata`, `hpr-analysis`, `hpr-forensics` | 96 `#[error]` attributes; at most about 30,000 words |
-   | M0.14d4 The Python package and the crates' front pages | the Python package's README, module and docstrings, `hpr-py`'s own messages, and each crate's `//!` docs; with M0.14d's own *done when* | about 9,800 words of docs, and `hpr-py`'s 63 message literals |
+   | M0.14d2 What the design commands say | the errors, warnings and notes `hpr sim`, `hpr mc`, `hpr convert` and `hpr motors` print, from `hpr-cli` and the crates under them: `hpr`, `hpr-sim`, `hpr-io`, `hpr-motor`, `hpr-design`, `hpr-aero`, `hpr-core`, `hpr-format`, `hpr-atmos` | 160 `#[error]` attributes; roughly 25,000 words of literals |
+   | M0.14d3 What the data commands say | the same for `hpr weather`, `hpr motors fetch` and `search`, and `hpr analyze`: `hpr-net`, `hpr-flightdata`, `hpr-analysis`, `hpr-forensics` | 96 `#[error]` attributes; roughly 30,000 words of literals |
+   | M0.14d4 The Python package and the crates' front pages | the Python package's README, module and docstrings, `hpr-py`'s own messages, and each crate's `//!` docs; with M0.14d's own *done when* | about 9,400 words of docs, and about 65 of `hpr-py`'s literals |
 
    `hpr-validate` is left out: it builds the validation reports, isn't published and prints
    nothing a user of `hpr` sees. Its 11 errors reach only the project's own tools.
@@ -50,15 +52,15 @@ split. ADR-285's hold carries over: once an increment's text passes, a check kee
    - each example's caption.
 
    Left out as code: the `Usage:` line, the section titles, the names of options, arguments and
-   commands, clap's bracketed notes (`[default: auto]`), the example commands and the guide's
-   address. Text in backticks is code, as on a page. The help is a reference page ([ADR-284][adr-284]
+   commands, bracketed notes (`[default: auto]`, and the same form written by hand), the example
+   commands and the guide's address. So a default that needs words is written as a sentence. Text in backticks is code, as on a page. The help is a reference page ([ADR-284][adr-284]
    §2), so first person counts against a limit of zero.
 3. **The snapshots.** `crates/hpr-cli/tests/help/` holds one file a command, named by its path
    (`hpr-motors-show.help`). A test walks the command tree `hpr` parses, so a new command needs
    its snapshot and a removed one leaves none behind, and compares each with what the built `hpr`
    prints. `HPR_BLESS=1` writes them again, and the diff is reviewed in the PR. Only `--help` is
-   pinned. A command's `-h` prints the first paragraph of the same texts, so it holds nothing the
-   voice check misses.
+   pinned. A command's `-h` prints the first paragraph of the same texts, so, apart from clap's own
+   line about `-h` and `--help`, it holds nothing the voice check misses.
 4. **The hold.** Every snapshot is held as ADR-285 §1 holds a site page: no stock phrase, every
    rate within its limit, at most 20 words a sentence on average and fewer than one sentence in
    ten over 25 words. CI runs it in the site step, as it does for the pages, and the report
