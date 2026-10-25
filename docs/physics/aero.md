@@ -2615,8 +2615,8 @@ measured, tight enough to catch a broken pod rule. A pod fin's body interference
 airframe's radius would move a margin by some 0.04 calibers. The whole table is in the
 [committed report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#pod-probes).
 
-The first probes stated no surface finish. HPR Sim flew them 6.0% to 7.3% high because the two programs' defaults differ. OpenRocket reads a part with no finish as regular paint, 60 µm. HPR Sim's reader gives it HPR Sim's own default,
-20 µm ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216), which gives the
+The first probes stated no surface finish. HPR Sim flew them 6.0% to 7.3% high because the two programs' defaults differ. OpenRocket reads a part with no finish as regular paint, 60 µm. HPR Sim's reader gave it HPR Sim's own default,
+20 µm, and now reads it as OpenRocket does ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216), which gives the
 run). The probes now state their finish.
 
 One private design flies with pods too: `C02`, an anonymized design of the library

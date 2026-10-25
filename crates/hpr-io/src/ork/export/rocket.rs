@@ -31,7 +31,7 @@ use hpr_design::solids::Wall;
 use hpr_design::tree::{
     AutoDimension, Component, DragOverride, Overrides, Part, Position, ReferenceDiameter, Stage,
 };
-use hpr_design::{Density, Finish, Material};
+use hpr_design::{Density, Material};
 
 use super::super::Design;
 use super::super::attached::cluster_pattern;
@@ -522,7 +522,7 @@ impl<'a> Writer<'a> {
             covers,
             component.drag_override,
         );
-        self.finish(&mut element, at, component.finish);
+        self.finish(&mut element, at, component);
         self.copies(&mut element, at);
         if let Some(mount) = motors::mount(design, component) {
             element.push(mount);
@@ -1118,12 +1118,40 @@ impl<'a> Writer<'a> {
     }
 
     /// The finish, by the word the reader turns into its roughness.
-    fn finish(&mut self, element: &mut Element, at: &str, finish: Option<Finish>) {
-        let Some(finish) = finish else {
+    ///
+    /// OpenRocket and HPR Sim's reader take an outside part with none as regular paint, 60 µm
+    /// (`super::super::attached::finish`), so a part left at the design's default finish gets that
+    /// default's word. A finish whose roughness is none of OpenRocket's five is left out, with a
+    /// warning that OpenRocket will read the part as regular paint. A part inside the body has no
+    /// finish in OpenRocket, so none is written for it, and one the design gives it is warned of.
+    /// A finish word the design keeps from the file replaces the one written here
+    /// ([`super::kept`]).
+    /// The word is found by roughness, to within 1 pm, since a named finish's roughness is a
+    /// product (`20.0 * 1e-6` is not `20e-6`).
+    fn finish(&mut self, element: &mut Element, at: &str, component: &Component) {
+        let outside = matches!(
+            component.part,
+            Part::NoseCone(_)
+                | Part::BodyTube(_)
+                | Part::Transition(_)
+                | Part::FinSet(_)
+                | Part::TubeFinSet(_)
+                | Part::LaunchLug(_)
+                | Part::RailButton(_)
+        );
+        if !outside {
+            if component.finish.is_some() {
+                self.warn(
+                    at,
+                    "a surface finish on a part inside the body, which has none in OpenRocket; \
+                     it was left out",
+                );
+            }
             return;
-        };
-        let word = match finish {
-            Finish::Custom { roughness_m } => [
+        }
+        let finish = component.finish.unwrap_or_default();
+        let word = finish.roughness_m().ok().and_then(|roughness_m| {
+            [
                 ("rough", 500e-6),
                 ("unfinished", 150e-6),
                 ("normal", 60e-6),
@@ -1131,16 +1159,18 @@ impl<'a> Writer<'a> {
                 ("polished", 2e-6),
             ]
             .into_iter()
-            .find_map(|(word, roughness)| (roughness == roughness_m).then_some(word)),
-            _ => None,
-        };
+            .find_map(|(word, roughness)| {
+                ((roughness - roughness_m).abs() <= 1e-12).then_some(word)
+            })
+        });
         match word {
             Some(word) => {
                 element.leaf("finish", word);
             }
             None => self.warn(
                 at,
-                "a surface finish that is none of OpenRocket's five; it was left out",
+                "a surface finish that is none of OpenRocket's five; it was left out, and \
+                 OpenRocket reads the part as regular paint (60 µm)",
             ),
         }
     }
@@ -1387,6 +1417,8 @@ pub(super) fn is_uuid(text: &str) -> bool {
 
 #[cfg(test)]
 pub(super) mod tests {
+    use hpr_design::Finish;
+
     use super::super::super::{Design, design, read};
     use super::super::document;
     use super::*;
@@ -1470,6 +1502,89 @@ pub(super) mod tests {
         <length>0.8</length><thickness>0.0015</thickness><radius>0.05</radius>
         <subcomponents>{parts}</subcomponents></bodytube>"#
         ))
+    }
+
+    /// A part left at the design's default finish, 20 µm, is written as `smooth`, so the file flies
+    /// as the design does: OpenRocket and the reader take an outside part with no `<finish>` as
+    /// regular paint, 60 µm (#216). A part inside the body is given none, and one the design gives
+    /// it is warned of. A finish that is none of OpenRocket's five is left out, and the warning says
+    /// how OpenRocket will read the part. Each named finish whose roughness is one of the five is
+    /// written with that word.
+    #[test]
+    fn a_part_at_the_default_finish_is_written_with_its_word() {
+        let (mut built, _, _, _) = round_trip(&tube_of(
+            r#"
+          <innertube><name>Mount</name><id>mount</id><axialoffset method="bottom">0.0</axialoffset>
+            <length>0.2</length><outerradius>0.0127</outerradius><thickness>0.0005</thickness>
+          </innertube>
+          <launchlug><name>Lug</name><id>lug</id><axialoffset method="top">0.2</axialoffset>
+            <length>0.03</length><radius>0.005</radius><thickness>0.001</thickness></launchlug>"#,
+        ));
+        let components = &mut built.rocket.stages[0].components;
+        components[0].finish = None;
+        components[1].finish = None;
+        for child in &mut components[1].children {
+            child.finish = match child.part {
+                Part::LaunchLug(_) => Some(Finish::OptimumPaint {}),
+                _ => Some(Finish::MassProductionPaint {}),
+            };
+        }
+        let written = document(&built);
+        let text = written.value.to_xml();
+        assert_eq!(text.matches("<finish>smooth</finish>").count(), 2, "{text}");
+        assert_eq!(text.matches("<finish>").count(), 2, "{text}");
+        let messages: Vec<&str> = written
+            .warnings
+            .iter()
+            .map(|w| w.message.as_str())
+            .collect();
+        assert_eq!(messages.len(), 2, "{messages:?}");
+        assert!(
+            messages
+                .iter()
+                .any(|m| m.contains("OpenRocket reads the part as regular paint (60 µm)")),
+            "{messages:?}"
+        );
+        assert!(
+            messages.iter().any(|m| m.contains("inside the body")),
+            "{messages:?}"
+        );
+        // Each named finish on one of OpenRocket's five roughnesses gets that word.
+        for (finish, word) in [
+            (Finish::RawWood {}, "rough"),
+            (Finish::DipGalvanized {}, "unfinished"),
+            (Finish::MassProductionPaint {}, "smooth"),
+            (Finish::SheetMetal {}, "polished"),
+        ] {
+            let mut named = built.clone();
+            named.rocket.stages[0].components[0].finish = Some(finish);
+            let text = document(&named).value.to_xml();
+            let nose = &text[text.find("<nosecone>").unwrap()..text.find("</nosecone>").unwrap()];
+            assert!(
+                nose.contains(&format!("<finish>{word}</finish>")),
+                "{finish:?}: {nose}"
+            );
+        }
+        let file = read(text.as_bytes())
+            .expect("the written design reads")
+            .value;
+        let back = design(&file).value;
+        let components = &back.rocket.stages[0].components;
+        for body in &components[..2] {
+            let roughness_m = body.finish.expect("a finish").roughness_m().unwrap();
+            assert!(
+                (roughness_m - 20e-6).abs() <= 1e-12,
+                "{}: {roughness_m}",
+                body.id
+            );
+        }
+        for child in &components[1].children {
+            let expected = match child.part {
+                Part::LaunchLug(_) => Some(Finish::Custom { roughness_m: 60e-6 }),
+                _ => None,
+            };
+            assert_eq!(child.finish, expected, "{}", child.id);
+        }
     }
 
     /// The spine: every shape, walls stated, filled and left out, shoulders capped and not,
@@ -2105,7 +2220,13 @@ pub(super) mod tests {
             (
                 lug("<finish>mirror</finish>"),
                 "not a surface finish",
-                &[("<finish>mirror</finish>", 1), ("<finish>", 1)],
+                // The lug's word goes back alone. The nose and the tube state none, so they were
+                // read as regular paint and are written so (#216).
+                &[
+                    ("<finish>mirror</finish>", 1),
+                    ("<finish>normal</finish>", 2),
+                    ("<finish>", 3),
+                ],
             ),
             (
                 lug(r#"<position type="top">0.2</position>"#),

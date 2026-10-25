@@ -1,16 +1,16 @@
 # What roughness hobby rocket finishes have, as equivalent sand grain
 
-HPR Sim gives a part with no finish 20 µm, OpenRocket 60 µm ([issue #216][i216]); in the friction model both use, that
-step adds about 25% ([apogee-bias](apogee-bias.md) §2). This note asks what hobby finishes really measure. **In short:
-painted, gel-coated and sanded surfaces are far smoother than either default.** Published values put automotive-type
-paint at Ra 0.04 to 2 µm and sanded fiberglass at 0.6 to 2.3 µm: k_s about 0.1 to 14 µm at the usual 2 to 6 Ra. Only
-bare FDM prints (Ra 5 to 33 µm across 0.1 to 0.3 mm layers), perhaps bare kraft and wood, and coarse marine coatings
-reach the defaults' size. 20 µm is Hoerner's 1965 grain size for aircraft production paint; 60 µm has no published
-source. A 1 m rocket at 100 to 300 m/s is hydraulically smooth below k_s of about 7 to 19 µm, yet the shared model
-applies its fully rough constant above 57 m/s for 20 µm. **Inference:** a truer finish lowers both codes' friction and
-raises their apogee, so finish cannot explain the collection's high bias; it more likely hides part of it. How far to
-trust this: Ra is measured, but no k_s on any hobby finish; the conversion spans a factor of 3; the apogee sign is
-arithmetic only.
+HPR Sim gives a part with no finish 20 µm, OpenRocket 60 µm (a `.ork` outside part now reads 60 µm, [#216][i216]); in
+the friction model both use, that step adds about 25% ([apogee-bias](apogee-bias.md) §2). This note asks what hobby
+finishes really measure. **In short: painted, gel-coated and sanded surfaces are far smoother than either default.**
+Published values put automotive-type paint at Ra 0.04 to 2 µm and sanded fiberglass at 0.6 to 2.3 µm: k_s about 0.1 to
+14 µm at the usual 2 to 6 Ra. Only bare FDM prints (Ra 5 to 33 µm across 0.1 to 0.3 mm layers), perhaps bare kraft and
+wood, and coarse marine coatings reach the defaults' size. 20 µm is Hoerner's 1965 grain size for aircraft production
+paint; 60 µm has no published source. A 1 m rocket at 100 to 300 m/s is hydraulically smooth below k_s of about 7 to 19
+µm, yet the shared model applies its fully rough constant above 57 m/s for 20 µm. **Inference:** a truer finish lowers
+both codes' friction and raises their apogee, so finish cannot explain the collection's high bias; it more likely hides
+part of it. How far to trust this: Ra is measured, but no k_s on any hobby finish; the conversion spans a factor of 3;
+the apogee sign is arithmetic only.
 
 ## 1. What the defaults and named finishes are
 

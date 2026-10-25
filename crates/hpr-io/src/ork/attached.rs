@@ -267,7 +267,11 @@ fn one(
             return None;
         }
     };
-    let finish = finish(&mut values);
+    let outside = matches!(
+        part,
+        Part::FinSet(_) | Part::TubeFinSet(_) | Part::LaunchLug(_) | Part::RailButton(_)
+    );
+    let finish = finish(&mut values, outside);
     let (overrides, include_children, drag_override) = overrides(&mut values);
     radial_offset_on_the_surface(&mut values, &part);
     // Only a tube holds other parts. `hpr-design` says the same, so anything written inside
@@ -1554,6 +1558,10 @@ fn centered_on_its_position(position: Position, button: &RailButton) -> Position
     }
 }
 
+/// OpenRocket's regular paint, `normal`, and its finish for an outside part that states none, in
+/// meters ([`finish`]).
+const REGULAR_PAINT_M: f64 = 60e-6;
+
 /// The surface finish, as a roughness height.
 ///
 /// OpenRocket writes one of five words. What each is worth in micrometers is not in the file
@@ -1574,14 +1582,31 @@ fn centered_on_its_position(position: Position, button: &RailButton) -> Position
 /// (2.36 mil)", which is 59.9 µm. The guide's [`.ork` page][guide] has the rest, including what is
 /// not settled about `polished`.
 ///
+/// **An outside part with no finish, or one of a word not in the table, is read as regular paint,
+/// 60 µm,** as OpenRocket reads it ([issue #216][216]). Run on its 17 bundled example designs with
+/// every `<finish>` taken out (`validation/oracles/openrocket/finish.py`, run 2026-10-25; it
+/// writes nothing), OpenRocket 24.12 reports `Regular paint (60 µm)` and a roughness of
+/// `6e-05` m (`getFinish`, `getRoughnessSize`) for all 134 outside parts: nose cones, body tubes,
+/// transitions, the three kinds of fin set, tube fins, launch lugs and rail buttons. With the word
+/// `gilt` in place of each finish it reports the same. The parts inside the body have no finish in
+/// OpenRocket, and are left without one here. The 60 µm is OpenRocket's choice, not a measured
+/// hobby finish ([finish roughness note][note]).
+///
 /// [doc]: https://openrocket.sourceforge.net/techdoc.pdf
 /// [guide]: https://hpr.fusionspace.co/format/ork.html
-pub(super) fn finish(values: &mut Values<'_>) -> Option<Finish> {
-    let word = values.word(&["finish"])?;
+/// [216]: https://github.com/nrdptel/fusionspace-eridanus/issues/216
+/// [note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/hobby-finish-roughness.md
+pub(super) fn finish(values: &mut Values<'_>, outside: bool) -> Option<Finish> {
+    let default = outside.then_some(Finish::Custom {
+        roughness_m: REGULAR_PAINT_M,
+    });
+    let Some(word) = values.word(&["finish"]) else {
+        return default;
+    };
     let roughness_m = match word.as_str() {
         "rough" => 500e-6,
         "unfinished" => 150e-6,
-        "normal" => 60e-6,
+        "normal" => REGULAR_PAINT_M,
         "smooth" => 20e-6,
         "polished" => 2e-6,
         other => {
@@ -1590,11 +1615,16 @@ pub(super) fn finish(values: &mut Values<'_>) -> Option<Finish> {
                 WarningKind::Unusual,
                 format!(
                     "`{other}` is not a surface finish this reader has a roughness for; the part \
-                     took HPR Sim's default"
+                     took {}",
+                    if outside {
+                        "OpenRocket's, regular paint (60 µm)"
+                    } else {
+                        "none"
+                    }
                 ),
             );
             values.forget(&["finish"]);
-            return None;
+            return default;
         }
     };
     Some(Finish::Custom { roughness_m })

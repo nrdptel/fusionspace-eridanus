@@ -126,7 +126,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   OpenRocket's own default of 25 mm (0.98 in). It also gets a warning
 >   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
 > - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.002%, and 143 exactly. This
+>   flies both ways, all 151 reach the original's apogee within 0.002%, and 142 exactly. This
 >   checks the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
@@ -1088,13 +1088,21 @@ skin-friction coefficient of whatever part says `polished`. In the corpus that i
 components**. No file in the
 corpus writes any word but the five, so nothing here can settle it; the
 [OpenRocket oracle](../decisions-and-roadmap.md#m2-2) can. A word HPR Sim has no sourced roughness
-for takes HPR Sim's default and says so in a warning.
+for is read as OpenRocket reads it, regular paint on an outside part, and a warning says so.
 
-**A part with no `<finish>`** gets HPR Sim's own default, 20 µm, but OpenRocket reads it as regular
-paint, 60 µm ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). On the pod probes that
-raised HPR Sim's apogee 6.0% to 7.3% above OpenRocket's. OpenRocket writes a finish on every outside
-part it saves, so this touches hand-written files and other tools' files. Until it is fixed, set a
-finish on every outside part.
+**A part with no `<finish>`** is read as OpenRocket reads it. On the outside (a nose cone, body
+tube, transition, fin set, tube fin set, launch lug or rail button) it is regular paint, 60 µm.
+Inside the body (an inner tube, coupler, ring, bulkhead, mass, parachute or shock cord) it has no
+finish, as in OpenRocket. With every finish taken out of its 17 example designs, or `gilt` put in
+each, OpenRocket 24.12 reads all 134 outside parts so
+([`finish.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/finish.py),
+[#216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). Before, HPR Sim gave such a
+part 20 µm and flew the pod probes 6.0% to 7.3% high. The 60 µm is OpenRocket's choice, not a
+measured finish: painted and sanded surfaces measure smoother
+([hobby finishes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/hobby-finish-roughness.md)).
+HPR Sim reads it so that the two programs agree. When HPR Sim writes a file, an outside part at
+its 20 µm default is written `smooth`; a finish none of the five words fits is left out with a
+warning, and OpenRocket reads that part as 60 µm.
 
 #### Clusters
 
@@ -3534,7 +3542,7 @@ reads. They are among the `.ork` files the checks use ([which files](#checked-in
 Some of those files are other people's private designs, so the counts are published but those
 files are not. OpenRocket 24.12 opens every written file whose original it opens. It flies each
 configuration it can fly (151) to the original's apogee within 0.002%. The largest difference is
-0.000191%.
+0.00005%.
 
 The written file is not a copy of the original. It is laid out afresh, and it states some values
 the original left to OpenRocket's defaults, such as each part's roll angle. Its root's `creator`
@@ -3678,16 +3686,16 @@ traced. A decision record comes before the bar moves.
 | configurations flown neither way | 18 |
 | configurations flown both ways | 151 |
 | within 0.002% of the original's apogee | 151 |
-| the same apogee to the last bit | 143 |
-| largest apogee difference | 0.000191% |
+| the same apogee to the last bit | 142 |
+| largest apogee difference | 0.00005% |
 
 - **Four designs don't open as written.** HPR Sim can't read two of them, so it writes nothing.
   OpenRocket refuses the exports of the other two with the same error as their originals.
 - **23 opened designs have nothing to fly.** They have no configuration, or none with a motor.
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
-- **Eight configurations differ, by OpenRocket's own spread.** All eight are in six private designs
-  (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. In those six
+- **Nine configurations differ, by OpenRocket's own spread.** All nine are in six private designs
+  (the report's row ending `imported/loft-fixtures`); the largest is 0.00005%. In those six
   designs, every number in the rocket that the two files share is the same to the bit. The
   originals flown again differ from their own record in 8 of the 151 configurations. One
   configuration flown 45 times (43 in fresh OpenRocket launches) spread over 0.00051%. Both are
