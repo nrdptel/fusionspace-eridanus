@@ -61,9 +61,9 @@ pub struct AnalyzeArgs {
     /// layout: a JSON file (schema/cli/analyze-layout.schema.json)
     #[arg(long, value_name = "FILE")]
     pub layout: Option<String>,
-    /// Which sheet of a workbook (.xlsx or .xls) to read, counting from 0, by its format's own
-    /// reader or by --mapping, --print-mapping or --fip-header. Without it, the workbook's one
-    /// sheet that reads as a log is read
+    /// Which sheet of a workbook (.xlsx or .xls) to read, counting from 0. Without it, the one
+    /// sheet that reads as a log is read. It works with the format's own reader and with
+    /// --mapping, --print-mapping and --fip-header
     #[arg(
         long,
         value_name = "N",
@@ -71,7 +71,7 @@ pub struct AnalyzeArgs {
         conflicts_with = "layout"
     )]
     pub sheet: Option<usize>,
-    /// Which recording to read from a file that holds several, an Entacore AIM raw dump,
+    /// Which recording to read from a file that holds several, such as an Entacore AIM raw dump,
     /// counting from 0
     #[arg(
         long,
@@ -85,11 +85,12 @@ pub struct AnalyzeArgs {
     #[arg(long, value_name = "FILE", conflicts_with_all = ["mapping", "layout"])]
     pub fip_header: Option<String>,
     /// Print what the table's header states, as a column mapping to edit and give back with
-    /// --mapping, and read nothing more
+    /// --mapping, and read nothing more. The header must name a clock with a unit of time, such
+    /// as `Time (s)`
     #[arg(long, conflicts_with_all = ["mapping", "layout", "record", "recording", "fip_header"])]
     pub print_mapping: bool,
-    /// Print the record the log reads into, every channel in SI units (degrees for
-    /// angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
+    /// Print every channel of the log in SI units (degrees for angles), as one JSON document
+    /// (schema/cli/analyze-record.schema.json), in place of the readings
     #[arg(long)]
     pub record: bool,
 }

@@ -1,4 +1,4 @@
-An ERA5 pressure-level file (netCDF) read at a site and time
+An ERA5 file (ECMWF's reanalysis of past weather, on pressure levels, netCDF) read at a site and time
 
 Usage: hpr weather era5 [OPTIONS] --latitude <DEG> --longitude <DEG> --time <TIME> <FILE>
 
@@ -8,13 +8,13 @@ Arguments:
 
 Options:
       --json
-          Print one JSON document on standard output instead of text; errors too
+          Print one JSON document on standard output instead of text, errors included
 
       --latitude <DEG>
           The site's latitude, degrees north (south is negative)
 
       --color <WHEN>
-          When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE. JSON output never has color
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
           
           [default: auto]
           [possible values: auto, always, never]

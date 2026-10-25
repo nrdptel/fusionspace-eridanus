@@ -326,7 +326,7 @@ target missed, fails the build. The report marks those pages `held`. A page adde
 contents is held from its first commit
 ([the plan that rewrote the site](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-`hpr`'s help is held the same way. A test pins each command's `--help` in a snapshot under
+The command-line tool's help is held the same way. A test pins each command's `--help` in a snapshot under
 `crates/hpr-cli/tests/help/`, and the check holds every snapshot. It reads only the help's prose:
 what a command does, what each option and argument says, each command's summary in a list of
 commands, and the examples' captions. The names of options, a bracketed note such as

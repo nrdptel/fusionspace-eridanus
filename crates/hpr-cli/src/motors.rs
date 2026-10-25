@@ -28,11 +28,13 @@ use crate::{Failure, Out};
 /// `hpr motors`'s subcommands.
 #[derive(Debug, clap::Subcommand)]
 pub enum MotorsCommand {
-    /// List the bundled catalog's motors, with the figures their curve files give
+    /// List the bundled catalog's motors, with the impulse, thrust and burn time their curves give
     List(ListArgs),
-    /// Work out a motor's figures from its thrust curve: a catalog name, or a .eng or .rse file
+    /// Work out a motor's impulse, thrust and burn time from its thrust curve: a catalog name, or
+    /// a .eng or .rse file
     Show(ShowArgs),
-    /// Search motor.fusionspace.co's motors, with who has them in stock and at what price
+    /// Search motor.fusionspace.co's motors, with the vendors that have them in stock and their
+    /// prices
     Search(crate::motor_search::SearchArgs),
     /// Fetch a motor's thrust curve from ThrustCurve.org into the cache, so `hpr sim` flies it
     /// offline

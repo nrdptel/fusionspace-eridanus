@@ -32,9 +32,10 @@ pub struct ConvertArgs {
     /// design (.ork, .hpr or .hprz)
     pub input: String,
     /// The file to write, by its extension: .eng or .rse for motors, .ork, .hpr or .hprz for a
-    /// design; it is replaced if it exists
+    /// design; it's replaced if it exists
     pub output: String,
-    /// A file to carry in a .hprz beside the design, under its file name; give it once for each
+    /// A file to carry in a .hprz beside the design, under its file name; repeat it for each
+    /// file
     #[arg(long, value_name = "FILE")]
     pub attach: Vec<String>,
     /// The delays to write in a .eng file's header when the .rse motor gives none, such as

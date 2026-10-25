@@ -1,4 +1,4 @@
-Work out a motor's figures from its thrust curve: a catalog name, or a .eng or .rse file
+Work out a motor's impulse, thrust and burn time from its thrust curve: a catalog name, or a .eng or .rse file
 
 Usage: hpr motors show [OPTIONS] <MOTOR>
 
@@ -8,10 +8,10 @@ Arguments:
 
 Options:
       --json
-          Print one JSON document on standard output instead of text; errors too
+          Print one JSON document on standard output instead of text, errors included
 
       --color <WHEN>
-          When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE. JSON output never has color
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
           
           [default: auto]
           [possible values: auto, always, never]
@@ -23,7 +23,7 @@ Options:
           Print version
 
 Examples:
-  Work out a catalog motor's figures:
+  Work out a catalog motor's impulse, thrust and burn time:
       hpr motors show H170M
   Read a motor file:
       hpr motors show my-motor.eng

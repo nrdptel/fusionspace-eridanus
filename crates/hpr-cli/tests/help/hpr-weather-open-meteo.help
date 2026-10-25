@@ -4,13 +4,13 @@ Usage: hpr weather open-meteo [OPTIONS] --time <TIME>
 
 Options:
       --json
-          Print one JSON document on standard output instead of text; errors too
+          Print one JSON document on standard output instead of text, errors included
 
       --latitude <DEG>
-          The site's latitude, degrees north (south is negative); not with --from, whose answer is for the place it was asked for
+          The site's latitude, degrees north (south is negative). Not with --from: a saved answer is for the place it was asked for
 
       --color <WHEN>
-          When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE. JSON output never has color
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
           
           [default: auto]
           [possible values: auto, always, never]
@@ -19,13 +19,13 @@ Options:
           The site's longitude, degrees east (west is negative); not with --from
 
       --time <TIME>
-          The launch time in UTC, such as 2025-06-21T15:30Z; it must be within the answer's hours
+          The launch time in UTC, such as 2025-06-21T15:30Z; it must fall within the hours the answer covers
 
       --historical
-          Ask the archive of past forecasts, for a launch already gone
+          Ask the archive of past forecasts, for a launch already flown
 
       --model <MODEL>
-          The weather model, by Open-Meteo's name, such as `gfs_seamless`; its best match by default
+          The weather model, by Open-Meteo's name, such as `gfs_seamless`. Without it, Open-Meteo picks its best match for the site
 
       --from <FILE>
           Read the source's answer from this file, saved earlier, instead of fetching it

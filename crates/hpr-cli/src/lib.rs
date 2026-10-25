@@ -133,18 +133,18 @@ impl Exit {
     about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets",
     long_about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets.\n\n\
                   Every command prints text, or one JSON document with --json. \
-                  A command marked \"not available yet\" names the milestone that brings it \
-                  when you run it.",
+                  Run a command marked \"not available yet\" and it names the milestone that \
+                  brings it.",
     propagate_version = true,
     arg_required_else_help = true,
     styles = fs_style::CLAP_STYLES
 )]
 pub struct Cli {
-    /// Print one JSON document on standard output instead of text; errors too.
+    /// Print one JSON document on standard output instead of text, errors included.
     #[arg(long, global = true)]
     pub json: bool,
-    /// When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR
-    /// and CLICOLOR_FORCE. JSON output never has color
+    /// When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR
+    /// and CLICOLOR_FORCE are followed. JSON output never has color
     #[arg(long, global = true, value_enum, default_value_t = ColorWhen::Auto, value_name = "WHEN")]
     pub color: ColorWhen,
     /// The command to run.
@@ -166,10 +166,17 @@ pub enum Command {
     #[command(subcommand)]
     Motors(motors::MotorsCommand),
     /// Fetch a launch day's weather, or read a weather file, as a profile of air and wind
+    ///
+    /// For a launch still to come, ask open-meteo, gfs, or in the contiguous U.S., rap. For one
+    /// already flown, ask open-meteo with --historical, read a wyoming balloon sounding, or read
+    /// an era5 file.
     #[command(subcommand)]
     Weather(weather::WeatherCommand),
     /// Fly a design many times with its inputs scattered at random, and print how its apogee and
     /// landing spread; save every flight with --export
+    ///
+    /// A spread given as a fraction is one standard deviation as a share of the value: 0.03 is
+    /// 3%.
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),
