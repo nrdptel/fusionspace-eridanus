@@ -855,7 +855,7 @@ fn time_note(written: &str, time_s: &[f64]) -> String {
 }
 
 /// `text` with its first letter in upper case, to start a sentence.
-fn capitalised(text: &str) -> String {
+fn capitalized(text: &str) -> String {
     let mut letters = text.chars();
     letters.next().map_or_else(String::new, |first| {
         first.to_uppercase().chain(letters).collect()
@@ -1256,7 +1256,7 @@ fn decide_velocity(
         Some((*scale, index, by_area.get(1).map(|(other, _)| *other)))
     });
     // The two measures as sentences: the area's, then the delay and the slope (the first starts
-    // in lower case, to follow a lead-in; `capitalised` starts a sentence with it).
+    // in lower case, to follow a lead-in; `capitalized` starts a sentence with it).
     let area = |scale: &Scale| {
         format!(
             "against the altitude above the first row, in meters, the area under its running \
@@ -1283,7 +1283,7 @@ fn decide_velocity(
                     short(written),
                     SPEEDS.get(stated).map_or("", |unit| unit.0),
                     SPEEDS.get(index).map_or("", |unit| unit.0),
-                    capitalised(&area(&scale)),
+                    capitalized(&area(&scale)),
                     slope(&scale)
                 ),
             });
