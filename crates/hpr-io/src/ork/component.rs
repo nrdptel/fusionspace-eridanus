@@ -332,7 +332,8 @@ pub(super) fn body(
     let mut values = Values::new(element, at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
     let (overrides, overrides_include_children, drag_override) = overrides(&mut values);
-    let finish = finish(&mut values);
+    // Every body component is an outside part.
+    let finish = finish(&mut values, true);
     let (part, wall) = match element.name.as_str() {
         "nosecone" => (nose_cone(element, at, &mut auto, warnings), None),
         "bodytube" => {
