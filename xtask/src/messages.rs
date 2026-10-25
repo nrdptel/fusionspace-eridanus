@@ -655,12 +655,13 @@ const ITEM_WORDS: [&str; 15] = [
     "extern", "unsafe", "async", "let",
 ];
 
-/// Where the code under an outer `#[cfg(test)]` starting at `start` ends. An item or a `let`
-/// ends after its `;` outside any bracket, or after the `}` that closes its first top-level brace
-/// (a function's body, a module's, an `impl`'s). Anything else (an enum's variant, a struct's
-/// field, a match arm, an expression) ends at a `,` or `;` outside any bracket, after a brace
-/// that closes back to its own level (with a `,` after it), or before the bracket that closes
-/// the list it's in.
+/// Where the code under an outer `#[cfg(test)]` starting at `start` ends, by one rule: at the
+/// first `;` outside any bracket; after a `}` that closes back to its own level, unless the token
+/// after it goes on with the same code ([`goes_on`]: `A { x } =>`, `{ .. } else`, `S { .. }.f()`),
+/// with a `,` right after it taken too; at a `,` outside any bracket, except in an item or a `let`,
+/// whose `<A, B>` this doesn't count as brackets; or before the bracket that closes the list it's
+/// in. So an item ends after its body or its `;`, and a variant, a field or a match arm (its
+/// pattern's braces and its block's) at its comma or its block's end.
 fn item_end(tokens: &[Token], start: usize) -> usize {
     let mut first = start;
     if tokens.get(first) == Some(&Token::Word("pub".to_owned())) {
@@ -679,18 +680,12 @@ fn item_end(tokens: &[Token], start: usize) -> usize {
             Token::Punct(')' | ']') => depth -= 1,
             Token::Punct('}') => {
                 depth -= 1;
-                if depth == 0 && item {
-                    return k + 1;
-                }
-                // Anything else whose braces close (an arm's block, a block, a macro's braces)
-                // ends there, with a `,` after it, unless the code goes on (`.`, `?`, `else`).
-                if depth == 0 {
-                    match tokens.get(k + 1) {
-                        Some(Token::Punct('.' | '?')) => {}
-                        Some(Token::Word(word)) if word == "else" || word == "as" => {}
-                        Some(Token::Punct(',')) => return k + 2,
-                        _ => return k + 1,
-                    }
+                if depth == 0 && !goes_on(tokens.get(k + 1)) {
+                    return if tokens.get(k + 1) == Some(&Token::Punct(',')) {
+                        k + 2
+                    } else {
+                        k + 1
+                    };
                 }
             }
             Token::Punct(';') if depth == 0 => return k + 1,
@@ -699,6 +694,21 @@ fn item_end(tokens: &[Token], start: usize) -> usize {
         }
     }
     tokens.len()
+}
+
+/// Whether the token after a closing brace goes on with the same code: a method or `?`, an
+/// `else` or `as`, or a binary operator (a pattern's `=>`, an or-pattern's `|`, `+` or `==`).
+/// A `-`, `&` or `!` is left out: each can also start the next arm or statement, and ending there
+/// reads more of the code, not less.
+fn goes_on(next: Option<&Token>) -> bool {
+    match next {
+        Some(Token::Punct(c)) => matches!(
+            c,
+            '.' | '?' | '=' | '|' | '+' | '*' | '/' | '%' | '^' | '<' | '>'
+        ),
+        Some(Token::Word(word)) => word == "else" || word == "as",
+        _ => false,
+    }
 }
 
 /// Where the block holding `start` ends: after the bracket that closes it.
@@ -842,6 +852,21 @@ const LAST: &str = "read after the skipped items";
         assert_eq!(
             read("enum E { #[cfg(test)] A { x: u8 }, #[error(\"the next variant\")] B }"),
             ["the next variant"]
+        );
+        assert_eq!(
+            read(
+                "fn f() { match c { #[cfg(test)] A { x } => \"a test arm\", _ => \"the live arm\" } \
+                 match c { #[cfg(test)] A { x } | B { x } => { \"a test block\" } \
+                 _ => \"the next live arm\" } }"
+            ),
+            ["the live arm", "the next live arm"]
+        );
+        assert_eq!(
+            read(
+                "fn f() { #[cfg(test)] let x = if c { \"one test word\" } else { \"two test words\" }; \
+                 #[cfg(test)] x = S { a } + \"more test words\"; let _ = \"the live words\"; }"
+            ),
+            ["the live words"]
         );
         assert_eq!(
             read(

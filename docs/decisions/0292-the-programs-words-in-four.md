@@ -138,8 +138,9 @@ anywhere in the code's prose, but the extra prose also dilutes the rates, so `--
 lists each long sentence.
 
 1. **The files.** Each tracked `.rs` file under `src/` of the nine crates and of `hpr-cli`, less
-   test code: an item under `#[cfg(test)]`, and a module declared under it, with the modules
-   inside that module. From `hpr-cli` it leaves out the files of M0.14d3's commands: `analyze.rs`,
+   test code: what a `#[cfg(test)]` marks (an item, a variant, a field, a match arm, or a module
+   by its own `#![cfg(test)]`), and a module declared under it, with the modules inside that
+   module. From `hpr-cli` it leaves out the files of M0.14d3's commands: `analyze.rs`,
    `weather.rs`, `motor_fetch.rs`, `motor_search.rs` and `waiting.rs` (what a fetch prints while
    it waits).
 2. **What it reads.** Each `#[error("…")]` text, and each other string literal in the code that
