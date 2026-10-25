@@ -1,0 +1,40 @@
+Fetch a motor's thrust curve from ThrustCurve.org into the cache, so `hpr sim` flies it offline
+
+Usage: hpr motors fetch [OPTIONS] <MOTOR>
+
+Arguments:
+  <MOTOR>
+          The motor: its designation (F27R/L) or common name (F27), as ThrustCurve.org spells it
+
+Options:
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --manufacturer <MANUFACTURER>
+          Its manufacturer, by name or abbreviation, where the name alone matches several motors
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --file <ID>
+          The ThrustCurve.org data file to take first, by its id, when the motor has it and it can be read. Otherwise the fetch takes the files in the usual order
+
+      --offline
+          Answer from the cache only, never the network
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Fetch a motor the bundled catalog lacks, so `hpr sim` flies it offline:
+      hpr motors fetch F27
+  Name its maker where the name alone matches several motors:
+      hpr motors fetch G80 --manufacturer AeroTech
+
+Guide: https://hpr.fusionspace.co/cli.html#motors-from-thrustcurveorg

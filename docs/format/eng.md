@@ -153,7 +153,13 @@ What real files do, and what the reader and writer do with each case.
 5. Numbers: Rust `str::parse::<f64>` accepts `.5`, `5.`, `068.8`, `+1` and `1e3`, **but also
    `inf`, `infinity` and `NaN`**. Reject every non-finite value.
 6. Points are kept verbatim; no implicit origin is inserted into the file model. Errors: no points,
-   negative time, time decreasing. Warnings, on the header's line: last thrust $\ne 0$, negative
+   negative time, time decreasing, and a last thrust above half the entry's peak
+   ([`CUT_OFF_SHARE`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/curve.rs)): the file looks cut off, and a G84 curve cut after 13 of
+   its 29 points would read as an F motor. When other entries in the file read, that entry is
+   skipped, with a warning. Of 3,585 curves in the project's reference checkouts (not in the
+   repository), 11 end above zero, at 10.5% of the peak at most
+   ([a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). A lower cut, or one inside a number,
+   reads, with a warning unless it leaves a 0. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
    thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
 7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
@@ -205,7 +211,8 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 - Numbers use Rust `{}` (Display). It prints the shortest digits that parse back to the same bits
   and never uses an exponent (older readers may not accept one). It writes `-0.0` as `-0`.
 - Points are written as stored: no origin is added or removed. The writer rejects negative or
-  decreasing times, the same rules as the reader.
+  decreasing times and a curve whose last thrust is above half its peak, the same rules as the
+  reader.
 - Invariant (test it): whenever `write(parse(x))` succeeds, `parse(write(parse(x))) == parse(x)`,
   with f64 compared by bits. Dropping empty comments is what keeps the writer's `;` separator
   stable. A lenient read the writer cannot represent (a manufacturer containing spaces) is a

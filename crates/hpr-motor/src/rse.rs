@@ -15,7 +15,7 @@ use std::fmt::Write as _;
 use roxmltree::{Document, Node, ParsingOptions};
 use serde::{Deserialize, Serialize};
 
-use crate::curve::ThrustCurve;
+use crate::curve::{ThrustCurve, cut_off};
 use crate::delay::DelayList;
 use crate::error::MotorError;
 use crate::text::{ParseWarning, Parsed, WarningKind, check_writable, finite};
@@ -121,8 +121,10 @@ impl RseEngine {
 /// elements nested more than [`MAX_ELEMENT_DEPTH`] deep, or no `<engine>` elements; and, when no
 /// engine reads, the first engine's error: a missing required attribute (`code`, `dia`, `len`,
 /// `initWt`, `propWt`), an unreadable or non-finite number, a non-positive diameter or length, a
-/// negative mass, fewer than two points, a point without `t` or `f`, or negative or decreasing
-/// time.
+/// negative mass, fewer than two points, a point without `t` or `f`, negative or decreasing
+/// time, or a curve that ends above half its peak thrust, as cut off ([`CUT_OFF_SHARE`]).
+///
+/// [`CUT_OFF_SHARE`]: crate::curve::CUT_OFF_SHARE
 pub fn parse(text: &str) -> Result<Parsed<RseFile>, MotorError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     check_nesting(text)?;
@@ -217,7 +219,8 @@ impl Lines {
 /// # Errors
 ///
 /// - [`MotorError::Inconsistent`] for no engines, an engine with fewer than two points, points of
-///   which only some carry `m` or `cg`, or text holding a character XML 1.0 can't carry.
+///   which only some carry `m` or `cg`, text holding a character XML 1.0 can't carry, or a curve
+///   that ends above half its peak thrust, which the reader would refuse as cut off.
 /// - [`MotorError::Domain`] for the values the reader rejects: non-finite numbers, a
 ///   non-positive diameter or length, negative masses or times, and decreasing times.
 pub fn write(file: &RseFile) -> Result<String, MotorError> {
@@ -246,6 +249,14 @@ fn write_engine(out: &mut String, engine: &RseEngine) -> Result<(), MotorError> 
     if engine.points.len() < 2 {
         return Err(MotorError::Inconsistent(format!(
             "the .rse engine {:?} needs at least two points",
+            engine.code
+        )));
+    }
+    // The reader refuses a curve cut off above half its peak, so writing one wouldn't round trip.
+    if let Some((last, peak)) = cut_off(engine.points.iter().map(|point| point.thrust_n)) {
+        return Err(MotorError::Inconsistent(format!(
+            "the .rse engine {:?} ends at {last} N, above half its peak thrust of {peak} N; a \
+             curve ends at zero thrust",
             engine.code
         )));
     }
@@ -506,6 +517,17 @@ fn engine(
         comments,
         points,
     };
+    // A curve that ends above half its peak thrust is cut off (`CUT_OFF_SHARE`).
+    if let Some((last, peak)) = cut_off(engine.points.iter().map(|point| point.thrust_n)) {
+        return Err(syntax(
+            line,
+            format!(
+                "engine {:?} ends at {last} N, above half its peak thrust of {peak} N, so the \
+                 file looks cut off; a curve ends at zero thrust",
+                engine.code
+            ),
+        ));
+    }
     summary_warnings(&engine, line, warnings);
     Ok(engine)
 }
@@ -1027,7 +1049,7 @@ pub(crate) mod tests {
                 format!(
                     "<eng-data t=\"{}\" f=\"{}\" m=\"1\" cg=\"35\"/>\n",
                     f64::from(i) * 0.01,
-                    10.0
+                    if i == 499 { 0.0 } else { 10.0 }
                 )
             })
             .collect();
@@ -1240,6 +1262,13 @@ pub(crate) mod tests {
             .prop_map(
                 |(strings, envelope, flags, summary, comments, columns, mut samples)| {
                     samples.sort_by(|a, b| a.0.total_cmp(&b.0));
+                    // The reader refuses a curve cut off above half its peak, so the round trip
+                    // holds for the rest: such a curve ends at zero here.
+                    if cut_off(samples.iter().map(|s| s.1)).is_some()
+                        && let Some(last) = samples.last_mut()
+                    {
+                        last.1 = 0.0;
+                    }
                     RseEngine {
                         manufacturer: strings.0,
                         code: strings.1,
@@ -1283,5 +1312,44 @@ pub(crate) mod tests {
             prop_assert_eq!(&back, &file);
             prop_assert_eq!(bits(&back), bits(&file));
         }
+    }
+
+    /// As the `.eng` reader: a curve stopping above half its peak is refused, naming both; one
+    /// stopping lower is read with a warning; the writer refuses what the reader would.
+    #[test]
+    fn a_curve_cut_off_above_half_its_peak_is_refused() {
+        let engine = |end: f64| {
+            format!(
+                r#"<engine-database><engine-list>
+<engine code="G84" mfg="X" dia="24" len="228" initWt="172" propWt="77"><data>
+  <eng-data t="0" f="0"/><eng-data t="0.1" f="100"/><eng-data t="0.4" f="{end}"/></data></engine>
+</engine-list></engine-database>"#
+            )
+        };
+        let Err(MotorError::Syntax { line, message, .. }) = parse(&engine(60.0)) else {
+            panic!("a cut curve was read");
+        };
+        assert_eq!(line, 2);
+        assert!(
+            message.contains("ends at 60 N, above half its peak thrust of 100 N"),
+            "{message}"
+        );
+        let parsed = parse(&engine(10.0)).unwrap();
+        assert_eq!(parsed.value.engines.len(), 1);
+        assert!(
+            parsed
+                .warnings
+                .iter()
+                .any(|w| w.kind == WarningKind::Unusual
+                    && w.message.contains("ends at 10 N, not zero")),
+            "{:?}",
+            parsed.warnings
+        );
+        let mut file = parsed.value;
+        file.engines[0].points[2].thrust_n = 60.0;
+        let Err(MotorError::Inconsistent(message)) = write(&file) else {
+            panic!("a cut curve was written");
+        };
+        assert!(message.contains("ends at 60 N"), "{message}");
     }
 }

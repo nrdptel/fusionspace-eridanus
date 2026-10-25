@@ -71,22 +71,23 @@ pub struct SimArgs {
 #[derive(Debug, clap::Args)]
 pub struct FlightArgs {
     /// The design: an OpenRocket .ork file, an HPR design (.hpr, or .hprz with its attachments),
-    /// or a rocket's JSON (.json)
+    /// or a rocket described in JSON (.json)
     pub design: String,
     /// The motor configuration to fly: its number in the list the output shows, its name, or its
-    /// id [default: the design's default, or its only one]
+    /// id. Without it, the design's default configuration flies, or its only one
     #[arg(long, value_name = "NAME")]
     pub config: Option<String>,
-    /// Fly this motor in place of the configuration's, lit at launch: a catalog designation or
+    /// Fly this motor in place of the configuration's, ignited at launch: a catalog designation or
     /// common name, or a .eng or .rse file
     #[arg(long, value_name = "NAME_OR_FILE")]
     pub motor: Option<String>,
-    /// The motor mount that --motor goes in, by its name or its component id [default: the
-    /// configuration's, or the design's only one]
+    /// The motor mount that --motor goes in, by its name or its component id; it needs --motor.
+    /// Without it, the motor goes in the configuration's mount, or the design's only one
     #[arg(long, value_name = "NAME", requires = "motor")]
     pub mount: Option<String>,
-    /// The ejection delay of --motor's motor: seconds from burnout to its charge (0 fires it at
-    /// burnout), or P for a plugged motor [default: none, so it fires no charge]
+    /// The ejection delay of the motor --motor names: seconds from burnout to the charge (0 fires
+    /// it at burnout), or P for a plugged motor. It needs --motor. Without it, the motor fires no
+    /// charge
     #[arg(long, value_name = "S_OR_P", requires = "motor", value_parser = DelayArg)]
     pub delay: Option<Delay>,
     /// The launch site's latitude, degrees north (south is negative)
@@ -138,11 +139,12 @@ pub struct FlightArgs {
         value_parser = crate::typed::number::<f64>()
     )]
     pub wind_from: f64,
-    /// Fly a design whose checks find errors, such as a motor wider than its mount
+    /// Fly a design whose checks find errors, such as a motor wider than its mount. The flight
+    /// may not be physical
     #[arg(long)]
     pub accept_design_errors: bool,
-    /// Take a motor the bundled catalog lacks from the cache of ThrustCurve.org only, never the
-    /// network
+    /// Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only,
+    /// never on the network
     #[arg(long)]
     pub offline: bool,
 }

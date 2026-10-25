@@ -40,15 +40,14 @@ pub struct McArgs {
     /// The design, its motor and the nominal launch.
     #[command(flatten)]
     pub flight: FlightArgs,
-    /// How many flights to fly, 1 to 100000
+    /// How many flights to fly, 1 to 100,000
     #[arg(long, value_name = "N", default_value_t = DEFAULT_RUNS, value_parser = crate::typed::number::<u64>())]
     pub runs: u64,
-    /// The run's seed: the same seed, design and options fly the same flights, bit for bit, on
+    /// The random seed: the same seed, design and options fly the same flights, to the bit, on
     /// one platform
     #[arg(long, value_name = "N", default_value_t = 0, value_parser = crate::typed::number::<u64>())]
     pub seed: u64,
-    /// One standard deviation of each stage's mass without motors, as a fraction of it (0.02 is
-    /// 2%)
+    /// One standard deviation of each stage's mass without motors, as a fraction of it
     #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub mass_sd: f64,
     /// One standard deviation of each stage's center of mass along the axis, m
@@ -82,7 +81,7 @@ pub struct McArgs {
     /// One standard deviation of each recovery device's lag after its trigger, s
     #[arg(long, value_name = "S", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub deployment_lag_sd: f64,
-    /// Write every flight's draw and outcome to this .csv file, one row a flight, and a
+    /// Write each flight's drawn inputs and outcome to this .csv file, one row a flight, and a
     /// .meta.json sidecar beside it
     #[arg(long, value_name = "FILE")]
     pub export: Option<String>,

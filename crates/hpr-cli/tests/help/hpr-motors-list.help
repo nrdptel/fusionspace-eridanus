@@ -1,0 +1,36 @@
+List the bundled catalog's motors, with the impulse, thrust and burn time their curves give
+
+Usage: hpr motors list [OPTIONS]
+
+Options:
+      --class <CLASS>
+          Only this impulse class, such as H or 1/2A
+
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --diameter <MM>
+          Only this casing diameter, mm (within 0.5 mm)
+
+      --manufacturer <MANUFACTURER>
+          Only this manufacturer: its name or abbreviation, any case
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  List the catalog's 38 mm H motors:
+      hpr motors list --class H --diameter 38
+  List Cesaroni's motors:
+      hpr motors list --manufacturer Cesaroni
+
+Guide: https://hpr.fusionspace.co/cli.html#listing-the-catalog

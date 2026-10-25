@@ -41,12 +41,14 @@ pub enum WeatherCommand {
     OpenMeteo(OpenMeteoArgs),
     /// A University of Wyoming balloon sounding: a station's latest before the launch
     Wyoming(WyomingArgs),
-    /// NOAA's GFS forecast (0.25°, the whole Earth) at a site, from NOMADS
+    /// NOAA's Global Forecast System (GFS, 0.25°, the whole Earth) at a site, from NOAA's NOMADS
+    /// server
     Gfs(NomadsArgs),
-    /// NOAA's RAP forecast (13 km, the contiguous U.S. and nearby Canada and Mexico) at a site,
-    /// from NOMADS
+    /// NOAA's Rapid Refresh forecast (RAP, 13 km, the contiguous U.S. and nearby Canada and
+    /// Mexico) at a site, from NOAA's NOMADS server
     Rap(NomadsArgs),
-    /// An ERA5 pressure-level file (netCDF) read at a site and time
+    /// An ERA5 file (ECMWF's reanalysis of past weather, on pressure levels, netCDF) read at a
+    /// site and time
     Era5(Era5Args),
 }
 
@@ -67,7 +69,7 @@ pub struct Fetching {
 /// `hpr weather open-meteo`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct OpenMeteoArgs {
-    /// The site's latitude, degrees north (south is negative); not with --from, whose answer is
+    /// The site's latitude, degrees north (south is negative). Not with --from: a saved answer is
     /// for the place it was asked for
     #[arg(
         long,
@@ -88,13 +90,15 @@ pub struct OpenMeteoArgs {
         value_parser = crate::typed::number::<f64>()
     )]
     pub longitude: Option<f64>,
-    /// The launch time in UTC, such as 2025-06-21T15:30Z; it must be within the answer's hours
+    /// The launch time in UTC, such as 2025-06-21T15:30Z; it must fall within the hours the
+    /// answer covers
     #[arg(long, value_name = "TIME")]
     pub time: String,
-    /// Ask the archive of past forecasts, for a launch already gone
+    /// Ask the archive of past forecasts, for a launch already flown
     #[arg(long, conflicts_with = "from")]
     pub historical: bool,
-    /// The weather model, by Open-Meteo's name, such as gfs_seamless; its best match by default
+    /// The weather model, by Open-Meteo's name, such as `gfs_seamless`. Without it, Open-Meteo
+    /// picks its best match for the site
     #[arg(long, conflicts_with = "from")]
     pub model: Option<String>,
     /// The answer's source and the profile's file.
@@ -105,11 +109,12 @@ pub struct OpenMeteoArgs {
 /// `hpr weather wyoming`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct WyomingArgs {
-    /// The station's WMO number, such as 72364; not with --from, whose sounding names its own
-    /// place and time
+    /// The station's number from the World Meteorological Organization (WMO), such as 72364.
+    /// Needed unless --from is given, and not with it: its sounding names its own place and time
     #[arg(long, required_unless_present = "from", conflicts_with = "from")]
     pub station: Option<String>,
-    /// The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it
+    /// The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it.
+    /// Needed unless --from is given, and not with it
     #[arg(
         long,
         value_name = "TIME",
@@ -118,7 +123,7 @@ pub struct WyomingArgs {
     )]
     pub time: Option<String>,
     /// Ask for the sounding decoded from BUFR, a row every second or two of the ascent, instead
-    /// of the coded (FM 35) one
+    /// of the coded TEMP message (FM 35)
     #[arg(long, conflicts_with = "from")]
     pub bufr: bool,
     /// The answer's source and the profile's file.
@@ -135,7 +140,8 @@ pub struct NomadsArgs {
     /// The site's longitude, degrees east (west is negative)
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub longitude: f64,
-    /// The run, its start in UTC, such as 2026-09-30T00Z
+    /// The run to read, by its start in UTC, such as 2026-09-30T00Z; needed unless --from is
+    /// given
     #[arg(
         long,
         value_name = "TIME",
@@ -143,7 +149,7 @@ pub struct NomadsArgs {
         requires = "hour"
     )]
     pub cycle: Option<String>,
-    /// The hours after the run's start that the forecast is for
+    /// How many hours after the run's start the forecast is for; needed unless --from is given
     #[arg(long, value_name = "HOUR", required_unless_present = "from", requires = "cycle", value_parser = crate::typed::number::<u32>())]
     pub hour: Option<u32>,
     /// The answer's source and the profile's file.
@@ -154,7 +160,8 @@ pub struct NomadsArgs {
 /// `hpr weather era5`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct Era5Args {
-    /// The ERA5 pressure-level file, netCDF classic
+    /// The ERA5 pressure-level file, in netCDF classic. A file from today's Copernicus Climate Data
+    /// Store is netCDF-4: convert it first, as https://hpr.fusionspace.co/format/era5.html shows
     pub file: String,
     /// The site's latitude, degrees north (south is negative)
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]

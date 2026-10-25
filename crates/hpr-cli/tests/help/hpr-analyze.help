@@ -1,0 +1,54 @@
+Read a flight log and print its readings, with no design file
+
+Usage: hpr analyze [OPTIONS] <LOG>
+
+Arguments:
+  <LOG>
+          The flight log: a file in any format HPR Sim reads, or another logger's file read by --mapping or --layout
+
+Options:
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --mapping <FILE>
+          Read the log as a table, by this column mapping: a JSON file, as --print-mapping prints one (schema/cli/analyze-mapping.schema.json)
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --layout <FILE>
+          Read the log as binary records, or a serial console's capture of them, by this record layout: a JSON file (schema/cli/analyze-layout.schema.json)
+
+      --sheet <N>
+          Which sheet of a workbook (.xlsx or .xls) to read, counting from 0. Without it, the one sheet that reads as a log is read. It works with the format's own reader and with --mapping, --print-mapping and --fip-header
+
+      --recording <N>
+          Which recording to read from a file that holds several, such as an Entacore AIM raw dump, counting from 0
+
+      --fip-header <FILE>
+          Read a Featherweight Raven's FIP export pasted into a workbook without its header line. This JSON file states the missing header (schema/cli/analyze-fip-header.schema.json)
+
+      --print-mapping
+          Print what the table's header states, as a column mapping to edit and give back with --mapping, and read nothing more. The header must name a clock with a unit of time, such as `Time (s)`
+
+      --record
+          Print every channel of the log in SI units (degrees for angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Read a PerfectFlite log's apogee, top speed and timeline:
+      hpr analyze flight.pf2
+  Print what your own logger's table header states, as a mapping to edit:
+      hpr analyze flight.csv --print-mapping > logger.json
+  Read the table by the edited mapping, and print every channel it holds:
+      hpr analyze flight.csv --mapping logger.json --record
+
+Guide: https://hpr.fusionspace.co/cli.html#hpr-analyze

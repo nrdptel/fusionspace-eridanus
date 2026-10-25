@@ -1,0 +1,40 @@
+Convert a motor file between .eng and .rse, write a catalog motor as either, or convert a design between .ork, .hpr and .hprz
+
+Usage: hpr convert [OPTIONS] <INPUT> <OUTPUT>
+
+Arguments:
+  <INPUT>
+          What to read: a motor file (.eng or .rse), a catalog motor's name, such as H170M, or a design (.ork, .hpr or .hprz)
+
+  <OUTPUT>
+          The file to write, by its extension: .eng or .rse for motors, .ork, .hpr or .hprz for a design; it's replaced if it exists
+
+Options:
+      --attach <FILE>
+          A file to carry in a .hprz beside the design, under its file name; repeat it for each file
+
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --delays <LIST>
+          The delays to write in a .eng file's header when the .rse motor gives none, such as 6-10-14, or P for plugged
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Write a catalog motor's thrust curve as a .eng file:
+      hpr convert H170M H170M.eng
+  Turn an OpenRocket design into an HPR design:
+      hpr convert my-rocket.ork my-rocket.hpr
+
+Guide: https://hpr.fusionspace.co/cli.html#hpr-convert

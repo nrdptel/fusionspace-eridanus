@@ -1,0 +1,48 @@
+Search motor.fusionspace.co's motors, with the vendors that have them in stock and their prices
+
+Usage: hpr motors search [OPTIONS]
+
+Options:
+      --in-stock
+          Only motors in stock at one vendor or more
+
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --class <CLASS>
+          Only this impulse class, such as L
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --diameter <MM>
+          Only this diameter, mm (within 0.5 mm)
+
+      --manufacturer <MANUFACTURER>
+          Only this manufacturer: AeroTech, Cesaroni or Loki, or its full name, in any case
+
+      --max-price <DOLLARS>
+          Only motors in stock at this price or less, in U.S. dollars, such as 150 or 149.99. The price is one motor's, at the cheapest vendor
+
+      --from <FILE>
+          Read a list saved earlier, motor.fusionspace.co's motors.json or in-stock.json, instead of fetching it
+
+      --offline
+          Answer from the cache only, never the network
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Find an L motor in stock:
+      hpr motors search --class L --in-stock
+  Find 54 mm motors in stock for at most $150:
+      hpr motors search --diameter 54 --in-stock --max-price 150
+
+Guide: https://hpr.fusionspace.co/cli.html#motors-you-can-buy

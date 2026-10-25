@@ -37,8 +37,8 @@ pub struct SearchArgs {
     /// Only this manufacturer: AeroTech, Cesaroni or Loki, or its full name, in any case
     #[arg(long)]
     pub manufacturer: Option<String>,
-    /// Only motors in stock whose price for one motor, at the cheapest vendor, is at most this
-    /// many U.S. dollars, such as 150 or 149.99
+    /// Only motors in stock at this price or less, in U.S. dollars, such as 150 or 149.99. The
+    /// price is one motor's, at the cheapest vendor
     #[arg(long, value_name = "DOLLARS", allow_negative_numbers = true)]
     pub max_price: Option<String>,
     /// Read a list saved earlier, motor.fusionspace.co's motors.json or in-stock.json, instead of

@@ -1,0 +1,48 @@
+NOAA's Rapid Refresh forecast (RAP, 13 km, the contiguous U.S. and nearby Canada and Mexico) at a site, from NOAA's NOMADS server
+
+Usage: hpr weather rap [OPTIONS] --latitude <DEG> --longitude <DEG>
+
+Options:
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --latitude <DEG>
+          The site's latitude, degrees north (south is negative)
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --longitude <DEG>
+          The site's longitude, degrees east (west is negative)
+
+      --cycle <TIME>
+          The run to read, by its start in UTC, such as 2026-09-30T00Z; needed unless --from is given
+
+      --hour <HOUR>
+          How many hours after the run's start the forecast is for; needed unless --from is given
+
+      --from <FILE>
+          Read the source's answer from this file, saved earlier, instead of fetching it
+
+      --offline
+          Answer from the cache only, never the network
+
+  -o, --output <FILE>
+          Write the profile to this file, as JSON
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Read a RAP answer saved earlier, at a site:
+      hpr weather rap --latitude 40.865 --longitude -119.063 --from rap.grib2
+  Fetch one run's forecast for 3 hours after its start:
+      hpr weather rap --latitude 40.865 --longitude -119.063 --cycle 2026-09-26T12Z --hour 3
+
+Guide: https://hpr.fusionspace.co/cli.html#hpr-weather

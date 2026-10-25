@@ -85,12 +85,13 @@ const DISPLAY_NAME: &str = hpr::hpr_core::tool::NAME;
 /// The command line as clap parses it: [`Cli`]'s derived command, with [`DISPLAY_NAME`] on it and
 /// on every command under it, and each command's examples and guide after its help
 /// ([`help::with_examples`]). Without the name, clap names a command's version by its
-/// binary's name and the command's, joined with a hyphen.
+/// binary's name and the command's, joined with a hyphen. The binary's name is set to `hpr`, so
+/// the usage lines say `hpr` whatever the file is called (`hpr.exe` on Windows).
 pub fn command() -> clap::Command {
     fn named(command: clap::Command) -> clap::Command {
         command.display_name(DISPLAY_NAME).mut_subcommands(named)
     }
-    help::with_examples(named(Cli::command()))
+    help::with_examples(named(Cli::command())).bin_name("hpr")
 }
 
 /// How a run of `hpr` ended: its process exit status.
@@ -130,20 +131,21 @@ impl Exit {
 #[command(
     name = "hpr",
     version = VERSION,
-    about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets",
-    long_about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets.\n\n\
+    about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets",
+    long_about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets.\n\n\
                   Every command prints text, or one JSON document with --json. \
-                  Commands marked \"not available yet\" name the milestone that brings them.",
+                  Run a command marked \"not available yet\" and it names the milestone that \
+                  brings it.",
     propagate_version = true,
     arg_required_else_help = true,
     styles = fs_style::CLAP_STYLES
 )]
 pub struct Cli {
-    /// Print one JSON document on standard output instead of text; errors too.
+    /// Print one JSON document on standard output instead of text, errors included.
     #[arg(long, global = true)]
     pub json: bool,
-    /// When to color: auto colors a stream that is a terminal; NO_COLOR, FORCE_COLOR and
-    /// CLICOLOR_FORCE apply under auto. JSON output never has color
+    /// When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR
+    /// and CLICOLOR_FORCE are followed. JSON output never has color
     #[arg(long, global = true, value_enum, default_value_t = ColorWhen::Auto, value_name = "WHEN")]
     pub color: ColorWhen,
     /// The command to run.
@@ -154,21 +156,27 @@ pub struct Cli {
 /// The commands, in the order `hpr --help` lists them.
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Fly a .ork, an .hpr or .hprz design, or a rocket's .json from a rail and print its flight;
-    /// export its recording
+    /// Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail and print its flight; save
+    /// its recording with --export
     Sim(sim::SimArgs),
-    /// Convert a motor file between .eng and .rse, or a catalog motor to either; or a design
-    /// between .ork, .hpr and .hprz
+    /// Convert a motor file between .eng and .rse, write a catalog motor as either, or convert a
+    /// design between .ork, .hpr and .hprz
     Convert(convert::ConvertArgs),
     /// Look up motors in the bundled catalog, read a .eng or .rse motor file, fetch a curve from
     /// ThrustCurve.org, or search vendors' stock and prices
     #[command(subcommand)]
     Motors(motors::MotorsCommand),
     /// Fetch a launch day's weather, or read a weather file, as a profile of air and wind
+    ///
+    /// For a launch still to come, use `open-meteo` or `gfs`, or `rap` in the contiguous U.S. and
+    /// nearby. For one already flown, use `open-meteo --historical`, `wyoming` or `era5`.
     #[command(subcommand)]
     Weather(weather::WeatherCommand),
-    /// Fly a design many times, each flight's inputs scattered at random, and print how its
-    /// apogee and landing spread; export every flight
+    /// Fly a design many times with its inputs scattered at random, and print how its apogee and
+    /// landing spread; save every flight with --export
+    ///
+    /// A spread given as a fraction is one standard deviation as a share of the value: 0.03 is
+    /// 3%. Every spread is 0 unless given, so only the inputs given one are scattered.
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),
@@ -926,7 +934,7 @@ mod tests {
             command().render_help().to_string(),
             command().render_long_help().to_string(),
         ] {
-            assert!(help.starts_with("FusionSpace HPR · Sim: "), "{help}");
+            assert!(help.starts_with("FusionSpace HPR · Sim "), "{help}");
             assert!(help.contains("Usage: hpr "), "{help}");
         }
     }

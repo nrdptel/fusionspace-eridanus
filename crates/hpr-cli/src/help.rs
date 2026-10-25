@@ -61,7 +61,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr sim my-rocket.ork --motor H170M --delay 10 --wind 4 --wind-from 270",
             },
             Example {
-                what: "Work out a catalog motor's figures",
+                what: "Work out a catalog motor's impulse, thrust and burn time",
                 line: "hpr motors show H170M",
             },
         ],
@@ -121,7 +121,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr motors list --class H --diameter 38",
             },
             Example {
-                what: "Work out a motor's figures from its thrust curve",
+                what: "Work out a motor's impulse, thrust and burn time from its thrust curve",
                 line: "hpr motors show H170M",
             },
             Example {
@@ -149,7 +149,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         path: &["motors", "show"],
         examples: &[
             Example {
-                what: "Work out a catalog motor's figures",
+                what: "Work out a catalog motor's impulse, thrust and burn time",
                 line: "hpr motors show H170M",
             },
             Example {
@@ -196,7 +196,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                        --time 2026-09-26T16:00Z -o profile.json",
             },
             Example {
-                what: "Read a balloon sounding launched before it",
+                what: "Read the last balloon sounding before that launch",
                 line: "hpr weather wyoming --station 72489 --time 2026-09-26T16:00Z",
             },
         ],
@@ -226,7 +226,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr weather wyoming --station 72489 --time 2026-09-26T16:00Z",
             },
             Example {
-                what: "Ask for it decoded from BUFR, a row every second or two of the ascent",
+                what: "Ask for the sounding decoded from BUFR",
                 line: "hpr weather wyoming --station 72489 --time 2026-09-26T16:00Z --bufr",
             },
         ],
@@ -300,11 +300,11 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         path: &["completions"],
         examples: &[
             Example {
-                what: "Complete the commands and options in zsh",
+                what: "Complete the commands and options in zsh, in a folder you add to $fpath",
                 line: "hpr completions zsh > ~/.zfunc/_hpr",
             },
             Example {
-                what: "In bash",
+                what: "In bash, from bash-completion's folder",
                 line: "hpr completions bash > ~/.local/share/bash-completion/completions/hpr",
             },
         ],

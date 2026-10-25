@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 47bb98f4061302c592288a12662e8065e77387cd155303c96b567ae4c0eecca2 # shrinks to entries = [EngEntry { comments: [], name: "A", diameter_mm: 0.001, length_mm: 0.001, delays: "0", propellant_mass_kg: -0.0, total_mass_kg: -0.0, manufacturer: ";", points: [(-0.0, 19677.59078743562)] }], trailing_comments = []

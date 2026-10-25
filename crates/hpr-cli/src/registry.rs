@@ -228,10 +228,36 @@ pub fn command_table(links: Links) -> String {
         };
         table.push_str(&format!(
             "| `hpr {}` | {} | {reads} | {writes} | {status} |\n",
-            command.name, command.summary
+            command.name,
+            options_as_code(&command.summary)
         ));
     }
     table
+}
+
+/// `text` with each option's name (`--export`) in code, so a page shows its two hyphens: the
+/// site's typography would draw them as a dash.
+fn options_as_code(text: &str) -> String {
+    text.split(' ')
+        .map(|word| {
+            // Punctuation may open the word, as in `(--export)`.
+            let start = word
+                .find(|c: char| c.is_ascii_alphanumeric() || c == '-')
+                .unwrap_or(word.len());
+            match word[start..].strip_prefix("--") {
+                Some(rest) if rest.starts_with(|c: char| c.is_ascii_alphanumeric()) => {
+                    let end = start
+                        + 2
+                        + rest
+                            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+                            .unwrap_or(rest.len());
+                    format!("{}`{}`{}", &word[..start], &word[start..end], &word[end..])
+                }
+                _ => word.to_owned(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn list(items: &[String]) -> String {
@@ -323,5 +349,25 @@ mod tests {
     fn anchors_follow_the_roadmap_page() {
         assert_eq!(anchor("M4.2b"), "m4-2b");
         assert_eq!(anchor("M7.3"), "m7-3");
+    }
+
+    #[test]
+    fn option_names_in_the_table_are_code() {
+        assert_eq!(
+            options_as_code("save it with --export, or --plot-file."),
+            "save it with `--export`, or `--plot-file`."
+        );
+        assert_eq!(options_as_code("a -- dash and --"), "a -- dash and --");
+        assert_eq!(
+            options_as_code("(--export) or \"--plot\""),
+            "(`--export`) or \"`--plot`\""
+        );
+        let table = command_table(Links::Guide);
+        assert!(table.contains("`--export`"), "{table}");
+        // No option name is left outside code, whatever opens its word.
+        for row in table.lines().filter(|row| !row.starts_with("|---")) {
+            let outside: String = row.split('`').step_by(2).collect();
+            assert!(!outside.contains("--"), "{row}");
+        }
     }
 }

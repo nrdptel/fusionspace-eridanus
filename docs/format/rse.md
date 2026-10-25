@@ -175,8 +175,10 @@ What else real files do, and what the reader and writer do with each case.
    the sets fail.
 6. Keep strings verbatim, including the spaces in `mfg`; normalize names in the catalog layer.
    Delays: keep the raw string; interpret it as in [`.eng` files](eng.md) (`1000`/`100` → plugged, `0` ambiguous).
-7. Point checks match `.eng`. Error on negative or decreasing `t`. Warn on a last `f` ≠ 0, on
-   negative thrust, and on an `Itot` or `peakThrust` that disagrees with the curve by more than 1%.
+7. Point checks match `.eng`. Error on negative or decreasing `t`, and on a last `f` above half the
+   curve's peak, where the file looks cut off. When other engines in the file read, that engine is
+   skipped, with a warning. Warn on a lower last `f` ≠ 0, on negative thrust, and on an `Itot` or
+   `peakThrust` that disagrees with the curve by more than 1%.
    `burn-time` is not checked: files round it from the last time.
 
 ### Writer policy (strict, round-trip stable)
@@ -195,7 +197,9 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 - Write attributes in RockSim's order: `mfg code Type dia len initWt propWt delays auto-calc-mass
   auto-calc-cg avgThrust peakThrust throatDia exitDia Itot burn-time massFrac Isp tDiv tStep tFix
   FDiv FStep FFix mDiv mStep mFix cgDiv cgStep cgFix`. Write only the ones present in the model.
-  Points are written as `t f m cg`, verbatim, with no origin added or removed.
+  Points are written as `t f m cg`, verbatim, with no origin added or removed. An engine with
+  fewer than two points, or whose last `f` is above half its peak, is refused, as the reader
+  would refuse the curve.
 - Numbers use Rust `{}` (Display): the shortest digits that round-trip exactly, no exponent, and
   `-0` for negative zero.
 - Escape attribute values as `&amp; &lt; &gt; &quot;`, and tab, LF and CR as `&#9; &#10; &#13;`.
