@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc df2db701c339b3a3b0cfeb40e4e89ea29fa78ffbc66a1202fe4ce406b3fec5a7 # shrinks to engines = [RseEngine { manufacturer: "", code: "", motor_type: None, diameter_mm: 0.001, length_mm: 0.001, initial_mass_g: 0.0, propellant_mass_g: 0.0, delays: None, auto_calc_mass: None, auto_calc_cg: None, average_thrust_n: None, peak_thrust_n: None, throat_diameter_mm: None, exit_diameter_mm: None, total_impulse_ns: None, burn_time_s: None, mass_fraction_pct: None, isp_s: None, comments: None, points: [RsePoint { time_s: 0.0, thrust_n: 0.0, mass_g: None, cg_mm: None }, RsePoint { time_s: 0.0, thrust_n: 74286.05599113877, mass_g: None, cg_mm: None }] }]

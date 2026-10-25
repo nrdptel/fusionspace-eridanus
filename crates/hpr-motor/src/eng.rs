@@ -14,7 +14,7 @@ use std::fmt::Write as _;
 
 use serde::{Deserialize, Serialize};
 
-use crate::curve::ThrustCurve;
+use crate::curve::{ThrustCurve, cut_off};
 use crate::delay::DelayList;
 use crate::error::MotorError;
 use crate::text::{ParseWarning, Parsed, WarningKind, check_writable, finite};
@@ -260,6 +260,15 @@ pub fn write(file: &EngFile) -> Result<String, MotorError> {
             )));
         }
         check_envelope(entry)?;
+        // The reader refuses a curve cut off above half its peak, so writing one wouldn't round
+        // trip.
+        if let Some((last, peak)) = cut_off(entry.points.iter().map(|&(_, thrust)| thrust)) {
+            return Err(MotorError::Inconsistent(format!(
+                "the entry {:?} ends at {last} N, above half its peak thrust of {peak} N; a curve \
+                 ends at zero thrust",
+                entry.name
+            )));
+        }
         if entry.points.is_empty() {
             return Err(MotorError::Inconsistent(format!(
                 "the .eng entry {:?} has no points",
@@ -392,7 +401,8 @@ fn point(entry: &mut EngEntry, time: f64, thrust: f64, line: usize) -> Result<()
 }
 
 /// Ends an entry, warning about what the reader accepted but finds odd: masses, delays and the
-/// curve's end. The warnings point at the header line.
+/// curve's end. The warnings point at the header line. A curve that ends above half its peak
+/// thrust is refused as cut off ([`crate::curve::CUT_OFF_SHARE`]).
 fn finish(
     entry: EngEntry,
     header_line: usize,
@@ -402,6 +412,16 @@ fn finish(
         return Err(syntax(
             header_line,
             format!("the entry {:?} has no points", entry.name),
+        ));
+    }
+    if let Some((last, peak)) = cut_off(entry.points.iter().map(|&(_, thrust)| thrust)) {
+        return Err(syntax(
+            header_line,
+            format!(
+                "the entry {:?} ends at {last} N, above half its peak thrust of {peak} N, so the \
+                 file looks cut off; a curve ends at zero thrust",
+                entry.name
+            ),
         ));
     }
     let mut warn = |kind: WarningKind, message: String| {
@@ -843,6 +863,13 @@ C6 18 70 0-3-5-7 .0108 0.0231 E
             .prop_map(
                 |(comments, (name, delays, manufacturer), (d, l, p, t), mut points)| {
                     points.sort_by(|a, b| a.0.total_cmp(&b.0));
+                    // The reader refuses a curve cut off above half its peak, so the round trip
+                    // holds for the rest: such a curve ends at zero here.
+                    if cut_off(points.iter().map(|&(_, f)| f)).is_some()
+                        && let Some(last) = points.last_mut()
+                    {
+                        last.1 = 0.0;
+                    }
                     EngEntry {
                         comments,
                         name,
@@ -870,5 +897,54 @@ C6 18 70 0-3-5-7 .0108 0.0231 E
             prop_assert_eq!(&back, &file);
             prop_assert_eq!(bits(&back), bits(&file));
         }
+    }
+
+    /// A curve that stops above half its peak is refused as cut off, naming its end and its peak;
+    /// one that stops lower is read, with a warning; in a file of several, only the cut entry is
+    /// lost; and the writer refuses what the reader would.
+    #[test]
+    fn a_curve_cut_off_above_half_its_peak_is_refused() {
+        let cut = "G84 24 228 5 0.077 0.172 CTI\n 0.1 100\n 0.4 60\n";
+        let Err(MotorError::Syntax { line, message, .. }) = parse(cut) else {
+            panic!("a cut curve was read");
+        };
+        assert_eq!(line, 1);
+        assert!(
+            message.contains("ends at 60 N, above half its peak thrust of 100 N"),
+            "{message}"
+        );
+        let tail = "G84 24 228 5 0.077 0.172 CTI\n 0.1 100\n 0.4 10\n";
+        let parsed = parse(tail).unwrap();
+        assert_eq!(parsed.value.entries.len(), 1);
+        assert!(
+            parsed
+                .warnings
+                .iter()
+                .any(|w| w.kind == WarningKind::Unusual
+                    && w.message.contains("ends at 10 N, not zero")),
+            "{:?}",
+            parsed.warnings
+        );
+        let both = format!("{cut};\nB4 18 70 3 0.006 0.02 E\n 0.1 5\n 0.5 0\n");
+        let parsed = parse(&both).unwrap();
+        let names: Vec<&str> = parsed
+            .value
+            .entries
+            .iter()
+            .map(|e| e.name.as_str())
+            .collect();
+        assert_eq!(names, ["B4"]);
+        assert!(
+            parsed
+                .warnings
+                .iter()
+                .any(|w| w.kind == WarningKind::Skipped && w.message.contains("looks cut off"))
+        );
+        let mut file = parse(tail).unwrap().value;
+        file.entries[0].points[1].1 = 60.0;
+        let Err(MotorError::Inconsistent(message)) = write(&file) else {
+            panic!("a cut curve was written");
+        };
+        assert!(message.contains("ends at 60 N"), "{message}");
     }
 }

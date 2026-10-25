@@ -113,6 +113,17 @@ against what the command does:
 The cold read takes each of the 20 screens against each rule of the voice section and lists what
 it finds; each finding is fixed in the PR or filed.
 
+**Amendment for M0.14d1's acceptance pass (2026-10-25).** Task 4's hostile file, a `.eng` cut off
+mid-curve, wasn't refused when cut at a line's end. The file is still well formed, and its curve
+just stops: a G84 curve cut at its middle line read as an F motor of 79.1 N·s, with only a warning
+that the curve ends above zero thrust. The task stands as written. The fix is in the motor readers:
+the `.eng` and `.rse` readers, and their writers, refuse a curve whose last thrust is above half its
+peak. The RASP format says the final point must have zero thrust, but real files don't always. Of
+the 2,575 curves the readers read from the 286 motor files under the project's reference
+checkouts, 8 end above zero, the highest at 10.5% of its peak, so half the peak refuses none of
+them. A test reads those files and prints the figures wherever the checkouts are. A cut where the
+thrust is under half its peak, in the tail-off or a sustain phase, keeps the warning.
+
 **Consequences.**
 
 - The help can't drift: a change to it fails the snapshot test until the snapshot is written
