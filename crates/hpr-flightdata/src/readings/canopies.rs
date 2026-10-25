@@ -201,9 +201,10 @@ pub(super) fn read(
             "the descent shows no drogue's leg, which at the ground's density falls faster than \
              {mark:.1} m/s up to the main's opening. That mark is {MAIN_TOLERANCE_SHARE} times the \
              rate near the ground, {main_rate:.1} m/s, or {MAIN_TOLERANCE_M_S} m/s more if that \
-             is more. The leg also falls on median faster than {DROGUE_RATIO} times that rate. \
-             The rocket came down under one canopy, or under a drogue no faster than the mark, \
-             which reads as one. The main's descent is the whole descent's, from apogee"
+             is more. A drogue's leg would also fall on median faster than {DROGUE_RATIO} times \
+             that rate. So the rocket came down under one canopy, or under a drogue no faster \
+             than the mark, which reads as one. The main's descent is then the whole descent's, \
+             from apogee"
         );
         return (
             Reading::withheld(Reason::OneCanopy, detail),

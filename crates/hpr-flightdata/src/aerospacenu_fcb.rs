@@ -903,8 +903,9 @@ fn decide_pressure(column: &mut Column) -> String {
                 "{name} read in atmospheres, from its size and its step: on the pad it reads \
                  {pad}. That is within the 0.5 to 1.1 that only atmospheres and bars of the units a \
                  barometer is written in put a pad. Each of its {tested} cells written \
-                 precisely enough to test is {step} within a millionth of a step. A barometer's \
-                 pascals written in atmospheres are so, and in bars, over 100,000, aren't"
+                 precisely enough to test is {step} within a millionth of a step. That is so of a \
+                 barometer's pascals written in atmospheres, and not of those written in bars, \
+                 over 100,000"
             )
         }
         _ => {
@@ -1351,7 +1352,7 @@ fn decide_scaled_accelerometer(
     });
     let reading = reading.map_or_else(|| "nothing".to_owned(), |r| format!("{r:.3}"));
     let factor = common.map_or_else(
-        || "They aren't their raw counts times one factor".to_owned(),
+        || "The columns aren't their raw counts times one factor".to_owned(),
         |f| format!("Each column is its raw count times {f:.7}"),
     );
     match (gravity, scale_unit) {
@@ -1536,8 +1537,9 @@ fn turning_unit(columns: &[Column], flight: &Flight, gyro: [usize; 3]) -> (Optio
         .position(|(_, to_dps)| enough && within_factor(ratio * to_dps * PI / 180.0, TURN_FACTOR));
     let evidence = format!(
         "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart with the \
-         accelerometer within 15% of 1 g, its direction turns {:.3} rad. The rates turn the \
-         board across it {:.3} rad read in radians per second, {:.3} rad read in degrees. The \
+         accelerometer within 15% of 1 g, its direction turns {:.3} rad. Over the same \
+         stretches, the rates turn the board across that direction {:.3} rad read in radians \
+         per second, {:.3} rad read in degrees. The \
          unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 \
          stretches and 0.2 rad",
         found.stretches,
@@ -1572,7 +1574,7 @@ fn decide_gyroscopes(columns: &mut [Column], flight: &Flight, decisions: &mut Ve
                 .position(|(_, to_dps)| listed_scale(factor * to_dps, &GYRO_SCALES_DPS).is_some())
         });
         let factor = common.map_or_else(
-            || "They aren't their raw counts times one factor".to_owned(),
+            || "The columns aren't their raw counts times one factor".to_owned(),
             |f| format!("Each column is its raw count times {f:.7}"),
         );
         match (turned, scaled) {
@@ -1874,10 +1876,10 @@ fn decide_gps_altitude(
     };
     let fixes = |line: Option<Line>| line.map_or(0, |l| l.points);
     let evidence = format!(
-        "its rise over the pressure's climb in the standard atmosphere is {} as written. It is \
-         fitted as a line with a free offset through its {} fresh fixes up to the apogee. Its \
-         rise over the climb the accelerometer integrates to is {}, from a line through its {} \
-         fresh fixes from the launch. A gain within 25% of 1 and a ratio within a factor of \
+        "its rise over the pressure's climb in the standard atmosphere is {} as written. The \
+         rise is fitted as a line with a free offset through the column's {} fresh fixes up to \
+         the apogee. Its rise over the climb the accelerometer integrates to is {}, from a line \
+         through the column's {} fresh fixes from the launch. A gain within 25% of 1 and a ratio within a factor of \
          {LENGTH_FACTOR} are taken, each over a climb of at least {LEAST_CLIMB_M} m",
         measured(gain),
         fixes(pressure_line),
@@ -1888,8 +1890,8 @@ fn decide_gps_altitude(
         (_, _, Some((pad, start, allowed))) => decisions.push(format!(
             "{name} kept as written: its pad reading isn't where its climb starts, a value held \
              from before its first fix. On the pad it reads {pad}, and its fixes' line puts the \
-             pad at {start:.1}. That is more than {allowed:.1} away, a quarter of its rise over \
-             the fixes; {evidence}"
+             pad at {start:.1}. That is more than {allowed:.1} from the pad reading, a quarter of \
+             its rise over the fixes; {evidence}"
         )),
         (Some(g), Some(c), None) if g == c => {
             column.read_as(Quantity::GnssAltitude, LENGTH_UNITS[g].1);
@@ -1975,7 +1977,7 @@ fn decide_climb(
     };
     let evidence = format!(
         "over the steps at most {FAST_STEP_S} s long, `pos_z`'s change in meters is {} times what \
-         it integrates to as written. From the launch it is {} times the speed the \
+         it integrates to as written. From the launch, the column is {} times the speed the \
          accelerometer integrates to. A slope within 25% of 1 and a ratio within a factor of \
          {LENGTH_FACTOR} are taken",
         text(slope),
@@ -2119,7 +2121,7 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
                 Some(Position::DegreesMinutes),
                 format!(
                     "read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges and \
-                     their minutes: {ranges}. Most of each do, as degrees and minutes write any \
+                     their minutes: {ranges}. Most of each pass those limits, as degrees and minutes write any \
                      place more than 1° from the equator and 2° from the prime meridian. \
                      {minutes}. And converted, every latitude lies within ±90 and every \
                      longitude within ±180"
@@ -2153,7 +2155,7 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
                 "read in degrees, from the latitudes' range and the longitudes': each of its \
                  {fixes} fixes has its latitude within ±90 and its longitude within ±180. \
                  Degrees and minutes would put the place within 1° of the equator and 2° of the \
-                 prime meridian. Both at once happens only at sea in the Gulf of Guinea. {minutes}"
+                 prime meridian. Being within both at once happens only at sea in the Gulf of Guinea. {minutes}"
             ),
         )
     } else {
@@ -2177,7 +2179,7 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
         decisions.push(format!(
             "{names} kept as written, with no hemisphere: every value in them is 0 or more and \
              the file writes no hemisphere. NMEA 0183 writes the hemisphere in a field of its \
-             own. So a place south of the equator or west of the prime meridian reads as its \
+             own. Without a hemisphere, a place south of the equator or west of the prime meridian reads as its \
              mirror north or east. A person who knows the site can sign them. Unsigned, they \
              would be {said}"
         ));

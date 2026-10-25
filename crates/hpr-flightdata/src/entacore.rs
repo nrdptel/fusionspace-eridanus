@@ -686,7 +686,8 @@ fn build(
                 decisions.push(format!(
                     "`{}` read in {unit}, from the values: its first value that is a launch \
                      site's pressure, {value}{}, is one in {unit}. A launch site's pressure is \
-                     50,000 to 110,000 Pa, in pascals, kilopascals or inches of mercury",
+                     50,000 to 110,000 Pa, whether written in pascals, kilopascals or inches of \
+                     mercury",
                     column.name,
                     if index > 0 {
                         format!(", after {index} samples that aren't")
@@ -698,8 +699,8 @@ fn build(
             }
             None => decisions.push(format!(
                 "`{}` kept as written, in a unit its values don't settle: none of them is a \
-                 launch site's pressure. A launch site's pressure is 50,000 to 110,000 Pa, in \
-                 pascals, kilopascals or inches of mercury",
+                 launch site's pressure. A launch site's pressure is 50,000 to 110,000 Pa, whether \
+                 written in pascals, kilopascals or inches of mercury",
                 column.name
             )),
         }
@@ -1371,7 +1372,7 @@ fn decide_temperatures(groups: &mut [Group], feet: bool, unit: &str, decisions: 
                 "`{}` read in degrees {degrees}, from the heights' unit and the manual, p33: the \
                  heights are in {unit}, decided from the pressure. The software sets one \
                  unit system for all its displays (p33), here {system}, its sensor reading °C or \
-                 °F (p25). The first value, {value}, is a bay's temperature in degrees \
+                 °F (p25). The column's first value, {value}, is a bay's temperature in degrees \
                  {degrees}, {low} to {high}",
                 column.name
             )),
@@ -1379,8 +1380,8 @@ fn decide_temperatures(groups: &mut [Group], feet: bool, unit: &str, decisions: 
                 column.as_written = true;
                 decisions.push(format!(
                     "`{}` kept as written, in a unit its values don't settle: the heights are in \
-                     {unit}, so the displays are {system} (p33). Its first value, {}, isn't \
-                     a bay's temperature in degrees {degrees}, {low} to {high}",
+                     {unit}, so the displays are {system} (p33). The column's first value, {}, \
+                     isn't a bay's temperature in degrees {degrees}, {low} to {high}",
                     column.name,
                     first.map_or("none".to_owned(), |v| v.to_string())
                 ));
@@ -1405,10 +1406,10 @@ fn decide_voltages(groups: &mut [Group], decisions: &mut Vec<String>) {
             });
         if low <= high && low >= 0.0 && high <= VOLTS_MAX {
             decisions.push(format!(
-                "`{}` read in volts, from the values: they lie within {low} to {high}. That is inside \
-                 the 0 to 20 V of a battery or an output line. The computer's battery is 3.5 to \
-                 8.4 V and the ejection battery at most 10 V (manual p10). Millivolts would \
-                 be thousands",
+                "`{}` read in volts, from the values: they lie within {low} to {high}. That is \
+                 inside the 0 to 20 V of a battery or an output line. The computer's battery is \
+                 3.5 to 8.4 V and the ejection battery at most 10 V (manual p10). In millivolts \
+                 they would be thousands",
                 column.name
             ));
         } else {

@@ -522,7 +522,7 @@ fn a_scaled_accelerometer_is_read_on_its_gravity_and_its_count() {
             &off,
             "`imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` kept as "
         )
-        .contains("They aren't their raw counts times one factor")
+        .contains("The columns aren't their raw counts times one factor")
     );
 }
 

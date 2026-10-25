@@ -625,15 +625,15 @@ fn units_notes(altitude: &str, velocity: &str, raw: bool, at_zero: usize) -> Vec
     let mut notes = vec![
         if raw {
             format!(
-                "`{altitude}` read in meters, from the manual and the exports. They are whole \
-                 meters, above mean sea level as the RTx's manual states its GPS altitude. The \
-                 KML export writes them in meters, and the CSV and text exports convert them to \
-                 feet. A word can't fall below 0"
+                "`{altitude}` read in meters, from the manual and the exports. The values are \
+                 whole meters, above mean sea level as the RTx's manual states its GPS altitude. \
+                 The KML export writes them the same way, and the CSV and text exports convert \
+                 them to feet. A word can't fall below 0"
             )
         } else {
             format!(
-                "`{altitude}` read in feet, from the `.rtx` files beside the sample exports. They are whole \
-                 feet, the `.rtx`'s meters × 3.280 84 rounded down, read as 0.3048 m each"
+                "`{altitude}` read in feet, from the `.rtx` files beside the sample exports. The \
+                 values are whole feet, the `.rtx`'s meters × 3.280 84 rounded down, read as 0.3048 m each"
             )
         },
         format!(
@@ -641,7 +641,7 @@ fn units_notes(altitude: &str, velocity: &str, raw: bool, at_zero: usize) -> Vec
              about 3.6 times the speed between fixes, as kilometers an hour would. The \
              velocity runs far more than the climb rate while it climbs"
         ),
-        "`COG` read in degrees, from the positions. The course over ground is within a few \
+        "`COG` read in degrees, from the positions. It is the course over ground, within a few \
          degrees of the bearing between the fixes either side while the tracker moves"
             .to_owned(),
     ];

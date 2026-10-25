@@ -992,10 +992,11 @@ fn decide_gyroscope(
     let ratio = found.gyroscope_rad / found.accelerometer_rad;
     let degrees = PI / 180.0;
     let evidence = format!(
-        "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart, the \
-         accelerometer is within 15% of 1 g. That is a board at rest or under a parachute. Its \
-         direction turns {:.3} rad. The gyroscope's rates turn the board across it {:.3} rad \
-         read in radians per second, {:.3} rad read in degrees",
+        "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart with the \
+         accelerometer within 15% of 1 g, its direction turns {:.3} rad. A board at rest or \
+         under a parachute reads so. Over the same stretches, the gyroscope's rates turn the \
+         board across that direction {:.3} rad read in radians per second, {:.3} rad read in \
+         degrees",
         found.stretches,
         found.accelerometer_rad,
         found.gyroscope_rad,
@@ -1163,7 +1164,7 @@ fn decide_altitudes(
                     message: format!(
                         "{} climbs {column:.1} from the first sample to the one of lowest \
                          pressure. The pressure's climb in the standard atmosphere is \
-                         {pressure_m:.1} m. Its name says meters, but the two aren't within 25%",
+                         {pressure_m:.1} m. The column's name says meters, but the two aren't within 25%",
                         columns[at].quoted()
                     ),
                 });

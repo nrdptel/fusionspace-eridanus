@@ -1004,8 +1004,8 @@ fn decided(
                         "`{}` read in meters, from the barometric altitude. The header and the \
                          manual state no unit. At its {} fresh fixes it rises {:.2} for each meter \
                          of the barometric altitude, within {:.0}% of 1. In feet it would be \
-                         3.28. They span {} m of the barometric altitude and \
-                         scatter {} about that line",
+                         3.28. The fresh fixes span {} m of the barometric altitude \
+                         and scatter {} about that line",
                         short(&column.written),
                         fit.fixes,
                         fit.slope,
@@ -1624,7 +1624,7 @@ mod tests {
         assert!(
             gps_note(&log).contains(
                 "At its 21 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
-                 within 10% of 1. In feet it would be 3.28. They span 300 m"
+                 within 10% of 1. In feet it would be 3.28. The fresh fixes span 300 m"
             ),
             "{:?}",
             log.notes

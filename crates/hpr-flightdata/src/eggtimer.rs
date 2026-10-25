@@ -1503,7 +1503,7 @@ fn coast_units(
     } else {
         return Err(refuse(format!(
             "the clock `T` is in {unit} by its step. But on that clock `Alt` slows at {} g in \
-             feet and {} g in meters over {}. That is in neither the {} to {} g the reader \
+             feet and {} g in meters over {}. Neither is in the {} to {} g the reader \
              takes",
             plain(in_feet, 3),
             plain(in_meters, 3),
@@ -1516,7 +1516,7 @@ fn coast_units(
     let clock_note = format!(
         "`T` read in {unit}, from the step and the coast: {}. On that clock `Alt` slows at {} g \
          in {length} over {}. The reader takes {band} in feet or in meters, and a clock \
-         1,000 times off would put it 10⁶ times off",
+         1,000 times off would put that slowing 10⁶ times off",
         step_evidence(median),
         plain(if length == "feet" { in_feet } else { in_meters }, 3),
         coast.window
@@ -1666,7 +1666,7 @@ fn unit_note(column: &Column, check: Option<SpeedCheck>, columns: &[Column]) -> 
         ),
         Kind::RawSpeed => format!(
             "`{name}` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
-             give the velocity in ft/sec. The Proton's (p45) gives it as the change in `Alt` over the \
+             give the velocity in ft/sec. The Proton's manual (p45) gives it as the change in `Alt` over the \
              step. {}",
             evidence("`Alt`")
         ),
@@ -1781,8 +1781,8 @@ fn marker_note(columns: &[Column]) -> Option<String> {
         .iter()
         .any(|column| column.name == "MaxV" || column.name == "MaxA")
     {
-        ". The Proton's release notes (1.02N, p13) put the top speed, ft/s, in `MaxV` and the \
-         top acceleration, ft/s², in `MaxA`"
+        ". At that sample the Proton's release notes (1.02N, p13) put the top speed, ft/s, in \
+         `MaxV` and the top acceleration, ft/s², in `MaxA`"
     } else {
         ""
     };
@@ -2315,8 +2315,8 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
     if !past.is_empty() {
         log.notes.push(format!(
             "the flight summary's times past the table's last, {} s, kept as written and not \
-             read as events. No event of the flight comes after its last sample, so they aren't \
-             in seconds: {}",
+             read as events. No event of the flight comes after its last sample, so those times \
+             aren't in seconds: {}",
             plain(last_s, 3),
             past.joined(", ")
         ));
@@ -2860,7 +2860,7 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
     log.notes.insert(
         0,
         "the text was unwrapped from an RTF document, as a text editor saves a terminal \
-         program's capture. Its groups, control words and escapes were taken out, and its \
+         program's capture. The document's groups, control words and escapes were taken out, and its \
          paragraph and line breaks were read as the download's lines. A line named is the \
          document's"
             .to_owned(),
@@ -3009,7 +3009,7 @@ mod tests {
         assert_eq!(
             log.notes[2],
             "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
-             give the velocity in ft/sec. The Proton's (p45) gives it as the change in `Alt` over the \
+             give the velocity in ft/sec. The Proton's manual (p45) gives it as the change in `Alt` over the \
              step. It is the change in `Alt` over the step, within 1 % or 1 ft/s. That holds in 4 \
              of 4 rows after the first, where the reader asks 90 %"
         );
@@ -3124,8 +3124,8 @@ mod tests {
             log.notes[6].starts_with(
                 "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA` and `CH1`. "
             ) && log.notes[6].ends_with(
-                ". The Proton's release notes (1.02N, p13) put the top speed, ft/s, in `MaxV` \
-                     and the top acceleration, ft/s², in `MaxA`"
+                ". At that sample the Proton's release notes (1.02N, p13) put the top speed, \
+                     ft/s, in `MaxV` and the top acceleration, ft/s², in `MaxA`"
             ),
             "{}",
             log.notes[6]
@@ -4171,7 +4171,7 @@ mod tests {
                 clock.contains(
                     " g in feet over the rows from 6.9 s to 9.9 s, up to the altitude's top. \
                      The reader takes 0.7 to 1.3 g in feet or in meters, and a clock 1,000 \
-                     times off would put it 10⁶ times off"
+                     times off would put that slowing 10⁶ times off"
                 ),
                 "{clock}"
             );
@@ -4341,7 +4341,7 @@ mod tests {
             ),
             "{error}"
         );
-        assert!(error.ends_with(". That is in neither the 0.7 to 1.3 g the reader takes"));
+        assert!(error.ends_with(". Neither is in the 0.7 to 1.3 g the reader takes"));
         // A table of one row has neither a step nor a coast.
         let one = coast_download("0,0,0,0,0,0,0,0,0,0,0", |_, _| {});
         assert!(matches!(

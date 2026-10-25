@@ -1342,9 +1342,9 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
     let rate = board / received;
     let evidence = format!(
         "over the longest stretch of packets, {received:.1} s of the ground station's clock, \
-         the board's advances {board:.1} s read in milliseconds. The stamps in it keep within \
-         {STRETCH_GAP_S} s of one gap from the ground station's clock. That is {rate:.4} for \
-         each second. The band is 0.8 to 1.25 over at least 20 s"
+         the board's advances {board:.1} s read in milliseconds, {rate:.4} for each second. \
+         The stamps in it keep within {STRETCH_GAP_S} s of one gap from the ground station's \
+         clock. The band is 0.8 to 1.25 over at least 20 s"
     );
     if !(received >= CLOCK_SPAN_S && (CLOCK_RATE.0..=CLOCK_RATE.1).contains(&rate)) {
         notes.push(format!(
@@ -1490,8 +1490,8 @@ fn decide_pressures(reading: &mut Reading, notes: &mut Vec<String>) {
         let evidence = format!(
             "{size}, a pad's pressure in atmospheres or bars if within 0.4935 to 1.1. A value \
              counts as a whole number within its own rounding as sent. Of its {count} distinct \
-             non-zero values, {:.1}% are a whole number of pascals divided by 101,325. {:.1}% \
-             are a whole number of pascals divided by 100,000",
+             non-zero values, {:.1}% are a whole number of pascals divided by 101,325. Of the same \
+             values, {:.1}% are a whole number of pascals divided by 100,000",
             atm * 100.0,
             bar * 100.0
         );
@@ -1800,7 +1800,7 @@ fn decide_altitude(
             let evidence = format!(
                 "from `barometer_pressure`'s first value to its lowest, each within {NEAREST_S} s \
                  of a sample of the column, the standard atmosphere climbs {climb:.1} m. The \
-                 column's climb is {column:.1}, {:.3} times that. Meters need within 25%",
+                 column's climb over the same span is {column:.1}, {:.3} times that. Meters need within 25%",
                 column / climb
             );
             if (column / climb - 1.0).abs() > MARGIN {
@@ -1901,7 +1901,7 @@ fn decide_speed(reading: &mut Reading, notes: &mut Vec<String>) {
             (
                 format!(
                     "over the barometer's ascent, the standard atmosphere climbs {climb:.1} m. The \
-                     ascent is the {:.1} s from where its pressure last began to fall to its \
+                     ascent is the {:.1} s from where the barometer's pressure last began to fall to its \
                      lowest. The column integrates to {moved:.1}, the speed taken as a straight \
                      line between samples up to {longest:.1} s apart. The climb is {ratio:.3} \
                      times that. Meters per second need at least {CHECK_CLIMB_M} m and within 25%",
@@ -2157,8 +2157,8 @@ fn accelerometer_climb(reading: &Reading, axes: [usize; 3]) -> Result<(usize, f6
         Some(ratio) if count >= INTEGRATED_LEAST => Ok((count, ratio)),
         _ => Err(format!(
             "from the launch, it integrates to {climb:.1} m before its speed falls to 0 or a \
-             step passes {INTEGRATE_STEP_S} s. Past {CHECK_CLIMB_M} m it has {count} pressures, \
-             under the {INTEGRATED_LEAST} it needs"
+             step passes {INTEGRATE_STEP_S} s. Past {CHECK_CLIMB_M} m of that climb there are \
+             {count} pressures, under the {INTEGRATED_LEAST} needed"
         )),
     }
 }
@@ -2439,8 +2439,8 @@ fn decide_gyroscope(
         found.stretches >= TURN_LEAST_STRETCHES && found.accelerometer_rad >= TURN_LEAST_RAD;
     let turning_text = format!(
         "over {} stretches of {TURN_STEPS} steps at most {TURN_STEP_S} s apart at about 1 g, the \
-         accelerometer's reading turns {:.3} rad. The gyroscope turns the board across it \
-         {:.3} rad read in radians per second",
+         accelerometer's reading turns {:.3} rad. Over those stretches the gyroscope turns the \
+         board across it {:.3} rad read in radians per second",
         found.stretches, found.accelerometer_rad, found.gyroscope_rad
     );
     let tilt = if tilt_read {
@@ -2464,7 +2464,7 @@ fn decide_gyroscope(
     });
     let tilt_text = format!(
         "Over {windows} windows of at most {TILT_WINDOW_S} s in which `angle_vertical` moves at \
-         least 10°, it changes {tilted:.3} rad. The gyroscope turns the board across its z \
+         least 10°, it changes {tilted:.3} rad. In those windows the gyroscope turns the board across its z \
          axis {turned:.3} rad read in radians per second and {:.3} rad read in degrees",
         turned * degrees
     );
@@ -3387,13 +3387,13 @@ mod tests {
         for (text, shares) in [
             (
                 both,
-                "100.0% are a whole number of pascals divided by 101,325. 100.0% are a whole \
-                    number of pascals divided by 100,000",
+                "100.0% are a whole number of pascals divided by 101,325. Of the same values, \
+                    100.0% are a whole number of pascals divided by 100,000",
             ),
             (
                 neither,
-                "0.0% are a whole number of pascals divided by 101,325. 0.0% are a whole \
-                       number of pascals divided by 100,000",
+                "0.0% are a whole number of pascals divided by 101,325. Of the same values, \
+                       0.0% are a whole number of pascals divided by 100,000",
             ),
             (
                 thousandths,
@@ -3452,7 +3452,8 @@ mod tests {
         );
         assert!(
             kept.contains("within 10% of 9.806 65 for 0.0 s")
-                && kept.contains("Past 10 m it has 0 pressures, under the 3 it needs"),
+                && kept
+                    .contains("Past 10 m of that climb there are 0 pressures, under the 3 needed"),
             "{kept}"
         );
         note(

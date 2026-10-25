@@ -1193,8 +1193,8 @@ fn heights(log: &FlightLog) -> Readings {
     let short_detail = format!(
         "the track stays within {:.1} m of its start for {stay_s:.2} s, so the rocket may have \
          climbed {pad_error_m:.1} m before the log starts. That is more than the pad's {:.0} m \
-         allowance. The log starts after liftoff, as a logger that records from launch does, or \
-         holds too little of the pad to tell liftoff by",
+         allowance. Either the log starts after liftoff, as a logger recording from launch \
+         does, or it holds too little of the pad to tell liftoff",
         0.5 * rise,
         LIFTOFF_ALLOWANCE_M
     );
@@ -1276,8 +1276,8 @@ fn heights(log: &FlightLog) -> Readings {
             let detail = format!(
                 "the track loses {lost:.2} m in the {COAST_CHECK_S} s before its top. That is no \
                  more than twice its noise and step ({least:.1} m), where a coast loses \
-                 {coast:.0} m. Its clock is in another unit, such as milliseconds read as seconds, or it isn't a \
-                 height"
+                 {coast:.0} m. So either the track's clock is in another unit, such as \
+                 milliseconds read as seconds, or it isn't a height"
             );
             let mut withheld = every(source, Reason::SlowerThanFreeCoast, &detail);
             withheld.sample_interval_s = readings.sample_interval_s;
@@ -1345,8 +1345,8 @@ fn heights(log: &FlightLog) -> Readings {
         .map(|(fallen, index, most)| {
             format!(
                 "the track climbs {climbed:.1} m into its top at {:.2} s in {climb_s:.2} s. That is \
-                 more than the {climb_most:.1} m a coast slowing at twice gravity climbs. It \
-                 falls {fallen:.1} m from it by {:.2} s, more than the {most:.1} m a body at rest \
+                 more than the {climb_most:.1} m a coast slowing at twice gravity climbs. The \
+                 track falls {fallen:.1} m from it by {:.2} s, more than the {most:.1} m a body at rest \
                  there can fall. Each is past twice its noise and step. Its top is a spike, such \
                  as a charge's, so which is the apogee can't be told",
                 time[apogee_index], time[index]
@@ -1357,9 +1357,9 @@ fn heights(log: &FlightLog) -> Readings {
         let (fallen, from, to) = fall;
         format!(
             "the track falls {fallen:.1} m from a peak at {:.2} s to {:.2} s. That is more than \
-             twice its noise and step ({least:.1} m). It then climbs to its top at {:.2} s. A \
-             coast doesn't, and a disturbance after apogee, such as the deployment's, does, so \
-             which is the apogee can't be told",
+             twice its noise and step ({least:.1} m). The track then climbs to its top at {:.2} s. \
+             A coast doesn't fall and then climb, and a disturbance after apogee, such as the \
+             deployment's, does, so which is the apogee can't be told",
             time[from], time[to], time[apogee_index]
         )
     })
@@ -1438,7 +1438,7 @@ fn heights(log: &FlightLog) -> Readings {
             Reason::ShortPad,
             format!(
                 "the climb's speed peaks within {SPEED_WINDOW_S} s of the log's start, and the log \
-                 holds no pad. It may have climbed faster before its first sample"
+                 holds no pad. The rocket may have climbed faster before the log's first sample"
             ),
         );
     }

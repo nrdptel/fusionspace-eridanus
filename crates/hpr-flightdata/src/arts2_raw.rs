@@ -314,8 +314,8 @@ impl Calibration {
         if off_mv.abs() > ADXL78_ZERO_G_MV || side <= a.min(b) || side >= a.max(b) {
             return Err(format!(
                 "the calibration's side reading, {side:.2} counts, isn't zero g. It must lie \
-                 between its ends, {a:.2} and {b:.2}. It must also be within the ADXL78's 150 mV \
-                 of half its supply (it is {off_mv:.1} mV)"
+                 between the calibration's ends, {a:.2} and {b:.2}. It must also be within the \
+                 ADXL78's 150 mV of half its supply (it is {off_mv:.1} mV)"
             ));
         }
         let pad = f64::from(self.pad_acc_eighths) / 8.0;

@@ -890,7 +890,7 @@ expression: log
   "notes": [
     "17 packets heard: 1 failed the radio's CRC and are left out",
     "the board's tick starts again 1 times, a power-on each. The record holds power-on 2 of 2 (the one that leaves the pad), and 2 packets of the others are left out",
-    "the clock is the board's tick, 10 ms, from the turn of the first packet heard. Each tick is on the turn nearest the latest so far. Its first packet is at 2.56 s",
+    "the clock is the board's tick, 10 ms, from the turn of the first packet heard. Each tick is on the turn nearest the latest so far. The clock's first packet is at 2.56 s",
     "`pres` read in pascals, not the document's tenths of a pascal: the pad's pressure, 98001, lies between 10 and 120 kPa read so",
     "`accel`, `v_batt`, `sense_d` and `sense_m` kept as written: the converters' counts, which the document gives no conversion for",
     "`acceleration`, `speed` and `height` are the board's own estimates, read in the document's units. The units are sixteenths of a m/s² and of a m/s, and meters above the pad",

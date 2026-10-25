@@ -1004,9 +1004,9 @@ fn landing_in_seconds(
         (true, false) => Ok(format!(
             "`Landing time` read in seconds, from the altitude: at {landing} s, after the highest \
              altitude at {peak_s} s, the altitude is {:.3} m. That is within \
-             {LANDING_HEIGHT_MARGIN_M} m of the summary's `Landing meters`, {height_m} m. That is \
-             the height the rocket came to rest at (Nano V1 manual, *Flight info page*). Read in \
-             milliseconds, {}",
+             {LANDING_HEIGHT_MARGIN_M} m of the summary's `Landing meters`, {height_m} m. That key \
+             is the height the rocket came to rest at (Nano V1 manual, *Flight info page*). Read \
+             in milliseconds, {}",
             at(landing).unwrap_or(f64::NAN),
             denies(ms_s, &format!("{landing} ms"))
         )),

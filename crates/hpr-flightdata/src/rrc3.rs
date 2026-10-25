@@ -760,7 +760,7 @@ fn build(
                     log.notes.push(format!(
                         "`{}` read in volts, assumed. The RRC3 records its battery's voltage \
                          (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual \
-                         p. 6). Its values, as written, run {}",
+                         p. 6). The column's values, as written, run {}",
                         short(&column.written),
                         span(values)
                     ));
@@ -1267,7 +1267,7 @@ fn decide_velocity(
     let slope = |scale: &Scale| {
         format!(
             "The altitude is taken as it was {:.2} s earlier. The integral's least-squares slope \
-             is {:.4}",
+             against it is {:.4}",
             scale.delay_s, scale.by_fit
         )
     };
@@ -1296,7 +1296,7 @@ fn decide_velocity(
                 .map(|other| {
                     let (words, by_area, by_fit) = unit_misses(other, &scale);
                     format!(
-                        ". The next nearest, {words}, would miss them by {:+.1}% and {:+.1}%",
+                        ". The next nearest, {words}, would miss both by {:+.1}% and {:+.1}%",
                         by_area * 100.0,
                         by_fit * 100.0
                     )
@@ -1304,8 +1304,9 @@ fn decide_velocity(
                 .unwrap_or_default();
             let (words, by_area, by_fit) = unit_misses(index, &scale);
             notes.push(format!(
-                "`{}` read in {words}, from the altitude. Over {} rows, {}. {}. Read in {words}, the velocity would give \
-                 {:.4} per m/s, {:+.2}% off the first and {:+.2}% off the second{runner_up}",
+                "`{}` read in {words}, from the altitude. Over {} rows, {}. {}. Read in {words}, the \
+                 velocity would give {:.4} per m/s, {:+.2}% off the area and {:+.2}% off the \
+                 slope{runner_up}",
                 short(written),
                 time_s.len(),
                 area(&scale),
@@ -1332,8 +1333,9 @@ fn decide_velocity(
                         if scale.end_height > END_HEIGHT || scale.end_height.is_nan() =>
                     {
                         format!(
-                            "the record ends {:.0}% of the way up the climb. That is above the {:.0}% it \
-                         must come down to for the velocity to be measured against the altitude",
+                            "the record ends {:.0}% of the way up the climb. That is above the \
+                             {:.0}% it must come down to for the velocity to be measured against \
+                             the altitude",
                             scale.end_height * 100.0,
                             END_HEIGHT * 100.0
                         )
@@ -1360,7 +1362,7 @@ fn decide_velocity(
                             })
                         };
                         format!(
-                            "{}. {}. The two don't both land within {:.0}% of one of ft/s, mph, \
+                            "{}. {}. The two measures don't both land within {:.0}% of one of ft/s, mph, \
                              m/s and km/h (the nearest {} and {})",
                             area(scale),
                             slope(scale),
@@ -1398,7 +1400,7 @@ fn decide_temperature(
         notes.push(format!(
             "`{}` kept as written, its unit unknown. The file states none. mDACS sets the \
              temperature's unit by its own preference, apart from the altitude's (mDACS manual \
-             p. 5). Its values, as written, run {}",
+             p. 5). The column's values, as written, run {}",
             short(written),
             span(values)
         ));

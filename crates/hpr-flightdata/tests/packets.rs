@@ -93,7 +93,7 @@ fn the_received_text_drops_broken_and_repeated_packets() {
     assert_eq!(
         note(&log, "4 broken"),
         "4 broken lines dropped. They are packets the radio cut or ran into the next, or with \
-         another count of values than their kind's first. The first is on line 4"
+         another count of values than their kind's first. The first broken line is line 4"
     );
     assert_eq!(
         note(&log, "2 packets heard"),
@@ -128,7 +128,7 @@ fn the_rtf_export_reads_the_packets_inside_the_markup() {
     assert_eq!(
         note(&log, "1 broken"),
         "1 broken lines dropped. They are packets the radio cut or ran into the next, or with \
-         another count of values than their kind's first. The first is on line 9"
+         another count of values than their kind's first. The first broken line is line 9"
     );
 }
 

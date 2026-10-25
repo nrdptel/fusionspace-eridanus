@@ -100,7 +100,7 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
     if records != archive.len() {
         return Err(refused(format!(
             "its central directory holds {records} entries, and the zip reader keeps {}. Two \
-             have the same name, and one would be lost, or the directory is damaged",
+             entries have the same name, and one would be lost, or the directory is damaged",
             archive.len()
         )));
     }

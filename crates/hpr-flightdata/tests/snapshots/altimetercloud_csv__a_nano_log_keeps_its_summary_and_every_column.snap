@@ -1007,7 +1007,7 @@ expression: log
     "`yaw` reaches ±327.67° or beyond on 1 rows, the first on line 23. In no sample log does the yaw pass ±327.68°, ±32,768 hundredths of a degree, the range of a signed 16-bit number. So a yaw beyond it isn't written as it was, but clipped or wrapped to the other end. It is kept as written",
     "the first 3 rows, before lift-off, to line 13, write 0 on all three of the accelerometer's axes, which reads 1 g at rest. It hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them",
     "`Apogee time` read in seconds, from the altitude: the highest altitude is at 12.2 s, within 0.5 s of its 12.198. Read in milliseconds, it would be at the lift-off",
-    "`Landing time` read in seconds, from the altitude: at 114.219 s, after the highest altitude at 12.2 s, the altitude is -0.400 m. That is within 0.01 m of the summary's `Landing meters`, -0.4 m. That is the height the rocket came to rest at (Nano V1 manual, *Flight info page*). Read in milliseconds, 114.219 ms comes before the highest altitude, at 12.2 s",
+    "`Landing time` read in seconds, from the altitude: at 114.219 s, after the highest altitude at 12.2 s, the altitude is -0.400 m. That is within 0.01 m of the summary's `Landing meters`, -0.4 m. That key is the height the rocket came to rest at (Nano V1 manual, *Flight info page*). Read in milliseconds, 114.219 ms comes before the highest altitude, at 12.2 s",
     "the summary's other 15 entries, such as `Landing meters`, are left out: the record has no place for them"
   ]
 }

@@ -245,7 +245,7 @@ pub(super) fn read(
         {
             "the log has no accelerometer. The file holds neither an inertial unit's columns \
              (`accel_x` and on) nor a GPS receiver's. Every AltOS board with an axial \
-             accelerometer adds one of the two. So its `acceleration` is taken for a board with \
+             accelerometer adds one of the two. So the file's `acceleration` is taken for a board with \
              none of its own, an EasyMini's or a TeleMini's. That column is the board's \
              estimate from its barometer, and HPR Sim doesn't read a top from it"
         } else {
@@ -499,10 +499,9 @@ pub(super) fn read(
             Reason::DirectionUnstated,
             format!(
                 "the accelerometer `{}`, read {} as its {} say{} and with gravity put back. It \
-                 never reads past {:.0} g from liftoff's earliest time to apogee. The earliest \
-                 time is the log's start where liftoff is withheld. A rocket leaving the pad \
-                 does read past that. The accelerometer shows no thrust to read the top or \
-                 burnout from",
+                 never reads past {:.0} g from liftoff's earliest time to apogee, as a rocket \
+                 leaving the pad does. The earliest time is the log's start where liftoff is \
+                 withheld. The accelerometer shows no thrust to read the top or burnout from",
                 channel.column,
                 way.words(),
                 match by.split_last() {
@@ -960,7 +959,7 @@ fn thrust_witness(
             neither(format!(
                 "its span that would say {}, from {:.2} s, rises after {lifted_by}, \
                  {lifted_s:.2} s. A drag after a thrust too weak to read past {past} or a \
-                 second burn does so. It is not the thrust that lifts the rocket",
+                 second burn does so. That span is not the thrust that lifts the rocket",
                 way.words(),
                 time[rise]
             ))
@@ -1122,11 +1121,11 @@ fn direction(
                     "none of them says which way up it reads"
                 } else if !settles && thrust.way.is_none() {
                     "the coast alone says. A coast's second can hold a weak thrust still \
-                     burning or a canopy opened early. So that doesn't settle which way up it \
-                     reads"
+                     burning or a canopy opened early. So the coast doesn't settle which way up it \
+                     reads on its own"
                 } else if !settles {
                     "the thrust alone says, at the start of a log whose liftoff is withheld, which \
-                     may start after burnout with a drag there. So that doesn't settle which way \
+                     may start after burnout with a drag there. So the thrust doesn't settle which way \
                      up it reads without the coast beside it"
                 } else {
                     "they disagree on which way up it reads"
@@ -1188,7 +1187,8 @@ fn burnout(
     if least.0 > -3.0 * n {
         return Err(format!(
             "the accelerometer's least reading after the thrust, {:.2} m/s², lies within {:.2} \
-             m/s², three times its noise and step, of zero. That is too little drag to tell burnout by",
+             m/s², three times its noise and step, of zero. That is too little drag to tell \
+             burnout by",
             least.0,
             3.0 * n
         ));
@@ -2722,7 +2722,7 @@ mod tests {
         assert!(
             direction(None, Some(-G), &silent)
                 .unwrap_err()
-                .ends_with("So that doesn't settle which way up it reads"),
+                .ends_with("So the coast doesn't settle which way up it reads on its own"),
         );
         assert_eq!(way(None, Some(-1.0), &up), Ok(Way::Up));
         assert_eq!(way(None, Some(-0.76), &up), Ok(Way::Up));

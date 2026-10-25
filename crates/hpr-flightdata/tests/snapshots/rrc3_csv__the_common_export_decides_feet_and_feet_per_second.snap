@@ -973,10 +973,10 @@ expression: log
   "notes": [
     "`Pressure` read in hectopascals, from the values: the first row's, 983.6, lies within the 500 to 1100 hPa of any launch site. The highest, 983.6, lies within the 10 to 1200 mbar the RRC3 measures (RRC3 manual p. 9)",
     "`Altitude` read in feet, from the pressure: from line 2 to line 17 the pressure falls from 983.60 hPa to 956.80 hPa. That is a climb of 231.1 m in the U.S. Standard Atmosphere (1976). The altitude climbs 757.69 as written, -0.06% off that climb read in feet and +227.9% read in meters",
-    "`Velocity` read in feet per second, from the altitude. Over 64 rows, against the altitude above the first row, in meters, the area under its running integral is 3.2978 times the altitude's. The altitude is taken as it was 0.00 s earlier. The integral's least-squares slope is 3.2871. Read in feet per second, the velocity would give 3.2808 per m/s, +0.52% off the first and +0.19% off the second. The next nearest, kilometers per hour, would miss them by -8.4% and -8.7%",
+    "`Velocity` read in feet per second, from the altitude. Over 64 rows, against the altitude above the first row, in meters, the area under its running integral is 3.2978 times the altitude's. The altitude is taken as it was 0.00 s earlier. The integral's least-squares slope against it is 3.2871. Read in feet per second, the velocity would give 3.2808 per m/s, +0.52% off the area and +0.19% off the slope. The next nearest, kilometers per hour, would miss both by -8.4% and -8.7%",
     "`Time` read in seconds, assumed. The median step between rows, 0.5 as written, isn't within 5% of the 0.05 s. That is the step of the 20 Hz the RRC3 records its pressure at (RRC3 manual p. 23). mDACS's chart is timed in seconds (mDACS manual p. 8)",
-    "`Temperature` kept as written, its unit unknown. The file states none. mDACS sets the temperature's unit by its own preference, apart from the altitude's (mDACS manual p. 5). Its values, as written, run from 68.8 to 71.6",
-    "`Voltages` read in volts, assumed. The RRC3 records its battery's voltage (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual p. 6). Its values, as written, run from 8.95 to 9.2",
+    "`Temperature` kept as written, its unit unknown. The file states none. mDACS sets the temperature's unit by its own preference, apart from the altitude's (mDACS manual p. 5). The column's values, as written, run from 68.8 to 71.6",
+    "`Voltages` read in volts, assumed. The RRC3 records its battery's voltage (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual p. 6). The column's values, as written, run from 8.95 to 9.2",
     "3 rows, the first on line 63, leave out the 1 Hz `Temperature` and `Voltages` cells: they are gaps"
   ]
 }

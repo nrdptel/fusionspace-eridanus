@@ -570,7 +570,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     }
     notes.push(format!(
         "the clock is the board's tick, 10 ms, from the turn of the first packet heard. Each \
-         tick is on the turn nearest the latest so far. Its first packet is at {:.2} s",
+         tick is on the turn nearest the latest so far. The clock's first packet is at {:.2} s",
         times[0]
     ));
     match pad_pressure(packets) {
@@ -579,8 +579,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
              {pa:.0}, lies between 10 and 120 kPa read so"
         )),
         Some(pa) => notes.push(format!(
-            "`pres` kept as written. The pad's, {pa:.0}, is no launch site's pressure in \
-             pascals. The files read contradict the document's tenths of a pascal"
+            "`pres` kept as written. The pad's pressure, {pa:.0}, is no launch site's \
+             pressure in pascals. The files read contradict the document's tenths of a pascal"
         )),
         None => {}
     }

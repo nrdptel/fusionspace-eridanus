@@ -1079,8 +1079,8 @@ fn not_this_format() -> LogError {
         format: FORMAT,
         message: format!(
             "within its first {HEAD_LINES} lines there is no header naming a clock with a unit of \
-             time, followed by a row with a number there. Such a clock is `Time (s)` or \
-             `time__us`"
+             time, followed by a row with a number there. For example, `Time (s)` or \
+             `time__us` names such a clock"
         ),
     }
 }

@@ -907,8 +907,8 @@ fn assemble(
     }
     if bare_table {
         notes.push(format!(
-            "the header names AltOS's columns with no `version,serial,flight` before them. It is \
-             read as AltOS's, as {} give a `state` and a `state_name` that AltOS's exports \
+            "the header names AltOS's columns with no `version,serial,flight` before them. The \
+             table is read as AltOS's, as {} give a `state` and a `state_name` that AltOS's exports \
              write for one state, and none contradicts them",
             count(table.states_checked, "row")
         ));

@@ -100,8 +100,8 @@ fn a_flight_reads_every_column_and_its_events() {
         )
         .contains(
             "At its 24 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
-             within 10% of 1. In feet it would be 3.28. They span 321 m of the barometric \
-             altitude and scatter 2 about that line"
+             within 10% of 1. In feet it would be 3.28. The fresh fixes span 321 m of the \
+             barometric altitude and scatter 2 about that line"
         )
     );
     note(

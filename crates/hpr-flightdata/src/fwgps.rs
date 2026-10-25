@@ -1309,8 +1309,8 @@ impl Decisions {
                 ),
                 Check::Disagrees(..) => format!(
                     "`HORZV` kept as written, the distance between fixes disagrees with the \
-                     manual's feet per second. Here, {horizontal_words}. Every length and speed the \
-                     manual gives in feet is kept as written with it"
+                     manual's feet per second. Here, {horizontal_words}. Every length and speed \
+                     the manual gives in feet is kept as written with it"
                 ),
             });
         }
@@ -1926,8 +1926,8 @@ mod tests {
         assert!(
             log.notes[0].starts_with(
                 "`HORZV` kept as written, the distance between fixes disagrees with the manual's \
-                 feet per second. Here, the distance between fixes a second, in feet, is a median of \
-                 3.280 times `HORZV` over 29 pairs of rows"
+                 feet per second. Here, the distance between fixes a second, in feet, is a median \
+                 of 3.280 times `HORZV` over 29 pairs of rows"
             ),
             "{:#?}",
             log.notes
@@ -2023,7 +2023,8 @@ mod tests {
         assert_eq!(channel(&log, "VERTV").quantity, Quantity::Unrecognized);
         for expected in [
             "`HORZV` kept as written, the distance between fixes disagrees with the manual's feet \
-             per second. Here, the distance between fixes a second, in feet, is a median of 1.466 times",
+             per second. Here, the distance between fixes a second, in feet, is a median of \
+             1.466 times",
             "`HEAD` kept as written, its range disagrees with the manual's degrees: it runs from \
              400 to 400",
             "`BATT` kept as written, its range isn't one lithium cell's volts: it runs from 4010 \

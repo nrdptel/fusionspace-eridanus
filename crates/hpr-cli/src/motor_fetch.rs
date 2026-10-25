@@ -103,7 +103,8 @@ fn sim_lines(
                 Level::Note,
                 format!(
                     "file {} was not taken: it is not among the motor's files HPR Sim read, or \
-                     makes no motor HPR Sim flies. This is the first by the usual order",
+                     makes no motor HPR Sim flies. The file taken instead is the first by the usual \
+                     order",
                     printable(asked)
                 ),
             )];

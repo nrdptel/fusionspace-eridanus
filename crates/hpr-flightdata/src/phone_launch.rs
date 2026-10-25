@@ -1286,8 +1286,8 @@ fn matches_pressure(altitude: &[f64], pressure_altitude: Option<&[f64]>) -> (boo
         off <= allowed,
         format!(
             "above the first row it lies at most {off:.2} from the pressure altitude of `hPa` in \
-             the U.S. Standard Atmosphere, in meters. The climb is {climb:.1} m, where \
-             {allowed:.1} is allowed"
+             the U.S. Standard Atmosphere, in meters. The pressure altitude climbs {climb:.1} m, \
+             where {allowed:.1} is allowed"
         ),
     )
 }
@@ -1433,8 +1433,8 @@ fn accelerations(
                 (BOOST_RATIO.0..=BOOST_RATIO.1).contains(&ratio),
                 format!(
                     "from then to the steepest climb, at {:.2} s, the magnitude less 1 g, read in \
-                     g, gives {speed:.1} m/s. That is {ratio:.2} times the barometric climb rate, where \
-                     {} to {} reads g",
+                     g, gives {speed:.1} m/s. That is {ratio:.2} times the barometric climb rate, \
+                     where {} to {} reads g",
                     coast.climb.1, BOOST_RATIO.0, BOOST_RATIO.1
                 ),
             )
@@ -1936,8 +1936,8 @@ fn full_scale(names: &[&str], table: &Table) -> (bool, String) {
         None => (
             false,
             format!(
-                "no axis stops at a gyroscope's full scale of 125 to 2,000 °/s read in rad/s. A stop \
-                 is on {} rows or more, {} of them in a row. The largest readings are {}",
+                "no axis stops at a gyroscope's full scale of 125 to 2,000 °/s read in rad/s. \
+                 A stop is on {} rows or more, {} of them in a row. The largest readings are {}",
                 PLATEAU.0,
                 PLATEAU.2,
                 largest_seen.join(", ")

@@ -229,9 +229,9 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
             }
             LogError::Unrecognized { .. } => {
                 "another logger's table is read by a column mapping (--mapping), and \
-                 --print-mapping prints what its header states as one to edit. Its binary \
-                 records are read by a record layout (--layout). A Raven FIP export pasted below \
-                 no header is read by the header you state (--fip-header)"
+                 --print-mapping prints what its header states as one to edit. Another logger's \
+                 binary records are read by a record layout (--layout). A Raven FIP export pasted \
+                 below no header is read by the header you state (--fip-header)"
             }
             LogError::Archive { .. } => "unpack the archive and give the log inside it",
             LogError::Workbook { .. } => {
@@ -659,7 +659,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .unwrap_or_default();
                         format!(
                             "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \
-                             less its bound, {} s. It is derived from the heights, and may have \
+                             less its bound, {} s. The time is derived from the heights, and may have \
                              come later by any amount",
                             burnout.time_s,
                             seconds_bound(burnout.bound_s)

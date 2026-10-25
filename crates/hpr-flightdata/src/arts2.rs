@@ -905,8 +905,8 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
     let mut notes = vec![format!(
         "`Vel` read in {} per second, from the apogee and the barometer's step: its line falls \
          at {:.3} a second. That line runs through its {} samples of {}, into its zero at \
-         {:.2} s. That is {gravities:.3} of standard gravity's {:.3} {}/s², within {:.0}%, and \
-         `pAlt`'s step is a count in {} too",
+         {:.2} s. The line's fall is {gravities:.3} of standard gravity's {:.3} {}/s², within \
+         {:.0}%, and `pAlt`'s step is a count in {} too",
         length.name(),
         -slope,
         coast.points,
@@ -942,9 +942,10 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
     };
     notes.push(format!(
         "`pAlt` read in {}, from its step and `Vel`: its smallest step is {step:.2}. {repeats} of \
-         its steps are within {STEP_SPREAD:.2} of it. That step is one count of the barometer \
-         near the ground in {} ({band}). Its highest value, {highest:.2}, is {share:.3} times the \
-         climb `Vel` integrates to by the apogee, {climb:.2} {}, within {:.0}%",
+         its steps are within {STEP_SPREAD:.2} of it. The smallest step is one count of the \
+         barometer near the ground in {} ({band}). `pAlt`'s highest value, {highest:.2}, is \
+         {share:.3} times the climb `Vel` integrates to by the apogee, {climb:.2} {}, within \
+         {:.0}%",
         length.name(),
         length.name(),
         length.symbol(),

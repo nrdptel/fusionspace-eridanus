@@ -75,7 +75,7 @@ fn the_first_download_is_read_and_the_second_counted() {
     // A summary time past the table's last sample isn't in seconds: no event.
     assert!(has(
         "the flight summary's times past the table's last, 9 s, kept as written and not read \
-         as events. No event of the flight comes after its last sample, so they aren't in \
+         as events. No event of the flight comes after its last sample, so those times aren't in \
          seconds: `Unlock` 9500"
     ));
     assert!(has(
