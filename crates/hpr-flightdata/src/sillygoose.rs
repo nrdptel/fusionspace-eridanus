@@ -660,15 +660,15 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if backwards > 0 || repeats > 0 || untimed > 0 {
         notes.push(format!(
             "the clock goes back {backwards} times and repeats a time {repeats} times, and \
-             {untimed} samples have no time: the record's track takes the samples in time order, \
-             the first at each time, and leaves out those without one; the channels keep them all"
+             {untimed} samples have no time. The record's track takes the samples in time order, \
+             the first at each time, and leaves out those without one. The channels keep them all"
         ));
     }
     if let Some(ground) = altitude_m.iter().copied().find(|v| v.is_finite())
         && ground.abs() > GROUND_OFF_M
     {
         notes.push(format!(
-            "`{}` reads {ground:.2} m at the track's first sample, not near zero: the record \
+            "`{}` reads {ground:.2} m at the track's first sample, not near zero. The record \
              starts away from the board's zero, as a log after a restart in flight does",
             short(&columns[primary].name)
         ));
@@ -794,8 +794,8 @@ fn decide_temperatures(columns: &mut [Column], decisions: &mut Vec<String>) {
             Role::ImuTemperature => {
                 if let (true, Some((lo, hi))) = (bay_kelvin(column), column.range()) {
                     decisions.push(format!(
-                        "{} read in kelvin, from the values: they run from {lo} to {hi}, within \
-                         the 233.15 to 333.15 K an electronics bay can have, where in degrees \
+                        "{} read in kelvin, from the values: they run from {lo} to {hi}. That is within \
+                         the 233.15 to 333.15 K an electronics bay can have. In degrees \
                          Celsius or Fahrenheit they would be hotter than any bay survives",
                         column.quoted()
                     ));
@@ -868,8 +868,9 @@ fn decide_accelerometer(
     let names = listed_at(columns, &axes);
     let evidence = format!(
         "the three axes' magnitude reads within 10% of 9.806 65 for {in_ms2:.1} s of the file's \
-         time and within 10% of 1 for {in_g:.1} s; a board at rest or under a parachute reads \
-         1 g, and the unit whose 1 g lasts at least 1 s and twice as long as the other's is taken"
+         time. It reads within 10% of 1 for {in_g:.1} s. A board at rest or under a parachute \
+         reads 1 g. The unit whose 1 g lasts at least 1 s and twice as long as the other's is \
+         taken"
     );
     let decided = if in_ms2 >= GRAVITY_LEAST_S && in_ms2 >= GRAVITY_LEAD * in_g {
         decisions.push(format!(
@@ -980,7 +981,7 @@ fn decide_gyroscope(
     let (Some(accel), Some(one_g)) = (accel, one_g) else {
         decisions.push(format!(
             "{names} kept as written: their unit is decided from the accelerometer's gravity as \
-             the board turns, and the file has no accelerometer read in a known unit"
+             the board turns. The file has no accelerometer read in a known unit"
         ));
         for at in gyro {
             columns[at].keep();
@@ -991,10 +992,10 @@ fn decide_gyroscope(
     let ratio = found.gyroscope_rad / found.accelerometer_rad;
     let degrees = PI / 180.0;
     let evidence = format!(
-        "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart with the \
-         accelerometer within 15% of 1 g, as at rest or under a parachute, its direction turns \
-         {:.3} rad, and the gyroscope's rates turn the board across it {:.3} rad read in radians \
-         per second, {:.3} rad read in degrees",
+        "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart, the \
+         accelerometer is within 15% of 1 g. That is a board at rest or under a parachute. Its \
+         direction turns {:.3} rad. The gyroscope's rates turn the board across it {:.3} rad \
+         read in radians per second, {:.3} rad read in degrees",
         found.stretches,
         found.accelerometer_rad,
         found.gyroscope_rad,
@@ -1005,13 +1006,13 @@ fn decide_gyroscope(
         found.stretches >= TURN_LEAST_STRETCHES && found.accelerometer_rad >= TURN_LEAST_RAD;
     let scale = if enough && within(ratio) {
         decisions.push(format!(
-            "{names} read in radians per second, from the board's turning: {evidence}; the unit \
+            "{names} read in radians per second, from the board's turning: {evidence}. The unit \
              whose turn is within a quarter to 4 times the accelerometer's is taken"
         ));
         Some(180.0 / PI)
     } else if enough && within(ratio * degrees) {
         decisions.push(format!(
-            "{names} read in degrees per second, from the board's turning: {evidence}; the unit \
+            "{names} read in degrees per second, from the board's turning: {evidence}. The unit \
              whose turn is within a quarter to 4 times the accelerometer's is taken"
         ));
         Some(1.0)
@@ -1048,7 +1049,7 @@ fn decide_by_range(columns: &mut [Column], decisions: &mut Vec<String>) {
                 if let Some((lo, hi)) = range.filter(|(lo, hi)| *lo < 0.0 || *hi > VOLTS_MAX) {
                     decisions.push(format!(
                         "{} kept as written: its name says volts, but its values run from {lo} \
-                         to {hi}, outside the 0 to 20 V a board's battery reads",
+                         to {hi}. That is outside the 0 to 20 V a board's battery reads",
                         column.quoted()
                     ));
                     column.keep();
@@ -1078,9 +1079,9 @@ fn decide_by_range(columns: &mut [Column], decisions: &mut Vec<String>) {
     }
     if let Some(largest) = rates_beyond {
         decisions.push(format!(
-            "{} kept as written: their names say radians per second, but they reach {largest}, \
-             beyond the 20,000 °/s (349 rad/s) full scale of Analog Devices' ADXRS649, a \
-             gyroscope made for very high rates",
+            "{} kept as written: their names say radians per second, but they reach {largest}. \
+             That is beyond the 20,000 °/s (349 rad/s) full scale of Analog Devices' ADXRS649. \
+             That gyroscope is made for very high rates",
             listed_at(columns, &rates)
         ));
         for at in rates {
@@ -1161,8 +1162,8 @@ fn decide_altitudes(
                     line: header_line,
                     message: format!(
                         "{} climbs {column:.1} from the first sample to the one of lowest \
-                         pressure, where the pressure's climb in the standard atmosphere is \
-                         {pressure_m:.1} m: its name says meters, but they aren't within 25%",
+                         pressure. The pressure's climb in the standard atmosphere is \
+                         {pressure_m:.1} m. Its name says meters, but the two aren't within 25%",
                         columns[at].quoted()
                     ),
                 });
@@ -1180,16 +1181,16 @@ fn decide_altitudes(
             Climb::Checked { pressure_m, column } if within(pressure_m, column) => {
                 decisions.push(format!(
                     "{} read in meters, from the pressure: from the first sample to the one of \
-                     lowest pressure it climbs {column:.1} where the standard atmosphere climbs \
-                     {pressure_m:.1} m, within 25%",
+                     lowest pressure it climbs {column:.1}. The standard atmosphere climbs \
+                     {pressure_m:.1} m, and the two are within 25%",
                     columns[at].quoted()
                 ));
             }
             Climb::Checked { pressure_m, column } => {
                 decisions.push(format!(
                     "{} kept as written: from the first sample to the one of lowest pressure it \
-                     climbs {column:.1} where the standard atmosphere climbs {pressure_m:.1} m, \
-                     not within 25%",
+                     climbs {column:.1}. The standard atmosphere climbs {pressure_m:.1} m, and \
+                     the two aren't within 25%",
                     columns[at].quoted()
                 ));
                 columns[at].keep();
@@ -1232,7 +1233,7 @@ fn decide_speed(columns: &mut [Column], times: &[f64], decisions: &mut Vec<Strin
     if moved < SPEED_LEAST_M {
         decisions.push(format!(
             "{name} read in meters per second, from its name: over the steps at most \
-             {FAST_STEP_S} s long it moves {moved:.1} m, under the {SPEED_LEAST_M} m from which \
+             {FAST_STEP_S} s long it moves {moved:.1} m. That is under the {SPEED_LEAST_M} m from which \
              the altitude checks it"
         ));
         return;
@@ -1270,7 +1271,7 @@ fn still_temperature(columns: &[Column], primary: usize) -> Option<String> {
     (lo == hi && samples >= 2 && high - low > STILL_CLIMB_M).then(|| {
         format!(
             "{} reads {lo} at every one of its {samples} samples while the altitude spans \
-             {:.0} m: a board's sensor warms or cools in flight, so the file may be a replay of \
+             {:.0} m. A board's sensor warms or cools in flight. So the file may be a replay of \
              recorded or made-up values rather than the board's own log",
             column.quoted(),
             high - low
@@ -1654,7 +1655,7 @@ mod tests {
                 &log,
                 "`accelX`, `accelY` and `accelZ` read in meters per second squared"
             )
-            .contains("within 10% of 9.806 65 for 120.0 s of the file's time and within 10% of 1 for 3.0 s"),
+            .contains("within 10% of 9.806 65 for 120.0 s of the file's time. It reads within 10% of 1 for 3.0 s"),
             "{:?}",
             log.notes
         );
@@ -1682,7 +1683,7 @@ mod tests {
                 "`accelX`, `accelY` and `accelZ` read in meters per second squared"
             )
             .contains(
-                "within 10% of 9.806 65 for 35.0 s of the file's time and within 10% of 1 for 5.0 s"
+                "within 10% of 9.806 65 for 35.0 s of the file's time. It reads within 10% of 1 for 5.0 s"
             ),
             "{:?}",
             log.notes
@@ -1840,7 +1841,10 @@ mod tests {
         }))
         .unwrap();
         assert_eq!(quantity(&unfiltered, "unfiltAlt"), Quantity::Unrecognized);
-        assert!(note(&unfiltered, "`unfiltAlt` kept as written: ").contains("climbs 984.3 where"));
+        assert!(
+            note(&unfiltered, "`unfiltAlt` kept as written: ")
+                .contains("climbs 984.3. The standard atmosphere climbs 300.0 m")
+        );
         let meters = read(&text(Written::default())).unwrap();
         assert_eq!(
             quantity(&meters, "unfiltAlt"),

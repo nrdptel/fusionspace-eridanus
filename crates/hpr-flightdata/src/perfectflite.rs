@@ -460,7 +460,7 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
         events: Vec::new(),
         notes: headerless
             .then(|| {
-                "the file has no header row; its four columns are taken as a text export's, \
+                "the file has no header row. Its four columns are taken as a text export's, \
                  `Time`, `Altitude`, `Temp.`, `Voltage`, by the unit letter of its temperatures"
                     .to_owned()
             })
@@ -1005,7 +1005,7 @@ pub fn read_pfa(text: &str) -> Result<FlightLog, LogError> {
         if let Some(empty) = empty_line {
             return Err(pfa_syntax(
                 empty,
-                "an empty line among the samples: each line is the sample 0.1 s after the one \
+                "an empty line among the samples. Each line is the sample 0.1 s after the one \
                  before, so a line left out would move every time after it"
                     .to_owned(),
             ));
@@ -1033,24 +1033,24 @@ pub fn read_pfa(text: &str) -> Result<FlightLog, LogError> {
     let altitude_m: Vec<f64> = feet.iter().map(|feet| feet * FOOT_M).collect();
 
     let mut file_notes = vec![
-        "`Data` read in feet, 0.1 s apart, from the manual: the file states neither; the \
-         Alt15K/WD manual logs a sample every 100 ms (p. 2) and beeps its apogee in feet (p. 6), \
-         and DataCap's help gives 10 samples a second and the `Apogee:` line as the highest \
+        "`Data` read in feet, 0.1 s apart, from the manual. The file states neither. The \
+         Alt15K/WD manual logs a sample every 100 ms (p. 2) and beeps its apogee in feet (p. 6). \
+         DataCap's help gives 10 samples a second and the `Apogee:` line as the highest \
          sample"
             .to_owned(),
         format!(
             "time zero is {PFA_BEFORE_DETECTION_S} s before the logger detected the launch, not \
-             liftoff: DataCap's help starts the samples {PFA_BEFORE_DETECTION_S} s before the \
-             detection, so liftoff came before {PFA_BEFORE_DETECTION_S} s, and before time zero \
-             if the rocket was slow off the pad"
+             liftoff. DataCap's help starts the samples {PFA_BEFORE_DETECTION_S} s before the \
+             detection. Liftoff therefore came before {PFA_BEFORE_DETECTION_S} s, and before time \
+             zero if the rocket was slow off the pad"
         ),
     ];
     if let Some(ground) = ground_ft {
         file_notes.push(format!(
             "the file's `Ground:`, {ground} ft, is the pad's pressure altitude, not its \
-             elevation: DataCap's help gives it as the site's height were sea-level pressure \
-             29.92 inHg, about 100 ft off for every 0.1 inHg the day's differs, and for interest \
-             only; it isn't read as the ground elevation"
+             elevation. DataCap's help gives it as the site's height were sea-level pressure \
+             29.92 inHg. It is about 100 ft off for every 0.1 inHg the day's differs. It is for \
+             interest only, and isn't read as the ground elevation"
         ));
     }
     if let Some(full) = [stated_samples, Some(feet.len())]
@@ -1059,8 +1059,8 @@ pub fn read_pfa(text: &str) -> Result<FlightLog, LogError> {
         .find(|count| PFA_FULL_MEMORY_SAMPLES.contains(count))
     {
         file_notes.push(format!(
-            "the file holds {full} samples, the count DataCap's help gives for an Alt15K/WD that \
-             likely lost power in flight (2200 for revision 2, 2400 for the original): the \
+            "the file holds {full} samples. DataCap's help gives that count for an Alt15K/WD that \
+             likely lost power in flight (2200 for revision 2, 2400 for the original). The \
              samples after this flight's may be older flights'"
         ));
     }
@@ -1383,7 +1383,7 @@ mod tests {
         // The unit decision, the clock's zero and `Ground:`, and nothing more.
         assert_eq!(log.notes.len(), 3, "{:?}", log.notes);
         assert!(
-            log.notes[0].starts_with("`Data` read in feet, 0.1 s apart, from the manual: "),
+            log.notes[0].starts_with("`Data` read in feet, 0.1 s apart, from the manual. "),
             "{:?}",
             log.notes
         );
@@ -1408,7 +1408,7 @@ mod tests {
             let samples = "00010\r".repeat(count);
             let text = format!("PerfectFlite Alt15K/WD\r**!!Data:\r{samples}");
             let log = read_pfa(&text).unwrap();
-            let note = format!("the file holds {count} samples, the count DataCap's help gives");
+            let note = format!("the file holds {count} samples. DataCap's help gives that count");
             assert_eq!(
                 log.notes.iter().any(|n| n.starts_with(&note)),
                 noted,

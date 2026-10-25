@@ -92,8 +92,8 @@ fn the_received_text_drops_broken_and_repeated_packets() {
     assert_eq!(channel(&log, "AA 1").values, [9.70]);
     assert_eq!(
         note(&log, "4 broken"),
-        "4 broken lines dropped, packets the radio cut or ran into the next, or with another \
-         count of values than their kind's first, the first on line 4"
+        "4 broken lines dropped. They are packets the radio cut or ran into the next, or with \
+         another count of values than their kind's first. The first is on line 4"
     );
     assert_eq!(
         note(&log, "2 packets heard"),
@@ -127,8 +127,8 @@ fn the_rtf_export_reads_the_packets_inside_the_markup() {
     assert_eq!(log.events[0].time_s, 100.3);
     assert_eq!(
         note(&log, "1 broken"),
-        "1 broken lines dropped, packets the radio cut or ran into the next, or with another \
-         count of values than their kind's first, the first on line 9"
+        "1 broken lines dropped. They are packets the radio cut or ran into the next, or with \
+         another count of values than their kind's first. The first is on line 9"
     );
 }
 

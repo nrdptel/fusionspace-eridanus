@@ -137,12 +137,12 @@ fn an_adjusted_nano_log_leaves_out_an_apogee_time_the_altitude_denies() {
         .map(|e| (e.time_s, e.name.as_str()))
         .collect();
     assert_eq!(events, [(2.0, "Burnout")]);
-    assert!(note(&log, "the summary's `Apogee time`, 4, is left out: ").contains("12.2 s"));
+    assert!(note(&log, "the summary's `Apogee time`, 4, is left out. ").contains("12.2 s"));
     assert!(
         note(&log, "the summary's `Landing time`, 49.8, is left out: ")
             .contains("no landing height")
     );
-    note(&log, "the summary's `Adjusted log` is \"yes\": ");
+    note(&log, "the summary's `Adjusted log` is \"yes\". ");
     let spare = channel(&log, "spare_channel").unwrap();
     assert_eq!(spare.quantity, Quantity::Unrecognized);
     assert_eq!(spare.values[2], 14.0);

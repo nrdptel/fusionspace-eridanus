@@ -706,12 +706,12 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`Vel` read in feet per second, from the apogee and the barometer's step: into its zero at 15.13 s, the line through its 3 samples of the 1 s before falls at 32.170 a second, 1.000 of standard gravity's 32.174 ft/s², within 25%, and `pAlt`'s step is a count in feet too",
-    "`pAlt` read in feet, from its step and `Vel`: its smallest step, 29.60, 27 of its steps within 0.02 of it, is one count of the barometer near the ground in feet (17.91 to 48.64 ft); and its highest value, 3196.80, is 0.962 times the climb `Vel` integrates to by the apogee, 3322.37 ft, within 25%",
-    "`Acc` read in standard gravities, 9.806 65 m/s², from `Vel`: over the boost, `Vel` rises 32.174 times `Acc`'s integral, within 10% of standard gravity's 32.174 ft/s²",
+    "`Vel` read in feet per second, from the apogee and the barometer's step: its line falls at 32.170 a second. That line runs through its 3 samples of the 1 s before, into its zero at 15.13 s. That is 1.000 of standard gravity's 32.174 ft/s², within 25%, and `pAlt`'s step is a count in feet too",
+    "`pAlt` read in feet, from its step and `Vel`: its smallest step is 29.60. 27 of its steps are within 0.02 of it. That step is one count of the barometer near the ground in feet (17.91 to 48.64 ft). Its highest value, 3196.80, is 0.962 times the climb `Vel` integrates to by the apogee, 3322.37 ft, within 25%",
+    "`Acc` read in standard gravities, 9.806 65 m/s², from `Vel`: over the boost, `Vel` rises 32.174 times `Acc`'s integral. That is within 10% of standard gravity's 32.174 ft/s²",
     "`iAlt` read in feet, from `Vel`: to the apogee it rises 1.0000 times `Vel`'s integral, within 10% of 1",
-    "`MET` read in seconds, from the apogee: with `Vel` in feet per second, as the barometer's step has it, `Vel` falls into its zero at 1.000 of standard gravity a second; a clock in milliseconds or minutes would put that fall 1,000 or 60 times off",
-    "the last 2 rows, from line 65, write `Vel` as 0, where the row before reads -44.32: more than twice what `Acc` can change it by in 1.00 s, so they aren't its integral, and are gaps",
+    "`MET` read in seconds, from the apogee: `Vel` is in feet per second, as the barometer's step has it. `Vel` falls into its zero at 1.000 of standard gravity a second. A clock in milliseconds or minutes would put that fall 1,000 or 60 times off",
+    "the last 2 rows, from line 65, write `Vel` as 0, where the row before reads -44.32. That is more than twice what `Acc` can change it by in 1.00 s. So they aren't its integral, and they are gaps",
     "`Acc` has 1 cells that are empty or aren't a number, the first on line 42: gaps"
   ]
 }

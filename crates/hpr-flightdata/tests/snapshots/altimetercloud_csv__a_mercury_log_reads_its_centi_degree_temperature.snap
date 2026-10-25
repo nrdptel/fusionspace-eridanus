@@ -888,17 +888,17 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "the logger is taken as a Rocketry Ltd Mercury: its header has columns only the Mercury's layout has, such as the predicted apogee and the air-brake output its manual lists",
-    "`gyro_x`, `gyro_y` and `gyro_z` read in degrees per second, from the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* gives each as the rate of turn about one of the board's axes in °/s, as whole numbers; the altimeter's gyroscope reads up to ±2,000 °/s",
-    "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* gives the pitch, roll and yaw as attitude angles from their zero on the pad and the tilt as the angle from vertical, each in degrees",
-    "`acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* gives it as the acceleration's magnitude with the 1 g of gravity taken out, so it sits near zero at rest; it is kept so, the magnitude less 1 g, not an acceleration along any axis, and reads −1 g in free fall",
-    "`bmp_temp(x100)` read in hundredths of a degree Celsius, from its name and the values: every reading, from 0 to 2180 as written, is a whole number and lies within the -40 to 85 °C the BMP581 measures when divided by 100, and 6 lie beyond it as written",
-    "the last 1 readings of `bmp_temp(x100)`, from line 20, are exactly 0 °C after a reading of 21.80 °C on line 17: a board can't cool so far between two readings and hold there, so they aren't readings and are gaps",
+    "the logger is taken as a Rocketry Ltd Mercury. Its header has columns only the Mercury's layout has, such as the predicted apogee and the air-brake output its manual lists",
+    "`gyro_x`, `gyro_y` and `gyro_z` read in degrees per second, from the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* describes them. Each is the rate of turn about one of the board's axes in °/s, as whole numbers. The altimeter's gyroscope reads up to ±2,000 °/s",
+    "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* says what each is. The pitch, roll and yaw are attitude angles from their zero on the pad. The tilt is the angle from vertical. Each is in degrees",
+    "`acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual, whose layout has the same columns: its page *CSV Flight log format* describes it. It is the acceleration's magnitude with the 1 g of gravity taken out, so it sits near zero at rest. It is kept so, the magnitude less 1 g, not an acceleration along any axis. It reads −1 g in free fall",
+    "`bmp_temp(x100)` read in hundredths of a degree Celsius, from its name and the values: every reading, from 0 to 2180 as written, is a whole number. Divided by 100, every reading lies within the -40 to 85 °C the BMP581 measures. As written, 6 lie beyond it",
+    "the last 1 readings of `bmp_temp(x100)`, from line 20, are exactly 0 °C after a reading of 21.80 °C on line 17. A board can't cool so far between two readings and hold there, so they aren't readings and are gaps",
     "`mt1_temp` kept as written: by its name a temperature, but no source states its unit or what it measures",
     "`apogee_prediction` kept as written: the Mercury's predicted apogee (Mercury V1 manual), a prediction rather than a reading, in a unit no source states",
     "`air_brake_percent` read in percent, from its name: the air-brake output the Mercury logs (Mercury V1 manual), kept as the percentage written",
     "`target_alt` kept as written: by its name the altitude the air brakes aim for, a setting rather than a reading, in a unit no source states",
     "`air_density` kept as written: the Mercury logs the air's density (Mercury V1 manual), in a unit no source states, and the record has no quantity for a density",
-    "the first 4 rows, before lift-off, to line 5, write 0 on all three of the accelerometer's axes, which reads 1 g at rest: it hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them"
+    "the first 4 rows, before lift-off, to line 5, write 0 on all three of the accelerometer's axes, which reads 1 g at rest. It hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them"
   ]
 }

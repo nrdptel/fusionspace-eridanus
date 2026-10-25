@@ -128,8 +128,8 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`Data` read in feet, 0.1 s apart, from the manual: the file states neither; the Alt15K/WD manual logs a sample every 100 ms (p. 2) and beeps its apogee in feet (p. 6), and DataCap's help gives 10 samples a second and the `Apogee:` line as the highest sample",
-    "time zero is 0.7 s before the logger detected the launch, not liftoff: DataCap's help starts the samples 0.7 s before the detection, so liftoff came before 0.7 s, and before time zero if the rocket was slow off the pad",
-    "the file's `Ground:`, 1150 ft, is the pad's pressure altitude, not its elevation: DataCap's help gives it as the site's height were sea-level pressure 29.92 inHg, about 100 ft off for every 0.1 inHg the day's differs, and for interest only; it isn't read as the ground elevation"
+    "`Data` read in feet, 0.1 s apart, from the manual. The file states neither. The Alt15K/WD manual logs a sample every 100 ms (p. 2) and beeps its apogee in feet (p. 6). DataCap's help gives 10 samples a second and the `Apogee:` line as the highest sample",
+    "time zero is 0.7 s before the logger detected the launch, not liftoff. DataCap's help starts the samples 0.7 s before the detection. Liftoff therefore came before 0.7 s, and before time zero if the rocket was slow off the pad",
+    "the file's `Ground:`, 1150 ft, is the pad's pressure altitude, not its elevation. DataCap's help gives it as the site's height were sea-level pressure 29.92 inHg. It is about 100 ft off for every 0.1 inHg the day's differs. It is for interest only, and isn't read as the ground elevation"
   ]
 }

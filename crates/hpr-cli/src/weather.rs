@@ -390,12 +390,13 @@ fn request_help(what: &str) -> Option<&'static str> {
              `gfs_seamless`; leave it out for Open-Meteo's best match",
         ),
         "cycle (s since 1970)" => Some(
-            "give the run's --cycle as its start in UTC: GFS starts a run every 6 hours (00Z, \
-             06Z, 12Z, 18Z), RAP every hour, such as 2026-09-26T00Z",
+            "give the run's --cycle as its start in UTC, such as 2026-09-26T00Z. GFS starts a \
+             run every 6 hours (00Z, 06Z, 12Z, 18Z), RAP every hour",
         ),
         "forecast hour" => Some(
-            "give a forecast --hour the run has: GFS's every hour to 120, then every third hour \
-             to 384; RAP's every hour to 21, and to 51 from its 03Z, 09Z, 15Z and 21Z runs",
+            "give a forecast --hour the run has. GFS has every hour to 120, then every third \
+             hour to 384. RAP has every hour to 21, and to 51 from its 03Z, 09Z, 15Z and 21Z \
+             runs",
         ),
         _ => None,
     }
@@ -637,7 +638,7 @@ fn nomads(
                              cut, or leave --from out to fetch a cut around this site"
                         }
                         _ => {
-                            "give --from a GRIB2 cut as NOMADS sent it, saved as it came; or \
+                            "give --from a GRIB2 cut as NOMADS sent it, saved as it came. Or \
                              leave --from out and give the --cycle and --hour to fetch it"
                         }
                     };
@@ -701,7 +702,7 @@ fn nomads(
                      such as hpr weather open-meteo",
                     // Its retention, as `hpr_net::nomads` records it.
                     Some(
-                        "NOMADS keeps only recent runs, about 10 days of GFS and 2 of RAP: give a \
+                        "NOMADS keeps only recent runs, about 10 days of GFS and 2 of RAP. Give a \
                          --cycle from those days, or for a past launch use hpr weather open-meteo \
                          --historical or an ERA5 file",
                     ),
@@ -783,7 +784,7 @@ fn era5(args: &Era5Args) -> Result<Read, Failure> {
         ),
         Era5Error::OutsideGrid { .. } => Failure::helped(
             format!("{}: {error}", crate::printable(path)),
-            "give the --latitude and --longitude of a site inside the file's grid, or download \
+            "give the --latitude and --longitude of a site inside the file's grid. Or download \
              ERA5 for an area at least a quarter of a degree beyond the site on each side",
         ),
         other => refused(&other),

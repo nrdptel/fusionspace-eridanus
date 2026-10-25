@@ -342,8 +342,8 @@ fn clock(fixes: &[Fix], counts: &mut Counts) -> Option<(Vec<f64>, u64)> {
 /// The notes on the clock, the times and the positions.
 fn clock_notes(time_s: &[f64], zero: u64, counts: &Counts, quoted: &str) -> Vec<String> {
     let mut notes = vec![format!(
-        "the log's clock is the GPS's time of day, UTC, `{quoted}`, in whole seconds; its zero is \
-         the first record's, {:02}:{:02}:{:02}; the file states no date",
+        "the log's clock is the GPS's time of day, UTC, `{quoted}`, in whole seconds. Its zero is \
+         the first record's, {:02}:{:02}:{:02}. The file states no date",
         zero / 10_000,
         zero / 100 % 100,
         zero % 100
@@ -359,8 +359,8 @@ fn clock_notes(time_s: &[f64], zero: u64, counts: &Counts, quoted: &str) -> Vec<
     let repeats = sorted.windows(2).filter(|pair| pair[0] == pair[1]).count();
     if backs > 0 {
         notes.push(format!(
-            "times go back {backs} times from one record to the next, by up to {largest:.0} s, \
-             and {repeats} records repeat a time already written: every record is kept, in the \
+            "times go back {backs} times from one record to the next, by up to {largest:.0} s. \
+             {repeats} records repeat a time already written. Every record is kept, in the \
              file's order"
         ));
     }
@@ -391,9 +391,9 @@ fn clock_notes(time_s: &[f64], zero: u64, counts: &Counts, quoted: &str) -> Vec<
     ] {
         if count > 0 {
             notes.push(format!(
-                "{count} {what} are out of range (minutes past 59, decimals without their \
-                 leading 1, a hemisphere byte other than its two letters, or beyond ±90° or \
-                 ±180°): they are gaps"
+                "{count} {what} are out of range, so they are gaps. Out of range means minutes \
+                 past 59, decimals without their leading 1, or a hemisphere byte other than its \
+                 two letters. It also means a value beyond ±90° or ±180°"
             ));
         }
     }
@@ -625,29 +625,29 @@ fn units_notes(altitude: &str, velocity: &str, raw: bool, at_zero: usize) -> Vec
     let mut notes = vec![
         if raw {
             format!(
-                "`{altitude}` read in meters, from the manual and the exports: whole meters, above \
-                 mean sea level as the RTx's manual states its GPS altitude, as the KML export \
-                 writes them and the CSV and text exports convert them to feet; a word can't fall \
-                 below 0"
+                "`{altitude}` read in meters, from the manual and the exports. They are whole \
+                 meters, above mean sea level as the RTx's manual states its GPS altitude. The \
+                 KML export writes them in meters, and the CSV and text exports convert them to \
+                 feet. A word can't fall below 0"
             )
         } else {
             format!(
-                "`{altitude}` read in feet, from the `.rtx` files beside the sample exports: whole \
+                "`{altitude}` read in feet, from the `.rtx` files beside the sample exports. They are whole \
                  feet, the `.rtx`'s meters × 3.280 84 rounded down, read as 0.3048 m each"
             )
         },
         format!(
-            "`{velocity}` and `SOG` kept as written, in units no document states: `SOG` runs \
-             about 3.6 times the speed between fixes, as kilometers an hour would, and the \
-             velocity far more than the climb rate while it climbs"
+            "`{velocity}` and `SOG` kept as written, in units no document states. `SOG` runs \
+             about 3.6 times the speed between fixes, as kilometers an hour would. The \
+             velocity runs far more than the climb rate while it climbs"
         ),
-        "`COG` read in degrees, from the positions: the course over ground, within a few \
+        "`COG` read in degrees, from the positions. The course over ground is within a few \
          degrees of the bearing between the fixes either side while the tracker moves"
             .to_owned(),
     ];
     if at_zero > 0 {
         notes.push(format!(
-            "{at_zero} `{altitude}` values read exactly 0, the least the file can hold: each \
+            "{at_zero} `{altitude}` values read exactly 0, the least the file can hold. Each \
              stands for 0 m or lower, as an altitude clamped at 0 would"
         ));
     }

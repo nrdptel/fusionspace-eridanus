@@ -51,7 +51,7 @@ fn the_cr_file_reads_a_sample_every_tenth_of_a_second() {
         .collect();
     assert_eq!(quantities, [("Data", Quantity::AltitudeAboveGround)]);
     assert_eq!(log.notes.len(), 3, "{:?}", log.notes);
-    note(&log, "`Data` read in feet, 0.1 s apart, from the manual: ");
+    note(&log, "`Data` read in feet, 0.1 s apart, from the manual. ");
     note(
         &log,
         "time zero is 0.7 s before the logger detected the launch, not liftoff",
@@ -98,7 +98,7 @@ fn a_full_memory_count_reads_with_a_warning() {
     assert_eq!(log.time_s.len(), 2_200);
     let warning = note(
         &log,
-        "the file holds 2200 samples, the count DataCap's help gives",
+        "the file holds 2200 samples. DataCap's help gives that count",
     );
     assert!(warning.contains("may be older flights'"), "{warning}");
 }

@@ -546,7 +546,7 @@ expression: log
     "`HEAD` read in degrees, from the manual and its range: it runs from 45 to 45",
     "`BATT` read in volts, from its range: it runs from 4.01 to 4.01, where one lithium cell reads up to about 4.2 V and the ground station's serial millivolts would be thousands",
     "the log has no barometer, so the record's altitude track is empty: a GPS tracker's file holds positions only, and every column is a channel",
-    "`DATE` and `TIME` kept as written, in a time zone the file doesn't state: they are the log's clock, and its zero is the first row's, \"2026-03-08 09:15:10.000\"; at the first fix, `TIME` is 09:15:10.000, which read as UTC would be 2.6 h of local mean solar time at the fix's longitude",
+    "`DATE` and `TIME` kept as written, in a time zone the file doesn't state. They are the log's clock, and its zero is the first row's, \"2026-03-08 09:15:10.000\". At the first fix, `TIME` is 09:15:10.000. Read as UTC, that would be 2.6 h of local mean solar time at the fix's longitude",
     "the file holds one tracker's rows, \"Charlie-7\", so its channels keep the header's names",
     "3 rows have `Found rocket lat` and `Found rocket lon` both 0, as a receiver writes before it has a fix: their `Found rocket lat`, `Found rocket lon` and `Found rocket altitude` are read as gaps"
   ]

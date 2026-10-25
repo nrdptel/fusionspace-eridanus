@@ -550,7 +550,7 @@ fn build(
         notes: Vec::new(),
     };
     log.notes.push(if mercury {
-        "the logger is taken as a Rocketry Ltd Mercury: its header has columns only the \
+        "the logger is taken as a Rocketry Ltd Mercury. Its header has columns only the \
          Mercury's layout has, such as the predicted apogee and the air-brake output its manual \
          lists"
             .to_owned()
@@ -568,23 +568,23 @@ fn build(
     if let Some(names) = names_of(columns, &[Kind::Gyro]) {
         log.notes.push(format!(
             "{names} read in degrees per second, from {manual}: its page *CSV Flight log format* \
-             gives each as the rate of turn about one of the board's axes in °/s, as whole \
-             numbers; the altimeter's gyroscope reads up to ±2,000 °/s"
+             describes them. Each is the rate of turn about one of the board's axes in °/s, as \
+             whole numbers. The altimeter's gyroscope reads up to ±2,000 °/s"
         ));
     }
     if let Some(names) = names_of(columns, &[Kind::Angle, Kind::Yaw]) {
         log.notes.push(format!(
-            "{names} read in degrees, from {manual}: its page *CSV Flight log format* gives the \
-             pitch, roll and yaw as attitude angles from their zero on the pad and the tilt as the \
-             angle from vertical, each in degrees"
+            "{names} read in degrees, from {manual}: its page *CSV Flight log format* says what \
+             each is. The pitch, roll and yaw are attitude angles from their zero on the pad. The \
+             tilt is the angle from vertical. Each is in degrees"
         ));
     }
     if let Some(names) = names_of(columns, &[Kind::Total]) {
         log.notes.push(format!(
             "{names} read in thousandths of standard gravity, from its name and {manual}: its page \
-             *CSV Flight log format* gives it as the acceleration's magnitude with the 1 g of \
-             gravity taken out, so it sits near zero at rest; it is kept so, the magnitude less \
-             1 g, not an acceleration along any axis, and reads −1 g in free fall"
+             *CSV Flight log format* describes it. It is the acceleration's magnitude with the \
+             1 g of gravity taken out, so it sits near zero at rest. It is kept so, the magnitude less \
+             1 g, not an acceleration along any axis. It reads −1 g in free fall"
         ));
     }
 
@@ -677,7 +677,7 @@ fn build(
     {
         log.notes.push(format!(
             "the first {pad_rows} rows, before lift-off, to line {}, write 0 on all three of the \
-             accelerometer's axes, which reads 1 g at rest: it hasn't read yet, so {names} are \
+             accelerometer's axes, which reads 1 g at rest. It hasn't read yet, so {names} are \
              gaps on them",
             rows.lines.get(pad_rows - 1).copied().unwrap_or_default()
         ));
@@ -722,8 +722,9 @@ fn centi_degrees(values: &[f64], written: &str, notes: &mut Vec<String>) -> bool
     if !readings.is_empty() && whole && scaled && beyond > 0 {
         notes.push(format!(
             "`{}` read in hundredths of a degree Celsius, from its name and the values: every \
-             reading, {span} as written, is a whole number and lies within the {low} to {high} °C \
-             the BMP581 measures when divided by 100, and {beyond} lie beyond it as written",
+             reading, {span} as written, is a whole number. Divided by 100, every reading lies \
+             within the {low} to {high} °C the BMP581 measures. As written, {beyond} lie beyond \
+             it",
             short(written)
         ));
         true
@@ -781,7 +782,7 @@ fn closing_zeros(kelvin: &mut [f64], lines: &[usize], written: &str, notes: &mut
     }
     notes.push(format!(
         "the last {zeros} readings of `{}`, from line {}, are exactly 0 °C after a reading of \
-         {before_c:.2} °C on line {}: a board can't cool so far between two readings and hold \
+         {before_c:.2} °C on line {}. A board can't cool so far between two readings and hold \
          there, so they aren't readings and are gaps",
         short(written),
         lines.get(first).copied().unwrap_or_default(),
@@ -794,10 +795,10 @@ fn yaw_end(values: &[f64], lines: &[usize], written: &str, notes: &mut Vec<Strin
     let at_end = |value: &f64| value.abs() >= YAW_END_DEG;
     if let Some(first) = values.iter().position(at_end) {
         notes.push(format!(
-            "`{}` reaches ±{YAW_END_DEG}° or beyond on {} rows, the first on line {}: in no \
+            "`{}` reaches ±{YAW_END_DEG}° or beyond on {} rows, the first on line {}. In no \
              sample log does the yaw pass ±327.68°, ±32,768 hundredths of a degree, the range of \
-             a signed 16-bit number, so a yaw beyond it isn't written as it was, but clipped or \
-             wrapped to the other end; kept as written",
+             a signed 16-bit number. So a yaw beyond it isn't written as it was, but clipped or \
+             wrapped to the other end. It is kept as written",
             short(written),
             values.iter().filter(|value| at_end(value)).count(),
             lines.get(first).copied().unwrap_or_default()
@@ -886,8 +887,8 @@ fn summary(log: &mut FlightLog, lines: &[(usize, &str)]) {
             Some(peak_s) if (apogee_s - peak_s).abs() <= APOGEE_TIME_MARGIN_S => {
                 notes.push(format!(
                     "`Apogee time` read in seconds, from the altitude: the highest altitude is at \
-                     {peak_s} s, within {APOGEE_TIME_MARGIN_S} s of its {apogee_s}, where read in \
-                     milliseconds it would be at the lift-off"
+                     {peak_s} s, within {APOGEE_TIME_MARGIN_S} s of its {apogee_s}. Read in \
+                     milliseconds, it would be at the lift-off"
                 ));
                 events.push(Event {
                     time_s: apogee_s,
@@ -895,7 +896,7 @@ fn summary(log: &mut FlightLog, lines: &[(usize, &str)]) {
                 });
             }
             _ => notes.push(format!(
-                "the summary's `Apogee time`, {apogee_s}, is left out: the key states no unit, and \
+                "the summary's `Apogee time`, {apogee_s}, is left out. The key states no unit, and \
                  read in seconds it isn't within {APOGEE_TIME_MARGIN_S} s of the highest \
                  altitude's time, {}",
                 peak_s.map_or("which the file doesn't give".to_owned(), |t| format!(
@@ -926,9 +927,9 @@ fn summary(log: &mut FlightLog, lines: &[(usize, &str)]) {
         && !adjusted.value.eq_ignore_ascii_case("no")
     {
         notes.push(format!(
-            "the summary's `Adjusted log` is {:?}: AltimeterCloud can hand back a log \
-             recalculated after the flight with another pressure or temperature (Nano V1 manual), \
-             so this one's figures may not be the logger's own",
+            "the summary's `Adjusted log` is {:?}. AltimeterCloud can hand back a log \
+             recalculated after the flight with another pressure or temperature (Nano V1 \
+             manual). So this one's figures may not be the logger's own",
             short(adjusted.value)
         ));
     }
@@ -1002,9 +1003,10 @@ fn landing_in_seconds(
     match (agrees(landing), agrees(ms_s)) {
         (true, false) => Ok(format!(
             "`Landing time` read in seconds, from the altitude: at {landing} s, after the highest \
-             altitude at {peak_s} s, the altitude is {:.3} m, within {LANDING_HEIGHT_MARGIN_M} m \
-             of the summary's `Landing meters`, {height_m} m, the height the rocket came to rest \
-             at (Nano V1 manual, *Flight info page*); read in milliseconds, {}",
+             altitude at {peak_s} s, the altitude is {:.3} m. That is within \
+             {LANDING_HEIGHT_MARGIN_M} m of the summary's `Landing meters`, {height_m} m. That is \
+             the height the rocket came to rest at (Nano V1 manual, *Flight info page*). Read in \
+             milliseconds, {}",
             at(landing).unwrap_or(f64::NAN),
             denies(ms_s, &format!("{landing} ms"))
         )),
@@ -1466,7 +1468,7 @@ mod tests {
                 "`Landing time` read in seconds, from the altitude: at 30 s, "
             )
             .contains(
-                "the altitude is 0.000 m, within 0.01 m of the summary's `Landing meters`, 0 m"
+                "the altitude is 0.000 m. That is within 0.01 m of the summary's `Landing meters`, 0 m"
             )
         );
         assert!(

@@ -670,9 +670,9 @@ fn build(
             format: FORMAT,
             line: header_line,
             message: format!(
-                "the median step between rows of `T` is {}, which is neither seconds nor \
+                "the median step between rows of `T` is {}. That is neither seconds nor \
                  milliseconds at the manuals' 1 to 33 samples a second (0.03 to 1 s, 30 to \
-                 1,000 ms): a file whose decimal points were taken out writes 0.05 s as 5",
+                 1,000 ms). A file whose decimal points were taken out writes 0.05 s as 5",
                 plain(median, 3)
             ),
         });
@@ -879,9 +879,9 @@ fn filtered_checks(columns: &[Column], written: &[Vec<f64>], line: usize) -> Res
             format: FORMAT,
             line,
             message: format!(
-                "`{}` isn't a filter of `Alt`: {measured}, outside the 0.1 to 2 a filter of the \
-                 altitude can be, so the file's numbers can't be trusted; a file whose decimal \
-                 points were taken out writes `12.34` as `1234`, 100 times over",
+                "`{}` isn't a filter of `Alt`: {measured}. That is outside the 0.1 to 2 a filter of \
+                 the altitude can be, so the file's numbers can't be trusted. A file whose \
+                 decimal points were taken out writes `12.34` as `1234`, 100 times over",
                 short(&column.name)
             ),
         });
@@ -944,7 +944,7 @@ fn speed_checks(
         if let Some(column) = columns.get_mut(index) {
             notes.push(format!(
                 "`{}` kept as written, not read as a speed: it is the change in \
-                 `{altitude_name}` over the step, within 1 % or 1 ft/s, in only {matching} of \
+                 `{altitude_name}` over the step, within 1 % or 1 ft/s. That holds in only {matching} of \
                  {rows} rows after the first, under the 90 % the reader asks",
                 short(&column.name)
             ));
@@ -1072,9 +1072,9 @@ fn clock_unit(per_second: f64) -> &'static str {
 /// What the step says of the clock, as a note writes it after `from the step`.
 fn step_evidence(median: f64) -> String {
     format!(
-        "the median step between rows is {}, and the reader reads one above 5 as milliseconds (at \
+        "the median step between rows is {}. The reader reads one above 5 as milliseconds. At \
          the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in \
-         milliseconds)",
+         milliseconds",
         plain(median, 4)
     )
 }
@@ -1502,8 +1502,9 @@ fn coast_units(
         "meters"
     } else {
         return Err(refuse(format!(
-            "the clock `T` is in {unit} by its step, but on that clock `Alt` slows at {} g in \
-             feet and {} g in meters over {}, in neither the {} to {} g the reader takes",
+            "the clock `T` is in {unit} by its step. But on that clock `Alt` slows at {} g in \
+             feet and {} g in meters over {}. That is in neither the {} to {} g the reader \
+             takes",
             plain(in_feet, 3),
             plain(in_meters, 3),
             coast.window,
@@ -1513,8 +1514,8 @@ fn coast_units(
     };
     let band = format!("{} to {} g", plain(COAST_BAND.0, 1), plain(COAST_BAND.1, 1));
     let clock_note = format!(
-        "`T` read in {unit}, from the step and the coast: {}; on that clock `Alt` slows at {} g \
-         in {length} over {}, where the reader takes {band} in feet or in meters and a clock \
+        "`T` read in {unit}, from the step and the coast: {}. On that clock `Alt` slows at {} g \
+         in {length} over {}. The reader takes {band} in feet or in meters, and a clock \
          1,000 times off would put it 10⁶ times off",
         step_evidence(median),
         plain(if length == "feet" { in_feet } else { in_meters }, 3),
@@ -1530,9 +1531,9 @@ fn coast_units(
             match column.kind {
                 Kind::Altitude if index == 0 && alt_feet => Some((
                     format!(
-                        "`{name}` read in feet, from the manual and the coast: {ALTITUDE_MANUALS}; \
-                         over {}, it slows at {} g in feet, within the {band} the reader takes, \
-                         where in meters it would be {} g{}",
+                        "`{name}` read in feet, from the manual and the coast: {ALTITUDE_MANUALS}. \
+                         Over {}, it slows at {} g in feet, within the {band} the reader takes. \
+                         In meters it would be {} g{}",
                         coast.window,
                         plain(in_feet, 3),
                         plain(in_meters, 3),
@@ -1543,8 +1544,8 @@ fn coast_units(
                 Kind::Altitude if index == 0 => Some((
                     format!(
                         "`{name}` kept as written: the manuals give feet, but over {}, it slows \
-                         at {} g in feet and {} g in meters, where the reader takes {band} in \
-                         feet; the record holds no barometric altitude",
+                         at {} g in feet and {} g in meters. The reader takes {band} in \
+                         feet. The record holds no barometric altitude",
                         coast.window,
                         plain(in_feet, 3),
                         plain(in_meters, 3)
@@ -1555,7 +1556,7 @@ fn coast_units(
                     Some(g) if in_band(g) => (
                         format!(
                             "`{name}` read in feet, from the manual and the coast: it is the \
-                             logger's filtered `Alt` (Quantum p38, Proton p45), in feet; over \
+                             logger's filtered `Alt` (Quantum p38, Proton p45), in feet. Over \
                              {}, it slows at {} g in feet, within the {band} the reader takes",
                             coast.window,
                             plain(g, 3)
@@ -1565,7 +1566,7 @@ fn coast_units(
                     Some(g) => (
                         format!(
                             "`{name}` kept as written: the manuals give it in feet, as the \
-                             logger's filtered `Alt` (Quantum p38, Proton p45), but over {}, it \
+                             logger's filtered `Alt` (Quantum p38, Proton p45). But over {}, it \
                              slows at {} g in feet, outside the {band} the reader takes",
                             coast.window,
                             plain(g, 3)
@@ -1575,7 +1576,7 @@ fn coast_units(
                     None => (
                         format!(
                             "`{name}` kept as written: the manuals give it in feet, as the \
-                             logger's filtered `Alt` (Quantum p38, Proton p45), but no parabola \
+                             logger's filtered `Alt` (Quantum p38, Proton p45). But no parabola \
                              can be fitted to it over {}",
                             coast.window
                         ),
@@ -1602,8 +1603,8 @@ fn altitude_note(columns: &[Column], written: &[Vec<f64>]) -> String {
 }
 
 /// What the manuals say of `Alt`'s unit, as a note quotes it.
-const ALTITUDE_MANUALS: &str = "the Classic and TRS manuals (p37) state feet; the Quantum and \
-                                Proton manuals give every height in feet and no Eggtimer manual \
+const ALTITUDE_MANUALS: &str = "the Classic and TRS manuals (p37) state feet. The Quantum and \
+                                Proton manuals give every height in feet, and no Eggtimer manual \
                                 offers meters";
 
 /// For a file with the accelerometer in both g and ft/s², what the two say of each other, as a
@@ -1630,7 +1631,7 @@ fn accelerometer_ratio(columns: &[Column], written: &[Vec<f64>]) -> String {
         let ratio = product / square;
         if ratio.is_finite() {
             note.push_str(&format!(
-                "; the file's `{}` is {} times its `{}`, and one g is 32.17 ft/s²",
+                ". The file's `{}` is {} times its `{}`, and one g is 32.17 ft/s²",
                 ft_column.name,
                 plain(ratio, 2),
                 g_column.name
@@ -1646,8 +1647,8 @@ fn unit_note(column: &Column, check: Option<SpeedCheck>, columns: &[Column]) -> 
     let name = short(&column.name);
     let evidence = |what: &str| match check {
         Some(check) if check.rows > 0 => format!(
-            "it is the change in `{}` over the step, within 1 % or 1 ft/s, in {} of {} rows after \
-             the first, where the reader asks 90 %",
+            "It is the change in `{}` over the step, within 1 % or 1 ft/s. That holds in {} of {} \
+             rows after the first, where the reader asks 90 %",
             columns
                 .get(check.altitude)
                 .map(|altitude| short(&altitude.name))
@@ -1655,8 +1656,8 @@ fn unit_note(column: &Column, check: Option<SpeedCheck>, columns: &[Column]) -> 
             check.matching,
             check.rows
         ),
-        Some(_) => format!("the file has one row, so no step to check it against {what} on"),
-        None => format!("the file has no {what} to check it against"),
+        Some(_) => format!("The file has one row, so no step to check it against {what} on"),
+        None => format!("The file has no {what} to check it against"),
     };
     let note = match column.kind {
         Kind::FilteredAltitude => format!(
@@ -1665,14 +1666,14 @@ fn unit_note(column: &Column, check: Option<SpeedCheck>, columns: &[Column]) -> 
         ),
         Kind::RawSpeed => format!(
             "`{name}` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
-             give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the \
-             step; {}",
+             give the velocity in ft/sec. The Proton's (p45) gives it as the change in `Alt` over the \
+             step. {}",
             evidence("`Alt`")
         ),
         Kind::FilteredSpeed => format!(
             "`{name}` read in feet per second, from the manual: the Proton's manual (p46) gives \
-             it as the change in the filtered altitude over the step, and the Excel guide (p7) \
-             graphs the velocity in ft/sec; {}",
+             it as the filtered altitude's change over the step. The Excel guide (p7) \
+             graphs the velocity in ft/sec. {}",
             evidence("filtered altitude")
         ),
         Kind::AccelerationG if !column.names_its_unit() => format!(
@@ -1717,7 +1718,7 @@ fn gravity_note(columns: &[Column], written: &[Vec<f64>], written_time: &[f64]) 
         });
     let (column, values, per_g) = accelerations.next()?;
     let others = if accelerations.next().is_some() {
-        "; the file's other acceleration columns are the same accelerometer's"
+        ". The file's other acceleration columns are the same accelerometer's"
     } else {
         ""
     };
@@ -1728,12 +1729,12 @@ fn gravity_note(columns: &[Column], written: &[Vec<f64>], written_time: &[f64]) 
         .filter(|(time, value)| **time < 0.0 && value.is_finite())
         .map(|(_, value)| value / per_g)
         .collect();
-    let source = "the Proton's manual doesn't say, and its release notes (2.01C, p8) have it \
+    let source = "The Proton's manual doesn't say, and its release notes (2.01C, p8) have it \
                   calibrate the accelerometer as it is armed, standing up";
     if pad.is_empty() {
         return Some(format!(
-            "`{name}` may or may not hold gravity, not known: the file has no rows before the \
-             start of flight (`T` below 0) to read the pad on; {source}{others}"
+            "`{name}` may or may not hold gravity, not known. The file has no rows before the \
+             start of flight (`T` below 0) to read the pad on. {source}{others}"
         ));
     }
     pad.sort_by(f64::total_cmp);
@@ -1746,9 +1747,9 @@ fn gravity_note(columns: &[Column], written: &[Vec<f64>], written_time: &[f64]) 
         pad[middle]
     };
     let reading = format!(
-        "its median over the {} rows before the start of flight (`T` below 0) is {} g, where an \
-         accelerometer that keeps gravity reads 1 g standing still and one that takes it out 0; \
-         {source}{others}",
+        "its median over the {} rows before the start of flight (`T` below 0) is {} g. An \
+         accelerometer that keeps gravity reads 1 g standing still, and one that takes it out \
+         reads 0. {source}{others}",
         pad.len(),
         plain(median, 2)
     );
@@ -1780,14 +1781,14 @@ fn marker_note(columns: &[Column]) -> Option<String> {
         .iter()
         .any(|column| column.name == "MaxV" || column.name == "MaxA")
     {
-        ", and the Proton's release notes (1.02N, p13) the top speed, ft/s, in `MaxV` and the \
+        ". The Proton's release notes (1.02N, p13) put the top speed, ft/s, in `MaxV` and the \
          top acceleration, ft/s², in `MaxA`"
     } else {
         ""
     };
     Some(format!(
-        "the marker columns, kept as written: {}; each is 0 but at the sample that marks its \
-         event, where the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in \
+        "the marker columns, kept as written: {}. Each is 0 but at the sample that marks its \
+         event. There the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in \
          feet{speeds}",
         list(&markers, count)
     ))
@@ -2191,8 +2192,8 @@ fn read_download(
     if preamble.names > 0 {
         log.notes.push(format!(
             "{} of the flight settings holds no setting: the name its owner gave the flight \
-             computer (TRS manual p24), left out of the record as free text that may name a \
-             person",
+             computer (TRS manual p24). The name is left out of the record as free text that may \
+             name a person",
             if preamble.names == 1 {
                 "1 line".to_owned()
             } else {
@@ -2277,8 +2278,8 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
          `secs.` after each, as the TRS manual's download does (p36)"
     } else {
         "`T @` and `Time @` read in seconds, from the manual: the TRS manual's download writes \
-         the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. as \"700ms \
-         into the flight\" (p37)"
+         the flight summary's times in `secs.` (p36). The same download writes its LDA at \
+         0.700 secs. as \"700ms into the flight\" (p37)"
     };
     // Said only of times read: those of 0 and those past the table aren't.
     if !(same.is_empty() && own.is_empty() && differ.is_empty()) {
@@ -2314,7 +2315,7 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
     if !past.is_empty() {
         log.notes.push(format!(
             "the flight summary's times past the table's last, {} s, kept as written and not \
-             read as events: no event of the flight comes after its last sample, so they aren't \
+             read as events. No event of the flight comes after its last sample, so they aren't \
              in seconds: {}",
             plain(last_s, 3),
             past.joined(", ")
@@ -2827,7 +2828,7 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
         return Err(LogError::NotThisFormat {
             format: RTF_FORMAT,
             message: format!(
-                "the RTF document's text holds no Eggtimer terminal download: no title \
+                "the RTF document's text holds no Eggtimer terminal download. No title \
                  `Eggtimer … Flight Settings` comes before an Eggtimer header row, such as \
                  `T,Alt,Veloc,…`, within the first {MAX_PREAMBLE_LINES} lines that aren't blank"
             ),
@@ -2859,8 +2860,9 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
     log.notes.insert(
         0,
         "the text was unwrapped from an RTF document, as a text editor saves a terminal \
-         program's capture: its groups, control words and escapes taken out, its paragraph and \
-         line breaks read as the download's lines; a line named is the document's"
+         program's capture. Its groups, control words and escapes were taken out, and its \
+         paragraph and line breaks were read as the download's lines. A line named is the \
+         document's"
             .to_owned(),
     );
     if !others.is_empty() {
@@ -2871,8 +2873,8 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
             .collect();
         let more = others.len().saturating_sub(MAX_LISTED);
         log.notes.push(format!(
-            "the document holds {} Eggtimer downloads one after another; the first was read, as \
-             a record holds one flight, and the titles of those that weren't are on lines {}{}",
+            "the document holds {} Eggtimer downloads one after another. The first was read, as \
+             a record holds one flight. The titles of those that weren't are on lines {}{}",
             others.len() + 1,
             lines.join(", "),
             if more > 0 {
@@ -2884,8 +2886,8 @@ pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
     }
     if unwrapped.unmapped > 0 {
         log.notes.push(format!(
-            "{} escaped bytes are undefined in the document's code page, or in a code page the \
-             reader doesn't map (it maps Windows 1252), and were read as U+FFFD",
+            "{} escaped bytes were read as U+FFFD. They are undefined in the document's code page, \
+             or in a code page the reader doesn't map (it maps Windows 1252)",
             unwrapped.unmapped
         ));
     }
@@ -2994,22 +2996,22 @@ mod tests {
         assert_eq!(log.notes.len(), 6, "{:?}", log.notes);
         assert_eq!(
             log.notes[0],
-            "`T` read in seconds, from the step: the median step between rows is 0.05, and the \
-             reader reads one above 5 as milliseconds (at the manuals' 1 to 33 samples a second, \
-             a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds)"
+            "`T` read in seconds, from the step: the median step between rows is 0.05. The \
+             reader reads one above 5 as milliseconds. At the manuals' 1 to 33 samples a second, \
+             a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds"
         );
         assert_eq!(
             log.notes[1],
-            "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet; \
-             the Quantum and Proton manuals give every height in feet and no Eggtimer manual \
+            "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet. \
+             The Quantum and Proton manuals give every height in feet, and no Eggtimer manual \
              offers meters"
         );
         assert_eq!(
             log.notes[2],
             "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
-             give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the \
-             step; it is the change in `Alt` over the step, within 1 % or 1 ft/s, in 4 of 4 rows \
-             after the first, where the reader asks 90 %"
+             give the velocity in ft/sec. The Proton's (p45) gives it as the change in `Alt` over the \
+             step. It is the change in `Alt` over the step, within 1 % or 1 ft/s. That holds in 4 \
+             of 4 rows after the first, where the reader asks 90 %"
         );
         assert!(log.notes[3].starts_with("`FAlt` read in feet, from the manual: "));
         assert!(
@@ -3022,7 +3024,7 @@ mod tests {
         assert_eq!(
             log.notes[5],
             "the marker columns, kept as written: `LDA`, `LowV`, `Apogee`, `N-O`, `Drogue` and \
-             `Main`; each is 0 but at the sample that marks its event, where the Quantum's \
+             `Main`. Each is 0 but at the sample that marks its event. There the Quantum's \
              and Proton's manuals (p38, p46) put the raw altitude, in feet"
         );
     }
@@ -3039,10 +3041,10 @@ mod tests {
         let millis = read(&format!("T,Alt,LDA\n{}", rows(50.0))).unwrap();
         assert_eq!(millis.time_s, [0.0, 0.05, 0.1, 0.15]);
         assert!(millis.notes[0].starts_with("`T` read in milliseconds, from the step: "));
-        assert!(millis.notes[0].contains("median step between rows is 50,"));
+        assert!(millis.notes[0].contains("median step between rows is 50."));
         let slow = read(&format!("T,Alt,LDA\n{}", rows(1000.0))).unwrap();
         assert_eq!(prefix(&slow.notes[0]), prefix(&millis.notes[0]));
-        assert!(slow.notes[0].contains("is 1000,"));
+        assert!(slow.notes[0].contains("is 1000."));
 
         // At the line between the two, 5, a step is neither unit's at the manuals' rates, and
         // the file is refused either side of it.
@@ -3101,7 +3103,7 @@ mod tests {
         assert_eq!(names, ["MaxA", "LDA", "MaxV"]);
         assert!(
             log.notes[1].ends_with(
-                "; the file's `AccelFPSS` is 32.17 times its `AccelG`, and one g is 32.17 ft/s²"
+                ". The file's `AccelFPSS` is 32.17 times its `AccelG`, and one g is 32.17 ft/s²"
             ),
             "{}",
             log.notes[1]
@@ -3113,16 +3115,16 @@ mod tests {
         assert_eq!(
             log.notes[5],
             "`AccelG` has gravity taken out, from the pad: its median over the 1 rows before the \
-             start of flight (`T` below 0) is 0 g, where an accelerometer that keeps gravity reads \
-             1 g standing still and one that takes it out 0; the Proton's manual doesn't say, and \
-             its release notes (2.01C, p8) have it calibrate the accelerometer as it is armed, \
-             standing up; the file's other acceleration columns are the same accelerometer's"
+             start of flight (`T` below 0) is 0 g. An accelerometer that keeps gravity reads \
+             1 g standing still, and one that takes it out reads 0. The Proton's manual doesn't \
+             say, and its release notes (2.01C, p8) have it calibrate the accelerometer as it is \
+             armed, standing up. The file's other acceleration columns are the same accelerometer's"
         );
         assert!(
             log.notes[6].starts_with(
-                "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA` and `CH1`; "
+                "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA` and `CH1`. "
             ) && log.notes[6].ends_with(
-                ", and the Proton's release notes (1.02N, p13) the top speed, ft/s, in `MaxV` \
+                ". The Proton's release notes (1.02N, p13) put the top speed, ft/s, in `MaxV` \
                      and the top acceleration, ft/s², in `MaxA`"
             ),
             "{}",
@@ -3153,7 +3155,7 @@ mod tests {
             "{notes}"
         );
         assert!(
-            notes.contains("the file's `AccelFPSS` is 32.17 times its `Accel`"),
+            notes.contains("The file's `AccelFPSS` is 32.17 times its `Accel`"),
             "{notes}"
         );
         assert!(
@@ -3191,7 +3193,7 @@ mod tests {
         .unwrap();
         assert!(
             no_pad.notes.iter().any(|note| note.starts_with(
-                "`FAccelFPSS` may or may not hold gravity, not known: the file has no rows before \
+                "`FAccelFPSS` may or may not hold gravity, not known. The file has no rows before \
                  the start of flight"
             )),
             "{:?}",
@@ -3239,8 +3241,8 @@ mod tests {
         assert!(
             notes.contains(
                 "`Veloc` kept as written, not read as a speed: it is the change in `Alt` over the \
-                 step, within 1 % or 1 ft/s, in only 0 of 2 rows after the first, under the 90 % \
-                 the reader asks"
+                 step, within 1 % or 1 ft/s. That holds in only 0 of 2 rows after the first, under \
+                 the 90 % the reader asks"
             ),
             "{notes}"
         );
@@ -3347,7 +3349,7 @@ mod tests {
         assert!(
             note.starts_with(
                 "the marker columns, kept as written: `LDA`, `CH1`, `CH2`, `CH3`, `CH4` and 36 more \
-                 columns; "
+                 columns. "
             ),
             "{note}"
         );
@@ -3402,7 +3404,7 @@ mod tests {
         );
         assert!(old.notes[2].starts_with("`VRaw` read in feet per second, from the manual: "));
         assert!(
-            old.notes[3].ends_with("the file has no filtered altitude to check it against"),
+            old.notes[3].ends_with("The file has no filtered altitude to check it against"),
             "{}",
             old.notes[3]
         );
@@ -3517,7 +3519,7 @@ mod tests {
                 &refused,
                 Err(LogError::Unit { line: 1, message, .. }) if message.starts_with(
                     "`Filt_Alt` isn't a filter of `Alt`: it is 92.319 times `Alt` by a \
-                     least-squares fit, outside the 0.1 to 2"
+                     least-squares fit. That is outside the 0.1 to 2"
                 )
             ),
             "{refused:?}"
@@ -3561,7 +3563,7 @@ mod tests {
         assert!(matches!(
             read(stripped),
             Err(LogError::Unit { line: 1, ref message, .. })
-                if message.starts_with("the median step between rows of `T` is 5,")
+                if message.starts_with("the median step between rows of `T` is 5. That")
         ));
         // The ends are each a unit's: a step of 1 is seconds, one of 30 milliseconds.
         let one = read("T,Alt,Veloc\n0,0,0\n1,10,10\n2,25,15\n").unwrap();
@@ -3953,8 +3955,8 @@ mod tests {
                  the logger's apogee above its zero, kept beside the table's altitudes (TRS \
                  manual p36)",
                 "`T @` and `Time @` read in seconds, from the manual: the TRS manual's download \
-                 writes the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. \
-                 as \"700ms into the flight\" (p37)",
+                 writes the flight summary's times in `secs.` (p36). The same download writes its LDA \
+                 at 0.700 secs. as \"700ms into the flight\" (p37)",
                 "the flight summary's times are its table markers' to the millisecond, one event \
                  each, the marker's: `Apogee` at `Apogee`, `LDA` at `LDA`",
                 "the flight summary's times of no marker in the table, each an event of its own: \
@@ -3965,8 +3967,8 @@ mod tests {
                  1; `Main Altitude <50-2000 by 50, 0=OFF>` 300; `Frequency (Ctrl-F to change)` \
                  915; `ID Code` 4",
                 "1 line of the flight settings holds no setting: the name its owner gave the \
-                 flight computer (TRS manual p24), left out of the record as free text that may \
-                 name a person",
+                 flight computer (TRS manual p24). The name is left out of the record as free text \
+                 that may name a person",
                 "the flight summary's other lines, as the file writes them: `Base Temp: 20.5 C`; \
                  `Last Flight Phase: 9` (landing detected, TRS manual p37); `Max Velocity: 290 \
                  ft/sec`; `Altitude @ Main Deploy: 0 ft`",
@@ -4167,8 +4169,8 @@ mod tests {
             // The window ends at the top: the first row of the highest whole foot, 9.9 s.
             assert!(
                 clock.contains(
-                    " g in feet over the rows from 6.9 s to 9.9 s, up to the altitude's top, \
-                     where the reader takes 0.7 to 1.3 g in feet or in meters and a clock 1,000 \
+                    " g in feet over the rows from 6.9 s to 9.9 s, up to the altitude's top. \
+                     The reader takes 0.7 to 1.3 g in feet or in meters, and a clock 1,000 \
                      times off would put it 10⁶ times off"
                 ),
                 "{clock}"
@@ -4178,13 +4180,13 @@ mod tests {
             assert!(
                 alt.starts_with(
                     "`Alt` read in feet, from the manual and the coast: the Classic and TRS \
-                     manuals (p37) state feet; the Quantum and Proton manuals give every height \
-                     in feet and no Eggtimer manual offers meters; over the rows from 6.9 s to \
+                     manuals (p37) state feet. The Quantum and Proton manuals give every height \
+                     in feet, and no Eggtimer manual offers meters. Over the rows from 6.9 s to \
                      9.9 s, up to the altitude's top, it slows at "
                 ),
                 "{alt}"
             );
-            assert!(alt.contains(" g in feet, within the 0.7 to 1.3 g the reader takes, where in"));
+            assert!(alt.contains(" g in feet, within the 0.7 to 1.3 g the reader takes. In"));
             assert!((slowing_g(alt, "feet") - 1.0).abs() < 0.01, "{alt}");
             assert!(note_from(&log, "`FAlt` ").starts_with("`FAlt` read in feet, from the "));
             assert!(note_from(&log, "`Veloc` ").starts_with("`Veloc` read in feet per second"));
@@ -4220,7 +4222,7 @@ mod tests {
             "{alt}"
         );
         assert!(alt.ends_with(
-            " g in meters, where the reader takes 0.7 to 1.3 g in feet; the record holds no \
+            " g in meters. The reader takes 0.7 to 1.3 g in feet. The record holds no \
              barometric altitude"
         ));
         assert!((slowing_g(alt, "feet") - FOOT_M).abs() < 0.01, "{alt}");
@@ -4229,7 +4231,7 @@ mod tests {
         assert!(
             falt.starts_with(
                 "`FAlt` kept as written: the manuals give it in feet, as the logger's filtered \
-                 `Alt` (Quantum p38, Proton p45), but over the rows from "
+                 `Alt` (Quantum p38, Proton p45). But over the rows from "
             ),
             "{falt}"
         );
@@ -4334,12 +4336,12 @@ mod tests {
         let error = read_text(&text).unwrap_err().to_string();
         assert!(
             error.starts_with(
-                "Eggtimer text line 2: the clock `T` is in milliseconds by its step, but on that \
+                "Eggtimer text line 2: the clock `T` is in milliseconds by its step. But on that \
                  clock `Alt` slows at 3 g in feet and 9.841 g in meters over the rows from "
             ),
             "{error}"
         );
-        assert!(error.ends_with(", in neither the 0.7 to 1.3 g the reader takes"));
+        assert!(error.ends_with(". That is in neither the 0.7 to 1.3 g the reader takes"));
         // A table of one row has neither a step nor a coast.
         let one = coast_download("0,0,0,0,0,0,0,0,0,0,0", |_, _| {});
         assert!(matches!(
@@ -4376,7 +4378,7 @@ mod tests {
         );
         assert!(
             alt.contains(
-                "over the rows from 6.45 s to 9.45 s, up to the row before the marker `N-O` at \
+                "Over the rows from 6.45 s to 9.45 s, up to the row before the marker `N-O` at \
                  9.5 s, it slows at 1 g in feet"
             ),
             "{alt}"
@@ -4425,7 +4427,7 @@ mod tests {
         let log = read_text(&jumped(190)).unwrap();
         assert!(
             note_from(&log, "`Alt` ").contains(
-                "over the rows from 6.45 s to 9.45 s, up to the row before `Alt` jumps at 9.5 s, \
+                "Over the rows from 6.45 s to 9.45 s, up to the row before `Alt` jumps at 9.5 s, \
                  it slows at 1 g in feet"
             ),
             "{}",

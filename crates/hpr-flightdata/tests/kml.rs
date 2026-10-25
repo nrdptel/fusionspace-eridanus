@@ -178,7 +178,7 @@ fn altos_flight_states_read_the_barometer_and_the_comment_times() {
     assert_eq!(boost[3].values, [602.0, 640.0, 640.0]);
     assert!(noted(
         &log,
-        "`time` read in seconds, from the steps between points: "
+        "`time` read in seconds, from the steps between points. "
     ));
     assert!(noted(
         &log,
@@ -188,7 +188,7 @@ fn altos_flight_states_read_the_barometer_and_the_comment_times() {
     assert!(noted(
         &log,
         "`coordinates` read in meters as the barometer's altitude above sea level, from the GPS \
-         altitude AltOS writes beside each point: in 3 tracks the tuple's altitude differs from the \
+         altitude AltOS writes beside each point. In 3 tracks the tuple's altitude differs from the \
          comment's `alt` at 8 of the 8 points"
     ));
     insta::assert_json_snapshot!(log);
@@ -319,7 +319,7 @@ fn gps_visualizers_altitude_is_kept_as_written() {
     assert!(noted(
         &log,
         "`coordinates` kept as written, as GPS Visualizer takes a source's altitude as meters \
-         unless the source's header names feet: 2 tracks carry an altitude, the highest 1620 \
+         unless the source's header names feet. 2 tracks carry an altitude, the highest 1620 \
          above the first"
     ));
     insta::assert_json_snapshot!(log);

@@ -147,7 +147,7 @@ impl Http {
         // The protocol alone: the address may carry a user name and password, and one with an
         // unescaped `/` or `#` in the password ends early, leaving the user name as the "host".
         Some(format!(
-            "the environment's proxy ({:?}) is SOCKS, which hpr-net cannot use; unset the \
+            "the environment's proxy ({:?}) is SOCKS, which hpr-net cannot use. Unset the \
              variable naming it (ALL_PROXY, HTTPS_PROXY or HTTP_PROXY), add the host to NO_PROXY, \
              or turn off HttpConfig::proxy_from_env",
             socks.protocol(),

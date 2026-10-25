@@ -305,10 +305,10 @@ expression: log
     }
   ],
   "notes": [
-    "`time` read in seconds, from the step: the file has no `GPS Time of Week` to decide it by; the fastest clock's median step, 0.5 as written, is a step of 0.009 to 2 s, as the AIM writes its sensors every 10 to 500 ms (manual p2) times a whole multiple the owner sets (p21), where milliseconds would be 9 to 2,000",
-    "`pressure` read in pascals, from the values: its first value that is a launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to 110,000 Pa), 98358, is one in pascals",
-    "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: from the pressure's pad sample to the one of lowest pressure, the standard atmosphere climbs 543.5 m and the column 1783.2 feet",
-    "`temperature` read in degrees Fahrenheit, from the heights' unit and the manual, p33: the heights are in feet, decided from the pressure, and the software sets one unit system for all its displays (p33), here imperial, its sensor reading °C or °F (p25); the first value, 71.2, is a bay's temperature in them, -40 to 140",
+    "`time` read in seconds, from the step: the file has no `GPS Time of Week` to decide it by. The fastest clock's median step, 0.5 as written, is a step of 0.009 to 2 s. That matches how the AIM writes its sensors every 10 to 500 ms (manual p2) times a whole multiple the owner sets (p21). Milliseconds would be 9 to 2,000",
+    "`pressure` read in pascals, from the values: its first value that is a launch site's pressure, 98358, is one in pascals. A launch site's pressure is 50,000 to 110,000 Pa, in pascals, kilopascals or inches of mercury",
+    "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: the standard atmosphere climbs 543.5 m from the pressure's pad sample to the one of lowest pressure. Over the same span the column climbs 1783.2 feet",
+    "`temperature` read in degrees Fahrenheit, from the heights' unit and the manual, p33: the heights are in feet, decided from the pressure. The software sets one unit system for all its displays (p33), here imperial, its sensor reading °C or °F (p25). The first value, 71.2, is a bay's temperature in degrees Fahrenheit, -40 to 140",
     "`acceleration` read in g, from the manual: it plots the accelerations \"in G's\", the long axis's with gravity in it (p23–24)",
     "`launch detect` and `apogee detect` kept as written, flags, from the values: each is 0 or 1, the AIM's flight event status and its lines' continuity (manual p2, p36)"
   ]

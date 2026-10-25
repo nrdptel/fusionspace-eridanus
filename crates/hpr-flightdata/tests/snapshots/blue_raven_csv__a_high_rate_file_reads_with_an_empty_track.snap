@@ -500,7 +500,7 @@ expression: log
   "notes": [
     "`Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary: the largest rate in the file is 108, against the gyros' range of ±2000 deg/sec the manual gives",
     "`Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad: the median magnitude of the three axes over the 3 rows before liftoff is 1.000, where a logger at rest reads 1 g",
-    "`Current` kept as written, in a unit no source states: it is other than 0 in 2 of 10 rows, at most 2.614; amperes would fit the manual's limit of about 4 A on the board's current, the USB download's milliamperes would not",
-    "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is empty: a Blue Raven's high-rate file holds its inertial sensors only, and the low-rate file of the same flight holds the altitude"
+    "`Current` kept as written, in a unit no source states. It is other than 0 in 2 of 10 rows, at most 2.614. Amperes would fit the manual's limit of about 4 A on the board's current. The USB download's milliamperes would not",
+    "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is empty. A Blue Raven's high-rate file holds its inertial sensors only, and the low-rate file of the same flight holds the altitude"
   ]
 }

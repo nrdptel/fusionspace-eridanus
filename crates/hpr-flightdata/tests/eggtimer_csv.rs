@@ -59,14 +59,14 @@ fn the_layout_in_milliseconds_reads_its_clock_in_seconds() {
     assert_eq!(log.time_s.last(), Some(&5.3));
     assert!(
         log.notes[0].starts_with(
-            "`T` read in milliseconds, from the step: the median step between rows is 50,"
+            "`T` read in milliseconds, from the step: the median step between rows is 50."
         ),
         "{}",
         log.notes[0]
     );
     // Every raw speed is its altitude's change over the step in seconds.
     assert!(
-        log.notes[2].contains("in 25 of 25 rows after the first"),
+        log.notes[2].contains("holds in 25 of 25 rows after the first"),
         "{}",
         log.notes[2]
     );

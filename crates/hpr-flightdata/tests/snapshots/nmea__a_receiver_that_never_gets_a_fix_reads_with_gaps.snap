@@ -684,8 +684,8 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty: every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
-    "`RMC date` read in UTC days, from status-`A` sentences only: no `RMC` has status `A`, so the times are times of day alone, from the first sentence with a time, at 03:14:07.420 UTC; 7 status-`V` `RMC` carry 1 distinct dates, 1 of which no status-`A` one gives, as a receiver writes a placeholder before its fix",
+    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty. Every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
+    "`RMC date` read in UTC days, from status-`A` sentences only: no `RMC` has status `A`, so the times are times of day alone, from the first sentence with a time, at 03:14:07.420 UTC. 7 status-`V` `RMC` carry 1 distinct dates, 1 of which no status-`A` one gives, as a receiver writes a placeholder before its fix",
     "`GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order: in 9 of the file's 9 `GGA` and `RMC` pairs, the `RMC` has the `GGA`'s time; 1 come before any sentence with a time, and their times are gaps",
     "2 `GGA` and `RMC` sentences have an empty time, as a receiver writes before it knows the time: their samples' times are gaps",
     "1 lines hold no sentence, no `$`: noise, or a sentence cut at its start, the first line 1, \"��m�z\": skipped",

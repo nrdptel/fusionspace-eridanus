@@ -1080,6 +1080,6 @@ expression: log
   ],
   "notes": [
     "1 row whose `crc` is FALSE, a packet that failed its check, left out",
-    "`acceleration` is the board's own estimate along its axis with gravity taken out: about 0 at rest, not 1 g; `speed` leans on the accelerometer, so the record has no vertical speed"
+    "`acceleration` is the board's own estimate along its axis with gravity taken out: about 0 at rest, not 1 g. `speed` leans on the accelerometer, so the record has no vertical speed"
   ]
 }

@@ -86,7 +86,7 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`Acc(HI)` and `Baro(HI)` kept as written: the export holds the converter's counts and no calibration; the flight's `.odf` holds the same records with the board's, and reads in units",
+    "`Acc(HI)` and `Baro(HI)` kept as written: the export holds the converter's counts and no calibration. The flight's `.odf` holds the same records with the board's, and reads in units",
     "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes",
     "the first row is the pad's baselines, as whole counts, not a sample"
   ]

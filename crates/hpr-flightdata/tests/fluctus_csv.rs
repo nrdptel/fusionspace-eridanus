@@ -96,21 +96,21 @@ fn a_flight_reads_every_column_and_its_events() {
     assert!(
         note(
             &log,
-            "`gpsAltMSL` read in meters, from the barometric altitude: "
+            "`gpsAltMSL` read in meters, from the barometric altitude. "
         )
         .contains(
-            "at its 24 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
-             within 10% of 1, where in feet it would be 3.28, over 321 m of the barometric \
-             altitude, and scatters 2 about that line"
+            "At its 24 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
+             within 10% of 1. In feet it would be 3.28. They span 321 m of the barometric \
+             altitude and scatter 2 about that line"
         )
     );
     note(
         &log,
-        "`gpsLat` read in degrees, from the manual and the values: ",
+        "`gpsLat` read in degrees, from the manual and the values. ",
     );
     note(
         &log,
-        "`gpsLng` read in degrees, from the manual and the values: ",
+        "`gpsLng` read in degrees, from the manual and the values. ",
     );
     note(
         &log,
@@ -156,7 +156,9 @@ fn a_flight_with_placeholders_and_a_lost_gps() {
             &log,
             "`gpsAltMSL` kept as written, in a unit no source states: "
         )
-        .contains("it changes on 2 rows where the barometric altitude is read, fewer than the 10")
+        .contains(
+            "it changes on 2 rows where the barometric altitude is read. That is fewer than the 10"
+        )
     );
     assert_eq!(log.channels[17].values[0], -41.234567);
     assert_eq!(events(&log), [(246.02, "ASCENT")]);

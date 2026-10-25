@@ -58,7 +58,7 @@ fn the_first_download_is_read_and_the_second_counted() {
     // `Apogee` marker, 3 s of it at 4 rows a second, slows at 1 g in feet.
     assert!(log.notes[1].starts_with(
         "`T` read in milliseconds, from the step and the coast: the median step between rows is \
-         250, "
+         250. "
     ));
     assert!(log.notes[1].contains(
         "over the rows from 2.75 s to 5.75 s, up to the row before the marker `Apogee` at 6 s"
@@ -75,12 +75,12 @@ fn the_first_download_is_read_and_the_second_counted() {
     // A summary time past the table's last sample isn't in seconds: no event.
     assert!(has(
         "the flight summary's times past the table's last, 9 s, kept as written and not read \
-         as events: no event of the flight comes after its last sample, so they aren't in \
+         as events. No event of the flight comes after its last sample, so they aren't in \
          seconds: `Unlock` 9500"
     ));
     assert!(has(
-        "the document holds 2 Eggtimer downloads one after another; the first was read, as a \
-         record holds one flight, and the titles of those that weren't are on lines 77"
+        "the document holds 2 Eggtimer downloads one after another. The first was read, as a \
+         record holds one flight. The titles of those that weren't are on lines 77"
     ));
     let json = serde_json::to_string(&log).unwrap();
     assert!(!json.contains('\u{fffd}'));

@@ -1056,7 +1056,7 @@ fn heights(log: &FlightLog) -> Readings {
             Reason::SampledTooSlowly,
             &format!(
                 "the track's samples come every {interval:.3} s, slower than the {MAX_INTERVAL_S} s \
-                 the readings were checked at; a clock in milliseconds read as seconds looks so"
+                 the readings were checked at. A clock in milliseconds read as seconds looks so"
             ),
         );
         readings.sample_interval_s = Some(interval);
@@ -1179,10 +1179,10 @@ fn heights(log: &FlightLog) -> Readings {
     };
     if by_word && measured_pad.abs() > PAD_ZERO_M {
         let detail = format!(
-            "the log starts {measured_pad:.2} m from the logger's zero, more than the \
-             {PAD_ZERO_M:.1} m the weather and the noise move a zero on the pad: it didn't start \
-             on the pad, or its heights aren't above the pad (an altitude above sea level mapped \
-             as one above the ground reads so; map it as altitude_msl)"
+            "the log starts {measured_pad:.2} m from the logger's zero. That is more than the \
+             {PAD_ZERO_M:.1} m the weather and the noise move a zero on the pad. It didn't \
+             start on the pad, or its heights aren't above the pad. An altitude above sea \
+             level mapped as one above the ground reads so: map it as altitude_msl"
         );
         readings.liftoff = Reading::withheld(Reason::StartsOffThePad, detail.clone());
         readings.apogee = Reading::withheld(Reason::StartsOffThePad, detail.clone());
@@ -1192,9 +1192,9 @@ fn heights(log: &FlightLog) -> Readings {
     }
     let short_detail = format!(
         "the track stays within {:.1} m of its start for {stay_s:.2} s, so the rocket may have \
-         climbed {pad_error_m:.1} m before the log starts, more than the pad's {:.0} m allowance: \
-         the log starts after liftoff, as a logger that records from launch does, or holds too \
-         little of the pad to tell liftoff by",
+         climbed {pad_error_m:.1} m before the log starts. That is more than the pad's {:.0} m \
+         allowance. The log starts after liftoff, as a logger that records from launch does, or \
+         holds too little of the pad to tell liftoff by",
         0.5 * rise,
         LIFTOFF_ALLOWANCE_M
     );
@@ -1274,9 +1274,9 @@ fn heights(log: &FlightLog) -> Readings {
         if lost <= least {
             let coast = 0.5 * STANDARD_GRAVITY_MPS2 * COAST_CHECK_S * COAST_CHECK_S;
             let detail = format!(
-                "the track loses {lost:.2} m in the {COAST_CHECK_S} s before its top, no more than \
-                 twice its noise and step ({least:.1} m), where a coast loses {coast:.0} m: its \
-                 clock is in another unit, such as milliseconds read as seconds, or it isn't a \
+                "the track loses {lost:.2} m in the {COAST_CHECK_S} s before its top. That is no \
+                 more than twice its noise and step ({least:.1} m), where a coast loses \
+                 {coast:.0} m. Its clock is in another unit, such as milliseconds read as seconds, or it isn't a \
                  height"
             );
             let mut withheld = every(source, Reason::SlowerThanFreeCoast, &detail);
@@ -1344,11 +1344,11 @@ fn heights(log: &FlightLog) -> Readings {
         .filter(|_| back >= first && climbed > climb_most)
         .map(|(fallen, index, most)| {
             format!(
-                "the track climbs {climbed:.1} m into its top at {:.2} s in {climb_s:.2} s, more \
-                 than the {climb_most:.1} m a coast slowing at twice gravity climbs, and falls \
-                 {fallen:.1} m from it by {:.2} s, more than the {most:.1} m a body at rest there \
-                 can fall, each past twice its noise and step: its top is a spike, such as a \
-                 charge's, so which is the apogee can't be told",
+                "the track climbs {climbed:.1} m into its top at {:.2} s in {climb_s:.2} s. That is \
+                 more than the {climb_most:.1} m a coast slowing at twice gravity climbs. It \
+                 falls {fallen:.1} m from it by {:.2} s, more than the {most:.1} m a body at rest \
+                 there can fall. Each is past twice its noise and step. Its top is a spike, such \
+                 as a charge's, so which is the apogee can't be told",
                 time[apogee_index], time[index]
             )
         });
@@ -1356,10 +1356,10 @@ fn heights(log: &FlightLog) -> Readings {
         (fall.0 > least).then(|| {
         let (fallen, from, to) = fall;
         format!(
-            "the track falls {fallen:.1} m from a peak at {:.2} s to {:.2} s, more than twice its \
-             noise and step ({least:.1} m), then climbs to its top at {:.2} s: a coast doesn't, \
-             and a disturbance after apogee, such as the deployment's, does, so which is the \
-             apogee can't be told",
+            "the track falls {fallen:.1} m from a peak at {:.2} s to {:.2} s. That is more than \
+             twice its noise and step ({least:.1} m). It then climbs to its top at {:.2} s. A \
+             coast doesn't, and a disturbance after apogee, such as the deployment's, does, so \
+             which is the apogee can't be told",
             time[from], time[to], time[apogee_index]
         )
     })
@@ -1438,7 +1438,7 @@ fn heights(log: &FlightLog) -> Readings {
             Reason::ShortPad,
             format!(
                 "the climb's speed peaks within {SPEED_WINDOW_S} s of the log's start, and the log \
-                 holds no pad: it may have climbed faster before its first sample"
+                 holds no pad. It may have climbed faster before its first sample"
             ),
         );
     }
@@ -1554,7 +1554,7 @@ fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {
             Reason::UnstatedSensor,
             format!(
                 "the log's only height, `{}`, doesn't say whether a barometer or a GNSS receiver \
-                 measured it; a column mapping can mark it as the barometer's primary track",
+                 measured it. A column mapping can mark it as the barometer's primary track",
                 channel.column
             ),
         ));
@@ -1859,8 +1859,9 @@ fn landing(
         return Reading::withheld(
             Reason::EndsBeforeLanding,
             format!(
-                "the log ends at {end:.2} s, {:.1} m above the pad, before the altitude comes \
-                 within {level:.1} m of it and stays under {ceiling:.1} m for {LANDED_FOR_S} s",
+                "the log ends at {end:.2} s, {:.1} m above the pad. This is before the altitude \
+                 comes within {level:.1} m of the pad and stays under {ceiling:.1} m for \
+                 {LANDED_FOR_S} s",
                 filtered[filtered.len() - 1] - pad
             ),
         );
@@ -1878,7 +1879,7 @@ fn landing(
             Reason::FasterThanFreeFall,
             format!(
                 "the altitude reaches the pad {descent_time_s:.2} s after apogee, sooner than a \
-                 fall from rest in vacuum could ({quickest:.2} s): the trace isn't a height there"
+                 fall from rest in vacuum could ({quickest:.2} s). The trace isn't a height there"
             ),
         );
     }

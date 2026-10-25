@@ -638,7 +638,7 @@ impl LeftOut {
             };
             format!(
                 "{} rows of {trackers} were left out, past the first {MAX_TRACKERS} trackers or \
-                 {MAX_CHANNELS} channels, so that a file of many tracker names can't make the \
+                 {MAX_CHANNELS} channels. This keeps a file of many tracker names from making the \
                  reader hold a set of channels for each",
                 self.rows
             )
@@ -1002,10 +1002,10 @@ fn clock_note(
         ),
         Layout::GroundStation => {
             let solar = first_fix(sets, positions).map_or_else(
-                || "the file has no fix to compare its `TIME` with the sun's".to_owned(),
+                || "The file has no fix to compare its `TIME` with the sun's".to_owned(),
                 |(instant, longitude)| {
                     format!(
-                        "at the first fix, `TIME` is {}, which read as UTC would be {:.1} h of \
+                        "At the first fix, `TIME` is {}. Read as UTC, that would be {:.1} h of \
                          local mean solar time at the fix's longitude",
                         clock_text(instant),
                         solar_hours(instant, longitude)
@@ -1013,8 +1013,8 @@ fn clock_note(
                 },
             );
             format!(
-                "`DATE` and `TIME` kept as written, in a time zone the file doesn't state: they \
-                 are the log's clock, and its zero is the first row's, {:?}; {solar}",
+                "`DATE` and `TIME` kept as written, in a time zone the file doesn't state. They \
+                 are the log's clock, and its zero is the first row's, {:?}. {solar}",
                 first_row.0
             )
         }
@@ -1309,7 +1309,7 @@ impl Decisions {
                 ),
                 Check::Disagrees(..) => format!(
                     "`HORZV` kept as written, the distance between fixes disagrees with the \
-                     manual's feet per second: {horizontal_words}; every length and speed the \
+                     manual's feet per second. Here, {horizontal_words}. Every length and speed the \
                      manual gives in feet is kept as written with it"
                 ),
             });
@@ -1605,7 +1605,7 @@ fn unix_note(columns: &[Column], sets: &[Set]) -> Option<String> {
         .all(|offset| (offset - hours * 3_600.0).abs() < 0.01);
     let sun = solar.map_or_else(String::new, |(utc, unix)| {
         format!(
-            "; read as UTC at the first fix's longitude, `UTCTIME` gives {utc:.1} h of local mean \
+            ". Read as UTC at the first fix's longitude, `UTCTIME` gives {utc:.1} h of local mean \
              solar time and `UNIXTIME` {unix:.1} h"
         )
     });
@@ -1626,8 +1626,8 @@ fn unix_note(columns: &[Column], sets: &[Set]) -> Option<String> {
             .fold(None, range)
             .unwrap_or_default();
         format!(
-            "`UNIXTIME` kept as written, off `UTCTIME` by other than one whole number of hours: \
-             it runs from {lo:.3} s to {hi:.3} s ahead of `UTCTIME`{sun}"
+            "`UNIXTIME` kept as written, off `UTCTIME` by other than one whole number of hours. \
+             It runs from {lo:.3} s to {hi:.3} s ahead of `UTCTIME`{sun}"
         )
     })
 }
@@ -1926,7 +1926,7 @@ mod tests {
         assert!(
             log.notes[0].starts_with(
                 "`HORZV` kept as written, the distance between fixes disagrees with the manual's \
-                 feet per second: the distance between fixes a second, in feet, is a median of \
+                 feet per second. Here, the distance between fixes a second, in feet, is a median of \
                  3.280 times `HORZV` over 29 pairs of rows"
             ),
             "{:#?}",
@@ -2023,7 +2023,7 @@ mod tests {
         assert_eq!(channel(&log, "VERTV").quantity, Quantity::Unrecognized);
         for expected in [
             "`HORZV` kept as written, the distance between fixes disagrees with the manual's feet \
-             per second: the distance between fixes a second, in feet, is a median of 1.466 times",
+             per second. Here, the distance between fixes a second, in feet, is a median of 1.466 times",
             "`HEAD` kept as written, its range disagrees with the manual's degrees: it runs from \
              400 to 400",
             "`BATT` kept as written, its range isn't one lithium cell's volts: it runs from 4010 \
@@ -2128,7 +2128,7 @@ mod tests {
         assert!(
             log.notes.iter().any(|note| note
                 == "`UNIXTIME` kept as written, off `UTCTIME` by other than one whole number of \
-                    hours: it runs from 0.500 s to 0.500 s ahead of `UTCTIME`; read as UTC at the \
+                    hours. It runs from 0.500 s to 0.500 s ahead of `UTCTIME`. Read as UTC at the \
                     first fix's longitude, `UTCTIME` gives 11.0 h of local mean solar time and \
                     `UNIXTIME` 11.0 h"),
             "{:#?}",
@@ -2211,7 +2211,7 @@ mod tests {
         assert!(
             log.notes.contains(
                 &"7 rows of 6 more trackers were left out, past the first 64 trackers or 4096 \
-                  channels, so that a file of many tracker names can't make the reader hold a \
+                  channels. This keeps a file of many tracker names from making the reader hold a \
                   set of channels for each"
                     .to_owned()
             ),

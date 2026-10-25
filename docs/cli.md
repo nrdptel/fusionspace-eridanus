@@ -1382,7 +1382,7 @@ This reads the list of motors in stock that the tests use, recorded at 07:07 UTC
 $ hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 4 motors (in stock, class L, at most $300.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 
 designation  maker     class  dia mm (in)  impulse N·s   avg N  burn s  each $  pack  vendor
@@ -1406,7 +1406,7 @@ the same recording lists nothing:
 $ hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 0 motors (in stock, class L, at most $150.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 None costs $150.00 or less: of the 20 motors in stock the other filters pass, the cheapest is AeroTech L1520T at $260.99.
 ```
@@ -1792,7 +1792,7 @@ flight time       45.00 s, within 2.91 s
 drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
 main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at 21.40 s, within 1.06 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
-burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by any amount
+burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. It is derived from the heights, and may have come later by any amount
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
 reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
@@ -1894,7 +1894,7 @@ readings from the barometric altitude channel, sampled every 0.200 s in steps of
 liftoff           1.20 s, within 1.05 s
 apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           withheld: the log ends at 40.00 s, 280.8 m above the pad, before the altitude comes within 2.0 m of it and stays under 5.0 m for 1 s
+landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. This is before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
 flight time       withheld: the flight time needs landing, which is withheld above
 drogue descent    withheld, as landing is
 main descent      withheld, as landing is

@@ -857,10 +857,10 @@ pub fn read_xtra(bytes: &[u8]) -> Result<FlightLog, LogError> {
     }
     held_pad_pressure(&samples, XTRA_FORMAT)?;
     notes.push(
-        "the times are the software's, summed in 32-bit floats, so they drift from the \
-         computer's own clock as they grow, behind it in the one sample; and that clock isn't \
-         the GPS's: on the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock, and \
-         over its climb these times run about 1.8 % short of the GPS's"
+        "the times are the software's, summed in 32-bit floats. So they drift from the \
+         computer's own clock as they grow, behind it in the one sample. That clock isn't \
+         the GPS's. On the sample's flight, a tick is 1.009 to 1.021 ms of the GPS's clock. \
+         Over its climb these times run about 1.8 % short of the GPS's"
             .to_owned(),
     );
     Ok(build(LogFormat::EntacoreXtra, &samples, notes))
@@ -1021,7 +1021,7 @@ pub fn read_dump(bytes: &[u8]) -> Result<Vec<FlightLog>, LogError> {
                     recording.start
                 ),
                 "the clock is the computer's ticks, read as milliseconds from the recording's \
-                 start, as the AIM software reads them; on the one sample flight, a tick is \
+                 start, as the AIM software reads them. On the one sample flight, a tick is \
                  1.009 to 1.021 ms of the GPS's clock"
                     .to_owned(),
             ];

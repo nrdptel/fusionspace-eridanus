@@ -901,10 +901,10 @@ fn decide_pressure(column: &mut Column) -> String {
             column.read_as(Quantity::Pressure, ATM_PA);
             format!(
                 "{name} read in atmospheres, from its size and its step: on the pad it reads \
-                 {pad}, within the 0.5 to 1.1 that only atmospheres and bars of the units a \
-                 barometer is written in put a pad, and each of its {tested} cells written \
-                 precisely enough to test is {step} within a millionth of a step, as a barometer's \
-                 pascals written in atmospheres are and in bars, over 100,000, aren't"
+                 {pad}. That is within the 0.5 to 1.1 that only atmospheres and bars of the units a \
+                 barometer is written in put a pad. Each of its {tested} cells written \
+                 precisely enough to test is {step} within a millionth of a step. A barometer's \
+                 pascals written in atmospheres are so, and in bars, over 100,000, aren't"
             )
         }
         _ => {
@@ -916,21 +916,21 @@ fn decide_pressure(column: &mut Column) -> String {
             };
             let step_says = match (atm, bar) {
                 (Some(_), Some(_)) => {
-                    "its values lie on the steps of both atmospheres and bars".to_owned()
+                    "Its values lie on the steps of both atmospheres and bars".to_owned()
                 }
-                (None, Some(_)) => "its values lie on bars' steps of 1/100,000, not on \
+                (None, Some(_)) => "Its values lie on bars' steps of 1/100,000, not on \
                                     atmospheres' of a pascal over 101,325"
                     .to_owned(),
                 (None, None) => format!(
-                    "of its cells written precisely enough to test ({tested}), not all lie on \
-                     a whole number of pascals over 101,325 or over 100,000, or too few do to \
-                     tell"
+                    "Of its cells written precisely enough to test ({tested}), not all lie on \
+                     a whole number of pascals over 101,325 or over 100,000. Or too few are \
+                     written precisely enough to tell"
                 ),
-                (Some(_), None) => "its values lie on atmospheres' steps".to_owned(),
+                (Some(_), None) => "Its values lie on atmospheres' steps".to_owned(),
             };
             format!(
                 "{name} kept as written: its size and its step don't both say atmospheres: \
-                 {size_says}; {step_says}"
+                 {size_says}. {step_says}"
             )
         }
     }
@@ -1134,10 +1134,11 @@ fn decide_clock(
         )
     };
     let evidence = format!(
-        "its rows' median step is {step_text} as written, and the climb the pressure reads from \
-         the launch, over the one the raw accelerometer integrates to in its pad reading's 1 g, \
-         is, read in milliseconds, {}, and read in seconds, {}; a row every 5 to 500 ms, as the \
-         board logs, and a ratio within a factor of {CLOCK_FACTOR} of 1 are taken",
+        "its rows' median step is {step_text} as written. The pressure reads a climb from the \
+         launch, and the raw accelerometer integrates to another in its pad reading's 1 g. The \
+         first over the second is, read in milliseconds, {}, and read in seconds, {}. A row \
+         every 5 to 500 ms, as the board logs, and a ratio within a factor of {CLOCK_FACTOR} of \
+         1 are taken",
         climb_text(found[0].1),
         climb_text(found[1].1)
     );
@@ -1279,7 +1280,7 @@ fn decide_imu_accelerometers(columns: &mut [Column], decisions: &mut Vec<String>
             }
             decisions.push(format!(
                 "{names} read in {}, from the pad's gravity and the IMUs: at rest they read \
-                 {reading}, 1 g in that unit within 10%, and each is the mean of the IMUs' scaled \
+                 {reading}, 1 g in that unit within 10%. Each is the mean of the IMUs' scaled \
                  columns, read in it",
                 ACCEL_UNITS[unit].0
             ));
@@ -1350,8 +1351,8 @@ fn decide_scaled_accelerometer(
     });
     let reading = reading.map_or_else(|| "nothing".to_owned(), |r| format!("{r:.3}"));
     let factor = common.map_or_else(
-        || "they aren't their raw counts times one factor".to_owned(),
-        |f| format!("each is its raw count times {f:.7}"),
+        || "They aren't their raw counts times one factor".to_owned(),
+        |f| format!("Each column is its raw count times {f:.7}"),
     );
     match (gravity, scale_unit) {
         (Some(g), Some(s)) if g == s => {
@@ -1360,7 +1361,7 @@ fn decide_scaled_accelerometer(
             }
             decisions.push(format!(
                 "{names} read in {}, from the pad's gravity and the sensor's scale: at rest they \
-                 read {reading}, 1 g in that unit within 10%, and {factor}, in that unit one of \
+                 read {reading}, 1 g in that unit within 10%. {factor}, in that unit one of \
                  the counts of STMicroelectronics' LSM9DS1 (0.061, 0.122, 0.244 or 0.732 mg)",
                 ACCEL_UNITS[g].0
             ));
@@ -1376,7 +1377,7 @@ fn decide_scaled_accelerometer(
             };
             decisions.push(format!(
                 "{names} kept as written: the pad's gravity and the sensor's scale don't both \
-                 bear one unit out: at rest they read {reading}, 1 g within 10% in {}; \
+                 bear one unit out. At rest they read {reading}, 1 g within 10% in {}. \
                  {scale_says}",
                 gravity.map_or("neither m/s² nor g", |g| if g == 0 {
                     "m/s²"
@@ -1431,9 +1432,9 @@ fn decide_estimate(columns: &mut [Column], flight: &Flight, decisions: &mut Vec<
         )
     };
     let evidence = format!(
-        "at rest they read {reading}, and the pressure's climb from the launch over the one they \
-         integrate to is, read in m/s², {}, and read in g, {}; 1 g within 10% and a ratio within \
-         a factor of {LENGTH_FACTOR} of 1 are taken",
+        "at rest they read {reading}. The pressure's climb from the launch over the one they \
+         integrate to is, read in m/s², {}, and read in g, {}. A reading of 1 g within 10% and a \
+         ratio within a factor of {LENGTH_FACTOR} of 1 are taken",
         text(ratios[0]),
         text(ratios[1])
     );
@@ -1535,8 +1536,8 @@ fn turning_unit(columns: &[Column], flight: &Flight, gyro: [usize; 3]) -> (Optio
         .position(|(_, to_dps)| enough && within_factor(ratio * to_dps * PI / 180.0, TURN_FACTOR));
     let evidence = format!(
         "over {} stretches of {TURN_STEPS} steps at most {FAST_STEP_S} s apart with the \
-         accelerometer within 15% of 1 g, its direction turns {:.3} rad, and the rates turn the \
-         board across it {:.3} rad read in radians per second, {:.3} rad read in degrees; the \
+         accelerometer within 15% of 1 g, its direction turns {:.3} rad. The rates turn the \
+         board across it {:.3} rad read in radians per second, {:.3} rad read in degrees. The \
          unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 \
          stretches and 0.2 rad",
         found.stretches,
@@ -1571,8 +1572,8 @@ fn decide_gyroscopes(columns: &mut [Column], flight: &Flight, decisions: &mut Ve
                 .position(|(_, to_dps)| listed_scale(factor * to_dps, &GYRO_SCALES_DPS).is_some())
         });
         let factor = common.map_or_else(
-            || "they aren't their raw counts times one factor".to_owned(),
-            |f| format!("each is its raw count times {f:.7}"),
+            || "They aren't their raw counts times one factor".to_owned(),
+            |f| format!("Each column is its raw count times {f:.7}"),
         );
         match (turned, scaled) {
             (Some(t), Some(s)) if t == s => {
@@ -1581,7 +1582,7 @@ fn decide_gyroscopes(columns: &mut [Column], flight: &Flight, decisions: &mut Ve
                 }
                 decisions.push(format!(
                     "{names} read in {}, from the board's turning and the sensor's scale: \
-                     {evidence}; and {factor}, in that unit one of the counts of \
+                     {evidence}. {factor}, in that unit one of the counts of \
                      STMicroelectronics' LSM9DS1 (8.75, 17.5 or 70 m°/s)",
                     GYRO_UNITS[t].0
                 ));
@@ -1597,7 +1598,7 @@ fn decide_gyroscopes(columns: &mut [Column], flight: &Flight, decisions: &mut Ve
                 };
                 decisions.push(format!(
                     "{names} kept as written: the board's turning and the sensor's scale don't \
-                     agree on a unit: {evidence}; {scale_says}"
+                     agree on a unit: {evidence}. {scale_says}"
                 ));
                 inputs.push(None);
             }
@@ -1621,7 +1622,7 @@ fn decide_gyroscopes(columns: &mut [Column], flight: &Flight, decisions: &mut Ve
                 columns[at].read_as(Quantity::AngularRate, GYRO_UNITS[t].1);
             }
             decisions.push(format!(
-                "{names} read in {}, from the board's turning and the IMUs: {evidence}; and each \
+                "{names} read in {}, from the board's turning and the IMUs: {evidence}. Each \
                  is the mean of the IMUs' scaled columns, read in it",
                 GYRO_UNITS[t].0
             ));
@@ -1732,8 +1733,8 @@ fn decide_lengths(
             .position(|(_, s)| ratio.is_some_and(|r| within_factor(r * s, LENGTH_FACTOR)));
         let evidence = format!(
             "its climb from the pad to its highest over the pressure's in the standard atmosphere \
-             is {} as written, and its climb from the launch over the one the accelerometer \
-             integrates to is {}; a gain within 25% of 1 and a ratio within a factor of \
+             is {} as written. Its climb from the launch over the one the accelerometer \
+             integrates to is {}. A gain within 25% of 1 and a ratio within a factor of \
              {LENGTH_FACTOR} are taken",
             measured(gain),
             measured(ratio)
@@ -1873,22 +1874,22 @@ fn decide_gps_altitude(
     };
     let fixes = |line: Option<Line>| line.map_or(0, |l| l.points);
     let evidence = format!(
-        "its rise over the pressure's climb in the standard atmosphere, a line with a free offset \
-         through its {} fresh fixes up to the apogee, is {} as written, and over the climb the \
-         accelerometer integrates to, through its {} fresh fixes from the launch, {}; a gain \
-         within 25% of 1 and a ratio within a factor of {LENGTH_FACTOR} are taken, each over a \
-         climb of at least {LEAST_CLIMB_M} m",
-        fixes(pressure_line),
+        "its rise over the pressure's climb in the standard atmosphere is {} as written. It is \
+         fitted as a line with a free offset through its {} fresh fixes up to the apogee. Its \
+         rise over the climb the accelerometer integrates to is {}, from a line through its {} \
+         fresh fixes from the launch. A gain within 25% of 1 and a ratio within a factor of \
+         {LENGTH_FACTOR} are taken, each over a climb of at least {LEAST_CLIMB_M} m",
         measured(gain),
-        fixes(accelerometer_line),
-        measured(ratio)
+        fixes(pressure_line),
+        measured(ratio),
+        fixes(accelerometer_line)
     );
     match (by_gain, by_climb, held) {
         (_, _, Some((pad, start, allowed))) => decisions.push(format!(
             "{name} kept as written: its pad reading isn't where its climb starts, a value held \
-             from before its first fix: on the pad it reads {pad}, and its fixes' line puts the \
-             pad at {start:.1}, more than {allowed:.1} away, a quarter of its rise over the \
-             fixes; {evidence}"
+             from before its first fix. On the pad it reads {pad}, and its fixes' line puts the \
+             pad at {start:.1}. That is more than {allowed:.1} away, a quarter of its rise over \
+             the fixes; {evidence}"
         )),
         (Some(g), Some(c), None) if g == c => {
             column.read_as(Quantity::GnssAltitude, LENGTH_UNITS[g].1);
@@ -1974,8 +1975,8 @@ fn decide_climb(
     };
     let evidence = format!(
         "over the steps at most {FAST_STEP_S} s long, `pos_z`'s change in meters is {} times what \
-         it integrates to as written, and from the launch it is {} times the speed the \
-         accelerometer integrates to; a slope within 25% of 1 and a ratio within a factor of \
+         it integrates to as written. From the launch it is {} times the speed the \
+         accelerometer integrates to. A slope within 25% of 1 and a ratio within a factor of \
          {LENGTH_FACTOR} are taken",
         text(slope),
         text(ratio)
@@ -2105,10 +2106,10 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
         latitudes.beyond, longitudes.beyond
     );
     let minutes = if minutes_ok {
-        "every value's last two digits before the point, its minutes in degrees and minutes, \
+        "Every value's last two digits before the point, its minutes in degrees and minutes, \
          are under 60"
     } else {
-        "some value's last two digits before the point are 60 or more, which no minutes are"
+        "Some value's last two digits before the point are 60 or more, which no minutes are"
     };
     // How the ranges read the position, and the note's words after the columns' names: "read
     // in …" where they decide a unit, "kept as written: …" where they don't.
@@ -2118,9 +2119,9 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
                 Some(Position::DegreesMinutes),
                 format!(
                     "read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges and \
-                     their minutes: {ranges}: most of each, as degrees and minutes write any \
-                     place more than 1° from the equator and 2° from the prime meridian; \
-                     {minutes}; and converted, every latitude lies within ±90 and every \
+                     their minutes: {ranges}. Most of each do, as degrees and minutes write any \
+                     place more than 1° from the equator and 2° from the prime meridian. \
+                     {minutes}. And converted, every latitude lies within ±90 and every \
                      longitude within ±180"
                 ),
             )
@@ -2128,31 +2129,31 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
             let converted = if converted_ok {
                 ""
             } else {
-                "; converted from degrees and minutes, a latitude passes ±90 or a longitude ±180"
+                ". Converted from degrees and minutes, a latitude passes ±90 or a longitude ±180"
             };
             (
                 None,
                 format!(
                     "kept as written: their ranges say degrees and minutes, but their values \
-                     aren't all degrees and minutes: {ranges}; {minutes}{converted}"
+                     aren't all degrees and minutes: {ranges}. {minutes}{converted}"
                 ),
             )
         }
     } else if latitudes.says_degrees() && longitudes.says_degrees() {
         let minutes = if minutes_ok {
-            "each value's last two digits before the point are under 60, as degrees and \
+            "Each value's last two digits before the point are under 60, as degrees and \
              minutes' would be, so they tell nothing here"
         } else {
-            "some value's last two digits before the point are 60 or more, which no degrees and \
+            "Some value's last two digits before the point are 60 or more, which no degrees and \
              minutes are"
         };
         (
             Some(Position::Degrees),
             format!(
-                "read in degrees, from the latitudes' range and the longitudes': at each of its \
-                 {fixes} fixes the latitude lies within ±90 and the longitude within ±180, where \
-                 degrees and minutes would put the place within 1° of the equator and 2° of the \
-                 prime meridian, both at once only at sea in the Gulf of Guinea; {minutes}"
+                "read in degrees, from the latitudes' range and the longitudes': each of its \
+                 {fixes} fixes has its latitude within ±90 and its longitude within ±180. \
+                 Degrees and minutes would put the place within 1° of the equator and 2° of the \
+                 prime meridian. Both at once happens only at sea in the Gulf of Guinea. {minutes}"
             ),
         )
     } else {
@@ -2160,7 +2161,7 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
             None,
             format!(
                 "kept as written: the latitudes' range and the longitudes' don't both bear one \
-                 unit out: {ranges}; degrees and minutes need most of each to, and degrees none"
+                 unit out: {ranges}. Degrees and minutes need most of each to, and degrees none"
             ),
         )
     };
@@ -2175,9 +2176,10 @@ fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
     if !signed {
         decisions.push(format!(
             "{names} kept as written, with no hemisphere: every value in them is 0 or more and \
-             the file writes no hemisphere, which NMEA 0183 writes in a field of its own, so a \
-             place south of the equator or west of the prime meridian reads as its mirror north \
-             or east; a person who knows the site can sign them. Unsigned, they would be {said}"
+             the file writes no hemisphere. NMEA 0183 writes the hemisphere in a field of its \
+             own. So a place south of the equator or west of the prime meridian reads as its \
+             mirror north or east. A person who knows the site can sign them. Unsigned, they \
+             would be {said}"
         ));
         if let Some(mod_names) = &mod_names {
             decisions.push(format!(
@@ -2340,15 +2342,15 @@ fn temperature_why(column: &Column) -> String {
     let fahrenheit = low >= -40.0 && high <= 185.0;
     if celsius && fahrenheit {
         format!(
-            "its name states no unit, and its values, {low} to {high}, lie within a barometer's \
-             working −40 to 85 °C read in degrees Celsius or in Fahrenheit; no other column holds \
+            "its name states no unit. Its values, {low} to {high}, lie within a barometer's \
+             working −40 to 85 °C read in degrees Celsius or in Fahrenheit. No other column holds \
              a temperature to tell the two apart"
         )
     } else {
         format!(
-            "its name states no unit, and its values, {low} to {high}, lie outside a barometer's \
-             working −40 to 85 °C in degrees Celsius or in Fahrenheit, with no other column \
-             holding a temperature to check a unit by"
+            "its name states no unit. Its values, {low} to {high}, lie outside a barometer's \
+             working −40 to 85 °C in degrees Celsius or in Fahrenheit. No other column holds a \
+             temperature to check a unit by"
         )
     }
 }
@@ -2444,8 +2446,8 @@ fn build(
     if backwards > 0 || repeats > 0 || untimed > 0 {
         notes.push(format!(
             "the clock goes back {backwards} times and repeats a time {repeats} times, and \
-             {untimed} samples have no time: the record's track takes the samples in time order, \
-             the first at each time, and leaves out those without one; the channels keep them all"
+             {untimed} samples have no time. The record's track takes the samples in time order, \
+             the first at each time, and leaves out those without one. The channels keep them all"
         ));
     }
     if let Some(ground) = altitude_m.iter().copied().find(|v| v.is_finite())
@@ -2612,7 +2614,7 @@ mod tests {
         let mut bar = pressure(&whole_pascals(BAR_PA, false));
         let note = decide_pressure(&mut bar);
         assert!(
-            note.contains("its values lie on bars' steps of 1/100,000"),
+            note.contains("Its values lie on bars' steps of 1/100,000"),
             "{note}"
         );
         assert_eq!(bar.quantity, Quantity::Unrecognized);

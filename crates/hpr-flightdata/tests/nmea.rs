@@ -138,7 +138,7 @@ fn a_cold_start_reads_from_its_first_time() {
     note_with(
         &log,
         "`RMC date` read in UTC days, from status-`A` sentences only: ",
-        "is 16:42:07.000 UTC on 2024-09-21, the date of the first `RMC` with status `A`; 4 \
+        "is 16:42:07.000 UTC on 2024-09-21. That is the date of the first `RMC` with status `A`. 4 \
          status-`V` `RMC` carry 2 distinct dates, 1 of which no status-`A` one gives",
     );
     note(
@@ -184,11 +184,11 @@ fn noise_beside_sentences_and_midnight() {
     note_with(
         &log,
         "`RMC date` read in UTC days",
-        "is 23:59:57.000 UTC on 2025-12-31, the date of the first `RMC` with status `A`",
+        "is 23:59:57.000 UTC on 2025-12-31. That is the date of the first `RMC` with status `A`",
     );
     note(
         &log,
-        "the time of day passes midnight 1 times: without a date, a time of day more than 12 \
+        "the time of day passes midnight 1 times. Without a date, a time of day more than 12 \
          hours before the last is the next day's",
     );
     note(
@@ -242,7 +242,7 @@ fn a_receiver_that_never_gets_a_fix_reads_with_gaps() {
         &log,
         "`RMC date` read in UTC days",
         "no `RMC` has status `A`, so the times are times of day alone, from the first sentence \
-         with a time, at 03:14:07.420 UTC; 7 status-`V` `RMC` carry 1 distinct dates",
+         with a time, at 03:14:07.420 UTC. 7 status-`V` `RMC` carry 1 distinct dates",
     );
     note(
         &log,

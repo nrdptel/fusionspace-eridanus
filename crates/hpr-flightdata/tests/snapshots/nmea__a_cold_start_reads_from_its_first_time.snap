@@ -1154,11 +1154,11 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty: every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
-    "`RMC date` read in UTC days, from status-`A` sentences only: the log's zero, the first sentence with a time, is 16:42:07.000 UTC on 2024-09-21, the date of the first `RMC` with status `A`; 4 status-`V` `RMC` carry 2 distinct dates, 1 of which no status-`A` one gives, as a receiver writes a placeholder before its fix",
+    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty. Every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
+    "`RMC date` read in UTC days, from status-`A` sentences only: the log's zero, the first sentence with a time, is 16:42:07.000 UTC on 2024-09-21. That is the date of the first `RMC` with status `A`. 4 status-`V` `RMC` carry 2 distinct dates, 1 of which no status-`A` one gives, as a receiver writes a placeholder before its fix",
     "`GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order: in 14 of the file's 14 `GGA` and `RMC` pairs, the `RMC` has the `GGA`'s time; 2 come before any sentence with a time, and their times are gaps",
     "4 `GGA` and `RMC` sentences have an empty time, as a receiver writes before it knows the time: their samples' times are gaps",
-    "the time goes back 1 times, by up to 2.000 s: the samples are kept in the file's order, each channel's times as its sentences give them; a receiver's UTC may step a few minutes after a cold start, when the satellites' leap-second count reaches it",
+    "the time goes back 1 times, by up to 2.000 s. The samples are kept in the file's order, each channel's times as its sentences give them. A receiver's UTC may step a few minutes after a cold start, when the satellites' leap-second count reaches it",
     "1 lines hold no sentence, no `$`: noise, or a sentence cut at its start, the first line 1, \"��Rq��\": skipped",
     "1 lines hold a sentence cut off before its checksum, the first line 56, \"$GPGSA,A,3,03,07,1�\\0\\0�\\0\\0\\0�\\0\\0\\0�\\0\\0\": skipped",
     "the file holds 18 NUL bytes, or stand-ins (U+FFFD) for bytes that aren't UTF-8, on 2 lines, the last line 56: left out"

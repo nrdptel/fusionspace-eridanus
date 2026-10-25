@@ -475,7 +475,7 @@ expression: log
     "`VERTV` read in feet per second, in the altitude's unit, from the manual alone: the file has too few pairs of moving rows to check `VERTV` over, 1 of the 10 needed",
     "`HEAD` read in degrees, from the manual and its range: it runs from -179 to 141",
     "`BATT` read in volts, from its range: it runs from 3.95 to 3.959, where one lithium cell reads up to about 4.2 V and the ground station's serial millivolts would be thousands",
-    "`UNIXTIME` kept as written, off `UTCTIME` by whole hours: it runs 6 h ahead of `UTCTIME` on every row; read as UTC at the first fix's longitude, `UTCTIME` gives 17.4 h of local mean solar time and `UNIXTIME` 23.4 h",
+    "`UNIXTIME` kept as written, off `UTCTIME` by whole hours: it runs 6 h ahead of `UTCTIME` on every row. Read as UTC at the first fix's longitude, `UTCTIME` gives 17.4 h of local mean solar time and `UNIXTIME` 23.4 h",
     "the log has no barometer, so the record's altitude track is empty: a GPS tracker's file holds positions only, and every column is a channel",
     "the log's clock is `UTCTIME`, read as UTC, and its zero is the first row's, \"Feb 29 2024 23:59:59.600 UTC\"",
     "times go back 1 times from one row to the next, by up to 0.800 s, and 1 rows repeat a time already written: every row is kept, in the file's order"

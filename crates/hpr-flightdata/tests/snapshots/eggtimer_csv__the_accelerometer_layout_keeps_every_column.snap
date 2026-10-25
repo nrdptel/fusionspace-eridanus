@@ -2030,17 +2030,17 @@ expression: log
     }
   ],
   "notes": [
-    "`T` read in seconds, from the step: the median step between rows is 0.05, and the reader reads one above 5 as milliseconds (at the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds)",
-    "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet; the Quantum and Proton manuals give every height in feet and no Eggtimer manual offers meters; the file's `AccelFPSS` is 32.19 times its `AccelG`, and one g is 32.17 ft/s²",
-    "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the step; it is the change in `Alt` over the step, within 1 % or 1 ft/s, in 39 of 39 rows after the first, where the reader asks 90 %",
+    "`T` read in seconds, from the step: the median step between rows is 0.05. The reader reads one above 5 as milliseconds. At the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds",
+    "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet. The Quantum and Proton manuals give every height in feet, and no Eggtimer manual offers meters. The file's `AccelFPSS` is 32.19 times its `AccelG`, and one g is 32.17 ft/s²",
+    "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) give the velocity in ft/sec. The Proton's (p45) gives it as the change in `Alt` over the step. It is the change in `Alt` over the step, within 1 % or 1 ft/s. That holds in 39 of 39 rows after the first, where the reader asks 90 %",
     "`VAccel` read in feet per second, from the manual: the Proton's manual (p45) gives the accelerometer's velocity in ft/sec",
     "`AltAccel` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance traveled in ft",
     "`FAlt` read in feet, from the manual: it is the logger's filtered `Alt` (Quantum p38, Proton p45), in the same unit",
-    "`FVeloc` read in feet per second, from the manual: the Proton's manual (p46) gives it as the change in the filtered altitude over the step, and the Excel guide (p7) graphs the velocity in ft/sec; it is the change in `FAlt` over the step, within 1 % or 1 ft/s, in 39 of 39 rows after the first, where the reader asks 90 %",
+    "`FVeloc` read in feet per second, from the manual: the Proton's manual (p46) gives it as the filtered altitude's change over the step. The Excel guide (p7) graphs the velocity in ft/sec. It is the change in `FAlt` over the step, within 1 % or 1 ft/s. That holds in 39 of 39 rows after the first, where the reader asks 90 %",
     "`FAccelVel` read in feet per second, from the manual: the Proton's manual (p45) gives the accelerometer's velocity in ft/sec",
     "`FAccelAlt` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance traveled in ft",
-    "`AccelG` has gravity taken out, from the pad: its median over the 4 rows before the start of flight (`T` below 0) is 0 g, where an accelerometer that keeps gravity reads 1 g standing still and one that takes it out 0; the Proton's manual doesn't say, and its release notes (2.01C, p8) have it calibrate the accelerometer as it is armed, standing up; the file's other acceleration columns are the same accelerometer's",
-    "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA`, `BO#1`, `LowV` and 4 more columns; each is 0 but at the sample that marks its event, where the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in feet, and the Proton's release notes (1.02N, p13) the top speed, ft/s, in `MaxV` and the top acceleration, ft/s², in `MaxA`",
+    "`AccelG` has gravity taken out, from the pad: its median over the 4 rows before the start of flight (`T` below 0) is 0 g. An accelerometer that keeps gravity reads 1 g standing still, and one that takes it out reads 0. The Proton's manual doesn't say, and its release notes (2.01C, p8) have it calibrate the accelerometer as it is armed, standing up. The file's other acceleration columns are the same accelerometer's",
+    "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA`, `BO#1`, `LowV` and 4 more columns. Each is 0 but at the sample that marks its event. There the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in feet. The Proton's release notes (1.02N, p13) put the top speed, ft/s, in `MaxV` and the top acceleration, ft/s², in `MaxA`",
     "5 rows hold only empty cells, and were skipped"
   ]
 }

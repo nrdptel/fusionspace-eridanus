@@ -974,17 +974,17 @@ fn decided(
                 }
                 Degrees::Within => {
                     notes.push(format!(
-                        "`{}` read in degrees, from the manual and the values: the header states \
-                         no unit; the manual's picture of the Locate tab shows the position in \
-                         decimal degrees (p38), and every reading lies within ±{limit}°",
+                        "`{}` read in degrees, from the manual and the values. The header states \
+                         no unit. The manual's picture of the Locate tab shows the position in \
+                         decimal degrees (p38). Every reading lies within ±{limit}°",
                         short(&column.written)
                     ));
                     Reading::Channel(quantity, AS_WRITTEN)
                 }
                 Degrees::Beyond(beyond) => {
                     notes.push(format!(
-                        "`{}` kept as written, in a unit the values don't bear out: the header \
-                         states none, and a reading of {beyond} lies beyond ±{limit}°, so it \
+                        "`{}` kept as written, in a unit the values don't bear out. The header \
+                         states none. A reading of {beyond} lies beyond ±{limit}°, so it \
                          isn't in degrees",
                         short(&column.written)
                     ));
@@ -1001,11 +1001,11 @@ fn decided(
             match gps_check(values, altitude_m) {
                 GpsCheck::Meters(fit) => {
                     notes.push(format!(
-                        "`{}` read in meters, from the barometric altitude: the header and the \
-                         manual state no unit; at its {} fresh fixes it rises {:.2} for each meter \
-                         of the barometric altitude, within {:.0}% of 1, where in feet it would be \
-                         3.28, over {} m of the barometric altitude, and scatters {} about that \
-                         line",
+                        "`{}` read in meters, from the barometric altitude. The header and the \
+                         manual state no unit. At its {} fresh fixes it rises {:.2} for each meter \
+                         of the barometric altitude, within {:.0}% of 1. In feet it would be \
+                         3.28. They span {} m of the barometric altitude and \
+                         scatter {} about that line",
                         short(&column.written),
                         fit.fixes,
                         fit.slope,
@@ -1175,9 +1175,9 @@ fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
     }
     if fixes.len() < GPS_MIN_FIXES {
         return GpsCheck::Undecided(format!(
-            "it changes on {} where the barometric altitude is read, fewer than the \
-             {GPS_MIN_FIXES} fresh fixes the check needs to measure a line and the scatter about \
-             it",
+            "it changes on {} where the barometric altitude is read. That is fewer \
+             than the {GPS_MIN_FIXES} fresh fixes the check needs to measure a line and the \
+             scatter about it",
             count(fixes.len(), "row")
         ));
     }
@@ -1199,8 +1199,8 @@ fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
     if !on_a_line {
         return GpsCheck::Undecided(format!(
             "its {} fresh fixes scatter {} about their line, more than {:.0}% of the {} m of \
-             the barometric altitude they span: they trace a loop, as a receiver lagging far \
-             behind the flight does, and the slope of a loop doesn't tell the unit",
+             the barometric altitude they span. They trace a loop, as a receiver lagging far \
+             behind the flight does. The slope of a loop doesn't tell the unit",
             fit.fixes,
             rounded(fit.scatter),
             GPS_SCATTER_SHARE * 100.0,
@@ -1211,7 +1211,8 @@ fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
     if !near_1 {
         return GpsCheck::Undecided(format!(
             "at its {} fresh fixes it rises {:.2} for each meter of the barometric altitude, \
-             over {} m of it, not within {:.0}% of 1 as in meters; in feet it would be 3.28",
+             over {} m of it. That is not within {:.0}% of 1 as in meters. In feet it would be \
+             3.28",
             fit.fixes,
             fit.slope,
             rounded(fit.span_m),
@@ -1533,7 +1534,7 @@ mod tests {
         assert_eq!(
             notes_starting(
                 &log,
-                "`gpsLat` read in degrees, from the manual and the values: "
+                "`gpsLat` read in degrees, from the manual and the values. "
             )
             .len(),
             1
@@ -1541,7 +1542,7 @@ mod tests {
         assert_eq!(
             notes_starting(
                 &log,
-                "`gpsLng` read in degrees, from the manual and the values: "
+                "`gpsLng` read in degrees, from the manual and the values. "
             )
             .len(),
             1
@@ -1550,7 +1551,7 @@ mod tests {
             notes_starting(
                 &log,
                 "`gpsAltMSL` kept as written, in a unit no source states: it changes on 1 row \
-                 where the barometric altitude is read, fewer than the 10 fresh fixes"
+                 where the barometric altitude is read. That is fewer than the 10 fresh fixes"
             )
             .len(),
             1,
@@ -1612,7 +1613,7 @@ mod tests {
                 log.notes
             );
             let start = if meters {
-                "`gpsAltMSL` read in meters, from the barometric altitude: "
+                "`gpsAltMSL` read in meters, from the barometric altitude. "
             } else {
                 "`gpsAltMSL` kept as written, in a unit no source states: at its 21 fresh fixes \
                  it rises "
@@ -1622,8 +1623,8 @@ mod tests {
         let log = gps_line(1.0, 300.0, 21);
         assert!(
             gps_note(&log).contains(
-                "at its 21 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
-                 within 10% of 1, where in feet it would be 3.28, over 300 m"
+                "At its 21 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
+                 within 10% of 1. In feet it would be 3.28. They span 300 m"
             ),
             "{:?}",
             log.notes
@@ -1757,7 +1758,7 @@ mod tests {
         let GpsCheck::Undecided(why) = check else {
             panic!("read in meters: {check:?}");
         };
-        assert!(why.contains("they trace a loop"), "{why}");
+        assert!(why.contains("They trace a loop"), "{why}");
     }
 
     #[test]
@@ -1804,7 +1805,7 @@ mod tests {
         assert_eq!(
             notes_starting(
                 &log,
-                "`gpsLat` kept as written, in a unit the values don't bear out: "
+                "`gpsLat` kept as written, in a unit the values don't bear out. "
             )
             .len(),
             1
@@ -1812,7 +1813,7 @@ mod tests {
         assert!(
             notes_starting(
                 &log,
-                "`gpsLng` kept as written, in a unit the values don't bear out: "
+                "`gpsLng` kept as written, in a unit the values don't bear out. "
             )[0]
             .contains("-180.5")
         );

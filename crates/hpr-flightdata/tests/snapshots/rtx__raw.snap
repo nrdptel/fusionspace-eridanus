@@ -704,12 +704,12 @@ expression: log
   "notes": [
     "the log has no barometer, so the record's altitude track is empty: an RTx's file holds GPS fixes only, and every field is a channel",
     "each slot is its 16-bit word times 387420489 modulo 1000000000, read back by multiplying by 513180409; the list holds 30 records of 16 words",
-    "the log's clock is the GPS's time of day, UTC, `UTC Time`, in whole seconds; its zero is the first record's, 17:59:50; the file states no date",
-    "times go back 1 times from one record to the next, by up to 1 s, and 2 records repeat a time already written: every record is kept, in the file's order",
+    "the log's clock is the GPS's time of day, UTC, `UTC Time`, in whole seconds. Its zero is the first record's, 17:59:50. The file states no date",
+    "times go back 1 times from one record to the next, by up to 1 s. 2 records repeat a time already written. Every record is kept, in the file's order",
     "1 records hold a time that isn't a time of day, such as 4278370088: their times are gaps",
-    "`Altitude` read in meters, from the manual and the exports: whole meters, above mean sea level as the RTx's manual states its GPS altitude, as the KML export writes them and the CSV and text exports convert them to feet; a word can't fall below 0",
-    "`Velocity` and `SOG` kept as written, in units no document states: `SOG` runs about 3.6 times the speed between fixes, as kilometers an hour would, and the velocity far more than the climb rate while it climbs",
-    "`COG` read in degrees, from the positions: the course over ground, within a few degrees of the bearing between the fixes either side while the tracker moves",
+    "`Altitude` read in meters, from the manual and the exports. They are whole meters, above mean sea level as the RTx's manual states its GPS altitude. The KML export writes them in meters, and the CSV and text exports convert them to feet. A word can't fall below 0",
+    "`Velocity` and `SOG` kept as written, in units no document states. `SOG` runs about 3.6 times the speed between fixes, as kilometers an hour would. The velocity runs far more than the climb rate while it climbs",
+    "`COG` read in degrees, from the positions. The course over ground is within a few degrees of the bearing between the fixes either side while the tracker moves",
     "`word 15` kept as written, a word the exports leave out: no document names it"
   ]
 }

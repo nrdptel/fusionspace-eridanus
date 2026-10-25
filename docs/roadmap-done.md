@@ -100,6 +100,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c9 Flight logs, and every page held ([Phase 0](#phase-0-foundations))
 - M0.14d1 The help ([Phase 0](#phase-0-foundations))
 - M0.14d2 What the design commands say ([Phase 0](#phase-0-foundations))
+- M0.14d3 What the data commands say ([Phase 0](#phase-0-foundations))
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -658,6 +659,9 @@ One line per milestone or increment, in the order it was archived within its pha
       the errors, warnings and notes `hpr sim`, `mc`, `convert` and `motors list`/`show` print,
       from `hpr-cli`, its shared code included, and the nine crates ADR-292 §1 lists, and holds
       them in CI; acceptance pass.
+    - [x] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr weather`,
+      `motors fetch`/`search` and `analyze`, from `hpr-cli`, `hpr-net`, `hpr-flightdata`,
+      `hpr-analysis` and `hpr-forensics`; acceptance pass.
   - [x] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the
     guides' landing pages, fusionspace.co, the design repo's README, the profile README and
     ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).

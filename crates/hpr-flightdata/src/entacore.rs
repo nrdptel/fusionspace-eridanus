@@ -472,7 +472,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 return Err(syntax(
                     number,
                     format!(
-                        "the row has {} cells where the header names {width}, and dropping the \
+                        "the row has {} cells where the header names {width}. Dropping the \
                          cell after its empty GPS group would leave the group in columns {} to {} \
                          part filled",
                         width + 1,
@@ -500,7 +500,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let repair_note = first_repaired.map(|line| {
         format!(
             "{repaired} rows, the first on line {line}, write the run-out GPS group, `time,lat,…`, \
-             one empty cell too wide: the cell after it was dropped, so that the groups to its \
+             one empty cell too wide. The cell after it was dropped, so that the groups to its \
              right are read under their names"
         )
     });
@@ -685,8 +685,8 @@ fn build(
             Some((index, value, (factor, unit))) => {
                 decisions.push(format!(
                     "`{}` read in {unit}, from the values: its first value that is a launch \
-                     site's pressure in pascals, kilopascals or inches of mercury (50,000 to \
-                     110,000 Pa), {value}{}, is one in {unit}",
+                     site's pressure, {value}{}, is one in {unit}. A launch site's pressure is \
+                     50,000 to 110,000 Pa, in pascals, kilopascals or inches of mercury",
                     column.name,
                     if index > 0 {
                         format!(", after {index} samples that aren't")
@@ -698,8 +698,8 @@ fn build(
             }
             None => decisions.push(format!(
                 "`{}` kept as written, in a unit its values don't settle: none of them is a \
-                 launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to \
-                 110,000 Pa)",
+                 launch site's pressure. A launch site's pressure is 50,000 to 110,000 Pa, in \
+                 pascals, kilopascals or inches of mercury",
                 column.name
             )),
         }
@@ -716,9 +716,9 @@ fn build(
         ("meters", 1.0)
     };
     decisions.push(format!(
-        "{} read in {unit}, from the pressure: from the pressure's pad sample to the one of lowest \
-         pressure, the standard atmosphere climbs {pressure_m:.1} m and the column \
-         {column_m:.1} {unit}",
+        "{} read in {unit}, from the pressure: the standard atmosphere climbs {pressure_m:.1} m \
+         from the pressure's pad sample to the one of lowest pressure. Over the same span the \
+         column climbs {column_m:.1} {unit}",
         listed(&altitude_names)
     ));
     if let Some((note, agrees)) = gps_altitude(&groups, scale, unit) {
@@ -761,8 +761,9 @@ fn build(
     if !rssi.is_empty() {
         decisions.push(format!(
             "{} kept as written, in dBm, from the manual: the strength of the radio signal the \
-             AIM BASE received, \"in decibels (dBm)\" (p29): a power level in decibels against a \
-             milliwatt, not an SI unit, and the record has no quantity for a signal's strength",
+             AIM BASE received, \"in decibels (dBm)\" (p29). It is a power level in decibels \
+             against a milliwatt, not an SI unit. The record has no quantity for a signal's \
+             strength",
             listed(&rssi)
         ));
     }
@@ -774,14 +775,14 @@ fn build(
         decisions.push(match clock.tow_rate_per_s {
             Some(rate) => format!(
                 "{} kept as written, in milliseconds, from the values: they stay below a week's \
-                 604,800,000 and rise by a median of {rate:.1} a second of the clock; the record \
-                 has no quantity for a time of the GPS week",
+                 604,800,000. They rise by a median of {rate:.1} a second of the clock. The \
+                 record has no quantity for a time of the GPS week",
                 listed(&time_of_week)
             ),
             None => format!(
                 "{} kept as written, in a unit its values don't settle: they don't rise by a \
-                 millisecond's per second of `time` in either of its units; the record has no \
-                 quantity for a time of the GPS week",
+                 millisecond's per second of `time`. That is so in either of its units. The \
+                 record has no quantity for a time of the GPS week",
                 listed(&time_of_week)
             ),
         });
@@ -896,8 +897,8 @@ fn build(
     if backwards > 0 || repeats > 0 || untimed > 0 {
         track_notes.push(format!(
             "the altitude's clock goes back {backwards} times and repeats a time {repeats} \
-             times, and {untimed} samples have no time: the record's track takes the samples in \
-             time order, the first at each time, and leaves out those without one; the channel \
+             times, and {untimed} samples have no time. The record's track takes the samples in \
+             time order, the first at each time, and leaves out those without one. The channel \
              keeps them all"
         ));
     }
@@ -912,7 +913,7 @@ fn build(
     }
     if base {
         track_notes.push(
-            "the file holds `RSSI`, the radio's strength at the AIM BASE: it is the telemetry \
+            "the file holds `RSSI`, the radio's strength at the AIM BASE. It is the telemetry \
              the ground station received, at the radio's rates, not the flight computer's own log"
                 .to_owned(),
         );
@@ -1125,8 +1126,8 @@ fn altitude_unit(
             line: header_line,
             message: format!(
                 "`{}` climbs {column:.1} from the pressure's pad sample to the one of lowest \
-                 pressure, where the pressure's climb in the standard atmosphere is \
-                 {pressure_m:.1} m: neither meters nor feet within 25%",
+                 pressure. The pressure's climb in the standard atmosphere is \
+                 {pressure_m:.1} m. The column's climb is neither meters nor feet within 25%",
                 altitude.name
             ),
         })
@@ -1188,7 +1189,7 @@ fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
                         to_s: 1.0,
                         note: format!(
                             "`time` read in seconds, from `{}`: it counts milliseconds, below a \
-                             week's 604,800,000, and climbs by a median of {rate:.1} per unit of \
+                             week's 604,800,000. It climbs by a median of {rate:.1} per unit of \
                              its `time`, a millisecond's per second",
                             column.name
                         ),
@@ -1200,7 +1201,7 @@ fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
                         to_s: 0.001,
                         note: format!(
                             "`time` read in milliseconds, from `{}`: it counts milliseconds, \
-                             below a week's 604,800,000, and climbs by a median of {rate:.3} per \
+                             below a week's 604,800,000. It climbs by a median of {rate:.3} per \
                              unit of its `time`, a millisecond's per millisecond",
                             column.name
                         ),
@@ -1240,18 +1241,18 @@ fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
         Some(step) if (STEP_SECONDS.0..=STEP_SECONDS.1).contains(&step) => Ok(Clock {
             to_s: 1.0,
             note: format!(
-                "`time` read in seconds, from the step: {why}; the fastest clock's median step, \
-                 {step} as written, is a step of 0.009 to 2 s, as {periods}, where milliseconds \
-                 would be 9 to 2,000"
+                "`time` read in seconds, from the step: {why}. The fastest clock's median step, \
+                 {step} as written, is a step of 0.009 to 2 s. That matches how {periods}. \
+                 Milliseconds would be 9 to 2,000"
             ),
             tow_rate_per_s: None,
         }),
         Some(step) if (STEP_MILLISECONDS.0..=STEP_MILLISECONDS.1).contains(&step) => Ok(Clock {
             to_s: 0.001,
             note: format!(
-                "`time` read in milliseconds, from the step: {why}; the fastest clock's median \
-                 step, {step} as written, is a step of 9 to 2,000 ms, as {periods}, where seconds \
-                 would be 0.009 to 2"
+                "`time` read in milliseconds, from the step: {why}. The fastest clock's median \
+                 step, {step} as written, is a step of 9 to 2,000 ms. That matches how \
+                 {periods}. Seconds would be 0.009 to 2"
             ),
             tow_rate_per_s: None,
         }),
@@ -1259,9 +1260,9 @@ fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
             format: FORMAT,
             line: header_line,
             message: format!(
-                "the clock's unit can't be decided: {why}, and the fastest clock's median step, \
-                 {step}, is a step in neither seconds (0.009 to 2) nor milliseconds (9 to 2,000), \
-                 as {periods}"
+                "the clock's unit can't be decided: {why}. The fastest clock's median step, \
+                 {step}, is a step in neither seconds (0.009 to 2) nor milliseconds (9 to \
+                 2,000). Both ranges match how {periods}"
             ),
         }),
         None => Err(LogError::Unit {
@@ -1368,17 +1369,17 @@ fn decide_temperatures(groups: &mut [Group], feet: bool, unit: &str, decisions: 
         match first {
             Some(value) if (low..=high).contains(&value) => decisions.push(format!(
                 "`{}` read in degrees {degrees}, from the heights' unit and the manual, p33: the \
-                 heights are in {unit}, decided from the pressure, and the software sets one \
+                 heights are in {unit}, decided from the pressure. The software sets one \
                  unit system for all its displays (p33), here {system}, its sensor reading °C or \
-                 °F (p25); the first value, {value}, is a bay's temperature in them, {low} to \
-                 {high}",
+                 °F (p25). The first value, {value}, is a bay's temperature in degrees \
+                 {degrees}, {low} to {high}",
                 column.name
             )),
             _ => {
                 column.as_written = true;
                 decisions.push(format!(
                     "`{}` kept as written, in a unit its values don't settle: the heights are in \
-                     {unit}, so the displays are {system} (p33), but its first value, {}, isn't \
+                     {unit}, so the displays are {system} (p33). Its first value, {}, isn't \
                      a bay's temperature in degrees {degrees}, {low} to {high}",
                     column.name,
                     first.map_or("none".to_owned(), |v| v.to_string())
@@ -1404,9 +1405,9 @@ fn decide_voltages(groups: &mut [Group], decisions: &mut Vec<String>) {
             });
         if low <= high && low >= 0.0 && high <= VOLTS_MAX {
             decisions.push(format!(
-                "`{}` read in volts, from the values: they lie within {low} to {high}, inside the \
-                 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to \
-                 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would \
+                "`{}` read in volts, from the values: they lie within {low} to {high}. That is inside \
+                 the 0 to 20 V of a battery or an output line. The computer's battery is 3.5 to \
+                 8.4 V and the ejection battery at most 10 V (manual p10). Millivolts would \
                  be thousands",
                 column.name
             ));
@@ -1457,7 +1458,7 @@ fn magnetic_note(groups: &[Group]) -> Option<String> {
         });
     let field = if low <= high {
         format!(
-            "read so, the field {} make{}, {low:.5} to {high:.5}, would be {:.0} to {:.0} times \
+            "Read so, the field {} make{}, {low:.5} to {high:.5}, would be {:.0} to {:.0} times \
              the Earth's at its strongest, about 65 µT",
             if axes.len() == 1 {
                 "its column"
@@ -1469,11 +1470,11 @@ fn magnetic_note(groups: &[Group]) -> Option<String> {
             high / EARTH_FIELD_T
         )
     } else {
-        "the file holds no sample of them all to check it by".to_owned()
+        "The file holds no sample of them all to check it by".to_owned()
     };
     Some(format!(
-        "{} kept as written, in a unit no source bears out: the manual gives tesla (p24); \
-         {field}; and the record has no quantity for a magnetic field",
+        "{} kept as written, in a unit no source bears out: the manual gives tesla (p24). \
+         {field}. The record has no quantity for a magnetic field",
         listed(&names)
     ))
 }

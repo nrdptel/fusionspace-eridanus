@@ -814,7 +814,7 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
                 apogee_line,
                 format!(
                     "into its zero at {:.2} s, `Vel` has {} samples, fewer than {APOGEE_SAMPLES}, \
-                     in {}: its slope at the apogee, which decides its unit, can't be fitted",
+                     in {}. Its slope at the apogee decides its unit, and it can't be fitted",
                     apogee.time_s,
                     none.points,
                     window(none.jump_s)
@@ -831,9 +831,9 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
         return Err(refuse(
             apogee_line,
             format!(
-                "into its zero at {:.2} s, over {}, `Vel` changes by {slope:.3} a second, within \
-                 {:.0}% of standard gravity in neither m/s² (−9.807) nor ft/s² (−32.174): no unit \
-                 for it, nor for `pAlt`, can be decided",
+                "into its zero at {:.2} s, over {}, `Vel` changes by {slope:.3} a second. That is \
+                 not within {:.0}% of standard gravity in either m/s² (−9.807) or ft/s² \
+                 (−32.174). No unit for it, nor for `pAlt`, can be decided",
                 apogee.time_s,
                 window(coast.jump_s),
                 GRAVITY_MARGIN * 100.0
@@ -850,7 +850,7 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
         return Err(refuse(
             apogee_line,
             format!(
-                "`Vel` integrates to a climb of {climb_m:.1} m by the apogee, under the \
+                "`Vel` integrates to a climb of {climb_m:.1} m by the apogee. That is under the \
                  {SETTLING_CLIMB_M:.0} m from which the barometer's step lets `pAlt`'s unit be \
                  decided"
             ),
@@ -864,9 +864,9 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
         return Err(refuse(
             header_line,
             format!(
-                "`pAlt` has no step written {STEP_REPEATS} times, to within {STEP_SPREAD:.2}: the \
-                 barometer's count, which must bear out the unit `Vel`'s slope gives, can't be \
-                 measured"
+                "`pAlt` has no step written {STEP_REPEATS} times, to within {STEP_SPREAD:.2}. The \
+                 barometer's count can't be measured, and it must bear out the unit `Vel`'s \
+                 slope gives"
             ),
         ));
     };
@@ -882,7 +882,7 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
             header_line,
             format!(
                 "`pAlt`'s smallest step, {step:.2}, is one count of the barometer near the ground \
-                 in neither meters ({}) nor feet ({}): no unit for it, nor for `Vel`, can be \
+                 in neither meters ({}) nor feet ({}). No unit for it, nor for `Vel`, can be \
                  decided",
                 bands[0], bands[1]
             ),
@@ -893,8 +893,8 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
             apogee_line,
             format!(
                 "`Vel`'s slope into its zero at {:.2} s, {slope:.3} a second, is standard gravity \
-                 in {} per second squared, but `pAlt`'s smallest step, {step:.2}, is one count of \
-                 the barometer in {}: the two disagree, and no unit is decided",
+                 in {} per second squared. `pAlt`'s smallest step, {step:.2}, is one count of \
+                 the barometer in {}. The two disagree, and no unit is decided",
                 apogee.time_s,
                 length.name(),
                 stepped.name()
@@ -903,14 +903,15 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
     }
     let gravities = -slope / length.gravity();
     let mut notes = vec![format!(
-        "`Vel` read in {} per second, from the apogee and the barometer's step: into its zero at \
-         {:.2} s, the line through its {} samples of {} falls at {:.3} a second, {gravities:.3} of \
-         standard gravity's {:.3} {}/s², within {:.0}%, and `pAlt`'s step is a count in {} too",
+        "`Vel` read in {} per second, from the apogee and the barometer's step: its line falls \
+         at {:.3} a second. That line runs through its {} samples of {}, into its zero at \
+         {:.2} s. That is {gravities:.3} of standard gravity's {:.3} {}/s², within {:.0}%, and \
+         `pAlt`'s step is a count in {} too",
         length.name(),
-        apogee.time_s,
+        -slope,
         coast.points,
         window(coast.jump_s),
-        -slope,
+        apogee.time_s,
         length.gravity(),
         length.symbol(),
         GRAVITY_MARGIN * 100.0,
@@ -928,7 +929,7 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
             apogee_line,
             format!(
                 "`pAlt`'s highest value, {highest:.2}, is {share:.3} times the climb `Vel` \
-                 integrates to by the apogee, {climb:.2} {}, not within {:.0}%: no unit for the \
+                 integrates to by the apogee, {climb:.2} {}, not within {:.0}%. No unit for the \
                  barometric altitude can be decided",
                 length.symbol(),
                 BAROMETRIC_MARGIN * 100.0
@@ -940,9 +941,9 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
         Length::Foot => &bands[1],
     };
     notes.push(format!(
-        "`pAlt` read in {}, from its step and `Vel`: its smallest step, {step:.2}, {repeats} of \
-         its steps within {STEP_SPREAD:.2} of it, is one count of the barometer near the \
-         ground in {} ({band}); and its highest value, {highest:.2}, is {share:.3} times the \
+        "`pAlt` read in {}, from its step and `Vel`: its smallest step is {step:.2}. {repeats} of \
+         its steps are within {STEP_SPREAD:.2} of it. That step is one count of the barometer \
+         near the ground in {} ({band}). Its highest value, {highest:.2}, is {share:.3} times the \
          climb `Vel` integrates to by the apogee, {climb:.2} {}, within {:.0}%",
         length.name(),
         length.name(),
@@ -950,8 +951,8 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
         BAROMETRIC_MARGIN * 100.0
     ));
     let met_note = format!(
-        "`MET` read in seconds, from the apogee: with `Vel` in {} per second, as the barometer's \
-         step has it, `Vel` falls into its zero at {gravities:.3} of standard gravity a second; a \
+        "`MET` read in seconds, from the apogee: `Vel` is in {} per second, as the barometer's \
+         step has it. `Vel` falls into its zero at {gravities:.3} of standard gravity a second. A \
          clock in milliseconds or minutes would put that fall 1,000 or 60 times off",
         length.name()
     );
@@ -971,8 +972,8 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
     } else if near(ratio, length.gravity(), INTEGRAL_MARGIN) {
         notes.push(format!(
             "`Acc` read in standard gravities, 9.806 65 m/s², from `Vel`: over the boost, `Vel` \
-             rises {ratio:.3} times `Acc`'s integral, within {:.0}% of standard gravity's {:.3} \
-             {}/s²",
+             rises {ratio:.3} times `Acc`'s integral. That is within {:.0}% of standard \
+             gravity's {:.3} {}/s²",
             INTEGRAL_MARGIN * 100.0,
             length.gravity(),
             length.symbol()
@@ -981,7 +982,8 @@ fn decide(rows: &Rows, header_line: usize) -> Result<Units, LogError> {
     } else {
         notes.push(format!(
             "`Acc` kept as written: over the boost, `Vel` rises {ratio:.3} times `Acc`'s \
-             integral, within {:.0}% of neither 1 nor standard gravity in {} per second squared",
+             integral. That is within {:.0}% of neither 1 nor standard gravity in {} per second \
+             squared",
             INTEGRAL_MARGIN * 100.0,
             length.name()
         ));
@@ -1058,8 +1060,8 @@ fn closing_zeros(rows: &Rows, units: &Units, values: &mut [Vec<f64>; 4], notes: 
             }
             notes.push(format!(
                 "the last {run} rows, from line {}, write `{}` as 0, where the row before reads \
-                 {previous:.2}: more than twice what `{}` can change it by in {span:.2} s, so they \
-                 aren't its integral, and are gaps",
+                 {previous:.2}. That is more than twice what `{}` can change it by in {span:.2} s. \
+                 So they aren't its integral, and they are gaps",
                 rows.lines.get(before + 1).copied().unwrap_or_default(),
                 NAMES[column + 1],
                 NAMES[rate + 1],
@@ -1265,7 +1267,7 @@ mod tests {
         for factor in [2.0, 0.5, 1.6 / FOOT_M] {
             let message = unit_message(read(&scaled(&metric(), VEL, factor)));
             assert!(
-                message.contains("within 25% of standard gravity in neither"),
+                message.contains("not within 25% of standard gravity in either"),
                 "{factor}: {message}"
             );
         }
@@ -1286,7 +1288,7 @@ mod tests {
                 message.contains(&format!(
                     "is standard gravity in {slope} per second squared"
                 )) && message.contains(&format!(
-                    "one count of the barometer in {step}: the two disagree"
+                    "one count of the barometer in {step}. The two disagree"
                 )),
                 "{message}"
             );

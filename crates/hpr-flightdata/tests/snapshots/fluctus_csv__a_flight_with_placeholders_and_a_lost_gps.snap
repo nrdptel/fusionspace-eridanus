@@ -847,8 +847,8 @@ expression: log
   "notes": [
     "the column `dedrck-v-speed (m/s)` writes 2147483647 or -2147483648, the ends of a signed 32-bit number, on 10 rows from line 6: no reading, so they are gaps",
     "the column `dedrck-alti (m)` writes 2147483647 or -2147483648, the ends of a signed 32-bit number, on 10 rows from line 6: no reading, so they are gaps",
-    "`gpsLat` read in degrees, from the manual and the values: the header states no unit; the manual's picture of the Locate tab shows the position in decimal degrees (p38), and every reading lies within ±90°",
-    "`gpsLng` read in degrees, from the manual and the values: the header states no unit; the manual's picture of the Locate tab shows the position in decimal degrees (p38), and every reading lies within ±180°",
-    "`gpsAltMSL` kept as written, in a unit no source states: it changes on 2 rows where the barometric altitude is read, fewer than the 10 fresh fixes the check needs to measure a line and the scatter about it"
+    "`gpsLat` read in degrees, from the manual and the values. The header states no unit. The manual's picture of the Locate tab shows the position in decimal degrees (p38). Every reading lies within ±90°",
+    "`gpsLng` read in degrees, from the manual and the values. The header states no unit. The manual's picture of the Locate tab shows the position in decimal degrees (p38). Every reading lies within ±180°",
+    "`gpsAltMSL` kept as written, in a unit no source states: it changes on 2 rows where the barometric altitude is read. That is fewer than the 10 fresh fixes the check needs to measure a line and the scatter about it"
   ]
 }
