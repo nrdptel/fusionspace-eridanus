@@ -2525,7 +2525,9 @@ the point keeps its place with its time a gap.
     Bee's BeeLine and two unnamed files styled after AltOS's write each point's time in an XML
     comment beside it instead. The reader takes that time. The rest give no time. They are
     fw2kml's paths (from a converter of Featherweight's logs), Missile Works' RTx and GPS
-    Visualizer. Of the 42 sample KML logs, 9 time their points, and 33 read as paths without times.
+    Visualizer. The survey reads 43 sample KML logs. When 42 were read, 9 timed their points and
+    33 read as paths without times. The survey doesn't count them yet
+    ([#929](https://github.com/nrdptel/fusionspace-eridanus/issues/929)).
 - **NMEA 0183**, the sentences a GPS receiver sends, in the format the National Marine
   Electronics Association set. Each is one line and ends in a *checksum*, two hexadecimal digits
   that check the characters before them.
