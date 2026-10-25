@@ -1273,8 +1273,13 @@ file:
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
-checks. ThrustCurve.org's own published figures aren't bundled: it grants no license for them
-and reserves copyright ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
+checks. ThrustCurve.org's own published figures aren't bundled: every figure is worked out from
+the curve file ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
+ThrustCurve.org grants no license for its figures and reserves copyright. The project has since
+decided to use them as published facts, with credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)),
+and plans to bundle every solid motor
+([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
 When the 32 were chosen, their total impulse, average thrust and burn time agreed with
 ThrustCurve.org's within 1%. The simulator's peak, the curve file's highest point, runs from
 16.7% below ThrustCurve.org's (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR) ([Solid
@@ -1503,10 +1508,13 @@ $ echo $?
 
 <!-- cli: end -->
 
-The simulator bundles none of these curves. ThrustCurve.org grants no license for its motor
-records, and each file carries its contributor's own license.
+The simulator bundles none of these curves yet. It ships 32, and the project plans to bundle every
+solid motor
+([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
 [The decision record on fetching motors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md)
-has the reasoning.
+has the reasoning for the fetch. Each file carries its contributor's own license.
+ThrustCurve.org grants no license for its motor records; the project uses them as published facts,
+with credit ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 
 ### `hpr convert`
 

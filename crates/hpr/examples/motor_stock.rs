@@ -15,11 +15,13 @@
 //!
 //! It never uses the network: a stand-in transport answers with the files recorded from the
 //! motor finder's API on 1 October 2026, at 07:07 UTC, and J450DM's file recorded from
-//! ThrustCurve.org's at 08:22 UTC. ThrustCurve.org grants no license for its motor records, so the
-//! three searches are stand-ins in its API's shape: five invented motors per maker, and a record
-//! of each motor in the finder's in-stock list carrying only that list's values (ThrustCurve.org's
-//! published figures, as the finder relays them under CC BY 4.0), with an invented id and file
-//! count. Stock and prices change by the hour.
+//! ThrustCurve.org's at 08:22 UTC. The three searches are still the stand-ins of ADR-145, in
+//! ThrustCurve.org's API's shape: five invented motors per maker, and a record of each motor in
+//! the finder's in-stock list carrying only that list's values (ThrustCurve.org's published
+//! figures, as the finder relays them under CC BY 4.0), with an invented id and file count.
+//! ThrustCurve.org grants no license for its motor records and reserves copyright. ADR-287 has
+//! since let the project commit them as published facts, with credit, and issue #885 replaces the
+//! stand-ins with recorded searches. Stock and prices change by the hour.
 
 #![allow(
     clippy::disallowed_methods,

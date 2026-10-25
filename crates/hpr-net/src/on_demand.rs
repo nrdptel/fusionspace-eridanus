@@ -20,8 +20,10 @@
 //!
 //! Every answer goes through the [`Client`], so it is cached ([`crate::thrustcurve::TTL_S`], a
 //! day) and, offline, read from the cache alone: a motor found once is found again with no
-//! network. Nothing is bundled: ThrustCurve grants no license for its records and reserves
-//! copyright, and each file carries its own ([`DataFile::license`]), which the caller shows.
+//! network. Nothing it fetches is bundled: `hpr_motor` ships 32 curves, and [ADR-288][adr-288]
+//! plans the whole solid catalog for [M5.7][m5-7]. ThrustCurve grants no license for its records
+//! and reserves copyright; [ADR-287][adr-287] lets the project use them as published facts, with
+//! its credit. Each file carries its own license ([`DataFile::license`]), which the caller shows.
 //!
 //! > **How far to trust it.** The curve is the file a contributor uploaded, as ThrustCurve serves
 //! > it; which file is taken is the rule above, not a judgment of which is right. A name is matched
@@ -30,6 +32,9 @@
 //!
 //! [m4-5b]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m4-5b
 //! [adr-154]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md
+//! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
+//! [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
+//! [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
 
 use serde::{Deserialize, Serialize};
 
