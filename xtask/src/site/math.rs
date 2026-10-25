@@ -16,7 +16,8 @@
 //! carry it), and a display equation sharing its paragraph with text.
 //!
 //! It also writes a quote mark straight after inline code, emphasis or a link as a closing one
-//! ([`super::quotes`], #932), which mdBook's smart punctuation would turn into an opening one.
+//! ([`super::quotes::closing_quotes`], #932), which mdBook's smart punctuation would turn into
+//! an opening one.
 //!
 //! mdBook runs this as `cargo xtask site-math`: `book.toml` names it, and [`super::mdbook_build`]
 //! points mdBook at the running `xtask` itself, so the build never compiles a second copy.
