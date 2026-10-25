@@ -33,7 +33,8 @@ use hpr_sim::{
 /// A made-up two-stage rocket as OpenRocket 24.12 writes one: 33 mm tubes, three fins on each
 /// stage, and an Estes F15 in each stage's tube. The booster separates when its motor burns out
 /// (`<separationevent>burnout</separationevent>`), and the sustainer's `automatic` ignition lights
-/// it at the booster's ejection charge, which a `0.0` delay fires at burnout.
+/// it at the booster's ejection charge, which a `0.0` delay fires at burnout. It states no surface
+/// finish, so its outside parts are read as OpenRocket reads them, as regular paint (60 µm).
 const ORK: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <openrocket version="1.10" creator="OpenRocket 24.12">
   <rocket><name>Two-stage example</name>

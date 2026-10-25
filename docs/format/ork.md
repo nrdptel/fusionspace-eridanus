@@ -1090,14 +1090,19 @@ corpus writes any word but the five, so nothing here can settle it; the
 [OpenRocket oracle](../decisions-and-roadmap.md#m2-2) can. A word HPR Sim has no sourced roughness
 for is read as OpenRocket reads it, regular paint on an outside part, and a warning says so.
 
-**A part with no `<finish>`** is read as OpenRocket reads it: an outside part, from nose cone to
-rail button, as regular paint, 60 µm, and a part inside the body with none. With every finish
-taken out of its 17 example designs, OpenRocket 24.12 reads all 134 outside parts so, as
-`validation/oracles/openrocket/finish.py` shows when run ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). Before that fix, HPR Sim
-gave such a part its own default, 20 µm, and flew the pod probes 6.0% to 7.3% high. OpenRocket
-writes a finish on every outside part it saves, so this touches hand-written files and other
-tools' files. When HPR Sim writes a file, an outside part left at its 20 µm default is written
-`smooth`, so the file flies as the design does.
+**A part with no `<finish>`** is read as OpenRocket reads it. On the outside (a nose cone, body
+tube, transition, fin set, tube fin set, launch lug or rail button) it is regular paint, 60 µm.
+Inside the body (an inner tube, coupler, ring, bulkhead, mass, parachute or shock cord) it has no
+finish, as in OpenRocket. With every finish taken out of its 17 example designs, or `gilt` put in
+each, OpenRocket 24.12 reads all 134 outside parts so
+([`finish.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/finish.py),
+[#216](https://github.com/nrdptel/fusionspace-eridanus/issues/216)). Before, HPR Sim gave such a
+part 20 µm and flew the pod probes 6.0% to 7.3% high. The 60 µm is OpenRocket's choice, not a
+measured finish: painted and sanded surfaces measure smoother
+([hobby finishes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/hobby-finish-roughness.md)).
+HPR Sim reads it so that the two programs agree. When HPR Sim writes a file, an outside part at
+its 20 µm default is written `smooth`; a finish none of the five words fits is left out with a
+warning, and OpenRocket reads that part as 60 µm.
 
 #### Clusters
 

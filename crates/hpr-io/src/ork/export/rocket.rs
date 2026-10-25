@@ -31,7 +31,7 @@ use hpr_design::solids::Wall;
 use hpr_design::tree::{
     AutoDimension, Component, DragOverride, Overrides, Part, Position, ReferenceDiameter, Stage,
 };
-use hpr_design::{Density, Finish, Material};
+use hpr_design::{Density, Material};
 
 use super::super::Design;
 use super::super::attached::cluster_pattern;
@@ -1122,8 +1122,10 @@ impl<'a> Writer<'a> {
     /// OpenRocket and HPR Sim's reader take an outside part with none as regular paint, 60 µm
     /// (`super::super::attached::finish`), so a part left at the design's default finish gets that
     /// default's word. A finish whose roughness is none of OpenRocket's five is left out, with a
-    /// warning that, on an outside part, says OpenRocket will read the part as regular paint. A
-    /// finish word the design keeps from the file replaces the one written here ([`super::kept`]).
+    /// warning that OpenRocket will read the part as regular paint. A part inside the body has no
+    /// finish in OpenRocket, so none is written for it, and one the design gives it is warned of.
+    /// A finish word the design keeps from the file replaces the one written here
+    /// ([`super::kept`]).
     /// The word is found by roughness, to within 1 pm, since a named finish's roughness is a
     /// product (`20.0 * 1e-6` is not `20e-6`).
     fn finish(&mut self, element: &mut Element, at: &str, component: &Component) {
@@ -1137,11 +1139,17 @@ impl<'a> Writer<'a> {
                 | Part::LaunchLug(_)
                 | Part::RailButton(_)
         );
-        let finish = match component.finish {
-            Some(finish) => finish,
-            None if outside => Finish::default(),
-            None => return,
-        };
+        if !outside {
+            if component.finish.is_some() {
+                self.warn(
+                    at,
+                    "a surface finish on a part inside the body, which has none in OpenRocket; \
+                     it was left out",
+                );
+            }
+            return;
+        }
+        let finish = component.finish.unwrap_or_default();
         let word = finish.roughness_m().ok().and_then(|roughness_m| {
             [
                 ("rough", 500e-6),
@@ -1161,12 +1169,8 @@ impl<'a> Writer<'a> {
             }
             None => self.warn(
                 at,
-                if outside {
-                    "a surface finish that is none of OpenRocket's five; it was left out, and \
-                     OpenRocket reads the part as regular paint (60 µm)"
-                } else {
-                    "a surface finish that is none of OpenRocket's five; it was left out"
-                },
+                "a surface finish that is none of OpenRocket's five; it was left out, and \
+                 OpenRocket reads the part as regular paint (60 µm)",
             ),
         }
     }
@@ -1413,6 +1417,8 @@ pub(super) fn is_uuid(text: &str) -> bool {
 
 #[cfg(test)]
 pub(super) mod tests {
+    use hpr_design::Finish;
+
     use super::super::super::{Design, design, read};
     use super::super::document;
     use super::*;
@@ -1500,8 +1506,10 @@ pub(super) mod tests {
 
     /// A part left at the design's default finish, 20 µm, is written as `smooth`, so the file flies
     /// as the design does: OpenRocket and the reader take an outside part with no `<finish>` as
-    /// regular paint, 60 µm (#216). A part inside the body is given none. A finish that is none of
-    /// OpenRocket's five is left out, and the warning says how OpenRocket will read the part.
+    /// regular paint, 60 µm (#216). A part inside the body is given none, and one the design gives
+    /// it is warned of. A finish that is none of OpenRocket's five is left out, and the warning says
+    /// how OpenRocket will read the part. Each named finish whose roughness is one of the five is
+    /// written with that word.
     #[test]
     fn a_part_at_the_default_finish_is_written_with_its_word() {
         let (mut built, _, _, _) = round_trip(&tube_of(
@@ -1518,21 +1526,45 @@ pub(super) mod tests {
         for child in &mut components[1].children {
             child.finish = match child.part {
                 Part::LaunchLug(_) => Some(Finish::OptimumPaint {}),
-                _ => None,
+                _ => Some(Finish::MassProductionPaint {}),
             };
         }
         let written = document(&built);
         let text = written.value.to_xml();
         assert_eq!(text.matches("<finish>smooth</finish>").count(), 2, "{text}");
         assert_eq!(text.matches("<finish>").count(), 2, "{text}");
-        assert_eq!(written.warnings.len(), 1, "{:?}", written.warnings);
+        let messages: Vec<&str> = written
+            .warnings
+            .iter()
+            .map(|w| w.message.as_str())
+            .collect();
+        assert_eq!(messages.len(), 2, "{messages:?}");
         assert!(
-            written.warnings[0]
-                .message
-                .contains("OpenRocket reads the part as regular paint (60 µm)"),
-            "{:?}",
-            written.warnings
+            messages
+                .iter()
+                .any(|m| m.contains("OpenRocket reads the part as regular paint (60 µm)")),
+            "{messages:?}"
         );
+        assert!(
+            messages.iter().any(|m| m.contains("inside the body")),
+            "{messages:?}"
+        );
+        // Each named finish on one of OpenRocket's five roughnesses gets that word.
+        for (finish, word) in [
+            (Finish::RawWood {}, "rough"),
+            (Finish::DipGalvanized {}, "unfinished"),
+            (Finish::MassProductionPaint {}, "smooth"),
+            (Finish::SheetMetal {}, "polished"),
+        ] {
+            let mut named = built.clone();
+            named.rocket.stages[0].components[0].finish = Some(finish);
+            let text = document(&named).value.to_xml();
+            let nose = &text[text.find("<nosecone>").unwrap()..text.find("</nosecone>").unwrap()];
+            assert!(
+                nose.contains(&format!("<finish>{word}</finish>")),
+                "{finish:?}: {nose}"
+            );
+        }
         let file = read(text.as_bytes())
             .expect("the written design reads")
             .value;
