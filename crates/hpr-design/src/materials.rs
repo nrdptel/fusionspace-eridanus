@@ -576,7 +576,7 @@ pub const SHEAR_MODULI: &[BuiltinShearModulus] = &[
         id: "titanium_6al4v",
         shear_modulus_pa: msi(6.2),
         source: "MIL-HDBK-5J (2003), Table 5.4.1.0(b), Ti-6Al-4V annealed, p. 5-53: G 6.2 x 10^3 \
-                 ksi; TIMET's TIMETAL 6-4 properties (p. 15) give 6.2 and 6.66 x 10^6 psi",
+                 ksi. TIMET's TIMETAL 6-4 properties (p. 15) give 6.2 and 6.66 x 10^6 psi",
         url: MIL_HDBK_5J,
         basis: Basis::Published,
     },

@@ -1,6 +1,6 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
-- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass
+- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass and for M0.14d2's census and tasks
 - **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
@@ -129,6 +129,62 @@ readers read from 1,294 of the 1,301 motor files under the project's reference c
 above zero, the highest at 10.5% of its peak, so half the peak refuses none of
 them. A test reads those files and prints the figures wherever the checkouts are. A cut where the
 thrust is under half its peak, in the tail-off or a sustain phase, keeps the warning.
+
+**Amendment for M0.14d2: the census's rule and its tasks (2026-10-25).** The source doesn't say
+which literal ends up in a message. A refusal's `what` is written where the error is made, a
+warning's text is often built in one function and pushed in another, and a note can pass through a
+variable. So the census reads more than the messages. That holds a stock phrase or first person
+anywhere in the code's prose, but the extra prose also dilutes the rates, so `--long --messages`
+lists each long sentence.
+
+1. **The files.** Each tracked `.rs` file under `src/` of the nine crates and of `hpr-cli`, less
+   test code: what a `#[cfg(test)]` marks (an item, a statement or block, a variant, a field, a
+   match arm, or a module or file by its own `#![cfg(test)]`), and a module declared under it,
+   with the modules inside that module. Where it can't tell where the marked code ends, it stops
+   skipping early, so the hold errs toward reading test text, never toward missing a message. From `hpr-cli` it leaves out the files of M0.14d3's commands: `analyze.rs`,
+   `weather.rs`, `motor_fetch.rs`, `motor_search.rs` and `waiting.rs` (what a fetch prints while
+   it waits).
+2. **What it reads.** Each `#[error("…")]` text, and each other string literal in the code that
+   reads as prose: three words or more, a placeholder counting as one, and at least one of them a
+   word of letters. It doesn't read markup, comments, doc comments, byte strings or other
+   attributes. Markup is a literal that starts with a tag and holds a closing tag, a tag closed on
+   itself, an attribute, a declaration or a comment: a piece of an SVG figure or of a file's XML.
+   A note that only opens with an element's name (`<Shape> is …`) is read. The help's attributes are held by the snapshots, and a
+   `reason = "…"` is read only by the code's readers. An `#[error(transparent)]`, or an `#[error]`
+   text with no word of its own (`"{0}"`), passes on another error's text, which is read where
+   it's written.
+3. **How it reads them.** Each line of a literal is a paragraph of a reference page. A placeholder
+   (`{path}`, `{0:.1}`) is one code word, like text in backticks. The pieces a message joins at run
+   time are read one by one. The census counts the literals with a placeholder, which it can't
+   see whole; pieces joined with no placeholder are read in pieces too, so the count is a guide, not a bound.
+4. **The hold.** There is one page a crate, named by its `src/` directory, and it's held as a help
+   snapshot is (§4). No stock phrase, every rate within its limit (first person at zero), and both
+   sentence targets. The report lists the ten pages beside the site's, with the census's counts.
+   `cargo xtask voice --long --messages` lists each long sentence with its file and line.
+
+On main (cdb01265), this rule reads about 21,800 words. Two crates' pages were over the limit on
+long sentences: `hpr-sim` (0.90 per 100 words, and 31 of its 231 sentences over 25 words) and
+`hpr-aero` (0.82). `hpr-cli`'s page held six stock phrases. A census reads pieces, and a message is
+read whole, so the tasks below read the joined messages.
+
+**M0.14d2's tasks.** Each is done with the release build of `hpr` and the messages alone, then
+checked against what the command did:
+
+1. Fly Loft's demo designs (`validation/fixtures/ork/loft-demo/`) as the files have them. From the
+   errors alone, say why each can't fly and what to change, then fly `demo-stable.ork` on a
+   catalog motor that fits.
+2. Hostile `hpr sim`: a file that isn't there, a `.eng` given as the design, a `--motor` that no
+   catalog holds, `--rail-length 0` and `--wind -3`. Each is refused with a message that names the
+   input and what's allowed.
+3. `hpr mc` with `--runs 0` and with `--mass-sd 2` is refused, or the failed flights are counted
+   and the message says why they failed.
+4. `hpr convert`: a design to an extension it can't write, and a motor file to a design format.
+   Each is refused with a message that says what it can write.
+5. `hpr motors show` with a name the catalog lacks, and with a `.eng` file whose curve ends above
+   zero thrust. `hpr motors list --class Z` and `--diameter 1000` match nothing. Each message says
+   what happened and what to try.
+6. A cold read of every census page against each rule of the voice section, and of the joined
+   messages the tasks printed. Each finding is fixed in the PR or filed.
 
 **Consequences.**
 

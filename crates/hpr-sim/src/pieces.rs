@@ -572,9 +572,8 @@ impl Pieces {
                 && self.host[first_ejection + index] == Some(0)
             {
                 return Err(SimError::Parting {
-                    what: "a pushed payload leaves forward, and this one is in the nose's piece, \
-                           which is closed at the nose (part a joint forward of it, or give it no \
-                           impulse)",
+                    what: "a pushed payload leaves forward, but the piece holding it is closed at \
+                           the nose (part a joint ahead, or give it no impulse)",
                     component: component.clone(),
                 });
             }
@@ -2684,8 +2683,9 @@ mod tests {
         };
         let (what_, component) = what(payload_only(1.0).unwrap_err());
         assert!(
-            what_.starts_with("a pushed payload leaves forward, and this one is in the nose's")
-                && component == "payload",
+            what_.starts_with(
+                "a pushed payload leaves forward, but the piece holding it is closed at the nose"
+            ) && component == "payload",
             "{what_}"
         );
         assert!(payload_only(0.0).is_ok());

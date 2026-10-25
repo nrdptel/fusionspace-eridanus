@@ -265,7 +265,7 @@ fn sim_notes_give_feet() {
         &err(&["sim", &design.to_string_lossy()]),
         &[
             "note: `Parachute` is set to open 2000 m (6562 ft) above the site, above the apogee, \
-           so it opened at apogee; OpenRocket's flight of such a file never opens it",
+           so it opened at apogee. OpenRocket's flight of such a file never opens it",
         ],
     );
 }

@@ -684,8 +684,8 @@ impl Simulation {
                 hangs_together(&self.vehicle.assembly.layout.stages, first, last)
             }) {
                 return Err(SimError::Domain {
-                    what: "stage boundary of a separation (what it drops must hang together: a \
-                           parallel stage hung on a stage it keeps can't go with a stage behind)",
+                    what: "stage boundary of a separation (its dropped stages must hang together: \
+                           a parallel stage hung on a kept stage can't go with one behind)",
                     value: separation.after_stage as f64,
                 });
             }
@@ -1050,24 +1050,24 @@ impl Simulation {
     /// The refusal of mass releases with a separation, ejections or mass shifts.
     fn releases_and_shifts() -> SimError {
         SimError::Unsupported {
-            what: "a mass release in a flight with a separation, ejections or mass shifts (the \
-                   parts are fixed before the flight, with every part where the design puts it)",
+            what: "a mass release in a flight with a separation, ejections or mass shifts (their \
+                   parts are fixed before the flight, where the design puts them)",
         }
     }
 
     /// The refusal of several separations with ejections.
     fn separations_and_ejections() -> SimError {
         SimError::Unsupported {
-            what: "ejections in a flight with more than one separation (a sustainer flies on a cut \
-                   design whose components aren't the pieces the ejections were given for)",
+            what: "ejections in a flight with more than one separation (a sustainer flies a cut \
+                   design, not the pieces the ejections were given for)",
         }
     }
 
     /// The refusal of mass shifts with a separation or ejections.
     fn shifts_and_partings() -> SimError {
         SimError::Unsupported {
-            what: "a mass shift in a flight with a separation or ejections (the pieces are fixed \
-                   before the flight, with every part where the design puts it)",
+            what: "a mass shift in a flight with a separation or ejections (its pieces are fixed \
+                   before the flight, where the design puts them)",
         }
     }
 
@@ -1993,9 +1993,9 @@ impl Simulation {
                             // Once every body is a point mass there is no sustainer left to part
                             // again, and the bodies a sustainer already dropped have flown.
                             return Err(SimError::Domain {
-                                what: "time of a separation that leaves nothing ahead of it to \
-                                       burn, in a flight with more than one separation (each \
-                                       must hand the flight on to a sustainer)",
+                                what: "time of a separation leaving nothing ahead to burn, \
+                                       with more than one separation in the flight (each must \
+                                       hand the flight to a sustainer)",
                                 value: t,
                             });
                         }
@@ -2114,10 +2114,9 @@ impl Simulation {
                     });
                     if !open_at_split {
                         return Err(SimError::Domain {
-                            what: "time of a powered separation (the booster falls with no \
-                                   airframe drag, so a device on it must open at the separation: \
-                                   one triggered at `Time { time_s: 0.0 }` with no lag does, as \
-                                   a booster's devices act only once it flies)",
+                            what: "time of a powered separation (the booster has no airframe \
+                                   drag, so a device on it must open as it starts flying: \
+                                   `Time { time_s: 0.0 }`, no lag)",
                             value: t,
                         });
                     }
@@ -2354,9 +2353,8 @@ impl Simulation {
                     if lagging && !open_at_split {
                         return Err(SimError::Domain {
                             what: "time of a split with nothing left to burn, before \
-                                   apogee (a part's device fired by then but opens after its \
-                                   lag, and the part would climb through the lag with no \
-                                   airframe drag)",
+                                   apogee (a device fired by then opens after its lag: the part \
+                                   would climb through it with no airframe drag)",
                             value: t,
                         });
                     }

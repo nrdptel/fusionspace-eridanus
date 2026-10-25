@@ -201,31 +201,31 @@ impl EnvelopeFlag {
     pub fn message(&self) -> String {
         match *self {
             Self::UnstableUnderPower { static_margin_cal } => format!(
-                "the static margin falls to {:.2} calibers at {:.2} s while a motor burns: the \
-                 rocket is unstable under power, so the air turns it away from its path rather \
-                 than back, and its apogee is not a prediction",
+                "the static margin falls to {:.2} calibers at {:.2} s while a motor burns. The \
+                 rocket is unstable under power: the air turns it away from its path rather than \
+                 back, and its apogee is not a prediction",
                 static_margin_cal.value, static_margin_cal.time_s
             ),
             Self::UnstableWithoutMargin {
                 pitch_moment_slope_per_rad,
             } => format!(
                 "while a motor burns, the pitching moment turns the rocket away from its path \
-                 (C_mα {:+.1} per radian at {:.2} s) where HPR Sim can give no static margin: the \
+                 (C_mα {:+.1} per radian at {:.2} s). HPR Sim can give no static margin then. The \
                  rocket is unstable under power, so its apogee is not a prediction",
                 pitch_moment_slope_per_rad.value, pitch_moment_slope_per_rad.time_s
             ),
             Self::BeyondValidatedRange { max_mach } => format!(
-                "reaches Mach {:.2} at {:.1} s, faster than any public flight HPR Sim has been \
-                 compared with an independent reference (Mach {VALIDATED_MACH:.2}): its numbers \
-                 past that speed are unchecked",
+                "reaches Mach {:.2} at {:.1} s. HPR Sim has been compared with an independent \
+                 reference on public flights up to Mach {VALIDATED_MACH:.2}, so this flight's \
+                 numbers past that speed are unchecked",
                 max_mach.value, max_mach.time_s
             ),
             Self::HighAngleOfAttack {
                 angle_of_attack_rad,
             } => format!(
                 "flies at {:.1}° angle of attack at {:.1} s, past the {:.0}° its aerodynamics \
-                 assume more than {HIGH_ANGLE_GRACE_S:.0} s after the rail exit: its numbers \
-                 from then on are rough",
+                 assume more than {HIGH_ANGLE_GRACE_S:.0} s after the rail exit. Its numbers from \
+                 then on are rough",
                 angle_of_attack_rad.value.to_degrees(),
                 angle_of_attack_rad.time_s,
                 HIGH_ANGLE_OF_ATTACK_RAD.to_degrees()
@@ -411,9 +411,9 @@ mod tests {
         assert_eq!(flag.peak(), peak(-4.21).unwrap());
         assert_eq!(
             flag.message(),
-            "the static margin falls to -4.21 calibers at 3.00 s while a motor burns: the rocket \
-             is unstable under power, so the air turns it away from its path rather than back, \
-             and its apogee is not a prediction"
+            "the static margin falls to -4.21 calibers at 3.00 s while a motor burns. The rocket \
+             is unstable under power: the air turns it away from its path rather than back, and \
+             its apogee is not a prediction"
         );
         let json = serde_json::to_value(flag).unwrap();
         assert_eq!(json["flag"], "unstable_under_power");
@@ -453,7 +453,7 @@ mod tests {
         assert_eq!(
             flag.message(),
             "while a motor burns, the pitching moment turns the rocket away from its path (C_mα \
-             +43.9 per radian at 3.00 s) where HPR Sim can give no static margin: the rocket is \
+             +43.9 per radian at 3.00 s). HPR Sim can give no static margin then. The rocket is \
              unstable under power, so its apogee is not a prediction"
         );
         let json = serde_json::to_value(flag).unwrap();

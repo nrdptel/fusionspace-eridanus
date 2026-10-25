@@ -454,7 +454,7 @@ fn validate_outline(outline: &[[f64; 2]], root: &[[f64; 2]]) -> Result<(), Desig
         if !(p[0] < aft && p[0] > 0.0) {
             return Err(DesignError::Geometry(format!(
                 "a freeform fin's root points must run fore, strictly between its trailing edge \
-                 at x = {} m and its leading edge; one is at x = {} m",
+                 at x = {} m and its leading edge. One is at x = {} m",
                 last[0], p[0]
             )));
         }
@@ -621,7 +621,7 @@ impl FinSet {
         let slack = Self::ROOT_ON_SURFACE_M;
         if !(fore_m >= -slack && fore_m + chord <= length + slack) {
             return Err(DesignError::Geometry(format!(
-                "a fin set's root runs from {fore_m} m to {} m along a body {length} m long; on a \
+                "a fin set's root runs from {fore_m} m to {} m along a body {length} m long. On a \
                  nose cone or a transition it must stay on it",
                 fore_m + chord
             )));
@@ -645,7 +645,7 @@ impl FinSet {
         if share.is_nan() || share > Self::ROOT_SLIVER_SHARE {
             return Err(DesignError::Geometry(format!(
                 "a fin set's root cuts across the curved surface it sits on between its points, by \
-                 {:.3}% of the fin's area, more than {}%: draw it through more points on the \
+                 {:.3}% of the fin's area, more than {}%. Draw it through more points on the \
                  surface",
                 100.0 * share,
                 100.0 * Self::ROOT_SLIVER_SHARE

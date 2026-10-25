@@ -59,10 +59,10 @@ pub enum Kind {
 /// numbers, and what to rely on instead, with where to read more.
 fn checked_and_instead() -> String {
     format!(
-        "Against {FLIGHTS} logged flights of fliers' own designs, each logged apogee the height \
-         climbed in the day's air, the simulated apogee averaged {MEAN_PERCENT:.1}% above the \
-         logged one; it was within 10% on {WITHIN_10} and read low on {LOW}, by at most \
-         {LOW_AT_MOST_PERCENT:.0}%. Plan a waiver or a field's ceiling with room \
+        "Against {FLIGHTS} logged flights of fliers' own designs, the simulated apogee averaged \
+         {MEAN_PERCENT:.1}% above the logged one. Each logged apogee is the height climbed in the \
+         day's air. The simulated apogee was within 10% on {WITHIN_10} and read low on {LOW}, by \
+         at most {LOW_AT_MOST_PERCENT:.0}%. Plan a waiver or a field's ceiling with room \
          above this apogee; the altimeter's reading is the one to log, and the RSO decides.\
          {MORE}{ACCURACY_URL}"
     )
@@ -109,7 +109,7 @@ pub(crate) fn nomads() -> String {
     format!(
         "{LABEL} A weather model's forecast, not a measurement. HPR Sim decodes the model's file \
          as ecCodes, the European weather center's reference decoder, does, checked on recorded \
-         files, and interpolates it to the site; the forecast itself is {WEATHER_UNCHECKED}. \
+         files. It interpolates the file to the site. The forecast itself is {WEATHER_UNCHECKED}. \
          {WEATHER_INSTEAD}{MORE}{SITE}nomads.html"
     )
 }
@@ -119,7 +119,7 @@ pub(crate) fn sounding() -> String {
     format!(
         "{LABEL} A weather balloon's measurement, at its station and its time, not at the launch \
          site. HPR Sim's profile gives back every level it keeps of the archive's answer to \
-         rounding error, checked on recorded soundings; how much the distance to the station and the \
+         rounding error, checked on recorded soundings. How much the distance to the station and the \
          hours between change a flight is not yet checked. {WEATHER_INSTEAD}\
          {MORE}{SITE}soundings.html"
     )
@@ -137,10 +137,10 @@ pub(crate) fn reanalysis() -> String {
     format!(
         "{LABEL} A reanalysis: a weather model's fit to past observations, on its grid and at its \
          hours, not a measurement at the site. HPR Sim reads the file as RocketPy, an open-source \
-         simulator, does, checked on two real launch days, and reads no humidity, so the air is \
+         simulator, does, checked on two real launch days. It reads no humidity, so the air is \
          taken as dry. {ERA5_FLIGHTS} public flights flown in ERA5 weather missed their logged \
          apogees by {ERA5_MEAN_ABSOLUTE_PERCENT:.2}% on average, the simulation's error and the \
-         weather's together; the winds themselves are not yet checked against measured winds. \
+         weather's together. The winds themselves are not yet checked against measured winds. \
          For a flight flown, the altimeter's log is the measurement. \
          {WEATHER_INSTEAD}{MORE}{SITE}format/era5.html"
     )
@@ -153,10 +153,10 @@ fn readings_checked() -> String {
         AIR_TEMPERATURE_SPREAD_K, MAX_INTERVAL_S, MAX_PRESSURE_STEP_PA, MAX_STEP_M, TRANSONIC_MACH,
     };
     format!(
-        "Each reading states the bound its error stayed within on HPR Sim's synthetic flights, \
-         logged at every rate from 500 to {} samples a second and in steps up to {MAX_STEP_M} m \
-         or {MAX_PRESSURE_STEP_PA} Pa, in air within {AIR_TEMPERATURE_SPREAD_K} K of standard; \
-         a reading the log can't support is withheld, with the reason. The top speed is derived \
+        "Each reading states the bound its error stayed within on HPR Sim's synthetic flights. \
+         They cover rates from 500 to {} samples a second, steps up to {MAX_STEP_M} m or \
+         {MAX_PRESSURE_STEP_PA} Pa, and air within {AIR_TEMPERATURE_SPREAD_K} K of standard. \
+         A reading the log can't support is withheld, with the reason. The top speed is derived \
          from the heights, and withheld from Mach {TRANSONIC_MACH}, where a barometer's port \
          may read the flow over the nose.",
         1.0 / MAX_INTERVAL_S
@@ -179,17 +179,17 @@ pub(crate) fn log() -> String {
 pub(crate) fn own_log() -> String {
     format!(
         "{LABEL} The logger's own samples, read by HPR Sim in the units your mapping, layout or \
-         FIP header states, not simulated: as right as those units are. {} Those bounds hold only if the \
-         units are right: check a unit against a known height, such as the launch site's \
-         elevation from a GPS altitude, and go by the logger's own figures for a \
-         record.{MORE}{SITE}your-own-logger.html",
+         FIP header states, not simulated. They are as right as those units are. {} Those bounds \
+         hold only if the units are right. Check a unit against a known height, such as the \
+         launch site's elevation from a GPS altitude. For a record, go by the logger's own \
+         figures.{MORE}{SITE}your-own-logger.html",
         readings_checked()
     )
 }
 
 /// What `hpr motors show`'s notes say about the figures and what to go by instead.
 const MOTOR_FIGURES: &str = "the size, masses and delays as the file's header gives them, the \
-                             impulse, thrusts and burn time computed from its curve, which can \
+                             impulse, thrusts and burn time computed from its curve. These can \
                              differ from the maker's rated figures";
 
 /// What `hpr motors show`'s notes say to go by instead.
@@ -203,8 +203,8 @@ pub(crate) fn catalog_motor(captured: &str) -> String {
     format!(
         "{LABEL} Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured \
          by HPR Sim: {MOTOR_FIGURES}. The total impulse and peak thrust match OpenRocket's \
-         reading of the same file on every bundled curve, a check of the arithmetic, not of the \
-         motor; no figure is checked against the maker's or the certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
+         reading of the same file on every bundled curve. That is a check of the arithmetic, not of the \
+         motor. No figure is checked against the maker's or the certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
     )
 }
 

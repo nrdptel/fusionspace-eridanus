@@ -221,6 +221,11 @@ pub(crate) fn command(wanted: &Wanted) -> Option<String> {
     })
 }
 
+/// What to do about a name ThrustCurve.org has no motor for.
+const NOT_FOUND_HELP: &str = "check the name as ThrustCurve.org spells it, its designation \
+                              (F27R/L) or common name (F27); `hpr motors list` lists the bundled \
+                              catalog's motors";
+
 /// Why `wanted` wasn't fetched: offline with no copy, or the network failing, names the command
 /// that fetches it; any other refusal says what to do about it. ThrustCurve's words and the
 /// file's reach the terminal as [`printable`] text.
@@ -252,13 +257,23 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
             if !crate::refused_by_status(net)
     ) {
         Failure::helped(printable(&format!("{words}: {error}")), printable(&hint()))
+    } else if matches!(
+        error,
+        FindError::ThrustCurve(ThrustCurveError::Net(NetError::Transport { reason, .. }))
+            if reason == "http status: 400"
+    ) {
+        // ThrustCurve.org answers a search with 400 when it reads the name as no motor's name
+        // (`commonName=NOPE`: "Invalid commonName value"), so the name is what to check.
+        Failure::library(
+            printable(&format!(
+                "{words}: ThrustCurve.org refused the search for this name (it answered http status: \
+                 400)"
+            )),
+            NOT_FOUND_HELP,
+        )
     } else {
         let help = match error {
-            FindError::NotFound { .. } => {
-                "check the name as ThrustCurve.org spells it, its designation (F27R/L) or common \
-                 name (F27); `hpr motors list` lists the bundled catalog's motors"
-                    .to_owned()
-            }
+            FindError::NotFound { .. } => NOT_FOUND_HELP.to_owned(),
             FindError::Ambiguous { .. } => {
                 "name one of them by its designation in full, or give `hpr motors fetch` its \
                  --manufacturer"
@@ -406,6 +421,12 @@ mod tests {
         assert!(
             !refused_by_status.contains("with a network connection"),
             "{refused_by_status}"
+        );
+        // A 400 is ThrustCurve.org reading the name as no motor's: the name is what to check.
+        let bad_name = help("http status: 400");
+        assert!(
+            bad_name.starts_with("check the name as ThrustCurve.org spells it"),
+            "{bad_name}"
         );
         let unreached = help("io: Connection refused");
         assert!(

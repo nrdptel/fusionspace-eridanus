@@ -964,7 +964,7 @@ fn read_part(
                     WarningKind::Implausible,
                     format!(
                         "its inside diameter, {} m, is not less than its outside diameter, {} \
-                         m, so its wall is {} m; read as written, as OpenRocket reads it",
+                         m, so its wall is {} m. It is read as written, as OpenRocket reads it",
                         tube.inner_diameter_m,
                         tube.outer_diameter_m,
                         tube.thickness_m()

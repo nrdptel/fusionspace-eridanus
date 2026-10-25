@@ -335,6 +335,16 @@ regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
 
+The design commands' messages are held too: what `hpr sim`, `mc`, `convert` and `motors list`
+and `show` print. The source doesn't say which string ends up in a message, so the check reads a census
+of `hpr-cli` and the nine crates the design commands use: every `#[error]` text and every other
+string that reads as prose, less tests, markup and the data commands' files. Those files, and the
+network crate's, come with the data commands; `hpr sim` prints some of their messages when it
+fetches a motor. Each crate is one held reference page. A
+placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one
+can pass. `cargo xtask voice --long --messages` lists each long sentence with its file and line, and
+`--messages` the whole census; the [voice report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md) counts what it read.
+
 On the other pages the check reads, such as the changelog and the vision, readability is
 measured, not used to fail a build. The counts show where to look, and a person decides what to
 change.

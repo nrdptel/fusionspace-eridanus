@@ -294,6 +294,19 @@ fn motors_list_is_the_catalog() {
         "motors-list.schema.json",
     );
     assert!(none["motors"].as_array().unwrap().is_empty());
+    // As text, a filter that matches nothing says so, with the catalog's span, on standard error.
+    let output = hpr(&["motors", "list", "--class", "Z"]);
+    assert_eq!(output.status.code(), Some(0));
+    let said = text(&output.stderr);
+    assert!(
+        said.starts_with(
+            "note: no motor in the bundled catalog matches every filter given. Its \
+             motors run from class "
+        ) && said.contains(" mm across\nhelp: drop a filter or change it"),
+        "{said}"
+    );
+    let listed = text_ok(&["motors", "list", "--class", "J"]);
+    assert!(!listed.contains("matches every filter"), "{listed}");
 
     let table = text_ok(&["motors", "list", "--class", "J"]);
     assert!(table.starts_with(&format!("{expected} motors from ThrustCurve.org")));
@@ -985,7 +998,7 @@ fn a_booster_dropped_at_its_first_burnout_names_what_still_burns() {
     let text = streams(&["sim", path.to_str().unwrap()]);
     let note = format!(
         "note: part 1 drops at {:.3} s with `F15` still burning, as OpenRocket drops a stage's \
-         other motors at its first burnout: its flight as a point leaves out the {left_n_s:.3} N·s \
+         other motors at its first burnout. Its flight as a point leaves out the {left_n_s:.3} N·s \
          they had left, of {:.3} N·s in all",
         staging.time_s,
         curve.total_impulse_ns()
@@ -1254,7 +1267,7 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     assert!(!message.contains("recovery is not flown"), "{message}");
     assert!(
         message.ends_with(
-            "set one of them to open at the lower stage's separation, with no delay, for HPR Sim to \
+            "Set one of them to open at the lower stage's separation, with no delay, for HPR Sim to \
              fly it"
         ),
         "{message}"
@@ -1814,7 +1827,7 @@ fn sim_refuses_what_it_cant_fly() {
         assert!(text(&output.stderr).contains(reason));
     };
     // The file's own motor has no curve in the bundled catalog.
-    refused(&["sim", &probe], "no thrust curve for H128W");
+    refused(&["sim", &probe], "No thrust curve for H128W");
     refused(&["sim", &probe], "give a motor with --motor");
     refused(
         &["sim", &probe, "--config", "nope"],
@@ -1917,7 +1930,7 @@ fn sim_refuses_what_it_cant_fly() {
     let reduced = folder.path().join("reduced.ork");
     std::fs::write(&reduced, boosters).unwrap();
     let reduced = reduced.to_string_lossy().into_owned();
-    refused(&["sim", &reduced], "no thrust curve for H128W");
+    refused(&["sim", &reduced], "No thrust curve for H128W");
     refused(
         &["sim", &reduced, "--motor", "H54"],
         "not read exactly as written",
@@ -1931,7 +1944,7 @@ fn sim_refuses_what_it_cant_fly() {
             hpr(&["convert", &reduced, &converted]).status.code(),
             Some(0)
         );
-        refused(&["sim", &converted], "no thrust curve for H128W");
+        refused(&["sim", &converted], "No thrust curve for H128W");
         refused(
             &["sim", &converted, "--motor", "H54"],
             "the airframe was not read exactly as written: a parallel stage with no nose cone, \
@@ -2378,13 +2391,13 @@ fn a_digest_the_table_holds_asks_for_openrockets_file() {
     let notes_of_openrockets = notes(cache_with(&wanted.clone().preferring(openrocket)).path());
     assert!(
         notes_of_openrockets.contains(&format!("file {openrocket}"))
-            && notes_of_openrockets.contains("the file whose curve is the one OpenRocket flies"),
+            && notes_of_openrockets.contains("the one OpenRocket flies for the curve digest"),
         "{notes_of_openrockets}"
     );
     let notes_of_rasp = notes(cache_with(&wanted).path());
     assert!(
         notes_of_rasp.contains("file f000000000000000000000a3")
-            && notes_of_rasp.contains("it may not be the curve OpenRocket flies"),
+            && notes_of_rasp.contains("so it may not be the curve OpenRocket flies"),
         "{notes_of_rasp}"
     );
     let output = hpr(&["sim", &path]);
@@ -2520,7 +2533,7 @@ fn sim_motor_refusals_and_counts() {
     assert!(message.contains("switches a stage off"), "{message}");
     let document = json_error(&["sim", &off], 1, "input");
     let message = document["error"]["message"].as_str().unwrap();
-    assert!(message.contains("nor can it with --motor"), "{message}");
+    assert!(message.contains("Nor can it fly with --motor"), "{message}");
 
     let rse = std::fs::read_to_string(curve_file("curves/5f923edb1bca5800041716ab.rse")).unwrap();
     let at = rse.find("Type=\"").unwrap() + "Type=\"".len();
@@ -2662,7 +2675,7 @@ fn sim_refuses_a_motor_it_cant_place() {
         )
     });
     let got = message(&["sim", &off]);
-    assert!(got.contains("nor can it with --motor"), "{got}");
+    assert!(got.contains("Nor can it fly with --motor"), "{got}");
     assert!(got.contains("switches a stage off"), "{got}");
     let got = message(&["sim", &off, "--motor", "H54"]);
     assert!(got.contains("switches a stage off"), "{got}");
@@ -3732,7 +3745,7 @@ fn convert_refuses_what_it_cant_write() {
     std::fs::copy(curve_file(ENG_CURVE), &eng).unwrap();
     refused(
         &["convert", &eng, &path("out.txt")],
-        "writes a .eng or a .rse file",
+        "writes a .eng or .rse file for motors",
     );
     refused(
         &["convert", &eng, &eng],
@@ -6037,12 +6050,14 @@ fn launch_options_are_refused_by_name_and_unit() {
         ("--latitude", "nan", "from -90 to 90"),
         ("--longitude", "inf", "from -180 to 180"),
         ("--longitude", "180.5", "from -180 to 180"),
-        ("--elevation", "nan", "number of meters"),
+        ("--elevation", "nan", "a number, in meters"),
         ("--rail-length", "0", "greater than 0"),
+        ("--rail-length", "-1", "greater than 0"),
         ("--inclination", "0", "more than 0 and at most 90"),
         ("--inclination", "90.5", "more than 0 and at most 90"),
         ("--heading", "inf", "clockwise from true north"),
         ("--wind", "inf", "at least 0"),
+        ("--wind", "-3", "at least 0"),
         ("--wind-from", "nan", "clockwise from north"),
     ] {
         let mut args = vec!["sim", probe.as_str(), "--motor", "H54", flag, value];

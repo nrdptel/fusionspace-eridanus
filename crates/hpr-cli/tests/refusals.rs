@@ -94,14 +94,30 @@ fn cases(folder: &Path) -> Vec<Case> {
             ],
             "without --offline",
         ),
+        // A motor file given where the design goes.
+        case(&["sim", &bad_eng], "is a motor file: give it with --motor"),
+        // A design neither its own motors nor --motor can fly: the file must change.
+        case(
+            &[
+                "sim",
+                &repo("validation/fixtures/ork/loft-demo/demo-quirks.ork"),
+                "--motor",
+                "G84",
+                "--offline",
+            ],
+            "neither the file's motors nor --motor can fly it as it is",
+        ),
         // A run asked for no flights.
         case(
             &["mc", &guide, "--runs", "0"],
             "give --runs a whole number from 1 to 100000",
         ),
+        case(&["mc", &guide, "--mass-sd=-1"], "give --mass-sd 0 or more"),
+        // A negative number typed after a space is the option's value, refused by its own rule
+        // rather than read as an option.
         case(
-            &["mc", &guide, "--mass-sd=-1"],
-            "give --mass-sd a number of 0 or more",
+            &["mc", &guide, "--mass-sd", "-1"],
+            "give --mass-sd 0 or more",
         ),
         // An export named for a format it isn't.
         case(

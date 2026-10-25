@@ -59,8 +59,8 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let target = MotorFile::of(output).ok_or_else(|| {
         Failure::helped(
             format!(
-                "{output}: hpr convert writes a .eng or a .rse file for motors, or a .ork, .hpr \
-                 or .hprz file for a design, named by its extension"
+                "{output}: hpr convert writes a .eng or .rse file for motors, or a .ork, .hpr \
+                 or .hprz file for a design. It names the type by the extension"
             ),
             "end the output's name in .eng or .rse for motors, or .ork, .hpr or .hprz for a \
              design",

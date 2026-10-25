@@ -1051,8 +1051,8 @@ fn sizes_agree(
             at,
             WarningKind::Unusual,
             format!(
-                "{} is {} by {} mm in the design and {diameter_mm} by {length_mm} mm in {source}; \
-                 the design's size places it, and the curve's gives its mass",
+                "{} is {} by {} mm in the design and {diameter_mm} by {length_mm} mm in {source}. \
+                 The design's size places it, and the curve's gives its mass",
                 motor.designation,
                 motor.diameter_m.map_or(f64::NAN, |m| m * 1e3),
                 motor.length_m.map_or(f64::NAN, |m| m * 1e3),

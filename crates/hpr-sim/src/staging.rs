@@ -1114,7 +1114,7 @@ mod tests {
         .unwrap_err();
         assert!(
             matches!(error, SimError::Domain { what, .. }
-                if what.contains("leaves nothing ahead of it to burn")),
+                if what.contains("leaving nothing ahead to burn")),
             "{error}"
         );
         // The second separation's trigger comes before the first's: the middle can't drop while
@@ -1350,7 +1350,7 @@ mod tests {
         let error = sim.run(&mut ()).expect_err("a booster with nothing open");
         let nothing_open = |error: &SimError| {
             matches!(error, SimError::Domain { what, value }
-                if what.contains("booster falls") && (value - (burnout_s + 0.5)).abs() < 1e-12)
+                if what.contains("booster has no airframe drag") && (value - (burnout_s + 0.5)).abs() < 1e-12)
         };
         assert!(nothing_open(&error), "{error:?}");
         // Nor one that opens after the split: any lag leaves a coast with nothing open.
