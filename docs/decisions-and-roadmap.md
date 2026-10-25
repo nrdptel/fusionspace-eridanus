@@ -320,6 +320,7 @@ until someone rewrites it in plainer words.
 | [ADR-289: The 2026-10-24 review: the RocketPy speed and apogee gates tightened][adr-289] | In the RocketPy comparisons flown on the same inputs, the burnout, largest, rail-exit and landing speeds agree within 0.056% and the apogees of the six flights with no written model difference within 0.113%, while RocketPy's own solver moves them by at most 0.0032% and 0.00064%; a 3% gate was 53 times the largest speed difference, so they become 0.2% and 0.5%, and the planning review places four new ideas. |  |
 | [ADR-290: The control abort's 30° measured from the launch elevation, and TP-1353's aileron points to Mach 2.96][adr-290] | The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as the IREC student competition's rule §7.3.1 words it, not 30° from vertical. [M6.5](#m6-5)'s supersonic tab check compares against NASA TP-1353's tail-fin ailerons from Mach 1.6 to 2.96, the range of the report's Figure 18 points. |  |
 | [ADR-291: The bench's chamber band from Fetter's seven printed peaks][adr-291] | The ground-test bench's ([M13.7](#m13-7)) seven 0.5 g black-powder shots in an empty chamber must give a mean peak from 23.68 to 33.85 psi (28.76 ± 5.08), the band from the seven peaks in Fetter's 2025 ejection-testing paper (Fig. 7-5) and their sample deviation; a correct logger lands inside about 93% of the time. The figure's printed mean and deviation, 28.49 and 4.04 psi, don't match those peaks. The band is fixed, so a logger whose shots scatter more doesn't get an easier test. |  |
+| [ADR-292: The program's words in four increments, the help first][adr-292] | [M0.14d](#m0-14d) covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 3,300 words, but the messages are about 270 error types and over a hundred warning sites in 15 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held. |  |
 
 ## The roadmap
 
@@ -482,6 +483,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c8"></a>[M0.14c8][done-0] | The file formats | done |
 | <a id="m0-14c9"></a>[M0.14c9][done-0] | Flight logs, and every page held | done |
 | <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
+| <a id="m0-14d1"></a>[M0.14d1][phase-0] | The help | not yet done |
+| <a id="m0-14d2"></a>[M0.14d2][phase-0] | What the design commands say | not yet done |
+| <a id="m0-14d3"></a>[M0.14d3][phase-0] | What the data commands say | not yet done |
+| <a id="m0-14d4"></a>[M0.14d4][phase-0] | The Python package and the crates' front pages | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1212,6 +1217,7 @@ is the milestone that added or will add that test.
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-290]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0290-the-control-abort-attitude-from-the-launch-elevation.md
 [adr-291]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0291-the-chamber-test-from-fetters-printed-peaks.md
+[adr-292]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

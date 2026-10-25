@@ -139,9 +139,19 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     guides' landing pages, fusionspace.co, the design repo's README, the profile README and
     ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
     Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged.
-  - [ ] **M0.14d The program's words.** *Done when:* `hpr`'s help, warnings and errors, the Python
-    docs and each crate's top-level docs pass `xtask voice` and an acceptance pass; a snapshot
-    pins each `--help`.
+  - [ ] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
+    when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
+    `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
+    - [ ] **M0.14d1 The help.** *Done when:* a test pins each command's `--help` in a snapshot;
+      `xtask voice` reads them as help and holds each to the voice limits in CI; acceptance pass.
+    - [ ] **M0.14d2 What the design commands say.** *Done when:* `xtask voice` reads a census of
+      the errors, warnings and notes of `hpr-cli` and the nine crates ADR-292 §1 lists, and holds
+      them in CI; acceptance pass.
+    - [ ] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr-net`,
+      `hpr-flightdata`, `hpr-analysis` and `hpr-forensics`; acceptance pass.
+    - [ ] **M0.14d4 The Python package and the crates' front pages.** *Done when:* the Python
+      package's README and docstrings, `hpr-py`'s messages and each crate's `//!` docs pass `xtask
+      voice`, held in CI; acceptance pass; and M0.14d's own *done when*.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 
