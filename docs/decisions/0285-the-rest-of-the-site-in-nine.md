@@ -258,6 +258,37 @@ the pages, the way a flyer would:
    loggers it copies. Say what each noise term is and its source, follow *A worked example* to its
    numbers, and say what the flights were checked against and what they leave out.
 
+**M0.14c8's tasks,** done the same way, on the PR's final commit:
+
+1. From the `.hpr` format's *The file*, say what a document holds, what its names are and what the
+   `.hprz` container adds. From *Reading and writing one*, convert a design as the page says, and
+   say what a reader does with a newer version and with a key it doesn't know.
+2. From *The schema* and *TypeScript and Python*, run the page's TypeScript example as it says and
+   get its output, and say how the readers in other languages are checked. From *Checked on real
+   designs* and *How it compares with other design formats*, say what the format was checked on,
+   with the page's numbers, and what isn't there yet.
+3. From the `.ork` page's opening and *Reading the file*, say which containers and versions it
+   reads, what a warning means, and how the reader was checked against real files, with the
+   page's counts.
+4. From *The rocket's parts*, run *Opening a design, in full*'s program as the page says. Say how
+   clusters, pods and parallel stages are read, what is left out and why, and how the parts
+   compare with the answers OpenRocket cached, with the page's numbers.
+5. From *Motors and recovery*, say where a thrust curve comes from, how delays and ignition are
+   read, which configurations a rocket flies and how many `hpr sim` flies, and when parachutes open
+   and stages separate.
+6. From *What OpenRocket last did*, say what a stored simulation's numbers and summary words mean,
+   and how the simulator's flights compare with OpenRocket's on the example designs and on the
+   private designs, with the page's numbers. From *Writing the file back*, say what is kept, how a
+   written file is checked in OpenRocket, and what isn't read yet.
+7. From the `.orc` page, read a catalog as *From a program* says and get the page's output. Say
+   what a file holds and leaves unsaid, where the two readers differ, and how the reader was
+   checked against OpenRocket.
+8. From the `.eng` and `.rse` pages, say what each file holds, what each reader accepts with a
+   warning, what each writer guarantees, and how each was checked against real files, with the
+   pages' counts. From ERA5 weather files, read a file by *Reading it*'s example, and say how the
+   reading compares with RocketPy's and what it leaves out. From the `.pf2` page, say what the
+   layout holds and what is refused.
+
 **Consequences.**
 
 - M0.14c takes nine sessions or more instead of one, and M0.9f waits behind it, as the queue has

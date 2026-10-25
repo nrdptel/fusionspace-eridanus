@@ -7,8 +7,8 @@ wind over the launch site.
 1940, from the European Centre for Medium-Range Weather Forecasts (ECMWF). It is a
 [reanalysis](../glossary.md#reanalysis): a weather model run over the past and held to the
 observations of the time. HPR Sim reads ERA5's pressure-level files to fly a rocket in the weather
-of a real day: the temperature, pressure and wind over the launch site, from the ground up to a few
-kilometers or more.
+of a real day. That means the temperature, pressure and wind over the launch site, from the ground
+up to a few kilometers or more.
 
 > **How far to trust it.** A reanalysis, read from a file. HPR Sim reads these files the way RocketPy does, to 12 digits, on two real
 > launch days (below). What it does with the numbers differs from RocketPy in four places. Two are
@@ -16,7 +16,7 @@ kilometers or more.
 > measured yet: the pressure between levels, and the air above the file's top level. Seven
 > real flights have been flown in ERA5 weather and compared with their logs
 > ([real flights](../accuracy.md#real-flights), milestone
-> [M2.3b](../decisions-and-roadmap.md#m2-3b)): their apogees miss by 6.04% on average, outside the
+> [M2.3b](../decisions-and-roadmap.md#m2-3b)). Their apogees miss by 6.04% on average, outside the
 > 5% target ([evidence row G24](../evidence.md#g24)). Humidity is
 > not read yet, so the air is taken as dry.
 
@@ -32,8 +32,8 @@ Where to get a file, how to convert one from today's Data Store, and how to fly 
 ### Getting a file
 
 ERA5 comes from the Copernicus Climate Data Store. An account is free. The data's license is
-CC BY 4.0: you may use and share it if you credit it ("Contains modified Copernicus Climate Change
-Service information"), and you accept it once on the dataset's page before the first download.
+CC BY 4.0. You may use and share it if you credit it ("Contains modified Copernicus Climate Change
+Service information"). You accept it once on the dataset's page before the first download.
 
 1. Open the dataset
    [*ERA5 hourly data on pressure levels from 1940 to present*](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-pressure-levels)
@@ -45,12 +45,12 @@ Service information"), and you accept it once on the dataset's page before the f
    continues its levels beneath high ground), so the pad lies between two levels. Below the
    lowest level the simulator continues the standard atmosphere and marks the air as extrapolated.
 4. Choose the day and every hour around the launch, in UTC, not every third or sixth hour. The
-   simulator blends the two file times on either side of the launch however far apart they are,
-   so a file with gaps blends weather hours apart.
+   simulator blends the two file times on either side of the launch, however far apart they are.
+   So a file with gaps blends weather hours apart.
 5. Choose a small area around the site, at least a quarter of a degree beyond it on each side.
    ERA5's grid points are a quarter of a degree apart, and the simulator needs the four around
    the site. It doesn't join a whole-Earth grid's last longitude to its first, so a site between
-   them is refused: on a grid from 0° to 359.75° east, the last quarter degree west of 0°.
+   them is refused. On a grid from 0° to 359.75° east, that is the last quarter degree west of 0°.
 6. Choose the [NetCDF](../glossary.md#netcdf) format, then convert the file as below. The simulator does not
    read GRIB, the other format offered (the weather services' own binary format).
 
@@ -70,21 +70,22 @@ The two dropped variables are labels the classic format can't hold: a 64-bit who
 text value. Older files, like most of the ones RocketPy ships, are classic already. If the simulator
 can't read a file, its error says which kind the file is and gives this conversion.
 
-This conversion is checked. The test takes NDRT 2020's launch day, downloaded from the Data Store
-in 2021 as a classic file and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
-University of Notre Dame's rocket for NASA's 2020 Student Launch. The two files agree at every
-level to 0.23 m²/s² of [geopotential](../glossary.md#geopotential-height) (about 2 cm (0.79 in) of height), 0.35 thousandths of a kelvin and
-0.11 mm/s of wind. The older file stores its values as 16-bit whole numbers and the newer one
-carries the rounding of ECMWF's own archive, so the gaps are consistent with each file's
-rounding. The test pins these largest gaps.
+This conversion is checked. The test takes NDRT 2020's launch day. It was downloaded from the Data
+Store in 2021 as a classic file, and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
+University of Notre Dame's rocket for NASA's 2020 Student Launch. At every level, the two files'
+[geopotential](../glossary.md#geopotential-height) agrees to 0.23 m²/s² (about 2 cm (0.79 in) of
+height). At every level too, their temperature agrees to 0.35 thousandths of a kelvin, and their
+wind to 0.11 mm/s. The older
+file stores its values as 16-bit whole numbers. The newer one carries the rounding of ECMWF's own
+archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
 
 ### Reading it
 
 The example program
 [`era5_weather`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/era5_weather.rs)
 reads a small cut of the file RocketPy ships for Bella Lui's flight. The Swiss student team EPFL
-Rocket Team flew Bella Lui at Kaltbrunn on 22 February 2020, from a pad 407 m (1,335 ft) above sea level,
-and the file covers the pad at 13:00 UTC. The program prints the levels, then the air at the pad
+Rocket Team flew Bella Lui at Kaltbrunn on 22 February 2020. The pad was 407 m (1,335 ft) above
+sea level. The file covers the pad at 13:00 UTC. The program prints the levels, then the air at the pad
 and 500 m (1,640 ft) above it next to the standard atmosphere. Last, it flies the rocket in both, without its
 parachute. Run it from a copy of the repository with `cargo run --example era5_weather -p fusionspace-hpr`.
 On the command line, [`hpr weather era5`](../cli.md#hpr-weather) writes the same levels as a
@@ -120,35 +121,40 @@ This design flies a stand-in motor; Bella Lui's real flight, on its own K828FJ, 
 compared on the accuracy page.
 ```
 
-The 1000 hPa level lies at 240 m (787 ft), below the pad: ERA5 continues its levels beneath the ground,
+The 1000 hPa level lies at 240 m (787 ft), below the pad. ERA5 continues its levels beneath the ground,
 so the pad sits between two of them. That day was warm for February, and the pressure was high:
 the air at the pad was 1.2% denser than the standard's. The wind was light at the pad and grew to
 10 m/s (33 ft/s) by 2 km (1.2 mi).
 
 **Reading your own file.** The simulator reads ERA5 from Rust only for now; there is no
-command-line tool yet. Copy the example and change three things: read your file from disk
-(`let bytes = std::fs::read("my-file.nc")?;` then `NetCdf::parse(&bytes)`) instead of the bundled
-one, and give your site's latitude, longitude and height and your launch time in UTC (the printed
-heading has the date written in, so change it too). The copy still flies the example's rocket,
-Bella Lui; [Your own rocket](../your-own-rocket.md) shows how to describe yours. The steps are the example's own:
-`NetCdf::parse` on the file's bytes, `Era5Profile::read` with the site and time, then
+command-line tool yet. Copy the example and change three things:
+
+- Read your file from disk (`let bytes = std::fs::read("my-file.nc")?;` then
+  `NetCdf::parse(&bytes)`) instead of the bundled one.
+- Give your site's latitude, longitude and height.
+- Give your launch time in UTC. The printed heading has the date written in, so change it too.
+
+The copy still flies the example's rocket, Bella Lui.
+[Your own rocket](../your-own-rocket.md) shows how to describe yours. The steps are the example's
+own: `NetCdf::parse` on the file's bytes, then `Era5Profile::read` with the site and time. Then
 `Era5Profile::sounding` gives the atmosphere and the wind for the flight's `Environment`.
 
 ## How the simulator reads it
 
 At each pressure level the file gives the [geopotential](../glossary.md#geopotential-height), the
-temperature and the wind's east and north parts (`u` and `v`) at every grid point and hour.
+temperature and the wind's east and north parts (`u` and `v`). It gives them at every grid point
+and hour.
 
-- **At the site,** each value is interpolated between the four grid points around it, first along
-  one side and then the other ("bilinear" interpolation, in degrees). This is how RocketPy 1.13
-  does it, and HPR Sim follows its formula (RocketPy is MIT-licensed).
-- **At the launch time,** HPR Sim weighs the two hours on either side by how close each is. At 13:12
+- At the site, each value is interpolated between the four grid points around it. That is
+  "bilinear" interpolation, in degrees: first along one side, then the other. This is how RocketPy
+  1.13 does it, and HPR Sim follows its formula (RocketPy is MIT-licensed).
+- At the launch time, HPR Sim weighs the two hours on either side by how close each is. At 13:12
   it takes 80% of 13:00 and 20% of 14:00; on the hour it takes that hour alone.
-- **Heights.** Geopotential divided by $g_0 = 9.80665\,\mathrm{m/s^2}$ is geopotential height. HPR Sim turns
+- For heights, geopotential divided by $g_0 = 9.80665\,\mathrm{m/s^2}$ is geopotential height. HPR Sim turns
   that into height above sea level with the World Meteorological Organization's formula for the
   site's latitude, as for any [sounding](../physics/atmosphere.md#sounding-and-forecast-profiles).
   ERA5 itself stores no height in meters; the next section compares the two ways to get one.
-- **Between and above the levels,** the atmosphere is the
+- Between and above the levels, the atmosphere is the
   [sounding profile](../physics/atmosphere.md#sounding-and-forecast-profiles):
   - Pressure falls with height as the weight of the air above requires ("hydrostatic").
     RocketPy draws a straight line in height between the levels' pressures instead.
@@ -173,14 +179,14 @@ Both height readings are approximations, and neither is exact. Geopotential meas
 lifting air against gravity, so turning it into meters needs gravity on the way up. ECMWF's
 knowledge base gives $h = RZ/(R - Z)$, with $R$ the Earth's radius and $Z$ the geopotential
 height, and says it neglects gravity's change across the Earth. RocketPy uses it. HPR Sim uses
-the World Meteorological Organization's formula, which takes gravity at the site's latitude: at sea
+the World Meteorological Organization's formula, which takes gravity at the site's latitude. At sea
 level it is 9.780 m/s² at the equator and 9.832 m/s² at the poles.
 
 How far off each is depends on how ERA5's model builds the geopotential of its own ground, which
 ECMWF doesn't say. Taking it as $g_0$ times the ground's height, HPR Sim's reading is off by a fixed
-amount at every height and ECMWF's by an amount that grows with height above the ground. With
-RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the Earth's
-center at the site), neither is always the smaller:
+amount at every height. Taken that way, ECMWF's is off by an amount that grows with height above the
+ground. With RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the
+Earth's center at the site), neither is always the smaller:
 
 | model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km (1.9 mi) above it |
 |---|--:|--:|--:|
@@ -195,14 +201,14 @@ derivation is in the `hpr_io::era5` module's documentation
 ### The netCDF reader
 
 netCDF is a file format for gridded data, widely used for weather and climate. The simulator reads
-the two classic kinds from Unidata's published specification: the original format and the 64-bit
-offset format, whose files begin with the bytes `CDF` and then 1 or 2.
+the two classic kinds from Unidata's published specification. They are the original format and the
+64-bit offset format. Their files begin with the bytes `CDF` and then 1 or 2.
 
-- **Numbers.** It reads every value exactly as stored, all six types, and the tests check each
+- It reads every value exactly as stored, all six types, and the tests check each
   one against Unidata's own library on files that library wrote.
-- **Packed values.** Many files store small whole numbers plus a scale and an offset. The
+- Many files store small whole numbers plus a scale and an offset. The
   simulator unpacks them as the netCDF Users Guide says.
-- **Missing values.** A value can mean "missing": the fill value, or a listed missing value. Where
+- A value can mean "missing": the fill value, or a listed missing value. Where
   the Guide and the netCDF4 Python library disagree about which values are missing, the
   simulator follows the Guide:
 
@@ -213,12 +219,12 @@ offset format, whose files begin with the bytes `CDF` and then 1 or 2.
 
 The first row matters for ERA5. Many ERA5 files store each value as a 16-bit whole number with a
 fill of −32767, and a few values sit at −32768. Two of RocketPy's other ERA5 files (both netCDF-4)
-have them: 102 of 5,241,600 geopotential values and 4 temperatures in one, 298 of 5,184,000
-geopotential values and 2 temperatures in the other. HPR Sim reads those as missing, where
-netCDF4-python returns a number, a temperature of 198.66 K for example, among neighbors near 301 K.
-Such values look like damaged data, so reading them as missing is the safer choice.
-`Era5Profile::read` then refuses the whole reading, naming the level, rather than print a wrong
-number. None of the files the tests read has such values.
+have them. One has 102 of 5,241,600 geopotential values and 4 temperatures. The other has 298 of
+5,184,000 geopotential values and 2 temperatures. HPR Sim reads those as missing, where
+netCDF4-python returns a number (198.66 K, for example, among neighbors near 301 K). Such
+values look like damaged data, so reading them as missing is the safer choice. `Era5Profile::read`
+then refuses the whole reading, naming the level, rather than print a wrong number. None of the
+files the tests read has such values.
 
 netCDF-4 files, and the rarer 64-bit data format (files beginning `CDF` and 5), are refused with
 the conversion above.
@@ -231,11 +237,12 @@ the conversion above.
   read.
 - **GRIB and netCDF-4.** Convert them first, as above.
 - **The longitude seam.** On a whole-Earth grid, a site between the grid's last longitude and its
-  first is refused (on a 0° to 359.75° grid, the last quarter degree west of 0°). Download a
+  first is refused. On a 0° to 359.75° grid, that is the last quarter degree west of 0°. Download a
   regional area around the site instead.
 - **Geoid.** ERA5's heights are above sea level. The simulator has no geoid model, so a flight takes
-  them as heights above the WGS 84 ellipsoid unless you give the site's geoid height, the height of
-  sea level above the ellipsoid, which is up to about 100 m (328 ft, [Geodesy](../physics/geodesy.md)).
+  them as heights above the WGS 84 ellipsoid. The exception is when you give the site's geoid
+  height. That is the height of sea level above the ellipsoid, up to about 100 m (328 ft,
+  [Geodesy](../physics/geodesy.md)).
 
 ## Sources and tests
 
@@ -244,7 +251,7 @@ The documents the reader follows, and the tests that hold it to them.
 ### Sources
 
 - **[U]** Unidata, *NetCDF File Format Specifications*, "The Classic Format" and "The 64-bit Offset
-  Format", and the netCDF Users Guide's "Attribute Conventions", netCDF-C documentation, captured
+  Format", and the netCDF Users Guide's "Attribute Conventions", netCDF-C documentation. Captured
   2026-09-26 and pinned as `unidata-netcdf-file-format` and `unidata-netcdf-attribute-conventions`
   in the [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
 - **[H]** H. Hersbach et al., "The ERA5 global reanalysis", *Quarterly Journal of the Royal
@@ -259,7 +266,7 @@ The documents the reader follows, and the tests that hold it to them.
 ### Tests that pin this
 
 - `hpr_io::netcdf::tests::every_file_reads_as_the_unidata_library_reads_it`: every type, record
-  variables, the padding cases and the packing conventions, on 12 files the Unidata library wrote
+  variables, the padding cases and the packing conventions. It runs on 12 files the Unidata library wrote
   (`validation/oracles/netcdf/write_cases.py`), with each difference from netCDF4-python listed.
 - `hpr_io::netcdf::tests::each_break_of_the_grammar_is_refused_for_its_reason`,
   `variables_that_claim_more_bytes_than_the_file_holds_are_refused` and

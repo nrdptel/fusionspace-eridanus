@@ -845,7 +845,7 @@ left to burn, it is the payload's. In each, it is the branch OpenRocket's record
   On the dual-deploy flights it is also the drogue's speed as the main opens, within 0.07% on 5 of 6.
 - The *Base drag hack*'s three flights have no named cause either, but read high in apogee
   ([a part set to no drag](../format/ork.md#a-part-set-to-no-drag)). They land 0.11% to 0.12%
-  faster than OpenRocket, and their flight times are +1.84% to +7.23% off; the last misses its
+  faster than OpenRocket, and their flight times are +1.72% to +7.07% off; the last misses its
   target.
 - 2 flights with a named cause for an apogee gap. One is put down to HPR Sim's tube-fin drag.
   In the other, `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, the sustainer turns

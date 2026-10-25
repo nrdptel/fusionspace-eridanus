@@ -3,9 +3,9 @@
 See how HPR Sim reads and writes RASP `.eng` motor files, the plain-text thrust curves
 ThrustCurve.org serves, including the quirks of real files.
 
-A `.eng` file is a motor's [thrust curve](../glossary.md#thrust-curve) in plain text: a one-line
-header with the motor's name, size, delays and masses, then one time and thrust per line. The
-format is named after RASP, the rocket simulation program it comes from. It is the more common of
+A `.eng` file is a motor's [thrust curve](../glossary.md#thrust-curve) in plain text. It has a
+one-line header with the motor's name, size, delays and masses, then one time and thrust per line.
+The format is named after RASP, the rocket simulation program it comes from. It is the more common of
 the two formats [ThrustCurve.org](../glossary.md#thrustcurveorg) serves (the other is
 [RockSim `.rse`](rse.md)).
 
@@ -13,15 +13,15 @@ the two formats [ThrustCurve.org](../glossary.md#thrustcurveorg) serves (the oth
 [A motor from a file](../physics/motor.md#a-motor-from-a-file) on the Solid motors page. It reads a
 file, builds the motor and puts it in a rocket, with a program that CI runs.
 
-This page is the reference for HPR Sim's reader and writer: what the published spec says, what
-real files do, and what it does with each. All 889 RASP files ThrustCurve.org held on 2026-09-17
+This page is the reference for HPR Sim's reader and writer. It gives what the published spec says,
+what real files do, and what HPR Sim does with each. All 889 RASP files ThrustCurve.org held on 2026-09-17
 read, and write back with every value unchanged
 ([Checked against real files](#checked-against-real-files)).
 
 > **How far to trust it.** Copied values: the reader takes the curve, the masses and the delays
 > from the file as written, and estimates nothing. On 2026-09-17, all 889 RASP files
 > ThrustCurve.org held and the 721 entries of its manufacturer sets read, and write back with
-> every value unchanged. A curve is only as right as its file, though: when a motor's numbers
+> every value unchanged. A curve is only as right as its file, though. When a motor's numbers
 > matter, check them against the maker's published data and the motor's certification.
 
 Code: `hpr_motor::eng` ([API reference](../api/hpr_motor/eng/index.html)), written for the
@@ -32,13 +32,13 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
 
 - **[R]** ThrustCurve.org, "RASP File Format", <https://www.thrustcurve.org/info/raspformat.html>,
   captured 2026-09-17 and pinned as `thrustcurve-rasp-format` (sha256 `69573e9f…`) in the
-  [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml),
-  which records each source's address and checksum. Sections are cited as [R Header], [R Data],
+  [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
+  The lock file records each source's address and checksum. Sections are cited as [R Header], [R Data],
   [R Problems]. The page names the RASP C source as "the ultimate authority"; its license is not
   stated, so it was not consulted.
 - **Observed:** 734 entries in the ThrustCurve manufacturer file sets (12 `.eng` sets) and 13
-  single-motor API downloads, fetched 2026-09-17 into a local cache, `refs/samples/formats/`,
-  that is never committed. Counts below are over those entries.
+  single-motor API downloads. They were fetched 2026-09-17 into a local cache,
+  `refs/samples/formats/`, that is never committed. Counts below are over those entries.
 
 ## What the spec says
 
@@ -83,7 +83,8 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
 - "The final point must have a thrust of zero and it indicates the motor's burn time." A zero
   thrust anywhere else is rejected by ThrustCurve. (ThrustCurve's *metadata* uses the
   [burn time](../glossary.md#burn-time) of the [NFPA 1125](../glossary.md#nfpa-1125) 5% rule
-  instead; see [Loft lesson L39](../decisions-and-roadmap.md#l39), where Loft took the last point as the burn time.)
+  instead. See [Loft lesson L39](../decisions-and-roadmap.md#l39), where Loft took the last point
+  as the burn time.)
 - Points "must be in order of time". ThrustCurve rejects a point "before the previous point" and a
   first point at negative time. Equal times are not addressed.
 - RASP allowed at most 32 points, including the final zero; modern tools don't enforce this.
@@ -104,7 +105,7 @@ What real files do, and what the reader and writer do with each case.
 
 - **Whitespace:** tabs separate data fields in 4 of 12 sets. 52 headers use several spaces or
   column alignment; one header is indented. Trailing spaces are common. 8 of 25 files use CRLF
-  (Windows line endings, a carriage return then a line feed; other systems use LF alone);
+  (Windows line endings, a carriage return then a line feed; other systems use LF alone).
   13 of 13 single downloads lack a final newline. There is no BOM, no non-ASCII byte, no inline
   `;`, no blank or comment line inside the data, and no indented comment.
 - **Entries:** always separated by a comment; there are 470 lone `;` lines. A reader that stops
@@ -114,14 +115,15 @@ What real files do, and what the reader and writer do with each case.
   `AT/RCS`; `CTI`, `Ces`, `CSR`, `Pro38`). The name is often the full designation, not class plus
   thrust (`1266-J760-WT-19A`, `I216-CL(I)`, `O25,000-VM-P`, `1/2A3T`, `C6-0`).
 - **Numbers:** leading dot (`.0377`, 21 headers), trailing dot (`2415.`), leading zeros
-  (`068.8604`), padded decimals (`0.000`), binary float noise (`0.060700000000000004`, 72
-  headers), up to 15 significant digits. Diameters and lengths can be fractional (`114.3`). No
+  (`068.8604`) and padded decimals (`0.000`) all occur. So does binary float noise
+  (`0.060700000000000004`, 72 headers). Numbers have up to 15 significant digits. Diameters and lengths can be fractional (`114.3`). No
   exponents or signs were seen.
 - **Delays:** 574 dash lists, 143 `P`, 4 comma lists (`5,8,11`), 8 lists ending in `P`
   (`6-10-14-P`), 1 lowercase `p`, and 4 malformed (`4-7-10,`, `-`, `1-3--4-6-7-9-10`). 58 lists
   are descending (`14-12-10-8-6`). 27 contain `100` or `1000`. Checked against ThrustCurve search
-  metadata, `100`/`1000` mean plugged in 14 of 14 cases, and `0` means plugged in 120 of 149, against
-  the spec's "no delay" ([Loft lesson L37](../decisions-and-roadmap.md#l37): Loft read `100` and `1000` as seconds).
+  metadata, `100`/`1000` mean plugged in 14 of 14 cases. Against the same metadata, `0` means
+  plugged in 120 of 149, against the spec's "no delay". Loft read `100` and `1000` as seconds
+  ([Loft lesson L37](../decisions-and-roadmap.md#l37)).
 - **Curve:** 32 entries have an explicit first point at $t = 0$ with nonzero thrust. Loft's bundle
   also had an explicit (0, 0). 4 entries don't end at zero thrust. 4 have equal consecutive
   times (a vertical drop to zero, or rounded times). 69 have more than 32 points. None have
@@ -132,47 +134,48 @@ What real files do, and what the reader and writer do with each case.
 1. The reader takes text and strips a UTF-8 BOM. Decoding bytes into text is the caller's job:
    today, read the file into a string yourself, as with `std::fs::read_to_string`, which expects
    UTF-8. That job, and any fallback to Windows-1252 (an older Windows character set), is planned
-   for `hpr-io`, the crate for other programs' file formats, which doesn't do it yet. Lines split
+   for `hpr-io`, the crate for other programs' file formats. It doesn't do it yet. Lines split
    on LF, CRLF or a bare CR and are trimmed.
 2. A line whose first non-blank character is `;` is a comment. Fields split on runs of spaces
    and tabs.
-3. Each entry is read in stages (a state machine). Before the header, skip blanks and collect comments. The header is the
-   first other line. In the data, a 2-field numeric line is a point; skip blank lines; a comment
-   ends the data, and an entry that ends with no points is an error. A line with 7 or more fields
+3. Each entry is read in stages (a state machine). Before the header, skip blanks and collect
+   comments. The header is the first other line. In the data, a 2-field numeric line is a point
+   and blank lines are skipped. A comment ends the data. An entry that ends with no points is an
+   error. A line with 7 or more fields
    starts a new entry, with a warning about the missing separator. Anything else is an error, with
    its line number.
 4. The header needs 7 or more fields. With more than 7, join fields 7 onward with single spaces
    as the manufacturer, and warn. Dia and len must be finite and $> 0$, and the masses finite and
    $\ge 0$; warn if prop ≥ total. Keep file units (mm, kg) in the file model, in fields named for them
-   (`diameter_mm`). Convert to SI only when building the physical motor: mm → m → mm is not
-   bit-exact (`502.1 / 1000 * 1000 != 502.1`; with `* 1e-3` and `* 1e3`, 30 of 290 distinct
-   header lengths fail).
+   (`diameter_mm`). Convert to SI only when building the physical motor. The round trip mm → m → mm is not
+   bit-exact (`502.1 / 1000 * 1000 != 502.1`). With `* 1e-3` and `* 1e3`, 30 of 290 distinct
+   header lengths fail.
 5. Numbers: Rust `str::parse::<f64>` accepts `.5`, `5.`, `068.8`, `+1` and `1e3`, **but also
    `inf`, `infinity` and `NaN`**. Reject every non-finite value.
 6. Points are kept verbatim; no implicit origin is inserted into the file model. Errors: no points,
    negative time, time decreasing. Warnings, on the header's line: last thrust $\ne 0$, negative
    thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
-7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,`, drops empty pieces
-   (with a warning), maps `P`/`p` → plugged and `100`/`1000` → plugged, reads `0` as its own
-   "zero or plugged" setting with a warning (spec: no delay; files: usually plugged), and reads
+7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
+   with a warning. It maps `P`/`p` → plugged and `100`/`1000` → plugged. It reads `0` as its own
+   "zero or plugged" setting, with a warning (spec: no delay; files: usually plugged). It reads
    other pieces as seconds. A `0` never becomes an ejection at burnout without a decision. Physics
    should prefer catalog metadata for delays.
-8. An entry with an error is skipped, with the error as a warning, when other entries in the file
-   read; the reader resumes at the next comment line. With no entry read, the first error returns.
+8. When other entries in the file can be read, an entry with an error is skipped, with the error as a
+   warning. The reader resumes at the next comment line. With no entry read, the first error returns.
    Every warning carries a kind: skipped (an entry lost), dropped (a value ignored) or unusual
    (read as it stands).
 9. Comments: store the text after `;` verbatim, but drop comments that are empty after trimming.
    Comments between two entries belong to the next entry; comments after the last entry are file
-   trailer comments. **Policy:** a comment that names the simulator as the program that wrote the
-   file (`FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001`; see the writer policy)
-   is dropped when reading, because it says who wrote the file, not anything about the motor. So
-   is the line builds before release 0.1's rename wrote, the earlier name `hpr-sim` with that
-   designation or with `FS · SW · TOOL 005`, the designation builds wrote before FusionSpace named
-   its products after stars in October 2026
-   ([M10.1d7, the new designation](../decisions-and-roadmap.md#m10-1d7);
-   [ADR-198, project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)
-   §4), so a file they stamped writes back with one stamp, this build's. Like any comment, it
+   trailer comments. **Policy:** a comment that names the simulator as the file's writer is dropped
+   when reading. The reason is that it says who wrote the file, not anything about the motor. Such a
+   comment reads `FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001` (see the writer
+   policy). A comment written by builds from before release 0.1's rename is dropped too. It has
+   the earlier name `hpr-sim` with that designation or with `FS · SW · TOOL 005`. The second is the
+   designation builds wrote before October 2026, when FusionSpace named its products after stars
+   ([the new designation](../decisions-and-roadmap.md#m10-1d7);
+   [project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)
+   §4). So a file they stamped writes back with one stamp, this build's. Like any comment, it
    still ends the entry before it.
 
 Conversion to a physical curve (`EngEntry::thrust_curve`, not part of the file model): prepend
@@ -184,13 +187,13 @@ an error there.
 Round-trip stable: a file the simulator writes reads back to exactly the values it was written from.
 
 - **Policy:** the first line is a comment naming the program that wrote the file, its version and
-  its designation in the FusionSpace product system, as every file the simulator writes does:
+  its designation in the FusionSpace product system. Every file the simulator writes has this line:
   `; FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001`. The `·` is a middle dot, the file's
   only non-ASCII character unless its comments hold others; the file is UTF-8. A comment carried
-  over from the source that is itself such a line, from any version, is left out, and so is the
-  line builds before release 0.1's rename wrote under the earlier name, with either designation
-  (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`; rule 9 of the reader policy above), so
-  a file converted again holds one such line, not two. Whether other programs (RockSim,
+  over from the source that is itself such a line, from any version, is left out. So is the
+  line written under the earlier name by builds from before release 0.1's rename. It is left out with
+  either designation (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`; rule 9 of the reader
+  policy above). A file converted again then holds one such line, not two. Whether other programs (RockSim,
   OpenRocket, a flight computer's tools) accept the middle dot in a comment has not been checked.
 - Each entry: its comments as `;text`, then the header with single spaces, then one `   t F` line
   per point, then a lone `;`. Finally the trailer comments. LF endings, a final newline, UTF-8.
@@ -199,8 +202,8 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   spaces, since the reader joins extra fields that way. Comment text must be non-empty, on one
   line, and without trailing whitespace (the reader would trim it). Otherwise return an error,
   never a silent substitution.
-- Numbers use Rust `{}` (Display). It prints the shortest digits that parse back to the same bits,
-  never uses an exponent (older readers may not accept one), and writes `-0.0` as `-0`.
+- Numbers use Rust `{}` (Display). It prints the shortest digits that parse back to the same bits
+  and never uses an exponent (older readers may not accept one). It writes `-0.0` as `-0`.
 - Points are written as stored: no origin is added or removed. The writer rejects negative or
   decreasing times, the same rules as the reader.
 - Invariant (test it): whenever `write(parse(x))` succeeds, `parse(write(parse(x))) == parse(x)`,
@@ -212,18 +215,18 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 - Converting to and from `.rse` (`hpr_motor::convert`, `hpr convert`, since
   [M4.2c](../decisions-and-roadmap.md#m4-2c), the command-line conversion) is described with
   that format's [writer policy](rse.md#writer-policy-strict-round-trip-stable). From `.rse`, a
-  code or maker of several words joins them with `_`, as no real file has more than seven header
+  code or maker of several words joins them with `_`. That is because no real file has more than seven header
   fields and OpenRocket 24.12 refuses eight
   ([`motor_files.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py)
-  checks it), and `hpr convert` joins a maker read from a `.eng` file the same way. A leading
+  checks it). `hpr convert` joins a maker read from a `.eng` file the same way. A leading
   `(0, 0)` point is dropped when the next is after ignition, and the comment text becomes one
   comment per non-blank line.
 
 ## Checked against real files
 
 On 2026-09-17, all 889 RASP files in ThrustCurve.org's solid-motor survey
-([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md)) and
-the 721 entries of its manufacturer sets read, and
-write-parse-write reproduces every value bit for bit. The files are cached under `refs/samples/`
+([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md))
+and the 721 entries of its manufacturer sets read. For both, write-parse-write reproduces every value bit
+for bit. The files are cached under `refs/samples/`
 and never committed; the committed test covers the bundled curves.
 

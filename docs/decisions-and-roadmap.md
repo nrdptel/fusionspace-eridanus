@@ -479,7 +479,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c5"></a>[M0.14c5][done-0] | The rocket and its flight | done |
 | <a id="m0-14c6"></a>[M0.14c6][done-0] | Aerodynamics | done |
 | <a id="m0-14c7"></a>[M0.14c7][done-0] | Recovery, staging and readings | done |
-| <a id="m0-14c8"></a>[M0.14c8][phase-0] | The file formats | not yet done |
+| <a id="m0-14c8"></a>[M0.14c8][done-0] | The file formats | done |
 | <a id="m0-14c9"></a>[M0.14c9][phase-0] | Flight logs, and every page held | not yet done |
 | <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |

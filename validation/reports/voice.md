@@ -2,19 +2,19 @@
 
 `cargo xtask voice` writes this report from the pages. A test fails when the two disagree, so run it after editing a page. [The writing guide's voice section](../../docs/writing.md#voice) says what the pattern columns count and why, and sets the limits.
 
-Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 66 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
+Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target: the 73 pages already rewritten ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)).
 
-82 pages, 440240 words, 0 stock phrases. 71 pages are within every limit.
+82 pages, 441380 words, 0 stock phrases. 77 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
-| Bold-label items | 0.50 | 7 | 1.88, `docs/perf.md` |
-| Labels | 0.50 | 4 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 9 | 1.51, `docs/format/flight-logs.md` |
+| Bold-label items | 0.50 | 4 | 1.88, `docs/perf.md` |
+| Labels | 0.50 | 3 | 3.62, `docs/VISION.md` |
+| Sentences over 25 words | 0.50 | 4 | 1.51, `docs/format/flight-logs.md` |
 | Hedges | 1.00 | 0 | 0.26, `docs/checking-a-claim.md` |
 | Stacked hedges | 0.10 | 0 | 0.02, `docs/physics/design.md` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
-| Signposts | 0.10 | 0 | 0.02, `docs/format/ork.md` |
+| Signposts | 0.10 | 0 | 0.01, `docs/format/flight-logs.md` |
 | First person on a reference page | 0.00 | 0 | none |
 
 The register has no limit of its own (first person on a reference page, above, is the one limit on it): "I", "we", "you" and contractions per 100 words, and the guide's sentence targets (at most 20 words a sentence on average, fewer than 10% of sentences over 25 words). A reference page is marked `ref`.
@@ -41,14 +41,14 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/evidence.md` (`held`) | 6506 | 12.9 | 0% | 0.00 | 0.02 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.33 |
 | `docs/exporting-a-flight.md` (`held`) | 1937 | 14.6 | 0% | 0.00 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.21 | 0.93 |
 | `docs/fly-your-ork.md` (`held`) | 1420 | 12.6 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.78 | 0.64 |
-| `docs/format/eng.md` (`ref`) | 2260 | 16.2 | 16% | 0.40 | 0.31 | **0.93** | 0.14 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.18 |
-| `docs/format/era5.md` (`ref`) | 2416 | 16.4 | 18% | **0.71** | 0.13 | **0.96** | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.42 | 0.25 |
+| `docs/format/eng.md` (`ref`, `held`) | 2307 | 13.2 | 0% | 0.40 | 0.22 | 0.00 | 0.14 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.18 |
+| `docs/format/era5.md` (`ref`, `held`) | 2437 | 13.5 | 0% | 0.42 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.42 | 0.25 |
 | `docs/format/flight-logs.md` (`ref`) | 43721 | 24.7 | 42% | 0.22 | 0.22 | **1.51** | 0.08 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.01 | 0.04 | 0.46 |
-| `docs/format/hpr.md` (`ref`) | 5338 | 19.4 | 25% | 0.40 | 0.08 | **1.05** | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.81 |
-| `docs/format/orc.md` (`ref`) | 2349 | 16.4 | 19% | **0.69** | 0.13 | **0.94** | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.35 |
-| `docs/format/ork.md` (`ref`) | 36904 | 19.0 | 25% | 0.22 | **0.56** | **1.10** | 0.10 | 0.00 | 0.02 | 0.02 | 0.00 | 0.00 | 0.00 | 0.04 | 0.14 |
-| `docs/format/pf2.md` (`ref`) | 809 | 15.1 | 10% | 0.00 | 0.13 | 0.50 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.24 |
-| `docs/format/rse.md` (`ref`) | 2177 | 15.1 | 9% | **0.51** | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
+| `docs/format/hpr.md` (`ref`, `held`) | 5413 | 13.9 | 0% | 0.39 | 0.02 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.80 |
+| `docs/format/orc.md` (`ref`, `held`) | 2418 | 13.3 | 0% | 0.38 | 0.13 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.21 | 0.38 |
+| `docs/format/ork.md` (`ref`, `held`) | 37818 | 14.0 | 0% | 0.21 | 0.13 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.05 | 0.14 |
+| `docs/format/pf2.md` (`ref`, `held`) | 815 | 13.9 | 0% | 0.00 | 0.13 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.23 |
+| `docs/format/rse.md` (`ref`, `held`) | 2185 | 13.6 | 0% | 0.28 | 0.10 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4155 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
 | `docs/glossary.md` (`ref`, `held`) | 13102 | 13.2 | 0% | 0.00 | 0.10 | 0.00 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
 | `docs/how-a-flight-is-simulated.md` (`held`) | 2127 | 14.2 | 0% | 0.33 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.15 | 0.33 |
