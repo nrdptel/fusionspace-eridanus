@@ -695,7 +695,7 @@ pub(crate) fn launch(flight: &FlightArgs) -> Launch {
 pub(crate) fn input(error: hpr::Error) -> Failure {
     Failure::library(
         error.to_string(),
-        "change what it names in the design, in OpenRocket for a .ork file; if the design is \
+        "change what it names in the design, in OpenRocket for a .ork file. If the design is \
          sound, report it with the command line at \
          https://github.com/nrdptel/fusionspace-eridanus/issues",
     )
@@ -992,7 +992,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "elevation",
             flight.elevation,
-            "the site's height above sea level is a number of meters",
+            "the site's height above sea level is a number, in meters",
             "1400",
         );
     }
@@ -1000,7 +1000,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "rail-length",
             flight.rail_length,
-            "the rail's length is a number of meters greater than 0",
+            "the rail's length is a number greater than 0, in meters",
             "1.5",
         );
     }
@@ -1021,7 +1021,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "heading",
             heading,
-            "the rail's heading is a number of degrees clockwise from true north",
+            "the rail's heading is a number, in degrees clockwise from true north",
             "270",
         );
     }
@@ -1031,7 +1031,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "wind",
             wind,
-            "the wind's speed is a number of m/s, at least 0",
+            "the wind's speed is a number, at least 0, in m/s",
             "4.5",
         );
     }
@@ -1039,7 +1039,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "wind-from",
             flight.wind_from,
-            "the direction the wind blows from is a number of degrees clockwise from north",
+            "the direction the wind blows from is a number, in degrees clockwise from north",
             "270",
         );
     }
@@ -1402,7 +1402,7 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
         }
         let Some(digest) = &motor.digest else {
             missing.unfetched.push(format!(
-                "{} records no digest, which a fetched curve is supplied by",
+                "{} records no digest, and a fetched curve is supplied by its digest",
                 motor.designation
             ));
             continue;
@@ -1493,8 +1493,8 @@ pub fn left_out(path: &str, config: &str) -> Result<Option<ork::NotFlown>, Strin
 /// The note on the descent, after what the design says of its recovery.
 fn descent(recovery: &str) -> String {
     format!(
-        "{recovery}, so the rocket falls from apogee on its airframe alone, on aerodynamics that \
-         hold only at small angles of attack: its landing time, speed and place, \
+        "{recovery}, so the rocket falls from apogee on its airframe alone. The aerodynamics hold \
+         only at small angles of attack. Its landing time, speed and place, \
          and any peak it sets in the fall, are not a prediction"
     )
 }
@@ -1521,8 +1521,8 @@ fn flown_recovery(read: &mut Read, assembly: &hpr_design::Assembly) -> Vec<hpr::
             } else {
                 let one = recovered.devices.len() == 1;
                 format!(
-                    "the file's {} as OpenRocket flies {}: each opens fully at its event, with \
-                     the file's drag coefficient or OpenRocket's own, and once one opens the \
+                    "the file's {} as OpenRocket flies {}. Each opens fully at its event, with \
+                     the file's drag coefficient or OpenRocket's own. Once one opens, the \
                      rocket descends as a point under the open devices' drag alone",
                     if one {
                         "1 recovery device flies".to_owned()
@@ -1546,7 +1546,7 @@ fn flown_recovery(read: &mut Read, assembly: &hpr_design::Assembly) -> Vec<hpr::
 /// What to do about a part that would coast with no drag from a split
 /// ([`hpr::ork::RecoveryRefused::Coasts`]).
 const COASTS_HELP: &str = "in OpenRocket, set a recovery device of the part that keeps the nose \
-                           to deploy at the lower stage's separation, or fly a configuration \
+                           to deploy at the lower stage's separation. Otherwise fly a configuration \
                            that drops no stage with --config";
 
 /// The stage after which the first misplaced boundary of `separations` falls: the first at or
@@ -1691,20 +1691,20 @@ fn flown_separation(
     };
     let note = match parts.as_slice() {
         [part] if unpowered => format!(
-            "the stack comes apart at {:.3} s with nothing left to burn: part 1, {}, drops away, \
-             and from the split each part flies as a point with only its own devices' drag, as \
-             OpenRocket flies a descent; part 1 tumbles side-on until a device of its own opens, \
-             where a real booster flies nose-first for a while, and its landing is not pinned on \
+            "the stack comes apart at {:.3} s with nothing left to burn: part 1, {}, drops away. \
+             From the split each part flies as a point with only its own devices' drag, as \
+             OpenRocket flies a descent. Part 1 tumbles side-on until a device of its own opens, \
+             where a real booster flies nose-first for a while. Its landing is not pinned on \
              a map",
             stagings[0].time_s,
             named(*part),
         ),
         [part] => format!(
             "the stack comes apart under power at {:.3} s: part 1, {}, drops away, and the \
-             sustainer, part 0, flies on; part 1 flies as a point with only its devices' drag, \
-             tumbling side-on from the split until a device of its own opens, where a real \
+             sustainer, part 0, flies on. Part 1 flies as a point with only its devices' drag, \
+             tumbling side-on from the split until a device of its own opens. A real \
              booster flies nose-first for a while, so its peak and landing are rough, likely too \
-             low and too close to the pad, and its landing is not pinned on a map",
+             low and too close to the pad. Its landing is not pinned on a map",
             stagings[0].time_s,
             named(*part),
         ),
@@ -1723,11 +1723,11 @@ fn flown_separation(
                 })
                 .collect();
             format!(
-                "the stack comes apart under power {} times: {}; the sustainer, part 0, flies \
-                 on; each dropped part flies as a point with only its devices' drag, tumbling \
-                 side-on from its split until a device of its own opens, where a real stage \
+                "the stack comes apart under power {} times: {}. The sustainer, part 0, flies \
+                 on. Each dropped part flies as a point with only its devices' drag, tumbling \
+                 side-on from its split until a device of its own opens. A real stage \
                  flies nose-first for a while, so their peaks and landings are rough, likely too \
-                 low and too close to the pad, and their landings are not pinned on a map",
+                 low and too close to the pad. Their landings are not pinned on a map",
                 parts.len(),
                 list(&drops),
             )
@@ -1755,7 +1755,7 @@ fn flown_separation(
         if !burning.is_empty() {
             read.notes.push(format!(
                 "part {} drops at {:.3} s with {} still burning, as OpenRocket drops a stage's \
-                 other motors at its first burnout: its flight as a point leaves out the {:.3} \
+                 other motors at its first burnout. Its flight as a point leaves out the {:.3} \
                  N·s they had left, of {:.3} N·s in all",
                 index + 1,
                 staging.time_s,
@@ -1769,15 +1769,15 @@ fn flown_separation(
     if from_file.iter().all(|device| device.body != 0) {
         read.notes.push(
             "the sustainer has no device of the file's that opens, so HPR Sim tumbles it side-on \
-             from its apogee: its landing time, speed and place are not a prediction"
+             from its apogee. Its landing time, speed and place are not a prediction"
                 .to_owned(),
         );
     }
     if !from_file.is_empty() {
         read.notes.push(
             "each of the file's devices opens fully at its event, its part's own (a part's \
-             apogee is its own), with the file's drag coefficient or OpenRocket's own, and once \
-             one opens its part descends as a point under the open devices' drag alone"
+             apogee is its own). It opens with the file's drag coefficient or OpenRocket's own. \
+             Once one opens, its part descends as a point under the open devices' drag alone"
                 .to_owned(),
         );
     }
@@ -1795,8 +1795,8 @@ pub(crate) fn flight_notes(recovery: &[SimDevice], flight: &Flight) -> Vec<Strin
         && !braked
     {
         notes.push(format!(
-            "the rocket fell {:.1} s from apogee before `{first}` opened, on aerodynamics that \
-             hold only at small angles of attack: where it lands, and any peak in that fall, are \
+            "the rocket fell {:.1} s from apogee before `{first}` opened. The aerodynamics \
+             hold only at small angles of attack. Where it lands, and any peak in that fall, are \
              not a prediction",
             opened_s - apogee_s
         ));
@@ -1809,7 +1809,7 @@ pub(crate) fn flight_notes(recovery: &[SimDevice], flight: &Flight) -> Vec<Strin
             {
                 notes.push(format!(
                     "`{}` is set to open {height_m} m ({}) above the site, above the apogee, so \
-                     it opened at apogee; OpenRocket's flight of such a file never opens it",
+                     it opened at apogee. OpenRocket's flight of such a file never opens it",
                     device.name,
                     crate::units::feet(height_m)
                 ));
@@ -1942,9 +1942,10 @@ const WHOLE_STACK: &str = "the stages fly as one stack: hpr sim flies a .ork fil
 /// The note for a `.ork` configuration whose stages all stay on, for the reasons the reader's
 /// staging leaves a separation out of a configuration it flies.
 const ORK_WHOLE_STACK: &str = "the stages fly as one stack: none of the file's separations comes \
-                               apart in this configuration before apogee (each is set to never \
+                               apart in this configuration before apogee. Each is set to never \
                                happen, waits on a motor its stage doesn't hold or never lights, \
-                               as OpenRocket keeps such a stage on, or comes at or after apogee)";
+                               or comes at or after apogee. OpenRocket keeps a stage on when its \
+                               separation waits on such a motor";
 
 /// Which `.ork` configuration's missing curves to fetch, and whether from the cache alone.
 #[derive(Debug, Clone, Copy)]
@@ -2205,19 +2206,24 @@ impl Read {
                     unchosen(&ork_choices(motors), "the file", self.no_motor_flies(None))
                 })?;
                 if let Some(left_out) = &chosen.left_out {
-                    let mut why: String = self
-                        .unfetched
-                        .iter()
-                        .map(|why| format!("; {why}"))
-                        .collect();
+                    // One sentence a reason: the file's, each fetch's, then `--motor`'s.
+                    let mut said = vec![
+                        format!(
+                            "configuration {} can't be flown as the file has it",
+                            ork_label(chosen)
+                        ),
+                        capitalized(&left_out.message),
+                    ];
+                    said.extend(self.unfetched.iter().map(|why| capitalized(why)));
                     let mut help = self.fetch_help.clone();
                     match self.no_motor_flies(Some(chosen)) {
                         None => help.push("give a motor with --motor".to_owned()),
                         Some(blocked) if blocked == left_out.message => {
-                            why.push_str("; nor can it with --motor, for that reason");
+                            said.push("Nor can it fly with --motor, for that reason".to_owned());
                         }
                         Some(blocked) => {
-                            why.push_str(&format!("; nor can it with --motor: {blocked}"));
+                            said.push("Nor can it fly with --motor".to_owned());
+                            said.push(capitalized(&blocked));
                         }
                     }
                     help.extend(self.flying_help());
@@ -2230,11 +2236,7 @@ impl Read {
                         );
                     }
                     return Err(Failure::Helped {
-                        message: format!(
-                            "configuration {} can't be flown as the file has it: {}{why}",
-                            ork_label(chosen),
-                            left_out.message
-                        ),
+                        message: said.join(". "),
                         help,
                     });
                 }
@@ -2519,6 +2521,15 @@ fn motor_fixes(why: ork::NotFlown) -> bool {
     )
 }
 
+/// `text` with its first letter in upper case, to start a sentence of a message after its first.
+fn capitalized(text: &str) -> String {
+    let mut chars = text.chars();
+    chars
+        .next()
+        .map(|first| first.to_uppercase().chain(chars).collect())
+        .unwrap_or_default()
+}
+
 /// The refusal when no configuration was named and none can be taken as the one; `blocked`,
 /// why no motor of the user's own flies the rocket either, if none does.
 fn unchosen(choices: &[Choice<'_>], what: &str, blocked: Option<String>) -> Failure {
@@ -2579,7 +2590,7 @@ fn ork_configuration<'a>(
 fn separation_text(staging: &ork::Staging) -> String {
     format!(
         "stage {} drops away at {:.3} s, a time set by the file's motors, so hpr sim \
-         can't tell when it would with a motor of your own",
+         can't tell when it would with your motor",
         staging.after_stage.saturating_add(1),
         staging.time_s
     )

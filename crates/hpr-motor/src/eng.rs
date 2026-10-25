@@ -422,7 +422,7 @@ fn finish(
             header_line,
             format!(
                 "the entry {:?} ends at {last} N, above half its peak thrust of {peak} N, so the \
-                 file looks cut off; a curve ends at zero thrust",
+                 file looks cut off. A curve ends at zero thrust",
                 entry.name
             ),
         ));

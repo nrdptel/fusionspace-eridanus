@@ -101,7 +101,7 @@ fn cases(folder: &Path) -> Vec<Case> {
         ),
         case(
             &["mc", &guide, "--mass-sd=-1"],
-            "give --mass-sd a number of 0 or more",
+            "give --mass-sd 0 or more",
         ),
         // An export named for a format it isn't.
         case(

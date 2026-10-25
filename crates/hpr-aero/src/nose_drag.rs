@@ -795,8 +795,8 @@ impl PressureDragCurve {
                 if !(radius_ratio.is_finite() && radius_ratio >= 1.0) {
                     return Err(AeroError::Unsupported(format!(
                         "an ogive of radius ratio {radius_ratio}, not at least 1 (below 1 is a \
-                         bulged secant ogive): Niskanen's \
-                         eq. B.8 runs only from the cone to the tangent ogive"
+                         bulged secant ogive). Niskanen's eq. B.8 runs only from the cone to the \
+                         tangent ogive"
                     )));
                 }
                 cone(ogive_pressure_drag_factor(1.0 / radius_ratio)?)
@@ -927,33 +927,33 @@ fn check_parameter(what: &'static str, value: f64, low: f64, high: f64) -> Resul
 /// Configuration numbers are Stoney's (Fig. 9's key, PDF p. 19).
 #[rustfmt::skip]
 mod stoney {
-    /// Stoney 1961, Fig. 12(a), flight models: x^3/4, configuration 61, the faired line from Mach 0.80 to its end at 1.967; leaving zero at Mach 0.870, peak 0.1185 at 1.057; read to +-0.0015 (at most +-0.0048).
+    /// Stoney 1961, Fig. 12(a), flight models: x^3/4, configuration 61. The faired line runs from Mach 0.80 to its end at 1.967, leaving zero at Mach 0.870, peak 0.1185 at 1.057. Read to +-0.0015 (at most +-0.0048).
     pub(super) const POWER_THREE_QUARTERS: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.87, 0.0), (0.9, 0.0131), (0.95, 0.0375), (1.0, 0.0848), (1.05, 0.1185), (1.057, 0.1185), (1.1, 0.1095), (1.15, 0.1089), (1.2, 0.109), (1.25, 0.1032), (1.3, 0.1001), (1.4, 0.097), (1.5, 0.0932), (1.6, 0.09), (1.8, 0.0847), (1.967, 0.0789)];
-    pub(super) const POWER_THREE_QUARTERS_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: x^3/4, configuration 61, the faired line from Mach 0.80 to its end at 1.967; leaving zero at Mach 0.870, peak 0.1185 at 1.057; read to +-0.0015 (at most +-0.0048)";
-    /// Stoney 1961, Fig. 12(a), flight models: x^1/2, configuration 63, the faired line from Mach 0.80 to its end at 1.941; leaving zero at Mach 0.934; read to +-0.0014 (at most +-0.0023).
+    pub(super) const POWER_THREE_QUARTERS_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: x^3/4, configuration 61. The faired line runs from Mach 0.80 to its end at 1.967, leaving zero at Mach 0.870, peak 0.1185 at 1.057. Read to +-0.0015 (at most +-0.0048)";
+    /// Stoney 1961, Fig. 12(a), flight models: x^1/2, configuration 63. The faired line runs from Mach 0.80 to its end at 1.941, leaving zero at Mach 0.934. Read to +-0.0014 (at most +-0.0023).
     pub(super) const POWER_HALF: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.9, 0.0), (0.934, 0.0), (0.95, 0.0069), (1.0, 0.046), (1.05, 0.0597), (1.1, 0.0573), (1.15, 0.0675), (1.2, 0.08), (1.25, 0.0853), (1.3, 0.0851), (1.4, 0.0847), (1.5, 0.0856), (1.6, 0.086), (1.8, 0.0885), (1.941, 0.0898)];
-    pub(super) const POWER_HALF_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: x^1/2, configuration 63, the faired line from Mach 0.80 to its end at 1.941; leaving zero at Mach 0.934; read to +-0.0014 (at most +-0.0023)";
-    /// Stoney 1961, Fig. 12(a), flight models: parabola, configuration 59, the faired line from Mach 0.80 to its end at 1.975; leaving zero at Mach 0.952, peak 0.1162 at 1.165; read to +-0.0016 (at most +-0.0046).
+    pub(super) const POWER_HALF_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: x^1/2, configuration 63. The faired line runs from Mach 0.80 to its end at 1.941, leaving zero at Mach 0.934. Read to +-0.0014 (at most +-0.0023)";
+    /// Stoney 1961, Fig. 12(a), flight models: parabola, configuration 59. The faired line runs from Mach 0.80 to its end at 1.975, leaving zero at Mach 0.952, peak 0.1162 at 1.165. Read to +-0.0016 (at most +-0.0046).
     pub(super) const PARABOLA: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.9, 0.0), (0.95, 0.0), (0.952, 0.0), (1.0, 0.037), (1.05, 0.0898), (1.1, 0.1073), (1.15, 0.1149), (1.165, 0.1162), (1.2, 0.1161), (1.25, 0.1145), (1.3, 0.1134), (1.4, 0.1103), (1.5, 0.1078), (1.6, 0.1067), (1.8, 0.1062), (1.975, 0.1073)];
-    pub(super) const PARABOLA_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: parabola, configuration 59, the faired line from Mach 0.80 to its end at 1.975; leaving zero at Mach 0.952, peak 0.1162 at 1.165; read to +-0.0016 (at most +-0.0046)";
-    /// Stoney 1961, Fig. 12(a), flight models: 3/4 parabola, configuration 62, the faired line from Mach 0.80 to its end at 1.968; leaving zero at Mach 0.902, peak 0.1078 at 1.136; read to +-0.0016 (at most +-0.0035).
+    pub(super) const PARABOLA_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: parabola, configuration 59. The faired line runs from Mach 0.80 to its end at 1.975, leaving zero at Mach 0.952, peak 0.1162 at 1.165. Read to +-0.0016 (at most +-0.0046)";
+    /// Stoney 1961, Fig. 12(a), flight models: 3/4 parabola, configuration 62. The faired line runs from Mach 0.80 to its end at 1.968, leaving zero at Mach 0.902, peak 0.1078 at 1.136. Read to +-0.0016 (at most +-0.0035).
     pub(super) const PARABOLA_THREE_QUARTERS: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.9, 0.0), (0.902, 0.0), (0.95, 0.0182), (1.0, 0.069), (1.05, 0.0889), (1.1, 0.1049), (1.136, 0.1078), (1.15, 0.1072), (1.2, 0.1036), (1.25, 0.0997), (1.3, 0.0932), (1.4, 0.0861), (1.5, 0.082), (1.6, 0.0817), (1.8, 0.0797), (1.968, 0.0814)];
-    pub(super) const PARABOLA_THREE_QUARTERS_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: 3/4 parabola, configuration 62, the faired line from Mach 0.80 to its end at 1.968; leaving zero at Mach 0.902, peak 0.1078 at 1.136; read to +-0.0016 (at most +-0.0035)";
-    /// Stoney 1961, Fig. 12(a), flight models: 1/2 parabola, configuration 57, the faired line from Mach 0.80 to its end at 1.968; leaving zero at Mach 0.817, peak 0.1247 at 1.081; read to +-0.0016 (at most +-0.003).
+    pub(super) const PARABOLA_THREE_QUARTERS_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: 3/4 parabola, configuration 62. The faired line runs from Mach 0.80 to its end at 1.968, leaving zero at Mach 0.902, peak 0.1078 at 1.136. Read to +-0.0016 (at most +-0.0035)";
+    /// Stoney 1961, Fig. 12(a), flight models: 1/2 parabola, configuration 57. The faired line runs from Mach 0.80 to its end at 1.968, leaving zero at Mach 0.817, peak 0.1247 at 1.081. Read to +-0.0016 (at most +-0.003).
     pub(super) const PARABOLA_HALF: &[(f64, f64)] = &[(0.8, 0.0), (0.817, 0.0), (0.85, 0.0057), (0.9, 0.0155), (0.95, 0.0403), (1.0, 0.094), (1.05, 0.1231), (1.081, 0.1247), (1.1, 0.1235), (1.15, 0.1149), (1.2, 0.1139), (1.25, 0.1068), (1.3, 0.1009), (1.4, 0.0936), (1.5, 0.0877), (1.6, 0.0854), (1.8, 0.0854), (1.968, 0.0864)];
-    pub(super) const PARABOLA_HALF_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: 1/2 parabola, configuration 57, the faired line from Mach 0.80 to its end at 1.968; leaving zero at Mach 0.817, peak 0.1247 at 1.081; read to +-0.0016 (at most +-0.003)";
-    /// Stoney 1961, Fig. 12(a), flight models: Von Karman, configuration 58, the faired line from Mach 0.80 to its end at 1.994; leaving zero at Mach 0.915, peak 0.0898 at 1.553; read to +-0.0014 (at most +-0.0022).
+    pub(super) const PARABOLA_HALF_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: 1/2 parabola, configuration 57. The faired line runs from Mach 0.80 to its end at 1.968, leaving zero at Mach 0.817, peak 0.1247 at 1.081. Read to +-0.0016 (at most +-0.003)";
+    /// Stoney 1961, Fig. 12(a), flight models: Von Karman, configuration 58. The faired line runs from Mach 0.80 to its end at 1.994, leaving zero at Mach 0.915, peak 0.0898 at 1.553. Read to +-0.0014 (at most +-0.0022).
     pub(super) const VON_KARMAN: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.9, 0.0), (0.915, 0.0), (0.95, 0.0077), (1.0, 0.0253), (1.05, 0.0581), (1.1, 0.0694), (1.15, 0.0734), (1.2, 0.0758), (1.25, 0.0779), (1.3, 0.0825), (1.4, 0.0879), (1.5, 0.0893), (1.553, 0.0898), (1.6, 0.0898), (1.8, 0.0869), (1.994, 0.0794)];
-    pub(super) const VON_KARMAN_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: Von Karman, configuration 58, the faired line from Mach 0.80 to its end at 1.994; leaving zero at Mach 0.915, peak 0.0898 at 1.553; read to +-0.0014 (at most +-0.0022)";
-    /// Stoney 1961, Fig. 12(a), flight models: L-V Haack, configuration 60, the faired line from Mach 0.80 to its end at 1.977; leaving zero at Mach 0.915, peak 0.1172 at 1.617; read to +-0.0014 (at most +-0.0022).
+    pub(super) const VON_KARMAN_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: Von Karman, configuration 58. The faired line runs from Mach 0.80 to its end at 1.994, leaving zero at Mach 0.915, peak 0.0898 at 1.553. Read to +-0.0014 (at most +-0.0022)";
+    /// Stoney 1961, Fig. 12(a), flight models: L-V Haack, configuration 60. The faired line runs from Mach 0.80 to its end at 1.977, leaving zero at Mach 0.915, peak 0.1172 at 1.617. Read to +-0.0014 (at most +-0.0022).
     pub(super) const LV_HAACK: &[(f64, f64)] = &[(0.8, 0.0), (0.85, 0.0), (0.9, 0.0), (0.915, 0.0), (0.95, 0.0077), (1.0, 0.0253), (1.05, 0.065), (1.1, 0.0847), (1.15, 0.095), (1.2, 0.1002), (1.25, 0.1028), (1.3, 0.107), (1.4, 0.1135), (1.5, 0.1156), (1.6, 0.117), (1.617, 0.1172), (1.8, 0.1155), (1.977, 0.1115)];
-    pub(super) const LV_HAACK_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: L-V Haack, configuration 60, the faired line from Mach 0.80 to its end at 1.977; leaving zero at Mach 0.915, peak 0.1172 at 1.617; read to +-0.0014 (at most +-0.0022)";
-    /// Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): x^1/4, the faired line from Mach 1.20 to its end at 3.587; read to +-0.0014 (at most +-0.003).
+    pub(super) const LV_HAACK_SOURCE: &str = "Stoney 1961, Fig. 12(a), flight models: L-V Haack, configuration 60. The faired line runs from Mach 0.80 to its end at 1.977, leaving zero at Mach 0.915, peak 0.1172 at 1.617. Read to +-0.0014 (at most +-0.0022)";
+    /// Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): x^1/4. The faired line runs from Mach 1.20 to its end at 3.587. Read to +-0.0014 (at most +-0.003).
     pub(super) const POWER_QUARTER: &[(f64, f64)] = &[(1.2, 0.141), (1.25, 0.148), (1.3, 0.1558), (1.4, 0.1689), (1.5, 0.1809), (1.6, 0.1894), (1.8, 0.2051), (2.0, 0.2165), (2.4, 0.2331), (2.8, 0.2441), (3.2, 0.248), (3.587, 0.2491)];
-    pub(super) const POWER_QUARTER_SOURCE: &str = "Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): x^1/4, the faired line from Mach 1.20 to its end at 3.587; read to +-0.0014 (at most +-0.003)";
-    /// Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): ellipsoid, the faired line from Mach 1.20 to its end at 3.587; read to +-0.0014 (at most +-0.004).
+    pub(super) const POWER_QUARTER_SOURCE: &str = "Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): x^1/4. The faired line runs from Mach 1.20 to its end at 3.587. Read to +-0.0014 (at most +-0.003)";
+    /// Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): ellipsoid. The faired line runs from Mach 1.20 to its end at 3.587. Read to +-0.0014 (at most +-0.004).
     pub(super) const ELLIPSOID: &[(f64, f64)] = &[(1.2, 0.111), (1.25, 0.1298), (1.3, 0.14), (1.4, 0.1478), (1.5, 0.1509), (1.6, 0.1523), (1.8, 0.1552), (2.0, 0.1576), (2.4, 0.1601), (2.8, 0.1601), (3.2, 0.16), (3.587, 0.158)];
-    pub(super) const ELLIPSOID_SOURCE: &str = "Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): ellipsoid, the faired line from Mach 1.20 to its end at 3.587; read to +-0.0014 (at most +-0.004)";
+    pub(super) const ELLIPSOID_SOURCE: &str = "Stoney 1961, Fig. 12(b), wind tunnel (Stoney's ref. 30): ellipsoid. The faired line runs from Mach 1.20 to its end at 3.587. Read to +-0.0014 (at most +-0.004)";
 }
 
 #[cfg(test)]

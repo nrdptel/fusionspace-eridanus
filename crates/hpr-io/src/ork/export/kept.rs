@@ -56,7 +56,7 @@ pub(super) fn splice(document: &mut Document, kept: &OpenRocketExtension) -> Vec
                 WarningKind::Dropped,
                 format!(
                     "the file's id `{}` is not a UUID, which OpenRocket 24.12 refuses a file \
-                     over; it was left out, and the part will read back under another",
+                     over. It was left out, and the part will read back under another",
                     kept.element.text().trim()
                 ),
             ));

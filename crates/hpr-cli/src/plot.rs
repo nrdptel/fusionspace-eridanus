@@ -363,8 +363,8 @@ const TRUST_LABEL: &str = "HOW FAR TO TRUST IT";
 /// What the lines are, said once under the title rather than in a legend box.
 const LINES: &str = "Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical \
                      part, up positive. Chain line: the ground. Dotted: an event, numbered as in the table. \
-                     Each panel's left scale is SI, its right scale US units. Altitude is the center of gravity's height above the launch site; speed is \
-                     over the ground; acceleration is the nose tip's, relative to the launch \
+                     Each panel's left scale is SI, its right scale US units. Altitude is the center of gravity's height above the launch site. Speed is \
+                     over the ground. Acceleration is the nose tip's, relative to the launch \
                      frame, not what an accelerometer reads.";
 
 /// Events within half a pixel of each other, as one marker.
@@ -433,8 +433,8 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let mut note = Vec::new();
     if let Some((from_s, to_s)) = figure.unpredicted {
         let hatched = format!(
-            "Hatched, {}\u{a0}s to {}\u{a0}s: the rocket falls on its airframe alone, on aerodynamics \
-             that hold only at small angles of attack, so this is not a prediction.",
+            "Hatched, {}\u{a0}s to {}\u{a0}s: the rocket falls on its airframe alone. The aerodynamics \
+             hold only at small angles of attack, so this is not a prediction.",
             number(from_s, 2),
             number(to_s, 2)
         );

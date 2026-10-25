@@ -241,8 +241,8 @@ fn one(
         values.warn_at(
             WarningKind::Unusual,
             format!(
-                "the {} sits inside a {} {} m off the body's axis: OpenRocket places it from that \
-                 tube's axis, and HPR Sim from the body's axis (issue #181){}",
+                "the {} sits inside a {} {} m off the body's axis{}. OpenRocket places it from that \
+                 tube's axis, and HPR Sim from the body's axis (issue #181)",
                 spoken(&part),
                 spoken(parent),
                 x.hypot(y),
@@ -408,7 +408,7 @@ fn pod_set(
                 WarningKind::Skipped,
                 format!(
                     "a `{tag}` directly inside a pod set, where HPR Sim's pod is a stack of nose \
-                     cones, body tubes and transitions; it was left out{}",
+                     cones, body tubes and transitions. It was left out{}",
                     and_what_was_inside(child)
                 ),
             );
@@ -427,7 +427,7 @@ fn pod_set(
             WarningKind::Skipped,
             format!(
                 "a pod with a nose cone or transition of no length, or a part of negative length, \
-                 which HPR Sim cannot lay out; the pod set was left out{}",
+                 which HPR Sim cannot lay out. The pod set was left out{}",
                 and_what_was_inside(element)
             ),
         );
@@ -523,7 +523,7 @@ fn pod_set(
                 WarningKind::Skipped,
                 format!(
                     "the tube's radius is automatic with no number cached, and HPR Sim places pods at \
-                     a fixed distance from the axis, so where they sit is not known; the pod set \
+                     a fixed distance from the axis. So where they sit is not known. The pod set \
                      was left out{}",
                     and_what_was_inside(element)
                 ),
@@ -534,7 +534,7 @@ fn pod_set(
             WarningKind::Unusual,
             format!(
                 "the tube's radius is automatic, and HPR Sim places pods at a fixed distance from the \
-                 axis: they were placed {radial_offset_m} m from it, by the tube radius OpenRocket \
+                 axis. They were placed {radial_offset_m} m from it, by the tube radius OpenRocket \
                  cached, {tube_radius_m} m"
             ),
         );
@@ -572,7 +572,7 @@ fn pod_set(
         // as a stage's is; `hpr-design` refuses one that does not say it covers them.
         values.warn_at(
             WarningKind::Dropped,
-            "an override on a pod set that does not cover its pods; a pod set weighs nothing of \
+            "an override on a pod set that does not cover its pods. A pod set weighs nothing of \
              its own, so it was read as covering them",
         );
         values.forget(&OVERRIDE_FLAGS);
@@ -593,7 +593,7 @@ fn pod_set(
                     WarningKind::Dropped,
                     format!(
                         "a tab on the fins `{}` on a pod's tube of no length, deeper than the \
-                         tube's radius ({radius_m} m); the tab was left out, and the fins read \
+                         tube's radius ({radius_m} m). The tab was left out, and the fins read \
                          without it",
                         child.id
                     ),
@@ -870,7 +870,7 @@ fn tube_wall(values: &mut Values<'_>, outer_radius_m: Option<f64>) -> Option<f64
         // `hpr_validate::openrocket::tests` pins the difference.
         values.warn_at(
             WarningKind::Dropped,
-            "a tube with no wall thickness at all; it was read as a tube of no wall, which \
+            "a tube with no wall thickness at all. It was read as a tube of no wall, which \
              carries no mass, rather than as the solid rod a filled one would be",
         );
         return Some(0.0);
@@ -1001,7 +1001,7 @@ fn follow_the_body(
                 Ok(()) => Ok(Part::FinSet(fins)),
                 Err(_) => Err(
                     "a freeform fin outline that does not run from the root leading \
-                     edge to the root trailing edge; it was left out rather than closed along a \
+                     edge to the root trailing edge. It was left out rather than closed along a \
                      root it never touches"
                         .to_owned(),
                 ),
@@ -1033,8 +1033,8 @@ fn follow_the_body(
     let chord = fins.planform.root_chord_m();
     let FinPlanform::Freeform { points_m, root_m } = &mut fins.planform else {
         return Err(format!(
-            "a {} fin set on a {on}: OpenRocket runs its root along the surface, which HPR Sim reads \
-             only from a freeform outline; it was left out",
+            "a {} fin set on a {on}. OpenRocket runs its root along the surface, which HPR Sim reads \
+             only from a freeform outline. It was left out",
             match fins.planform {
                 FinPlanform::Trapezoidal { .. } => "trapezoidal",
                 FinPlanform::Elliptical { .. } => "elliptical",
@@ -1050,7 +1050,7 @@ fn follow_the_body(
         Position::After { .. } | Position::Absolute { .. } => {
             return Err(format!(
                 "a fin set on a {on} placed after its sibling or at an absolute station, where this \
-                 reader can't find the surface its root follows; it was left out"
+                 reader can't find the surface its root follows. It was left out"
             ));
         }
     };
@@ -1068,7 +1068,7 @@ fn follow_the_body(
     if stations.clone().any(|x| rise(x) < 0.0) {
         return Err(format!(
             "a fin set on a {on} that narrows along its root, which HPR Sim reads only where the body \
-             holds or grows; it was left out"
+             holds or grows. It was left out"
         ));
     }
     let end = points_m.last().copied().unwrap_or_default();
@@ -1135,7 +1135,7 @@ fn outline(values: &mut Values<'_>) -> Option<FinPlanform> {
         values.warn_at(
             WarningKind::Skipped,
             "a freeform fin outline that does not run from the root leading edge to the root \
-             trailing edge; it was left out rather than closed along a root it never touches",
+             trailing edge. It was left out rather than closed along a root it never touches",
         );
         return None;
     }

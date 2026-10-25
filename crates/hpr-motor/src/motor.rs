@@ -293,8 +293,8 @@ impl SolidMotor {
         if !EXHAUST_VELOCITY_RANGE_M_S.contains(&exhaust_velocity_m_s) {
             return Err(MotorError::Inconsistent(format!(
                 "a total impulse of {} N·s from {propellant_mass_kg} kg of propellant is an \
-                 effective exhaust velocity of {exhaust_velocity_m_s} m/s, outside the {} to {} \
-                 m/s a solid motor can have; {UNITS_HINT}",
+                 effective exhaust velocity of {exhaust_velocity_m_s} m/s. A solid motor can have \
+                 only {} to {} m/s; {UNITS_HINT}",
                 curve.total_impulse_ns(),
                 EXHAUST_VELOCITY_RANGE_M_S.start(),
                 EXHAUST_VELOCITY_RANGE_M_S.end()

@@ -13,7 +13,7 @@ expression: "svg.replace(&program, \"[program]\")"
 <text x="76" y="80.0" fill="#566079">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</text>
 <text x="76" y="96.0" fill="#566079">Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical part, up positive. Chain line: the</text>
 <text x="76" y="112.0" fill="#566079">ground. Dotted: an event, numbered as in the table. Each panel&apos;s left scale is SI, its right scale US units.</text>
-<text x="76" y="128.0" fill="#566079">Altitude is the center of gravity&apos;s height above the launch site; speed is over the ground; acceleration is the</text>
+<text x="76" y="128.0" fill="#566079">Altitude is the center of gravity&apos;s height above the launch site. Speed is over the ground. Acceleration is the</text>
 <text x="76" y="144.0" fill="#566079">nose tip&apos;s, relative to the launch frame, not what an accelerometer reads.</text>
 <g id="event-1"><title>0.00 s: liftoff</title><line x1="76.0" y1="178.0" x2="76.0" y2="208.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="76.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="76.0" y="172.0" text-anchor="middle" fill="#0B0F1C">1</text></g>
 <g id="event-2"><title>0.05 s: rail exit</title><line x1="92.3" y1="174.3" x2="78.0" y2="186.0" stroke="#566079" stroke-width="1"/><line x1="78.0" y1="186.0" x2="78.0" y2="208.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="100.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="100.0" y="172.0" text-anchor="middle" fill="#0B0F1C">2</text></g>
@@ -122,13 +122,13 @@ expression: "svg.replace(&program, \"[program]\")"
 <text x="540" y="1408.0" fill="#0B0F1C">ground hit</text>
 <line x1="76" y1="1416.0" x2="936" y2="1416.0" stroke="#D6DAE4" stroke-width="1"/>
 </g>
-<text x="76" y="1440.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
+<text x="76" y="1440.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone. The aerodynamics hold only at small angles of</text>
 <text x="76" y="1456.0" fill="#566079">attack, so this is not a prediction.</text>
 <text x="76" y="1488.0" fill="#566079">HOW FAR TO TRUST IT</text>
-<text x="76" y="1504.0" fill="#566079">Simulated from the design file, not measured. Against 53 logged flights of fliers&apos; own designs, each logged apogee the</text>
-<text x="76" y="1520.0" fill="#566079">height climbed in the day&apos;s air, the simulated apogee averaged 8.7% above the logged one; it was within 10% on 26 and</text>
-<text x="76" y="1536.0" fill="#566079">read low on 13, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
-<text x="76" y="1552.0" fill="#566079">reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1504.0" fill="#566079">Simulated from the design file, not measured. Against 53 logged flights of fliers&apos; own designs, the simulated apogee</text>
+<text x="76" y="1520.0" fill="#566079">averaged 8.7% above the logged one. Each logged apogee is the height climbed in the day&apos;s air. The simulated apogee</text>
+<text x="76" y="1536.0" fill="#566079">was within 10% on 26 and read low on 13, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this</text>
+<text x="76" y="1552.0" fill="#566079">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
 <g id="title-block">
 <rect x="76" y="1576.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>
 <text x="84.0" y="1592.0" fill="#566079">OWNER</text><text x="84.0" y="1608.0" fill="#0B0F1C">FusionSpace</text>

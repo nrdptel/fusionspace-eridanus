@@ -121,7 +121,7 @@ impl McArgs {
                     format!(
                         "{option} {value}: a standard deviation is a finite number, at least 0"
                     ),
-                    format!("give {option} a number of 0 or more, or leave it out for none"),
+                    format!("give {option} 0 or more, or leave it out for none"),
                 ));
             }
         }

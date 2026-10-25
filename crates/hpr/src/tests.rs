@@ -1786,7 +1786,7 @@ fn a_flight_warns_of_its_off_axis_mass_and_its_supersonic_damping_stations() {
     assert_eq!(station.parts, ["nose", "sustainer-airframe"]);
     let message = station.message();
     assert!(
-        message.contains("from Mach 1.20 to 1.50, a body part's pitch and yaw damping"),
+        message.contains("from Mach 1.20 to 1.50. There, a body part's pitch and yaw damping"),
         "{message}"
     );
     let message = warning(&flight, 219).message();
@@ -2051,7 +2051,7 @@ fn a_sustainer_below_its_own_join_adds_no_106() {
     assert!((join.join_start_mach - 1.3805).abs() < 5e-5, "{join:?}");
     let message = warning(&stacked, 106).message();
     assert!(
-        message.contains("from Mach 1.38 to 1.68, a body"),
+        message.contains("from Mach 1.38 to 1.68. There, a body"),
         "{message}"
     );
     assert!(!message.contains("sustainer after"), "{message}");

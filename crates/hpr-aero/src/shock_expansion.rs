@@ -933,8 +933,8 @@ impl ShockExpansionBody {
             // length. Nothing measures what that is worth, so hpr refuses those (issue #123).
             if flow.is_reduced() && element.angle_rad <= CONE_ANGLE_FLOOR_RAD {
                 return Err(AeroError::Unsupported(format!(
-                    "behind the corner at {} m, where the element has no tangent cone of its \
-                     own, the pressure moves away from the one it relaxes toward",
+                    "behind the corner at {} m, the element has no tangent cone of its own. The \
+                     pressure moves away from the one it relaxes toward",
                     element.corner_x_m
                 )));
             }
@@ -1405,8 +1405,8 @@ pub fn flare_reduction_turns_rad(aft: &AftFlow) -> Result<ReductionTurns, AeroEr
         && d1.abs() < 0.5 * PI)
     {
         return Err(AeroError::Unsupported(format!(
-            "a corner behind a surface at Mach {m1} in a Mach {mach} stream, {p1} of the free \
-             stream's pressure and {} m of radius, turns nothing",
+            "a corner behind a surface at Mach {m1} in a Mach {mach} stream turns nothing. There \
+             the pressure is {p1} of the free stream's, and the radius {} m",
             aft.radius_m
         )));
     }
@@ -1521,9 +1521,9 @@ pub fn flare_reduction_turns_rad(aft: &AftFlow) -> Result<ReductionTurns, AeroEr
     }
     if crossings != 1 {
         return Err(AeroError::Unsupported(format!(
-            "the pressure behind a corner behind a surface at Mach {m1} in a Mach {mach} stream \
-             meets its tangent cone's {crossings} times over the turns a widening corner can \
-             make, so the element it reduces is not one band of turns"
+            "the pressure behind a corner meets its tangent cone's {crossings} times over the \
+             turns a widening corner can make. That corner is behind a surface at Mach {m1} in a \
+             Mach {mach} stream. So the element it reduces is not one band of turns"
         )));
     }
     // `crossings == 1` put a bracket there.

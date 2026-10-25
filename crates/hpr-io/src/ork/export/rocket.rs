@@ -147,8 +147,8 @@ impl<'a> Writer<'a> {
             self.warn(
                 at,
                 format!(
-                    "the id `{id}` is not a UUID, which OpenRocket 24.12 refuses a file over; it \
-                     was left out, and the part will read back under another"
+                    "the id `{id}` is not a UUID, which OpenRocket 24.12 refuses a file over. \
+                     It was left out, and the part will read back under another"
                 ),
             );
         }
@@ -226,7 +226,7 @@ impl<'a> Writer<'a> {
                     ROCKET,
                     format!(
                         "the parallel stage `{}` hangs on `{}`, which is no body tube of a stage \
-                         on the axis, where a `.ork` holds one; it was left out",
+                         on the axis, where a `.ork` holds one. It was left out",
                         stage.id, parallel.on
                     ),
                 );
@@ -283,7 +283,7 @@ impl<'a> Writer<'a> {
                 at,
                 format!(
                     "{} parallel stages hang here and {} of their places hold something kept, \
-                     which can't be matched to each stage: the stages were written in order, and \
+                     which can't be matched to each stage. The stages were written in order, and \
                      what is kept may read back inside another",
                     hung.len(),
                     kept.len()
@@ -720,7 +720,7 @@ impl<'a> Writer<'a> {
             None => self.warn(
                 at,
                 "a clustered tube whose places are not one of OpenRocket's patterns at any scale \
-                 and rotation that reads back as the same places; it was written as one tube",
+                 and rotation that reads back as the same places. It was written as one tube",
             ),
         }
     }

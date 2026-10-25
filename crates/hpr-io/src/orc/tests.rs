@@ -846,7 +846,7 @@ fn implausible_values_are_read_as_written_with_a_warning() {
     assert_eq!(
         message,
         "its inside diameter, 0.030479999999999997 m, is not less than its outside diameter, \
-         0.02794 m, so its wall is -0.0012699999999999986 m; read as written, as OpenRocket reads it"
+         0.02794 m, so its wall is -0.0012699999999999986 m. It is read as written, as OpenRocket reads it"
     );
 }
 

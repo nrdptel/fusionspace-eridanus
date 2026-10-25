@@ -1069,8 +1069,8 @@ impl Rocket {
                     &stage.id,
                     format!(
                         "a parallel stage hangs on `{}`, under a mass override that covers what \
-                         the tube or its stage holds, which doesn't say whether it covers the \
-                         parallel stage",
+                         the tube or its stage holds. That override doesn't say whether it covers \
+                         the parallel stage",
                         on.id
                     ),
                 ));
