@@ -526,10 +526,10 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean absolute error is 6.04% over seven flights, outside the target. Five are outside 5%: NDRT 2020,
+Today the mean absolute error is 6.06% over seven flights, outside the target. Five are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
 impulse. Four of the seven altimeters' kinds are assumed barometric
-([evidence row G21](evidence.md#g21)). With those four read as heights instead, the mean is 6.63%.
+([evidence row G21](evidence.md#g21)). With those four read as heights instead, the mean is 6.65%.
 
 ## Simulators and papers
 

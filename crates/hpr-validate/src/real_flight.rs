@@ -470,10 +470,11 @@ pub const FLIGHTS: [RealFlight; 7] = [
             time_column: 0,
             height_column: 1,
             meters_per_unit: 1.0,
-            until_s: None,
+            until_s: Some(23.6),
             altimeter: Altimeter::AssumedBarometric(
-                "the CATS Vega EuRoC 2023 required, sent by radio in whole meters: a Kalman \
-                 filter's estimate from a barometer and an accelerometer, barometric assumed",
+                "the CATS Vega EuRoC 2023 required, its radio telemetry: the Kalman filter's \
+                 height from a barometer and an accelerometer, sent in whole meters cut toward \
+                 zero, with no pressure; barometric assumed",
             ),
             pressure: None,
             gnss: None,
@@ -484,7 +485,9 @@ pub const FLIGHTS: [RealFlight; 7] = [
             scaled_to: None,
         },
         example_drag_source: "cavour_flight_sim.ipynb:250-251",
-        note: "",
+        note: "the log is read to 23.6 s, the first row the ground station tags Drogue: past it, \
+               the ejection charge's pressure pulse moves the radio telemetry's filtered height \
+               up to 2789 m; the coast's peak before it is 2785 m",
         explanation: Explanation::Drag(
             "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the \
              apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power \
@@ -2253,6 +2256,28 @@ mod tests {
     use super::*;
 
     const ENG: &str = "; a comment\nK1 54 579 6 1.4 2.2 AT\n 0.1 100 ; peak\n 0.5 50\n 1.0 0\n";
+
+    /// Cavour's log (RocketPy's `polito/altimeter_cavour.csv`, MIT) is the CATS Vega's radio
+    /// telemetry. Its rows around apogee, as the file has them: the coast peaks at 2,785 m at
+    /// 23.1 to 23.2 s, the row at 23.6 s is the first the ground station tags Drogue, and the
+    /// 2,787 m and 2,789 m after it are the ejection charge's pressure pulse moving the filter's
+    /// height (#818). The record reads the log to that event, so its apogee is the coast's.
+    #[test]
+    fn cavours_log_is_read_to_its_apogee_event() {
+        let excerpt = "ts,altitude[m],velocity[m/s],latitude,longitude\n\
+                       22.9,2784,3,39.3841,-8.2913\n23.0,2784,2,39.3841,-8.2913\n\
+                       23.1,2785,1,39.3841,-8.2913\n23.2,2785,0,39.3841,-8.2913\n\
+                       23.4,2784,-2,39.3841,-8.2913\n23.6,2781,-5,39.3841,-8.2913\n\
+                       23.7,2787,0,39.3841,-8.2913\n23.8,2789,2,39.3841,-8.2913\n\
+                       24.0,2785,-2,39.3841,-8.2913\n";
+        let cavour = FLIGHTS
+            .iter()
+            .find(|flight| flight.id == "cavour")
+            .expect("Cavour is a listed flight");
+        let rows = parse_log(cavour.id, &cavour.log, excerpt).unwrap();
+        assert_eq!(rows.last().copied(), Some((23.6, 2781.0)));
+        assert_eq!(highest(&rows), (23.1, 2785.0));
+    }
 
     /// In the standard atmosphere a barometric altimeter reads the geopotential height climbed.
     /// On a day 20 K warmer at every height, with the same sea-level pressure, each pressure's

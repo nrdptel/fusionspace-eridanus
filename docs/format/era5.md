@@ -16,7 +16,7 @@ up to a few kilometers or more.
 > measured yet: the pressure between levels, and the air above the file's top level. Seven
 > real flights have been flown in ERA5 weather and compared with their logs
 > ([real flights](../accuracy.md#real-flights), milestone
-> [M2.3b](../decisions-and-roadmap.md#m2-3b)). Their apogees miss by 6.04% on average, outside the
+> [M2.3b](../decisions-and-roadmap.md#m2-3b)). Their apogees miss by 6.06% on average, outside the
 > 5% target ([evidence row G24](../evidence.md#g24)). Humidity is
 > not read yet, so the air is taken as dry.
 

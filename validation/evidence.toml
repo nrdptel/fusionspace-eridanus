@@ -502,7 +502,7 @@ found = "no license for the motor records (the home page reserves all rights; th
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss seven public real flights by 6.04% on average and 53 private ones by 12.95%, both outside the 5% target"
+claim = "The simulation's apogees miss seven public real flights by 6.06% on average and 53 private ones by 12.95%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",

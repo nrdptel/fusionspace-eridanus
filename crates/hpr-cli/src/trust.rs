@@ -129,7 +129,7 @@ pub(crate) fn sounding() -> String {
 /// `validation/reports/real-flights.json` (M2.3b).
 pub(crate) const ERA5_FLIGHTS: usize = 7;
 /// Their mean absolute apogee error, percent, to a hundredth, as the report's summary gives it.
-pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.04;
+pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.06;
 
 /// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`). The flights it quotes test the
 /// simulation and the weather together, so they bound neither alone.
@@ -343,7 +343,7 @@ mod tests {
             format!("{ERA5_MEAN_ABSOLUTE_PERCENT:.2}")
         );
         assert!(reanalysis().contains("7 public flights flown in ERA5 weather missed"));
-        assert!(reanalysis().contains("by 6.04% on average"));
+        assert!(reanalysis().contains("by 6.06% on average"));
     }
 
     #[test]
