@@ -30,12 +30,13 @@ That row comes after apogee. The rows around it ([CATS Vega note][note], §4):
   fall of 5 m/s isn't a motion the coasting rocket can make.
 - The ground station's log also records each recovery channel's continuity, whether its igniter
   circuit is closed. Both channels read closed through 25.4 s, and the first reads open from
-  25.6 s, 2.0 s after the drogue event. The second does the same 2.0 s after the main event. So
-  the drogue charge most likely fires on a 2 s delay, about 1.8 s after the jump: the jump is not
-  its pressure pulse. This is an inference: each channel's open spell lasts exactly 2.0 s, and
-  the first opens again from 34.7 s, so what the column marks isn't documented. The jump's cause
-  is open. One reading is a transient as the computer changes state and its filter stops using
-  the accelerometer.
+  25.6 s, 1.8 s to 2.0 s after the drogue event (no packet falls between). The second opens 2.0 s
+  after the main event. So the drogue charge most likely fires on a 2 s delay, about 1.8 s after
+  the jump: the jump is not its pressure pulse. This is an inference: each channel's first open
+  spell lasts 2.0 s by the packets' times, and the first channel opens again at 34.7 s and stays
+  open to the log's end, so what the column marks isn't documented. The jump's cause is open. One
+  reading is a transient as the computer changes state and its filter stops using the
+  accelerometer.
 
 On four sister flights with the same computer, the filtered peak up to the apogee event sits
 within 0.6 m (2 ft) of a noise-free barometric apogee, and the computer's height formula and the
