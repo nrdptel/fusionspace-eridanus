@@ -44,7 +44,11 @@ pub(crate) fn closing_quotes(markdown: &str) -> String {
     for end in ends {
         out.push_str(&markdown[at..end]);
         // Each end was kept for starting with one of the two marks.
-        out.push(if markdown[end..].starts_with('\'') { '’' } else { '”' });
+        out.push(if markdown[end..].starts_with('\'') {
+            '’'
+        } else {
+            '”'
+        });
         at = end + 1;
     }
     out.push_str(&markdown[at..]);
@@ -63,12 +67,21 @@ mod tests {
 
     #[test]
     fn quotes_after_emphasis_links_and_math_close() {
-        assert_eq!(closing_quotes("*Tube fin rocket*'s margin"), "*Tube fin rocket*’s margin");
+        assert_eq!(
+            closing_quotes("*Tube fin rocket*'s margin"),
+            "*Tube fin rocket*’s margin"
+        );
         assert_eq!(closing_quotes("**bold**'s"), "**bold**’s");
         assert_eq!(closing_quotes("~~old~~'s"), "~~old~~’s");
-        assert_eq!(closing_quotes("[OpenRocket](https://x.org)'s"), "[OpenRocket](https://x.org)’s");
+        assert_eq!(
+            closing_quotes("[OpenRocket](https://x.org)'s"),
+            "[OpenRocket](https://x.org)’s"
+        );
         assert_eq!(closing_quotes("$C_D$'s value"), "$C_D$’s value");
-        assert_eq!(closing_quotes("\"the `hpr`\" command"), "\"the `hpr`” command");
+        assert_eq!(
+            closing_quotes("\"the `hpr`\" command"),
+            "\"the `hpr`” command"
+        );
     }
 
     #[test]
@@ -96,7 +109,10 @@ mod tests {
 
     #[test]
     fn a_table_cell_and_a_list_item_close_too() {
-        assert_eq!(closing_quotes("| a |\n|---|\n| `x`'s |\n"), "| a |\n|---|\n| `x`’s |\n");
+        assert_eq!(
+            closing_quotes("| a |\n|---|\n| `x`'s |\n"),
+            "| a |\n|---|\n| `x`’s |\n"
+        );
         assert_eq!(closing_quotes("- `x`'s item\n"), "- `x`’s item\n");
     }
 }
