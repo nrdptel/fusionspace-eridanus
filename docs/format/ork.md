@@ -3537,7 +3537,7 @@ reads. They are among the `.ork` files the checks use ([which files](#checked-in
 Some of those files are other people's private designs, so the counts are published but those
 files are not. OpenRocket 24.12 opens every written file whose original it opens. It flies each
 configuration it can fly (151) to the original's apogee within 0.002%. The largest difference is
-0.000191%.
+0.00005%.
 
 The written file is not a copy of the original. It is laid out afresh, and it states some values
 the original left to OpenRocket's defaults, such as each part's roll angle. Its root's `creator`
@@ -3681,16 +3681,16 @@ traced. A decision record comes before the bar moves.
 | configurations flown neither way | 18 |
 | configurations flown both ways | 151 |
 | within 0.002% of the original's apogee | 151 |
-| the same apogee to the last bit | 143 |
-| largest apogee difference | 0.000191% |
+| the same apogee to the last bit | 142 |
+| largest apogee difference | 0.00005% |
 
 - **Four designs don't open as written.** HPR Sim can't read two of them, so it writes nothing.
   OpenRocket refuses the exports of the other two with the same error as their originals.
 - **23 opened designs have nothing to fly.** They have no configuration, or none with a motor.
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
-- **Eight configurations differ, by OpenRocket's own spread.** All eight are in six private designs
-  (the report's row ending `imported/loft-fixtures`); the largest is 0.000191%. In those six
+- **Nine configurations differ, by OpenRocket's own spread.** All nine are in six private designs
+  (the report's row ending `imported/loft-fixtures`); the largest is 0.00005%. In those six
   designs, every number in the rocket that the two files share is the same to the bit. The
   originals flown again differ from their own record in 8 of the 151 configurations. One
   configuration flown 45 times (43 in fresh OpenRocket launches) spread over 0.00051%. Both are

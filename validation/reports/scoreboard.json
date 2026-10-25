@@ -442,7 +442,7 @@
       "cells": [
         {
           "tool": "openrocket",
-          "value": 0.000191,
+          "value": 0.00005,
           "count": 151,
           "source": "validation/reports/openrocket-export-flights.json /total/largest_percent",
           "milestone": null,
