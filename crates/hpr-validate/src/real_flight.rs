@@ -474,7 +474,8 @@ pub const FLIGHTS: [RealFlight; 7] = [
             altimeter: Altimeter::AssumedBarometric(
                 "the CATS Vega EuRoC 2023 required, its radio telemetry: the Kalman filter's \
                  height from a barometer and an accelerometer, sent in whole meters cut toward \
-                 zero, with no pressure; barometric assumed",
+                 zero (as matched on its sister flights' logs), with no pressure; barometric \
+                 assumed",
             ),
             pressure: None,
             gnss: None,
@@ -486,8 +487,8 @@ pub const FLIGHTS: [RealFlight; 7] = [
         },
         example_drag_source: "cavour_flight_sim.ipynb:250-251",
         note: "the log is read to 23.6 s, the first row the ground station tags Drogue: past it, \
-               the ejection charge's pressure pulse moves the radio telemetry's filtered height \
-               up to 2789 m; the coast's peak before it is 2785 m",
+               the radio telemetry's filtered height rises to 2789 m, most likely moved by the \
+               ejection charge's pressure pulse; the coast's peak before it is 2785 m",
         explanation: Explanation::Drag(
             "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the \
              apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power \
