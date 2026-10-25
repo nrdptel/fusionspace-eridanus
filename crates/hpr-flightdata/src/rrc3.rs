@@ -40,7 +40,7 @@
 //! | `Altitude` | [`Quantity::AltitudeAboveGround`] | `[ft]`, `[m]` | feet or meters, from the pressure (below); feet assumed if the pressure can't tell |
 //! | `Pressure` | [`Quantity::Pressure`] | `[mbar]`, `[hPa]`, × 100 Pa | hectopascals if the first row's value, on the pad, lies within 500 to 1,100 hPa (below) and the highest within the 10 to 1,200 mbar the RRC3 measures (RRC3 manual p. 9); otherwise kept as written |
 //! | `Velocity` | [`Quantity::Speed`], up positive | `[ft/s]`, `[mph]`, `[m/s]`, `[km/h]` (or the RRC3's `fps`, `mps`, `kph`) | measured against the altitude (below); otherwise kept as written |
-//! | `Temperature` | [`Quantity::Temperature`] | `[F]`, `[C]` | assumed: °F if the altitude is in feet, °C if in meters, as the RRC3's unit settings pair them (RRC3 manual p. 12) |
+//! | `Temperature` | [`Quantity::Temperature`] | `[F]`, `[C]` | kept as written, [`Quantity::Unrecognized`], with a note: the altitude's unit doesn't decide it (below) |
 //! | `Voltages` | [`Quantity::Voltage`] | `[V]` | assumed volts: the RRC3's battery voltage (mDACS manual p. 2), from a battery of at most 10 V (RRC3 manual p. 6) |
 //! | `Events` | [`FlightLog::events`] | | |
 //!
@@ -48,7 +48,13 @@
 //! manual p. 5), and the velocity's apart from the altitude's: as of 2026-10-12, 8 of the 50 RRC3
 //! files among the project's sample logs write their velocity in miles per hour beside an
 //! altitude in feet. The RRC3's own settings name four sets: feet, °F and ft/s; meters, °C and
-//! km/h; feet, °F and mph; meters, °C and m/s, the first the default (RRC3 manual p. 12).
+//! km/h; feet, °F and mph; meters, °C and m/s, the first the default (RRC3 manual p. 12). mDACS's
+//! export doesn't keep to them, so a temperature with no unit in brackets is kept as written
+//! (#852). Two public exports, both in feet, show it: one's temperature runs 47.2 to 43.2, which
+//! fits °C beside the three other sensors on its flight (41 °C to 50 °C) and as °F would be 8 °C,
+//! 26 K below the airport's air that afternoon; the other's runs 69.8 to 70.5, which fits °F
+//! beside its airport's 60.8 °F and as °C would be 54 K above it. No value range tells the two
+//! apart.
 //!
 //! *The pressure on the pad.* The RRC3 measures 10 to 1,200 mbar, but kilopascals (about 100 at
 //! sea level) and inches of mercury (about 30) lie within that too, so the first row's pressure,
@@ -743,9 +749,10 @@ fn build(
                 values: velocity.values.clone(),
             },
             Kind::Temperature => {
-                let decided =
-                    decide_temperature(values, units, length, &column.written, &mut log.notes);
-                log.temperature_k = Some(decided.values.clone());
+                let decided = decide_temperature(values, units, &column.written, &mut log.notes);
+                if decided.quantity == Quantity::Temperature {
+                    log.temperature_k = Some(decided.values.clone());
+                }
                 decided
             }
             Kind::Voltages => {
@@ -1356,30 +1363,27 @@ fn decide_velocity(
     }
 }
 
-/// The temperature's unit, from the header or assumed from the altitude's (module docs).
+/// The temperature in its header's unit, or kept as written when the header states none: the
+/// altitude's unit doesn't decide it (module docs).
 fn decide_temperature(
     values: &[f64],
     units: &HeaderUnits,
-    length: Length,
     written: &str,
     notes: &mut Vec<String>,
 ) -> Decided {
-    let unit = units.temperature.unwrap_or_else(|| {
-        let (unit, words) = match length {
-            Length::Feet => (Temperature::Fahrenheit, "degrees Fahrenheit"),
-            Length::Meters => (Temperature::Celsius, "degrees Celsius"),
-        };
+    let Some(unit) = units.temperature else {
         notes.push(format!(
-            "`{}` read in {words}, assumed: the altitude is in {}, and the RRC3's unit settings \
-             pair feet with °F and meters with °C (RRC3 manual p. 12), though mDACS sets each by \
-             its own preference (mDACS manual p. 5) and the file states neither; its values, as \
-             written, run {}",
+            "`{}` kept as written, its unit unknown: the file states none, and mDACS sets the \
+             temperature's unit by its own preference, apart from the altitude's (mDACS manual \
+             p. 5); its values, as written, run {}",
             short(written),
-            length.words(),
             span(values)
         ));
-        unit
-    });
+        return Decided {
+            quantity: Quantity::Unrecognized,
+            values: values.to_vec(),
+        };
+    };
     Decided {
         quantity: Quantity::Temperature,
         values: values.iter().map(|value| unit.kelvin(*value)).collect(),
@@ -1456,6 +1460,44 @@ mod tests {
 
     fn notes_starting<'a>(log: &'a FlightLog, start: &str) -> Vec<&'a String> {
         log.notes.iter().filter(|n| n.starts_with(start)).collect()
+    }
+
+    /// The `Temperature` column's values as written, from a header that gives it no unit.
+    fn temperature_as_written(log: &FlightLog) -> &[f64] {
+        let column = log.channels.iter().find(|c| c.column == "Temperature");
+        let column = column.unwrap();
+        assert_eq!(column.quantity, Quantity::Unrecognized);
+        &column.values
+    }
+
+    /// Neither unit is taken from the altitude's (#852). Two real files, both in feet, are
+    /// shaped here: one whose temperature, 47.2 falling to 43.2, is °C beside the other loggers
+    /// on its flight, and one whose 69.8 to 70.5 is °F beside the airport's air. Both keep their
+    /// numbers as written, and a bracketed unit is still read.
+    #[test]
+    fn an_unbracketed_temperature_is_kept_as_written_whatever_the_altitude() {
+        for (first, last) in [(47.2, 43.2), (69.8, 70.5)] {
+            let mut text = format!("{HEADER}\n");
+            for i in 0..5 {
+                let t = first + (last - first) * f64::from(i) / 4.0;
+                text.push_str(&format!(
+                    "{},{},{:.2},0,{t:.1}, -,9.2\n",
+                    f64::from(i) * 0.05,
+                    i,
+                    1_000.0 - 0.04 * f64::from(i)
+                ));
+            }
+            let log = read(&text).unwrap();
+            assert!(log.temperature_k.is_none());
+            let written = temperature_as_written(&log);
+            assert_eq!((written[0], written[4]), (first, last));
+        }
+        for (unit, kelvin) in [("[C]", 70.0 + 273.15), ("[F]", 294.261)] {
+            let header = HEADER.replace("Temperature", &format!("Temperature {unit}"));
+            let log = read(&format!("{header}\n0,0,1000,0,70, -,9.2\n")).unwrap();
+            let read_k = log.temperature_k.as_deref().unwrap()[0];
+            assert!((read_k - kelvin).abs() < 1e-3, "{unit}: {read_k}");
+        }
     }
 
     /// A pressure in hPa and a temperature in °F near the largest `f64` are finite as written and
@@ -1603,8 +1645,8 @@ mod tests {
         assert!(!recognizes("x\nTime,Altitude,Pressure,Velocity\n"));
     }
 
-    /// The common file: feet and ft/s decided from the file, °F and volts assumed, events at
-    /// their rows, the short tail's 1 Hz cells gaps.
+    /// The common file: feet and ft/s decided from the file, the temperature kept as written and
+    /// volts assumed, events at their rows, the short tail's 1 Hz cells gaps.
     #[test]
     fn decides_feet_and_feet_per_second_from_the_file() {
         let text = flight(300.0, 60.0, FOOT_M, 1.0 / FOOT_M, 2);
@@ -1617,7 +1659,7 @@ mod tests {
                 Quantity::AltitudeAboveGround,
                 Quantity::Pressure,
                 Quantity::Speed,
-                Quantity::Temperature,
+                Quantity::Unrecognized,
                 Quantity::Voltage
             ]
         );
@@ -1627,13 +1669,10 @@ mod tests {
             log.vertical_speed_m_s.as_deref().unwrap()[1],
             196.85 * FOOT_M
         ));
-        let temperature = log.temperature_k.as_deref().unwrap();
-        // 70 °F is 294.261 K (21.111 °C).
-        assert!(
-            (temperature[0] - 294.261).abs() < 1e-3,
-            "{}",
-            temperature[0]
-        );
+        // The altitude in feet doesn't make the temperature °F (#852): 70 as written, no kelvins.
+        assert!(log.temperature_k.is_none());
+        let temperature = temperature_as_written(&log);
+        assert_eq!(temperature[0], 70.0);
         let n = log.time_s.len();
         assert!(temperature[n - 2..].iter().all(|t| t.is_nan()));
         assert!(temperature[n - 3].is_finite());
@@ -1646,7 +1685,7 @@ mod tests {
             "`Altitude` read in feet, from the pressure: ",
             "`Velocity` read in feet per second, from the altitude: ",
             "`Pressure` read in hectopascals, from the values: ",
-            "`Temperature` read in degrees Fahrenheit, assumed: ",
+            "`Temperature` kept as written, its unit unknown: ",
             "`Voltages` read in volts, assumed: ",
             "`Time` read in seconds, assumed: ",
             "2 rows, the first on line ",
@@ -1690,9 +1729,11 @@ mod tests {
             notes_starting(&log, "`Altitude` read in meters, from the pressure: ").len(),
             1
         );
-        assert!(close(log.temperature_k.as_deref().unwrap()[0], 343.15));
+        // Nor do meters make it °C.
+        assert!(log.temperature_k.is_none());
+        assert_eq!(temperature_as_written(&log)[0], 70.0);
         assert_eq!(
-            notes_starting(&log, "`Temperature` read in degrees Celsius, assumed: ").len(),
+            notes_starting(&log, "`Temperature` kept as written, its unit unknown: ").len(),
             1
         );
     }
@@ -1834,7 +1875,7 @@ mod tests {
         let log = read(&text).unwrap();
         assert_eq!(log.events.len(), 1);
         assert_eq!(log.events[0].time_s, 0.05);
-        let temperature = log.temperature_k.as_deref().unwrap();
+        let temperature = temperature_as_written(&log);
         assert!(temperature[0].is_finite() && temperature[1].is_nan() && temperature[2].is_nan());
         assert!(log.notes.iter().any(|n| n.starts_with(
             "2 rows, the first on line 3, leave out the 1 Hz `Temperature` and `Voltages` cells: \
@@ -1843,7 +1884,7 @@ mod tests {
         // One 1 Hz column alone: four cells.
         let log = read("Time,Altitude,Pressure,Velocity,Temperature\n0,0,1000,0,70\n1,1,999.9,1\n")
             .unwrap();
-        assert!(log.temperature_k.as_deref().unwrap()[1].is_nan());
+        assert!(temperature_as_written(&log)[1].is_nan());
         // A file without 1 Hz columns has no short rows.
         let error = read("Time,Altitude,Pressure,Velocity,Events\n0,0,1000,0\n").unwrap_err();
         assert!(

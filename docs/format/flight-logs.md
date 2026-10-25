@@ -1880,12 +1880,12 @@ Most units come from the file's own column names or from the maker's manual. A f
 - The Blue Raven's `Current` is kept as written, unrecognized. The app's file states no unit. The
   Blue Raven's manual gives milliamperes only for another download. The values fit amperes better,
   but that is a size, not a source.
-- An RRC3's `Temperature` and `Voltages`, without units in brackets, are read in degrees
-  Fahrenheit, or Celsius when the altitude is in meters, and in volts. These units are assumed.
-  The RRC3's own unit settings pair feet with degrees Fahrenheit and meters with degrees Celsius
+- An RRC3's `Temperature`, without a unit in brackets, is kept as written, unrecognized. The
+  RRC3's own unit settings pair feet with degrees Fahrenheit and meters with degrees Celsius
   (*RRC3+/RRC3 User Manual*, rev. 1.71, p12). But mDACS writes each in its own preferred unit
-  (*mDACS User Manual*, rev. 1.71, p5), which the file doesn't name
-  ([evidence row G31](../evidence.md#g31)). Each record says so in a note.
+  (*mDACS User Manual*, rev. 1.71, p5), and the file doesn't name it. Two public files in feet
+  show both: one in degrees Celsius, one in Fahrenheit ([evidence row G31](../evidence.md#g31)).
+  Its `Voltages`, without a unit, are read in volts, assumed. Each record says so in a note.
 - GPS Visualizer's KML altitude is kept as written, unrecognized. The program takes its source's
   altitude as meters unless the source's column names feet. So its KML holds meters only if the
   source said which, and the file can't show whether it did. The one such sample, set beside a

@@ -19,7 +19,8 @@ fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
     matching[0]
 }
 
-/// The common export: seven columns, feet and ft/s decided from the file, °F and volts assumed,
+/// The common export: seven columns, feet and ft/s decided from the file, the temperature kept as
+/// written (its unit unstated, #852) and volts assumed,
 /// the last three rows without their temperature and voltage; a byte-order mark and CR LF.
 #[test]
 fn the_common_export_decides_feet_and_feet_per_second() {
@@ -37,19 +38,19 @@ fn the_common_export_decides_feet_and_feet_per_second() {
             ("Altitude", Quantity::AltitudeAboveGround),
             ("Pressure", Quantity::Pressure),
             ("Velocity", Quantity::Speed),
-            ("Temperature", Quantity::Temperature),
+            ("Temperature", Quantity::Unrecognized),
             ("Voltages", Quantity::Voltage),
         ]
     );
     assert_eq!(log.time_s.len(), 64);
-    // The second row: 16.45 ft, 983.00 hPa, 65.80 ft/s, 71.60 °F.
+    // The second row: 16.45 ft, 983.00 hPa, 65.80 ft/s, 71.60.
     assert!((log.altitude_m[1] - 16.45 * FOOT_M).abs() < 1e-12);
     assert!((log.channels[1].values[1] - 98_300.0).abs() < 1e-9);
     let speed = log.vertical_speed_m_s.as_deref().unwrap();
     assert!((speed[1] - 65.80 * FOOT_M).abs() < 1e-12);
-    let temperature = log.temperature_k.as_deref().unwrap();
-    // 71.6 °F is 22 °C, 295.15 K.
-    assert!((temperature[1] - 295.15).abs() < 1e-9, "{}", temperature[1]);
+    // The temperature as written: 71.6, its unit unstated.
+    let temperature = &log.channels[3].values;
+    assert_eq!(temperature[1], 71.6);
     // The last three rows leave the temperature and voltage out: gaps, not the event cell.
     assert!(temperature[60].is_finite());
     assert!(temperature[61..].iter().all(|t| t.is_nan()));
@@ -70,7 +71,8 @@ fn the_common_export_decides_feet_and_feet_per_second() {
         "`Velocity` read in feet per second, from the altitude: ",
     );
     note(&log, "`Pressure` read in hectopascals, from the values: ");
-    note(&log, "`Temperature` read in degrees Fahrenheit, assumed: ");
+    note(&log, "`Temperature` kept as written, its unit unknown: ");
+    assert!(log.temperature_k.is_none());
     note(&log, "`Voltages` read in volts, assumed: ");
     note(&log, "3 rows, the first on line 63, leave out the 1 Hz");
     insta::assert_json_snapshot!(log);
@@ -141,7 +143,7 @@ fn units_in_brackets_are_taken_as_written() {
 }
 
 /// A European-locale export: semicolons, decimal commas, and meters and m/s decided from the
-/// file; its temperature assumed in °C beside an altitude in meters.
+/// file; its temperature, which states no unit, kept as written beside an altitude in meters.
 #[test]
 fn a_european_export_reads_decimal_commas_and_decides_meters() {
     let log = import::read(include_bytes!("samples/rrc3-semicolon.csv")).unwrap();
@@ -151,11 +153,13 @@ fn a_european_export_reads_decimal_commas_and_decides_meters() {
         &log,
         "`Velocity` read in meters per second, from the altitude: ",
     );
-    note(&log, "`Temperature` read in degrees Celsius, assumed: ");
+    note(&log, "`Temperature` kept as written, its unit unknown: ");
     // The second row: 6,26 m and 25,04 m/s.
     assert!((log.altitude_m[1] - 6.26).abs() < 1e-12);
     assert!((log.vertical_speed_m_s.as_deref().unwrap()[1] - 25.04).abs() < 1e-12);
-    assert!((log.temperature_k.as_deref().unwrap()[0] - 294.15).abs() < 1e-9);
+    assert!(log.temperature_k.is_none());
+    let temperature = log.channels.iter().find(|c| c.column == "Temperature");
+    assert_eq!(temperature.unwrap().values[0], 21.0);
     insta::assert_json_snapshot!(log);
 }
 
@@ -380,4 +384,44 @@ fn a_record_that_stops_early_leaves_the_velocity_unknown() {
     assert_eq!(velocity_unit(&log), None);
     let kept = note(&log, "`Velocity` kept as written, its unit unknown: ");
     assert!(kept.contains("of the way up the climb"), "{kept}");
+}
+
+/// The two public exports of #852, read where `refs/` holds them (they aren't committed): both
+/// in feet, one's temperature °C by the other loggers on its flight (47.2 falling to 43.2), the
+/// other's °F by the airport's air (69.8 to 70.52). The altitude's unit can't tell them apart, so
+/// both are kept as written.
+#[test]
+fn two_public_exports_in_feet_keep_their_temperature_as_written() {
+    let refs = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../refs");
+    let files = [
+        (
+            "research/public-logs-evidence-gaps/cache-b/volta/RRC3_FLIGHT_DATA_2025_IREC.csv",
+            (47.2, 43.2),
+        ),
+        (
+            "research/sl-weighed-mass-flights/github-usfsoar/RRC3_Flight_Data_2024-12-21.csv",
+            (69.8, 70.52),
+        ),
+    ];
+    for (file, (first, last)) in files {
+        let Ok(bytes) = std::fs::read(refs.join(file)) else {
+            println!("{file} isn't under refs/: not read");
+            continue;
+        };
+        let log = import::read(&bytes).unwrap();
+        assert_eq!(log.format, LogFormat::Rrc3Csv);
+        note(&log, "`Altitude` read in feet, from the pressure: ");
+        note(&log, "`Temperature` kept as written, its unit unknown: ");
+        assert!(log.temperature_k.is_none(), "{file}");
+        let temperature = log.channels.iter().find(|c| c.column == "Temperature");
+        let temperature = temperature.unwrap();
+        assert_eq!(temperature.quantity, Quantity::Unrecognized);
+        let written: Vec<f64> = temperature
+            .values
+            .iter()
+            .copied()
+            .filter(|t| t.is_finite())
+            .collect();
+        assert_eq!((written[0], written[written.len() - 1]), (first, last));
+    }
 }
