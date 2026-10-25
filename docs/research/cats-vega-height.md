@@ -138,10 +138,10 @@ board was most likely not read after landing, and the telemetry apogee became th
   table's clock), velocity 1 to 0 m/s, every 0.1 s. The first Drogue packet, at 23.6 s, reads 2,781 m at −5 m/s; the
   next two read 2,787 m at 0 m/s and 2,789 m at +2 m/s; then the height falls [D1]. **Corrected 2026-10-25
   (ADR-293):** most likely not the ejection charge. In the merged logs both pyro columns read 1 (continuity) through
-  25.4 s; `pyro1` first reads 0 at 25.6 s, about 2 s after the Drogue event, as `pyro2` does 2.0 s after Main [D1]
-  (**Inference**: what the columns mark isn't documented, and `pyro1` reads 0 again from 34.7 s). The bump's cause is
-  open; a filter transient as the state changes is one reading. Lince's transient after its event lifted the Kalman
-  height to 3,608.63 m, 24 m above its coasting 3,584.48 m (and the median column to 3,668.5 m).
+  25.4 s; `pyro1` first reads 0 at 25.6 s, about 2 s after the Drogue event, as `pyro2` does 2.0 s after Main [D1], so
+  the charge most likely fires about 2 s after the event (**Inference**: what the columns mark isn't documented, and
+  `pyro1` reads 0 again from 34.7 s). The bump's cause is open; a filter transient as the state changes is one
+  reading. On Lince the Kalman height rose 24 m after its event, to 3,608.63 m (the median column to 3,668.5 m).
 - **Bounded.** The coasting Kalman peak is 2,785 m to 2,786 m (truncation). On Camões, Genesis and Lince the Kalman
   peak up to the apogee event is 1.11 m, 1.98 m and 3.13 m below the 9-sample median's, so Cavour's barometric apogee
   is about 2,786 m to 2,789 m (**Inference**, three sister flights; superseded: it was the median's, [filtered
