@@ -352,8 +352,8 @@ isn't searched, and a canopy's shock, however large, comes after the thrust.
 On the tests' short burn, gravity in, the part reads 40 g for 0.3 s. Then a drag of −8 g eases to
 nothing by 6 s. The drag's span holds past 2 g for about 1.7 s and the burn's for 0.3 s, but the
 burn's comes first. So the thrust says nothing. The pad's 1 g says nose up, and the top reads 40 g.
-Turned by the drag's span alone, as an earlier rule turned it, the top read 7.9 g. Two of the
-sample logs are withheld as `direction_unstated`.
+Turned by the drag's span alone, as an earlier rule turned it, the top read 7.9 g. Six sample
+logs are withheld as `direction_unstated`; [Checked against](#checked-against) says why.
 
 A sample that isn't a number or has no time is left out. So is one that repeats the time of the
 last kept, the first kept, as the height track keeps AltOS's rows that share a time. A part sampled
@@ -541,9 +541,9 @@ run's start inside the drogue's leg. Second, the descent from apogee to the open
 than 1.4 times the main's rate, by its median, as Debrief asks. Otherwise the descent shows one canopy (`one_canopy`): the
 drogue's descent is withheld, and the main's runs from apogee to landing. So a drogue no faster
 than the mark reads as one canopy, whatever its ratio to the main. The main's descent is then
-the whole descent's. In the tests, a drogue at 12 m/s (39 ft/s) over a main at 10 m/s (33 ft/s)
-reads as one canopy. The main's mark is 16 m/s (52 ft/s). Debrief's ratio of 1.4 would tell them
-apart. A rocket that came down under none reads the same way.
+the whole descent's. In the tests, a drogue at 15 m/s (49 ft/s) over a main at 10 m/s (33 ft/s)
+reads as one canopy. The main's mark is 16 m/s (52 ft/s). Debrief's ratio of 1.4 alone would tell
+them apart. A rocket that came down under none reads the same way.
 
 **Each leg's rate** is the filtered height it loses over the time it takes. The drogue's leg runs
 from apogee to the main's opening, and the main's from there to landing. A leg that loses no more than 3 m

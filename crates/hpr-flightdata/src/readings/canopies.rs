@@ -418,11 +418,12 @@ mod tests {
         assert!((main.from_s - apogee.time_s).abs() < 1e-9);
     }
 
-    /// A drogue at 12 m/s over a main at 10 m/s, no faster than the main's mark, 16 m/s, 1.6 times
-    /// its rate, reads as one canopy, though Debrief's ratio of 1.4 would tell them apart.
+    /// A drogue at 15 m/s over a main at 10 m/s, no faster than the main's mark, 16 m/s, 1.6 times
+    /// its rate, reads as one canopy, though Debrief's ratio of 1.4 alone would tell them apart:
+    /// 15 m/s is 1.5 times the main's.
     #[test]
     fn close_rates_are_one_canopy() {
-        let readings = read_all(&log(0.05, 0.0, flight(12.0, 150.0, 10.0)));
+        let readings = read_all(&log(0.05, 0.0, flight(15.0, 150.0, 10.0)));
         assert_eq!(readings.drogue_descent.reason(), Some(Reason::OneCanopy));
         assert!(readings.main_descent.value().unwrap().opening.is_none());
     }
