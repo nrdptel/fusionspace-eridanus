@@ -53,8 +53,8 @@
 //! (#852). Two public exports, both in feet, show it: one's temperature runs 47.2 to 43.2, which
 //! fits °C beside the three other sensors on its flight (41 °C to 50 °C) and as °F would be 8 °C,
 //! 26 K below the airport's air that afternoon; the other's runs 69.8 to 70.5, which fits °F
-//! beside its airport's 60.8 °F and as °C would be 54 K above it. No value range tells the two
-//! apart.
+//! beside its airport's 60.8 °F and as °C would be 54 K above it. Their values alone don't settle
+//! the unit; another record of the same flight did.
 //!
 //! *The pressure on the pad.* The RRC3 measures 10 to 1,200 mbar, but kilopascals (about 100 at
 //! sea level) and inches of mercury (about 30) lie within that too, so the first row's pressure,

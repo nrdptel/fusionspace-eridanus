@@ -391,6 +391,10 @@ fn a_record_that_stops_early_leaves_the_velocity_unknown() {
 /// other's °F by the airport's air (69.8 to 70.52). The altitude's unit can't tell them apart, so
 /// both are kept as written.
 #[test]
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the test reads files under refs/; not the pure core"
+)]
 fn two_public_exports_in_feet_keep_their_temperature_as_written() {
     let refs = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../refs");
     let files = [

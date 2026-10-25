@@ -661,7 +661,7 @@ found = "a candidate: STA-CARL2/sta-carl2-altimax/sta-carl2-altimax.xls, a secon
 [[row]]
 id = "G31"
 surface = "Flight-log readers"
-claim = "An RRC3's Temperature column that states no unit is kept as written, as two public files in feet hold one in °C and one in °F; its Voltages column that states none is read in volts"
+claim = "An RRC3's Temperature column that states no unit is kept as written; its Voltages column that states none is read in volts"
 pages = ["format/flight-logs.md#units-no-source-states"]
 kind = "reasoning"
 wanted = "real"
@@ -682,9 +682,9 @@ found = "a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export st
 [[row.searched]]
 on = "2026-10-20"
 looked = [
-  "public GitHub flight-log repositories, surveyed in docs/research/public-logs-evidence-gaps.md",
+  "public flight-log repositories on GitHub",
 ]
-found = "two RRC3 exports in feet whose temperature can be checked. Volta-Rocketry/CUBESAT-2026@eb7e7969's (no license) fits °C beside three other sensors on its flight; usfsoar/NSL_25-26_EECS@78e7344e's (MIT) fits °F beside its airport's air. Their voltages, 9.18 to 9.33 and 7.60 to 8.58, fit volts, a weak check"
+found = "two RRC3 exports in feet, checked against other records of their flights: one in °C, one in °F"
 
 [[row]]
 id = "G32"
