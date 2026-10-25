@@ -5,7 +5,8 @@
 //!
 //! The source doesn't say which literal ends up in a message: a refusal's `what` is written where
 //! the error is made, a warning's text is often built in one function and pushed in another. So
-//! the census reads more than the messages, which can only make the hold stricter:
+//! the census reads more than the messages. That holds a stock phrase or first person anywhere
+//! in the code's prose, though the extra prose also dilutes the rates:
 //!
 //! - **The files** ([`CRATES`]): each tracked `.rs` file under a crate's `src/`, less test code (an
 //!   item under `#[cfg(test)]`, and a module declared under it with the modules inside it) and

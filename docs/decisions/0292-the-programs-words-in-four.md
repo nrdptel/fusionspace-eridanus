@@ -145,16 +145,16 @@ lists each long sentence.
 2. **What it reads.** Each `#[error("…")]` text, and each other string literal in the code that
    reads as prose: three words or more, a placeholder counting as one, and at least one of them a
    word of letters. It doesn't read markup, comments, doc comments, byte strings or other
-   attributes. Markup is a literal that starts with a tag and holds a closing tag, an attribute or
-   a declaration: a piece of an SVG figure or of a file's XML. A note that only opens with an
-   element's name (`<Shape> is …`) is read. The help's attributes are held by the snapshots, and a
+   attributes. Markup is a literal that starts with a tag and holds a closing tag, a tag closed on
+   itself, an attribute, a declaration or a comment: a piece of an SVG figure or of a file's XML.
+   A note that only opens with an element's name (`<Shape> is …`) is read. The help's attributes are held by the snapshots, and a
    `reason = "…"` is read only by the code's readers. An `#[error(transparent)]`, or an `#[error]`
    text with no word of its own (`"{0}"`), passes on another error's text, which is read where
    it's written.
 3. **How it reads them.** Each line of a literal is a paragraph of a reference page. A placeholder
    (`{path}`, `{0:.1}`) is one code word, like text in backticks. The pieces a message joins at run
    time are read one by one. The census counts the literals with a placeholder, which it can't
-   see whole; pieces joined with no placeholder are read in pieces too, so the count is a floor.
+   see whole; pieces joined with no placeholder are read in pieces too, so the count is a guide, not a bound.
 4. **The hold.** There is one page a crate, named by its `src/` directory, and it's held as a help
    snapshot is (§4). No stock phrase, every rate within its limit (first person at zero), and both
    sentence targets. The report lists the ten pages beside the site's, with the census's counts.
