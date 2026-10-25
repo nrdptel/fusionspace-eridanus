@@ -22,7 +22,8 @@ official apogee.
 
 That row comes after apogee. The rows around it ([CATS Vega note][note], §4):
 
-- The coast reaches 2,785 m at 23.1 and 23.2 s, with the logged speed falling from 1 to 0 m/s.
+- In the CSV the record reads, the coast reaches 2,785 m at 23.1 and 23.2 s, with the logged
+  speed falling from 1 to 0 m/s.
 - The row at 23.6 s reads 2,781 m at −5 m/s. It is the first one the ground station's log tags
   with the drogue state ([drogue and main][glossary]).
 - The next two rows read 2,787 m and 2,789 m, then the height falls. Rising 8 m in 0.2 s from a
@@ -31,9 +32,10 @@ That row comes after apogee. The rows around it ([CATS Vega note][note], §4):
   circuit is closed. Both channels read closed through 25.4 s, and the first reads open from
   25.6 s, 2.0 s after the drogue event. The second does the same 2.0 s after the main event. So
   the drogue charge most likely fires on a 2 s delay, about 1.8 s after the jump: the jump is not
-  its pressure pulse. This is an inference: the first channel reads closed again from 27.6 s,
-  as a fired igniter's leads can when they touch. The jump's cause is open. One reading is a
-  transient as the computer changes state and its filter stops using the accelerometer.
+  its pressure pulse. This is an inference: each channel's open spell lasts exactly 2.0 s, and
+  the first opens again from 34.7 s, so what the column marks isn't documented. The jump's cause
+  is open. One reading is a transient as the computer changes state and its filter stops using
+  the accelerometer.
 
 On four sister flights with the same computer, the filtered peak up to the apogee event sits
 within 0.6 m (2 ft) of a noise-free barometric apogee, and the computer's height formula and the
@@ -50,8 +52,8 @@ reads the log's rows around apogee through the record and pins the cut: the last
 give the same apogee; the event's row is where the issue set the cut, and the drogue tag marks it
 in the team's own log.
 
-Lince, the only other Vega log cut by hand, is cut at 26.80 s, 0.75 s after its event and just before its
-filtered height swings by hundreds of meters. Cut at its event instead, its apogee reads 0.12 m
+Lince, the only other Vega log cut by hand, is cut at 26.80 s, 0.75 s after its event and just
+before its filtered height swings by hundreds of meters. Cut at its event instead, its apogee reads 0.12 m
 lower and the mean doesn't move at two decimals ([filtered column][filtered], §4), so it stays
 as it is.
 

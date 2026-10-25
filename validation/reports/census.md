@@ -125,7 +125,7 @@ For example, a 3% tolerance on a 1000 m apogee allows 30 m, and the census lets 
 
 ## Last accepted
 
-Reason: Cavour's log is read to its apogee event (#818): the post-ejection bump in its radio telemetry no longer counts as the logged apogee, 2,789 m to 2,785 m; the simulation is unchanged
+Reason: Cavour's log is read to its apogee event (#818, ADR-293): a jump in its radio telemetry's filtered height just after the event, before the drogue charge most likely fires, no longer counts as the logged apogee, 2,789 m to 2,785 m; the simulation is unchanged
 
 - regressed: real flights: cavour apogee: +5.628274% (112.57% of its scale) to +5.779985% (115.60%), slack 5.00e-3
 - improved: real flights: cavour climb: +4.491054% (149.70% of its scale) to +4.472701% (149.09%), slack 3.00e-3
