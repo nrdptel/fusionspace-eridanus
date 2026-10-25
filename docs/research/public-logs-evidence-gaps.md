@@ -97,7 +97,7 @@ today" is inferred from the readers' documented rules. **Inference** marks this 
   unlicensed). The RRC3 export states no units; its peak, 9,063.1, is feet (the Blue Raven gives 9,104.2 ft AGL),
   and its drogue and main (25.45 s, 113.30 s) match the Blue Raven's (27.0 s, 113.8 s). Its `Temperature` runs
   47.2 to 43.2. The Blue Raven reads 111.8 to 105.8 °F (44.3 to 41.0 °C), the team's board 50.27 to 47.95 °C and a
-  payload's sensor 42.03 °C at the pad. As °C the RRC3 sits among them; as °F, the reader's rule, it is 8.4 °C,
+  payload's sensor 42.03 °C at the pad. As °C the RRC3 sits among them; as °F, the old rule (#852), it is 8.4 °C,
   about 36 K too cold and 26 K below Midland airport's 94 °F that afternoon [S12].
 - **G31, the other way:** usfsoar's MIT RRC3 export, also in feet, reads 69.8 to 70.5: as °F, 21.0 to 21.4 °C
   against 60.8 °F (16.0 °C) at Plant City airport, 10.3 km away [S12]; as °C, 54 K above the air. mDACS's own
@@ -160,7 +160,7 @@ profile's noise over windows near the real ones (5 s, 15 s, 0.27 s, 1.8 s down t
 | G10 | Blue Raven + TeleMetrum, 2 flights | none | cite only | yes |
 | G11 | Baltasar payload log | CC BY 4.0 | partly (news only) | by header, maybe |
 | G30 | Cernier export voltages | none | partly | yes |
-| G31 | RRC3 °C in a feet file; °F in another | none; MIT | shows the rule wrong | reads, wrong unit |
+| G31 | RRC3 °C in a feet file; °F in another | none; MIT | shows the rule wrong | as written (#852) |
 
 ## What this suggests
 

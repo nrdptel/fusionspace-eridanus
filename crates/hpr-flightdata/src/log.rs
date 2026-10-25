@@ -35,7 +35,8 @@ pub struct FlightLog {
     #[serde(with = "optional_gaps", default)]
     #[schemars(with = "Option<Vec<Option<f64>>>")]
     pub vertical_speed_m_s: Option<Vec<f64>>,
-    /// The logger's temperature sensor, K; `None` if the file has no such column. It sits in the
+    /// The logger's temperature sensor, K; `None` if the file has no such column, or if its unit
+    /// can't be told (the column is then kept as written in `channels`). It sits in the
     /// electronics bay, so it reads the bay, not the air.
     #[serde(with = "optional_gaps", default)]
     #[schemars(with = "Option<Vec<Option<f64>>>")]

@@ -661,11 +661,11 @@ found = "a candidate: STA-CARL2/sta-carl2-altimax/sta-carl2-altimax.xls, a secon
 [[row]]
 id = "G31"
 surface = "Flight-log readers"
-claim = "An RRC3's Temperature and Voltages columns, which state no unit, are read in the units its manual pairs with the file's altitude unit"
+claim = "An RRC3's Temperature column that states no unit is kept as written; its Voltages column that states none is read in volts"
 pages = ["format/flight-logs.md#units-no-source-states"]
 kind = "reasoning"
 wanted = "real"
-not_checked = "the units, which are assumed; a file whose temperature or voltage can be checked against another record of the same flight"
+not_checked = "the voltage's unit, which is assumed; a file whose voltage can be checked against another record of the same flight"
 issue = 683
 
 [[row.searched]]
@@ -677,7 +677,14 @@ looked = [
   "RocketPy's Juno III data",
   "the private collection's RRC3 logs and the other loggers on their flights, counted only",
 ]
-found = "a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1, read as °C by the pairing rule. No other logger on that flight records temperature. RocketPaper@23d9271d's real Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units"
+found = "a partial answer: euroc21-team-data@ef54912c's STA-CARL2 RRC3 export states no units. Its altitude is in meters and its pad temperature 36.1. No other logger on that flight records temperature. RocketPaper@23d9271d's real Valetudo RRC3 file states `Temperature [°C]` beside both a feet and a meters altitude column. In the private collection, 90 RRC3 CSVs (copies included), 4 with bracketed units"
+
+[[row.searched]]
+on = "2026-10-20"
+looked = [
+  "public flight-log repositories on GitHub, and airport weather records",
+]
+found = "two RRC3 exports in feet, one in °C by three other sensors on its flight and one in °F by its airport's air, named in [§4 of the public-logs note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-logs-evidence-gaps.md#4-reader-paths-second-flights-and-units-g2-g6-g7-g30-g31). Their voltages fit volts, a weak check"
 
 [[row]]
 id = "G32"

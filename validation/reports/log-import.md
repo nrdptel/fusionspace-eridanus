@@ -1021,7 +1021,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | phone-launch-csv | `hPa` read in hectopascals, from its name and the pad | 8 |
 | rrc3-csv | `Altitude` read in feet, from the pressure | 47 |
 | rrc3-csv | `Pressure` read in hectopascals, from the values | 47 |
-| rrc3-csv | `Temperature` read in degrees Fahrenheit, assumed | 41 |
+| rrc3-csv | `Temperature` kept as written, its unit unknown | 41 |
 | rrc3-csv | `Time` read in seconds, from the step | 47 |
 | rrc3-csv | `Velocity` kept as written, its unit unknown | 2 |
 | rrc3-csv | `Velocity` read in feet per second, from the altitude | 36 |
