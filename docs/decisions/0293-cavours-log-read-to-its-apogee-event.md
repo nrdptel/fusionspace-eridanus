@@ -1,7 +1,7 @@
 # ADR-293: Cavour's log read to its apogee event (2026-10-25)
 
 - **Status:** accepted; corrects the logged apogee of one of the seven public real flights ([issue #818][i818]); the simulation is unchanged
-- **Summary:** Cavour's real-flight record reads its log only up to 23.6 s, the first row its ground station tags as the drogue event. Past it, the ejection charge's pressure pulse pushes the radio telemetry's filtered height up to 2,789 m. The coast peaked at 2,785 m before it. So the logged apogee falls from 2,789 m to 2,785 m, Cavour's error rises from +5.63% to +5.78%, and the mean absolute apogee error over the seven flights rises from 6.04% to 6.06%.
+- **Summary:** Cavour's real-flight record reads its log only up to 23.6 s, the first row its ground station tags as the drogue event. Past it, the ejection charge's pressure pulse pushes the radio telemetry's filtered height 4 m (13 ft) above the coast's peak. So the logged apogee falls to 2,785 m (9,137 ft), Cavour's error rises from +5.63% to +5.78%, and the mean absolute apogee error over the seven flights rises from 6.04% to 6.06%.
 - **Scoreboard:** `accuracy.public.hpr` worse in release 0.2, by the reference's correction, not a model's change.
 
 [i818]: https://github.com/nrdptel/fusionspace-eridanus/issues/818
