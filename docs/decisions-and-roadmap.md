@@ -321,6 +321,7 @@ until someone rewrites it in plainer words.
 | [ADR-290: The control abort's 30° measured from the launch elevation, and TP-1353's aileron points to Mach 2.96][adr-290] | The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as the IREC student competition's rule §7.3.1 words it, not 30° from vertical. [M6.5](#m6-5)'s supersonic tab check compares against NASA TP-1353's tail-fin ailerons from Mach 1.6 to 2.96, the range of the report's Figure 18 points. |  |
 | [ADR-291: The bench's chamber band from Fetter's seven printed peaks][adr-291] | The ground-test bench's ([M13.7](#m13-7)) seven 0.5 g black-powder shots in an empty chamber must give a mean peak from 23.68 to 33.85 psi (28.76 ± 5.08), the band from the seven peaks in Fetter's 2025 ejection-testing paper (Fig. 7-5) and their sample deviation; a correct logger lands inside about 93% of the time. The figure's printed mean and deviation, 28.49 and 4.04 psi, don't match those peaks. The band is fixed, so a logger whose shots scatter more doesn't get an easier test. |  |
 | [ADR-292: The program's words in four increments, the help first][adr-292] | [M0.14d](#m0-14d) covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held. |  |
+| [ADR-293: Cavour's log read to its apogee event][adr-293] | Cavour's real-flight record reads its log only up to 23.6 s, the first row its ground station tags as the drogue event. After that row the radio telemetry's filtered height jumps 8 m (26 ft) in 0.2 s, faster than the rocket can climb, about 2 s before the drogue charge most likely fires. So the logged apogee is the coast's peak, 2,785 m (9,137 ft), not the jump's 2,789 m (9,150 ft). Cavour's error rises from +5.63% to +5.78%, and the mean absolute apogee error over the seven flights rises from 6.04% to 6.06%. |  |
 
 ## The roadmap
 
@@ -1218,6 +1219,7 @@ is the milestone that added or will add that test.
 [adr-290]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0290-the-control-abort-attitude-from-the-launch-elevation.md
 [adr-291]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0291-the-chamber-test-from-fetters-printed-peaks.md
 [adr-292]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md
+[adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

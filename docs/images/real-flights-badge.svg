@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="527" height="20" role="img" aria-label="7 real flights: mean absolute apogee error 6.04% (target 5%, missed)">
-<title>7 real flights: mean absolute apogee error 6.04% (target 5%, missed)</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="527" height="20" role="img" aria-label="7 real flights: mean absolute apogee error 6.06% (target 5%, missed)">
+<title>7 real flights: mean absolute apogee error 6.06% (target 5%, missed)</title>
 <rect width="121" height="20" fill="#FFFFFF"/>
 <rect x="121" width="406" height="20" fill="#F5AF20"/>
 <g fill="none" stroke="#566079" stroke-width="1">
@@ -8,6 +8,6 @@
 </g>
 <g font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12">
 <text x="8" y="14" fill="#0B0F1C">7 real flights</text>
-<text x="129" y="14" fill="#0B0F1C">mean absolute apogee error 6.04% (target 5%, missed)</text>
+<text x="129" y="14" fill="#0B0F1C">mean absolute apogee error 6.06% (target 5%, missed)</text>
 </g>
 </svg>

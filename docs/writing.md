@@ -32,7 +32,7 @@ reads a page once and knows what it says. They also know how far to trust it.
 4. **Numbers carry their meaning.** Every number has a unit, and says what it is compared with:
    "apogee 1.2% above RocketPy's", not "1.2% error".
 5. **One fact, one precision.** The same fact is written with the same precision everywhere it
-   appears. If one page gives the real-flight apogee error as 6.04%, no other page rounds it to 6%.
+   appears. If one page gives the real-flight apogee error as 6.06%, no other page rounds it to 6%.
 6. **Labels are links.** An internal label, such as a milestone or a decision record, is a link
    with a few words of meaning, never bare. The site's checks enforce this one
    ([the documentation site decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0016-the-documentation-site-mdbook-over-docs-and.md)).

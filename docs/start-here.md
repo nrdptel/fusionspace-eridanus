@@ -562,7 +562,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   drag is well below the example's for two rockets. It's above it at high speed for Prometheus
   2022, which flies through Mach 1
   ([Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)).
-- **Against seven real flights, HPR Sim's apogees miss by 6.04% on average,** outside the 5%
+- **Against seven real flights, HPR Sim's apogees miss by 6.06% on average,** outside the 5%
   target, and by −8.90% to +10.40% one by one ([the register's row on these misses](evidence.md#g24)). HPR Sim's
   height is read the way each log's barometric altimeter reads the air. Four of the seven
   altimeters are assumed to be barometric ([the register's row on those altimeters](evidence.md#g21)). Drift and speed

@@ -44,9 +44,9 @@ $$
 \text{miss} = \frac{\text{simulated} - \text{logged}}{\text{logged}}
 $$
 
-For example, the public flight of Cavour, Politecnico di Torino, EuRoC 2023 read 2,789 m
-(9,150 ft) on its altimeter at the top. An altimeter riding HPR Sim's flight of its design would
-have read 2,946 m (9,665 ft). The miss is (2,946 − 2,789) / 2,789 = +5.63%
+For example, the public flight of Cavour, Politecnico di Torino, EuRoC 2023 read 2,785 m
+(9,137 ft) on its altimeter at the top. An altimeter riding HPR Sim's flight of its design would
+have read 2,946 m (9,665 ft). The miss is (2,946 − 2,785) / 2,785 = +5.78%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
@@ -70,8 +70,8 @@ checks how the first is coded, not what the two share.
 
 The 7 public flights are university teams' rockets, flown in a
 [reanalysis](glossary.md#reanalysis) of their days' weather, one of them in another year's
-([report][real-report]). HPR Sim's apogee missed them by 6.04% on average without signs, from
-−8.90% to +10.40% one by one. With signs the misses averaged −0.25%, so on these the highs and
+([report][real-report]). HPR Sim's apogee missed them by 6.06% on average without signs, from
+−8.90% to +10.40% one by one. With signs the misses averaged −0.22%, so on these the highs and
 lows nearly cancel. The average without signs is still outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 53,
 the larger set and the less flattering one ([the trust note's decision record][adr-211]).

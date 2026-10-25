@@ -18,7 +18,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 6.04,
+          "value": 6.06,
           "count": 7,
           "source": "validation/reports/real-flights.json /summary/mean_absolute_apogee_error_percent",
           "milestone": null,
@@ -162,7 +162,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": -0.25,
+          "value": -0.22,
           "count": 7,
           "source": "validation/reports/real-flights.json /summary/mean_apogee_error_percent",
           "milestone": null,
