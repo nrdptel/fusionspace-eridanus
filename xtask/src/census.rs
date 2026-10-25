@@ -177,7 +177,7 @@ mod tests {
         // from the rows.
         for (target, from, to) in [
             (CENSUS_JSON, "\"rows\": 30", "\"rows\": 31"),
-            ("README.md", "6.04%", "4.04%"),
+            ("README.md", "6.06%", "4.06%"),
         ] {
             let edited = |path: &Path| {
                 committed(path).map(|text| {
