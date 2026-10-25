@@ -142,8 +142,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - [ ] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
     when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
     `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
-    - [ ] **M0.14d1 The help.** *Done when:* a test pins each command's `--help` in a snapshot;
-      `xtask voice` reads them as help and holds each to the voice limits in CI; acceptance pass.
     - [ ] **M0.14d2 What the design commands say.** *Done when:* `xtask voice` reads a census of
       the errors, warnings and notes of `hpr-cli` and the nine crates ADR-292 §1 lists, and holds
       them in CI; acceptance pass.

@@ -98,6 +98,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c7 Recovery, staging and readings ([Phase 0](#phase-0-foundations))
 - M0.14c8 The file formats ([Phase 0](#phase-0-foundations))
 - M0.14c9 Flight logs, and every page held ([Phase 0](#phase-0-foundations))
+- M0.14d1 The help ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -648,6 +649,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
       site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
       with them, within its limits and the sentence targets, with an acceptance pass.
+  - **M0.14d** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+    - [x] **M0.14d1 The help.** *Done when:* a test pins each command's `--help` in a snapshot;
+      `xtask voice` reads them as help and holds each to the voice limits in CI; acceptance pass.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
