@@ -133,7 +133,9 @@ thrust is under half its peak, in the tail-off or a sustain phase, keeps the war
 **Amendment for M0.14d2: the census's rule and its tasks (2026-10-25).** The source doesn't say
 which literal ends up in a message. A refusal's `what` is written where the error is made, a
 warning's text is often built in one function and pushed in another, and a note can pass through a
-variable. So the census reads more than the messages. That can only make the hold stricter.
+variable. So the census reads more than the messages. That holds a stock phrase or first person
+anywhere in the code's prose, but the extra prose also dilutes the rates, so `--long --messages`
+lists each long sentence.
 
 1. **The files.** Each tracked `.rs` file under `src/` of the nine crates and of `hpr-cli`, less
    test code: an item under `#[cfg(test)]`, and a module declared under it, with the modules
@@ -142,23 +144,25 @@ variable. So the census reads more than the messages. That can only make the hol
    it waits).
 2. **What it reads.** Each `#[error("…")]` text, and each other string literal in the code that
    reads as prose: three words or more, a placeholder counting as one, and at least one of them a
-   word of letters. It doesn't read markup (a literal that starts with a tag, a piece of an SVG
-   figure or of a file's XML), comments, doc comments, byte strings or other attributes. The
-   help's attributes are held by the snapshots, and a `reason = "…"` is read only by the code's
-   readers. An `#[error(transparent)]` passes on another error's text, which is read where it's
-   written.
+   word of letters. It doesn't read markup, comments, doc comments, byte strings or other
+   attributes. Markup is a literal that starts with a tag and holds a closing tag, an attribute or
+   a declaration: a piece of an SVG figure or of a file's XML. A note that only opens with an
+   element's name (`<Shape> is …`) is read. The help's attributes are held by the snapshots, and a
+   `reason = "…"` is read only by the code's readers. An `#[error(transparent)]`, or an `#[error]`
+   text with no word of its own (`"{0}"`), passes on another error's text, which is read where
+   it's written.
 3. **How it reads them.** Each line of a literal is a paragraph of a reference page. A placeholder
    (`{path}`, `{0:.1}`) is one code word, like text in backticks. The pieces a message joins at run
-   time are read one by one, so the census counts the literals with a placeholder: the ones it
-   can't see whole.
+   time are read one by one. The census counts the literals with a placeholder, which it can't
+   see whole; pieces joined with no placeholder are read in pieces too, so the count is a floor.
 4. **The hold.** There is one page a crate, named by its `src/` directory, and it's held as a help
    snapshot is (§4). No stock phrase, every rate within its limit (first person at zero), and both
    sentence targets. The report lists the ten pages beside the site's, with the census's counts.
    `cargo xtask voice --long --messages` lists each long sentence with its file and line.
 
-On main (cdb01265), a first count of this kind read about 22,600 words. Two crates' pages were over
-the limit on long sentences: `hpr-sim` (0.89 per 100 words, and 14% of its sentences over 25 words)
-and `hpr-aero` (0.82). `hpr-cli`'s held six stock phrases. A census reads pieces, and a message is
+On main (cdb01265), this rule reads about 21,800 words. Two crates' pages were over the limit on
+long sentences: `hpr-sim` (0.90 per 100 words, and 31 of its 231 sentences over 25 words) and
+`hpr-aero` (0.82). `hpr-cli`'s page held six stock phrases. A census reads pieces, and a message is
 read whole, so the tasks below read the joined messages.
 
 **M0.14d2's tasks.** Each is done with the release build of `hpr` and the messages alone, then

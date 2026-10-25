@@ -482,7 +482,7 @@ radian:
 
 ```text
 apogee                399.1 m above the site at 8.46 s, not a prediction: unstable under power
-warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s) where hpr can give no static margin: the rocket is unstable under power, so its apogee is not a prediction
+warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s). HPR Sim can give no static margin then. The rocket is unstable under power, so its apogee is not a prediction
 ```
 
 With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibers, and the first flag

@@ -200,10 +200,19 @@ fn module_dir(path: &str) -> String {
     }
 }
 
-/// Whether a literal is markup, a piece of an SVG figure or a file's XML: it starts with a tag.
-/// The text such markup holds is written in a literal of its own, which is read.
+/// Whether a literal is markup, a piece of an SVG figure or a file's XML: it starts with a tag
+/// and holds a closing tag, a tag closed on itself, an attribute, a declaration or a comment.
+/// A message that only opens by naming an element (`<Shape> is ...`, the ORC reader's notes)
+/// is prose and is read. The text a figure shows is mostly written in a literal of its own;
+/// the few short labels written inside a tag (`not a prediction`) go with the markup.
 fn is_markup(text: &str) -> bool {
-    text.trim_start().starts_with('<')
+    let text = text.trim_start();
+    text.starts_with('<')
+        && (text.starts_with("<?")
+            || text.starts_with("<!")
+            || text.contains("</")
+            || text.contains("/>")
+            || text.contains("=\""))
 }
 
 /// Whether a literal's lines read as prose: three words or more, a code word counting as one,
@@ -781,6 +790,12 @@ const LAST: &str = "read after the skipped items";
         assert_eq!(read, ["the caption a figure shows"]);
         assert!(is_markup("  <g id=\"event\">"));
         assert!(!is_markup("give a value, not <FILE>"));
+        assert!(is_markup("\n</coordinates>\n"));
+        assert!(is_markup("<?xml version=\"1.0\"?>"));
+        assert!(is_markup("<!-- {} -->\n<engine-database>"));
+        assert!(is_markup("<name>{}</name>"));
+        assert!(!is_markup("<Shape> is `{}`, not one of CONICAL or OGIVE"));
+        assert!(!is_markup("<{name}> names a material of the wrong kind for the part"));
     }
 
     #[test]

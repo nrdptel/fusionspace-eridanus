@@ -224,8 +224,8 @@ impl EnvelopeFlag {
                 angle_of_attack_rad,
             } => format!(
                 "flies at {:.1}° angle of attack at {:.1} s, past the {:.0}° its aerodynamics \
-                 assume from {HIGH_ANGLE_GRACE_S:.0} s after the rail exit. Its numbers from then \
-                 on are rough",
+                 assume more than {HIGH_ANGLE_GRACE_S:.0} s after the rail exit. Its numbers from \
+                 then on are rough",
                 angle_of_attack_rad.value.to_degrees(),
                 angle_of_attack_rad.time_s,
                 HIGH_ANGLE_OF_ATTACK_RAD.to_degrees()
