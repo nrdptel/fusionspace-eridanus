@@ -41,10 +41,10 @@ split. ADR-285's hold carries over: once an increment's text passes, a check kee
    | M0.14d3 What the data commands say | the same for `hpr weather`, `hpr motors fetch` and `search`, and `hpr analyze`, from `hpr-cli` and `hpr-net`, `hpr-flightdata`, `hpr-analysis`, `hpr-forensics` | 96 `#[error]` attributes; roughly 30,000 words of literals |
    | M0.14d4 The Python package and the crates' front pages | the Python package's README, module and docstrings, `hpr-py`'s own messages, and each crate's `//!` docs; with M0.14d's own *done when* | about 9,400 words of docs, and about 65 of `hpr-py`'s literals |
 
-   A row's crates are where its messages are read. A crate the other row's commands also call is
-   read once, in the row that lists it. `hpr-cli`'s shared code (the dispatch, the output and the
-   option readers) and its other commands (`completions` and those not available yet) go with
-   M0.14d2.
+   Both rows list `hpr-cli`: each takes its own commands' code, and M0.14d2 also takes the shared
+   code (the dispatch, the output and the option readers) and the other commands (`completions`
+   and those not available yet). Any other crate is read once, in the row that lists it, though
+   the other row's commands call it too.
 
    `hpr-validate` is left out: it builds the validation reports, isn't published and prints
    nothing a user of `hpr` sees. Its 11 errors reach only the project's own tools.
