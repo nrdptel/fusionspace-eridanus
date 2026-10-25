@@ -560,9 +560,11 @@ written is left out with its reason, never flown some other way:
   burning if they lit strictly before the split;
 - a separation at a height on the way up (`altitudeascending`), which HPR Sim has no trigger for;
 - a negative delay on a separation HPR Sim would fly;
-- a motor lit at a word HPR Sim does not know, or by a stage below that holds no motor. A motor lit
-  by the charge of a stage below with motors in more than one mount. Which fires its charge first
-  is not measured. A motor lit by the charge of a motor below that states no delay;
+- a motor lit:
+  - at a word HPR Sim does not know, or by a stage below that holds no motor;
+  - by the charge of a stage below with motors in more than one mount (which fires its charge
+    first is not measured);
+  - by the charge of a motor below that states no delay;
 - a separation at the ignition of a motor that never lights, or at launch. One at launch is left out
   since HPR Sim's flight fires a separation only once the rocket is off the rod;
 - a configuration in which no motor lights.

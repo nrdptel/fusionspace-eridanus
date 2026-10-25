@@ -202,34 +202,39 @@ instant:
   of mass of that instant. This is RocketPy's `static_margin`. It changes only as propellant burns.
 - **Flight margin:** the center of pressure at the flight's own Mach number, still with the air
   along the axis, against that instant's center of mass. It is defined as RocketPy's
-  `stability_margin` is. RocketPy's `min_stability_margin` takes the least over its whole flight,
-  on the rail and in the descent too. It reads it at its solver's steps, so it can differ from HPR Sim's least
-  below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, HPR Sim's margin at the
-  flight's Mach number is within 0.016 calibers on 41 of the 53 flights of OpenRocket's own
-  examples. That is in calm air at rod clearance, where a rocket is still slow. HPR Sim's margin in
-  this comparison has the air along the rocket's axis (the 0° plane), as OpenRocket's does. It isn't
-  the margin in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
-  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis.
-  But `hpr sim` prints a least margin of −4.21 in the weakest plane. HPR Sim and OpenRocket differ as
-  follows. On the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
-  [tube fins](aero.md#tube-fins). On the three-stage example's three flights it is 0.039 to 0.058
-  below, cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185).
-  On the five of *Pods--airframes and winglets* it is 0.071 to 0.076 above, the flattering side,
-  [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
-  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326). On the three of
-  *Pods--powered with recovery deployment* it is 0.070 above, also not yet traced. On 35 flights of
-  private designs it is from 0.017 lower to 0.11 higher, cause not yet traced
-  ([Accuracy](../accuracy.md)). Near Mach 1, HPR Sim puts the Arcas Robin's center of pressure up to
-  2.36 calibers behind the wind tunnel's
-  ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)). So there its flight margin
-  reads high.
+  `stability_margin` is.
 
-  The Mach number moves the center of pressure. On a rocket with fins only at the tail it
-  generally moves aft until supersonic theory starts for the fins, Mach 1.2 or later. Their
-  slope grows, and from Mach 0.8 their own center moves aft too. Past that their slope falls and
-  the body's lift can grow, and the center of pressure mostly moves forward again
-  ([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
-  at its rail exit, at Mach 0.051, both margins read 3.09 calibers.
+RocketPy's `min_stability_margin` takes the least over its whole flight, on the rail and in the
+descent too. It reads it at its solver's steps, so it can differ from HPR Sim's least below. No
+page compares HPR Sim's margins with RocketPy's yet.
+
+Against OpenRocket, HPR Sim's margin at the flight's Mach number is within 0.016 calibers on 41 of
+the 53 flights of OpenRocket's own examples. That is in calm air at rod clearance, where a rocket
+is still slow. HPR Sim's margin in this comparison has the air along the rocket's axis (the 0°
+plane), as OpenRocket's does. It isn't the margin in HPR Sim's weakest plane (below). On
+`[C6-7; B6-0]` of *Pods--powered with recovery deployment*, HPR Sim's margin at rod clearance in
+the report is +3.74 calibers along the axis. But `hpr sim` prints a least margin of −4.21 in the
+weakest plane. At rod clearance in the 0° plane, HPR Sim's margin differs from OpenRocket's on:
+
+- the *Tube fin rocket*: 1.08 calibers below, [tube fins](aero.md#tube-fins);
+- the three-stage example's three flights: 0.039 to 0.058 below, cause not yet sized,
+  [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185);
+- the five of *Pods--airframes and winglets*: 0.071 to 0.076 above, the flattering side,
+  [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
+  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326);
+- the three of *Pods--powered with recovery deployment*: 0.070 above, also not yet traced;
+- 35 flights of private designs: from 0.017 lower to 0.11 higher, cause not yet traced
+  ([Accuracy](../accuracy.md)).
+
+The Mach number moves the center of pressure. On a rocket with fins only at the tail it generally
+moves aft until supersonic theory starts for the fins, Mach 1.2 or later. Their slope grows, and
+from Mach 0.8 their own center moves aft too. Past that their slope falls and the body's lift can
+grow, and the center of pressure mostly moves forward again
+([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
+at its rail exit, at Mach 0.051, both margins read 3.09 calibers. Near Mach 1, HPR Sim puts the
+Arcas Robin's center of pressure up to 2.36 calibers behind the wind tunnel's
+([Normal force through Mach 1](aero.md#normal-force-through-mach-1)). So there its flight margin
+reads high.
 
 **Both margins are the weakest direction's.** The air can cross a rocket from any direction around
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
