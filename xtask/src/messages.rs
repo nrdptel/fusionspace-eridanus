@@ -103,14 +103,7 @@ pub(crate) fn census(root: &Path) -> Result<Vec<Census>, String> {
     let dirs: Vec<String> = CRATES.iter().map(|c| format!("crates/{c}/src/")).collect();
     let refs: Vec<&str> = dirs.iter().map(String::as_str).collect();
     let tracked = crate::voice::tracked(root, &refs)?;
-    for (path, _) in LEFT_OUT {
-        if !tracked.iter().any(|file| file == path) {
-            return Err(format!(
-                "the message census leaves out {path}, which isn't tracked: update LEFT_OUT in \
-                 xtask/src/messages.rs"
-            ));
-        }
-    }
+    left_out_are_tracked(&tracked)?;
     let mut out = Vec::new();
     for dir in dirs {
         let mut files: Vec<(String, String)> = Vec::new();
@@ -130,6 +123,20 @@ pub(crate) fn census(root: &Path) -> Result<Vec<Census>, String> {
         out.push(census);
     }
     Ok(out)
+}
+
+/// Each file [`LEFT_OUT`] names is among the `tracked` ones, so a renamed file can't slip into
+/// the census, nor a left-out entry outlive its file.
+fn left_out_are_tracked(tracked: &[String]) -> Result<(), String> {
+    for (path, _) in LEFT_OUT {
+        if !tracked.iter().any(|file| file == path) {
+            return Err(format!(
+                "the message census leaves out {path}, which isn't tracked: update LEFT_OUT in \
+                 xtask/src/messages.rs"
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// The census of one crate's files, `(path, text)`: each file's literals, less [`LEFT_OUT`] and
@@ -347,10 +354,12 @@ fn lex(text: &str) -> Vec<Token> {
             let mut depth = 0;
             let mut j = i;
             while j < bytes.len() {
-                if text[j..].starts_with("/*") {
+                // Bytes, not `str` slices: a comment's text can hold characters of more than one
+                // byte, and `j` steps through them a byte at a time.
+                if bytes[j..].starts_with(b"/*") {
                     depth += 1;
                     j += 2;
-                } else if text[j..].starts_with("*/") {
+                } else if bytes[j..].starts_with(b"*/") {
                     depth -= 1;
                     j += 2;
                     if depth == 0 {
@@ -509,6 +518,8 @@ fn scan(text: &str) -> Scan {
     let mut found = Scan::default();
     let mut i = 0;
     let mut test_item = false;
+    // Whether only inner attributes have come so far: a `#![cfg(test)]` there is the file's own.
+    let mut at_head = true;
     while i < tokens.len() {
         if tokens[i] == Token::Punct('#') {
             let inner = tokens.get(i + 1) == Some(&Token::Punct('!'));
@@ -516,10 +527,17 @@ fn scan(text: &str) -> Scan {
             if tokens.get(open) == Some(&Token::Punct('[')) {
                 let close = matching(&tokens, open);
                 let body = &tokens[open + 1..close.min(tokens.len())];
+                at_head &= inner;
                 if is_cfg_test(body) {
-                    if inner {
+                    if inner && at_head {
                         found.whole_test = true;
                         return found;
+                    }
+                    if inner {
+                        // A module's own `#![cfg(test)]`, inside its braces: the rest of the
+                        // module is test code.
+                        i = block_end(&tokens, close + 1);
+                        continue;
                     }
                     test_item = true;
                 } else if let Some(text) = error_text(body) {
@@ -541,6 +559,7 @@ fn scan(text: &str) -> Scan {
                 continue;
             }
         }
+        at_head = false;
         if test_item {
             if let Some(module) = declared_module(&tokens[i..]) {
                 found.test_modules.push(module);
@@ -630,21 +649,55 @@ fn matching(tokens: &[Token], open: usize) -> usize {
     tokens.len()
 }
 
-/// Where the item starting at `start` ends: after its `;` outside any bracket, or after the `}`
-/// that closes its first top-level brace (a function's body, a module's, an `impl`'s).
+/// The words that start an item or a `let` statement, after any `pub` or `pub(...)`.
+const ITEM_WORDS: [&str; 15] = [
+    "fn", "mod", "impl", "struct", "enum", "union", "const", "static", "use", "type", "trait",
+    "extern", "unsafe", "async", "let",
+];
+
+/// Where the code under an outer `#[cfg(test)]` starting at `start` ends. An item or a `let`
+/// ends after its `;` outside any bracket, or after the `}` that closes its first top-level brace
+/// (a function's body, a module's, an `impl`'s). Anything else (an enum's variant, a struct's
+/// field, a match arm, an expression) ends at a `,` or `;` outside any bracket, or before the
+/// bracket that closes the list it's in.
 fn item_end(tokens: &[Token], start: usize) -> usize {
+    let mut first = start;
+    if tokens.get(first) == Some(&Token::Word("pub".to_owned())) {
+        first += 1;
+        if tokens.get(first) == Some(&Token::Punct('(')) {
+            first = matching(tokens, first) + 1;
+        }
+    }
+    let item = matches!(tokens.get(first), Some(Token::Word(word)) if ITEM_WORDS.contains(&word.as_str())
+        || word == "macro_rules");
     let mut depth = 0usize;
     for (k, token) in tokens.iter().enumerate().skip(start) {
         match token {
             Token::Punct('(' | '[' | '{') => depth += 1,
-            Token::Punct(')' | ']') => depth = depth.saturating_sub(1),
+            Token::Punct(')' | ']' | '}') if depth == 0 => return k,
+            Token::Punct(')' | ']') => depth -= 1,
             Token::Punct('}') => {
-                depth = depth.saturating_sub(1);
-                if depth == 0 {
+                depth -= 1;
+                if depth == 0 && item {
                     return k + 1;
                 }
             }
             Token::Punct(';') if depth == 0 => return k + 1,
+            Token::Punct(',') if depth == 0 && !item => return k + 1,
+            _ => {}
+        }
+    }
+    tokens.len()
+}
+
+/// Where the block holding `start` ends: after the bracket that closes it.
+fn block_end(tokens: &[Token], start: usize) -> usize {
+    let mut depth = 0usize;
+    for (k, token) in tokens.iter().enumerate().skip(start) {
+        match token {
+            Token::Punct('(' | '[' | '{') => depth += 1,
+            Token::Punct(')' | ']' | '}') if depth == 0 => return k + 1,
+            Token::Punct(')' | ']' | '}') => depth -= 1,
             _ => {}
         }
     }
@@ -731,6 +784,51 @@ const LAST: &str = "read after the skipped items";
         );
         assert_eq!(scanned.test_modules, ["testing"]);
         assert!(scan("#![cfg(test)]\nfn f() { let _ = \"x y z\"; }").whole_test);
+        assert!(scan("#![allow(dead_code)]\n#![cfg(test)]\nfn f() {}").whole_test);
+    }
+
+    /// A `#[cfg(test)]` on a variant, a field or a match arm skips that one, not the list it's
+    /// in, and a module's own `#![cfg(test)]` skips that module, not the rest of the file.
+    #[test]
+    fn a_test_variant_field_or_module_skips_only_itself() {
+        let read = |source: &str| -> Vec<String> {
+            let scanned = scan(source);
+            assert!(!scanned.whole_test, "{source}");
+            scanned.literals.into_iter().map(|l| l.text).collect()
+        };
+        assert_eq!(
+            read("enum E { #[cfg(test)] A, #[error(\"real one here\")] B, }"),
+            ["real one here"]
+        );
+        assert_eq!(
+            read(
+                "struct S { #[cfg(test)] pub a: HashMap<u8, u8>, b: u8 } \
+                 const C: &str = \"after the struct\";"
+            ),
+            ["after the struct"]
+        );
+        assert_eq!(
+            read(
+                "fn f(x: u8) -> &'static str { match x { #[cfg(test)] 0 => \"a test arm\", \
+                 _ => \"the other arm\" } }"
+            ),
+            ["the other arm"]
+        );
+        assert_eq!(
+            read(
+                "fn a() { let _ = \"first words here\"; } mod t { #![cfg(test)] \
+                 fn x() { let _ = \"test words here\"; } } fn b() { let _ = \"later words here\"; }"
+            ),
+            ["first words here", "later words here"]
+        );
+    }
+
+    /// A block comment's text can hold characters of more than one byte.
+    #[test]
+    fn a_block_comment_may_hold_any_character() {
+        let scanned = scan("/* a → b, /* ° */ ü */ fn f() { let _ = \"x y z\"; }");
+        let read: Vec<&str> = scanned.literals.iter().map(|l| l.text.as_str()).collect();
+        assert_eq!(read, ["x y z"]);
     }
 
     #[test]
@@ -817,6 +915,7 @@ const LAST: &str = "read after the skipped items";
         assert!(is_markup("<?xml version=\"1.0\"?>"));
         assert!(is_markup("<!-- {} -->\n<engine-database>"));
         assert!(is_markup("<name>{}</name>"));
+        assert!(is_markup("<br/>"));
         assert!(!is_markup("<Shape> is `{}`, not one of CONICAL or OGIVE"));
         assert!(!is_markup(
             "<{name}> names a material of the wrong kind for the part"
@@ -841,5 +940,13 @@ const LAST: &str = "read after the skipped items";
                 .messages
                 .is_empty()
         );
+        let mut tracked: Vec<String> = LEFT_OUT
+            .iter()
+            .map(|(path, _)| (*path).to_owned())
+            .collect();
+        assert_eq!(left_out_are_tracked(&tracked), Ok(()));
+        tracked.remove(2);
+        let error = left_out_are_tracked(&tracked).unwrap_err();
+        assert!(error.contains(LEFT_OUT[2].0), "{error}");
     }
 }

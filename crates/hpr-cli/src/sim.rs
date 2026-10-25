@@ -1402,7 +1402,7 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
         }
         let Some(digest) = &motor.digest else {
             missing.unfetched.push(format!(
-                "{} records no digest, and a fetched curve is supplied by its digest",
+                "The file records no curve digest for {}, so its curve can't be fetched",
                 motor.designation
             ));
             continue;
@@ -1999,11 +1999,11 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             let mut notes: Vec<String> = Vec::new();
             for fetched in &missing.fetched {
                 let whose = if fetched.openrocket {
-                    "the file whose curve is the one OpenRocket flies for the digest the file \
-                     records, as HPR Sim's table of OpenRocket's examples' motors matches them"
+                    "the one OpenRocket flies for the curve digest the file records, by HPR Sim's \
+                     table of the motors in OpenRocket's examples"
                 } else {
-                    "found by the manufacturer and designation of the motor whose digest it \
-                     records, it may not be the curve OpenRocket flies"
+                    "found by the motor's manufacturer and designation, so it may not be the curve \
+                     OpenRocket flies"
                 };
                 let note = format!(
                     "`{}` has no curve in the file or the bundled catalog, so it flies \
@@ -2360,9 +2360,16 @@ impl Read {
                         || "the rocket".to_owned(),
                         |c| format!("configuration {}", ork_label(c)),
                     );
+                    // Where the file's own motors can't fly it either, the file must change.
+                    let help = if chosen.is_some_and(|c| c.left_out.is_some()) {
+                        "open the design in OpenRocket, change what the message names, and save \
+                         it: neither the file's motors nor --motor can fly it as it is"
+                    } else {
+                        "run it again without --motor to fly the file's own motors"
+                    };
                     return Err(Failure::helped(
                         format!("{what} can't be flown with a motor of your own: {why}"),
-                        "run it again without --motor to fly the file's own motors",
+                        help,
                     ));
                 }
                 chosen.map(|c| {
@@ -2537,7 +2544,17 @@ fn motor_fixes(why: ork::NotFlown) -> bool {
 }
 
 /// `text` with its first letter in upper case, to start a sentence of a message after its first.
+/// A text that opens with a name from the file (a motor's designation, a part's name) is left as
+/// it is: only a first word of lower-case letters is the program's own.
 fn capitalized(text: &str) -> String {
+    let first_word = text.split([' ', ',', ':']).next().unwrap_or_default();
+    if first_word.is_empty()
+        || !first_word
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b == b'\'')
+    {
+        return text.to_owned();
+    }
     let mut chars = text.chars();
     chars
         .next()

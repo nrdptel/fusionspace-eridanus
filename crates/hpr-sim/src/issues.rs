@@ -526,8 +526,10 @@ impl IssueWarning {
     #[must_use]
     pub fn message(&self) -> String {
         let mach = self.max_mach.value;
+        // Two sentences; the second's "then" keeps it under the first's condition, where a
+        // note has one ("If these fins are sharp, ...").
         let low = "the apogee, the top speed and the drift read low. The flutter margin and the \
-                   largest dynamic pressure look better than they are";
+                   largest dynamic pressure then look better than they are";
         let what = match self.issue {
             KnownIssue::TransonicNoseDrag => format!(
                 "a cone-like nose's or shoulder's pressure drag reads high from Mach \
@@ -605,7 +607,7 @@ impl IssueWarning {
                 "skin friction is taken as fully turbulent, but on a smooth surface the flow stays \
                  laminar near the nose, where friction is lower. HPR Sim's drag reads high by \
                  {LAMINAR_FRICTION_PERCENT}% on RocketPy's Calisto at Mach 0.3. If this surface \
-                 is that smooth, the drag reads high. So {low}"
+                 is that smooth, {low}"
             ),
             KnownIssue::FreeformFinCenterOfPressure => format!(
                 "a kinked freeform fin's center of pressure sat 1.6 mm aft of OpenRocket's \
@@ -1904,6 +1906,45 @@ mod tests {
         );
         assert!(!message.contains("This flight reaches"), "{message}");
         assert!(warning.parts.is_empty());
+    }
+
+    /// Where a drag note's error is conditional, both of its consequences stay under the
+    /// condition: the second sentence says "then", and none says the margin looks better outright.
+    #[test]
+    fn a_conditional_drag_note_keeps_its_condition_on_both_consequences() {
+        for (issue, condition) in [
+            (
+                KnownIssue::TurbulentFriction,
+                "If this surface is that smooth, the apogee",
+            ),
+            (
+                KnownIssue::SharpFinDrag,
+                "If these fins are sharp, the apogee",
+            ),
+            (
+                KnownIssue::SupersonicPressureDrag,
+                "If HPR Sim's drag is high, the apogee",
+            ),
+            (
+                KnownIssue::SubsonicBoattailDrag,
+                "Where its drag reads high, the apogee",
+            ),
+        ] {
+            let message = IssueWarning {
+                issue,
+                max_mach: at(0.3).unwrap(),
+                parts: Vec::new(),
+                detail: None,
+            }
+            .message();
+            assert!(
+                message.contains(&format!(
+                    "{condition}, the top speed and the drift read low. The flutter margin and the \
+                     largest dynamic pressure then look better than they are"
+                )),
+                "{message}"
+            );
+        }
     }
 
     #[test]

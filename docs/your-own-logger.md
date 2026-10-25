@@ -209,12 +209,12 @@ burnout           withheld: as for the top acceleration; and burnout from the sp
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated. They are as right as those units are. Each reading states the
-bound its error stayed within on HPR Sim's synthetic flights. They span 500 to 0.5 samples a second,
-steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right. Check a unit against a known height, such as the launch site's elevation from a GPS altitude.
-For a record, go by the logger's own figures.
+bound its error stayed within on HPR Sim's synthetic flights. They cover rates from 500 to 0.5
+samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if
+the units are right. Check a unit against a known height, such as the launch site's elevation from a
+GPS altitude. For a record, go by the logger's own figures.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 
@@ -296,12 +296,12 @@ burnout           withheld: as for the top acceleration; and burnout from the sp
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated. They are as right as those units are. Each reading states the
-bound its error stayed within on HPR Sim's synthetic flights. They span 500 to 0.5 samples a second,
-steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right. Check a unit against a known height, such as the launch site's elevation from a GPS altitude.
-For a record, go by the logger's own figures.
+bound its error stayed within on HPR Sim's synthetic flights. They cover rates from 500 to 0.5
+samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if
+the units are right. Check a unit against a known height, such as the launch site's elevation from a
+GPS altitude. For a record, go by the logger's own figures.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: read under a header line the caller stated, the rows' own header missing
 ```
@@ -364,12 +364,12 @@ burnout           withheld: as for the top acceleration; and burnout from the sp
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated. They are as right as those units are. Each reading states the
-bound its error stayed within on HPR Sim's synthetic flights. They span 500 to 0.5 samples a second,
-steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right. Check a unit against a known height, such as the launch site's elevation from a GPS altitude.
-For a record, go by the logger's own figures.
+bound its error stayed within on HPR Sim's synthetic flights. They cover rates from 500 to 0.5
+samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if
+the units are right. Check a unit against a known height, such as the launch site's elevation from a
+GPS altitude. For a record, go by the logger's own figures.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
 ```
@@ -405,12 +405,12 @@ burnout           withheld: as for the top acceleration; and burnout from the sp
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated. They are as right as those units are. Each reading states the
-bound its error stayed within on HPR Sim's synthetic flights. They span 500 to 0.5 samples a second,
-steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right. Check a unit against a known height, such as the launch site's elevation from a GPS altitude.
-For a record, go by the logger's own figures.
+bound its error stayed within on HPR Sim's synthetic flights. They cover rates from 500 to 0.5
+samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if
+the units are right. Check a unit against a known height, such as the launch site's elevation from a
+GPS altitude. For a record, go by the logger's own figures.
 More: https://hpr.fusionspace.co/your-own-logger.html
 note: read from the block `flight` of a console capture, line 2: 4016 bytes of base64 decoded
 note: 251 binary records read by the caller's layout, written out as a table and read by its header
@@ -597,12 +597,12 @@ burnout           withheld: burnout from the speed's peak needs the top speed, w
 
 How far to trust it. The logger's own samples, read by HPR Sim in the units your mapping, layout or
 FIP header states, not simulated. They are as right as those units are. Each reading states the
-bound its error stayed within on HPR Sim's synthetic flights. They span 500 to 0.5 samples a second,
-steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log can't support is
-withheld, with the reason. The top speed is derived from the heights, and withheld from Mach 0.8,
-where a barometer's port may read the flow over the nose. Those bounds hold only if the units are
-right. Check a unit against a known height, such as the launch site's elevation from a GPS altitude.
-For a record, go by the logger's own figures.
+bound its error stayed within on HPR Sim's synthetic flights. They cover rates from 500 to 0.5
+samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. Those bounds hold only if
+the units are right. Check a unit against a known height, such as the launch site's elevation from a
+GPS altitude. For a record, go by the logger's own figures.
 More: https://hpr.fusionspace.co/your-own-logger.html
 ```
 

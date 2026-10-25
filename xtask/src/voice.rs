@@ -55,10 +55,13 @@ pub const USAGE: &str =
                            prints the report (after `--`, a path may start with `-`). Fails on
                            a stock phrase, and with no path on a held page over a limit or
                            missing a sentence target (ADR-285). The held pages include
-                           the census of the design commands' messages (M0.14d2), one
+                           the census of the design commands' messages (ADR-292), one
                            page a crate, read from its source.
   voice --long --messages  List each sentence over 25 words in that census, one a line with
                            the file and line of its literal.
+  voice --messages         Print the whole census, a crate at a time: each line it read, with
+                           the file and line of its literal, code shown as `…`. For reading
+                           the messages through.
   voice --long [--] PATH...
                            List each sentence over 25 words on the pages at PATH, one a line
                            with its file, line and length, code and math shown as `…`. It
@@ -776,6 +779,22 @@ pub fn run(args: &[String]) -> Result<(), String> {
         println!("{count} {noun} over {LONG_WORDS} words in the message census");
         return Ok(());
     }
+    if !long && args.first().is_some_and(|arg| arg == "--messages") {
+        if args.len() > 1 {
+            return Err(format!("usage:\n{USAGE}"));
+        }
+        let root = crate::designs::root()?;
+        let mut count = 0;
+        for census in crate::messages::census(&root)? {
+            println!("## {}", census.dir);
+            for line in census_lines(&census) {
+                println!("{line}");
+                count += 1;
+            }
+        }
+        println!("{count} lines in the message census");
+        return Ok(());
+    }
     // After `--`, every argument is a path, even one that starts with `-`.
     let args = match args.split_first() {
         Some((first, rest)) if first == "--" => rest,
@@ -1102,6 +1121,23 @@ fn census_page(census: &crate::messages::Census) -> Page {
         with_placeholder: census.with_placeholder,
     });
     page
+}
+
+/// Each line of a crate's message census, as `file:line: text`, code shown as `…`.
+fn census_lines(census: &crate::messages::Census) -> Vec<String> {
+    census
+        .messages
+        .iter()
+        .flat_map(|message| {
+            message.lines.iter().map(|line| {
+                let shown: Vec<String> = line
+                    .split_whitespace()
+                    .map(|token| token.replace(CODE, "`…`"))
+                    .collect();
+                format!("{}:{}: {}", message.file, message.line, shown.join(" "))
+            })
+        })
+        .collect()
 }
 
 /// Each sentence over 25 words in a crate's message census, as `file:line: N words: sentence`.
@@ -2233,10 +2269,13 @@ fn census_table(out: &mut String, pages: &[Page]) {
     let _ = writeln!(
         out,
         "\n## What the design commands say\n\n\
-         Each `src/` page above is a crate's message census (M0.14d2): its `#[error]` texts and \
-         the other string literals in its code that read as prose, less its tests and the files \
-         of the data commands. A forwarded error passes on another's text. A literal with a \
-         placeholder is read in pieces, and the census doesn't see what fills it.\n\n\
+         Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisions/\
+         0292-the-programs-words-in-four.md), the plan for the program's words): its `#[error]` \
+         texts and the other string literals in its code that read as prose, less its tests, \
+         its markup and, in `hpr-cli`, the five files of the data commands (`analyze.rs`, \
+         `weather.rs`, `motor_fetch.rs`, `motor_search.rs` and `waiting.rs`). A forwarded error \
+         passes on another's text. A literal with a placeholder is read in pieces, and the census \
+         doesn't see what fills it. `cargo xtask voice --messages` prints every line it read.\n\n\
          | Crate | Files | Literals read | `#[error]` texts | Forwarded | With a placeholder |\n\
          |---|---:|---:|---:|---:|---:|"
     );
@@ -3001,6 +3040,47 @@ mod tests {
     }
 
     /// A held list for the tests: the two pages held beside the table of contents and one it lists.
+    /// A census page names the file and line of a stock phrase, `--long --messages` lists the
+    /// sentence over 25 words and not the one of 25, and `--messages` prints every line, a code
+    /// word as `…`.
+    #[test]
+    fn a_census_page_points_at_its_source() {
+        let message = |line: usize, text: &str| crate::messages::Message {
+            file: "crates/x/src/a.rs".to_owned(),
+            line,
+            error: false,
+            lines: vec![text.to_owned()],
+        };
+        let twenty_five = vec!["word"; 25].join(" ");
+        let twenty_six = vec!["word"; 26].join(" ");
+        let census = crate::messages::Census {
+            dir: "crates/x/src/".to_owned(),
+            files: 1,
+            messages: vec![
+                message(3, &format!("{twenty_five}.")),
+                message(9, "give a number of meters"),
+                message(14, &format!("{twenty_six}. A short one")),
+                message(20, &format!("the {CODE} file")),
+            ],
+            forwarded: 0,
+            with_placeholder: 1,
+        };
+        let long = census_long(&census);
+        assert_eq!(long.len(), 1, "{long:?}");
+        assert!(
+            long[0].starts_with("crates/x/src/a.rs:14: 26 words: "),
+            "{long:?}"
+        );
+        let error = stock_failure(&[census_page(&census)]).unwrap_err();
+        assert!(
+            error.starts_with("crates/x/src/a.rs:9: \"a number of\""),
+            "{error}"
+        );
+        let lines = census_lines(&census);
+        assert_eq!(lines.len(), 4);
+        assert_eq!(lines[3], "crates/x/src/a.rs:20: the `…` file");
+    }
+
     fn held_for_tests() -> Vec<String> {
         held_from("# Summary\n\n[Start here](start-here.md)\n").unwrap()
     }

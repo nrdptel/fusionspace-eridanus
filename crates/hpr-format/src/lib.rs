@@ -579,7 +579,7 @@ pub fn to_json(document: &DesignFile) -> Result<String, FormatError> {
     match from_json(&text) {
         Ok(back) if back == *document => Ok(text),
         Ok(_) => Err(FormatError::NotRepresentable(
-            "a value reads back different".to_owned(),
+            "a value reads back differently".to_owned(),
         )),
         Err(error) => Err(FormatError::NotRepresentable(error.to_string())),
     }

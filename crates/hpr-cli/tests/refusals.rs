@@ -96,6 +96,17 @@ fn cases(folder: &Path) -> Vec<Case> {
         ),
         // A motor file given where the design goes.
         case(&["sim", &bad_eng], "is a motor file: give it with --motor"),
+        // A design neither its own motors nor --motor can fly: the file must change.
+        case(
+            &[
+                "sim",
+                &repo("validation/fixtures/ork/loft-demo/demo-quirks.ork"),
+                "--motor",
+                "G84",
+                "--offline",
+            ],
+            "neither the file's motors nor --motor can fly it as it is",
+        ),
         // A run asked for no flights.
         case(
             &["mc", &guide, "--runs", "0"],

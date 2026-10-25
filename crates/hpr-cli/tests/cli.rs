@@ -2391,13 +2391,13 @@ fn a_digest_the_table_holds_asks_for_openrockets_file() {
     let notes_of_openrockets = notes(cache_with(&wanted.clone().preferring(openrocket)).path());
     assert!(
         notes_of_openrockets.contains(&format!("file {openrocket}"))
-            && notes_of_openrockets.contains("the file whose curve is the one OpenRocket flies"),
+            && notes_of_openrockets.contains("the one OpenRocket flies for the curve digest"),
         "{notes_of_openrockets}"
     );
     let notes_of_rasp = notes(cache_with(&wanted).path());
     assert!(
         notes_of_rasp.contains("file f000000000000000000000a3")
-            && notes_of_rasp.contains("it may not be the curve OpenRocket flies"),
+            && notes_of_rasp.contains("so it may not be the curve OpenRocket flies"),
         "{notes_of_rasp}"
     );
     let output = hpr(&["sim", &path]);
