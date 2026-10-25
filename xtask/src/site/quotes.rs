@@ -36,7 +36,9 @@ pub(crate) fn closing_quotes(markdown: &str) -> String {
         })
         .filter(|&end| markdown[end..].starts_with(['\'', '"']))
         .collect();
-    // Nested spans can end at the same byte (`*`code`*`).
+    // A span nested in another ends before the outer one's delimiter (`*`a`*`'s: the code at the
+    // `*`), so only the outer end is followed by the mark; two ends at one byte would write the
+    // mark twice and slice backwards, so keep one should they ever meet.
     ends.sort_unstable();
     ends.dedup();
     let mut out = String::with_capacity(markdown.len() + 2 * ends.len());
@@ -85,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn nested_spans_ending_together_change_the_mark_once() {
+    fn nested_spans_close_the_mark_after_the_outer_one() {
         assert_eq!(closing_quotes("*`hpr`*'s"), "*`hpr`*’s");
         assert_eq!(closing_quotes("[`hpr`](x)'s"), "[`hpr`](x)’s");
     }
@@ -114,5 +116,6 @@ mod tests {
             "| a |\n|---|\n| `x`’s |\n"
         );
         assert_eq!(closing_quotes("- `x`'s item\n"), "- `x`’s item\n");
+        assert_eq!(closing_quotes("- a\n  - `x`'s\n"), "- a\n  - `x`’s\n");
     }
 }

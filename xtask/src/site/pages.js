@@ -1521,7 +1521,8 @@
       // apostrophe, never opens.
       for (const el of main.querySelectorAll('code, em, strong, del, a, math')) {
         if (el.closest('pre')) continue;
-        const next = el.nextSibling;
+        let next = el.nextSibling;
+        while (next && next.nodeType === 8) next = next.nextSibling;
         if (next && next.nodeType === 3 && /^[‘“]/.test(next.data)) {
           note('type', selector(el), 'an opening quote after it',
             snippet(el.textContent.slice(-20) + next.data.slice(0, 10)));

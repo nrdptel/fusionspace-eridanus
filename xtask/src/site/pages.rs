@@ -1459,9 +1459,9 @@ const CANARIES: [Canary; 190] = [
     },
     Canary {
         file: "canary-type-quote-emphasis.html",
-        what: "an opening double quote drawn straight after emphasis (#932)",
+        what: "an opening double quote drawn straight after emphasis, a comment between (#932)",
         expect: &[Kind::Type],
-        inside: "<p>The word <em>closed</em>“ here</p>",
+        inside: "<p>The word <em>closed</em><!-- a note -->“ here</p>",
         after: "",
     },
     Canary {
