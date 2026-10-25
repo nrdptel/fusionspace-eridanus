@@ -195,7 +195,7 @@ Python can't open the file. Each step is listed on the scoreboard.
 
 For a round trip through OpenRocket's file, HPR Sim reads an `.ork` file and writes it back.
 OpenRocket then flies the original and the copy. Of 151 configurations, 0 moved by more than 0.002%,
-and the largest change was 0.00005%; 2 of 75 designs didn't make the trip
+and the largest change was 0.000050%; 2 of 75 designs didn't make the trip
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md)).
 
 ## What it means for you
