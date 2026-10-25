@@ -26,7 +26,7 @@ will be tested.
   ([#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725);
   [evidence row G32](../evidence.md#g32)).
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, vibration and the
-  logger's own speed column. No flight reaches Mach 1.18
+  logger's own speed column, and flights at Mach 1.18 or more, which none of the 2,200 reaches
   ([What it leaves out](#what-it-leaves-out)).
 
 ## Why simulated flights
