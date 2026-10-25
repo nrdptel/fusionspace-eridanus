@@ -40,7 +40,7 @@ pub struct McArgs {
     /// The design, its motor and the nominal launch.
     #[command(flatten)]
     pub flight: FlightArgs,
-    /// How many flights to fly, 1 to 100000
+    /// How many flights to fly, 1 to 100,000
     #[arg(long, value_name = "N", default_value_t = DEFAULT_RUNS, value_parser = crate::typed::number::<u64>())]
     pub runs: u64,
     /// The run's seed: the same seed, design and options fly the same flights, bit for bit, on

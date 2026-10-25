@@ -130,10 +130,11 @@ impl Exit {
 #[command(
     name = "hpr",
     version = VERSION,
-    about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets",
-    long_about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets.\n\n\
+    about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets",
+    long_about = "FusionSpace HPR · Sim simulates the flights of hobby and high-power rockets.\n\n\
                   Every command prints text, or one JSON document with --json. \
-                  Commands marked \"not available yet\" name the milestone that brings them.",
+                  A command marked \"not available yet\" names the milestone that brings it \
+                  when you run it.",
     propagate_version = true,
     arg_required_else_help = true,
     styles = fs_style::CLAP_STYLES
@@ -142,8 +143,8 @@ pub struct Cli {
     /// Print one JSON document on standard output instead of text; errors too.
     #[arg(long, global = true)]
     pub json: bool,
-    /// When to color: auto colors a stream that is a terminal; NO_COLOR, FORCE_COLOR and
-    /// CLICOLOR_FORCE apply under auto. JSON output never has color
+    /// When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR
+    /// and CLICOLOR_FORCE. JSON output never has color
     #[arg(long, global = true, value_enum, default_value_t = ColorWhen::Auto, value_name = "WHEN")]
     pub color: ColorWhen,
     /// The command to run.
@@ -154,11 +155,11 @@ pub struct Cli {
 /// The commands, in the order `hpr --help` lists them.
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Fly a .ork, an .hpr or .hprz design, or a rocket's .json from a rail and print its flight;
+    /// Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail, print its flight, and
     /// export its recording
     Sim(sim::SimArgs),
-    /// Convert a motor file between .eng and .rse, or a catalog motor to either; or a design
-    /// between .ork, .hpr and .hprz
+    /// Convert a motor file between .eng and .rse, write a catalog motor as either, or convert a
+    /// design between .ork, .hpr and .hprz
     Convert(convert::ConvertArgs),
     /// Look up motors in the bundled catalog, read a .eng or .rse motor file, fetch a curve from
     /// ThrustCurve.org, or search vendors' stock and prices
@@ -167,8 +168,8 @@ pub enum Command {
     /// Fetch a launch day's weather, or read a weather file, as a profile of air and wind
     #[command(subcommand)]
     Weather(weather::WeatherCommand),
-    /// Fly a design many times, each flight's inputs scattered at random, and print how its
-    /// apogee and landing spread; export every flight
+    /// Fly a design many times with its inputs scattered at random, print how its apogee and
+    /// landing spread, and export every flight
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),

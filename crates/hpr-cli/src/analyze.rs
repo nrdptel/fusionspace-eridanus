@@ -61,9 +61,9 @@ pub struct AnalyzeArgs {
     /// layout: a JSON file (schema/cli/analyze-layout.schema.json)
     #[arg(long, value_name = "FILE")]
     pub layout: Option<String>,
-    /// The sheet of a spreadsheet's workbook (.xlsx or .xls) to read, from 0: as its format's own
-    /// reader reads it, or by --mapping, --print-mapping or --fip-header. With none, a workbook's
-    /// one sheet that reads as a log
+    /// Which sheet of a workbook (.xlsx or .xls) to read, counting from 0, by its format's own
+    /// reader or by --mapping, --print-mapping or --fip-header. Without it, the workbook's one
+    /// sheet that reads as a log is read
     #[arg(
         long,
         value_name = "N",
@@ -71,7 +71,8 @@ pub struct AnalyzeArgs {
         conflicts_with = "layout"
     )]
     pub sheet: Option<usize>,
-    /// The recording to read of a file that holds several, an Entacore AIM raw dump, from 0
+    /// Which recording to read from a file that holds several, an Entacore AIM raw dump,
+    /// counting from 0
     #[arg(
         long,
         value_name = "N",
@@ -79,9 +80,8 @@ pub struct AnalyzeArgs {
         conflicts_with_all = ["mapping", "layout", "fip_header", "sheet"]
     )]
     pub recording: Option<usize>,
-    /// Read a Featherweight Raven's FIP export that lost its header line, pasted into a
-    /// workbook below none, under the header this JSON file states
-    /// (schema/cli/analyze-fip-header.schema.json)
+    /// Read a Featherweight Raven's FIP export pasted into a workbook without its header line.
+    /// This JSON file states the missing header (schema/cli/analyze-fip-header.schema.json)
     #[arg(long, value_name = "FILE", conflicts_with_all = ["mapping", "layout"])]
     pub fip_header: Option<String>,
     /// Print what the table's header states, as a column mapping to edit and give back with

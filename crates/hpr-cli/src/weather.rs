@@ -94,7 +94,7 @@ pub struct OpenMeteoArgs {
     /// Ask the archive of past forecasts, for a launch already gone
     #[arg(long, conflicts_with = "from")]
     pub historical: bool,
-    /// The weather model, by Open-Meteo's name, such as gfs_seamless; its best match by default
+    /// The weather model, by Open-Meteo's name, such as `gfs_seamless`; its best match by default
     #[arg(long, conflicts_with = "from")]
     pub model: Option<String>,
     /// The answer's source and the profile's file.
@@ -135,7 +135,7 @@ pub struct NomadsArgs {
     /// The site's longitude, degrees east (west is negative)
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub longitude: f64,
-    /// The run, its start in UTC, such as 2026-09-30T00Z
+    /// The run to read, by its start in UTC, such as 2026-09-30T00Z
     #[arg(
         long,
         value_name = "TIME",

@@ -1,0 +1,96 @@
+Fly a design (.ork, .hpr, .hprz or a rocket's .json) off a rail, print its flight, and export its recording
+
+Usage: hpr sim [OPTIONS] <DESIGN>
+
+Arguments:
+  <DESIGN>
+          The design: an OpenRocket .ork file, an HPR design (.hpr, or .hprz with its attachments), or a rocket's JSON (.json)
+
+Options:
+      --config <NAME>
+          The motor configuration to fly: its number in the list the output shows, its name, or its id [default: the design's default, or its only one]
+
+      --json
+          Print one JSON document on standard output instead of text; errors too
+
+      --color <WHEN>
+          When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --motor <NAME_OR_FILE>
+          Fly this motor in place of the configuration's, lit at launch: a catalog designation or common name, or a .eng or .rse file
+
+      --mount <NAME>
+          The motor mount that --motor goes in, by its name or its component id [default: the configuration's, or the design's only one]
+
+      --delay <S_OR_P>
+          The ejection delay of --motor's motor: seconds from burnout to its charge (0 fires it at burnout), or P for a plugged motor [default: none, so it fires no charge]
+
+      --latitude <DEG>
+          The launch site's latitude, degrees north (south is negative)
+          
+          [default: 0]
+
+      --longitude <DEG>
+          The launch site's longitude, degrees east (west is negative)
+          
+          [default: 0]
+
+      --elevation <M>
+          The launch site's height above sea level, m
+          
+          [default: 0]
+
+      --rail-length <M>
+          The rail's length, m, from the rocket's aft end to the rail's top
+          
+          [default: 1.5]
+
+      --inclination <DEG>
+          The rail's angle above the horizon, degrees [default: 90, vertical]
+
+      --heading <DEG>
+          The direction the rail leans toward, degrees clockwise from true north [default: 0]
+
+      --wind <M_S>
+          A wind of this speed at every height, m/s [default: calm]
+
+      --wind-from <DEG>
+          The direction the wind blows from, degrees clockwise from true north
+          
+          [default: 0]
+
+      --accept-design-errors
+          Fly a design whose checks find errors, such as a motor wider than its mount
+
+      --offline
+          Take a motor the bundled catalog lacks from the cache of ThrustCurve.org only, never the network
+
+      --export <FILE>
+          Write the flight's recording to this file: .csv, .json, .parquet, .geojson or .kml (repeat for several)
+
+      --plot <FILE>
+          Draw the flight's altitude, speed and acceleration against time, its events marked, into this .svg file
+
+      --interval <S>
+          The recording's interval, s, at least 0.001; a row is also recorded at every event
+          
+          [default: 0.01]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Fly a design on the motor it was saved with:
+      hpr sim my-rocket.ork
+  Fly it on another motor, in a 4 m/s wind from the west:
+      hpr sim my-rocket.ork --motor H170M --delay 10 --wind 4 --wind-from 270
+  Save its recording and draw its altitude, speed and acceleration:
+      hpr sim my-rocket.ork --export flight.csv --plot flight.svg
+
+Guide: https://hpr.fusionspace.co/cli.html#hpr-sim

@@ -26,8 +26,8 @@ pub struct FetchArgs {
     /// Its manufacturer, by name or abbreviation, where the name alone matches several motors
     #[arg(long)]
     pub manufacturer: Option<String>,
-    /// A ThrustCurve.org data file to take ahead of the usual order, by its id, when the motor has
-    /// it and it reads
+    /// A ThrustCurve.org data file, by its id, to take ahead of the usual order when the motor
+    /// has that file and it can be read
     #[arg(long, value_name = "ID")]
     pub file: Option<String>,
     /// Answer from the cache only, never the network

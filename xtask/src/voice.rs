@@ -51,8 +51,8 @@ pub const USAGE: &str =
                            signposts against the writing guide's limits, and the register. With
                            no path it reads this repository's pages and writes
                            validation/reports/voice.md; given paths, it reads each file, or each
-                           page under a directory, and prints the report (after `--`, a path may
-                           start with `-`). Fails on a stock phrase, and with no path on a
+                           page under a directory (a `.help` file as a command's help), and
+                           prints the report (after `--`, a path may start with `-`). Fails on a stock phrase, and with no path on a
                            held page over a limit or missing a sentence target (ADR-285).
   voice --long [--] PATH...
                            List each sentence over 25 words on the pages at PATH, one a line
@@ -61,13 +61,18 @@ pub const USAGE: &str =
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
-const SCOPE: [&str; 5] = [
+const SCOPE: [&str; 6] = [
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "docs",
     ".github",
+    HELP,
 ];
+
+/// The snapshots of each `hpr` command's `--help` (`crates/hpr-cli/tests/help.rs`), read by
+/// [`read_help`] and held, every one, beside the site's pages (M0.14d1).
+const HELP: &str = "crates/hpr-cli/tests/help/";
 
 /// Pages under [`SCOPE`] left as they are (ADR-284 §5), each with the reason.
 const LEFT_OUT: [(&str, &str); 7] = [
@@ -94,11 +99,12 @@ const LEFT_OUT: [(&str, &str); 7] = [
 
 /// Reference pages, which stay impersonal (ADR-284 §2): a model's equations, a file format, a
 /// command's options, a glossary. First person on one counts against a limit of zero.
-const REFERENCE: [&str; 4] = [
+const REFERENCE: [&str; 5] = [
     "docs/physics/",
     "docs/format/",
     "docs/cli.md",
     "docs/glossary.md",
+    HELP,
 ];
 
 /// The site's table of contents. Every page it lists is held to every limit and both sentence
@@ -128,7 +134,34 @@ const LONG_WORDS: usize = 25;
 pub(crate) const REPORT: &str = "validation/reports/voice.md";
 
 /// The file extensions read under a directory given as a path.
-const EXTENSIONS: [&str; 5] = ["md", "markdown", "html", "htm", "txt"];
+const EXTENSIONS: [&str; 6] = ["md", "markdown", "html", "htm", "txt", "help"];
+
+/// How a file is read, by its extension: HTML, a help snapshot, or else Markdown (plain text
+/// included).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Format {
+    Markdown,
+    Html,
+    Help,
+}
+
+impl Format {
+    fn of(path: &Path) -> Self {
+        match extension(path).as_deref() {
+            Some("html" | "htm") => Format::Html,
+            Some("help") => Format::Help,
+            _ => Format::Markdown,
+        }
+    }
+
+    fn read(self, source: &str) -> Reading {
+        match self {
+            Format::Markdown => read_markdown(source),
+            Format::Html => read_html(source),
+            Format::Help => read_help(source),
+        }
+    }
+}
 
 /// Directories never walked into, besides hidden ones: build output and dependencies.
 const SKIPPED_DIRS: [&str; 3] = ["node_modules", "target", "_build"];
@@ -709,8 +742,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
             return Err(format!("usage:\n{USAGE}"));
         }
         let mut count = 0;
-        for (shown, text, html) in given_files(args)? {
-            for line in long_sentences(&shown, &text, html) {
+        for (shown, text, format) in given_files(args)? {
+            for line in long_sentences(&shown, &text, format) {
                 println!("{line}");
                 count += 1;
             }
@@ -757,11 +790,33 @@ fn failures(pages: &[Page], held: &[String]) -> Result<(), String> {
     }
 }
 
-/// The held pages, as paths from `root`: [`held_from`] on [`CONTENTS`].
+/// The held pages, as paths from `root`: [`held_from`] on [`CONTENTS`], and every help snapshot
+/// under [`HELP`]; none there is refused.
 fn held_paths(root: &Path) -> Result<Vec<String>, String> {
     let contents =
         fs::read_to_string(root.join(CONTENTS)).map_err(|e| format!("{CONTENTS}: {e}"))?;
-    held_from(&contents)
+    with_help(held_from(&contents)?, help_paths(root)?)
+}
+
+/// The held pages `held` and the help snapshots `help`, sorted. No snapshot is refused, so the
+/// help's hold can't vanish unnoticed.
+fn with_help(mut held: Vec<String>, help: Vec<String>) -> Result<Vec<String>, String> {
+    if help.is_empty() {
+        return Err(format!(
+            "no help snapshot under {HELP}, so the voice check would hold none"
+        ));
+    }
+    held.extend(help);
+    held.sort();
+    Ok(held)
+}
+
+/// The tracked help snapshots under [`HELP`], relative to `root`.
+fn help_paths(root: &Path) -> Result<Vec<String>, String> {
+    Ok(tracked(root, &[HELP])?
+        .into_iter()
+        .filter(|path| path.ends_with(".help"))
+        .collect())
 }
 
 /// The held pages, given the table of contents: each page it links, as a path from the
@@ -941,7 +996,11 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for path in repository_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        let mut page = read_page(&path, &text, is_reference(&path), is_model_page(&path));
+        let mut page = if Format::of(Path::new(&path)) == Format::Help {
+            page_from(&path, &text, read_help(&text), is_reference(&path))
+        } else {
+            read_page(&path, &text, is_reference(&path), is_model_page(&path))
+        };
         page.held = held.contains(&path);
         pages.push(page);
     }
@@ -952,7 +1011,7 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
 fn repository_paths(root: &Path) -> Result<Vec<String>, String> {
     let mut paths: Vec<String> = tracked(root, &SCOPE)?
         .into_iter()
-        .filter(|path| path.ends_with(".md"))
+        .filter(|path| path.ends_with(".md") || (leaves(HELP, path) && path.ends_with(".help")))
         .filter(|path| !LEFT_OUT.iter().any(|(left, _)| leaves(left, path)))
         .collect();
     paths.sort();
@@ -1022,11 +1081,9 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
         });
         let reference = inside.as_deref().is_some_and(is_reference);
         let model = inside.as_deref().is_some_and(is_model_page);
-        let html = matches!(extension(&file).as_deref(), Some("html" | "htm"));
-        let mut page = if html {
-            page_from(&shown, &text, read_html(&text), reference)
-        } else {
-            read_page(&shown, &text, reference, model)
+        let mut page = match Format::of(&file) {
+            Format::Markdown => read_page(&shown, &text, reference, model),
+            format => page_from(&shown, &text, format.read(&text), reference),
         };
         page.path = shown;
         pages.push(page);
@@ -1050,16 +1107,15 @@ fn given_paths(args: &[String]) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-/// Each page at `args` as `(path shown, text, whether it's HTML)`.
-fn given_files(args: &[String]) -> Result<Vec<(String, String, bool)>, String> {
+/// Each page at `args` as `(path shown, text, how it's read)`.
+fn given_files(args: &[String]) -> Result<Vec<(String, String, Format)>, String> {
     let mut found = Vec::new();
     for file in given_paths(args)? {
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
-        let html = matches!(extension(&file).as_deref(), Some("html" | "htm"));
         found.push((
             file.display().to_string(),
             String::from_utf8_lossy(&bytes).into_owned(),
-            html,
+            Format::of(&file),
         ));
     }
     Ok(found)
@@ -1067,12 +1123,8 @@ fn given_files(args: &[String]) -> Result<Vec<(String, String, bool)>, String> {
 
 /// Each sentence over 25 words in `source`, as `path:line: N words: sentence`, read as the
 /// report reads it: prose only, with code and math shown as `…`.
-fn long_sentences(path: &str, source: &str, html: bool) -> Vec<String> {
-    let reading = if html {
-        read_html(source)
-    } else {
-        read_markdown(source)
-    };
+fn long_sentences(path: &str, source: &str, format: Format) -> Vec<String> {
+    let reading = format.read(source);
     let line_starts = line_starts(source);
     let mut found = Vec::new();
     for run in reading.runs.iter().filter(|run| run.block == Block::Prose) {
@@ -1304,6 +1356,103 @@ const HTML_BLOCKS: [&str; 30] = [
     "details",
     "button",
 ];
+
+/// Where a description sits in clap's help: an option's or argument's name is indented less, and
+/// what it says about it more.
+const HELP_DESCRIPTION_INDENT: usize = 8;
+
+/// The notes clap adds in brackets after an option's description, which are its values, not prose.
+const HELP_NOTES: [&str; 4] = ["default: ", "possible values: ", "aliases: ", "env: "];
+
+/// The prose of a command's `--help`, as clap lays it out, as runs (M0.14d1). Clap doesn't wrap
+/// a piped help, so each line is its own run: the command's description, each paragraph about an
+/// option or an argument, each command's summary in a list of commands, and each example's
+/// caption. Left out, as code: the `Usage:` line, the section titles (`Options:`), the names of
+/// options, arguments and commands, clap's bracketed notes (`[default: auto]`), the example
+/// commands (`hpr ...`) and the guide's address. Text in backticks is code, as on a page.
+fn read_help(source: &str) -> Reading {
+    let mut reading = Reading::default();
+    let mut section = "";
+    let mut start = 0;
+    for line in source.split_inclusive('\n') {
+        let at = start;
+        start += line.len();
+        let body = line.trim_end();
+        let text = body.trim_start();
+        let indent = body.len() - text.len();
+        if text.is_empty() {
+            continue;
+        }
+        let prose = if indent == 0 {
+            if let Some(title) = text.strip_suffix(':').filter(|title| !title.contains(' ')) {
+                section = title;
+                continue;
+            }
+            if text.starts_with("Usage: ") || text.starts_with("Guide: ") {
+                continue;
+            }
+            text
+        } else {
+            match section {
+                // `  name  summary`: the name is code.
+                "Commands" => match text.split_once("  ") {
+                    Some((_, summary)) => summary.trim_start(),
+                    None => continue,
+                },
+                "Options" | "Arguments" if indent < HELP_DESCRIPTION_INDENT => {
+                    // `-o, --output <FILE>`, and in a short help its description after it.
+                    match text.split_once("  ") {
+                        Some((_, description)) => description.trim_start(),
+                        None => continue,
+                    }
+                }
+                "Examples" if text.starts_with("hpr ") => continue,
+                _ => text,
+            }
+        };
+        let prose = without_help_notes(prose);
+        if prose.is_empty() {
+            continue;
+        }
+        // `prose` is a slice of `source`, so the pointers' difference is its offset.
+        let offset = prose.as_ptr() as usize - source.as_ptr() as usize;
+        debug_assert!(offset >= at && offset < start);
+        reading.open(Block::Prose);
+        let mut rest = prose;
+        let mut from = offset;
+        // Backticked spans are code, one word each.
+        while let Some(open) = rest.find('`') {
+            let Some(len) = rest[open + 1..].find('`') else {
+                break;
+            };
+            reading.push(&addresses_as_code(&rest[..open]), from);
+            reading.push(&format!(" {CODE} "), from + open);
+            let close = open + 1 + len + 1;
+            from += close;
+            rest = &rest[close..];
+        }
+        reading.push(&addresses_as_code(rest), from);
+    }
+    reading
+}
+
+/// `text` less clap's bracketed notes at its end ([`HELP_NOTES`]), trimmed.
+fn without_help_notes(text: &str) -> &str {
+    let mut text = text.trim_end();
+    while text.ends_with(']') {
+        let Some(open) = text.rfind('[') else {
+            break;
+        };
+        if !HELP_NOTES
+            .iter()
+            .any(|note| text[open + 1..].starts_with(note))
+        {
+            break;
+        }
+        text = text[..open].trim_end();
+    }
+    text
+}
 
 /// The text a reader sees on an HTML page, as runs.
 fn read_html(source: &str) -> Reading {
@@ -1959,7 +2108,7 @@ mod tests {
         let text = format!(
             "# A page\n\nA short one. {long}\n\n- A list item.\n  {long}\n\n| {long} |\n|---|\n"
         );
-        let found = long_sentences("page.md", &text, false);
+        let found = long_sentences("page.md", &text, Format::Markdown);
         assert_eq!(found.len(), markdown(&text).long);
         assert_eq!(found.len(), 2, "{found:?}");
         assert!(
@@ -1969,7 +2118,7 @@ mod tests {
         assert!(found[0].ends_with("of them `…` in all."), "{found:?}");
         assert!(found[1].starts_with("page.md:6: 26 words: "), "{found:?}");
         let html = format!("<p>A short one.</p>\n<p>{long}</p>");
-        let found = long_sentences("page.html", &html, true);
+        let found = long_sentences("page.html", &html, Format::Html);
         assert_eq!(found.len(), 1, "{found:?}");
         assert!(found[0].starts_with("page.html:2: "), "{found:?}");
     }
@@ -2828,6 +2977,8 @@ mod tests {
         assert!(held.contains(&"docs/format/flight-logs.md".to_owned()));
         assert!(held.contains(&"README.md".to_owned()));
         assert!(!held.contains(&"docs/decisions-and-roadmap.md".to_owned()));
+        let sim = format!("{HELP}hpr-sim.help");
+        assert!(held.contains(&sim) && is_reference(&sim), "{held:?}");
         let pages = repository_pages(&root, &held).unwrap();
         assert_eq!(
             pages.iter().filter(|page| page.held).count(),
@@ -2847,5 +2998,131 @@ mod tests {
             committed == report(&pages),
             "{REPORT} doesn't match the pages: run `cargo xtask voice`"
         );
+    }
+
+    /// A help screen as clap lays it out, piped: a long help with every part, and a short help's
+    /// option beside its description.
+    const HELP_SAMPLE: &str = "Fly a design and print its flight\n\
+        \n\
+        It reads `.ork` files.\n\
+        \n\
+        Usage: hpr sim [OPTIONS] <DESIGN>\n\
+        \n\
+        Commands:\n\
+        \x20 list    List the motors, with their figures\n\
+        \x20 help    Print this message\n\
+        \n\
+        Arguments:\n\
+        \x20 <DESIGN>\n\
+        \x20         The design to fly\n\
+        \n\
+        Options:\n\
+        \x20     --wind <M_S>\n\
+        \x20         A wind at every height, m/s [default: calm]\n\
+        \n\
+        \x20     --interval <S>\n\
+        \x20         The recording's interval, s\n\
+        \x20         \n\
+        \x20         [default: 0.01]\n\
+        \x20         [possible values: a, b]\n\
+        \n\
+        \x20     --json          Print JSON instead of text [default: auto]\n\
+        \x20 -h, --help\n\
+        \n\
+        Examples:\n\
+        \x20 Fly it in a wind:\n\
+        \x20     hpr sim my-rocket.ork --wind 4\n\
+        \n\
+        Guide: https://hpr.fusionspace.co/cli.html#hpr-sim\n";
+
+    #[test]
+    fn help_reads_its_prose_not_its_names() {
+        let reading = read_help(HELP_SAMPLE);
+        let runs: Vec<&str> = reading.runs.iter().map(|run| run.text.trim()).collect();
+        let code = format!("{CODE}");
+        assert_eq!(
+            runs,
+            [
+                "Fly a design and print its flight",
+                &format!("It reads  {code}  files.")[..],
+                "List the motors, with their figures",
+                "Print this message",
+                "The design to fly",
+                "A wind at every height, m/s",
+                "The recording's interval, s",
+                "Print JSON instead of text",
+                "Fly it in a wind:",
+            ]
+        );
+        assert!(reading.runs.iter().all(|run| run.block == Block::Prose));
+        // Each run's marks point at its text in the file.
+        for run in &reading.runs {
+            let (at, from) = run.marks[0];
+            let word = run.text[at..].split_whitespace().next().unwrap();
+            if !word.contains(CODE) {
+                assert!(HELP_SAMPLE[from..].starts_with(word), "{word}");
+            }
+        }
+    }
+
+    #[test]
+    fn help_notes_are_only_clap_s() {
+        assert_eq!(
+            without_help_notes("A wind, m/s [default: calm]"),
+            "A wind, m/s"
+        );
+        assert_eq!(
+            without_help_notes("Its shell [default: zsh] [possible values: zsh, fish]"),
+            "Its shell"
+        );
+        assert_eq!(without_help_notes("[default: 0.01]"), "");
+        assert_eq!(without_help_notes("Read [FILE]"), "Read [FILE]");
+        assert_eq!(
+            without_help_notes("Read it [env: X] twice"),
+            "Read it [env: X] twice"
+        );
+    }
+
+    #[test]
+    fn a_long_help_sentence_misses_the_hold() {
+        let long = "word ".repeat(30);
+        let help = format!("Fly it\n\nOptions:\n      --x\n          {}\n", long.trim());
+        let page = page_from("hpr-x.help", &help, read_help(&help), true);
+        assert_eq!((page.sentences, page.long), (2, 1));
+        assert!(!misses(&page).is_empty());
+        let found = long_sentences("hpr-x.help", &help, Format::Help);
+        assert_eq!(found.len(), 1);
+        assert!(
+            found[0].starts_with("hpr-x.help:5: 30 words: "),
+            "{found:?}"
+        );
+    }
+
+    #[test]
+    fn a_help_file_is_read_as_help() {
+        assert_eq!(
+            Format::of(Path::new("tests/help/hpr-sim.help")),
+            Format::Help
+        );
+        assert_eq!(Format::of(Path::new("about.txt")), Format::Markdown);
+        assert_eq!(Format::of(Path::new("index.HTML")), Format::Html);
+        assert!(EXTENSIONS.contains(&"help"));
+    }
+
+    #[test]
+    fn the_hold_takes_every_help_snapshot_and_refuses_none() {
+        let help = vec![format!("{HELP}hpr.help"), format!("{HELP}hpr-sim.help")];
+        let held = with_help(vec!["docs/z.md".to_owned(), "README.md".to_owned()], help).unwrap();
+        assert_eq!(
+            held,
+            [
+                "README.md".to_owned(),
+                format!("{HELP}hpr-sim.help"),
+                format!("{HELP}hpr.help"),
+                "docs/z.md".to_owned(),
+            ]
+        );
+        let none = with_help(vec!["README.md".to_owned()], Vec::new()).unwrap_err();
+        assert!(none.contains("no help snapshot"), "{none}");
     }
 }

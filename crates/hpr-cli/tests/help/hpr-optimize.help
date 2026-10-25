@@ -1,0 +1,9 @@
+Search a design's parameters for a goal (not available yet)
+
+Usage: hpr optimize [OPTIONS]
+
+Options:
+      --json          Print one JSON document on standard output instead of text; errors too
+      --color <WHEN>  When to use color. Auto colors what goes to a terminal and heeds NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE. JSON output never has color [default: auto] [possible values: auto, always, never]
+  -h, --help          Print help
+  -V, --version       Print version

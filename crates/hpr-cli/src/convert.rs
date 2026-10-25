@@ -37,8 +37,8 @@ pub struct ConvertArgs {
     /// A file to carry in a .hprz beside the design, under its file name; give it once for each
     #[arg(long, value_name = "FILE")]
     pub attach: Vec<String>,
-    /// Delays for a .rse motor that gives none, when writing a .eng file, whose header must
-    /// give them: such as 6-10-14, or P for plugged
+    /// The delays to write in a .eng file's header when the .rse motor gives none, such as
+    /// 6-10-14, or P for plugged
     #[arg(long, value_name = "LIST")]
     pub delays: Option<String>,
 }
