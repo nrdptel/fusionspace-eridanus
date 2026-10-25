@@ -1795,12 +1795,11 @@ top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't differ
 burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by any amount
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They were logged at
-every rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa. The air was within 15
-K of standard. A reading the log can't support is withheld, with the reason. The top speed is
-derived from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow
-over the nose. For a record or a certification, the altimeter's own reading is the one to log, and
-the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They span 500 to
+0.5 samples a second, steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. For a record or a
+certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1841,12 +1840,11 @@ top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s
 burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They were logged at
-every rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa. The air was within 15
-K of standard. A reading the log can't support is withheld, with the reason. The top speed is
-derived from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow
-over the nose. For a record or a certification, the altimeter's own reading is the one to log, and
-the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They span 500 to
+0.5 samples a second, steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. For a record or a
+certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1904,12 +1902,11 @@ top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't differ
 burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They were logged at
-every rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa. The air was within 15
-K of standard. A reading the log can't support is withheld, with the reason. The top speed is
-derived from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow
-over the nose. For a record or a certification, the altimeter's own reading is the one to log, and
-the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They span 500 to
+0.5 samples a second, steps up to 10 m or 100 Pa and air within 15 K of standard. A reading the log
+can't support is withheld, with the reason. The top speed is derived from the heights, and withheld
+from Mach 0.8, where a barometer's port may read the flow over the nose. For a record or a
+certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 note: read from the sheet "Second" of an Excel workbook, its cells as stored
 ```

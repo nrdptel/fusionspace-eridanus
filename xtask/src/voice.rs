@@ -3021,7 +3021,10 @@ mod tests {
             "{error}"
         );
         assert!(
-            error.ends_with("rewrite the sentences, don't drop the page"),
+            error.ends_with(
+                "rewrite the sentences, don't drop the page (for a crate's messages, \
+                 `cargo xtask voice --long --messages` lists the long ones)"
+            ),
             "{error}"
         );
         pages.remove(0);

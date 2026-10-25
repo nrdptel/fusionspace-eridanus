@@ -335,14 +335,12 @@ regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
 
-So are the messages of the design commands: the errors, warnings and notes `hpr sim`, `hpr mc`,
-`hpr convert` and `hpr motors list` and `show` print. The source doesn't say which string ends up in
-a message, so the check reads a census of `hpr-cli` and each crate under it, less `hpr-cli`'s
-files of the data commands. That's every `#[error]` text and every other string in the crate's code
-that reads as prose, less its tests and its markup. Each crate is held as one reference page, named by its `src/` directory. A placeholder
-such as `{path}` is one code word. A message joined from several strings is read in pieces, so a
-long joined message can still pass. `cargo xtask voice --long --messages` lists each long sentence
-with the file and line of its string. The data commands' messages are next.
+So are the design commands' messages: what `hpr sim`, `mc`, `convert` and `motors list` and
+`show` print. The source doesn't say which string ends up in a message, so the check reads a census
+of `hpr-cli` and each crate under it: every `#[error]` text and every other string that reads as
+prose, less tests, markup and the data commands' files. Each crate is one held reference page. A
+placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one
+can pass. `cargo xtask voice --long --messages` lists each long sentence with its file and line.
 
 On the other pages the check reads, such as the changelog and the vision, readability is
 measured, not used to fail a build. The counts show where to look, and a person decides what to

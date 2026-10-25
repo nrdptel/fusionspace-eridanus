@@ -152,9 +152,9 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
         &[
             "Measured by the logger, read by HPR Sim from its log, not simulated.",
             "Each reading states the bound its error stayed within on HPR Sim's synthetic \
-             flights. They were logged at every rate from 500 to 0.5 samples a second and in \
-             steps up to 10 m or 100 Pa. The air was within 15 K of standard. A reading the log \
-             can't support is withheld, with the reason.",
+             flights. They span 500 to 0.5 samples a second, steps up to 10 m or 100 Pa and air \
+             within 15 K of standard. A reading the log can't support is withheld, with the \
+             reason.",
             "withheld from Mach 0.8,",
             "the altimeter's own reading is the one to log, and the RSO decides.",
         ],

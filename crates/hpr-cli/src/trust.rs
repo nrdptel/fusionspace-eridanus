@@ -154,9 +154,8 @@ fn readings_checked() -> String {
     };
     format!(
         "Each reading states the bound its error stayed within on HPR Sim's synthetic flights. \
-         They were logged at every rate from 500 to {} samples a second and in steps up to \
-         {MAX_STEP_M} m or {MAX_PRESSURE_STEP_PA} Pa. The air was within \
-         {AIR_TEMPERATURE_SPREAD_K} K of standard. \
+         They span 500 to {} samples a second, steps up to {MAX_STEP_M} m or \
+         {MAX_PRESSURE_STEP_PA} Pa and air within {AIR_TEMPERATURE_SPREAD_K} K of standard. \
          A reading the log can't support is withheld, with the reason. The top speed is derived \
          from the heights, and withheld from Mach {TRANSONIC_MACH}, where a barometer's port \
          may read the flow over the nose.",
