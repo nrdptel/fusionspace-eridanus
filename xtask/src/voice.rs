@@ -54,7 +54,11 @@ pub const USAGE: &str =
                            page under a directory (a `.help` file as a command's help), and
                            prints the report (after `--`, a path may start with `-`). Fails on
                            a stock phrase, and with no path on a held page over a limit or
-                           missing a sentence target (ADR-285).
+                           missing a sentence target (ADR-285). The held pages include
+                           the census of the design commands' messages (M0.14d2), one
+                           page a crate, read from its source.
+  voice --long --messages  List each sentence over 25 words in that census, one a line with
+                           the file and line of its literal.
   voice --long [--] PATH...
                            List each sentence over 25 words on the pages at PATH, one a line
                            with its file, line and length, code and math shown as `…`. It
@@ -169,7 +173,7 @@ const SKIPPED_DIRS: [&str; 3] = ["node_modules", "target", "_build"];
 
 /// What stands in for code and math in the prose: one word in a sentence's length, and never part
 /// of a phrase.
-const CODE: char = '\u{E000}';
+pub(crate) const CODE: char = '\u{E000}';
 
 /// Why a stock phrase is on the list: the rows of `docs/research/plain-voice-docs.md` §1.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -663,6 +667,32 @@ struct Page {
     you: usize,
     contractions: usize,
     stock: Vec<Hit>,
+    /// On a census page ([`census_page`]), where each of its lines was read: `file:line`. Empty on
+    /// a page read from a file.
+    origins: Vec<String>,
+    /// On a census page, what the census read.
+    census: Option<CensusCounts>,
+}
+
+/// What the message census read in one crate ([`crate::messages::Census`]), for the report.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct CensusCounts {
+    files: usize,
+    literals: usize,
+    errors: usize,
+    forwarded: usize,
+    with_placeholder: usize,
+}
+
+impl Page {
+    /// Where line `line` of the page is: `path:line`, or on a census page the file and line the
+    /// census read it from.
+    fn place(&self, line: usize) -> String {
+        match line.checked_sub(1).and_then(|k| self.origins.get(k)) {
+            Some(origin) => origin.clone(),
+            None => format!("{}:{line}", self.path),
+        }
+    }
 }
 
 /// A stock phrase found.
@@ -730,6 +760,22 @@ pub fn run(args: &[String]) -> Result<(), String> {
         Some((first, rest)) if first == "--long" => (true, rest),
         _ => (false, args),
     };
+    if long && args.first().is_some_and(|arg| arg == "--messages") {
+        if args.len() > 1 {
+            return Err(format!("usage:\n{USAGE}"));
+        }
+        let root = crate::designs::root()?;
+        let mut count = 0;
+        for census in crate::messages::census(&root)? {
+            for line in census_long(&census) {
+                println!("{line}");
+                count += 1;
+            }
+        }
+        let noun = if count == 1 { "sentence" } else { "sentences" };
+        println!("{count} {noun} over {LONG_WORDS} words in the message census");
+        return Ok(());
+    }
     // After `--`, every argument is a path, even one that starts with `-`.
     let args = match args.split_first() {
         Some((first, rest)) if first == "--" => rest,
@@ -796,7 +842,18 @@ fn failures(pages: &[Page], held: &[String]) -> Result<(), String> {
 fn held_paths(root: &Path) -> Result<Vec<String>, String> {
     let contents =
         fs::read_to_string(root.join(CONTENTS)).map_err(|e| format!("{CONTENTS}: {e}"))?;
-    with_help(held_from(&contents)?, help_paths(root)?)
+    let mut held = with_help(held_from(&contents)?, help_paths(root)?)?;
+    held.extend(census_paths());
+    held.sort();
+    Ok(held)
+}
+
+/// The census pages' paths, each crate's `src/` directory ([`crate::messages::CRATES`]).
+fn census_paths() -> Vec<String> {
+    crate::messages::CRATES
+        .iter()
+        .map(|name| format!("crates/{name}/src/"))
+        .collect()
 }
 
 /// The held pages `held` and the help snapshots `help`, sorted. No snapshot is refused, so the
@@ -924,7 +981,8 @@ fn held_failure(pages: &[Page], held: &[String]) -> Result<(), String> {
     let _ = write!(
         message,
         "held pages that miss the voice section's limits or its sentence targets: {failing} of {} \
-         (docs/writing.md#voice; ADR-285); rewrite the sentences, don't drop the page",
+         (docs/writing.md#voice; ADR-285); rewrite the sentences, don't drop the page (for a \
+         crate's messages, `cargo xtask voice --long --messages` lists the long ones)",
         held.len()
     );
     Err(message)
@@ -970,10 +1028,9 @@ fn stock_failure(pages: &[Page]) -> Result<(), String> {
             let sources: Vec<String> = hit.sources.iter().map(u8::to_string).collect();
             let _ = writeln!(
                 message,
-                "{}:{}: \"{}\" is on the stock-phrase list (`{}`, named by sources {} of \
+                "{}: \"{}\" is on the stock-phrase list (`{}`, named by sources {} of \
                  docs/research/plain-voice-docs.md): {}",
-                page.path,
-                hit.line,
+                page.place(hit.line),
                 hit.found,
                 hit.entry,
                 sources.join(", "),
@@ -1005,7 +1062,65 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
         page.held = held.contains(&path);
         pages.push(page);
     }
+    for census in crate::messages::census(root)? {
+        let mut page = census_page(&census);
+        page.held = held.contains(&page.path);
+        pages.push(page);
+    }
     Ok(pages)
+}
+
+/// A crate's message census as text a reader sees, one run a line of a literal: the text, the
+/// reading, and the `file:line` each line came from.
+fn census_reading(census: &crate::messages::Census) -> (String, Reading, Vec<String>) {
+    let mut source = String::new();
+    let mut reading = Reading::default();
+    let mut origins = Vec::new();
+    for message in &census.messages {
+        for line in &message.lines {
+            reading.open(Block::Prose);
+            reading.push(&addresses_as_code(line), source.len());
+            source.push_str(line);
+            source.push('\n');
+            origins.push(format!("{}:{}", message.file, message.line));
+        }
+    }
+    (source, reading, origins)
+}
+
+/// A crate's message census read as a reference page (ADR-292 §5): first person counts against a
+/// limit of zero, as on a command's help.
+fn census_page(census: &crate::messages::Census) -> Page {
+    let (source, reading, origins) = census_reading(census);
+    let mut page = page_from(&census.dir, &source, reading, true);
+    page.origins = origins;
+    page.census = Some(CensusCounts {
+        files: census.files,
+        literals: census.messages.len(),
+        errors: census.errors(),
+        forwarded: census.forwarded,
+        with_placeholder: census.with_placeholder,
+    });
+    page
+}
+
+/// Each sentence over 25 words in a crate's message census, as `file:line: N words: sentence`.
+fn census_long(census: &crate::messages::Census) -> Vec<String> {
+    let (_, reading, origins) = census_reading(census);
+    let mut found = Vec::new();
+    for (run, origin) in reading.runs.iter().zip(&origins) {
+        for sentence in sentences(&run.text) {
+            let length = word_count(sentence);
+            if length > LONG_WORDS {
+                let shown: Vec<String> = sentence
+                    .split_whitespace()
+                    .map(|token| token.replace(CODE, "`…`"))
+                    .collect();
+                found.push(format!("{origin}: {length} words: {}", shown.join(" ")));
+            }
+        }
+    }
+    found
 }
 
 /// The tracked files under [`SCOPE`] the check reads, relative to `root`, sorted.
@@ -1020,7 +1135,7 @@ fn repository_paths(root: &Path) -> Result<Vec<String>, String> {
 }
 
 /// The tracked files under `paths`, relative to `root`.
-fn tracked(root: &Path, paths: &[&str]) -> Result<Vec<String>, String> {
+pub(crate) fn tracked(root: &Path, paths: &[&str]) -> Result<Vec<String>, String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(root)
@@ -2017,8 +2132,9 @@ fn report(pages: &[Page]) -> String {
          `held` that's over a limit or misses a sentence target. The {} held pages are every page \
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
-         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), and each \
-         snapshot of an `hpr` command's `--help` \
+         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each \
+         snapshot of an `hpr` command's `--help`, and the census of what the design commands \
+         say, a page for each crate's `src/` directory \
          ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.iter().filter(|page| page.held).count(),
@@ -2101,7 +2217,41 @@ fn report(pages: &[Page]) -> String {
             rate(page.contractions, page.words)
         );
     }
+    census_table(&mut out, pages);
     out
+}
+
+/// The census's counts, one row a crate, after the pages' table.
+fn census_table(out: &mut String, pages: &[Page]) {
+    let rows: Vec<(&Page, CensusCounts)> = pages
+        .iter()
+        .filter_map(|page| Some((page, page.census?)))
+        .collect();
+    if rows.is_empty() {
+        return;
+    }
+    let _ = writeln!(
+        out,
+        "\n## What the design commands say\n\n\
+         Each `src/` page above is a crate's message census (M0.14d2): its `#[error]` texts and \
+         the other string literals in its code that read as prose, less its tests and the files \
+         of the data commands. A forwarded error passes on another's text. A literal with a \
+         placeholder is read in pieces, and the census doesn't see what fills it.\n\n\
+         | Crate | Files | Literals read | `#[error]` texts | Forwarded | With a placeholder |\n\
+         |---|---:|---:|---:|---:|---:|"
+    );
+    for (page, counts) in rows {
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} | {} | {} | {} |",
+            page.path,
+            counts.files,
+            counts.literals,
+            counts.errors,
+            counts.forwarded,
+            counts.with_placeholder
+        );
+    }
 }
 
 #[cfg(test)]

@@ -46,6 +46,7 @@ mod grib2;
 mod guides;
 mod layering;
 mod logs;
+mod messages;
 mod motor_catalog;
 mod names;
 mod ork;
