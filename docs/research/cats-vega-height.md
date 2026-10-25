@@ -19,9 +19,10 @@ and paper, EuRoC's 2023 rules, and the published logs, read byte by byte; no CAT
 - **Genesis can be checked against its own pressure; Cavour can't.** Genesis's `main.cfl` holds 17,932 pressure
   samples at 100 Hz; with the fitted pad altitude, the formula reproduces its logged apogee, 2,916.69 m, to
   0.002 m. Cavour's only public record is radio telemetry: the Kalman height in whole meters, no pressure (§3, §4).
-- **Cavour's logged apogee is an ejection bump.** Its highest packet, 2,789 m, came 0.2 s to 0.4 s after the apogee
-  event, rising 8 m with the velocity turning positive; the coasting peak reads 2,785 m. On three sister flights the
-  Kalman peak sits 1.1 m to 3.1 m below the barometric one, so Cavour's barometric apogee is 2,786 m to 2,789 m.
+- **Cavour's logged apogee was a bump after its apogee event.** Its highest packet, 2,789 m, came 0.2 s to 0.4 s
+  after the event, rising 8 m with the velocity turning positive, most likely before the charge fired (§4, corrected
+  2026-10-25); the coasting peak reads 2,785 m. On three sister flights the Kalman peak sits 1.1 m to 3.1 m below the
+  barometric one, so Cavour's barometric apogee is 2,786 m to 2,789 m (superseded by the filtered column, §4).
 - **What moves.** Of the four assumed kinds, Genesis's and Lince's become barometric by file and Cavour's by the
   maker's document; Bella Lui's stays assumed. The 6.04% mean apogee error moves by at most +0.02 points (§5).
 
@@ -137,10 +138,11 @@ board was most likely not read after landing, and the telemetry apogee became th
 - **Its peak is after the apogee event.** In the merged logs, coasting packets reach 2,785 m at 23.1–23.3 s (on the
   table's clock), velocity 1 to 0 m/s, every 0.1 s. The first Drogue packet, at 23.6 s, reads 2,781 m at −5 m/s;
   the next two read 2,787 m at 0 m/s and 2,789 m at +2 m/s; then the height falls [D1]. **Corrected 2026-10-25
-  (ADR-293):** not the ejection charge. The same logs' `pyro1` and `pyro2` columns both read 1 (continuity) through
-  25.1 s; `pyro1` first reads 0 at 25.6 s, as the descent speed jumps from 6 to 12 m/s [D1]. So the charge fires
-  about 2 s after the event and the bump comes before it. Its cause is open; a transient as the filter changes
-  state and stops using the IMU is one reading. Lince's transient after its event lifted the Kalman height to
+  (ADR-293):** most likely not the ejection charge. In the two logs merged, `pyro1` and `pyro2` both read 1
+  (continuity) through 25.4 s; `pyro1` first reads 0 at 25.6 s, 2.0 s after the Drogue event, as `pyro2` does 2.0 s
+  after the Main event [D1]. So the charge most likely fires on a 2 s delay, after the bump (**Inference**:
+  `pyro1` reads 1 again from 27.6 s). The bump's cause is open; a transient as the filter changes state and stops
+  using the IMU is one reading. Lince's transient after its event lifted the Kalman height to
   3,608.63 m, 24 m above its coasting 3,584.48 m (and the median column to 3,668.5 m).
 - **Bounded.** The coasting Kalman peak is 2,785 m to 2,786 m (truncation). On Camões, Genesis and Lince the Kalman
   peak up to the apogee event is 1.11 m, 1.98 m and 3.13 m below the 9-sample median's, so Cavour's barometric
@@ -154,7 +156,7 @@ board was most likely not read after landing, and the telemetry apogee became th
   three sister flights. Bella Lui stays assumed: one of seven, not four.
 - **The reading rule holds.** HPR Sim reads its apogee as the standard atmosphere's pressure altitude less the
   pad's; the Vega's constants differ by 0.006%, far below these flights' 3.4% to 5.9% misses.
-- **The numbers.** Cut at the Drogue event, Cavour's log apogee is 2,785 m and its error +5.78% (now +5.63%); at
+- **The numbers.** Cut at the Drogue event, Cavour's log apogee is 2,785 m and its error +5.78% (+5.63% before ADR-293); at
   2,789.1 m, +5.62%. The mean absolute apogee error goes from 6.04% to 6.04–6.06%. With only Bella Lui read as
   a height, the alternative mean "assumed ones as heights" becomes 6.06% (6.08% with Cavour cut), not 6.63%
   (**Inference**, from the report's rows).
@@ -165,7 +167,8 @@ board was most likely not read after landing, and the telemetry apogee became th
   standard-atmosphere conversion of the Vega's own pressure, to 0.002 m (`main.cfl`)"; Lince's computer named as
   the Vega (`23_star`, row-for-row match). Expected effect: no apogee changes; the assumed count goes from 4 to 1.
 - **Cut Cavour at its apogee event** (between 23.4 s and 23.6 s on the table's clock), as Lince is cut. Expected effect:
-  its error +5.63% to +5.78%, the mean +0.02 points; the record says the cut removes a post-ejection bump.
+  its error +5.63% to +5.78%, the mean +0.02 points. Done in ADR-293, whose note calls it a jump at the event:
+  it comes before the charge fires (§4, corrected).
 - **Cavour's record:** "Kalman height by radio, whole meters truncated; documented barometric measurement; no
   pressure public". An honest band is −4 m to −1 m on the cut 2,785 m (−3 m to 0 m on the uncut 2,789 m).
 - **The `cats-vega-filtered-column` topic is mostly settled here:** the 2023 column is the barometric median, not

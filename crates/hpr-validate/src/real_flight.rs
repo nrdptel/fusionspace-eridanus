@@ -488,8 +488,8 @@ pub const FLIGHTS: [RealFlight; 7] = [
         example_drag_source: "cavour_flight_sim.ipynb:250-251",
         note: "the log is read to 23.6 s, the first row the team's ground-station log tags \
                Drogue: past it, the radio telemetry's filtered height rises 8 m in 0.2 s, to \
-               2789 m, faster than the rocket can climb and about 2 s before the drogue charge \
-               fires (its continuity holds to 25.6 s); the coast's peak before it is 2785 m",
+               2789 m, faster than the rocket can climb and about 2 s before the drogue \
+               channel's continuity is first lost (25.6 s); the coast's peak before it is 2785 m",
         explanation: Explanation::Drag(
             "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the \
              apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power \
@@ -2263,7 +2263,7 @@ mod tests {
     /// telemetry. Its rows around apogee, as the file has them: the coast peaks at 2,785 m at
     /// 23.1 to 23.2 s, the row at 23.6 s is the first the ground station tags Drogue, and the
     /// 2,787 m and 2,789 m after it are a jump in the filter's height the rocket can't fly, about
-    /// 2 s before the drogue charge fires (#818). The record reads the log to that event, so its
+    /// 2 s before the drogue channel's continuity is first lost (#818). The record reads the log to that event, so its
     /// apogee is the coast's.
     #[test]
     fn cavours_log_is_read_to_its_apogee_event() {
