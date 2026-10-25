@@ -55,7 +55,7 @@ pub const USAGE: &str =
                            prints the report (after `--`, a path may start with `-`). Fails on
                            a stock phrase, and with no path on a held page over a limit or
                            missing a sentence target (ADR-285). The held pages include
-                           the census of the design commands' messages (ADR-292), one
+                           the census of the commands' messages (ADR-292), one
                            page a crate, read from its source.
   voice --long --messages  List each sentence over 25 words in that census, one a line with
                            the file and line of its literal.
@@ -2169,8 +2169,8 @@ fn report(pages: &[Page]) -> String {
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
          ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each \
-         snapshot of an `hpr` command's `--help`, and the census of what the design commands \
-         say, a page for each crate's `src/` directory \
+         snapshot of an `hpr` command's `--help`, and the census of what the commands say, a \
+         page for each crate's `src/` directory \
          ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.iter().filter(|page| page.held).count(),
@@ -2268,12 +2268,11 @@ fn census_table(out: &mut String, pages: &[Page]) {
     }
     let _ = writeln!(
         out,
-        "\n## What the design commands say\n\n\
+        "\n## What the commands say\n\n\
          Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisions/\
          0292-the-programs-words-in-four.md), the plan for the program's words): its `#[error]` \
-         texts and the other string literals in its code that read as prose, less its tests, \
-         its markup and, in `hpr-cli`, the five files of the data commands (`analyze.rs`, \
-         `weather.rs`, `motor_fetch.rs`, `motor_search.rs` and `waiting.rs`). A forwarded error \
+         texts and the other string literals in its code that read as prose, less its tests \
+         and its markup. A forwarded error \
          passes on another's text. A literal with a placeholder is read in pieces, and the census \
          doesn't see what fills it. `cargo xtask voice --messages` prints every line it read.\n\n\
          | Crate | Files | Literals read | `#[error]` texts | Forwarded | With a placeholder |\n\

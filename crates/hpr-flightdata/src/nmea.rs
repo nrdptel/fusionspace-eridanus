@@ -1191,8 +1191,8 @@ impl Reader {
             }
             if address.groups_bad > 0 {
                 single.push(format!(
-                    "{} satellites in `{}` sentences have a PRN that isn't a number of up to \
-                     three digits: they are left out",
+                    "{} satellites in `{}` sentences have a PRN that isn't one to three \
+                     digits: they are left out",
                     address.groups_bad, address.address
                 ));
             }

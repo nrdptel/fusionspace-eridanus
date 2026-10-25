@@ -186,10 +186,40 @@ checked against what the command did:
 6. A cold read of every census page against each rule of the voice section, and of the joined
    messages the tasks printed. Each finding is fixed in the PR or filed.
 
+**Amendment for M0.14d3: the census's rule and its tasks (2026-10-25).** The rule is
+M0.14d2's, read over four more crates, `hpr-net`, `hpr-flightdata`, `hpr-analysis` and
+`hpr-forensics`, and over the five files of `hpr-cli` it left out. The census then reads every
+crate `hpr` is built from. `hpr-validate` stays out (§1), and `hpr-py` waits for M0.14d4.
+
+On main (556a8e6d), the four crates read about 29,600 words, and the five files raise `hpr-cli`'s
+page to about 8,000. One page is over a limit: `hpr-flightdata` (0.93 long sentences per 100
+words, and 258 of its 1,972 sentences over 25 words). It reads most of the log formats, and their
+notes explain a format's quirks at length. Two stock phrases are new: one in `hpr-cli`'s weather
+file, one in `hpr-flightdata`'s NMEA reader. The other pages are within every limit.
+
+**M0.14d3's tasks.** Each is done with the release build of `hpr` and the messages alone, with
+`HPR_CACHE_DIR` set to an empty directory, then checked against what the command did:
+
+1. Read three saved answers from `crates/hpr-net/tests/fixtures/replay/` with `hpr weather … --from`:
+   Open-Meteo's forecast, a Wyoming sounding and a GFS file. Hostile: a `--time` the file doesn't
+   cover, an invented answer file, and `--offline` with nothing cached. Each is refused with a message
+   that names the input and says what's allowed or what to do.
+2. `hpr motors fetch F27 --offline` with nothing cached, and `hpr motors search --from` the saved
+   motor list with `--class Z`, and then with `--max-price -5`. Each message says what happened and
+   what to try.
+3. `hpr analyze`: read the PerfectFlite, EggTimer and AltOS samples
+   (`crates/hpr-flightdata/tests/samples/`), and say from the notes alone what each log leaves
+   unknown. Hostile: an empty file, a `.csv` whose columns no reader knows, a sample cut in half,
+   and `--sheet 3` on a one-sheet file. Each is refused, or read with a warning that says what is
+   missing and what to do.
+4. A cold read of the four new census pages and of `hpr-cli`'s five files against each rule of
+   the voice section, and of the joined messages the tasks printed. Each finding is fixed in the PR
+   or filed.
+
 **Consequences.**
 
 - The help can't drift: a change to it fails the snapshot test until the snapshot is written
   again, and the voice check reads the new text.
 - The messages wait two more increments. Until then no check reads them, and the help's hold
-  says nothing about them.
+  says nothing about them. Since M0.14d3, the census reads every crate `hpr` is built from.
 - The roadmap's M0.14d entry becomes its four increments, which fit its byte budget.

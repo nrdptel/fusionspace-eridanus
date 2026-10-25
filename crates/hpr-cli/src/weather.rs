@@ -387,7 +387,7 @@ fn request_help(what: &str) -> Option<&'static str> {
         }
         "model" => Some(
             "give the --model by Open-Meteo's name, letters, digits and _ only, such as \
-             gfs_seamless; leave it out for Open-Meteo's best match",
+             `gfs_seamless`; leave it out for Open-Meteo's best match",
         ),
         "cycle (s since 1970)" => Some(
             "give the run's --cycle as its start in UTC: GFS starts a run every 6 hours (00Z, \

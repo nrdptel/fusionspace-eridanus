@@ -1,7 +1,7 @@
-//! The census of what the design commands say (M0.14d2; ADR-292 §5 and its amendment for
-//! M0.14d2): the errors, warnings and notes `hpr sim`, `hpr mc`, `hpr convert` and `hpr motors
-//! list`/`show` print, read from the source of `hpr-cli` and the nine crates under them, so that
-//! [`crate::voice`] can hold them as it holds a command's help.
+//! The census of what the commands say (ADR-292 §5 and its amendments for M0.14d2 and M0.14d3):
+//! the errors, warnings and notes every command of `hpr` prints, read from the source of
+//! `hpr-cli` and the crates under it, so that [`crate::voice`] can hold them as it holds a
+//! command's help. M0.14d2 read the design commands' crates, M0.14d3 the data commands'.
 //!
 //! The source doesn't say which literal ends up in a message: a refusal's `what` is written where
 //! the error is made, a warning's text is often built in one function and pushed in another. So
@@ -10,8 +10,7 @@
 //!
 //! - **The files** ([`CRATES`]): each tracked `.rs` file under a crate's `src/`, less test code (what
 //!   a `#[cfg(test)]` marks, by [`item_end`]'s rule, and a module declared under it with the
-//!   modules inside it) and
-//!   less [`LEFT_OUT`], the files of M0.14d3's commands.
+//!   modules inside it).
 //! - **What it reads**: each `#[error("…")]` text, and each other string literal in the code that
 //!   reads as prose ([`is_prose`]), less markup ([`is_markup`]). Not comments, doc comments, byte
 //!   strings or other attributes
@@ -29,9 +28,9 @@ use std::path::Path;
 
 use crate::voice::CODE;
 
-/// The crates read, each by its directory under `crates/`: `hpr-cli`, whose dispatch, output and
-/// option readers M0.14d2 takes with its own commands, and the nine ADR-292 §1 lists under them.
-pub(crate) const CRATES: [&str; 10] = [
+/// The crates read, each by its directory under `crates/`: `hpr-cli`, the nine ADR-292 §1 lists
+/// under the design commands (M0.14d2), and the four under the data commands (M0.14d3).
+pub(crate) const CRATES: [&str; 14] = [
     "hpr-cli",
     "hpr",
     "hpr-sim",
@@ -42,25 +41,10 @@ pub(crate) const CRATES: [&str; 10] = [
     "hpr-core",
     "hpr-format",
     "hpr-atmos",
-];
-
-/// Files of a crate in [`CRATES`] left to M0.14d3, which reads the data commands, each with the
-/// reason.
-const LEFT_OUT: [(&str, &str); 5] = [
-    ("crates/hpr-cli/src/analyze.rs", "`hpr analyze` (M0.14d3)"),
-    ("crates/hpr-cli/src/weather.rs", "`hpr weather` (M0.14d3)"),
-    (
-        "crates/hpr-cli/src/motor_fetch.rs",
-        "`hpr motors fetch` (M0.14d3)",
-    ),
-    (
-        "crates/hpr-cli/src/motor_search.rs",
-        "`hpr motors search` (M0.14d3)",
-    ),
-    (
-        "crates/hpr-cli/src/waiting.rs",
-        "what a fetch prints while it waits (M0.14d3)",
-    ),
+    "hpr-net",
+    "hpr-flightdata",
+    "hpr-analysis",
+    "hpr-forensics",
 ];
 
 /// One literal read: where it is, and its text as the census reads it.
@@ -104,7 +88,6 @@ pub(crate) fn census(root: &Path) -> Result<Vec<Census>, String> {
     let dirs: Vec<String> = CRATES.iter().map(|c| format!("crates/{c}/src/")).collect();
     let refs: Vec<&str> = dirs.iter().map(String::as_str).collect();
     let tracked = crate::voice::tracked(root, &refs)?;
-    left_out_are_tracked(&tracked)?;
     let mut out = Vec::new();
     for dir in dirs {
         let mut files: Vec<(String, String)> = Vec::new();
@@ -126,22 +109,8 @@ pub(crate) fn census(root: &Path) -> Result<Vec<Census>, String> {
     Ok(out)
 }
 
-/// Each file [`LEFT_OUT`] names is among the `tracked` ones, so a renamed file can't slip into
-/// the census, nor a left-out entry outlive its file.
-fn left_out_are_tracked(tracked: &[String]) -> Result<(), String> {
-    for (path, _) in LEFT_OUT {
-        if !tracked.iter().any(|file| file == path) {
-            return Err(format!(
-                "the message census leaves out {path}, which isn't tracked: update LEFT_OUT in \
-                 xtask/src/messages.rs"
-            ));
-        }
-    }
-    Ok(())
-}
-
-/// The census of one crate's files, `(path, text)`: each file's literals, less [`LEFT_OUT`] and
-/// the modules a file declares under `#[cfg(test)]`.
+/// The census of one crate's files, `(path, text)`: each file's literals, less the
+/// modules a file declares under `#[cfg(test)]`.
 fn read_crate(dir: &str, files: &[(String, String)]) -> Census {
     let mut census = Census {
         dir: dir.to_owned(),
@@ -171,7 +140,7 @@ fn read_crate(dir: &str, files: &[(String, String)]) -> Census {
         })
     };
     for (path, scan) in scanned {
-        if LEFT_OUT.iter().any(|(left, _)| *left == path) || is_test(&path) || scan.whole_test {
+        if is_test(&path) || scan.whole_test {
             continue;
         }
         census.files += 1;
@@ -992,26 +961,5 @@ const LAST: &str = "read after the skipped items";
         assert_eq!(unescape(r#"a\nb\t\\\"\'"#), "a\nb\t\\\"'");
         assert_eq!(unescape("one \\\n        two"), "one two");
         assert_eq!(unescape(r"\u{2019}\x41"), "\u{2019}A");
-    }
-
-    #[test]
-    fn a_left_out_file_is_not_read_and_must_exist() {
-        let files = vec![(
-            "crates/hpr-cli/src/weather.rs".to_owned(),
-            "fn f() { let _ = \"the weather's words wait\"; }".to_owned(),
-        )];
-        assert!(
-            read_crate("crates/hpr-cli/src/", &files)
-                .messages
-                .is_empty()
-        );
-        let mut tracked: Vec<String> = LEFT_OUT
-            .iter()
-            .map(|(path, _)| (*path).to_owned())
-            .collect();
-        assert_eq!(left_out_are_tracked(&tracked), Ok(()));
-        tracked.remove(2);
-        let error = left_out_are_tracked(&tracked).unwrap_err();
-        assert!(error.contains(LEFT_OUT[2].0), "{error}");
     }
 }
