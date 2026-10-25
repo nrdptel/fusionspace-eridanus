@@ -2478,7 +2478,9 @@ mod tests {
             .message()
         };
         assert!(quoted(Some(1.55)).contains(" from Mach 1.25 to 1.55. There, a body part's pitch"));
-        assert!(quoted(None).contains(" at every speed past Mach 1.25. There, a body part's pitch"));
+        assert!(
+            quoted(None).contains(" at every speed past Mach 1.25. There, a body part's pitch")
+        );
         assert!(quoted(None).contains("the apogee and the drift may lean either way"));
     }
 

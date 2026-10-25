@@ -299,9 +299,10 @@ fn motors_list_is_the_catalog() {
     assert_eq!(output.status.code(), Some(0));
     let said = text(&output.stderr);
     assert!(
-        said.starts_with("note: no motor in the bundled catalog matches every filter given. Its \
-             motors run from class ")
-            && said.contains(" mm across\nhelp: drop a filter or change it"),
+        said.starts_with(
+            "note: no motor in the bundled catalog matches every filter given. Its \
+             motors run from class "
+        ) && said.contains(" mm across\nhelp: drop a filter or change it"),
         "{said}"
     );
     let listed = text_ok(&["motors", "list", "--class", "J"]);

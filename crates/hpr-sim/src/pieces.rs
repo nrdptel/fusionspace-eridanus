@@ -2683,8 +2683,9 @@ mod tests {
         };
         let (what_, component) = what(payload_only(1.0).unwrap_err());
         assert!(
-            what_.starts_with("a pushed payload leaves forward, but the nose's piece holding this one")
-                && component == "payload",
+            what_.starts_with(
+                "a pushed payload leaves forward, but the nose's piece holding this one"
+            ) && component == "payload",
             "{what_}"
         );
         assert!(payload_only(0.0).is_ok());

@@ -47,8 +47,14 @@ pub(crate) const CRATES: [&str; 10] = [
 const LEFT_OUT: [(&str, &str); 5] = [
     ("crates/hpr-cli/src/analyze.rs", "`hpr analyze` (M0.14d3)"),
     ("crates/hpr-cli/src/weather.rs", "`hpr weather` (M0.14d3)"),
-    ("crates/hpr-cli/src/motor_fetch.rs", "`hpr motors fetch` (M0.14d3)"),
-    ("crates/hpr-cli/src/motor_search.rs", "`hpr motors search` (M0.14d3)"),
+    (
+        "crates/hpr-cli/src/motor_fetch.rs",
+        "`hpr motors fetch` (M0.14d3)",
+    ),
+    (
+        "crates/hpr-cli/src/motor_search.rs",
+        "`hpr motors search` (M0.14d3)",
+    ),
     (
         "crates/hpr-cli/src/waiting.rs",
         "what a fetch prints while it waits (M0.14d3)",
@@ -364,7 +370,9 @@ fn lex(text: &str) -> Vec<Token> {
                 Token::Str(text[start..end].to_owned(), line_at(i))
             });
             i = (end + close.len()).min(bytes.len());
-        } else if c == b'"' || (matches!(c, b'b' | b'c') && bytes.get(i + 1) == Some(&b'"') && !after_word) {
+        } else if c == b'"'
+            || (matches!(c, b'b' | b'c') && bytes.get(i + 1) == Some(&b'"') && !after_word)
+        {
             let prefixed = c != b'"';
             let start = i + if prefixed { 2 } else { 1 };
             let mut j = start;
@@ -554,7 +562,12 @@ fn scan(text: &str) -> Scan {
 
 /// Whether an `#[error]` text has a word of letters outside its placeholders.
 fn text_has_word(text: &str) -> bool {
-    has_letter_word(&reading_lines(text).into_iter().map(|l| l.replace(CODE, "")).collect::<Vec<_>>())
+    has_letter_word(
+        &reading_lines(text)
+            .into_iter()
+            .map(|l| l.replace(CODE, ""))
+            .collect::<Vec<_>>(),
+    )
 }
 
 /// Whether an attribute's body is exactly `cfg(test)`.
@@ -570,7 +583,9 @@ fn is_cfg_test(body: &[Token]) -> bool {
 /// For an `error(…)` attribute's body, its text and line, or `Some(None)` for
 /// `error(transparent)`; `None` for any other attribute.
 fn error_text(body: &[Token]) -> Option<Option<(String, usize)>> {
-    if body.first() != Some(&Token::Word("error".to_owned())) || body.get(1) != Some(&Token::Punct('(')) {
+    if body.first() != Some(&Token::Word("error".to_owned()))
+        || body.get(1) != Some(&Token::Punct('('))
+    {
         return None;
     }
     Some(match body.get(2) {
@@ -760,7 +775,10 @@ const LAST: &str = "read after the skipped items";
         let lines = reading_lines("give `--runs` {n:.1} or {{none}}\nsecond line");
         assert_eq!(
             lines,
-            [format!("give {CODE} {CODE} or {{none}}"), "second line".to_owned()]
+            [
+                format!("give {CODE} {CODE} or {{none}}"),
+                "second line".to_owned()
+            ]
         );
         assert!(has_placeholder("a {path} b"));
         assert!(!has_placeholder("a {{literal}} b"));
@@ -786,7 +804,11 @@ const LAST: &str = "read after the skipped items";
                 .to_owned(),
         )];
         let census = read_crate("crates/x/src/", &files);
-        let read: Vec<&str> = census.messages.iter().map(|m| m.lines[0].as_str()).collect();
+        let read: Vec<&str> = census
+            .messages
+            .iter()
+            .map(|m| m.lines[0].as_str())
+            .collect();
         assert_eq!(read, ["the caption a figure shows"]);
         assert!(is_markup("  <g id=\"event\">"));
         assert!(!is_markup("give a value, not <FILE>"));
@@ -795,7 +817,9 @@ const LAST: &str = "read after the skipped items";
         assert!(is_markup("<!-- {} -->\n<engine-database>"));
         assert!(is_markup("<name>{}</name>"));
         assert!(!is_markup("<Shape> is `{}`, not one of CONICAL or OGIVE"));
-        assert!(!is_markup("<{name}> names a material of the wrong kind for the part"));
+        assert!(!is_markup(
+            "<{name}> names a material of the wrong kind for the part"
+        ));
     }
 
     #[test]
@@ -811,6 +835,10 @@ const LAST: &str = "read after the skipped items";
             "crates/hpr-cli/src/weather.rs".to_owned(),
             "fn f() { let _ = \"the weather's words wait\"; }".to_owned(),
         )];
-        assert!(read_crate("crates/hpr-cli/src/", &files).messages.is_empty());
+        assert!(
+            read_crate("crates/hpr-cli/src/", &files)
+                .messages
+                .is_empty()
+        );
     }
 }
