@@ -432,7 +432,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   semantic equality.
 - [ ] **M3.5 RASAero `.CDX1` import/export** (from samples only). Fix the Loft `<Location>` bug
   class.
-  - Loft lessons: L72, L73, L74, L98, L99.
+  - Loft lessons: L72, L73, L74.
+  - Loft lessons: L98, L99.
   *Done when:* the corpus `.CDX1` files import with overall length within 0.5% of the stated
   values.
 - [ ] **M3.6 RocketPy interop.** Export a runnable RocketPy script and `.rpy`; import `.rpy` where
