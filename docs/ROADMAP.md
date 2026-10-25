@@ -144,7 +144,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
     - [ ] **M0.14d2 What the design commands say.** *Done when:* `xtask voice` reads a census of
       the errors, warnings and notes `hpr sim`, `mc`, `convert` and `motors list`/`show` print,
-      from `hpr-cli` and the nine crates ADR-292 §1 lists, and holds them in CI; acceptance pass.
+      from `hpr-cli`, its shared code included, and the nine crates ADR-292 §1 lists, and holds them in CI; acceptance pass.
     - [ ] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr weather`,
       `motors fetch`/`search` and `analyze`, from `hpr-cli`, `hpr-net`, `hpr-flightdata`,
       `hpr-analysis` and `hpr-forensics`; acceptance pass.

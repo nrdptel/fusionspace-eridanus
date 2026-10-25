@@ -114,7 +114,7 @@ pub struct WyomingArgs {
     #[arg(long, required_unless_present = "from", conflicts_with = "from")]
     pub station: Option<String>,
     /// The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it.
-    /// Needed unless --from is given
+    /// Needed unless --from is given, and not with it
     #[arg(
         long,
         value_name = "TIME",
@@ -160,7 +160,8 @@ pub struct NomadsArgs {
 /// `hpr weather era5`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct Era5Args {
-    /// The ERA5 pressure-level file, netCDF classic, from the Copernicus Climate Data Store
+    /// The ERA5 pressure-level file, in netCDF classic. A file from today's Copernicus Climate Data
+    /// Store is netCDF-4: convert it first, as https://hpr.fusionspace.co/format/era5.html shows
     pub file: String,
     /// The site's latitude, degrees north (south is negative)
     #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]

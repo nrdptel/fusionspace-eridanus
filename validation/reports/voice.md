@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 94 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), and each snapshot of an `hpr` command's `--help` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-102 pages, 445880 words, 0 stock phrases. 98 pages are within every limit.
+102 pages, 445900 words, 0 stock phrases. 98 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -40,11 +40,11 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-cli/tests/help/hpr-motors.help` (`ref`, `held`) | 172 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-optimize.help` (`ref`, `held`) | 50 | 7.2 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-sim.help` (`ref`, `held`) | 404 | 12.3 | 0% | 0.00 | 0.00 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `crates/hpr-cli/tests/help/hpr-weather-era5.help` (`ref`, `held`) | 121 | 8.7 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| `crates/hpr-cli/tests/help/hpr-weather-era5.help` (`ref`, `held`) | 132 | 8.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-weather-gfs.help` (`ref`, `held`) | 158 | 9.9 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-weather-open-meteo.help` (`ref`, `held`) | 189 | 10.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-weather-rap.help` (`ref`, `held`) | 164 | 10.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `crates/hpr-cli/tests/help/hpr-weather-wyoming.help` (`ref`, `held`) | 178 | 10.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| `crates/hpr-cli/tests/help/hpr-weather-wyoming.help` (`ref`, `held`) | 182 | 10.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-weather.help` (`ref`, `held`) | 199 | 11.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr.help` (`ref`, `held`) | 287 | 12.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
@@ -61,7 +61,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/evidence.md` (`held`) | 6506 | 12.9 | 0% | 0.00 | 0.02 | 0.00 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.33 |
 | `docs/exporting-a-flight.md` (`held`) | 1937 | 14.6 | 0% | 0.00 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.21 | 0.93 |
 | `docs/fly-your-ork.md` (`held`) | 1420 | 12.6 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.78 | 0.64 |
-| `docs/format/eng.md` (`ref`, `held`) | 2405 | 13.6 | 2% | 0.38 | 0.21 | 0.09 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.17 |
+| `docs/format/eng.md` (`ref`, `held`) | 2410 | 13.6 | 2% | 0.38 | 0.21 | 0.09 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.17 |
 | `docs/format/era5.md` (`ref`, `held`) | 2437 | 13.5 | 0% | 0.42 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.42 | 0.25 |
 | `docs/format/flight-logs.md` (`ref`, `held`) | 44303 | 13.1 | 0% | 0.21 | 0.21 | 0.00 | 0.08 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5413 | 13.9 | 0% | 0.39 | 0.02 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.80 |

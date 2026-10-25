@@ -16,7 +16,7 @@ Options:
           [possible values: auto, always, never]
 
       --time <TIME>
-          The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it. Needed unless --from is given
+          The launch time in UTC; the sounding is the station's latest, at 00 or 12 UTC, before it. Needed unless --from is given, and not with it
 
       --bufr
           Ask for the sounding decoded from BUFR, a row every second or two of the ascent, instead of the coded TEMP message (FM 35)

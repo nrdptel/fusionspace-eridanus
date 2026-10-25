@@ -155,11 +155,11 @@ What real files do, and what the reader and writer do with each case.
 6. Points are kept verbatim; no implicit origin is inserted into the file model. Errors: no points,
    negative time, time decreasing, and a last thrust above half the entry's peak
    ([`CUT_OFF_SHARE`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/curve.rs)): the file looks cut off, and a G84 curve cut after 13 of
-   its 29 points would read as an F motor. In a file of several entries, only that entry is
+   its 29 points would read as an F motor. When other entries in the file read, that entry is
    skipped, with a warning. Of 3,585 curves in the project's reference checkouts (not in the
    repository), 11 end above zero, at 10.5% of the peak at most
    ([a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). A lower cut, or one inside a number,
-   reads with a warning. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
+   reads, with a warning unless it leaves a 0. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
    thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
 7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
