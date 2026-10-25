@@ -103,6 +103,7 @@ mod notes;
 mod numbers;
 mod pages;
 mod print;
+mod quotes;
 mod sheets;
 mod switch;
 pub(crate) mod theme;

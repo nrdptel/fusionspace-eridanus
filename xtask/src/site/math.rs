@@ -15,6 +15,10 @@
 //! line, as does a formula it warns about, math in a heading (the sidebar and the anchor would
 //! carry it), and a display equation sharing its paragraph with text.
 //!
+//! It also writes a quote mark straight after inline code, emphasis or a link as a closing one
+//! ([`super::quotes::closing_quotes`], #932), which mdBook's smart punctuation would turn into
+//! an opening one.
+//!
 //! mdBook runs this as `cargo xtask site-math`: `book.toml` names it, and [`super::mdbook_build`]
 //! points mdBook at the running `xtask` itself, so the build never compiles a second copy.
 
@@ -172,7 +176,10 @@ fn convert_chapters(value: &mut Value, converter: &LatexToMathML, problems: &mut
                     .unwrap_or("a chapter")
                     .to_owned();
                 if let Some(Value::String(content)) = chapter.get_mut("content") {
-                    match typeset(content, converter) {
+                    // Quote marks after a span first, while the page is still the writer's
+                    // Markdown (#932).
+                    let content_quoted = super::quotes::closing_quotes(content);
+                    match typeset(&content_quoted, converter) {
                         Ok(typeset) => *content = typeset,
                         Err(found) => {
                             problems.extend(found.into_iter().map(|p| format!("{name}:{p}")));
