@@ -452,7 +452,7 @@ copy in the cache, `hpr sim` refuses and names the command that fetches it (abri
 
 ```text
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it: no thrust curve for H128W: ...; AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
+error: configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: .... AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
 help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
 help: give a motor with --motor
 ```
