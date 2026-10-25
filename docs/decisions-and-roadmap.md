@@ -471,7 +471,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
 | <a id="m0-14a"></a>[M0.14a][done-0] | The guide and the check | done |
 | <a id="m0-14b"></a>[M0.14b][phase-0] | The front doors | blocked |
-| <a id="m0-14c"></a>[M0.14c][phase-0] | The rest of the site | not yet done |
+| <a id="m0-14c"></a>[M0.14c][done-0] | The rest of the site | done |
 | <a id="m0-14c1"></a>[M0.14c1][done-0] | The first guides | done |
 | <a id="m0-14c2"></a>[M0.14c2][done-0] | Studies, data and logs | done |
 | <a id="m0-14c3"></a>[M0.14c3][done-0] | The command line and the evidence | done |
@@ -480,7 +480,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c6"></a>[M0.14c6][done-0] | Aerodynamics | done |
 | <a id="m0-14c7"></a>[M0.14c7][done-0] | Recovery, staging and readings | done |
 | <a id="m0-14c8"></a>[M0.14c8][done-0] | The file formats | done |
-| <a id="m0-14c9"></a>[M0.14c9][phase-0] | Flight logs, and every page held | not yet done |
+| <a id="m0-14c9"></a>[M0.14c9][done-0] | Flight logs, and every page held | done |
 | <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |

@@ -88,6 +88,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
 - M0.14a The guide and the check ([Phase 0](#phase-0-foundations))
+- M0.14c The rest of the site ([Phase 0](#phase-0-foundations))
 - M0.14c1 The first guides ([Phase 0](#phase-0-foundations))
 - M0.14c2 Studies, data and logs ([Phase 0](#phase-0-foundations))
 - M0.14c3 The command line and the evidence ([Phase 0](#phase-0-foundations))
@@ -96,6 +97,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c6 Aerodynamics ([Phase 0](#phase-0-foundations))
 - M0.14c7 Recovery, staging and readings ([Phase 0](#phase-0-foundations))
 - M0.14c8 The file formats ([Phase 0](#phase-0-foundations))
+- M0.14c9 Flight logs, and every page held ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -623,7 +625,9 @@ One line per milestone or increment, in the order it was archived within its pha
     commits its per-page report, and fails only on its stock-phrase list of at least 30 entries
     (a test failing without each, none hitting `docs/physics/`); `.github` gains a PR template and
     issue templates citing the section.
-  - **M0.14c** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.14c The rest of the site.** *Done when:* each site page outside ADR-284 §5's list
+    passes `xtask voice` in CI, within its limits and `writing.md`'s sentence targets, with an
+    acceptance pass. Split in nine by the site's sections; ADR-285 lists each one's pages:
     - [x] **M0.14c1 The first guides.** *Done when:* its 16 pages are held by `xtask voice` in
       CI, within its limits and the sentence targets, with an acceptance pass.
     - [x] **M0.14c2 Studies, data and logs.** *Done when:* its 13 pages are held by `xtask voice`
@@ -641,6 +645,9 @@ One line per milestone or increment, in the order it was archived within its pha
       `xtask voice` in CI, within its limits and the sentence targets, with an acceptance pass.
     - [x] **M0.14c8 The file formats.** *Done when:* its 7 pages are held by `xtask voice` in CI,
       within its limits and the sentence targets, with an acceptance pass.
+    - [x] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
+      site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
+      with them, within its limits and the sentence targets, with an acceptance pass.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
