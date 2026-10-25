@@ -214,7 +214,7 @@ is still slow. HPR Sim's margin in this comparison has the air along the rocket'
 plane), as OpenRocket's does. It isn't the margin in HPR Sim's weakest plane (below). On
 `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, HPR Sim's margin at rod clearance in
 the report is +3.74 calibers along the axis. But `hpr sim` prints a least margin of −4.21 in the
-weakest plane. HPR Sim's margin differs from OpenRocket's on:
+weakest plane. At rod clearance in the 0° plane, HPR Sim's margin differs from OpenRocket's on:
 
 - the *Tube fin rocket*: 1.08 calibers below, [tube fins](aero.md#tube-fins);
 - the three-stage example's three flights: 0.039 to 0.058 below, cause not yet sized,

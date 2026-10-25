@@ -9,10 +9,11 @@ will be tested.
 - **What it models:** 2,200 flights of the ten public RocketPy designs that HPR Sim, FusionSpace
   HPR's simulator, validates against, in three sets on fixed [seeds](../glossary.md#seed). Each
   flight draws its motor, drag, wind, rail angle, site and air, and one of six simulated loggers
-  like those FusionSpace HPR reads. The logger writes what its sensors would, noise included.
+  like those FusionSpace HPR reads. The logger writes what its pressure sensor, accelerometer and
+  GNSS would, each with its own noise terms.
   Each flight's truth is HPR Sim's trajectory, every 0.01 s, with its
   [dynamic pressure](../glossary.md#dynamic-pressure) and [Mach number](../glossary.md#mach-number).
-- **Sources:** datasheets and public logs ([the sensor noise note][noise]). The port's error is
+- **Sources:** sensor datasheets and public logs ([the sensor noise note][noise]). The port's error is
   from a wind-tunnel test ([the Mach error note][mach]). The ejection pulse is a public log's, and
   the GNSS lag that of hobby receivers in boost ([the GNSS note][gnss]). The wind's limit is the
   NAR's [high-power safety code][hprcode]. Some terms are assumed
