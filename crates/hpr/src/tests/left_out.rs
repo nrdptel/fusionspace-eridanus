@@ -173,9 +173,9 @@ fn a_fin_set_left_out_reads_the_mass_drag_and_lift_low_and_the_margin_either_way
     }
 }
 
-/// A launch lug left out: its mass and drag aren't counted, so both read low. It carries no
-/// lift, so the center of pressure stays, and the margin moves as its mass does: high for a lug
-/// aft of the center of gravity, low for one ahead.
+/// A launch lug left out: its mass and drag aren't counted, so the mass and drag read low. It
+/// carries no lift, so the center of pressure stays, and the margin moves as its mass does: high
+/// for a lug aft of the center of gravity, low for one ahead.
 #[test]
 fn a_launch_lug_left_out_reads_the_mass_and_drag_low_and_the_margin_by_where_it_sat() {
     let lug = |end: &str, radius: &str| {
@@ -447,8 +447,9 @@ fn inner_tube(offset_m: f64, thickness: &str, inside: &str) -> String {
 }
 
 /// A tube a centering ring takes its bore from, left out: each ring closes to a solid disc, so
-/// the mass reads *high* here, against "the mass reads low" for a tube alone. The warning gives
-/// the mass and margin no direction, and says why.
+/// the mass reads *high* here, against "the mass reads low" for a tube alone, and the margin
+/// reads low for a tube aft of the center of gravity, against "high" for a tube alone. The
+/// warning gives the mass and margin no direction, and says why.
 #[test]
 fn a_tube_a_ring_takes_its_bore_from_gives_the_mass_and_margin_no_direction() {
     let ring = |name: &str, offset_m: f64| {
@@ -460,7 +461,7 @@ fn a_tube_a_ring_takes_its_bore_from_gives_the_mass_and_margin_no_direction() {
         )
     };
     let rings = format!("{}{}", ring("fore", 0.4), ring("aft", 0.488));
-    let (with, warnings, _) = read("", &format!("{}{rings}", inner_tube(0.4, "0.001", "")));
+    let (with, warnings, design) = read("", &format!("{}{rings}", inner_tube(0.4, "0.001", "")));
     assert!(warnings.is_empty(), "{warnings:?}");
     let (without, warnings, _) = read("", &format!("{}{rings}", inner_tube(0.4, "-0.001", "")));
     left_out_with(
@@ -468,8 +469,12 @@ fn a_tube_a_ring_takes_its_bore_from_gives_the_mass_and_margin_no_direction() {
         "Its mass isn't counted. The mass and stability margin can read high or low, as parts \
          sized from it change too",
     );
-    // The rings' bores close: the rocket without the tube is heavier than with it.
+    // The rings' bores close: the rocket without the tube is heavier than with it, and its
+    // center of gravity moves toward the tube, not away.
     assert!(without.mass_kg > with.mass_kg, "{with:?} {without:?}");
+    let (station_m, _) = part(&design, "inner");
+    assert!(station_m > with.cg_station_m, "{station_m} {with:?}");
+    assert!(without.margin_cal < with.margin_cal, "{with:?} {without:?}");
 }
 
 /// A part under a body tube whose override sets the mass and the center of gravity of all it
