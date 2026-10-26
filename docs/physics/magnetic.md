@@ -40,7 +40,7 @@ under the name given. DLMF is a web reference.
   Report*. National Centers for Environmental Information, NOAA, 2025,
   <https://doi.org/10.25923/prbc-s316>. Section 1.2 gives the equations, 1.4 the poles, 1.8 the
   blackout zones, 3.4 the error model. Pinned as `wmm2025-report`.
-- **[COF]** NCEI, `WMM2025COF.zip` (2024-12-17): the coefficient file `WMM2025.COF` and the test
+- **[COF]** NCEI, `WMM2025COF.zip` (December 17, 2024): the coefficient file `WMM2025.COF` and the test
   values `WMM2025_TestValues.txt`, committed unchanged in
   [`crates/hpr-core/data/wmm2025/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-core/data/wmm2025),
   with the report's Table 6 as `WMM2025_TEST_VALUES.txt`. Pinned as `wmm2025-coefficients`, and

@@ -186,14 +186,14 @@ $$
 ## Tests that pin this
 
 - In `hpr_core::geodesy::tests`:
-  - geodetic → ECEF → geodetic, from −10 km (−6.2 mi) to 1000 km (621 mi);
-  - ECEF → geodetic → ECEF, from 6250 km (3,884 mi) to 46,000 km (28,583 mi) from the center;
+  - geodetic → ECEF → geodetic, from −10 km (−6.2 mi) to 1,000 km (621 mi);
+  - ECEF → geodetic → ECEF, from 6,250 km (3,884 mi) to 46,000 km (28,583 mi) from the center;
   - axis points, the sphere limit, and the ENU rotation being proper with $\hat{\mathbf{u}}$ normal to the
     ellipsoid.
 - In `hpr_core::frames::tests`:
   - angles → quaternion → angles (off vertical), and quaternion → angles → quaternion (everywhere,
     exactly vertical included);
-  - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2000 km (1,243 mi) and up to 1000 km (621 mi) high;
+  - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2,000 km (1,243 mi) and up to 1,000 km (621 mi) high;
   - named attitudes, and the tangent-plane rise $d^2/(2\rho)$ due east, $\rho$ there being the
     radius [Geodesy](geodesy.md) calls $N$, plus the site's height.
 - In `hpr_core::attitude::tests`: the kinematic equation checked against a closed-form coning

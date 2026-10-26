@@ -38,7 +38,7 @@ The steps:
 ## What the rules ask
 
 **The safety codes require a stability check, but name no margin.** The words below are the
-organizations' own, read on 2026-10-04. Check their current pages before your flight. This is not
+organizations' own, read on October 4, 2026. Check their current pages before your flight. This is not
 legal or regulatory advice.
 
 - The NAR's [High Power Rocket Safety Code](https://nar.org/content.aspx?page_id=22&club_id=114127&module_id=669238)

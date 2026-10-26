@@ -169,12 +169,12 @@ output never has color, whatever the flag or the variables say. To turn color of
 ### Typing numbers, and what a refusal says
 
 A number is read the way you would write it by hand. Spaces around it are dropped. A comma between
-groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m (4199 ft). A `note:`
+groups of three digits is a thousands separator: `--elevation 1,280` is 1,280 m (4,199 ft). A `note:`
 line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the comma
 meant something else.
 
 That holds for every option that takes a number, negative ones included. `--elevation -1,280` is
-−1280 m (−4199 ft). `--longitude -106,970` is read as −106970° and refused, as a longitude is at
+−1,280 m (−4,199 ft). `--longitude -106,970` is read as −106,970° and refused, as a longitude is at
 most 180° east or west.
 
 Any other comma is refused with a question. `3,9` is 3.9 in much of the world, but it could be a
@@ -1247,9 +1247,9 @@ file:
 - The [average thrust](glossary.md#average-thrust) is the total impulse divided by that burn time.
 - The masses and the casing size are the catalog's, or the file's for a file, with ounces or
   pounds and inches in parentheses.
-- The impulse class comes with its range of total impulse, written as NFPA 1125 and 1127 write
+- The impulse class comes with its range of total impulse, written as NFPA 1125 and NFPA 1127 write
   it. Each class runs from just above the one below's top to twice it, such as
-  J (640.01–1280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
+  J (640.01–1,280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
   carry on the doubling.
 - The designation is read for what it names, as the maker writes it. `H170M` is class H, a
   nominal average thrust of 170 N, and propellant M.
@@ -1466,13 +1466,13 @@ motor it can fly, not that its curve is right.
   curve OpenRocket flies. An offline refusal's command then carries `--file`, so it fetches the
   file the flight takes. Offline, if the cache holds only some of the motor's files, a file it
   lacks is given up for the usual order's. The note then says the curve may not be OpenRocket's.
-  The table is as of 2026-10-04. If ThrustCurve's files change, `cargo xtask ork-curves`
+  The table is as of October 4, 2026. If ThrustCurve's files change, `cargo xtask ork-curves`
   rewrites it.
 - **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, and a copy of any age
   flies. With no copy, the command fails with exit status 1. Online, a copy stays fresh for a
   day. After that the simulator asks again, and keeps the old copy if the network fails.
 
-A fetch with a network connection printed this on 2026-10-04, pasted by hand, not run in CI.
+A fetch with a network connection printed this on October 4, 2026, pasted by hand, not run in CI.
 Its `help:` line is as the simulator writes it since
 [the CLI milestone](decisions-and-roadmap.md#m0-6b), which made each hint a `help:` line. Its
 case shows inches too, since [the units milestone](decisions-and-roadmap.md#m0-9c4) gave every
@@ -1565,13 +1565,13 @@ some things differently, and `hpr convert` translates:
 | a name or maker of several words | joined by `_` | as it is |
 
 Masses move between kilograms and grams by moving the decimal point, not by multiplying, which
-would round. In a computer's arithmetic, `0.0041` kg times 1000 is `4.1000000000000005`, while
+would round. In a computer's arithmetic, `0.0041` kg times 1,000 is `4.1000000000000005`, while
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
 digit. A warning says so. Of the 32 bundled files, two masses written with 17 digits are the only
 ones that don't come back bit for bit; each carries the warning
 ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
 
-A flight turns a `.rse` file's grams into kilograms by dividing by 1000, and the catalog's by
+A flight turns a `.rse` file's grams into kilograms by dividing by 1,000, and the catalog's by
 multiplying by 0.001. So the same motor flown from a `.eng` file and from its converted `.rse` can
 differ in a mass's last digit, a part in $10^{16}$.
 
@@ -1769,7 +1769,7 @@ the pad, with feet in brackets. Times are seconds on the log's clock.
 
 This example log is invented, so every reading can be checked against the flight it was made
 from ([Reading a flight log](reading-a-flight-log.md) works through it). Its true apogee is
-390.3 m (1280.5 ft), at 10.26 s:
+390.3 m (1,280.5 ft), at 10.26 s:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/synthetic-pnut.pf2`; written by `cargo xtask cli`; do not edit -->
 
@@ -2002,7 +2002,7 @@ cache. They run ERA5 from its file.
   `--historical` for a launch already gone: that asks Open-Meteo's archive of past forecasts.
   `--model` names one of Open-Meteo's weather models, by the name its documentation gives. By
   default it picks one ([What the simulator asks for](weather.md#what-the-simulator-asks-for)).
-- **Wyoming** takes the [station](glossary.md#station)'s number, such as 72364 for Santa Teresa,
+- **Wyoming** takes the [station](glossary.md#station)'s number, such as station 72364 for Santa Teresa,
   New Mexico ([finding a station](soundings.md#what-the-simulator-asks-for)), and your launch `--time`. It
   fetches that station's latest sounding before the launch. Soundings are named for 00 and 12 UTC,
   and the balloon goes up about an hour before. The example's 12 UTC sounding left at 11:02.
@@ -2101,11 +2101,11 @@ The first line says where and when the profile is for:
 - for Wyoming, where the balloon was released
 
 The ground comes first: its height above sea level ([MSL](glossary.md#height-above-sea-level-msl))
-and its pressure in hectopascals (hPa; 1013 hPa is sea level's standard). Then come its temperature
+and its pressure in hectopascals (hPa; 1,013 hPa is sea level's standard). Then come its temperature
 and humidity, and the wind 10 m (33 ft) above it. Each pressure level above the ground follows.
 
 The levels the model gives below the ground are listed as left out. Here the ground is at about
-1,400 m (4,593 ft), and 1000 to 900 hPa lie beneath it. Where each value comes from, and why levels
+1,400 m (4,593 ft), and 1,000 to 900 hPa lie beneath it. Where each value comes from, and why levels
 are left out, is on the source's page.
 
 #### The profile file
@@ -2139,7 +2139,7 @@ text output and `--json` give the same levels with the direction in degrees.
 - **Time between forecast hours**, for GFS and RAP: pick the run and hour nearest your launch.
   Open-Meteo and ERA5 blend the two hours around it.
 - **The site's real ground.** A forecast's ground is its model's smoothed terrain, not your pad's
-  height. An ERA5 file has no ground at all: its levels start at 1000 hPa, which can lie below a
+  height. An ERA5 file has no ground at all: its levels start at 1,000 hPa, which can lie below a
   high site.
 - **Humidity in ERA5.** The simulator doesn't read it yet, so ERA5's profile is dry air.
 - **Above the top level**, the library carries the air on as the standard atmosphere and holds

@@ -14,12 +14,12 @@ the two formats [ThrustCurve.org](../glossary.md#thrustcurveorg) serves (the oth
 file, builds the motor and puts it in a rocket, with a program that CI runs.
 
 This page is the reference for HPR Sim's reader and writer. It gives what the published spec says,
-what real files do, and what HPR Sim does with each. All 889 RASP files ThrustCurve.org held on 2026-09-17
+what real files do, and what HPR Sim does with each. All 889 RASP files ThrustCurve.org held on September 17, 2026
 read, and write back with every value unchanged
 ([Checked against real files](#checked-against-real-files)).
 
 > **How far to trust it.** Copied values: the reader takes the curve, the masses and the delays
-> from the file as written, and estimates nothing. On 2026-09-17, all 889 RASP files
+> from the file as written, and estimates nothing. On September 17, 2026, all 889 RASP files
 > ThrustCurve.org held and the 721 entries of its manufacturer sets read, and write back with
 > every value unchanged. A curve is only as right as its file, though. When a motor's numbers
 > matter, check them against the maker's published data and the motor's certification.
@@ -31,13 +31,13 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
 ## Sources
 
 - **[R]** ThrustCurve.org, "RASP File Format", <https://www.thrustcurve.org/info/raspformat.html>,
-  captured 2026-09-17 and pinned as `thrustcurve-rasp-format` (sha256 `69573e9f…`) in the
+  captured September 17, 2026 and pinned as `thrustcurve-rasp-format` (sha256 `69573e9f…`) in the
   [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
   The lock file records each source's address and checksum. Sections are cited as [R Header], [R Data],
   [R Problems]. The page names the RASP C source as "the ultimate authority"; its license is not
   stated, so it was not consulted.
 - **Observed:** 734 entries in the ThrustCurve manufacturer file sets (12 `.eng` sets) and 13
-  single-motor API downloads. They were fetched 2026-09-17 into a local cache,
+  single-motor API downloads. They were fetched September 17, 2026 into a local cache,
   `refs/samples/formats/`, never committed. Counts below are over those entries.
 
 ## What the spec says
@@ -231,7 +231,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 
 ## Checked against real files
 
-On 2026-09-17, all 889 RASP files in ThrustCurve.org's solid-motor survey
+On September 17, 2026, all 889 RASP files in ThrustCurve.org's solid-motor survey
 ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md))
 and the 721 entries of its manufacturer sets read. For both, write-parse-write reproduces every value bit
 for bit. The files are cached under `refs/samples/`

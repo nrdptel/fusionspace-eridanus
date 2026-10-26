@@ -78,7 +78,7 @@ $\mu^* = 7.875$ with no error, and $\mu$ near zero.
 M. D. Morris, "Factorial sampling plans for preliminary computational experiments",
 *Technometrics* 33(2), 161–174, 1991, defines the effects, the grid and the paths. F. Campolongo,
 J. Cariboni and A. Saltelli, "An effective screening design for sensitivity analysis of large
-models", *Environmental Modelling & Software* 22, 1509–1518, 2007, add $\mu^*$. They found, by
+models", *Environmental Modelling & Software* 22, pp. 1509–1518, 2007, add $\mu^*$. They found, by
 experiment rather than proof, that it ranks factors in the same order as the total Sobol' index.
 
 That's usual, not certain. A step spans about half of each range, so it can miss a response

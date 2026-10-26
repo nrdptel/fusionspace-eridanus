@@ -146,7 +146,7 @@ tolerance where it has one. Otherwise it's the bar of its kind. That's 3% of its
 harness metric not scored, 5% for an OpenRocket apogee or largest speed and 1% for an OpenRocket
 mass. It's 0.5 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
 logged climb's RMS gets 3% of the apogee, the bound three RocketPy comparisons hold a flight's
-height RMS to ([census][census]). For example, a 3% tolerance on a 1000 m (3,281 ft) apogee allows
+height RMS to ([census][census]). For example, a 3% tolerance on a 1,000 m (3,281 ft) apogee allows
 30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
 
 So the census holds a number to where it was, not to its target. A flight on each code's own drag,
@@ -576,13 +576,12 @@ Each is held to 3% of RocketPy's apogee (for height) or top speed (for speed), o
 ([more][adr-294]). That's [the validation milestone's](decisions-and-roadmap.md#m2-1) 3% for one
 number, applied to the whole trace ([case file][juno-case]).
 
-All nine flights pass, each well inside its bound. The largest height RMS is Prometheus 2022's,
-35.350931 m (115.98074 ft), about a third of its 110.3 m (362 ft) bound. Its apogee is also the
+All nine flights pass, each well inside its bound (the table below). The largest height RMS is
+Prometheus 2022's, about a third of its 110.3 m (362 ft) bound. Its apogee is also the
 furthest off, +1.208%. Body lift accounts for that too. RocketPy flown with HPR Sim's body lift and
-rail release reaches 3723.8 m (12,217 ft), against HPR Sim's 3723.6 ([case file][prometheus-case]).
-Juno III's height RMS is 14.550622 m (47.73826 ft) against 78.4 m (257 ft), about a fifth. The
-other heights are under three tenths of theirs. The speed RMS runs from 0.022685 to 1.553509 m/s
-(0.07443 to 5.09681 ft/s, [report][report]).
+rail release reaches 3,723.8 m (12,217 ft), against HPR Sim's 3,723.6 ([case file][prometheus-case]).
+Juno III's height RMS is about a fifth of its 78.4 m (257 ft). The other heights are under three
+tenths of theirs, and each speed RMS is under a third of its bound ([report][report]).
 
 | case | height RMS, m (`series_height_rms_m`) | height bound, m | speed RMS, m/s (`series_speed_rms_m_s`) | speed bound, m/s |
 |---|--:|--:|--:|--:|
@@ -651,8 +650,8 @@ What the two codes still do differently, and what it moves:
   scored. Their times are scored, since both codes put them where the main opens
   ([report][report], [case file][ndrt-flight-case]).
 
-**Prometheus 2022 flies through Mach 1.** RocketPy's flight peaks at Mach 1.013 and HPR Sim's at
-1.010371 (−0.235%). Until [the normal force through Mach 1](decisions-and-roadmap.md#m1-8a), HPR
+**Prometheus 2022 flies through Mach 1.** RocketPy's flight peaks at Mach 1.013 and HPR Sim's
+0.235% lower. Until [the normal force through Mach 1](decisions-and-roadmap.md#m1-8a), HPR
 Sim stopped any flight at Mach 1, and the case was a known gap. Now it flies on its drag table to
 the ground ([Aerodynamics](physics/aero.md#fins-through-mach-1)). Its scored numbers agree within
 1.208% ([report][report]). This flight is a light test of the transonic normal force. No committed
@@ -726,8 +725,8 @@ flights. [Valetudo's][valetudo-predicted-case], [NDRT 2020's][ndrt-predicted-cas
 [Prometheus 2022's][prometheus-predicted-case] height RMS are outside the target. So is NDRT
 2020's speed RMS. They miss for the reason their apogees do: HPR Sim's own drag differs from those
 examples' drag. Each bound is 3% of that case's own RocketPy apogee or top speed, so it differs
-from the same-drag bound. Juno III's 54.699661 m (179.46083 ft) is inside its 83.9 m (275 ft) here
-([report][report]).
+from the same-drag bound. Juno III's height RMS is inside its 83.9 m (275 ft) here, at about two
+thirds of it ([report][report]).
 
 | case | height RMS, m (`series_height_rms_m`) | height bound, m | speed RMS, m/s (`series_speed_rms_m_s`) | speed bound, m/s |
 |---|--:|--:|--:|--:|
@@ -804,7 +803,7 @@ thrust file as it would any other: nothing of the motor is modeled ([decision][a
 The [private designs](format/ork.md#the-simulators-flights-of-the-private-designs) add none. None is
 the rocket of a flight in the [private collection of logs](VALIDATION.md#real-flight-data), so none
 has a log to compare with ([the decision][adr-083]). A private flight collection added on
-2026-10-04 pairs designs with their flights' logs. Its 53 compared flights are
+October 4, 2026 pairs designs with their flights' logs. Its 53 compared flights are
 [below](#real-flights-of-the-private-collection).
 
 **Reading the logs.** Every log here comes from a [barometric
@@ -860,12 +859,12 @@ repository. `cargo xtask real-flights` reads them from a pinned copy of RocketPy
 | flight | log apogee (m) | HPR Sim apogee (m) | apogee error | HPR Sim as a height (m) | climb RMS (m) | error on the team's drag |
 |---|---:|---:|---:|---:|---:|---:|
 | [Bella Lui, EPFL, 2020][real-report] | 459.0 | 462.9 | +0.86% | 463.6 | 3.2 | +0.24% |
-| [NDRT 2020, Notre Dame][real-report] | 1320.4 | 1457.6 | **+10.40%** | 1432.8 | 89.9 | +0.17% |
-| [Prometheus, Western Engineering, 2022][real-report] ¹ | 3895.8 | 3549.3 | **−8.90%** | 3809.9 | 190.9 | +0.45% |
-| [Juno III, Projeto Jupiter, 2023][real-report] | 3151.5 | 2923.4 | **−7.24%** | 3174.5 | 228.8 | −9.05% |
-| [Cavour, Politecnico di Torino, 2023][real-report] | 2785.0 | 2946.0 | **+5.78%** | 3052.1 | 124.6 | −2.15% |
-| [Genesis, EuRoC 2023][real-report] | 2916.7 | 2746.0 | **−5.85%** | 2875.3 | 95.2 | −0.08% |
-| [Lince, EuRoC 2023][real-report] | 3587.7 | 3709.2 | +3.39% | 3874.3 | 63.9 | −12.20% |
+| [NDRT 2020, Notre Dame][real-report] | 1,320.4 | 1,457.6 | **+10.40%** | 1,432.8 | 89.9 | +0.17% |
+| [Prometheus, Western Engineering, 2022][real-report] ¹ | 3,895.8 | 3,549.3 | **−8.90%** | 3,809.9 | 190.9 | +0.45% |
+| [Juno III, Projeto Jupiter, 2023][real-report] | 3,151.5 | 2,923.4 | **−7.24%** | 3,174.5 | 228.8 | −9.05% |
+| [Cavour, Politecnico di Torino, 2023][real-report] | 2,785.0 | 2,946.0 | **+5.78%** | 3,052.1 | 124.6 | −2.15% |
+| [Genesis, EuRoC 2023][real-report] | 2,916.7 | 2,746.0 | **−5.85%** | 2,875.3 | 95.2 | −0.08% |
+| [Lince, EuRoC 2023][real-report] | 3,587.7 | 3,709.2 | +3.39% | 3,874.3 | 63.9 | −12.20% |
 
 ¹ Flown in the weather of the same day a year later, 2023, as RocketPy's example flies it. No
 file of the flight's day is available ([report][real-report]).
@@ -900,7 +899,7 @@ runs only where the pinned RocketPy copy is. CI checks each claim against the co
   below the altimeter, both here and on Juno III. Juno III flew in its own day's weather, so the
   wrong day's share of the miss can't be told apart.
 - Juno III is −7.24%, consistent with the motor's impulse. The notebook reshapes the team's
-  own motor curve to 8800 N s, 4.9% less than the file. On the file as recorded (9251.7 N s, its
+  own motor curve to 8,800 N s, 4.9% less than the file. On the file as recorded (9,251.7 N s, its
   negative end read as zero) the apogee is +1.13%. On the team's drag it's −9.05%
   ([report][real-report]).
 - Cavour is +5.78%, consistent with HPR Sim's drag. On the curves the team labels RASAero II the

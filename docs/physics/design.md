@@ -654,7 +654,7 @@ usual slip.
   11.4 mm (0.45 in) deep in a printed fin can with a 23.19 mm (0.91 in) bore. The coupler's wall
   reaches 0.46 mm (0.018 in) past the bore. That's within the 0.5 mm (0.020 in) of a 23 mm
   (0.91 in) bore, so it warns. The ring of PETG where they cross is 0.46 mm (0.018 in) thick and
-  11.4 mm (0.45 in) long. It's 0.39 cm³, 0.48 g at the file's 1250 kg/m³, counted twice.
+  11.4 mm (0.45 in) long. It's 0.39 cm³, 0.48 g at the file's 1,250 kg/m³, counted twice.
 - A **cap** is a centering ring or bulkhead on its parent's axis that covers one of its parent's
   end faces, not both. It can sit inside or outside the end. It can be glued against the end, so
   it needs room in what holds its parent instead: that holder's bore, with the same tolerance. It

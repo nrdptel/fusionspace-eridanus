@@ -41,7 +41,7 @@ Service information"). You accept it once on the dataset's page before the first
 2. Choose these variables: **Geopotential**, **Temperature**, **U-component of wind** and
    **V-component of wind**.
 3. Choose the pressure levels that cover the flight. Air pressure halves about every 5.5 km (3.4 mi), so
-   1000 hPa down to 500 hPa covers the lowest 5.5 km (3.4 mi). Include a level below the pad too (ERA5
+   1,000 hPa down to 500 hPa covers the lowest 5.5 km (3.4 mi). Include a level below the pad too (ERA5
    continues its levels beneath high ground), so the pad lies between two levels. Below the
    lowest level the simulator continues the standard atmosphere and marks the air as extrapolated.
 4. Choose the day and every hour around the launch, in UTC, not every third or sixth hour. The
@@ -121,7 +121,7 @@ This design flies a stand-in motor; Bella Lui's real flight, on its own K828FJ, 
 compared on the accuracy page.
 ```
 
-The 1000 hPa level lies at 240 m (787 ft), below the pad. ERA5 continues its levels beneath the ground,
+The 1,000 hPa level lies at 240 m (787 ft), below the pad. ERA5 continues its levels beneath the ground,
 so the pad sits between two of them. That day was warm for February, and the pressure was high:
 the air at the pad was 1.2% denser than the standard's. The wind was light at the pad and grew to
 10 m/s (33 ft/s) by 2 km (1.2 mi).
@@ -191,7 +191,7 @@ Earth's center at the site), neither is always the smaller:
 | model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km (1.9 mi) above it |
 |---|--:|--:|--:|
 | 407 m (1,335 ft) at 47.2° N | −0.04 m (−0.13 ft) | +0.03 m (0.098 ft) | +0.49 m (1.6 ft) |
-| 1400 m (4,593 ft) at 33° N (like Spaceport America's) | +1.88 m (6.2 ft) | +0.31 m (1.0 ft) | −3.07 m (−10.1 ft) |
+| 1,400 m (4,593 ft) at 33° N (like Spaceport America's) | +1.88 m (6.2 ft) | +0.31 m (1.0 ft) | −3.07 m (−10.1 ft) |
 
 At the second site ECMWF's reading is the closer one up to 1.95 km (1.2 mi) above the ground, and HPR
 Sim's above that. HPR Sim keeps WMO's formula because it is the one it uses for every sounding. The
@@ -214,11 +214,11 @@ the two classic kinds from Unidata's published specification. They are the origi
 
 | stored value | the Guide, and HPR Sim | netCDF4-python 1.7.4 |
 |---|---|---|
-| beyond the fill value, on the side away from zero (for example −32768 when the fill is −32767) | missing | a value |
+| beyond the fill value, on the side away from zero (for example `-32768` when the fill is `-32767`) | missing | a value |
 | −127 in bytes with no fill value given | a value | missing |
 
 The first row matters for ERA5. Many ERA5 files store each value as a 16-bit whole number with a
-fill of −32767, and a few values sit at −32768. Two of RocketPy's other ERA5 files (both netCDF-4)
+fill of `-32767`, and a few values sit at `-32768`. Two of RocketPy's other ERA5 files (both netCDF-4)
 have them. One has 102 of 5,241,600 geopotential values and 4 temperatures. The other has 298 of
 5,184,000 geopotential values and 2 temperatures. HPR Sim reads those as missing, where
 netCDF4-python returns a number (198.66 K, for example, among neighbors near 301 K). Such
@@ -252,12 +252,12 @@ The documents the reader follows, and the tests that hold it to them.
 
 - **[U]** Unidata, *NetCDF File Format Specifications*, "The Classic Format" and "The 64-bit Offset
   Format", and the netCDF Users Guide's "Attribute Conventions", netCDF-C documentation. Captured
-  2026-09-26 and pinned as `unidata-netcdf-file-format` and `unidata-netcdf-attribute-conventions`
+  September 26, 2026 and pinned as `unidata-netcdf-file-format` and `unidata-netcdf-attribute-conventions`
   in the [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
 - **[H]** H. Hersbach et al., "The ERA5 global reanalysis", *Quarterly Journal of the Royal
   Meteorological Society* 146 (2020), 1999–2049.
 - **[ECMWF]** ECMWF Knowledge Base, "ERA5: compute pressure and geopotential on model levels,
-  geopotential height and geometric height", captured 2026-09-26 and pinned as
+  geopotential height and geometric height", captured September 26, 2026 and pinned as
   `ecmwf-era5-geometric-height`.
 - **[WMO]** WMO-No. 8, *Guide to Instruments and Methods of Observation*, Vol. I (2023), eqs.
   12.15–12.16, `wmo-no8-vol1-2023`.

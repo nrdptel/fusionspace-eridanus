@@ -116,11 +116,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-    - [ ] **M0.9f3 Grouped figures, prose dates and known digits.** *Done when:* a check of the
-      site and the README fails on an ungrouped figure of four or more digits in prose (the
-      identifiers it passes listed) and on an ISO date in running prose, and every page and the
-      README pass it; each over-precise figure #476 names is cut to what is known; the audit's
-      *On screens* row names the check.
     - [ ] **M0.9f4 Units held to their figures.** *Done when:* a check of the built site and the
       README fails on a figure split from its unit by a breaking space, and the site and the
       README pass it; the audit's *Numbers* row names the check; and M0.9f's own *done when*.

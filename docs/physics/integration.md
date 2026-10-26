@@ -178,15 +178,15 @@ Sources:
 ## Verification
 
 Unit tests in `hpr_sim::integrator::tests` and `hpr_sim::events::tests`. The numbers quoted were
-measured on 2026-09-17.
+measured on September 17, 2026.
 
 - In the tableau, rows sum to $c$. The fifth-order weights satisfy all 17 order conditions to
   order 5 ([HNW] table 2.2) to 1e-14. The embedded weights satisfy orders 1–4 and miss at least one
   fifth-order condition by more than 1e-4. The dense output's weights $b(\theta)$ satisfy the conditions
   to order 4 at $\theta$ = 0.1 to 0.9, which pins `D1`–`D7`.
 - The port matches `DOPRI5` on Hairer's driver problem, the Arenstorf orbit, at
-  `rtol = atol` = 1e-4, 1e-7 and 1e-10. The evaluations (494, 1442, 5060) and attempted steps
-  (82, 240, 843) equal those of an independent line-by-line transcription of `DOPCOR` and `HINIT`.
+  `rtol = atol` = 1e-4, 1e-7 and 1e-10. The evaluations (494, 1,442 and 5,060) and attempted steps
+  (82, 240 and 843) equal those of an independent line-by-line transcription of `DOPCOR` and `HINIT`.
   So do the accepted steps (64, 216, 841), and the end positions to 1e-9. This pins the
   controller, the starting step and the error norm.
 - Step-halving convergence on the nonlinear, non-autonomous $y' = -2ty^2$, $y = 1/(1 + t^2)$ on
@@ -231,7 +231,7 @@ measured on 2026-09-17.
   - a step overflowing to infinity;
   - the step limit (and resuming after raising it);
   - bad settings, a backward stop and zero weights.
-- Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1000 s are reached. Steps respect
+- Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1,000 s are reached. Steps respect
   `max_step_s`. `accept_step` can stop a run. Repeated runs are bit-identical. Unknown fields and
   the old tag names are refused in settings files.
 

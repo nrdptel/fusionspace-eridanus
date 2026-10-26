@@ -3,8 +3,8 @@
 Learn how HPR Sim's physics is checked, over which flight envelope, and against which papers,
 reference simulators, flight logs and motor data.
 
-This inventory was checked on 2026-09-16. The sources `cargo xtask refs fetch` downloads were pinned
-on 2026-09-17 in `validation/refs.lock.toml`, by commits and sha256 values
+This inventory was checked on September 16, 2026. The sources `cargo xtask refs fetch` downloads were pinned
+on September 17, 2026 in `validation/refs.lock.toml`, by commits and sha256 values
 ([the lock file's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0002-the-reference-library-lock-file-fetch-verify-and.md)).
 That file is the source of truth for versions and URLs. Everything downloaded goes to the
 gitignored `refs/`. Only small extracted fixtures with a clear license are committed, each with its
@@ -107,7 +107,7 @@ stack: a flight past Mach 3.5 raises all three Mach flags.
 The library has `Flight::envelope_flags`, and Python `Flight.envelope_flags`.
 
 The public designs `hpr sim` flies offline, 25 `.ork` files and 12 validation designs, were flown
-on 2026-10-06 off an 85° rail. They flew in calm air and in 8 m/s (26 ft/s) of wind (`hpr sim <design> --offline --inclination 85
+on October 6, 2026 off an 85° rail. They flew in calm air and in 8 m/s (26 ft/s) of wind (`hpr sim <design> --offline --inclination 85
 --wind 0`, then `--wind 8`). Only one raises a flag: beyond the validated range, at Mach 1.61. It's
 an invented two-stage rocket,
 [`synthetic-two-stage-75mm-54mm.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-two-stage-75mm-54mm.json),
@@ -122,7 +122,7 @@ margin, a pitching-moment slope $C_{m\alpha}$ above zero under power says the sa
 ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)).
 
-A margin or $C_{m\alpha}$ of exactly zero raises nothing. When this was written (2026-10-06), none
+A margin or $C_{m\alpha}$ of exactly zero raises nothing. When this was written (October 6, 2026), none
 of the 37 designs above raised either on its default configuration, in either wind. No test or
 report pins that count. Two of the four configurations of OpenRocket's *Pods-\-powered with
 recovery deployment* raise `unstable_under_power`, at −4.21 calibers.
@@ -585,7 +585,7 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   and whole-tile reading by rasterio 1.5.2 (GDAL 3.12.2), the outside reader, are in `crates/hpr-io/tests/fixtures/geotiff/` (`validation/oracles/geotiff/dem.py`;
   [the reader's design](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0128-m5-3c2-a-sites-height-from-a-users-geotiff-held.md)).
 - **ThrustCurve.org's API** (<https://www.thrustcurve.org/info/api.html>): two public-domain curve
-  files, recorded 2026-10-01, and three stand-in makers' searches in its shape, in
+  files, recorded October 1, 2026, and three stand-in makers' searches in its shape, in
   `crates/hpr-net/tests/fixtures/replay/`. The searches hold 15 invented motors and 282 records.
   Each record carries only the motor finder's CC BY 4.0 copy of its figures, with an invented id
   and file count. `validation/reports/thrustcurve-join.md` holds the in-stock motors' match to the
@@ -669,7 +669,7 @@ Most of it lives in the RocketPy repo (MIT; its notebooks record each team's per
 | flight | files | notes |
 |---|---|---|
 | Bella Lui 2020 (EPFL) | `EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv` | time, z, v |
-| NDRT 2020 (Notre Dame) | `NDRT_2020/ndrt_2020_flight_data.csv` | accel in g, altitude in ft AGL. RocketPy sim 1296.77 m (4,254.5 ft) vs measured 1316.75 m (4,320.0 ft, the log's highest reading is 1320.4 m (4,332 ft)) |
+| NDRT 2020 (Notre Dame) | `NDRT_2020/ndrt_2020_flight_data.csv` | accel in g, altitude in ft AGL. RocketPy sim 1,296.77 m (4,254.5 ft) vs measured 1,316.75 m (4,320.0 ft, the log's highest reading is 1,320.4 m (4,332 ft)) |
 | Prometheus 2022 (Western Engineering, SA Cup; not Cal Poly) | `prometheus/*TeleMetrum.csv`, `*TeleMega.csv` | raw AltOS CSV with GPS; also our AltOS importer test |
 | Juno III 2023 (Projeto Jupiter, SA Cup) | `juno3/{cots_altimeter,cots_GNSS,srad_telemetry}.csv` | RRC3 log |
 | Andromeda, Astra, Erebus (EuRoC 2022) | `andromeda/`, `astra/`, `erebus11/` | columns `ts, filtered_altitude_AGL, filtered_acceleration` |
@@ -677,7 +677,7 @@ Most of it lives in the RocketPy repo (MIT; its notebooks record each team's per
 | Genesis, Cavour (PoliTo), Camões, Lince | `genesis/`, `polito/`, `camoes/`, `lince/` | |
 | Hedy 2025 (TU Wien) | `hedy/cats_tust/*.csv` | CATS logs with IMU |
 | Valkyrie 2025 | `valkyrie/flightInfo_merged.csv` | |
-| Valetudo, Defiance | apogee only (no time series) | Defiance sim 9238.01 m (30,308.4 ft) vs measured 9308.32 m (30,539.1 ft) |
+| Valetudo, Defiance | apogee only (no time series) | Defiance sim 9,238.01 m (30,308.4 ft) vs measured 9,308.32 m (30,539.1 ft) |
 
 Matching ERA5 netCDF files for NDRT, Bella Lui, Spaceport America
 2018/2023 and EuRoC 2022/2023/2025 are in `data/weather/*.nc`, and a NASADEM tile is in
@@ -731,7 +731,7 @@ Other sources:
 
 | source | what | license | notes |
 |---|---|---|---|
-| ThrustCurve.org API v1 (`/api/v1/{metadata,search,download}.json`) | motor metadata and simfiles | spec is ISC; **data license per file** (`PD`, `free`, `other`, or none; "free" can be GPL) | Cache results and give attribution. `search.json?maxResults=10000` returns every motor (1156 on 2026-09-17), out-of-production and **hybrid** ones included, so filter to solids; `availability=all` is ignored. Of 1712 solid-motor files, 554 are PD, and 196 of those match the stored statistics within 1%. **[The solid-motor milestone](decisions-and-roadmap.md#m1-3) bundles 32** (`crates/hpr-motor/data/thrustcurve/`, `validation/oracles/thrustcurve/bundle.py`, [the bundled catalog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0005-solid-motors-statistics-consumption-grains-file.md); survey in `docs/research/thrustcurve-data.md`) |
+| ThrustCurve.org API v1 (`/api/v1/{metadata,search,download}.json`) | motor metadata and simfiles | spec is ISC; **data license per file** (`PD`, `free`, `other`, or none; "free" can be GPL) | Cache results and give attribution. `search.json?maxResults=10000` returns every motor (1,156 on 2026-09-17), out-of-production and **hybrid** ones included, so filter to solids; `availability=all` is ignored. Of 1712 solid-motor files, 554 are PD, and 196 of those match the stored statistics within 1%. **[The solid-motor milestone](decisions-and-roadmap.md#m1-3) bundles 32** (`crates/hpr-motor/data/thrustcurve/`, `validation/oracles/thrustcurve/bundle.py`, [the bundled catalog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0005-solid-motors-statistics-consumption-grains-file.md); survey in `docs/research/thrustcurve-data.md`) |
 | RASP `.eng` spec | https://www.thrustcurve.org/info/raspformat.html (`thrustcurve-rasp-format`) | n/a | implicit (0,0) first point; ends at zero thrust. Reader and writer: `docs/format/eng.md` |
 | RockSim `.rse` spec | https://www.thrustcurve.org/thirdparty/RockSim%20Engine%20File%20Format.pdf | n/a | XML; real files disagree with the guide on names and units. Reader and writer: `docs/format/rse.md` |
 | ThrustCurve.org statistics code | `simulate/analyze/analyze.js` at commit `577afa6` (`thrustcurve3-analyze`) | ISC | `validation/oracles/thrustcurve/analyze_stats.js` runs it unchanged on the bundle → `validation/fixtures/motor/thrustcurve-analyze-stats.json`; HPR Sim's impulse, burn window and thrusts agree to 1.8e-15 ([solid motors](decisions-and-roadmap.md#m1-3)) |
@@ -756,7 +756,7 @@ Other sources:
 
 - The drag is **declared by the generator** as a constant $C_{D0}$ and handed to RocketPy's `power_off_drag` and `power_on_drag`: RocketPy's own exports carry their own terms and are never committed ([the drag decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0009-subsonic-drag-buildup-surface-finishes-and-drag.md)), and a Mach curve invented here would be an uncited drag model inside the reference ([Loft's invented curve](decisions-and-roadmap.md#l18)). Same-drag mode scores the equations of motion, not the aerodynamics.
 - Everything but each example's rail comes from the mass fixture by way of `recovery.py`; Bella Lui, added in [the whole-flight comparison](decisions-and-roadmap.md#m2-1b2) because Prometheus could not be scored until [the transonic normal force](decisions-and-roadmap.md#m1-8a), declares its site and wind in `flight.py` itself (its example's weather is an ERA5 file). Each case records the parachutes it flew, so the harness reads everything from the reference ([like for like](decisions-and-roadmap.md#l75)).
-- Reproducible byte for byte; the loose run at rtol = atol = 1e-6 (RocketPy's default rtol) moves every metric by at most 3.9e-3. `max_time_step` is bounded at 0.05 s: without it, thrust(0) = 0 and the generator's 6000 s `max_time` let LSODA step over the whole burn and no case leaves the rail (issue #33).
+- Reproducible byte for byte; the loose run at rtol = atol = 1e-6 (RocketPy's default rtol) moves every metric by at most 3.9e-3. `max_time_step` is bounded at 0.05 s: without it, thrust(0) = 0 and the generator's 6,000 s `max_time` let LSODA step over the whole burn and no case leaves the rail (issue #33).
 - Recorded gap until the transonic normal force: Prometheus peaks at Mach 1.013, which HPR Sim refused until its normal force passed Mach 1 ([its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0027-the-normal-force-through-mach-1-supersonic.md)); since then it flies and is scored, its drifts reported as body lift.
 - `max_acceleration` is the whole flight's, which for NDRT and Prometheus is the parachute, so a power-on maximum is recorded beside it.
 - [The flight script](decisions-and-roadmap.md#m2-1b1); scored in the whole-flight comparison ([what is compared](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md)): five cases pass every scored metric within 3%; Prometheus was a known gap until the transonic normal force.
@@ -800,7 +800,7 @@ These are the sources for [streamer and tumble recovery](decisions-and-roadmap.m
 
 The crates surveyed for the workspace: which to use, which to avoid, and where none exists.
 
-### Rust crates checked 2026-09-16 (use as a starting point; re-check before adding)
+### Rust crates checked September 16, 2026 (use as a starting point; re-check before adding)
 
 - Mature and active:
   - Math and numerics: glam 0.33, nalgebra 0.35, faer 0.24, rayon 1.12.

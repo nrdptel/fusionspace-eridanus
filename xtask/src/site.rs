@@ -97,6 +97,7 @@ use crate::workspace::{Package, Workspace};
 mod bundle;
 mod cdp;
 mod chrome;
+mod figures;
 mod frame;
 pub(crate) mod math;
 mod notes;
@@ -1249,11 +1250,14 @@ fn check_readmes(root: &Path) -> Vec<String> {
 
 /// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
 /// message), as `renderer` shows the text: no en dash joining two words, no note or table cell
-/// over [`words::MOST_WORDS`] words, and a label and a unit over each column of numbers.
+/// over [`words::MOST_WORDS`] words, a label and a unit over each column of numbers, no figure of
+/// four or more digits ungrouped and no ISO date in prose.
 fn word_rules(text: &str, renderer: words::Renderer) -> Vec<(usize, String)> {
     let mut problems = words::joined_words(text, renderer);
     problems.extend(words::long_blocks(text, renderer));
     problems.extend(numbers::number_heads(text));
+    problems.extend(figures::ungrouped_figures(text));
+    problems.extend(figures::prose_dates(text));
     problems
 }
 
@@ -3484,11 +3488,17 @@ mod tests {
         let long = vec!["word"; words::MOST_WORDS + 1].join(" ");
         let page = format!(
             "# A page\n\n> {long}\n\n| case | `apogee_agl_m` |\n|---|---:|\n| a | 1.5 m |\n\n\
-             The Dormand–Prince pair.\n"
+             The Dormand–Prince pair, 1500 m up on 2026-10-04.\n"
         );
         let root = crate::designs::root().unwrap();
         let problems = page_rules(&root, "a-page.md", &page, &[], &BTreeSet::new());
-        for rule in ["a note of 121 words", "has no label", "joins two words"] {
+        for rule in [
+            "a note of 121 words",
+            "has no label",
+            "joins two words",
+            "four or more digits ungrouped",
+            "is an ISO date in prose",
+        ] {
             assert!(
                 problems.iter().any(|(_, message)| message.contains(rule)),
                 "{rule}: {problems:#?}"
@@ -3526,6 +3536,16 @@ mod tests {
         assert!(problems[2].starts_with("crates/hpr-py/README.md:5: a table cell of 121 words"));
         assert!(problems[3].contains("(\"`apogee_agl_m`\") has no label"));
         assert!(problems[4].contains("(\"HPR Sim\") gives no unit"));
+        // And a README with an ungrouped figure or an ISO date in its prose.
+        fs::write(
+            dir.path().join("crates/hpr-py/README.md"),
+            "It reaches 1500 m.\n\nRead on 2026-10-04.\n",
+        )
+        .unwrap();
+        let problems = check_readmes(dir.path());
+        assert_eq!(problems.len(), 3, "{problems:#?}");
+        assert!(problems[1].starts_with("crates/hpr-py/README.md:1: `1500` in"));
+        assert!(problems[2].starts_with("crates/hpr-py/README.md:3: `2026-10-04` is an ISO date"));
     }
 
     #[test]

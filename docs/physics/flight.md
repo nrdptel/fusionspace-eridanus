@@ -369,7 +369,7 @@ $$
 ## Verification
 
 Unit tests in `hpr_sim::tests`, `hpr_sim::dynamics::tests` and `hpr_sim::rail::tests`, at the
-default settings. The numbers were measured on 2026-09-17.
+default settings. The numbers were measured on September 17, 2026.
 
 - A tumbling, spinning Valetudo in a vacuum starts from the nose tip at 500 m (1,640 ft) with
   $\mathbf{v} = (30, -20, 80)$ m/s.
@@ -402,7 +402,7 @@ default settings. The numbers were measured on 2026-09-17.
   and 2.1e-7 s.
 - A user event on the thrust fires at burnout, and burnout is still
   recorded once.
-- A 2000 m (6,562 ft) rail gives `StalledOnRail`, with only liftoff and burnout recorded.
+- A 2,000 m (6,562 ft) rail gives `StalledOnRail`, with only liftoff and burnout recorded.
 - Observer errors end the flight with that error. Starts before ignition
   or underground are refused. A cleared recorder records the same rows again. `Simulation`,
   `Environment` and `Recorder` are `Send + Sync`.
@@ -423,7 +423,7 @@ default settings. The numbers were measured on 2026-09-17.
   fall on the interval or at events.
 - The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands. It does both on HPR
   Sim's own drag and on a constant drag table.
-- A Valetudo flight to the ground costs about 1.3 ms, measured on 2026-10-09 (`docs/perf.md`).
+- A Valetudo flight to the ground costs about 1.3 ms, measured on October 9, 2026 (`docs/perf.md`).
 
 ### Whole flights against RocketPy
 

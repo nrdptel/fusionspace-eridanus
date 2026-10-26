@@ -66,12 +66,12 @@ A forecast comes from a *run*: the model starts from the weather observed at one
 [cycle](glossary.md#forecast-run-cycle), and steps forward. Each *forecast hour* is the forecast
 for that many hours after the cycle. Times are in UTC (universal time, the time at Greenwich) and
 given in seconds since 1 January 1970 UTC (Unix time). Pressures are in hectopascals (hPa, 100 Pa;
-sea-level pressure is about 1013 hPa). A *pressure level* is a height named by the pressure there.
+sea-level pressure is about 1,013 hPa). A *pressure level* is a height named by the pressure there.
 
 | model | grid | runs start | forecast hours | pressure levels asked for |
 |---|---|---|---|---|
-| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1000 to 10 hPa, about 31 km (102,000 ft) |
-| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1000 to 100 hPa every 25, about 16 km (52,000 ft) |
+| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1,000 to 10 hPa, about 31 km (102,000 ft) |
+| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1,000 to 100 hPa every 25, about 16 km (52,000 ft) |
 
 `NomadsRequest::new(latitude, longitude, model, cycle, forecast_hour)` says what to ask for, and
 it can't fail. The request's `url()`, and so `nomads::fetch`, refuse a cycle the model doesn't run
@@ -109,7 +109,7 @@ The answer goes through `hpr-net`'s cache ([Online data and the cache](online-da
 saved copy is. A run's files don't change once NOAA writes them, so a saved copy stays fresh for
 30 days.
 
-NOMADS keeps only recent runs. On 2026-09-30 its grib filters listed 10 days of GFS runs and 2 of
+NOMADS keeps only recent runs. On September 30, 2026 its grib filters listed 10 days of GFS runs and 2 of
 RAP. So a past launch needs a copy saved while NOMADS still had it. A run appears on NOMADS some
 hours after its start time. NOMADS limits how often you can ask, so keep to that.
 
@@ -139,7 +139,7 @@ beneath high ground. A level is kept only when its pressure is below the ground'
 above the ground. A level with a value missing at any of the four grid points is left out too.
 
 At Spaceport America, about 1,400 m (4,593 ft) up, six levels are underground in each model.
-They're 1000 to 850 hPa in GFS and 1000 to 875 hPa in RAP. GFS keeps 22 of its 28 levels and RAP
+They're 1,000 to 850 hPa in GFS and 1,000 to 875 hPa in RAP. GFS keeps 22 of its 28 levels and RAP
 31 of its 37. The profile lists every level it left out, and why.
 
 **Heights.** GRIB2 gives heights in geopotential meters. The simulator converts them to heights

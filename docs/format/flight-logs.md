@@ -191,7 +191,7 @@ The readers were written for these milestones, each as the decision record besid
 | Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
 
 The Blue Raven app writes each flight as two files. The low-rate file is logged 50 times a second,
-and the high-rate file 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18). Each is
+and the high-rate file 500 times a second (*Blue Raven User's Guide*, May 12, 2026, p18). Each is
 read on its own, as a record of its own, not joined to the other. The high-rate file holds no
 altitude. So its record's [primary track](#the-record) is empty and its channels hold everything.
 The low-rate file of the same flight holds the altitude. The app's summary of the flight is read
@@ -306,15 +306,15 @@ as wide as the sheet's widest, so short rows get empty cells. A row with no valu
 **Dates.** A spreadsheet stores a date as a count of days, a *serial number*. It shows the number
 as a date only through the cell's *number format*, the display pattern attached to it, such as
 `m/d/yy h:mm`. A number under a format that shows a date is written as one. Serial 45,000.75
-under `m/d/yy h:mm` is `2023-03-15 18:00:00`, 45,000 days after 1899-12-30 and then three
+under `m/d/yy h:mm` is `2023-03-15 18:00:00`, 45,000 days after December 30, 1899 and then three
 quarters of a day. Under a format that shows only a time, a number under 1 is written as a time of
 day, `18:00:00`. Under that format, a number that also holds a day is written as a date and a time. An elapsed time,
 such as `[h]:mm:ss`, counts its hours past 24 (`36:00:00`). Seconds are rounded to the
 millisecond. A workbook that counts from 1904, as old Mac workbooks may, is read from 1904. No
 sample workbook does, so that path is checked by the crate's tests alone
-([evidence row G2](../evidence.md#g2)). A date before 1900-03-01 is kept as the number stored, and
+([evidence row G2](../evidence.md#g2)). A date before March 1, 1900 is kept as the number stored, and
 the notes count it. That is the range where Excel's calendar holds a 29 February 1900 that never
-was. A date after 9999-12-31 is kept and counted the same way. Every other number is kept as
+was. A date after December 31, 9999 is kept and counted the same way. Every other number is kept as
 stored, so a clock a logger wrote in seconds stays a number.
 
 **Bounds.** A workbook comes from someone else. Its parts come out within the
@@ -500,7 +500,7 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 | Bytes | Field | Value |
 |---|---|---|
 | `22` | length | 34: the packet and the radio's two bytes |
-| `d204` | serial number, low byte first | 1234 |
+| `d204` | serial number, low byte first | `1234` |
 | `0001` | tick | 256, so 2.56 s |
 | `04` | packet type | configuration |
 | `0b` | device type | 11 |
@@ -591,7 +591,7 @@ Time (s),Alt AGL (ft),Pressure (hPa),Velocity,Phase
 ```
 
 `Time (s)` is the clock. `Alt AGL (ft)` is an *altitude* (above ground, but no sensor named):
-12 ft is $12 \times 0.3048 = 3.6576$ m. 1000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
+12 ft is $12 \times 0.3048 = 3.6576$ m. 1,000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
 states no unit, so its 45 stays as written. `Phase` gives two events, `PAD` at 0 s and `BOOST` at
 0.05 s.
 
@@ -701,7 +701,7 @@ for files the header reader can't take:
   text: a column of words is left out, with a note.
 - *Stamped rows*, `"rows": "stamped"`: `2024-06-01 14:05:09.125: 1005.71`, or a tuple,
   `2024-06-01 14:05:09.125: (0.1, -0.2, 9.8)`. The stamp is the clock, in seconds from
-  1970-01-01 in the stamp's own zone. The file doesn't state that zone, so only differences of
+  January 1, 1970 in the stamp's own zone. The file doesn't state that zone, so only differences of
   times mean anything. As a 64-bit float, such a time resolves to about 0.25 µs. A line with no
   stamp, such as `=== MOTION DETECTED ===`, is an event at the next row's time. A line shaped like
   a stamp with no valid date and time in it, a leap second's `23:59:60` among them, is refused on
@@ -1067,7 +1067,7 @@ four numbers the logger keeps its attitude in. It is a unit quaternion, whose fo
 sum to 1. The manual says the download writes it "with the rotation axis first and the magnitude
 term fourth" (p24). The app's high-rate CSV doesn't. In each such file among the sample logs whose
 first row holds numbers, `Quat_1` is the largest term there, about 1 on the pad. So the CSV writes
-the magnitude term first (checked by hand on 2026-10-15). Both keep the quaternion's terms as
+the magnitude term first (checked by hand on October 15, 2026). Both keep the quaternion's terms as
 numbers, so neither order changes a value read. A flight event register is a set of bits, "one bit
 for each event" (p24), such as apogee detected. The rocket's register records the events that
 affect every output. Each output's register records its own.
@@ -1802,7 +1802,7 @@ built with the maker's own export of the same flight beside them. The table says
 each of the two, and what a reader would need. The search, of makers' pages and public repositories,
 is in
 [a research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/sample-logs-cats-juno.md),
-read on 2026-10-16. A sample of a format in the table below can be offered in
+read on October 16, 2026. A sample of a format in the table below can be offered in
 [its issue, #662](https://github.com/nrdptel/fusionspace-eridanus/issues/662), with the terms it may be tested on.
 
 | Format | Samples found | What a reader needs |
@@ -2004,7 +2004,7 @@ decisions over the sample logs:
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
   manual.** The manual gives their units for the logger's USB download, which HPR Sim reads too
   ([below](#the-blue-ravens-usb-download)). The units are feet per second, feet, degrees per second
-  and g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
+  and g (*Blue Raven User's Guide*, May 12, 2026, p23). The app's own files
   agree. Its summary of a flight states the top speed in feet per second and the inertial
   altitude in feet. Its accelerometers read 1 g at rest on the pad. A file that disagreed
   would still be read in these units. The note on that file would show the disagreement.
@@ -2033,7 +2033,7 @@ decisions over the sample logs:
   name the owner gave the flight computer is left out, since it may name a person.
 - **AltimeterCloud's temperature and summary times, worked out from the file.** The Nano V1's
   manual has a page on its CSV layout (*CSV Flight log format*,
-  <https://www.altimetercloud.com/support/nano-v1/flight-log-format/>, read 2026-10-13). The
+  <https://www.altimetercloud.com/support/nano-v1/flight-log-format/>, read October 13, 2026). The
   reader follows Debrief's in recognizing the layout and in the centi-degree temperature.
   - *From the manual:* time in milliseconds from liftoff, altitude above the pad in meters,
     acceleration in thousandths of a g. Rates of turn and attitude angles are in degrees. The
@@ -2517,7 +2517,7 @@ the point keeps its place with its time a gap.
     `TIME`, in a zone the file doesn't state (in most sample files, the launch site's). That log may
     hold several trackers. Each gets its own channels, such as `LAT [Rocket-1]`.
   - *Units.* No header names one. The manual gives the altitude in feet, the speeds in feet per
-    second and the heading in degrees (*Featherweight GPS Tracker User's Manual*, 2025-02-20,
+    second and the heading in degrees (*Featherweight GPS Tracker User's Manual*, February 20, 2025,
     p17). The reader checks each file. The horizontal speed against the distance between
     fixes is the check that tells feet from meters. That works since the positions are in degrees
     whatever the unit. Of the 40 sample files, 37 move enough for it, and in all 37 it agrees with
@@ -2577,7 +2577,7 @@ record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
 
 Missile Works' RTx/GPS is a GPS tracker built around a u-blox 7 receiver. It keeps its fixes once
 a second, up to "~68 minutes per flight". It radios them to a base station (*RTx/GPS User
-Manual*, firmware 1.31, Missile Works, 2016-11-26, pp2, 14). Missile Works' mDACS program saves a
+Manual*, firmware 1.31, Missile Works, November 26, 2016, pp2, 14). Missile Works' mDACS program saves a
 download as an `.rtx` file. The program exports that file to CSV, text and KML (*mDACS User
 Manual*, revision 1.71, May 2024, p16). The KML is read as [above](#gps-logs). The `.rtx` and the
 CSV and text exports are read by `hpr_flightdata::rtx`. Neither manual describes the files. What
@@ -2669,11 +2669,11 @@ flown beside it. [The survey](#how-it-was-checked) reports that figure but doesn
   or a cell that isn't its field's, is refused, naming the line.
 
 For example, the crate's tests read an invented `.rtx` and its exports. The first fix is at
-17:59:50 UTC, `HHMMSS` 175950. That is more than 16 bits hold, so the record splits it. Word 1 is
+17:59:50 UTC, `HHMMSS` `175950`. That is more than 16 bits hold, so the record splits it. Word 1 is
 $\lfloor 175\,950 / 65\,536 \rfloor = 2$ and word 0 is $175\,950 - 2 \times 65\,536 = 44\,878$.
 The file holds word 0 as the slot 656,705,342, the remainder of $44\,878 \times 387\,420\,489$
 after dividing by $10^9$. The reader multiplies it by 513,180,409 and keeps the last nine digits,
-44,878 again. The latitude's words are 3259, 35,698 and 1. Then $1 \times 65\,536 + 35\,698 =
+44,878 again. The latitude's words are `3259`, `35698` and `1`. Then $1 \times 65\,536 + 35\,698 =
 101\,234$, a leading 1 and the decimals `01234`. So the fix is 32° and 59.01234′ north,
 $32 + 59.01234/60 = 32.983\,539$°. Its altitude word is 1,400 m (4,593 ft). The CSV export
 writes the fix as
@@ -2912,7 +2912,7 @@ among the channels:
 
 The rates follow from the blocks' layout. The FIP's export times its rows by them. Featherweight's
 manual says the Raven records the data its deployment logic uses at 20 Hz
-(*Raven User's Manual, updated for the Raven4*, 2020-08-15). The first five blocks are the quarter
+(*Raven User's Manual, updated for the Raven4*, August 15, 2020). The first five blocks are the quarter
 second before the Raven detected the launch. The sixth is the settings block, which holds the
 accelerometers' calibration and the ground's elevation. Time zero is the first sample before the
 launch, as in the FIP's export.
