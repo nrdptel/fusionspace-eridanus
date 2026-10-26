@@ -21,7 +21,9 @@
 //!
 //! > **How far to trust it.** A value is the answer's, unchanged (`tests/thrustcurve.rs` reads every
 //! > field of every committed answer back: two recorded downloads, and three stand-in searches in
-//! > the API's shape, as ThrustCurve grants no license for its records). A curve is the file a contributor uploaded, as
+//! > the API's shape, from [ADR-145][adr-145]; [ADR-287][adr-287] has since let the project commit
+//! > ThrustCurve's records as published facts, though the site grants no license for them, and
+//! > [#885][i885] is to replace the stand-ins). A curve is the file a contributor uploaded, as
 //! > ThrustCurve serves it, read by the same readers as a file on disk. The join is by name only: it
 //! > doesn't compare impulse or diameter, so a finder motor whose designation ThrustCurve spells
 //! > differently is a miss, not a wrong match. On ThrustCurve's answers of 2026-10-01 (recorded
@@ -39,7 +41,10 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
+//! [adr-145]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md
+//! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 //! [api]: https://www.thrustcurve.org/info/api.html
+//! [i885]: https://github.com/nrdptel/fusionspace-eridanus/issues/885
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;

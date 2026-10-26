@@ -23,8 +23,7 @@ the library, as below.
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
 > unchanged, and the saved copy does offline. That's checked on recorded answers, below.
 > There are eight from motor.fusionspace.co and two curve files from ThrustCurve.org, beside three
-> stand-in searches in ThrustCurve.org's shape, because ThrustCurve.org grants no license for its
-> motor records ([evidence row G23](evidence.md#g23); [its terms](#thrustcurveorg)).
+> stand-in searches in ThrustCurve.org's shape ([evidence row G23](evidence.md#g23)).
 >
 > Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
 > up to about an hour old when built. It counts its saved copy as fresh for
@@ -33,6 +32,12 @@ the library, as below.
 
 The site's terms ask you to check stock and price on the vendor's own page before relying on
 them. Prices are in U.S. dollars.
+
+The stand-in searches ([evidence row G23](evidence.md#g23)) date from when the project kept
+ThrustCurve.org's records out of the repository. The site still grants no license for its motor records: it reads "All rights under
+copyright reserved". But the project now uses them as published facts, with credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), and
+[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to replace the stand-ins with real records.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
@@ -170,11 +175,14 @@ total impulse, average thrust and burn time were the same on both sides. So each
 right motor by more than its name. The motor finder copies ThrustCurve.org's names and figures, so
 a full match is expected; the match is there to catch drift.
 
-ThrustCurve.org grants no license for its motor records, so the repository no longer keeps those
-three answers. The tests replay
-stand-ins in the same shape instead
+The repository no longer keeps those three answers. The tests replay stand-ins in the same shape
+instead, set when the project kept ThrustCurve.org's records out
 ([the decision record on the recordings' licenses](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
-They hold 297 records:
+ThrustCurve.org grants no license for its motor records and reserves copyright. The project has
+since decided to use them as published facts, with credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), so
+[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to bring recorded searches back.
+The stand-ins hold 297 records:
 
 - 15 wholly invented, five per maker, with designations ending `-INVENTED`;
 - 282, one for each motor in the finder's in-stock list. Each carries only the values that list
@@ -323,7 +331,10 @@ for an hour, as often as the site rebuilds.
 ### ThrustCurve.org
 
 ThrustCurve.org grants no license for its motor records; its site reads "All rights under copyright
-reserved". Its API asks for no particular credit. The simulator puts `thrustcurve::ATTRIBUTION`,
+reserved". The project uses those records as published facts about motors anyone can buy, with
+ThrustCurve.org's credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
+Its API asks for no particular credit. The simulator puts `thrustcurve::ATTRIBUTION`,
 "Motor data and thrust curves courtesy of ThrustCurve.org", on every answer, as it credits the 32
 curves it carries. Each data file has its own license, set by whoever uploaded it: check it before
 passing a file on.

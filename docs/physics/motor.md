@@ -116,6 +116,10 @@ site grants no license for them and reserves copyright (it reads "All rights und
 reserved"). None of those figures is bundled
 ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295);
 [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
+The project has since decided it may use them as published facts, with credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)),
+and plans to bundle every solid motor
+([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
 `cargo xtask motor-catalog` writes the catalog from the files, and a test fails if the committed
 one differs.
 

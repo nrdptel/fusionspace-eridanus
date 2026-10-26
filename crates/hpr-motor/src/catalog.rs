@@ -8,11 +8,15 @@
 //! online layer that starts at [M5.1][m5-1].
 //!
 //! Every figure in the bundled index comes from its curve file alone, written by
-//! `cargo xtask motor-catalog` (issue #295: ThrustCurve.org grants no license for its API's motor
-//! records and reserves copyright, so none of their figures is copied). Size, masses and delays are
-//! the file header's; total impulse, average and peak thrust and burn time are worked out from the
-//! curve by [`ThrustCurve`]'s own methods, the ones the simulator flies (the trapezoid integral and
-//! the NFPA 1125 burn window; their definitions and sources are on [`crate::curve`]). Only the
+//! `cargo xtask motor-catalog` (the rule [ADR-186][adr-186] set, issue #295). ThrustCurve.org
+//! grants no license for its API's motor records and reserves copyright. [ADR-287][adr-287] has
+//! since let the project use those records as published facts, with credit, but none of their
+//! figures is copied yet: [ADR-288][adr-288] plans the whole solid catalog for [M5.7][m5-7].
+//!
+//! Size, masses and delays are the file header's; total impulse, average and peak thrust and burn
+//! time are worked out from the curve by [`ThrustCurve`]'s own methods, the ones the simulator
+//! flies (the trapezoid integral and the NFPA 1125 burn window; their definitions and sources are
+//! on [`crate::curve`]). Only the
 //! names that identify a motor (ThrustCurve.org's id for it, designation, maker, single-use or
 //! reload, case, propellant) and the file's provenance (its ThrustCurve.org data-file id, who
 //! produced the data, its license and the download date) are written by hand, in the command's
@@ -25,8 +29,12 @@
 //! ([Loft lesson L43][l43]: one said 75 mm for a 54 mm motor).
 //!
 //! [adr-005]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-005-solid-motors-statistics-consumption-grains-file-models-and-the-bundled-catalog-2026-09-17
+//! [adr-186]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-186-the-data-network-and-python-fixes-of-release-01-2026-10-06
+//! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-287-thrustcurveorgs-motor-records-used-as-published-facts-2026-10-20
+//! [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-288-every-solid-motor-ships-in-the-package-2026-10-21
 //! [l43]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l43
 //! [m5-1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-1
+//! [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
 
 use serde::{Deserialize, Serialize};
 
