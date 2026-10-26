@@ -1428,11 +1428,13 @@ A warning gives no direction for a number that something else in the rocket chan
   move either way.
 - **A part sized or placed from it.** A centering ring with an automatic bore takes it from the
   inner tube beside it. Without the tube, the ring closes to a solid disc. A part placed after it
-  moves forward. In the tests' invented design, a 100 mm (3.9 in) tube sits aft of the center of
-  gravity between two such rings. Without it the rocket weighs 89.6 g (3.16 oz) instead of 87.7 g
-  (3.09 oz), and the margin reads 5.38 calibers instead of 5.48. That's low, where a tube alone
-  aft of the center of gravity reads it high. So the warning says "The mass and stability margin
-  can read high or low, as parts sized from it change too".
+  moves to follow the part before it instead. In the tests' invented design, a 100 mm (3.9 in)
+  tube sits aft of the center of gravity between two such rings. Without it the rocket weighs
+  89.6 g (3.16 oz) instead of 87.7 g (3.09 oz), and the margin reads 5.38 calibers instead of
+  5.48. That's low, where a tube alone aft of the center of gravity reads it high. So the warning
+  says "The mass and stability margin can read high or low, as parts sized from it change too".
+  In another, a heavy mass placed after a tube in the nose slides to the tip without it, and the
+  margin reads high, where a tube alone ahead of the center of gravity reads it low.
 
 The tests in
 [`crates/hpr/src/tests/left_out.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests/left_out.rs)

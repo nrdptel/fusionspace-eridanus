@@ -322,11 +322,13 @@ impl<'a> Writer<'a> {
                     Holder::Tube => ("a body component", "another part"),
                 };
                 // Read back, it's tallied with the tags the reader doesn't read where they're
-                // written, by the same rule (`super::super::attached::children`).
+                // written, by the same rule (`super::super::attached::children`). Only a body
+                // component is warned of in a tube, and no ring takes its bore from one, so
+                // nothing beside it is sized from it.
                 let around = Around {
                     covered: covered.clone(),
-                    sizes: holder == Holder::Tube && sized_from(component, components),
                     places: holder == Holder::Tube && placed_after(components, index),
+                    ..Around::default()
                 };
                 let lean = Lean::new(Counted::of_component(component), &around);
                 self.warn(
@@ -1285,16 +1287,6 @@ fn left_out_stage(stage: &Stage) -> String {
     Lean::new(counted, &Around::default()).sentence(true)
 }
 
-/// Whether a part beside `component`, among `siblings`, takes a size from it: a centering ring
-/// whose bore is automatic takes the widest inner tube beside it ([`AutoDimension::InnerRadius`]).
-fn sized_from(component: &Component, siblings: &[Component]) -> bool {
-    matches!(component.part, Part::InnerTube(_))
-        && siblings.iter().any(|sibling| {
-            matches!(sibling.part, Part::CenteringRing(_))
-                && sibling.auto.contains(&AutoDimension::InnerRadius)
-        })
-}
-
 /// Whether the part after `siblings[index]` is placed after it.
 fn placed_after(siblings: &[Component], index: usize) -> bool {
     siblings
@@ -2189,7 +2181,7 @@ pub(super) mod tests {
     /// A part written where a `.ork` reader doesn't read one says what leaving it out does, by
     /// what it and the parts inside it carry, and the reader's tally of it, read back, says the
     /// same (#952): a lug in a stage, a fin set in a stage, and a body tube holding a parachute
-    /// inside another tube.
+    /// inside another tube, at its end and ahead of a part placed after it.
     #[test]
     fn a_part_written_where_it_reads_back_left_out_says_the_same_lean_both_ways() {
         let xml = rocket_of(
@@ -2229,12 +2221,27 @@ pub(super) mod tests {
         let bay = " Their mass, drag, lift and drag under canopy aren't counted, so the mass and \
                    drag read low. The descent rate reads high if one of them opens in flight, low \
                    if none does. The stability margin can read high or low";
-        for (moved, tail) in [("lug", lug), ("fins", fins), ("bay", bay)] {
+        // Ahead of a part placed after it, which moves when it goes.
+        let ahead = " Their mass, drag, lift and drag under canopy aren't counted, so the mass and \
+                     drag read low. The descent rate reads high if one of them opens in flight, \
+                     low if none does. The stability margin can read high or low, as parts placed \
+                     after it move too";
+        for (moved, tail) in [
+            ("lug", lug),
+            ("fins", fins),
+            ("bay", bay),
+            ("bay ahead", ahead),
+        ] {
             let mut moving = original.clone();
             let stage = &mut moving.rocket.stages[0];
             if moved == "bay" {
                 let bay = stage.components.remove(2);
                 stage.components[1].children.push(bay);
+            } else if moved == "bay ahead" {
+                let bay = stage.components.remove(2);
+                let tube = &mut stage.components[1];
+                tube.children.insert(0, bay);
+                tube.children[1].position = Some(Position::After { aft_offset_m: 0.0 });
             } else {
                 let tube = &mut stage.components[1];
                 let at = tube

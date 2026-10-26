@@ -477,6 +477,36 @@ fn a_tube_a_ring_takes_its_bore_from_gives_the_mass_and_margin_no_direction() {
     assert!(without.margin_cal < with.margin_cal, "{with:?} {without:?}");
 }
 
+/// A tube in the nose cone left out, with a heavy mass placed after it: the mass slides forward
+/// to the nose's tip, so the margin reads *high*, against "low" for a tube alone ahead of the
+/// center of gravity. The warning gives the margin no direction, and says why.
+#[test]
+fn a_part_placed_after_one_left_out_gives_the_margin_no_direction() {
+    let nose = |thickness: &str| {
+        format!(
+            r#"<innertube><name>Nose tube</name><id>nose-tube</id>
+              <material type="bulk" density="680.0">Cardboard</material>
+              <axialoffset method="top">0.05</axialoffset><length>0.05</length>
+              <outerradius>0.006</outerradius><thickness>{thickness}</thickness></innertube>
+            <masscomponent><name>Ballast</name><id>ballast</id><mass>0.05</mass>
+              <axialoffset method="after">0.0</axialoffset><packedlength>0.02</packedlength>
+              <packedradius>0.004</packedradius></masscomponent>"#
+        )
+    };
+    let (with, warnings, design) = read(&nose("0.001"), "");
+    assert!(warnings.is_empty(), "{warnings:?}");
+    let (without, warnings, _) = read(&nose("-0.001"), "");
+    left_out_with(
+        &warnings,
+        "Its mass isn't counted, so the mass reads low. The stability margin can read high or \
+         low, as parts placed after it move too",
+    );
+    assert!(without.mass_kg < with.mass_kg, "{with:?} {without:?}");
+    let (station_m, _) = part(&design, "nose-tube");
+    assert!(station_m < with.cg_station_m, "{station_m} {with:?}");
+    assert!(without.margin_cal > with.margin_cal, "{with:?} {without:?}");
+}
+
 /// A part under a body tube whose override sets the mass and the center of gravity of all it
 /// holds, left out: neither moves, to the bit, and the warning says the override sets them.
 #[test]
