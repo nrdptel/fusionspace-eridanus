@@ -29,7 +29,7 @@ use pyo3::{PyTraverseError, PyVisit};
 /// `gravity` says how gravity is found along the flight:
 ///
 /// - `"ellipsoidal"`, the default: the full normal gravity vector at the rocket's position.
-/// - `"vertical"`: its exact size, along the launch site's vertical.
+/// - `"vertical"`: the normal gravity vector's exact size, along the launch site's vertical.
 /// - `"vertical_taylor"`: RocketPy's formula, a Taylor series in height along the vertical, for
 ///   like-for-like comparisons with RocketPy.
 #[pyclass(module = "fusionspace.hpr", frozen, skip_from_py_object)]
@@ -336,8 +336,8 @@ impl DragTable {
 /// wind's. It does so even at a trial step the integrator would have retried shorter. `Flight`
 /// raises it unchanged.
 ///
-/// Heights are the rocket's center of gravity's, above the launch site. It stands on the rail at
-/// the start, so the first height isn't zero. Speeds are relative to the ground.
+/// Heights are the rocket's center of gravity's, above the launch site. The rocket stands on the
+/// rail at the start, so the first height isn't zero. Speeds are relative to the ground.
 #[pyclass(module = "fusionspace.hpr", frozen, skip_from_py_object)]
 #[derive(Debug)]
 pub struct Flight {

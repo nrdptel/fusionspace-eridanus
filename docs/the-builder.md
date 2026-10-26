@@ -462,9 +462,10 @@ crates the builder is made of.
 ### What it refuses
 
 Each part's numbers are checked when the part is added. That catches a negative length, a NaN, a
-zero diameter, zero fins, or a shape parameter out of range. The error names the number and what
-it must be, such as `tube diameter, m is 0, outside its domain: it must be finite and above 0`. A
-part in an order the tree can't take is checked when it's added, too. That's fins before any tube, a second motor tube, or a nose behind a tube.
+zero diameter, zero fins, or a shape parameter out of range. The error names the number and its
+bound, such as `tube diameter, m is 0, but it must be finite and above 0`. A part in an order the
+tree can't take is checked when it's added, too. That's fins before any tube, a second motor tube,
+or a nose behind a tube.
 
 The launch site and wind are checked when they're given, and the rail when the flight is set up. A
 design that comes in whole through `from_design` is checked before it flies.
@@ -472,9 +473,8 @@ design that comes in whole through `from_design` is checked before it flies.
 Tests try each of these checks and pin which check refuses it
 ([`parts_out_of_order_are_refused`, `degenerate_designs_error_or_stay_finite`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
 One rocket in them has no fins at all. It flies, tumbling, to finite numbers. That test belongs to
-[the Loft lesson on degenerate designs](decisions-and-roadmap.md#l95). A
-[Loft lesson](glossary.md#loft-lesson) is a mistake of the project before this one, with the test
-that guards against it here.
+a [Loft lesson](glossary.md#loft-lesson), the one
+[on degenerate designs](decisions-and-roadmap.md#l95).
 
 A catalog part is refused when the builder can't make it as the catalog describes it:
 

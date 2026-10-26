@@ -133,7 +133,7 @@ Line by line:
   the tube before them.
 - Each part names its material by an id from the built-in list, `hpr.materials()`. It takes its
   mass from its shape and that material's density.
-- The fins' lengths are named, so two can't be swapped by mistake. They're the root chord, tip
+- The fins' lengths are named, so two can't be swapped. They're the root chord, tip
   chord and span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
 - `Motor.from_catalog` finds one of the [32 bundled motors](physics/motor.md#the-bundled-motors)
   by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).

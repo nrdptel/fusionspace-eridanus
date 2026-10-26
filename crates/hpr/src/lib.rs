@@ -59,8 +59,8 @@
 //!
 //! The builder makes the same things the crates below it use, and hands them over. A rocket's
 //! [`Rocket::design`] is an [`hpr_design::Rocket`], and a flight's [`FlightBuilder::simulation`]
-//! is an [`hpr_sim::Simulation`]. The builder doesn't offer staging, clusters, pods or mass
-//! shifts. Build those with the crates, which this one re-exports by name.
+//! is an [`hpr_sim::Simulation`]. For what the builder doesn't offer, such as staging, clusters,
+//! pods or mass shifts, build with the crates, which this one re-exports by name.
 //!
 //! The `net` feature adds `hpr-net` (as `hpr::hpr_net`). It holds the cache, the offline mode and
 //! the HTTP transport, and these sources:

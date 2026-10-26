@@ -14,7 +14,7 @@ use thiserror::Error;
 #[non_exhaustive]
 pub enum Error {
     /// A number outside its domain, such as a negative length or a NaN, found as it was given.
-    #[error("{what} is {value}, outside its domain: it must be {allowed}")]
+    #[error("{what} is {value}, but it must be {allowed}")]
     Domain {
         /// What the number is.
         what: &'static str,

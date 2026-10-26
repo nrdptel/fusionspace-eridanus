@@ -413,7 +413,7 @@ fn motors_come_from_the_catalog_or_a_file() {
     // The message says what the number must be, not only that it's refused.
     assert_eq!(
         catalog.clone().with_delay_s(-1.0).unwrap_err().to_string(),
-        "motor delay, s is -1, outside its domain: it must be finite and not negative"
+        "motor delay, s is -1, but it must be finite and not negative"
     );
     assert_eq!(
         catalog.clone().with_delay(Delay::Plugged).unwrap().delay(),

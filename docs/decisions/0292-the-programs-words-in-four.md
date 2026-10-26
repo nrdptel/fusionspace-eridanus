@@ -227,8 +227,8 @@ to `cargo xtask voice`, each held as a help snapshot is (§4):
    docstring is the text `help()` shows below the signature (`inspect.cleandoc` of its `__doc__`),
    under a heading of the name in backticks. A public name with no docstring fails the test, and
    so does a snapshot that differs from the package; `HPR_BLESS=1` writes it again. CI's Python
-   job runs the test on each platform, on Python 3.10 and 3.13, and the site step holds the
-   snapshot. Python reads the docstrings, so the snapshot holds what a reader sees, not the
+   job runs the test on each platform, on Python 3.10 and 3.13 (3.11 and 3.13 on Windows on
+   ARM, where CPython's builds start at 3.11), and the site step holds the snapshot. Python reads the docstrings, so the snapshot holds what a reader sees, not the
    Rust doc comments they're written in, and none of the `hpr-py` comments that never reach
    Python. The snapshot is a reference page, so first person counts against a limit of zero.
 2. **The README** of the Python package, `crates/hpr-py/README.md`, its front page on PyPI. It's
@@ -242,9 +242,10 @@ to `cargo xtask voice`, each held as a help snapshot is (§4):
 
 `hpr-py`'s own messages join the census by M0.14d2's rule, which then reads 15 crates.
 
-On main (35edba73), these read 7,926 words, and every page but four is over a limit. The
-docstrings are 3,421 words, and 50 of their sentences are over 25 words (1.47 per 100 words, 35%
-of them), with one stock phrase, "a number of". The README is 352 words, with 4 long sentences
+Before the rewrite (77c6b51a), the docstrings, the README and the 18 front pages read 7,926
+words, and 17 of those 20 pages are over a limit. The docstrings are 3,421 words, and 50 of
+their sentences are over 25 words (1.47 per 100 words, 35% of all their sentences), with one stock
+phrase, "a number of". The README is 352 words, with 4 long sentences
 (1.14 per 100). Of the 18 front pages, 4,153 words in all, 15 are over a limit: 13 on long
 sentences, 9 on labels (milestone and decision numbers) and one on bold-label items. `hpr-flightdata`'s page names its
 readers in one paragraph of about 600 words. `hpr-py`'s census page is 644 words in 60 literals,
