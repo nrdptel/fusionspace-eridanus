@@ -144,18 +144,24 @@ pub(super) struct Parent<'p> {
     pub(super) covered: &'p Covered,
 }
 
-/// Whether a part beside `child`, among `siblings`, takes a size from it: a centering ring whose
-/// bore is automatic takes the widest inner tube beside it
-/// ([`AutoDimension::InnerRadius`]), so without the tube the ring can close.
-fn sized_from(child: &Element, siblings: &[&Element]) -> bool {
-    TUBES.contains(&child.name.as_str())
-        && siblings.iter().any(|sibling| {
-            sibling.name == "centeringring"
-                && sibling
-                    .child("innerradius")
-                    .and_then(|radius| Dimension::parse(&radius.text()))
-                    .is_some_and(Dimension::is_automatic)
-        })
+/// Whether some part among `siblings` takes a size from a tube beside it: a centering ring whose
+/// bore is automatic takes the widest inner tube beside it ([`AutoDimension::InnerRadius`]), so
+/// without the tube the ring can close. Worked out once per list of siblings, so that a list of
+/// many tubes costs one pass, not one per tube.
+fn sizes_a_ring(siblings: &[&Element]) -> bool {
+    siblings.iter().any(|sibling| {
+        sibling.name == "centeringring"
+            && sibling
+                .child("innerradius")
+                .and_then(|radius| Dimension::parse(&radius.text()))
+                .is_some_and(Dimension::is_automatic)
+    })
+}
+
+/// Whether a part beside `child` takes a size from it, `ring` saying whether a ring beside it
+/// takes its bore from a tube ([`sizes_a_ring`]).
+fn sized_from(child: &Element, ring: bool) -> bool {
+    ring && TUBES.contains(&child.name.as_str())
 }
 
 /// Whether the part after `siblings[index]` is placed after it, so that it moves when that part
@@ -188,11 +194,12 @@ pub(super) fn children(
 ) -> Vec<Component> {
     let mut components = Vec::new();
     let siblings: Vec<&Element> = subcomponents(element).collect();
+    let ring = sizes_a_ring(&siblings);
     for (index, &child) in siblings.iter().enumerate() {
         let at = format!("{at}/{}[{index}]", child.name);
         let around = Around {
             covered: parent.covered.clone(),
-            sizes: sized_from(child, &siblings),
+            sizes: sized_from(child, ring),
             places: placed_after(&siblings, index),
         };
         let read = if child.name == "podset" {
@@ -1942,5 +1949,50 @@ mod tests {
                 "{read:?}: {found:?}"
             );
         }
+    }
+
+    /// A tube is sized from only when a centering ring beside it takes its bore automatically,
+    /// and a ring with a bore of its own sizes nothing. Which ring sizes from a tube is settled
+    /// once for the list of siblings, and each part then asks only whether it is a tube
+    /// (`sized_from` takes no siblings), so a list of many tubes beside a ring costs one pass over
+    /// it, not one per tube (#952).
+    #[test]
+    fn a_tube_is_sized_from_only_beside_a_ring_with_an_automatic_bore() {
+        let sized = |inside: &str| {
+            let text = format!(
+                r#"<openrocket version="1.10"><subcomponents>{inside}</subcomponents></openrocket>"#
+            );
+            let root = super::super::document::Document::parse(&text)
+                .expect("the test text parses")
+                .value
+                .root;
+            let siblings: Vec<&Element> = subcomponents(&root).collect();
+            let ring = sizes_a_ring(&siblings);
+            let sized: Vec<bool> = siblings
+                .iter()
+                .map(|child| sized_from(child, ring))
+                .collect();
+            (ring, sized)
+        };
+        let tubes = "<innertube/><tubecoupler/><engineblock/><masscomponent/>";
+        assert_eq!(
+            sized(&format!(
+                "{tubes}<centeringring><innerradius>auto</innerradius></centeringring>"
+            )),
+            (true, vec![true, true, true, false, false])
+        );
+        assert_eq!(
+            sized(&format!(
+                "{tubes}<centeringring><innerradius>0.01</innerradius></centeringring>"
+            )),
+            (false, vec![false; 5])
+        );
+        assert_eq!(
+            sized(&format!(
+                "{tubes}<bulkhead><innerradius>auto</innerradius></bulkhead>"
+            )),
+            (false, vec![false; 5])
+        );
+        assert_eq!(sized(tubes), (false, vec![false; 4]));
     }
 }
