@@ -426,26 +426,31 @@ They don't conflict with the rules above; they add these:
     or a unit alone (`(kg)`) is no label.
   - **The unit** goes where a unit goes: the first word in brackets, after a comma, `·` or `;`, or
     after "in" (`time (s)`, `Worst time, s`, `CP, calibers aft of the tip`, `Offset in bytes`), or
-    "per" and what it's per (`slope, per rad`). A unit word elsewhere in the label doesn't count:
-    `Error in apogee` gives none.
+    "per" and a unit or what it counts (`slope, per rad`, `per 100 words`). A unit word elsewhere
+    gives none (`Error in apogee`, `Apogee, in flight`, `Time per step`), and `C` and `F` need
+    their degree sign (`°C`).
   - **A pure number** names its kind as the label's last word: a coefficient, ratio, fraction,
     share, factor, number, count, code, or Mach (`drag coefficient`, `Reynolds number`). The first
     five also serve where a unit goes (`(coefficient)`). One of no kind says `(no unit)`.
   - **Or each value carries its unit** right after its figure (`0.4 m`, `+1.2%`); a bracket there,
     `3.80 (+73.2%)`, is another quantity's.
   - **A count** has whole numbers and a head that names what it counts, with a plural, `count` or
-    `number`, in its label or where a unit goes (`Flights`, `Files differing`).
+    `number`, in its label or where a unit goes (`Flights`, `Files differing`). A measured
+    quantity's plural (`Masses`, `Burn times`) or last word (`Motors mass`) is no count.
 
   A head that ends in a figure (`| Mach 0.9 |`) names no kind and no unit, so it fails unless
   each value carries its unit. It is a value, so the table is on its side: turn it.
-  The unit words the check knows are `UNITS` and `SPELLED_UNITS` in `xtask/src/site/numbers.rs`.
+  The unit words the check knows are `UNITS` and `SPELLED_UNITS` in `xtask/src/site/numbers.rs`,
+  and the measured quantities `QUANTITIES`. It reads words, not meaning: a unit word it can't tell
+  from another, or a plural of a quantity it doesn't list, can still pass, and reviews hold the
+  rest.
 - **Short notes and cells** (since [M0.9f2](decisions-and-roadmap.md#m0-9f2)). `cargo xtask site`
   fails a note (a whole quote block) or a table cell over 120 words, on the site and in both
   READMEs. Code, link text and HTML's text count. A note keeps what the reader must know first:
   for a trust note, its kind of figure, what it was checked against with numbers, and what to rely
-  on instead. The supporting detail goes in the page's own text, below the note. A cell holds a value or a
-  phrase, and its explanation goes under the table. A table or a quote block written in raw HTML
-  fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
+  on instead. The supporting detail goes in the page's own text, below the note. A cell holds a
+  value or a phrase, and its explanation goes under the table. A table or a quote block written in
+  raw HTML fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
   block that opens with `**How far to trust it.**`. Then it says what kind of figure it is
   (estimate, measurement, copied value) and what it was checked against, with numbers. Last, it

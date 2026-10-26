@@ -2466,7 +2466,7 @@ folder may hold other flights' files, so agreeing is counted, not required. The
 [survey's report](#how-it-was-checked) prints the counts. It names a file by the survey's id, the
 first 16 hex digits of its SHA-256:
 
-| Logger | Summaries | Summaries with a file beside | Summaries stating an apogee | Apogee agrees | Apogee ratio, range | Pad agrees | Pad ratio, range | Agreeing in neither | Contradicted |
+| Logger | Summaries | Summaries with a file beside | Summaries with an apogee stated | Apogee agrees | Apogee ratio, range | Pad agrees | Pad ratio, range | Agreeing in neither | Contradicted |
 |---|---:|---:|---:|---:|---:|---:|---:|---|---|
 | Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | `cd1bfe19ff70e17d` | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | `413de085a44f4872` | none |

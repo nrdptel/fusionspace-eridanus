@@ -21,10 +21,12 @@
 //!   head of each right-aligned column as a label, then a unit. The label is a word of two or more
 //!   letters outside code and math that isn't a unit (a code identifier, `apogee_agl_m`, or a
 //!   unit alone, `(kg)`, is no label). The unit is one of:
-//!   - **in the head, where a unit goes**: the first word in brackets, after a comma or a `·`, or
-//!     after "in" is a unit (`time (s)`, `Worst time, s`, `CP, calibers aft of the tip`, `inertia
-//!     (kg·m²)`, `Offset in bytes`), or the head gives a rate, "per" and what it is per (`slope,
-//!     per rad`, `per 100 words`); a unit word elsewhere (`Error in apogee`, `Case C`) isn't one;
+//!   - **in the head, where a unit goes**: the first word in brackets, after a comma, a `·` or a
+//!     semicolon, or after "in" is a unit (`time (s)`, `Worst time, s`, `CP, calibers aft of the
+//!     tip`, `inertia (kg·m²)`, `Offset in bytes`), or the head gives a rate, "per" and a unit or
+//!     what it counts (`slope, per rad`, `per 100 words`); a unit word elsewhere (`Error in
+//!     apogee`, `Apogee, in flight`, `Time per step`) isn't one, and `C` and `F` need their degree
+//!     sign;
 //!   - **a pure number's kind**, the label's last word: a coefficient, a ratio, a fraction, a
 //!     share, a factor, a number, a count, a code, or Mach (`drag coefficient`, `Reynolds
 //!     number`, `Mach`), or `(no unit)` where a unit goes; a head that ends in a figure (`Mach
@@ -32,8 +34,12 @@
 //!   - **beside every value**: each cell's first figure is followed by its unit (`+1.2%`, `0.4 m`,
 //!     `5,486 ± 227 m`), not by a bracket (`3.80 (+73.2%)` gives the bracket's unit, not the
 //!     value's);
-//!   - **a count**: every value a whole number and the label naming what is counted, a plural
-//!     (`Flights`, `Records read`).
+//!   - **a count**: every value a whole number and the head naming what is counted, a plural
+//!     (`Flights`, `Records read`) that isn't a measured quantity's (`Masses`, `Burn times`).
+//!
+//!   The check reads words, not meaning: a unit word it can't tell from another, or a plural of
+//!   a quantity it doesn't list, can still pass. Reviews hold the rest, as `docs/writing.md`
+//!   says of every check.
 
 use super::units::rendered_runs;
 
@@ -135,9 +141,10 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
 }
 
 /// The words of [`UNITS`] that are not units on their own: a range's "to", e-notation's `e`, a
-/// factor's `x`, and the heights' references, which follow a unit (`m AGL`). Mach is a kind of
+/// factor's `x`, the heights' references, which follow a unit (`m AGL`), and the temperature
+/// letters, which need their degree sign (`°C`; `Case (C)` gives none). Mach is a kind of
 /// number ([`KINDS`]).
-const NOT_UNITS: [&str; 6] = ["to", "e", "x", "AGL", "MSL", "Mach"];
+const NOT_UNITS: [&str; 8] = ["to", "e", "x", "AGL", "MSL", "Mach", "C", "F"];
 
 /// The units [`number_heads`] reads besides [`UNITS`], in any case: the spelled-out names, the
 /// lengths the project measures by (calibers and diameters) and milli-g.
@@ -253,8 +260,8 @@ struct Head {
     /// What opens each place a unit goes: each bracket's text, and what follows each comma,
     /// `·` or semicolon, or each "in" or "per".
     places: Vec<String>,
-    /// Whether the head gives a rate: "per" and what it is per.
-    rate: bool,
+    /// What follows each "per": a rate's unit, or what it counts (`per 100 words`).
+    rates: Vec<String>,
 }
 
 impl Head {
@@ -298,19 +305,26 @@ impl Head {
         let label = parts.next().unwrap_or_default();
         places.extend(parts);
         let words: Vec<&str> = outside.split_whitespace().collect();
-        let mut rate = false;
+        let mut rates = Vec::new();
         for (at, word) in words.iter().enumerate() {
             let rest = words[at + 1..].join(" ");
             match word.to_lowercase().as_str() {
                 "in" => places.push(rest),
-                "per" => rate |= !rest.trim().is_empty(),
+                "per" => rates.push(rest),
                 _ => {}
+            }
+        }
+        // A place that opens with "per" is a rate's (`slope, per rad`).
+        for place in &mut places {
+            if let Some(rest) = place.trim_start().strip_prefix("per ") {
+                rates.push(rest.to_owned());
+                place.clear();
             }
         }
         Self {
             label,
             places,
-            rate,
+            rates,
         }
     }
 
@@ -321,53 +335,136 @@ impl Head {
             .any(|word| word.chars().count() >= 2 && !is_unit(word))
     }
 
-    /// Whether the head gives the column's unit: a place that opens with one, a rate, or a
-    /// label whose last word names a kind of pure number.
+    /// Whether the head gives the column's unit: a place that opens with one, a rate whose
+    /// "per" a unit or a counted plural follows, or a label whose last word names a kind of pure
+    /// number.
     fn gives_a_unit(&self) -> bool {
-        let opens_with_unit = |place: &String| {
-            // A place may open with "per" or a power of ten (`10⁶ psi`) before its unit.
-            let mut words = place.split_whitespace().skip_while(|word| {
-                word.eq_ignore_ascii_case("per")
-                    || word
-                        .chars()
-                        .all(|c| c.is_ascii_digit() || "⁰¹²³⁴⁵⁶⁷⁸⁹⁻×,.".contains(c))
-            });
-            let first = words.next().unwrap_or("");
-            // A pure number with no kind to name says so: `(no unit)`.
-            let none = first.eq_ignore_ascii_case("no")
-                && words.next().is_some_and(|word| word.starts_with("unit"));
-            none || first.starts_with(UNIT_MARKS)
-                || first
-                    .split(|c: char| !(c.is_alphabetic() || c == 'σ'))
-                    .find(|part| !part.is_empty())
-                    .is_some_and(|part| {
-                        is_unit(part) || KINDS[..5].contains(&part.to_lowercase().as_str())
-                    })
-        };
         let last = self.label.split_whitespace().next_back().unwrap_or("");
         let kind = last
             .trim_matches(|c: char| !c.is_alphanumeric())
             .to_lowercase();
-        self.rate || self.places.iter().any(opens_with_unit) || KINDS.contains(&kind.as_str())
+        self.places.iter().any(|place| opens_with_unit(place))
+            || self.rates.iter().any(|rate| {
+                let first = after_figures(rate).next().unwrap_or("");
+                opens_with_unit(rate) || is_plural(first.trim_matches(|c: char| !c.is_alphabetic()))
+            })
+            || KINDS.contains(&kind.as_str())
     }
 
-    /// Whether the head names what a count counts: a plural, or "count" or "number", in its
-    /// label or where a unit goes (`Worst value, steps`).
+    /// Whether the head names what a count counts: a plural that isn't a measured quantity's,
+    /// or "count" or "number", in its label or where a unit goes (`Worst value, steps`), with
+    /// no measured quantity as the label's last word (`Motors mass`).
     fn names_a_count(&self) -> bool {
+        let last = self.label.split_whitespace().next_back().unwrap_or("");
+        if is_quantity(&last.to_lowercase()) {
+            return false;
+        }
         std::iter::once(&self.label)
             .chain(&self.places)
             .flat_map(|part| part.split(|c: char| !(c.is_alphabetic() || c == '\'' || c == '’')))
             .any(|word| {
                 let lower = word.to_lowercase();
-                (lower.chars().count() >= 3
-                    && lower.ends_with('s')
-                    && !lower.ends_with("ss")
-                    && !lower.contains(['\'', '’'])
-                    && !NOT_PLURALS.contains(&lower.as_str()))
-                    || lower == "count"
-                    || lower == "number"
+                is_plural(word) || lower == "count" || lower == "number"
             })
     }
+}
+
+/// The words of `text` after any leading figures (`10⁶ psi`, `100 words`).
+fn after_figures(text: &str) -> impl Iterator<Item = &str> {
+    text.split_whitespace().skip_while(|word| {
+        word.chars()
+            .all(|c| c.is_ascii_digit() || "⁰¹²³⁴⁵⁶⁷⁸⁹⁻×,.".contains(c))
+    })
+}
+
+/// Whether a place opens with a unit: after any figures, a [`UNIT_MARKS`] mark, a unit (the
+/// inch's "in" only alone: `Apogee, in flight` gives none), one of the first five [`KINDS`]
+/// (`(coefficient)`), or `no unit`.
+fn opens_with_unit(place: &str) -> bool {
+    let mut words = after_figures(place);
+    let first = words.next().unwrap_or("");
+    let second = words.next();
+    if first == "in" && second.is_some() {
+        return false;
+    }
+    let none = first.eq_ignore_ascii_case("no") && second.is_some_and(|w| w.starts_with("unit"));
+    none || first.starts_with(UNIT_MARKS)
+        || first
+            .split(|c: char| !(c.is_alphabetic() || c == 'σ'))
+            .find(|part| !part.is_empty())
+            .is_some_and(|part| is_unit(part) || KINDS[..5].contains(&part.to_lowercase().as_str()))
+}
+
+/// The measured quantities, whose plural is no count (`Masses`, `Burn times`).
+const QUANTITIES: [&str; 40] = [
+    "mass",
+    "time",
+    "height",
+    "speed",
+    "length",
+    "apogee",
+    "altitude",
+    "gain",
+    "distance",
+    "drift",
+    "duration",
+    "weight",
+    "force",
+    "pressure",
+    "temperature",
+    "angle",
+    "velocity",
+    "acceleration",
+    "thrust",
+    "impulse",
+    "diameter",
+    "radius",
+    "area",
+    "volume",
+    "density",
+    "rate",
+    "margin",
+    "slope",
+    "drag",
+    "delay",
+    "span",
+    "chord",
+    "thickness",
+    "frequency",
+    "energy",
+    "power",
+    "load",
+    "moment",
+    "inertia",
+    "spin",
+];
+
+/// Whether `word` (lower case) is a measured quantity, singular or plural.
+fn is_quantity(word: &str) -> bool {
+    let singulars = [
+        Some(word.to_owned()),
+        word.strip_suffix("ies").map(|stem| format!("{stem}y")),
+        word.strip_suffix("es").map(str::to_owned),
+        word.strip_suffix('s').map(str::to_owned),
+    ];
+    singulars
+        .into_iter()
+        .flatten()
+        .any(|singular| QUANTITIES.contains(&singular.as_str()))
+}
+
+/// Whether `word` is a plural a count can name: three letters or more ending in "s", not
+/// "ss", "us" or a possessive, not a word that only ends so ([`NOT_PLURALS`]), and not a
+/// measured quantity's ([`is_quantity`]).
+fn is_plural(word: &str) -> bool {
+    let lower = word.to_lowercase();
+    lower.chars().count() >= 3
+        && lower.ends_with('s')
+        && !lower.ends_with("ss")
+        && !lower.ends_with("us")
+        && !lower.contains(['\'', '’'])
+        && !NOT_PLURALS.contains(&lower.as_str())
+        && !is_quantity(&lower)
 }
 
 /// Whether `word` is a unit: one of [`UNITS`] but [`NOT_UNITS`], or of [`SPELLED_UNITS`].
@@ -380,7 +477,7 @@ fn is_unit(word: &str) -> bool {
 /// figures after it, if any) followed by a [`UNIT_MARKS`] mark or a unit.
 fn value_has_a_unit(cell: &super::Cell) -> bool {
     let is_figure = |token: &str| {
-        let token = token.trim_start_matches(['+', '−', '-', '~', '≈', '<', '>', '≤', '≥']);
+        let token = token.trim_start_matches(['+', '−', '-', '±', '~', '≈', '<', '>', '≤', '≥']);
         token.starts_with(|c: char| c.is_ascii_digit())
             && token.chars().all(|c| {
                 c.is_ascii_digit() || ".,–-−eE+×⁰¹²³⁴⁵⁶⁷⁸⁹⁻".contains(c) || UNIT_MARKS.contains(&c)
@@ -646,6 +743,17 @@ mod tests {
             ("HPR Sim", &["none"]),
             ("Differing", &["3"]),
             ("value, as a share", &["0.5"]),
+            ("Burn times", &["12", "15"]),
+            ("Masses", &["12"]),
+            ("Masses recorded", &["12"]),
+            ("Motors mass", &["3"]),
+            ("Altitude gains", &["12"]),
+            ("Apogee, previous run", &["1200"]),
+            ("Apogee, in flight", &["2.5"]),
+            ("Apogee (in flight)", &["2.5"]),
+            ("Time per step", &["2.5"]),
+            ("Apogee error per flight", &["2.5"]),
+            ("Case (C)", &["2.5"]),
         ] {
             let problems = column(head, values);
             assert_eq!(problems.len(), 1, "{head}: {problems:?}");
@@ -696,6 +804,10 @@ mod tests {
             ("Code to code · rows", &["3"]),
             ("HPR Sim median (no unit)", &["0.0012"]),
             ("Exit code", &["2"]),
+            ("Length (in)", &["2.5"]),
+            ("Errors per 100 words", &["0.5"]),
+            ("Values differing", &["3"]),
+            ("air temperature (°C)", &["15"]),
             ("apogee (`apogee_agl_m`)", &["+0.5%"]),
         ] {
             let problems = column(head, values);
