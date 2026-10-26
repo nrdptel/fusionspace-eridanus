@@ -1043,7 +1043,7 @@ leaves. It sets skin friction ([drag](../physics/aero.md)). OpenRocket writes on
 for it. What each is worth in micrometers is **not in the file format documentation**. These are
 the only numbers on this page that come from neither the documentation nor the corpus:
 
-| `<finish>` | OpenRocket calls it | roughness | where that number comes from | uses in the corpus |
+| `<finish>` | OpenRocket calls it | roughness | where that number comes from | components in the corpus |
 | --- | --- | --- | --- | --: |
 | `rough` | Rough | 500 µm | [the author][forum] | 8 |
 | `unfinished` | Unfinished | 150 µm | [the author][forum] | 2 |

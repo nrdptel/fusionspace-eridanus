@@ -421,14 +421,14 @@ They don't conflict with the rules above; they add these:
   Since [M0.9f2](decisions-and-roadmap.md#m0-9f2), `cargo xtask site` also reads the head of
   each right-aligned column, on the site and in both READMEs, as a label and then a unit:
 
-  - **The label** is a word of two or more letters outside code and math that isn't a unit, before
-    the head's first bracket, comma, `·` or `;`. A code identifier alone (`apogee_agl_m`), a figure
-    or a unit alone (`(kg)`) is no label.
+  - **The label** is a word of two or more letters outside code and math that isn't a unit, in the
+    head outside its brackets and before its first comma, `·` or `;`. A code identifier alone
+    (`apogee_agl_m`), a figure or a unit alone (`(kg)`) is no label.
   - **The unit** goes where a unit goes: the first word in brackets, after a comma, `·` or `;`, or
     after "in" (`time (s)`, `Worst time, s`, `CP, calibers aft of the tip`, `Offset in bytes`), or
-    "per" and a unit or what it counts (`slope, per rad`, `per 100 words`). A unit word elsewhere
-    gives none (`Error in apogee`, `Apogee, in flight`, `Time per step`), and `C` and `F` need
-    their degree sign (`°C`).
+    "per" and a unit or a counted plural (`slope, per rad`, `per 100 words`; `Time per step` gives
+    none). A unit word elsewhere gives none (`Error in apogee`), nor does `in` with words after it
+    (`Apogee, in flight`), and `C` and `F` need their degree sign (`°C`).
   - **A pure number** names its kind as the label's last word: a coefficient, ratio, fraction,
     share, factor, number, count, code, or Mach (`drag coefficient`, `Reynolds number`). The first
     five also serve where a unit goes (`(coefficient)`). One of no kind says `(no unit)`.
@@ -436,7 +436,8 @@ They don't conflict with the rules above; they add these:
     `3.80 (+73.2%)`, is another quantity's.
   - **A count** has whole numbers and a head that names what it counts, with a plural, `count` or
     `number`, in its label or where a unit goes (`Flights`, `Files differing`). A measured
-    quantity's plural (`Masses`, `Burn times`) or last word (`Motors mass`) is no count.
+    quantity's plural (`Masses`, `Burn times`) is no count, nor is a label that ends in a measured
+    quantity (`Motors mass`).
 
   A head that ends in a figure (`| Mach 0.9 |`) names no kind and no unit, so it fails unless
   each value carries its unit. It is a value, so the table is on its side: turn it.

@@ -378,13 +378,13 @@ fn after_figures(text: &str) -> impl Iterator<Item = &str> {
 }
 
 /// Whether a place opens with a unit: after any figures, a [`UNIT_MARKS`] mark, a unit (the
-/// inch's "in" only alone: `Apogee, in flight` gives none), one of the first five [`KINDS`]
-/// (`(coefficient)`), or `no unit`.
+/// inch's "in" only alone: `Apogee, in flight` and `in-flight` give none), one of the first
+/// five [`KINDS`] (`(coefficient)`), or `no unit`.
 fn opens_with_unit(place: &str) -> bool {
     let mut words = after_figures(place);
     let first = words.next().unwrap_or("");
     let second = words.next();
-    if first == "in" && second.is_some() {
+    if (first == "in" && second.is_some()) || first.starts_with("in-") {
         return false;
     }
     let none = first.eq_ignore_ascii_case("no") && second.is_some_and(|w| w.starts_with("unit"));
@@ -751,6 +751,7 @@ mod tests {
             ("Apogee, previous run", &["1200"]),
             ("Apogee, in flight", &["2.5"]),
             ("Apogee (in flight)", &["2.5"]),
+            ("Apogee, in-flight", &["2.5"]),
             ("Time per step", &["2.5"]),
             ("Apogee error per flight", &["2.5"]),
             ("Case (C)", &["2.5"]),
