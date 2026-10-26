@@ -917,6 +917,8 @@ pub struct DispersedWind {
     base: Arc<dyn Wind>,
     speed_scale: f64,
     turn_rad: f64,
+    /// `turn_rad.sin_cos()`, taken once rather than at every call of `wind`.
+    turn_sin_cos: (f64, f64),
 }
 
 impl DispersedWind {
@@ -947,6 +949,7 @@ impl DispersedWind {
             base,
             speed_scale,
             turn_rad,
+            turn_sin_cos: turn_rad.sin_cos(),
         })
     }
 }
@@ -955,7 +958,7 @@ impl Wind for DispersedWind {
     fn wind(&self, height_msl_m: f64) -> Result<WindSample, AtmosError> {
         let mut sample = self.base.wind(height_msl_m)?;
         let v = sample.velocity_enu_m_s;
-        let (sin, cos) = self.turn_rad.sin_cos();
+        let (sin, cos) = self.turn_sin_cos;
         // A bearing θ clockwise from north is (sin θ, cos θ) in east and north; turning it to
         // θ + δ gives these.
         sample.velocity_enu_m_s =

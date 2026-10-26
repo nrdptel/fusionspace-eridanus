@@ -431,6 +431,12 @@ impl SolidMotor {
         (self.propellant_mass_kg * (1.0 - fraction)).max(0.0)
     }
 
+    /// The mass flow at `t`, kg/s: the `mass_flow_kg_s` of [`SolidMotor::state`], `F(t) / v_e`,
+    /// without the grains' shape and the mass elements that call also builds.
+    pub fn mass_flow_kg_s(&self, t: f64) -> f64 {
+        self.curve.thrust_n(t) / self.exhaust_velocity_m_s()
+    }
+
     /// The thrust and mass properties at `t` seconds after ignition. Before ignition the motor is
     /// loaded and after burnout it is empty.
     pub fn state(&self, t: f64) -> MotorState {

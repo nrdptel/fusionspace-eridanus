@@ -110,6 +110,8 @@ fn check_speed(speed_m_s: f64) -> Result<f64, AtmosError> {
 pub struct ConstantWind {
     speed_m_s: f64,
     direction_from_rad: f64,
+    /// The velocity of the two fields above, taken once rather than at every call of `wind`.
+    velocity_enu_m_s: DVec3,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -143,9 +145,12 @@ impl ConstantWind {
     ///
     /// [`AtmosError::Domain`] if the speed is negative or either value is not finite.
     pub fn new(speed_m_s: f64, direction_from_rad: f64) -> Result<Self, AtmosError> {
+        let speed_m_s = check_speed(speed_m_s)?;
+        let direction_from_rad = check_direction(direction_from_rad)?;
         Ok(ConstantWind {
-            speed_m_s: check_speed(speed_m_s)?,
-            direction_from_rad: check_direction(direction_from_rad)?,
+            speed_m_s,
+            direction_from_rad,
+            velocity_enu_m_s: velocity_from_speed_direction(speed_m_s, direction_from_rad),
         })
     }
 
@@ -154,6 +159,7 @@ impl ConstantWind {
         ConstantWind {
             speed_m_s: 0.0,
             direction_from_rad: 0.0,
+            velocity_enu_m_s: velocity_from_speed_direction(0.0, 0.0),
         }
     }
 
@@ -172,10 +178,7 @@ impl Wind for ConstantWind {
     fn wind(&self, height_msl_m: f64) -> Result<WindSample, AtmosError> {
         finite("height (m)", height_msl_m)?;
         Ok(WindSample {
-            velocity_enu_m_s: velocity_from_speed_direction(
-                self.speed_m_s,
-                self.direction_from_rad,
-            ),
+            velocity_enu_m_s: self.velocity_enu_m_s,
             extrapolated: None,
         })
     }
