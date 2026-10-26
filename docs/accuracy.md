@@ -148,7 +148,7 @@ bound: the larger of 2e-6 in the metric's own unit and 1e-7 of the value. The sc
 tolerance where it has one. Otherwise it's the bar of its kind. That's 3% of its reference for a
 harness metric not scored, 5% for an OpenRocket apogee or largest speed and 1% for an OpenRocket
 mass. It's 0.5 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
-logged climb's RMS gets 3% of the apogee, the bound the RocketPy comparisons in wind hold a flight's
+logged climb's RMS gets 3% of the apogee, the bound three RocketPy comparisons hold a flight's
 height RMS to ([census][census]). For example, a 3% tolerance on a 1000 m (3,281 ft) apogee allows
 30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
 
@@ -869,8 +869,8 @@ file of the flight's day is available ([report][real-report]).
 The mean absolute apogee error is 6.06%, against the 5% target of the
 [validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
 Juno III's, 7.26% of its apogee ([report][real-report]). No target is set on the climb. The
-[census](#the-census) counts each climb against a bar of 3% of its apogee, the bound the RocketPy
-comparisons in wind hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
+[census](#the-census) counts each climb against a bar of 3% of its apogee, the bound three RocketPy
+comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
 
 **The last column is a diagnostic, not a prediction.** It flies each flight again on the drag the
 example's RocketPy notebook specifies, in place of HPR Sim's. That drag is the team's estimate, a

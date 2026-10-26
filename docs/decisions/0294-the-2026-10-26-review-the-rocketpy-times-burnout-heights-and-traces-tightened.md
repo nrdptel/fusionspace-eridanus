@@ -29,9 +29,9 @@ rounded up:
 - **Rail-exit time**, all nine flights: the largest difference is −0.143% (Juno III in wind,
   −0.14245%), and −0.137% among the six (Juno III in calm air). All nine are negative: HPR Sim
   leaves the rail first. One sign in every flight looks like a modeled bias, not noise, and its
-  cause is not measured. One written difference acts on the rail in all nine case files (HPR Sim
+  cause is not measured. One written difference acts on the rail in all nine flights (HPR Sim
   keeps the variable-mass terms RocketPy's rail equation drops), yet Bella Lui, their example of
-  it, has the smallest gap (−0.032% in calm air).
+  it, has the smallest gaps (−0.029% in wind, −0.032% in calm air).
 - **Apogee time**, the six flights with no written cause (Calisto in wind and calm air, Valetudo,
   NDRT 2020, and Juno III and Bella Lui in calm air): +0.020% to +0.239% (Valetudo), all positive.
 - **Burnout height**, the same six: −0.004% (NDRT 2020) to +0.049% (Valetudo).
@@ -73,7 +73,7 @@ re-baseline any row, and the gate is the only bound a re-accepted change still h
 2. **What keeps 3%, and why.**
    - *The largest acceleration and its time*: RocketPy's own peak moves by up to 0.16%
      (Prometheus 2022) and its time by up to 0.18% (Valetudo) with the solver, and the largest
-     scored difference among the six is 1.778% (Bella Lui in calm air, the ignition spike on the
+     scored acceleration difference among the six is 1.778% (Bella Lui in calm air, the ignition spike on the
      rail where HPR Sim keeps the variable-mass terms); in wind, Bella Lui's is 1.783%.
    - *The apogee and landing drifts*: up to −1.750% (Juno III in calm air) and −1.811%
      (Valetudo).
@@ -122,8 +122,8 @@ re-baseline any row, and the gate is the only bound a re-accepted change still h
   rail-exit time (3.5 times) and Valetudo's height trace (3.6 times). The traces include the
   descent, so a recovery change (an opening time, an added mass) is the likeliest thing to move
   them; §4 decides what happens then. NDRT 2020's 0.70% descent-rate difference, which keeps its
-  flight time at 3%, is in its height trace too: near landing it can reach about 0.7% of the
-  apogee against the 1% bound. Its height trace is 0.200% of the apogee today.
+  flight time at 3%, is in its height trace too: near landing it can reach at most about 0.7%
+  of the apogee against the 1% bound. Its height trace is 0.200% of the apogee today.
 - *The sample.* The margins are measurements on RocketPy's six example rockets, and agreement
   between two codes, not accuracy against flights. A rocket added to the set gets its own measured
   differences and, where one has a cause, the 3% tier for that metric with the cause written.
