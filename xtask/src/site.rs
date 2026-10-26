@@ -1329,7 +1329,8 @@ fn page_rules(
             Err(err) => (vec![(1, format!("can't read {REPORT}: {err}"))], Vec::new()),
         };
         // A results table's cell rounded from the report is traced by the check of its case
-        // and metric, which allows the rounding, not by a quote of the report's digits.
+        // and metric, which allows the rounding, not by a quote of the report's digits. Its
+        // digits then count as traced anywhere on the page, as a quoted file's do.
         problems.extend(untraced_numbers(
             root,
             name,
@@ -2223,7 +2224,9 @@ fn rounds_to(reported: &str, written: &str) -> bool {
         return false;
     };
     let kept = w_decimals.len();
-    if sign != w_sign || unit != w_unit || kept >= decimals.len() {
+    // A point with no decimals after it (`+351.`) isn't a rounding anyone writes.
+    let bare_point = kept == 0 && written.contains('.');
+    if sign != w_sign || unit != w_unit || kept >= decimals.len() || bare_point {
         return false;
     }
     // Round the digits as a whole number of the kept decimals, then put the point back.
@@ -4626,6 +4629,7 @@ mod tests {
             ("+35.35", "+35.35", "not fewer decimals"),
             ("+35.35", "+35.350", "more decimals"),
             ("+35.35", "+35.", "no decimals after the point"),
+            ("+350.5", "+351.", "a bare point"),
             ("+9.996", "+9.99", "rounded down at a carry"),
             ("n/a", "n/a", "no figure"),
         ] {
