@@ -530,6 +530,23 @@ mod tests {
     }
 
     #[test]
+    fn the_mass_flow_alone_is_the_states_to_the_bit() {
+        // The flight reads `mass_flow_kg_s` instead of the state's for speed; the two must stay
+        // one expression, or a flight's numbers change with the shortcut.
+        let motor = SolidMotor::from_envelope(curve(), 0.038, 0.25, 0.3, 0.6).unwrap();
+        // The burn on a fine grid, so that even a last-bit change in the expression shows, and
+        // the times before ignition and after burnout.
+        let grid = (0..=1_200).map(|i| f64::from(i) * 1e-3);
+        for t in [-1.0, 5.0].into_iter().chain(grid) {
+            assert_eq!(
+                motor.mass_flow_kg_s(t).to_bits(),
+                motor.state(t).mass_flow_kg_s.to_bits(),
+                "{t}"
+            );
+        }
+    }
+
+    #[test]
     fn a_units_slip_is_refused_by_its_exhaust_velocity() {
         // The worked example from the issue: the 411I175's envelope in millimeters and grams,
         // read as meters and kilograms. Every dimension is positive and finite, the propellant is

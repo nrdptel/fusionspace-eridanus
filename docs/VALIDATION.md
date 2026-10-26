@@ -51,7 +51,7 @@ provenance.
   Since [the harness](decisions-and-roadmap.md#m2-1a) wrote its first report, the code-to-code 3%
   is a gate in same-drag mode (0.2% on four speeds and 0.5% on six apogees since
   [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and 0.2% to 1% on rail-exit and apogee times,
-  burnout heights and traces since [the next](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)). It stays a target in predicted mode, where neither code's drag is
+  burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)). It stays a target in predicted mode, where neither code's drag is
   the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)).
   A predicted miss is explained in its case file, and a test pins the set of misses.
 
@@ -343,7 +343,7 @@ peak acceleration uses it too, in wind and in calm air: its two peaks are 0.9% a
 and HPR Sim has none. No case carries an absolute floor: every gate is the milestone's 3% or
 tighter.
 
-Some gates are tighter ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and [the next](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)):
+Some gates are tighter ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)):
 
 - Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate and the
   largest Mach number keep 3%.
@@ -360,8 +360,8 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 - Why: the largest of those differences in [the
   report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)
   are +0.056% (Juno III's burnout speed), +0.112% (Valetudo's apogee), −0.142% (Juno III's rail-exit
-  time) and +0.238% (Valetudo's apogee time), and RocketPy's own solver moves them far less (the
-  decisions give its figures), so a drifting number fails long before it nears 3%. The margins are
+  time) and +0.238% (Valetudo's apogee time), and RocketPy's own solver moves the point metrics far less (the
+  decisions give its figures; the traces' movement is not recorded), so a drifting number fails long before it nears 3%. The margins are
   measured on RocketPy's six example rockets, and they bound agreement between two codes, not
   accuracy against a flight.
 

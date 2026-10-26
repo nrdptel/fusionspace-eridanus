@@ -324,7 +324,7 @@ fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
         ("flight-juno-iii-calm", 26.2, 1.13),
         ("flight-bella-lui-calm", 5.4, 0.49),
     ];
-    let (mut rail_times, mut points, mut traces) = (0, 0, 0);
+    let (mut rail_times, mut apogee_times, mut burnouts, mut traces) = (0, 0, 0, 0);
     for case in cases() {
         if !case.id.starts_with("flight-") {
             continue;
@@ -353,11 +353,11 @@ fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
                     (Some(0.005), None)
                 }
                 "apogee_time_s" if cause_free => {
-                    points += 1;
+                    apogee_times += 1;
                     (Some(0.01), None)
                 }
                 "burnout_altitude_agl_m" if cause_free => {
-                    points += 1;
+                    burnouts += 1;
                     (Some(0.002), None)
                 }
                 "series_height_rms_m" | "series_speed_rms_m_s" if cause_free => {
@@ -396,7 +396,10 @@ fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
     // Nine flights carry a rail-exit time; the six with no written cause (Calisto in wind and
     // calm, Valetudo, NDRT 2020, Juno III and Bella Lui calm) an apogee time, a burnout height and
     // two traces each.
-    assert_eq!((rail_times, points, traces), (9, 6 * 2, 6 * 2));
+    assert_eq!(
+        (rail_times, apogee_times, burnouts, traces),
+        (9, 6, 6, 6 * 2)
+    );
 }
 
 #[test]

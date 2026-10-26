@@ -870,7 +870,7 @@ The mean absolute apogee error is 6.06%, against the 5% target of the
 [validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
 Juno III's, 7.26% of its apogee ([report][real-report]). No target is set on the climb. The
 [census](#the-census) counts each climb against a bar of 3% of its apogee, the bound the RocketPy
-comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
+comparisons in wind hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
 
 **The last column is a diagnostic, not a prediction.** It flies each flight again on the drag the
 example's RocketPy notebook specifies, in place of HPR Sim's. That drag is the team's estimate, a

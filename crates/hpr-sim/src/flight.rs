@@ -3459,11 +3459,9 @@ impl PhaseSystem<'_> {
             }
         }
         let Some((_, _, evaluation)) = &self.cache else {
-            // Filled just above.
-            return Err(SimError::Domain {
-                what: "evaluation cache",
-                value: t,
-            });
+            // An invariant, not an input: a hit found the cache full, and a miss filled it above
+            // or returned the evaluation's error.
+            unreachable!("the evaluation cache is filled just above")
         };
         Ok(evaluation)
     }
