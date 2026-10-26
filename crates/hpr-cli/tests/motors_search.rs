@@ -727,7 +727,14 @@ fn an_empty_search_says_what_to_try() {
     );
     // The price passes none alone, though the others together pass none either.
     assert_eq!(
-        tail(&["--max-price", "0.01", "--manufacturer", "Loki", "--class", "D"]),
+        tail(&[
+            "--max-price",
+            "0.01",
+            "--manufacturer",
+            "Loki",
+            "--class",
+            "D"
+        ]),
         "No motor in stock costs $0.01 or less. The cheapest is AeroTech D13W at $7.00."
     );
     // Each passes some alone: the drops that leave motors, and only those (without
