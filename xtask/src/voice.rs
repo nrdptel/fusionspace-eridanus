@@ -924,21 +924,76 @@ fn front_pages_from(tracked: &[String]) -> Result<Vec<String>, String> {
 }
 
 /// The `//!` docs at the top of a crate's `lib.rs` as the Markdown rustdoc reads: each `//!`
-/// line less the marker and one space, up to the first line that is neither one, a blank line
-/// nor a `//` comment. Each other line before it is left blank, so a line of the page is the same
-/// line of the file.
-fn front_page(source: &str) -> String {
+/// line less the marker and one space, up to the first line of code. Inner attributes (`#![…]`,
+/// on one line or several), blank lines and `//` comments may sit among them, as rustdoc allows,
+/// and are read past. Each line that isn't a `//!` line is left blank, so a line of the page is
+/// the same line of the file.
+///
+/// Front-page text the check can't read, a `#![doc = …]` attribute or a block comment before the
+/// first item, is refused, so no text docs.rs shows escapes the hold.
+fn front_page(source: &str) -> Result<String, String> {
     let mut page = String::new();
-    for line in source.lines() {
+    // Brackets still open in an inner attribute that spans lines.
+    let mut open = 0;
+    for (index, line) in source.lines().enumerate() {
         let trimmed = line.trim_start();
-        if let Some(doc) = trimmed.strip_prefix("//!") {
+        if open > 0 {
+            open = brackets_open(trimmed, open);
+        } else if let Some(doc) = trimmed.strip_prefix("//!") {
             page.push_str(doc.strip_prefix(' ').unwrap_or(doc));
+        } else if let Some(attribute) = trimmed.strip_prefix("#!") {
+            let inner = attribute.trim_start_matches(['[', ' ']);
+            if inner
+                .strip_prefix("doc")
+                .is_some_and(|rest| rest.trim_start().starts_with('='))
+            {
+                return Err(format!(
+                    "line {}: a `#![doc = …]` attribute, which the voice check can't read; write \
+                     the crate's docs as `//!` lines",
+                    index + 1
+                ));
+            }
+            open = brackets_open(attribute, 0);
+        } else if trimmed.starts_with("/*") {
+            return Err(format!(
+                "line {}: a block comment before the crate's first item, which the voice check \
+                 can't read; write the crate's docs as `//!` lines and other notes as `//` ones",
+                index + 1
+            ));
         } else if !(trimmed.is_empty() || trimmed.starts_with("//")) {
             break;
         }
         page.push('\n');
     }
-    page
+    Ok(page)
+}
+
+/// How many brackets are open after `text`, starting from `open`: each `[` opens one and each `]`
+/// closes one, except inside a string literal or after a `//` comment starts.
+fn brackets_open(text: &str, mut open: usize) -> usize {
+    let mut quoted = false;
+    let mut escaped = false;
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if quoted {
+            if escaped {
+                escaped = false;
+            } else if c == '\\' {
+                escaped = true;
+            } else if c == '"' {
+                quoted = false;
+            }
+            continue;
+        }
+        match c {
+            '"' => quoted = true,
+            '[' => open += 1,
+            ']' => open = open.saturating_sub(1),
+            '/' if chars.peek() == Some(&'/') => break,
+            _ => {}
+        }
+    }
+    open
 }
 
 /// Whether `path`, from the workspace root, is a crate's `src/lib.rs`, read as its front page.
@@ -950,11 +1005,11 @@ fn is_front_page(path: &str) -> bool {
 
 /// A file's text as the check reads it: a crate's `lib.rs` (or any `.rs` file given) as its front
 /// page ([`front_page`]), anything else as it is.
-fn as_read(path: &Path, text: String) -> String {
+fn as_read(path: &Path, text: String) -> Result<String, String> {
     if extension(path).as_deref() == Some("rs") {
-        front_page(&text)
+        front_page(&text).map_err(|e| format!("{}: {e}", path.display()))
     } else {
-        text
+        Ok(text)
     }
 }
 
@@ -1189,7 +1244,7 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
 /// A crate's front page, read from its `lib.rs` at `path`, a reference page ([`front_page`]).
 /// One with no word of `//!` docs is refused: docs.rs would show the crate with no front page.
 fn front_page_from(path: &str, text: &str) -> Result<Page, String> {
-    let source = front_page(text);
+    let source = front_page(text).map_err(|e| format!("{path}: {e}"))?;
     if !source.chars().any(char::is_alphabetic) {
         return Err(format!(
             "{path} opens with no `//!` docs, so docs.rs shows its crate with no front page"
@@ -1333,7 +1388,7 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for file in files {
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
-        let text = as_read(&file, String::from_utf8_lossy(&bytes).into_owned());
+        let text = as_read(&file, String::from_utf8_lossy(&bytes).into_owned())?;
         let shown = file.display().to_string();
         let inside = fs::canonicalize(&file).ok().and_then(|full| {
             full.strip_prefix(&root)
@@ -1376,7 +1431,7 @@ fn given_files(args: &[String]) -> Result<Vec<(String, String, Format)>, String>
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
         found.push((
             file.display().to_string(),
-            as_read(&file, String::from_utf8_lossy(&bytes).into_owned()),
+            as_read(&file, String::from_utf8_lossy(&bytes).into_owned())?,
             Format::of(&file),
         ));
     }
@@ -3485,37 +3540,53 @@ mod tests {
         assert!(EXTENSIONS.contains(&"help"));
     }
 
-    /// A front page is the `//!` block at the top of `lib.rs`, line for line, read as Markdown up
-    /// to the first line of code; a module's `//!` further down isn't on it.
+    /// A front page is the `//!` lines at the top of `lib.rs`, line for line, read as Markdown up
+    /// to the first line of code, past inner attributes as rustdoc reads them; a module's `//!`
+    /// further down isn't on it.
     #[test]
     fn a_front_page_is_the_leading_doc_block() {
         let source = "//! The crate, in short.\n//!\n// A comment.\n\n//!     indented code\n\
-                      //! `code` and [`Link`].\n#![allow(clippy::foo)]\n//! Not read.\n\
-                      pub mod inner {\n    //! Nor this.\n}\n";
-        let page = front_page(source);
+                      //! `code` and [`Link`].\n#![allow(clippy::foo)]\n//! Read after it.\n\
+                      #![allow(\n    clippy::bar, // ] in a comment\n    reason = \"a ] b\",\n)]\n\
+                      //! And after this.\npub mod inner {\n    //! Not this.\n}\n";
+        let page = front_page(source).unwrap();
         assert_eq!(
             page,
-            "The crate, in short.\n\n\n\n    indented code\n`code` and [`Link`].\n"
+            "The crate, in short.\n\n\n\n    indented code\n`code` and [`Link`].\n\nRead after it.\
+             \n\n\n\n\nAnd after this.\n"
         );
         assert_eq!(
             page.lines().count(),
-            6,
+            13,
             "a line of the page is that line of the file"
         );
         assert_eq!(
-            front_page("//!No space.\n  //! Indented.\nfn f() {}\n"),
+            front_page("//!No space.\n  //! Indented.\nfn f() {}\n").unwrap(),
             "No space.\nIndented.\n"
         );
+        // What rustdoc would show but the check can't read is refused, never skipped.
+        for unread in [
+            "//! Docs.\n#![doc = include_str!(\"../README.md\")]\n",
+            "#![doc= \"Docs.\"]\n",
+            "/*! Docs. */\n",
+            "//! Docs.\n/* A note. */\n",
+        ] {
+            let error = front_page(unread).unwrap_err();
+            assert!(error.contains("can't read"), "{unread:?}: {error}");
+        }
+        assert!(front_page("#![doc(html_root_url = \"https://docs.rs\")]\n//! Docs.\n").is_ok());
         let read = front_page_from("crates/x/src/lib.rs", source).unwrap();
         assert!(read.reference);
-        // Four words, then `code` and [`Link`]: the indented line is a code block.
-        assert_eq!(read.words, 7, "{read:?}");
+        // Four words, `code` and [`Link`], then the two sentences after the attributes: the
+        // indented line is a code block.
+        assert_eq!(read.words, 13, "{read:?}");
         let long = long_sentences(
             "lib.rs",
             &front_page(&format!(
                 "// x\n//! {}.\nfn f() {{}}\n",
                 ["word"; 26].join(" ")
-            )),
+            ))
+            .unwrap(),
             Format::Markdown,
         );
         assert_eq!(long.len(), 1, "{long:?}");

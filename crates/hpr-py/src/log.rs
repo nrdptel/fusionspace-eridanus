@@ -265,13 +265,15 @@ impl FlightLog {
     ///
     /// The keys of a value and its bound name their unit. ``liftoff``, ``burnout``, ``landing`` and
     /// ``flight_time`` hold ``time_s`` and ``bound_s``. ``apogee`` holds ``height_m`` above the
-    /// pad, ``altitude_m`` above the track's own zero and ``bound_m``, with ``time_s`` and
+    /// pad (on a short pad, above the track's zero), ``altitude_m`` above the track's own zero and
+    /// ``bound_m``, with ``time_s`` and
     /// ``time_bound_s``. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s``, and
     /// ``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
     /// ``rate_m_s`` and ``bound_m_s``.
     ///
-    /// A top acceleration also says whether it is a floor (``is_floor``), and why it is clipped
-    /// (``clip``): ``"range"``, ``"flat"`` or ``None``.
+    /// An apogee, a burnout and a top acceleration each say whether they're a floor
+    /// (``is_floor``). A top acceleration also says why it is clipped (``clip``): ``"range"``,
+    /// ``"flat"`` or ``None``.
     ///
     /// Beside the readings, the dict says how they were taken: the track's ``source``,
     /// ``sample_interval_s`` and ``step_m``, and the running median's ``median_window_s`` and

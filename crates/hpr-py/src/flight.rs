@@ -29,7 +29,8 @@ use pyo3::{PyTraverseError, PyVisit};
 /// `gravity` says how gravity is found along the flight:
 ///
 /// - `"ellipsoidal"`, the default: the full normal gravity vector at the rocket's position.
-/// - `"vertical"`: the normal gravity vector's exact size, along the launch site's vertical.
+/// - `"vertical"`: normal gravity's exact size at the rocket's height, along the launch site's
+///   vertical.
 /// - `"vertical_taylor"`: RocketPy's formula, a Taylor series in height along the vertical, for
 ///   like-for-like comparisons with RocketPy.
 #[pyclass(module = "fusionspace.hpr", frozen, skip_from_py_object)]

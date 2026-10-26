@@ -470,7 +470,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
 | <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
 | <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
-| <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
+| <a id="m0-14"></a>[M0.14][done-0] | The maintainer's own voice | done |
 | <a id="m0-14a"></a>[M0.14a][done-0] | The guide and the check | done |
 | <a id="m0-14b"></a>[M0.14b][done-0] | The front doors | done |
 | <a id="m0-14c"></a>[M0.14c][done-0] | The rest of the site | done |

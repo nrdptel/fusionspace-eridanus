@@ -331,7 +331,7 @@ impl Rocket {
     /// Adds `count` trapezoidal fins `thickness_m` thick to the tube before them. Their shape is a
     /// root chord, tip chord and span, and the sweep: how far aft of the root's leading edge the
     /// tip's is.
-    /// Every argument after `count` is keyword-only, so two lengths can't be swapped by mistake.
+    /// Every argument after `count` is keyword-only, so a swap of two lengths shows in the call.
     /// `cross_section` is `"square"`, the default, `"rounded"` or `"airfoil"`. They sit flush
     /// with the tube's aft end unless `position` (`"top"`, `"middle"`, `"bottom"` or `"after"`)
     /// and `offset_m`, aft of it, place them.

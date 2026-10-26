@@ -87,6 +87,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
+- M0.14 The maintainer's own voice ([Phase 0](#phase-0-foundations))
 - M0.14a The guide and the check ([Phase 0](#phase-0-foundations))
 - M0.14c The rest of the site ([Phase 0](#phase-0-foundations))
 - M0.14c1 The first guides ([Phase 0](#phase-0-foundations))
@@ -624,7 +625,9 @@ One line per milestone or increment, in the order it was archived within its pha
   converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
   test each; the page check fails math text off the math face or under 12 px and a formula wider
   than its box, with a canary; `docs/writing.md` has the rules.
-- **M0.14** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+- [x] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55). Each
+  rewriting increment's PR shows every changed page before and after, and its cold reader checks
+  each page against each voice rule, every finding fixed or filed (ADR-284 §7).
   - [x] **M0.14a The guide and the check.** *Done when:* `writing.md`'s voice section, each rule
     with a before-and-after pair from a real page and limits per 100 words for each counted
     pattern, is in the design system's rules (a merged PR); `cargo xtask voice` reads any path,

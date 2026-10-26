@@ -60,7 +60,20 @@
 //! The builder makes the same things the crates below it use, and hands them over. A rocket's
 //! [`Rocket::design`] is an [`hpr_design::Rocket`], and a flight's [`FlightBuilder::simulation`]
 //! is an [`hpr_sim::Simulation`]. For what the builder doesn't offer, such as staging, clusters,
-//! pods or mass shifts, build with the crates, which this one re-exports by name.
+//! pods or mass shifts, build with the crates, which this one re-exports by name. Each covers
+//! one part of the work:
+//!
+//! - [`hpr_core`]: the math, units, frames, the Earth and gravity.
+//! - [`hpr_atmos`]: the atmosphere and the wind.
+//! - [`hpr_motor`]: solid motors, their thrust curves and motor files.
+//! - [`hpr_design`]: a rocket's parts, materials, mass and stages.
+//! - [`hpr_aero`]: the aerodynamics: normal force, center of pressure and drag.
+//! - [`hpr_sim`]: the flight itself, in six degrees of freedom, with recovery.
+//! - [`hpr_analysis`]: Monte Carlo runs, sensitivity analysis and optimization.
+//! - [`hpr_format`]: HPR's own design format.
+//! - [`hpr_io`]: other programs' files: designs, parts, weather and elevation.
+//! - [`hpr_flightdata`]: flight logs and the readings taken from them, with no simulator.
+//! - [`hpr_forensics`]: a flight log against a simulation of it.
 //!
 //! The `net` feature adds `hpr-net` (as `hpr::hpr_net`). It holds the cache, the offline mode and
 //! the HTTP transport, and these sources:
