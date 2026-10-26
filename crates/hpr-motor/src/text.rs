@@ -22,7 +22,7 @@ pub struct ParseWarning {
 pub enum WarningKind {
     /// A whole motor entry had an error and was left out of the result.
     Skipped,
-    /// A value was dropped or ignored, such as an unknown attribute or a partial mass column.
+    /// A value was left out, such as an unknown attribute or a partial mass column.
     Dropped,
     /// Something unusual was read as it stands, such as a curve that doesn't end at zero thrust.
     Unusual,

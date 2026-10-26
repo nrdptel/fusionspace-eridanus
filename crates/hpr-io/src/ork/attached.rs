@@ -592,8 +592,7 @@ fn pod_set(
         values.warn_at(
             WarningKind::Dropped,
             "an override on a pod set that holds nothing, which OpenRocket weighs at the rocket's \
-             tip; it was left out, and the pod set's own figures are used: no mass and no drag, \
-             as it holds nothing",
+             tip. It was left out, and the pod set's own figures are used: no mass and no drag",
         );
         values.forget(&["overridemass", "overridecg", "overridecd"]);
         values.forget(&OVERRIDE_FLAGS);

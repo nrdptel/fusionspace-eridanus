@@ -30,7 +30,7 @@ pub enum WarningKind {
     /// A whole part of the file was left out of the result, such as an archive entry compressed
     /// by a method this reader does not implement.
     Skipped,
-    /// A value was dropped or ignored.
+    /// A value was left out.
     Dropped,
     /// Something unusual was read as it stands, such as a schema version newer than any documented.
     Unusual,

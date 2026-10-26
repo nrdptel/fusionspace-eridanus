@@ -324,8 +324,8 @@ fn data_branch(branch: &StoredBranch, at: &str, warnings: &mut Vec<Warning>) -> 
             at,
             WarningKind::Dropped,
             format!(
-                "{unfit} row(s) do not have one value per column, {} of them; they were left \
-                 out, and no number HPR Sim works out depends on them",
+                "{unfit} row(s) do not have one value per column, {} of them, so they were left \
+                 out. No number HPR Sim works out depends on them",
                 branch.types.len()
             ),
         ));

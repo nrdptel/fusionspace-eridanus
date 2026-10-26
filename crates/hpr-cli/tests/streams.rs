@@ -215,7 +215,7 @@ fn convert_writes_a_motors_warnings_to_stderr() {
     let printed = split(&["convert", &rse, &eng], cache.path(), &["warning: "]);
     assert!(printed.out.starts_with("read   "), "{}", printed.out);
     assert!(printed.out.contains("\nwrote  h.eng: "), "{}", printed.out);
-    assert!(printed.err.contains(": dropped "), "{}", printed.err);
+    assert!(printed.err.contains(" were left out: "), "{}", printed.err);
 }
 
 #[test]
