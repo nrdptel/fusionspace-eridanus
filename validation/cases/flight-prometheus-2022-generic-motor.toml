@@ -18,9 +18,10 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor, and the speeds to 0.2%
-# (ADR-289). The 3% is the milestone's bar, not a model bound: most metrics agree far inside it. The
-# differences that remain have these sources, measured where stated:
+# Every scored metric is held to the milestone's 3%, with no absolute floor, the speeds to 0.2%
+# (ADR-289) and the rail-exit time to 0.5% (ADR-294). The 3% is the milestone's bar, not a model
+# bound: most metrics agree far inside it. The differences that remain have these sources, measured
+# where stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -101,7 +102,7 @@ relative = 0.03
 relative = 0.002
 
 [metrics.rail_exit_time_s]
-relative = 0.03
+relative = 0.005
 
 [metrics.burnout_altitude_agl_m]
 relative = 0.03

@@ -1370,6 +1370,25 @@ impl Simulation {
         Ok(sample_of(phase, t, y, &evaluation))
     }
 
+    /// [`Self::evaluate`] under `conditions`, written over `out` (left as it was on an error).
+    fn evaluate_into(
+        &self,
+        vehicle: &Vehicle,
+        conditions: Conditions,
+        t: f64,
+        y: &[f64; STATE_LEN],
+        out: &mut Evaluation,
+    ) -> Result<(), SimError> {
+        vehicle.evaluate_into(
+            &self.environment,
+            self.rail.friction_coefficient,
+            conditions,
+            t,
+            y,
+            out,
+        )
+    }
+
     fn evaluate(
         &self,
         vehicle: &Vehicle,
@@ -3411,22 +3430,38 @@ impl PhaseSystem<'_> {
     /// stage and event check.
     fn evaluation(&mut self, t: f64, y: &[f64; STATE_LEN]) -> Result<&Evaluation, SimError> {
         if !matches!(&self.cache, Some((ct, cy, _)) if *ct == t && cy == y) {
-            self.cache = None;
+            let drag_area_m2 = self.canopies.drag_area_m2(t);
+            match &mut self.cache {
+                // Overwritten in place; `out` is untouched on an error, so the entry stays the
+                // evaluation of the state it names.
+                Some((ct, cy, out)) => {
+                    let conditions = Conditions {
+                        phase: self.phase,
+                        window: self.window,
+                        drag_area_m2,
+                    };
+                    self.simulation
+                        .evaluate_into(self.vehicle, conditions, t, y, out)?;
+                    *ct = t;
+                    *cy = *y;
+                }
+                slot @ None => {
+                    let evaluation = self.simulation.evaluate(
+                        self.vehicle,
+                        self.phase,
+                        self.window,
+                        t,
+                        y,
+                        drag_area_m2,
+                    )?;
+                    *slot = Some((t, *y, evaluation));
+                }
+            }
         }
-        let (_, _, evaluation) = match &mut self.cache {
-            Some(entry) => entry,
-            slot @ None => slot.insert((
-                t,
-                *y,
-                self.simulation.evaluate(
-                    self.vehicle,
-                    self.phase,
-                    self.window,
-                    t,
-                    y,
-                    self.canopies.drag_area_m2(t),
-                )?,
-            )),
+        let Some((_, _, evaluation)) = &self.cache else {
+            // An invariant, not an input: a hit found the cache full, and a miss filled it above
+            // or returned the evaluation's error.
+            unreachable!("the evaluation cache is filled just above")
         };
         Ok(evaluation)
     }
@@ -3614,7 +3649,8 @@ struct StepView<'a> {
 
 impl StepView<'_> {
     /// The vehicle's evaluation at `t_s` on this step's dense output, from the memo if it has one.
-    fn evaluation(&self, t_s: f64) -> Result<Evaluation, SimError> {
+    /// Borrowed from the memo (no 600-byte copy out) unless every slot is taken.
+    fn evaluation(&self, t_s: f64) -> Result<EvaluationRef<'_>, SimError> {
         let key = t_s.to_bits();
         #[cfg(test)]
         let shared = !STEP_MEMO_OFF.with(std::cell::Cell::get);
@@ -3624,7 +3660,7 @@ impl StepView<'_> {
         if shared {
             for slot in &self.memo {
                 match slot.get() {
-                    Some((k, e)) if *k == key => return Ok(*e),
+                    Some((k, e)) if *k == key => return Ok(EvaluationRef::Shared(e)),
                     Some(_) => {}
                     None => {
                         free = Some(slot);
@@ -3640,6 +3676,9 @@ impl StepView<'_> {
             .into_iter()
             .flatten()
             .find(|(ht, hy, _)| shared && ht.to_bits() == key && same(hy));
+        if let (Some(slot), Some((_, _, he))) = (free, reused) {
+            return Ok(EvaluationRef::Shared(&slot.get_or_init(|| (key, *he)).1));
+        }
         let e = match reused {
             Some((_, _, he)) => *he,
             None => self.simulation.evaluate(
@@ -3653,9 +3692,25 @@ impl StepView<'_> {
         };
         if let Some(slot) = free {
             // Empty when found, and nothing else fills it in between: the set can't fail.
-            let _ = slot.set((key, e));
+            return Ok(EvaluationRef::Shared(&slot.get_or_init(|| (key, e)).1));
         }
-        Ok(e)
+        Ok(EvaluationRef::Owned(Box::new(e)))
+    }
+}
+
+/// An evaluation read in place from the step's memo, or owned when the memo is full.
+enum EvaluationRef<'a> {
+    Shared(&'a Evaluation),
+    Owned(Box<Evaluation>),
+}
+
+impl std::ops::Deref for EvaluationRef<'_> {
+    type Target = Evaluation;
+    fn deref(&self) -> &Evaluation {
+        match self {
+            Self::Shared(e) => e,
+            Self::Owned(e) => e,
+        }
     }
 }
 

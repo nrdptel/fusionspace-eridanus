@@ -431,6 +431,12 @@ impl SolidMotor {
         (self.propellant_mass_kg * (1.0 - fraction)).max(0.0)
     }
 
+    /// The mass flow at `t`, kg/s: the `mass_flow_kg_s` of [`SolidMotor::state`], `F(t) / v_e`,
+    /// without the grains' shape and the mass elements that call also builds.
+    pub fn mass_flow_kg_s(&self, t: f64) -> f64 {
+        self.curve.thrust_n(t) / self.exhaust_velocity_m_s()
+    }
+
     /// The thrust and mass properties at `t` seconds after ignition. Before ignition the motor is
     /// loaded and after burnout it is empty.
     pub fn state(&self, t: f64) -> MotorState {
@@ -521,6 +527,23 @@ mod tests {
             })
             .sum();
         assert!((burned - 0.3).abs() < 1e-6, "{burned}");
+    }
+
+    #[test]
+    fn the_mass_flow_alone_is_the_states_to_the_bit() {
+        // The flight reads `mass_flow_kg_s` instead of the state's for speed; the two must stay
+        // one expression, or a flight's numbers change with the shortcut.
+        let motor = SolidMotor::from_envelope(curve(), 0.038, 0.25, 0.3, 0.6).unwrap();
+        // The burn on a fine grid, so that even a last-bit change in the expression shows, and
+        // the times before ignition and after burnout.
+        let grid = (0..=1_200).map(|i| f64::from(i) * 1e-3);
+        for t in [-1.0, 5.0].into_iter().chain(grid) {
+            assert_eq!(
+                motor.mass_flow_kg_s(t).to_bits(),
+                motor.state(t).mass_flow_kg_s.to_bits(),
+                "{t}"
+            );
+        }
     }
 
     #[test]

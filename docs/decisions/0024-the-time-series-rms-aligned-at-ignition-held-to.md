@@ -1,6 +1,6 @@
 # ADR-024: The time-series RMS: aligned at ignition, held to 3% of its trace's scale (2026-09-18)
 
-- **Status:** accepted
+- **Status:** accepted; in the six same-drag flights with no written model difference the bounds are 1% of the apogee and 0.5% of the top speed since [ADR-294](0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)
 - **Summary:** The time-series RMS: aligned at ignition, held to 3% of its trace's scale
 
 **Context.** M2.1 lists a "time-series RMS after alignment" among its comparisons, and M2.1a to

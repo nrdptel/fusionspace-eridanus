@@ -17,7 +17,7 @@
 [fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/flight/rocketpy-whole-flight.json
 [descents]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/recovery/rocketpy-descent.json
 [validation]: ../VALIDATION.md
-[ideas]: ../research/ideas.md#the-2026-10-24-planning-review
+[ideas]: ../research/ideas.md
 
 **Context.** A planning review looks for a target already met with room to spare, since raising
 a bar is how a review keeps the project from settling ([ADR-209][adr-209]); the last one

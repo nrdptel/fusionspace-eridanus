@@ -14,7 +14,7 @@
 [adr-212]: 0212-measure-against-openrockets-newest-release.md
 [ork]: ../format/ork.md#checked-in-openrocket
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md
-[ideas]: ../research/ideas.md#the-2026-10-20-planning-review
+[ideas]: ../research/ideas.md
 [i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
 
 **Context.** The planning review of 2026-10-20 looked for a target already met with room to

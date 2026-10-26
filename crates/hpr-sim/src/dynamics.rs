@@ -332,8 +332,24 @@ impl Vehicle {
         state
     }
 
+    /// `evaluate`, written over `out` (left as it was on an error), so a caller that keeps one
+    /// evaluation doesn't pass a 600-byte value back through two returns and a move.
+    pub(crate) fn evaluate_into(
+        &self,
+        environment: &Environment,
+        friction_coefficient: f64,
+        conditions: Conditions,
+        t: f64,
+        y: &[f64; STATE_LEN],
+        out: &mut Evaluation,
+    ) -> Result<(), SimError> {
+        *out = self.evaluate(environment, friction_coefficient, conditions, t, y)?;
+        Ok(())
+    }
+
     /// Evaluates the equations of motion at `(t, y)` under `conditions`: the phase, the motors
     /// burning as its integration interval decides, and the recovery devices open.
+    #[inline(always)]
     pub(crate) fn evaluate(
         &self,
         environment: &Environment,
@@ -423,13 +439,13 @@ impl Vehicle {
                 None => burning.airframe_m2 += terms.area_m2,
                 Some(set) => burning.pods_m2[set] += terms.area_m2,
             }
-            let mdot = -motor.state(t).mass_flow_kg_s;
+            let mdot = -motor.mass_flow_kg_s(t);
             let mddot = if b - a < MIN_DERIVATIVE_INTERVAL_S {
                 0.0
             } else {
                 let h = MASS_DERIVATIVE_STEP_S.min(0.5 * (b - a));
                 let c = t.max(a + h).min(b - h);
-                -(motor.state(c + h).mass_flow_kg_s - motor.state(c - h).mass_flow_kg_s) / (2.0 * h)
+                -(motor.mass_flow_kg_s(c + h) - motor.mass_flow_kg_s(c - h)) / (2.0 * h)
             };
             let lever = terms.nozzle_m - r;
             t03_jet += lever * (2.0 * mdot);
