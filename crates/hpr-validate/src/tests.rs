@@ -300,6 +300,103 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
 }
 
 #[test]
+fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
+    // ADR-294 holds the rail-exit time of the nine same-drag flights to 0.5%, and in the six with
+    // no written model difference the apogee time to 1%, the burnout height to 0.2%, the height
+    // trace to 1% of RocketPy's apogee and the speed trace to 0.5% of its top speed, each trace
+    // bound rounded down to 0.1 m or 0.01 m/s. The largest differences measured were 0.143%,
+    // 0.239%, 0.049%, 0.272% and 0.153% of those scales, each at least 3.2 times inside its bound.
+    // Juno III, Bella Lui and Prometheus 2022 in wind keep 3% on the four others for the causes
+    // their case files measure. A case file widened back, given a floor or marked not scored, or
+    // a new same-drag case added at the old bound, fails here.
+    const WITH_A_CAUSE: [&str; 3] = [
+        "flight-juno-iii",
+        "flight-bella-lui",
+        "flight-prometheus-2022-generic-motor",
+    ];
+    // Each trace's bound, m and m/s: 1% of RocketPy's apogee and 0.5% of its top speed, rounded
+    // down (checked against the reference below).
+    const TRACES: [(&str, f64, f64); 6] = [
+        ("flight-calisto-tests-motor-at-minus-1.373", 26.1, 1.21),
+        ("flight-calisto-tests-motor-at-minus-1.373-calm", 26.1, 1.21),
+        ("flight-valetudo", 7.7, 0.56),
+        ("flight-ndrt-2020-nose-to-tail", 12.1, 0.91),
+        ("flight-juno-iii-calm", 26.2, 1.13),
+        ("flight-bella-lui-calm", 5.4, 0.49),
+    ];
+    let (mut rail_times, mut points, mut traces) = (0, 0, 0);
+    for case in cases() {
+        if !case.id.starts_with("flight-") {
+            continue;
+        }
+        let cause_free = !WITH_A_CAUSE.contains(&case.id.as_str());
+        // RocketPy's value of a metric of this case, from the reference the case names.
+        let reference = |metric: &str| {
+            let text = std::fs::read_to_string(root().join(&case.reference))
+                .expect("the reference is committed");
+            let document: serde_json::Value =
+                serde_json::from_str(&text).expect("the reference is JSON");
+            let name = case.reference_case.as_deref().expect("a flight names its case");
+            document["cases"]
+                .as_array()
+                .and_then(|cases| cases.iter().find(|c| c["name"] == name))
+                .and_then(|c| c["metrics"][metric].as_f64())
+                .unwrap_or_else(|| panic!("{}'s reference has its {metric}", case.id))
+        };
+        for (name, metric) in &case.metrics {
+            let held = match name.as_str() {
+                "rail_exit_time_s" => {
+                    rail_times += 1;
+                    (Some(0.005), None)
+                }
+                "apogee_time_s" if cause_free => {
+                    points += 1;
+                    (Some(0.01), None)
+                }
+                "burnout_altitude_agl_m" if cause_free => {
+                    points += 1;
+                    (Some(0.002), None)
+                }
+                "series_height_rms_m" | "series_speed_rms_m_s" if cause_free => {
+                    traces += 1;
+                    let &(_, height, speed) = TRACES
+                        .iter()
+                        .find(|(id, ..)| *id == case.id)
+                        .unwrap_or_else(|| panic!("{} has its trace bounds listed", case.id));
+                    let (bound, share, step, scale) = if name == "series_height_rms_m" {
+                        (height, 0.01, 0.1, reference("apogee_agl_m"))
+                    } else {
+                        (speed, 0.005, 0.01, reference("max_speed_m_s"))
+                    };
+                    let most = share * scale;
+                    assert!(
+                        bound <= most && most - bound < step,
+                        "{}'s {name} bound {bound} is {share} of {scale} rounded down to {step}",
+                        case.id
+                    );
+                    (None, Some(bound))
+                }
+                _ => continue,
+            };
+            assert_eq!(
+                (
+                    metric.relative,
+                    metric.absolute,
+                    metric.not_scored.as_deref()
+                ),
+                (held.0, held.1, None),
+                "{}'s {name} is held to {held:?} (relative, absolute), with no floor (ADR-294)",
+                case.id
+            );
+        }
+    }
+    // Nine flights carry a rail-exit time; the six with no written cause (Calisto in wind and
+    // calm, Valetudo, NDRT 2020, Juno III and Bella Lui calm) an apogee time, a burnout height and
+    // two traces each.
+    assert_eq!((rail_times, points, traces), (9, 6 * 2, 6 * 2));
+}
+
+#[test]
 fn the_metrics_that_are_not_scored_are_these_and_no_others() {
     // Loft excused its two largest misses as "no single target" (L82). A metric that is measured
     // but not scored is the same move made honestly: it is printed with both numbers and a written

@@ -18,9 +18,11 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor, and the speeds to 0.2%
-# and the apogee to 0.5% (ADR-289). The 3% is the milestone's bar, not a model bound: most metrics
-# agree far inside it. The differences that remain have these sources, measured where stated:
+# Every scored metric is held to the milestone's 3%, with no absolute floor, the speeds to 0.2% and
+# the apogee to 0.5% (ADR-289), and the rail-exit time to 0.5%, the apogee time to 1%, the burnout
+# height to 0.2% and the two traces to 1% and 0.5% of their scales (ADR-294). The 3% is the
+# milestone's bar, not a model bound: most metrics agree far inside it. The differences that remain
+# have these sources, measured where stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -71,7 +73,7 @@ configuration = "example"
 relative = 0.005
 
 [metrics.apogee_time_s]
-relative = 0.03
+relative = 0.01
 
 [metrics.max_speed_m_s]
 relative = 0.002
@@ -92,10 +94,10 @@ relative = 0.03
 relative = 0.002
 
 [metrics.rail_exit_time_s]
-relative = 0.03
+relative = 0.005
 
 [metrics.burnout_altitude_agl_m]
-relative = 0.03
+relative = 0.002
 
 [metrics.burnout_speed_m_s]
 relative = 0.002
@@ -113,12 +115,12 @@ relative = 0.03
 relative = 0.002
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
-# ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held
-# (gated) to 3% of the scale of its trace, the reference's apogee (777.9 m) and max speed
-# (112.6 m/s), rounded down to 0.1: M2.1's 3% for a point metric, applied to a whole trace, so a
-# trace passes only if it is on average no further off than its peak may be.
+# ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. The height
+# is held (gated) to 1% of the reference's apogee (777.9 m) and the speed to 0.5% of its max speed
+# (112.6 m/s), rounded down to 0.1 m and 0.01 m/s (ADR-294). Until then each was held to 3% of its
+# scale: M2.1's 3% for a point metric, applied to a whole trace.
 [metrics.series_height_rms_m]
-absolute = 23.3
+absolute = 7.7
 
 [metrics.series_speed_rms_m_s]
-absolute = 3.3
+absolute = 0.56

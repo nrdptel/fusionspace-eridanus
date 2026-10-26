@@ -94,8 +94,8 @@ to the code that would move them is caught only when someone runs them again and
 
 | compared with | kind | held to | flights (speed) | result |
 |---|---|---|---|---|
-| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, at most 3%; landing speed 0.2% | 5 descents | 30 of 30 gated metrics pass |
-| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, at most 3%; four speeds 0.2%, six apogees 0.5% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
+| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, 0.2% to 3% | 5 descents | 30 of 30 gated metrics pass |
+| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, 0.2% to 3% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: 3% on each metric, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2 calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2 calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2 calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2 calibers on 35 of 35 |
@@ -470,7 +470,8 @@ Prometheus 2022's drifts differ by −7.292% and +4.505%, from body lift and the
 landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
-Four speeds must agree within 0.2%, six apogees within 0.5% ([the tighter gates][adr-289]).
+Speeds and six burnout heights must agree within 0.2%, rail-exit times and six apogees within
+0.5%, and six apogee times within 1% ([the tighter gates][adr-289], [more][adr-294]).
 Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
@@ -562,29 +563,29 @@ long descent weighs most. A difference during the burn shows in the burnout and 
 instead.
 
 Exact agreement would give 0, so these two are in meters and meters per second, not percentages.
-Each is held to 3% of RocketPy's apogee (for height) or top speed (for speed). That's
-[the validation milestone's](decisions-and-roadmap.md#m2-1) 3% for one number, applied to the
-whole trace ([case file][juno-case]).
+Each is held to 3% of RocketPy's apogee (for height) or top speed (for speed), or 1% and 0.5%
+([more][adr-294]). That's [the validation milestone's](decisions-and-roadmap.md#m2-1) 3% for one
+number, applied to the whole trace ([case file][juno-case]).
 
 All nine flights pass, each well inside its bound. The largest height RMS is Prometheus 2022's,
 35.350931 m (115.98074 ft), about a third of its 110.3 m (362 ft) bound. Its apogee is also the
 furthest off, +1.208%. Body lift accounts for that too. RocketPy flown with HPR Sim's body lift and
 rail release reaches 3723.8 m (12,217 ft), against HPR Sim's 3723.6 ([case file][prometheus-case]).
 Juno III's height RMS is 14.550622 m (47.73826 ft) against 78.4 m (257 ft), about a fifth. The
-other seven are at an eighth of theirs or less. The speed RMS runs from 0.022685 to 1.553509 m/s
+rest are under three tenths of theirs. The speed RMS runs from 0.022685 to 1.553509 m/s
 (0.07443 to 5.09681 ft/s, [report][report]).
 
 | case | `series_height_rms_m` | height bound, m | `series_speed_rms_m_s` | speed bound, m/s |
 |---|--:|--:|--:|--:|
-| [`flight-calisto-tests-motor-at-minus-1.373`][report] | +1.837754 | 78.3 | +0.058007 | 7.3 |
-| [`flight-valetudo`][report] | +2.115503 | 23.3 | +0.171627 | 3.3 |
-| [`flight-ndrt-2020-nose-to-tail`][report] | +2.425247 | 36.4 | +0.124657 | 5.4 |
+| [`flight-calisto-tests-motor-at-minus-1.373`][report] | +1.837754 | 26.1 | +0.058007 | 1.21 |
+| [`flight-valetudo`][report] | +2.115503 | 7.7 | +0.171627 | 0.56 |
+| [`flight-ndrt-2020-nose-to-tail`][report] | +2.425247 | 12.1 | +0.124657 | 0.91 |
 | [`flight-prometheus-2022-generic-motor`][report] | +35.350931 | 110.3 | +1.553509 | 10 |
 | [`flight-juno-iii`][report] | +14.550622 | 78.4 | +0.810392 | 6.7 |
 | [`flight-bella-lui`][report] | +1.657682 | 15.9 | +0.273966 | 2.9 |
-| [`flight-juno-iii-calm`][report] | +2.003892 | 78.6 | +0.065810 | 6.8 |
-| [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | +1.821296 | 78.4 | +0.051504 | 7.3 |
-| [`flight-bella-lui-calm`][report] | +0.089668 | 16.2 | +0.022685 | 2.9 |
+| [`flight-juno-iii-calm`][report] | +2.003892 | 26.2 | +0.065810 | 1.13 |
+| [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | +1.821296 | 26.1 | +0.051504 | 1.21 |
+| [`flight-bella-lui-calm`][report] | +0.089668 | 5.4 | +0.022685 | 0.49 |
 
 What the two codes still do differently, and what it moves:
 
@@ -1186,6 +1187,7 @@ rest.
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
