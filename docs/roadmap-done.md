@@ -79,6 +79,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
 - M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
+- M0.9f1 Joined names and long warnings ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
 - M0.8a The simulator's guide ([Phase 0](#phase-0-foundations))
@@ -590,6 +591,13 @@ One line per milestone or increment, in the order it was archived within its pha
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
     hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow
     `writing.md`'s order with the version; the audit's rows name the checks.
+  - **M0.9f** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+    - [x] **M0.9f1 Joined names and long warnings.** *Done when:* a check of the site and the
+      README fails on an en dash between words (ADR-295 §4), and every page and the README pass
+      it; a test fails on an `hpr sim` warning sentence over 40 words, in every issue warning
+      built at its longest and in what `hpr sim` prints for the committed designs it flies
+      offline (ADR-295 §5), and all pass;
+      the audit's *Names* row names the check.
 - [x] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the

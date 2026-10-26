@@ -466,7 +466,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d13"></a>[M0.9d13][done-0] | The pages' sheets and trust | done |
 | <a id="m0-9e"></a>[M0.9e][done-0] | The words to the design | done |
 | <a id="m0-9f"></a>[M0.9f][phase-0] | The rest of the words | not yet done |
-| <a id="m0-9f1"></a>[M0.9f1][phase-0] | Joined names and long warnings | not yet done |
+| <a id="m0-9f1"></a>[M0.9f1][done-0] | Joined names and long warnings | done |
 | <a id="m0-9f2"></a>[M0.9f2][phase-0] | Short notes and cells, labeled heads | not yet done |
 | <a id="m0-9f3"></a>[M0.9f3][phase-0] | Grouped figures, prose dates and known digits | not yet done |
 | <a id="m0-9f4"></a>[M0.9f4][phase-0] | Units held to their figures | not yet done |
