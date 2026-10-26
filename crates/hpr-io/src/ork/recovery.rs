@@ -38,9 +38,10 @@ use serde::{Deserialize, Serialize};
 
 use super::component::subcomponents;
 use super::document::Element;
+use super::left_out::NOTHING_DEPENDS;
 use super::motors::stage_of;
 use super::value::{Dimension, Values};
-use super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
+use super::warning::{Warning, WarningKind};
 
 /// The path segment every warning about when a device deploys carries, so that
 /// [`super::design`] can tell it from one about the airframe: recovery is read here, and flown by

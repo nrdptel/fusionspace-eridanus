@@ -56,7 +56,7 @@ pub use bundled::{BUNDLED_FILES, bundled};
 
 use serde::{Deserialize, Serialize};
 
-use crate::ork::NOTHING_DEPENDS;
+use crate::ork::{NOTHING_DEPENDS, nothing_depends};
 
 /// The most characters of a file's text a warning or an error quotes.
 const QUOTE_LIMIT: usize = 64;
@@ -551,11 +551,10 @@ pub fn read(text: &str, file: &str) -> Result<CatalogFile, OrcError> {
             file,
             WarningKind::Ignored,
             format!(
-                "{} beside the catalog's lists {} left out, and no number HPR Sim works out \
-                 depends on {}",
+                "{} beside the catalog's lists {} left out, and {}",
                 listed(&ignored),
                 if ignored.len() == 1 { "was" } else { "were" },
-                if ignored.len() == 1 { "it" } else { "them" }
+                nothing_depends(ignored.len())
             ),
         );
     }
@@ -932,8 +931,7 @@ fn read_part(
             &at,
             WarningKind::Ignored,
             format!(
-                "{} {} not a field of a <{tag}> OpenRocket reads; {} left out, and no number \
-                 HPR Sim works out depends on {}",
+                "{} {} not a field of a <{tag}> OpenRocket reads; {} left out, and {}",
                 listed(&unknown),
                 if unknown.len() == 1 { "is" } else { "are" },
                 if unknown.len() == 1 {
@@ -941,7 +939,7 @@ fn read_part(
                 } else {
                     "they were"
                 },
-                if unknown.len() == 1 { "it" } else { "them" }
+                nothing_depends(unknown.len())
             ),
         );
     }

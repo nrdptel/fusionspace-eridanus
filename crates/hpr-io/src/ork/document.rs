@@ -11,7 +11,8 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use super::error::OrkError;
-use super::warning::{Imported, NOTHING_DEPENDS, Warning, WarningKind};
+use super::left_out::NOTHING_DEPENDS;
+use super::warning::{Imported, Warning, WarningKind};
 
 /// The `.ork` schema versions this reader knows, as `1.0` up to and including `1.MAX_KNOWN_MINOR`.
 ///

@@ -29,7 +29,8 @@ use std::io::{Cursor, Write as _};
 use super::container::Attachment;
 use super::document::{Document, SchemaVersion};
 use super::error::OrkError;
-use super::warning::{Imported, NOTHING_DEPENDS, Warning};
+use super::left_out::NOTHING_DEPENDS;
+use super::warning::{Imported, Warning};
 use super::{Design, MAX_KNOWN_MINOR};
 use xml::Build as _;
 

@@ -34,8 +34,9 @@
 use serde::{Deserialize, Serialize};
 
 use super::document::{Document, Element};
+use super::left_out::{NOTHING_DEPENDS, nothing_depends};
 use super::value::Values;
-use super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
+use super::warning::{Warning, WarningKind};
 
 /// A simulation stored in a `.ork`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -834,9 +835,11 @@ fn branch(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> StoredBra
             at,
             WarningKind::Dropped,
             format!(
-                "{dropped} `datapoint` row(s) are not {} numbers, one per column; they were left \
-                 out, and no number HPR Sim works out depends on them",
-                types.len()
+                "{dropped} `datapoint` row(s) are not {} numbers, one per column; {} left out, \
+                 and {}",
+                types.len(),
+                if dropped == 1 { "it was" } else { "they were" },
+                nothing_depends(dropped)
             ),
         ));
     }

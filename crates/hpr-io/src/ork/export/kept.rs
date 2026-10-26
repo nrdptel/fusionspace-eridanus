@@ -22,7 +22,8 @@
 
 use super::super::document::{Document, Element, Node};
 use super::super::extensions::{OpenRocketExtension, tag_key};
-use super::super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
+use super::super::left_out::NOTHING_DEPENDS;
+use super::super::warning::{Warning, WarningKind};
 use super::xml::{Build as _, element};
 
 /// A part's catalog preset: the one tag whose place OpenRocket reads meaning into.

@@ -41,10 +41,11 @@ use super::component::{
     subcomponents,
 };
 use super::document::Element;
+use super::left_out::{Around, Counted, Covered, Lean, NOTHING_DEPENDS, spoken};
 use super::motors;
 use super::recovery;
-use super::value::{AXIAL_OFFSET, INSTANCE_COUNT, OVERRIDE_FLAGS, Values};
-use super::warning::{Counted, NOTHING_DEPENDS, Warning, WarningKind};
+use super::value::{AXIAL_OFFSET, Dimension, INSTANCE_COUNT, OVERRIDE_FLAGS, Values};
+use super::warning::{Warning, WarningKind};
 
 /// The tags that hang off the spine and hold another part inside them.
 const TUBES: [&str; 3] = ["innertube", "tubecoupler", "engineblock"];
@@ -89,64 +90,121 @@ fn nested(element: &Element) -> usize {
     subcomponents(element).map(|child| 1 + nested(child)).sum()
 }
 
-/// What a part left out takes with it, at any depth: the most any of it counted for
-/// ([`Counted`]'s order).
-fn counted(element: &Element) -> Counted {
-    subcomponents(element)
-        .map(counted)
-        .fold(Counted::of_tag(&element.name), Ord::max)
-}
-
-/// What follows "it was left out" for `element`: `", and the 2 parts inside it"`, or nothing
-/// when there are none, then what that leaves out of the numbers ([`Counted::sentence`]).
-fn and_what_was_inside(element: &Element) -> String {
-    let inside = match nested(element) {
+/// What follows "it was left out" for `element`, with `around` around it: `", and the 2 parts
+/// inside it"`, or nothing when there are none, then what that leaves out of the numbers
+/// ([`Lean::sentence`]).
+fn and_what_was_inside(element: &Element, around: &Around) -> String {
+    let nested = nested(element);
+    let inside = match nested {
         0 => String::new(),
         1 => ", and the one part inside it".to_owned(),
         many => format!(", and the {many} parts inside it"),
     };
     format!(
         "{inside}.{}",
-        counted(element).sentence(nested(element) > 0)
+        Lean::new(Counted::of_element(element), around).sentence(nested > 0)
     )
 }
 
-/// A part kind's name as a reader would say it: `inner tube`, not `inner_tube`.
-fn spoken(part: &Part) -> String {
-    part.kind_name().replace('_', " ")
+/// A part a reader left out by its tag, which no milestone reads yet, and what leaving it out
+/// does to the numbers: the caller tallies them in one warning.
+#[derive(Debug, Clone)]
+pub(super) struct Unread {
+    /// The tag.
+    pub(super) tag: String,
+    /// What leaving it out, and everything inside it, does.
+    pub(super) lean: Lean,
+    /// How many parts that is: it and everything inside it.
+    pub(super) parts: usize,
+}
+
+impl Unread {
+    /// `element`, left out with `around` around it.
+    pub(super) fn new(element: &Element, around: &Around) -> Self {
+        Self {
+            tag: element.name.clone(),
+            lean: Lean::new(Counted::of_element(element), around),
+            parts: 1 + nested(element),
+        }
+    }
+}
+
+/// What a part's parent passes down to the parts in it.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Parent<'p> {
+    /// What the parent was read as, which decides two things a child cannot decide for itself:
+    /// whether an external part may attach here at all, and whether an automatic radius has a
+    /// bore to take.
+    pub(super) part: &'p Part,
+    /// Which of its dimensions were automatic, which a pod set's distance from the axis needs to
+    /// know ([`pod_set`]).
+    pub(super) auto: &'p [AutoDimension],
+    /// What the overrides on it and above it set for everything in it, which a warning leaving a
+    /// part out says stays as it was ([`Covered`]).
+    pub(super) covered: &'p Covered,
+}
+
+/// Whether a part beside `child`, among `siblings`, takes a size from it: a centering ring whose
+/// bore is automatic takes the widest inner tube beside it
+/// ([`AutoDimension::InnerRadius`]), so without the tube the ring can close.
+fn sized_from(child: &Element, siblings: &[&Element]) -> bool {
+    TUBES.contains(&child.name.as_str())
+        && siblings.iter().any(|sibling| {
+            sibling.name == "centeringring"
+                && sibling
+                    .child("innerradius")
+                    .and_then(|radius| Dimension::parse(&radius.text()))
+                    .is_some_and(Dimension::is_automatic)
+        })
+}
+
+/// Whether the part after `siblings[index]` is placed after it, so that it moves when that part
+/// goes.
+fn placed_after(siblings: &[&Element], index: usize) -> bool {
+    siblings.get(index + 1).is_some_and(|next| {
+        AXIAL_OFFSET
+            .iter()
+            .find_map(|name| next.child(name))
+            .and_then(|offset| {
+                offset
+                    .attribute("method")
+                    .or_else(|| offset.attribute("type"))
+            })
+            == Some("after")
+    })
 }
 
 /// Reads everything in `element`'s `<subcomponents>` that belongs to a body component or a tube.
 ///
-/// `parent` is what the parent was read as, which decides two things a child cannot decide for
-/// itself: whether an external part may attach here at all, and whether an automatic radius has a
-/// bore to take. `parent_auto` is which of its dimensions were automatic, which a pod set's
-/// distance from the axis needs to know ([`pod_set`]). Anything left out is counted into
+/// `parent` is what the parent passes down ([`Parent`]). Anything left out is counted into
 /// `skipped` or warned about, never dropped in silence.
 pub(super) fn children(
     element: &Element,
-    parent: &Part,
-    parent_auto: &[AutoDimension],
+    parent: Parent<'_>,
     at: &str,
     ids: &mut Ids,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
 ) -> Vec<Component> {
     let mut components = Vec::new();
-    for (index, child) in subcomponents(element).enumerate() {
+    let siblings: Vec<&Element> = subcomponents(element).collect();
+    for (index, &child) in siblings.iter().enumerate() {
         let at = format!("{at}/{}[{index}]", child.name);
+        let around = Around {
+            covered: parent.covered.clone(),
+            sizes: sized_from(child, &siblings),
+            places: placed_after(&siblings, index),
+        };
         let read = if child.name == "podset" {
-            pod_set(child, parent, parent_auto, &at, ids, skipped, warnings)
+            pod_set(child, parent, &around, &at, ids, skipped, warnings)
         } else if child.name == "parallelstage" {
             // A stage of its own, beside this tube: the stage reader takes it from `ids`.
-            if let Some(stage) =
-                parallel_stage(child, parent, parent_auto, &at, ids, skipped, warnings)
-            {
+            if let Some(stage) = parallel_stage(child, parent, &at, ids, skipped, warnings) {
                 ids.parallel.push(stage);
             }
             continue;
         } else {
-            one(child, parent, parent_auto, &at, ids, skipped, warnings)
+            one(child, parent, &around, &at, ids, skipped, warnings)
         };
         match read {
             Some(component) => components.push(component),
@@ -154,7 +212,7 @@ pub(super) fn children(
             // only a tag no milestone reads yet goes into the tally.
             None => {
                 if !ATTACHED_TAGS.contains(&child.name.as_str()) {
-                    skipped.push(child.name.clone());
+                    skipped.push(Unread::new(child, &around));
                 }
             }
         }
@@ -165,18 +223,19 @@ pub(super) fn children(
 /// Reads one attached part, or leaves it out.
 fn one(
     element: &Element,
-    parent: &Part,
-    parent_auto: &[AutoDimension],
+    above: Parent<'_>,
+    around: &Around,
     at: &str,
     ids: &mut Ids,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
 ) -> Option<Component> {
+    let (parent, parent_auto) = (above.part, above.auto);
     let mut auto = Vec::new();
     let mut values = Values::new(element, at, warnings);
     // What a warning that leaves this part out says next: the parts inside it, and what that
     // leaves out of the numbers.
-    let left_out = and_what_was_inside(element);
+    let left_out = and_what_was_inside(element, around);
     let part = match element.name.as_str() {
         tag if TUBES.contains(&tag) => inner_tube(tag, &mut values, &mut auto, &left_out),
         "centeringring" => ring(&mut values, &mut auto, true, &left_out),
@@ -295,8 +354,18 @@ fn one(
     // Only a tube holds other parts. `hpr-design` says the same, so anything written inside
     // another kind is said out loud here rather than tallied with the parallel stages, whose tally
     // carries a message about a spine of their own. Nothing in the reference library does this.
+    // Everything inside this part is covered by what covers it, and by its own override when that
+    // covers what it holds.
+    let covered = above
+        .covered
+        .within(&spoken(&part), &overrides, include_children, drag_override);
     let children = if matches!(part, Part::InnerTube(_)) {
-        children(element, &part, &auto, at, ids, skipped, warnings)
+        let inside = Parent {
+            part: &part,
+            auto: &auto,
+            covered: &covered,
+        };
+        children(element, inside, at, ids, skipped, warnings)
     } else {
         if subcomponents(element).next().is_some() {
             let kind = spoken(&part);
@@ -304,15 +373,19 @@ fn one(
                 1 => ("the one part inside it was".to_owned(), false),
                 many => (format!("the {many} parts inside it were"), true),
             };
+            // They go together, and the part that held them stays: nothing beside them changes.
             let counted = subcomponents(element)
-                .map(counted)
-                .max()
-                .unwrap_or(Counted::Unknown);
+                .map(Counted::of_element)
+                .fold(Counted::NOTHING, std::ops::BitOr::bitor);
+            let around = Around {
+                covered,
+                ..Around::default()
+            };
             values.warn_at(
                 WarningKind::Skipped,
                 format!(
                     "a {kind} holds no parts in HPR Sim, so {what} left out.{}",
-                    counted.sentence(many)
+                    Lean::new(counted, &around).sentence(many)
                 ),
             );
         }
@@ -383,13 +456,15 @@ fn one(
 /// number OpenRocket cached for it is taken, and said; with none cached, the pod set is left out.
 fn pod_set(
     element: &Element,
-    parent: &Part,
-    parent_auto: &[AutoDimension],
+    above: Parent<'_>,
+    around: &Around,
     at: &str,
     ids: &mut Ids,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
 ) -> Option<Component> {
+    let (parent, parent_auto) = (above.part, above.auto);
+    let left_out = and_what_was_inside(element, around);
     let mut values = Values::new(element, at, warnings);
     let Part::BodyTube(tube) = parent else {
         values.warn_at(
@@ -398,7 +473,7 @@ fn pod_set(
                 "a pod set hangs from a {}, and HPR Sim hangs one only from a body tube; it was left \
                  out{}",
                 spoken(parent),
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -410,12 +485,12 @@ fn pod_set(
             WarningKind::Skipped,
             format!(
                 "a pod set inside a pod, which HPR Sim does not nest; it was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
     }
-    let count = instances(&mut values, "pod set", &and_what_was_inside(element))?;
+    let count = instances(&mut values, "pod set", &left_out)?;
     let name = values.word(&["name"]).unwrap_or_default();
     let position = position(&mut values);
     let (mut overrides, include_children, mut drag_override) = overrides(&mut values);
@@ -425,20 +500,33 @@ fn pod_set(
         .map(|offset| offset.attribute("method").unwrap_or("relative").to_owned());
     let number = values.number(&["radiusoffset"]);
     let id = ids.take(&mut Values::new(element, at, warnings), &element.name);
+    // A pod set weighs nothing of its own, so its override always covers its pods (below).
+    let kind = if element.name == "parallelstage" {
+        "parallel stage"
+    } else {
+        "pod set"
+    };
+    let covered = around.covered.within(kind, &overrides, true, drag_override);
 
     let mut pods = Vec::new();
     for (index, child) in subcomponents(element).enumerate() {
         let at = format!("{at}/{}[{index}]", child.name);
         if BODY_TAGS.contains(&child.name.as_str()) {
-            pods.push(body(child, &at, ids, skipped, warnings).0);
+            pods.push(body(child, &at, ids, skipped, warnings, &covered).0);
         } else {
+            let left_out = and_what_was_inside(
+                child,
+                &Around {
+                    covered: covered.clone(),
+                    ..Around::default()
+                },
+            );
             let tag = child.name.clone();
             Values::new(child, &at, warnings).warn_at(
                 WarningKind::Skipped,
                 format!(
                     "a `{tag}` directly inside a pod set, where HPR Sim's pod is a stack of nose \
-                     cones, body tubes and transitions. It was left out{}",
-                    and_what_was_inside(child)
+                     cones, body tubes and transitions. It was left out{left_out}"
                 ),
             );
         }
@@ -457,7 +545,7 @@ fn pod_set(
             format!(
                 "a pod with a nose cone or transition of no length, or a part of negative length, \
                  which HPR Sim cannot lay out. The pod set was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -473,7 +561,7 @@ fn pod_set(
             format!(
                 "a pod's tube of no length with a part inside it, where it has no room; the pod set \
                  was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -503,7 +591,7 @@ fn pod_set(
             format!(
                 "a pod whose radii are all automatic, with no fixed radius in the pod to take; \
                  the pod set was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -524,7 +612,7 @@ fn pod_set(
             format!(
                 "a `free` `radiusoffset` with no number, so where the pods sit is not known; the \
                  pod set was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -554,7 +642,7 @@ fn pod_set(
                     "the tube's radius is automatic with no number cached, and HPR Sim places pods at \
                      a fixed distance from the axis. So where they sit is not known. The pod set \
                      was left out{}",
-                    and_what_was_inside(element)
+                    left_out
                 ),
             );
             return None;
@@ -577,7 +665,7 @@ fn pod_set(
             format!(
                 "the pods would sit {radial_offset_m} m from the axis, which is no distance; the \
                  pod set was left out{}",
-                and_what_was_inside(element)
+                left_out
             ),
         );
         return None;
@@ -613,18 +701,25 @@ fn pod_set(
             Part::BodyTube(tube) => tube.outer_radius_m,
             _ => 0.0,
         };
+        // The tab is part of the fins' own mass, so their own override covers it.
+        let pod_covered = covered.within_component(pod);
         for child in &mut pod.children {
+            let tab_covered = pod_covered.within("fin set", &child.overrides, true, None);
             if let Part::FinSet(fins) = &mut child.part
                 && fins.tab.as_ref().is_some_and(|tab| tab.height_m > radius_m)
             {
                 fins.tab = None;
+                let around = Around {
+                    covered: tab_covered,
+                    ..Around::default()
+                };
                 values.warn_at(
                     WarningKind::Dropped,
                     format!(
                         "a tab on the fins `{}` on a pod's tube of no length, deeper than the \
                          tube's radius ({radius_m} m). The tab was left out.{}",
                         child.id,
-                        Counted::Mass.sentence(false)
+                        Lean::new(Counted::MASS, &around).sentence(false)
                     ),
                 );
             }
@@ -665,19 +760,26 @@ fn pod_set(
 /// is left out.
 fn parallel_stage(
     element: &Element,
-    parent: &Part,
-    parent_auto: &[AutoDimension],
+    parent: Parent<'_>,
     at: &str,
     ids: &mut Ids,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
 ) -> Option<Stage> {
+    // A stage of its own: `hpr-design` places it beside the tube, so no override on the tube or
+    // above it covers it, and no part beside it is placed after it (one placed after the part
+    // before it is left out below).
+    let around = Around::default();
+    let parent = Parent {
+        covered: &around.covered,
+        ..parent
+    };
     let leave_out = |why: &str, warnings: &mut Vec<Warning>| {
         Values::new(element, at, warnings).warn_at(
             WarningKind::Skipped,
             format!(
                 "a parallel stage {why}, which HPR Sim does not read yet; it was left out{}",
-                and_what_was_inside(element)
+                and_what_was_inside(element, &around)
             ),
         );
     };
@@ -705,7 +807,7 @@ fn parallel_stage(
         return None;
     }
     let first = warnings.len();
-    let pods = pod_set(element, parent, parent_auto, at, ids, skipped, warnings);
+    let pods = pod_set(element, parent, &around, at, ids, skipped, warnings);
     for warning in &mut warnings[first..] {
         if warning.at == at {
             warning.message = warning.message.replace("pod set", "parallel stage");

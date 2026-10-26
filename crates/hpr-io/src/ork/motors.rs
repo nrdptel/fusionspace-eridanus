@@ -46,8 +46,9 @@ use super::staging::{self, Staging};
 use super::component::subcomponents;
 use super::container::Attachment;
 use super::document::Element;
+use super::left_out::NOTHING_DEPENDS;
 use super::value::Values;
-use super::warning::{ANOTHER_CURVE, AS_IF_NOT_GIVEN, NOTHING_DEPENDS, Warning, WarningKind};
+use super::warning::{ANOTHER_CURVE, Warning, WarningKind};
 
 /// Where a `<motor>` element's thrust curve came from.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -600,6 +601,12 @@ fn motor(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> MotorRead 
     }
 }
 
+/// What follows a `<delay>` left out: a motor whose file gives no delay fires no ejection charge
+/// (`hpr::ork::recovery`'s `NeverDeploys::NoEjectionCharge`), so a device set to open at its
+/// stage's charge never opens unless another motor of that stage fires one.
+const NO_CHARGE: &str = "This motor fires no ejection charge, as if plugged, so a device set to \
+                         open at its stage's charge opens only on another motor's";
+
 /// A `<delay>`: `none` is a plugged motor, a number the seconds to the ejection charge.
 fn delay(text: &str, values: &mut Values<'_>) -> Option<Delay> {
     if text.eq_ignore_ascii_case("none") {
@@ -611,8 +618,8 @@ fn delay(text: &str, values: &mut Values<'_>) -> Option<Delay> {
             values.warn_at(
                 WarningKind::Dropped,
                 format!(
-                    "`delay` says `{text}`, which is neither `none` nor a delay; it was left out, \
-                     {AS_IF_NOT_GIVEN}"
+                    "`delay` says `{text}`, which is neither `none` nor a delay; it was left out. \
+                     {NO_CHARGE}"
                 ),
             );
             values.forget(&["delay"]);

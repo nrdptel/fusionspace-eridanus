@@ -22,11 +22,12 @@
 
 use super::super::Design;
 use super::super::document::Element;
+use super::super::left_out::{NOTHING_DEPENDS, nothing_depends};
 use super::super::simulations::{
     Atmosphere, LaunchConditions, StoredBranch, StoredEvent, StoredResults, StoredSimulation,
     WindLevel,
 };
-use super::super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
+use super::super::warning::{Warning, WarningKind};
 use super::xml::{self, Build as _};
 
 /// The path of the `<simulations>` element, as warnings and kept items give it.
@@ -324,9 +325,11 @@ fn data_branch(branch: &StoredBranch, at: &str, warnings: &mut Vec<Warning>) -> 
             at,
             WarningKind::Dropped,
             format!(
-                "{unfit} row(s) do not have one value per column, {} of them, so they were left \
-                 out. No number HPR Sim works out depends on them",
-                branch.types.len()
+                "{unfit} row(s) do not have one value per column, {} of them, so {} left out, and \
+                 {}",
+                branch.types.len(),
+                if unfit == 1 { "it was" } else { "they were" },
+                nothing_depends(unfit)
             ),
         ));
     }
