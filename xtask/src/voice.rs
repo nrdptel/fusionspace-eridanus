@@ -1011,7 +1011,8 @@ fn sets_doc(text: &str) -> bool {
 
 /// How many brackets are open after `text`, starting from `open`: each `[` opens one and each `]`
 /// closes one, except inside a string literal or after a `//` comment starts. A raw string or a
-/// character literal, whose end this doesn't find, is an error.
+/// character literal, whose end this doesn't find, is an error, and so is a `//!` or a `/*` on
+/// the line, which rustdoc may read as docs.
 fn brackets_open(text: &str, mut open: usize) -> Result<usize, String> {
     let mut quoted = false;
     let mut escaped = false;
@@ -1045,6 +1046,9 @@ fn brackets_open(text: &str, mut open: usize) -> Result<usize, String> {
             '"' => quoted = true,
             '[' => open += 1,
             ']' => open = open.saturating_sub(1),
+            '/' if next(1) == Some('/') && next(2) == Some('!') || next(1) == Some('*') => {
+                return Err("a doc or block comment on an inner attribute's line".to_owned());
+            }
             '/' if next(1) == Some('/') => break,
             _ => {}
         }
@@ -3633,6 +3637,8 @@ mod tests {
             "#![allow(\n    clippy::x,\n//! Docs.\n",
             "/*! Docs. */\n",
             "//! Docs.\n/* A note. */\n",
+            "#![allow(x)] //! Docs on the attribute's line.\n",
+            "#![allow(x /* ] */)]\n//! Docs.\n",
         ] {
             let error = front_page(unread).unwrap_err();
             assert!(error.contains("can't read"), "{unread:?}: {error}");
