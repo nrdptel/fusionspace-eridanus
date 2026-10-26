@@ -273,7 +273,7 @@ The margin's checks, case by case:
   OpenRocket's. HPR Sim gives 0.79 calibers to OpenRocket's 1.87 calibers. Neither program has been
   checked against a measured tube-fin rocket. Check such a design in both, and treat the smaller
   margin as the more cautious figure, not a bound.
-- On the five flights of the pods-and-winglets example, *Pods--airframes and winglets*, HPR Sim's
+- On the five flights of the pods-and-winglets example, *Pods-\-airframes and winglets*, HPR Sim's
   margin is 0.071 to 0.076 calibers *above* OpenRocket's. That's the flattering side: HPR Sim calls
   the rocket more stable than OpenRocket does. Two causes are open. One is how the two programs
   count fins that interfere across sets
@@ -284,7 +284,7 @@ The margin's checks, case by case:
   A flight whose fin sets share a station, more than four fins between them, warns of #325. A
   flight with a freeform fin set warns of #326. On a design with pods or freeform fins, check the
   margin in both. Treat the smaller as the more cautious figure, not a bound. The three flights of
-  *Pods--powered with recovery deployment* read 0.070 calibers above OpenRocket's too, cause not
+  *Pods-\-powered with recovery deployment* read 0.070 calibers above OpenRocket's too, cause not
   yet traced.
 - On 35 flights of 11 private designs, HPR Sim's margin runs from 0.0166 calibers below
   OpenRocket's to 0.1108 above. Four designs read 0.0350 to 0.1108 calibers more stable in HPR Sim

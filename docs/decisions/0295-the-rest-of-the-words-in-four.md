@@ -38,7 +38,9 @@ Of `hpr sim`'s warnings, the issue warnings are composed at run time, so the mes
 wind's first sentence (about 43 words with four spans) and the body-damping station's when a
 flight has more than one join.
 
-The search index is 71 bytes under mdBook's 10 MB warning, which the site check fails on (#414).
+The search index, the file behind the site's search box, is 71 bytes under mdBook's 10 MB warning.
+The site check fails a build past that warning; #414 is the issue for a search that grows with the
+site.
 A grouping comma adds a byte, and "October 4, 2026" five more than `2026-10-04`. A no-break space
 (U+00A0) is two bytes in UTF-8 against a space's one, so 6,344 of them in the pages' text would
 add up to 6.3 KB.
@@ -57,7 +59,7 @@ add up to 6.3 KB.
 2. **The order follows the index.** M0.9f1 takes bytes out: a hyphen is one byte, an en dash
    three. M0.9f2 cuts long notes and cells, which makes room for M0.9f3's commas and dates. M0.9f4
    costs the index nothing, as §3 says. An increment that still crosses the warning trims its own
-   words, as #902 did, until #414 lands.
+   words until #414 lands, as M0.14c5 did (#902): it stated one fact once instead of three times.
 3. **The no-break space is joined in the built pages.** After mdBook builds the site, `cargo
    xtask site` already rewrites its pages (the notes, `notes::draw`). M0.9f4 adds a pass there that
    joins each figure to its unit with U+00A0 in the pages' text, never in code. The search index,
@@ -65,21 +67,33 @@ add up to 6.3 KB.
    reads the built pages, so it also fails a pair the pass missed, such as a figure and a unit in
    different tags. The README is shown by GitHub and crates.io, which run no such pass, so it gets
    the no-break space in its source.
-4. **What each increment's check reads.** Each check reads every page of the site and the two
-   READMEs, the project's and the Python package's. Like the minus-sign check ([ADR-239][adr-239]
-   §3), it reads the text as it renders, never code.
+4. **What each increment's check reads.** Each check reads every page the site's contents list
+   and the two READMEs, the project's and the Python package's. Like the minus-sign check
+   ([ADR-239][adr-239] §3), it reads the text as it renders, never code. The API reference, which
+   rustdoc builds from the crates' doc comments, is left out, as it is from the minus-sign check;
+   its comments still hold joined names (`Dormand–Prince`, `Gauss–Kronrod`).
    M0.9f1's en-dash rule fails a dash with a word of two or more letters on each side, since
    `writing.md` keeps the en dash for ranges. A range of figures (`0.3–0.5`) or of single letters
-   (`H–O`, motor classes) passes. The joined names take a hyphen (`Dormand-Prince`).
-5. **M0.9f1's test.** The 40-word limit holds each sentence of every issue warning `hpr sim` can
+   (`H–O`, motor classes) passes. The joined names take a hyphen (`Dormand-Prince`). The site's
+   pages are read as mdBook renders them, with smart punctuation, which shows a `--` as an en
+   dash: OpenRocket's examples *Pods-\-powered with recovery deployment* and *Pods-\-airframes
+   and winglets*, 61 times on the site, reached readers as `Pods–powered`. Their names escape one
+   hyphen (`Pods-\-powered`), which the site and GitHub show as the file names' two. The READMEs
+   are read as GitHub shows them, `--` as it stands. An en dash inside an equation is not read;
+   the one there (`$x_B$–$y_B$`) takes a hyphen by hand.
+5. **M0.9f1's tests.** The 40-word limit holds each sentence of every issue warning `hpr sim` can
    print, built at its longest: every known issue, each with the detail that makes it longest
-   (four spans of near-calm wind; joins on four vehicles). It also holds every note, reader
-   warning and issue warning that `hpr sim --json` prints for 16 of the 18 committed designs
-   under `validation/fixtures/ork/`, each flown as written or with a B4, and for a probe that
-   flies a motor fetched from ThrustCurve.org. The other two refuse a motor of one's own (one
-   has two stages, the other an airframe not read as written), and offline their own motors
-   have no curve. The test splits sentences at a period, question mark or exclamation
-   mark followed by a space. A decimal point has no space after it, so `Mach 0.85` stays whole.
+   (four spans of near-calm wind; joins on four sustainers; an offset that isn't a number). It
+   holds every envelope flag's message too. It also holds every note, reader warning, flag and
+   issue warning that `hpr sim --json` prints for 16 of the 18 committed designs under
+   `validation/fixtures/ork/`. Each flies on the first of its own motor, an I377-CT and a
+   131G84-10A that takes it off the rail at 15 m/s or more before apogee, and the test fails if
+   one doesn't. `level-1.ork` also flies on the I377-CT past Mach 1, where the supersonic drag
+   issues are raised, and a probe flies a motor fetched from ThrustCurve.org. The other two
+   designs refuse a motor of one's own (one has two stages, the other an airframe not read as
+   written), and offline their own motors have no curve. The tests split sentences at a period,
+   question mark or exclamation mark followed by a space. A decimal point has no space after it,
+   so `Mach 0.85` stays whole.
 
 **Consequences.** The audit's rows that cite #476 stay "not met" until M0.9f4, and each increment
 names its check in its rows. M0.9f4 closes #476 and carries M0.9f's own *done when*.

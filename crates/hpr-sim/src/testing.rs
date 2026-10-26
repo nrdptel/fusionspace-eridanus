@@ -17,6 +17,36 @@ use crate::events::Direction;
 use crate::integrator::{OdeSystem, Step};
 use crate::recorder::{FlightStep, Observer, Sample};
 
+/// The most words a sentence of a warning `hpr sim` prints may hold (#476, ADR-295 §5).
+pub(crate) const SENTENCE_WORDS: usize = 40;
+
+/// `text`'s sentences: it splits after a period, question mark or exclamation mark that a space
+/// follows, so a decimal point (`Mach 0.85`) stays inside its sentence.
+pub(crate) fn sentences(text: &str) -> Vec<String> {
+    let mut found = Vec::new();
+    let mut sentence = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        sentence.push(c);
+        if matches!(c, '.' | '?' | '!') && chars.peek().is_some_and(|c| c.is_whitespace()) {
+            found.push(std::mem::take(&mut sentence).trim().to_owned());
+        }
+    }
+    if !sentence.trim().is_empty() {
+        found.push(sentence.trim().to_owned());
+    }
+    found
+}
+
+/// Each sentence of `text` over [`SENTENCE_WORDS`] words, with its count.
+pub(crate) fn long_sentences(text: &str) -> Vec<(usize, String)> {
+    sentences(text)
+        .into_iter()
+        .map(|sentence| (sentence.split_whitespace().count(), sentence))
+        .filter(|(words, _)| *words > SENTENCE_WORDS)
+        .collect()
+}
+
 /// Vertical flight under constant gravity with quadratic drag: `h' = v`, `v' = −g − k v|v|`.
 #[derive(Debug, Clone)]
 pub(crate) struct QuadraticDragFall {

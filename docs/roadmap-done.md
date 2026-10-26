@@ -298,7 +298,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M4.5k A ring around its tube ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5l A packed part wider than its bore ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5m Parallel booster staging ([Phase 2](#phase-2-library-surfaces-and-interop))
-- M4.5n Pods--powered's first configuration ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M4.5n Pods-\-powered's first configuration ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5o Base drag hack's E12-4 ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6 Monte Carlo from the CLI and Python ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6a `hpr mc` ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1478,7 +1478,7 @@ One line per milestone or increment, in the order it was archived within its pha
       payload* and *ARC payload rocket* fly in `hpr sim`, the part keeping the nose held to
       OpenRocket's record (apogee within 5%, its descent to ADR-153's targets); a part hpr can't fly
       honestly stays refused, with an ADR that measures what flying it would get wrong.
-    - [x] **M4.5g4 Freeform fins.** *Done when:* *Pods--airframes and winglets*, whose freeform
+    - [x] **M4.5g4 Freeform fins.** *Done when:* *Pods-\-airframes and winglets*, whose freeform
       outlines don't run from the root's leading edge to its trailing edge, flies in `hpr sim` with
       them read as written, each configuration's apogee within 5% of OpenRocket's record; or an ADR
       measures why such an outline can't be read as written, and the refusal names it.
@@ -1489,7 +1489,7 @@ One line per milestone or increment, in the order it was archived within its pha
     both, as `hpr sim` flies it: C11-5 +2.06% and D12-3 +4.65%, met. **Not met, recorded:** E12-4
     +7.97%, the drag coefficient (the nose by OpenRocket's breakdown, #177): on OpenRocket's drag
     hpr comes within 0.03% of OpenRocket's flight with nothing deployed.
-  - [x] **M4.5i A powered pods example** (#329). *Done when:* each configuration of OpenRocket's *Pods--powered
+  - [x] **M4.5i A powered pods example** (#329). *Done when:* each configuration of OpenRocket's *Pods-\-powered
     with recovery deployment* that OpenRocket completes flies in `hpr sim`, its screw heads weighed
     as OpenRocket's probes measure them, each pod set's motors burning into its own pods' bases,
     and a device whose stage has no lit motor opening as OpenRocket's does; each apogee within 5% of
@@ -1507,13 +1507,13 @@ One line per milestone or increment, in the order it was archived within its pha
     an ignition, 1 a separation); of OpenRocket's 56, 38, 13 and 5.
   - [x] **M4.5k A ring around its tube.** *Done when:* a centering ring written as a child of the
     motor tube it wraps (its bore at least the tube's outside) is checked for room in what holds the
-    tube, so *Pods--airframes and winglets*' five configurations and *Pods--powered*'s three that
+    tube, so *Pods-\-airframes and winglets*' five configurations and *Pods-\-powered*'s three that
     OpenRocket completes fly as saved in `cargo xtask ork-cli`'s report; a ring inside its tube, or
     too wide for what holds it, stays an error (a test, with mutation probes).
     *Result (ADR-169):* met: all eight fly as saved; OpenRocket's examples 46 of 56 as saved (38
     before), the survey 121 of 170 (108); *Deployable payload*'s five still need the flag. A ring
     is measured in the part around it at its own station that holds it whole: what holds the tube
-    for all but one of *Pods--powered*'s rings, which sits in the airframe ahead of the coupler.
+    for all but one of *Pods-\-powered*'s rings, which sits in the airframe ahead of the coupler.
   - [x] **M4.5l A packed part wider than its bore.** *Done when:* a mass component, parachute,
     streamer or shock cord drawn wider than its parent's bore, its centre inside the bore, warns
     instead of stopping the flight, so *Deployable payload*'s five configurations fly as saved in
@@ -1527,7 +1527,7 @@ One line per milestone or increment, in the order it was archived within its pha
     configurations fly as saved in `cargo xtask ork-cli`'s report, the boosters beside the core
     burning and dropping at their own separation, each apogee within 5% of OpenRocket's record
     with recovery as saved, under an ADR on how a parallel stage is read and flown.
-  - [x] **M4.5n Pods--powered's first configuration.** *Done when:* `hpr sim` flies *Pods--powered
+  - [x] **M4.5n Pods-\-powered's first configuration.** *Done when:* `hpr sim` flies *Pods-\-powered
     with recovery deployment*'s first configuration as saved, its motors in three mounts burning
     out in the order their curves give, under an ADR naming what it is checked against, since
     OpenRocket aborts its own run of it.

@@ -1226,18 +1226,18 @@ fn read_page(text: &str) -> Page {
     page
 }
 
-/// The READMEs held to [`readme_rules`]: the project's, which every published crate shows, and
+/// The READMEs held to [`word_rules`]: the project's, which every published crate shows, and
 /// the Python package's.
 const READMES: [&str; 2] = ["README.md", "crates/hpr-py/README.md"];
 
-/// The problems [`readme_rules`] finds in the [`READMES`] of the repository at `root`, as
+/// The problems [`word_rules`] finds in the [`READMES`] of the repository at `root`, as
 /// `file:line: message`; a README that can't be read is one.
 fn check_readmes(root: &Path) -> Vec<String> {
     let mut problems = Vec::new();
     for readme in READMES {
         match fs::read_to_string(root.join(readme)) {
             Ok(text) => problems.extend(
-                readme_rules(&text)
+                word_rules(&text, words::Renderer::GitHub)
                     .into_iter()
                     .map(|(line, problem)| format!("{readme}:{line}: {problem}")),
             ),
@@ -1248,9 +1248,9 @@ fn check_readmes(root: &Path) -> Vec<String> {
 }
 
 /// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
-/// message): no en dash joining two words.
-fn readme_rules(text: &str) -> Vec<(usize, String)> {
-    words::joined_words(text)
+/// message), as `renderer` shows the text: no en dash joining two words.
+fn word_rules(text: &str, renderer: words::Renderer) -> Vec<(usize, String)> {
+    words::joined_words(text, renderer)
 }
 
 const HEADING_LINK: &str = "a link inside a heading: mdBook already makes each heading a link, and \
@@ -1280,7 +1280,7 @@ fn page_rules(
     // Minus signs, and columns of numbers right-aligned (#386).
     problems.extend(numbers::minus_signs(text));
     problems.extend(numbers::number_columns(text));
-    problems.extend(readme_rules(text));
+    problems.extend(word_rules(text, words::Renderer::Site));
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.

@@ -2201,7 +2201,7 @@ $$
   root (where the fin meets the body) follows the curved surface. Its points are part of the fin's outline. So $A_{\mathrm{fin}}$, $\bar{c}$ and the CP are those of the region between the outline and the
   surface. Heights $y$ run from the surface at the root's leading edge. The body radius $r_t$ in
   the interference factor $K_T(B)$ above is the radius there. No measured fin on a nose cone
-  checks the model; against OpenRocket, the one example is the cockpit of *Pods--airframes and
+  checks the model; against OpenRocket, the one example is the cockpit of *Pods-\-airframes and
   winglets*:
   - Across the airflow at Mach 0.3, its normal-force slope is 0.2784 per radian in HPR Sim and
     0.2117 in OpenRocket, 31.5% more. The CPs there are 0.13 mm (0.0051 in) apart. Closed straight along its chord,
@@ -2622,11 +2622,11 @@ run). The probes now state their finish.
 One private design flies with pods too: `C02`, an anonymized design of the library
 ([HPR Sim's flights of the private designs](../format/ork.md#the-simulators-flights-of-the-private-designs)).
 Its pods hold only a launch lug each, on a tube of no length, so they add the lugs' drag and
-nothing else. Over its 5 configurations HPR Sim's apogee is −0.94% to +2.15% from OpenRocket's. 3 of them are compared with an OpenRocket flight whose parachute opened before apogee, including the +2.15%. Of OpenRocket's own pod examples, *Pods--airframes and winglets* flies, its cockpit fin
+nothing else. Over its 5 configurations HPR Sim's apogee is −0.94% to +2.15% from OpenRocket's. 3 of them are compared with an OpenRocket flight whose parachute opened before apogee, including the +2.15%. Of OpenRocket's own pod examples, *Pods-\-airframes and winglets* flies, its cockpit fin
 read on the nose cone
 ([fins on a nose cone](../format/ork.md#fins-on-a-nose-cone-or-a-transition)). Every apogee is within 0.5% of OpenRocket's, with the margin 0.071 to 0.076 calibers above it, the flattering side
 ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
-[#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). *Pods--powered with recovery deployment*
+[#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). *Pods-\-powered with recovery deployment*
 flies since [M4.5i](../decisions-and-roadmap.md#m4-5i), as saved since [M4.5k](../decisions-and-roadmap.md#m4-5k). As saved, the design weighs its rail buttons' screw heads and takes each of its two pod sets' motors off that set's own pods ([ADR-168][adr-168]). With
 only the sustainer's motor it reads 0.36% below OpenRocket's apogee, and with only the booster's
 motors 1.86% below. Its staged flight reads 37.93% low because its sustainer is unstable when the air

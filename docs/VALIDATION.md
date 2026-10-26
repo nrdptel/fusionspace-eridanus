@@ -124,7 +124,7 @@ margin, a pitching-moment slope $C_{m\alpha}$ above zero under power says the sa
 
 A margin or $C_{m\alpha}$ of exactly zero raises nothing. When this was written (2026-10-06), none
 of the 37 designs above raised either on its default configuration, in either wind. No test or
-report pins that count. Two of the four configurations of OpenRocket's *Pods--powered with
+report pins that count. Two of the four configurations of OpenRocket's *Pods-\-powered with
 recovery deployment* raise `unstable_under_power`, at −4.21 calibers.
 
 A flight also warns, by issue number, when it meets one of the known errors in HPR Sim's drag
@@ -179,7 +179,7 @@ Seven more warn where the stability margin reads high
 | [#121](https://github.com/nrdptel/fusionspace-eridanus/issues/121) | the same, for a pointed tip steeper than the cone tables' 30° (−7.7% and 0.81 calibers) | such a tip, past Mach 1.2 |
 | [#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172) | the static margin read up to 0.1108 calibers higher than OpenRocket 24.12's on four private designs (0.0350 to 0.1108), for a reason not yet found | every flight with a static margin |
 | [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64) | a fin whose leading edge sweeps forward: supersonic linear theory's slope rises by up to 7.7% past Mach 1.2, where it should fall, so the center of pressure sits aft | such a fin (a trapezoid's tip ahead of its root, or a freeform point ahead of the root's leading edge), past Mach 1 |
-| [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) | fin sets at one station are counted apart for fin-fin interference, where OpenRocket counts them together: about 0.029 of the 0.071 to 0.076 calibers HPR Sim reads above OpenRocket on its *Pods--airframes and winglets* example | fin sets whose roots overlap or touch along the axis, on one airframe or pod set, with more than four fins between them, on any flight |
+| [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) | fin sets at one station are counted apart for fin-fin interference, where OpenRocket counts them together: about 0.029 of the 0.071 to 0.076 calibers HPR Sim reads above OpenRocket on its *Pods-\-airframes and winglets* example | fin sets whose roots overlap or touch along the axis, on one airframe or pod set, with more than four fins between them, on any flight |
 | [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326) | a kinked freeform fin's center of pressure sits 1.6 mm (0.063 in) aft of OpenRocket 24.12's, about 0.047 calibers of that example's gap; other freeform outlines are unprobed | every freeform fin set, at any speed ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md)) |
 
 Mach 1.2 is where the method first joins slender-body theory, so the three switches can't move a

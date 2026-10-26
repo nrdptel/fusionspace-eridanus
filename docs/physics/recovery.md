@@ -833,7 +833,7 @@ left to burn, it is the payload's. In each, it is the branch OpenRocket's record
 - 48 flights: the report's 51 with no named cause for an apogee gap, less the *Base drag
   hack*'s three (below). The landing speed is +0.00% to +0.02% off
   OpenRocket's, and the flight time −1.57% to +3.16% (0.68% on average, either way). Among them
-  are two of *Pods--powered with recovery deployment*. On its booster's flight, the two pods'
+  are two of *Pods-\-powered with recovery deployment*. On its booster's flight, the two pods'
   parachutes open at launch + 5.35 s in both programs, and the flight time is −1.02% off.
 - 40 of those 48 meet every target as written. The other 8 miss only on a deployment's time.
   All 8 reach an apogee 0.63% to 4.34% below OpenRocket's, a climb gap the same report shows. And
@@ -848,7 +848,7 @@ left to burn, it is the payload's. In each, it is the branch OpenRocket's record
   faster than OpenRocket, and their flight times are +1.72% to +7.07% off; the last misses its
   target.
 - 2 flights with a named cause for an apogee gap. One is put down to HPR Sim's tube-fin drag.
-  In the other, `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, the sustainer turns
+  In the other, `[C6-7; B6-0]` of *Pods-\-powered with recovery deployment*, the sustainer turns
   over before apogee in both programs. Both land at OpenRocket's speed (+0.00%), but their flight
   times are −52.64% and +5.78% off.
 - The private designs. On 34 descents, published only as differences

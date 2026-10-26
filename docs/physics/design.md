@@ -669,7 +669,7 @@ usual slip.
   it needs room in the part around the tube, at the ring's own station. That's the first part out
   from the tube with room for parts whose length overlaps the ring's. That part must hold the
   whole ring, with the same tolerance. The findings name that part, and the ring is checked
-  against the other tubes in it for overlap. *Pods--airframes and winglets* draws rings 32.54 mm
+  against the other tubes in it for overlap. *Pods-\-airframes and winglets* draws rings 32.54 mm
   (1.3 in) across with an 18.75 mm (0.74 in) bore. They sit on an 18.69 mm (0.74 in) motor mount,
   inside an airframe with a 32.59 mm (1.3 in) bore, and they fit. Read as inside the mount, whose
   bore is 18.03 mm (0.71 in), they would be an error.

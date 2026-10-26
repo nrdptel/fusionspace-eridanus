@@ -621,6 +621,12 @@ impl Run {
 /// table cell, a code span, raw HTML or an image's description does. Inline formatting and links
 /// continue a run: `**324 m** (1,063 ft)` is one.
 pub(super) fn rendered_runs(text: &str) -> Vec<Run> {
+    rendered_runs_with(text, super::options())
+}
+
+/// [`rendered_runs`], parsed with `options`: with smart punctuation, for one, as mdBook renders
+/// the site, a `--` reaches the page as an en dash.
+pub(super) fn rendered_runs_with(text: &str, options: pulldown_cmark::Options) -> Vec<Run> {
     use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
     let mut runs = Vec::new();
@@ -640,7 +646,7 @@ pub(super) fn rendered_runs(text: &str) -> Vec<Run> {
         }
     };
     let mut in_code_block = false;
-    for (event, range) in Parser::new_ext(text, super::options()).into_offset_iter() {
+    for (event, range) in Parser::new_ext(text, options).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => {
                 flush(&mut run);

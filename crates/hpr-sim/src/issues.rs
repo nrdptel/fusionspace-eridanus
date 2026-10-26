@@ -726,8 +726,8 @@ impl IssueWarning {
                 };
                 let calm_mph = whole(NEAR_CALM_WIND_M_S * 3600.0 / MILE_M);
                 format!(
-                    "the wind's direction is interpolated across a level near calm, {span}{more}.\
-                     {across} Near calm is at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph): \
+                    "the wind's direction is interpolated across a span with a level near calm at \
+                     one end, {span}{more}.{across} Near calm is at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph): \
                      light air, whose direction a vane doesn't show. That level's reported direction \
                      means little, yet it swings the wind across the path. Where the other levels \
                      share one direction, the swing turns part of the wind off it, so the drift \
@@ -2621,9 +2621,9 @@ mod tests {
         let message = warning.message();
         assert!(
             message.starts_with(
-                "issue #8: the wind's direction is interpolated across a level near calm, \
-                 between 1500 and 1800 m (4921 and 5906 ft) above sea level (and one more span). \
-                 Across the first, the wind goes from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) \
+                "issue #8: the wind's direction is interpolated across a span with a level near \
+                 calm at one end, between 1500 and 1800 m (4921 and 5906 ft) above sea level (and \
+                 one more span). Across the first, the wind goes from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) \
                  at 270°. Near calm is at most 1.5 m/s (3 mph): light air,"
             ),
             "{message}"
@@ -2736,8 +2736,9 @@ mod tests {
         assert_eq!(tenth(-0.06), "-0.1");
     }
 
-    /// Every known issue, each once, in the order declared. [`listed_at`] fails to compile until a
-    /// new one is listed here too.
+    /// Every known issue, each once, in the order declared. A new issue makes [`listed_at`] fail to
+    /// compile until it is placed there; it must be listed here too, at that place, or the warning
+    /// test never builds it.
     const EVERY_ISSUE: [KnownIssue; 20] = [
         KnownIssue::TransonicNoseDrag,
         KnownIssue::BaseDrag,
@@ -2788,38 +2789,9 @@ mod tests {
         }
     }
 
-    /// The most words a sentence of a warning `hpr sim` prints may hold (#476, ADR-295 §5).
-    const SENTENCE_WORDS: usize = 40;
-
-    /// `text`'s sentences: it splits after a period, question mark or exclamation mark that a
-    /// space follows, so a decimal point (`Mach 0.85`) stays inside its sentence.
-    fn sentences(text: &str) -> Vec<String> {
-        let mut found = Vec::new();
-        let mut sentence = String::new();
-        let mut chars = text.chars().peekable();
-        while let Some(c) = chars.next() {
-            sentence.push(c);
-            if matches!(c, '.' | '?' | '!') && chars.peek().is_some_and(|c| c.is_whitespace()) {
-                found.push(std::mem::take(&mut sentence).trim().to_owned());
-            }
-        }
-        if !sentence.trim().is_empty() {
-            found.push(sentence.trim().to_owned());
-        }
-        found
-    }
-
-    /// Each sentence of `text` over [`SENTENCE_WORDS`] words, with its count.
-    fn long_sentences(text: &str) -> Vec<(usize, String)> {
-        sentences(text)
-            .into_iter()
-            .map(|sentence| (sentence.split_whitespace().count(), sentence))
-            .filter(|(words, _)| *words > SENTENCE_WORDS)
-            .collect()
-    }
-
     #[test]
     fn sentences_split_at_a_stop_and_a_space() {
+        use crate::testing::{long_sentences, sentences};
         assert_eq!(
             sentences("issue #67: drag reads high from Mach 0.8. So the apogee reads low (#8)"),
             [
@@ -2833,8 +2805,9 @@ mod tests {
     }
 
     /// The issue's warning built at its longest: a flight past every Mach condition, and the
-    /// detail that makes its message longest (the widest offset, four supersonic joins that
-    /// never end, on four vehicles, four spans of near-calm wind).
+    /// detail that makes its message longest (an offset of six figures, four supersonic joins
+    /// that never end on four sustainers, whose names are longer than the launch stack's, four
+    /// spans of near-calm wind).
     fn longest_warning(issue: KnownIssue) -> IssueWarning {
         let level = |height_msl_m: f64, speed_m_s: f64, degrees: f64| hpr_atmos::WindLevel {
             height_msl_m,
@@ -2846,7 +2819,7 @@ mod tests {
                 offset_m: 0.123_456,
             }),
             KnownIssue::BodyDampingStation => Some(IssueDetail::SupersonicJoins {
-                joins: (0..4)
+                joins: (1..=4)
                     .map(|vehicle| SupersonicJoin {
                         vehicle: vehicle + 10 * usize::from(vehicle > 1),
                         join_start_mach: 1.234 + 0.1 * vehicle as f64,
@@ -2880,15 +2853,38 @@ mod tests {
     fn every_issue_warning_keeps_its_sentences_to_40_words() {
         // `writing.md`'s *Voice* (#476): a warning's sentences stay short however long the
         // flight's own figures make them.
+        use crate::testing::long_sentences;
         for (at, issue) in EVERY_ISSUE.into_iter().enumerate() {
             assert_eq!(listed_at(issue), at, "{issue:?}");
             let message = longest_warning(issue).message();
             assert_eq!(long_sentences(&message), [], "{issue:?}: {message}");
         }
+        // An offset that isn't a number is written in words, longer than any figure.
+        let mut unknown = longest_warning(KnownIssue::OffAxisCenterOfGravity);
+        unknown.detail = Some(IssueDetail::CenterOfGravityOffset { offset_m: f64::NAN });
+        let message = unknown.message();
+        assert_eq!(long_sentences(&message), [], "{message}");
         // The longest details reach the message: the counted vehicles and spans, and the
         // offset.
         let damping = longest_warning(KnownIssue::BodyDampingStation).message();
-        assert!(damping.contains("(and 2 more vehicles)"), "{damping}");
+        assert!(
+            damping.contains(
+                "joins slender-body theory at every speed past Mach 1.33 on the sustainer after \
+                 the first separation and at every speed past Mach 1.43 on the sustainer after \
+                 separation 12 (and 2 more vehicles). There,"
+            ),
+            "{damping}"
+        );
+        // Three joins: two named, in the flight's order, and one counted.
+        let mut three = longest_warning(KnownIssue::BodyDampingStation);
+        if let Some(IssueDetail::SupersonicJoins { joins }) = &mut three.detail {
+            joins.truncate(3);
+        }
+        let message = three.message();
+        assert!(
+            message.contains("separation 12 (and one more vehicle). There,"),
+            "{message}"
+        );
         let wind = longest_warning(KnownIssue::NearCalmWindDirection).message();
         assert!(
             wind.contains("(and 3 more spans). Across the first,"),

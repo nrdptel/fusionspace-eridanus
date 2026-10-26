@@ -6396,6 +6396,16 @@ fn a_refusal_in_flight_names_what_led_to_it() {
 /// only as written, where their motors have no curve offline.
 const REFUSED_WITH_ANY_MOTOR: [&str; 2] = ["demo-payload-separation.ork", "demo-quirks.ork"];
 
+/// The motors [`sim_warns_in_sentences_of_40_words_or_fewer`] flies a committed design on, the
+/// first that takes it off the rail: its own (`None`), whose curve only `level-1.ork` has
+/// offline; a 38 mm I; a 29 mm G, which fits the rest.
+const MOTORS_TO_TRY: [Option<&str>; 3] = [None, Some("I377-CT"), Some("131G84-10A")];
+
+/// The least speed off the rail, m/s, at which a flight of
+/// [`sim_warns_in_sentences_of_40_words_or_fewer`] counts as flown: a motor too weak to lift the
+/// design leaves it on the rail, or crawling off it, and it raises little.
+const FLOWN_RAIL_EXIT_M_S: f64 = 15.0;
+
 /// Each sentence of `text` over 40 words: it splits after a period, question mark or
 /// exclamation mark that a space follows, so a decimal point stays inside its sentence.
 fn sentences_over_40_words(text: &str) -> Vec<String> {
@@ -6431,6 +6441,7 @@ fn long_warning_sentences(document: &Value, from: &str) -> Vec<String> {
     };
     let mut all = texts("notes", None);
     all.extend(texts("warnings", Some("message")));
+    all.extend(texts("flags", Some("message")));
     all.extend(texts("issues", Some("message")));
     all.iter()
         .flat_map(|text| sentences_over_40_words(text))
@@ -6453,10 +6464,11 @@ fn sentences_over_40_words_are_the_long_ones() {
 }
 
 /// `writing.md`'s *Voice* (#476, ADR-295 §5): every sentence of what `hpr sim` warns with, its
-/// notes, its readers' warnings and its known issues, holds at most 40 words. Each committed
-/// design under `validation/fixtures/ork/` flies as written, or with a B4 where its own motor
-/// has no curve offline; and the probe flies a motor fetched from ThrustCurve.org, whose note
-/// names the file.
+/// notes, its readers' warnings, its envelope's flags and its known issues, holds at most 40
+/// words. Each committed design under `validation/fixtures/ork/` but [`REFUSED_WITH_ANY_MOTOR`]
+/// flies on the first of [`MOTORS_TO_TRY`] that takes it off the rail; `level-1.ork` also flies
+/// past Mach 1, where the supersonic issues are raised; and the probe flies a motor fetched from
+/// ThrustCurve.org, whose note names the file.
 #[test]
 fn sim_warns_in_sentences_of_40_words_or_fewer() {
     fn designs(dir: &Path, found: &mut Vec<PathBuf>) {
@@ -6474,28 +6486,55 @@ fn sim_warns_in_sentences_of_40_words_or_fewer() {
     found.sort();
     assert!(found.len() >= 18, "{found:?}");
 
+    // The flight `hpr sim` writes for `args`, if it ran and left the rail climbing at
+    // `FLOWN_RAIL_EXIT_M_S` or more.
+    let flown = |args: &[&str]| -> Option<Value> {
+        let output = hpr(args);
+        if !output.status.success() {
+            return None;
+        }
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let rail = &document["summary"]["rail_exit_speed_m_s"];
+        let off = rail["value"]
+            .as_f64()
+            .is_some_and(|speed| speed >= FLOWN_RAIL_EXIT_M_S)
+            && rail["after_apogee"] == json!(false);
+        off.then_some(document)
+    };
+
     let mut long = Vec::new();
-    let mut flown = 0;
+    let mut flights = 0;
     for design in &found {
         let path = design.to_str().unwrap();
         let name = design.file_name().unwrap().to_str().unwrap();
-        let output = [
-            vec!["sim", path, "--json"],
-            vec!["sim", path, "--motor", "B4", "--json"],
-        ]
-        .iter()
-        .map(|args| hpr(args))
-        .find(|output| output.status.success());
-        let Some(output) = output else {
+        let document = MOTORS_TO_TRY.iter().find_map(|motor| {
+            let mut args = vec!["sim", path, "--json"];
+            args.extend(motor.iter().flat_map(|motor| ["--motor", *motor]));
+            flown(&args)
+        });
+        let Some(document) = document else {
             assert!(REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} didn't fly");
             continue;
         };
         assert!(!REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} flies now");
-        flown += 1;
-        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        flights += 1;
         long.extend(long_warning_sentences(&document, name));
     }
-    assert_eq!(flown, found.len() - REFUSED_WITH_ANY_MOTOR.len());
+    assert_eq!(flights, found.len() - REFUSED_WITH_ANY_MOTOR.len());
+
+    // Faster than sound, where the supersonic drag issues are raised.
+    let level_1 = root().join("validation/fixtures/ork/guides/level-1.ork");
+    let fast = flown(&[
+        "sim",
+        level_1.to_str().unwrap(),
+        "--motor",
+        "I377-CT",
+        "--json",
+    ])
+    .unwrap();
+    assert!(fast["summary"]["max_mach"]["value"].as_f64().unwrap() > 1.0);
+    assert!(!fast["issues"].as_array().unwrap().is_empty());
+    long.extend(long_warning_sentences(&fast, "level-1.ork on an I377-CT"));
 
     // A motor with no curve in the file or the catalog flies one fetched from ThrustCurve.org.
     let folder = tempfile::tempdir().unwrap();

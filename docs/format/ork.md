@@ -76,11 +76,11 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   rod agrees within 0.016 calibers, taken with the air along the rocket's axis as OpenRocket's is.
 >   On the *Tube fin rocket* it is 1.08 calibers below OpenRocket's
 >   ([tube fins](../physics/aero.md#tube-fins)). On the three-stage example's three configurations
->   it is 0.039 to 0.058 calibers below. On the five flights of *Pods--airframes and winglets* it is 0.071
+>   it is 0.039 to 0.058 calibers below. On the five flights of *Pods-\-airframes and winglets* it is 0.071
 >   to 0.076 calibers above, the flattering side
 >   ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
 >   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). On the three of
->   *Pods--powered with recovery deployment* it is 0.070 calibers above. Where nothing named
+>   *Pods-\-powered with recovery deployment* it is 0.070 calibers above. Where nothing named
 >   explains a difference, HPR Sim's apogee is from 4.34% low to 1.95% high. Parachutes that open
 >   while the rocket still climbs move six apogees by more than 5%, and HPR Sim's tube-fin drag a
 >   seventh. The eighth, 37.93% low, is a pod example's sustainer that turns over before apogee in
@@ -105,7 +105,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
 >   [a supersonic flight](#a-supersonic-flight-and-a-cause-in-the-drag)).
 > - **Pods are read, weighed and flown** ([Pods](#pods)). Five small probe designs with pods of
 >   bodies, fins, a tail cone, winglets or motors are compared with OpenRocket. So is OpenRocket's
->   *Pods--airframes and winglets*, whose stability margin reads 0.07 calibers above OpenRocket's,
+>   *Pods-\-airframes and winglets*, whose stability margin reads 0.07 calibers above OpenRocket's,
 >   the flattering side ([below](#fins-on-a-nose-cone-or-a-transition)).
 > - **Parallel stages are read and flown on a rocket of one stage on the axis**
 >   ([Parallel stages](#parallel-stages)). OpenRocket's *Parallel booster staging* flies both its
@@ -1187,8 +1187,8 @@ The one private design with pods, `C02`, has only a launch lug on each. So its f
 2.2% of OpenRocket's apogee
 ([HPR Sim's flights of the private designs](#the-simulators-flights-of-the-private-designs)), check
 the pods' placement and weight, not their aerodynamics. Of OpenRocket's own two pod examples,
-*Pods--airframes and winglets* flies since [M4.5g4](#fins-on-a-nose-cone-or-a-transition), the
-milestone that reads its cockpit fin on the nose cone. *Pods--powered with recovery deployment*
+*Pods-\-airframes and winglets* flies since [M4.5g4](#fins-on-a-nose-cone-or-a-transition), the
+milestone that reads its cockpit fin on the nose cone. *Pods-\-powered with recovery deployment*
 flies since [M4.5i](../decisions-and-roadmap.md#m4-5i). That milestone weighs its rail buttons'
 screw heads and flies motors in more than one pod set ([the decision behind it][adr-168]). Its
 flights are [below](#the-simulators-flights-against-openrockets).
@@ -1217,7 +1217,7 @@ radius later. When the tube's radius is automatic, HPR Sim uses the number OpenR
 and warns that it did. With nothing cached, the pod set is left out. A method HPR Sim does not know
 is read as `relative`, and a missing `radiusoffset` as touching the tube, each with a warning.
 
-**A pod of no length.** OpenRocket's own example *Pods--airframes and winglets* hangs its
+**A pod of no length.** OpenRocket's own example *Pods-\-airframes and winglets* hangs its
 winglets from a pod. The pod's only part is a tube of no length, no wall and, usually, no radius.
 OpenRocket names that tube "(phantom body)". HPR Sim reads such a pod as written:
 
@@ -1307,10 +1307,10 @@ weighs nothing of its own.
 
 `cargo xtask ork` on 2026-09-27 also weighs each design against OpenRocket 24.12:
 
-- *Pods--powered with recovery deployment* (a public example): its mass is now within 1% of
+- *Pods-\-powered with recovery deployment* (a public example): its mass is now within 1% of
   OpenRocket's. It was 12.5% light with its pods left out
   ([M1.13b1](../decisions-and-roadmap.md#m1-13b1)).
-- *Pods--airframes and winglets*: with its winglet pod left out, its roll inertia was 1.78% below
+- *Pods-\-airframes and winglets*: with its winglet pod left out, its roll inertia was 1.78% below
   OpenRocket's, even with OpenRocket's fin shortcut. With the pod read, it is no longer among the
   designs `cargo xtask ork` lists outside 1% with that shortcut. Its freeform cockpit, on the nose
   cone, is read since [M4.5g4](../decisions-and-roadmap.md#m4-5g4)
@@ -1374,7 +1374,7 @@ missing is named, never silent. No part in the whole corpus is left out now, und
 | rule | in the corpus |
 | --- | --- |
 | an external part other than a fin set on anything but a body tube: a lug's or a button's footing on a nose cone is not a straight line | none |
-| a fin set on a nose cone or a transition whose root can't be read along the surface ([below](#fins-on-a-nose-cone-or-a-transition)) | none; the 2 fin sets it caught, the cockpit of *Pods--airframes and winglets* in the jar's copy and the corpus's, are read since [M4.5g4](../decisions-and-roadmap.md#m4-5g4) |
+| a fin set on a nose cone or a transition whose root can't be read along the surface ([below](#fins-on-a-nose-cone-or-a-transition)) | none; the 2 fin sets it caught, the cockpit of *Pods-\-airframes and winglets* in the jar's copy and the corpus's, are read since [M4.5g4](../decisions-and-roadmap.md#m4-5g4) |
 | a freeform outline on a body tube that does not end on the root, which would have to be closed along a body it never touches | none |
 | a part whose automatic radius needs a bore its parent has not got: a filled nose cone, or a packed part inside a nose cone ([above](#inside-a-nose-cone-or-a-transition)) | none; the 1 coupler in a nose cone it caught is read since [M2.2e7](../decisions-and-roadmap.md#m2-2e7) |
 
@@ -1390,7 +1390,7 @@ checked on one fin on one design, against OpenRocket only, and no measured fligh
 
 OpenRocket gives a fin's outline as points $(x, h)$: $x$ aft of the root's leading edge and $h$
 out from the body's surface there. The root runs along the surface. On a body tube the surface is
-a straight line at $h = 0$; on a nose cone it curves. The cockpit of OpenRocket's *Pods--airframes
+a straight line at $h = 0$; on a nose cone it curves. The cockpit of OpenRocket's *Pods-\-airframes
 and winglets* is a single fin on the last 50 mm (2.0 in) of a
 [tangent ogive](../glossary.md#tangent-ogive) nose. Its outline is `(0, 0)`, `(9.35, 6.96)` and
 `(50, 2.23)` mm. The last point is 2.23 mm (0.088 in) up. That is because the ogive's surface rises
@@ -1908,7 +1908,7 @@ the pad. Its reason is *a motor HPR Sim can't light as written*.
 `validation/oracles/openrocket/first_burnout.py`, shows it
 ([a stage's first burnout](../decisions-and-roadmap.md#m4-5n);
 [the first-burnout decision][adr-172]). It flies the first configuration of OpenRocket's
-*Pods--powered with recovery deployment*, with nothing deployed. Its booster holds a motor in its
+*Pods-\-powered with recovery deployment*, with nothing deployed. Its booster holds a motor in its
 main tube and one in each of two pods. As saved, the main tube's B6 burns out first, at 0.86 s, so
 it can't tell the first burnout from the main tube's. With a C6 in the main tube instead, the C6
 burns out at 1.86 s. OpenRocket separates the booster and lights the sustainer at the pods' burnout,
@@ -2045,7 +2045,7 @@ part's width sets only its own inertia
 ([a packed part wider than its bore](../physics/design.md#a-packed-part-wider-than-its-bore),
 [the milestone on such a part](../decisions-and-roadmap.md#m4-5l)). *Parallel booster staging*'s two
 fly since [the parallel-stage milestone](../decisions-and-roadmap.md#m4-5m) read its boosters
-([Parallel stages](#parallel-stages)). *Pods--powered with recovery deployment*'s first flies since
+([Parallel stages](#parallel-stages)). *Pods-\-powered with recovery deployment*'s first flies since
 [the first-burnout milestone](../decisions-and-roadmap.md#m4-5n) read its booster's burnout as its
 first motor's ([Delays and ignition](#delays-and-ignition)). The 2 refused are *Simulation
 extensions* and *Simulation scripting*, for a hybrid motor: HPR Sim flies commercial solid motors
@@ -2462,7 +2462,7 @@ runs the OpenRocket 24.12 program file (its jar). It flies every motor configura
 designs: the 17 examples inside the jar and the seven Loft demos. Each flight uses the design's
 first stored launch conditions, in calm air (no wind, no turbulence). Of the demos, only one has a
 motor OpenRocket finds, and `demo-quirks.ork` does not open. That leaves 18 designs with 57 motor
-configurations between them, so 57 runs. OpenRocket aborted one of them, *Pods--powered with
+configurations between them, so 57 runs. OpenRocket aborted one of them, *Pods-\-powered with
 recovery deployment* `[C6-7; 2× A3-4, B6-0]`, at 1.81 s and 85 m (279 ft) up ("Stage began to
 tumble under thrust"). The brackets list its motors by stage, sustainer first. The stages are
 separated by `;`: a C6-7 in the sustainer, two A3-4s and a B6-0 in the booster. Its figures are where the run stopped, not a
@@ -2545,23 +2545,23 @@ OpenRocket's on ordinary hobby rockets.
 - The [stability margin](../glossary.md#stability-margin) as the rocket leaves the rod agrees
   within 0.016 [calibers](../glossary.md#caliber) on 41 of the 53. HPR Sim's margin here is
   taken with the air along the rocket's axis (the 0° plane), as OpenRocket's is, not in HPR Sim's
-  weakest plane. On `[C6-7; B6-0]` of *Pods--powered with recovery deployment* it is +3.74
+  weakest plane. On `[C6-7; B6-0]` of *Pods-\-powered with recovery deployment* it is +3.74
   calibers along the axis. There `hpr sim` prints a least margin of −4.21 calibers in the weakest
   plane. The *Tube fin rocket*'s margin
   is 1.08 calibers short of OpenRocket's. The two codes' tube fins differ
   ([Tube fins](../physics/aero.md#tube-fins)). The three-stage example's three are 0.039 to 0.058
   calibers short, about as much as HPR Sim's center of mass sits further aft there. The
-  *Pods--airframes and winglets* example's five are 0.071 to 0.076 calibers long, the flattering
+  *Pods-\-airframes and winglets* example's five are 0.071 to 0.076 calibers long, the flattering
   side. HPR Sim's center of pressure sits 2.6 mm (0.10 in) aft of OpenRocket's there
   ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325), fin-fin interference;
   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326), a kinked fin's center of pressure). The
-  *Pods--powered with recovery deployment* example's three are 0.070 calibers long, the same side.
+  *Pods-\-powered with recovery deployment* example's three are 0.070 calibers long, the same side.
   HPR Sim's center of pressure sits 2.4 mm (0.094 in) aft of OpenRocket's there, a gap not yet traced.
-- *Pods--airframes and winglets* flies since the milestone that
+- *Pods-\-airframes and winglets* flies since the milestone that
   [reads its cockpit fin on the nose cone](../decisions-and-roadmap.md#m4-5g4)
   ([Fins on a nose cone or a transition](#fins-on-a-nose-cone-or-a-transition)). Its five apogees
   are within 0.5% of OpenRocket's, −0.13% to +0.48%, and its margin 0.07 calibers high.
-- *Pods--powered with recovery deployment* flies since
+- *Pods-\-powered with recovery deployment* flies since
   [the milestone for its rail buttons' screw heads and pod sets](../decisions-and-roadmap.md#m4-5i).
   That milestone weighs the screw heads and flies the motors in two pod sets
   ([the decision][adr-168]). Its first configuration, `[C6-7; 2× A3-4, B6-0]`, flies since
@@ -2588,7 +2588,7 @@ OpenRocket's on ordinary hobby rockets.
   - the five *Airstart timing* flights
   - the *ARC payload rocket*
   - the *Deployable payload* on an A8-3
-  - four of the five *Pods--airframes and winglets* flights
+  - four of the five *Pods-\-airframes and winglets* flights
   - both *Parallel booster staging* flights (+1.23% and +0.68%, [Parallel stages](#parallel-stages))
   - *Base drag hack (short-wide)*, the highest
 - On the six *Dual parachute deployment* flights, HPR Sim's apogee is 0.63% to 4.34% low. The cause
@@ -2623,7 +2623,7 @@ OpenRocket's on ordinary hobby rockets.
   so its cause is HPR Sim's own drag. The net gap is the drag's, though parts of it could cancel.
   Its written breakdown is in [its decision record][adr-099].
 
-  The eighth is *Pods--powered with recovery deployment* on `[C6-7; B6-0]`, 37.93% low, its
+  The eighth is *Pods-\-powered with recovery deployment* on `[C6-7; B6-0]`, 37.93% low, its
   largest speed 15.76% low. Its sustainer is unstable when the air crosses it edge-on to its
   two-fin strake set. In the conditions of OpenRocket's record it turns over before apogee in
   both programs, which is the cause the report names. OpenRocket's own record tumbles at 2.84 s.
@@ -2671,8 +2671,8 @@ The two pods examples write each centering ring as a child of the 18 mm motor mo
 ring around its tube is checked in the part around it, at its own station
 ([the rule](../physics/design.md#wider-than-its-parent),
 [the milestone that added the check](../decisions-and-roadmap.md#m4-5k)).
-*Pods--airframes and winglets*' rings fit its
-airframe. Of *Pods--powered*'s, one fits the booster's airframe. The other, in a coupler, reaches
+*Pods-\-airframes and winglets*' rings fit its
+airframe. Of *Pods-\-powered*'s, one fits the booster's airframe. The other, in a coupler, reaches
 0.76 mm (0.030 in) past the coupler's 31.45 mm (1.2 in) bore: a fit to sand, so it warns. Elsewhere
 the checks give only [warnings](../physics/design.md#checks) ([the decision on which fits
 warn][adr-155]). One is a coupler whose wall reaches 0.46 mm (0.018 in) past the bore it
@@ -2685,8 +2685,8 @@ The record holds 57 powered configurations. These fly since the milestone each i
 - The two payload designs, whose payload drops away with nothing left to burn, since
   [a payload's split](../decisions-and-roadmap.md#m4-5g3).
 - The three-stage example, since [several separations](../decisions-and-roadmap.md#m4-5g2).
-- *Pods--airframes and winglets*, since [fins on a nose cone](../decisions-and-roadmap.md#m4-5g4).
-- Three of the four configurations of *Pods--powered with recovery deployment*, since
+- *Pods-\-airframes and winglets*, since [fins on a nose cone](../decisions-and-roadmap.md#m4-5g4).
+- Three of the four configurations of *Pods-\-powered with recovery deployment*, since
   [screw heads and motors in several pod sets](../decisions-and-roadmap.md#m4-5i). Its first, which
   OpenRocket aborts, flies since [a stage's first burnout](../decisions-and-roadmap.md#m4-5n).
 - Both of *Parallel booster staging*, since [parallel stages](../decisions-and-roadmap.md#m4-5m).
@@ -2719,10 +2719,10 @@ the record's, and that every outcome, summary and table follows from HPR Sim's f
 
 The margin's −1.0768 cal is the *Tube fin rocket*'s, whose tube fins' center of pressure the two
 programs place differently ([aerodynamics: Tube fins](../physics/aero.md#tube-fins)). The
-+0.0764 cal is the *Pods--airframes and winglets* example's on an A8-3. Its five flights read
++0.0764 cal is the *Pods-\-airframes and winglets* example's on an A8-3. Its five flights read
 +0.0706 to +0.0764 cal, HPR Sim's margin above OpenRocket's, the flattering side
 ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325), [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)).
-The three *Pods--powered with recovery deployment* flights read +0.0695 to +0.0702 cal, on the
+The three *Pods-\-powered with recovery deployment* flights read +0.0695 to +0.0702 cal, on the
 same side. The other 44 flights' margins are within −0.0580 to +0.0045 cal. Below
 −0.0151 cal are only the three-stage example's three, −0.0387 to −0.0580 cal.
 
@@ -2758,7 +2758,7 @@ on an A8-5, is also the one whose margin is 0.0580 cal short.
   all of those flights' margin difference. That design overrides a part's mass, covering
   everything inside it, which HPR Sim applies as OpenRocket does. So its launch masses match
   exactly, and the matched mass says nothing about HPR Sim's own mass model there. Every other
-  flight is within 0.0054 cal, the most the *Pods--airframes and winglets* example on a D16-6.
+  flight is within 0.0054 cal, the most the *Pods-\-airframes and winglets* example on a D16-6.
 
 An early parachute can move only the apogee, which is why more flights count toward the largest
 speed than toward the apogee. The early-parachute group's median means little. On a rocket whose
@@ -2829,7 +2829,7 @@ flight compared here climbs as the whole stack. The *Base drag hack* reads high 
 +1.95% to +8.92% with nothing deployed in either program, more so on bigger motors. That is more
 than any other flight with no named cause reads high. Of the 35 other such flights, 22 read low.
 The 13 that read high are at most +1.23%. They are the five *Airstart timing* flights, four
-*Pods--airframes and winglets* flights and the two *Parallel booster staging* flights. The rest
+*Pods-\-airframes and winglets* flights and the two *Parallel booster staging* flights. The rest
 are the two payload examples': the *ARC payload rocket* and the *Deployable payload* on an A8-3.
 
 A one-off check compared the two programs' drag part by part at the same speeds. It is not part of
@@ -2858,7 +2858,7 @@ holds the numbers. [The decision record][adr-173] holds the measurement and the 
 They are the mass, the center of mass, the center of pressure and the reference diameter. The reference
 diameters agree exactly, and the centers of pressure within 0.25 mm (0.0098 in) on every flight but two
 examples'. The *Tube fin rocket*'s tube fins put HPR Sim's 26.6 mm (1.0 in) forward of OpenRocket's.
-On *Pods--airframes and winglets* HPR Sim's is 2.6 mm (0.10 in) aft. Apart from those two and the
+On *Pods-\-airframes and winglets* HPR Sim's is 2.6 mm (0.10 in) aft. Apart from those two and the
 three-stage example's (above), the largest margin gaps are on the *Dual parachute deployment*
 example, −0.0097 to −0.0151 calibers. HPR Sim's center of mass is 0.6
 to 0.9 mm (0.024 to 0.035 in) aft of OpenRocket's there. Mass times that gap, from the report's JSON figures, stays
@@ -2887,7 +2887,7 @@ before apogee, the apogee is held to
 OpenRocket's flight of the same configuration with nothing deployed. All three designs meet it.
 So does a fourth, the three-stage example, flown since
 [the milestone for several separations](../decisions-and-roadmap.md#m4-5g2). A fifth staged
-design, *Pods--powered with recovery deployment*, flown since
+design, *Pods-\-powered with recovery deployment*, flown since
 [the milestone for its pods](../decisions-and-roadmap.md#m4-5i), does not. In the conditions of
 OpenRocket's record its sustainer turns over before apogee in both programs ([above](#the-simulators-flights-against-openrockets)).
 Its first configuration, which OpenRocket aborts, is checked up to the abort instead
@@ -2942,7 +2942,7 @@ Its first configuration, which OpenRocket aborts, is checked up to the abort ins
 
 #### Flights OpenRocket aborted
 
-**HPR Sim's flight of *Pods--powered with recovery deployment*'s first configuration,
+**HPR Sim's flight of *Pods-\-powered with recovery deployment*'s first configuration,
 `[C6-7; 2× A3-4, B6-0]`, is within 5% of OpenRocket's at two points up to where OpenRocket
 stops.** That is a check of the climb's first 1.81 s, not of an apogee. OpenRocket aborts the
 flight at 1.81 s: "Stage began to tumble under thrust." Its record then has no apogee, largest
@@ -3195,8 +3195,8 @@ Still not flown:
 - none held back by what HPR Sim leaves out any more. The library's copy of *Parallel booster
   staging* flies since [HPR Sim read parallel stages](../decisions-and-roadmap.md#m4-5m). The pods
   themselves fly since [the pod milestone](../decisions-and-roadmap.md#m1-13c1). The cockpit on
-  *Pods--airframes and winglets*' nose flies since
-  [the cockpit work](../decisions-and-roadmap.md#m4-5g4). *Pods--powered with recovery deployment*
+  *Pods-\-airframes and winglets*' nose flies since
+  [the cockpit work](../decisions-and-roadmap.md#m4-5g4). *Pods-\-powered with recovery deployment*
   was once held back by its rail buttons' screw heads. It flies since
   [the screw-head work](../decisions-and-roadmap.md#m4-5i).
 

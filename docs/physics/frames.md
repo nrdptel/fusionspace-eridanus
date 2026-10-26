@@ -103,7 +103,7 @@ The rocket's angles to the airflow, its attitude, and the launch angles used for
 
 - The angle of attack $\alpha$ is the total angle between $+z_B$ and the rocket's velocity relative to the
   air, in $[0, \pi]$.
-- The flow roll $\varphi$ is the direction in which the air crosses the body, measured in the $x_B$–$y_B$
+- The flow roll $\varphi$ is the direction in which the air crosses the body, measured in the $x_B$-$y_B$
   plane from $x_B$ toward $y_B$. Fin $k$ of a set sits at $\Lambda_k = \theta_0 + 2\pi k/N - \varphi$ from the lateral
   airflow, with $\theta_0$ the set's base angle.
 - There is no separate sideslip angle: $\alpha$ says how far the air crosses the body and $\varphi$
