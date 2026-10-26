@@ -88,10 +88,11 @@ I175WS (AeroTech), from the bundled catalog
 
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
 by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
-burn time computed from its curve, which can differ from the maker's rated figures. The total
-impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check
-of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying
-bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides.
+burn time computed from its curve. These can differ from the maker's rated figures. The total
+impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is
+a check of the arithmetic, not of the motor. No figure is checked against the maker's or the
+certifying bodies' data. The motor's printed data and its maker's instructions come first, and the
+RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
@@ -124,9 +125,9 @@ descent               4.7 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × H125-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.00 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -143,10 +144,10 @@ top Mach number       0.639
 landing               0.7 m (2 ft) from the pad at 202.71 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -173,13 +174,13 @@ descent               5.0 m/s (16 ft/s) at landing under `Parachute`
 motor: 1 × I377-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 11.43 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
+note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: design checks: the motor in `Motor mount tube` reaches 22.0 mm past the mount's forward end (configuration [H170M-10] with --motor I377-CT --delay 10)
-warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
-warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
-warning: drag: issue #222: supersonic pressure drag on an ogive nose or airfoil fins is about twice OpenRocket's, and which is right is unresolved: if HPR Sim's drag is high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/222)
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are. This flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
+warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are. This flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
+warning: drag: issue #222: supersonic pressure drag on an ogive nose or airfoil fins is about twice OpenRocket's, and which is right is unresolved. If HPR Sim's drag is high, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are. This flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/222)
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -196,10 +197,10 @@ top Mach number       1.095
 landing               0.8 m (3 ft) from the pad at 269.86 s, at 5.0 m/s (16 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -274,11 +275,11 @@ descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
-warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
-warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
+warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are. This flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
+warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are. This flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -295,10 +296,10 @@ top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 

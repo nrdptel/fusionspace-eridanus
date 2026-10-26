@@ -163,10 +163,7 @@ impl Group {
     #[must_use]
     pub const fn bar(self) -> &'static str {
         match self {
-            Self::Descent => "gate: each metric's tolerance, at most 3%; landing speed 0.2%",
-            Self::SameDrag => {
-                "gate: each metric's tolerance, at most 3%; four speeds 0.2%, six apogees 0.5%"
-            }
+            Self::Descent | Self::SameDrag => "gate: each metric's tolerance, 0.2% to 3%",
             Self::Predicted => "target: 3% on each metric, reported, not enforced",
             Self::OpenRocketExamples | Self::OpenRocketLibrary => {
                 "no target; an apogee more than 5% off needs a written cause"

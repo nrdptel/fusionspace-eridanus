@@ -16,8 +16,10 @@ and [A tour of HPR Sim](simulator-tour.md).
 >
 > Only the numbers under *Measured side by side* compare results, each read by a test from a
 > committed report. RASAero II has flown none of them yet, and every accuracy comparison checks
-> apogee alone. Nothing here says which simulator is right for a flight. HPR Sim gives ranges, not
-> verdicts. The safety code and the range safety officer (the RSO) decide whether a rocket flies.
+> apogee alone. Nothing here says which simulator is right for a flight.
+
+HPR Sim gives ranges, not verdicts. The safety code and the range safety officer (the RSO) decide
+whether a rocket flies.
 
 ## What each does
 
@@ -195,7 +197,7 @@ Python can't open the file. Each step is listed on the scoreboard.
 
 For a round trip through OpenRocket's file, HPR Sim reads an `.ork` file and writes it back.
 OpenRocket then flies the original and the copy. Of 151 configurations, 0 moved by more than 0.002%,
-and the largest change was 0.000191%; 2 of 75 designs didn't make the trip
+and the largest change was 0.000050%; 2 of 75 designs didn't make the trip
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md)).
 
 ## What it means for you

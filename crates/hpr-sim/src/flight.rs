@@ -684,8 +684,8 @@ impl Simulation {
                 hangs_together(&self.vehicle.assembly.layout.stages, first, last)
             }) {
                 return Err(SimError::Domain {
-                    what: "stage boundary of a separation (what it drops must hang together: a \
-                           parallel stage hung on a stage it keeps can't go with a stage behind)",
+                    what: "stage boundary of a separation (its dropped stages must hang together: \
+                           a parallel stage hung on a kept stage can't go with one behind)",
                     value: separation.after_stage as f64,
                 });
             }
@@ -1050,24 +1050,24 @@ impl Simulation {
     /// The refusal of mass releases with a separation, ejections or mass shifts.
     fn releases_and_shifts() -> SimError {
         SimError::Unsupported {
-            what: "a mass release in a flight with a separation, ejections or mass shifts (the \
-                   parts are fixed before the flight, with every part where the design puts it)",
+            what: "a mass release in a flight with a separation, ejections or mass shifts (their \
+                   parts are fixed before the flight, where the design puts them)",
         }
     }
 
     /// The refusal of several separations with ejections.
     fn separations_and_ejections() -> SimError {
         SimError::Unsupported {
-            what: "ejections in a flight with more than one separation (a sustainer flies on a cut \
-                   design whose components aren't the pieces the ejections were given for)",
+            what: "ejections in a flight with more than one separation (a sustainer flies a cut \
+                   design, not the pieces the ejections were given for)",
         }
     }
 
     /// The refusal of mass shifts with a separation or ejections.
     fn shifts_and_partings() -> SimError {
         SimError::Unsupported {
-            what: "a mass shift in a flight with a separation or ejections (the pieces are fixed \
-                   before the flight, with every part where the design puts it)",
+            what: "a mass shift in a flight with a separation or ejections (its pieces are fixed \
+                   before the flight, where the design puts them)",
         }
     }
 
@@ -1368,6 +1368,25 @@ impl Simulation {
     ) -> Result<Sample, SimError> {
         let evaluation = self.evaluate(vehicle, phase, window, t, y, drag_area_m2)?;
         Ok(sample_of(phase, t, y, &evaluation))
+    }
+
+    /// [`Self::evaluate`] under `conditions`, written over `out` (left as it was on an error).
+    fn evaluate_into(
+        &self,
+        vehicle: &Vehicle,
+        conditions: Conditions,
+        t: f64,
+        y: &[f64; STATE_LEN],
+        out: &mut Evaluation,
+    ) -> Result<(), SimError> {
+        vehicle.evaluate_into(
+            &self.environment,
+            self.rail.friction_coefficient,
+            conditions,
+            t,
+            y,
+            out,
+        )
     }
 
     fn evaluate(
@@ -1993,9 +2012,9 @@ impl Simulation {
                             // Once every body is a point mass there is no sustainer left to part
                             // again, and the bodies a sustainer already dropped have flown.
                             return Err(SimError::Domain {
-                                what: "time of a separation that leaves nothing ahead of it to \
-                                       burn, in a flight with more than one separation (each \
-                                       must hand the flight on to a sustainer)",
+                                what: "time of a separation leaving nothing ahead to burn, \
+                                       with more than one separation in the flight (each must \
+                                       hand the flight to a sustainer)",
                                 value: t,
                             });
                         }
@@ -2114,10 +2133,9 @@ impl Simulation {
                     });
                     if !open_at_split {
                         return Err(SimError::Domain {
-                            what: "time of a powered separation (the booster falls with no \
-                                   airframe drag, so a device on it must open at the separation: \
-                                   one triggered at `Time { time_s: 0.0 }` with no lag does, as \
-                                   a booster's devices act only once it flies)",
+                            what: "time of a powered separation (the booster has no airframe \
+                                   drag, so a device on it must open as it starts flying: \
+                                   `Time { time_s: 0.0 }`, no lag)",
                             value: t,
                         });
                     }
@@ -2354,9 +2372,8 @@ impl Simulation {
                     if lagging && !open_at_split {
                         return Err(SimError::Domain {
                             what: "time of a split with nothing left to burn, before \
-                                   apogee (a part's device fired by then but opens after its \
-                                   lag, and the part would climb through the lag with no \
-                                   airframe drag)",
+                                   apogee (a device fired by then opens after its lag: the part \
+                                   would climb through it with no airframe drag)",
                             value: t,
                         });
                     }
@@ -3413,22 +3430,38 @@ impl PhaseSystem<'_> {
     /// stage and event check.
     fn evaluation(&mut self, t: f64, y: &[f64; STATE_LEN]) -> Result<&Evaluation, SimError> {
         if !matches!(&self.cache, Some((ct, cy, _)) if *ct == t && cy == y) {
-            self.cache = None;
+            let drag_area_m2 = self.canopies.drag_area_m2(t);
+            match &mut self.cache {
+                // Overwritten in place; `out` is untouched on an error, so the entry stays the
+                // evaluation of the state it names.
+                Some((ct, cy, out)) => {
+                    let conditions = Conditions {
+                        phase: self.phase,
+                        window: self.window,
+                        drag_area_m2,
+                    };
+                    self.simulation
+                        .evaluate_into(self.vehicle, conditions, t, y, out)?;
+                    *ct = t;
+                    *cy = *y;
+                }
+                slot @ None => {
+                    let evaluation = self.simulation.evaluate(
+                        self.vehicle,
+                        self.phase,
+                        self.window,
+                        t,
+                        y,
+                        drag_area_m2,
+                    )?;
+                    *slot = Some((t, *y, evaluation));
+                }
+            }
         }
-        let (_, _, evaluation) = match &mut self.cache {
-            Some(entry) => entry,
-            slot @ None => slot.insert((
-                t,
-                *y,
-                self.simulation.evaluate(
-                    self.vehicle,
-                    self.phase,
-                    self.window,
-                    t,
-                    y,
-                    self.canopies.drag_area_m2(t),
-                )?,
-            )),
+        let Some((_, _, evaluation)) = &self.cache else {
+            // An invariant, not an input: a hit found the cache full, and a miss filled it above
+            // or returned the evaluation's error.
+            unreachable!("the evaluation cache is filled just above")
         };
         Ok(evaluation)
     }
@@ -3616,7 +3649,8 @@ struct StepView<'a> {
 
 impl StepView<'_> {
     /// The vehicle's evaluation at `t_s` on this step's dense output, from the memo if it has one.
-    fn evaluation(&self, t_s: f64) -> Result<Evaluation, SimError> {
+    /// Borrowed from the memo (no 600-byte copy out) unless every slot is taken.
+    fn evaluation(&self, t_s: f64) -> Result<EvaluationRef<'_>, SimError> {
         let key = t_s.to_bits();
         #[cfg(test)]
         let shared = !STEP_MEMO_OFF.with(std::cell::Cell::get);
@@ -3626,7 +3660,7 @@ impl StepView<'_> {
         if shared {
             for slot in &self.memo {
                 match slot.get() {
-                    Some((k, e)) if *k == key => return Ok(*e),
+                    Some((k, e)) if *k == key => return Ok(EvaluationRef::Shared(e)),
                     Some(_) => {}
                     None => {
                         free = Some(slot);
@@ -3642,6 +3676,9 @@ impl StepView<'_> {
             .into_iter()
             .flatten()
             .find(|(ht, hy, _)| shared && ht.to_bits() == key && same(hy));
+        if let (Some(slot), Some((_, _, he))) = (free, reused) {
+            return Ok(EvaluationRef::Shared(&slot.get_or_init(|| (key, *he)).1));
+        }
         let e = match reused {
             Some((_, _, he)) => *he,
             None => self.simulation.evaluate(
@@ -3655,9 +3692,25 @@ impl StepView<'_> {
         };
         if let Some(slot) = free {
             // Empty when found, and nothing else fills it in between: the set can't fail.
-            let _ = slot.set((key, e));
+            return Ok(EvaluationRef::Shared(&slot.get_or_init(|| (key, e)).1));
         }
-        Ok(e)
+        Ok(EvaluationRef::Owned(Box::new(e)))
+    }
+}
+
+/// An evaluation read in place from the step's memo, or owned when the memo is full.
+enum EvaluationRef<'a> {
+    Shared(&'a Evaluation),
+    Owned(Box<Evaluation>),
+}
+
+impl std::ops::Deref for EvaluationRef<'_> {
+    type Target = Evaluation;
+    fn deref(&self) -> &Evaluation {
+        match self {
+            Self::Shared(e) => e,
+            Self::Owned(e) => e,
+        }
     }
 }
 

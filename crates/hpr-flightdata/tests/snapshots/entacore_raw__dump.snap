@@ -457,7 +457,7 @@ expression: "entacore_raw::read_dump(&dump()).unwrap()"
     ],
     "notes": [
       "recording 1 of the dump's 1, from byte 0; its 101 opening bytes aren't read",
-      "the clock is the computer's ticks, read as milliseconds from the recording's start, as the AIM software reads them; on the one sample flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
+      "the clock is the computer's ticks, read as milliseconds from the recording's start, as the AIM software reads them. On the one sample flight, a tick is 1.009 to 1.021 ms of the GPS's clock"
     ]
   }
 ]

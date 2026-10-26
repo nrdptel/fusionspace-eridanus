@@ -682,7 +682,7 @@ fn build(
                 if wraps > 0 {
                     notes.push(format!(
                         "{:?} steps by more than 32,768 ft between two rows {wraps} times, as a \
-                         16-bit count of feet does when it wraps: it is kept as written",
+                         16-bit count of feet does when it wraps. It is kept as written",
                         short(&column.name)
                     ));
                 }
@@ -705,8 +705,8 @@ fn build(
             .map(|c| c.values.clone());
     } else {
         file_notes.push(
-            "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is empty: \
-             a Blue Raven's high-rate file holds its inertial sensors only, and the low-rate file \
+            "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is empty. \
+             A Blue Raven's high-rate file holds its inertial sensors only, and the low-rate file \
              of the same flight holds the altitude"
                 .to_owned(),
         );
@@ -934,9 +934,9 @@ fn current_note(current: &Column) -> String {
         .filter(|value| value.is_finite())
         .fold(0.0_f64, |largest, value| largest.max(value.abs()));
     format!(
-        "`{}` kept as written, in a unit no source states: it is other than 0 in {nonzero} of \
-         {finite} rows, at most {largest:.3}; amperes would fit the manual's limit of about 4 A on \
-         the board's current, the USB download's milliamperes would not",
+        "`{}` kept as written, in a unit no source states. It is other than 0 in {nonzero} of \
+         {finite} rows, at most {largest:.3}. Amperes would fit the manual's limit of about 4 A on \
+         the board's current. The USB download's milliamperes would not",
         short(&current.name)
     )
 }
@@ -1168,11 +1168,11 @@ mod tests {
                 "`Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual \
                  and the pad: the median magnitude of the three axes over the 2 rows before \
                  liftoff is 1.000, where a logger at rest reads 1 g",
-                "`Current` kept as written, in a unit no source states: it is other than 0 in 1 of \
-                 3 rows, at most 2.500; amperes would fit the manual's limit of about 4 A on the \
-                 board's current, the USB download's milliamperes would not",
+                "`Current` kept as written, in a unit no source states. It is other than 0 in 1 of \
+                 3 rows, at most 2.500. Amperes would fit the manual's limit of about 4 A on the \
+                 board's current. The USB download's milliamperes would not",
                 "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is \
-                 empty: a Blue Raven's high-rate file holds its inertial sensors only, and the \
+                 empty. A Blue Raven's high-rate file holds its inertial sensors only, and the \
                  low-rate file of the same flight holds the altitude",
             ]
         );
@@ -1352,7 +1352,7 @@ mod tests {
         ));
         assert!(log.notes.contains(
             &"\"Inertial_Altitude\" steps by more than 32,768 ft between two rows 1 times, as a \
-              16-bit count of feet does when it wraps: it is kept as written"
+              16-bit count of feet does when it wraps. It is kept as written"
                 .to_owned()
         ));
     }

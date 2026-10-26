@@ -79,7 +79,7 @@ def level_1_with(repo, tmp_path, event):
 def test_a_files_parachute_flies_with_recovery(repo):
     site = hpr.Environment(0.0, 0.0, 0.0)
     unslowed = hpr.Rocket.from_file(repo / LEVEL_1)
-    assert any("recovery=True would fly them" in note for note in unslowed.notes)
+    assert any("recovery=True flies them" in note for note in unslowed.notes)
     slowed = hpr.Rocket.from_file(repo / LEVEL_1, recovery=True)
     assert not any("recovery device" in note for note in slowed.notes)
     falls, descends = hpr.Flight(unslowed, site, 1.5), hpr.Flight(slowed, site, 1.5)

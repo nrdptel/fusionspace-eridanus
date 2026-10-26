@@ -5,8 +5,8 @@ the F15 in `sustainer` lights 0.0 s after the motor in `booster` burns out
 the F15 in `booster` lights at launch
 the booster drops away from stage 0 at 3.450 s
 
-sustainer lights    3.45 s   212.0 m  110.8 m/s
-separation          3.45 s   212.0 m  110.8 m/s
-apogee             15.33 s  1356.3 m    0.1 m/s
-sustainer lands   141.67 s     0.0 m   10.5 m/s
-the booster leaves at 3.45 s and lands at 29.89 s
+sustainer lights    3.45 s   208.4 m  107.2 m/s
+separation          3.45 s   208.4 m  107.2 m/s
+apogee             14.74 s  1256.7 m    0.1 m/s
+sustainer lands   132.14 s     0.0 m   10.5 m/s
+the booster leaves at 3.45 s and lands at 29.48 s

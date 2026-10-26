@@ -164,7 +164,7 @@ These conventions were set in [the decision on component geometry and mass prope
     The heights are measured from the radius $R_b$ at the root leading edge. Each root point lies
     within a micron of the surface. Crossing edges and points below the root leading edge are
     errors. So are outlines that turn below their root or don't run from the origin aft. The test
-    draws the cockpit of OpenRocket's *Pods--airframes and winglets* through OpenRocket's own root
+    draws the cockpit of OpenRocket's *Pods-\-airframes and winglets* through OpenRocket's own root
     points. Its area, mass and center of mass are OpenRocket's to the six digits printed
     (`fins::tests::a_root_along_a_nose_cone_is_openrockets`).
 - **Cross-sections.** Each chord from $a$ to $b$ has a thickness distribution $t(x)$. [TD] uses
@@ -250,11 +250,11 @@ the URL it was read from, and a basis:
 
 | group | values | sources | basis |
 |---|---|---|---|
-| hobby tubes | cardboard 790, kraft phenolic 950, Blue Tube 1250, Quantum 1090 kg/m³ | LOC Precision and Public Missiles weight tables (mass over wall volume); Always Ready Rocketry's own material file | derived; published |
-| composites | G10/FR-4 1800, filament-wound E-glass 1990, carbon/epoxy 1580 kg/m³ | Norplex-Micarta NP130, Comptec, Hexcel HexPly 8552 data sheets | published |
-| metals | Al 6061 2700, Al 7075 2800, steel 7850, Ti-6Al-4V 4430, brass 8500 kg/m³ | Kaiser Aluminum, MIL-HDBK-5J, TIMET, Copper Development Association | published |
+| hobby tubes | cardboard 790, kraft phenolic 950, Blue Tube 1,250, Quantum 1,090 kg/m³ | LOC Precision and Public Missiles weight tables (mass over wall volume); Always Ready Rocketry's own material file | derived; published |
+| composites | G10/FR-4 1,800, filament-wound E-glass 1,990, carbon/epoxy 1,580 kg/m³ | Norplex-Micarta NP130, Comptec, Hexcel HexPly 8552 data sheets | published |
+| metals | Al 6061 2,700, Al 7075 2,800, steel 7,850, Ti-6Al-4V 4,430, brass 8,500 kg/m³ | Kaiser Aluminum, MIL-HDBK-5J, TIMET, Copper Development Association | published |
 | woods | balsa 180; basswood, yellow birch, Sitka spruce, eastern white pine, sugar maple, northern red oak from $G_{12}$; birch plywood 680 kg/m³ | Wood Handbook FPL-GTR-190 (pinned as `fpl-gtr-190-wood-handbook`), p. 2-21 and Table 5-3a; Riga Wood Plywood Handbook | published; derived |
-| plastics | PLA 1240, ABS 1040, PETG 1270, nylon 6/6 1140, PC 1200, PMMA 1190, acetal 1420, PS 1040, PVC 1400, HDPE 955, epoxy 1180, Depron 40, paper 755 kg/m³ | manufacturers' data sheets (NatureWorks, SABIC, Eastman, Celanese, Covestro, Röhm, AmSty, Charlotte Pipe, Chevron Phillips, West System, Depron, HP) | published (paper derived) |
+| plastics | PLA 1,240, ABS 1,040, PETG 1,270, nylon 6/6 1,140, PC 1,200, PMMA 1,190, acetal 1,420, PS 1,040, PVC 1,400, HDPE 955, epoxy 1,180, Depron 40, paper 755 kg/m³ | manufacturers' data sheets (NatureWorks, SABIC, Eastman, Celanese, Covestro, Röhm, AmSty, Charlotte Pipe, Chevron Phillips, West System, Depron, HP) | published (paper derived) |
 | fabrics | ripstop 1.1 and 1.6 oz/yd², Mylar and LDPE film at 1 mil, paper 80 g/m², Nomex cloth, silnylon | MIL-C-7020H, DuPont Teijin, Dow, HP, MIL-C-83429B; a seller for silnylon | maximum, derived, published, vendor |
 | cords | nylon cord types I and III, tubular nylon ½", 9/16", 1", ⅛" and ¼" Kevlar, ¼" bungee, Tex 80 Kevlar thread | MIL-C-5040H, MIL-W-5625K, MIL-C-5651D, A-A-55220; Giant Leap Rocketry's measurements for Kevlar | maximum, vendor, published |
 
@@ -273,7 +273,7 @@ How the masses compare with OpenRocket's, and each rule where the two differ or 
 ### Checked against OpenRocket
 
 **In short.** HPR Sim adds a design's parts into its *structure*: every stage together, with no
-motor. OpenRocket 24.12 computes the same thing. On 2026-09-21 the two were
+motor. OpenRocket 24.12 computes the same thing. On September 21, 2026 the two were
 [compared](../decisions-and-roadmap.md#m2-2a) on every file OpenRocket opens among the project's `.ork` test files. One set is the *reference library*: designs
 gathered under `refs/`, many of them private files other people shared. The other is the 17
 example designs that ship inside OpenRocket's program file (its Java *jar*). The current default
@@ -315,7 +315,7 @@ OpenRocket's numbers match to 15 digits, and so does HPR Sim's layout of the sam
 The thresholds, 1% of the mass and 1% of the length, were set before any design was measured. A
 design outside either needs a written reason, not a pass.
 
-**The results**, as `cargo xtask ork` printed them on 2026-10-05, after HPR Sim
+**The results**, as `cargo xtask ork` printed them on October 5, 2026, after HPR Sim
 [read parallel stages](../decisions-and-roadmap.md#m4-5m).
 
 | | within 0.1% | within 1% | median |
@@ -327,7 +327,7 @@ design outside either needs a written reason, not a pass.
 | roll inertia, OpenRocket's fin shortcut in HPR Sim's place | 59 of 71 | 59 of 71 | 0.001% |
 
 Counting each file's content once, 50 of 51 are within 1% in mass and 50 of 51 in center of mass.
-On 2026-09-28, after HPR Sim [read tube fins sized from the body](../decisions-and-roadmap.md#m2-2e8),
+On September 28, 2026, after HPR Sim [read tube fins sized from the body](../decisions-and-roadmap.md#m2-2e8),
 60 and 68 of 71 were within 0.1% and 1% in mass. In center of mass, 65 and 68 were. Within 1%, 56
 were in pitch inertia and 57 in roll inertia with the shortcut, at a median 1.686% without it.
 Before tube fins were read, 58 and 66 of 71 were within 0.1% and 1% in mass, and 63 and 66 in
@@ -625,7 +625,7 @@ the outline: a triangle's mass sits nearer the body than the rod's. A tab lies i
 tube, 40 to 50 mm (1.6 to 2.0 in) from the axis on the probe. But the rod puts its mass out with the fin's, so
 OpenRocket's figure is the larger there.
 
-| the probe's fin set | HPR Sim's roll inertia (kg·m²) | OpenRocket's | HPR Sim against OpenRocket |
+| probe fin set | HPR Sim's roll inertia, kg·m² | OpenRocket's, kg·m² | HPR Sim vs OpenRocket |
 |---|--:|--:|---|
 | rectangular, 100 mm (3.9 in) by 50 mm (2.0 in) | 2.6253e-4 | 2.6250e-4 | +0.013% (the thickness) |
 | the trapezoid above | 1.8284e-4 | 1.7854e-4 | +2.41% |

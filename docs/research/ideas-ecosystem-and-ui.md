@@ -84,9 +84,48 @@ From the 2026-10-20 planning review ([ADR-286][adr-286]):
   `features.count`. *Done when:* a probe `.ork` with both tables flies within 0.5% of that
   release's apogee (pinned as 24.12 is), and tests hold the edge rule both ways.
 
+From the 2026-10-24 planning review ([ADR-289][adr-289]):
+
+- SOON: designs that fly as saved, counted against OpenRocket. User: a flyer opening an old `.ork`
+  from a forum or a club's archive. Workflow: `hpr sim` flies it or refuses with one named reason;
+  the scoreboard counts, from the committed reports, what each tool flies as saved and the rest by
+  reason. Moves: a new row, `flies.as-saved`: today hpr flies 61 of the collection's 83 flights
+  whose design is a `.ork`, OpenRocket 79 ([the fixture report][fixture-report]), and hpr 54 of the
+  57 configurations of OpenRocket's examples. *Done when:* the row reads both tools' counts from
+  the reports, and a check fails when hpr's count falls.
+- SOON: the same flight on every platform. User: a university team whose members fly one design on
+  macOS, Windows and Linux and compare the numbers in a design review. Workflow: each CI target
+  writes the apogee, burnout speed and landing time of the validation cases that have them; a job
+  compares the five targets (six once [#438][i-438] lets Intel macOS run) and reports the largest
+  relative difference. Moves: a new row, `determinism.platforms`. *Done when:* the report gives
+  that number over every target CI runs, and CI fails when it passes 1e-6 of the value.
+
+## Neer's 2026-10-07 guides and product guides
+
+Placed by [ADR-195, the guides][adr-195]; research in [guides](guides.md).
+
+- PROMOTED: guides to all of high-power rocketry on the docs site, figures made from hpr's own
+  output (M0.7a, M0.7b, M0.7d); live figures run by `hpr-wasm` in the browser (M0.7c, after 0.5).
+- LATER: a classroom mode built on the guides (already listed under the ecosystem ideas).
+- LATER: a guide's figure opens the same rocket in the app, with its inputs.
+- LATER: NASA Glenn's public-domain figures, redrawn in the product system with credit.
+
+Placed by [ADR-196, the product guides][adr-196]; research in [product guides](product-guides.md).
+
+- PROMOTED: a landing page and an illustrated tour for each product, every picture generated
+  (M0.8a for the simulator; the release checklist from 0.2; each later line's first milestone).
+- LATER: a versioned copy of the site for each release.
+- LATER: animated CLI recordings (VHS, MIT), still frames tested first.
+- LATER: runnable notebooks for the Python package, opened from the guide.
+
 [m1-14g]: ../decisions-and-roadmap.md#m1-14g
 [m4-5e]: ../decisions-and-roadmap.md#m4-5e
 [m2-9]: ../decisions-and-roadmap.md#m2-9
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [or-aero]: https://openrocket.readthedocs.io/en/latest/user_guide/advanced_flight_simulation.html
 [i-879]: https://github.com/nrdptel/fusionspace-eridanus/issues/879
+[adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[i-438]: https://github.com/nrdptel/fusionspace-eridanus/issues/438
+[adr-195]: ../decisions/0195-the-2026-10-07-guides-rocketry-explained.md
+[adr-196]: ../decisions/0196-the-2026-10-07-product-guides.md

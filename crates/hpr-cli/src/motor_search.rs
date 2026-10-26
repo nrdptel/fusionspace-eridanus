@@ -192,7 +192,8 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     };
     let (mut lines, headings) = text_lines(&document, &filters.words());
     if document.motors.is_empty()
-        && let Some(hint) = priced_out(&filters, &list.motors)
+        && let Some(hint) =
+            priced_out(&filters, &list.motors).or_else(|| unmatched(&filters, &list.motors))
     {
         lines.push(hint);
     }
@@ -235,6 +236,158 @@ fn priced_out(filters: &Filters, motors: &[Motor]) -> Option<String> {
             money(most)
         ),
     })
+}
+
+/// Why an empty list is empty, when [`priced_out`] can't say, by one rule: the first filter that
+/// no motor passes on its own, with what the list holds instead (`--class Z`: its classes run
+/// from D to O); or, when each passes some alone, how many pass with each filter dropped, naming
+/// the drops that leave any.
+fn unmatched(filters: &Filters, motors: &[Motor]) -> Option<String> {
+    let pool: Vec<&Motor> = motors
+        .iter()
+        .filter(|m| !filters.only_in_stock() || m.in_stock)
+        .collect();
+    let stock = if filters.only_in_stock() {
+        " in stock"
+    } else {
+        ""
+    };
+    if pool.is_empty() {
+        return Some(if filters.only_in_stock() {
+            "No motor in the list is in stock.".to_owned()
+        } else {
+            "The list holds no motor.".to_owned()
+        });
+    }
+    if let Some(class) = &filters.class
+        && !pool.iter().any(|m| m.impulse_class == *class)
+    {
+        let least = pool.iter().min_by_key(|m| class_order(&m.impulse_class))?;
+        let most = pool.iter().max_by_key(|m| class_order(&m.impulse_class))?;
+        return Some(format!(
+            "No motor{stock} in the list is class {class}. Its classes run from {} to {}.",
+            printable(&least.impulse_class),
+            printable(&most.impulse_class)
+        ));
+    }
+    if let Some(mm) = filters.diameter_mm
+        && !pool.iter().any(|m| (m.diameter_mm - mm).abs() <= 0.5)
+    {
+        let mut sizes: Vec<f64> = pool.iter().map(|m| m.diameter_mm).collect();
+        sizes.sort_by(f64::total_cmp);
+        sizes.dedup_by(|a, b| (*a - *b).abs() <= 0.5);
+        let shown: Vec<String> = sizes
+            .iter()
+            .take(SIZES_SHOWN)
+            .map(|d| format!("{d}"))
+            .collect();
+        let more = match sizes.len().saturating_sub(SIZES_SHOWN) {
+            0 => String::new(),
+            n => format!(" and {n} more"),
+        };
+        return Some(format!(
+            "No motor{stock} in the list is {mm} mm across. Its diameters are {} mm{more}.",
+            shown.join(", ")
+        ));
+    }
+    if let Some(name) = filters.manufacturer
+        && !pool.iter().any(|m| m.manufacturer == name)
+    {
+        return Some(format!("No motor{stock} in the list is by {name}."));
+    }
+    if let Some(most) = filters.max_price_cents
+        && !pool
+            .iter()
+            .any(|m| dollar_price(m).is_some_and(|cents| cents <= most))
+    {
+        let cheapest = pool
+            .iter()
+            .filter_map(|m| dollar_price(m).map(|cents| (cents, *m)))
+            .min_by(|(_, a), (_, b)| cheapest_first(a, b));
+        return Some(match cheapest {
+            Some((cents, motor)) => format!(
+                "No motor in stock costs ${} or less. The cheapest is {} {} at ${}.",
+                money(most),
+                printable(&motor.manufacturer),
+                printable(&motor.designation),
+                money(cents)
+            ),
+            None => "No motor in stock has a price in U.S. dollars.".to_owned(),
+        });
+    }
+    // Each passes some alone: what passes with one dropped, filter by filter.
+    let mut drops: Vec<(&str, Filters)> = Vec::new();
+    if filters.in_stock && filters.max_price_cents.is_none() {
+        let without = Filters {
+            in_stock: false,
+            ..filters.clone()
+        };
+        drops.push(("--in-stock", without));
+    }
+    if filters.class.is_some() {
+        let without = Filters {
+            class: None,
+            ..filters.clone()
+        };
+        drops.push(("--class", without));
+    }
+    if filters.diameter_mm.is_some() {
+        let without = Filters {
+            diameter_mm: None,
+            ..filters.clone()
+        };
+        drops.push(("--diameter", without));
+    }
+    if filters.manufacturer.is_some() {
+        let without = Filters {
+            manufacturer: None,
+            ..filters.clone()
+        };
+        drops.push(("--manufacturer", without));
+    }
+    if filters.max_price_cents.is_some() {
+        let without = Filters {
+            max_price_cents: None,
+            ..filters.clone()
+        };
+        drops.push(("--max-price", without));
+    }
+    let left: Vec<String> = drops
+        .iter()
+        .filter_map(
+            |(label, without)| match motors.iter().filter(|m| without.keep(m)).count() {
+                0 => None,
+                1 => Some(format!("without {label}, 1 does")),
+                n => Some(format!("without {label}, {n} do")),
+            },
+        )
+        .collect();
+    Some(if left.is_empty() {
+        "Each filter passes some motors on its own, but no motor passes all of them, or all but \
+         any one: drop two or more."
+            .to_owned()
+    } else {
+        let mut said = left.join("; ");
+        if let Some(first) = said.get_mut(..1) {
+            first.make_ascii_uppercase();
+        }
+        format!("No motor passes every filter together. {said}.")
+    })
+}
+
+/// The most diameters [`unmatched`] lists before counting the rest: a `--from` file can hold any
+/// number.
+const SIZES_SHOWN: usize = 12;
+
+/// An impulse class's place in order: by its letter, then a fraction of it below the letter
+/// (`1/4A` before `1/2A` before `A`), so the least and greatest are the same in any list order.
+fn class_order(class: &str) -> (Option<char>, std::cmp::Reverse<u32>) {
+    let letter = class.chars().last();
+    let fraction = class
+        .split_once('/')
+        .and_then(|(_, rest)| rest.trim_end_matches(char::is_alphabetic).parse().ok())
+        .unwrap_or(1);
+    (letter, std::cmp::Reverse(fraction))
 }
 
 /// The manufacturer `--manufacturer` names, by the site's name or its slug (`cesaroni`), in any
@@ -472,6 +625,19 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> (Vec<String>, Vec<u
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn classes_order_by_letter_then_fraction_in_any_list_order() {
+        let mut classes = ["A", "1/2A", "B", "1/4A", "1/8A", "O"];
+        for _ in 0..classes.len() {
+            classes.rotate_left(1);
+            let least = classes.iter().min_by_key(|c| class_order(c));
+            let most = classes.iter().max_by_key(|c| class_order(c));
+            assert_eq!((least, most), (Some(&"1/8A"), Some(&"O")), "{classes:?}");
+        }
+        assert!(class_order("1/2A") < class_order("A"));
+        assert!(class_order("A") < class_order("1/2B"));
+    }
 
     #[test]
     fn prices_read_to_the_cent() {

@@ -79,6 +79,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
 - M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
+- M0.9f1 Joined names and long warnings ([Phase 0](#phase-0-foundations))
+- M0.9f2 Short notes and cells, labeled heads ([Phase 0](#phase-0-foundations))
+- M0.9f3 Grouped figures, prose dates and known digits ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
 - M0.8a The simulator's guide ([Phase 0](#phase-0-foundations))
@@ -87,6 +90,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
+- M0.14 The maintainer's own voice ([Phase 0](#phase-0-foundations))
 - M0.14a The guide and the check ([Phase 0](#phase-0-foundations))
 - M0.14c The rest of the site ([Phase 0](#phase-0-foundations))
 - M0.14c1 The first guides ([Phase 0](#phase-0-foundations))
@@ -98,7 +102,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c7 Recovery, staging and readings ([Phase 0](#phase-0-foundations))
 - M0.14c8 The file formats ([Phase 0](#phase-0-foundations))
 - M0.14c9 Flight logs, and every page held ([Phase 0](#phase-0-foundations))
+- M0.14d The program's words ([Phase 0](#phase-0-foundations))
 - M0.14d1 The help ([Phase 0](#phase-0-foundations))
+- M0.14d2 What the design commands say ([Phase 0](#phase-0-foundations))
+- M0.14d3 What the data commands say ([Phase 0](#phase-0-foundations))
+- M0.14d4 The Python package and the crates' front pages ([Phase 0](#phase-0-foundations))
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -292,7 +300,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M4.5k A ring around its tube ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5l A packed part wider than its bore ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5m Parallel booster staging ([Phase 2](#phase-2-library-surfaces-and-interop))
-- M4.5n Pods--powered's first configuration ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M4.5n Pods-\-powered's first configuration ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.5o Base drag hack's E12-4 ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6 Monte Carlo from the CLI and Python ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6a `hpr mc` ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -585,6 +593,22 @@ One line per milestone or increment, in the order it was archived within its pha
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
     hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow
     `writing.md`'s order with the version; the audit's rows name the checks.
+  - **M0.9f** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+    - [x] **M0.9f1 Joined names and long warnings.** *Done when:* a check of the site and the
+      README fails on an en dash between words (ADR-295 §4), and every page and the README pass
+      it; a test fails on an `hpr sim` warning sentence over 40 words, in every issue warning
+      built at its longest and in what `hpr sim` prints for the committed designs it flies
+      offline (ADR-295 §5), and all pass;
+      the audit's *Names* row names the check.
+    - [x] **M0.9f2 Short notes and cells, labeled heads.** *Done when:* a check of the site and
+      the README fails on a note or a table cell over 120 words, and on a number column's head
+      without a label and a unit, and every page and the README pass it; the audit's *Voice* and
+      *Tables* rows name the checks.
+    - [x] **M0.9f3 Grouped figures, prose dates and known digits.** *Done when:* a check of the
+      site and the README fails on an ungrouped figure of four or more digits in prose (the
+      identifiers it passes listed) and on an ISO date in running prose, and every page and the
+      README pass it; each over-precise figure #476 names is cut to what is known; the audit's
+      *On screens* row names the check.
 - [x] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the
@@ -620,7 +644,9 @@ One line per milestone or increment, in the order it was archived within its pha
   converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
   test each; the page check fails math text off the math face or under 12 px and a formula wider
   than its box, with a canary; `docs/writing.md` has the rules.
-- **M0.14** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+- [x] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55). Each
+  rewriting increment's PR shows every changed page before and after, and its cold reader checks
+  each page against each voice rule, every finding fixed or filed (ADR-284 §7).
   - [x] **M0.14a The guide and the check.** *Done when:* `writing.md`'s voice section, each rule
     with a before-and-after pair from a real page and limits per 100 words for each counted
     pattern, is in the design system's rules (a merged PR); `cargo xtask voice` reads any path,
@@ -650,9 +676,22 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
       site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
       with them, within its limits and the sentence targets, with an acceptance pass.
-  - **M0.14d** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
+    when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
+    `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
     - [x] **M0.14d1 The help.** *Done when:* a test pins each command's `--help` in a snapshot;
       `xtask voice` reads them as help and holds each to the voice limits in CI; acceptance pass.
+    - [x] **M0.14d2 What the design commands say.** *Done when:* `xtask voice` reads a census of
+      the errors, warnings and notes `hpr sim`, `mc`, `convert` and `motors list`/`show` print,
+      from `hpr-cli`, its shared code included, and the nine crates ADR-292 §1 lists, and holds
+      them in CI; acceptance pass.
+    - [x] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr weather`,
+      `motors fetch`/`search` and `analyze`, from `hpr-cli`, `hpr-net`, `hpr-flightdata`,
+      `hpr-analysis` and `hpr-forensics`; acceptance pass.
+    - [x] **M0.14d4 The Python package and the crates' front pages.** *Done when:* the Python
+      package's README and docstrings, `hpr-py`'s messages and each crate's `//!` docs pass `xtask
+      voice`, held in CI; acceptance pass; and M0.14d's own *done when*.
+
   - [x] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the
     guides' landing pages, fusionspace.co, the design repo's README, the profile README and
     ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
@@ -1450,7 +1489,7 @@ One line per milestone or increment, in the order it was archived within its pha
       payload* and *ARC payload rocket* fly in `hpr sim`, the part keeping the nose held to
       OpenRocket's record (apogee within 5%, its descent to ADR-153's targets); a part hpr can't fly
       honestly stays refused, with an ADR that measures what flying it would get wrong.
-    - [x] **M4.5g4 Freeform fins.** *Done when:* *Pods--airframes and winglets*, whose freeform
+    - [x] **M4.5g4 Freeform fins.** *Done when:* *Pods-\-airframes and winglets*, whose freeform
       outlines don't run from the root's leading edge to its trailing edge, flies in `hpr sim` with
       them read as written, each configuration's apogee within 5% of OpenRocket's record; or an ADR
       measures why such an outline can't be read as written, and the refusal names it.
@@ -1461,7 +1500,7 @@ One line per milestone or increment, in the order it was archived within its pha
     both, as `hpr sim` flies it: C11-5 +2.06% and D12-3 +4.65%, met. **Not met, recorded:** E12-4
     +7.97%, the drag coefficient (the nose by OpenRocket's breakdown, #177): on OpenRocket's drag
     hpr comes within 0.03% of OpenRocket's flight with nothing deployed.
-  - [x] **M4.5i A powered pods example** (#329). *Done when:* each configuration of OpenRocket's *Pods--powered
+  - [x] **M4.5i A powered pods example** (#329). *Done when:* each configuration of OpenRocket's *Pods-\-powered
     with recovery deployment* that OpenRocket completes flies in `hpr sim`, its screw heads weighed
     as OpenRocket's probes measure them, each pod set's motors burning into its own pods' bases,
     and a device whose stage has no lit motor opening as OpenRocket's does; each apogee within 5% of
@@ -1479,13 +1518,13 @@ One line per milestone or increment, in the order it was archived within its pha
     an ignition, 1 a separation); of OpenRocket's 56, 38, 13 and 5.
   - [x] **M4.5k A ring around its tube.** *Done when:* a centering ring written as a child of the
     motor tube it wraps (its bore at least the tube's outside) is checked for room in what holds the
-    tube, so *Pods--airframes and winglets*' five configurations and *Pods--powered*'s three that
+    tube, so *Pods-\-airframes and winglets*' five configurations and *Pods-\-powered*'s three that
     OpenRocket completes fly as saved in `cargo xtask ork-cli`'s report; a ring inside its tube, or
     too wide for what holds it, stays an error (a test, with mutation probes).
     *Result (ADR-169):* met: all eight fly as saved; OpenRocket's examples 46 of 56 as saved (38
     before), the survey 121 of 170 (108); *Deployable payload*'s five still need the flag. A ring
     is measured in the part around it at its own station that holds it whole: what holds the tube
-    for all but one of *Pods--powered*'s rings, which sits in the airframe ahead of the coupler.
+    for all but one of *Pods-\-powered*'s rings, which sits in the airframe ahead of the coupler.
   - [x] **M4.5l A packed part wider than its bore.** *Done when:* a mass component, parachute,
     streamer or shock cord drawn wider than its parent's bore, its centre inside the bore, warns
     instead of stopping the flight, so *Deployable payload*'s five configurations fly as saved in
@@ -1499,7 +1538,7 @@ One line per milestone or increment, in the order it was archived within its pha
     configurations fly as saved in `cargo xtask ork-cli`'s report, the boosters beside the core
     burning and dropping at their own separation, each apogee within 5% of OpenRocket's record
     with recovery as saved, under an ADR on how a parallel stage is read and flown.
-  - [x] **M4.5n Pods--powered's first configuration.** *Done when:* `hpr sim` flies *Pods--powered
+  - [x] **M4.5n Pods-\-powered's first configuration.** *Done when:* `hpr sim` flies *Pods-\-powered
     with recovery deployment*'s first configuration as saved, its motors in three mounts burning
     out in the order their curves give, under an ADR naming what it is checked against, since
     OpenRocket aborts its own run of it.

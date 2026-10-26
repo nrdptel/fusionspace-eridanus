@@ -138,7 +138,7 @@ one differs.
 How the 32 were chosen:
 
 - They are public-domain ThrustCurve.org curves of motors in production.
-- When they were chosen (2026-09-17), each curve's total impulse, burn time and average thrust
+- When they were chosen (September 17, 2026), each curve's total impulse, burn time and average thrust
   were within 1% of the values ThrustCurve.org publishes for the motor. With ThrustCurve.org's catalog saved outside the repository, `cargo xtask
   motor-catalog` measures the gap again and fails over 1%. Total impulse runs from 0.83% below
   ThrustCurve.org's to 0.72% above. Average thrust runs from 0.81% below to 0.95% above, and burn
@@ -172,7 +172,7 @@ it burns ([The whole motor](#the-whole-motor) gives the details).
 Motor files come in two formats, and ThrustCurve.org serves both:
 
 - [RASP `.eng`](../format/eng.md), a plain-text format named after RASP, the rocket simulation
-  program it comes from. It is the more common of the two: 889 of the 1712 solid-motor files
+  program it comes from. It is the more common of the two: 889 of the 1,712 solid-motor files
   ThrustCurve.org held when surveyed.
 - [RockSim `.rse`](../format/rse.md), an XML format from the RockSim simulator.
 
@@ -207,7 +207,7 @@ as 1,000 times heavier.
 
 The file here is Loki Research's I377. The program prints what it read, `38 mm by 292 mm` (1.50 by 11.5 in), 560 g
 loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I motor, averaging
-377.9 N over 1.39 s. Its effective exhaust velocity, 2103 m/s (6,900 ft/s), is well inside the check's range.
+377.9 N over 1.39 s. Its effective exhaust velocity, 2,103 m/s (6,900 ft/s), is well inside the check's range.
 
 Three things to know about a motor built from a file:
 
@@ -276,7 +276,7 @@ under the name given. So anyone can fetch the same copy ([Checking a claim](../c
   [free from NASA][sp], pinned as `nasa-sp-8039`. Page notes:
   [nasa-sp-8039-motor-definitions.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/nasa-sp-8039-motor-definitions.md).
 - **[NAR]** National Association of Rocketry, *Standard Motor Codes*, as
-  [archived on 2014-02-05][nar], pinned as `nar-standard-motor-codes`.
+  [archived on February 5, 2014][nar], pinned as `nar-standard-motor-codes`.
 - **[TC-G]** ThrustCurve.org's [glossary][tc-g], pinned as `thrustcurve-glossary`.
 - **[TC-S]** ThrustCurve.org's ["Motor Statistics" page][tc-s], pinned as `thrustcurve-motorstats`.
 - **[TC-A]** ThrustCurve.org's statistics code, [`simulate/analyze/analyze.js`][tc-a] in the
@@ -325,7 +325,7 @@ lists it.
   the curve's start, or the last of a step at its end. **Peak thrust** is the largest delivered
   sample, which is exactly the most the curve's thrust reaches. The burn-time crossings below
   compare only delivered samples with the threshold. For example, times `0, 1, 1, 1, 2` s and
-  thrusts `10, 10, 1000, 10, 0` N hold 15 N·s. The step skips the 1000 N sample, so the thrust
+  thrusts `10, 10, 1000, 10, 0` N hold 15 N·s. The step skips the 1,000 N sample, so the thrust
   never exceeds 10 N, and 10 N is the peak. The burn runs from 0 to 1.95 s. Counting the skipped sample would set the
   5% threshold at 50 N, above anything the curve delivers. The curve would then be refused
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md),
@@ -335,7 +335,7 @@ lists it.
   has the counts.
 - Before integrating, [TC-A] drops leading points below 500 µN and averages points closer than
   50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps. The
-  results are identical on every bundled curve. On the 1710 of ThrustCurve.org's 1712 surveyed
+  results are identical on every bundled curve. On the 1,710 of ThrustCurve.org's 1,712 surveyed
   solid-motor files that read, the two agree to 1e-9, except 17 with repeated times.
   On those they differ by up to 1.1% in average thrust. HPR Sim keeps the step because a vertical
   drop is what the file draws.
@@ -516,7 +516,7 @@ of the propellant mass, not a filter on propellant:
 - It can't catch a size in the wrong unit. $c$ doesn't depend on the diameter or the length, and
   the motor accepts any positive size. The example's I377 with its size left in millimeters,
   `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
-  2103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
+  2,103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
   ([Checks](design.md#checks)). A diameter wider than the mount's bore is an error,
   `motor_wider_than_mount`, and the flight refuses to start. Within a nominal size's slack for its
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
@@ -563,7 +563,7 @@ $$
   to measure its curve. It is stored with the nozzle (`Nozzle::reference_pressure_pa`). Motor
   files and catalogs don't record it, so a design gives it, or gives none (below). Standard
   sea-level pressure (101 325 Pa) suits a motor tested near sea level, but it is a guess. Take a
-  test at 1500 m (4,921 ft) elevation, 84.6 kPa in the 1976
+  test at 1,500 m (4,921 ft) elevation, 84.6 kPa in the 1976
   [standard atmosphere](../glossary.md#standard-atmosphere). For that motor, sea-level pressure
   makes the term 16.8 kPa × $A_e$ too large at every altitude.
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
@@ -684,7 +684,7 @@ The tests that pin the motor model, and the whole example program.
     RocketPy's own value, where RocketPy holds 6.9 mg in the 38 mm motor. That comes from
     RocketPy's interpolation between the points its ODE solver stored.
   - The test holds 0.1% on these scales.
-- **Files:** 1710 of ThrustCurve's 1712 solid-motor files read, and write back out and read again
+- **Files:** 1,710 of ThrustCurve's 1,712 solid-motor files read, and write back out and read again
   with every value identical to the last bit. The other two have times that go backwards
   ([`.rse` files](../format/rse.md#checked-against-real-files)).
 - **Unit and property tests** cover exact impulse integration, burn windows, grain volume

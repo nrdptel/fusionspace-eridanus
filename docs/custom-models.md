@@ -16,18 +16,17 @@ can be plain functions ([Python](python.md#drag-and-wind-of-your-own)).
 > They still fly the rest of the rocket, and they aren't yet validated against real flights
 > ([Accuracy](accuracy.md)).
 >
-> - The simulator refuses a drag coefficient that's negative or not a finite number, and a wind
->   velocity that isn't finite. It also refuses air the flight can't use: a density or pressure
->   that's negative or not finite. A temperature, speed of sound or viscosity that's zero,
->   negative or not finite is refused too. Each error names the wind or the air's field, and the
->   height.
-> - A test pins two things. A drag model that hands back the simulator's own drag flies the same
->   flight, bit for bit, as flying without one. A model that gives the same drag at every speed
->   flies exactly as a drag table of that value does
->   ([`a_drag_model_is_flown_in_place_of_hprs_drag`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
+> - The simulator refuses a drag coefficient that's negative or not finite, and wind or air it
+>   can't use. Each error names the field and the height.
 > - Nothing checks whether your model is right. The simulator can't know.
 > - The drag curve and the wind on this page are invented. They aren't measurements of any rocket
 >   or any day.
+
+A test
+([`a_drag_model_is_flown_in_place_of_hprs_drag`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs))
+pins two things. A model that returns the simulator's own drag flies the same flight, bit for
+bit, as flying without one. A model with the same drag at every speed flies exactly as a drag
+table of that value does.
 
 ## Which models you can replace
 

@@ -281,7 +281,7 @@ expression: "altimax_als::read(&als()).unwrap()"
     }
   ],
   "notes": [
-    "the clock isn't stored: each record is 0.005 s after the one before, or 0.025 s where its kind's bit 2 is set, the 200 and 40 samples a second the maker's manual gives",
+    "the clock isn't stored. Each record is 0.005 s after the one before, or 0.025 s where its kind's bit 2 is set. Those are the 200 and 40 samples a second the maker's manual gives",
     "the voltage counts are kept as written: no document states their factor to volts"
   ]
 }

@@ -481,13 +481,13 @@ expression: log
   "notes": [
     "32 records of 16 bytes, log format 7, from the JSON form: every record's checksum checked, all pass",
     "2 erased records (every byte 0xFF) after the last, skipped",
-    "the clock is the board's tick, 10 ms, from the flight record's at tick 65530 (boost detection), each tick on the turn nearest the latest so far, from the file's first record; the records in tick order, as the file's isn't; 7 records before boost, at negative times",
-    "`pressure` and `temperature` from the MS5607's counts by its data sheet's compensation, first and second order: the pad's pressure, 110002 Pa, lies from 10 to 120 kPa and within 0.00% of the flight record's ground pressure, 110002 Pa",
+    "the clock is the board's tick, 10 ms, from the flight record's at tick 65530 (boost detection). Each tick is on the turn nearest the latest so far, from the file's first record. The records are in tick order, as the file's isn't. 7 records are before boost, at negative times",
+    "`pressure` and `temperature` from the MS5607's counts by its data sheet's compensation, first and second order. The pad's pressure, 110002 Pa, lies from 10 to 120 kPa and within 0.00% of the flight record's ground pressure, 110002 Pa",
     "`temperature` on the pad, 20.0 °C, within the MS5607's operating range, −40 to 85 °C",
-    "`pressure` and `acceleration` held to each other: over the first second after boost the rocket climbs 31.7 m by the pressure in the standard atmosphere and 31.6 m by the acceleration integrated twice from rest on the pad, a ratio of 1.001, within 0.6 to 5/3",
-    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: 0 at the flight record's ground reading, 1000, and 20 counts a g from the calibration's +1 g and −1 g, 1000 and 1040",
+    "`pressure` and `acceleration` held to each other. Over the first second after boost the rocket climbs 31.7 m by the pressure in the standard atmosphere. By the acceleration integrated twice from rest on the pad it climbs 31.6 m. The ratio is 1.001, within 0.6 to 5/3",
+    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts. It is 0 at the flight record's ground reading, 1000. A g is 20 counts, from the calibration's +1 g and −1 g, 1000 and 1040",
     "kept as written, counts with no cited conversion: `v_batt`, `sense_a`, `sense_m`, `gps_byte_11` (a dilution in some firmware, a stale byte in others)",
-    "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten times their value), course, speed, climb, satellite counts and signals kept as written",
+    "GPS: the time, date, dilutions, course, speed, climb, satellite counts and signals kept as written. The date has two digits and is not reliably the flight's. The dilutions are ten times their value",
     "1 GPS position records without a valid fix: their positions read as gaps"
   ]
 }

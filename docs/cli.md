@@ -6,7 +6,8 @@ use from a terminal or a script.
 `hpr` is HPR Sim's command-line tool. Today it does seven things:
 
 - It flies a design, read from an OpenRocket file or a
-  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went.
+  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went. It flies a
+  [separation](glossary.md#separation) under power, or several in turn.
 - It flies a design many times, its uncertain inputs scattered at random
   ([Monte Carlo](monte-carlo.md)), and prints how far its apogee and landing spread.
 - It looks up motors in the catalog built into it or in a motor file of your own. It searches
@@ -28,40 +29,30 @@ Its other commands are registered but not available yet. Each refuses and names 
 >
 > - `hpr sim` prints what the library computes. A
 >   [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
->   flies the rocket of [the example below](#flying-a-design) through `hpr sim` and through the Rust
->   library. Both give identical numbers, to the last bit. How close those are to a real flight is
->   the [Accuracy](accuracy.md) page's subject.
-> - `hpr sim` flies a `.ork` file's parachutes and streamers as OpenRocket flies them. Its landing
->   speed is within 0.02% of OpenRocket's on 50 of its 53 example flights, and within 0.12% on all
->   53 ([Recovery](physics/recovery.md#from-an-openrocket-file)). It flies a
->   [separation](glossary.md#separation) under power, or several in turn as on a three-stage rocket.
->   A dropped stage's own flight is not validated ([evidence row G13](evidence.md#g13)). With no
->   device open within 1 s of apogee, where and how fast its rocket comes down are not predictions
+>   flies the rocket of [the example below](#flying-a-design) through `hpr sim` and the Rust
+>   library, with identical numbers to the last bit.
+> - On a `.ork` file's parachutes and streamers, `hpr sim`'s landing speed is within 0.12% of
+>   OpenRocket's on all 53 example flights
+>   ([Recovery](physics/recovery.md#from-an-openrocket-file)). A dropped stage's flight
+>   is not validated ([evidence row G13](evidence.md#g13)). With no device open within 1 s of
+>   apogee, where and how fast its rocket comes down are not predictions
 >   ([what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
-> - `hpr motors show` works out each figure from the motor's
->   [thrust curve](glossary.md#thrust-curve) with the same code a flight uses. On all 32 bundled
->   curves, that code matches ThrustCurve.org's own statistics code to 1.8e-15, relative
->   ([Solid motors](physics/motor.md#validation)). `hpr motors list` gives the same figures for
->   the bundled motors, worked out by the same code from the same
->   [ThrustCurve.org](glossary.md#thrustcurveorg) files.
-> - `hpr convert` keeps the thrust curve, the size and the masses. Each of the 32 bundled motor
->   files, converted to the other format and back, reads as before in the simulator. That holds bit
->   for bit, except two masses written with 17 digits, each flagged by a warning
->   ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
-> - OpenRocket 24.12 opens all 32 converted files and reads 29 as it reads the originals. The other
->   three differ only in the motor's type or a delay ([other programs](#what-a-conversion-keeps)).
->   Whether RockSim opens them is not checked.
-> - `hpr` doesn't re-run the validation cases. To run the check the project's automated tests
->   make on every change, clone the repository and run `cargo xtask validate --check`
->   ([what it checks](accuracy.md#the-census)).
-> - `hpr weather` runs the library's readers and writes the profiles they build, to the last bit
->   ([how far to trust it](#hpr-weather)). Its online fetch is not tested automatically.
-> - `hpr motors search` gives back motor.fusionspace.co's values unchanged
->   ([how far to trust it](#motors-you-can-buy)). Its online fetch is not tested automatically.
-> - The tests in
->   [`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
->   run every command as a user would, and check each `--json` document against its
->   [published schema](#json-output).
+> - OpenRocket 24.12 opens all 32 motors converted by `hpr convert` and reads 29 like
+>   the originals; the other three differ only in type or a delay
+>   ([other programs](#what-a-conversion-keeps)).
+
+Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.md) says how close
+`hpr sim`'s flights are to a real flight.
+
+`hpr motors show` works out each figure with the code a flight uses. On all 32 bundled curves, it
+matches ThrustCurve.org's statistics code to 1.8e-15, relative
+([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
+validation cases. To run the project's automated check, clone the repository and run
+`cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
+[`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
+run every command as a user would, and check each `--json` document against its
+[published schema](#json-output). `hpr weather` and `hpr motors search` carry their own notes on
+how far to trust them ([weather](#hpr-weather), [stock](#motors-you-can-buy)).
 
 ## Running it
 
@@ -178,12 +169,12 @@ output never has color, whatever the flag or the variables say. To turn color of
 ### Typing numbers, and what a refusal says
 
 A number is read the way you would write it by hand. Spaces around it are dropped. A comma between
-groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m (4199 ft). A `note:`
+groups of three digits is a thousands separator: `--elevation 1,280` is 1,280 m (4,199 ft). A `note:`
 line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the comma
 meant something else.
 
 That holds for every option that takes a number, negative ones included. `--elevation -1,280` is
-−1280 m (−4199 ft). `--longitude -106,970` is read as −106970° and refused, as a longitude is at
+−1,280 m (−4,199 ft). `--longitude -106,970` is read as −106,970° (not −106.970°) and refused, as a longitude is at
 most 180° east or west.
 
 Any other comma is refused with a question. `3,9` is 3.9 in much of the world, but it could be a
@@ -384,9 +375,9 @@ descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -401,10 +392,10 @@ top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -429,9 +420,11 @@ What each part says:
 | `warning:` | what the simulator's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
 | `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope $C_{m\alpha}$ is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest $C_{m\alpha}$ per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
 | `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
-| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
+| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
 | the last figures | the top speed and [Mach number](glossary.md#mach-number), and the landing |
+
+In the JSON, `issues` lists the drag, stability and flight warnings, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message`.
 
 The text names configurations and parts by their names, in backticks, not by the long ids an
 OpenRocket file gives them. A part with no name is called by its id. `--json` prints the same flight
@@ -452,7 +445,7 @@ copy in the cache, `hpr sim` refuses and names the command that fetches it (abri
 
 ```text
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it: no thrust curve for H128W: ...; AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
+error: configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve […]. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
 help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
 help: give a motor with --motor
 ```
@@ -514,9 +507,9 @@ motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Booster 
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-note: the file's 2 recovery devices fly as OpenRocket flies them: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file's 2 recovery devices fly as OpenRocket flies them. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.6 m      (2 ft)     0.0 m/s     (0 ft/s)
@@ -535,10 +528,10 @@ top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -634,7 +627,7 @@ stage with motors in more than one mount burns out when its first motor does, as
 it. It drops the rest still burning. The dropped part flies with no thrust, so a note names the
 motors and the impulse its flight leaves out.
 
-The first configuration of OpenRocket's *Pods--powered with recovery deployment* is
+The first configuration of OpenRocket's *Pods-\-powered with recovery deployment* is
 `[C6-7; 2× A3-4, B6-0]`. That lists its motors by stage, sustainer first, the stages separated by
 `;`. Its note begins "part 1 drops at 0.860 s with `A3`, `A3` still burning". The impulse it gives,
 0.509 N·s, is the one the report's
@@ -740,9 +733,9 @@ descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
-note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -757,10 +750,10 @@ top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
-a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
-log, and the RSO decides.
+fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
+reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -1076,15 +1069,16 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
-note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
-warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
+warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 53 logged flights of fliers' own designs,
-each logged apogee the height climbed in the day's air, the simulated apogee averaged 8.7% above the
-logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan a waiver or a field's
-ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
+the simulated apogee averaged 8.7% above the logged one. Each logged apogee is the height climbed in
+the day's air. The simulated apogee was within 10% on 26 and read low on 13, by at most 20%. Plan a
+waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to log,
+and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -1253,9 +1247,9 @@ file:
 - The [average thrust](glossary.md#average-thrust) is the total impulse divided by that burn time.
 - The masses and the casing size are the catalog's, or the file's for a file, with ounces or
   pounds and inches in parentheses.
-- The impulse class comes with its range of total impulse, written as NFPA 1125 and 1127 write
+- The impulse class comes with its range of total impulse, written as NFPA 1125 and NFPA 1127 write
   it. Each class runs from just above the one below's top to twice it, such as
-  J (640.01–1280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
+  J (640.01–1,280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
   carry on the doubling.
 - The designation is read for what it names, as the maker writes it. `H170M` is class H, a
   nominal average thrust of 170 N, and propellant M.
@@ -1303,10 +1297,11 @@ $ hpr motors show J760
 
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
 by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
-burn time computed from its curve, which can differ from the maker's rated figures. The total
-impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check
-of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying
-bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides.
+burn time computed from its curve. These can differ from the maker's rated figures. The total
+impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is
+a check of the arithmetic, not of the motor. No figure is checked against the maker's or the
+certifying bodies' data. The motor's printed data and its maker's instructions come first, and the
+RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
@@ -1385,7 +1380,7 @@ This reads the list of motors in stock that the tests use, recorded at 07:07 UTC
 $ hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 4 motors (in stock, class L, at most $300.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 
 designation  maker     class  dia mm (in)  impulse N·s   avg N  burn s  each $  pack  vendor
@@ -1409,7 +1404,7 @@ the same recording lists nothing:
 $ hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 0 motors (in stock, class L, at most $150.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 None costs $150.00 or less: of the 20 motors in stock the other filters pass, the cheapest is AeroTech L1520T at $260.99.
 ```
@@ -1418,18 +1413,21 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 
 > **How far to trust it.** `hpr motors search` gives back the site's values unchanged. It reads
 > the list with the same checks the library makes on every answer from the site
-> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). The tests in
-> [`crates/hpr-cli/tests/motors_search.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/motors_search.rs)
-> run it offline on the recorded lists, from the file and from the cache. They check every motor
-> it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
-> the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
-> `--max-price 150` search lists exactly that motor.
+> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). Offline tests check its
+> lists against recordings.
 >
 > Fetching online isn't tested automatically. Whether a vendor really has a motor at that price is
 > the vendor's to say. A list fetched now, or read from a copy under an hour old, can be up to two
 > hours behind the vendors' pages. A list read with `--offline` or `--from`, or after a failed
 > fetch, is as old as the "built" time on its first line.
 > See [how far to trust the stock list](motor-stock.md).
+
+The tests in
+[`crates/hpr-cli/tests/motors_search.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/motors_search.rs)
+run `hpr motors search` offline on the recorded lists, from the file and from the cache. They check every motor
+it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
+the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
+`--max-price 150` search lists exactly that motor.
 
 #### Motors from ThrustCurve.org
 
@@ -1473,13 +1471,13 @@ motor it can fly, not that its curve is right.
   curve OpenRocket flies. An offline refusal's command then carries `--file`, so it fetches the
   file the flight takes. Offline, if the cache holds only some of the motor's files, a file it
   lacks is given up for the usual order's. The note then says the curve may not be OpenRocket's.
-  The table is as of 2026-10-04. If ThrustCurve's files change, `cargo xtask ork-curves`
+  The table is as of October 4, 2026. If ThrustCurve's files change, `cargo xtask ork-curves`
   rewrites it.
 - **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, and a copy of any age
   flies. With no copy, the command fails with exit status 1. Online, a copy stays fresh for a
   day. After that the simulator asks again, and keeps the old copy if the network fails.
 
-A fetch with a network connection printed this on 2026-10-04, pasted by hand, not run in CI.
+A fetch with a network connection printed this on October 4, 2026, pasted by hand, not run in CI.
 Its `help:` line is as the simulator writes it since
 [the CLI milestone](decisions-and-roadmap.md#m0-6b), which made each hint a `help:` line. Its
 case shows inches too, since [the units milestone](decisions-and-roadmap.md#m0-9c4) gave every
@@ -1575,11 +1573,13 @@ some things differently, and `hpr convert` translates:
 | a name or maker of several words | joined by `_` | as it is |
 
 Masses move between kilograms and grams by moving the decimal point, not by multiplying, which
-would round. In a computer's arithmetic, `0.0041` kg times 1000 is `4.1000000000000005`, while
+would round. In a computer's arithmetic, `0.0041` kg times 1,000 is `4.1000000000000005`, while
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
-digit. A warning says so.
+digit. A warning says so. Of the 32 bundled files, two masses written with 17 digits are the only
+ones that don't come back bit for bit; each carries the warning
+([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
 
-A flight turns a `.rse` file's grams into kilograms by dividing by 1000, and the catalog's by
+A flight turns a `.rse` file's grams into kilograms by dividing by 1,000, and the catalog's by
 multiplying by 0.001. So the same motor flown from a `.eng` file and from its converted `.rse` can
 differ in a mass's last digit, a part in $10^{16}$.
 
@@ -1777,7 +1777,7 @@ the pad, with feet in brackets. Times are seconds on the log's clock.
 
 This example log is invented, so every reading can be checked against the flight it was made
 from ([Reading a flight log](reading-a-flight-log.md) works through it). Its true apogee is
-390.3 m (1280.5 ft), at 10.26 s:
+390.3 m (1,280.5 ft), at 10.26 s:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/synthetic-pnut.pf2`; written by `cargo xtask cli`; do not edit -->
 
@@ -1798,15 +1798,14 @@ flight time       45.00 s, within 2.91 s
 drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
 main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at 21.40 s, within 1.06 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
-burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by any amount
+burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
-rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
-standard; a reading the log can't support is withheld, with the reason. The top speed is derived
-from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
-nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
-decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1847,12 +1846,11 @@ top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s
 burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
-rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
-standard; a reading the log can't support is withheld, with the reason. The top speed is derived
-from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
-nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
-decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1901,8 +1899,8 @@ readings from the barometric altitude channel, sampled every 0.200 s in steps of
 
 liftoff           1.20 s, within 1.05 s
 apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           withheld: the log ends at 40.00 s, 280.8 m above the pad, before the altitude comes within 2.0 m of it and stays under 5.0 m for 1 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
+landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. It ends before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
 flight time       withheld: the flight time needs landing, which is withheld above
 drogue descent    withheld, as landing is
 main descent      withheld, as landing is
@@ -1910,12 +1908,11 @@ top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't differ
 burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, logged at every
-rate from 500 to 0.5 samples a second and in steps up to 10 m or 100 Pa, in air within 15 K of
-standard; a reading the log can't support is withheld, with the reason. The top speed is derived
-from the heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the
-nose. For a record or a certification, the altimeter's own reading is the one to log, and the RSO
-decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 note: read from the sheet "Second" of an Excel workbook, its cells as stored
 ```
@@ -1990,10 +1987,7 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 
 > **How far to trust it.** `hpr weather` runs each source's reader from the library and adds no
 > physics of its own. Each reader is checked against the recorded answers on its source's page.
-> The tests in
-> [`crates/hpr-cli/tests/weather.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/weather.rs)
-> run the four online sources through `hpr weather` offline, from a saved answer and from the
-> cache. They run ERA5 from its file.
+> Offline tests run the sources through `hpr weather` from saved answers.
 >
 > Each run writes the profile the library builds from the same bytes, to the last bit, and lists
 > the same levels left out. Fetching online isn't tested automatically. It was run once by hand, on
@@ -2001,6 +1995,11 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 > every fetch fails
 > ([Fetching over HTTP](online-data.md#fetching-over-http)). How good a forecast is at your launch
 > is not measured.
+
+The tests in
+[`crates/hpr-cli/tests/weather.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/weather.rs)
+run the four online sources through `hpr weather` offline, from a saved answer and from the
+cache. They run ERA5 from its file.
 
 #### Asking for the weather
 
@@ -2011,7 +2010,7 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
   `--historical` for a launch already gone: that asks Open-Meteo's archive of past forecasts.
   `--model` names one of Open-Meteo's weather models, by the name its documentation gives. By
   default it picks one ([What the simulator asks for](weather.md#what-the-simulator-asks-for)).
-- **Wyoming** takes the [station](glossary.md#station)'s number, such as 72364 for Santa Teresa,
+- **Wyoming** takes the [station](glossary.md#station)'s number, such as station 72364 for Santa Teresa,
   New Mexico ([finding a station](soundings.md#what-the-simulator-asks-for)), and your launch `--time`. It
   fetches that station's latest sounding before the launch. Soundings are named for 00 and 12 UTC,
   and the balloon goes up about an hour before. The example's 12 UTC sounding left at 11:02.
@@ -2110,11 +2109,11 @@ The first line says where and when the profile is for:
 - for Wyoming, where the balloon was released
 
 The ground comes first: its height above sea level ([MSL](glossary.md#height-above-sea-level-msl))
-and its pressure in hectopascals (hPa; 1013 hPa is sea level's standard). Then come its temperature
+and its pressure in hectopascals (hPa; 1,013 hPa is sea level's standard). Then come its temperature
 and humidity, and the wind 10 m (33 ft) above it. Each pressure level above the ground follows.
 
 The levels the model gives below the ground are listed as left out. Here the ground is at about
-1,400 m (4,593 ft), and 1000 to 900 hPa lie beneath it. Where each value comes from, and why levels
+1,400 m (4,593 ft), and 1,000 to 900 hPa lie beneath it. Where each value comes from, and why levels
 are left out, is on the source's page.
 
 #### The profile file
@@ -2148,7 +2147,7 @@ text output and `--json` give the same levels with the direction in degrees.
 - **Time between forecast hours**, for GFS and RAP: pick the run and hour nearest your launch.
   Open-Meteo and ERA5 blend the two hours around it.
 - **The site's real ground.** A forecast's ground is its model's smoothed terrain, not your pad's
-  height. An ERA5 file has no ground at all: its levels start at 1000 hPa, which can lie below a
+  height. An ERA5 file has no ground at all: its levels start at 1,000 hPa, which can lie below a
   high site.
 - **Humidity in ERA5.** The simulator doesn't read it yet, so ERA5's profile is dry air.
 - **Above the top level**, the library carries the air on as the standard atmosphere and holds
@@ -2224,7 +2223,7 @@ $ hpr motors show B4 --json
     "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
-  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and burn time computed from its curve, which can differ from the maker's rated figures. The total impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and burn time computed from its curve. These can differ from the maker's rated figures. The total impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is a check of the arithmetic, not of the motor. No figure is checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
       "name": "B4",
@@ -2281,7 +2280,7 @@ $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
   },
   "error": {
     "kind": "input",
-    "message": "configuration [H128W-0] can't be flown as the file has it: no thrust curve for H128W: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog; AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
+    "message": "configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
     "command": "sim",
     "milestone": null,
     "help": [
@@ -2298,7 +2297,7 @@ $ echo $?
 
 ### Exit codes
 
-| status | `kind` in JSON | meaning |
+| Exit code | `kind` in JSON | meaning |
 |--:|---|---|
 | 0 | - | The command did what was asked. |
 | 1 | `input` | An input was missing, unreadable or refused, such as a motor the catalog doesn't have. |

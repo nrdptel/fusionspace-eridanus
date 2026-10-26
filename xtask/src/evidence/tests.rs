@@ -926,7 +926,7 @@ The register holds 3 rows, as of October 17, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
-| Surface | Real | Code to code | Spec | Rows |
+| Surface | Real · rows | Code to code · rows | Spec · rows | Rows |
 |---|---:|---:|---:|---:|
 | Flight-log readers | 1 | 1 | 0 | 2 |
 | The motor finder | 0 | 0 | 1 | 1 |

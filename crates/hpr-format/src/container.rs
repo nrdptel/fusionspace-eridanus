@@ -365,8 +365,8 @@ pub fn read_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Opened<Hprz>
     let records = central_records(bytes, start);
     if records != archive.len() {
         return Err(FormatError::Container(format!(
-            "its central directory holds {records} entries, and the zip reader keeps {}: two \
-             have the same name, and one would be lost, or the directory is damaged",
+            "its central directory holds {records} entries, and the zip reader keeps {}. Either \
+             two have the same name and one would be lost, or the directory is damaged",
             archive.len()
         )));
     }

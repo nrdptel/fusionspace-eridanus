@@ -194,8 +194,8 @@ pub enum RecoveryRefused {
     /// [ADR-165](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)).
     #[error(
         "{name}, the part that keeps the nose, would coast with no drag from the separation at \
-         {time_s:.3} s: with nothing ahead of it left to burn, HPR Sim flies it as a point with only \
-         its own devices' drag, and none of them is open by then; set one of them to open at \
+         {time_s:.3} s. With nothing ahead of it left to burn, HPR Sim flies it as a point with only \
+         its own devices' drag. None of them is open by then. Set one of them to open at \
          the lower stage's separation, with no delay, for HPR Sim to fly it"
     )]
     Coasts {

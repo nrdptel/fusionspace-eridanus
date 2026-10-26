@@ -217,7 +217,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
                 list.at,
                 format!(
                     "none of the log's first {MAX_PREAMBLE} words is a pressure on a launch pad, \
-                     at least 500 mbar: the reader doesn't guess where the readings start"
+                     at least 500 mbar. The reader doesn't guess where the readings start"
                 ),
             )
         })?;
@@ -269,7 +269,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
             list.at,
             format!(
                 "the log's {} once-a-second pairs and its {} readings at 20 a second, {by_readings} \
-                 s, don't agree on how long it ran: the words aren't laid out as this reader takes \
+                 s, don't agree on how long it ran. The words aren't laid out as this reader takes \
                  them",
                 auxiliary_time.len(),
                 pressure.len()
@@ -279,15 +279,15 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
 
     let mut notes = vec![
         format!(
-            "the file holds no times: the pressure is on the RRC3's 20 Hz clock (RRC3 manual p. \
+            "the file holds no times. The pressure is on the RRC3's 20 Hz clock (RRC3 manual p. \
              23), which its {} once-a-second pairs bear out to within {:.1} s",
             auxiliary_time.len(),
             (by_pairs - by_readings).abs()
         ),
         "the record's primary track is empty: the file holds pressures, not an altitude".to_owned(),
-        "the once-a-second pairs, presumably the temperature and battery voltage the RRC3 \
-         records at 1 Hz (RRC3 manual p. 23), are kept as written: the file holds no calibration \
-         for them"
+        "the once-a-second pairs are kept as written. They are presumably the temperature and \
+         battery voltage the RRC3 records at 1 Hz (RRC3 manual p. 23). The file holds no \
+         calibration for them"
             .to_owned(),
     ];
     if start > 0 {

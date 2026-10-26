@@ -121,7 +121,7 @@ The equations above turn a state into its rate of change. An integrator builds t
 them by stepping forward in time, one short step after another
 ([Time integration](physics/integration.md)).
 
-The simulator's default method is [Dormand–Prince 5(4)](glossary.md#dormandprince-and-rk4). On
+The simulator's default method is [Dormand-Prince 5(4)](glossary.md#dormand-prince-and-rk4). On
 each step it makes two estimates of the new state, one of fifth order and one of fourth; that's the
 "5(4)". The higher a method's order, the faster its error shrinks as the step gets shorter. HPR Sim
 keeps the fifth-order estimate, and takes the difference between the two as the step's error.

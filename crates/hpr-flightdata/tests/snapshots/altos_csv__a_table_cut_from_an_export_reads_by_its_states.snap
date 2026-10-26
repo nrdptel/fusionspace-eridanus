@@ -343,7 +343,7 @@ expression: log
     }
   ],
   "notes": [
-    "the header names AltOS's columns with no `version,serial,flight` before them: read as AltOS's, as 12 rows give a `state` and a `state_name` that AltOS's exports write for one state, and none contradicts them",
+    "the header names AltOS's columns with no `version,serial,flight` before them. The table is read as AltOS's, as 12 rows give a `state` and a `state_name` that AltOS's exports write for one state, and none contradicts them",
     "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not 1 g; the channel is kept as written"
   ]
 }

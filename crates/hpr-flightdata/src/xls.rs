@@ -268,7 +268,7 @@ pub fn sheets_within(bytes: &[u8], max_text_bytes: usize) -> Result<Vec<Sheet>, 
     let mut notes = Vec::new();
     if counts.formatted > 0 {
         notes.push(format!(
-            "{} numbers under a number format other than `General` were kept as stored: the \
+            "{} numbers under a number format other than `General` were kept as stored. The \
              reader doesn't read a BIFF2 sheet's formats, so a date stays its serial number",
             counts.formatted
         ));
@@ -376,7 +376,7 @@ fn walk<'a>(
         if let Some((_, name)) = NOT_READ.iter().find(|(not_read, _)| *not_read == id) {
             return Err(refused(format!(
                 "the record at byte {}, {name} ({id:04X}h), holds a value of a kind the reader \
-                 doesn't read: it reads BIFF2's NUMBER, INTEGER, LABEL and BOOLERR",
+                 doesn't read. It reads BIFF2's NUMBER, INTEGER, LABEL and BOOLERR",
                 at - 4 - length
             )));
         }

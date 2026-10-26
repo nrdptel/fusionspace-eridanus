@@ -22,9 +22,10 @@ rail. The page runs four example programs and walks through them. It needs the s
 >
 > The masses come from each part's shape and a published density. So glue, paint and hardware are
 > missing until you weigh the parts. This rocket has never been flown for real, so no flight
-> checks it. Where it lands in a wind is the least certain number of all. On two of RocketPy's
-> example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
+> checks it. Where it lands in a wind is the least certain number of all.
+
+On two of RocketPy's example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
+([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## The first example
 
@@ -198,9 +199,9 @@ F52C           0.548    3.32       18.5    438.6        106         8.0
 ```
 
 `set_motor` swaps the motor in the tube, so one rocket flies on all three. The H54 reaches
-1134.6 m (3722 ft) here, from a vertical rail in the wind. The same rocket reaches 1144.5 m
-(3755 ft) on [Your own rocket](your-own-rocket.md), from a vertical rail in calm air. It reaches
-1106.6 m (3631 ft) at the top of this page, from a leaning rail. The parachutes open at different
+1,134.6 m (3,722 ft) here, from a vertical rail in the wind. The same rocket reaches 1,144.5 m
+(3,755 ft) on [Your own rocket](your-own-rocket.md), from a vertical rail in calm air. It reaches
+1,106.6 m (3,631 ft) at the top of this page, from a leaning rail. The parachutes open at different
 times too: here at apogee, there at the motor's charge.
 
 The best delay is the time from [burnout](glossary.md#burnout), the end of the thrust curve, to
@@ -310,13 +311,14 @@ what the part is and its size in inches:
 > that slides into the body, has the nose's own plastic wall here and weighs nothing in
 > OpenRocket. OpenRocket weighs the nose at 61.5 g; here it weighs 87.7 g, 26.1 g of it the
 > shoulder. That's 6% of the structure.
->
-> Nothing checks the flight itself: the note at the top of this page applies. The top speed is
-> Mach 0.91, close to the speed of sound. There drag rises steeply and is least certain
-> ([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
-> [stability margin](glossary.md#stability-margin), 1.07 [calibers](glossary.md#caliber), is
-> taken at Mach 0.3, about 100 m/s (328 ft/s). That's more than three times the speed the rocket
-> leaves the rail at.
+
+
+Nothing checks the flight itself: the note at the top of this page applies. The top speed is
+Mach 0.91, close to the speed of sound. There drag rises steeply and is least certain
+([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
+[stability margin](glossary.md#stability-margin), 1.07 [calibers](glossary.md#caliber), is
+taken at Mach 0.3, about 100 m/s (328 ft/s). That's more than three times the speed the rocket
+leaves the rail at.
 
 The program is
 [`catalog_rocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/catalog_rocket.rs).
@@ -463,8 +465,9 @@ crates the builder is made of.
 
 Each part's numbers are checked when the part is added. That catches a negative length, a NaN, a
 zero diameter, zero fins, or a shape parameter out of range. The error names the number, such as
-`tube diameter, m is 0, outside its domain`. A part in an order the tree can't take is checked
-when it's added, too. That's fins before any tube, a second motor tube, or a nose behind a tube.
+`tube diameter, m is 0, but it must be finite and above 0`. Most of a fin's numbers and shape
+parameters come without a bound. A part in an order the tree can't take is checked when it's added, too.
+That's fins before any tube, a second motor tube, or a nose behind a tube.
 
 The launch site and wind are checked when they're given, and the rail when the flight is set up. A
 design that comes in whole through `from_design` is checked before it flies.
@@ -472,9 +475,8 @@ design that comes in whole through `from_design` is checked before it flies.
 Tests try each of these checks and pin which check refuses it
 ([`parts_out_of_order_are_refused`, `degenerate_designs_error_or_stay_finite`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs)).
 One rocket in them has no fins at all. It flies, tumbling, to finite numbers. That test belongs to
-[the Loft lesson on degenerate designs](decisions-and-roadmap.md#l95). A
-[Loft lesson](glossary.md#loft-lesson) is a mistake of the project before this one, with the test
-that guards against it here.
+a [Loft lesson](glossary.md#loft-lesson), the one
+[on degenerate designs](decisions-and-roadmap.md#l95).
 
 A catalog part is refused when the builder can't make it as the catalog describes it:
 

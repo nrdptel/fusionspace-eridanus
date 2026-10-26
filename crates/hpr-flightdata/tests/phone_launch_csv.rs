@@ -103,7 +103,7 @@ fn a_newer_flight_reads_the_units_two_checks_settle() {
             &log,
             "`AltitudeRelativeBarometer` read in meters, from the pressure and the coast"
         )
-        .contains("(2) in the coast")
+        .contains("(2) In the coast")
     );
     assert!(note(&log, "`Timestamp` read in milliseconds since 1970 UTC").ends_with("UTC"));
     insta::assert_json_snapshot!(summary(&log));

@@ -10,19 +10,21 @@ move it. Then it shows how well HPR Sim's follows a wind tunnel's, and which err
 margin. It's one of the guides in *Rocketry explained*, which explain the physics behind the
 numbers HPR Sim prints.
 
-> **How far to trust it.** Every number in this guide's text is read by a test from two committed
-> files. One is HPR Sim's center of pressure for the guides' rocket ([report][rocket-report]). The
-> other sets HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
+> **How far to trust it.** Every number in the text is read by a test from two committed
+> files: HPR Sim's center of pressure for the guides' rocket ([report][rocket-report]) and its
+> comparison with NASA's wind-tunnel tests of the Arcas Robin rocket
 > ([comparison][tunnel]).
 >
-> That's one rocket's shape in one tunnel, at small angles. No hobby
-> rocket's center of pressure has been measured for these comparisons. HPR Sim's whole rocket at a
-> larger angle hasn't been checked against a measurement.
+> That's one shape in one tunnel at small angles. No hobby rocket's center of pressure
+> has been measured for them. HPR Sim's whole rocket at a larger angle hasn't been
+> checked against a measurement.
 >
 > From just below the speed of sound, HPR Sim's center of pressure read up to 2.37 calibers aft of
 > the tunnel's on a longer model. On the one the figure draws, it read up to 1.35 calibers aft.
-> That's the side that flatters a margin. The guide gives ranges, not verdicts. The safety code and
-> the range safety officer (the RSO) decide whether a rocket flies.
+> That side flatters a margin.
+
+The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
+decide whether a rocket flies.
 
 ## Where the air pushes
 
@@ -62,7 +64,7 @@ speed, with the air straight along the rocket. It's the number
 
 Below the speed of sound, air squeezes a little as it flows past, more the faster the rocket
 goes. In HPR Sim's model, each fin pushes harder for the same angle as the speed rises. It does so
-through the [Prandtl–Glauert](physics/aero.md#fins) factor, the classic correction for that
+through the [Prandtl-Glauert](physics/aero.md#fins) factor, the classic correction for that
 squeezing. On fins as short as most rockets', the gain is well below the factor itself.
 
 The nose's push, in the [slender-body theory](glossary.md#slender-body-theory) that sets it, doesn't

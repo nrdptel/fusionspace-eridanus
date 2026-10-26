@@ -13,13 +13,14 @@ reads a page once and knows what it says. They also know how far to trust it.
 > **How far to trust it.** This page is rules, not results. The build holds some of them on every
 > change, and reviews hold the rest. Where this page and a check disagree, the check is what the
 > build enforces, and the gap is a bug to report.
->
-> `cargo xtask spelling` reads each page's words and names, and counts its exceptions on every
-> run. `cargo xtask voice` fails a stock phrase and counts the voice section's patterns against
-> its limits. `cargo xtask guides` reads every number in a guide's text from a committed report.
-> `cargo xtask site` counts each page's sheets and fails one outside two to six. It also fails a
-> trust note or an alert off its shape, a hyphen for a minus sign, and a column of numbers not
-> right-aligned.
+
+`cargo xtask spelling` reads each page's words and names, and counts its exceptions on every
+run. `cargo xtask voice` fails a stock phrase and counts the voice section's patterns against
+its limits. `cargo xtask guides` reads every number in a guide's text from a committed report.
+`cargo xtask site` counts each page's sheets and fails one outside two to six. It also fails a
+trust note or an alert off its shape, a hyphen for a minus sign, a column of numbers not
+right-aligned or without a label and a unit, a note or table cell over 120 words, a figure of
+four or more digits without its commas, and an ISO date in prose.
 
 ## The rules
 
@@ -218,7 +219,7 @@ field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-fla
 limit. A page over one is where to look first. On a page that isn't held, it doesn't fail the
 build ([the check](#the-check)).
 
-| Counted | What it counts | Limit per 100 words |
+| Counted | What it counts | Limit, count per 100 words |
 |---|---|---:|
 | Bold-label items | a list item that opens with bold text, less the four labels of a model page's *In short* box | 0.5 |
 | Labels | a milestone, decision or lesson number, linked or not | 0.5 |
@@ -281,7 +282,8 @@ misses a sentence target ([below](#measured-not-gated)). A test fails when the r
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
-(Markdown, HTML, text, or a command's help in a `.help` file) and prints the report. That's how
+and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and
+a crate's front page in a `.rs` file. That's how
 fusionspace.co's pages and the design
 system's get checked. In the report, a rate in bold is over its limit, and `ref` marks a
 reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
@@ -334,6 +336,22 @@ default that needs words goes in a sentence. Change a command's help and the tes
 regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
+
+Every command's messages are held too: what `hpr sim`, `weather`, `analyze` and the others
+print. The source doesn't say which string ends up in a message, so the check reads a census
+of the code. It reads `hpr-cli`, `hpr`, the twelve crates under it and the Python package's
+`hpr-py`: every `#[error]` text and every other string that reads as prose, less tests and
+markup. Each crate is one held reference page. A
+placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one
+can pass. `cargo xtask voice --long --messages` lists each long sentence with its file and line, and
+`--messages` the whole census; the [voice report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md) counts what it read.
+
+The Python package's docs and the crates' front pages are held too. A test of the package writes
+its docstrings, as `help()` shows them, to `crates/hpr-py/tests/docstrings.md`. The check holds
+that snapshot as a reference page, and the package's README beside it. Change a docstring and
+the test fails until you write the snapshot again with `HPR_BLESS=1 scripts/python-tests.sh 3.13`.
+Each crate's front page is the `//!` docs at the top of its `src/lib.rs`, the page docs.rs shows.
+The check holds each one as a reference page, and refuses a crate that has none.
 
 On the other pages the check reads, such as the changelog and the vision, readability is
 measured, not used to fail a build. The counts show where to look, and a person decides what to
@@ -400,6 +418,72 @@ They don't conflict with the rules above; they add these:
   `1,400 m (4,593 ft)`, `−7.28%` or `−29 to −34%`. A cell in code, a date or a version is a label,
   and so is any cell under a head that says "version". A cell with any other word makes its column a
   text column. An empty cell, a dash, "n/a" or "none" doesn't count.
+
+  Since [M0.9f2](decisions-and-roadmap.md#m0-9f2), `cargo xtask site` also reads the head of
+  each right-aligned column, on the site and in both READMEs, as a label and then a unit:
+
+  - **The label** is a word of two or more letters outside code and math that isn't a unit, in the
+    head outside its brackets and before its first comma, `·` or `;`. A code identifier alone
+    (`apogee_agl_m`), a figure or a unit alone (`(kg)`) is no label.
+  - **The unit** goes where a unit goes: the first word in brackets, after a comma, `·` or `;`, or
+    after "in" (`time (s)`, `Worst time, s`, `CP, calibers aft of the tip`, `Offset in bytes`), or
+    "per" and a unit or a counted plural (`slope, per rad`, `per 100 words`; `Time per step` gives
+    none). A unit word elsewhere gives none (`Error in apogee`), nor does `in` with words after it
+    (`Apogee, in flight`), and `C` and `F` need their degree sign (`°C`).
+  - **A pure number** names its kind as the label's last word: a coefficient, ratio, fraction,
+    share, factor, number, count, code, or Mach (`drag coefficient`, `Reynolds number`). The first
+    five also serve where a unit goes (`(coefficient)`). One of no kind says `(no unit)`.
+  - **Or each value carries its unit** right after its figure (`0.4 m`, `+1.2%`); a bracket there,
+    `3.80 (+73.2%)`, is another quantity's.
+  - **A count** has whole numbers and a head that names what it counts, with a plural, `count` or
+    `number`, in its label or where a unit goes (`Flights`, `Files differing`). A measured
+    quantity's plural (`Masses`, `Burn times`) is no count, nor is a label that ends in a measured
+    quantity (`Motors mass`).
+
+  A head that ends in a figure (`| Mach 0.9 |`) names no kind and no unit, so it fails unless
+  each value carries its unit. It is a value, so the table is on its side: turn it.
+  The unit words the check knows are `UNITS` and `SPELLED_UNITS` in `xtask/src/site/numbers.rs`,
+  and the measured quantities `QUANTITIES`. It reads words, not meaning: a unit word it can't tell
+  from another, or a plural of a quantity it doesn't list, can still pass, and reviews hold the
+  rest.
+- **Short notes and cells** (since [M0.9f2](decisions-and-roadmap.md#m0-9f2)). `cargo xtask site`
+  fails a note (a whole quote block) or a table cell over 120 words, on the site and in both
+  READMEs. Code, link text and HTML's text count. A note keeps what the reader must know first:
+  for a trust note, its kind of figure, what it was checked against with numbers, and what to rely
+  on instead. The supporting detail goes in the page's own text, below the note. A cell holds a
+  value or a phrase, and its explanation goes under the table. A table or a quote block written in
+  raw HTML fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
+- **Grouped figures and dates in words** (since [M0.9f3](decisions-and-roadmap.md#m0-9f3)).
+  If a figure of four or more digits is a quantity, give it its commas: `1,500 m`, not `1500 m`.
+  If it is a name or a number from a file, leave it as it is, or put it in code. Outside code
+  and math, on the site and in both READMEs, `cargo xtask site` fails a figure of four or more
+  digits before its decimal point written without its commas. Digits after the point aren't
+  grouped. It passes these, which aren't quantities:
+
+  - **A part number or another name made of letters and figures:** a figure with a letter, `_`
+    or `#` against it, or with a `/`, `\`, `@`, `+`, `&` or `=` before it (`131G84`, `L1150R`,
+    `#1000`). Also a figure after a hyphen that follows a letter (`D-4014`), or after a colon or a
+    point that follows a letter or a `)` (`arXiv:1109.4448`, `NGA.STND.0036`). Also a figure after
+    a hyphen or a `)` in a name that holds a letter (`NASA/TM-2008-215633`). Figures a hyphen
+    joins otherwise (`1000-2000 ft`, `3005-row`) are read.
+  - **A figure right after a name that numbers documents or things.** The names are `ISO`,
+    `NFPA`, `RFC`, `NMEA`, `ESDU`, `datum`, `Code`, `code`, `NACA`, `TN`, `TR`, `TP`, `Report`,
+    `NTRS`, `arXiv`, `Aluminum`, `Al`, `Hexcel`, `HexPly`, `station`, `thread`, `Thread` and `pp.`
+    (`NFPA 1125`, `NACA TN 3527`, `station 72364`), as written. The second figure of a range
+    after one passes too (`pp. 1509–1518`). Give each figure its name: `NFPA 1125 and NFPA 1127`.
+    For a name the list doesn't hold, put the figure in code, or add the name to `IDENTIFIERS`
+    in the same change.
+  - **A year:** four digits from 1600 to 2100 with no unit or `%` after them or after their
+    decimals (`in 1997`, `2025.0`; but `2000 m` and `1749.8 m` fail). Also the year in a date
+    written out (`December 31, 9999`).
+
+  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. The check
+  reads figures, not meaning. A count from 1600 to 2100 passes without its commas: write them
+  anyway (`1,712 files`). Text in a block of raw HTML isn't read.
+
+  It also fails an ISO date, `2026-10-04`, in the text outside tables: prose writes
+  `October 4, 2026`. A table, a file's name in code and a link's address keep the ISO form. The
+  lists are `IDENTIFIERS` and `UNIT_WORDS` in `xtask/src/site/figures.rs`.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
   block that opens with `**How far to trust it.**`. Then it says what kind of figure it is
   (estimate, measurement, copied value) and what it was checked against, with numbers. Last, it
@@ -426,7 +510,7 @@ They don't conflict with the rules above; they add these:
   | on the site and in SVG figures, that space is non-breaking (U+00A0), so a line never ends between a number and its unit; in terminal, JSON and CSV output it is a plain space, which copying and `grep` need ([`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)) | `21.5&nbsp;°C` in a page's source, `&#160;` in an SVG; `21.5 °C` in `hpr`'s output |
   | commas in groups of three in prose; none in terminal output or anything copied | `5,104 ft`; `1280 ft` |
   | precision that matches what is known | `5,104 ft` from a barometer, not `5,103.87 ft` |
-  | heights, distances and speeds in SI, then the US units in brackets, converted from the SI as written: feet for heights, rails and distances, inches for a part's size in millimeters or centimeters, miles for long distances across the ground; feet per second, or mph for the wind. A motor's or a mount's nominal size (the motor size a mount takes) stays in millimeters alone, as motors are named (`a 54 mm motor`), but a measured bore gives inches (`a 28.956 mm (1.140 in) bore`). Exempt: worked arithmetic, e-notation, and SI written as the conversion of a US figure before it (`1.52 in (38 mm)`); the site check fails the rest, on every page ([M0.9c16, US units on the model pages](decisions-and-roadmap.md#m0-9c16), [ADR-219](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md)) | `1,400 m (4,593 ft)`, `16.2 m/s (53 ft/s)`, `5 m/s (11 mph)`, `0.6 m (24 in)` |
+  | heights, distances and speeds in SI, then the US units in brackets, converted from the SI as written: feet for heights, rails and distances, inches for a part's size in millimeters or centimeters, miles for long distances across the ground; ft/s, or mph for the wind. A motor's or a mount's nominal size (the motor size a mount takes) stays in millimeters alone, as motors are named (`a 54 mm motor`), but a measured bore gives inches (`a 28.956 mm (1.140 in) bore`). Exempt: worked arithmetic, e-notation, and SI written as the conversion of a US figure before it (`1.52 in (38 mm)`); the site check fails the rest, on every page ([M0.9c16, US units on the model pages](decisions-and-roadmap.md#m0-9c16), [ADR-219](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md)) | `1,400 m (4,593 ft)`, `16.2 m/s (53 ft/s)`, `5 m/s (11 mph)`, `0.6 m (24 in)` |
   | dates in prose; in tables and files | October 4, 2026; 2026-10-04 |
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
@@ -929,7 +1013,7 @@ The rules follow the UK Government Digital Service's
 [style guide](https://www.gov.uk/guidance/style-guide), and the sentence-length checks that
 Datadog and GitLab run with the [Vale](https://vale.sh/) linter. The page kinds are Daniele
 Procida's [Diátaxis](https://diataxis.fr/) framework. The decision to adopt them is in the
-[2026-10-03 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
+[October 3, 2026 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
 
 The voice rules come from
 [a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md).

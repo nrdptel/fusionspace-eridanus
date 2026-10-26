@@ -574,7 +574,7 @@ pub const ALLOW: &[Allow] = &[
     Allow {
         file: "docs/decisions/0099-tube-fins-flown-as-ring-wings.md",
         scope: Scope::Page,
-        count: 4,
+        count: 3,
         why: "a decision record, history: its row on the records page says what it decided as it was written",
     },
     Allow {
@@ -645,12 +645,6 @@ pub const ALLOW: &[Allow] = &[
     },
     Allow {
         file: "docs/decisions/0124-jpeg-2000-packing-through-hayro-jpeg2000.md",
-        scope: Scope::Page,
-        count: 1,
-        why: "a decision record, history: its row on the records page says what it decided as it was written",
-    },
-    Allow {
-        file: "docs/decisions/0143-the-operating-envelope-and-a-stop-rule-for.md",
         scope: Scope::Page,
         count: 1,
         why: "a decision record, history: its row on the records page says what it decided as it was written",
@@ -767,12 +761,6 @@ pub const ALLOW: &[Allow] = &[
         file: "docs/decisions/0197-the-2026-10-07-parts-catalog.md",
         scope: Scope::Page,
         count: 2,
-        why: "a decision record, history: its row on the records page says what it decided as it was written",
-    },
-    Allow {
-        file: "docs/decisions/0198-the-2026-10-07-project-eridanus.md",
-        scope: Scope::Page,
-        count: 1,
         why: "a decision record, history: its row on the records page says what it decided as it was written",
     },
     Allow {

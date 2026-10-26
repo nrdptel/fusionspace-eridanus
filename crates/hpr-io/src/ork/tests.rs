@@ -1547,13 +1547,104 @@ fn a_surface_finish_is_a_roughness_height() {
         Some(hpr_design::Finish::Custom { roughness_m: 2e-6 })
     );
 
-    // A word with no sourced roughness takes hpr's default, and says so.
+    // A word with no sourced roughness takes OpenRocket's reading of it, regular paint, and says
+    // so.
     let xml =
         with_parts([0, 1, 2, 3, 4]).replace("<finish>normal</finish>", "<finish>anodised</finish>");
     let read = read(xml.as_bytes()).expect("a readable design");
     let imported = component::rocket(&read.value.document);
-    assert_eq!(imported.value.stages[0].components[1].finish, None);
+    assert_eq!(
+        imported.value.stages[0].components[1].finish,
+        Some(hpr_design::Finish::Custom { roughness_m: 60e-6 })
+    );
     assert_eq!(imported.count(WarningKind::Unusual), 1);
+    assert!(
+        imported.warnings[0]
+            .message
+            .contains("took OpenRocket's, regular paint (60 µm)"),
+        "{:?}",
+        imported.warnings
+    );
+}
+
+/// An outside part whose file states no finish is read as regular paint, 60 µm, as OpenRocket
+/// 24.12 reads one (#216; the probe is on `hpr_io::ork::attached::finish`): every kind of outside
+/// part, nose to rail button. A part inside the body has no finish in OpenRocket and none here, so
+/// it takes the design's default. Before #216 every one of them took HPR Sim's default, 20 µm.
+#[test]
+fn an_outside_part_with_no_finish_is_regular_paint() {
+    let outside = |part: &hpr_design::tree::Part| {
+        use hpr_design::tree::Part;
+        matches!(
+            part,
+            Part::NoseCone(_)
+                | Part::BodyTube(_)
+                | Part::Transition(_)
+                | Part::FinSet(_)
+                | Part::TubeFinSet(_)
+                | Part::LaunchLug(_)
+                | Part::RailButton(_)
+        )
+    };
+    let more = r#"              <railbutton><name>Button</name><id>button</id>
+                <axialoffset method="top">0.1</axialoffset><outerdiameter>0.01</outerdiameter>
+                <innerdiameter>0.006</innerdiameter><height>0.007</height></railbutton>
+              <launchlug><name>Lug</name><id>lug</id><axialoffset method="top">0.2</axialoffset>
+                <length>0.03</length><radius>0.005</radius><thickness>0.001</thickness>
+                <material type="bulk" density="680.0">Cardboard</material></launchlug>
+              <tubefinset><name>Tubes</name><id>tubes</id>
+                <axialoffset method="bottom">0.0</axialoffset><instancecount>6</instancecount>
+                <length>0.1</length><radius>0.01</radius><thickness>0.001</thickness>
+                <material type="bulk" density="680.0">Cardboard</material></tubefinset>
+            </subcomponents>
+          </bodytube>
+          <transition><name>Tail</name><id>tail</id>
+            <material type="bulk" density="680.0">Cardboard</material>
+            <length>0.1</length><thickness>0.002</thickness><shape>conical</shape>
+            <foreradius>auto</foreradius><aftradius>0.03</aftradius>
+          </transition>"#;
+    let full = with_parts([0, 1, 2, 3, 4]).replacen(
+        "            </subcomponents>\n          </bodytube>",
+        more,
+        1,
+    );
+    assert_ne!(full, with_parts([0, 1, 2, 3, 4]));
+    let none = full
+        .replace("<finish>smooth</finish>", "")
+        .replace("<finish>normal</finish>", "")
+        .replace("<finish>polished</finish>", "");
+    assert!(!none.contains("<finish>"));
+
+    let mut parts = Vec::new();
+    let rocket = spine(&none);
+    let mut stack: Vec<&hpr_design::tree::Component> = rocket.stages[0].components.iter().collect();
+    while let Some(component) = stack.pop() {
+        parts.push((
+            component.id.clone(),
+            outside(&component.part),
+            component.finish,
+        ));
+        stack.extend(&component.children);
+    }
+    let (outer, inner): (Vec<_>, Vec<_>) = parts.into_iter().partition(|part| part.1);
+    let mut ids: Vec<&str> = outer.iter().map(|part| part.0.as_str()).collect();
+    ids.sort_unstable();
+    assert_eq!(
+        ids,
+        ["button", "fins", "lug", "nose", "tail", "tube", "tubes"],
+        "every kind of outside part"
+    );
+    for (id, _, finish) in &outer {
+        assert_eq!(
+            *finish,
+            Some(hpr_design::Finish::Custom { roughness_m: 60e-6 }),
+            "{id}"
+        );
+    }
+    assert!(inner.len() >= 4, "{inner:?}");
+    for (id, _, finish) in &inner {
+        assert_eq!(*finish, None, "{id}");
+    }
 }
 
 /// A part inside an inner tube set off the body's axis is read from the body's axis, where
@@ -2271,7 +2362,7 @@ fn a_tube_given_the_default_has_its_wall_judged_against_it() {
         let messages: Vec<&str> = spine.warnings.iter().map(|w| w.message.as_str()).collect();
         assert_eq!(messages.len(), 1, "{thickness}, {radius}: {messages:?}");
         // The warning names the tag the file wrote, not hpr's field.
-        assert!(messages[0].contains("its `radius`;"), "{messages:?}");
+        assert!(messages[0].contains("its `radius`."), "{messages:?}");
         let hpr_design::tree::Part::BodyTube(t) = &spine.value.stages[0].components[0].part else {
             panic!("a body tube");
         };

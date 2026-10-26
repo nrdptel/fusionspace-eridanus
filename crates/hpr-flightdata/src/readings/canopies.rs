@@ -100,7 +100,7 @@ pub(super) fn read(
             Reason::StepTooCoarse,
             format!(
                 "the track's step, {step:.2} m, is too coarse for the descent near the ground, \
-                 {near_ground:.1} m/s: a fit of its rate would span {window_s:.1} s, more than the \
+                 {near_ground:.1} m/s. A fit of its rate would span {window_s:.1} s, more than the \
                  {DESCENT_WINDOW_MAX_S} s a canopy's leg is read over"
             ),
         );
@@ -199,11 +199,12 @@ pub(super) fn read(
     if !two {
         let detail = format!(
             "the descent shows no drogue's leg, which at the ground's density falls faster than \
-             {mark:.1} m/s up to the main's opening, the mark {MAIN_TOLERANCE_SHARE} times the \
+             {mark:.1} m/s up to the main's opening. That mark is {MAIN_TOLERANCE_SHARE} times the \
              rate near the ground, {main_rate:.1} m/s, or {MAIN_TOLERANCE_M_S} m/s more if that \
-             is more, and on median faster than {DROGUE_RATIO} times that rate: the rocket came \
-             down under one canopy, or under a drogue no faster than the mark, which reads as \
-             one, and the main's descent is the whole descent's, from apogee"
+             is more. A drogue's leg would also fall on median faster than {DROGUE_RATIO} times \
+             the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster \
+             than the mark, which reads as one. The main's descent is then the whole descent's, \
+             from apogee"
         );
         return (
             Reading::withheld(Reason::OneCanopy, detail),
@@ -418,11 +419,12 @@ mod tests {
         assert!((main.from_s - apogee.time_s).abs() < 1e-9);
     }
 
-    /// A drogue at 12 m/s over a main at 10 m/s, no faster than the main's mark, 16 m/s, 1.6 times
-    /// its rate, reads as one canopy, though Debrief's ratio of 1.4 would tell them apart.
+    /// A drogue at 15 m/s over a main at 10 m/s, no faster than the main's mark, 16 m/s, 1.6 times
+    /// its rate, reads as one canopy, though Debrief's ratio of 1.4 alone would tell them apart:
+    /// 15 m/s is 1.5 times the main's.
     #[test]
     fn close_rates_are_one_canopy() {
-        let readings = read_all(&log(0.05, 0.0, flight(12.0, 150.0, 10.0)));
+        let readings = read_all(&log(0.05, 0.0, flight(15.0, 150.0, 10.0)));
         assert_eq!(readings.drogue_descent.reason(), Some(Reason::OneCanopy));
         assert!(readings.main_descent.value().unwrap().opening.is_none());
     }

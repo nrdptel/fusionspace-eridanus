@@ -8,32 +8,26 @@ will be tested.
 
 - **What it models:** 2,200 flights of the ten public RocketPy designs that HPR Sim, FusionSpace
   HPR's simulator, validates against, in three sets on fixed [seeds](../glossary.md#seed). Each
-  flight draws its motor, drag, wind, rail angle, site and air. It also draws one of six simulated
-  loggers, each like a family of real loggers that FusionSpace HPR reads. The logger writes what
-  its sensors would. The pressure has an offset, a gain, a drift, fast and slow correlated noise
-  and the port's error near the speed of sound. The accelerometer has its scale, bias, noise and
-  range. The GNSS fix lags in boost and drops out. Each flight's truth is HPR Sim's trajectory,
-  every 0.01 s, with its [dynamic pressure](../glossary.md#dynamic-pressure) and
-  [Mach number](../glossary.md#mach-number).
-- **Sources:** the pressure sensors' and accelerometers' datasheets and the noise measured in
-  public logs ([the sensor noise note][noise]). Some terms are assumed where no source states
-  them ([The noise, term by term](#the-noise-term-by-term);
-  [evidence row G32](../evidence.md#g32)). The port error comes from a
-  wind-tunnel test of the static pressure along an ogive-cylinder through Mach 1
-  ([the Mach error note][mach]). The ejection pulse comes from the public Pnut log that Debrief
-  ships. The GNSS lag follows that of hobby receivers in boost
-  ([the GNSS note][gnss]). The wind's limit is the NAR's [high-power safety code][hprcode].
+  flight draws its motor, drag, wind, rail angle, site and air, and one of six simulated loggers
+  like those FusionSpace HPR reads. The logger writes what its sensors would, each with its own
+  noise terms.
+  Each flight's truth is HPR Sim's trajectory, every 0.01 s, with its
+  [dynamic pressure](../glossary.md#dynamic-pressure) and [Mach number](../glossary.md#mach-number).
+- **Sources:** sensor datasheets and public logs ([the sensor noise note][noise]). The port's error is
+  from a wind-tunnel test ([the Mach error note][mach]). The ejection pulse is a public log's, and
+  the GNSS lag that of hobby receivers in boost ([the GNSS note][gnss]). The wind's limit is the
+  NAR's [high-power safety code][hprcode]. Some terms are assumed
+  ([The noise, term by term](#the-noise-term-by-term); [evidence row G32](../evidence.md#g32)).
 - **How well it is validated:** not against real logs. The noise follows datasheets and a few
   public logs, and the flights are HPR Sim's own. So a check on them shows how well a method
-  recovers a known trajectory, not how real flights behave. Each drawn noise term has its own test.
-  It holds the term to its stated value on a truth built for it, and fails when the term is
-  changed. The tests show the generator draws what it says, not that the terms are right. A flight drawn
-  again is the same to the bit, on one platform. No test yet shows that the terms together look
-  like a real log of the same family:
-  [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) tracks that comparison
-  ([evidence row G32](../evidence.md#g32)).
+  recovers a known trajectory, not how real flights behave. Each noise term's test holds it to
+  its stated value and fails when it is changed. That shows the generator draws what it says, not
+  that the terms are right. A flight drawn again is the same to the bit, on one platform. No test
+  yet compares the terms together with a real log of the same family
+  ([#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725);
+  [evidence row G32](../evidence.md#g32)).
 - **What it leaves out:** the bay's vent lag, a temperature term, clock drift, vibration and the
-  logger's own speed column. Also flights at or above Mach 1.18, which none of the 2,200 reaches
+  logger's own speed column, and flights at Mach 1.18 or more, which none of the 2,200 reaches
   ([What it leaves out](#what-it-leaves-out)).
 
 ## Why simulated flights
@@ -65,11 +59,11 @@ A check on these flights doesn't show how well HPR Sim predicts a real flight. T
 
 Three sets, each on its own seed, written down before any method was tuned:
 
-| Set | Flights | Seed | Model flown |
+| Set | Flights | Seed number | Model flown |
 |---|---:|---:|---|
-| Tuning | 200 | 2026101700 | 100 of A's and 100 of B's, alternating |
-| A | 1,000 | 2026101701 | HPR Sim's |
-| B | 1,000 | 2026101702 | its drag, wind and thrust reshaped |
+| Tuning | 200 | `2026101700` | 100 of A's and 100 of B's, alternating |
+| A | 1,000 | `2026101701` | HPR Sim's |
+| B | 1,000 | `2026101702` | its drag, wind and thrust reshaped |
 
 By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. Flight $k$
 of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and
@@ -168,8 +162,8 @@ keeps part of the one before. On the pads of five Blue Raven logs at 50 Hz the s
 six windows of those logs. Those windows are on the pad or at rest
 ([the sensor noise note][noise] §3). The spreads are upper bounds that mix in wind and handling.
 The model takes 0.5 m (1.6 ft) and 0.5 for every barometer, and adds each part's white noise. It is drawn as an
-Ornstein–Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
-between samples, whatever the logger's rate:
+Ornstein-Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
+between samples, whatever the rate:
 
 $$
 \rho(\Delta t) = e^{-\Delta t/\tau}
@@ -209,7 +203,7 @@ of up to 0.05 g and white noise. It is clipped at the part's range and rounded t
 source states a bias left after the pad's zero. So the 0.05 g is assumed ([the sensor noise note][noise],
 *What this suggests*; [evidence row G32](../evidence.md#g32)):
 
-| Part | Noise density | Step | Range | Scale $s$ |
+| Part | Noise density | Step (mg, g) | Range, g | Scale $s$, % |
 |---|---:|---:|---:|---:|
 | high-g, ADXL375 class | 5 mg/√Hz | 49 mg | ±180 g | ±10% |
 | low-g IMU axis | 0.16 to 0.4 mg/√Hz | 64/65,536 g | ±32 g | ±3% |
@@ -344,18 +338,18 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
 - `hpr_forensics::synthetic`: every draw inside its range and filling it, in every set. Each
   set is on its own seed. One flight drawn again is the same to the bit, whether flown alone or after
   another that shares its drag table.
-- `hpr_forensics::synthetic::noise`: the correlated noise's spread and correlation, at 10, 50
-  and 100 Hz; the port table at its measured points. Also the pulse's shape and the GNSS loop's
-  steady lag.
-- `hpr_forensics::synthetic::logger`: each drawn pressure, acceleration and GNSS term held and
-  failing when changed. Also the fast noise's correlation at 100 and 500 Hz and the slow noise's
-  time constant. And the GNSS noise's 3 m (9.8 ft) on each axis. Last, the log's span, each part's
-  rate, each profile's step and channels, and the height formulas.
+- `hpr_forensics::synthetic::noise`: the correlated noise's spread and correlation at 10, 50 and
+  100 Hz, and the port table at its measured points. It also checks the pulse's shape and the GNSS
+  loop's steady lag.
+- `hpr_forensics::synthetic::logger`: each drawn pressure, acceleration and GNSS term held, and
+  failing when changed. It also checks the fast noise's correlation at 100 and 500 Hz and the slow
+  noise's time constant. It holds the GNSS noise to 3 m (9.8 ft) on each axis. Last, it checks the
+  log's span, each part's rate, each profile's step and channels, and the height formulas.
 - `hpr_forensics::synthetic::held`: the 500 Hz IMU's part set to ±8 g, with its range stated to the
   readings. A true top past it is read as clipped at the range, a floor that holds. A part with
   no lower setting writes no such log.
-- `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse.
-  Also set B's three changes reaching its flights' inputs while set A's keep HPR Sim's.
+- `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse. It
+  also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
 - `cargo xtask synthetic --check`, in CI on every platform: the census reproduced.
 
 ### References

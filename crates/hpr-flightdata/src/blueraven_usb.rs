@@ -781,8 +781,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     }
     let mut notes = vec![format!(
         "a {} download: the clock counts from the first record's time on the logger's clock, \
-         {}, whose date the manual says starts from the firmware's build date unless the phone \
-         has set it",
+         {}. The manual says that clock's date starts from the firmware's build date unless \
+         the phone has set it",
         if first.kind == HIGH_RATE {
             "high-rate"
         } else {

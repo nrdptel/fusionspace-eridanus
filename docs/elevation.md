@@ -14,7 +14,7 @@ density. There's no `hpr` command for either way yet: a Rust program calls the
 library.
 
 > **How far to trust it.** Online, a copied value: HPR Sim gives back Open-Meteo's number
-> unchanged, and the saved copy gives it back offline. That's checked on two recorded answers,
+> unchanged, and the saved copy does offline. That's checked on two recorded answers,
 > below. The number comes from a terrain model whose cells are about 90 m (295 ft) across. It's a
 > *surface* height: over trees or buildings it sits above the bare ground.
 >
@@ -23,10 +23,9 @@ library.
 > The simulator hasn't measured it.
 >
 > In the standard atmosphere, 10 m (33 ft) of height error changes the air's density by about 0.1%.
-> The example below shows the air 12.8% thinner over 1,400 m (4,593 ft). The recorded heights are
-> whole meters; Open-Meteo doesn't document its rounding.
 
-The tests replay two saved answers and never contact Open-Meteo. The live service was contacted
+The example below shows the air 12.8% thinner over 1,400 m (4,593 ft). The recorded heights are
+whole meters; Open-Meteo doesn't document its rounding. The tests replay two saved answers and never contact Open-Meteo. The live service was contacted
 by hand, over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
 would show only when a program runs, as a refused answer.
 
@@ -180,7 +179,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/site_elevation.output.txt -->
 ```text
-Elevation data by Open-Meteo.com (CC BY 4.0), from the Copernicus DEM GLO-90: © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved
+Elevation data by Open-Meteo.com (CC BY 4.0), from the Copernicus DEM GLO-90. © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved
 first lookup: Fetched; offline a day later: Cached, the same heights: true
 
 place                            lat (°)     height (m)   pressure (hPa)  density / sea
@@ -244,7 +243,6 @@ range's edges, and refuses each kind of broken answer above.
   above the pad. For a pad cut out of forest, use a surveyed height.
 - Each place gets one number: the model's height there, at about 90 m (295 ft) spacing. A pad on a
   hill or beside a cliff can sit meters off it.
-- Your own terrain file is read by a separate reader, [below](#from-an-elevation-file-of-your-own).
 
 ## From an elevation file of your own
 
@@ -302,8 +300,14 @@ file.
 | the grid | latitude and longitude in degrees from Greenwich, on a datum within a few meters of [WGS 84](glossary.md#wgs-84): WGS 84 itself, NAD83 and its updates, ETRS89, GDA94, GDA2020, NZGD2000, JGD2011, SIRGAS 2000 and CGCS2000 (the [EPSG codes](glossary.md#epsg-code) are `NEAR_WGS84` in the API) | a map projection such as UTM, or an older datum such as NAD27, tens to hundreds of meters from WGS 84: the error names the code, and `gdalwarp -t_srs EPSG:4326 in.tif out.tif` converts the file |
 | the pixels | one band of 8-, 16- or 32-bit integers, or 32- or 64-bit floats; tiles or strips; uncompressed, LZW, Deflate or PackBits; either byte order; BigTIFF | several bands; zstd, JPEG and other compression (`gdal_translate -co COMPRESS=DEFLATE` rewrites the file); a separate mask of missing pixels |
 | where the pixels lie | one tiepoint (a pixel tied to a longitude and latitude) with a pixel size, or a matrix without rotation; *pixel is area* or *pixel is point* (whether the tiepoint names a pixel's corner or its center); longitudes 0° to 360° as well as −180° to 180° | a rotated grid; several tiepoints (ground control points); a south-up pixel size, which GDAL and the standard read differently |
-| the heights | a scale and offset as GDAL applies them (from the file's pixel scale, or from GDAL's own metadata tag); meters, feet or US survey feet as the file states (in its keys or in GDAL's metadata tag), or as its [vertical datum](glossary.md#vertical-datum) implies; meters if it says nothing, with `vertical_unit_stated` then `false` | a vertical datum outside a short list HPR Sim knows (`VERTICAL_CRS_UNITS` in the API: EGM2008, EGM96, NAVD88 and a few more), since its unit could be feet; a height scale in the file's pixel-scale tag when the file names a vertical datum in a way GDAL may not apply (HPR Sim can't tell what GDAL would do); vertical keys GDAL ignores, unit and all, or reads by rules of its own (a private code, keys beside WGS 84 3D, datum 6030 beside WGS 84 with a model type, or keys with no model type and no unit); a scale, offset or unit in GDAL's metadata tag with a namespace, capitals in an attribute's name, a sample that isn't plain digits, a value that isn't plain text, a blank written as a character reference, or the `IMAGE_STRUCTURE` domain, forms GDAL reads with quirks of its own; a unit other than these, or two that disagree |
+| the heights | a scale and offset as GDAL applies them (from the file's pixel scale, or from GDAL's own metadata tag); meters, feet or US survey feet as the file states (in its keys or in GDAL's metadata tag), or as its [vertical datum](glossary.md#vertical-datum) implies; meters if it says nothing, with `vertical_unit_stated` then `false` | a vertical datum outside a short list HPR Sim knows (`VERTICAL_CRS_UNITS` in the API: EGM2008, EGM96, NAVD88 and a few more), since its unit could be feet; forms GDAL may read differently (below); a unit other than these, or two that disagree |
 | no data | the file's nodata value, and NaN, read as `None` | |
+
+Also refused in the heights row, as GDAL may read them differently:
+
+- a height scale in the pixel-scale tag when the file names a vertical datum in a way GDAL may not apply (HPR Sim can't tell what GDAL would do);
+- vertical keys GDAL ignores, unit and all, or reads by rules of its own (a private code, keys beside WGS 84 3D, datum 6030 beside WGS 84 with a model type, or keys with no model type and no unit);
+- a scale, offset or unit in GDAL's metadata tag with a namespace, capitals in an attribute's name, a sample that isn't plain digits, a value that isn't plain text, a blank written as a character reference, or the `IMAGE_STRUCTURE` domain, which GDAL reads with quirks of its own.
 
 **Which height it is.** The height is above the file's own vertical datum. The reader reports the
 datum's EPSG code (`vertical_crs_epsg`) when the file names one, and doesn't change the height.

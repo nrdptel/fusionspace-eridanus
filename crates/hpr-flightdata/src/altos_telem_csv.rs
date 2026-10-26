@@ -241,7 +241,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                     number,
                     format!(
                         "the row's serial number and packet type, {:?} and {:?}, aren't the \
-                         first row's, {:?} and {:?}: one table holds one board's packets of one \
+                         first row's, {:?} and {:?}. One table holds one board's packets of one \
                          type",
                         short(&identity.0),
                         short(&identity.1),
@@ -264,7 +264,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             return Err(syntax(
                 number,
                 format!(
-                    "the tick {time} s isn't later than the one before, {before} s: the board's \
+                    "the tick {time} s isn't later than the one before, {before} s. The board's \
                      tick turns over every 655.36 s, and a table of seconds can't tell a turn \
                      from a board switched off and on"
                 ),
@@ -410,7 +410,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     }
     notes.push(
         "`acceleration` is the board's own estimate along its axis with gravity taken out: about \
-         0 at rest, not 1 g; `speed` leans on the accelerometer, so the record has no vertical \
+         0 at rest, not 1 g. `speed` leans on the accelerometer, so the record has no vertical \
          speed"
             .to_owned(),
     );

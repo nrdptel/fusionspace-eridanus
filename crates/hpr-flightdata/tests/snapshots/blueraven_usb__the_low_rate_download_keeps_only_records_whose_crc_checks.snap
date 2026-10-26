@@ -544,7 +544,7 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "a low-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.140, whose date the manual says starts from the firmware's build date unless the phone has set it",
+    "a low-rate download: the clock counts from the first record's time on the logger's clock, 2026 5 23 10:15:00.140. The manual says that clock's date starts from the firmware's build date unless the phone has set it",
     "`V:` holds 5 values where the manual lists 6: kept as written, as nothing says which is missing",
     "`FER:` holds 8 values where the manual lists 5: the manual's read in its order, the other 3 kept as written",
     "`Bo: temperature` kept as written: the manual states no unit for it in the download",

@@ -362,7 +362,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             format: FORMAT,
             line: header_line,
             message: "a table of AltOS's columns with no `version,serial,flight` header is read \
-                      by its states, and no row's `state` and `state_name` are a state AltOS's \
+                      by its states. No row's `state` and `state_name` are a state AltOS's \
                       exports name"
                 .to_owned(),
         });
@@ -907,9 +907,9 @@ fn assemble(
     }
     if bare_table {
         notes.push(format!(
-            "the header names AltOS's columns with no `version,serial,flight` before them: read \
-             as AltOS's, as {} give a `state` and a `state_name` that AltOS's exports write for \
-             one state, and none contradicts them",
+            "the header names AltOS's columns with no `version,serial,flight` before them. The \
+             table is read as AltOS's, as {} give a `state` and a `state_name` that AltOS's exports \
+             write for one state, and none contradicts them",
             count(table.states_checked, "row")
         ));
     }
@@ -934,7 +934,7 @@ fn assemble(
         if blanked > 0 {
             notes.push(format!(
                 "{} placing the GPS at latitude 0, longitude 0 (AltOS's position before its \
-                 receiver has a fix): their latitude, longitude and GPS altitude read as gaps",
+                 receiver has a fix). Their latitude, longitude and GPS altitude read as gaps",
                 count(blanked, "row")
             ));
         }
@@ -959,8 +959,9 @@ fn assemble(
         if formulas.cells > 0 && formulas.cells == n {
             // Every cell a formula: text, not a channel.
             formula_note(format!(
-                "the `{}` column's {} a spreadsheet's {}, not {}: kept here as text, not worked \
-                 out, and not a channel, `{{row}}` standing for each cell's own row: {}",
+                "the `{}` column's {} a spreadsheet's {}, not {}. The column is not a channel. \
+                 Each formula is kept here as text, not worked out. `{{row}}` stands for each \
+                 cell's own row: {}",
                 short(name),
                 match formulas.cells {
                     1 => "1 cell is".to_owned(),
@@ -982,9 +983,9 @@ fn assemble(
         }
         if formulas.cells > 0 {
             formula_note(format!(
-                "the `{}` column has {} holding a spreadsheet's formula, not a value: read as \
-                 gaps, the formulas kept here as text, `{{row}}` standing for each cell's own \
-                 row: {}",
+                "the `{}` column has {} holding a spreadsheet's formula, not a value. The cells \
+                 read as gaps, and the formulas are kept here as text. `{{row}}` stands for \
+                 each cell's own row: {}",
                 short(name),
                 count(formulas.cells, "cell"),
                 formula_runs(formulas)
@@ -1637,7 +1638,7 @@ mod tests {
         let log = read("#version,serial,flight,time,height,x\n6,77,4,0.5,0,=E2*2\n").unwrap();
         assert!(
             log.notes.iter().any(|n| n.starts_with(
-                "the `x` column's 1 cell is a spreadsheet's formula, not a value: kept here"
+                "the `x` column's 1 cell is a spreadsheet's formula, not a value. The column"
             )),
             "{:#?}",
             log.notes

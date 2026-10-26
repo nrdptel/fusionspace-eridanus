@@ -77,7 +77,7 @@ fn a_metric_file_reads_in_meters() {
     // The invented barometer's count, 9.12 m, is in the band of meters and not of feet.
     let step = note(&log, "`pAlt` read in meters, from its step and `Vel`: ");
     assert!(
-        step.contains("its smallest step, 9.12, ") && step.contains("(5.46 to 14.83 m)"),
+        step.contains("its smallest step is 9.12. ") && step.contains("(5.46 to 14.83 m)"),
         "{step}"
     );
     note(&log, "`MET` read in seconds, from the apogee: ");
@@ -121,7 +121,7 @@ fn an_english_file_reads_in_feet_and_g() {
     );
     let step = note(&log, "`pAlt` read in feet, from its step and `Vel`: ");
     assert!(
-        step.contains("its smallest step, 29.60, ") && step.contains("(17.91 to 48.64 ft)"),
+        step.contains("its smallest step is 29.60. ") && step.contains("(17.91 to 48.64 ft)"),
         "{step}"
     );
     note(&log, "`MET` read in seconds, from the apogee: ");

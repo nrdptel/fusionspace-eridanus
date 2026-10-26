@@ -1452,9 +1452,10 @@ mod tests {
     fn formulas_are_rebuilt_from_the_notes() {
         let log = FlightLog {
             notes: vec![
-                "the `altitude (ft)` column's 3 cells are a spreadsheet's formulas, not values: \
-                 kept here as text, not worked out, and not a channel, `{row}` standing for each \
-                 cell's own row: `=3.28084*J{row}` on line 2; `=3.28*J{row}` on lines 3–4"
+                "the `altitude (ft)` column's 3 cells are a spreadsheet's formulas, not values. \
+                 The column is not a channel. Each formula is kept here as text, not worked out. \
+                 `{row}` stands for each cell's own row: `=3.28084*J{row}` on line 2; \
+                 `=3.28*J{row}` on lines 3–4"
                     .to_owned(),
             ],
             ..hpr_flightdata::import::read(b"Time,Altitude,Velocity\n0,0,0\n0.5,1,2\n").unwrap()

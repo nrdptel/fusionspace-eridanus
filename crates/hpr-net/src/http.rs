@@ -127,6 +127,11 @@ impl Http {
     }
 }
 
+/// The words a [`Transport::get`] refusal holds when the environment's proxy is SOCKS, which
+/// this transport doesn't speak: `reason.contains(SOCKS_REFUSED)` tells that refusal from a
+/// failed connection.
+pub const SOCKS_REFUSED: &str = "is SOCKS, which HPR Sim can't use";
+
 impl Http {
     /// The body bytes, unpacked, that the fetch in progress has read so far, or the last fetch
     /// read in all: set to 0 as a fetch starts and counted up as its body arrives, so another
@@ -138,6 +143,9 @@ impl Http {
 
     /// Why `url` is refused, when the environment's proxy is SOCKS and `NO_PROXY` doesn't exempt
     /// it. Without ureq's SOCKS support, ureq would warn and connect directly, around the proxy.
+    /// The reason holds [`SOCKS_REFUSED`]. A program can also leave the environment's proxy
+    /// unread ([`HttpConfig::proxy_from_env`]); the reason doesn't say so, as it reaches the
+    /// command line's users too.
     fn socks_refusal(&self, url: &str) -> Option<String> {
         let socks = self.socks.as_ref()?;
         let uri = url.parse::<ureq::http::Uri>().ok()?;
@@ -147,9 +155,8 @@ impl Http {
         // The protocol alone: the address may carry a user name and password, and one with an
         // unescaped `/` or `#` in the password ends early, leaving the user name as the "host".
         Some(format!(
-            "the environment's proxy ({:?}) is SOCKS, which hpr-net cannot use; unset the \
-             variable naming it (ALL_PROXY, HTTPS_PROXY or HTTP_PROXY), add the host to NO_PROXY, \
-             or turn off HttpConfig::proxy_from_env",
+            "the environment's proxy ({:?}) {SOCKS_REFUSED}. Unset the variable naming it \
+             (ALL_PROXY, HTTPS_PROXY or HTTP_PROXY), or add the host to NO_PROXY",
             socks.protocol(),
         ))
     }
@@ -262,6 +269,7 @@ mod tests {
                 !reason.contains("cret") && !reason.contains("alice"),
                 "{reason}"
             );
+            assert!(reason.contains(SOCKS_REFUSED), "{reason}");
         }
     }
 

@@ -18,8 +18,10 @@ variations. It needs some Rust, but no knowledge of this project.
 > Given the same drag, its heights, speeds and times match RocketPy's. On its own drag it flies this
 > rocket about 10% higher than RocketPy does on the drag table RocketPy's example ships: 770 m
 > (2,526 ft) against 700 m (2,297 ft) ([the validation
-> case](accuracy.md#whole-flights-with-each-codes-own-drag)). The drag and the drift in a wind are
-> the least certain numbers it prints ([Accuracy of these numbers](#accuracy-of-these-numbers)).
+> case](accuracy.md#whole-flights-with-each-codes-own-drag)).
+
+The drag and the drift in a wind are the least certain numbers it prints
+([Accuracy of these numbers](#accuracy-of-these-numbers)).
 
 ## Setting up
 

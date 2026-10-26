@@ -76,9 +76,9 @@ fn sim_says_its_figures_are_simulated_and_ends_with_how_far_to_trust_them() {
     // The three parts, in order: the kind, what it was checked against, what to rely on instead.
     let parts = [
         "Simulated from the design file, not measured.",
-        "Against 53 logged flights of fliers' own designs, each logged apogee the height climbed \
-         in the day's air, the simulated apogee averaged 8.7% above the logged one; it was within \
-         10% on 26 and read low on 13, by at most 20%.",
+        "Against 53 logged flights of fliers' own designs, the simulated apogee averaged 8.7% \
+         above the logged one. Each logged apogee is the height climbed in the day's air. The \
+         simulated apogee was within 10% on 26 and read low on 13, by at most 20%.",
         "Plan a waiver or a field's ceiling with room above this apogee; the altimeter's \
          reading is the one to log, and the RSO decides.",
     ];
@@ -152,8 +152,9 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
         &[
             "Measured by the logger, read by HPR Sim from its log, not simulated.",
             "Each reading states the bound its error stayed within on HPR Sim's synthetic \
-             flights, logged at every rate from 500 to 0.5 samples a second and in steps up to 10 \
-             m or 100 Pa, in air within 15 K of standard;",
+             flights. They cover rates from 500 to 0.5 samples a second, steps up to 10 m or \
+             100 Pa, and air within 15 K of standard. A reading the log can't support is \
+             withheld, with the reason.",
             "withheld from Mach 0.8,",
             "the altimeter's own reading is the one to log, and the RSO decides.",
         ],
@@ -181,10 +182,11 @@ fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
             &note,
             &[
                 "The logger's own samples, read by HPR Sim in the units your mapping, layout or \
-                 FIP header states, not simulated: as right as those units are.",
+                 FIP header states, not simulated. They are as right as those units are.",
                 "Each reading states the bound its error stayed within",
-                "Those bounds hold only if the units are right: check a unit against a known \
-                 height,",
+                "Those bounds hold only if the units are right. Check a unit against a known \
+                 height, such as the launch site's elevation from a GPS altitude. For a record, go \
+                 by the logger's own figures.",
             ],
         );
         // A GPS tracker's table has no barometer: the note doesn't say one measured it.
@@ -215,8 +217,8 @@ fn motors_show_says_where_its_figures_come_from() {
                  HPR Sim:"
             ),
             "The total impulse and peak thrust match OpenRocket's reading of the same file on \
-             every bundled curve, a check of the arithmetic, not of the motor; no figure is \
-             checked against the maker's or the certifying bodies' data.",
+             every bundled curve. That is a check of the arithmetic, not of the motor. No figure \
+             is checked against the maker's or the certifying bodies' data.",
             "The motor's printed data and its maker's instructions come first, and the RSO \
              decides.",
         ],

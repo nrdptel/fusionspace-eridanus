@@ -444,8 +444,8 @@ impl Finding {
             } => {
                 let (reach, room) = mm_pair(*reach_m, *room_m);
                 format!(
-                    "{} reaches {reach} from the axis of {}, which has {room} of room: a fit to \
-                     sand, and the mass where it crosses the wall counts twice",
+                    "{} reaches {reach} from the axis of {}, which has {room} of room. That is a \
+                     fit to sand, and the mass where it crosses the wall counts twice",
                     name(component),
                     name(parent)
                 )
@@ -461,7 +461,7 @@ impl Finding {
                 let (_, widest) = mm_pair(*reach_m, *widest_room_m);
                 format!(
                     "{} reaches {reach} from the axis of {}, which narrows to {room} of room \
-                     along it ({widest} where widest): it can't slide in that far as drawn, and \
+                     along it ({widest} where widest). It can't slide in that far as drawn, and \
                      flies where it is drawn",
                     name(component),
                     name(parent)
@@ -477,14 +477,14 @@ impl Finding {
                 let (reach, room) = mm_pair(*reach_m, *room_m);
                 let mut text = format!(
                     "{} is packed to reach {reach} from the axis of {}, which has {room} of \
-                     room: it can't go in as drawn; its mass, length and station fly as drawn, and \
+                     room. It can't go in as drawn. Its mass, length and station fly as drawn, and \
                      its width sets only its own inertia",
                     name(component),
                     name(parent)
                 );
                 if *room_widens_aft {
                     text.push_str(
-                        ". The room widens aft of it, so its mass can sit only farther aft: the \
+                        ". The room widens aft of it, so its mass can sit only farther aft. The \
                          center of gravity flies forward of where it can be, and the stability \
                          margin may read high (issue #367, \
                          https://github.com/nrdptel/fusionspace-eridanus/issues/367)",
@@ -501,7 +501,7 @@ impl Finding {
                 let (reach, room) = mm_pair(*reach_m, *room_m);
                 format!(
                     "{} reaches {reach} from the axis, wider than {}, and caps its end, in \
-                     {room} of room around it; the mass where it crosses the wall counts twice",
+                     {room} of room around it. The mass where it crosses the wall counts twice",
                     name(ring),
                     name(parent)
                 )
@@ -514,7 +514,7 @@ impl Finding {
                 let (apart, diameter) = mm_pair(*apart_m, *diameter_m);
                 format!(
                     "the cluster of {} has tubes {apart} apart, closer than their {diameter} \
-                     diameter, so they cross: the mass where they cross counts twice and their \
+                     diameter, so they cross. The mass where they cross counts twice and their \
                      motors would not fit",
                     name(tube)
                 )

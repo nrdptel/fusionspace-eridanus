@@ -149,9 +149,9 @@ fn print_mapping(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         }
         diagnostics.line(
             Level::Help,
-            "save it to a file and check each column's quantity and unit; set \"primary\" to \
+            "save it to a file and check each column's quantity and unit. Set \"primary\" to \
              the column, from 0, that is the barometric altitude above the pad, mapped to \
-             altitude_above_ground; then read the log with --mapping and that file",
+             altitude_above_ground. Then read the log with --mapping and that file",
         )
     })
 }
@@ -224,14 +224,18 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
         let help = match &error {
             LogError::Choice { .. } => {
                 "choose a workbook's sheet with --sheet N, or a dump's recording with \
-                 --recording N, each from 0; a table on a sheet no reader takes is read by a \
+                 --recording N, each from 0. A table on a sheet no reader takes is read by a \
                  column mapping (--mapping) and --sheet"
+            }
+            LogError::Unrecognized { .. } if bytes.iter().all(u8::is_ascii_whitespace) => {
+                "download the log from the logger again with its maker's software: this file \
+                 holds no readings"
             }
             LogError::Unrecognized { .. } => {
                 "another logger's table is read by a column mapping (--mapping), and \
-                 --print-mapping prints what its header states as one to edit; its binary \
-                 records are read by a record layout (--layout); a Raven FIP export pasted below \
-                 no header, by the header you state (--fip-header)"
+                 --print-mapping prints what its header states as one to edit. Another logger's \
+                 binary records are read by a record layout (--layout). A Raven FIP export pasted \
+                 below no header is read by the header you state (--fip-header)"
             }
             LogError::Archive { .. } => "unpack the archive and give the log inside it",
             LogError::Workbook { .. } => {
@@ -659,7 +663,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .unwrap_or_default();
                         format!(
                             "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \
-                             less its bound, {} s; derived from the heights, and may have come \
+                             less its bound, {} s. Derived from the heights, burnout may have come \
                              later by any amount",
                             burnout.time_s,
                             seconds_bound(burnout.bound_s)

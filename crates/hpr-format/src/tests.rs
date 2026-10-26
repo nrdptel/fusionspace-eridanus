@@ -1558,7 +1558,7 @@ fn a_damaged_container_is_refused() {
         assert_eq!(
             refused(&two),
             "not a valid .hprz: its central directory holds 3 entries, and the zip reader keeps \
-             2: two have the same name, and one would be lost, or the directory is damaged"
+             2. Either two have the same name and one would be lost, or the directory is damaged"
         );
     }
     // A megabyte of zeros deflates to about a kilobyte; with a smaller budget it is refused

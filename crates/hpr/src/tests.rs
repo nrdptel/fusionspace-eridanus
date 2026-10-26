@@ -407,8 +407,14 @@ fn motors_come_from_the_catalog_or_a_file() {
     ));
     assert!(matches!(
         catalog.clone().with_delay_s(-1.0),
-        Err(Error::Domain { what: "motor delay, s", value }) if value == -1.0
+        Err(Error::Domain { what: "motor delay, s", value, allowed: "finite and not negative" })
+            if value == -1.0
     ));
+    // The message says what the number must be, not only that it's refused.
+    assert_eq!(
+        catalog.clone().with_delay_s(-1.0).unwrap_err().to_string(),
+        "motor delay, s is -1, but it must be finite and not negative"
+    );
     assert_eq!(
         catalog.clone().with_delay(Delay::Plugged).unwrap().delay(),
         Some(Delay::Plugged)
@@ -478,7 +484,8 @@ fn motors_come_from_the_catalog_or_a_file() {
     ));
     assert!(matches!(
         Motor::new("x", catalog.solid_motor().clone(), 0.0, 0.1),
-        Err(Error::Domain { what: "motor diameter, m", value }) if value == 0.0
+        Err(Error::Domain { what: "motor diameter, m", value, allowed: "finite and above 0" })
+            if value == 0.0
     ));
 }
 
@@ -540,7 +547,11 @@ fn the_rail_leans_where_it_is_headed() {
         assert!(
             matches!(
                 refused,
-                Err(Error::Domain { what: "rail inclination, degrees above the horizon", value })
+                Err(Error::Domain {
+                    what: "rail inclination, degrees above the horizon",
+                    value,
+                    allowed: "above 0 and at most 90",
+                })
                     if value.to_bits() == inclination_deg.to_bits()
             ),
             "{inclination_deg}: {refused:?}"
@@ -966,14 +977,14 @@ fn degenerate_designs_error_or_stay_finite() {
     let abs = || material("abs").unwrap();
     let ogive = NoseShape::Ogive { radius_ratio: 1.0 };
     let domain = |result: Result<&mut Rocket, Error>| match result {
-        Err(Error::Domain { what, value }) => (what, value),
+        Err(Error::Domain { what, value, .. }) => (what, value),
         other => panic!("expected a domain error, got {other:?}"),
     };
 
     // Zero radius.
     assert!(matches!(
         Rocket::new("Zero", 0.0),
-        Err(Error::Domain { what: "rocket diameter, m", value }) if value == 0.0
+        Err(Error::Domain { what: "rocket diameter, m", value, .. }) if value == 0.0
     ));
     let mut rocket = Rocket::new("Degenerate", 0.05).unwrap();
     let zero_tube = Tube::new(0.5, 0.001, abs()).with_diameter_m(0.0);
@@ -1786,7 +1797,7 @@ fn a_flight_warns_of_its_off_axis_mass_and_its_supersonic_damping_stations() {
     assert_eq!(station.parts, ["nose", "sustainer-airframe"]);
     let message = station.message();
     assert!(
-        message.contains("from Mach 1.20 to 1.50, a body part's pitch and yaw damping"),
+        message.contains("from Mach 1.20 to 1.50. There, a body part's pitch and yaw damping"),
         "{message}"
     );
     let message = warning(&flight, 219).message();
@@ -1886,8 +1897,9 @@ fn a_flight_through_a_near_calm_turn_warns_of_its_swinging_wind() {
     let message = warning(&swinging, 8).message();
     assert!(
         message.contains(
-            "across 1400 to 1900 m (4593 to 6234 ft) above sea level, from 0.4 m/s (1 mph) at 0° \
-             to 8.0 m/s (18 mph)"
+            "across a span with a level near calm at one end, between 1400 and 1900 m (4593 \
+             and 6234 ft) above sea level. Across it, the wind goes from 0.4 m/s (1 mph) at 0° to \
+             8.0 m/s (18 mph)"
         ),
         "{message}"
     );
@@ -2051,7 +2063,7 @@ fn a_sustainer_below_its_own_join_adds_no_106() {
     assert!((join.join_start_mach - 1.3805).abs() < 5e-5, "{join:?}");
     let message = warning(&stacked, 106).message();
     assert!(
-        message.contains("from Mach 1.38 to 1.68, a body"),
+        message.contains("from Mach 1.38 to 1.68. There, a body"),
         "{message}"
     );
     assert!(!message.contains("sustainer after"), "{message}");

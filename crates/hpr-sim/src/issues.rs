@@ -526,40 +526,42 @@ impl IssueWarning {
     #[must_use]
     pub fn message(&self) -> String {
         let mach = self.max_mach.value;
-        let low = "so the apogee, the top speed and the drift read low, and the flutter margin \
-                   and the largest dynamic pressure look better than they are";
+        // Two sentences; the second's "then" keeps it under the first's condition, where a
+        // note has one ("If these fins are sharp, ...").
+        let low = "the apogee, the top speed and the drift read low. The flutter margin and the \
+                   largest dynamic pressure then look better than they are";
         let what = match self.issue {
             KnownIssue::TransonicNoseDrag => format!(
                 "a cone-like nose's or shoulder's pressure drag reads high from Mach \
                  {TRANSONIC_NOSE_DRAG_MACH} (about twice a measured cone's at Mach 0.85, still \
-                 +15% at 1.5), {low}"
+                 +15% at 1.5). So {low}"
             ),
             KnownIssue::BaseDrag => {
                 let mut what = format!(
                     "base drag reads high from Mach {BASE_DRAG_HIGH_MACH} to \
-                     {BASE_DRAG_HIGH_TOP_MACH} (0.225 against a measured 0.156 at Mach 0.9), \
+                     {BASE_DRAG_HIGH_TOP_MACH} (0.225 against a measured 0.156 at Mach 0.9). So \
                      {low}"
                 );
                 if past(mach, BASE_DRAG_HIGH_TOP_MACH) {
                     what.push_str(&format!(
-                        "; from Mach {BASE_DRAG_LOW_MACH} it reads low (17% at Mach 2), so the \
+                        ". From Mach {BASE_DRAG_LOW_MACH} it reads low (17% at Mach 2), so the \
                          apogee and the top speed there read high"
                     ));
                 }
                 what
             }
             KnownIssue::SharpFinDrag => format!(
-                "HPR Sim has no sharp-edged (double-wedge) fin section, and drawn as an airfoil such \
-                 a fin's drag reads high faster than sound: if these fins are sharp, {low}"
+                "HPR Sim has no sharp-edged (double-wedge) fin section. Drawn as an airfoil, such a \
+                 fin's drag reads high faster than sound. If these fins are sharp, {low}"
             ),
             KnownIssue::SteepBoattailDrag => format!(
                 "a boattail steeper than {:.0}° drags high faster than sound (+26% to +54% at \
-                 16°), {low}",
+                 16°). So {low}",
                 STEEP_BOATTAIL_RAD.to_degrees()
             ),
             KnownIssue::SupersonicPressureDrag => format!(
                 "supersonic pressure drag on an ogive nose or airfoil fins is about twice \
-                 OpenRocket's, and which is right is unresolved: if HPR Sim's drag is high, {low}"
+                 OpenRocket's, and which is right is unresolved. If HPR Sim's drag is high, {low}"
             ),
             KnownIssue::RadiusStepFallback
             | KnownIssue::LongLipFallback
@@ -573,56 +575,56 @@ impl IssueWarning {
                 };
                 format!(
                     "{switch} takes the whole body off the shock-expansion method from Mach \
-                     {SUPERSONIC_SWITCH_MACH}, so slender-body theory puts the center of pressure \
-                     aft there and the margin reads high"
+                     {SUPERSONIC_SWITCH_MACH}. Slender-body theory then puts the center of \
+                     pressure aft there, and the margin reads high"
                 )
             }
             KnownIssue::MarginReadsHigh => format!(
                 "the static margin read up to {MARGIN_HIGH_BOUND_CAL} calibers higher than \
-                 OpenRocket's on four private designs, for a reason not yet found, so this \
-                 flight's margin may read high by as much"
+                 OpenRocket's on four private designs, for a reason not yet found. This flight's \
+                 margin may read high by as much"
             ),
             KnownIssue::ForwardSweptFinSlope => format!(
                 "a fin whose leading edge sweeps forward takes a normal-force slope that rises by \
-                 up to 7.7% past Mach {}, where it should fall, so faster than Mach \
-                 {FORWARD_SWEEP_MACH} the center of pressure may sit aft and the margin read high",
+                 up to 7.7% past Mach {}, where it should fall. So faster than Mach \
+                 {FORWARD_SWEEP_MACH}, the center of pressure may sit aft and the margin read high",
                 hpr_aero::fins::SUPERSONIC_START_MACH
             ),
             KnownIssue::SubsonicBoattailDrag => format!(
-                "below Mach {} a boattail steeper than {:.1}° takes a share of base drag by a rule \
-                 that read from −40.8% to +41.7% on measured 16° boattails; where its drag reads \
-                 high, {low}",
+                "below Mach {}, a boattail steeper than {:.1}° takes its share of base drag by a \
+                 rule. On measured 16° boattails, that rule read from −40.8% to +41.7%. Where its \
+                 drag reads high, {low}",
                 hpr_aero::drag::SUBSONIC_MACH_LIMIT,
                 SUBSONIC_BOATTAIL_RULE_RAD.to_degrees()
             ),
             KnownIssue::FinSetsAtOneStation => format!(
                 "fin sets that share a station, more than {FINS_WITHOUT_INTERFERENCE} fins between \
-                 them, are each counted alone for fin–fin interference, where OpenRocket counts \
-                 them together (about {FIN_SETS_AT_ONE_STATION_CAL} calibers of margin on its pods \
+                 them, are each counted alone for fin-fin interference. OpenRocket counts them \
+                 together (about {FIN_SETS_AT_ONE_STATION_CAL} calibers of margin on its pods \
                  example), so the margin may read high"
             ),
             KnownIssue::TurbulentFriction => format!(
                 "skin friction is taken as fully turbulent, but on a smooth surface the flow stays \
-                 laminar near the nose, where friction is lower: HPR Sim's drag reads high by \
-                 {LAMINAR_FRICTION_PERCENT}% on RocketPy's Calisto at Mach 0.3; if this surface \
-                 is that smooth, the drag reads high, {low}"
+                 laminar near the nose, where friction is lower. HPR Sim's drag reads high by \
+                 {LAMINAR_FRICTION_PERCENT}% on RocketPy's Calisto at Mach 0.3. If this surface \
+                 is that smooth, {low}"
             ),
             KnownIssue::FreeformFinCenterOfPressure => format!(
                 "a kinked freeform fin's center of pressure sat 1.6 mm aft of OpenRocket's \
-                 (about {FREEFORM_FIN_MARGIN_CAL} calibers of margin on its pods example) and \
-                 other freeform outlines are unprobed, so the margin may read high"
+                 (about {FREEFORM_FIN_MARGIN_CAL} calibers of margin on its pods example). Other \
+                 freeform outlines are unprobed, so the margin may read high"
             ),
             KnownIssue::BoosterAirframeDrag => "a booster dropped at a separation flies on as a \
-                 point with only its devices' drag, where a real one first coasts nose-first on \
-                 its airframe's drag: tumbling side-on from the split, as HPR Sim tumbles a .ork \
-                 file's booster, the booster's peak and drift likely read short (with nothing \
-                 open at the split, see #354); its flight is not validated"
+                 point with only its devices' drag. A real one first coasts nose-first on its \
+                 airframe's drag. As HPR Sim tumbles a .ork file's booster side-on from the \
+                 split, its peak and drift likely read short. For a booster with nothing open at \
+                 the split, see #354. Its flight is not validated"
                 .to_owned(),
             KnownIssue::DragFreeSeparatedPart => "a separated part flies on as a point with only \
-                 its open devices' drag, so it has no drag at all until its first device opens, \
-                 where a real one has its airframe's: falling, it likely lands early and the wind \
-                 carries it less far than it would, so its drift likely reads short; climbing, its \
-                 peak reads high"
+                 its open devices' drag. Until its first device opens, it has no drag at all, \
+                 where a real one has its airframe's. Falling, it likely lands early and the wind \
+                 carries it less far than it would, so its drift likely reads short. Climbing, \
+                 its peak reads high"
                 .to_owned(),
             KnownIssue::OffAxisCenterOfGravity => {
                 let offset = match &self.detail {
@@ -631,17 +633,17 @@ impl IssueWarning {
                 };
                 format!(
                     "the center of gravity sits {offset} off the rocket's axis, as an off-axis lug, \
-                     rail button, pod or mass puts it: HPR Sim flies the moment the thrust makes about \
-                     it, OpenRocket's flights don't, and no reference measures which is right. The \
-                     moment turns with the offset's side, so against a wind or a tilted rail the \
-                     apogee and the drift may read low or high, and nothing measures by how much"
+                     rail button, pod or mass puts it. HPR Sim flies the moment the thrust makes \
+                     about it, OpenRocket's flights don't, and no reference measures which is right. \
+                     The moment turns with the offset's side, so against a wind or a tilted rail the \
+                     apogee and the drift may read low or high. Nothing measures by how much"
                 )
             }
             KnownIssue::SinglePodMoment => {
                 "a single pod off the axis has its drag and normal force applied on the rocket's \
-                 axis, so the trim its drag makes and the roll its normal force makes are left \
+                 axis. So the trim its drag makes and the roll its normal force makes are left \
                  out. Which way the flight moves depends on where the pod faces against the wind \
-                 and the rail's tilt: the drift may read short and the apogee low, or the reverse, \
+                 and the rail's tilt. The drift may read short and the apogee low, or the reverse, \
                  and nothing measures by how much"
                     .to_owned()
             }
@@ -651,28 +653,37 @@ impl IssueWarning {
                     _ => &[],
                 };
                 // The launch stack alone, as a single-stage flight's is, needs no name; any
-                // sustainer's join is named with its vehicle, each vehicle's apart.
+                // sustainer's join is named with its vehicle, each vehicle's apart. Two are
+                // named at most, and the rest counted, so the sentence stays under 40 words
+                // however many stages a flight drops (#476).
                 let span = match joins {
-                    [] => "inside the join".to_owned(),
+                    [] => "in this flight".to_owned(),
                     [join] if join.vehicle == 0 => join.span(),
                     _ => {
                         let named: Vec<String> = joins
                             .iter()
+                            .take(2)
                             .map(|join| format!("{} on {}", join.span(), join.vehicle_name()))
                             .collect();
-                        match named.split_last() {
+                        let more = match joins.len() {
+                            0..=2 => String::new(),
+                            3 => " (and one more vehicle)".to_owned(),
+                            n => format!(" (and {} more vehicles)", n - 2),
+                        };
+                        let named = match named.split_last() {
                             Some((last, [])) => last.clone(),
                             Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
                             None => String::new(),
-                        }
+                        };
+                        format!("{named}{more}")
                     }
                 };
                 format!(
-                    "where the shock-expansion method joins slender-body theory, {span}, a body \
+                    "the shock-expansion method joins slender-body theory {span}. There, a body \
                      part's pitch and yaw damping is sampled at a station away from its own center \
-                     of pressure (4.7 calibers apart at Mach 1.3 on a 54 mm test rocket). The static and \
-                     flight margins don't use the station, but the apogee and the drift may lean \
-                     either way, and nothing bounds by how much"
+                     of pressure. On a 54 mm test rocket, the two were 4.7 calibers apart at Mach \
+                     1.3. The static and flight margins don't use the station, but the apogee and \
+                     the drift may lean either way, and nothing bounds by how much"
                 )
             }
             KnownIssue::NearCalmWindDirection => {
@@ -680,23 +691,31 @@ impl IssueWarning {
                     Some(IssueDetail::DirectionTurns { turns }) => turns.as_slice(),
                     _ => &[],
                 };
-                let span = turns.first().map_or_else(
-                    || "a span of the wind's table".to_owned(),
+                // Where the span is, then how the wind moves across it: one sentence for both
+                // would pass the 40 words a warning's sentence may hold (#476).
+                let (span, across) = turns.first().map_or_else(
+                    || ("in a span of the wind's table".to_owned(), String::new()),
                     |turn| {
                         let (lower, upper) = (turn.lower, turn.upper);
-                        format!(
-                            "{} to {} m ({} to {} ft) above sea level, from {} m/s ({} mph) at \
-                             {:.0}° to {} m/s ({} mph) at {:.0}°",
-                            whole(lower.height_msl_m),
-                            whole(upper.height_msl_m),
-                            whole(lower.height_msl_m / FOOT_M),
-                            whole(upper.height_msl_m / FOOT_M),
-                            tenth(lower.speed_m_s),
-                            whole(lower.speed_m_s * 3600.0 / MILE_M),
-                            lower.direction_from_rad.to_degrees(),
-                            tenth(upper.speed_m_s),
-                            whole(upper.speed_m_s * 3600.0 / MILE_M),
-                            upper.direction_from_rad.to_degrees()
+                        let first = if turns.len() > 1 { "the first" } else { "it" };
+                        (
+                            format!(
+                                "between {} and {} m ({} and {} ft) above sea level",
+                                whole(lower.height_msl_m),
+                                whole(upper.height_msl_m),
+                                whole(lower.height_msl_m / FOOT_M),
+                                whole(upper.height_msl_m / FOOT_M),
+                            ),
+                            format!(
+                                " Across {first}, the wind goes from {} m/s ({} mph) at {:.0}° to \
+                                 {} m/s ({} mph) at {:.0}°.",
+                                tenth(lower.speed_m_s),
+                                whole(lower.speed_m_s * 3600.0 / MILE_M),
+                                lower.direction_from_rad.to_degrees(),
+                                tenth(upper.speed_m_s),
+                                whole(upper.speed_m_s * 3600.0 / MILE_M),
+                                upper.direction_from_rad.to_degrees()
+                            ),
                         )
                     },
                 );
@@ -707,13 +726,13 @@ impl IssueWarning {
                 };
                 let calm_mph = whole(NEAR_CALM_WIND_M_S * 3600.0 / MILE_M);
                 format!(
-                    "the wind's direction is interpolated across {span}{more}, where a level is \
-                     near calm (at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph), light air, \
-                     whose direction a vane doesn't show): its reported direction means little, yet it swings the wind \
-                     across the path. Where the other levels share one direction, the swing turns part \
-                     of the wind off it, so the drift likely reads short; where they turn, it may \
-                     read long. So the drift and the apogee may read short or long, and nothing \
-                     measures by how much"
+                    "the wind's direction is interpolated across a span with a level near calm at \
+                     one end, {span}{more}.{across} Near calm is at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph): \
+                     light air, whose direction a vane doesn't show. That level's reported direction \
+                     means little, yet it swings the wind across the path. Where the other levels \
+                     share one direction, the swing turns part of the wind off it, so the drift \
+                     likely reads short. Where they turn, it may read long. So the drift and the \
+                     apogee may read short or long, and nothing measures by how much"
                 )
             }
         };
@@ -722,7 +741,7 @@ impl IssueWarning {
             return format!("issue #{}: {what} ({})", self.number(), self.issue.url());
         }
         format!(
-            "issue #{}: {what}; this flight reaches Mach {mach:.2} at {:.1} s ({})",
+            "issue #{}: {what}. This flight reaches Mach {mach:.2} at {:.1} s ({})",
             self.number(),
             self.max_mach.time_s,
             self.issue.url()
@@ -1465,7 +1484,7 @@ mod tests {
         assert_eq!(numbers(&[], BASE_DRAG_HIGH_MACH), Vec::<u32>::new());
         assert_eq!(numbers(&[], above(BASE_DRAG_HIGH_MACH)), [68]);
         let message = |mach: f64| issue_warnings(std::iter::empty(), at(mach))[0].message();
-        let low_side = "from Mach 1.5 it reads low";
+        let low_side = "From Mach 1.5 it reads low";
         assert!(message(BASE_DRAG_HIGH_TOP_MACH).contains("read low"));
         assert!(!message(BASE_DRAG_HIGH_TOP_MACH).contains(low_side));
         let past_top = message(above(BASE_DRAG_HIGH_TOP_MACH));
@@ -1495,7 +1514,7 @@ mod tests {
         };
         assert!(message(KnownIssue::TransonicNoseDrag).contains("from Mach 0.8 "));
         assert!(message(KnownIssue::BaseDrag).contains("from Mach 0.8 to 1.2 "));
-        assert!(message(KnownIssue::BaseDrag).contains("from Mach 1.5 it reads low"));
+        assert!(message(KnownIssue::BaseDrag).contains("From Mach 1.5 it reads low"));
         assert!(message(KnownIssue::SteepBoattailDrag).contains("steeper than 10°"));
     }
 
@@ -1809,8 +1828,8 @@ mod tests {
         let warning = &issue_warnings([("tail", &boattail(0.3))], at(0.3))[0];
         let message = warning.message();
         assert!(message.contains("steeper than 9.5°"), "{message}");
-        assert!(message.contains("below Mach 0.8 "), "{message}");
-        assert!(!message.contains("this flight reaches"), "{message}");
+        assert!(message.contains("below Mach 0.8, "), "{message}");
+        assert!(!message.contains("This flight reaches"), "{message}");
     }
 
     /// The 54 mm test design with its fin set replaced by `sets`, each a count of fins and how
@@ -1873,7 +1892,7 @@ mod tests {
         let message = warning.message();
         assert!(message.contains("issue #325"), "{message}");
         assert!(message.contains("more than 4 fins"), "{message}");
-        assert!(!message.contains("this flight reaches"), "{message}");
+        assert!(!message.contains("This flight reaches"), "{message}");
         // No top Mach number, no flight: nothing.
         assert!(layout_stability_issue_warnings(&finned(&[(3, 0.0), (3, 0.0)]), None).is_empty());
         // Nor among the drag warnings.
@@ -1902,8 +1921,47 @@ mod tests {
             message.contains("the apogee, the top speed and the drift read low"),
             "{message}"
         );
-        assert!(!message.contains("this flight reaches"), "{message}");
+        assert!(!message.contains("This flight reaches"), "{message}");
         assert!(warning.parts.is_empty());
+    }
+
+    /// Where a drag note's error is conditional, both of its consequences stay under the
+    /// condition: the second sentence says "then", and none says the margin looks better outright.
+    #[test]
+    fn a_conditional_drag_note_keeps_its_condition_on_both_consequences() {
+        for (issue, condition) in [
+            (
+                KnownIssue::TurbulentFriction,
+                "If this surface is that smooth, the apogee",
+            ),
+            (
+                KnownIssue::SharpFinDrag,
+                "If these fins are sharp, the apogee",
+            ),
+            (
+                KnownIssue::SupersonicPressureDrag,
+                "If HPR Sim's drag is high, the apogee",
+            ),
+            (
+                KnownIssue::SubsonicBoattailDrag,
+                "Where its drag reads high, the apogee",
+            ),
+        ] {
+            let message = IssueWarning {
+                issue,
+                max_mach: at(0.3).unwrap(),
+                parts: Vec::new(),
+                detail: None,
+            }
+            .message();
+            assert!(
+                message.contains(&format!(
+                    "{condition}, the top speed and the drift read low. The flutter margin and the \
+                     largest dynamic pressure then look better than they are"
+                )),
+                "{message}"
+            );
+        }
     }
 
     #[test]
@@ -1935,7 +1993,7 @@ mod tests {
         let message = warning.message();
         assert!(message.contains("issue #326"), "{message}");
         assert!(message.contains("0.047 calibers"), "{message}");
-        assert!(!message.contains("this flight reaches"), "{message}");
+        assert!(!message.contains("This flight reaches"), "{message}");
         assert!(KnownIssue::FreeformFinCenterOfPressure.is_stability());
         // The same design's trapezoid and an ellipse never.
         assert!(!stability_numbers(&swept(trapezoid(0.05)), 3.0).contains(&326));
@@ -2213,7 +2271,7 @@ mod tests {
             "{message}"
         );
         assert!(
-            message.contains("the drift may read short and the apogee low, or the reverse"),
+            message.contains("The drift may read short and the apogee low, or the reverse"),
             "{message}"
         );
         assert!(
@@ -2278,7 +2336,7 @@ mod tests {
             let message = warning.message();
             assert!(message.contains("from Mach 1.20 to 1.50"), "{message}");
             assert!(message.contains("nothing bounds by how much"), "{message}");
-            assert!(message.contains("this flight reaches Mach"), "{message}");
+            assert!(message.contains("This flight reaches Mach"), "{message}");
         }
         // The premise, as the message quotes it: inside the join the airframe's station sits
         // calibers from its own small-angle center of pressure (4.71 at Mach 1.3); at the join's end the two
@@ -2343,7 +2401,7 @@ mod tests {
         let message = alone[0].message();
         assert!(
             message.contains(
-                ", from Mach 1.20 to 1.50 on the sustainer after the first separation, a body"
+                " from Mach 1.20 to 1.50 on the sustainer after the first separation. There, a body"
             ),
             "{message}"
         );
@@ -2353,7 +2411,7 @@ mod tests {
         let message = stacked[0].message();
         assert!(
             message.contains(&format!(
-                ", from Mach {stack_start:.2} to {:.2}, a body",
+                " from Mach {stack_start:.2} to {:.2}. There, a body",
                 stack_start + width
             )),
             "{message}"
@@ -2399,7 +2457,7 @@ mod tests {
         assert!(
             third
                 .message()
-                .contains("from Mach 1.25 to 1.55 on the sustainer after separation 2,"),
+                .contains("from Mach 1.25 to 1.55 on the sustainer after separation 2. There,"),
             "{}",
             third.message()
         );
@@ -2477,8 +2535,10 @@ mod tests {
             }
             .message()
         };
-        assert!(quoted(Some(1.55)).contains(", from Mach 1.25 to 1.55, a body part's pitch"));
-        assert!(quoted(None).contains(", at every speed past Mach 1.25, a body part's pitch"));
+        assert!(quoted(Some(1.55)).contains(" from Mach 1.25 to 1.55. There, a body part's pitch"));
+        assert!(
+            quoted(None).contains(" at every speed past Mach 1.25. There, a body part's pitch")
+        );
         assert!(quoted(None).contains("the apogee and the drift may lean either way"));
     }
 
@@ -2561,10 +2621,10 @@ mod tests {
         let message = warning.message();
         assert!(
             message.starts_with(
-                "issue #8: the wind's direction is interpolated across 1500 to 1800 m (4921 to \
-                 5906 ft) above sea level, from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) at \
-                 270° (and one more span), where a level is near calm (at most 1.5 m/s (3 mph), \
-                 light air,"
+                "issue #8: the wind's direction is interpolated across a span with a level near \
+                 calm at one end, between 1500 and 1800 m (4921 and 5906 ft) above sea level (and \
+                 one more span). Across the first, the wind goes from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) \
+                 at 270°. Near calm is at most 1.5 m/s (3 mph): light air,"
             ),
             "{message}"
         );
@@ -2674,5 +2734,163 @@ mod tests {
         assert_eq!(whole(-0.6), "-1");
         assert_eq!(tenth(-0.04), "0.0");
         assert_eq!(tenth(-0.06), "-0.1");
+    }
+
+    /// Every known issue, each once, in the order declared. A new issue makes [`listed_at`] fail to
+    /// compile until it is placed there; it must be listed here too, at that place, or the warning
+    /// test never builds it.
+    const EVERY_ISSUE: [KnownIssue; 20] = [
+        KnownIssue::TransonicNoseDrag,
+        KnownIssue::BaseDrag,
+        KnownIssue::SharpFinDrag,
+        KnownIssue::SteepBoattailDrag,
+        KnownIssue::SupersonicPressureDrag,
+        KnownIssue::RadiusStepFallback,
+        KnownIssue::LongLipFallback,
+        KnownIssue::SteepTipFallback,
+        KnownIssue::MarginReadsHigh,
+        KnownIssue::ForwardSweptFinSlope,
+        KnownIssue::SubsonicBoattailDrag,
+        KnownIssue::FinSetsAtOneStation,
+        KnownIssue::TurbulentFriction,
+        KnownIssue::FreeformFinCenterOfPressure,
+        KnownIssue::BoosterAirframeDrag,
+        KnownIssue::DragFreeSeparatedPart,
+        KnownIssue::OffAxisCenterOfGravity,
+        KnownIssue::SinglePodMoment,
+        KnownIssue::BodyDampingStation,
+        KnownIssue::NearCalmWindDirection,
+    ];
+
+    /// Where `issue` sits in [`EVERY_ISSUE`]: a match with no catch-all, so a new issue must be
+    /// placed.
+    fn listed_at(issue: KnownIssue) -> usize {
+        match issue {
+            KnownIssue::TransonicNoseDrag => 0,
+            KnownIssue::BaseDrag => 1,
+            KnownIssue::SharpFinDrag => 2,
+            KnownIssue::SteepBoattailDrag => 3,
+            KnownIssue::SupersonicPressureDrag => 4,
+            KnownIssue::RadiusStepFallback => 5,
+            KnownIssue::LongLipFallback => 6,
+            KnownIssue::SteepTipFallback => 7,
+            KnownIssue::MarginReadsHigh => 8,
+            KnownIssue::ForwardSweptFinSlope => 9,
+            KnownIssue::SubsonicBoattailDrag => 10,
+            KnownIssue::FinSetsAtOneStation => 11,
+            KnownIssue::TurbulentFriction => 12,
+            KnownIssue::FreeformFinCenterOfPressure => 13,
+            KnownIssue::BoosterAirframeDrag => 14,
+            KnownIssue::DragFreeSeparatedPart => 15,
+            KnownIssue::OffAxisCenterOfGravity => 16,
+            KnownIssue::SinglePodMoment => 17,
+            KnownIssue::BodyDampingStation => 18,
+            KnownIssue::NearCalmWindDirection => 19,
+        }
+    }
+
+    #[test]
+    fn sentences_split_at_a_stop_and_a_space() {
+        use crate::testing::{long_sentences, sentences};
+        assert_eq!(
+            sentences("issue #67: drag reads high from Mach 0.8. So the apogee reads low (#8)"),
+            [
+                "issue #67: drag reads high from Mach 0.8.",
+                "So the apogee reads low (#8)"
+            ]
+        );
+        assert_eq!(long_sentences(&"word ".repeat(40)), []);
+        assert_eq!(long_sentences(&"word ".repeat(41)).len(), 1);
+        assert_eq!(long_sentences(&"word ".repeat(41))[0].0, 41);
+    }
+
+    /// The issue's warning built at its longest: a flight past every Mach condition, and the
+    /// detail that makes its message longest (an offset of six figures, four supersonic joins
+    /// that never end on four sustainers, whose names are longer than the launch stack's, four
+    /// spans of near-calm wind).
+    fn longest_warning(issue: KnownIssue) -> IssueWarning {
+        let level = |height_msl_m: f64, speed_m_s: f64, degrees: f64| hpr_atmos::WindLevel {
+            height_msl_m,
+            speed_m_s,
+            direction_from_rad: degrees.to_radians(),
+        };
+        let detail = match issue {
+            KnownIssue::OffAxisCenterOfGravity => Some(IssueDetail::CenterOfGravityOffset {
+                offset_m: 0.123_456,
+            }),
+            KnownIssue::BodyDampingStation => Some(IssueDetail::SupersonicJoins {
+                joins: (1..=4)
+                    .map(|vehicle| SupersonicJoin {
+                        vehicle: vehicle + 10 * usize::from(vehicle > 1),
+                        join_start_mach: 1.234 + 0.1 * vehicle as f64,
+                        join_end_mach: None,
+                    })
+                    .collect(),
+            }),
+            KnownIssue::NearCalmWindDirection => Some(IssueDetail::DirectionTurns {
+                turns: (0..4)
+                    .map(|k| DirectionTurn {
+                        lower: level(10_000.0 + 1_000.0 * f64::from(k), 0.25, 123.0),
+                        upper: level(10_500.0 + 1_000.0 * f64::from(k), 12.25, 321.0),
+                    })
+                    .collect(),
+            }),
+            _ => None,
+        };
+        IssueWarning {
+            issue,
+            max_mach: Peak {
+                value: 3.456,
+                time_s: 12.345,
+                height_above_ground_m: 1_234.5,
+            },
+            parts: vec!["nose".to_owned()],
+            detail,
+        }
+    }
+
+    #[test]
+    fn every_issue_warning_keeps_its_sentences_to_40_words() {
+        // `writing.md`'s *Voice* (#476): a warning's sentences stay short however long the
+        // flight's own figures make them.
+        use crate::testing::long_sentences;
+        for (at, issue) in EVERY_ISSUE.into_iter().enumerate() {
+            assert_eq!(listed_at(issue), at, "{issue:?}");
+            let message = longest_warning(issue).message();
+            assert_eq!(long_sentences(&message), [], "{issue:?}: {message}");
+        }
+        // An offset that isn't a number is written in words, longer than any figure.
+        let mut unknown = longest_warning(KnownIssue::OffAxisCenterOfGravity);
+        unknown.detail = Some(IssueDetail::CenterOfGravityOffset { offset_m: f64::NAN });
+        let message = unknown.message();
+        assert_eq!(long_sentences(&message), [], "{message}");
+        // The longest details reach the message: the counted vehicles and spans, and the
+        // offset.
+        let damping = longest_warning(KnownIssue::BodyDampingStation).message();
+        assert!(
+            damping.contains(
+                "joins slender-body theory at every speed past Mach 1.33 on the sustainer after \
+                 the first separation and at every speed past Mach 1.43 on the sustainer after \
+                 separation 12 (and 2 more vehicles). There,"
+            ),
+            "{damping}"
+        );
+        // Three joins: two named, in the flight's order, and one counted.
+        let mut three = longest_warning(KnownIssue::BodyDampingStation);
+        if let Some(IssueDetail::SupersonicJoins { joins }) = &mut three.detail {
+            joins.truncate(3);
+        }
+        let message = three.message();
+        assert!(
+            message.contains("separation 12 (and one more vehicle). There,"),
+            "{message}"
+        );
+        let wind = longest_warning(KnownIssue::NearCalmWindDirection).message();
+        assert!(
+            wind.contains("(and 3 more spans). Across the first,"),
+            "{wind}"
+        );
+        let offset = longest_warning(KnownIssue::OffAxisCenterOfGravity).message();
+        assert!(offset.contains("123.456 mm"), "{offset}");
     }
 }

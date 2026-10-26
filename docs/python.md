@@ -23,14 +23,15 @@ with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
 >
 > Because the code is the same, what that page and [Accuracy](accuracy.md) say about the numbers
 > holds here too. The rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is
-> the least certain number of all. On two of RocketPy's example rockets, HPR Sim's drift and
-> RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
->
-> The package is new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
-> bring a design file, the gap that matters most is that most `.ork` configurations are refused
-> ([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
-> and Windows. It's published on PyPI, Python's package index, as `fusionspace-hpr`.
+> the least certain number of all.
+
+On two of RocketPy's example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
+([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
+
+The package is new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
+bring a design file, the gap that matters most is that most `.ork` configurations are refused
+([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
+and Windows. It's published on PyPI, Python's package index, as `fusionspace-hpr`.
 
 ## First steps
 
@@ -133,8 +134,8 @@ Line by line:
   the tube before them.
 - Each part names its material by an id from the built-in list, `hpr.materials()`. It takes its
   mass from its shape and that material's density.
-- The fins' lengths are named, so two can't swap unseen. They're the root chord, tip chord and
-  span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
+- The fins' lengths are named, so a swap shows in the call. They're the root chord, tip
+  chord and span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
 - `Motor.from_catalog` finds one of the [32 bundled motors](physics/motor.md#the-bundled-motors)
   by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).
   So give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
@@ -303,7 +304,7 @@ Three options make it RocketPy's flight:
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2650 m (8694 ft) above the pad:
+as in the section above, to 2,650 m (8,694 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])

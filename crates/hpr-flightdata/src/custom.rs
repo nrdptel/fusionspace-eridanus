@@ -169,7 +169,8 @@ pub fn read_by_fip_header(
                 .nth(index)
                 .ok_or(LogError::Choice {
                     message: format!(
-                        "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
+                        "the workbook has {count} {}, numbered from 0: it has no sheet {index}",
+                        if count == 1 { "sheet" } else { "sheets" }
                     ),
                 })?
                 .text
@@ -319,7 +320,7 @@ pub fn read_by_layout(bytes: &[u8], layout: &Layout) -> Result<FlightLog, LogErr
         (Some(block), false) => Err(LogError::Layout {
             message: format!(
                 "the layout names the block {block:?} of a serial console's capture, and the \
-                 file isn't one: for a file of the records' bytes, leave `block` out"
+                 file isn't one. For a file of the records' bytes, leave `block` out"
             ),
         }),
         (None, true) => {
@@ -329,8 +330,8 @@ pub fn read_by_layout(bytes: &[u8], layout: &Layout) -> Result<FlightLog, LogErr
                 .collect();
             Err(LogError::Layout {
                 message: format!(
-                    "the file is a serial console's capture of records as base64, its blocks {}: \
-                     the layout must name the block its records are in, as `block`",
+                    "the file is a serial console's capture of records as base64, its blocks {}. \
+                     The layout must name the block its records are in, as `block`",
                     names.join(", ")
                 ),
             })
@@ -661,8 +662,8 @@ t (ms),alt (ft),accel (g)
         let unnamed = layout_from_json(LAYOUT).unwrap();
         assert_eq!(
             message(read_by_layout(capture.as_bytes(), &unnamed).unwrap_err()),
-            "the file is a serial console's capture of records as base64, its blocks \"data\": \
-             the layout must name the block its records are in, as `block`"
+            "the file is a serial console's capture of records as base64, its blocks \"data\". \
+             The layout must name the block its records are in, as `block`"
         );
         assert!(
             message(read_by_layout(&records(), &layout).unwrap_err())

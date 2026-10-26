@@ -138,7 +138,7 @@ rocket with the motor spent. Its case and nozzle are still aboard.
   depends on the rocket's shape and speed, not its mass, so it's the same in both columns. Both use
   [Mach](glossary.md#mach-number) 0.3, with the air straight along the rocket's axis.
 - **Stability margin:** how far the CP lies behind the CG, in
-  [calibers](glossary.md#caliber), that is, in body diameters. At liftoff it's
+  [calibers](glossary.md#caliber), in body diameters. At liftoff it's
   (0.779 − 0.671) m ÷ 0.0563 m ≈ 1.9; the program works from the unrounded values and prints 1.92.
   At burnout the CG has moved forward, so the margin has grown to 2.99. This program works the
   margin out by hand. The simulator also gives it from the rail exit to apogee or the first
@@ -159,7 +159,7 @@ a normal-force slope: how fast its sideways push grows with the
 own: its sideways push appears only at larger angles, so its slope is zero.
 The rocket's CP is the average of the parts' CPs, each weighted by its slope:
 
-| part | slope (per radian) | CP (m from the nose tip) | slope × CP |
+| part | slope (per rad) | CP (m from the nose tip) | slope × CP (m/rad) |
 |---|--:|--:|--:|
 | nose | 2.00 | 0.102 | 0.204 |
 | fins | 4.82 | 1.060 | 5.109 |
@@ -197,7 +197,7 @@ which opens when the motor's ejection charge fires.
 - **Rail exit:** 21.7 m/s (71 ft/s). The design has no rail buttons, so the simulator takes the
   rocket as off the rail when its aft end passes the top
   ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
-- **Apogee:** 1144.5 m (3755 ft) above the pad, 13.92 s after ignition
+- **Apogee:** 1,144.5 m (3,755 ft) above the pad, 13.92 s after ignition
   ([apogee](glossary.md#apogee)).
 - **Top speed:** 187 m/s (614 ft/s), Mach 0.56: the fastest airspeed at the end of any [time
   step](glossary.md#adaptive-time-step). With no wind, the airspeed is also the speed over the

@@ -1,9 +1,9 @@
 //! The canonical rocket design model: component tree, shapes, materials, mass properties, stages
 //! and configurations, and design checks.
 //!
-//! **Guide:** [The design tree][guide-design], [Shapes][guide-shapes] and [Mass
-//! properties][guide-mass]: the models, their sources, how well they are validated and what they
-//! leave out.
+//! Three pages of the guide cover this crate: [The design tree][guide-design],
+//! [Shapes][guide-shapes] and [Mass properties][guide-mass]. They give the models, their sources,
+//! how well they are validated and what they leave out.
 //!
 //! [guide-design]: https://hpr.fusionspace.co/physics/design.html
 //! [guide-shapes]: https://hpr.fusionspace.co/physics/shapes.html

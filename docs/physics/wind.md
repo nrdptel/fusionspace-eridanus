@@ -122,7 +122,7 @@ station. Each law blows from one direction at every height.
     neutral air, where neither happens. The simulator has only the neutral law.
   - [8785C] §3.7.3.2 uses it with $z_{\mathrm{ref}} = 20\,\mathrm{ft}$.
   - [WMO] gives a roughness length of 0.03 m (0.098 ft) for open flat terrain with grass. That is class 3 of the
-    Davenport–Wieringa classification there, which gives a roughness length for each kind of
+    Davenport-Wieringa classification there, which gives a roughness length for each kind of
     terrain. [TM] Table 2-21 gives 0.001–0.01 m (0.0033–0.033 ft) for mown grass and 0.01–0.04 m (0.033–0.13 ft) for low grass or
     steppe.
 - **`LayeredWind`:** speed and direction tabulated at heights, as from a

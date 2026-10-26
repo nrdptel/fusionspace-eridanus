@@ -5,8 +5,8 @@ events such as apogee and landing.
 
 ## In short
 
-- **What it models:** stepping a flight through time, by Dormand–Prince 5(4), which adapts its
-  steps to an error tolerance, or fixed-step Runge–Kutta (RK4). It lands exactly on set times such
+- **What it models:** stepping a flight through time, by Dormand-Prince 5(4), which adapts its
+  steps to an error tolerance, or fixed-step Runge-Kutta (RK4). It lands exactly on set times such
   as burnout, and finds events such as apogee.
 - **Sources:** Dormand and Prince (1980); Hairer, Nørsett and Wanner's *Solving Ordinary
   Differential Equations I* (1993), whose `DOPRI5` code the port follows. Brent (1973) gives
@@ -21,7 +21,7 @@ events such as apogee and landing.
 
 ## Code and sources
 
-Code: `hpr_sim::integrator` and `hpr_sim::events`. Decisions: [ADR-010][adr-010] (Dormand–Prince
+Code: `hpr_sim::integrator` and `hpr_sim::events`. Decisions: [ADR-010][adr-010] (Dormand-Prince
 with dense output, RK4, stop times and events).
 
 Sources:
@@ -44,7 +44,7 @@ Sources:
 
 ### Methods
 
-- Dormand–Prince 5(4) ([DP80]; [HNW] table 5.2) has seven stages, first-same-as-last, so six new
+- Dormand-Prince 5(4) ([DP80]; [HNW] table 5.2) has seven stages, first-same-as-last, so six new
   evaluations per step. The step advances with the fifth-order solution (local extrapolation), and
   the embedded fourth-order solution estimates the error: $\mathrm{err}_i = h \sum_j (b_j - \hat{b}_j)\, k_j$.
 - The error norm ([HNW] eq. 4.11; [D5]) is:
@@ -146,7 +146,7 @@ Sources:
   `accept_step` sees the shortened step.
 - The event time is as accurate as the solution. The root finder adds at most about `2e-12 s`.
   The state at the event is the dense output's, which is fourth order for
-  Dormand–Prince and third for RK4.
+  Dormand-Prince and third for RK4.
 - Limits:
   - A function that crosses zero and returns inside one step goes unseen. Bound the step with
     `Adaptive::max_step_s` where that can happen.
@@ -178,20 +178,20 @@ Sources:
 ## Verification
 
 Unit tests in `hpr_sim::integrator::tests` and `hpr_sim::events::tests`. The numbers quoted were
-measured on 2026-09-17.
+measured on September 17, 2026.
 
 - In the tableau, rows sum to $c$. The fifth-order weights satisfy all 17 order conditions to
   order 5 ([HNW] table 2.2) to 1e-14. The embedded weights satisfy orders 1–4 and miss at least one
   fifth-order condition by more than 1e-4. The dense output's weights $b(\theta)$ satisfy the conditions
   to order 4 at $\theta$ = 0.1 to 0.9, which pins `D1`–`D7`.
 - The port matches `DOPRI5` on Hairer's driver problem, the Arenstorf orbit, at
-  `rtol = atol` = 1e-4, 1e-7 and 1e-10. The evaluations (494, 1442, 5060) and attempted steps
-  (82, 240, 843) equal those of an independent line-by-line transcription of `DOPCOR` and `HINIT`.
+  `rtol = atol` = 1e-4, 1e-7 and 1e-10. The evaluations (494, 1,442 and 5,060) and attempted steps
+  (82, 240 and 843) equal those of an independent line-by-line transcription of `DOPCOR` and `HINIT`.
   So do the accepted steps (64, 216, 841), and the end positions to 1e-9. This pins the
   controller, the starting step and the error norm.
 - Step-halving convergence on the nonlinear, non-autonomous $y' = -2ty^2$, $y = 1/(1 + t^2)$ on
   $[0, 2]$, driven through `advance`:
-  - Dormand–Prince runs at a fixed step $h$, its first and largest, with tolerances too loose to
+  - Dormand-Prince runs at a fixed step $h$, its first and largest, with tolerances too loose to
     reject. Over 10 to 160 steps its orders are 5.88, 5.53, 5.31, 5.17, falling toward 5.
     At 320 steps the error, 6e-15, reaches rounding. The dense output at $\theta$ = ¼, ½, ¾ gives
     4.81, 4.97, 4.99, 4.99.
@@ -202,18 +202,18 @@ measured on 2026-09-17.
   (`testing::closed_form_quadratic_drag`, [Loft lesson L21](../decisions-and-roadmap.md#l21)). As the
   tolerance halves from 1e-5 to 2e-8, the apogee time error falls from 5.7e-4 s to 1.2e-8 s. The
   height error falls from 3.4e-4 m to 8.3e-8 m. The fall is not monotone step by step: $v \lvert v \rvert$ has a kink
-  at apogee. The log–log slope of the height error against the tolerance is 1.36. The worst
+  at apogee. The log-log slope of the height error against the tolerance is 1.36. The worst
   errors are 117·tol (time) and 91·tol (height).
 - In a vacuum with constant thrust, burnout is a stop time ([Loft lesson L23](../decisions-and-roadmap.md#l23)). At burnout
   the state matches Tsiolkovsky's equation with gravity loss to 1e-9 relative, for both methods.
-  The coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi) with Dormand–Prince (20
+  The coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi) with Dormand-Prince (20
   steps). RK4 (0.01 s) comes within 4e-11 s and 1.6e-8 m. Integrated straight through the
   jump, RK4 misses the velocity by 0.56 m/s (1.8 ft/s). With the stop time the miss is 1e-12 m/s.
 - Events are located within 1e-6 s ([Loft lesson L22](../decisions-and-roadmap.md#l22)):
   - For the quadratic-drag flight, the apogee, a 300 m (984 ft) descending deploy and landing are all
     located against the closed forms. Errors: 1.2e-8, 1.5e-8 and 1.4e-8 s at the default
     tolerances, and 3e-12 to 1.3e-11 s with RK4 at 0.01 s. $g$ at the stop is below 1e-13.
-  - For $x = \cos t$, falling zeros and extrema over 20 s are located to 3e-8 s (Dormand–Prince) and
+  - For $x = \cos t$, falling zeros and extrema over 20 s are located to 3e-8 s (Dormand-Prince) and
     1.6e-9 s (RK4).
   - Restarting on an event doesn't report it again.
   - Three coincident events fire together, once per crossing.
@@ -231,7 +231,7 @@ measured on 2026-09-17.
   - a step overflowing to infinity;
   - the step limit (and resuming after raising it);
   - bad settings, a backward stop and zero weights.
-- Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1000 s are reached. Steps respect
+- Stops 1 to 40 ulps ahead of $t$ = 0, 3, 100 and 1,000 s are reached. Steps respect
   `max_step_s`. `accept_step` can stop a run. Repeated runs are bit-identical. Unknown fields and
   the old tag names are refused in settings files.
 

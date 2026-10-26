@@ -66,6 +66,7 @@ fn cases(folder: &Path) -> Vec<Case> {
     let bad_eng = file("bad.eng");
     std::fs::write(&bad_eng, "hello\n").unwrap();
     std::fs::write(file("rocket.rkt"), "<RockSimDocument/>\n").unwrap();
+    std::fs::write(file("empty.csv"), "").unwrap();
     let missing = folder.join("no-such-folder");
     let missing = |name: &str| missing.join(name).to_str().unwrap().to_owned();
     vec![
@@ -94,14 +95,30 @@ fn cases(folder: &Path) -> Vec<Case> {
             ],
             "without --offline",
         ),
+        // A motor file given where the design goes.
+        case(&["sim", &bad_eng], "is a motor file: give it with --motor"),
+        // A design neither its own motors nor --motor can fly: the file must change.
+        case(
+            &[
+                "sim",
+                &repo("validation/fixtures/ork/loft-demo/demo-quirks.ork"),
+                "--motor",
+                "G84",
+                "--offline",
+            ],
+            "neither the file's motors nor --motor can fly it as it is",
+        ),
         // A run asked for no flights.
         case(
             &["mc", &guide, "--runs", "0"],
             "give --runs a whole number from 1 to 100000",
         ),
+        case(&["mc", &guide, "--mass-sd=-1"], "give --mass-sd 0 or more"),
+        // A negative number typed after a space is the option's value, refused by its own rule
+        // rather than read as an option.
         case(
-            &["mc", &guide, "--mass-sd=-1"],
-            "give --mass-sd a number of 0 or more",
+            &["mc", &guide, "--mass-sd", "-1"],
+            "give --mass-sd 0 or more",
         ),
         // An export named for a format it isn't.
         case(
@@ -119,6 +136,12 @@ fn cases(folder: &Path) -> Vec<Case> {
         case(
             &["analyze", &repo("Cargo.toml")],
             "another logger's table is read by a column mapping (--mapping)",
+        ),
+        // An empty log, which no mapping or layout can read.
+        case(
+            &["analyze", &file("empty.csv")],
+            "download the log from the logger again with its maker's software: this file holds \
+             no readings",
         ),
         // A forecast hour past what the model's run reaches.
         case(

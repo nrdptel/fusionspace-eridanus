@@ -294,6 +294,19 @@ fn motors_list_is_the_catalog() {
         "motors-list.schema.json",
     );
     assert!(none["motors"].as_array().unwrap().is_empty());
+    // As text, a filter that matches nothing says so, with the catalog's span, on standard error.
+    let output = hpr(&["motors", "list", "--class", "Z"]);
+    assert_eq!(output.status.code(), Some(0));
+    let said = text(&output.stderr);
+    assert!(
+        said.starts_with(
+            "note: no motor in the bundled catalog matches every filter given. Its \
+             motors run from class "
+        ) && said.contains(" mm across\nhelp: drop a filter or change it"),
+        "{said}"
+    );
+    let listed = text_ok(&["motors", "list", "--class", "J"]);
+    assert!(!listed.contains("matches every filter"), "{listed}");
 
     let table = text_ok(&["motors", "list", "--class", "J"]);
     assert!(table.starts_with(&format!("{expected} motors from ThrustCurve.org")));
@@ -985,7 +998,7 @@ fn a_booster_dropped_at_its_first_burnout_names_what_still_burns() {
     let text = streams(&["sim", path.to_str().unwrap()]);
     let note = format!(
         "note: part 1 drops at {:.3} s with `F15` still burning, as OpenRocket drops a stage's \
-         other motors at its first burnout: its flight as a point leaves out the {left_n_s:.3} N·s \
+         other motors at its first burnout. Its flight as a point leaves out the {left_n_s:.3} N·s \
          they had left, of {:.3} N·s in all",
         staging.time_s,
         curve.total_impulse_ns()
@@ -1254,7 +1267,7 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     assert!(!message.contains("recovery is not flown"), "{message}");
     assert!(
         message.ends_with(
-            "set one of them to open at the lower stage's separation, with no delay, for HPR Sim to \
+            "Set one of them to open at the lower stage's separation, with no delay, for HPR Sim to \
              fly it"
         ),
         "{message}"
@@ -1814,7 +1827,7 @@ fn sim_refuses_what_it_cant_fly() {
         assert!(text(&output.stderr).contains(reason));
     };
     // The file's own motor has no curve in the bundled catalog.
-    refused(&["sim", &probe], "no thrust curve for H128W");
+    refused(&["sim", &probe], "No thrust curve for H128W");
     refused(&["sim", &probe], "give a motor with --motor");
     refused(
         &["sim", &probe, "--config", "nope"],
@@ -1917,7 +1930,7 @@ fn sim_refuses_what_it_cant_fly() {
     let reduced = folder.path().join("reduced.ork");
     std::fs::write(&reduced, boosters).unwrap();
     let reduced = reduced.to_string_lossy().into_owned();
-    refused(&["sim", &reduced], "no thrust curve for H128W");
+    refused(&["sim", &reduced], "No thrust curve for H128W");
     refused(
         &["sim", &reduced, "--motor", "H54"],
         "not read exactly as written",
@@ -1931,7 +1944,7 @@ fn sim_refuses_what_it_cant_fly() {
             hpr(&["convert", &reduced, &converted]).status.code(),
             Some(0)
         );
-        refused(&["sim", &converted], "no thrust curve for H128W");
+        refused(&["sim", &converted], "No thrust curve for H128W");
         refused(
             &["sim", &converted, "--motor", "H54"],
             "the airframe was not read exactly as written: a parallel stage with no nose cone, \
@@ -2378,13 +2391,13 @@ fn a_digest_the_table_holds_asks_for_openrockets_file() {
     let notes_of_openrockets = notes(cache_with(&wanted.clone().preferring(openrocket)).path());
     assert!(
         notes_of_openrockets.contains(&format!("file {openrocket}"))
-            && notes_of_openrockets.contains("the file whose curve is the one OpenRocket flies"),
+            && notes_of_openrockets.contains("the one OpenRocket flies for the curve digest"),
         "{notes_of_openrockets}"
     );
     let notes_of_rasp = notes(cache_with(&wanted).path());
     assert!(
         notes_of_rasp.contains("file f000000000000000000000a3")
-            && notes_of_rasp.contains("it may not be the curve OpenRocket flies"),
+            && notes_of_rasp.contains("so it may not be the curve OpenRocket flies"),
         "{notes_of_rasp}"
     );
     let output = hpr(&["sim", &path]);
@@ -2520,7 +2533,7 @@ fn sim_motor_refusals_and_counts() {
     assert!(message.contains("switches a stage off"), "{message}");
     let document = json_error(&["sim", &off], 1, "input");
     let message = document["error"]["message"].as_str().unwrap();
-    assert!(message.contains("nor can it with --motor"), "{message}");
+    assert!(message.contains("Nor can it fly with --motor"), "{message}");
 
     let rse = std::fs::read_to_string(curve_file("curves/5f923edb1bca5800041716ab.rse")).unwrap();
     let at = rse.find("Type=\"").unwrap() + "Type=\"".len();
@@ -2662,7 +2675,7 @@ fn sim_refuses_a_motor_it_cant_place() {
         )
     });
     let got = message(&["sim", &off]);
-    assert!(got.contains("nor can it with --motor"), "{got}");
+    assert!(got.contains("Nor can it fly with --motor"), "{got}");
     assert!(got.contains("switches a stage off"), "{got}");
     let got = message(&["sim", &off, "--motor", "H54"]);
     assert!(got.contains("switches a stage off"), "{got}");
@@ -3732,7 +3745,7 @@ fn convert_refuses_what_it_cant_write() {
     std::fs::copy(curve_file(ENG_CURVE), &eng).unwrap();
     refused(
         &["convert", &eng, &path("out.txt")],
-        "writes a .eng or a .rse file",
+        "writes a .eng or .rse file for motors",
     );
     refused(
         &["convert", &eng, &eng],
@@ -3931,8 +3944,8 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at \
          21.40 s, within 1.06 s, to landing at 45.80 s",
         "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
-         liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by \
-         any amount",
+         liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come \
+         later by any amount",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
@@ -4377,7 +4390,7 @@ fn analyze_prints_a_tables_header_as_a_mapping_to_edit() {
         printed.err
     );
     assert!(
-        printed.err.contains("set \"primary\" to the column"),
+        printed.err.contains("Set \"primary\" to the column"),
         "{}",
         printed.err
     );
@@ -4527,7 +4540,7 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
     let capture = repo_file(&format!("{OWN_LOGGER}/flight-capture.txt"));
     let said = refused("block.json", &layout, "--layout", &capture);
     assert!(
-        said.contains("its blocks \"flight\": the layout must name the block"),
+        said.contains("its blocks \"flight\". The layout must name the block"),
         "{said}"
     );
 
@@ -6037,12 +6050,14 @@ fn launch_options_are_refused_by_name_and_unit() {
         ("--latitude", "nan", "from -90 to 90"),
         ("--longitude", "inf", "from -180 to 180"),
         ("--longitude", "180.5", "from -180 to 180"),
-        ("--elevation", "nan", "number of meters"),
+        ("--elevation", "nan", "a number, in meters"),
         ("--rail-length", "0", "greater than 0"),
+        ("--rail-length", "-1", "greater than 0"),
         ("--inclination", "0", "more than 0 and at most 90"),
         ("--inclination", "90.5", "more than 0 and at most 90"),
         ("--heading", "inf", "clockwise from true north"),
         ("--wind", "inf", "at least 0"),
+        ("--wind", "-3", "at least 0"),
         ("--wind-from", "nan", "clockwise from north"),
     ] {
         let mut args = vec!["sim", probe.as_str(), "--motor", "H54", flag, value];
@@ -6374,4 +6389,174 @@ fn a_refusal_in_flight_names_what_led_to_it() {
             lines[1].trim_start_matches("help: ")
         );
     }
+}
+
+/// The committed designs `hpr sim` refuses with any motor of one's own (a staged rocket, an
+/// airframe not read as written), so [`sim_warns_in_sentences_of_40_words_or_fewer`] reads them
+/// only as written, where their motors have no curve offline.
+const REFUSED_WITH_ANY_MOTOR: [&str; 2] = ["demo-payload-separation.ork", "demo-quirks.ork"];
+
+/// The motors [`sim_warns_in_sentences_of_40_words_or_fewer`] flies a committed design on, the
+/// first that takes it off the rail: its own (`None`), whose curve only `level-1.ork` has
+/// offline; a 38 mm I; a 29 mm G, which fits the rest.
+const MOTORS_TO_TRY: [Option<&str>; 3] = [None, Some("I377-CT"), Some("131G84-10A")];
+
+/// The least speed off the rail, m/s, at which a flight of
+/// [`sim_warns_in_sentences_of_40_words_or_fewer`] counts as flown: a motor too weak to lift the
+/// design leaves it on the rail, or crawling off it, and it raises little.
+const FLOWN_RAIL_EXIT_M_S: f64 = 15.0;
+
+/// Each sentence of `text` over 40 words: it splits after a period, question mark or
+/// exclamation mark that a space follows, so a decimal point stays inside its sentence.
+fn sentences_over_40_words(text: &str) -> Vec<String> {
+    let mut long = Vec::new();
+    let mut sentence = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        sentence.push(c);
+        let ends = matches!(c, '.' | '?' | '!') && chars.peek().is_none_or(|c| c.is_whitespace());
+        if ends || chars.peek().is_none() {
+            let words = sentence.split_whitespace().count();
+            if words > 40 {
+                long.push(format!("{words} words: {}", sentence.trim()));
+            }
+            sentence.clear();
+        }
+    }
+    long
+}
+
+/// The notes, reader warnings and issue warnings of `hpr sim --json`'s `document`, each sentence
+/// over 40 words, with where it came from.
+fn long_warning_sentences(document: &Value, from: &str) -> Vec<String> {
+    let texts = |key: &str, field: Option<&str>| -> Vec<String> {
+        assert!(document[key].is_array(), "{from}: no `{key}`");
+        document[key]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| field.map_or(item, |field| &item[field]))
+            .map(|text| text.as_str().unwrap().to_owned())
+            .collect()
+    };
+    let mut all = texts("notes", None);
+    all.extend(texts("warnings", Some("message")));
+    all.extend(texts("flags", Some("message")));
+    all.extend(texts("issues", Some("message")));
+    all.iter()
+        .flat_map(|text| sentences_over_40_words(text))
+        .map(|long| format!("{from}: {long}"))
+        .collect()
+}
+
+#[test]
+fn sentences_over_40_words_are_the_long_ones() {
+    assert_eq!(
+        sentences_over_40_words(&"word ".repeat(40)),
+        Vec::<String>::new()
+    );
+    assert_eq!(sentences_over_40_words(&"word ".repeat(41)).len(), 1);
+    // A decimal point doesn't end a sentence; a stop and a space do.
+    let long = format!("{}Mach 0.85 {}", "word ".repeat(20), "word ".repeat(20));
+    assert_eq!(sentences_over_40_words(&long).len(), 1);
+    let two = format!("{}stop. {}", "word ".repeat(20), "word ".repeat(30));
+    assert_eq!(sentences_over_40_words(&two), Vec::<String>::new());
+}
+
+/// `writing.md`'s *Voice* (#476, ADR-295 §5): every sentence of what `hpr sim` warns with, its
+/// notes, its readers' warnings, its envelope's flags and its known issues, holds at most 40
+/// words. Each committed design under `validation/fixtures/ork/` but [`REFUSED_WITH_ANY_MOTOR`]
+/// flies on the first of [`MOTORS_TO_TRY`] that takes it off the rail; `level-1.ork` also flies
+/// past Mach 1, where the supersonic issues are raised; and the probe flies a motor fetched from
+/// ThrustCurve.org, whose note names the file.
+#[test]
+fn sim_warns_in_sentences_of_40_words_or_fewer() {
+    fn designs(dir: &Path, found: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                designs(&path, found);
+            } else if path.extension().is_some_and(|extension| extension == "ork") {
+                found.push(path);
+            }
+        }
+    }
+    let mut found = Vec::new();
+    designs(&root().join("validation/fixtures/ork"), &mut found);
+    found.sort();
+    assert!(found.len() >= 18, "{found:?}");
+
+    // The flight `hpr sim` writes for `args`, if it ran and left the rail climbing at
+    // `FLOWN_RAIL_EXIT_M_S` or more.
+    let flown = |args: &[&str]| -> Option<Value> {
+        let output = hpr(args);
+        if !output.status.success() {
+            return None;
+        }
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let rail = &document["summary"]["rail_exit_speed_m_s"];
+        let off = rail["value"]
+            .as_f64()
+            .is_some_and(|speed| speed >= FLOWN_RAIL_EXIT_M_S)
+            && rail["after_apogee"] == json!(false);
+        off.then_some(document)
+    };
+
+    let mut long = Vec::new();
+    let mut flights = 0;
+    for design in &found {
+        let path = design.to_str().unwrap();
+        let name = design.file_name().unwrap().to_str().unwrap();
+        let document = MOTORS_TO_TRY.iter().find_map(|motor| {
+            let mut args = vec!["sim", path, "--json"];
+            args.extend(motor.iter().flat_map(|motor| ["--motor", *motor]));
+            flown(&args)
+        });
+        let Some(document) = document else {
+            assert!(REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} didn't fly");
+            continue;
+        };
+        assert!(!REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} flies now");
+        flights += 1;
+        long.extend(long_warning_sentences(&document, name));
+    }
+    assert_eq!(flights, found.len() - REFUSED_WITH_ANY_MOTOR.len());
+
+    // Faster than sound, where the supersonic drag issues are raised.
+    let level_1 = root().join("validation/fixtures/ork/guides/level-1.ork");
+    let fast = flown(&[
+        "sim",
+        level_1.to_str().unwrap(),
+        "--motor",
+        "I377-CT",
+        "--json",
+    ])
+    .unwrap();
+    assert!(fast["summary"]["max_mach"]["value"].as_f64().unwrap() > 1.0);
+    assert!(!fast["issues"].as_array().unwrap().is_empty());
+    long.extend(long_warning_sentences(&fast, "level-1.ork on an I377-CT"));
+
+    // A motor with no curve in the file or the catalog flies one fetched from ThrustCurve.org.
+    let folder = tempfile::tempdir().unwrap();
+    let path = probe_with(
+        folder.path(),
+        "f27.ork",
+        PROBE_MOTOR,
+        "<manufacturer>AeroTech</manufacturer><designation>F27R/L</designation>\
+         <digest>0123456789abcdef0123456789abcdef</digest><diameter>0.029</diameter>\
+         <length>0.083</length>",
+    );
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by("AeroTech", "F27R/L"));
+    let document = json_cached(&["sim", &path], 0, "sim.schema.json", cache.path());
+    let notes = document["notes"].as_array().unwrap();
+    assert!(
+        notes.iter().any(|note| note
+            .as_str()
+            .unwrap()
+            .contains("ThrustCurve.org's AeroTech F27R/L")),
+        "{notes:?}"
+    );
+    long.extend(long_warning_sentences(&document, "f27.ork"));
+
+    assert!(long.is_empty(), "{}", long.join("\n"));
 }

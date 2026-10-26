@@ -206,9 +206,9 @@ The free-flight test below checks that the flight keeps it so.
 
 | | apogee (m) | lands at (s after launch) | landing speed (m/s) |
 |---|---:|---:|---:|
-| the rocket, ballast dropped | 1670.0 | 276.3 | 6.15 |
-| the ballast | 1496.5 | 40.0 | 66.74 |
-| the rocket, ballast kept | 1749.9 | 253.5 | 7.07 |
+| the rocket, ballast dropped | 1,670.0 | 276.3 | 6.15 |
+| the ballast | 1,496.5 | 40.0 | 66.74 |
+| the rocket, ballast kept | 1,749.9 | 253.5 | 7.07 |
 
 - The rocket climbs 80 m (262 ft) less without its ballast. The same drag slows a lighter rocket more.
 - It comes down more slowly under the same drogue, and so lands later. A terminal speed goes
@@ -247,7 +247,7 @@ test measured, where its comments record one, and in brackets the bound it holds
 | `a_release_at_apogee_on_a_tilted_rail_leaves_one_apogee` | off a rail 5° from vertical, in wind, with and without a drogue, the flight records one apogee | exactly one |
 | `a_part_let_go_just_before_apogee_can_make_the_apogee_there` | a release that leaves the rest already falling makes the apogee, and fires the drogue, at the release; a part waiting for the apogee, listed before or after, leaves there too | exactly one, at the release |
 | `parts_waiting_for_the_apogee_all_leave_at_it` | two parts let go at apogee off the tilted rail, listed either way round, both leave at the flight's one apogee | exactly one |
-| `a_main_set_above_the_apogee_opens_there_whatever_leaves` | off the tilted rail, in wind, a main set 1600 m (5,249 ft) up, above the 1533 m (5,030 ft) apogee, opens at the apogee with a part let go there, and a part set to 1600 m (5,249 ft) leaves there too, listed either way round | at the apogee; landing under 10 m/s (33 ft/s) |
+| `a_main_set_above_the_apogee_opens_there_whatever_leaves` | off the tilted rail, in wind, a main set 1,600 m (5,249 ft) up, above the 1,533 m (5,030 ft) apogee, opens at the apogee with a part let go there, and a part set to 1,600 m (5,249 ft) leaves there too, listed either way round | at the apogee; landing under 10 m/s (33 ft/s) |
 | `a_release_that_puts_the_rest_on_the_ground_lands_it` | under a drogue, a release 5 cm (2.0 in) above the ground steps the rest's center 9.5 cm (3.7 in) down, below it: the rocket lands at the release; climbing, the release is refused | 1e-8 m, 1e-15 kg |
 | `the_optimum_delay_holds_a_release_on_the_motor_s_charge` | a release or a mass shift fired by the motor's ejection charge is held with the charge when the simulator works out the [optimum delay](metrics.md#optimum-ejection-delay) (the delay that fires the charge at apogee), so the answer doesn't depend on the delay flown | equal |
 | `a_release_and_its_flight_read_back_as_written` | a release, and a flight with a released part, write to JSON and read back unchanged | equal |

@@ -21,22 +21,23 @@ stock by class and price ([Motors you can buy](cli.md#motors-you-can-buy)). A Ru
 the library, as below.
 
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
-> unchanged, and the saved copy gives them back offline. That's checked on recorded answers, below.
+> unchanged, and the saved copy does offline. That's checked on recorded answers, below.
 > There are eight from motor.fusionspace.co and two curve files from ThrustCurve.org, beside three
-> stand-in searches in ThrustCurve.org's shape ([evidence row G23](evidence.md#g23)). The
-> stand-ins date from when the project kept ThrustCurve.org's records out of the repository. The
-> site still grants no license for its motor records: it reads "All rights under copyright
-> reserved". But the project now uses them as published facts, with credit
-> ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), and
-> [issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) replaces the stand-ins with real records.
+> stand-in searches in ThrustCurve.org's shape ([evidence row G23](evidence.md#g23)).
 >
-> Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is
-> up to about an hour old when it's built. The simulator counts its saved copy as fresh for
+> Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
+> up to about an hour old when built. It counts its saved copy as fresh for
 > another hour, so a fresh answer can be two hours behind the vendor's page. A stale copy is as old
-> as its date says. (ThrustCurve.org's answers count as fresh for a day.)
->
-> The site's terms ask you to check stock and price on the vendor's own page before relying on
-> them. Prices are in U.S. dollars.
+> as its date says.
+
+The site's terms ask you to check stock and price on the vendor's own page before relying on
+them. Prices are in U.S. dollars.
+
+The stand-in searches ([evidence row G23](evidence.md#g23)) date from when the project kept
+ThrustCurve.org's records out of the repository. The site still grants no license for its motor records: it reads "All rights under
+copyright reserved". But the project now uses them as published facts, with credit
+([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), and
+[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) replaces the stand-ins with real records.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
@@ -162,7 +163,7 @@ three makers the finder reads. `thrustcurve::join` matches them.
 On ThrustCurve.org's answers of 1 October 2026, every motor in stock matched
 ([the decision record on ThrustCurve.org and the match](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md)):
 
-| Maker | Motors in stock | Matched | Missed | ThrustCurve.org records searched |
+| Maker | Motors in stock | Motors matched | Motors missed | ThrustCurve.org records searched |
 |---|---:|---:|---:|---:|
 | AeroTech | 153 | 153 | 0 | 307 |
 | Cesaroni Technology | 99 | 99 | 0 | 296 |
@@ -199,7 +200,7 @@ On them, too, all 282 motors match. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
 and check it against the match on every run. So the committed tests show the code keeps the
 rule. The full match on ThrustCurve.org's own records is the measurement of 1 October 2026 above,
-which last ran on 2026-10-01.
+which last ran on October 1, 2026.
 
 The test that writes the report was added with
 [the milestone for ThrustCurve searches and curves](decisions-and-roadmap.md#m5-4b). The
@@ -264,7 +265,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/motor_stock.output.txt -->
 ```text
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 built 2026-10-01T07:07:29+00:00: 598 motors listed, 282 in stock, from 12 vendors
 first read: Fetched; offline two hours later: Stale, the same list: true
 

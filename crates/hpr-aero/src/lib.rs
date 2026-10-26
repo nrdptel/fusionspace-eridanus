@@ -1,8 +1,8 @@
 //! Aerodynamics: Barrowman normal force and center of pressure with extensions, drag buildup,
 //! compressibility and override tables.
 //!
-//! **Guide:** [Aerodynamics][guide-aero]: the models, their sources, how well they are validated
-//! and what they leave out.
+//! The guide's [Aerodynamics][guide-aero] page gives the models, their sources, how well they are
+//! validated and what they leave out.
 //!
 //! [guide-aero]: https://hpr.fusionspace.co/physics/aero.html
 //! [guide-cp]: https://hpr.fusionspace.co/physics/aero.html#your-rockets-centre-of-pressure
@@ -13,11 +13,12 @@
 //! [guide-override]: https://hpr.fusionspace.co/physics/aero.html#the-normal-force-from-rasaero-ii
 //!
 //! - [`body`]: nose cones, body tubes and transitions: Barrowman's slope and center of pressure.
-//! - [`crossflow`]: body lift, the crossflow's push on a body at an angle of attack: Jorgensen's
-//!   `η C_dn` against the body's fineness and the crossflow Mach number, or Galejs's constant.
+//! - [`crossflow`]: body lift, the crossflow's push on a body at an angle of attack. It's
+//!   Jorgensen's `η C_dn` against the body's fineness and the crossflow Mach number, or Galejs's
+//!   constant.
 //! - [`fins`]: fin sets: Barrowman's slope with Prandtl–Glauert, the mean aerodynamic chord,
-//!   supersonic linear theory and the transonic join between them, fin-count and roll terms, and
-//!   fin–body interference.
+//!   supersonic linear theory and the transonic join between them. It also holds the fin-count and
+//!   roll terms, and fin–body interference.
 //! - [`drag`]: the terms of Niskanen's zero-lift drag buildup, and axial drag at an angle of
 //!   attack.
 //! - [`nose_drag`]: the pressure drag of noses, shoulders and steps from rest through Mach 1 to
@@ -27,35 +28,34 @@
 //!   sound (NACA TN 3527).
 //! - [`supersonic_boattail`]: a boattail's measured share of the normal force faster than sound
 //!   (Washington and Pettis, RD-TM-68-5).
-//! - [`table`]: override tables from another tool: the drag coefficient against Mach number, and
-//!   the normal force and center of pressure against Mach number and angle of attack, read from
-//!   RASAero II's export.
+//! - [`table`]: override tables from another tool, read from RASAero II's export. A drag table
+//!   gives the drag coefficient against Mach number. A normal-force table gives the normal force
+//!   and center of pressure against Mach number and angle of attack ([The normal force from
+//!   RASAero II][guide-override]).
 //! - [`tube_fins`]: tube fins, each tube an annular wing: Weissinger's slope with Göthert's rule,
 //!   Fletcher's measured aerodynamic center, below Mach 0.8.
 //! - [`custom`]: drag models of your own: the [`DragModel`] trait, flown in place of the drag
 //!   buildup.
 //! - [`model`]: a rocket's terms built from a [`hpr_design::Layout`] and summed at a [`Flow`].
 //!
-//! A rocket's center of pressure is [`NormalForce::cp_station_m`], in meters aft of the nose tip,
-//! from [`AeroModel::normal_force`] at [`Flow::axial`] ([Your rocket's center of
+//! A rocket's center of pressure is [`NormalForce::cp_station_m`], in meters aft of the nose tip.
+//! It comes from [`AeroModel::normal_force`] at [`Flow::axial`] ([Your rocket's center of
 //! pressure][guide-cp] in the guide).
 //!
-//! Status: the normal force and center of pressure from Mach 0 to 5 (fins through the transonic
-//! region to supersonic linear theory, [Fins through Mach 1][guide-fins-mach]); the drag buildup
-//! from Mach 0 to 5 (noses, shoulders and steps through Mach 1 by Niskanen's appendix B,
-//! [Drag through Mach 1][guide-drag-mach]); drag override tables, and drag models of a
-//! program's own ([`custom`]), at any Mach number; normal-force override tables from RASAero II's
-//! export ([The normal force from RASAero II][guide-override]);
-//! the roll forcing of canted fins and the roll damping from Mach 0 to 5 ([`AeroModel::roll`],
-//! [Roll: forcing and damping][guide-roll]).
+//! The normal force and center of pressure run from Mach 0 to 5. Fins go through the transonic
+//! region to supersonic linear theory ([Fins through Mach 1][guide-fins-mach]). The drag buildup
+//! runs from Mach 0 to 5, too. Noses, shoulders and steps go through Mach 1 by Niskanen's
+//! appendix B ([Drag through Mach 1][guide-drag-mach]). Drag override tables, and drag models of a
+//! program's own ([`custom`]), work at any Mach number. The roll forcing of canted fins and the
+//! roll damping run from Mach 0 to 5 ([`AeroModel::roll`], [Roll: forcing and
+//! damping][guide-roll]).
 //!
-//! - Pitch and yaw damping in a flight come only from the flight engine (`hpr_sim`) evaluating
-//!   each component in its own local flow, which includes the speed the rocket's rotation adds
-//!   there ([Rigid-body flight][guide-flight] in the guide). The crate has no pitch or yaw damping
-//!   coefficients; they would have to replace the local-flow damping, not add to it.
-//! - Only components with a normal-force slope give that damping: nose cones, transitions and fin
-//!   sets. Body tubes give none at small angles: their own slope is 0, and their body lift grows
-//!   with `sin² α`.
+//! Pitch and yaw damping in a flight come only from the flight engine (`hpr_sim`). It evaluates
+//! each component in its own local flow, which includes the speed the rocket's rotation adds there
+//! ([Rigid-body flight][guide-flight] in the guide). Only components with a normal-force slope
+//! give that damping: nose cones, transitions and fin sets. Body tubes give none at small angles:
+//! their own slope is 0, and their body lift grows with `sin² α`. The crate has no pitch or yaw
+//! damping coefficients; they would have to replace the local-flow damping, not add to it.
 
 pub mod afterbody;
 pub mod blunt_tip;

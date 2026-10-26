@@ -105,11 +105,11 @@ added 30 times its isolated drag [B6] p. 26; the author calls the results unvali
 
 **Surface finish (likely sim low with the defaults).** DeMar measured unfinished models +13% and polished ones −10% in
 C_D against painted ones at 120 km/h; at 80 km/h the polished one read above the painted one [B5] p. 7. In C_f = 0.032
-(R_s/L)^0.2 [B1] eq. 3.80, 20 to 60 µm raises friction 25% (**Inference**). An unstated finish gets 20 µm in HPR Sim,
-60 µm in OpenRocket ([aero](../physics/aero.md), #216), but painted and sanded finishes' measured roughness converts to
-about 0.1–14 µm, so finish more likely hides part of the bias ([hobby finish roughness](hobby-finish-roughness.md)).
-**Boundary layer (sim low):** both codes take fully turbulent flow; partly laminar flow changed apogee under 5% in
-Niskanen's runs [B1] p. 43.
+(R_s/L)^0.2 [B1] eq. 3.80, 20 to 60 µm raises friction 25% (**Inference**). An unstated finish gets 20 µm in HPR Sim's
+own designs, 60 µm in OpenRocket and in a `.ork` read by HPR Sim ([aero](../physics/aero.md), #216), but painted and
+sanded finishes' measured roughness converts to about 0.1–14 µm, so finish more likely hides part of the bias ([hobby
+finish roughness](hobby-finish-roughness.md)). **Boundary layer (sim low):** both codes take fully turbulent flow;
+partly laminar flow changed apogee under 5% in Niskanen's runs [B1] p. 43.
 
 **Coning and angle of attack (sim high; unbounded).** Neither code models fin or thrust misalignment. Project R's DATCOM
 predictions ran 27.8% and 15.2% high; a coning model alone (about 3.5° at high dynamic pressure, more near apogee) cut

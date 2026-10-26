@@ -1,9 +1,9 @@
 //! The `hpr` command-line tool: its commands, the types their `--json` output takes, and the
 //! registry the README's command table is generated from.
 //!
-//! **Guide:** [The command line][guide-cli] says what each command does, shows its output, and
-//! lists the exit codes. This crate is the tool's own code; programs should use the [`hpr`]
-//! library instead, which this crate calls.
+//! The guide's page on [the command line][guide-cli] says what each command does, shows its
+//! output, and lists the exit codes. This crate is the tool's own code; programs should use the
+//! [`hpr`] library instead, which this crate calls.
 //!
 //! [guide-cli]: https://hpr.fusionspace.co/cli.html
 //!
@@ -12,13 +12,14 @@
 //! output they check is the output a user sees.
 //!
 //! Every command prints text for a person, or, with `--json`, exactly one JSON document on
-//! standard output: the command's own output type ([`output`]) when it succeeds, and an
-//! [`output::ErrorDocument`] when it doesn't. The text puts the result alone on standard output
-//! and every `error:`, `warning:`, `note:` and `help:` line on standard error ([`console`]). [`schemas`] generates the published JSON Schema
-//! of each, which `cargo xtask cli` writes to `schema/cli/`.
+//! standard output. That document is the command's own output type ([`output`]) when it succeeds,
+//! and an [`output::ErrorDocument`] when it doesn't. [`schemas`] generates the published JSON
+//! Schema of each, which `cargo xtask cli` writes to `schema/cli/`. The text puts the result alone
+//! on standard output and every `error:`, `warning:`, `note:` and `help:` line on standard error
+//! ([`console`]).
 //!
-//! Commands whose milestone hasn't come yet are registered with the rest, so that `hpr --help`,
-//! the completions and the README list them, and they refuse with [`Exit::NotAvailable`] and the
+//! Commands whose milestone hasn't come yet are registered with the rest, so `hpr --help`, the
+//! completions and the README list them. They refuse with [`Exit::NotAvailable`] and name the
 //! milestone that brings them ([`registry::availability`]).
 
 #![allow(
@@ -313,6 +314,16 @@ pub(crate) fn refused_by_status(error: &hpr::hpr_net::NetError) -> bool {
     )
 }
 
+/// Whether a fetch was refused before it left, the environment's proxy being SOCKS
+/// ([`hpr::hpr_net::SOCKS_REFUSED`]): the help is then about the proxy, not the connection.
+pub(crate) fn refused_for_socks(error: &hpr::hpr_net::NetError) -> bool {
+    matches!(
+        error,
+        hpr::hpr_net::NetError::Transport { reason, .. }
+            if reason.contains(hpr::hpr_net::SOCKS_REFUSED)
+    )
+}
+
 /// What to do about a fetch that failed, as its refusal's `help:` line, by why it failed.
 pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
     use hpr::hpr_net::NetError;
@@ -327,6 +338,12 @@ pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
              with, or run it again later",
             printable(reason)
         ),
+        NetError::Transport { .. } if refused_for_socks(error) => {
+            "unset ALL_PROXY, HTTPS_PROXY and HTTP_PROXY where they name a SOCKS proxy, or add the \
+             host to NO_PROXY, then run it again. With --offline, HPR Sim answers from what it \
+             fetched before"
+                .to_owned()
+        }
         NetError::Transport { .. } => "check the connection and run it again; with --offline, \
              HPR Sim answers from what it fetched before"
             .to_owned(),
@@ -1082,6 +1099,13 @@ mod tests {
             fetch_help(&refused)
         );
         assert!(fetch_help(&dropped).starts_with("check the connection"));
+        // A SOCKS proxy refused before the request left: the help is about the proxy.
+        let socks = transport(&format!(
+            "the environment's proxy (Socks5) {}",
+            hpr::hpr_net::SOCKS_REFUSED
+        ));
+        assert!(refused_for_socks(&socks) && !refused_for_socks(&dropped));
+        assert!(fetch_help(&socks).starts_with("unset ALL_PROXY, HTTPS_PROXY and HTTP_PROXY"));
     }
 
     /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.

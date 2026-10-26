@@ -138,7 +138,7 @@ fn an_odf_reads_in_units() {
     assert!(
         log.notes
             .iter()
-            .any(|n| n.contains("a ratio of 1.012, within 0.6 to 5/3")),
+            .any(|n| n.contains("The ratio is 1.012, within 0.6 to 5/3")),
         "{:#?}",
         log.notes
     );
@@ -292,7 +292,7 @@ fn a_pad_pressure_outside_the_sensors_range_is_refused() {
     // 983 passes the band; the climb by the pressure, from a pad 1.6 km below the flight's
     // start, is then far more than the acceleration's.
     let error = pad(983).unwrap_err().to_string();
-    assert!(error.contains("not both upward"), "{error}");
+    assert!(error.contains("aren't both upward"), "{error}");
     let error = pad(61).unwrap_err().to_string();
     assert!(
         error.contains("outside the MPX4100A's 20 to 105 kPa"),
@@ -344,7 +344,7 @@ fn a_climb_that_disagrees_or_cant_be_measured_is_refused() {
         // Count 800's low two bits are 0.
         words[1] &= !0b1100;
     });
-    assert!(refusal(&still).1.contains("not both upward"));
+    assert!(refusal(&still).1.contains("aren't both upward"));
     // Counts 4 times further from the pad: the climb by the acceleration 4 times the pressure's.
     let fast = with_every_record(|k, words| {
         if k > 0 {
@@ -352,7 +352,7 @@ fn a_climb_that_disagrees_or_cant_be_measured_is_refused() {
         }
     });
     let message = refusal(&fast).1;
-    assert!(message.contains("a ratio of 0.25"), "{message}");
+    assert!(message.contains("(it is 0.25"), "{message}");
     let (offset, message) = refusal(&with_records(102));
     assert_eq!(offset, RECORDS_AT);
     assert!(

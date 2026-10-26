@@ -15,12 +15,12 @@ as attributes, and a table of thrust, mass and [center of gravity](../glossary.m
 
 This page is the reference for HPR Sim's reader and writer. The spec is thin and disagrees with
 every real file on element and attribute names, so a reader must follow the observed structure. Of
-the 823 RockSim files ThrustCurve.org held on 2026-09-17, 821 read and write back with every value
+the 823 RockSim files ThrustCurve.org held on September 17, 2026: 821 read and write back with every value
 unchanged. The other two have a time that goes backwards
 ([Checked against real files](#checked-against-real-files)).
 
 > **How far to trust it.** Copied values: the reader takes the curve, the masses, the CG and the
-> delays from the file as written, and estimates nothing. On 2026-09-17, 821 of the 823 RockSim
+> delays from the file as written, and estimates nothing. On September 17, 2026, 821 of the 823 RockSim
 > files ThrustCurve.org held read, and write back with every value unchanged. The other two are
 > refused, naming the line where time goes backwards. Real files carry typos (one states a
 > propellant mass ten times its curve's). So when a motor's numbers matter, check them against
@@ -38,11 +38,11 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
   The lock file records each source's address and checksum. The PDF was fetched to
   `refs/papers/rocksim-rse-spec.pdf`, a local folder that is never committed. Cited as [P p.N].
 - **[S]** ThrustCurve.org, "Flight Simulators", RockSim section,
-  <https://www.thrustcurve.org/info/simulators.html>, captured 2026-09-17 and pinned as
+  <https://www.thrustcurve.org/info/simulators.html>, captured September 17, 2026 and pinned as
   `thrustcurve-simulators` (sha256 `5bb2bad7…`).
 - **[X]** W3C, *XML 1.0* 5th ed., <https://www.w3.org/TR/xml/>, §2.11 (end of line), §3.3.3 (attributes).
 - **Observed:** 715 engines and 15,149 points in the ThrustCurve manufacturer file sets (9 `.rse`
-  sets) and 10 single-motor API downloads. They were fetched 2026-09-17 into a local cache,
+  sets) and 10 single-motor API downloads. They were fetched September 17, 2026 into a local cache,
   `refs/samples/formats/`, that is never committed.
 
 ## What a file holds
@@ -96,7 +96,7 @@ The spec contradicts itself: its summary names `initMass` and `propMass` [P p.2]
 table and example use `initWt` and `propWt` [P p.1–2]. Only `initWt`/`propWt` occur in real files.
 
 **Mass unit (verified).** Of 557 `.rse` engines whose `code` also appears in the `.eng` sets,
-497 have `initWt` within 1% of 1000 × the `.eng` total mass. None match the kg value; the other 60
+497 have `initWt` within 1% of 1,000 × the `.eng` total mass. None match the kg value; the other 60
 are different data (another diameter or mass). `massFrac` and `Isp` are consistent with grams.
 The smallest `initWt` is a 1.2 g micro motor.
 
@@ -171,7 +171,7 @@ What else real files do, and what the reader and writer do with each case.
    Rust accepts `inf`, `infinity` and `NaN`. Warn if `propWt` ≥ `initWt`.
    Keep file units (g, mm) in the file model, in fields named for them (`initial_mass_g`). Convert
    to SI only when building the physical motor. The round trip g → kg → g is not bit-exact
-   (`4030.` comes back as `4030.0000000000005`). 14 of 1330 distinct mass and length values in
+   (`4030.` comes back as `4030.0000000000005`). 14 of 1,330 distinct mass and length values in
    the sets fail.
 6. Keep strings verbatim, including the spaces in `mfg`; normalize names in the catalog layer.
    Delays: keep the raw string; interpret it as in [`.eng` files](eng.md) (`1000`/`100` → plugged, `0` ambiguous).
@@ -238,7 +238,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
 
 ## Checked against real files
 
-On 2026-09-17, 821 of the 823 RockSim files in ThrustCurve.org's solid-motor survey read, and
+On September 17, 2026, 821 of the 823 RockSim files in ThrustCurve.org's solid-motor survey read, and
 write-parse-write reproduces every value bit for bit. The other two have a time that goes
 backwards and are rejected with its line. In the manufacturer sets, 704 engines read; one engine
 with a backwards time is skipped with a warning. The files are cached under `refs/samples/` and

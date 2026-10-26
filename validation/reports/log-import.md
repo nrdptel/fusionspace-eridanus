@@ -426,7 +426,7 @@ The 31 tables read by their headers (M7.1c13): each column but the clock read in
 | `fd61caa7235b81b6` | 13655 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
 | `ff3ad892e63f060d` | 36700 | 99 | `s` | 13 | 85 | 0 | 0 | 0 | – |
 
-Eggtimer filtered altitudes against `Alt` (M7.1c15): over the 44 Eggtimer CSV files read with a filtered altitude, the least-squares factor through zero from `Alt` to it lies from 0.9000 (`e186d325c61f5968`) to 0.9999 (`2add1c81ab430ce7`); the reader refuses a file outside 0.1 to 2. Refused for it: `7a71bfeb7d7b1ee4`, Eggtimer CSV line 1: `Filt_Alt` isn't a filter of `Alt`: it is 99.934 times `Alt` by a least-squares fit, outside the 0.1 to 2 a filter of the altitude can be, so the file's numbers can't be trusted; a file whose decimal points were taken out writes `12.34` as `1234`, 100 times over.
+Eggtimer filtered altitudes against `Alt` (M7.1c15): over the 44 Eggtimer CSV files read with a filtered altitude, the least-squares factor through zero from `Alt` to it lies from 0.9000 (`e186d325c61f5968`) to 0.9999 (`2add1c81ab430ce7`); the reader refuses a file outside 0.1 to 2. Refused for it: `7a71bfeb7d7b1ee4`, Eggtimer CSV line 1: `Filt_Alt` isn't a filter of `Alt`: it is 99.934 times `Alt` by a least-squares fit. That is outside the 0.1 to 2 a filter of the altitude can be, so the file's numbers can't be trusted. A file whose decimal points were taken out writes `12.34` as `1234`, 100 times over.
 
 The 6 tables read by the column mapping their publisher states (M7.1c15, `validation/log-mappings.json`, which says where each is stated): each column but the clock read in the unit the mapping states, kept as written where it states none, or kept as written because a value contradicts the unit stated.
 
@@ -889,6 +889,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 26 |
 | blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 26 |
 | blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 26 |
+| blueraven-usb-txt | `Bo: temperature` kept as written | 1 |
 | e80-imu-txt | `Acc`, `Prs`, `ADC0`, `ADC1`, `ADC2`, `ADC3`, `ADC4`, `ADC5` kept as written | 54 |
 | e80-imu-txt | `Dig` read in hexadecimal and kept as its number | 54 |
 | e80-imu-txt | `Time` read in seconds | 54 |

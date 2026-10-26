@@ -1148,7 +1148,7 @@ impl Reader {
     fn build(self, lines: &LineCounts) -> FlightLog {
         let mut notes = vec![
             "the file holds a GNSS receiver's sentences and no barometer, so the record's \
-             altitude track is empty: every value is a channel, named for its sentence's address \
+             altitude track is empty. Every value is a channel, named for its sentence's address \
              and field, such as `GPGGA altitude`"
                 .to_owned(),
         ];
@@ -1191,8 +1191,8 @@ impl Reader {
             }
             if address.groups_bad > 0 {
                 single.push(format!(
-                    "{} satellites in `{}` sentences have a PRN that isn't a number of up to \
-                     three digits: they are left out",
+                    "{} satellites in `{}` sentences have a PRN that isn't one to three \
+                     digits: they are left out",
                     address.groups_bad, address.address
                 ));
             }
@@ -1257,7 +1257,7 @@ impl Reader {
         let void = self.void_dates.difference(&self.valid_dates).count();
         let void_text = if self.void_dated > 0 {
             format!(
-                "; {} status-`V` `RMC` carry {} distinct dates, {void} of which no status-`A` one \
+                ". {} status-`V` `RMC` carry {} distinct dates, {void} of which no status-`A` one \
                  gives, as a receiver writes a placeholder before its fix",
                 self.void_dated,
                 self.void_dates.len()
@@ -1272,14 +1272,14 @@ impl Reader {
             (Some(zero), Some((first, day))) => {
                 let (y, m, d) = civil_from_days(first - day);
                 let back = match day {
-                    0 => ", ".to_owned(),
-                    1 => ", a day before ".to_owned(),
-                    _ if day < 0 => format!(", {} days after ", day.unsigned_abs()),
-                    _ => format!(", {day} days before "),
+                    0 => String::new(),
+                    1 => "a day before ".to_owned(),
+                    _ if day < 0 => format!("{} days after ", day.unsigned_abs()),
+                    _ => format!("{day} days before "),
                 };
                 format!(
                     "the log's zero, the first sentence with a time, is {zero} on \
-                     {y:04}-{m:02}-{d:02}{back}the date of the first `RMC` with status \
+                     {y:04}-{m:02}-{d:02}. That is {back}the date of the first `RMC` with status \
                      `A`{void_text}"
                 )
             }
@@ -1346,8 +1346,8 @@ impl Reader {
         }
         if clock.backs > 0 {
             notes.push(format!(
-                "the time goes back {} times, by up to {:.3} s: the samples are kept in the \
-                 file's order, each channel's times as its sentences give them; a receiver's UTC \
+                "the time goes back {} times, by up to {:.3} s. The samples are kept in the \
+                 file's order, each channel's times as its sentences give them. A receiver's UTC \
                  may step a few minutes after a cold start, when the satellites' leap-second count \
                  reaches it",
                 clock.backs, clock.largest_back_s
@@ -1355,9 +1355,9 @@ impl Reader {
         }
         if clock.midnights > 0 {
             notes.push(format!(
-                "the time of day passes midnight {} times: without a date, a time of day more \
-                 than 12 hours before the last is the next day's, and one more than 12 hours \
-                 after it the day before's",
+                "the time of day passes midnight {} times. Without a date, a time of day more \
+                 than 12 hours before the last is the next day's. One more than 12 hours \
+                 after it is the day before's",
                 clock.midnights
             ));
         }

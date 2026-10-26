@@ -728,11 +728,11 @@ expression: log
     }
   ],
   "notes": [
-    "`T` read in milliseconds, from the step: the median step between rows is 50, and the reader reads one above 5 as milliseconds (at the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds)",
-    "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet; the Quantum and Proton manuals give every height in feet and no Eggtimer manual offers meters",
-    "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the step; it is the change in `Alt` over the step, within 1 % or 1 ft/s, in 25 of 25 rows after the first, where the reader asks 90 %",
+    "`T` read in milliseconds, from the step: the median step between rows is 50. A step above 5 is read as milliseconds. At the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds",
+    "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet. The Quantum and Proton manuals give every height in feet, and no Eggtimer manual offers meters",
+    "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) give the velocity in ft/sec. The Proton's manual (p45) gives it as the change in `Alt` over the step. It is the change in `Alt` over the step, within 1 % or 1 ft/s. That holds in 25 of 25 rows after the first, where the reader asks 90 %",
     "`Filt_Alt` read in feet, from the manual: it is the logger's filtered `Alt` (Quantum p38, Proton p45), in the same unit",
-    "`FVeloc` read in feet per second, from the manual: the Proton's manual (p46) gives it as the change in the filtered altitude over the step, and the Excel guide (p7) graphs the velocity in ft/sec; it is the change in `Filt_Alt` over the step, within 1 % or 1 ft/s, in 25 of 25 rows after the first, where the reader asks 90 %",
-    "the marker columns, kept as written: `LDA`, `LowV`, `Apogee`, `N-O`, `Drogue` and `Main`; each is 0 but at the sample that marks its event, where the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in feet"
+    "`FVeloc` read in feet per second, from the manual: the Proton's manual (p46) gives it as the filtered altitude's change over the step. The Excel guide (p7) graphs the velocity in ft/sec. It is the change in `Filt_Alt` over the step, within 1 % or 1 ft/s. That holds in 25 of 25 rows after the first, where the reader asks 90 %",
+    "the marker columns, kept as written: `LDA`, `LowV`, `Apogee`, `N-O`, `Drogue` and `Main`. Each is 0 but at the sample that marks its event. There the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in feet"
   ]
 }

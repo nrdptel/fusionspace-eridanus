@@ -952,11 +952,11 @@ expression: log
   "events": [],
   "notes": [
     "`imuTemp` kept as written: its name states no unit, and every value is exactly 0, no temperature in kelvin, and a placeholder rather than a reading in any unit",
-    "`accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity: the three axes' magnitude reads within 10% of 9.806 65 for 5.5 s of the file's time and within 10% of 1 for 0.0 s; a board at rest or under a parachute reads 1 g, and the unit whose 1 g lasts at least 1 s and twice as long as the other's is taken",
-    "`gyroX`, `gyroY` and `gyroZ` kept as written: the board's turning doesn't settle their unit, too little turning to tell, under 3 stretches or 0.2 rad: over 0 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, as at rest or under a parachute, its direction turns 0.000 rad, and the gyroscope's rates turn the board across it 0.000 rad read in radians per second, 0.000 rad read in degrees",
-    "`unfiltAlt` read in meters, from the pressure: from the first sample to the one of lowest pressure it climbs 250.0 where the standard atmosphere climbs 250.0 m, within 25%",
-    "`velocityMS` read in meters per second, from its name: over the steps at most 0.05 s long it moves 0.0 m, under the 10 m from which the altitude checks it",
+    "`accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity: the three axes' magnitude reads within 10% of 9.806 65 for 5.5 s of the file's time. It reads within 10% of 1 for 0.0 s. A board at rest or under a parachute reads 1 g. The unit whose 1 g lasts at least 1 s and twice as long as the other's is taken",
+    "`gyroX`, `gyroY` and `gyroZ` kept as written: the board's turning doesn't settle their unit, too little turning to tell, under 3 stretches or 0.2 rad: over 0 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, its direction turns 0.000 rad. A board at rest or under a parachute reads so. Over the same stretches, the gyroscope's rates turn the board across that direction 0.000 rad read in radians per second, 0.000 rad read in degrees",
+    "`unfiltAlt` read in meters, from the pressure: from the first sample to the one of lowest pressure it climbs 250.0. The standard atmosphere climbs 250.0 m, and the two are within 25%",
+    "`velocityMS` read in meters per second, from its name: over the steps at most 0.05 s long it moves 0.0 m. That is under the 10 m from which the altitude checks it",
     "the `CONFIG` line's 2 other settings, such as `DROGUE_DELAY`, are left out: no source gives their meanings or units",
-    "`tempK` reads 300 at every one of its 12 samples while the altitude spans 250 m: a board's sensor warms or cools in flight, so the file may be a replay of recorded or made-up values rather than the board's own log"
+    "`tempK` reads 300 at every one of its 12 samples while the altitude spans 250 m. A board's sensor warms or cools in flight. So the file may be a replay of recorded or made-up values rather than the board's own log"
   ]
 }

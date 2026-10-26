@@ -17,16 +17,15 @@ measurement settles it. [A decision record][adr] set this up.
 > **How far to trust it.** This page is a ledger, not a grade. It counts rows by the kind of
 > evidence behind them and never adds the kinds into one score. A calibration and a code to code
 > comparison answer different questions, and neither stands in for a real flight. The check
-> behind it, `cargo xtask evidence`, runs in every build:
->
-> - It fails a page that states a gap in one of its 23 phrases ([the list][phrases]) without
->   linking a row. It fails a row whose page or anchor is gone, and a row short of its wanted
->   kind with no open issue.
-> - It checks that a gap names a row, not that it names the right one.
-> - It can't see a gap worded otherwise, nor one inside double quotation marks or a code block.
->   It skips the pages about the project's own process: the roadmap, the plan, the writing guide
->   and the release steps. The gaps it's known to miss, most of them the aerodynamics page's "no
->   measurement", wait in [#685][misses].
+> behind it, `cargo xtask evidence`, runs in every build. It checks that a gap names a row, not
+> that it names the right one, and it can't see a gap worded otherwise.
+
+The check fails a page that states a gap in one of its 23 phrases ([the list][phrases]) without
+linking a row. It fails a row whose page or anchor is gone, and a row short of its wanted kind with
+no open issue. It can't see a gap inside double quotation marks or a code block. It skips the pages
+about the project's own process: the roadmap, the plan, the writing guide and the release steps. The
+gaps it's known to miss, most of them the aerodynamics page's "no measurement", wait in
+[#685][misses].
 
 ## The kinds of evidence
 
@@ -67,7 +66,7 @@ The register holds 32 rows, as of October 20, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
-| Surface | Code to code | Spec | Calibration | Reasoning | None | Rows |
+| Surface | Code to code · rows | Spec · rows | Calibration · rows | Reasoning · rows | None · rows | Rows |
 |---|---:|---:|---:|---:|---:|---:|
 | Flight-log readers | 3 | 2 | 0 | 3 | 3 | 11 |
 | The flight analyzer | 0 | 1 | 1 | 0 | 0 | 2 |
@@ -96,7 +95,7 @@ The register holds 32 rows, as of October 20, 2026.
 | <a id="g7"></a>G7 | Flight-log readers | Featherweight summaries are checked on their maximum and pad altitude only. **Not checked:** the speeds, accelerations, times and the rest, converted from the unit the file writes and checked against nothing. | none | real | [#660](https://github.com/nrdptel/fusionspace-eridanus/issues/660) | 2026-10-17 |
 | <a id="g8"></a>G8 | Flight-log readers | GPS heights are kept in the unit the file writes: a phone app's altitude as written, KML heights the least sure. **Not checked:** each height's unit and what it is measured from, beside a barometric log of the same flight. | reasoning | real | [#661](https://github.com/nrdptel/fusionspace-eridanus/issues/661) | 2026-10-17 |
 | <a id="g9"></a>G9 | Flight-log readers | Formats with no sample on terms that let their bytes be tested (CATS's and the others listed) have no reader of their own. **Not checked:** the formats the list names, of which no sample can be tested on its terms. | none | real | [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662) | 2026-10-17 |
-| <a id="g10"></a>G10 | The flight analyzer | The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, the flights their bounds were tuned on, where each of the 171 tuning flights with a barometer is logged 43 ways, the 71 with an accelerometer 3 more and the 500 Hz IMU's 38 once more with its part set to ±8 g, which 28 of their tops reach, and every reading given stays within its bound (`cargo xtask synthetic`). **Not checked:** the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a high-g part held at its stated range, which no tuning flight reaches, where the low-g part set to ±8 g is; a thrust's plateau read as held flat and so given only as a floor, consistent with a quiet part writing it as one value; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once. | calibration | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-17 |
+| <a id="g10"></a>G10 | The flight analyzer | Checked on an invented flight of known readings, one real log when fetched, and the synthetic flights the bounds were tuned on: 171 with a barometer logged 43 ways, 71 with an accelerometer 3 more, the 500 Hz IMU's 38 once more at ±8 g, which 28 of their tops reach; every reading within its bound (`cargo xtask synthetic`). **Not checked:** other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part held at its stated range, beyond every tuning flight; a quiet part's single-valued thrust plateau, read as flat, given only as a floor; accelerometer noise correlated between samples; a canopy's filling time (synthetic canopies open at once). | calibration | real | [#663](https://github.com/nrdptel/fusionspace-eridanus/issues/663) | 2026-10-17 |
 | <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | 2026-10-17 |
 | <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | 2026-10-17 |
 | <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | 2026-10-17 |
@@ -156,14 +155,14 @@ The register holds 32 rows, as of October 20, 2026.
   - PSAS's launch repositories (psas/flight_data-2010.06.27, Launch-8, Launch-10 to Launch-14)
   - Mines-Rocketry-Club's flight data
 
-  It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its 2010-10-17 and 2013-06-30 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
+  It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its October 17, 2010 and June 30, 2013 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
 - [G5](#g5), October 17, 2026, looked at:
   - the ARTS2 User Manual V1.0.0 (pp. 7, 9, 16)
-  - PSAS's launch repositories for ARTS2 flights beyond the samples (2009-05-31, 2010-06-27, 2010-10-17)
+  - PSAS's launch repositories for ARTS2 flights beyond the samples (May 31, 2009; June 27, 2010; and October 17, 2010)
   - PSAS's ARTS-2 checklist page
   - web searches for DataAnalyzer documents
 
-  It found a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and 2010-06-27 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
+  It found a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and June 27, 2010 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
 - [G6](#g6), October 17, 2026, looked at:
   - GitHub code search for mDACS's export header
   - listings of team flight data repositories
@@ -174,12 +173,12 @@ The register holds 32 rows, as of October 20, 2026.
 - [G7](#g7), October 17, 2026, looked at:
   - GitHub code search for Featherweight's summary header (`Rocket Name`, `Launch time UTC`) in CSV files
 
-  It found 16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (2026-06-20). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data.
+  It found 16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (June 20, 2026). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data.
 - [G8](#g8), October 17, 2026, looked at:
   - GitHub code search for Featherweight GPS tracker CSVs (`UTCTIME,UNIXTIME,ALT`, 12 files in 7 repositories) with KML or a barometric log beside them
   - the Harvey Mudd College course page's AIM KML files
 
-  It found two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML and a Blue Raven barometric log. Their KMLs are `altitudeMode` absolute. One is RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML). Its two files disagree on the date (2026-04-07 by the Blue Raven's clock, 2026-05-16 by the tracker's UTC): their pairing has to be shown first. The other is Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new. Peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven. The course page's KML links return HTTP 404. Both are cached under refs/samples-search/G8.
+  It found two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML and a Blue Raven barometric log. Their KMLs are `altitudeMode` absolute. One is RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML). Its two files disagree on the date (April 7, 2026 by the Blue Raven's clock, May 16, 2026 by the tracker's UTC): their pairing has to be shown first. The other is Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new. Peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven. The course page's KML links return HTTP 404. Both are cached under refs/samples-search/G8.
 - [G9](#g9), October 17, 2026, looked at:
   - GitHub code search for the Eggtimer ION header, Blue Jay, MicroPeak, EasyMotor, TeleMini, EasyTimer and AltimeterThree files
   - GitHub code search for CATS's `.cfl` and its exports' column names
@@ -206,13 +205,13 @@ The register holds 32 rows, as of October 20, 2026.
   - ISSUIUC/flight-data
   - Minnesota Space Grant's Midwest Rocketry Competition reports, whose rockets drop a booster after burnout
 
-  It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On 2023-11-18 they're two StratoLoggers; on 2024-03-23, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (2023-10-01). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
+  It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On November 18, 2023 they're two StratoLoggers; on March 23, 2024, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (October 1, 2023). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
 - [G14](#g14), October 17, 2026, looked at:
   - Craven, College of Aeronautics Report 129 (1960): its record and full text at Cranfield
   - NACA free-flight reports on base pressure with rocket motors burning, by web search
   - measurements of base pressure on hobby rockets in flight
 
-  It found nothing beyond the 2026-10-17 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
+  It found nothing beyond the October 17, 2026 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 

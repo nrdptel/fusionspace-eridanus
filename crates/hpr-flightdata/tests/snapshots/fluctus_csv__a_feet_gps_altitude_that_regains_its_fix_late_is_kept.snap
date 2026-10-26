@@ -499,6 +499,6 @@ expression: log
     }
   ],
   "notes": [
-    "`gpsAltMSL` kept as written, in a unit no source states: at its 13 fresh fixes it rises 3.28 for each meter of the barometric altitude, over 150 m of it, not within 10% of 1 as in meters; in feet it would be 3.28"
+    "`gpsAltMSL` kept as written, in a unit no source states: at its 13 fresh fixes it rises 3.28 for each meter of the barometric altitude, over 150 m of it. That is not within 10% of 1 as in meters. In feet it would be 3.28"
   ]
 }

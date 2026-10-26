@@ -234,7 +234,7 @@ fn the_fcbv2_keeps_a_scaled_accelerometer_that_reads_one_and_a_half_g() {
             &log,
             "`imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` kept as written: "
         )
-        .contains("at rest they read 14.702, 1 g within 10% in neither m/s² nor g")
+        .contains("At rest they read 14.702, 1 g within 10% in neither m/s² nor g")
     );
     note(
         &log,
@@ -291,7 +291,7 @@ fn a_pressure_is_read_in_atmospheres_only_on_both_its_size_and_its_step() {
             &bars,
             "`baro1_pres` kept as written: its size and its step don't both say "
         )
-        .contains("its values lie on bars' steps of 1/100,000, not on atmospheres'")
+        .contains("Its values lie on bars' steps of 1/100,000, not on atmospheres'")
     );
     assert_eq!(quantity(&bars, "baro1_pres"), Quantity::Unrecognized);
     note(&bars, "`baro2_pres` read in atmospheres, ");
@@ -307,7 +307,7 @@ fn a_pressure_is_read_in_atmospheres_only_on_both_its_size_and_its_step() {
     }));
     assert!(
         note(&short, "`baro1_pres` kept as written: ")
-            .contains("of its cells written precisely enough to test (0)")
+            .contains("Of its cells written precisely enough to test (0)")
     );
 }
 
@@ -522,7 +522,7 @@ fn a_scaled_accelerometer_is_read_on_its_gravity_and_its_count() {
             &off,
             "`imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` kept as "
         )
-        .contains("they aren't their raw counts times one factor")
+        .contains("The columns aren't their raw counts times one factor")
     );
 }
 
@@ -724,11 +724,11 @@ fn one_glitch_beyond_90_doesnt_make_degrees_degrees_and_minutes() {
     for (cell, says) in [
         (
             "1275.0",
-            "some value's last two digits before the point are 60 or more",
+            "Some value's last two digits before the point are 60 or more",
         ),
         (
             "9230.0",
-            "converted from degrees and minutes, a latitude passes ±90",
+            "Converted from degrees and minutes, a latitude passes ±90",
         ),
     ] {
         let text = edit(BOARD, &["gps_lat"], |row, old| {

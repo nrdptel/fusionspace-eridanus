@@ -378,7 +378,7 @@ expression: log
     "the comments' `time` is 0 beside every point, as AltOS leaves it unset in most of its exports: those points have no time",
     "the file gives none of its 14 points a time: their times are gaps",
     "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 6 of the file's 6 tracks carry one",
-    "`coordinates` read in meters as the barometer's altitude above sea level, from the GPS altitude AltOS writes beside each point: in 4 tracks the tuple's altitude differs from the comment's `alt` at 8 of the 8 points that carry both, more than half, as AltOS's KML export has reported both altitudes since AltOS 1.8.3",
-    "`alt` read in meters, from the coordinates: it equals the tuple's altitude, in meters by the KML standard, at 6 of the 14 points that carry both"
+    "`coordinates` read in meters as the barometer's altitude above sea level, from the GPS altitude AltOS writes beside each point. In 4 tracks the tuple's altitude differs from the comment's `alt` at 8 of the 8 points that carry both, more than half. That is because AltOS's KML export has reported both altitudes since AltOS 1.8.3",
+    "`alt` read in meters, from the coordinates. It equals the tuple's altitude, in meters by the KML standard, at 6 of the 14 points that carry both"
   ]
 }

@@ -248,7 +248,7 @@ expression: log
   "notes": [
     "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
     "read as GPX 1.0, its `version`: 1 track, 2 segments with points, each read as a GPS track, 8 points",
-    "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state: they give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state. Both give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
     "the log's zero is `2031-08-02T08:30:00-04:00`, the first time the file gives a track point",
     "track points whose `fix` is `none`, where the receiver had no fix, kept as written: 1",
     "`speed` read in meters per second and `course` in degrees from true north, from GPX 1.0's manual",

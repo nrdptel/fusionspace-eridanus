@@ -21,18 +21,20 @@ forecast ([Launch-day weather](weather.md), [NOAA forecasts: GFS and RAP](nomads
 >   three recorded soundings, below.
 > - The measurement holds only at its station and time. The nearest station can be
 >   100 km (62 mi) or more from a launch site. Santa Teresa, below, is about 130 km (81 mi) from
->   Spaceport America. The balloon goes up hours before or after the flight. Nothing here
->   measures how much that changes a flight.
-> - Each row's height is checked against the row before it. That catches a gross error in a
->   pressure or height (57 hPa recorded for 557). More than 10 bad rows in a row refuse the
->   answer, and so does a ground that the rows after it agree is wrong. That can refuse a good
->   ground too, when the first few rows after it are a little off.
-> - A wrong wind, humidity or temperature isn't caught. On layers under about 100 m (328 ft)
->   thick, the check allows any temperature from −150 to 80 °C.
-> - The archive serves two versions of most soundings, and they can disagree near the ground. In
->   the example below, Calisto is 402 m (1,319 ft) from the pad at apogee in one and
->   563 m (1,847 ft) in the other.
+>   Spaceport America. The balloon goes up hours before or after the flight; nothing here measures that effect.
 > - The tests replay recorded answers. The live connection to the archive isn't tested in CI.
+
+What the checks catch and miss:
+
+- Each row's height is checked against the row before it. That catches a gross error in a
+  pressure or height (57 hPa recorded for 557). More than 10 bad rows in a row refuse the
+  answer, and so does a ground that the rows after it agree is wrong. That can refuse a good
+  ground too, when the first few rows after it are a little off.
+- A wrong wind, humidity or temperature isn't caught. On layers under about 100 m (328 ft)
+  thick, the check allows any temperature from −150 to 80 °C.
+- The archive serves two versions of most soundings, and they can disagree near the ground. In
+  the example below, Calisto is 402 m (1,319 ft) from the pad at apogee in one and
+  563 m (1,847 ft) in the other.
 
 Code: `hpr_net::wyoming` ([API reference](api/hpr_net/wyoming/index.html)), written for
 [the second weather increment](decisions-and-roadmap.md#m5-2b). It needs the `net` feature of the
@@ -42,13 +44,13 @@ Code: `hpr_net::wyoming` ([API reference](api/hpr_net/wyoming/index.html)), writ
 ## What the simulator asks for
 
 A request names a station and the sounding's hour. The station is its World Meteorological
-Organization (WMO) number, such as 72364 for Santa Teresa, New Mexico; the archive's page has a
+Organization (WMO) number, such as station 72364 for Santa Teresa, New Mexico; the archive's page has a
 map of them. `WyomingRequest::latest_before(station, launch_time)` picks the last 00 or 12 UTC
 sounding at or before a launch. Times are in seconds since 1 January 1970 UTC (Unix time). The
 balloon goes up about an hour before that hour.
 
 The simulator asks for the archive's comma-separated text, one row per level, and reads these
-columns. Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1013 hPa).
+columns. Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1,013 hPa).
 
 | column | read as |
 |---|---|

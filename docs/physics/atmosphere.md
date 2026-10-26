@@ -20,7 +20,7 @@ sounding, and what an altimeter reads.
   ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
   The air itself has no real-flight check.
 - **What it leaves out:** a real day's changes aloft. A field-condition offset holds all the way
-  up, so higher flights need a sounding. An offset of +20 K at a 1400 m (4,593 ft) field puts
+  up, so higher flights need a sounding. An offset of +20 K at a 1,400 m (4,593 ft) field puts
   density +30% off the standard's at 30 km (19 mi). Viscosity ignores humidity, which lowers it 2.1% at 30 °C and
   saturation.
 
@@ -31,7 +31,7 @@ Code: `hpr_atmos::ussa76` (the standard and its offsets), `hpr_atmos::moist` (hu
 
 Sources:
 
-- **[USSA]** *U.S. Standard Atmosphere, 1976*, NOAA-S/T 76-1562, part 1, pinned as
+- **[USSA]** *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, part 1, pinned as
   `us-std-atmosphere-1976`. Equation, table and page numbers below are its own.
 - **[WMO]** WMO-No. 8, *Guide to Instruments and Methods of Observation*, Vol. I (2023),
   `wmo-no8-vol1-2023`.
@@ -40,8 +40,7 @@ Sources:
 
 ## The standard atmosphere
 
-The height every atmosphere is queried at, the 1976 standard, offsets for a site's own conditions,
-and what a barometric altimeter reads.
+The height datum, the 1976 standard, offsets for a site's conditions, and pressure altitude.
 
 ### Height datum
 
@@ -52,12 +51,18 @@ the range it is defined or tabulated over.
 
 ### The 1976 standard, −5 km (−3.1 mi) to 86 km (53 mi)
 
-Seven layers in geopotential altitude $H$, each with a constant gradient of the molecular-scale
+Seven layers in geopotential altitude $H$, the last ending at 84.852 geopotential km (52.72 mi), each with a constant gradient of the molecular-scale
 temperature $T_M$ ([USSA] Table 4):
 
-| base $H_b$ (km′) | 0 | 11 | 20 | 32 | 47 | 51 | 71 | 84.852 (top) |
-|---|--:|--:|--:|--:|--:|--:|--:|---|
-| $L_{M,b}$ (K/km′) | −6.5 | 0 | +1.0 | +2.8 | 0 | −2.8 | −2.0 | |
+| base $H_b$ (km′) | $L_{M,b}$ gradient (K/km′) |
+|--:|--:|
+| 0 | −6.5 |
+| 11 | 0 |
+| 20 | +1.0 |
+| 32 | +2.8 |
+| 47 | 0 |
+| 51 | −2.8 |
+| 71 | −2.0 |
 
 Eq. (18) gives the geopotential altitude $H$ from the geometric altitude $Z$, with $r_0$ the
 Earth's effective radius (below). Eq. (23) gives the temperature from the layer's base values
@@ -93,7 +98,7 @@ a &= \left(\frac{\gamma R^* T_M}{M_0}\right)^{1/2}, \\
 $$
 
 - The constants:
-  - $R^*$ is $8314.32\,\mathrm{J/(kmol \cdot K)}$ (p. 3), not CODATA's 8314.46. Table 2 misprints the exponent's sign.
+  - $R^*$ is $8314.32\,\mathrm{J/(kmol \cdot K)}$ (p. 3), not CODATA's $8314.46$. Table 2 misprints the exponent's sign.
   - $M_0 = 28.9644\,\mathrm{kg/kmol}$, $g_0 = g_0' = 9.80665$, $r_0 = 6\,356\,766\,\mathrm{m}$.
   - $P_0 = 101325\,\mathrm{Pa}$, $T_0 = 288.15\,\mathrm{K}$, $\gamma = 1.40$, $\beta = 1.458\times10^{-6}$.
   - $S = 110.4\,\mathrm{K}$ (p. 19). Table 2 and p. 4 print 110 K, but the tables use 110.4 K: sea-level $\mu$
@@ -124,12 +129,14 @@ aviation convention gives 289.95 K where this gives 288.65 K, and densities 0.38
 height, like a sounding; see [the atmosphere decision][adr-004].
 
 **An anchor's offset holds all the way up,** which a real hot or cold day doesn't. Anchoring
-+20 K at a 1400 m (4,593 ft) field, at the standard's pressure there, gives these densities against the
++20 K at a 1,400 m (4,593 ft) field, at the standard's pressure there, gives these densities against the
 standard (`conventions.py`):
 
-| height | 3 km (1.9 mi) | 20 km (12 mi) | 30 km (19 mi) |
-|---|--:|--:|--:|
-| density | −5.7% | +14% | +30% |
+| height | density against the standard |
+|--:|--:|
+| 3 km (1.9 mi) | −5.7% |
+| 20 km (12 mi) | +14% |
+| 30 km (19 mi) | +30% |
 
 Field conditions suit flights of a few kilometers; higher flights need a sounding.
 
@@ -164,9 +171,9 @@ $$
 The result is in
 [geopotential](../glossary.md#geopotential-height) meters, m′, as an altimeter's is.
 
-**A worked example.** An altimeter on a pad at 86000 Pa reads 1361.8 m (4,468 ft)′ there. At 58000 Pa it reads
-4464.4 m (14,647 ft)′, so it logs a climb of 3102.6 m (10,179 ft)′. Now make the day 20 K warmer than the standard all the way up,
-with the same sea-level pressure. The same two pressures then lie 3318.0 m (10,886 ft)′ apart. The rocket climbed
+**A worked example.** An altimeter on a pad at 86,000 Pa reads 1,361.8 m (4,468 ft)′ there. At 58,000 Pa it reads
+4,464.4 m (14,647 ft)′, so it logs a climb of 3,102.6 m (10,179 ft)′. Now make the day 20 K warmer than the standard all the way up,
+with the same sea-level pressure. The same two pressures then lie 3,318.0 m (10,886 ft)′ apart. The rocket climbed
 6.9% more than its altimeter says, and the altimeter reads 6.5% less than the climb. Warm air is
 less dense, so pressure falls more slowly with height. In the troposphere, with the sea-level
 pressure unchanged, the ratio is exactly $(T_0 + \Delta T)/T_0 = 308.15/288.15$.
@@ -207,7 +214,7 @@ $$
   saturation), and less in cooler or drier air.
 - The moist-air model's accuracy:
   - Density agrees with CIPM-2007 (a real-gas equation) to 0.047% over its range: 15–27 °C,
-    600–1100 hPa, dry to saturated. Ignoring humidity entirely is 0.4% off at 20 °C and 50% RH.
+    600–1,100 hPa, dry to saturated. Ignoring humidity entirely is 0.4% off at 20 °C and 50% RH.
   - Water vapor's $C_p$ is taken as $4R^*$, and its real value near 300 K is about 1% higher.
     That moves $a$ by 0.009% at 30 °C and saturation.
   - Viscosity stays dry air's Sutherland value. By Wilke's rule with IAPWS R12-08 vapor
@@ -288,7 +295,7 @@ These are findings from reading `refs/rocketpy` for the RocketPy comparison of
 - In its custom profiles:
   - Every quantity, pressure included, is linear in height above sea level, with constant
     extrapolation.
-  - Linear pressure is off hydrostatic by up to 0.06% between 1000 and 925 hPa, and 1.15%
+  - Linear pressure is off hydrostatic by up to 0.06% between 1,000 and 925 hPa, and 1.15%
     between 700 and 500 hPa (`conventions.py`). Between 50 and 30 hPa it is up to 3.4% off
     (`conventions.py`).
   - [Those comparisons](../decisions-and-roadmap.md#m2-1) need a RocketPy-compatible option or levels dense enough that

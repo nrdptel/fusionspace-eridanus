@@ -162,7 +162,7 @@ impl CanopyType {
     /// Where the numbers come from, for reports.
     #[must_use]
     pub const fn source(self) -> &'static str {
-        "Knacke, Parachute Recovery Systems Design Manual, NWC TP 6575 (1991): Table 5-1 (solid \
+        "Knacke, Parachute Recovery Systems Design Manual, NWC TP 6575 (1991). Table 5-1 (solid \
          textile canopies), Table 5-2 (slotted), Table 5-6 (fill constants) and Figure 5-51 \
          (drag-area growth)"
     }

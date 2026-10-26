@@ -72,7 +72,7 @@ and the [worked example](#a-worked-example) below. The decision record is [ADR-0
 
 ## Ignition and separation
 
-When each motor lights and how a stage drops away under power, with a worked example.
+How motors light and a stage drops away, with a worked example.
 
 ### When a motor lights
 
@@ -250,7 +250,7 @@ beyond the tests below.
 
 ## More stages and boosters
 
-Rockets of three stages or more, dropped payloads, and boosters beside the core.
+Three or more stages, dropped payloads, and boosters beside the core.
 
 ### Several separations
 
@@ -407,7 +407,7 @@ record, measured from where each tool's flight starts, and every descent meets t
 Each $\Delta$ is taken from the report's unrounded heights, so it can differ in the last digit from
 the rounded ones.
 
-| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | $\Delta$ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | $\Delta$ |
+| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | coasting $\Delta$ |
 |---|---:|--:|---:|--:|---:|
 | C6-3 | 4.86 | 233.2 / 233.3 | +0.04% | 258.5 / 268.8 | +4.00% |
 | C6-5 | 6.86 | 265.3 / 264.4 | −0.32% | 266.6 / 265.4 | −0.43% |
@@ -448,7 +448,7 @@ no thrust curves, so `hpr sim` fetches them from ThrustCurve.org once
 ([Motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg)). In configuration 1 both light at launch. From
 `hpr sim "Parallel booster staging.ork" --config 1`, with its defaults (1.5 m (4.9 ft) rail, sea
 level, calm air), the E12s burn out and fire their charges at 2.44 s. The stack is then 290.1 m (952 ft) up at 207.6 m/s (681 ft/s),
-and the boosters drop away. The core burns on to 3.51 s and peaks at 1138.2 m (3,734 ft) at 13.01 s; the
+and the boosters drop away. The core burns on to 3.51 s and peaks at 1,138.2 m (3,734 ft) at 13.01 s; the
 boosters land at 33.0 s. In configuration 2 the boosters hold no motor and stay on: the stack
 peaks at 858.2 m (2,816 ft). These heights are a little above the table's below. The table flies each
 configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, at its launch site).
@@ -457,9 +457,9 @@ configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, 
 [flights report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md),
 recovery as saved:
 
-| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | $\Delta$ | largest speed $\Delta$ |
+| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | largest speed $\Delta$ |
 |---|---|--:|---:|---:|
-| I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
+| I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1,123.6 / 1,137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |
 
 At rod clearance the masses agree to 0.7 g (0.06%) and the static margins to 0.003 caliber,
@@ -497,7 +497,7 @@ still burning ([M4.5n](../decisions-and-roadmap.md#m4-5n), a stage's first burno
   about that impulse over its mass, a little more as the propellant left burns away. It is 0 for
   every other part.
 - **What `hpr sim` says.** It names the motors and gives the number. On the first configuration of
-  OpenRocket's *Pods--powered with recovery deployment*, `[C6-7; 2× A3-4, B6-0]`, the booster
+  OpenRocket's *Pods-\-powered with recovery deployment*, `[C6-7; 2× A3-4, B6-0]`, the booster
   drops at 0.860 s with both A3s still burning. Its flight as a point leaves out 0.509 N·s, as
   the report's
   [*Parts dropped still burning*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#parts-dropped-still-burning)
@@ -560,9 +560,11 @@ written is left out with its reason, never flown some other way:
   burning if they lit strictly before the split;
 - a separation at a height on the way up (`altitudeascending`), which HPR Sim has no trigger for;
 - a negative delay on a separation HPR Sim would fly;
-- a motor lit at a word HPR Sim does not know, or by a stage below that holds no motor. A motor lit
-  by the charge of a stage below with motors in more than one mount. Which fires its charge first
-  is not measured. A motor lit by the charge of a motor below that states no delay;
+- a motor lit:
+  - at a word HPR Sim does not know, or by a stage below that holds no motor;
+  - by the charge of a stage below with motors in more than one mount (which fires its charge
+    first is not measured);
+  - by the charge of a motor below that states no delay;
 - a separation at the ignition of a motor that never lights, or at launch. One at launch is left out
   since HPR Sim's flight fires a separation only once the rocket is off the rod;
 - a configuration in which no motor lights.
@@ -610,7 +612,7 @@ The test `a_two_stage_and_a_cluster_design_are_within_5_percent_of_openrocket` i
 `xtask/src/ork_flights.rs` holds it to the tolerance in CI.
 
 **A flight OpenRocket aborted is checked up to the abort.** OpenRocket stops its own flight of
-*Pods--powered with recovery deployment*'s first configuration at 1.81 s ("Stage began to tumble
+*Pods-\-powered with recovery deployment*'s first configuration at 1.81 s ("Stage began to tumble
 under thrust"). So it has no apogee to compare. Instead, `cargo xtask ork-flights` compares HPR Sim's
 height and speed with OpenRocket's just after the separation and at OpenRocket's last row. It
 needs the splits at one time and each value within 5%. Both separate at 0.86 s, where HPR Sim is

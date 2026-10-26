@@ -501,7 +501,7 @@ the body's axis is $m$ times the square of the pod's distance from that line. Bo
 $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d^2$ =
 1.6781e-4 kg m² each:
 
-| quantity (the two pods about their joint center, on the axis) | value |
+| quantity (the two pods about their joint center, on the axis) | value, g or kg m² |
 |---|--:|
 | mass | 134.25 g |
 | $I_{xx}$: no $m d^2$ | 2 × 2.53675e-4 ≈ 5.0735e-4 kg m² |
@@ -654,7 +654,7 @@ usual slip.
   11.4 mm (0.45 in) deep in a printed fin can with a 23.19 mm (0.91 in) bore. The coupler's wall
   reaches 0.46 mm (0.018 in) past the bore. That's within the 0.5 mm (0.020 in) of a 23 mm
   (0.91 in) bore, so it warns. The ring of PETG where they cross is 0.46 mm (0.018 in) thick and
-  11.4 mm (0.45 in) long. It's 0.39 cm³, 0.48 g at the file's 1250 kg/m³, counted twice.
+  11.4 mm (0.45 in) long. It's 0.39 cm³, 0.48 g at the file's 1,250 kg/m³, counted twice.
 - A **cap** is a centering ring or bulkhead on its parent's axis that covers one of its parent's
   end faces, not both. It can sit inside or outside the end. It can be glued against the end, so
   it needs room in what holds its parent instead: that holder's bore, with the same tolerance. It
@@ -669,7 +669,7 @@ usual slip.
   it needs room in the part around the tube, at the ring's own station. That's the first part out
   from the tube with room for parts whose length overlaps the ring's. That part must hold the
   whole ring, with the same tolerance. The findings name that part, and the ring is checked
-  against the other tubes in it for overlap. *Pods--airframes and winglets* draws rings 32.54 mm
+  against the other tubes in it for overlap. *Pods-\-airframes and winglets* draws rings 32.54 mm
   (1.3 in) across with an 18.75 mm (0.74 in) bore. They sit on an 18.69 mm (0.74 in) motor mount,
   inside an airframe with a 32.59 mm (1.3 in) bore, and they fit. Read as inside the mount, whose
   bore is 18.03 mm (0.71 in), they would be an error.
@@ -880,7 +880,7 @@ unless the caller sets
     [`docs/research/rocketpy-rocket-mass.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md)
     gives the curve substitution and the examples left out.
   - The test derives the stage override, nozzle station and motor inputs from the fixture itself,
-    independently of the design generator.
+    not the design generator.
   - The rockets are compared at 103 even times through the burn and after it, and at up to 60 of
     RocketPy's LSODA knots. The knots are the times at which its ODE solver, LSODA, computed the
     grain geometry.
@@ -888,7 +888,7 @@ unless the caller sets
     length for a center).
   - Worst measured, with the test's tolerance:
 
-    | quantity | worst | tolerance |
+    | quantity | worst | tolerance, ratio |
     |---|---|--:|
     | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 2.4e-16 | 1e-12 |
     | products of inertia (of `I_11`) | 0 | 1e-15 |

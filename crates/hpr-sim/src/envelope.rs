@@ -201,31 +201,31 @@ impl EnvelopeFlag {
     pub fn message(&self) -> String {
         match *self {
             Self::UnstableUnderPower { static_margin_cal } => format!(
-                "the static margin falls to {:.2} calibers at {:.2} s while a motor burns: the \
-                 rocket is unstable under power, so the air turns it away from its path rather \
-                 than back, and its apogee is not a prediction",
+                "the static margin falls to {:.2} calibers at {:.2} s while a motor burns. The \
+                 rocket is unstable under power: the air turns it away from its path rather than \
+                 back, and its apogee is not a prediction",
                 static_margin_cal.value, static_margin_cal.time_s
             ),
             Self::UnstableWithoutMargin {
                 pitch_moment_slope_per_rad,
             } => format!(
                 "while a motor burns, the pitching moment turns the rocket away from its path \
-                 (C_mα {:+.1} per radian at {:.2} s) where HPR Sim can give no static margin: the \
+                 (C_mα {:+.1} per radian at {:.2} s). HPR Sim can give no static margin then. The \
                  rocket is unstable under power, so its apogee is not a prediction",
                 pitch_moment_slope_per_rad.value, pitch_moment_slope_per_rad.time_s
             ),
             Self::BeyondValidatedRange { max_mach } => format!(
-                "reaches Mach {:.2} at {:.1} s, faster than any public flight HPR Sim has been \
-                 compared with an independent reference (Mach {VALIDATED_MACH:.2}): its numbers \
-                 past that speed are unchecked",
+                "reaches Mach {:.2} at {:.1} s. HPR Sim has been compared with an independent \
+                 reference on public flights up to Mach {VALIDATED_MACH:.2}, so this flight's \
+                 numbers past that speed are unchecked",
                 max_mach.value, max_mach.time_s
             ),
             Self::HighAngleOfAttack {
                 angle_of_attack_rad,
             } => format!(
                 "flies at {:.1}° angle of attack at {:.1} s, past the {:.0}° its aerodynamics \
-                 assume more than {HIGH_ANGLE_GRACE_S:.0} s after the rail exit: its numbers \
-                 from then on are rough",
+                 assume more than {HIGH_ANGLE_GRACE_S:.0} s after the rail exit. Its numbers from \
+                 then on are rough",
                 angle_of_attack_rad.value.to_degrees(),
                 angle_of_attack_rad.time_s,
                 HIGH_ANGLE_OF_ATTACK_RAD.to_degrees()
@@ -411,9 +411,9 @@ mod tests {
         assert_eq!(flag.peak(), peak(-4.21).unwrap());
         assert_eq!(
             flag.message(),
-            "the static margin falls to -4.21 calibers at 3.00 s while a motor burns: the rocket \
-             is unstable under power, so the air turns it away from its path rather than back, \
-             and its apogee is not a prediction"
+            "the static margin falls to -4.21 calibers at 3.00 s while a motor burns. The rocket \
+             is unstable under power: the air turns it away from its path rather than back, and \
+             its apogee is not a prediction"
         );
         let json = serde_json::to_value(flag).unwrap();
         assert_eq!(json["flag"], "unstable_under_power");
@@ -453,7 +453,7 @@ mod tests {
         assert_eq!(
             flag.message(),
             "while a motor burns, the pitching moment turns the rocket away from its path (C_mα \
-             +43.9 per radian at 3.00 s) where HPR Sim can give no static margin: the rocket is \
+             +43.9 per radian at 3.00 s). HPR Sim can give no static margin then. The rocket is \
              unstable under power, so its apogee is not a prediction"
         );
         let json = serde_json::to_value(flag).unwrap();
@@ -476,5 +476,51 @@ mod tests {
         let angle = flags(None, peak(0.5), None, None)[0];
         assert_eq!(serde_json::to_value(angle).unwrap()["flag"], angle.name());
         assert!(angle.message().contains("28.6° angle of attack at 3.0 s"));
+    }
+
+    #[test]
+    fn every_flag_keeps_its_sentences_to_40_words() {
+        // `writing.md`'s *Voice* (#476, ADR-295 §5): a flag's sentences stay short at any figure,
+        // each figure at its widest.
+        use crate::testing::long_sentences;
+        let wide = |value| Peak {
+            value,
+            time_s: 123.456,
+            height_above_ground_m: 12_345.6,
+        };
+        let every = [
+            EnvelopeFlag::UnstableUnderPower {
+                static_margin_cal: wide(-12.345),
+            },
+            EnvelopeFlag::UnstableWithoutMargin {
+                pitch_moment_slope_per_rad: wide(123.45),
+            },
+            EnvelopeFlag::BeyondValidatedRange {
+                max_mach: wide(3.456),
+            },
+            EnvelopeFlag::HighAngleOfAttack {
+                angle_of_attack_rad: wide(1.234),
+            },
+            EnvelopeFlag::OutsideCoreBand {
+                max_mach: wide(3.456),
+            },
+            EnvelopeFlag::BeyondEnvelope {
+                max_mach: wide(3.456),
+            },
+        ];
+        for (at, flag) in every.into_iter().enumerate() {
+            // A match with no catch-all: a new flag must be placed, and listed above.
+            let place = match flag {
+                EnvelopeFlag::UnstableUnderPower { .. } => 0,
+                EnvelopeFlag::UnstableWithoutMargin { .. } => 1,
+                EnvelopeFlag::BeyondValidatedRange { .. } => 2,
+                EnvelopeFlag::HighAngleOfAttack { .. } => 3,
+                EnvelopeFlag::OutsideCoreBand { .. } => 4,
+                EnvelopeFlag::BeyondEnvelope { .. } => 5,
+            };
+            assert_eq!(place, at, "{flag:?}");
+            let message = flag.message();
+            assert_eq!(long_sentences(&message), [], "{flag:?}: {message}");
+        }
     }
 }

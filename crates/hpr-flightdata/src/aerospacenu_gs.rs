@@ -1264,8 +1264,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         if backwards > 0 || repeats > 0 {
             notes.push(format!(
                 "`{POSITION}` goes back in time {backwards} times and repeats a time {repeats} \
-                 times: the record's track takes its samples in time order, the first at each \
-                 time; the channels keep them all in the file's order"
+                 times. The record's track takes its samples in time order, the first at each \
+                 time. The channels keep them all in the file's order"
             ));
         }
         let speed_at = |slot: usize| -> f64 {
@@ -1341,15 +1341,15 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
     };
     let rate = board / received;
     let evidence = format!(
-        "over the longest stretch of packets whose stamps keep within {STRETCH_GAP_S} s of one \
-         gap from the ground station's clock, {received:.1} s of that clock, the board's advances \
-         {board:.1} s read in milliseconds, {rate:.4} for each second; the band is 0.8 to 1.25 \
-         over at least 20 s"
+        "over the longest stretch of packets, {received:.1} s of the ground station's clock, \
+         the board's advances {board:.1} s read in milliseconds, {rate:.4} for each second. \
+         The stamps in it keep within {STRETCH_GAP_S} s of one gap from the ground station's \
+         clock. The band is 0.8 to 1.25 over at least 20 s"
     );
     if !(received >= CLOCK_SPAN_S && (CLOCK_RATE.0..=CLOCK_RATE.1).contains(&rate)) {
         notes.push(format!(
             "`time_stamp_ms` kept as written, unchecked against the ground station's clock: \
-             {evidence}; every packet takes the time the ground station received it"
+             {evidence}. Every packet takes the time the ground station received it"
         ));
         return false;
     }
@@ -1376,7 +1376,7 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
     if stretches.len() > 1 {
         notes.push(format!(
             "the board's clock runs in {} stretches, each a steady gap from the ground station's \
-             clock, as after a restart of the board: each is placed on the ground station's \
+             clock, as after a restart of the board. Each is placed on the ground station's \
              clock by its own median gap",
             stretches.len()
         ));
@@ -1488,9 +1488,10 @@ fn decide_pressures(reading: &mut Reading, notes: &mut Vec<String>) {
             |first| format!("its first value is {first}"),
         );
         let evidence = format!(
-            "{size}, a pad's pressure in atmospheres or bars if within 0.4935 to 1.1; of its \
-             {count} distinct non-zero values, {:.1}% are a whole number of pascals divided by \
-             101,325, within the value's own rounding as sent, and {:.1}% divided by 100,000",
+            "{size}, a pad's pressure in atmospheres or bars if within 0.4935 to 1.1. A value \
+             counts as a whole number within its own rounding as sent. Of its {count} distinct \
+             non-zero values, {:.1}% are a whole number of pascals divided by 101,325. Of the same \
+             values, {:.1}% are a whole number of pascals divided by 100,000",
             atm * 100.0,
             bar * 100.0
         );
@@ -1507,8 +1508,8 @@ fn decide_pressures(reading: &mut Reading, notes: &mut Vec<String>) {
             build.scale = ATM_PA;
         } else {
             notes.push(format!(
-                "{} kept as written, its size or its step not an atmosphere's: {evidence}; \
-                 atmospheres need 99% of at least {STEP_LEAST_VALUES} values on the first step \
+                "{} kept as written, its size or its step not an atmosphere's: {evidence}. \
+                 Atmospheres need 99% of at least {STEP_LEAST_VALUES} values on the first step \
                  and at most 10% on the second",
                 build.quoted()
             ));
@@ -1710,14 +1711,14 @@ impl Coast {
         found.map_or_else(
             || {
                 format!(
-                    "the coast holds fewer than {COAST_LEAST_SAMPLES} samples or spans under \
+                    "The coast holds fewer than {COAST_LEAST_SAMPLES} samples or spans under \
                      {COAST_LEAST_S} s, too little to fit"
                 )
             },
             |coast| {
                 format!(
-                    "over the coast, {} samples across {:.1} s, {what} slows it {:.2} {unit}, \
-                     {:.3} g read so; an upward coast slows at least 1 g, and the band is a \
+                    "Over the coast, {} samples across {:.1} s, {what} slows it {:.2} {unit}, \
+                     {:.3} g read so. An upward coast slows at least 1 g. The band is a \
                      factor of {GRAVITY_FACTOR} either way, where feet would read 3.28 times",
                     coast.samples,
                     coast.span_s,
@@ -1798,8 +1799,8 @@ fn decide_altitude(
         Some((climb, column)) => {
             let evidence = format!(
                 "from `barometer_pressure`'s first value to its lowest, each within {NEAREST_S} s \
-                 of a sample of the column, the standard atmosphere climbs {climb:.1} m and the \
-                 column {column:.1}, {:.3} times; meters need within 25%",
+                 of a sample of the column, the standard atmosphere climbs {climb:.1} m. The \
+                 column's climb over the same span is {column:.1}, {:.3} times that. Meters need within 25%",
                 column / climb
             );
             if (column / climb - 1.0).abs() > MARGIN {
@@ -1814,7 +1815,7 @@ fn decide_altitude(
     };
     let coast = altitude_coast(&series(reading, altitude));
     let evidence = format!(
-        "{barometer_text}; {}",
+        "{barometer_text}. {}",
         Coast::text(coast, "the column's least-squares parabola", "m/s²")
     );
     if borne && coast.is_some_and(|coast| near_gravity(coast.deceleration)) {
@@ -1899,12 +1900,11 @@ fn decide_speed(reading: &mut Reading, notes: &mut Vec<String>) {
             let ratio = climb / moved;
             (
                 format!(
-                    "over the barometer's ascent, the {:.1} s from where its pressure last began \
-                     to fall to its lowest, the standard atmosphere climbs {climb:.1} m and the \
-                     column integrates to \
-                     {moved:.1}, the speed taken as a straight line between samples up to \
-                     {longest:.1} s apart; the climb is {ratio:.3} times that, and meters per \
-                     second need at least {CHECK_CLIMB_M} m and within 25%",
+                    "over the barometer's ascent, the standard atmosphere climbs {climb:.1} m. The \
+                     ascent is the {:.1} s from where the barometer's pressure last began to fall to its \
+                     lowest. The column integrates to {moved:.1}, the speed taken as a straight \
+                     line between samples up to {longest:.1} s apart. The climb is {ratio:.3} \
+                     times that. Meters per second need at least {CHECK_CLIMB_M} m and within 25%",
                     to - from
                 ),
                 climb >= CHECK_CLIMB_M && (ratio - 1.0).abs() <= MARGIN,
@@ -1913,7 +1913,7 @@ fn decide_speed(reading: &mut Reading, notes: &mut Vec<String>) {
     };
     let coast = speed_coast(&points);
     let evidence = format!(
-        "{barometer_text}; {}",
+        "{barometer_text}. {}",
         Coast::text(coast, "the column's least-squares line", "m/s²")
     );
     if borne && coast.is_some_and(|coast| near_gravity(coast.deceleration)) {
@@ -1983,10 +1983,10 @@ fn decide_positions(reading: &mut Reading, notes: &mut Vec<String>) -> usize {
         // Most fixes, not one, so that a stray fix decides nothing.
         let most = |count: usize| 2 * count > fixes.len();
         let evidence = format!(
-            "{} fixes, {} within ±90° and ±180°, {beyond_radians} beyond ±π/2 or ±π, and \
-             {past_minutes} with a part after the whole degrees of 0.6 or more, where degrees and \
-             minutes run together stay under 0.6; degrees need all within and most of the fixes \
-             past both",
+            "{} fixes, {} within ±90° and ±180°, {beyond_radians} beyond ±π/2 or ±π. \
+             {past_minutes} of them have a part after the whole degrees of 0.6 or more, where \
+             degrees and minutes run together stay under 0.6. Degrees need all within and most \
+             of the fixes past both",
             fixes.len(),
             if within { "all" } else { "not all" },
         );
@@ -2157,8 +2157,8 @@ fn accelerometer_climb(reading: &Reading, axes: [usize; 3]) -> Result<(usize, f6
         Some(ratio) if count >= INTEGRATED_LEAST => Ok((count, ratio)),
         _ => Err(format!(
             "from the launch, it integrates to {climb:.1} m before its speed falls to 0 or a \
-             step passes {INTEGRATE_STEP_S} s, past {CHECK_CLIMB_M} m at {count} pressures, \
-             under {INTEGRATED_LEAST}"
+             step passes {INTEGRATE_STEP_S} s. Past {CHECK_CLIMB_M} m of that climb there are \
+             {count} pressures, under the {INTEGRATED_LEAST} needed"
         )),
     }
 }
@@ -2191,17 +2191,18 @@ fn decide_accelerometer(reading: &mut Reading, notes: &mut Vec<String>) -> Optio
     });
     let climb_text = match &climb {
         Ok((count, ratio)) => format!(
-            "from the launch, its specific force along the pad's reading, less 9.806 65, \
-             integrates read in m/s² to a climb, and at {count} pressures past {CHECK_CLIMB_M} m \
-             of it the barometer's climb in the standard atmosphere is {ratio:.3} times it, as a \
-             median; the band is a factor of {GRAVITY_FACTOR} either way"
+            "From the launch, its specific force along the pad's reading, less 9.806 65, \
+             integrates read in m/s² to a climb. At {count} pressures past {CHECK_CLIMB_M} m \
+             of it, the barometer's climb in the standard atmosphere is {ratio:.3} times it, as \
+             a median. The band is a factor of {GRAVITY_FACTOR} either way"
         ),
-        Err(why) => format!("the climb check can't be made: {why}"),
+        Err(why) => format!("The climb check can't be made: {why}"),
     };
     let evidence = format!(
         "the three axes' magnitude reads within 10% of 9.806 65 for {in_ms2:.1} s of the file's \
-         time and within 10% of 1 for {in_g:.1} s; a board at rest or under a parachute reads \
-         1 g, and meters per second squared need at least 1 s and twice the other's; {climb_text}"
+         time. It reads within 10% of 1 for {in_g:.1} s. A board at rest or under a parachute \
+         reads 1 g. Meters per second squared need at least 1 s and twice the other's. \
+         {climb_text}"
     );
     let decided = pad && climbs;
     if decided {
@@ -2274,9 +2275,9 @@ fn decide_tilt(reading: &mut Reading, one_g: Option<f64>, notes: &mut Vec<String
     let samples = as_degrees.len();
     let (degrees, radians) = (median(as_degrees), median(as_radians));
     let evidence = format!(
-        "{range_text}; at {samples} samples where the accelerometer reads within 5% of 1 g, the \
-         median difference from the angle of its reading from the z axis is {degrees:.2}° read \
-         in degrees and {radians:.2}° read in radians"
+        "{range_text}. The accelerometer reads within 5% of 1 g at {samples} samples. At \
+         these, the median difference from the angle of the accelerometer's reading from the z \
+         axis is {degrees:.2}° read in degrees. Read in radians, it is {radians:.2}°"
     );
     if in_range
         && samples >= TILT_LEAST_SAMPLES
@@ -2290,8 +2291,8 @@ fn decide_tilt(reading: &mut Reading, one_g: Option<f64>, notes: &mut Vec<String
         true
     } else {
         notes.push(format!(
-            "{quoted} kept as written, its range or the accelerometer not degrees': {evidence}; \
-             degrees need 0 to 180 with a value past π, at least {TILT_LEAST_SAMPLES} samples \
+            "{quoted} kept as written, its range or the accelerometer not degrees': {evidence}. \
+             Degrees need 0 to 180 with a value past π, at least {TILT_LEAST_SAMPLES} samples \
              and 2° at most"
         ));
         reading.channels[tilt].keep();
@@ -2438,8 +2439,8 @@ fn decide_gyroscope(
         found.stretches >= TURN_LEAST_STRETCHES && found.accelerometer_rad >= TURN_LEAST_RAD;
     let turning_text = format!(
         "over {} stretches of {TURN_STEPS} steps at most {TURN_STEP_S} s apart at about 1 g, the \
-         accelerometer's reading turns {:.3} rad and the gyroscope turns the board across it \
-         {:.3} rad read in radians per second",
+         accelerometer's reading turns {:.3} rad. Over those stretches the gyroscope turns the \
+         board across it {:.3} rad read in radians per second",
         found.stretches, found.accelerometer_rad, found.gyroscope_rad
     );
     let tilt = if tilt_read {
@@ -2462,8 +2463,8 @@ fn decide_gyroscope(
         tilt_check(reading, &joined)
     });
     let tilt_text = format!(
-        "over {windows} windows of at most {TILT_WINDOW_S} s in which `angle_vertical` moves at \
-         least 10°, it changes {tilted:.3} rad, where the gyroscope turns the board across its z \
+        "Over {windows} windows of at most {TILT_WINDOW_S} s in which `angle_vertical` moves at \
+         least 10°, it changes {tilted:.3} rad. In those windows the gyroscope turns the board across its z \
          axis {turned:.3} rad read in radians per second and {:.3} rad read in degrees",
         turned * degrees
     );
@@ -2473,7 +2474,7 @@ fn decide_gyroscope(
     if enough && within(ratio) && tilt_decides {
         notes.push(format!(
             "{names} read in radians per second, from the board's turning and its tilt: \
-             {turning_text}, within a quarter to 4 times; {tilt_text}, so degrees per second \
+             {turning_text}, within a quarter to 4 times. {tilt_text}. So degrees per second \
              turn too little for the tilt"
         ));
         for at in gyro {
@@ -2483,9 +2484,9 @@ fn decide_gyroscope(
     } else {
         notes.push(format!(
             "{names} kept as written, the board's turning and its tilt not both radians per \
-             second's: {turning_text}; {tilt_text}; radians per second need at least 3 \
-             stretches, 0.2 rad and a quarter to 4 times, and 3 windows whose tilt refutes \
-             degrees per second"
+             second's: {turning_text}. {tilt_text}. Radians per second need at least 3 \
+             stretches, 0.2 rad and a quarter to 4 times. They also need 3 windows whose tilt \
+             refutes degrees per second"
         ));
         keep(reading);
     }
@@ -3333,7 +3334,10 @@ mod tests {
             "`Alt Info & Cfg.barometer_pressure` kept as written, its size or its step not an \
              atmosphere's: ",
         );
-        assert!(kept.contains("and 100.0% divided by 100,000"), "{kept}");
+        assert!(
+            kept.contains("100.0% are a whole number of pascals divided by 100,000"),
+            "{kept}"
+        );
         note(
             &log,
             "`Alt Info & Cfg.press_ref` kept as written, with no barometer read in atmospheres \
@@ -3383,13 +3387,13 @@ mod tests {
         for (text, shares) in [
             (
                 both,
-                "100.0% are a whole number of pascals divided by 101,325, within the value's \
-                    own rounding as sent, and 100.0% divided by 100,000",
+                "100.0% are a whole number of pascals divided by 101,325. Of the same values, \
+                    100.0% are a whole number of pascals divided by 100,000",
             ),
             (
                 neither,
-                "0.0% are a whole number of pascals divided by 101,325, within the value's \
-                       own rounding as sent, and 0.0% divided by 100,000",
+                "0.0% are a whole number of pascals divided by 101,325. Of the same values, \
+                       0.0% are a whole number of pascals divided by 100,000",
             ),
             (
                 thousandths,
@@ -3403,6 +3407,7 @@ mod tests {
                  atmosphere's: ",
             );
             assert!(kept.contains(shares), "{kept}");
+            assert!(kept.contains("within its own rounding as sent"), "{kept}");
             assert_eq!(
                 channel(&log, "Alt Info & Cfg.barometer_pressure").quantity,
                 Quantity::Unrecognized
@@ -3425,7 +3430,7 @@ mod tests {
         assert!(
             message.starts_with("`Position Data.fcb_altitude` isn't in meters, by the barometer: ")
                 && message.contains(" 3.2")
-                && message.ends_with(" times; meters need within 25%"),
+                && message.ends_with(" times that. Meters need within 25%"),
             "{message}"
         );
     }
@@ -3447,7 +3452,8 @@ mod tests {
         );
         assert!(
             kept.contains("within 10% of 9.806 65 for 0.0 s")
-                && kept.contains("past 10 m at 0 pressures, under 3"),
+                && kept
+                    .contains("Past 10 m of that climb there are 0 pressures, under the 3 needed"),
             "{kept}"
         );
         note(
@@ -3522,7 +3528,7 @@ mod tests {
         );
         assert!(
             kept.contains("its values run from 0 to 0.4485")
-                && kept.contains("0.03° read in radians"),
+                && kept.contains("Read in radians, it is 0.03°"),
             "{kept}"
         );
         // And with no tilt read, no tilt check: the gyroscope is kept too.
@@ -3771,7 +3777,7 @@ mod tests {
              bearing meters out: ",
         );
         assert!(
-            kept.contains("meters need within 25%; over the coast,"),
+            kept.contains("Meters need within 25%. Over the coast,"),
             "{kept}"
         );
         assert_eq!(
@@ -3801,7 +3807,7 @@ mod tests {
              meters per second out: ",
         );
         assert!(
-            kept.contains("the climb is 0.30") && kept.contains(" 3.4"),
+            kept.contains("The climb is 0.30") && kept.contains(" 3.4"),
             "{kept}"
         );
         assert_eq!(
@@ -3830,7 +3836,7 @@ mod tests {
              meters per second out: ",
         );
         let ratio = kept
-            .split("the climb is ")
+            .split("The climb is ")
             .nth(1)
             .and_then(|rest| rest.split(' ').next())
             .and_then(|r| r.parse::<f64>().ok())
@@ -3944,7 +3950,10 @@ mod tests {
         // And the whole check on that input reads the board's clock by its long stretch.
         let mut notes = Vec::new();
         assert!(place_on_clock(&mut slots, &mut notes));
-        assert!(notes[0].contains("999.9 s of that clock"), "{notes:?}");
+        assert!(
+            notes[0].contains("999.9 s of the ground station's clock"),
+            "{notes:?}"
+        );
     }
 
     /// A key holding a `[` that isn't a list's item takes no role by the name before it.
@@ -4002,7 +4011,7 @@ mod tests {
             "`Position Data.fcb_latitude` and `Position Data.fcb_longitude` kept as written, their \
              range or their fractions not degrees': ",
         );
-        assert!(kept.contains(", 1 beyond ±π/2 or ±π,"), "{kept}");
+        assert!(kept.contains(", 1 beyond ±π/2 or ±π."), "{kept}");
     }
 
     #[test]

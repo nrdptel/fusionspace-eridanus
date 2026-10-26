@@ -932,15 +932,15 @@ expression: log
   ],
   "notes": [
     "the logger is taken as a Rocketry Ltd Nano V1: its header is the layout the Nano V1 manual's page *CSV Flight log format* describes",
-    "`gyro_x`, `gyro_y` and `gyro_z` read in degrees per second, from the Nano V1 manual: its page *CSV Flight log format* gives each as the rate of turn about one of the board's axes in °/s, as whole numbers; the altimeter's gyroscope reads up to ±2,000 °/s",
-    "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual: its page *CSV Flight log format* gives the pitch, roll and yaw as attitude angles from their zero on the pad and the tilt as the angle from vertical, each in degrees",
-    "`acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual: its page *CSV Flight log format* gives it as the acceleration's magnitude with the 1 g of gravity taken out, so it sits near zero at rest; it is kept so, the magnitude less 1 g, not an acceleration along any axis, and reads −1 g in free fall",
-    "the last 1 readings of `Board temp(C)`, from line 26, are exactly 0 °C after a reading of 21.80 °C on line 22: a board can't cool so far between two readings and hold there, so they aren't readings and are gaps",
-    "`yaw` reaches ±327.67° or beyond on 1 rows, the first on line 18: in no sample log does the yaw pass ±327.68°, ±32,768 hundredths of a degree, the range of a signed 16-bit number, so a yaw beyond it isn't written as it was, but clipped or wrapped to the other end; kept as written",
-    "the first 3 rows, before lift-off, to line 8, write 0 on all three of the accelerometer's axes, which reads 1 g at rest: it hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them",
-    "the summary's `Apogee time`, 4, is left out: the key states no unit, and read in seconds it isn't within 0.5 s of the highest altitude's time, 12.2 s",
+    "`gyro_x`, `gyro_y` and `gyro_z` read in degrees per second, from the Nano V1 manual: its page *CSV Flight log format* describes them. Each is the rate of turn about one of the board's axes in °/s, as whole numbers. The altimeter's gyroscope reads up to ±2,000 °/s",
+    "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual: its page *CSV Flight log format* says what each is. The pitch, roll and yaw are attitude angles from their zero on the pad. The tilt is the angle from vertical. Each is in degrees",
+    "`acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual: its page *CSV Flight log format* describes it. It is the acceleration's magnitude with the 1 g of gravity taken out, so it sits near zero at rest. It is kept so, the magnitude less 1 g, not an acceleration along any axis. It reads −1 g in free fall",
+    "the last 1 readings of `Board temp(C)`, from line 26, are exactly 0 °C after a reading of 21.80 °C on line 22. A board can't cool so far between two readings and hold there, so they aren't readings and are gaps",
+    "`yaw` reaches ±327.67° or beyond on 1 rows, the first on line 18. In no sample log does the yaw pass ±327.68°, ±32,768 hundredths of a degree, the range of a signed 16-bit number. So a yaw beyond it isn't written as it was, but clipped or wrapped to the other end. It is kept as written",
+    "the first 3 rows, before lift-off, to line 8, write 0 on all three of the accelerometer's axes, which reads 1 g at rest. It hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them",
+    "the summary's `Apogee time`, 4, is left out. The key states no unit, and read in seconds it isn't within 0.5 s of the highest altitude's time, 12.2 s",
     "the summary's `Landing time`, 49.8, is left out: the key states no unit, and the summary gives no landing height, `Landing meters`, to check it against",
-    "the summary's `Adjusted log` is \"yes\": AltimeterCloud can hand back a log recalculated after the flight with another pressure or temperature (Nano V1 manual), so this one's figures may not be the logger's own",
+    "the summary's `Adjusted log` is \"yes\". AltimeterCloud can hand back a log recalculated after the flight with another pressure or temperature (Nano V1 manual). So this one's figures may not be the logger's own",
     "`spare_channel` kept as written, in a unit no source states: this reader doesn't know the column"
   ]
 }

@@ -1,10 +1,10 @@
-//! The library facade of FusionSpace HPR · Sim: a builder API for environments, motors, rockets and flights, and
-//! the workspace's crates re-exported.
+//! The library facade of FusionSpace HPR · Sim: a builder API for environments, motors, rockets
+//! and flights, and the workspace's crates re-exported.
 //!
-//! **Guide:** [Start here][guide-start] says what works and how far to trust it, [Getting
-//! started][guide-first] flies a first rocket, and [The builder][guide-builder] walks through
-//! this crate's API. The [`guide`] module is the same walk-through in this reference, in five
-//! short chapters.
+//! The guide has three pages to start from. [Start here][guide-start] says what works and how far
+//! to trust it. [Getting started][guide-first] flies a first rocket. [The builder][guide-builder]
+//! walks through this crate's API. The [`guide`] module is the same walk-through in this
+//! reference, in five short chapters.
 //!
 //! [guide-start]: https://hpr.fusionspace.co/start-here.html
 //! [guide-first]: https://hpr.fusionspace.co/getting-started.html
@@ -18,9 +18,9 @@
 //! - [`Flight`]: the rocket flown from a rail, with its apogee, speeds and landing.
 //!
 //! > **How far to trust it.** The builder adds no physics of its own. It makes the same design
-//! > tree and flies the same simulation as the crates below it, and a test flies a rocket built
-//! > both ways to the same numbers, bit for bit. So its numbers are as good as those models are;
-//! > the guide's [Accuracy][guide-accuracy] page says how good that is, with every comparison made.
+//! > tree and flies the same simulation as the crates below it. A test flies a rocket built both
+//! > ways to the same numbers, bit for bit. So its numbers are as good as those models are. The
+//! > guide's [Accuracy][guide-accuracy] page says how good that is, with every comparison made.
 //!
 //! [guide-accuracy]: https://hpr.fusionspace.co/accuracy.html
 //!
@@ -57,20 +57,37 @@
 //! # Ok::<(), hpr::Error>(())
 //! ```
 //!
-//! The builder makes the same things the crates below it use, and hands them over: a rocket's
-//! [`Rocket::design`] is an [`hpr_design::Rocket`], a flight's [`FlightBuilder::simulation`] an
-//! [`hpr_sim::Simulation`]. For what the builder doesn't offer, such as staging, clusters, pods
-//! or mass shifts, build those with the crates, which this one re-exports by name.
+//! The builder makes the same things the crates below it use, and hands them over. A rocket's
+//! [`Rocket::design`] is an [`hpr_design::Rocket`], and a flight's [`FlightBuilder::simulation`]
+//! is an [`hpr_sim::Simulation`]. For what the builder doesn't offer, such as staging, clusters,
+//! pods or mass shifts, build with the crates, which this one re-exports by name. Each covers
+//! one part of the work:
 //!
-//! The `net` feature adds `hpr-net` (as `hpr::hpr_net`): the cache, the offline mode, the HTTP
-//! transport, a launch site's weather from Open-Meteo (`hpr_net::open_meteo`), weather-balloon
-//! soundings from the University of Wyoming's archive (`hpr_net::wyoming`), NOAA's GFS and RAP
-//! forecasts (`hpr_net::nomads`), a site's height above sea level from Open-Meteo
-//! (`hpr_net::elevation`), motor stock and prices from motor.fusionspace.co
-//! (`hpr_net::motor_finder`), and motor records and thrust curves from ThrustCurve.org
-//! (`hpr_net::thrustcurve`). The `parquet`
-//! feature turns on `hpr_sim`'s Parquet export (`hpr_sim::export::parquet`). [`ork`] flies the
-//! stage separation an OpenRocket `.ork` file describes.
+//! - [`hpr_core`]: the math, units, frames, the Earth and gravity.
+//! - [`hpr_atmos`]: the atmosphere and the wind.
+//! - [`hpr_motor`]: solid motors, their thrust curves and motor files.
+//! - [`hpr_design`]: a rocket's parts, materials, mass and stages.
+//! - [`hpr_aero`]: the aerodynamics: normal force, center of pressure and drag.
+//! - [`hpr_sim`]: the flight itself, in six degrees of freedom, with recovery.
+//! - [`hpr_analysis`]: Monte Carlo runs, sensitivity analysis and optimization.
+//! - [`hpr_format`]: HPR's own design format.
+//! - [`hpr_io`]: other programs' files: OpenRocket designs and parts, weather and elevation.
+//! - [`hpr_flightdata`]: flight logs and the readings taken from them, with no simulator.
+//! - [`hpr_forensics`]: a flight log against a simulation of it, planned; today it holds only
+//!   synthetic flights to test the readings on.
+//!
+//! The `net` feature adds `hpr-net` (as `hpr::hpr_net`). It holds the cache, the offline mode and
+//! the HTTP transport, and these sources:
+//!
+//! - `hpr_net::open_meteo`: a launch site's weather from Open-Meteo.
+//! - `hpr_net::wyoming`: weather-balloon soundings from the University of Wyoming's archive.
+//! - `hpr_net::nomads`: NOAA's GFS and RAP forecasts.
+//! - `hpr_net::elevation`: a site's height above sea level from Open-Meteo.
+//! - `hpr_net::motor_finder`: motor stock and prices from motor.fusionspace.co.
+//! - `hpr_net::thrustcurve`: motor records and thrust curves from ThrustCurve.org.
+//!
+//! The `parquet` feature turns on `hpr_sim`'s Parquet export (`hpr_sim::export::parquet`).
+//! [`ork`] flies the stage separation an OpenRocket `.ork` file describes.
 
 pub mod environment;
 pub mod error;

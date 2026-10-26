@@ -586,8 +586,8 @@ impl<'a, 'input> Reader<'a, 'input> {
                         return Err(syntax(
                             self.line_at(stamp.at),
                             format!(
-                                "a time that goes back: track `{name}`'s point is timed `{}`, \
-                                 before `{}`, the time of the point ahead of it at line {}; a \
+                                "a time that goes back. Track `{name}`'s point is timed `{}`, \
+                                 before `{}`, the time of the point ahead of it at line {}. A \
                                  track's times go forward, so this one isn't read as one \
                                  recording",
                                 stamp.written,
@@ -769,7 +769,7 @@ impl<'a, 'input> Reader<'a, 'input> {
         if track_points().any(|point| point.ele.is_some()) {
             notes.push(
                 "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude \
-                 whose datum the file doesn't state: they give the unit and no datum, so it may \
+                 whose datum the file doesn't state. Both give the unit and no datum, so it may \
                  be above mean sea level, above the WGS84 ellipsoid or above another zero"
                     .to_owned(),
             );
@@ -796,7 +796,7 @@ impl<'a, 'input> Reader<'a, 'input> {
         if unzoned > 0 {
             notes.push(format!(
                 "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say \
-                 every time is: {unzoned} of the file's times state none"
+                 every time is. {unzoned} of the file's times state none"
             ));
         }
         let untimed = track_points().filter(|point| point.time.is_none()).count();
@@ -1234,7 +1234,7 @@ mod tests {
         assert_eq!(line, 6);
         assert!(
             message.starts_with(
-                "a time that goes back: track `t`'s point is timed `2031-07-14T17:04:04.999Z`, \
+                "a time that goes back. Track `t`'s point is timed `2031-07-14T17:04:04.999Z`, \
                  before `2031-07-14T17:04:05Z`, the time of the point ahead of it at line 4"
             ),
             "{message}"

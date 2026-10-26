@@ -138,8 +138,8 @@ const PREFIX: &str = "the airframe was not read exactly as written: ";
 /// The reason a 0.1 document migrates with when none of its configurations shows whether its
 /// `.ork` airframe was read exactly as written.
 pub const UNKNOWN: &str = "unknown: the document is from version 0.1 of the format, which \
-                           didn't record it, and none of its motor configurations shows it; \
-                           convert the .ork again to find out";
+                           didn't record it, and none of its motor configurations shows it. \
+                           Convert the .ork again to find out";
 
 #[cfg(test)]
 mod tests {

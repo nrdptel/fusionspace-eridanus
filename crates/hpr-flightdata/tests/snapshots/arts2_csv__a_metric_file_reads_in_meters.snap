@@ -666,11 +666,11 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`Vel` read in meters per second, from the apogee and the barometer's step: into its zero at 14.17 s, the line through its 3 samples of the 1 s before falls at 9.830 a second, 1.002 of standard gravity's 9.807 m/s², within 25%, and `pAlt`'s step is a count in meters too",
-    "`pAlt` read in meters, from its step and `Vel`: its smallest step, 9.12, 29 of its steps within 0.02 of it, is one count of the barometer near the ground in meters (5.46 to 14.83 m); and its highest value, 912.00, is 0.968 times the climb `Vel` integrates to by the apogee, 941.78 m, within 25%",
+    "`Vel` read in meters per second, from the apogee and the barometer's step: its line falls at 9.830 a second. That line runs through its 3 samples of the 1 s before, into its zero at 14.17 s. The line's fall is 1.002 of standard gravity's 9.807 m/s², within 25%, and `pAlt`'s step is a count in meters too",
+    "`pAlt` read in meters, from its step and `Vel`: its smallest step is 9.12. 29 of its steps are within 0.02 of it. The smallest step is one count of the barometer near the ground in meters (5.46 to 14.83 m). `pAlt`'s highest value, 912.00, is 0.968 times the climb `Vel` integrates to by the apogee, 941.78 m, within 25%",
     "`Acc` read in meters per second squared, from `Vel`: over the boost, `Vel` rises 1.000 times `Acc`'s integral, within 10% of 1",
     "`iAlt` read in meters, from `Vel`: to the apogee it rises 1.0000 times `Vel`'s integral, within 10% of 1",
-    "`MET` read in seconds, from the apogee: with `Vel` in meters per second, as the barometer's step has it, `Vel` falls into its zero at 1.002 of standard gravity a second; a clock in milliseconds or minutes would put that fall 1,000 or 60 times off",
-    "the last 1 rows, from line 62, write `Vel` as 0, where the row before reads -14.80: more than twice what `Acc` can change it by in 0.50 s, so they aren't its integral, and are gaps"
+    "`MET` read in seconds, from the apogee: `Vel` is in meters per second, as the barometer's step has it. `Vel` falls into its zero at 1.002 of standard gravity a second. A clock in milliseconds or minutes would put that fall 1,000 or 60 times off",
+    "the last 1 rows, from line 62, write `Vel` as 0, where the row before reads -14.80. That is more than twice what `Acc` can change it by in 0.50 s. So they aren't its integral, and they are gaps"
   ]
 }

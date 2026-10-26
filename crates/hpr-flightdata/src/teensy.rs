@@ -175,7 +175,7 @@ fn values<'a>(fields: &[&'a str]) -> Result<(Vec<Option<&'a str>>, Vec<f64>), St
         return Ok((vec![None; numbers.len()], numbers));
     }
     if !fields.len().is_multiple_of(2) {
-        return Err("values neither all numbers nor in name–number pairs".to_owned());
+        return Err("values neither all numbers nor in name-number pairs".to_owned());
     }
     let mut names = Vec::with_capacity(fields.len() / 2);
     let mut numbers = Vec::with_capacity(fields.len() / 2);
@@ -215,7 +215,7 @@ fn tab_line(text: &str) -> Result<Line<'_>, String> {
 fn named_line(text: &str) -> Result<Line<'_>, String> {
     let fields: Vec<&str> = text.split(',').map(str::trim).collect();
     if fields.len() < 5 || fields[1] != "t" {
-        return Err("not a tag, `t`, a clock and name–value pairs, by commas".to_owned());
+        return Err("not a tag, `t`, a clock and name-value pairs, by commas".to_owned());
     }
     let tag = name(fields[0])?;
     let clock_us = clock(fields[2])?;
@@ -470,7 +470,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         "each tag's lines on their own clock, the logger's count of microseconds, read as \
          seconds from the logger's zero; no line states the unit"
             .to_owned(),
-        "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written: no line states a \
+        "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written. No line states a \
          unit, and the sample logs' survey holds these to the files"
             .to_owned(),
     ];
@@ -564,7 +564,7 @@ pub fn read_named(text: &str) -> Result<FlightLog, LogError> {
         return Err(LogError::NotThisFormat {
             format: NAMED,
             message: "the first line doesn't state a tag's units, the clock's `us` first, or no \
-                      line of name–value pairs comes within the first 100"
+                      line of name-value pairs comes within the first 100"
                 .to_owned(),
         });
     }

@@ -29,23 +29,25 @@ of model is on [Launch-day weather](weather.md), and a weather balloon's measure
 > **How far to trust it.** A weather model's forecast, read as the model wrote it.
 >
 > - HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
->   center's reference decoder, gives. All 6,123 values agree within 2.2e-16, relatively (one
->   rounding in the last binary digit). The profile gives back those values, interpolated to
->   the site, at every level it keeps. That's checked below.
-> - A whole GFS file you download reads too ([A whole GFS file](#a-whole-gfs-file)). Every
->   one of the 746,770,303 values in one such file is within 4.4e-16 of ecCodes', relatively. That
->   check was a script run once outside CI, and CI checks eight of the file's messages. The file's
->   profile at Spaceport America is the recorded cut's to 1.04e-7. A test skipped in CI checks
->   that, since CI doesn't have the file.
+>   center's reference decoder, gives. All 6,123 agree within 2.2e-16, relatively ([how it is
+>   checked](#how-it-is-checked)).
+> - A whole GFS file reads ([A whole GFS file](#a-whole-gfs-file)): all 746,770,303
+>   values of one are within 4.4e-16, relatively, of ecCodes', checked once outside CI.
+> - Four public RAP fields packed as JPEG 2000 images match ecCodes in CI
+>   ([Files in JPEG 2000](#files-in-jpeg-2000)). No whole RAP file has been tried.
 > - How good a forecast is depends on the model, and nothing here measures that. No forecast has
 >   been compared with a weather balloon or a flight log.
-> - The pad sits on the model's ground, which is smoothed. At Spaceport America it's
->   1,476 m (4,843 ft) in GFS and 1,429 m (4,688 ft) in RAP. Open-Meteo gives 1,400 m (4,593 ft),
->   as in [Launch-day weather's example](weather.md#an-example).
-> - Fields packed as JPEG 2000 images, as in RAP's whole files, read too. Four public RAP fields,
->   182,443 points, match ecCodes in CI ([Files in JPEG 2000](#files-in-jpeg-2000)). No whole RAP
->   file has been tried.
-> - The tests replay two recorded answers. The live connection to NOMADS isn't tested in CI.
+
+The 2.2e-16 is one rounding in the last binary digit. The profile gives back those values,
+interpolated to the site, at every level it keeps. CI checks
+eight messages of the whole GFS file, and 182,443 points of the four RAP fields, packed as JPEG 2000 images as in RAP's whole files. The whole GFS
+file's profile at Spaceport America is the recorded cut's to 1.04e-7, by a test skipped in CI,
+since CI doesn't have the file. The tests replay two recorded answers. The live connection to
+NOMADS isn't tested in CI.
+
+The pad sits on the model's smoothed ground: at Spaceport America 1,476 m (4,843 ft) in GFS and
+1,429 m (4,688 ft) in RAP. Open-Meteo gives 1,400 m (4,593 ft), as in
+[Launch-day weather's example](weather.md#an-example).
 
 Code: `hpr_net::nomads` ([API reference](api/hpr_net/nomads/index.html)), with the decoder in
 `hpr_io::grib2` ([API reference](api/hpr_io/grib2/index.html)). It was written for
@@ -64,12 +66,12 @@ A forecast comes from a *run*: the model starts from the weather observed at one
 [cycle](glossary.md#forecast-run-cycle), and steps forward. Each *forecast hour* is the forecast
 for that many hours after the cycle. Times are in UTC (universal time, the time at Greenwich) and
 given in seconds since 1 January 1970 UTC (Unix time). Pressures are in hectopascals (hPa, 100 Pa;
-sea-level pressure is about 1013 hPa). A *pressure level* is a height named by the pressure there.
+sea-level pressure is about 1,013 hPa). A *pressure level* is a height named by the pressure there.
 
 | model | grid | runs start | forecast hours | pressure levels asked for |
 |---|---|---|---|---|
-| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1000 to 10 hPa, about 31 km (102,000 ft) |
-| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1000 to 100 hPa every 25, about 16 km (52,000 ft) |
+| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1,000 to 10 hPa, about 31 km (102,000 ft) |
+| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1,000 to 100 hPa every 25, about 16 km (52,000 ft) |
 
 `NomadsRequest::new(latitude, longitude, model, cycle, forecast_hour)` says what to ask for, and
 it can't fail. The request's `url()`, and so `nomads::fetch`, refuse a cycle the model doesn't run
@@ -107,7 +109,7 @@ The answer goes through `hpr-net`'s cache ([Online data and the cache](online-da
 saved copy is. A run's files don't change once NOAA writes them, so a saved copy stays fresh for
 30 days.
 
-NOMADS keeps only recent runs. On 2026-09-30 its grib filters listed 10 days of GFS runs and 2 of
+NOMADS keeps only recent runs. On September 30, 2026 its grib filters listed 10 days of GFS runs and 2 of
 RAP. So a past launch needs a copy saved while NOMADS still had it. A run appears on NOMADS some
 hours after its start time. NOMADS limits how often you can ask, so keep to that.
 
@@ -137,7 +139,7 @@ beneath high ground. A level is kept only when its pressure is below the ground'
 above the ground. A level with a value missing at any of the four grid points is left out too.
 
 At Spaceport America, about 1,400 m (4,593 ft) up, six levels are underground in each model.
-They're 1000 to 850 hPa in GFS and 1000 to 875 hPa in RAP. GFS keeps 22 of its 28 levels and RAP
+They're 1,000 to 850 hPa in GFS and 1,000 to 875 hPa in RAP. GFS keeps 22 of its 28 levels and RAP
 31 of its 37. The profile lists every level it left out, and why.
 
 **Heights.** GRIB2 gives heights in geopotential meters. The simulator converts them to heights

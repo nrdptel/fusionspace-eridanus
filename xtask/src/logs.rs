@@ -1896,7 +1896,7 @@ impl EepromFile {
             {
                 file.climb_outside_the_band = !note.starts_with("`pressure`");
                 file.climb_ratio = note
-                    .split_once("a ratio of ")
+                    .split_once("The ratio is ")
                     .and_then(|(_, rest)| rest.split(',').next())
                     .and_then(|ratio| ratio.parse().ok());
             }
@@ -2635,7 +2635,7 @@ fn arts2_checks(samples: &[Sample]) -> Arts2Checks {
             log.channels.iter().find(|c| c.column == name).cloned()
         };
         let climb_ratio = odf.notes.iter().find_map(|note| {
-            let (_, rest) = note.split_once("a ratio of ")?;
+            let (_, rest) = note.split_once("The ratio is ")?;
             rest.split(',').next()?.trim().parse().ok()
         });
         let raw_csvs = beside(LogFormat::Arts2RawCsv);
@@ -8330,11 +8330,20 @@ fn markdown(report: &Report) -> String {
 }
 
 /// A record's note on a unit no header states, cut to its decision: the text before the first
-/// `: ` of a note that opens with a column's name in backticks and says how it was `read in`, or
-/// that it was `kept as written`, as the readers write them, such as `` `Velocity` read in miles
-/// per hour, from the altitude``, or a Featherweight summary's [`UNKNOWN_FIGURE`].
+/// `: ` or `. ` of a note that opens with a column's name in backticks and says how it was `read
+/// in`, or that it was `kept as written`, as the readers write them, such as `` `Velocity` read in
+/// miles per hour, from the altitude``, or a Featherweight summary's [`UNKNOWN_FIGURE`]. The
+/// evidence follows the decision, after a colon or as the next sentence. A stop inside backticks
+/// is part of a column's name (`` `lat. X accel.` ``), not the end of the decision.
 fn unit_decision(note: &str) -> Option<&str> {
-    let (decision, _) = note.split_once(": ")?;
+    let mut in_code = false;
+    let end = note.char_indices().find_map(|(i, c)| {
+        if c == '`' {
+            in_code = !in_code;
+        }
+        (!in_code && matches!(c, ':' | '.') && note[i + 1..].starts_with(' ')).then_some(i)
+    })?;
+    let decision = &note[..end];
     ((decision.starts_with('`')
         && (decision.contains("` read in ") || decision.contains("` kept as written")))
         || decision == UNKNOWN_FIGURE)
@@ -8864,6 +8873,16 @@ mod tests {
         assert_eq!(
             unit_decision(kept),
             Some("`Current` kept as written, in a unit no source states")
+        );
+        let sentence = "`Data` read in feet, 0.1 s apart, from the manual. Its rate: 10 a second";
+        assert_eq!(
+            unit_decision(sentence),
+            Some("`Data` read in feet, 0.1 s apart, from the manual")
+        );
+        let dotted = "`comp. bat. voltage` read in volts, from the values. They lie 7 to 9";
+        assert_eq!(
+            unit_decision(dotted),
+            Some("`comp. bat. voltage` read in volts, from the values")
         );
         for other in [
             "the column \"x\" isn't one this reader knows: kept",

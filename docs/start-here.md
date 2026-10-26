@@ -49,7 +49,7 @@ For now it covers only commercial off-the-shelf solid rocket motors
 ([COTS motors](glossary.md#cots-motor)), the kind you buy from a manufacturer. That stays true
 until the first app.
 
-Release 0.1.0 came out on 2026-10-08. Install its files as
+Release 0.1.0 came out on October 8, 2026. Install its files as
 [Install a release](getting-started.md#install-a-release) says, or build it from source.
 [How a release is built](releasing.md) says what a release holds and how each of its files is
 checked. [The changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md)
@@ -380,7 +380,7 @@ These are left out of a flight, or approximated:
   `hpr weather --output` saves says whether it's measured, a forecast or a reanalysis, and how far
   to trust it ([provenance on the other files](decisions-and-roadmap.md#m0-9c14)).
 - **It reads what you type, and says what to do when it can't.** It reads numbers as you'd write
-  them by hand: `--elevation 1,280` is 1280 m (4199 ft). A comma it can't read as a thousands
+  them by hand: `--elevation 1,280` is 1,280 m (4,199 ft). A comma it can't read as a thousands
   separator, such as `3,9`, is asked about. A refused option is named with its value, its unit and
   an example. For a file that isn't there, it names the closest file in the same folder
   ([typing numbers](cli.md#typing-numbers-and-what-a-refusal-says);

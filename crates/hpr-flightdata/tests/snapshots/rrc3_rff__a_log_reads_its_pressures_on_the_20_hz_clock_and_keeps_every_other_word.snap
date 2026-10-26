@@ -3,9 +3,9 @@ source: crates/hpr-flightdata/tests/rrc3_rff.rs
 expression: log.notes
 ---
 [
-  "the file holds no times: the pressure is on the RRC3's 20 Hz clock (RRC3 manual p. 23), which its 3 once-a-second pairs bear out to within 0.0 s",
+  "the file holds no times. The pressure is on the RRC3's 20 Hz clock (RRC3 manual p. 23), which its 3 once-a-second pairs bear out to within 0.0 s",
   "the record's primary track is empty: the file holds pressures, not an altitude",
-  "the once-a-second pairs, presumably the temperature and battery voltage the RRC3 records at 1 Hz (RRC3 manual p. 23), are kept as written: the file holds no calibration for them",
+  "the once-a-second pairs are kept as written. They are presumably the temperature and battery voltage the RRC3 records at 1 Hz (RRC3 manual p. 23). The file holds no calibration for them",
   "the log opens with 3 words before its first reading, kept here as written: 0x6f00, 0x7f00, 0x0400",
   "2 auxiliary words stand alone, not in a pair; they are kept as written, as `single auxiliary word`"
 ]

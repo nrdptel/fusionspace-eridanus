@@ -44,7 +44,7 @@ stability margin and landing point.
 
 ## Purpose and use
 
-Why the metrics are built as they are, and how to ask a flight for them.
+Why the metrics are built so, and how to ask for them.
 
 ### Why these rules
 
@@ -179,8 +179,7 @@ all: `None`, not zero.
 
 ## Stability
 
-The stability margin over the flight, the largest angle of attack, and the flags for a flight
-unstable under power.
+The margin, the largest angle of attack, and the unstable-under-power flag.
 
 ### Stability margins
 
@@ -202,34 +201,39 @@ instant:
   of mass of that instant. This is RocketPy's `static_margin`. It changes only as propellant burns.
 - **Flight margin:** the center of pressure at the flight's own Mach number, still with the air
   along the axis, against that instant's center of mass. It is defined as RocketPy's
-  `stability_margin` is. RocketPy's `min_stability_margin` takes the least over its whole flight,
-  on the rail and in the descent too. It reads it at its solver's steps, so it can differ from HPR Sim's least
-  below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, HPR Sim's margin at the
-  flight's Mach number is within 0.016 calibers on 41 of the 53 flights of OpenRocket's own
-  examples. That is in calm air at rod clearance, where a rocket is still slow. HPR Sim's margin in
-  this comparison has the air along the rocket's axis (the 0° plane), as OpenRocket's does. It isn't
-  the margin in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
-  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis.
-  But `hpr sim` prints a least margin of −4.21 in the weakest plane. HPR Sim and OpenRocket differ as
-  follows. On the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
-  [tube fins](aero.md#tube-fins). On the three-stage example's three flights it is 0.039 to 0.058
-  below, cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185).
-  On the five of *Pods--airframes and winglets* it is 0.071 to 0.076 above, the flattering side,
-  [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
-  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326). On the three of
-  *Pods--powered with recovery deployment* it is 0.070 above, also not yet traced. On 35 flights of
-  private designs it is from 0.017 lower to 0.11 higher, cause not yet traced
-  ([Accuracy](../accuracy.md)). Near Mach 1, HPR Sim puts the Arcas Robin's center of pressure up to
-  2.36 calibers behind the wind tunnel's
-  ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)). So there its flight margin
-  reads high.
+  `stability_margin` is.
 
-  The Mach number moves the center of pressure. On a rocket with fins only at the tail it
-  generally moves aft until supersonic theory starts for the fins, Mach 1.2 or later. Their
-  slope grows, and from Mach 0.8 their own center moves aft too. Past that their slope falls and
-  the body's lift can grow, and the center of pressure mostly moves forward again
-  ([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
-  at its rail exit, at Mach 0.051, both margins read 3.09 calibers.
+RocketPy's `min_stability_margin` takes the least over its whole flight, on the rail and in the
+descent too. It reads it at its solver's steps, so it can differ from HPR Sim's least below. No
+page compares HPR Sim's margins with RocketPy's yet.
+
+Against OpenRocket, HPR Sim's margin at the flight's Mach number is within 0.016 calibers on 41 of
+the 53 flights of OpenRocket's own examples. That is in calm air at rod clearance, where a rocket
+is still slow. HPR Sim's margin in this comparison has the air along the rocket's axis (the 0°
+plane), as OpenRocket's does. It isn't the margin in HPR Sim's weakest plane (below). On
+`[C6-7; B6-0]` of *Pods-\-powered with recovery deployment*, HPR Sim's margin at rod clearance in
+the report is +3.74 calibers along the axis. But `hpr sim` prints a least margin of −4.21 in the
+weakest plane. At rod clearance in the 0° plane, HPR Sim's margin differs from OpenRocket's on:
+
+- the *Tube fin rocket*: 1.08 calibers below, [tube fins](aero.md#tube-fins);
+- the three-stage example's three flights: 0.039 to 0.058 below, cause not yet sized,
+  [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185);
+- the five of *Pods-\-airframes and winglets*: 0.071 to 0.076 above, the flattering side,
+  [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
+  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326);
+- the three of *Pods-\-powered with recovery deployment*: 0.070 above, also not yet traced;
+- 35 flights of private designs: from 0.017 lower to 0.11 higher, cause not yet traced
+  ([Accuracy](../accuracy.md)).
+
+The Mach number moves the center of pressure. On a rocket with fins only at the tail it generally
+moves aft until supersonic theory starts for the fins, Mach 1.2 or later. Their slope grows, and
+from Mach 0.8 their own center moves aft too. Past that their slope falls and the body's lift can
+grow, and the center of pressure mostly moves forward again
+([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
+at its rail exit, at Mach 0.051, both margins read 3.09 calibers. Near Mach 1, HPR Sim puts the
+Arcas Robin's center of pressure up to 2.36 calibers behind the wind tunnel's
+([Normal force through Mach 1](aero.md#normal-force-through-mach-1)). So there its flight margin
+reads high.
 
 **Both margins are the weakest direction's.** The air can cross a rocket from any direction around
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
@@ -240,7 +244,7 @@ Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), the si
 direction's alone, which can be the strongest. A rocket whose fin sets each have three or more fins,
 or that flies a normal-force table, keeps its one margin, bit for bit.
 
-A worked case: the sustainer of OpenRocket's *Pods--powered with recovery deployment* example has
+A worked case: the sustainer of OpenRocket's *Pods-\-powered with recovery deployment* example has
 a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the booster drops, its
 margin is +1.86 calibers with the air crossing at 0°. There the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
@@ -362,7 +366,7 @@ A worked case, with no fins, pinned by a test:
   34.66 mm (1.4 in) or more.
 - The center of mass is at 0.5 m (1.6 ft).
 
-| Boattail's aft radius | Net slope | $\kappa$ | Margin | $C_{m\alpha}$ |
+| Boattail's aft radius | Net slope, per rad | $\kappa$ ratio | Margin | Pitch-moment slope $C_{m\alpha}$, per rad |
 |--:|--:|--:|---|--:|
 | 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
 | 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |
@@ -460,14 +464,14 @@ after its motors burn out, raises neither flag. It has no thrust to carry it off
 least static margin over the whole span, `min_static_margin_cal`, still prints its margin
 there.
 
-For example, OpenRocket's example *Pods--powered with recovery deployment*, flown on `[C6-7; B6-0]`
+For example, OpenRocket's example *Pods-\-powered with recovery deployment*, flown on `[C6-7; B6-0]`
 or `[C6-7; 2× A3-4, B6-0]`, separates at 0.86 s. The sustainer left has a static margin of −4.21
 calibers with its C6 still burning. On `[C6-7; B6-0]`:
 
 ```text
 static margin         2.05 calibers off the rail; least -4.21 calibers, at 0.86 s, before apogee
 apogee                251.3 m above the site at 5.74 s, not a prediction: unstable under power
-warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns: the rocket is unstable under power, so the air turns it away from its path rather than back, and its apogee is not a prediction
+warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns. The rocket is unstable under power: the air turns it away from its path rather than back, and its apogee is not a prediction
 ```
 
 For the second flag, take RocketPy's Valetudo with its fins taken off. Give it a conical tail that
@@ -477,16 +481,16 @@ radian:
 
 ```text
 apogee                399.1 m above the site at 8.46 s, not a prediction: unstable under power
-warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s) where hpr can give no static margin: the rocket is unstable under power, so its apogee is not a prediction
+warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s). HPR Sim can give no static margin then. The rocket is unstable under power, so its apogee is not a prediction
 ```
 
 With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibers, and the first flag
-fires in its place. These figures are from a run on 2026-10-06; the test
+fires in its place. These figures are from a run on October 6, 2026; the test
 (`sim_flags_a_rocket_unstable_where_it_has_no_margin`) pins only the flag and a slope above 1.
 
 `hpr sim` prints the `warning: unstable:` line and marks the apogee for either flag. Its JSON
 lists the flag under `flags`. The library has it in `FlightSummary::envelope_flags`, and Python in
-`Flight.envelope_flags`. When this was written (2026-10-06), none of the 25 public `.ork` files
+`Flight.envelope_flags`. When this was written (October 6, 2026), none of the 25 public `.ork` files
 and 12 validation designs that `hpr sim` flies offline raised either flag. That was on their default
 configurations off an 85° rail in calm air and in 8 m/s (26 ft/s) of wind. No test or report pins that
 count.

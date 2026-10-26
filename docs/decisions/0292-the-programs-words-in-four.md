@@ -1,6 +1,6 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
-- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass
+- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass, for the census and tasks of M0.14d2 and M0.14d3, and for M0.14d4's readings and tasks
 - **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
@@ -130,10 +130,157 @@ above zero, the highest at 10.5% of its peak, so half the peak refuses none of
 them. A test reads those files and prints the figures wherever the checkouts are. A cut where the
 thrust is under half its peak, in the tail-off or a sustain phase, keeps the warning.
 
+**Amendment for M0.14d2: the census's rule and its tasks (2026-10-25).** The source doesn't say
+which literal ends up in a message. A refusal's `what` is written where the error is made, a
+warning's text is often built in one function and pushed in another, and a note can pass through a
+variable. So the census reads more than the messages. That holds a stock phrase or first person
+anywhere in the code's prose, but the extra prose also dilutes the rates, so `--long --messages`
+lists each long sentence.
+
+1. **The files.** Each tracked `.rs` file under `src/` of the nine crates and of `hpr-cli`, less
+   test code: what a `#[cfg(test)]` marks (an item, a statement or block, a variant, a field, a
+   match arm, or a module or file by its own `#![cfg(test)]`), and a module declared under it,
+   with the modules inside that module. Where it can't tell where the marked code ends, it stops
+   skipping early, so the hold errs toward reading test text, never toward missing a message. From `hpr-cli` it leaves out the files of M0.14d3's commands: `analyze.rs`,
+   `weather.rs`, `motor_fetch.rs`, `motor_search.rs` and `waiting.rs` (what a fetch prints while
+   it waits).
+2. **What it reads.** Each `#[error("…")]` text, and each other string literal in the code that
+   reads as prose: three words or more, a placeholder counting as one, and at least one of them a
+   word of letters. It doesn't read markup, comments, doc comments, byte strings or other
+   attributes. Markup is a literal that starts with a tag and holds a closing tag, a tag closed on
+   itself, an attribute, a declaration or a comment: a piece of an SVG figure or of a file's XML.
+   A note that only opens with an element's name (`<Shape> is …`) is read. The help's attributes are held by the snapshots, and a
+   `reason = "…"` is read only by the code's readers. An `#[error(transparent)]`, or an `#[error]`
+   text with no word of its own (`"{0}"`), passes on another error's text, which is read where
+   it's written.
+3. **How it reads them.** Each line of a literal is a paragraph of a reference page. A placeholder
+   (`{path}`, `{0:.1}`) is one code word, like text in backticks. The pieces a message joins at run
+   time are read one by one. The census counts the literals with a placeholder, which it can't
+   see whole; pieces joined with no placeholder are read in pieces too, so the count is a guide, not a bound.
+4. **The hold.** There is one page a crate, named by its `src/` directory, and it's held as a help
+   snapshot is (§4). No stock phrase, every rate within its limit (first person at zero), and both
+   sentence targets. The report lists the ten pages beside the site's, with the census's counts.
+   `cargo xtask voice --long --messages` lists each long sentence with its file and line.
+
+On main (cdb01265), this rule reads about 21,800 words. Two crates' pages were over the limit on
+long sentences: `hpr-sim` (0.90 per 100 words, and 31 of its 231 sentences over 25 words) and
+`hpr-aero` (0.82). `hpr-cli`'s page held six stock phrases. A census reads pieces, and a message is
+read whole, so the tasks below read the joined messages.
+
+**M0.14d2's tasks.** Each is done with the release build of `hpr` and the messages alone, then
+checked against what the command did:
+
+1. Fly Loft's demo designs (`validation/fixtures/ork/loft-demo/`) as the files have them. From the
+   errors alone, say why each can't fly and what to change, then fly `demo-stable.ork` on a
+   catalog motor that fits.
+2. Hostile `hpr sim`: a file that isn't there, a `.eng` given as the design, a `--motor` that no
+   catalog holds, `--rail-length 0` and `--wind -3`. Each is refused with a message that names the
+   input and what's allowed.
+3. `hpr mc` with `--runs 0` and with `--mass-sd 2` is refused, or the failed flights are counted
+   and the message says why they failed.
+4. `hpr convert`: a design to an extension it can't write, and a motor file to a design format.
+   Each is refused with a message that says what it can write.
+5. `hpr motors show` with a name the catalog lacks, and with a `.eng` file whose curve ends above
+   zero thrust. `hpr motors list --class Z` and `--diameter 1000` match nothing. Each message says
+   what happened and what to try.
+6. A cold read of every census page against each rule of the voice section, and of the joined
+   messages the tasks printed. Each finding is fixed in the PR or filed.
+
+**Amendment for M0.14d3: the census's rule and its tasks (2026-10-25).** The rule is
+M0.14d2's, read over four more crates, `hpr-net`, `hpr-flightdata`, `hpr-analysis` and
+`hpr-forensics`, and over the five files of `hpr-cli` it left out. The census then reads every
+crate `hpr` is built from. `hpr-validate` stays out (§1), and `hpr-py` waits for M0.14d4.
+
+On main (556a8e6d), the four crates read about 29,600 words, and the five files raise `hpr-cli`'s
+page to about 8,000. One page is over a limit: `hpr-flightdata` (0.93 long sentences per 100
+words, and 258 of its 1,972 sentences over 25 words). It reads most of the log formats, and their
+notes explain a format's quirks at length. Two stock phrases are new: one in `hpr-cli`'s weather
+file, one in `hpr-flightdata`'s NMEA reader. The other pages are within every limit.
+
+**M0.14d3's tasks.** Each is done with the release build of `hpr` and the messages alone, with
+`HPR_CACHE_DIR` set to an empty directory, then checked against what the command did:
+
+1. Read three saved answers from `crates/hpr-net/tests/fixtures/replay/` with `hpr weather … --from`:
+   Open-Meteo's forecast, a Wyoming sounding and a GFS file. Hostile: a `--time` the file doesn't
+   cover, an invented answer file, and `--offline` with nothing cached. Each is refused with a message
+   that names the input and says what's allowed or what to do.
+2. `hpr motors fetch F27 --offline` with nothing cached, and `hpr motors search --from` the saved
+   motor list with `--class Z`, and then with `--max-price -5`. Each message says what happened and
+   what to try.
+3. `hpr analyze`: read the PerfectFlite, EggTimer and AltOS samples
+   (`crates/hpr-flightdata/tests/samples/`), and say from the notes alone what each log leaves
+   unknown. Hostile: an empty file, a `.csv` whose columns no reader knows, a sample cut in half,
+   and `--sheet 3` on a one-sheet file. Each is refused, or read with a warning that says what is
+   missing and what to do.
+4. A cold read of the four new census pages and of `hpr-cli`'s five files against each rule of
+   the voice section, and of the joined messages the tasks printed. Each finding is fixed in the PR
+   or filed.
+
+**Amendment for M0.14d4: its readings and its tasks (2026-10-25).** M0.14d4 adds three readings
+to `cargo xtask voice`, each held as a help snapshot is (§4):
+
+1. **The docstrings, as `help()` shows them.** A test of the Python package,
+   `crates/hpr-py/tests/test_docstrings.py`, writes them to a snapshot,
+   `crates/hpr-py/tests/docstrings.md`, from the installed wheel. It holds the module's docstring,
+   then each name the package exports, in the order of its `__all__`, and under each class each
+   public attribute of its own (methods, properties, class and static methods) in name order. Each
+   docstring is the text `help()` shows below the signature (`inspect.cleandoc` of its `__doc__`),
+   under a heading of the name in backticks. A public name with no docstring fails the test, and
+   so does a snapshot that differs from the package; `HPR_BLESS=1` writes it again. CI's Python
+   job runs the test on each platform, on Python 3.10 and 3.13 (3.11 and 3.13 on Windows on
+   ARM, where CPython's builds start at 3.11), and the site step holds the snapshot. Python reads the docstrings, so the snapshot holds what a reader sees, not the
+   Rust doc comments they're written in, and none of the `hpr-py` comments that never reach
+   Python. The snapshot is a reference page, so first person counts against a limit of zero.
+2. **The README** of the Python package, `crates/hpr-py/README.md`, its front page on PyPI. It's
+   held as the repository's README is: not a reference page.
+3. **Each crate's front page.** The `//!` docs at the top of each crate's `src/lib.rs` are the
+   page docs.rs shows for the crate. The check reads them as rustdoc does, as Markdown: each
+   `//!` line less its marker and one space, up to the first line of code. Each crate under
+   `crates/`, one for each `Cargo.toml` there, is held, `hpr-validate` too, and a crate with no
+   `src/lib.rs`, or with no `//!` docs at its top, is refused. Each is a reference page (§6).
+   `cargo xtask voice --long` reads a `.rs` file given as its path the same way.
+
+`hpr-py`'s own messages join the census by M0.14d2's rule, which then reads 15 crates.
+
+Before the rewrite (77c6b51a), the docstrings, the README and the 18 front pages read 7,926
+words, and 17 of those 20 pages are over a limit. The docstrings are 3,421 words, and 50 of
+their sentences are over 25 words (1.47 per 100 words, 35% of all their sentences), with one stock
+phrase, "a number of". The README is 352 words, with 4 long sentences
+(1.14 per 100). Of the 18 front pages, 4,153 words in all, 15 are over a limit: 13 on long
+sentences, 9 on labels (milestone and decision numbers) and one on bold-label items. `hpr-flightdata`'s page names its
+readers in one paragraph of about 600 words. `hpr-py`'s census page is 644 words in 60 literals,
+within every limit.
+
+**M0.14d4's tasks.** Each is done with the wheel `scripts/python-tests.sh` builds, from
+`help()` alone, or for task 6 from the crates' pages that `cargo doc --no-deps` builds, then
+checked against what the code did:
+
+1. From `help(hpr)` and the help of the types it names, fly the guide's design,
+   `validation/fixtures/ork/guides/level-1.ork`, on a catalog motor that fits it, and give its
+   apogee and the speed off the rail. Then fly it with `hpr sim` on the same inputs and compare.
+2. From `help(hpr.Rocket)`, build a rocket from parts: a nose, a tube, fins, a motor tube and a
+   parachute. Give its static margin on a motor from the catalog. Hostile: a material that isn't
+   built in and a negative length are each refused with an `HprError` that names the input and
+   what's allowed.
+3. From `help(hpr.MonteCarlo)`, fly 20 flights with seed 7 twice and see the same numbers, then
+   write them to a `.csv`.
+4. From `help(hpr.FlightLog)`, read the PerfectFlite sample
+   (`crates/hpr-flightdata/tests/samples/perfectflite-export.csv`) and give its apogee. Hostile:
+   an invented log is refused with a message.
+5. From `help(hpr.DragTable)`, fly the design of task 1 on a drag table read from a `.csv`.
+   Hostile: a table whose Mach numbers don't increase is refused with a message.
+6. From the crates' front pages alone, say which crate reads a flight log, which flies a design,
+   which is the command line and which are planned only, then run each page's example
+   (`cargo test --doc`).
+7. A cold read of the docstrings, the README, the 18 front pages and `hpr-py`'s census page
+   against each rule of the voice section. Each finding is fixed in the PR or filed.
+
 **Consequences.**
 
 - The help can't drift: a change to it fails the snapshot test until the snapshot is written
   again, and the voice check reads the new text.
-- The messages wait two more increments. Until then no check reads them, and the help's hold
-  says nothing about them.
+- The messages wait two more increments. Until M0.14d2, no check reads them, and the help's hold
+  says nothing about them. Since M0.14d3, the census reads every crate `hpr` is built from.
+  Since M0.14d4, the Python package's docstrings and README, `hpr-py`'s messages and each crate's
+  front page are held too.
 - The roadmap's M0.14d entry becomes its four increments, which fit its byte budget.

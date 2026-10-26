@@ -523,7 +523,7 @@ fn engine(
             line,
             format!(
                 "engine {:?} ends at {last} N, above half its peak thrust of {peak} N, so the \
-                 file looks cut off; a curve ends at zero thrust",
+                 file looks cut off. A curve ends at zero thrust",
                 engine.code
             ),
         ));

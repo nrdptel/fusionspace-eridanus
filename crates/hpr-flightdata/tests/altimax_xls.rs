@@ -208,7 +208,7 @@ fn a_sheet_is_read_as_chosen_and_a_table_by_a_mapping() {
     match import::read_one(&bytes, Some(1), None) {
         Err(LogError::Choice { message }) => {
             assert!(
-                message.contains("has 1 sheets, numbered from 0"),
+                message.contains("has 1 sheet, numbered from 0"),
                 "{message}"
             );
         }

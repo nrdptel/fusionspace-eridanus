@@ -147,7 +147,7 @@ fn the_short_record_keeps_what_it_cant_check() {
     );
     assert!(
         speed.contains("between samples up to 1.0 s apart")
-            && speed.contains("over the coast, 8 samples"),
+            && speed.contains("Over the coast, 8 samples"),
         "{speed}"
     );
     note(

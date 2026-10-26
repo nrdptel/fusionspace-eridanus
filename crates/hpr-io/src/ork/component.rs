@@ -38,7 +38,7 @@ const FILLED_TO_CACHE: &str = "a filled tube whose radius is automatic; it was r
                                the radius OpenRocket last worked out, which may be stale";
 
 /// A filled tube whose automatic radius cached nothing, so it has no radius to be solid to.
-const FILLED_TO_NOTHING: &str = "a filled tube whose radius is automatic and nothing cached; it \
+const FILLED_TO_NOTHING: &str = "a filled tube whose radius is automatic and nothing cached. It \
                                  carries no mass, because there is no radius to fill until the \
                                  layout resolves one";
 
@@ -258,7 +258,7 @@ fn default_radii(rocket: &mut Rocket, reads: &[Vec<BodyRead>], warnings: &mut Ve
             WarningKind::Unusual,
             format!(
                 "an automatic radius with no fixed radius anywhere along its chain to take, its \
-                 `{}`; it was given {:.0} mm, OpenRocket's default radius for a tube with nothing \
+                 `{}`. It was given {:.0} mm, OpenRocket's default radius for a tube with nothing \
                  to take",
                 radius_tag(filled.dimension),
                 radius_m * 1e3
@@ -332,7 +332,8 @@ pub(super) fn body(
     let mut values = Values::new(element, at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
     let (overrides, overrides_include_children, drag_override) = overrides(&mut values);
-    let finish = finish(&mut values);
+    // Every body component is an outside part.
+    let finish = finish(&mut values, true);
     let (part, wall) = match element.name.as_str() {
         "nosecone" => (nose_cone(element, at, &mut auto, warnings), None),
         "bodytube" => {
@@ -802,7 +803,7 @@ pub(super) fn overrides(values: &mut Values<'_>) -> (Overrides, bool, Option<Dra
             WarningKind::Dropped,
             format!(
                 "the mass override covers the parts inside this one ({mass_flag}) and \
-                 the center-of-gravity override does not agree; HPR Sim states it once, so \
+                 the center-of-gravity override does not agree. HPR Sim states it once, so \
                  the mass flag was taken"
             ),
         );

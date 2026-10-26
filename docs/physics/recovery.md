@@ -75,7 +75,7 @@ Sources:
 
 ## Drag of each device
 
-How much drag a parachute, a streamer or a tumbling body gives.
+Drag of a parachute, a streamer and a tumbling body.
 
 ### Drag area
 
@@ -178,7 +178,7 @@ Two details of his method decide how to compare, and both were got wrong here be
 `streamer_models_against_kidwells_drop_tests` uses the notional mass and compares the same
 average, from the [closed-form](../glossary.md#closed-form) fall:
 
-| case | measured | $C_D$ it implies, on $S$ | `Filippone` | `OpenRocket` |
+| case | measured | implied $C_D$ (coefficient), on $S$ | `Filippone` speed | `OpenRocket` speed |
 |---|--:|--:|--:|--:|
 | crêpe paper, 32 g/m², **unpleated** | 2.80 m/s (9.2 ft/s) | 0.155 | 3.05 m/s (10.0 ft/s, +9%) | 5.28 m/s (17.3 ft/s, +88%) |
 | Micafilm, 42 g/m², pleated | 2.04 m/s (6.7 ft/s) | 0.338 | 3.21 m/s (10.5 ft/s, +58%) | 5.19 m/s (17.0 ft/s, +154%) |
@@ -253,7 +253,7 @@ $$
 (0.98 ft/s). Replaying Table 3.3 through the simulator's reading of the model
 (`the_tumble_model_against_its_own_drop_tests`) gives:
 
-| model | fins | measured | HPR Sim |
+| model | fins | measured | HPR Sim, m/s |
 |---|---|--:|--:|
 | #1 | 3 | 5.6 m/s (18 ft/s) | 5.27 (−5.8%) |
 | #2 | 4 | 6.3 m/s (21 ft/s) | 5.96 (−5.4%) |
@@ -292,7 +292,7 @@ becomes unstable enough (the same documentation declines to model the analogous 
 
 ## Deployment and descent
 
-When each device fires, how a canopy fills, and how the rocket then comes down.
+When a device fires, how a canopy fills, and the descent.
 
 ### Triggers, lag and release
 
@@ -494,7 +494,7 @@ $$
 
 ## Parts that come apart
 
-How the stack splits at a stage boundary or lets a piece go at a joint.
+A stage split and a piece let go at a joint.
 
 ### Separation
 
@@ -716,7 +716,7 @@ flies the 54 mm (2.1 in) test rocket on an I175 with a 250 g payload in its airf
 comes down under a 0.9 m (3.0 ft) one. It lets the payload out at 300 m (984 ft) under a 0.6 m (2.0 ft) one. Each lands at
 its own terminal speed, $v_e$ above, for its own mass and canopy in the air at the ground:
 
-| Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) |
+| Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | speed $v_e$ (m/s) | East of the pad (m) |
 |---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone | 0.063 | 16.23 | 562.88 | 3.06 | 3.06 | 2,035.4 |
 | 1, the airframe | 0.556 | 16.23 | 333.54 | 4.54 | 4.54 | 1,115.6 |
@@ -731,7 +731,7 @@ its canopy opening and the payload leaving the airframe, is in that body's own l
 The example then flies the same rocket again with a 1 N·s push at each parting. The nose cone has
 no canopy and tumbles:
 
-| Body | Mass (kg) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) | Moved from the first flight (m) |
+| Body | Mass (kg) | Lands (s) | At (m/s) | speed $v_e$ (m/s) | East of the pad (m) | Moved from the first flight (m) |
 |---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone, tumbling | 0.063 | 130.93 | 14.82 | 14.82 | 269.6 | 1,765.7 |
 | 1, the airframe | 0.556 | 333.42 | 4.54 | 4.54 | 1,115.6 | 0.0 |
@@ -833,7 +833,7 @@ left to burn, it is the payload's. In each, it is the branch OpenRocket's record
 - 48 flights: the report's 51 with no named cause for an apogee gap, less the *Base drag
   hack*'s three (below). The landing speed is +0.00% to +0.02% off
   OpenRocket's, and the flight time −1.57% to +3.16% (0.68% on average, either way). Among them
-  are two of *Pods--powered with recovery deployment*. On its booster's flight, the two pods'
+  are two of *Pods-\-powered with recovery deployment*. On its booster's flight, the two pods'
   parachutes open at launch + 5.35 s in both programs, and the flight time is −1.02% off.
 - 40 of those 48 meet every target as written. The other 8 miss only on a deployment's time.
   All 8 reach an apogee 0.63% to 4.34% below OpenRocket's, a climb gap the same report shows. And
@@ -848,7 +848,7 @@ left to burn, it is the payload's. In each, it is the branch OpenRocket's record
   faster than OpenRocket, and their flight times are +1.72% to +7.07% off; the last misses its
   target.
 - 2 flights with a named cause for an apogee gap. One is put down to HPR Sim's tube-fin drag.
-  In the other, `[C6-7; B6-0]` of *Pods--powered with recovery deployment*, the sustainer turns
+  In the other, `[C6-7; B6-0]` of *Pods-\-powered with recovery deployment*, the sustainer turns
   over before apogee in both programs. Both land at OpenRocket's speed (+0.00%), but their flight
   times are −52.64% and +5.78% off.
 - The private designs. On 34 descents, published only as differences
@@ -895,7 +895,7 @@ name the [oracle](../glossary.md#oracle):
 | The Coriolis drift of a 3 km (1.9 mi) descent, Earth rotation on | 0.3666 m (1.203 ft) east against the steady prediction $2\Omega \cos\varphi \cdot v_t^2/g \cdot T$ = 0.3685 m, 0.52% apart, and 29 µm north |
 | Knacke's filling law, $t_f = n D_0/v$ and $(t/t_f)^j$ | the recorded drag area to 1e-9 of $(C_D S)_0$ |
 | Inflation against instant opening (deployed at 60 m/s (197 ft/s) under a 1.5 m (4.9 ft) flat circular canopy) | peak load 1,615 N against 3,020 N instant (0.53 of it), between the closed-form 1,527 N without gravity and 1,670 N with it |
-| An oversized canopy (5 m (16 ft)) opening at 100 m/s (328 ft/s), 10 km (6.2 mi) of descent at 2.95 m/s (9.7 ft/s) | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormandprince-and-rk4) needed a 2e-4 s floor) |
+| An oversized canopy (5 m (16 ft)) opening at 100 m/s (328 ft/s), 10 km (6.2 mi) of descent at 2.95 m/s (9.7 ft/s) | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormand-prince-and-rk4) needed a 2e-4 s floor) |
 | A deployment with a 0.7 rad/s body rate, and another inside the burn in a crosswind | the center of mass keeps its velocity across the handover to 1e-12, and the nose tip's moves by exactly $\boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$, turned into the launch frame |
 | A whole flight: drogue at apogee with a lag, main at 300 m (984 ft), drogue released | events in order; each stage settles within 2% of its own $v_e$ |
 | Two devices triggered at the same instant | both open in the same pass, and the descent settles at the $v_e$ of the **sum** of their drag areas |
@@ -983,7 +983,7 @@ gaps, in order:
   `solver.relative_change_from_loose`), far below the gaps. The one larger entry, 2.1e-3, is
   Valetudo's north drift of 19 µm, which has [its own section](#valetudos-north-drift) below.
 
-**The results.** Measured (HPR Sim against RocketPy, 2026-09-17):
+**The results.** Measured (HPR Sim against RocketPy, September 17, 2026):
 
 | case | descent time | descent rate under the drogue | impact descent rate | drift | worst drift component |
 |---|--:|--:|--:|---|---|

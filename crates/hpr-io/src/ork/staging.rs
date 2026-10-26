@@ -668,7 +668,7 @@ fn separation(
     if !alone && !powered {
         return Err(format!(
             "stage {stage} separates at {time_s} s with no motor ahead of it left to burn, beside \
-             another separation, and HPR Sim flies more than one separation only under power"
+             another separation. HPR Sim flies more than one separation only under power"
         ));
     }
     // At its stage's first burnout under power, the stage's other motors may still burn, as

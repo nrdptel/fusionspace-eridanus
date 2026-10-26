@@ -556,7 +556,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             .map(|k| session(k).len())
             .sum();
         notes.push(format!(
-            "the board's tick starts again {} times, a power-on each: the record holds power-on \
+            "the board's tick starts again {} times, a power-on each. The record holds power-on \
              {} of {} ({}), and {others} packets of the others are left out",
             starts.len() - 1,
             chosen + 1,
@@ -569,8 +569,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         ));
     }
     notes.push(format!(
-        "the clock is the board's tick, 10 ms, from the turn of the first packet heard, each \
-         tick on the turn nearest the latest so far; its first packet at {:.2} s",
+        "the clock is the board's tick, 10 ms, from the turn of the first packet heard. Each \
+         tick is on the turn nearest the latest so far. The clock's first packet is at {:.2} s",
         times[0]
     ));
     match pad_pressure(packets) {
@@ -579,8 +579,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
              {pa:.0}, lies between 10 and 120 kPa read so"
         )),
         Some(pa) => notes.push(format!(
-            "`pres` kept as written: the pad's, {pa:.0}, is no launch site's pressure in \
-             pascals, and the document's tenths of a pascal are contradicted by the files read"
+            "`pres` kept as written. The pad's pressure, {pa:.0}, is no launch site's \
+             pressure in pascals. The files read contradict the document's tenths of a pascal"
         )),
         None => {}
     }
@@ -592,7 +592,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         );
         notes.push(
             "`acceleration`, `speed` and `height` are the board's own estimates, read in the \
-             document's units: sixteenths of a m/s² and of a m/s, and meters above the pad"
+             document's units. The units are sixteenths of a m/s² and of a m/s, and meters above \
+             the pad"
                 .to_owned(),
         );
     }
@@ -604,7 +605,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if channels.values("nsat").is_some() {
         notes.push(
             "GPS: `pdop`, `hdop` and `vdop` kept as written, five times the dilution in the \
-             document; the date and time as written, the year two digits; `ground_speed`, \
+             document. The date and time are as written, the year two digits. `ground_speed`, \
              `climb_rate` and `course` kept as written, their units unchecked"
                 .to_owned(),
         );

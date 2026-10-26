@@ -352,8 +352,8 @@ isn't searched, and a canopy's shock, however large, comes after the thrust.
 On the tests' short burn, gravity in, the part reads 40 g for 0.3 s. Then a drag of −8 g eases to
 nothing by 6 s. The drag's span holds past 2 g for about 1.7 s and the burn's for 0.3 s, but the
 burn's comes first. So the thrust says nothing. The pad's 1 g says nose up, and the top reads 40 g.
-Turned by the drag's span alone, as an earlier rule turned it, the top read 7.9 g. Two of the
-sample logs are withheld as `direction_unstated`.
+Turned by the drag's span alone, as an earlier rule turned it, the top read 7.9 g. Six sample
+logs are withheld as `direction_unstated`; [Checked against](#checked-against) says why.
 
 A sample that isn't a number or has no time is left out. So is one that repeats the time of the
 last kept, the first kept, as the height track keeps AltOS's rows that share a time. A part sampled
@@ -541,9 +541,9 @@ run's start inside the drogue's leg. Second, the descent from apogee to the open
 than 1.4 times the main's rate, by its median, as Debrief asks. Otherwise the descent shows one canopy (`one_canopy`): the
 drogue's descent is withheld, and the main's runs from apogee to landing. So a drogue no faster
 than the mark reads as one canopy, whatever its ratio to the main. The main's descent is then
-the whole descent's. In the tests, a drogue at 12 m/s (39 ft/s) over a main at 10 m/s (33 ft/s)
-reads as one canopy. The main's mark is 16 m/s (52 ft/s). Debrief's ratio of 1.4 would tell them
-apart. A rocket that came down under none reads the same way.
+the whole descent's. In the tests, a drogue at 15 m/s (49 ft/s) over a main at 10 m/s (33 ft/s)
+reads as one canopy. The main's mark is 16 m/s (52 ft/s). Debrief's ratio of 1.4 alone would tell
+them apart. A rocket that came down under none reads the same way.
 
 **Each leg's rate** is the filtered height it loses over the time it takes. The drogue's leg runs
 from apogee to the main's opening, and the main's from there to landing. A leg that loses no more than 3 m
@@ -672,7 +672,7 @@ log, on a track in one-foot steps sampled 20 times a second. Its filtered track 
 2.30 m (7.6 ft) of its start for 0.80 s. That is longer than the 0.69 s a rocket at rest would need to
 climb the 4.61 m (15.1 ft) rise at 2 g. So the pad's error is zero. The bound adds up so:
 
-| term | worked out | meters |
+| term | worked out, in m, m/s or s | bound term, m |
 |---|---:|---:|
 | the day's air | 0.06924 × 390.144 m | 27.01 |
 | the barometer's gain | 0.0025 × 390.144 m | 0.98 |
@@ -838,7 +838,7 @@ above the truth. The largest share of its bound any error took, from the
 [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds)
 and its JSON:
 
-| reading | largest share of the bound | on the log | its error, against its bound |
+| reading | largest share (of the bound) | on the log | its error, against its bound |
 |---|---:|---|---|
 | liftoff | 0.603 | 500 samples a second, heights with no step | 0.387 s within 0.643 s |
 | apogee height | 0.717 | 20 samples a second, heights with no step | −149 m (−489 ft) within 208 m (682 ft) |
@@ -864,7 +864,7 @@ top speed or a top acceleration that clipped or whose thrust has no end on the c
 the mean bound are to three figures, nearest. A mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 
-| reading | given | mean error | least | most | mean bound |
+| reading | given readings | mean error | least | most | mean bound |
 |---|---:|---:|---:|---:|---:|
 | flight time | 6,985 | −0.74 s | −5.06 s | 3.15 s | 5.81 s |
 | top acceleration | 290 | 0.6 m/s² | −13.6 m/s² | 13 m/s² | 16.3 m/s² |
@@ -1171,7 +1171,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   2005, §2.4. $\tau$ is its integral from any speed down to $v_1$, HPR Sim's step.
 - A canopy's rate: drag balancing the weight, $v = \sqrt{2mg/(\rho C_D S)}$, so the rate goes as
   the density to the −½ ([Recovery](recovery.md#the-descent)).
-- The density scale height: *U.S. Standard Atmosphere, 1976*, NOAA-S/T 76-1562, its
+- The density scale height: *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, its
   troposphere's lapse of 6.5 K/km and its tropopause's 216.65 K
   ([Atmosphere](atmosphere.md)). The formula $H = RT/(g - RL)$ follows from its pressure and temperature.
 - The noise model and the range of air: [ADR-280, the synthetic flights first][adr-280] §2–3, and

@@ -698,3 +698,59 @@ fn bad_filters_and_files_are_refused() {
         assert_eq!(output.status.code(), Some(2), "{args:?}: {output:?}");
     }
 }
+
+/// A search that matches nothing says which filter no motor passes on its own, with what the
+/// list holds instead, or that each passes some alone but not all together (M0.14d3's task 2).
+#[test]
+fn an_empty_search_says_what_to_try() {
+    let scratch = tempfile::tempdir().unwrap();
+    let from = motors_file();
+    let tail = |args: &[&str]| {
+        let mut all = args.to_vec();
+        all.extend(["--from", &from]);
+        let printed = text(&all, scratch.path());
+        assert!(printed.starts_with("0 motors ("), "{printed}");
+        printed.trim_end().lines().last().unwrap().to_owned()
+    };
+    assert_eq!(
+        tail(&["--class", "Z"]),
+        "No motor in the list is class Z. Its classes run from D to O."
+    );
+    assert_eq!(
+        tail(&["--diameter", "1000"]),
+        "No motor in the list is 1000 mm across. Its diameters are 18, 24, 29, 32, 38, 54, 75, \
+         76, 98, 132, 152, 161 mm."
+    );
+    assert_eq!(
+        tail(&["--in-stock", "--class", "Z"]),
+        "No motor in stock in the list is class Z. Its classes run from D to O."
+    );
+    // The price passes none alone, though the others together pass none either.
+    assert_eq!(
+        tail(&[
+            "--max-price",
+            "0.01",
+            "--manufacturer",
+            "Loki",
+            "--class",
+            "D"
+        ]),
+        "No motor in stock costs $0.01 or less. The cheapest is AeroTech D13W at $7.00."
+    );
+    // Each passes some alone: the drops that leave motors, and only those (without
+    // `--in-stock`, Loki still lists no O).
+    assert_eq!(
+        tail(&["--class", "D", "--diameter", "98"]),
+        "No motor passes every filter together. Without --class, 66 do; without --diameter, 9 do."
+    );
+    assert_eq!(
+        tail(&["--in-stock", "--class", "O", "--manufacturer", "Loki"]),
+        "No motor passes every filter together. Without --class, 30 do; without --manufacturer, \
+         4 do."
+    );
+    assert_eq!(
+        tail(&["--class", "O", "--diameter", "18", "--manufacturer", "Loki"]),
+        "Each filter passes some motors on its own, but no motor passes all of them, or all but \
+         any one: drop two or more."
+    );
+}

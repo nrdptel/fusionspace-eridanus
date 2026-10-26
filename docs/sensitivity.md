@@ -19,16 +19,15 @@ rocket's apogee and landing. It needs some Rust, and follows on from
 > ([Accuracy](accuracy.md)).
 >
 > - Both methods match the known answers of two standard test functions within four of their own
->   [standard errors](glossary.md#standard-error). The tests repeat the analyses with 500 to 1,000
->   seeds. The error an analysis reports is the scatter the repeats show. That holds for every
->   Sobol' index of Ishigami's function, and for the Sobol' indices and Morris $\mu^*$s of a
->   four-factor g function. The same [seed](glossary.md#seed) gives the same numbers, bit for bit
+>   [standard errors](glossary.md#standard-error), over 500 to 1,000 seeds ([how](#checked-against)).
+>   The same [seed](glossary.md#seed) gives the same numbers, bit for bit
 >   ([`tests/sensitivity.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/sensitivity.rs)).
 > - Nothing checks whether a rocket's ranking matches what real flights would show.
 > - Left out are inputs that depend on each other, inputs that aren't spread evenly over a range,
->   and the [Sobol' indices](glossary.md#sobol-index) of pairs of inputs. A Sobol' analysis costs
->   thousands of runs per input: 65,536 flights for this page's rocket, against Morris's 70. So the
->   rocket example uses only the Morris screening.
+>   and the [Sobol' indices](glossary.md#sobol-index) of pairs of inputs.
+
+A Sobol' analysis costs thousands of runs per input: 65,536 flights for this page's rocket, against Morris's 70. So the
+rocket example uses only the Morris screening.
 
 ## Inputs as factors
 
@@ -79,7 +78,7 @@ $\mu^* = 7.875$ with no error, and $\mu$ near zero.
 M. D. Morris, "Factorial sampling plans for preliminary computational experiments",
 *Technometrics* 33(2), 161–174, 1991, defines the effects, the grid and the paths. F. Campolongo,
 J. Cariboni and A. Saltelli, "An effective screening design for sensitivity analysis of large
-models", *Environmental Modelling & Software* 22, 1509–1518, 2007, add $\mu^*$. They found, by
+models", *Environmental Modelling & Software* 22, pp. 1509–1518, 2007, add $\mu^*$. They found, by
 experiment rather than proof, that it ranks factors in the same order as the total Sobol' index.
 
 That's usual, not certain. A step spans about half of each range, so it can miss a response
@@ -220,7 +219,7 @@ let apogee = design.analyze(&apogees)?;                  // the same flights, an
 
 The six inputs, with ranges made up for the example:
 
-| Input | Range | Planned value | What it is |
+| Input | Range (factor, m/s, °) | Planned value (factor, m/s, °) | What it is |
 |---|--:|--:|---|
 | dry mass factor | 0.95 to 1.05 | 1 | the rocket's mass without its motor, ±5% |
 | drag factor | 0.9 to 1.1 | 1 | the zero-lift drag, ±10% |

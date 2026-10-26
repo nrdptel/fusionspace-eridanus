@@ -471,7 +471,7 @@ fn pressure_scale(
         Ok(100.0)
     } else if PAD_PA.contains(&first) {
         notes.push(format!(
-            "the column {:?} says hPa, but its values are pascals: its first, on the pad, lies \
+            "the column {:?} says hPa, but its values are pascals. Its first, on the pad, lies \
              between 500 and 1,100 hPa only when read in Pa, and was read so",
             short(name)
         ));

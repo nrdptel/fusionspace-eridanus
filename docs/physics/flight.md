@@ -302,7 +302,7 @@ $$
   $$
 
   - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
-    rail. With no guides, it ends when the aft end does (Rail geometry, below).
+    rail. With no guides, it ends when the aft end does.
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
@@ -354,12 +354,12 @@ $$
 
 ### Integration settings
 
-- `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
+- `FlightSettings::default()` uses Dormand-Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.
 - Accuracy against cost was measured on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
   from the west. Each apogee is compared with the one at 1e-11 (873.98272 m (2,867.3974 ft)):
 
-  | `rtol = atol` | apogee error | run time (release build) |
+  | tolerance, `rtol = atol` (ratio; state units) | apogee error | run time (release build) |
   |--:|--:|--:|
   | 1e-4 | 2.3e-2 m | 0.36 ms |
   | 1e-6 | 6.8e-5 m | 0.59 ms |
@@ -369,7 +369,7 @@ $$
 ## Verification
 
 Unit tests in `hpr_sim::tests`, `hpr_sim::dynamics::tests` and `hpr_sim::rail::tests`, at the
-default settings. The numbers were measured on 2026-09-17.
+default settings. The numbers were measured on September 17, 2026.
 
 - A tumbling, spinning Valetudo in a vacuum starts from the nose tip at 500 m (1,640 ft) with
   $\mathbf{v} = (30, -20, 80)$ m/s.
@@ -398,11 +398,11 @@ default settings. The numbers were measured on 2026-09-17.
   rotation) in calm air.
 - In a calm vertical flight with no Earth rotation, the rocket falls tail first after apogee and
   still lands, in under 20,000 evaluations.
-- RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand–Prince to 1.2e-5 m
+- RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand-Prince to 1.2e-5 m
   and 2.1e-7 s.
 - A user event on the thrust fires at burnout, and burnout is still
   recorded once.
-- A 2000 m (6,562 ft) rail gives `StalledOnRail`, with only liftoff and burnout recorded.
+- A 2,000 m (6,562 ft) rail gives `StalledOnRail`, with only liftoff and burnout recorded.
 - Observer errors end the flight with that error. Starts before ignition
   or underground are refused. A cleared recorder records the same rows again. `Simulation`,
   `Environment` and `Recorder` are `Send + Sync`.
@@ -423,7 +423,7 @@ default settings. The numbers were measured on 2026-09-17.
   fall on the interval or at events.
 - The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands. It does both on HPR
   Sim's own drag and on a constant drag table.
-- A Valetudo flight to the ground costs about 1.3 ms, measured on 2026-10-09 (`docs/perf.md`).
+- A Valetudo flight to the ground costs about 1.3 ms, measured on October 9, 2026 (`docs/perf.md`).
 
 ### Whole flights against RocketPy
 

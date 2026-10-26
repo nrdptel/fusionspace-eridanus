@@ -783,7 +783,7 @@ expression: log
     "`VERTV` read in feet per second, in the altitude's unit, from the change of altitude: the change of `ALT` a second is a median of 1.000 times `VERTV` over 13 pairs of rows",
     "`HEAD` read in degrees, from the manual and its range: it runs from 0 to 0",
     "`BATT` read in volts, from its range: it runs from 4.05 to 4.05, where one lithium cell reads up to about 4.2 V and the ground station's serial millivolts would be thousands",
-    "`UNIXTIME` kept as written, off `UTCTIME` by whole hours: it runs 5 h ahead of `UTCTIME` on every row; read as UTC at the first fix's longitude, `UTCTIME` gives 10.4 h of local mean solar time and `UNIXTIME` 15.4 h",
+    "`UNIXTIME` kept as written, off `UTCTIME` by whole hours: it runs 5 h ahead of `UTCTIME` on every row. Read as UTC at the first fix's longitude, `UTCTIME` gives 10.4 h of local mean solar time and `UNIXTIME` 15.4 h",
     "the log has no barometer, so the record's altitude track is empty: a GPS tracker's file holds positions only, and every column is a channel",
     "the log's clock is `UTCTIME`, read as UTC, and its zero is the first row's, \"Jun 14 2025 17:30:00.250 UTC\"",
     "the column \"Distance (feet)\" holds 1 cells that are empty or not a number, such as \"NaN\": they are gaps"

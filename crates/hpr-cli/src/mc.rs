@@ -48,38 +48,38 @@ pub struct McArgs {
     #[arg(long, value_name = "N", default_value_t = 0, value_parser = crate::typed::number::<u64>())]
     pub seed: u64,
     /// One standard deviation of each stage's mass without motors, as a fraction of it
-    #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub mass_sd: f64,
     /// One standard deviation of each stage's center of mass along the axis, m
-    #[arg(long, value_name = "M", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "M", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub cg_sd: f64,
     /// One standard deviation of the rocket's zero-lift drag coefficient, as a fraction of it
-    #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub drag_sd: f64,
     /// One standard deviation of each motor's total impulse, as a fraction of it; its propellant
     /// mass scales with it
-    #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub impulse_sd: f64,
     /// One standard deviation of each motor's burn time, as a fraction of it, at the same impulse
-    #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub burn_time_sd: f64,
     /// One standard deviation of each motor's ejection delay, s
-    #[arg(long, value_name = "S", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "S", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub delay_sd: f64,
     /// One standard deviation of the wind's speed at every height, as a fraction of it
-    #[arg(long, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub wind_sd: f64,
     /// One standard deviation of the wind's direction, degrees, about --wind-from
-    #[arg(long, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub wind_from_sd: f64,
     /// One standard deviation of the rail's angle above the horizon, degrees
-    #[arg(long, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub inclination_sd: f64,
     /// One standard deviation of the rail's heading, degrees
-    #[arg(long, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub heading_sd: f64,
     /// One standard deviation of each recovery device's lag after its trigger, s
-    #[arg(long, value_name = "S", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, allow_hyphen_values = true, value_name = "S", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub deployment_lag_sd: f64,
     /// Write each flight's drawn inputs and outcome to this .csv file, one row a flight, and a
     /// .meta.json sidecar beside it
@@ -121,7 +121,7 @@ impl McArgs {
                     format!(
                         "{option} {value}: a standard deviation is a finite number, at least 0"
                     ),
-                    format!("give {option} a number of 0 or more, or leave it out for none"),
+                    format!("give {option} 0 or more, or leave it out for none"),
                 ));
             }
         }
