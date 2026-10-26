@@ -23,8 +23,9 @@ use hpr_design::tree::{
 };
 use hpr_design::{Material, MotorMount};
 
-use super::attached::{self, finish};
+use super::attached::{self, Parent, Unread, finish};
 use super::document::{Document, Element};
+use super::left_out::{Around, Covered, Lean, spoken};
 use super::motors::{self, MountRead};
 use super::recovery::{self, DeviceRead, SeparationRead};
 use super::value::{OVERRIDE_FLAGS, Values};
@@ -175,11 +176,11 @@ pub(super) fn walk(document: &Document) -> (Imported<Rocket>, Walked) {
             == 1,
         ..Ids::default()
     };
-    let mut skipped: Vec<String> = Vec::new();
+    let mut skipped: Vec<Unread> = Vec::new();
     let mut reads: Vec<Vec<BodyRead>> = Vec::new();
     for (index, stage_element) in subcomponents(element).enumerate() {
         if stage_element.name != "stage" {
-            skipped.push(stage_element.name.clone());
+            skipped.push(Unread::new(stage_element, &Around::default()));
             continue;
         }
         let mut read = Vec::new();
@@ -199,13 +200,21 @@ pub(super) fn walk(document: &Document) -> (Imported<Rocket>, Walked) {
             reads.push(Vec::new());
         }
     }
-    if let Some(note) = tally(&skipped) {
+    let tags: Vec<String> = skipped.iter().map(|unread| unread.tag.clone()).collect();
+    let parts: usize = skipped.iter().map(|unread| unread.parts).sum();
+    let lean = skipped
+        .into_iter()
+        .map(|unread| unread.lean)
+        .reduce(Lean::and);
+    if let (Some(note), Some(lean)) = (tally(&tags), lean) {
         warnings.push(Warning::new(
             at,
             WarningKind::Skipped,
             format!(
-                "{note} were left out: tags HPR Sim does not read where they are written (a \
-                 parallel stage is read only inside a body tube)"
+                "{note} {} left out: tags HPR Sim does not read where they are written (a \
+                 parallel stage is read only inside a body tube).{}",
+                if tags.len() == 1 { "was" } else { "were" },
+                lean.sentence(parts > 1)
             ),
         ));
     }
@@ -284,13 +293,15 @@ fn stage(
     index: usize,
     ids: &mut Ids,
     reads: &mut Vec<BodyRead>,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
 ) -> Stage {
     let at = format!("openrocket/rocket/stage[{index}]");
     let mut values = Values::new(element, &at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
     let (overrides, _, drag_override) = overrides(&mut values);
+    // A stage's override is the whole stage's ([`hpr_design::Rocket::layout`]).
+    let covered = Covered::default().within("stage", &overrides, true, drag_override);
     let id = ids.take(&mut Values::new(element, &at, warnings), "stage");
     if let Some(separation) = recovery::separation(element, &at, warnings) {
         ids.separations.push((id.clone(), separation));
@@ -302,11 +313,16 @@ fn stage(
     for (index, child) in subcomponents(element).enumerate() {
         if BODY_TAGS.contains(&child.name.as_str()) {
             let at = format!("{at}/{}[{index}]", child.name);
-            let (component, wall) = body(child, &at, ids, skipped, warnings);
+            let (component, wall) = body(child, &at, ids, skipped, warnings, &covered);
             reads.push(BodyRead { at, wall });
             components.push(component);
         } else {
-            skipped.push(child.name.clone());
+            // Nothing in a stage is placed after a part that isn't a body component.
+            let around = Around {
+                covered: covered.clone(),
+                ..Around::default()
+            };
+            skipped.push(Unread::new(child, &around));
         }
     }
     Stage {
@@ -321,12 +337,14 @@ fn stage(
 
 /// Reads one body component, and everything on and inside it; for a body tube, also the wall as
 /// the file wrote it. A pod's body components are read here too ([`attached::children`]).
+/// `covered` is what the overrides above it set for everything in it ([`Covered`]).
 pub(super) fn body(
     element: &Element,
     at: &str,
     ids: &mut Ids,
-    skipped: &mut Vec<String>,
+    skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
+    covered: &Covered,
 ) -> (Component, Option<Wall>) {
     let mut auto = Vec::new();
     let mut values = Values::new(element, at, warnings);
@@ -343,7 +361,18 @@ pub(super) fn body(
         _ => (transition(element, at, &mut auto, warnings), None),
     };
     let hung = ids.parallel.len();
-    let children = attached::children(element, &part, &auto, at, ids, skipped, warnings);
+    let covered = covered.within(
+        &spoken(&part),
+        &overrides,
+        overrides_include_children,
+        drag_override,
+    );
+    let inside = Parent {
+        part: &part,
+        auto: &auto,
+        covered: &covered,
+    };
+    let children = attached::children(element, inside, at, ids, skipped, warnings);
     let mount = match part {
         Part::BodyTube(_) => motors::mount(element, at, warnings),
         _ => None,

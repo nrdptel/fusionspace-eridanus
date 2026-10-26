@@ -57,7 +57,7 @@ use crate::delay::DelayList;
 use crate::eng::{EngEntry, EngFile};
 use crate::error::MotorError;
 use crate::rse::{RseEngine, RseFile, RsePoint};
-use crate::text::WarningKind;
+use crate::text::{WORKED_OUT, WarningKind, nothing_depends};
 
 /// The `Type` [`eng_to_rse`] writes: a `.eng` file doesn't say.
 pub const UNSPECIFIED_TYPE: &str = "unspecified";
@@ -169,7 +169,8 @@ fn rse_engine(
             &entry.name,
             WarningKind::Dropped,
             format!(
-                "dropped the delays {:?}, which name no delay; a .rse file may leave them out",
+                "the delays {:?} name no delay, so they were left out; a .rse file may leave \
+                 them out",
                 entry.delays
             ),
         ));
@@ -303,7 +304,7 @@ fn eng_entry(
                 warnings.push(ConvertWarning::new(
                     code,
                     WarningKind::Dropped,
-                    "dropped the comments' blank lines and the spaces that end their lines: a \
+                    "the comments' blank lines and the spaces that end their lines were left out: a \
                      .eng comment is one line of text",
                 ));
             }
@@ -331,9 +332,11 @@ fn eng_entry(
             code,
             WarningKind::Dropped,
             format!(
-                "dropped {}: a .eng file has no place for them. HPR Sim doesn't use them for a solid \
-                 motor: it works the mass and center of gravity out from the curve and the masses",
-                dropped.join(", ")
+                "{} {} left out: a .eng file has no place for {}, and {}. {WORKED_OUT}",
+                dropped.join(", "),
+                if dropped.len() == 1 { "was" } else { "were" },
+                if dropped.len() == 1 { "it" } else { "them" },
+                nothing_depends(dropped.len())
             ),
         ));
     }
@@ -574,8 +577,8 @@ mod tests {
         assert_eq!(back.warnings[0].kind, WarningKind::Dropped);
         assert!(
             back.warnings[0].message.starts_with(
-                "dropped Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, Itot, burn-time, \
-                 massFrac, Isp, m, cg:"
+                "Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, Itot, burn-time, \
+                 massFrac, Isp, m, cg were left out:"
             ),
             "{}",
             back.warnings[0].message
@@ -622,13 +625,13 @@ mod tests {
             [
                 (WarningKind::Unusual, "a .eng name "),
                 (WarningKind::Unusual, "a .eng maker"),
-                (WarningKind::Dropped, "dropped the "),
-                (WarningKind::Dropped, "dropped Type"),
+                (WarningKind::Dropped, "the comments"),
+                (WarningKind::Dropped, "Type, auto-c"),
             ]
         );
         assert!(eng.warnings[3].message.starts_with(
-            "dropped Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, throatDia, exitDia, Itot, \
-             burn-time, massFrac, Isp, m, cg:"
+            "Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, throatDia, exitDia, Itot, \
+             burn-time, massFrac, Isp, m, cg were left out:"
         ));
         // The curve hpr flies is the same.
         assert_eq!(
@@ -840,7 +843,7 @@ mod tests {
         assert!(
             rse.warnings[0]
                 .message
-                .starts_with("dropped the delays \"-\"")
+                .starts_with("the delays \"-\" name no delay, so they were left out")
         );
         let mut rse = rse::parse(RSE).unwrap().value;
         for delays in ["", " ", "abc"] {

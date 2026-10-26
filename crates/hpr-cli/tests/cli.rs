@@ -3499,7 +3499,7 @@ fn convert_round_trips_eng_and_rse() {
         warning["message"]
             .as_str()
             .unwrap()
-            .starts_with("dropped Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, Itot, burn-time, massFrac, Isp, m, cg:"),
+            .starts_with("Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, Itot, burn-time, massFrac, Isp, m, cg were left out:"),
         "{warning:#}"
     );
     // Converted again, the file is the same, byte for byte.

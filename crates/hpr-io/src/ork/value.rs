@@ -19,7 +19,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::document::Element;
-use super::warning::{Warning, WarningKind};
+use super::warning::{AS_IF_NOT_GIVEN, Warning, WarningKind};
 
 /// The two names OpenRocket writes a component's distance along its parent under.
 ///
@@ -198,7 +198,8 @@ impl<'a> Values<'a> {
                 self.warn(
                     WarningKind::Dropped,
                     format!(
-                        "`{name}` says `{}`, which is not a number; it was ignored",
+                        "`{name}` says `{}`, which is not a number; it was left out, \
+                         {AS_IF_NOT_GIVEN}",
                         text.trim()
                     ),
                 );
@@ -215,7 +216,10 @@ impl<'a> Values<'a> {
         if rounded < 0.0 || rounded > f64::from(u32::MAX) || (value - rounded).abs() > 1e-9 {
             self.warn(
                 WarningKind::Dropped,
-                format!("a count of `{value}` is not a whole number of things; it was ignored"),
+                format!(
+                    "a count of `{value}` is not a whole number of things; it was left out, \
+                     {AS_IF_NOT_GIVEN}"
+                ),
             );
             self.forget(names);
             return None;
@@ -241,7 +245,8 @@ impl<'a> Values<'a> {
                 self.warn(
                     WarningKind::Dropped,
                     format!(
-                        "`{name}` says `{other}`, which is neither true nor false; it was ignored"
+                        "`{name}` says `{other}`, which is neither true nor false; it was left \
+                         out, {AS_IF_NOT_GIVEN}"
                     ),
                 );
                 self.forget(names);
@@ -261,7 +266,8 @@ impl<'a> Values<'a> {
                 self.warn(
                     WarningKind::Dropped,
                     format!(
-                        "`{name}` says `{}`, which is neither a number nor `auto`; it was ignored",
+                        "`{name}` says `{}`, which is neither a number nor `auto`; it was left \
+                         out, {AS_IF_NOT_GIVEN}",
                         text.trim()
                     ),
                 );

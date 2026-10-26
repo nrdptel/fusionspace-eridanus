@@ -22,6 +22,7 @@
 
 use super::super::Design;
 use super::super::document::Element;
+use super::super::left_out::{NOTHING_DEPENDS, nothing_depends};
 use super::super::simulations::{
     Atmosphere, LaunchConditions, StoredBranch, StoredEvent, StoredResults, StoredSimulation,
     WindLevel,
@@ -126,7 +127,7 @@ fn launch_conditions(
                 WarningKind::Dropped,
                 format!(
                     "`{name}` is {radians} rad, which no number of degrees reads back as \
-                     exactly; it was left out"
+                     exactly; it was left out, and {NOTHING_DEPENDS}"
                 ),
             )),
         }
@@ -324,8 +325,11 @@ fn data_branch(branch: &StoredBranch, at: &str, warnings: &mut Vec<Warning>) -> 
             at,
             WarningKind::Dropped,
             format!(
-                "{unfit} row(s) do not have one value per column, {} of them; they were left out",
-                branch.types.len()
+                "{unfit} row(s) do not have one value per column, {} of them, so {} left out, and \
+                 {}",
+                branch.types.len(),
+                if unfit == 1 { "it was" } else { "they were" },
+                nothing_depends(unfit)
             ),
         ));
     }
@@ -355,7 +359,9 @@ fn finite(value: Option<f64>, at: &str, what: &str, warnings: &mut Vec<Warning>)
     warnings.push(Warning::new(
         at,
         WarningKind::Dropped,
-        format!("{what} is {value}, which a `.ork` cannot hold; it was left out"),
+        format!(
+            "{what} is {value}, which a `.ork` cannot hold; it was left out, and {NOTHING_DEPENDS}"
+        ),
     ));
     None
 }

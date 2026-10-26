@@ -22,6 +22,7 @@
 
 use super::super::document::{Document, Element, Node};
 use super::super::extensions::{OpenRocketExtension, tag_key};
+use super::super::left_out::NOTHING_DEPENDS;
 use super::super::warning::{Warning, WarningKind};
 use super::xml::{Build as _, element};
 
@@ -37,7 +38,8 @@ pub(super) fn splice(document: &mut Document, kept: &OpenRocketExtension) -> Vec
             at,
             WarningKind::Dropped,
             format!(
-                "{what} kept from the file has no place in the written design; it was left out"
+                "{what} kept from the file has no place in the written design; it was left out, \
+                 and {NOTHING_DEPENDS}"
             ),
         ));
     };

@@ -38,6 +38,7 @@ use serde::{Deserialize, Serialize};
 
 use super::component::subcomponents;
 use super::document::Element;
+use super::left_out::NOTHING_DEPENDS;
 use super::motors::stage_of;
 use super::value::{Dimension, Values};
 use super::warning::{Warning, WarningKind};
@@ -417,7 +418,10 @@ fn trigger<E: Clone>(
             warnings.push(Warning::new(
                 here,
                 WarningKind::Dropped,
-                format!("a `{per}` with no `configid` belongs to no configuration; it was ignored"),
+                format!(
+                    "a `{per}` with no `configid` belongs to no configuration; it was left out, \
+                     and {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         };

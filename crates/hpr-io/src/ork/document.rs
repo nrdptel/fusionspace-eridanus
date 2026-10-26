@@ -11,6 +11,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use super::error::OrkError;
+use super::left_out::NOTHING_DEPENDS;
 use super::warning::{Imported, Warning, WarningKind};
 
 /// The `.ork` schema versions this reader knows, as `1.0` up to and including `1.MAX_KNOWN_MINOR`.
@@ -229,9 +230,9 @@ impl Document {
             warnings.push(Warning::new(
                 "openrocket",
                 WarningKind::Dropped,
-                "this document declares XML namespaces; prefixes and declarations are dropped, \
-                 and two attributes that differ only by prefix become one. No `.ork` OpenRocket \
-                 writes uses them",
+                "this document declares XML namespaces; their prefixes and declarations were left \
+                 out, and two attributes that differ only by prefix become one. No `.ork` \
+                 OpenRocket writes uses them",
             ));
         }
         let root = read_element(root, "", &mut warnings);
@@ -318,13 +319,13 @@ fn read_element(
             warnings.push(Warning::new(
                 at.clone(),
                 WarningKind::Dropped,
-                "an XML comment was dropped; `.ork` carries no meaning in comments",
+                format!("an XML comment was left out, and {NOTHING_DEPENDS}"),
             ));
         } else if child.is_pi() {
             warnings.push(Warning::new(
                 at.clone(),
                 WarningKind::Dropped,
-                "an XML processing instruction was dropped",
+                format!("an XML processing instruction was left out, and {NOTHING_DEPENDS}"),
             ));
         }
     }

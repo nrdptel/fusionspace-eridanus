@@ -34,6 +34,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::document::{Document, Element};
+use super::left_out::{NOTHING_DEPENDS, nothing_depends};
 use super::value::Values;
 use super::warning::{Warning, WarningKind};
 
@@ -736,7 +737,10 @@ fn attribute_number(
             warnings.push(Warning::new(
                 at,
                 WarningKind::Dropped,
-                format!("`{name}` says `{text}`, which is not a number; it was ignored"),
+                format!(
+                    "`{name}` says `{text}`, which is not a number; it was left out, and \
+                     {NOTHING_DEPENDS}"
+                ),
             ));
             None
         }
@@ -831,9 +835,11 @@ fn branch(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> StoredBra
             at,
             WarningKind::Dropped,
             format!(
-                "{dropped} `datapoint` row(s) are not {} numbers, one per column; they were left \
-                 out",
-                types.len()
+                "{dropped} `datapoint` row(s) are not {} numbers, one per column; {} left out, \
+                 and {}",
+                types.len(),
+                if dropped == 1 { "it was" } else { "they were" },
+                nothing_depends(dropped)
             ),
         ));
     }
@@ -848,7 +854,9 @@ fn branch(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> StoredBra
             warnings.push(Warning::new(
                 at,
                 WarningKind::Dropped,
-                "an `event` with no time or no type; it was left out",
+                format!(
+                    "an `event` with no time or no type; it was left out, and {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         };

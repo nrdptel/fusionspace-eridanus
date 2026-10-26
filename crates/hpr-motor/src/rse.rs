@@ -18,7 +18,10 @@ use serde::{Deserialize, Serialize};
 use crate::curve::{ThrustCurve, cut_off};
 use crate::delay::DelayList;
 use crate::error::MotorError;
-use crate::text::{ParseWarning, Parsed, WarningKind, check_writable, finite};
+use crate::text::{
+    NO_CURVE, NOTHING_DEPENDS, ParseWarning, Parsed, WORKED_OUT, WarningKind, check_writable,
+    finite,
+};
 
 const FORMAT: &str = ".rse";
 
@@ -152,7 +155,7 @@ pub fn parse(text: &str) -> Result<Parsed<RseFile>, MotorError> {
             warnings.push(ParseWarning::new(
                 lines.of(node),
                 WarningKind::Dropped,
-                "an <engine> inside another engine is ignored",
+                format!("an <engine> inside another engine was left out, so {NO_CURVE}"),
             ));
             continue;
         }
@@ -179,7 +182,7 @@ pub fn parse(text: &str) -> Result<Parsed<RseFile>, MotorError> {
         warnings.push(ParseWarning::new(
             line,
             WarningKind::Skipped,
-            format!("engine skipped: {error}"),
+            format!("an engine was left out, so {NO_CURVE}: {error}"),
         ));
     }
     warnings.sort_by_key(|warning| warning.line);
@@ -397,7 +400,7 @@ fn engine(
             warnings.push(ParseWarning::new(
                 line,
                 WarningKind::Dropped,
-                format!("unknown <engine> attribute `{name}` ignored"),
+                format!("unknown <engine> attribute `{name}` was left out, and {NOTHING_DEPENDS}"),
             ));
         }
     }
@@ -450,7 +453,9 @@ fn engine(
             warnings.push(ParseWarning::new(
                 line,
                 WarningKind::Dropped,
-                format!("`{name}` is {other:?}, not 0 or 1; ignored"),
+                format!(
+                    "`{name}` is {other:?}, not 0 or 1; it was left out, and {NOTHING_DEPENDS}"
+                ),
             ));
             None
         }
@@ -479,7 +484,10 @@ fn engine(
                 warnings.push(ParseWarning::new(
                     lines.of(child),
                     WarningKind::Dropped,
-                    format!("unknown element <{other}> in an engine ignored"),
+                    format!(
+                        "unknown element <{other}> in an engine was left out, and \
+                         {NOTHING_DEPENDS}"
+                    ),
                 ));
                 false
             }
@@ -570,7 +578,7 @@ fn points(
                 line,
                 WarningKind::Dropped,
                 format!(
-                    "unknown element <{}> in <data> ignored",
+                    "unknown element <{}> in <data> was left out, and {NOTHING_DEPENDS}",
                     node.tag_name().name()
                 ),
             ));
@@ -617,7 +625,9 @@ fn points(
         warnings.push(ParseWarning::new(
             line,
             WarningKind::Dropped,
-            format!("engine {code:?} gives `m` on only some points; all dropped"),
+            format!(
+                "engine {code:?} gives `m` on only some points, so all were left out. {WORKED_OUT}"
+            ),
         ));
         points.iter_mut().for_each(|p| p.mass_g = None);
     }
@@ -625,7 +635,9 @@ fn points(
         warnings.push(ParseWarning::new(
             line,
             WarningKind::Dropped,
-            format!("engine {code:?} gives `cg` on only some points; all dropped"),
+            format!(
+                "engine {code:?} gives `cg` on only some points, so all were left out. {WORKED_OUT}"
+            ),
         ));
         points.iter_mut().for_each(|p| p.cg_mm = None);
     }

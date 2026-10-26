@@ -328,7 +328,7 @@ pub struct Warning {
 pub enum WarningKind {
     /// A whole motor had an error and was left out.
     Skipped,
-    /// A value was dropped or ignored.
+    /// A value was left out.
     Dropped,
     /// Something unusual was read as it stands.
     Unusual,

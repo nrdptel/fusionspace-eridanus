@@ -38,6 +38,7 @@ pub mod document;
 mod error;
 pub mod export;
 pub mod extensions;
+mod left_out;
 pub mod motors;
 mod reads;
 pub mod recovery;
@@ -52,6 +53,7 @@ pub use container::{Attachment, Container, MAX_UNPACKED_BYTES, Unpacked};
 pub use document::{Document, Element, MAX_DEPTH, MAX_KNOWN_MINOR, Node, SchemaVersion};
 pub use error::OrkError;
 pub use extensions::{Extensions, Kept, KeptAttribute, OpenRocketExtension, element_at};
+pub(crate) use left_out::{NOTHING_DEPENDS, nothing_depends};
 pub use motors::{
     CaseSize, Curve, Ignition, IgnitionEvent, LeftOut, MotorConfiguration, Motors, NoCurve,
     NotFlown, OrkMotor, SuppliedCurves, UnreadMotor,

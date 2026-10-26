@@ -1149,6 +1149,58 @@ fn a_filled_part_is_solid() {
     assert_eq!(nose.wall, hpr_design::solids::Wall::Filled {});
 }
 
+/// The tally of tags left out where they're written takes what each carried from the tag and
+/// everything inside it, and combines every tag's (#952): a parachute inside a tag HPR Sim
+/// doesn't read adds the descent rate, and a lug beside a parachute in a stage adds the drag.
+#[test]
+fn the_tally_of_tags_left_out_counts_everything_inside_each_and_combines_them() {
+    let chute = "<parachute><name>Chute</name><packedlength>0.03</packedlength>\
+                 <packedradius>0.01</packedradius><diameter>0.3</diameter></parachute>";
+    let tally = |xml: &str| {
+        let read = read(xml.as_bytes()).expect("a readable design");
+        let spine = component::rocket(&read.value.document);
+        let tallied: Vec<String> = spine
+            .warnings
+            .iter()
+            .map(|w| w.message.clone())
+            .filter(|m| m.contains("tags HPR Sim does not read"))
+            .collect();
+        assert_eq!(tallied.len(), 1, "{:?}", spine.warnings);
+        tallied[0].clone()
+    };
+    let inside = tally(&ACROSS_A_STAGE.replacen(
+        "</bodytube>",
+        &format!(
+            "<subcomponents><futurepart><name>Later</name><subcomponents>{chute}\
+             </subcomponents></futurepart></subcomponents></bodytube>"
+        ),
+        1,
+    ));
+    assert!(
+        inside.starts_with("1 `futurepart` was left out")
+            && inside.ends_with(
+                "Any mass, drag, lift or drag under canopy they carry isn't counted, so the mass \
+                 and drag can read low. The descent rate reads high if one of them opens in \
+                 flight, low if none does. The stability margin can read high or low"
+            ),
+        "{inside}"
+    );
+    let lug = "<launchlug><name>Lug</name><radius>0.004</radius><thickness>0.0005</thickness>\
+               <length>0.05</length></launchlug>";
+    let beside =
+        tally(&ACROSS_A_STAGE.replacen("</nosecone>", &format!("</nosecone>{lug}{chute}"), 1));
+    assert!(
+        beside.starts_with("1 `launchlug`, 1 `parachute` were left out")
+            && beside.ends_with(
+                "Their mass, drag and drag under canopy aren't counted, so the mass and drag read \
+                 low. The descent rate reads high if one of them opens in flight, low if none \
+                 does. The stability margin reads high for a part aft of the center of gravity, \
+                 low for one ahead"
+            ),
+        "{beside}"
+    );
+}
+
 /// A part no milestone has reached yet is counted and named, not silently dropped: a tag hpr has
 /// never seen is tallied, and a parallel stage on a rocket of more than one axial stage, where
 /// OpenRocket's numbering of its stages is not worked out (ADR-171), is named where it is.
@@ -1163,8 +1215,9 @@ fn parts_no_milestone_reads_yet_are_reported_not_dropped() {
     let spine = component::rocket(&read.value.document);
     let warnings: Vec<&str> = spine.warnings.iter().map(|w| w.message.as_str()).collect();
     assert_eq!(warnings.len(), 3, "{warnings:?}");
+    // The stages are empty, so leaving them out changes no number (#952).
     let named = "a parallel stage on a rocket of more than one axial stage, which HPR Sim does not \
-                 read yet; it was left out";
+                 read yet; it was left out. No number HPR Sim works out depends on it";
     assert_eq!(
         warnings.iter().filter(|w| **w == named).count(),
         2,
@@ -1173,7 +1226,11 @@ fn parts_no_milestone_reads_yet_are_reported_not_dropped() {
     assert!(
         warnings
             .iter()
-            .any(|w| w.starts_with("2 `futurepart` were left out")),
+            .any(|w| w.starts_with("2 `futurepart` were left out")
+                && w.ends_with(
+                    "Any mass, drag or lift they carry isn't counted, so the mass and \
+                     drag can read low. The stability margin can read high or low"
+                )),
         "{warnings:?}"
     );
     assert_eq!(spine.count(WarningKind::Skipped), 3);
@@ -2825,7 +2882,10 @@ fn supplied_curves_are_used_by_digest_only() {
     assert!(
         design.warnings.iter().any(|w| w
             .message
-            .contains("the embedded curve for G100T was not used")),
+            .contains("the embedded curve for G100T was left out")
+            && w.message.ends_with(
+                "the motor flies another curve if one is found, or its configuration isn't flown"
+            )),
         "{:?}",
         design.warnings
     );

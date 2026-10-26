@@ -18,7 +18,19 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::text::WarningKind;
+use crate::text::{NOTHING_DEPENDS, WarningKind};
+
+/// How a flight reads a listed delay of 0, and how to choose (#952): a motor file's delays are
+/// never flown. `hpr::Motor::from_eng`, `from_rse` and `from_catalog` leave the delay unset, and
+/// `hpr sim --motor` flies it so unless `--delay` sets it, so no motor charge fires, as for a
+/// plugged motor: `hpr::ork::recovery` deploys no device on an ejection charge it doesn't have,
+/// and a flight refuses a device set to fire on one (`hpr_sim::Trigger::MotorDelay`). A delay of
+/// 0 s (`hpr sim --delay 0`, `Motor::with_delay_s(0.0)`, Python's `delay_s=0`) fires the charge
+/// at burnout.
+pub(crate) const ZERO_FLOWN: &str = "A motor file's delays aren't flown: with none chosen, no \
+                                    motor charge fires, as if plugged. For a charge at burnout, \
+                                    choose a delay of 0 (`hpr sim --delay 0`, or `delay_s=0` in \
+                                    Python)";
 
 /// One available delay setting. Serialized with a `kind` tag and the seconds as `value`:
 /// `{"kind":"seconds","value":6.0}`, `{"kind":"plugged"}`.
@@ -113,7 +125,7 @@ pub struct DelayList {
 /// A problem found while reading a delay string.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DelayWarning {
-    /// Whether a piece was dropped.
+    /// Whether a piece was left out.
     pub kind: WarningKind,
     /// What was found.
     pub message: String,
@@ -134,7 +146,9 @@ impl DelayList {
             match piece {
                 "" => warnings.push(DelayWarning {
                     kind: WarningKind::Dropped,
-                    message: format!("empty delay in {raw:?} ignored"),
+                    message: format!(
+                        "an empty delay in {raw:?} was left out, and {NOTHING_DEPENDS}"
+                    ),
                 }),
                 "P" | "p" => delays.push(Delay::Plugged),
                 _ => match piece.parse::<f64>() {
@@ -146,7 +160,7 @@ impl DelayList {
                             kind: WarningKind::Unusual,
                             message: format!(
                                 "delay 0 in {raw:?} is ambiguous: the RASP spec means an ejection \
-                                 charge with no delay, but files mostly mean plugged"
+                                 charge at burnout, but files mostly mean plugged. {ZERO_FLOWN}"
                             ),
                         });
                         delays.push(Delay::ZeroOrPlugged);
@@ -156,7 +170,10 @@ impl DelayList {
                     }
                     _ => warnings.push(DelayWarning {
                         kind: WarningKind::Dropped,
-                        message: format!("unreadable delay {piece:?} in {raw:?} ignored"),
+                        message: format!(
+                            "unreadable delay {piece:?} in {raw:?} was left out, and \
+                             {NOTHING_DEPENDS}"
+                        ),
                     }),
                 },
             }
@@ -244,6 +261,26 @@ mod tests {
         assert!(refused(r#"{"kind":"later"}"#).contains("unknown variant `later`"));
         assert!(refused(r#"["plugged"]"#).contains("invalid type: sequence"));
         assert!(refused(r#"["seconds", 6.0]"#).contains("invalid type: sequence"));
+    }
+
+    /// A listed 0 reads as [`Delay::ZeroOrPlugged`], and its warning says how a flight takes it,
+    /// with no charge until a delay is chosen, and how to choose a charge at burnout (#952). The
+    /// `hpr` crate's tests pin that flight.
+    #[test]
+    fn a_delay_of_0_says_how_it_is_flown_and_how_to_choose() {
+        let list = DelayList::parse("0-6");
+        assert_eq!(list.delays, [Delay::ZeroOrPlugged, Delay::Seconds(6.0)]);
+        let [warning] = &list.warnings[..] else {
+            panic!("one warning: {:?}", list.warnings);
+        };
+        assert_eq!(warning.kind, WarningKind::Unusual);
+        assert_eq!(
+            warning.message,
+            "delay 0 in \"0-6\" is ambiguous: the RASP spec means an ejection charge at burnout, \
+             but files mostly mean plugged. A motor file's delays aren't flown: with none \
+             chosen, no motor charge fires, as if plugged. For a charge at burnout, choose a \
+             delay of 0 (`hpr sim --delay 0`, or `delay_s=0` in Python)"
+        );
     }
 
     #[test]

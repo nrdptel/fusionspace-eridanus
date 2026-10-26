@@ -157,7 +157,7 @@ What else real files do, and what the reader and writer do with each case.
    warning, when others in the file read. With repeated `<data>` or `<comments>`, the last is read,
    with a warning. `<comments>` keeps only text: XML comments and processing instructions inside
    are not part of it, and nested markup contributes its text. Every warning carries a kind:
-   skipped (an engine lost), dropped (a value ignored) or unusual (read as it stands).
+   skipped (an engine left out), dropped (a value left out) or unusual (read as it stands).
    Points are `eng-data` children of `data`; also accept `point` [P p.2].
 3. Match attribute names exactly, then ASCII case-insensitively (`Type`/`type`); accept
    `initMass`/`propMass` as aliases [P p.2]. Ignore the rendering attributes silently; warn on and
@@ -165,7 +165,7 @@ What else real files do, and what the reader and writer do with each case.
 4. Required: `code`, `dia`, `len`, `initWt`, `propWt`, and at least 2 points with `t` and `f`. A
    missing `mfg` reads as empty, with a warning. Everything else is `Option`; a missing `delays`
    means no delay information. If only some points carry `m` (or `cg`), treat it as absent for all
-   of them, and warn. `auto-calc-*` flags read `1` or `0`; anything else is ignored with a
+   of them, and warn. `auto-calc-*` flags read `1` or `0`; anything else is left out with a
    warning.
 5. Numbers: trim XML whitespace, then parse with Rust's f64 parser. Reject non-finite values:
    Rust accepts `inf`, `infinity` and `NaN`. Warn if `propWt` ≥ `initWt`.

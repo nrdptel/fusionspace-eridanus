@@ -1599,7 +1599,7 @@
           "const": "skipped"
         },
         {
-          "description": "A value was dropped or ignored.",
+          "description": "A value was left out.",
           "type": "string",
           "const": "dropped"
         },

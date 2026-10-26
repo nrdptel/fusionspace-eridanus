@@ -160,16 +160,19 @@ What real files do, and what the reader and writer do with each case.
    repository), 11 end above zero, at 10.5% of the peak at most
    ([a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). A lower cut, or one inside a number,
    reads, with a warning unless it leaves a 0. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
-   thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
+   thrust, and delay pieces the delay reader leaves out or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
-7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
+7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and leaves out empty pieces,
    with a warning. It maps `P`/`p` → plugged and `100`/`1000` → plugged. It reads `0` as its own
    "zero or plugged" setting, with a warning (spec: no delay; files: usually plugged). It reads
-   other pieces as seconds. A `0` never becomes an ejection at burnout without a decision. Physics
-   should prefer catalog metadata for delays.
-8. When other entries in the file can be read, an entry with an error is skipped, with the error as a
-   warning. The reader resumes at the next comment line. With no entry read, the first error returns.
-   Every warning carries a kind: skipped (an entry lost), dropped (a value ignored) or unusual
+   other pieces as seconds. A `0` never becomes an ejection at burnout without a decision: a motor
+   file's delays aren't flown, so with no delay chosen a flight fires no motor charge, as if
+   plugged, and the warning says so. A delay of 0 s fires it at burnout: `hpr sim --delay 0`,
+   `Motor::with_delay_s(0.0)` in Rust, or `delay_s=0` in Python. Physics should prefer catalog
+   metadata for delays.
+8. When other entries in the file can be read, an entry with an error is left out, with the error as
+   a warning. The reader resumes at the next comment line. With no entry read, the first error returns.
+   Every warning carries a kind: skipped (an entry lost), dropped (a value left out) or unusual
    (read as it stands).
 9. Comments: store the text after `;` verbatim, but drop comments that are empty after trimming.
    Comments between two entries belong to the next entry; comments after the last entry are file

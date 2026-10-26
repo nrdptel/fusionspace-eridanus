@@ -30,7 +30,7 @@ pub enum WarningKind {
     /// A whole part of the file was left out of the result, such as an archive entry compressed
     /// by a method this reader does not implement.
     Skipped,
-    /// A value was dropped or ignored.
+    /// A value was left out.
     Dropped,
     /// Something unusual was read as it stands, such as a schema version newer than any documented.
     Unusual,
@@ -74,3 +74,13 @@ impl<T> Imported<T> {
         self.warnings.iter().filter(|w| w.kind == kind).count()
     }
 }
+
+/// What follows "it was left out" for a value that isn't the number, count or flag its tag
+/// holds: the reader goes on as if the tag weren't there, and what a missing tag means applies.
+pub(crate) const AS_IF_NOT_GIVEN: &str = "as if the file didn't give it";
+
+/// What follows a thrust curve left out: where the motor's curve comes from instead
+/// (`super::motors`: a supplied curve, then the bundled catalog's; a configuration none is found
+/// for isn't flown).
+pub(crate) const ANOTHER_CURVE: &str =
+    "the motor flies another curve if one is found, or its configuration isn't flown";

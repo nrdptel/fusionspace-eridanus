@@ -37,6 +37,7 @@ use super::super::Design;
 use super::super::attached::cluster_pattern;
 use super::super::document::Element;
 use super::super::extensions::{OpenRocketExtension, tag_key};
+use super::super::left_out::{Around, Counted, Covered, Lean, NOTHING_DEPENDS};
 use super::super::value::Dimension;
 use super::super::warning::{Warning, WarningKind};
 use super::xml::{self, Build as _};
@@ -226,8 +227,11 @@ impl<'a> Writer<'a> {
                     ROCKET,
                     format!(
                         "the parallel stage `{}` hangs on `{}`, which is no body tube of a stage \
-                         on the axis, where a `.ork` holds one. It was left out",
-                        stage.id, parallel.on
+                         on the axis, where a `.ork` holds one. It was left out of the written \
+                         file, with the parts in it.{}",
+                        stage.id,
+                        parallel.on,
+                        left_out_stage(stage)
                     ),
                 );
             }
@@ -255,20 +259,23 @@ impl<'a> Writer<'a> {
         for tag in recovery::stage(design, index, stage) {
             element.push(tag);
         }
-        let components = self.parts(at, &stage.components, Holder::Stack, Vec::new());
+        let covered = Covered::default().within_stage(stage);
+        let components = self.parts(at, &stage.components, Holder::Stack, Vec::new(), &covered);
         element.push(components);
         element
     }
 
     /// The `<subcomponents>` holding `components`, the parts of the element at `at`, and the
     /// parallel stages that hang on it, `hung` ([`Self::hung_on`]), after them or in the places
-    /// they were read from.
+    /// they were read from. `covered` is what the overrides on that element and above it set for
+    /// everything in it ([`Covered`]).
     fn parts(
         &mut self,
         at: &str,
         components: &[Component],
         holder: Holder,
         hung: Vec<(usize, &'a Stage)>,
+        covered: &Covered,
     ) -> Element {
         let mut places = self.places(at, components.len() + hung.len());
         // The places parallel stages with something kept under them were read from, so what is
@@ -302,7 +309,7 @@ impl<'a> Writer<'a> {
             written.push((place, self.parallel_stage(index, stage, &path)));
         }
         let mut element = xml::element("subcomponents");
-        for (component, place) in components.iter().zip(places) {
+        for ((index, component), place) in components.iter().enumerate().zip(places) {
             let name = self.tag(component, at, place);
             let path = format!("{at}/{name}[{place}]");
             let body = matches!(
@@ -314,15 +321,26 @@ impl<'a> Writer<'a> {
                     Holder::Stack => ("a part that is not a body component", "a stage or a pod"),
                     Holder::Tube => ("a body component", "another part"),
                 };
+                // Read back, it's tallied with the tags the reader doesn't read where they're
+                // written, by the same rule (`super::super::attached::children`). Only a body
+                // component is warned of in a tube, and no ring takes its bore from one, so
+                // nothing beside it is sized from it.
+                let around = Around {
+                    covered: covered.clone(),
+                    places: holder == Holder::Tube && placed_after(components, index),
+                    ..Around::default()
+                };
+                let lean = Lean::new(Counted::of_component(component), &around);
                 self.warn(
                     &path,
                     format!(
                         "{what} sits in {where_}, where a `.ork` reader does not read one; it was \
-                         written, and will read back left out"
+                         written, and will read back left out.{}",
+                        lean.sentence(!component.children.is_empty())
                     ),
                 );
             }
-            written.push((place, self.component(component, name, &path)));
+            written.push((place, self.component(component, name, &path, covered)));
         }
         written.sort_by_key(|(place, _)| *place);
         for (_, part) in written {
@@ -360,7 +378,8 @@ impl<'a> Writer<'a> {
         for tag in recovery::stage(design, index, stage) {
             element.push(tag);
         }
-        let components = self.parts(at, &stage.components, Holder::Stack, Vec::new());
+        let covered = Covered::default().within_stage(stage);
+        let components = self.parts(at, &stage.components, Holder::Stack, Vec::new(), &covered);
         element.push(components);
         element
     }
@@ -424,7 +443,13 @@ impl<'a> Writer<'a> {
     }
 
     /// The element for one component, everything on and inside it included.
-    fn component(&mut self, component: &Component, name: &str, at: &str) -> Element {
+    fn component(
+        &mut self,
+        component: &Component,
+        name: &str,
+        at: &str,
+        covered: &Covered,
+    ) -> Element {
         let design = self.design;
         let mut element = xml::element(name);
         element.leaf("name", component.name.clone());
@@ -540,7 +565,8 @@ impl<'a> Writer<'a> {
             } else {
                 Holder::Tube
             };
-            let parts = self.parts(at, &component.children, holder, hung);
+            let covered = covered.within_component(component);
+            let parts = self.parts(at, &component.children, holder, hung, &covered);
             element.push(parts);
         }
         element
@@ -1108,12 +1134,8 @@ impl<'a> Writer<'a> {
         if let (false, Some(drag)) = (kept_flags, drag) {
             element.flag("overridesubcomponentscd", drag.include_children);
         }
-        if overrides.cg_xy_m.is_some() || overrides.inertia.is_some() {
-            self.warn(
-                at,
-                "an override of the center of gravity off the axis or of the inertia, which a \
-                 `.ork` has no tag for; it was left out",
-            );
+        if let Some(message) = left_out_overrides(overrides) {
+            self.warn(at, message);
         }
     }
 
@@ -1143,14 +1165,17 @@ impl<'a> Writer<'a> {
             if component.finish.is_some() {
                 self.warn(
                     at,
-                    "a surface finish on a part inside the body, which has none in OpenRocket; \
-                     it was left out",
+                    format!(
+                        "a surface finish on a part inside the body, which has none in \
+                         OpenRocket; it was left out, and {NOTHING_DEPENDS}"
+                    ),
                 );
             }
             return;
         }
         let finish = component.finish.unwrap_or_default();
-        let word = finish.roughness_m().ok().and_then(|roughness_m| {
+        let roughness_m = finish.roughness_m().ok();
+        let word = roughness_m.and_then(|roughness_m| {
             [
                 ("rough", 500e-6),
                 ("unfinished", 150e-6),
@@ -1169,8 +1194,11 @@ impl<'a> Writer<'a> {
             }
             None => self.warn(
                 at,
-                "a surface finish that is none of OpenRocket's five; it was left out, and \
-                 OpenRocket reads the part as regular paint (60 µm)",
+                format!(
+                    "a surface finish that is none of OpenRocket's five; it was left out, and the \
+                     part reads back as regular paint (60 µm). {}",
+                    friction_read_back(roughness_m)
+                ),
             ),
         }
     }
@@ -1215,6 +1243,76 @@ impl<'a> Writer<'a> {
                 element.leaf(&name, text.clone());
             }
         }
+    }
+}
+
+/// The warning for the overrides a `.ork` has no tag for, an off-axis center of gravity and an
+/// inertia, and what each reads back as, or `None` when there are none. An axial center of
+/// gravity is written (`overridecg`), so read back the center sits on the axis at that station;
+/// without one, the reader works it out from the shapes, as it does the inertia, which a mass
+/// override scales ([`Overrides::apply`]).
+fn left_out_overrides(overrides: &Overrides) -> Option<String> {
+    let center = overrides.cg_xy_m.map(|_| {
+        if overrides.cg_aft_m.is_some() {
+            "its center of gravity sits on the axis, at the station its override gives"
+        } else {
+            "its center of gravity is worked out from its shape, on the axis"
+        }
+    });
+    let inertia = overrides
+        .inertia
+        .map(|_| "its inertia is worked out from its shape and mass");
+    let what = match (center, inertia) {
+        (Some(_), Some(_)) => "the center of gravity off the axis and of the inertia",
+        (Some(_), None) => "the center of gravity off the axis",
+        (None, Some(_)) => "the inertia",
+        (None, None) => return None,
+    };
+    let back: Vec<&str> = center.into_iter().chain(inertia).collect();
+    Some(format!(
+        "an override of {what}, which a `.ork` has no tag for; it was left out. Read back, {}",
+        back.join(", and ")
+    ))
+}
+
+/// What follows a parallel stage left out of the written file: its parts go with it. Nothing on
+/// the axis is placed from it, and no override on the axis covers it, as `hpr-design` places it
+/// beside the tube ([`Covered`]).
+fn left_out_stage(stage: &Stage) -> String {
+    let counted = stage
+        .components
+        .iter()
+        .map(Counted::of_component)
+        .fold(Counted::NOTHING, std::ops::BitOr::bitor);
+    Lean::new(counted, &Around::default()).sentence(true)
+}
+
+/// Whether the part after `siblings[index]` is placed after it.
+fn placed_after(siblings: &[Component], index: usize) -> bool {
+    siblings
+        .get(index + 1)
+        .is_some_and(|next| matches!(next.position, Some(Position::After { .. })))
+}
+
+/// The paint the reader takes a part with no finish word as, m: OpenRocket's regular paint
+/// (`super::super::attached::finish`).
+const REGULAR_PAINT_M: f64 = 60e-6;
+
+/// Which way a part's friction drag reads when a finish of `roughness_m` reads back as regular
+/// paint ([`REGULAR_PAINT_M`]). The skin friction coefficient never falls as the roughness grows
+/// (Niskanen 2009 eq. 3.81: the roughness-limited `0.032 (R_s/L)^0.2` rises with `R_s`, and
+/// takes over from the smooth turbulent value at a Reynolds number that falls as `R_s` grows), so
+/// a part smoother than the paint reads back rougher, its friction drag the same or higher, and
+/// a rougher one the other way.
+fn friction_read_back(roughness_m: Option<f64>) -> &'static str {
+    match roughness_m {
+        Some(roughness_m) if roughness_m < REGULAR_PAINT_M => {
+            "That's rougher than the part was, so its friction drag can read high"
+        }
+        Some(roughness_m) if roughness_m > REGULAR_PAINT_M => {
+            "That's smoother than the part was, so its friction drag can read low"
+        }
+        _ => "So its friction drag can read high or low",
     }
 }
 
@@ -1504,6 +1602,30 @@ pub(super) mod tests {
         ))
     }
 
+    /// A finish that reads back as regular paint says which way the friction drag leans: up
+    /// for a smoother finish, down for a rougher one, either way when its roughness can't be
+    /// read (#952). The `hpr` crate's tests pin the drag itself.
+    #[test]
+    fn a_finish_read_back_as_paint_says_which_way_the_friction_leans() {
+        assert!(friction_read_back(Some(20e-6)).ends_with("can read high"));
+        assert!(friction_read_back(Some(100e-6)).ends_with("can read low"));
+        assert!(friction_read_back(None).ends_with("can read high or low"));
+        let tube = |finish: Finish| {
+            let (mut built, _, _, _) = round_trip(&tube_of(""));
+            built.rocket.stages[0].components[1].finish = Some(finish);
+            document(&built).warnings
+        };
+        let rougher = tube(Finish::Custom {
+            roughness_m: 100e-6,
+        });
+        assert!(
+            rougher
+                .iter()
+                .any(|w| w.message.ends_with("its friction drag can read low")),
+            "{rougher:?}"
+        );
+    }
+
     /// A part left at the design's default finish, 20 µm, is written as `smooth`, so the file flies
     /// as the design does: OpenRocket and the reader take an outside part with no `<finish>` as
     /// regular paint, 60 µm (#216). A part inside the body is given none, and one the design gives
@@ -1542,7 +1664,16 @@ pub(super) mod tests {
         assert!(
             messages
                 .iter()
-                .any(|m| m.contains("OpenRocket reads the part as regular paint (60 µm)")),
+                .any(|m| m.contains("the part reads back as regular paint (60 µm)")),
+            "{messages:?}"
+        );
+        // Smoother than the paint, so read back it's rougher, and its friction drag can only
+        // rise (#952).
+        assert!(
+            messages.iter().any(|m| m.ends_with(
+                "That's rougher than the part was, so its friction drag can \
+                                      read high"
+            )),
             "{messages:?}"
         );
         assert!(
@@ -1983,6 +2114,216 @@ pub(super) mod tests {
         let warnings = document(&original).warnings;
         assert_eq!(warnings.len(), 3, "{warnings:?}");
         assert!(warnings.iter().all(|w| w.kind == WarningKind::Dropped));
+    }
+
+    /// The overrides a `.ork` has no tag for say what each reads back as (#952): an off-axis
+    /// center beside an axial one keeps the axial station, on the axis; without one the center is
+    /// the shape's; an inertia is the shape's and mass's. Read back, the axial override is there.
+    #[test]
+    fn an_override_left_out_says_what_it_reads_back_as() {
+        let both = Overrides {
+            cg_aft_m: Some(0.1),
+            cg_xy_m: Some([0.001, 0.0]),
+            ..Overrides::default()
+        };
+        assert_eq!(
+            left_out_overrides(&both).as_deref(),
+            Some(
+                "an override of the center of gravity off the axis, which a `.ork` has no tag \
+                 for; it was left out. Read back, its center of gravity sits on the axis, at the \
+                 station its override gives"
+            )
+        );
+        let inertia = Some(hpr_design::tree::InertiaOverride::axisymmetric(1e-4, 1e-3));
+        let off = Overrides {
+            cg_xy_m: Some([0.001, 0.0]),
+            inertia,
+            ..Overrides::default()
+        };
+        assert_eq!(
+            left_out_overrides(&off).as_deref(),
+            Some(
+                "an override of the center of gravity off the axis and of the inertia, which a \
+                 `.ork` has no tag for; it was left out. Read back, its center of gravity is \
+                 worked out from its shape, on the axis, and its inertia is worked out from its \
+                 shape and mass"
+            )
+        );
+        assert_eq!(left_out_overrides(&Overrides::default()), None);
+
+        let xml = rocket_of(
+            r#"
+      <bodytube><name>Tube</name><id>tube</id><length>0.3</length>
+        <thickness>0.001</thickness><radius>0.02</radius></bodytube>"#,
+        );
+        let file = read(uuids(&xml).as_bytes()).expect("reads").value;
+        let mut original = design(&file).value;
+        original.rocket.stages[0].components[0].overrides = both;
+        let written = document(&original);
+        assert!(
+            written
+                .warnings
+                .iter()
+                .any(|w| w.message.ends_with("at the station its override gives")),
+            "{:?}",
+            written.warnings
+        );
+        let back = design(
+            &read(written.value.to_xml().as_bytes())
+                .expect("reads back")
+                .value,
+        )
+        .value;
+        let overrides = back.rocket.stages[0].components[0].overrides;
+        assert_eq!((overrides.cg_aft_m, overrides.cg_xy_m), (Some(0.1), None));
+    }
+
+    /// A part written where a `.ork` reader doesn't read one says what leaving it out does, by
+    /// what it and the parts inside it carry, and the reader's tally of it, read back, says the
+    /// same (#952): a lug in a stage, a fin set in a stage, and a body tube holding a mass and then
+    /// a parachute inside another tube, at its end and ahead of a part placed after it. The mass
+    /// comes first so that a warning that took only the first part inside would lose the canopy.
+    #[test]
+    fn a_part_written_where_it_reads_back_left_out_says_the_same_lean_both_ways() {
+        let xml = rocket_of(
+            r#"
+      <nosecone><name>Nose</name><id>nose</id>
+        <material type="bulk" density="1000.0">Invented plastic</material>
+        <length>0.25</length><thickness>0.002</thickness><shape>conical</shape>
+        <aftradius>0.05</aftradius></nosecone>
+      <bodytube><name>Tube</name><id>tube</id>
+        <material type="bulk" density="700.0">Invented paper</material>
+        <length>0.8</length><thickness>0.0015</thickness><radius>0.05</radius>
+        <subcomponents>
+          <launchlug><name>Lug</name><id>lug</id><axialoffset method="top">0.1</axialoffset>
+            <material type="bulk" density="1200.0">Invented plastic</material>
+            <radius>0.004</radius><thickness>0.0005</thickness><length>0.05</length></launchlug>
+          <trapezoidfinset><name>Fins</name><id>fins</id><fincount>3</fincount>
+            <axialoffset method="bottom">0.0</axialoffset>
+            <rootchord>0.1</rootchord><tipchord>0.05</tipchord><height>0.08</height>
+            <sweeplength>0.05</sweeplength><thickness>0.003</thickness></trapezoidfinset>
+        </subcomponents></bodytube>
+      <bodytube><name>Bay</name><id>bay</id>
+        <material type="bulk" density="700.0">Invented paper</material>
+        <length>0.3</length><thickness>0.0015</thickness><radius>0.05</radius>
+        <subcomponents>
+          <masscomponent><name>Weight</name><id>weight</id><mass>0.05</mass>
+            <axialoffset method="top">0.0</axialoffset><packedlength>0.02</packedlength>
+            <packedradius>0.01</packedradius></masscomponent>
+          <parachute><name>Chute</name><id>chute</id><axialoffset method="top">0.0</axialoffset>
+            <packedlength>0.05</packedlength><packedradius>0.03</packedradius><cd>auto</cd>
+            <material type="surface" density="0.067">Invented nylon</material>
+            <deployevent>apogee</deployevent><diameter>0.6</diameter></parachute>
+        </subcomponents></bodytube>"#,
+        );
+        let file = read(uuids(&xml).as_bytes()).expect("reads").value;
+        let original = design(&file).value;
+        let lug = " Its mass and drag aren't counted, so the mass and drag read low. The stability \
+                   margin reads high for a part aft of the center of gravity, low for one ahead";
+        let fins = " Its mass, drag and lift aren't counted, so the mass and drag read low. The \
+                    stability margin can read high or low";
+        let bay = " Their mass, drag, lift and drag under canopy aren't counted, so the mass and \
+                   drag read low. The descent rate reads high if one of them opens in flight, low \
+                   if none does. The stability margin can read high or low";
+        // Ahead of a part placed after it, which moves when it goes.
+        let ahead = " Their mass, drag, lift and drag under canopy aren't counted, so the mass and \
+                     drag read low. The descent rate reads high if one of them opens in flight, \
+                     low if none does. The stability margin can read high or low, as parts placed \
+                     after it move too";
+        for (moved, tail) in [
+            ("lug", lug),
+            ("fins", fins),
+            ("bay", bay),
+            ("bay ahead", ahead),
+        ] {
+            let mut moving = original.clone();
+            let stage = &mut moving.rocket.stages[0];
+            if moved == "bay" {
+                let bay = stage.components.remove(2);
+                stage.components[1].children.push(bay);
+            } else if moved == "bay ahead" {
+                let bay = stage.components.remove(2);
+                let tube = &mut stage.components[1];
+                tube.children.insert(0, bay);
+                tube.children[1].position = Some(Position::After { aft_offset_m: 0.0 });
+            } else {
+                let tube = &mut stage.components[1];
+                let at = tube
+                    .children
+                    .iter()
+                    .position(|c| c.name.eq_ignore_ascii_case(moved));
+                let part = tube.children.remove(at.expect("the part"));
+                stage.components.push(part);
+            }
+            let written = document(&moving);
+            let said: Vec<&str> = written
+                .warnings
+                .iter()
+                .map(|w| w.message.as_str())
+                .filter(|m| m.contains("will read back left out"))
+                .collect();
+            assert_eq!(said.len(), 1, "{moved}: {:?}", written.warnings);
+            assert!(said[0].ends_with(tail), "{moved}: {}", said[0]);
+            let back = design(
+                &read(written.value.to_xml().as_bytes())
+                    .expect("reads back")
+                    .value,
+            );
+            let tally: Vec<&str> = back
+                .warnings
+                .iter()
+                .map(|w| w.message.as_str())
+                .filter(|m| m.contains("tags HPR Sim does not read"))
+                .collect();
+            assert_eq!(tally.len(), 1, "{moved}: {:?}", back.warnings);
+            assert!(tally[0].ends_with(tail), "{moved}: {}", tally[0]);
+        }
+    }
+
+    /// A parallel stage hung on a part that is no body tube is left out of the written file, and
+    /// says what all its parts carried (#952): a tube, then a bay with a parachute, so that a
+    /// warning that took only the first part would lose the canopy.
+    #[test]
+    fn a_parallel_stage_left_out_of_the_file_says_what_its_parts_carried() {
+        let xml = tube_of(
+            r#"
+          <parallelstage><name>Boosters</name><id>boosters</id>
+            <instancecount>2</instancecount><radiusoffset method="free">0.07</radiusoffset>
+            <axialoffset method="bottom">0.0</axialoffset>
+            <subcomponents>
+              <bodytube><name>Booster</name><id>booster</id>
+                <material type="bulk" density="700.0">Invented paper</material>
+                <length>0.3</length><thickness>0.001</thickness><radius>0.02</radius></bodytube>
+              <bodytube><name>Booster bay</name><id>booster-bay</id>
+                <material type="bulk" density="700.0">Invented paper</material>
+                <length>0.1</length><thickness>0.001</thickness><radius>0.02</radius>
+                <subcomponents>
+                  <parachute><name>Booster chute</name><id>booster-chute</id>
+                    <axialoffset method="top">0.0</axialoffset><packedlength>0.03</packedlength>
+                    <packedradius>0.015</packedradius><cd>auto</cd>
+                    <material type="surface" density="0.067">Invented nylon</material>
+                    <deployevent>apogee</deployevent><diameter>0.3</diameter></parachute>
+                </subcomponents></bodytube>
+            </subcomponents></parallelstage>"#,
+        );
+        let file = read(uuids(&xml).as_bytes()).expect("reads").value;
+        let mut original = design(&file).value;
+        let nose = original.rocket.stages[0].components[0].id.clone();
+        let parallel = original.rocket.stages[1]
+            .parallel
+            .as_mut()
+            .expect("a parallel stage");
+        parallel.on = nose;
+        let warnings = document(&original).warnings;
+        assert!(
+            warnings.iter().any(|w| w.message.ends_with(
+                "It was left out of the written file, with the parts in it. Their mass, drag, \
+                 lift and drag under canopy aren't counted, so the mass and drag read low. The \
+                 descent rate reads high if one of them opens in flight, low if none does. The \
+                 stability margin can read high or low"
+            )),
+            "{warnings:?}"
+        );
     }
 
     /// Text the written file must hold, and how many times.

@@ -658,7 +658,8 @@ fn probes_read_as_openrocket_reads_them() {
                 assert_eq!(
                     messages,
                     [
-                        "`oz/in` is not a unit of line density this reads; it was left out",
+                        "`oz/in` is not a unit of line density this reads; it was left out, so a part \
+                         naming it has no density",
                         "its material `L` is not defined in this file, so it has no density",
                     ],
                     "{name}"
@@ -710,7 +711,9 @@ fn probes_read_as_openrocket_reads_them() {
                 assert!(read.catalog.parts.is_empty(), "{name}");
                 assert_eq!(read.warnings.len(), 1, "{name}: {:?}", read.warnings);
                 assert!(
-                    read.warnings[0].message.ends_with("the part was left out"),
+                    read.warnings[0]
+                        .message
+                        .ends_with("the part was left out of the catalog"),
                     "{name}: {:?}",
                     read.warnings
                 );

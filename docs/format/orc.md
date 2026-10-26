@@ -276,13 +276,13 @@ left out with a warning, and reading goes on:
 - A material is left out for an unknown unit or kind, no density, or an element inside its name. It
   is also left out for a density below zero or too large for a 64-bit number. Parts that name it
   read with no density.
-- A field a part's kind doesn't have is ignored, with a warning. The 37 built-in nose cones
+- A field a part's kind doesn't have is left out, with a warning. The 37 built-in nose cones
   that state an inside diameter read this way.
 - A field stated twice keeps the last, as OpenRocket does. Three built-in parts state two
   descriptions.
 - A material defined twice with two densities: parts take the first, as in OpenRocket.
 - A list stated twice: the last `<Materials>` and the last `<Components>` are read, as
-  OpenRocket reads them. Anything else beside the lists is ignored.
+  OpenRocket reads them. Anything else beside the lists is left out.
 - A value that is read as written but looks wrong:
   - a tube whose inside diameter is not less than its outside diameter;
   - a solid lighter than air (under 1 kg/m³);
