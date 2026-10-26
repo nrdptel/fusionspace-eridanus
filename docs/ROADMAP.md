@@ -135,13 +135,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M0.14 The maintainer's own voice** (ADR-284; Neer, 2026-10-18; VISION V55). Each
   rewriting increment's PR shows every changed page before and after, and its cold reader checks
   each page against each voice rule, every finding fixed or filed (ADR-284 §7).
-  - [ ] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
-    when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
-    `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
-    - [ ] **M0.14d4 The Python package and the crates' front pages.** *Done when:* the Python
-      package's README and docstrings, `hpr-py`'s messages and each crate's `//!` docs pass `xtask
-      voice`, held in CI; acceptance pass; and M0.14d's own *done when*.
-
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - **M1.8** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).

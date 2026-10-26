@@ -98,9 +98,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14c7 Recovery, staging and readings ([Phase 0](#phase-0-foundations))
 - M0.14c8 The file formats ([Phase 0](#phase-0-foundations))
 - M0.14c9 Flight logs, and every page held ([Phase 0](#phase-0-foundations))
+- M0.14d The program's words ([Phase 0](#phase-0-foundations))
 - M0.14d1 The help ([Phase 0](#phase-0-foundations))
 - M0.14d2 What the design commands say ([Phase 0](#phase-0-foundations))
 - M0.14d3 What the data commands say ([Phase 0](#phase-0-foundations))
+- M0.14d4 The Python package and the crates' front pages ([Phase 0](#phase-0-foundations))
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -652,7 +654,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.14c9 Flight logs, and every page held.** *Done when:* `xtask voice` holds every
       site page outside ADR-284 §5's list in CI, a new one included, the flight-log formats' page
       with them, within its limits and the sentence targets, with an acceptance pass.
-  - **M0.14d** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
+    when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
+    `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
     - [x] **M0.14d1 The help.** *Done when:* a test pins each command's `--help` in a snapshot;
       `xtask voice` reads them as help and holds each to the voice limits in CI; acceptance pass.
     - [x] **M0.14d2 What the design commands say.** *Done when:* `xtask voice` reads a census of
@@ -662,6 +666,10 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr weather`,
       `motors fetch`/`search` and `analyze`, from `hpr-cli`, `hpr-net`, `hpr-flightdata`,
       `hpr-analysis` and `hpr-forensics`; acceptance pass.
+    - [x] **M0.14d4 The Python package and the crates' front pages.** *Done when:* the Python
+      package's README and docstrings, `hpr-py`'s messages and each crate's `//!` docs pass `xtask
+      voice`, held in CI; acceptance pass; and M0.14d's own *done when*.
+
   - [x] **M0.14b The front doors.** *Done when:* the README, the docs landing page, the
     guides' landing pages, fusionspace.co, the design repo's README, the profile README and
     ADR-284 §5's About texts pass `xtask voice` and its limits, with an acceptance pass (ADR-282).
