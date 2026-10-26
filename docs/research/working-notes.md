@@ -161,8 +161,8 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   tab reports no paints (use `Target.createTarget`). Over HTTP/1.1 a seventh early request waits
   a round trip: keep the stylesheet and `toc.js` ahead of the font preloads (`bundle.rs`).
 - **Validation (M2.1, ADR-021 to ADR-026):** CI checks the report on every platform; predicted mode's 3%
-  are *targets*; every whole flight names both RMS metrics, each held to 3% of its reference's
-  apogee or max speed (ADR-024). The wind oracle flies RocketPy 1.13.0 with #1188 and #1196 by
+  are *targets*; every whole flight names both RMS metrics, each held to at most 3% of its
+  reference's apogee or max speed (ADR-024; ADR-294 tightens six). The wind oracle flies RocketPy 1.13.0 with #1188 and #1196 by
   `corrections.py`.
 - **Regeneration is not bit-identical**: use `cargo xtask validate` (debug), never `--release`;
   checks allow 1e-12 but **compare a fixture's strings as text**. `cargo xtask aero` rewrites

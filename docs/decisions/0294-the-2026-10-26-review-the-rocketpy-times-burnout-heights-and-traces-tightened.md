@@ -42,7 +42,7 @@ RocketPy's own numerical error is far smaller. Its [reference][fixture] records 
 again at `rtol = 1e-6` instead of `1e-8` (each case's `solver.relative_change_from_loose`): the
 rail-exit time moves by at most 2.4e-5 of its value (NDRT 2020, 2.385e-5), the apogee time of the
 six by at most 2.7e-6 (Calisto in calm air, 2.67e-6) and their burnout height by at most 1.0e-5
-(Bella Lui in calm air, 9.98e-6). The traces are not flown again, so their solver movement is not
+(Bella Lui in calm air, 9.99e-6). The traces are not flown again, so their solver movement is not
 recorded. A 3% gate is 21 times the largest rail-exit time difference and 62 times the largest
 burnout height difference, so a fault that moved the burnout height by 2.9% would pass it. The
 [census][census] holds each row near where it was, but `cargo xtask census --accept` can
@@ -63,18 +63,18 @@ re-baseline any row, and the gate is the only bound a re-accepted change still h
 
    Headroom is the bound over the largest difference, rounded down (for the traces, the bound as the
    case file rounds it). The point bounds are 200 times RocketPy's solver movement or more: 0.5% is
-   209 times 2.385e-5, 1% is 3,700 times 2.67e-6, and 0.2% is 200 times 9.98e-6. Every one of the 33
+   209 times 2.385e-5, 1% is 3,700 times 2.67e-6, and 0.2% is 200 times 9.99e-6. Every one of the 33
    was re-measured from the committed report before the change, and none had less than 2.5 times
    headroom, the least this record accepts. The bounds are two-sided, so a change that flips a sign
    (the rail-exit times are all negative today, the apogee times all positive) is held as tightly.
 2. **What keeps 3%, and why.**
    - *The largest acceleration and its time*: RocketPy's own peak moves by up to 0.16%
      (Prometheus 2022) and its time by up to 0.18% (Valetudo) with the solver, and the largest
-     scored difference is 1.778% (Bella Lui in calm air, the ignition spike on the rail where HPR
-     Sim keeps the variable-mass terms).
+     scored difference among the six is 1.778% (Bella Lui in calm air, the ignition spike on the
+     rail where HPR Sim keeps the variable-mass terms); in wind, Bella Lui's is 1.783%.
    - *The apogee and landing drifts*: up to −1.750% (Juno III in calm air) and −1.811%
      (Valetudo).
-   - *The flight time*: up to +0.643% (NDRT 2020), carrying its descent's 0.70% descent-rate
+   - *The flight time*: among the six, up to +0.643% (NDRT 2020), carrying its descent's 0.70% descent-rate
      difference, which [ADR-289][adr-289] left at 3%.
    - *The largest Mach number*: the untraced speed-of-sound offset [ADR-289][adr-289] describes.
    - *The three flights with a written cause* (Juno III, Bella Lui and Prometheus 2022 in wind,
@@ -115,7 +115,8 @@ re-baseline any row, and the gate is the only bound a re-accepted change still h
   just above the reproduction bound, which every platform already meets on every row of the
   report. The RocketPy reference is a committed file, not flown again in CI, so no solver noise of
   RocketPy's enters.
-- *Thin margins.* Valetudo's traces are the closest, 3.2 and 3.6 times inside. They include the
+- *Thin margins.* Valetudo's speed trace is the closest, 3.2 times inside, then Juno III's
+  rail-exit time (3.5 times) and Valetudo's height trace (3.6 times). The traces include the
   descent, so a recovery change (an opening time, an added mass) is the likeliest thing to move
   them; §4 decides what happens then.
 - *The sample.* The margins are measurements on RocketPy's six example rockets, and agreement

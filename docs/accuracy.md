@@ -148,7 +148,7 @@ bound: the larger of 2e-6 in the metric's own unit and 1e-7 of the value. The sc
 tolerance where it has one. Otherwise it's the bar of its kind. That's 3% of its reference for a
 harness metric not scored, 5% for an OpenRocket apogee or largest speed and 1% for an OpenRocket
 mass. It's 0.5 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
-logged climb's RMS gets 3% of the apogee, the bound the RocketPy comparisons hold a whole flight's
+logged climb's RMS gets 3% of the apogee, the bound the RocketPy comparisons in wind hold a flight's
 height RMS to ([census][census]). For example, a 3% tolerance on a 1000 m (3,281 ft) apogee allows
 30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
 
@@ -572,7 +572,7 @@ All nine flights pass, each well inside its bound. The largest height RMS is Pro
 furthest off, +1.208%. Body lift accounts for that too. RocketPy flown with HPR Sim's body lift and
 rail release reaches 3723.8 m (12,217 ft), against HPR Sim's 3723.6 ([case file][prometheus-case]).
 Juno III's height RMS is 14.550622 m (47.73826 ft) against 78.4 m (257 ft), about a fifth. The
-rest are under three tenths of theirs. The speed RMS runs from 0.022685 to 1.553509 m/s
+other heights are under three tenths of theirs. The speed RMS runs from 0.022685 to 1.553509 m/s
 (0.07443 to 5.09681 ft/s, [report][report]).
 
 | case | `series_height_rms_m` | height bound, m | `series_speed_rms_m_s` | speed bound, m/s |
