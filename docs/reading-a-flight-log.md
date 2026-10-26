@@ -71,24 +71,24 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > them. They hold on [six simulated logger profiles](physics/synthetic-flights.md#the-loggers) and
 > on rockets leaving the pad at 2 g or more. A noisier logger or a slower rocket can be read
 > outside them.
->
-> One real flight's log is public, but it isn't committed here, so it isn't checked in CI. On it,
-> the analyzer reads the apogee as 1,009 ft above the pad, as the altimeter states it. Those are
-> two readings of one pressure trace, not a measurement of the height
-> ([the analyzer's evidence row](evidence.md#g10)).
->
-> Most of an apogee's bound is the day's air. A barometric altimeter turns pressure into height by
-> the standard atmosphere. So on a day 15 K from standard, its heights are off by up to 6.92%.
->
-> The top speed is worked out from the heights. It's withheld from 227.7 m/s (747 ft/s), Mach 0.8
-> in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
-> those speeds a barometer's port may read the flow over the nose.
->
-> The known gaps, each an open issue, are listed under
-> [What it doesn't do yet](#what-it-doesnt-do-yet). For a record or a
-> certification, the altimeter's own reading is the one to log. The rules behind each reading are
-> on [Flight-log readings](physics/log-readings.md), with what they were checked against. A
-> reading the log can't support is left out and says why, rather than printed as a number.
+
+One real flight's log is public, but it isn't committed here, so it isn't checked in CI. On it,
+the analyzer reads the apogee as 1,009 ft above the pad, as the altimeter states it. Those are
+two readings of one pressure trace, not a measurement of the height
+([the analyzer's evidence row](evidence.md#g10)).
+
+Most of an apogee's bound is the day's air. A barometric altimeter turns pressure into height by
+the standard atmosphere. So on a day 15 K from standard, its heights are off by up to 6.92%.
+
+The top speed is worked out from the heights. It's withheld from 227.7 m/s (747 ft/s), Mach 0.8
+in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
+those speeds a barometer's port may read the flow over the nose.
+
+The known gaps, each an open issue, are listed under
+[What it doesn't do yet](#what-it-doesnt-do-yet). For a record or a
+certification, the altimeter's own reading is the one to log. The rules behind each reading are
+on [Flight-log readings](physics/log-readings.md), with what they were checked against. A
+reading the log can't support is left out and says why, rather than printed as a number.
 
 ## From the command line
 

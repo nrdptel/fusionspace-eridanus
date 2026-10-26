@@ -16,8 +16,10 @@ and [A tour of HPR Sim](simulator-tour.md).
 >
 > Only the numbers under *Measured side by side* compare results, each read by a test from a
 > committed report. RASAero II has flown none of them yet, and every accuracy comparison checks
-> apogee alone. Nothing here says which simulator is right for a flight. HPR Sim gives ranges, not
-> verdicts. The safety code and the range safety officer (the RSO) decide whether a rocket flies.
+> apogee alone. Nothing here says which simulator is right for a flight.
+
+HPR Sim gives ranges, not verdicts. The safety code and the range safety officer (the RSO) decide
+whether a rocket flies.
 
 ## What each does
 

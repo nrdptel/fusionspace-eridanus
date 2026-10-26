@@ -22,9 +22,10 @@ rail. The page runs four example programs and walks through them. It needs the s
 >
 > The masses come from each part's shape and a published density. So glue, paint and hardware are
 > missing until you weigh the parts. This rocket has never been flown for real, so no flight
-> checks it. Where it lands in a wind is the least certain number of all. On two of RocketPy's
-> example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
+> checks it. Where it lands in a wind is the least certain number of all.
+
+On two of RocketPy's example rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
+([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## The first example
 
@@ -310,13 +311,14 @@ what the part is and its size in inches:
 > that slides into the body, has the nose's own plastic wall here and weighs nothing in
 > OpenRocket. OpenRocket weighs the nose at 61.5 g; here it weighs 87.7 g, 26.1 g of it the
 > shoulder. That's 6% of the structure.
->
-> Nothing checks the flight itself: the note at the top of this page applies. The top speed is
-> Mach 0.91, close to the speed of sound. There drag rises steeply and is least certain
-> ([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
-> [stability margin](glossary.md#stability-margin), 1.07 [calibers](glossary.md#caliber), is
-> taken at Mach 0.3, about 100 m/s (328 ft/s). That's more than three times the speed the rocket
-> leaves the rail at.
+
+
+Nothing checks the flight itself: the note at the top of this page applies. The top speed is
+Mach 0.91, close to the speed of sound. There drag rises steeply and is least certain
+([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
+[stability margin](glossary.md#stability-margin), 1.07 [calibers](glossary.md#caliber), is
+taken at Mach 0.3, about 100 m/s (328 ft/s). That's more than three times the speed the rocket
+leaves the rail at.
 
 The program is
 [`catalog_rocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/catalog_rocket.rs).

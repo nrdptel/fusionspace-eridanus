@@ -215,7 +215,7 @@ extrapolation.
 
 ## Readings and materials
 
-The readings HPR Sim takes where the source leaves room, and the fins' shear moduli.
+Readings and shear moduli.
 
 ### Readings where the source leaves room
 
@@ -250,7 +250,7 @@ from. `shear_modulus_of` finds a design's copy of a built-in material by its nam
 range, the lower value is kept. Metals are given in ksi (1000 psi) and Msi (10⁶ psi); 1 Msi is
 6.895 GPa.
 
-| Material | $G$, GPa | Source | Basis |
+| Material | modulus $G$ (GPa) | Source | Basis |
 |---|--:|---|---|
 | Aluminum 6061 | 26.2 | MIL-HDBK-5J, Table 3.6.2.0(b1): 3.8 × 10³ ksi | stated |
 | Aluminum 7075 | 26.9 | MIL-HDBK-5J, Table 3.7.6.0(b1): 3.9 × 10³ ksi | stated |

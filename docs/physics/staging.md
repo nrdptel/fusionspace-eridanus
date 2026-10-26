@@ -72,7 +72,7 @@ and the [worked example](#a-worked-example) below. The decision record is [ADR-0
 
 ## Ignition and separation
 
-When each motor lights and how a stage drops away under power, with a worked example.
+How motors light and a stage drops away, with a worked example.
 
 ### When a motor lights
 
@@ -250,7 +250,7 @@ beyond the tests below.
 
 ## More stages and boosters
 
-Rockets of three stages or more, dropped payloads, and boosters beside the core.
+Three or more stages, dropped payloads, and boosters beside the core.
 
 ### Several separations
 
@@ -407,7 +407,7 @@ record, measured from where each tool's flight starts, and every descent meets t
 Each $\Delta$ is taken from the report's unrounded heights, so it can differ in the last digit from
 the rounded ones.
 
-| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | $\Delta$ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | $\Delta$ |
+| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | coasting $\Delta$ |
 |---|---:|--:|---:|--:|---:|
 | C6-3 | 4.86 | 233.2 / 233.3 | +0.04% | 258.5 / 268.8 | +4.00% |
 | C6-5 | 6.86 | 265.3 / 264.4 | −0.32% | 266.6 / 265.4 | −0.43% |
@@ -457,7 +457,7 @@ configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, 
 [flights report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md),
 recovery as saved:
 
-| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | $\Delta$ | largest speed $\Delta$ |
+| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | largest speed $\Delta$ |
 |---|---|--:|---:|---:|
 | I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |

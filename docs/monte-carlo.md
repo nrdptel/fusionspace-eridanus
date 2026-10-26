@@ -21,13 +21,7 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 > ([Accuracy](accuracy.md)).
 >
 > - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
->   tests pin the sampling. They check that:
->   - the same [seed](glossary.md#seed) gives the same run, bit for bit, however many flights it
->     has and however many threads fly them;
->   - a run with no dispersion flies the nominal flight in every sample;
->   - each dispersion moves its input as the table below says;
->   - a dispersed motor keeps its [specific impulse](glossary.md#specific-impulse);
->   - failed flights are counted.
+>   tests pin the sampling (below).
 > - The [landing ellipses](#landing-ellipses) are tested against normal spreads with known answers.
 > - Nothing checks whether the spread matches that of real flights. No measured set of repeated
 >   flights has been compared yet.
@@ -35,6 +29,15 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 >   [normal](glossary.md#normal-distribution), and the inputs listed under
 >   [What is not dispersed](#what-is-not-dispersed). It flies what `Flight::builder` sets up, a
 >   staged flight's separations included. Events of your own can't be part of one yet.
+
+Sampling tests check that:
+
+- the same [seed](glossary.md#seed) gives the same run, bit for bit, however many flights it
+  has and however many threads fly them;
+- a run with no dispersion flies the nominal flight in every sample;
+- each dispersion moves its input as the table below says;
+- a dispersed motor keeps its [specific impulse](glossary.md#specific-impulse);
+- failed flights are counted.
 
 ## Running a dispersion
 
@@ -196,9 +199,12 @@ along its long and short directions.
    $$
 
 
-   | Level $p$ | 50% | 90% | 95% | 99% |
-   |---|--:|--:|--:|--:|
-   | Scale $k$ | 1.177 | 2.146 | 2.448 | 3.035 |
+   | Level $p$ | Scale factor $k$ |
+   |--:|--:|
+   | 50% | 1.177 |
+   | 90% | 2.146 |
+   | 95% | 2.448 |
+   | 99% | 3.035 |
 
    The 95% ellipse's semi-axes are $2.448 \times 214.6\,\mathrm{m} = 525\,\mathrm{m}$ and
    $2.448 \times 203.0\,\mathrm{m} = 497\,\mathrm{m}$.
@@ -251,10 +257,10 @@ A failed flight has no landing. It counts as outside for the lower bound and ins
 >   ellipse at its level, within five standard errors.
 > - A new point lands inside the next-flight ellipse of 3, 5 or 20 others at its level, within
 >   five standard errors. It lands inside the plain ellipse visibly less often.
->
-> The tests can catch a wrong ellipse. Take a spread 200 m (656 ft) long and 30 m (98 ft) wide,
-> one standard deviation each way. Its 95% ellipse, turned 6° off the spread's axes, holds 90.6%,
-> and the test pins that.
+
+The tests can catch a wrong ellipse. Take a spread 200 m (656 ft) long and 30 m (98 ft) wide,
+one standard deviation each way. Its 95% ellipse, turned 6° off the spread's axes, holds 90.6%,
+and the test pins that.
 
 ## What each dispersion does
 

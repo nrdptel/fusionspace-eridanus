@@ -20,7 +20,7 @@ Coriolis push the spinning Earth gives it.
 
 ## Code and sources
 
-Code: `hpr_core::gravity` (the normal gravity field) and `hpr_core::earth` (what the flight engine
+Code: `hpr_core::gravity` and `hpr_core::earth` (what the flight engine
 uses). Source: **[NGA]** NGA.STND.0036_1.0.0_WGS84 (2014), chapter 4 and appendix B, pinned as
 `wgs84-nga-stnd-0036`.
 
@@ -82,7 +82,7 @@ $$
 
 **Check.** These reproduce the printed values to their last digit:
 
-| quantity | value | printed in |
+| quantity | value (m/s², or ratio) | printed in |
 |---|--:|---|
 | $q_0$ | 7.334625787083e-5 | eq. B-18 |
 | $q_0'$ | 2.688041300461e-3 | eq. B-19 |

@@ -29,105 +29,97 @@ corpus. A Rust program reads a file with `hpr_io::ork`. From a terminal,
 can't fly as written, such as a payload that would coast with no drag after its split.
 
 > **How far to trust it.** The design is read from the file, and its flight is simulated; each is
-> checked below.
->
-> - **The shape is cross-checked.** The airframe's key geometry was compared with a second program
->   that reads `.ork` files, RocketSerializer, and with OpenRocket itself. That geometry is the nose
->   cone, the transitions, the fin sets, where each sits, and the body radius. Over 71 designs in
->   the current scratch-excluding survey, HPR Sim's value is within the survey's 1-in-$10^9$
->   comparison tolerance of OpenRocket's for all 1,171 numbers. The survey found 75 files, 73
->   readable and 72 with a design that lays out; two readable designs are not opened by OpenRocket.
->   Where parts sit is checked against OpenRocket alone. Mass and the center of gravity are checked
->   in [Mass properties](../physics/mass.md#checked-against-openrocket)
->   ([checked against RocketSerializer](#checked-against-rocketserializer)).
-> - **Few motor configurations fly with HPR Sim alone.** Motors are read. A configuration flies only
->   when every motor in it has a thrust curve and lights at a moment HPR Sim can fly. Its stages
->   must also come apart in a way HPR Sim flies, and the airframe must have been read without a
->   warning. Most designs don't carry their curves. With the file's own curves and HPR Sim's small
->   bundled catalog, **4 of the 170 motor configurations** in the reference library's 72 designs
->   fly. When a caller also supplies OpenRocket's own motor database, as the validation survey does,
->   **145** fly. HPR Sim doesn't ship that database
->   ([motors in the reference library](#motors-in-the-reference-library)). The `hpr sim` command
->   fetches a missing curve from ThrustCurve.org by the file's manufacturer and designation, and
->   caches it, as [motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg) describes.
->   With those curves `hpr sim` flies **136** of the 170 as saved, and 9 more with
->   `--accept-design-errors` ([the count](#how-many-configurations-hpr-sim-flies)).
-> - **Parachutes and streamers fly as OpenRocket flies them.** HPR Sim lands within 0.02% of
->   OpenRocket's landing speed on 50 of its 53 example flights and within 0.12% on all 53. Take the
->   51 with no named cause for an apogee gap, less the *Base drag hack*'s three. On these, HPR Sim's
->   flight time is −1.57% to +3.16% off
->   ([flown as OpenRocket flies them](#flown-as-openrocket-flies-them)). A stage separation is flown
->   when two things hold at that moment. A motor ahead of it is still burning or yet to light. No
->   motor behind it is burning or yet to light. A configuration's several such separations are
->   flown in turn, from the tail
->   forward. One at a stage's first burnout may drop the stage's other motors still burning, as
->   OpenRocket does
->   ([when parachutes open and stages separate](#when-parachutes-open-and-stages-separate)). A lone
->   separation with nothing left to burn, such as a payload's, is flown under one condition. The
->   part that keeps the nose must have a device of its own open by then
->   ([a payload's split](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)).
->   A Rust program and `hpr sim` fly such powered separations, each device on the part its stage is
->   in ([powered separation in `hpr sim`](../decisions-and-roadmap.md#m4-5g1);
->   [several separations](../decisions-and-roadmap.md#m4-5g2)). A dropped stage's own flight is not
->   validated ([the evidence row](../evidence.md#g13)). `hpr sim` flies a configuration whose
->   separation can only come after apogee as one stack, with a note.
-> - **Whole flights are compared with OpenRocket's on its own examples.** Both programs fly 53
->   configurations of OpenRocket's examples to the end. On 41 of them the stability margin off the
->   rod agrees within 0.016 calibers, taken with the air along the rocket's axis as OpenRocket's is.
->   On the *Tube fin rocket* it is 1.08 calibers below OpenRocket's
->   ([tube fins](../physics/aero.md#tube-fins)). On the three-stage example's three configurations
->   it is 0.039 to 0.058 calibers below. On the five flights of *Pods-\-airframes and winglets* it is 0.071
->   to 0.076 calibers above, the flattering side
->   ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
->   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). On the three of
->   *Pods-\-powered with recovery deployment* it is 0.070 calibers above. Where nothing named
->   explains a difference, HPR Sim's apogee is from 4.34% low to 1.95% high. Parachutes that open
->   while the rocket still climbs move six apogees by more than 5%, and HPR Sim's tube-fin drag a
->   seventh. The eighth, 37.93% low, is a pod example's sustainer that turns over before apogee in
->   both programs in the conditions of OpenRocket's record. OpenRocket aborts its own flight of that
->   example's first configuration. So HPR Sim's is compared at two points up to the abort, weaker
->   evidence than an apogee. At OpenRocket's last row, 1.81 s, its height is 1.18% below
->   OpenRocket's and its speed 4.02% above
->   ([flights OpenRocket aborted](#flights-openrocket-aborted)). Two of the six stay more than 5%
->   high with the parachute held. They are the *Base drag hack* example on a D12-3 and an E12-4. HPR
->   Sim's drag coefficient explains this ([a part set to no drag](#a-part-set-to-no-drag)). A
->   two-stage design, a three-stage design, a cluster, an air start and boosters beside the core are
->   each within 5% of OpenRocket's apogee. Their largest speed is within 5% of OpenRocket's too.
->   Five of their apogees are compared with OpenRocket's flight with no parachute, since its
->   parachute opened before apogee
->   ([HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets)).
-> - **One private flight is far off, and it is the supersonic one.** On the private designs, one
->   apogee is more than 5% from OpenRocket's. It is `C06/1` (a private design's first motor
->   configuration, under an [anonymized id](#the-simulators-flights-of-the-private-designs)), the
->   only supersonic flight, at +13.60%. Flown on OpenRocket's own drag it reads +1.11%, so its cause
->   is in the drag. Which drag is right is open
->   ([#222: HPR Sim's supersonic pressure drag and base drag under power](https://github.com/nrdptel/fusionspace-eridanus/issues/222),
->   [a supersonic flight](#a-supersonic-flight-and-a-cause-in-the-drag)).
-> - **Pods are read, weighed and flown** ([Pods](#pods)). Five small probe designs with pods of
->   bodies, fins, a tail cone, winglets or motors are compared with OpenRocket. So is OpenRocket's
->   *Pods-\-airframes and winglets*, whose stability margin reads 0.07 calibers above OpenRocket's,
->   the flattering side ([below](#fins-on-a-nose-cone-or-a-transition)).
-> - **Parallel stages are read and flown on a rocket of one stage on the axis**
->   ([Parallel stages](#parallel-stages)). OpenRocket's *Parallel booster staging* flies both its
->   configurations within 1.3% of OpenRocket's apogee. A parallel stage HPR Sim can't read, such as
->   one on a rocket of several stages, is kept whole. The design is marked *reduced*
->   ([what HPR Sim keeps](#what-the-simulator-keeps-for-writing-the-file-back)).
-> - **Some parts are left out.** A part HPR Sim cannot give an honest shape, such as a launch lug on a
->   nose cone, is left out. Each one is named in a warning rather than guessed at
->   ([what is left out, and why](#what-is-left-out-and-why)). None in the reference library is.
-> - **Fins on a nose cone or a transition are read with their root along its surface**
->   ([Fins on a nose cone or a transition](#fins-on-a-nose-cone-or-a-transition)).
-> - **Tube fins are read, weighed and flown**, each tube as a ring wing
->   ([Tube fins sized from the body](#tube-fins-sized-from-the-body);
->   [the aerodynamics](../physics/aero.md#tube-fins)). OpenRocket's example flies 6.95% higher in
->   HPR Sim than in OpenRocket, a net gap in the drag.
-> - **Every one of the 72 designs in the current reference survey lays out**, meaning every part
->   gets a position and a radius. A radius the file leaves with nothing to be worked out from gets
->   OpenRocket's own default of 25 mm (0.98 in). It also gets a warning
->   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
-> - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.002%, and 142 exactly. This
->   checks the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
+> checked below. The airframe's key geometry matches OpenRocket's for all 1,171 numbers over 71
+> designs. With the file's own curves and HPR Sim's small bundled catalog, 4 of the 170 motor
+> configurations fly, and 145 with OpenRocket's motor database. HPR Sim lands within 0.12% of
+> OpenRocket's landing speed on all 53 example flights. One private flight is far off, the
+> supersonic one, at +13.60%. The stability margin on OpenRocket's pod examples reads 0.070 to 0.076
+> calibers above OpenRocket's, the flattering side. A written file reaches its original's apogee
+> in OpenRocket within 0.002%.
+
+**The details, one claim at a time.**
+
+- **The shape is cross-checked.** The airframe's key geometry was compared with a second program
+  that reads `.ork` files, RocketSerializer, and with OpenRocket itself. That geometry is the nose
+  cone, the transitions, the fin sets, where each sits, and the body radius. Over 71 designs in
+  the current scratch-excluding survey, HPR Sim's value is within the survey's 1-in-$10^9$
+  comparison tolerance of OpenRocket's for all 1,171 numbers. The survey found 75 files, 73
+  readable and 72 with a design that lays out; two readable designs are not opened by OpenRocket.
+  Where parts sit is checked against OpenRocket alone. Mass and the center of gravity are checked
+  in [Mass properties](../physics/mass.md#checked-against-openrocket)
+  ([checked against RocketSerializer](#checked-against-rocketserializer)).
+- **Few motor configurations fly with HPR Sim alone.** Motors are read. A configuration flies only
+  when every motor in it has a thrust curve and lights at a moment HPR Sim can fly. Its stages
+  must also come apart in a way HPR Sim flies, and the airframe must have been read without a
+  warning. Most designs don't carry their curves. With the file's own curves and HPR Sim's small
+  bundled catalog, **4 of the 170 motor configurations** in the reference library's 72 designs
+  fly. When a caller also supplies OpenRocket's own motor database, as the validation survey does,
+  **145** fly. HPR Sim doesn't ship that database
+  ([motors in the reference library](#motors-in-the-reference-library)). The `hpr sim` command
+  fetches a missing curve from ThrustCurve.org by the file's manufacturer and designation, and
+  caches it, as [motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg) describes.
+  With those curves `hpr sim` flies **136** of the 170 as saved, and 9 more with
+  `--accept-design-errors` ([the count](#how-many-configurations-hpr-sim-flies)).
+- **Parachutes and streamers fly as OpenRocket flies them.** HPR Sim lands within 0.02% of
+  OpenRocket's landing speed on 50 of its 53 example flights and within 0.12% on all 53. Take the
+  51 with no named cause for an apogee gap, less the *Base drag hack*'s three. On these, HPR Sim's
+  flight time is −1.57% to +3.16% off
+  ([flown as OpenRocket flies them](#flown-as-openrocket-flies-them)). Stage separations are flown as
+  [described below](#when-parachutes-open-and-stages-separate). A lone
+  separation with nothing left to burn, such as a payload's, is flown under one condition. The
+  part that keeps the nose must have a device of its own open by then
+  ([a payload's split](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)).
+  A Rust program and `hpr sim` fly such powered separations, each device on the part its stage is
+  in ([powered separation in `hpr sim`](../decisions-and-roadmap.md#m4-5g1);
+  [several separations](../decisions-and-roadmap.md#m4-5g2)). A dropped stage's own flight is not
+  validated ([the evidence row](../evidence.md#g13)). `hpr sim` flies a configuration whose
+  separation can only come after apogee as one stack, with a note.
+- **Whole flights are compared with OpenRocket's on its own examples.** Both programs fly 53
+  configurations of OpenRocket's examples to the end. On 41 of them the stability margin off the
+  rod agrees within 0.016 calibers. On the *Tube fin rocket* it is 1.08 calibers below
+  OpenRocket's ([tube fins](../physics/aero.md#tube-fins)), on the three-stage example's three
+  configurations 0.039 to 0.058 below, and on the five flights of *Pods-\-airframes and winglets*
+  0.071 to 0.076 above, the flattering side
+  ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
+  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). Where nothing named
+  explains a difference, HPR Sim's apogee is from 4.34% low to 1.95% high. Eight apogees are more
+  than 5% off, each with a named cause. The eighth, 37.93% low, is a pod example's sustainer that
+  OpenRocket aborts, so HPR Sim's is compared at two points up to the abort, weaker evidence than
+  an apogee. At OpenRocket's last row, 1.81 s, its height is 1.18% below OpenRocket's and its speed
+  4.02% above ([flights OpenRocket aborted](#flights-openrocket-aborted)). The rest is in
+  [HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets).
+- **One private flight is far off, and it is the supersonic one.** On the private designs, one
+  apogee is more than 5% from OpenRocket's. It is `C06/1` (a private design's first motor
+  configuration, under an [anonymized id](#the-simulators-flights-of-the-private-designs)), the
+  only supersonic flight, at +13.60%. Flown on OpenRocket's own drag it reads +1.11%, so its cause
+  is in the drag. Which drag is right is open
+  ([#222: HPR Sim's supersonic pressure drag and base drag under power](https://github.com/nrdptel/fusionspace-eridanus/issues/222),
+  [a supersonic flight](#a-supersonic-flight-and-a-cause-in-the-drag)).
+- **Pods are read, weighed and flown** ([Pods](#pods)). Five small probe designs with pods of
+  bodies, fins, a tail cone, winglets or motors are compared with OpenRocket. So is OpenRocket's
+  *Pods-\-airframes and winglets*, whose stability margin reads 0.07 calibers above OpenRocket's,
+  the flattering side ([below](#fins-on-a-nose-cone-or-a-transition)).
+- **Parallel stages are read and flown on a rocket of one stage on the axis**
+  ([Parallel stages](#parallel-stages)). OpenRocket's *Parallel booster staging* flies both its
+  configurations within 1.3% of OpenRocket's apogee. A parallel stage HPR Sim can't read, such as
+  one on a rocket of several stages, is kept whole. The design is marked *reduced*
+  ([what HPR Sim keeps](#what-the-simulator-keeps-for-writing-the-file-back)).
+- **Some parts are left out.** A part HPR Sim cannot give an honest shape, such as a launch lug on a
+  nose cone, is left out. Each one is named in a warning rather than guessed at
+  ([what is left out, and why](#what-is-left-out-and-why)). None in the reference library is.
+- **Fins on a nose cone or a transition are read with their root along its surface**
+  ([Fins on a nose cone or a transition](#fins-on-a-nose-cone-or-a-transition)).
+- **Tube fins are read, weighed and flown**, each tube as a ring wing
+  ([Tube fins sized from the body](#tube-fins-sized-from-the-body);
+  [the aerodynamics](../physics/aero.md#tube-fins)). OpenRocket's example flies 6.95% higher in
+  HPR Sim than in OpenRocket, a net gap in the drag.
+- **Every one of the 72 designs in the current reference survey lays out**, meaning every part
+  gets a position and a radius. A radius the file leaves with nothing to be worked out from gets
+  OpenRocket's own default of 25 mm (0.98 in). It also gets a warning
+  ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
+- **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
+  flies both ways, all 151 reach the original's apogee within 0.002%, and 142 exactly. This
+  checks the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
 
@@ -1117,7 +1109,7 @@ No published document gives the patterns, so OpenRocket 24.12 was asked, run as 
 through its public interface (`validation/oracles/openrocket/clusters.py`, [ADR-075][adr-075]).
 Each pattern is a figure of points $\mathbf{p}_k$, one per tube, in units of $2Rs$ (defined below):
 
-| pattern | tubes | figure |
+| pattern | tube count | figure |
 |---|--:|---|
 | `single` | 1 | one tube |
 | `double`, `3-row`, `4-row` | 2 to 4 | a row, one apart |
@@ -1353,7 +1345,7 @@ A configuration is named by its motors, stage by stage with the sustainer first,
 separated by `;`. For example, `[I115W-10; 2× E12-0]` is an I115W-10 in the core above two E12-0s in
 the boosters, and `None` is a stage with no motor.
 
-| configuration | apogee, OpenRocket / HPR Sim (m) | $\Delta$ | largest speed $\Delta$ |
+| configuration | apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | largest speed $\Delta$ |
 |---|--:|---:|---:|
 | `[I115W-10; 2× E12-0]` | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | `[I115W-10; None]` | 851.8 / 857.6 | +0.68% | +1.56% |
@@ -2020,10 +2012,11 @@ The three counts of the same 170 differ by where the thrust curves come from:
 | Curves from | Configurations that fly | Counted by |
 |---|---:|---|
 | The file and HPR Sim's bundled catalog alone | 4 | `cargo xtask ork` |
-| Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136, and 9 more with `--accept-design-errors` | `cargo xtask ork-cli` |
+| Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136 | `cargo xtask ork-cli` |
 | Those, and OpenRocket's own motor database | 145 | `cargo xtask ork` |
 
-HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets. The 145 is the
+HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets, and 9 more fly
+with `--accept-design-errors`. The 145 is the
 validation survey's count ([Motors in the reference library](#motors-in-the-reference-library)).
 
 The 136 come from [the committed report][ork-cli-report], which `cargo xtask ork-cli` writes
@@ -2141,35 +2134,38 @@ curves can still be held back for another reason, so these counts differ from th
 | still no curve: a digest the database lacks | 1 |
 
 > **How far to trust it.** The curves are copied, from the designs' own files or from OpenRocket's
-> motor database.
->
-> - **Total impulse** is within 0.1% of OpenRocket's on every curve, and the survey fails otherwise.
->   All of them agree to the last bit. The two checks differ in strength:
->   - The 3 curves the designs embed are real checks. HPR Sim parses each file itself, as for the
->     [bundled curves](../physics/motor.md#validation).
->   - For the 1,288 solid database curves, both codes integrate the same samples, which OpenRocket
->     has already parsed. That check proves the hand-off, not two independent readings.
-> - **The curve OpenRocket flies.** The oracle opens each design in OpenRocket with the database
->   loaded, and records the digests of the motors it places in each configuration. The survey fails
->   unless, in every configuration HPR Sim flies with a supplied curve, OpenRocket places each
->   supplied curve too. It does in all 142 such configurations (177 motors), and OpenRocket opens
->   every design they are in, as the survey prints.
-> - **What the survey doesn't supply:**
->   - the 164 hybrid motors;
->   - 6 digests that are each shared by two motors whose data differ (samples, case or masses), in
->     OpenRocket 24.12's database;
->   - one motor whose propellant mass gives an [effective exhaust velocity](../glossary.md#effective-exhaust-velocity)
->     of 10.1 km/s, which HPR Sim refuses as impossible.
->   - Other masses are taken as OpenRocket holds them, including some that are physically unlikely.
-> - **Where the weight sits differs.** HPR Sim builds every motor from its envelope. The center of
->   mass sits at mid-case, and the dry case is a thin tube. OpenRocket gives each database motor a
->   fixed center of mass of its own, and treats the motor as a solid cylinder for inertia. The 1,288
->   solid motors are 1,221 digests once the 54 repeats, the 12 motors sharing 6 digests and the
->   refused one are set aside. For 163 of those 1,221, OpenRocket's center of mass is more than 1 mm
->   (0.039 in) from mid-case. Among the 55 distinct supplied motors the designs fly, 6 are, by up to
->   6.5 mm (0.26 in). This matters to stability margin and roll, and
->   [the milestone that flies these designs against OpenRocket](../decisions-and-roadmap.md#m2-2d)
->   will meet it when it flies them.
+> motor database. Total impulse is within 0.1% of OpenRocket's on every curve, all to the last bit.
+> Only the 3 curves the designs embed are independent checks; for the 1,288 solid database curves
+> the check proves the hand-off. Where the weight sits differs from OpenRocket's, which matters to
+> stability margin and roll.
+
+- **Total impulse** is within 0.1% of OpenRocket's on every curve, and the survey fails otherwise.
+  All of them agree to the last bit. The two checks differ in strength:
+  - The 3 curves the designs embed are real checks. HPR Sim parses each file itself, as for the
+    [bundled curves](../physics/motor.md#validation).
+  - For the 1,288 solid database curves, both codes integrate the same samples, which OpenRocket
+    has already parsed. That check proves the hand-off, not two independent readings.
+- **The curve OpenRocket flies.** The oracle opens each design in OpenRocket with the database
+  loaded, and records the digests of the motors it places in each configuration. The survey fails
+  unless, in every configuration HPR Sim flies with a supplied curve, OpenRocket places each
+  supplied curve too. It does in all 142 such configurations (177 motors), and OpenRocket opens
+  every design they are in, as the survey prints.
+- **What the survey doesn't supply:**
+  - the 164 hybrid motors;
+  - 6 digests that are each shared by two motors whose data differ (samples, case or masses), in
+    OpenRocket 24.12's database;
+  - one motor whose propellant mass gives an [effective exhaust velocity](../glossary.md#effective-exhaust-velocity)
+    of 10.1 km/s, which HPR Sim refuses as impossible.
+  - Other masses are taken as OpenRocket holds them, including some that are physically unlikely.
+- **Where the weight sits differs.** HPR Sim builds every motor from its envelope. The center of
+  mass sits at mid-case, and the dry case is a thin tube. OpenRocket gives each database motor a
+  fixed center of mass of its own, and treats the motor as a solid cylinder for inertia. The 1,288
+  solid motors are 1,221 digests once the 54 repeats, the 12 motors sharing 6 digests and the
+  refused one are set aside. For 163 of those 1,221, OpenRocket's center of mass is more than 1 mm
+  (0.039 in) from mid-case. Among the 55 distinct supplied motors the designs fly, 6 are, by up to
+  6.5 mm (0.26 in). This matters to stability margin and roll, and
+  [the milestone that flies these designs against OpenRocket](../decisions-and-roadmap.md#m2-2d)
+  will meet it when it flies them.
 
 How this was decided, and the counts in full, is in [the decision on OpenRocket's own database][adr-067].
 The reading order for curves is in [the decision on which motors a `.ork` flies][adr-055].
@@ -2954,9 +2950,9 @@ row. The check is met when both separate at the same time and each value is with
 OpenRocket's. That is the band an apogee gets before it needs a written cause
 ([the decision record][adr-172]):
 
-| | OpenRocket | HPR Sim | $\Delta$ |
+| | OpenRocket (s, m, m/s) | HPR Sim (s, m, m/s) | difference |
 |---|---:|---:|---:|
-| separation, s | 0.86 | 0.86 | 0 |
+| separation, s | 0.86 | 0.86 | 0 s |
 | height at the separation, m | 22.44 | 22.18 | −1.17% |
 | speed at the separation, m/s | 46.08 | 46.06 | −0.04% |
 | height at OpenRocket's last row (1.81 s), m | 85.0 | 84.0 | −1.18% |

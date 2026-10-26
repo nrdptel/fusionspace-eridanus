@@ -880,7 +880,7 @@ unless the caller sets
     [`docs/research/rocketpy-rocket-mass.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md)
     gives the curve substitution and the examples left out.
   - The test derives the stage override, nozzle station and motor inputs from the fixture itself,
-    independently of the design generator.
+    not the design generator.
   - The rockets are compared at 103 even times through the burn and after it, and at up to 60 of
     RocketPy's LSODA knots. The knots are the times at which its ODE solver, LSODA, computed the
     grain geometry.
@@ -888,7 +888,7 @@ unless the caller sets
     length for a center).
   - Worst measured, with the test's tolerance:
 
-    | quantity | worst | tolerance |
+    | quantity | worst | tolerance, ratio |
     |---|---|--:|
     | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 2.4e-16 | 1e-12 |
     | products of inertia (of `I_11`) | 0 | 1e-15 |

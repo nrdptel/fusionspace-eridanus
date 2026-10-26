@@ -15,14 +15,13 @@ prints.
 > ([report][rocket-report]). They come from D. J. Martin's criterion, written at NACA, NASA's
 > forerunner. HPR Sim reproduces it along with Martin's own worked examples ([Fin flutter][model]).
 >
-> Martin drew his line between wings that fluttered and wings that didn't from missiles and
-> wind-tunnel models. The unfailed ones were wings that flew to at least Mach 1.3, and nothing here
-> checks the criterion against a hobby rocket's fins. The criterion also leaves out the fins' sweep
+> Martin drew his line from missiles and wind-tunnel models. Nothing here checks the criterion
+> against a hobby rocket's fins. The criterion also leaves out the fins' sweep
 > and how they're attached. So its speed is a screening number, not a speed at which a fin is known
 > to fail. No measurement known to this project sizes its error.
->
-> The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
-> decide whether a rocket flies.
+
+The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
+decide whether a rocket flies.
 
 ## What flutter is
 

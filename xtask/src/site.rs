@@ -1248,9 +1248,13 @@ fn check_readmes(root: &Path) -> Vec<String> {
 }
 
 /// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
-/// message), as `renderer` shows the text: no en dash joining two words.
+/// message), as `renderer` shows the text: no en dash joining two words, no note or table cell
+/// over [`words::MOST_WORDS`] words, and a label and a unit over each column of numbers.
 fn word_rules(text: &str, renderer: words::Renderer) -> Vec<(usize, String)> {
-    words::joined_words(text, renderer)
+    let mut problems = words::joined_words(text, renderer);
+    problems.extend(words::long_blocks(text, renderer));
+    problems.extend(numbers::number_heads(text));
+    problems
 }
 
 const HEADING_LINK: &str = "a link inside a heading: mdBook already makes each heading a link, and \
@@ -3473,6 +3477,23 @@ mod tests {
         assert_eq!(problems.len(), 2, "{problems:#?}");
         assert!(problems[0].starts_with("README.md:1: `Dormand–Prince` joins two words"));
         assert!(problems[1].starts_with("crates/hpr-py/README.md: can't be read"));
+        // So does a README with a note over 120 words, a cell over 120 words, or a column of
+        // numbers headed by a code identifier or by a label without a unit.
+        let long = vec!["word"; words::MOST_WORDS + 1].join(" ");
+        fs::write(
+            dir.path().join("crates/hpr-py/README.md"),
+            format!(
+                "> {long}\n\n| case | `apogee_agl_m` | HPR Sim |\n|---|---:|---:|\n\
+                 | {long} | 1.5 | 2.5 |\n"
+            ),
+        )
+        .unwrap();
+        let problems = check_readmes(dir.path());
+        assert_eq!(problems.len(), 5, "{problems:#?}");
+        assert!(problems[1].starts_with("crates/hpr-py/README.md:1: a note of 121 words"));
+        assert!(problems[2].starts_with("crates/hpr-py/README.md:5: a table cell of 121 words"));
+        assert!(problems[3].contains("(\"apogee_agl_m\") is headed by code"));
+        assert!(problems[4].contains("(\"HPR Sim\") gives no unit"));
     }
 
     #[test]
@@ -4363,7 +4384,7 @@ mod tests {
     const GRAVITY: &str = "[Gravity](physics/gravity.md).\n\n";
 
     /// A results table giving all of [`accuracy_problems`]'s report, as it should.
-    const RESULTS: &str = "| case | `drift_m` | `time_s` |\n|---|---:|---:|\n\
+    const RESULTS: &str = "| case | drift (`drift_m`) | time (`time_s`) |\n|---|---:|---:|\n\
                            | [`alpha`][report] | +2.865% | −0.019% |\n\
                            | [`beta`][report] | +0.075% | |\n\n\
                            [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md\n";

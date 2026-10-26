@@ -16,6 +16,12 @@
 //!   (`2026-10-04`) or a version (`0.1.0`, or any cell of a column whose head says "version") is
 //!   a label, and a cell with any other word is text, so a column holding one is a text column.
 //!   An empty cell, a dash, "n/a", "none" or "Not used" doesn't count either way.
+//! - **A label and a unit over each column of numbers** ("Column heads are labels … with the
+//!   unit", *Tables*; "A number without a unit is a bug", *Numbers*). [`number_heads`] fails a
+//!   right-aligned column whose head has no label, a word of two or more letters outside code (a
+//!   head that is a code identifier, `apogee_agl_m`, has none), or no unit. The unit is in the
+//!   head (a unit word, `%` or `°`), or beside every value in the column, or the column counts
+//!   things: each value a whole number, the label naming what it counts (`Flights`).
 
 use super::units::rendered_runs;
 
@@ -30,11 +36,11 @@ const BEFORE_A_MINUS: [char; 21] = [
 /// The words a number cell may hold after its figure: units, as `data.md` writes them, the
 /// project's own (`cal`, `calibers`, `g` for acceleration), and the "to" of a range. Any other
 /// word makes a cell text.
-const UNITS: [&str; 48] = [
+const UNITS: [&str; 49] = [
     "m", "km", "cm", "mm", "ft", "in", "mi", "s", "ms", "min", "h", "kg", "g", "lb", "lbf", "oz",
-    "N", "kN", "Ns", "Pa", "kPa", "hPa", "MPa", "psi", "K", "C", "F", "rad", "deg", "Hz", "J", "W",
-    "mph", "kt", "kn", "cal", "caliber", "calibers", "AGL", "MSL", "Mach", "e", "x", "σ", "kB",
-    "MB", "GB", "to",
+    "N", "kN", "Ns", "Pa", "kPa", "hPa", "MPa", "GPa", "psi", "K", "C", "F", "rad", "deg", "Hz",
+    "J", "W", "mph", "kt", "kn", "cal", "caliber", "calibers", "AGL", "MSL", "Mach", "e", "x", "σ",
+    "kB", "MB", "GB", "to",
 ];
 
 /// The cells that hold nothing: empty, a dash, "n/a", "none" or "Not used".
@@ -114,6 +120,144 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
         }
     }
     problems
+}
+
+/// The words of [`UNITS`] that are not units: a range's "to", e-notation's `e` and a factor's
+/// `x`.
+const NOT_UNITS: [&str; 3] = ["to", "e", "x"];
+
+/// The units [`number_heads`] reads besides [`UNITS`], in any case: the spelled-out names and
+/// the lengths the project measures by (calibers and diameters).
+const SPELLED_UNITS: [&str; 28] = [
+    "meter",
+    "meters",
+    "second",
+    "seconds",
+    "foot",
+    "feet",
+    "inch",
+    "inches",
+    "kilogram",
+    "kilograms",
+    "gram",
+    "grams",
+    "newton",
+    "newtons",
+    "degree",
+    "degrees",
+    "radian",
+    "radians",
+    "percent",
+    "byte",
+    "bytes",
+    "pound",
+    "pounds",
+    "hour",
+    "hours",
+    "diameter",
+    "diameters",
+    "caliber",
+];
+
+/// The words that say a quantity has no unit: a pure number of one of these kinds (`drag
+/// coefficient`, `Reynolds number`, `the share of the bound`).
+const NO_UNIT: [&str; 8] = [
+    "ratio",
+    "fraction",
+    "share",
+    "factor",
+    "coefficient",
+    "number",
+    "count",
+    "times",
+];
+
+/// The marks a head or a value can give for its unit: a percentage and the angles.
+const UNIT_MARKS: [char; 4] = ['%', '°', '′', '″'];
+
+/// Each head of a right-aligned column on a page without a label or a unit, as (line, message).
+pub(super) fn number_heads(text: &str) -> Vec<(usize, String)> {
+    let mut problems = Vec::new();
+    for table in super::tables(text) {
+        for (column, alignment) in table.alignments.iter().enumerate() {
+            if *alignment != pulldown_cmark::Alignment::Right {
+                continue;
+            }
+            let head = table.header.get(column);
+            let shown = head.map_or("", |cell| cell.text.trim());
+            let prose = head.map_or_else(String::new, prose_of);
+            let labeled = prose
+                .split(|c: char| !c.is_alphabetic())
+                .any(|word| word.chars().count() >= 2);
+            if !labeled {
+                problems.push((
+                    table.line,
+                    format!(
+                        "column {} (\"{shown}\") is headed by code or by no word: name the \
+                         quantity in words, with its unit, `apogee (m)` (data.md, Tables: column \
+                         heads are labels with the unit)",
+                        column + 1
+                    ),
+                ));
+                continue;
+            }
+            let cells: Vec<&super::Cell> = table
+                .rows
+                .iter()
+                .filter_map(|(_, cells)| cells.get(column))
+                .filter(|cell| !(cell.code.is_empty() && BLANK.contains(&cell.text.trim())))
+                .collect();
+            let unit = gives_a_unit(&prose)
+                || (!cells.is_empty() && cells.iter().all(|cell| gives_a_unit(&prose_of(cell))))
+                || (!cells.is_empty() && cells.iter().all(|cell| is_count(cell)));
+            if !unit {
+                problems.push((
+                    table.line,
+                    format!(
+                        "column {} (\"{shown}\") gives no unit: put it in the head, `time (s)`, or \
+                         beside each value (data.md, Numbers: a number without a unit is a bug)",
+                        column + 1
+                    ),
+                ));
+            }
+        }
+    }
+    problems
+}
+
+/// A cell's text outside its code spans.
+fn prose_of(cell: &super::Cell) -> String {
+    let mut prose = cell.text.clone();
+    for code in &cell.code {
+        if let Some(at) = prose.find(code.as_str()) {
+            prose.replace_range(at..at + code.len(), " ");
+        }
+    }
+    prose
+}
+
+/// Whether `text` gives a unit: a unit word of [`UNITS`] or [`SPELLED_UNITS`] standing alone
+/// (in brackets, after a `·` or a comma, or as a part of a compound unit such as `kg·m²` or
+/// `m/s`), a [`UNIT_MARKS`] mark, or a [`NO_UNIT`] word that says it has none.
+fn gives_a_unit(text: &str) -> bool {
+    text.contains(UNIT_MARKS)
+        || text
+            .split(|c: char| c.is_whitespace() || "()[],;:·/×*^".contains(c) || c.is_ascii_digit())
+            .map(|word| word.trim_matches(|c: char| !c.is_alphabetic() && c != 'σ'))
+            .any(|word| {
+                let lower = word.to_lowercase();
+                (UNITS.contains(&word) && !NOT_UNITS.contains(&word))
+                    || SPELLED_UNITS.contains(&lower.as_str())
+                    || NO_UNIT.contains(&lower.as_str())
+            })
+}
+
+/// Whether a cell is a count: a whole number, grouped or not, with no code.
+fn is_count(cell: &super::Cell) -> bool {
+    let text = cell.text.trim();
+    cell.code.is_empty()
+        && text.starts_with(|c: char| c.is_ascii_digit())
+        && text.chars().all(|c| c.is_ascii_digit() || c == ',')
 }
 
 /// Whether a cell is a number: no code, a figure first (after a sign or comparison, if any),
@@ -275,5 +419,66 @@ mod tests {
         // "Conversion" holds the word's letters, not the word.
         let page = "| Conversion factor |\n|---|\n| 0.3048 |\n";
         assert_eq!(number_columns(page).len(), 1);
+    }
+
+    #[test]
+    fn a_column_of_numbers_needs_a_label_and_a_unit() {
+        let heads = |page: &str| -> Vec<String> {
+            number_heads(page)
+                .into_iter()
+                .map(|(line, message)| format!("{line}: {message}"))
+                .collect()
+        };
+        // A code identifier, an empty head, a figure (a table on its side) and a bracketed unit
+        // alone have no label.
+        for head in ["`apogee_agl_m`", "", "1.5", "(m/s)", "`cd` (m)"] {
+            let page = format!("| case | {head} |\n|---|---:|\n| a | 12.5 |\n");
+            let problems = heads(&page);
+            assert_eq!(problems.len(), 1, "{head}: {problems:?}");
+            assert!(
+                problems[0].contains("headed by code or by no word"),
+                "{problems:?}"
+            );
+            assert!(problems[0].starts_with("1: "), "{problems:?}");
+        }
+        // A label without a unit, over figures without one.
+        let problems = heads("| case | HPR Sim |\n|---|---:|\n| a | 2.552 |\n");
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(problems[0].contains("column 2 (\"HPR Sim\") gives no unit"));
+        // A head that is a code identifier still fails when its values carry their units, and
+        // so does a label whose only letters are inside a word (`ms` in `items`, `s` in `HPR
+        // Sim's`).
+        assert_eq!(heads("| `apogee_agl_m` |\n|---:|\n| +0.5% |\n").len(), 1);
+        assert_eq!(heads("| items |\n|---:|\n| 2.5 |\n").len(), 1);
+        assert_eq!(heads("| HPR Sim's |\n|---:|\n| 2.5 |\n").len(), 1);
+        // A label with the unit in the head, beside every value, or counting what it names, or
+        // a kind of pure number; a label beside an identifier the page's checks read.
+        for page in [
+            "| time (s) |\n|---:|\n| 1.5 |\n",
+            "| TIME · s |\n|---:|\n| 1.5 |\n",
+            "| Worst time, s |\n|---:|\n| 1.5 |\n",
+            "| speed (m/s) |\n|---:|\n| 1.5 |\n",
+            "| inertia (kg·m²) |\n|---:|\n| 1.5 |\n",
+            "| slope, per radian |\n|---:|\n| 1.5 |\n",
+            "| CP, calibers aft of the tip |\n|---:|\n| 1.5 |\n",
+            "| error |\n|---:|\n| +1.2% |\n| −0.4 m |\n| none |\n",
+            "| angle |\n|---:|\n| 45° |\n",
+            "| Flights |\n|---:|\n| 53 |\n| 1,052 |\n",
+            "| drag coefficient |\n|---:|\n| 0.45 |\n",
+            "| Mach |\n|---:|\n| 0.85 |\n",
+            "| Files read, in bytes |\n|---:|\n| 2.5 |\n",
+            "| apogee (`apogee_agl_m`) |\n|---:|\n| +0.5% |\n",
+        ] {
+            assert!(heads(page).is_empty(), "{page}: {:?}", heads(page));
+        }
+        // A column left- or center-aligned is text, and isn't read.
+        assert!(heads("| `name` |\n|---|\n| 2.5 |\n").is_empty());
+        assert!(heads("| `name` |\n|:---:|\n| 2.5 |\n").is_empty());
+        // A count needs every value whole: one decimal makes it a measure, which needs a unit.
+        assert_eq!(heads("| Flights |\n|---:|\n| 53 |\n| 1.5 |\n").len(), 1);
+        // Every value carries the unit, or the head does: one bare value fails the column.
+        assert_eq!(heads("| error |\n|---:|\n| +1.2% |\n| 0.4 |\n").len(), 1);
+        // A column of blanks has neither a count nor units.
+        assert_eq!(heads("| HPR Sim |\n|---:|\n| none |\n").len(), 1);
     }
 }

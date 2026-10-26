@@ -21,19 +21,18 @@ stock by class and price ([Motors you can buy](cli.md#motors-you-can-buy)). A Ru
 the library, as below.
 
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
-> unchanged, and the saved copy gives them back offline. That's checked on recorded answers, below.
+> unchanged, and the saved copy does offline. That's checked on recorded answers, below.
 > There are eight from motor.fusionspace.co and two curve files from ThrustCurve.org, beside three
-> stand-in searches in ThrustCurve.org's shape. The stand-ins are there because ThrustCurve.org
-> grants no license for its motor records: its site reads "All rights under copyright reserved"
-> ([evidence row G23](evidence.md#g23)).
+> stand-in searches in ThrustCurve.org's shape, because it grants no license for its motor
+> records ([evidence row G23](evidence.md#g23); [its terms](#thrustcurveorg)).
 >
-> Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is
-> up to about an hour old when it's built. The simulator counts its saved copy as fresh for
+> Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
+> up to an hour old when built. The simulator counts its saved copy as fresh for
 > another hour, so a fresh answer can be two hours behind the vendor's page. A stale copy is as old
-> as its date says. (ThrustCurve.org's answers count as fresh for a day.)
->
-> The site's terms ask you to check stock and price on the vendor's own page before relying on
-> them. Prices are in U.S. dollars.
+> as its date says.
+
+The site's terms ask you to check stock and price on the vendor's own page before relying on
+them. Prices are in U.S. dollars.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
