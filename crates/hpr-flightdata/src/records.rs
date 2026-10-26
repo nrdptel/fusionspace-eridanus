@@ -445,7 +445,7 @@ pub(crate) fn read_table(table: &Table) -> Result<FlightLog, LogError> {
     let mut log = generic::read(&table.text).map_err(|error| match error {
         LogError::NotThisFormat { .. } => layout_error(
             "the layout's names state no clock with a unit of time, such as `Time (ms)` or \
-             `timestamp__us`: name the clock so, or read the records' table by a column mapping \
+             `timestamp__us`. Name the clock so, or read the records' table by a column mapping \
              (`records::table`, then `generic::read_with`)"
                 .to_owned(),
         ),

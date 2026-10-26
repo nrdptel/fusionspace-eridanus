@@ -605,7 +605,11 @@ impl Outcome {
     fn both(first: (bool, String), second: (bool, String)) -> Self {
         Self {
             passed: first.0 && second.0,
-            evidence: format!("(1) {}; (2) {}", first.1, second.1),
+            evidence: format!(
+                "(1) {}. (2) {}",
+                first.1,
+                crate::log::capitalized(&second.1)
+            ),
         }
     }
 }
@@ -614,7 +618,7 @@ impl Outcome {
 fn build(table: &Table) -> Result<FlightLog, LogError> {
     let mut readings: Vec<Reading> = vec![KEPT; table.columns.len()];
     let mut notes: Vec<String> = vec![
-        "the app isn't named in the file; no source describes its format, so every unit is \
+        "the app isn't named in the file. No source describes its format, so every unit is \
          decided from the file's own values or kept as written"
             .to_owned(),
     ];
@@ -1008,16 +1012,16 @@ fn kept_notes(
     let extremes = table.names_of(&[Kind::Extreme]);
     if !extremes.is_empty() {
         notes.push(format!(
-            "{} kept as written, as running extremes: by their names the most or least of another \
-             column so far, which the reader doesn't tie to that column's unit",
+            "{} kept as written, as running extremes. By their names they are the most or least of \
+             another column so far. The reader doesn't tie them to that column's unit",
             listed(&extremes)
         ));
     }
     if let Some(values) = table.column("Temperature") {
         notes.push(format!(
-            "`Temperature` kept as written, in a unit no two checks settle: its readings, {}, \
-             would be a phone's warmth in degrees Celsius or a cool day's in degrees Fahrenheit, \
-             and nothing else in the file tells them apart",
+            "`Temperature` kept as written, in a unit no two checks settle. Its readings, {}, \
+             would be a phone's warmth in degrees Celsius or a cool day's in degrees Fahrenheit. \
+             Nothing else in the file tells them apart",
             span(values)
         ));
     }
@@ -1220,8 +1224,9 @@ fn coast_check(coast: Option<&Coast>, decel: impl FnOnce(&Coast) -> Option<f64>)
         return (
             false,
             format!(
-                "the coast before the highest altitude, a second after the steepest climb to 3 s \
-                 before the top, holds {} rows over {:.2} s, fewer than {} over {} s",
+                "the coast before the highest altitude holds {} rows over {:.2} s, fewer than {} \
+                 over {} s. The coast runs from a second after the steepest climb to 3 s before \
+                 the top",
                 coast.window.len(),
                 (end - start).max(0.0),
                 MIN_COAST.1,
@@ -1236,7 +1241,7 @@ fn coast_check(coast: Option<&Coast>, decel: impl FnOnce(&Coast) -> Option<f64>)
             (low..high).contains(&value),
             format!(
                 "in the coast from {start:.2} s to {end:.2} s it slows by {} per second per \
-                 second, {} g in meters, where gravity and drag give at least 1 g and {low:.2} to \
+                 second, {} g in meters. Gravity and drag give at least 1 g, and {low:.2} to \
                  {high:.2} m/s² reads meters",
                 hundredths(value),
                 hundredths(value / G0_M_S2)
@@ -1285,8 +1290,8 @@ fn matches_pressure(altitude: &[f64], pressure_altitude: Option<&[f64]>) -> (boo
         off <= allowed,
         format!(
             "above the first row it lies at most {off:.2} from the pressure altitude of `hPa` in \
-             the U.S. Standard Atmosphere, in meters, over a climb of {climb:.1} m, where \
-             {allowed:.1} is allowed"
+             the U.S. Standard Atmosphere, in meters. That altitude climbs {climb:.1} m, and the \
+             most allowed over that climb is {allowed:.1}"
         ),
     )
 }
@@ -1432,8 +1437,8 @@ fn accelerations(
                 (BOOST_RATIO.0..=BOOST_RATIO.1).contains(&ratio),
                 format!(
                     "from then to the steepest climb, at {:.2} s, the magnitude less 1 g, read in \
-                     g, gives {speed:.1} m/s, {ratio:.2} times the barometric climb rate, where \
-                     {} to {} reads g",
+                     g, gives {speed:.1} m/s. That is {ratio:.2} times the barometric climb rate, \
+                     where {} to {} reads g",
                     coast.climb.1, BOOST_RATIO.0, BOOST_RATIO.1
                 ),
             )
@@ -1509,9 +1514,9 @@ fn accelerations(
     let gravity_text = gravity.map_or("none".to_owned(), |g| format!("{g:.3}"));
     if outcome.passed && tied {
         notes.push(format!(
-            "{} read in standard gravity, with the accelerometer's axes: the axes less them, the \
-             gravity the phone took out, have a median magnitude of {gravity_text}, where {} to {} \
-             is 1 g",
+            "{} read in standard gravity, with the accelerometer's axes. The axes less them, the \
+             gravity the phone took out, have a median magnitude of {gravity_text}. A median of \
+             {} to {} is 1 g",
             listed(&no_grav),
             GRAVITY_TIE_G.0,
             GRAVITY_TIE_G.1
@@ -1935,8 +1940,8 @@ fn full_scale(names: &[&str], table: &Table) -> (bool, String) {
         None => (
             false,
             format!(
-                "no axis stops at a gyroscope's full scale of 125 to 2,000 °/s read in rad/s, on \
-                 {} rows or more, {} of them in a row: largest {}",
+                "no axis stops at a gyroscope's full scale of 125 to 2,000 °/s read in rad/s. \
+                 A stop is on {} rows or more, {} of them in a row. The largest readings are {}",
                 PLATEAU.0,
                 PLATEAU.2,
                 largest_seen.join(", ")
@@ -2004,8 +2009,8 @@ fn heading_wraps(values: &[f64]) -> (bool, String) {
     (
         count > 0,
         format!(
-            "{} north as a heading in degrees does: by more than {HEADING_WRAP_DEG}, and, less \
-             360, turning as the steps on either side do, within a factor of \
+            "{} north as a heading in degrees does: by more than {HEADING_WRAP_DEG}. Each, \
+             less 360, turns as the steps on either side do, within a factor of \
              {HEADING_WRAP_FACTOR}",
             counted(
                 count,
@@ -2080,12 +2085,12 @@ fn stamp_date(stamp: &[f64]) -> (bool, String) {
 /// The GPS altitude's evidence: its gain against the pressure altitude at the fresh fixes, and
 /// why that isn't enough (module docs).
 fn gps_evidence(table: &Table, pressure_altitude: Option<&[f64]>) -> String {
-    const WHY: &str = "a GPS's fixes once a second can't show gravity's pull in the coast, and a \
+    const WHY: &str = "A GPS's fixes once a second can't show gravity's pull in the coast. A \
                        pad's height above sea level can't tell meters from feet within the \
                        weather's reach";
     let (Some(gps), Some(pressure_altitude)) = (table.column("AltitudeMSLGPS"), pressure_altitude)
     else {
-        return format!("the file has no pressure in hPa to compare it with, and {WHY}");
+        return format!("the file has no pressure in hPa to compare it with. {WHY}");
     };
     let latitude = table.column("Latitude");
     let longitude = table.column("Longitude");
@@ -2107,11 +2112,11 @@ fn gps_evidence(table: &Table, pressure_altitude: Option<&[f64]>) -> String {
     match slope(fixes.iter().copied()) {
         Some(gain) if fixes.len() >= MIN_FIXES && high - low >= MIN_CLIMB_M => format!(
             "at its {} fresh fixes it rises {gain:.3} times as fast as the pressure altitude, \
-             near 1 in meters and 3.28 in feet, but that is one check, and {WHY}",
+             near 1 in meters and 3.28 in feet. But that is one check. {WHY}",
             fixes.len()
         ),
         _ => format!(
-            "its {} fresh fixes span too little of the pressure altitude to compare, and {WHY}",
+            "its {} fresh fixes span too little of the pressure altitude to compare. {WHY}",
             fixes.len()
         ),
     }
@@ -2429,7 +2434,7 @@ mod tests {
         });
         let log = log_of(&flat);
         let kept = note(&log, "`VelocityBarometer` kept as written");
-        assert!(kept.contains("where 0.8 to 1.25 reads m/s; (2)"), "{kept}");
+        assert!(kept.contains("where 0.8 to 1.25 reads m/s. (2)"), "{kept}");
         assert!(kept.contains("slows by 0.00"), "{kept}");
         assert_eq!(quantity(&log, "VelocityBarometerRaw"), Quantity::Speed);
     }
@@ -2525,7 +2530,7 @@ mod tests {
         // Without a magnetometer the second check can't run, and fails.
         let log = log_of(&scaled(NEWER, &names, 0.0));
         assert!(
-            note(&log, "`Yaw` kept as written").contains("(2) only 0 rows are where"),
+            note(&log, "`Yaw` kept as written").contains("(2) Only 0 rows are where"),
             "{:#?}",
             log.notes
         );
@@ -2590,7 +2595,7 @@ mod tests {
         }));
         let kept = note(&log, "`GyroX`, `GyroY` and `GyroZ` kept as written");
         assert!(
-            kept.contains("where 0.7 to 1.3 reads rad/s; (2) no axis stops"),
+            kept.contains("where 0.7 to 1.3 reads rad/s. (2) No axis stops"),
             "{kept}"
         );
         assert!(kept.contains("`GyroY` 15.0000 on 5 rows"), "{kept}");
@@ -2673,7 +2678,7 @@ mod tests {
         }
         let log = log_of(&(lines.join("\n") + "\n"));
         let kept = note(&log, "`Latitude` kept as written");
-        assert!(kept.contains("(2) the file has no `Longitude`"), "{kept}");
+        assert!(kept.contains("(2) The file has no `Longitude`"), "{kept}");
     }
 
     /// A time stamp in seconds fails both checks; one whose steps stray from the clock's fails
@@ -2696,7 +2701,7 @@ mod tests {
         }));
         let kept = note(&log, "`Timestamp` kept as written");
         assert!(kept.contains("at most 0.0200 s from"), "{kept}");
-        assert!(kept.contains("(2) its first reading, read in ms since 1970, falls"));
+        assert!(kept.contains("(2) Its first reading, read in ms since 1970, falls"));
     }
 
     /// The GPS altitude is kept as written whatever its gain: in meters the one check passes, in
@@ -2736,7 +2741,7 @@ mod tests {
             "{kept}"
         );
         assert!(
-            kept.contains("(2) the file has no barometric climb"),
+            kept.contains("(2) The file has no barometric climb"),
             "{kept}"
         );
         for (column, expected) in [

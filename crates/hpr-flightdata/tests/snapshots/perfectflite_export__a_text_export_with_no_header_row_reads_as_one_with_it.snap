@@ -300,6 +300,6 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "the file has no header row; its four columns are taken as a text export's, `Time`, `Altitude`, `Temp.`, `Voltage`, by the unit letter of its temperatures"
+    "the file has no header row. Its four columns are taken as a text export's, `Time`, `Altitude`, `Temp.`, `Voltage`, by the unit letter of its temperatures"
   ]
 }

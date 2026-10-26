@@ -320,13 +320,13 @@ expression: log
     "32 records of 8 bytes, log format 1, from the text form, which prints no checksum",
     "the configuration states no log format, as firmware before 1.0 didn't: format 1, from its product, TeleMetrum-v1.0",
     "the file ends without a line break, so its last line may be cut short: left out",
-    "2 records from the first more than 10 s from the latest tick on are left out: a silence no logging rate leaves, so not this flight's",
+    "2 records from the first more than 10 s from the latest tick on are left out. No logging rate leaves such a silence, so they are not this flight's",
     "1 records repeated exactly, the same bytes at the same tick, dropped",
-    "the clock is the board's tick, 10 ms, from the flight record's at tick 7000 (boost detection), each tick on the turn nearest the latest so far, from the file's first record; the records in tick order, as the file's isn't; 8 records before boost, at negative times",
+    "the clock is the board's tick, 10 ms, from the flight record's at tick 7000 (boost detection). Each tick is on the turn nearest the latest so far, from the file's first record. The records are in tick order, as the file's isn't. 8 records are before boost, at negative times",
     "`pressure` from the MP3H6115A's transfer function over the CC1111's full scale, 32,752: the pad's pressure, 85191 Pa, lies from 10 to 120 kPa",
-    "`pressure` and `acceleration` held to each other: over the first second after boost the rocket climbs 22.1 m by the pressure in the standard atmosphere and 22.2 m by the acceleration integrated twice from rest on the pad, a ratio of 0.998, within 0.6 to 5/3",
-    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: 0 at the flight record's ground reading, 16000, and 250 counts a g from the calibration's +1 g and −1 g, 16000 and 16500",
+    "`pressure` and `acceleration` held to each other. Over the first second after boost the rocket climbs 22.1 m by the pressure in the standard atmosphere. By the acceleration integrated twice from rest on the pad it climbs 22.2 m. The ratio is 0.998, within 0.6 to 5/3",
+    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts. It is 0 at the flight record's ground reading, 16000. A g is 250 counts, from the calibration's +1 g and −1 g, 16000 and 16500",
     "kept as written, counts with no cited conversion: `v_batt`, `sense_a`, `sense_m`, `temp` (the CC1111's die temperature)",
-    "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten times their value), course, speed, climb, satellite counts and signals kept as written"
+    "GPS: the time, date, dilutions, course, speed, climb, satellite counts and signals kept as written. The date has two digits and is not reliably the flight's. The dilutions are ten times their value"
   ]
 }

@@ -287,9 +287,9 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     }
 
     let mut notes = vec![
-        "no line names the samples' three numbers: they are read as the time in s, the \
+        "no line names the samples' three numbers. They are read as the time in s, the \
          barometric altitude in ft and the acceleration in g, as MARSA's manuals and software \
-         give them; the sample logs' survey holds the feet and the g to the files"
+         give them. The sample logs' survey holds the feet and the g to the files"
             .to_owned(),
         "the acceleration reads about 0 at rest, not 1 g: it is kept so, the rocket's own \
          acceleration only while it points straight up"

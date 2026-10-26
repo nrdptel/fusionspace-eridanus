@@ -4795,7 +4795,7 @@ expression: log
     }
   ],
   "notes": [
-    "3 rows placing the GPS at latitude 0, longitude 0 (AltOS's position before its receiver has a fix): their latitude, longitude and GPS altitude read as gaps",
+    "3 rows placing the GPS at latitude 0, longitude 0 (AltOS's position before its receiver has a fix). Their latitude, longitude and GPS altitude read as gaps",
     "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not 1 g; the channel is kept as written",
     "1 row repeating an earlier row's time: the primary track keeps the first row at each time; the channels keep every row",
     "the `temperature` column has 1 cell empty or not a number (AltosUI writes `NaN` where it has no value), read as gaps"

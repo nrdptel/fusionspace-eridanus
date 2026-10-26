@@ -466,7 +466,7 @@ fn two_flights_in_one_file_read_as_two_tracks() {
     assert!(log.channels[6].time_s.iter().all(|t| t.is_nan()));
     for note in [
         "times with no zone read as UTC, as GPX 1.1's schema and GPX 1.0's manual say every time \
-         is: 7 of the file's \
+         is. 7 of the file's \
          times state none",
         "track points with no `time` keep their places, their times gaps: 3 of 10",
         "tracks and segments with no point, left out: 0 tracks with no segment, 1 segment with \

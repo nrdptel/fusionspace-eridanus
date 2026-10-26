@@ -103,7 +103,7 @@ $ hpr analyze validation/fixtures/logs/own-logger/flight.csv --print-mapping
   ]
 }
 note: the column "Alt" states no unit the reader knows: kept as written
-help: save it to a file and check each column's quantity and unit; set "primary" to the column, from 0, that is the barometric altitude above the pad, mapped to altitude_above_ground; then read the log with --mapping and that file
+help: save it to a file and check each column's quantity and unit. Set "primary" to the column, from 0, that is the barometric altitude above the pad, mapped to altitude_above_ground. Then read the log with --mapping and that file
 ```
 
 <!-- cli: end -->
@@ -199,7 +199,7 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 
 liftoff           1.20 s, within 1.05 s
 apogee            409.5 m (1344 ft) above the pad, within 33.1 m (109 ft); at 10.50 s, within 0.99 s, 9.30 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           48.60 s, within 2.24 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 flight time       47.40 s, within 3.28 s
 drogue descent    19.3 m/s (63 ft/s), within 1.9 m/s (7 ft/s), from apogee at 10.50 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up
@@ -286,10 +286,10 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 
 liftoff           1.40 s, within 1.10 s
 apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft); at 9.90 s, within 1.03 s, 8.50 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           37.40 s, within 1.46 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s)
 flight time       36.00 s, within 2.55 s
-drogue descent    withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 16.0 m/s up to the main's opening, the mark 1.6 times the rate near the ground, 10.0 m/s, or 3 m/s more if that is more, and on median faster than 1.4 times that rate: the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one, and the main's descent is the whole descent's, from apogee
+drogue descent    withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 16.0 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 10.0 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee
 main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), from apogee at 9.90 s to landing at 37.40 s, 273.0 m (896 ft) to 0.7 m (2 ft) up
 top acceleration  withheld: the accelerometer `Axial Accel (Gs)`: no pad is read to tell by; no coast to apogee is read to tell by; its thrust says neither: as written, it never reads past 2 g either way up from liftoff's earliest time (the log's start where liftoff is withheld) to apogee: none of them says which way up it reads
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
@@ -354,7 +354,7 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 
 liftoff           1.20 s, within 1.06 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           48.60 s, within 2.27 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 flight time       47.40 s, within 3.33 s
 drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up
@@ -395,7 +395,7 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 
 liftoff           1.20 s, within 1.06 s
 apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft); at 10.60 s, within 1.00 s, 9.40 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           48.60 s, within 2.27 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s)
 flight time       47.40 s, within 3.33 s
 drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up

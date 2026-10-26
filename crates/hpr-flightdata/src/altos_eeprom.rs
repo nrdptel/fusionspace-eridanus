@@ -500,7 +500,7 @@ fn format_of(config: &Config, at: At) -> Result<(i64, Board, usize, bool), LogEr
         refuse(
             at,
             format!(
-                "log format {log_format}, which no sample file shows: its record size is \
+                "log format {log_format}, which no sample file shows. Its record size is \
                  unknown, and read at a wrong size the bytes would make a plausible flight"
             ),
         )
@@ -1177,10 +1177,10 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                         && CLIMB_RATIO.contains(&measured.ratio) =>
                 {
                     let note = format!(
-                        "`pressure` and `acceleration` held to each other: over the first second \
+                        "`pressure` and `acceleration` held to each other. Over the first second \
                          after boost the rocket climbs {:.1} m by the pressure in the standard \
-                         atmosphere and {:.1} m by the acceleration integrated twice from rest on \
-                         the pad, a ratio of {:.3}, within 0.6 to 5/3",
+                         atmosphere. By the acceleration integrated twice from rest on the pad it \
+                         climbs {:.1} m. The ratio is {:.3}, within 0.6 to 5/3",
                         measured.by_pressure_m, measured.by_acceleration_m, measured.ratio
                     );
                     (accel, true, Some(note))
@@ -1188,8 +1188,8 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 Ok(measured) => {
                     let note = format!(
                         "over the first second after boost the rocket climbs {:.1} m by the \
-                         pressure and {:.1} m by the acceleration, a ratio of {:.3}, outside 0.6 \
-                         to 5/3: the two disagree, so the acceleration's counts are kept as \
+                         pressure and {:.1} m by the acceleration. The ratio is {:.3}, outside \
+                         0.6 to 5/3. The two disagree, so the acceleration's counts are kept as \
                          written{v1}",
                         measured.by_pressure_m, measured.by_acceleration_m, measured.ratio
                     );
@@ -1215,8 +1215,8 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         Accel::AsWritten(why) => {
             let note = if board == Board::TeleMetrumV1 {
                 Some(
-                    "`pres` kept as written: with the acceleration kept as written there is no \
-                     climb to hold the TeleMetrum v1's pressure to, and the pad's band alone \
+                    "`pres` kept as written. The acceleration is kept as written, so there is \
+                     no climb to hold the TeleMetrum v1's pressure to. The pad's band alone \
                      rejects almost no count"
                         .to_owned(),
                 )
@@ -1546,7 +1546,7 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 }
                 pad_note = Some(format!(
                     "`pressure` and `temperature` from the MS5607's counts by its data sheet's \
-                     compensation, first and second order: the pad's pressure, {pad:.0} Pa, lies \
+                     compensation, first and second order. The pad's pressure, {pad:.0} Pa, lies \
                      from 10 to 120 kPa and within {:.2}% of the flight record's ground pressure, \
                      {ground:.0} Pa",
                     100.0 * off
@@ -1617,7 +1617,7 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
     if after_silence > 0 {
         notes.push(format!(
             "{after_silence} records from the first more than 10 s from the latest tick on are \
-             left out: a silence no logging rate leaves, so not this flight's"
+             left out. No logging rate leaves such a silence, so they are not this flight's"
         ));
     }
     if duplicates > 0 {
@@ -1627,9 +1627,9 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
     }
     notes.push(format!(
         "the clock is the board's tick, 10 ms, from the flight record's at tick {zero_tick} \
-         (boost detection), each tick on the turn nearest the latest so far, from the file's \
-         first record; the records in tick order, as the file's isn't; {before_boost} records \
-         before boost, at negative times"
+         (boost detection). Each tick is on the turn nearest the latest so far, from the file's \
+         first record. The records are in tick order, as the file's isn't. {before_boost} \
+         records are before boost, at negative times"
     ));
     if let Some(note) = pad_note {
         notes.push(note);
@@ -1656,9 +1656,9 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
     }
     match &accel {
         Accel::Converted { zero, per_g } => notes.push(format!(
-            "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: \
-             0 at the flight record's ground reading, {zero:.0}, and {per_g} counts a g from the \
-             calibration's +1 g and −1 g, {} and {}",
+            "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts. \
+             It is 0 at the flight record's ground reading, {zero:.0}. A g is {per_g} counts, \
+             from the calibration's +1 g and −1 g, {} and {}",
             config.accel_plus.unwrap_or(0),
             config.accel_minus.unwrap_or(0)
         )),
@@ -1701,7 +1701,7 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 .to_owned()
         } else {
             format!(
-                "`pyro`, the igniters' and the apogee and main senses kept as written: the \
+                "`pyro`, the igniters' and the apogee and main senses kept as written. The \
                  product, {}, isn't one whose divider the sample exports bear out, and a 30 V \
                  board's isn't a 15 V board's",
                 cut(config.product.as_deref().unwrap_or("not stated"))
@@ -1727,9 +1727,9 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
     }
     if channels.get("gps_flags").is_some() {
         notes.push(
-            "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten \
-             times their value), course, speed, climb, satellite counts and signals kept as \
-             written"
+            "GPS: the time, date, dilutions, course, speed, climb, satellite counts and signals \
+             kept as written. The date has two digits and is not reliably the flight's. The \
+             dilutions are ten times their value"
                 .to_owned(),
         );
     }
@@ -2579,7 +2579,7 @@ mod tests {
         assert!(
             log.notes
                 .iter()
-                .any(|n| n.ends_with("2 records before boost, at negative times"))
+                .any(|n| n.ends_with("2 records are before boost, at negative times"))
         );
     }
 
@@ -2745,9 +2745,9 @@ mod tests {
         assert_eq!(values(&log, "acceleration"), values(&raw, "acceleration"));
         assert!(has_note(
             &log,
-            "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: \
-             0 at the flight record's ground reading, 1000, and 20 counts a g from the \
-             calibration's +1 g and −1 g, -1040 and -1000"
+            "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts. \
+             It is 0 at the flight record's ground reading, 1000. A g is 20 counts, \
+             from the calibration's +1 g and −1 g, -1040 and -1000"
         ));
     }
 
@@ -2878,7 +2878,7 @@ mod tests {
             .find(|n| n.starts_with("`pressure` and `acceleration` held to each other"))
             .unwrap();
         let ratio: f64 = note
-            .split("a ratio of ")
+            .split("The ratio is ")
             .nth(1)
             .and_then(|rest| rest.split(',').next())
             .and_then(|n| n.parse().ok())
@@ -2916,7 +2916,7 @@ mod tests {
             .collect();
         let message = refused(&json(HEAD_V1, &swapped));
         assert!(
-            message.contains("by the acceleration, a ratio of")
+            message.contains("by the acceleration. The ratio is")
                 && message.ends_with("which has no other check, too"),
             "{message}"
         );
@@ -2928,7 +2928,7 @@ mod tests {
             let head = HEAD_V2.replace("1040", &minus.to_string());
             let message = refused(&json(&head, &flight_v2()));
             let read_ratio: f64 = message
-                .split("a ratio of ")
+                .split("The ratio is ")
                 .nth(1)
                 .and_then(|rest| rest.split(',').next())
                 .and_then(|n| n.parse().ok())
@@ -2978,7 +2978,7 @@ mod tests {
         let message = refused(&json(HEAD_V2, &both));
         assert!(message.contains("m by the pressure and -"), "{message}");
         assert!(
-            message.contains("by the acceleration, a ratio of 1."),
+            message.contains("by the acceleration. The ratio is 1."),
             "{message}"
         );
 
@@ -3221,7 +3221,7 @@ mod tests {
         assert_eq!(values(&log, "drogue_voltage"), [1000.0]);
         assert!(has_note(
             &log,
-            "`pyro`, the igniters' and the apogee and main senses kept as written: the product, \
+            "`pyro`, the igniters' and the apogee and main senses kept as written. The product, \
              TeleMega-v7.0, isn't one"
         ));
     }

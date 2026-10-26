@@ -180,7 +180,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/site_elevation.output.txt -->
 ```text
-Elevation data by Open-Meteo.com (CC BY 4.0), from the Copernicus DEM GLO-90: © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved
+Elevation data by Open-Meteo.com (CC BY 4.0), from the Copernicus DEM GLO-90. © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved
 first lookup: Fetched; offline a day later: Cached, the same heights: true
 
 place                            lat (°)     height (m)   pressure (hPa)  density / sea

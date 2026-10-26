@@ -102,6 +102,6 @@ expression: log
   "notes": [
     "the record's altitude track is empty: a KML file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
     "the file gives none of its 5 points a time: their times are gaps",
-    "`coordinates` kept as written, as GPS Visualizer takes a source's altitude as meters unless the source's header names feet: 2 tracks carry an altitude, the highest 1620 above the first"
+    "`coordinates` kept as written, as GPS Visualizer takes a source's altitude as meters unless the source's header names feet. 2 tracks carry an altitude, the highest 1620 above the first"
   ]
 }

@@ -3944,8 +3944,8 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at \
          21.40 s, within 1.06 s, to landing at 45.80 s",
         "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
-         liftoff), less its bound, 1.32 s; derived from the heights, and may have come later by \
-         any amount",
+         liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come \
+         later by any amount",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
@@ -4390,7 +4390,7 @@ fn analyze_prints_a_tables_header_as_a_mapping_to_edit() {
         printed.err
     );
     assert!(
-        printed.err.contains("set \"primary\" to the column"),
+        printed.err.contains("Set \"primary\" to the column"),
         "{}",
         printed.err
     );
@@ -4540,7 +4540,7 @@ fn analyze_refuses_a_mapping_or_layout_naming_the_field() {
     let capture = repo_file(&format!("{OWN_LOGGER}/flight-capture.txt"));
     let said = refused("block.json", &layout, "--layout", &capture);
     assert!(
-        said.contains("its blocks \"flight\": the layout must name the block"),
+        said.contains("its blocks \"flight\". The layout must name the block"),
         "{said}"
     );
 

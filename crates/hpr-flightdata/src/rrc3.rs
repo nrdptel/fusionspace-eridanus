@@ -758,9 +758,9 @@ fn build(
             Kind::Voltages => {
                 if column.unit.is_none() {
                     log.notes.push(format!(
-                        "`{}` read in volts, assumed: the RRC3 records its battery's voltage \
+                        "`{}` read in volts, assumed. The RRC3 records its battery's voltage \
                          (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual \
-                         p. 6); its values, as written, run {}",
+                         p. 6). The column's values, as written, run {}",
                         short(&column.written),
                         span(values)
                     ));
@@ -834,16 +834,16 @@ fn time_note(written: &str, time_s: &[f64]) -> String {
     let chart = "mDACS's chart is timed in seconds (mDACS manual p. 8)";
     match steps.get(steps.len() / 2) {
         Some(&median) if (median / PRESSURE_STEP_S - 1.0).abs() <= STEP_MARGIN => format!(
-            "`{}` read in seconds, from the step: the median step between rows, {median} as \
-             written, is within {:.0}% of the {PRESSURE_STEP_S} s of the 20 Hz the RRC3 records \
-             its pressure at (RRC3 manual p. 23)",
+            "`{}` read in seconds, from the step. The median step between rows, {median} as \
+             written, is within {:.0}% of the {PRESSURE_STEP_S} s. That is the step of the 20 Hz \
+             the RRC3 records its pressure at (RRC3 manual p. 23)",
             short(written),
             STEP_MARGIN * 100.0
         ),
         Some(&median) => format!(
-            "`{}` read in seconds, assumed: the median step between rows, {median} as written, \
-             isn't within {:.0}% of the {PRESSURE_STEP_S} s of the 20 Hz the RRC3 records its \
-             pressure at (RRC3 manual p. 23); {chart}",
+            "`{}` read in seconds, assumed. The median step between rows, {median} as written, \
+             isn't within {:.0}% of the {PRESSURE_STEP_S} s. That is the step of the 20 Hz the \
+             RRC3 records its pressure at (RRC3 manual p. 23). {chart}",
             short(written),
             STEP_MARGIN * 100.0
         ),
@@ -904,14 +904,18 @@ fn decide_pressure(
     let measured = (low..=high).contains(&highest);
     let on_a_pad = (pad_low..=pad_high).contains(&pad);
     let ranges = format!(
-        "the first row's, {pad}, {} the {pad_low} to {pad_high} hPa of any launch site, and the \
+        "the first row's, {pad}, {} the {pad_low} to {pad_high} hPa of any launch site. The \
          highest, {highest}, {} the {low} to {high} mbar the RRC3 measures (RRC3 manual p. 9)",
         if on_a_pad {
             "lies within"
         } else {
             "lies outside"
         },
-        if measured { "within" } else { "outside" }
+        if measured {
+            "lies within"
+        } else {
+            "lies outside"
+        }
     );
     if measured && on_a_pad {
         notes.push(format!(
@@ -995,9 +999,9 @@ fn decide_altitude(
     let miss = |length: Length| written_climb * length.meters() / climb_m - 1.0;
     let (feet, meters) = (miss(Length::Feet), miss(Length::Meters));
     let evidence = format!(
-        "from line {} to line {} the pressure falls from {:.2} hPa to {:.2} hPa, a climb of \
-         {:.1} m in the U.S. Standard Atmosphere (1976), and the altitude climbs {:.2} as \
-         written, {:+.2}% off it read in feet and {:+.1}% read in meters",
+        "from line {} to line {} the pressure falls from {:.2} hPa to {:.2} hPa. That is a climb \
+         of {:.1} m in the U.S. Standard Atmosphere (1976). The altitude climbs {:.2} as \
+         written, {:+.2}% off that climb read in feet and {:+.1}% read in meters",
         lines.first().copied().unwrap_or_default(),
         lines.get(lowest).copied().unwrap_or_default(),
         pressure.values.first().copied().unwrap_or_default() / HPA_PA,
@@ -1243,12 +1247,19 @@ fn decide_velocity(
         let index = agreed_unit(scale)?;
         Some((*scale, index, by_area.get(1).map(|(other, _)| *other)))
     });
+    // The two measures as sentences: first the altitude both take, delayed (in lower case, to
+    // follow a lead-in; `capitalized` starts a sentence with it), then the area and the slope.
+    let lead = |scale: &Scale| {
+        format!(
+            "the altitude above the first row, in meters, is taken as it was {:.2} s earlier",
+            scale.delay_s
+        )
+    };
     let measures = |scale: &Scale| {
         format!(
-            "against the altitude above the first row, in meters, as it was {:.2} s earlier, \
-             the area under its running integral is {:.4} times the altitude's, and the \
-             integral's least-squares slope is {:.4}",
-            scale.delay_s, scale.by_area, scale.by_fit
+            "The area under the velocity's running integral is {:.4} times that altitude's. The \
+             integral's least-squares slope against that altitude is {:.4}",
+            scale.by_area, scale.by_fit
         )
     };
     if let Some(stated) = units.velocity {
@@ -1259,11 +1270,12 @@ fn decide_velocity(
                 format: FORMAT,
                 line: header_line,
                 message: format!(
-                    "{:?} states {}, but {}, which is {}",
+                    "{:?} states {}, but the two measures land nearest {}. {}. {}",
                     short(written),
                     SPEEDS.get(stated).map_or("", |unit| unit.0),
-                    measures(&scale),
-                    SPEEDS.get(index).map_or("", |unit| unit.0)
+                    SPEEDS.get(index).map_or("", |unit| unit.0),
+                    crate::log::capitalized(&lead(&scale)),
+                    measures(&scale)
                 ),
             });
         }
@@ -1275,7 +1287,7 @@ fn decide_velocity(
                 .map(|other| {
                     let (words, by_area, by_fit) = unit_misses(other, &scale);
                     format!(
-                        "; the next nearest, {words}, would miss them by {:+.1}% and {:+.1}%",
+                        ". The next nearest, {words}, would miss both by {:+.1}% and {:+.1}%",
                         by_area * 100.0,
                         by_fit * 100.0
                     )
@@ -1283,10 +1295,12 @@ fn decide_velocity(
                 .unwrap_or_default();
             let (words, by_area, by_fit) = unit_misses(index, &scale);
             notes.push(format!(
-                "`{}` read in {words}, from the altitude: over {} rows, {}; {words} would give \
-                 {:.4} per m/s, {:+.2}% off the first and {:+.2}% off the second{runner_up}",
+                "`{}` read in {words}, from the altitude. Over {} rows, {}. {}. Read in {words}, the \
+                 velocity would give {:.4} per m/s, {:+.2}% off the area and {:+.2}% off the \
+                 slope{runner_up}",
                 short(written),
                 time_s.len(),
+                lead(&scale),
                 measures(&scale),
                 1.0 / SPEEDS.get(index).map_or(1.0, |unit| unit.2),
                 by_area * 100.0,
@@ -1310,8 +1324,9 @@ fn decide_velocity(
                         if scale.end_height > END_HEIGHT || scale.end_height.is_nan() =>
                     {
                         format!(
-                            "the record ends {:.0}% of the way up the climb, above the {:.0}% it must \
-                         come down to for the velocity to be measured against the altitude",
+                            "the record ends {:.0}% of the way up the climb. That is above the \
+                             {:.0}% it must come down to for the velocity to be measured against \
+                             the altitude",
                             scale.end_height * 100.0,
                             END_HEIGHT * 100.0
                         )
@@ -1338,8 +1353,9 @@ fn decide_velocity(
                             })
                         };
                         format!(
-                            "{}; the two don't both land within {:.0}% of one of ft/s, mph, \
+                            "{}. {}. The two measures don't both land within {:.0}% of one of ft/s, mph, \
                              m/s and km/h (the nearest {} and {})",
+                            lead(scale),
                             measures(scale),
                             VELOCITY_MARGIN * 100.0,
                             nearest_of(by_area),
@@ -1373,9 +1389,9 @@ fn decide_temperature(
 ) -> Decided {
     let Some(unit) = units.temperature else {
         notes.push(format!(
-            "`{}` kept as written, its unit unknown: the file states none, and mDACS sets the \
+            "`{}` kept as written, its unit unknown. The file states none. mDACS sets the \
              temperature's unit by its own preference, apart from the altitude's (mDACS manual \
-             p. 5); its values, as written, run {}",
+             p. 5). The column's values, as written, run {}",
             short(written),
             span(values)
         ));
@@ -1683,11 +1699,11 @@ mod tests {
         );
         for start in [
             "`Altitude` read in feet, from the pressure: ",
-            "`Velocity` read in feet per second, from the altitude: ",
+            "`Velocity` read in feet per second, from the altitude. ",
             "`Pressure` read in hectopascals, from the values: ",
-            "`Temperature` kept as written, its unit unknown: ",
-            "`Voltages` read in volts, assumed: ",
-            "`Time` read in seconds, assumed: ",
+            "`Temperature` kept as written, its unit unknown. ",
+            "`Voltages` read in volts, assumed. ",
+            "`Time` read in seconds, assumed. ",
             "2 rows, the first on line ",
         ] {
             assert_eq!(
@@ -1705,7 +1721,7 @@ mod tests {
         for (words, _, m_s) in SPEEDS {
             let text = flight(300.0, 60.0, FOOT_M, 1.0 / m_s, 0);
             let log = read(&text).unwrap();
-            let start = format!("`Velocity` read in {words}, from the altitude: ");
+            let start = format!("`Velocity` read in {words}, from the altitude. ");
             assert_eq!(
                 notes_starting(&log, &start).len(),
                 1,
@@ -1733,7 +1749,7 @@ mod tests {
         assert!(log.temperature_k.is_none());
         assert_eq!(temperature_as_written(&log)[0], 70.0);
         assert_eq!(
-            notes_starting(&log, "`Temperature` kept as written, its unit unknown: ").len(),
+            notes_starting(&log, "`Temperature` kept as written, its unit unknown. ").len(),
             1
         );
     }
@@ -1759,7 +1775,7 @@ mod tests {
                 "under the 50 m",
             ),
             (flight(8.0, 4.0, FOOT_M, 1.0 / FOOT_M, 0), "only assumed"),
-            (cut, "of the way up the climb, above the 50%"),
+            (cut, "of the way up the climb. That is above the 50%"),
         ];
         for (text, why) in cases {
             let log = read(&text).unwrap();
@@ -1818,7 +1834,7 @@ mod tests {
         let wrong_speed = text.replacen("Velocity [kph]", "Velocity [m/s]", 1);
         let error = read(&wrong_speed).unwrap_err();
         assert!(
-            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("\"Velocity [m/s]\" states meters per second, but against the altitude") && message.contains("which is kilometers per hour")),
+            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("\"Velocity [m/s]\" states meters per second, but the two measures land nearest kilometers per hour. The altitude above the first row")),
             "{error:?}"
         );
         for header in [
@@ -2205,13 +2221,13 @@ mod tests {
         };
         let header = "Time,Altitude,Pressure,Velocity\n";
         let log = read(&format!("{header}{}", rows(0.05, 5))).unwrap();
-        let from_step = notes_starting(&log, "`Time` read in seconds, from the step: ");
+        let from_step = notes_starting(&log, "`Time` read in seconds, from the step. ");
         assert!(
             from_step[0].contains("step between rows, 0.05"),
             "{from_step:?}"
         );
         let log = read(&format!("{header}{}", rows(0.5, 5))).unwrap();
-        let assumed = notes_starting(&log, "`Time` read in seconds, assumed: ");
+        let assumed = notes_starting(&log, "`Time` read in seconds, assumed. ");
         assert!(
             assumed[0].contains("0.5 as written, isn't within 5%"),
             "{assumed:?}"

@@ -61,9 +61,9 @@ pub const TTL_S: u64 = 3_600;
 /// motor.fusionspace.co"), with the license, CC BY 4.0, and the API's caution about stock and
 /// price.
 pub const ATTRIBUTION: &str = "Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 \
-                               (https://creativecommons.org/licenses/by/4.0/); aggregated from \
-                               public vendor listings and ThrustCurve.org; provided as is, with \
-                               no warranty: check stock and price on the vendor's own page \
+                               (https://creativecommons.org/licenses/by/4.0/). It is aggregated from \
+                               public vendor listings and ThrustCurve.org, provided as is, with \
+                               no warranty. Check stock and price on the vendor's own page \
                                before relying on them";
 
 /// The manufacturers the API lists: each one's name as the API writes it, and the slug its

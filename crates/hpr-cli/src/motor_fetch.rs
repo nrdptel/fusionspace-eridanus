@@ -103,7 +103,8 @@ fn sim_lines(
                 Level::Note,
                 format!(
                     "file {} was not taken: it is not among the motor's files HPR Sim read, or \
-                     makes no motor HPR Sim flies; this is the first by the usual order",
+                     makes no motor HPR Sim flies. The file taken instead is the first by the usual \
+                     order",
                     printable(asked)
                 ),
             )];
@@ -254,7 +255,7 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
     } else if matches!(
         error,
         FindError::ThrustCurve(ThrustCurveError::Net(net @ NetError::Transport { .. }))
-            if !crate::refused_by_status(net)
+            if !crate::refused_by_status(net) && !crate::refused_for_socks(net)
     ) {
         Failure::helped(printable(&format!("{words}: {error}")), printable(&hint()))
     } else if matches!(

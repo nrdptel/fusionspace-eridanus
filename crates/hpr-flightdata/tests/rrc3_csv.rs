@@ -69,12 +69,12 @@ fn the_common_export_decides_feet_and_feet_per_second() {
     assert!(note(&log, "`Altitude` read in feet, from the pressure: ").contains("line 2 to line"));
     note(
         &log,
-        "`Velocity` read in feet per second, from the altitude: ",
+        "`Velocity` read in feet per second, from the altitude. ",
     );
     note(&log, "`Pressure` read in hectopascals, from the values: ");
-    note(&log, "`Temperature` kept as written, its unit unknown: ");
+    note(&log, "`Temperature` kept as written, its unit unknown. ");
     assert!(log.temperature_k.is_none());
-    note(&log, "`Voltages` read in volts, assumed: ");
+    note(&log, "`Voltages` read in volts, assumed. ");
     note(&log, "3 rows, the first on line 63, leave out the 1 Hz");
     insta::assert_json_snapshot!(log);
 }
@@ -87,7 +87,7 @@ fn a_velocity_in_miles_per_hour_is_told_from_the_altitude() {
     assert_eq!(log.format, LogFormat::Rrc3Csv);
     note(
         &log,
-        "`Velocity` read in miles per hour, from the altitude: ",
+        "`Velocity` read in miles per hour, from the altitude. ",
     );
     note(&log, "`Altitude` read in feet, from the pressure: ");
     assert!(log.temperature_k.is_none());
@@ -152,9 +152,9 @@ fn a_european_export_reads_decimal_commas_and_decides_meters() {
     note(&log, "`Altitude` read in meters, from the pressure: ");
     note(
         &log,
-        "`Velocity` read in meters per second, from the altitude: ",
+        "`Velocity` read in meters per second, from the altitude. ",
     );
-    note(&log, "`Temperature` kept as written, its unit unknown: ");
+    note(&log, "`Temperature` kept as written, its unit unknown. ");
     // The second row: 6,26 m and 25,04 m/s.
     assert!((log.altitude_m[1] - 6.26).abs() < 1e-12);
     assert!((log.vertical_speed_m_s.as_deref().unwrap()[1] - 25.04).abs() < 1e-12);
@@ -273,7 +273,7 @@ fn velocity_unit(log: &FlightLog) -> Option<String> {
     match decided.as_slice() {
         [note] => Some(
             note.trim_start_matches("`Velocity` read in ")
-                .split(", from the altitude: ")
+                .split(", from the altitude. ")
                 .next()
                 .unwrap_or_default()
                 .to_owned(),
@@ -310,7 +310,7 @@ fn a_late_velocity_is_decided_right() {
                     let log = import::read(text.as_bytes()).unwrap();
                     assert_eq!(log.format, LogFormat::Rrc3Csv);
                     assert_eq!(velocity_unit(&log).as_deref(), Some(words), "{case}");
-                    note(&log, "`Time` read in seconds, from the step: ");
+                    note(&log, "`Time` read in seconds, from the step. ");
                     // The note gives the delay the fit found, to the 0.05 s step it searches.
                     let decided = note(&log, "`Velocity` read in ");
                     assert!(
@@ -416,7 +416,7 @@ fn two_public_exports_in_feet_keep_their_temperature_as_written() {
         let log = import::read(&bytes).unwrap();
         assert_eq!(log.format, LogFormat::Rrc3Csv);
         note(&log, "`Altitude` read in feet, from the pressure: ");
-        note(&log, "`Temperature` kept as written, its unit unknown: ");
+        note(&log, "`Temperature` kept as written, its unit unknown. ");
         assert!(log.temperature_k.is_none(), "{file}");
         let temperature = log.channels.iter().find(|c| c.column == "Temperature");
         let temperature = temperature.unwrap();

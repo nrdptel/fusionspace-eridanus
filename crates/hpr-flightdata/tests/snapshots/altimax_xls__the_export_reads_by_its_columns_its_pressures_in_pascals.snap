@@ -198,8 +198,8 @@ expression: log
   ],
   "notes": [
     "read from an Excel `.xls` worksheet, its cells as stored",
-    "the column \"PRESS FILTER [hpa]\" says hPa, but its values are pascals: its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
-    "the column \"PRESS RAW [hpa]\" says hPa, but its values are pascals: its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
+    "the column \"PRESS FILTER [hpa]\" says hPa, but its values are pascals. Its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
+    "the column \"PRESS RAW [hpa]\" says hPa, but its values are pascals. Its first, on the pad, lies between 500 and 1,100 hPa only when read in Pa, and was read so",
     "`TIME` names no unit; read in seconds, its shortest step 0.005 s, the 200 samples a second the maker's manual gives"
   ]
 }

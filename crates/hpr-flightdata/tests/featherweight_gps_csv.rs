@@ -133,8 +133,8 @@ fn the_ground_stations_log_keeps_each_tracker_apart() {
          brackets, in the order they first appear: \"Alpha\" (3 rows) and \"Bravo\" (2 rows)",
         "1 rows have `LAT` and `LON` both 0, as a receiver writes before it has a fix: their \
          `LAT`, `LON` and `ALT` are read as gaps",
-        "`DATE` and `TIME` kept as written, in a time zone the file doesn't state: they are the \
-         log's clock, and its zero is the first row's, \"2025-12-31 23:59:58.500\"; at the first \
+        "`DATE` and `TIME` kept as written, in a time zone the file doesn't state. They are the \
+         log's clock, and its zero is the first row's, \"2025-12-31 23:59:58.500\". At the first \
          fix, `TIME` is ",
     ] {
         assert!(notes.contains(expected), "{expected}\n{notes}");

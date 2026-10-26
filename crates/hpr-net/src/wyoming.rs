@@ -716,7 +716,7 @@ pub enum WyomingError {
     /// of them, are wrong, or rows with no temperature leave a layer too thick to check.
     #[error(
         "the Wyoming answer's line {after} and the more than {MAX_MISFITS} rows from line {line} \
-         on don't fit each other: the hypsometric thickness between them is wrong"
+         on don't fit each other. The hypsometric thickness between them is wrong"
     )]
     Misfit {
         /// The chain's end, counting the header as line 1.

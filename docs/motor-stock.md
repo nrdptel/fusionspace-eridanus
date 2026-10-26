@@ -258,7 +258,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/motor_stock.output.txt -->
 ```text
-Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 built 2026-10-01T07:07:29+00:00: 598 motors listed, 282 in stock, from 12 vendors
 first read: Fetched; offline two hours later: Stale, the same list: true
 

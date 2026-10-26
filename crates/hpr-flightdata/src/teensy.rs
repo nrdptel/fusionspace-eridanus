@@ -470,7 +470,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         "each tag's lines on their own clock, the logger's count of microseconds, read as \
          seconds from the logger's zero; no line states the unit"
             .to_owned(),
-        "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written: no line states a \
+        "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written. No line states a \
          unit, and the sample logs' survey holds these to the files"
             .to_owned(),
     ];

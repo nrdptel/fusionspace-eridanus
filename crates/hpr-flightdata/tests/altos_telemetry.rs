@@ -81,7 +81,7 @@ fn the_telemetry_keeps_the_power_on_that_flies() {
     );
     note(
         &log,
-        "the board's tick starts again 1 times, a power-on each: the record holds power-on 2 of 2 \
+        "the board's tick starts again 1 times, a power-on each. The record holds power-on 2 of 2 \
          (the one that leaves the pad), and 2 packets of the others are left out",
     );
     note(

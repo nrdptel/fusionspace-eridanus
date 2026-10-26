@@ -386,8 +386,9 @@ impl<'a> Reading<'a> {
         }
         if let Some(line) = self.first_broken {
             notes.push(format!(
-                "{} broken lines dropped, packets the radio cut or ran into the next, or with \
-                 another count of values than their kind's first, the first on line {line}",
+                "{} broken lines dropped. They are packets the radio cut or ran into the next, or \
+                 with another count of values than their kind's first. The first broken line \
+                 is line {line}",
                 self.broken
             ));
         }

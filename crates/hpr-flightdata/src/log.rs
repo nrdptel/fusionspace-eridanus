@@ -429,6 +429,15 @@ mod optional_gaps {
     }
 }
 
+/// `text` with its first letter in upper case, to start a sentence with a piece written to
+/// follow a lead-in.
+pub(crate) fn capitalized(text: &str) -> String {
+    let mut letters = text.chars();
+    letters.next().map_or_else(String::new, |first| {
+        first.to_uppercase().chain(letters).collect()
+    })
+}
+
 /// Whether a file's rows hold too few of the cells its header names: under a quarter of them,
 /// past the first 65,536. A reader stores a cell a short row leaves out as a gap, so without this
 /// floor a small file with a wide header and short rows could make it allocate far more than the

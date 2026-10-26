@@ -138,9 +138,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - [ ] **M0.14d The program's words** (ADR-292: four increments, the last with this). *Done
     when:* `hpr`'s help, warnings and errors, the Python docs and each crate's top-level docs pass
     `xtask voice` and an acceptance pass; a snapshot pins each `--help`.
-    - [ ] **M0.14d3 What the data commands say.** *Done when:* the same for `hpr weather`,
-      `motors fetch`/`search` and `analyze`, from `hpr-cli`, `hpr-net`, `hpr-flightdata`,
-      `hpr-analysis` and `hpr-forensics`; acceptance pass.
     - [ ] **M0.14d4 The Python package and the crates' front pages.** *Done when:* the Python
       package's README and docstrings, `hpr-py`'s messages and each crate's `//!` docs pass `xtask
       voice`, held in CI; acceptance pass; and M0.14d's own *done when*.

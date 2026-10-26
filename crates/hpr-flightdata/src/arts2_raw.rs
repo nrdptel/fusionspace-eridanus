@@ -313,9 +313,9 @@ impl Calibration {
         let off_mv = (side - 512.0) * COUNT_MV;
         if off_mv.abs() > ADXL78_ZERO_G_MV || side <= a.min(b) || side >= a.max(b) {
             return Err(format!(
-                "the calibration's side reading, {side:.2} counts, isn't zero g: it must lie \
-                 between its ends, {a:.2} and {b:.2}, and within the ADXL78's 150 mV of half \
-                 its supply (it is {off_mv:.1} mV)"
+                "the calibration's side reading, {side:.2} counts, isn't zero g. It must lie \
+                 between the calibration's ends, {a:.2} and {b:.2}. It must also be within the \
+                 ADXL78's 150 mV of half its supply (it is {off_mv:.1} mV)"
             ));
         }
         let pad = f64::from(self.pad_acc_eighths) / 8.0;
@@ -454,8 +454,8 @@ pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
             BLOCK_AT + RATE_WORD,
             format!(
                 "the settings word {rate_code} at the rate's likely place isn't the {RATE_CODE} of \
-                 every sample file, all at 50 records a second: another rate may be set, which the \
-                 reader can't yet read"
+                 every sample file, all at 50 records a second. Another rate may be set, and the \
+                 reader can't yet read it"
             ),
         ));
     }
@@ -521,14 +521,14 @@ pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
     ];
     let notes = vec![
         format!(
-            "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out: \
-             the calibration's ends, {:.2} and {:.2} counts, make a g {:.4} counts ({:.2} mV, \
-             within the ADXL78's 36.1 to 39.9), its side {:.2} counts, and the pad's baseline \
-             {:.3} counts",
-            sums[0] / SUMMED,
-            sums[2] / SUMMED,
+            "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out: a g \
+             is {:.4} counts. That is {:.2} mV, within the ADXL78's 36.1 to 39.9. It comes from \
+             the calibration's ends, {:.2} and {:.2} counts. Its side reading is {:.2} counts, \
+             and the pad's baseline is {:.3} counts",
             axis.per_g,
             axis.per_g * COUNT_MV,
+            sums[0] / SUMMED,
+            sums[2] / SUMMED,
             sums[1] / SUMMED,
             axis.pad
         ),
@@ -538,17 +538,17 @@ pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
             calibration.pad_baro, pad_pa
         ),
         format!(
-            "`Acc(HI)` and `Baro(HI)` held to each other, and the clock at 50 records a second: \
-             over the first 2 s the rocket climbs {:.1} m by the pressure in the standard \
-             atmosphere and {:.1} m by the acceleration integrated twice from rest, a ratio of \
-             {:.3}, within 0.6 to 5/3",
+            "`Acc(HI)` and `Baro(HI)` held to each other, and the clock at 50 records a second. \
+             Over the first 2 s the rocket climbs {:.1} m by the pressure in the standard \
+             atmosphere. By the acceleration integrated twice from rest, it climbs {:.1} m. \
+             The ratio is {:.3}, within 0.6 to 5/3",
             climb.0,
             climb.1,
             climb.0 / climb.1
         ),
         "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes"
             .to_owned(),
-        "the clock is 50 records a second, the rate of every sample file: the file states none \
+        "the clock is 50 records a second, the rate of every sample file. The file states none \
          the reader can read, and the climb check bounds it only loosely"
             .to_owned(),
         "the first record is the pad's baselines, as the software's exports place it at time 0"
@@ -611,8 +611,9 @@ fn climb(pad_pa: f64, pressure: &[f64], acceleration: &[f64]) -> Result<(f64, f6
     } else {
         Err(format!(
             "over the first 2 s the rocket climbs {by_pressure:.1} m by the pressure and \
-             {by_acceleration:.1} m by the acceleration, a ratio of {ratio:.3}, not both upward \
-             and within 0.6 to 5/3: nothing bears out the clock or the units"
+             {by_acceleration:.1} m by the acceleration. The climbs aren't both upward with a \
+             ratio within 0.6 to 5/3 (it is {ratio:.3}). Nothing bears out the clock or the \
+             units"
         ))
     }
 }
@@ -697,7 +698,7 @@ pub fn read_csv(text: &str) -> Result<FlightLog, LogError> {
     ];
     let notes = vec![
         "`Acc(HI)` and `Baro(HI)` kept as written: the export holds the converter's counts and \
-         no calibration; the flight's `.odf` holds the same records with the board's, and reads \
+         no calibration. The flight's `.odf` holds the same records with the board's, and reads \
          in units"
             .to_owned(),
         "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes"

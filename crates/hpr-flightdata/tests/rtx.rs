@@ -164,8 +164,8 @@ fn an_rtx_reads_its_fixes() {
     assert_eq!(channel(&log, "word 15").values[29], 1529.0);
     let notes = log.notes.join("\n");
     for expected in [
-        "its zero is the first record's, 17:59:50",
-        "times go back 1 times from one record to the next, by up to 1 s, and 2 records repeat",
+        "Its zero is the first record's, 17:59:50.",
+        "times go back 1 times from one record to the next, by up to 1 s. 2 records repeat",
         "1 records hold a time that isn't a time of day, such as 4278370088",
         "the list holds 30 records of 16 words",
     ] {

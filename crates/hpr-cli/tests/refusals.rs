@@ -66,6 +66,7 @@ fn cases(folder: &Path) -> Vec<Case> {
     let bad_eng = file("bad.eng");
     std::fs::write(&bad_eng, "hello\n").unwrap();
     std::fs::write(file("rocket.rkt"), "<RockSimDocument/>\n").unwrap();
+    std::fs::write(file("empty.csv"), "").unwrap();
     let missing = folder.join("no-such-folder");
     let missing = |name: &str| missing.join(name).to_str().unwrap().to_owned();
     vec![
@@ -135,6 +136,12 @@ fn cases(folder: &Path) -> Vec<Case> {
         case(
             &["analyze", &repo("Cargo.toml")],
             "another logger's table is read by a column mapping (--mapping)",
+        ),
+        // An empty log, which no mapping or layout can read.
+        case(
+            &["analyze", &file("empty.csv")],
+            "download the log from the logger again with its maker's software: this file holds \
+             no readings",
         ),
         // A forecast hour past what the model's run reaches.
         case(

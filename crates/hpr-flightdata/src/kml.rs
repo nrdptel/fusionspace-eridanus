@@ -1128,7 +1128,7 @@ impl<'a> Reader<'a> {
         if whens != coords {
             self.notes.push(format!(
                 "a `gx:Track` of {:?} holds {whens} `when` and {coords} `gx:coord`, where the \
-                 standard has as many of each: the first {} of each are paired, the rest left out",
+                 standard has as many of each. The first {} of each are paired, the rest left out",
                 track.label,
                 whens.min(coords)
             ));
@@ -1575,7 +1575,7 @@ impl<'a> Reader<'a> {
         if midnights.dropped > 0 {
             notes.push(format!(
                 "the time of day steps back past midnight more than {MAX_MIDNIGHTS} times, more \
-                 than a logger's memory holds: the {} times of day from there on are gaps",
+                 than a logger's memory holds. The {} times of day from there on are gaps",
                 midnights.dropped
             ));
         }
@@ -1846,9 +1846,10 @@ impl Decided {
         if self.barometric > 0 {
             notes.push(format!(
                 "`coordinates` read in meters as the barometer's altitude above sea level, from \
-                 the GPS altitude AltOS writes beside each point: in {} tracks the tuple's altitude \
+                 the GPS altitude AltOS writes beside each point. In {} tracks the tuple's altitude \
                  differs from the comment's `alt` at {} of the {} points that carry both, more \
-                 than half, as AltOS's KML export has reported both altitudes since AltOS 1.8.3",
+                 than half. That is because AltOS's KML export has reported both altitudes since \
+                 AltOS 1.8.3",
                 self.barometric, self.barometric_differing, self.barometric_both
             ));
         }
@@ -1856,7 +1857,7 @@ impl Decided {
             let (first, highest) = extent(tracks.iter().flat_map(|track| track.alt.iter()));
             notes.push(format!(
                 "`coordinates` kept as written, as GPS Visualizer takes a source's altitude as \
-                 meters unless the source's header names feet: {} tracks carry an altitude, the \
+                 meters unless the source's header names feet. {} tracks carry an altitude, the \
                  highest {:.0} above the first",
                 self.gps_visualizer,
                 highest - first
@@ -1883,7 +1884,7 @@ impl Decided {
         let (equal, both) = agreement(tracks, Layout::AltOs);
         match self.altos_alt {
             Some(true) => notes.push(format!(
-                "`alt` read in meters, from the coordinates: it equals the tuple's altitude, in \
+                "`alt` read in meters, from the coordinates. It equals the tuple's altitude, in \
                  meters by the KML standard, at {equal} of the {both} points that carry both"
             )),
             Some(false) => notes.push(format!(
@@ -1973,20 +1974,20 @@ fn clock_notes(tracks: &[Track<'_>], altos_time: AltosTime) -> Vec<String> {
     let (low, high) = (ALTOS_STEP_S.start(), ALTOS_STEP_S.end());
     match altos_time {
         AltosTime::Seconds(median) => notes.push(format!(
-            "`time` read in seconds, from the steps between points: the median step between a \
-             track's points of distinct times is {median:.2} s, within the {low} to {high} s a \
-             GPS receiver reporting once a second gives"
+            "`time` read in seconds, from the steps between points. The median step between a \
+             track's points of distinct times is {median:.2} s. That is within the {low} to \
+             {high} s a GPS receiver reporting once a second gives"
         )),
         AltosTime::Unsettled(median) if median.is_nan() => notes.push(
-            "`time` kept as written, as its steps between points don't show its unit: no track \
+            "`time` kept as written, as its steps between points don't show its unit. No track \
              holds two points of distinct times, so those points have no time"
                 .to_owned(),
         ),
         AltosTime::Unsettled(median) => notes.push(format!(
-            "`time` kept as written, as its steps between points don't show its unit: the \
+            "`time` kept as written, as its steps between points don't show its unit. The \
              median step between a track's points of distinct times is {median:.3} read as \
-             seconds, outside the {low} to {high} s a GPS receiver reporting once a second \
-             gives, so those points have no time"
+             seconds. That is outside the {low} to {high} s a GPS receiver reporting once a \
+             second gives, so those points have no time"
         )),
         AltosTime::Absent | AltosTime::Unset => {}
     }
@@ -2436,7 +2437,7 @@ mod tests {
         assert!(
             log.notes.iter().any(|note| note.starts_with(
                 "the time of day steps back past midnight more than 7 times, more than a \
-                 logger's memory holds: the 1 times of day from there on are gaps"
+                 logger's memory holds. The 1 times of day from there on are gaps"
             )),
             "{:?}",
             log.notes
@@ -2449,7 +2450,7 @@ mod tests {
         assert!(
             log.notes
                 .iter()
-                .any(|note| note.contains("the 229985 times of day from there on are gaps")),
+                .any(|note| note.contains("The 229985 times of day from there on are gaps")),
             "{:?}",
             log.notes
         );
@@ -2488,7 +2489,7 @@ mod tests {
     fn an_altos_track_is_the_barometers_where_most_of_its_points_differ() {
         let seconds = ["1", "2", "3"];
         let barometric = "`coordinates` read in meters as the barometer's altitude above sea \
-                          level, from the GPS altitude AltOS writes beside each point: ";
+                          level, from the GPS altitude AltOS writes beside each point. ";
         // One point of three differs: the tuple's is the GPS altitude, and the comment's a
         // channel in meters, as it equals the tuple's elsewhere.
         let log = read(&altos(["100", "200", "333"], seconds)).unwrap();
@@ -2503,7 +2504,7 @@ mod tests {
         assert!(!noted(&log, barometric), "{:?}", log.notes);
         assert!(noted(
             &log,
-            "`alt` read in meters, from the coordinates: it equals the tuple's altitude, in meters \
+            "`alt` read in meters, from the coordinates. It equals the tuple's altitude, in meters \
              by the KML standard, at 2 of the 3 points that carry both"
         ));
         // Two of three differ: the tuple's is the barometer's.
@@ -2520,7 +2521,7 @@ mod tests {
             noted(
                 &log,
                 &format!(
-                    "{barometric}in 1 tracks the tuple's altitude differs from the comment's \
+                    "{barometric}In 1 tracks the tuple's altitude differs from the comment's \
                      `alt` at 2 of the 3 points that carry both"
                 )
             ),
@@ -2556,8 +2557,8 @@ mod tests {
         assert_eq!(quantity_of(&log, "Flight time"), None);
         assert!(noted(
             &log,
-            "`time` read in seconds, from the steps between points: the median step between a \
-             track's points of distinct times is 1.00 s, within the 0.5 to 2 s"
+            "`time` read in seconds, from the steps between points. The median step between a \
+             track's points of distinct times is 1.00 s. That is within the 0.5 to 2 s"
         ));
         // The bounds read; just past them, and steps of 100, don't.
         for (times, seconds) in [
@@ -2590,8 +2591,8 @@ mod tests {
         );
         assert!(noted(
             &log,
-            "`time` kept as written, as its steps between points don't show its unit: the median \
-             step between a track's points of distinct times is 100.000 read as seconds"
+            "`time` kept as written, as its steps between points don't show its unit. The median \
+             step between a track's points of distinct times is 100.000 read as seconds."
         ));
         // A single point has no step to show it.
         let log = read(&path(
@@ -2601,7 +2602,7 @@ mod tests {
         .unwrap();
         assert!(noted(
             &log,
-            "`time` kept as written, as its steps between points don't show its unit: no track \
+            "`time` kept as written, as its steps between points don't show its unit. No track \
              holds two points of distinct times"
         ));
     }

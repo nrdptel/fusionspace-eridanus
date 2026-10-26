@@ -357,7 +357,7 @@ pub(crate) fn needs_a_layout(text: &str) -> LogError {
         .map(|(name, _)| name);
     LogError::Layout {
         message: format!(
-            "a serial console's capture of binary records as base64, its blocks {}: the capture \
+            "a serial console's capture of binary records as base64, its blocks {}. The capture \
              doesn't state the records' layout, so read a block by the one the logger writes \
              (`capture::read`)",
             listed(names)
@@ -658,7 +658,7 @@ mod tests {
         match crate::import::read(text.as_bytes()) {
             Err(LogError::Layout { message }) => {
                 assert!(message.contains("`b0`, `b1`"), "{message}");
-                assert!(message.contains("`b7`, 2 more:"), "{message}");
+                assert!(message.contains("`b7`, 2 more. "), "{message}");
                 assert!(!message.contains("`b8`"), "{message}");
                 assert!(message.contains("capture::read"), "{message}");
             }
@@ -668,7 +668,7 @@ mod tests {
         let broken = capture(&[("data", "Zm9")]);
         match crate::import::read(broken.as_bytes()) {
             Err(LogError::Layout { message }) => {
-                assert!(message.contains("its blocks `data`:"), "{message}");
+                assert!(message.contains("its blocks `data`. "), "{message}");
             }
             other => panic!("expected a layout refusal, got {other:?}"),
         }

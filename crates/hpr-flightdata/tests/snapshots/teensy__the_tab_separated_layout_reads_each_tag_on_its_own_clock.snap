@@ -215,7 +215,7 @@ expression: log
   "events": [],
   "notes": [
     "each tag's lines on their own clock, the logger's count of microseconds, read as seconds from the logger's zero; no line states the unit",
-    "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written: no line states a unit, and the sample logs' survey holds these to the files",
+    "`A` read in m/s² and `Alt`'s `P` in Pa and `MSL` in m, as written. No line states a unit, and the sample logs' survey holds these to the files",
     "kept as written, as no line states their unit: `G 1`, `G 2`, `G 3`, `M 1`, `M 2`, `M 3`, `HG 1`, `HG 2`, `HG 3`, `ADC Pin-35 1`, `ADC Pin-36 1`",
     "the last line, which ends the file with no line end and can't be read, dropped: a line the logger was writing when it stopped"
   ]

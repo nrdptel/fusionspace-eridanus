@@ -225,8 +225,8 @@ expression: log
     "the record's altitude track is empty: a KML file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
     "the log's zero is the first point the file times: `time` 300.0000000",
     "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 3 of the file's 3 tracks carry one",
-    "`coordinates` read in meters as the barometer's altitude above sea level, from the GPS altitude AltOS writes beside each point: in 3 tracks the tuple's altitude differs from the comment's `alt` at 8 of the 8 points that carry both, more than half, as AltOS's KML export has reported both altitudes since AltOS 1.8.3",
+    "`coordinates` read in meters as the barometer's altitude above sea level, from the GPS altitude AltOS writes beside each point. In 3 tracks the tuple's altitude differs from the comment's `alt` at 8 of the 8 points that carry both, more than half. That is because AltOS's KML export has reported both altitudes since AltOS 1.8.3",
     "`alt` kept as written, as it equals the tuple's altitude at no point, so nothing in the file shows its unit: 8 points carry both",
-    "`time` read in seconds, from the steps between points: the median step between a track's points of distinct times is 1.00 s, within the 0.5 to 2 s a GPS receiver reporting once a second gives"
+    "`time` read in seconds, from the steps between points. The median step between a track's points of distinct times is 1.00 s. That is within the 0.5 to 2 s a GPS receiver reporting once a second gives"
   ]
 }

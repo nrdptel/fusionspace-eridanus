@@ -114,11 +114,11 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out: the calibration's ends, 496.00 and 512.00 counts, make a g 8.0000 counts (39.06 mV, within the ADXL78's 36.1 to 39.9), its side 503.91 counts, and the pad's baseline 512.500 counts",
+    "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out: a g is 8.0000 counts. That is 39.06 mV, within the ADXL78's 36.1 to 39.9. It comes from the calibration's ends, 496.00 and 512.00 counts. Its side reading is 503.91 counts, and the pad's baseline is 512.500 counts",
     "`Baro(HI)` read in pascals, by the MPX4100A's nominal transfer function: the pad's count 800 is 88107 Pa",
-    "`Acc(HI)` and `Baro(HI)` held to each other, and the clock at 50 records a second: over the first 2 s the rocket climbs 155.9 m by the pressure in the standard atmosphere and 154.1 m by the acceleration integrated twice from rest, a ratio of 1.012, within 0.6 to 5/3",
+    "`Acc(HI)` and `Baro(HI)` held to each other, and the clock at 50 records a second. Over the first 2 s the rocket climbs 155.9 m by the pressure in the standard atmosphere. By the acceleration integrated twice from rest, it climbs 154.1 m. The ratio is 1.012, within 0.6 to 5/3",
     "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes",
-    "the clock is 50 records a second, the rate of every sample file: the file states none the reader can read, and the climb check bounds it only loosely",
+    "the clock is 50 records a second, the rate of every sample file. The file states none the reader can read, and the climb check bounds it only loosely",
     "the first record is the pad's baselines, as the software's exports place it at time 0",
     "not read: the settings block's 244 other bytes, and the software's 124 after the records"
   ]

@@ -358,8 +358,8 @@ expression: log
     "the header writes a unit after AltOS's name of `acceleration (m/s^2)`, `pressure (Pa)`, `altitude (m)`, `speed (m/s)`, `temperature (C)`: each the unit this reader reads the column in, so read as AltOS's",
     "AltOS writes `acceleration` with gravity taken out: it reads about 0 at rest, not 1 g; the channel is kept as written",
     "the header names no `height`, AltOS's height above the pad: the record has no primary track, only its channels",
-    "the `altitude (ft)` column's 12 cells are a spreadsheet's formulas, not values: kept here as text, not worked out, and not a channel, `{row}` standing for each cell's own row: `=I{row}*3.28084` on lines 2–13",
-    "the `speed (ft/s)` column has 9 cells holding a spreadsheet's formula, not a value: read as gaps, the formulas kept here as text, `{row}` standing for each cell's own row: `=K{row}*3.28084` on lines 3–5; `=K{row}*3.28084` on lines 7–9; `=K{row}*3.28084` on lines 11–13",
+    "the `altitude (ft)` column's 12 cells are a spreadsheet's formulas, not values. The column is not a channel. Each formula is kept here as text, not worked out. `{row}` stands for each cell's own row: `=I{row}*3.28084` on lines 2–13",
+    "the `speed (ft/s)` column has 9 cells holding a spreadsheet's formula, not a value. The cells read as gaps, and the formulas are kept here as text. `{row}` stands for each cell's own row: `=K{row}*3.28084` on lines 3–5; `=K{row}*3.28084` on lines 7–9; `=K{row}*3.28084` on lines 11–13",
     "the header writes `speed (ft/s)`, a unit after AltOS's `speed` that isn't the one this reader reads it in; its values are kept as written"
   ]
 }

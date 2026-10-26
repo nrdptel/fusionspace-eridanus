@@ -331,22 +331,23 @@ fn detect_text(text: &str) -> Option<LogFormat> {
 ///
 /// [`LogError::Archive`] for a zip archive, whose files [`archive::unpack`] takes out;
 /// [`LogError::Workbook`] for an `.xls` worksheet's stream, whose sheet [`xls::read`] reads;
-/// [`LogError::Unrecognized`] for a layout HPR Sim doesn't read, naming those it does; otherwise
-/// whatever the format's reader refuses.
+/// [`LogError::Unrecognized`] for a layout HPR Sim doesn't read, naming those it does, or for a
+/// file that is empty or holds only blank space, saying so; otherwise whatever the format's
+/// reader refuses.
 pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
     if archive::is_archive(bytes) {
         return Err(LogError::Archive {
             message: "the file is a zip archive, which holds files rather than a log, or a format \
-                      built on one, such as a spreadsheet's `.xlsx`: an archive's files are read \
-                      one by one once unpacked (`archive::unpack`), a workbook's sheets one by \
-                      one (`workbook::read`)"
+                      built on one, such as a spreadsheet's `.xlsx`. An archive's files are read \
+                      one by one once unpacked (`archive::unpack`). A workbook's sheets are read \
+                      one by one (`workbook::read`)"
                 .to_owned(),
         });
     }
     if xls::recognizes(bytes) {
         return Err(LogError::Workbook {
             message: "the file is an Excel `.xls` worksheet, which holds a sheet of cells rather \
-                      than a log: its sheet is read once written out as text (`xls::read`)"
+                      than a log. Its sheet is read once written out as text (`xls::read`)"
                 .to_owned(),
         });
     }
@@ -411,6 +412,15 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
             message: "a file of binary records is read by a layout the caller states \
                       (`records::read`)"
                 .to_owned(),
+        }),
+        // An empty file, or one of blank space only, names no layout, so say that rather than
+        // list every layout it isn't.
+        None if bytes.iter().all(u8::is_ascii_whitespace) => Err(LogError::Unrecognized {
+            message: if bytes.is_empty() {
+                "the file is empty".to_owned()
+            } else {
+                "the file holds only blank space".to_owned()
+            },
         }),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
@@ -478,7 +488,8 @@ pub fn read_one(
             return match sheets.into_iter().nth(index) {
                 Some(chosen) => chosen.log,
                 None => choice(format!(
-                    "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
+                    "the workbook has {count} {}, numbered from 0: it has no sheet {index}",
+                    if count == 1 { "sheet" } else { "sheets" }
                 )),
             };
         }
@@ -754,6 +765,20 @@ mod tests {
         };
         for format in FORMATS {
             assert!(message.contains(format.name()), "{message}");
+        }
+    }
+
+    #[test]
+    fn an_empty_file_is_refused_as_empty_not_as_every_layout() {
+        for (bytes, said) in [
+            (&b""[..], "the file is empty"),
+            (&b"\n \r\n\t\n"[..], "the file holds only blank space"),
+        ] {
+            let error = read(bytes).unwrap_err();
+            let LogError::Unrecognized { message } = &error else {
+                panic!("refused for another reason: {error:?}");
+            };
+            assert_eq!(message, said);
         }
     }
 }
