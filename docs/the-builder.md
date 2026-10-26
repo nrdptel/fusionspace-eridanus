@@ -463,8 +463,8 @@ crates the builder is made of.
 
 Each part's numbers are checked when the part is added. That catches a negative length, a NaN, a
 zero diameter, zero fins, or a shape parameter out of range. The error names the number, such as
-`tube diameter, m is 0, but it must be finite and above 0`. A fin's numbers or a shape parameter
-come without a bound. A part in an order the tree can't take is checked when it's added, too.
+`tube diameter, m is 0, but it must be finite and above 0`. Most of a fin's numbers and shape
+parameters come without a bound. A part in an order the tree can't take is checked when it's added, too.
 That's fins before any tube, a second motor tube, or a nose behind a tube.
 
 The launch site and wind are checked when they're given, and the rail when the flight is set up. A
