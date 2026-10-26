@@ -1316,7 +1316,9 @@ hpr motors show crates/hpr-motor/data/thrustcurve/curves/5f4294d20002e9000000072
 
 Some motor data is ambiguous. A delay of `0` can mean an ejection charge at burnout, or a plugged
 motor with no charge. The simulator shows it as "0 (at burnout, or plugged)" and ends the output
-with a warning. The Estes F15 in the catalog is one example. The warning's "RASP spec" is the `.eng`
+with a warning. A motor file's delays aren't flown: `hpr sim --motor` with no `--delay` fires no
+motor charge, as if the motor were plugged, and `--delay 0` fires it at burnout. The Estes F15 in
+the catalog is one example. The warning's "RASP spec" is the `.eng`
 format's description ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)).
 
 #### Motors you can buy
@@ -1548,10 +1550,10 @@ file name. Here the Estes F15's `.rse` file, from the catalog's curves, becomes 
 $ hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng
 read   5f923edb1bca5800041716ab.rse
 wrote  F15.eng: F15
-warning: line 3: engine "F15": delay 0 in "0,4,6,8" is ambiguous: the RASP spec means an ejection charge with no delay, but files mostly mean plugged
+warning: line 3: engine "F15": delay 0 in "0,4,6,8" is ambiguous: the RASP spec means an ejection charge at burnout, but files mostly mean plugged. A motor file's delays aren't flown: with no delay chosen, a flight fires no motor charge, as if plugged. For a charge at burnout, choose a delay of 0 s (`hpr sim --delay 0`)
 warning: F15: a .eng maker is one word, so "Estes Industries, Inc." is written "Estes_Industries,_Inc."
-warning: F15: dropped the comments' blank lines and the spaces that end their lines: a .eng comment is one line of text
-warning: F15: dropped Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, throatDia, exitDia, Itot, burn-time, massFrac, Isp, m, cg: a .eng file has no place for them. HPR Sim doesn't use them for a solid motor: it works the mass and center of gravity out from the curve and the masses
+warning: F15: the comments' blank lines and the spaces that end their lines were left out: a .eng comment is one line of text
+warning: F15: Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust, throatDia, exitDia, Itot, burn-time, massFrac, Isp, m, cg were left out: a .eng file has no place for them. HPR Sim doesn't use them for a solid motor: it works the mass and center of gravity out from the curve and the masses
 ```
 
 <!-- cli: end -->
