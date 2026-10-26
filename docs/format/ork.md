@@ -1380,15 +1380,15 @@ that radius out ([Tube fins sized from the body](#tube-fins-sized-from-the-body)
 
 ##### What a part left out does to the numbers
 
-Most warnings give a direction, not a size; some give none, as below. The directions follow from the physics below, and are
-tested on invented designs, not on real ones. A warning that leaves a part out says what the part
-and the parts inside it carried. Then it says which way the rocket's numbers lean without them,
+Most warnings give a direction, not a size; some give none. The directions follow from the physics
+below and are tested on invented designs, not real ones. A warning that leaves a part out says what
+the part and the parts inside it carried. Then it says which way the rocket's numbers lean without them,
 against the same rocket with them. `hpr sim` flies none of the file's configurations once a part is
 left out ([which configurations fly](#motors-and-their-configurations)). So the leans matter where
 the rocket is still used: the library, the Python package, and a design `hpr convert` writes.
 
-What a part carried is made up over the part and everything inside it, so nothing one of them
-carried is lost. A pod set holding a parachute says both its lift and its canopy:
+What a part carried counts everything inside it too, so a pod set holding a parachute says both its
+lift and its canopy:
 
 | carried | by | which way the numbers lean without it |
 | --- | --- | --- |
@@ -1398,9 +1398,8 @@ carried is lost. A pod set holding a parachute says both its lift and its canopy
 | mass, and no lift | a launch lug, a rail button, a parachute, a streamer, or a part inside the body: a tube, coupler, engine block, ring, bulkhead, mass component, shock cord or fin tab | the stability margin reads high for a part aft of the center of gravity, low for one ahead |
 | drag under canopy | a parachute or a streamer | the descent rate reads high if it opens in flight, low if it doesn't |
 
-A tag HPR Sim doesn't read may carry mass, drag or lift. Its warning says "any mass, drag or lift
-it carries" isn't counted, and that the mass and the drag can read low. It says the descent rate
-too only when a parachute or a streamer is written inside the tag.
+A tag HPR Sim doesn't read may carry mass, drag or lift, so its warning says the mass and the drag
+can read low. It names the descent rate only when a parachute or a streamer is written inside it.
 
 A part's mass and drag are never negative, so without them both read low. A canopy that opens sets
 the descent rate, so without it the rocket falls faster. One that never opens carried only mass,
