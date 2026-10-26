@@ -20,7 +20,7 @@ README, with code, link addresses and HTML tags left out. It counted:
 - **En dashes between words:** 58, all joined names or joined words (`Dormand–Prince` 15 times,
   `Prandtl–Meyer` 12, `fin–fin` 5), none a range.
 - **Notes and table cells over 120 words:** 56 notes, each a whole quote block, which the site
-  draws as a note, and 71 table cells. The longest note runs over 1,200 words, the longest cell
+  draws as a note, and 71 table cells. The longest note runs about 1,200 words, the longest cell
   481.
 - **Number columns' heads:** 45 of the 511 right-aligned columns are headed by a code identifier
   (`apogee_agl_m`), 40 of them on the accuracy page.
@@ -77,10 +77,11 @@ add up to 6.3 KB.
    (`H–O`, motor classes) passes. The joined names take a hyphen (`Dormand-Prince`). The site's
    pages are read as mdBook renders them, with smart punctuation, which shows a `--` as an en
    dash: OpenRocket's examples *Pods-\-powered with recovery deployment* and *Pods-\-airframes
-   and winglets*, 61 times on the site, reached readers as `Pods–powered`. Their names escape one
+   and winglets*, 60 times on the site, reached readers as `Pods–powered`. Their names escape one
    hyphen (`Pods-\-powered`), which the site and GitHub show as the file names' two. The READMEs
-   are read as GitHub shows them, `--` as it stands. An en dash inside an equation is not read;
-   the one there (`$x_B$–$y_B$`) takes a hyphen by hand.
+   are read as GitHub shows them, `--` as it stands. An equation ends a run of text, so an en
+   dash between two equations has no word beside it for the check to see; the one on the frames
+   page (`$x_B$–$y_B$`) takes a hyphen by hand.
 5. **M0.9f1's tests.** The 40-word limit holds each sentence of every issue warning `hpr sim` can
    print, built at its longest: every known issue, each with the detail that makes it longest
    (four spans of near-calm wind; joins on four sustainers; an offset that isn't a number). It
@@ -93,7 +94,9 @@ add up to 6.3 KB.
    designs refuse a motor of one's own (one has two stages, the other an airframe not read as
    written), and offline their own motors have no curve. The tests split sentences at a period,
    question mark or exclamation mark followed by a space. A decimal point has no space after it,
-   so `Mach 0.85` stays whole.
+   so `Mach 0.85` stays whole. M0.9f1's *done when* names "the committed designs it flies
+   offline" for this reason: `hpr sim` refuses those two with any motor it can fly offline, so it
+   prints no warning for them to hold.
 
 **Consequences.** The audit's rows that cite #476 stay "not met" until M0.9f4, and each increment
 names its check in its rows. M0.9f4 closes #476 and carries M0.9f's own *done when*.
