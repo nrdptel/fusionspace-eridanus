@@ -3026,8 +3026,8 @@ written.
 >
 > - **Checked:** 9 of the 14 files against AltosUI's export, within half the
 >   export's print step on every value converted to SI. 2 against the board's radio telemetry, every
->   pressure equal (1 of the 2 also has an export). 11 of 12 accelerometer boards'
->   files pass the climb check below.
+>   pressure equal at a shared tick (1 also has an export). 11 of 12 accelerometer boards' files
+>   pass the climb check.
 > - **Assumed:** that the TeleMetrum v1's converter measures against the pressure sensor's own
 >   supply, which no document states ([evidence row G4](../evidence.md#g4)).
 > - **Not read:** the TeleMega v4's IMU, unused in its one sample file.

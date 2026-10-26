@@ -33,8 +33,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
 > catalog, 4 of the 170 motor configurations fly, and 145 with OpenRocket's motor database. On all
 > 53 of OpenRocket's example flights, HPR Sim lands within 0.12% of OpenRocket's landing speed; 45
 > apogees are within 5% of OpenRocket's, and the other 8 each have a named cause, from −37.93% to
-> +13.80%. One private flight, the supersonic one, is +13.60%. The stability margin on the pod
-> examples reads 0.070 to 0.076 calibers above OpenRocket's, the flattering side. A written file
+> +13.80%. One private flight, the supersonic one, is off by +13.60%. The pod examples' stability margin reads 0.070 to 0.076 calibers above OpenRocket's, the flattering side. A written file
 > reaches its original's apogee in OpenRocket within 0.002%.
 
 **The details, one claim at a time.**

@@ -225,7 +225,7 @@ pages = [
 ]
 kind = "calibration"
 wanted = "real"
-not_checked = "other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part held at its stated range, beyond every tuning flight; a quiet part reading a thrust's plateau as flat, given only as a floor; accelerometer noise correlated between samples; a canopy's filling time (synthetic canopies open at once)"
+not_checked = "other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part held at its stated range, beyond every tuning flight; a quiet part's single-valued thrust plateau, read as flat, given only as a floor; accelerometer noise correlated between samples; a canopy's filling time (synthetic canopies open at once)"
 issue = 663
 
 [[row.searched]]

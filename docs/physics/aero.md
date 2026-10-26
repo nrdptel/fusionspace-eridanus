@@ -386,16 +386,18 @@ used Galejs's constant, $C_N = K (A_{\mathrm{plan}}/A_{\mathrm{ref}}) \sin^2\alp
 
 
 > **How far to trust it.** It is Jorgensen's method ([J77]) with HPR Sim's own way of combining
-> two of his figures. Against NASA's Arcas Robin body alone, the tunnel plotted 62 angles. HPR Sim's
-> normal force with body lift is within 15% at 48; where the air crosses the body faster than sound
-> (crossflow Mach 0.95 and over) it reads 1% to 16% high. Below Mach 1 the only check is that body's
-> slope; at Mach 0.6 it reads 25% high, against readings the tunnel determines poorly. No real flight
-> checks it: the [real flights](../accuracy.md#real-flights) compare heights, not drift, so far.
-> Whether it beats Galejs's constant for a slow rocket leaving the rail in wind is open.
+> two of his figures. Against NASA's Arcas Robin body alone, the tunnel plotted 62 angles, 5.5° to
+> 21.7°, at Mach 1.5 to 4.63. HPR Sim's normal force with body lift is within 15% at 48; where the
+> air crosses the body faster than sound it reads 1% to 16% high. Below Mach 1 the only check is
+> that body's slope; at Mach 0.6 it reads 25% high, against readings the tunnel determines poorly.
+> No real flight checks it: the [real flights](../accuracy.md#real-flights) compare heights, not
+> drift, so far. Whether it beats Galejs's constant for a slow rocket leaving the rail in wind is
+> open.
 
-The 62 angles run from 5.5° to 21.7°, at Mach 1.5 to 4.63. Below Mach 1 body lift adds a little to
-that slope, which was fitted from −4° to +4°.
-With Galejs's constant, 34 of the 62 angles are within 15%, and the body reads 41% high at Mach 0.6, against the same poorly determined readings.
+That slope was fitted from −4° to +4°, and below Mach 1 body lift adds a little to it. The air
+crosses the body faster than sound from crossflow Mach 0.95. With Galejs's constant, 34 of the 62
+angles are within 15%, and the body reads 41% high at Mach 0.6, against the same poorly determined
+readings.
 
 At an angle of attack $\alpha$ the air meets the body partly from the side, at $V \sin\alpha$. Behind a
 long cylinder in a cross-wind the air separates, and the drag of that separated flow pushes the
@@ -2400,10 +2402,10 @@ the air at.
 > - The damping reads 6% to 16% low against the one measured set, from Mach 1.5 to 3.
 > - Below Mach 1.5, where most hobby flights stay, nothing measured checks either, and a subsonic
 >   spin may read low.
-> - From Mach 1.5 to 3 the steady spin rate carries both errors, and both push it high: forcing that
->   reads high and damping that reads low each raise it.
+> - The steady spin rate carries both errors, and both push it high: forcing that reads high and
+>   damping that reads low each raise it.
 
-Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping.
+Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
 
 Other symbols follow [Fins](#fins): $r_t$ the body's radius at the fins, $s$ the span, $c_r$
 and $c_t$ the root and tip chords. $A_{\mathrm{fin}}$ is one fin's area and $y_{\mathrm{MAC}}$ the mean aerodynamic chord's
@@ -3406,8 +3408,8 @@ straight line to 0 at Mach 0.8. Every smooth 3:1 nose of panel (a) reads 0 there
 shape starts at Mach 0.8. An elliptical nose of another fineness draws its own line, after the
 scaling, from its low-speed value, held to Mach 0.8
 ([blunt ellipsoids](#blunt-ellipsoids-below-mach-08)). The points and where each was read
-are in the code ([`StoneyNose`](../api/hpr_aero/nose_drag/enum.StoneyNose.html)). A sample, on the
-nose's base area (panel (a)'s values at Mach 3.0 are its held end values):
+are in the code ([`StoneyNose`](../api/hpr_aero/nose_drag/enum.StoneyNose.html)). A sample of the pressure
+drag coefficient, on the nose's base area (panel (a)'s values at Mach 3.0 are its held end values):
 
 | Mach | von Kármán coefficient | L-V Haack coefficient | parabola coefficient | ¾ parabola coefficient | ½ parabola coefficient | $x^{3/4}$ coefficient | $x^{1/2}$ coefficient | $x^{1/4}$ coefficient | ellipsoid coefficient |
 |--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
@@ -3543,14 +3545,14 @@ cylinder, which lowers the base drag. Code: [`hpr_aero::afterbody`](../api/hpr_a
 Decision: [ADR-030][adr-030].
 
 > **How far to trust it.** Against 58 readings of 20 measured boattails of 3° to 10° from Mach 1.2
-> to 3.12, it reads −21.9% to +28.3%. It is within 0.0123 in drag coefficient. Through Mach 1 the
-> rule reads low, and below Mach 0.8 it gives long, gentle boattails almost nothing. Steeper
+> to 3.12, it reads −21.9% to +28.3%. It is within 0.0123 in drag coefficient. The largest
+> percentages are the smallest drags. Through Mach 1 the rule reads low, and below Mach 0.8 it gives long, gentle boattails almost nothing. Steeper
 > boattails in a thick [boundary layer](../glossary.md#boundary-layer) read 26% to 54% high. The one
 > full rocket measured with one, the Arcas Robin, reads high too. So the
 > [boattail milestone](../decisions-and-roadmap.md#m1-8b3)'s targets were not met. No whole flight
 > in the validation suite uses this model yet: none of its boattailed rockets passes Mach 0.8.
 
-The largest percentages are the smallest drags. None of the Arcas Robin's 11 fins-off readings from
+None of the Arcas Robin's 11 fins-off readings from
 Mach 1.5 is within 10%. Of Calisto's 17 supersonic rows against RASAero II, 8 are. Theory that leaves out the air's viscosity (inviscid theory) reads such boattails up to about 20% high ([CS51] p. 17). The rules for a boattail drawn in parts, a lip in its wake and the gaps between apply at every speed.
 The last three rows of the table are judgments that no measurement checks but the Arcas Robin's lip.
 

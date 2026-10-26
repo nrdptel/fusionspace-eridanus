@@ -41,8 +41,8 @@ Its other commands are registered but not available yet. Each refuses and names 
 >   the originals; the other three differ only in type or a delay
 >   ([other programs](#what-a-conversion-keeps)).
 
-[Accuracy](accuracy.md) says how close these are to a real flight. Whether RockSim opens the converted
-motors is not checked.
+Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.md) says how close
+`hpr sim`'s flights are to a real flight.
 
 `hpr motors show` works out each figure with the code a flight uses. On all 32 bundled curves, it
 matches ThrustCurve.org's statistics code to 1.8e-15, relative

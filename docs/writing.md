@@ -421,27 +421,29 @@ They don't conflict with the rules above; they add these:
   Since [M0.9f2](decisions-and-roadmap.md#m0-9f2), `cargo xtask site` also reads the head of
   each right-aligned column, on the site and in both READMEs, as a label and then a unit:
 
-  - **The label** is a word of two or more letters outside code and math that isn't a unit. A code
-    identifier alone (`apogee_agl_m`), a figure or a unit alone (`(kg)`) is no label.
-  - **The unit** goes where a unit goes: the first word in brackets, after a comma or a `·`, or
+  - **The label** is a word of two or more letters outside code and math that isn't a unit, before
+    the head's first bracket, comma, `·` or `;`. A code identifier alone (`apogee_agl_m`), a figure
+    or a unit alone (`(kg)`) is no label.
+  - **The unit** goes where a unit goes: the first word in brackets, after a comma, `·` or `;`, or
     after "in" (`time (s)`, `Worst time, s`, `CP, calibers aft of the tip`, `Offset in bytes`), or
     "per" and what it's per (`slope, per rad`). A unit word elsewhere in the label doesn't count:
     `Error in apogee` gives none.
   - **A pure number** names its kind as the label's last word: a coefficient, ratio, fraction,
-    share, factor, number, count, code, or Mach (`drag coefficient`, `Reynolds number`). One of no
-    kind says `(no unit)`.
+    share, factor, number, count, code, or Mach (`drag coefficient`, `Reynolds number`). The first
+    five also serve where a unit goes (`(coefficient)`). One of no kind says `(no unit)`.
   - **Or each value carries its unit** right after its figure (`0.4 m`, `+1.2%`); a bracket there,
     `3.80 (+73.2%)`, is another quantity's.
-  - **A count** has whole numbers and a head that names what it counts with a plural (`Flights`,
-    `Files differing`).
+  - **A count** has whole numbers and a head that names what it counts, with a plural, `count` or
+    `number`, in its label or where a unit goes (`Flights`, `Files differing`).
 
-  A head that ends in a figure (`| Mach 0.9 |`) is a value, so the table is on its side: turn it.
+  A head that ends in a figure (`| Mach 0.9 |`) names no kind and no unit, so it fails unless
+  each value carries its unit. It is a value, so the table is on its side: turn it.
   The unit words the check knows are `UNITS` and `SPELLED_UNITS` in `xtask/src/site/numbers.rs`.
 - **Short notes and cells** (since [M0.9f2](decisions-and-roadmap.md#m0-9f2)). `cargo xtask site`
   fails a note (a whole quote block) or a table cell over 120 words, on the site and in both
   READMEs. Code, link text and HTML's text count. A note keeps what the reader must know first:
-  for a trust note, what it was checked against, how well, the worst gap and what isn't validated.
-  The supporting detail goes in the page's own text, below the note. A cell holds a value or a
+  for a trust note, its kind of figure, what it was checked against with numbers, and what to rely
+  on instead. The supporting detail goes in the page's own text, below the note. A cell holds a value or a
   phrase, and its explanation goes under the table. A table or a quote block written in raw HTML
   fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
