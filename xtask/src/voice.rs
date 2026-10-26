@@ -929,52 +929,94 @@ fn front_pages_from(tracked: &[String]) -> Result<Vec<String>, String> {
 /// and are read past. Each line that isn't a `//!` line is left blank, so a line of the page is
 /// the same line of the file.
 ///
-/// Front-page text the check can't read, a `#![doc = …]` attribute or a block comment before the
-/// first item, is refused, so no text docs.rs shows escapes the hold.
+/// One rule keeps every word docs.rs shows in the hold: what the check can't read is refused,
+/// never skipped. That's an inner attribute that sets `doc = …` anywhere in it (`#![doc = …]`,
+/// `#![cfg_attr(docsrs, doc = …)]`), one whose end can't be found for sure (a raw string or a
+/// character literal in it, or no closing bracket), and a block comment before the first item.
 fn front_page(source: &str) -> Result<String, String> {
     let mut page = String::new();
-    // Brackets still open in an inner attribute that spans lines.
-    let mut open = 0;
+    // An inner attribute that spans lines: the line it starts on, its text so far, and how many
+    // of its brackets are still open.
+    let mut attribute: Option<(usize, String, usize)> = None;
     for (index, line) in source.lines().enumerate() {
         let trimmed = line.trim_start();
-        if open > 0 {
-            open = brackets_open(trimmed, open);
+        if let Some((start, mut text, open)) = attribute.take() {
+            text.push('\n');
+            text.push_str(trimmed);
+            let open = brackets_open(trimmed, open).map_err(|why| at_line(start, &why))?;
+            attribute = closed_attribute(start, text, open)?;
         } else if let Some(doc) = trimmed.strip_prefix("//!") {
             page.push_str(doc.strip_prefix(' ').unwrap_or(doc));
-        } else if let Some(attribute) = trimmed.strip_prefix("#!") {
-            let inner = attribute.trim_start_matches(['[', ' ']);
-            if inner
-                .strip_prefix("doc")
-                .is_some_and(|rest| rest.trim_start().starts_with('='))
-            {
-                return Err(format!(
-                    "line {}: a `#![doc = …]` attribute, which the voice check can't read; write \
-                     the crate's docs as `//!` lines",
-                    index + 1
-                ));
-            }
-            open = brackets_open(attribute, 0);
+        } else if let Some(rest) = trimmed.strip_prefix("#!") {
+            let open = brackets_open(rest, 0).map_err(|why| at_line(index, &why))?;
+            attribute = closed_attribute(index, rest.to_owned(), open)?;
         } else if trimmed.starts_with("/*") {
-            return Err(format!(
-                "line {}: a block comment before the crate's first item, which the voice check \
-                 can't read; write the crate's docs as `//!` lines and other notes as `//` ones",
-                index + 1
+            return Err(at_line(
+                index,
+                "a block comment before the crate's first item; write the crate's docs as `//!` \
+                 lines and other notes as `//` ones",
             ));
         } else if !(trimmed.is_empty() || trimmed.starts_with("//")) {
             break;
         }
         page.push('\n');
     }
+    if let Some((start, ..)) = attribute {
+        return Err(at_line(start, "an inner attribute with no closing bracket"));
+    }
     Ok(page)
 }
 
+/// An error at line `index` (from 0) of a crate's `lib.rs`, which the voice check can't read.
+fn at_line(index: usize, what: &str) -> String {
+    format!(
+        "line {}: {what}, which the voice check can't read, so it would leave text docs.rs \
+         shows out of the hold",
+        index + 1
+    )
+}
+
+/// The attribute that started at line `start`, its `text` read so far, still open while `open`
+/// brackets are; once they're closed, `None`, or an error if it sets `doc = …` ([`sets_doc`]).
+fn closed_attribute(
+    start: usize,
+    text: String,
+    open: usize,
+) -> Result<Option<(usize, String, usize)>, String> {
+    if open > 0 {
+        return Ok(Some((start, text, open)));
+    }
+    if sets_doc(&text) {
+        return Err(at_line(
+            start,
+            "an inner attribute that sets `doc = …`; write the crate's docs as `//!` lines",
+        ));
+    }
+    Ok(None)
+}
+
+/// Whether an attribute's text holds the word `doc` followed by `=`, wherever it sits:
+/// `[doc = "…"]` and `[cfg_attr(docsrs, doc = include_str!("…"))]`, not `[doc(html_root_url =
+/// "…")]` or `feature(doc_cfg)`.
+fn sets_doc(text: &str) -> bool {
+    let is_word = |c: char| c.is_alphanumeric() || c == '_';
+    text.match_indices("doc").any(|(at, _)| {
+        let before = text[..at].chars().next_back();
+        let after = &text[at + 3..];
+        !before.is_some_and(is_word)
+            && !after.starts_with(is_word)
+            && after.trim_start().starts_with('=')
+    })
+}
+
 /// How many brackets are open after `text`, starting from `open`: each `[` opens one and each `]`
-/// closes one, except inside a string literal or after a `//` comment starts.
-fn brackets_open(text: &str, mut open: usize) -> usize {
+/// closes one, except inside a string literal or after a `//` comment starts. A raw string or a
+/// character literal, whose end this doesn't find, is an error.
+fn brackets_open(text: &str, mut open: usize) -> Result<usize, String> {
     let mut quoted = false;
     let mut escaped = false;
-    let mut chars = text.chars().peekable();
-    while let Some(c) = chars.next() {
+    let chars: Vec<char> = text.chars().collect();
+    for (at, &c) in chars.iter().enumerate() {
         if quoted {
             if escaped {
                 escaped = false;
@@ -985,15 +1027,29 @@ fn brackets_open(text: &str, mut open: usize) -> usize {
             }
             continue;
         }
+        let next = |k: usize| chars.get(at + k).copied();
+        let starts_word = at
+            .checked_sub(1)
+            .and_then(|k| chars.get(k))
+            .is_none_or(|b| !(b.is_alphanumeric() || *b == '_'));
+        // `r"…"`, `r#"…"#`, `b"…"`, `br"…"`: a string whose end this doesn't look for.
+        let raw = matches!(
+            (c, next(1), next(2)),
+            ('r', Some('"' | '#'), _) | ('b', Some('"'), _) | ('b', Some('r'), Some('"' | '#'))
+        );
         match c {
+            _ if starts_word && raw => {
+                return Err("a raw or byte string in an inner attribute".to_owned());
+            }
+            '\'' => return Err("a character literal in an inner attribute".to_owned()),
             '"' => quoted = true,
             '[' => open += 1,
             ']' => open = open.saturating_sub(1),
-            '/' if chars.peek() == Some(&'/') => break,
+            '/' if next(1) == Some('/') => break,
             _ => {}
         }
     }
-    open
+    Ok(open)
 }
 
 /// Whether `path`, from the workspace root, is a crate's `src/lib.rs`, read as its front page.
@@ -3568,13 +3624,28 @@ mod tests {
         for unread in [
             "//! Docs.\n#![doc = include_str!(\"../README.md\")]\n",
             "#![doc= \"Docs.\"]\n",
+            "#! [ doc = \"Docs.\"]\n",
+            "#![cfg_attr(docsrs, doc = \"Docs.\")]\n",
+            "#![cfg_attr(\n    docsrs,\n    doc = include_str!(\"../README.md\")\n)]\n",
+            "#![allow(clippy::x, reason = r#\"a \" [ b\"#)]\n//! Docs.\n",
+            "#![allow(clippy::x, reason = br\"a [\")]\n",
+            "#![cfg(x = '[')]\n",
+            "#![allow(\n    clippy::x,\n//! Docs.\n",
             "/*! Docs. */\n",
             "//! Docs.\n/* A note. */\n",
         ] {
             let error = front_page(unread).unwrap_err();
             assert!(error.contains("can't read"), "{unread:?}: {error}");
         }
-        assert!(front_page("#![doc(html_root_url = \"https://docs.rs\")]\n//! Docs.\n").is_ok());
+        for read in [
+            "#![doc(html_root_url = \"https://docs.rs\")]\n//! Docs.\n",
+            "#![cfg_attr(docsrs, feature(doc_cfg))]\n//! Docs.\n",
+            "#![allow(clippy::for_kv_map, reason = \"a \\\" ] b\")]\n//! Docs.\n",
+            "#![allow(clippy::branches_sharing_code, clippy::bool_comparison)]\n//! Docs.\n",
+            "#![warn(rust_2018_idioms)]\n//! Docs.\n",
+        ] {
+            assert!(front_page(read).unwrap().contains("Docs."), "{read:?}");
+        }
         let read = front_page_from("crates/x/src/lib.rs", source).unwrap();
         assert!(read.reference);
         // Four words, `code` and [`Link`], then the two sentences after the attributes: the

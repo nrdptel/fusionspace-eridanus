@@ -71,9 +71,10 @@
 //! - [`hpr_sim`]: the flight itself, in six degrees of freedom, with recovery.
 //! - [`hpr_analysis`]: Monte Carlo runs, sensitivity analysis and optimization.
 //! - [`hpr_format`]: HPR's own design format.
-//! - [`hpr_io`]: other programs' files: designs, parts, weather and elevation.
+//! - [`hpr_io`]: other programs' files: OpenRocket designs and parts, weather and elevation.
 //! - [`hpr_flightdata`]: flight logs and the readings taken from them, with no simulator.
-//! - [`hpr_forensics`]: a flight log against a simulation of it.
+//! - [`hpr_forensics`]: a flight log against a simulation of it, planned; today it holds only
+//!   synthetic flights to test the readings on.
 //!
 //! The `net` feature adds `hpr-net` (as `hpr::hpr_net`). It holds the cache, the offline mode and
 //! the HTTP transport, and these sources:
