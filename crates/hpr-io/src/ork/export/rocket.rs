@@ -2180,8 +2180,9 @@ pub(super) mod tests {
 
     /// A part written where a `.ork` reader doesn't read one says what leaving it out does, by
     /// what it and the parts inside it carry, and the reader's tally of it, read back, says the
-    /// same (#952): a lug in a stage, a fin set in a stage, and a body tube holding a parachute
-    /// inside another tube, at its end and ahead of a part placed after it.
+    /// same (#952): a lug in a stage, a fin set in a stage, and a body tube holding a mass and then
+    /// a parachute inside another tube, at its end and ahead of a part placed after it. The mass
+    /// comes first so that a warning that took only the first part inside would lose the canopy.
     #[test]
     fn a_part_written_where_it_reads_back_left_out_says_the_same_lean_both_ways() {
         let xml = rocket_of(
@@ -2206,6 +2207,9 @@ pub(super) mod tests {
         <material type="bulk" density="700.0">Invented paper</material>
         <length>0.3</length><thickness>0.0015</thickness><radius>0.05</radius>
         <subcomponents>
+          <masscomponent><name>Weight</name><id>weight</id><mass>0.05</mass>
+            <axialoffset method="top">0.0</axialoffset><packedlength>0.02</packedlength>
+            <packedradius>0.01</packedradius></masscomponent>
           <parachute><name>Chute</name><id>chute</id><axialoffset method="top">0.0</axialoffset>
             <packedlength>0.05</packedlength><packedradius>0.03</packedradius><cd>auto</cd>
             <material type="surface" density="0.067">Invented nylon</material>
@@ -2277,7 +2281,8 @@ pub(super) mod tests {
     }
 
     /// A parallel stage hung on a part that is no body tube is left out of the written file, and
-    /// says what its parts carried (#952).
+    /// says what all its parts carried (#952): a tube, then a bay with a parachute, so that a
+    /// warning that took only the first part would lose the canopy.
     #[test]
     fn a_parallel_stage_left_out_of_the_file_says_what_its_parts_carried() {
         let xml = tube_of(
@@ -2289,6 +2294,16 @@ pub(super) mod tests {
               <bodytube><name>Booster</name><id>booster</id>
                 <material type="bulk" density="700.0">Invented paper</material>
                 <length>0.3</length><thickness>0.001</thickness><radius>0.02</radius></bodytube>
+              <bodytube><name>Booster bay</name><id>booster-bay</id>
+                <material type="bulk" density="700.0">Invented paper</material>
+                <length>0.1</length><thickness>0.001</thickness><radius>0.02</radius>
+                <subcomponents>
+                  <parachute><name>Booster chute</name><id>booster-chute</id>
+                    <axialoffset method="top">0.0</axialoffset><packedlength>0.03</packedlength>
+                    <packedradius>0.015</packedradius><cd>auto</cd>
+                    <material type="surface" density="0.067">Invented nylon</material>
+                    <deployevent>apogee</deployevent><diameter>0.3</diameter></parachute>
+                </subcomponents></bodytube>
             </subcomponents></parallelstage>"#,
         );
         let file = read(uuids(&xml).as_bytes()).expect("reads").value;
@@ -2302,9 +2317,10 @@ pub(super) mod tests {
         let warnings = document(&original).warnings;
         assert!(
             warnings.iter().any(|w| w.message.ends_with(
-                "It was left out of the written file, with the parts in it. Their mass, drag \
-                 and lift aren't counted, so the mass and drag read low. The stability margin \
-                 can read high or low"
+                "It was left out of the written file, with the parts in it. Their mass, drag, \
+                 lift and drag under canopy aren't counted, so the mass and drag read low. The \
+                 descent rate reads high if one of them opens in flight, low if none does. The \
+                 stability margin can read high or low"
             )),
             "{warnings:?}"
         );

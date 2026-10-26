@@ -629,47 +629,85 @@ fn a_pod_set_holding_a_parachute_says_its_lift_and_its_canopy() {
     );
 }
 
-/// A parachute and a mass packed together, `offset_m` from the top of their parent.
-fn packed(offset_m: f64) -> String {
+/// A parachute packed `offset_m` from the top of its parent.
+fn inner_chute(offset_m: f64) -> String {
     format!(
         r#"<parachute><name>Inner chute</name><id>inner-chute</id>
           <axialoffset method="top">{offset_m}</axialoffset><packedlength>0.03</packedlength>
           <packedradius>0.008</packedradius><cd>auto</cd>
           <material type="surface" density="0.067">Ripstop nylon</material>
-          <deployevent>apogee</deployevent><diameter>0.3</diameter></parachute>
-        <masscomponent><name>Weight</name><id>weight</id><mass>0.01</mass>
+          <deployevent>apogee</deployevent><diameter>0.3</diameter></parachute>"#
+    )
+}
+
+/// A small mass packed `offset_m` from the top of its parent.
+fn small_mass(offset_m: f64) -> String {
+    format!(
+        r#"<masscomponent><name>Weight</name><id>weight</id><mass>0.01</mass>
           <axialoffset method="top">{offset_m}</axialoffset><packedlength>0.01</packedlength>
           <packedradius>0.005</packedradius></masscomponent>"#
     )
 }
 
-/// A tube left out with a parachute and a mass inside it: the warning names the 2 parts and says
-/// what all three carried, the canopy among it. The tube sat aft of the center of gravity, so the
-/// margin reads high, and the parachute goes too.
+/// A parachute and a mass packed together, `offset_m` from the top of their parent, in both
+/// orders: the parachute first, then the mass first, so that a warning that took only the first
+/// part's flags would lose the canopy in the second.
+fn packed(offset_m: f64) -> [String; 2] {
+    let (chute, mass) = (inner_chute(offset_m), small_mass(offset_m));
+    [format!("{chute}{mass}"), format!("{mass}{chute}")]
+}
+
+/// A tube left out with a parachute and a mass inside it, in either order: the warning names the
+/// 2 parts and says what all three carried, the canopy among it. The tube sat aft of the center of
+/// gravity, so the margin reads high, and the parachute goes too.
 #[test]
 fn a_part_left_out_with_parts_inside_says_what_they_all_carried() {
-    let (with, warnings, _) = read("", &inner_tube(0.4, "0.001", &packed(0.0)));
-    assert!(warnings.is_empty(), "{warnings:?}");
-    let (without, warnings, _) = read("", &inner_tube(0.4, "-0.001", &packed(0.0)));
+    for inside in packed(0.0) {
+        let (with, warnings, _) = read("", &inner_tube(0.4, "0.001", &inside));
+        assert!(warnings.is_empty(), "{warnings:?}");
+        let (without, warnings, _) = read("", &inner_tube(0.4, "-0.001", &inside));
+        let left: Vec<&String> = warnings.iter().filter(|w| w.contains("left out")).collect();
+        assert_eq!(
+            left,
+            [
+                "a tube of negative wall thickness; it was left out, and the 2 parts inside it. \
+              Their mass and drag under canopy aren't counted, so the mass reads low. The descent \
+              rate reads high if one of them opens in flight, low if none does. The stability \
+              margin reads high for a part aft of the center of gravity, low for one ahead"
+            ],
+            "{inside}: {warnings:?}"
+        );
+        assert!(without.mass_kg < with.mass_kg, "{with:?} {without:?}");
+        assert!(without.margin_cal > with.margin_cal, "{with:?} {without:?}");
+        assert_eq!((with.devices, without.devices), (1, 0));
+    }
+}
+
+/// A tag HPR Sim doesn't read, inside a tube left out after a mass: the warning can't say what the
+/// tag carried, so it says any mass, drag or lift they carry isn't counted, and that the mass and
+/// drag *can* read low, whatever the parts beside the tag carried.
+#[test]
+fn an_unread_tag_inside_a_part_left_out_says_any_of_what_it_may_carry() {
+    let inside = format!(
+        "{}<inventedpart><name>Unknown</name></inventedpart>",
+        small_mass(0.0)
+    );
+    let (_, warnings, _) = read("", &inner_tube(0.4, "-0.001", &inside));
     let left: Vec<&String> = warnings.iter().filter(|w| w.contains("left out")).collect();
     assert_eq!(
         left,
         [
-            "a tube of negative wall thickness; it was left out, and the 2 parts inside it. Their \
-          mass and drag under canopy aren't counted, so the mass reads low. The descent rate \
-          reads high if one of them opens in flight, low if none does. The stability margin \
-          reads high for a part aft of the center of gravity, low for one ahead"
+            "a tube of negative wall thickness; it was left out, and the 2 parts inside it. Any \
+          mass, drag or lift they carry isn't counted, so the mass and drag can read low. The \
+          stability margin can read high or low"
         ],
         "{warnings:?}"
     );
-    assert!(without.mass_kg < with.mass_kg, "{with:?} {without:?}");
-    assert!(without.margin_cal > with.margin_cal, "{with:?} {without:?}");
-    assert_eq!((with.devices, without.devices), (1, 0));
 }
 
 /// Parts written inside a part that holds none in HPR Sim, a mass component, are left out, and
-/// it stays: the warning names the 2 parts and what they carried, and the mass reads low against
-/// the same parts beside it.
+/// it stays: the warning names the 2 parts and what they carried, in either order, and the mass
+/// reads low against the same parts beside it.
 #[test]
 fn parts_inside_a_part_that_holds_none_say_what_they_carried() {
     let weight = |inside: &str| {
@@ -680,21 +718,24 @@ fn parts_inside_a_part_that_holds_none_say_what_they_carried() {
               </masscomponent>"#
         )
     };
-    let (with, warnings, _) = read("", &format!("{}{}", weight(""), packed(0.0)));
-    assert!(warnings.is_empty(), "{warnings:?}");
-    let (without, warnings, _) = read("", &weight(&packed(0.0)));
-    let left: Vec<&String> = warnings.iter().filter(|w| w.contains("left out")).collect();
-    assert_eq!(
-        left,
-        [
-            "a mass component holds no parts in HPR Sim, so the 2 parts inside it were left out. \
-          Their mass and drag under canopy aren't counted, so the mass reads low. The descent \
-          rate reads high if one of them opens in flight, low if none does. The stability margin \
-          reads high for a part aft of the center of gravity, low for one ahead"
-        ],
-        "{warnings:?}"
-    );
-    assert!(without.mass_kg < with.mass_kg, "{with:?} {without:?}");
+    for inside in packed(0.0) {
+        let (with, warnings, _) = read("", &format!("{}{inside}", weight("")));
+        assert!(warnings.is_empty(), "{warnings:?}");
+        let (without, warnings, _) = read("", &weight(&inside));
+        let left: Vec<&String> = warnings.iter().filter(|w| w.contains("left out")).collect();
+        assert_eq!(
+            left,
+            [
+                "a mass component holds no parts in HPR Sim, so the 2 parts inside it were left \
+              out. Their mass and drag under canopy aren't counted, so the mass reads low. The \
+              descent rate reads high if one of them opens in flight, low if none does. The \
+              stability margin reads high for a part aft of the center of gravity, low for one \
+              ahead"
+            ],
+            "{inside}: {warnings:?}"
+        );
+        assert!(without.mass_kg < with.mass_kg, "{with:?} {without:?}");
+    }
 }
 
 /// A `.ork` motor whose `<delay>` can't be read has none: it fires no ejection charge, so a
