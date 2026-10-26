@@ -462,10 +462,10 @@ crates the builder is made of.
 ### What it refuses
 
 Each part's numbers are checked when the part is added. That catches a negative length, a NaN, a
-zero diameter, zero fins, or a shape parameter out of range. The error names the number, and for a
-length or a diameter its bound, such as `tube diameter, m is 0, but it must be finite and above 0`. A part in an order the
-tree can't take is checked when it's added, too. That's fins before any tube, a second motor tube,
-or a nose behind a tube.
+zero diameter, zero fins, or a shape parameter out of range. The error names the number, such as
+`tube diameter, m is 0, but it must be finite and above 0`. A fin's size or a shape parameter
+comes without its bound. A part in an order the tree can't take is checked when it's added, too.
+That's fins before any tube, a second motor tube, or a nose behind a tube.
 
 The launch site and wind are checked when they're given, and the rail when the flight is set up. A
 design that comes in whole through `from_design` is checked before it flies.

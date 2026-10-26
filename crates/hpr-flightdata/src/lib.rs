@@ -88,8 +88,9 @@
 //! [`readings`] takes a first set of readings from the record. They're liftoff, apogee, the top
 //! speed and acceleration, burnout, landing, the flight time, and the descents under the drogue
 //! and the main. Each states the bound its error stays within. On the synthetic flights' tuning
-//! set, logged from 500 to half a sample a second, every reading given stayed within its bound. The guide's [reading a flight
-//! log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each
+//! set, logged from 500 to half a sample a second and in the other conditions [`readings`] lists,
+//! every reading given stayed within its bound. The guide's [reading a flight log][guide-log]
+//! page shows them on a log, and [the layouts read][guide-layouts] lists what each
 //! reader keeps. The rest of the readings, smoothing and reconstruction are planned ([the
 //! roadmap][roadmap]).
 //!
