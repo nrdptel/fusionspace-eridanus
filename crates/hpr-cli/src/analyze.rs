@@ -227,6 +227,10 @@ fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
                  --recording N, each from 0. A table on a sheet no reader takes is read by a \
                  column mapping (--mapping) and --sheet"
             }
+            LogError::Unrecognized { .. } if bytes.iter().all(u8::is_ascii_whitespace) => {
+                "download the log from the logger again with its maker's software: this file \
+                 holds no readings"
+            }
             LogError::Unrecognized { .. } => {
                 "another logger's table is read by a column mapping (--mapping), and \
                  --print-mapping prints what its header states as one to edit. Another logger's \
@@ -659,8 +663,8 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .unwrap_or_default();
                         format!(
                             "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \
-                             less its bound, {} s. The time is derived from the heights, and may have \
-                             come later by any amount",
+                             less its bound, {} s. Derived from the heights, burnout may have come \
+                             later by any amount",
                             burnout.time_s,
                             seconds_bound(burnout.bound_s)
                         )

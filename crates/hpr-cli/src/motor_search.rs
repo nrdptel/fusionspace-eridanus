@@ -192,7 +192,8 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     };
     let (mut lines, headings) = text_lines(&document, &filters.words());
     if document.motors.is_empty()
-        && let Some(hint) = priced_out(&filters, &list.motors)
+        && let Some(hint) =
+            priced_out(&filters, &list.motors).or_else(|| unmatched(&filters, &list.motors))
     {
         lines.push(hint);
     }
@@ -235,6 +236,63 @@ fn priced_out(filters: &Filters, motors: &[Motor]) -> Option<String> {
             money(most)
         ),
     })
+}
+
+/// Why an empty list is empty, when [`priced_out`] can't say: the first filter that no motor in
+/// the list passes on its own, with what the list holds instead (`--class Z`: its classes run
+/// from D to O), or, when each passes some alone, that none passes them all together.
+fn unmatched(filters: &Filters, motors: &[Motor]) -> Option<String> {
+    let pool: Vec<&Motor> = motors
+        .iter()
+        .filter(|m| !filters.only_in_stock() || m.in_stock)
+        .collect();
+    let stock = if filters.only_in_stock() {
+        " in stock"
+    } else {
+        ""
+    };
+    if pool.is_empty() {
+        return Some(if filters.only_in_stock() {
+            "No motor in the list is in stock.".to_owned()
+        } else {
+            "The list holds no motor.".to_owned()
+        });
+    }
+    if let Some(class) = &filters.class
+        && !pool.iter().any(|m| m.impulse_class == *class)
+    {
+        // By the class's letter, the last character: `1/2A` sorts with `A`.
+        let letter = |m: &&&Motor| m.impulse_class.chars().last();
+        let least = pool.iter().min_by_key(letter)?;
+        let most = pool.iter().max_by_key(letter)?;
+        return Some(format!(
+            "No motor{stock} in the list is class {class}. Its classes run from {} to {}.",
+            printable(&least.impulse_class),
+            printable(&most.impulse_class)
+        ));
+    }
+    if let Some(mm) = filters.diameter_mm
+        && !pool.iter().any(|m| (m.diameter_mm - mm).abs() <= 0.5)
+    {
+        let mut sizes: Vec<f64> = pool.iter().map(|m| m.diameter_mm).collect();
+        sizes.sort_by(f64::total_cmp);
+        sizes.dedup_by(|a, b| (*a - *b).abs() <= 0.5);
+        let sizes: Vec<String> = sizes.iter().map(|d| format!("{d}")).collect();
+        return Some(format!(
+            "No motor{stock} in the list is {mm} mm across. Its diameters are {} mm.",
+            sizes.join(", ")
+        ));
+    }
+    if let Some(name) = filters.manufacturer
+        && !pool.iter().any(|m| m.manufacturer == name)
+    {
+        return Some(format!("No motor{stock} in the list is by {name}."));
+    }
+    Some(
+        "Each filter passes some motors on its own, but none passes them all together: drop one \
+         to see more."
+            .to_owned(),
+    )
 }
 
 /// The manufacturer `--manufacturer` names, by the site's name or its slug (`cesaroni`), in any

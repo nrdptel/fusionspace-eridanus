@@ -169,7 +169,8 @@ pub fn read_by_fip_header(
                 .nth(index)
                 .ok_or(LogError::Choice {
                     message: format!(
-                        "the workbook has {count} sheets, numbered from 0: it has no sheet {index}"
+                        "the workbook has {count} {}, numbered from 0: it has no sheet {index}",
+                        if count == 1 { "sheet" } else { "sheets" }
                     ),
                 })?
                 .text

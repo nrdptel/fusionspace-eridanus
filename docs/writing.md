@@ -335,8 +335,8 @@ regenerate the snapshots with
 `HPR_BLESS=1 cargo test -p fusionspace-hpr-cli --test help`
 ([the plan for the program's words](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0292-the-programs-words-in-four.md)).
 
-The commands' messages are held too: what `hpr sim`, `mc`, `convert`, `motors`, `weather` and
-`analyze` print. The source doesn't say which string ends up in a message, so the check reads a census
+Every command's messages are held too: what `hpr sim`, `weather`, `analyze` and the others
+print. The source doesn't say which string ends up in a message, so the check reads a census
 of `hpr-cli`, `hpr` and the twelve crates under it: every `#[error]` text and every other
 string that reads as prose, less tests and markup. Each crate is one held reference page. A
 placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one

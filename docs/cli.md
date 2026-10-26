@@ -1792,7 +1792,7 @@ flight time       45.00 s, within 2.91 s
 drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
 main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at 21.40 s, within 1.06 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
-burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. The time is derived from the heights, and may have come later by any amount
+burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
 reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
@@ -1893,8 +1893,8 @@ readings from the barometric altitude channel, sampled every 0.200 s in steps of
 
 liftoff           1.20 s, within 1.05 s
 apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
-top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples, which needs 0.125 s
-landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. This is before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
+top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
+landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. It ends before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
 flight time       withheld: the flight time needs landing, which is withheld above
 drogue descent    withheld, as landing is
 main descent      withheld, as landing is

@@ -2030,7 +2030,7 @@ expression: log
     }
   ],
   "notes": [
-    "`T` read in seconds, from the step: the median step between rows is 0.05. The reader reads one above 5 as milliseconds. At the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds",
+    "`T` read in seconds, from the step: the median step between rows is 0.05. A step above 5 is read as milliseconds. At the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds",
     "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet. The Quantum and Proton manuals give every height in feet, and no Eggtimer manual offers meters. The file's `AccelFPSS` is 32.19 times its `AccelG`, and one g is 32.17 ft/s²",
     "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) give the velocity in ft/sec. The Proton's manual (p45) gives it as the change in `Alt` over the step. It is the change in `Alt` over the step, within 1 % or 1 ft/s. That holds in 39 of 39 rows after the first, where the reader asks 90 %",
     "`VAccel` read in feet per second, from the manual: the Proton's manual (p45) gives the accelerometer's velocity in ft/sec",

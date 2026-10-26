@@ -1753,7 +1753,8 @@ fn max_speed(
             Reason::SampledTooSlowly,
             format!(
                 "the track's samples come every {interval:.3} s, too far apart for a \
-                 {SPEED_WINDOW_S} s fit of {SPEED_MIN_SAMPLES} samples, which needs {slowest} s"
+                 {SPEED_WINDOW_S} s fit of {SPEED_MIN_SAMPLES} samples. That fit needs them at most \
+                 {slowest} s apart"
             ),
         );
     }
@@ -1859,7 +1860,7 @@ fn landing(
         return Reading::withheld(
             Reason::EndsBeforeLanding,
             format!(
-                "the log ends at {end:.2} s, {:.1} m above the pad. This is before the altitude \
+                "the log ends at {end:.2} s, {:.1} m above the pad. It ends before the altitude \
                  comes within {level:.1} m of the pad and stays under {ceiling:.1} m for \
                  {LANDED_FOR_S} s",
                 filtered[filtered.len() - 1] - pad

@@ -788,8 +788,14 @@ fn build(
         let gaps = values.iter().filter(|value| value.is_nan()).count();
         if gaps > 0 {
             notes.push(format!(
-                "the column {:?} leaves {gaps} cells empty: they are gaps",
-                short(&column.name)
+                "the column {:?} leaves {gaps} {} empty: {}",
+                short(&column.name),
+                if gaps == 1 { "cell" } else { "cells" },
+                if gaps == 1 {
+                    "it is a gap"
+                } else {
+                    "they are gaps"
+                }
             ));
         }
         // A value in g that the factor makes infinite is refused on its row's line (ADR-258 §3).
@@ -1072,7 +1078,7 @@ fn clock_unit(per_second: f64) -> &'static str {
 /// What the step says of the clock, as a note writes it after `from the step`.
 fn step_evidence(median: f64) -> String {
     format!(
-        "the median step between rows is {}. The reader reads one above 5 as milliseconds. At \
+        "the median step between rows is {}. A step above 5 is read as milliseconds. At \
          the manuals' 1 to 33 samples a second, a step is 0.03 to 1 in seconds and 30 to 1,000 in \
          milliseconds",
         plain(median, 4)
@@ -2996,8 +3002,8 @@ mod tests {
         assert_eq!(log.notes.len(), 6, "{:?}", log.notes);
         assert_eq!(
             log.notes[0],
-            "`T` read in seconds, from the step: the median step between rows is 0.05. The \
-             reader reads one above 5 as milliseconds. At the manuals' 1 to 33 samples a second, \
+            "`T` read in seconds, from the step: the median step between rows is 0.05. A \
+             step above 5 is read as milliseconds. At the manuals' 1 to 33 samples a second, \
              a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds"
         );
         assert_eq!(
@@ -3613,8 +3619,8 @@ mod tests {
             notes.contains("3 rows hold only empty cells, and were skipped"),
             "{notes}"
         );
-        assert!(notes.contains("the column \"Veloc\" leaves 1 cells empty: they are gaps"));
-        assert!(notes.contains("the column \"Main\" leaves 1 cells empty: they are gaps"));
+        assert!(notes.contains("the column \"Veloc\" leaves 1 cell empty: it is a gap"));
+        assert!(notes.contains("the column \"Main\" leaves 1 cell empty: it is a gap"));
     }
 
     /// Each refusal names its line and what is wrong.

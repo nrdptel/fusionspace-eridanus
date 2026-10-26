@@ -80,7 +80,7 @@ pub mod wyoming;
 pub use cache::{Cache, CacheEntry};
 pub use client::{Client, Fetched, Freshness, Mode, Replay, Source, Transport};
 #[cfg(feature = "http")]
-pub use http::{Http, HttpConfig};
+pub use http::{Http, HttpConfig, SOCKS_REFUSED};
 
 /// Why a fetch failed.
 #[non_exhaustive]

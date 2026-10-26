@@ -313,6 +313,16 @@ pub(crate) fn refused_by_status(error: &hpr::hpr_net::NetError) -> bool {
     )
 }
 
+/// Whether a fetch was refused before it left, the environment's proxy being SOCKS
+/// ([`hpr::hpr_net::SOCKS_REFUSED`]): the help is then about the proxy, not the connection.
+pub(crate) fn refused_for_socks(error: &hpr::hpr_net::NetError) -> bool {
+    matches!(
+        error,
+        hpr::hpr_net::NetError::Transport { reason, .. }
+            if reason.contains(hpr::hpr_net::SOCKS_REFUSED)
+    )
+}
+
 /// What to do about a fetch that failed, as its refusal's `help:` line, by why it failed.
 pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
     use hpr::hpr_net::NetError;
@@ -327,6 +337,12 @@ pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
              with, or run it again later",
             printable(reason)
         ),
+        NetError::Transport { .. } if refused_for_socks(error) => {
+            "unset ALL_PROXY, HTTPS_PROXY and HTTP_PROXY where they name a SOCKS proxy, or add the \
+             host to NO_PROXY, then run it again. With --offline, HPR Sim answers from what it \
+             fetched before"
+                .to_owned()
+        }
         NetError::Transport { .. } => "check the connection and run it again; with --offline, \
              HPR Sim answers from what it fetched before"
             .to_owned(),
@@ -1082,6 +1098,13 @@ mod tests {
             fetch_help(&refused)
         );
         assert!(fetch_help(&dropped).starts_with("check the connection"));
+        // A SOCKS proxy refused before the request left: the help is about the proxy.
+        let socks = transport(&format!(
+            "the environment's proxy (Socks5) {}",
+            hpr::hpr_net::SOCKS_REFUSED
+        ));
+        assert!(refused_for_socks(&socks) && !refused_for_socks(&dropped));
+        assert!(fetch_help(&socks).starts_with("unset ALL_PROXY, HTTPS_PROXY and HTTP_PROXY"));
     }
 
     /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.

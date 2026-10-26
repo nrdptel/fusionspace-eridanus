@@ -698,3 +698,32 @@ fn bad_filters_and_files_are_refused() {
         assert_eq!(output.status.code(), Some(2), "{args:?}: {output:?}");
     }
 }
+
+/// A search that matches nothing says which filter no motor passes on its own, with what the
+/// list holds instead, or that each passes some alone but not all together (M0.14d3's task 2).
+#[test]
+fn an_empty_search_says_what_to_try() {
+    let scratch = tempfile::tempdir().unwrap();
+    let from = motors_file();
+    let tail = |args: &[&str]| {
+        let mut all = args.to_vec();
+        all.extend(["--from", &from]);
+        let printed = text(&all, scratch.path());
+        assert!(printed.starts_with("0 motors ("), "{printed}");
+        printed.trim_end().lines().last().unwrap().to_owned()
+    };
+    assert_eq!(
+        tail(&["--class", "Z"]),
+        "No motor in the list is class Z. Its classes run from D to O."
+    );
+    assert_eq!(
+        tail(&["--diameter", "1000"]),
+        "No motor in the list is 1000 mm across. Its diameters are 18, 24, 29, 32, 38, 54, 75, \
+         76, 98, 132, 152, 161 mm."
+    );
+    assert_eq!(
+        tail(&["--class", "D", "--diameter", "98"]),
+        "Each filter passes some motors on its own, but none passes them all together: drop one \
+         to see more."
+    );
+}

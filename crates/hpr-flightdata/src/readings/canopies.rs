@@ -202,7 +202,7 @@ pub(super) fn read(
              {mark:.1} m/s up to the main's opening. That mark is {MAIN_TOLERANCE_SHARE} times the \
              rate near the ground, {main_rate:.1} m/s, or {MAIN_TOLERANCE_M_S} m/s more if that \
              is more. A drogue's leg would also fall on median faster than {DROGUE_RATIO} times \
-             that rate. So the rocket came down under one canopy, or under a drogue no faster \
+             the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster \
              than the mark, which reads as one. The main's descent is then the whole descent's, \
              from apogee"
         );

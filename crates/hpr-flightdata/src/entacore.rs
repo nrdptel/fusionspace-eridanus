@@ -1263,7 +1263,7 @@ fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
             message: format!(
                 "the clock's unit can't be decided: {why}. The fastest clock's median step, \
                  {step}, is a step in neither seconds (0.009 to 2) nor milliseconds (9 to \
-                 2,000). Both ranges match how {periods}"
+                 2,000). Both ranges follow from how {periods}"
             ),
         }),
         None => Err(LogError::Unit {

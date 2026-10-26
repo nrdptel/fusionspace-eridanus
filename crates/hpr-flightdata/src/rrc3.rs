@@ -854,14 +854,6 @@ fn time_note(written: &str, time_s: &[f64]) -> String {
     }
 }
 
-/// `text` with its first letter in upper case, to start a sentence.
-fn capitalized(text: &str) -> String {
-    let mut letters = text.chars();
-    letters.next().map_or_else(String::new, |first| {
-        first.to_uppercase().chain(letters).collect()
-    })
-}
-
 /// The 1 Hz columns the header names, as a note lists them.
 fn slow_names(columns: &[Column]) -> String {
     let names: Vec<String> = columns
@@ -1255,20 +1247,19 @@ fn decide_velocity(
         let index = agreed_unit(scale)?;
         Some((*scale, index, by_area.get(1).map(|(other, _)| *other)))
     });
-    // The two measures as sentences: the area's, then the delay and the slope (the first starts
-    // in lower case, to follow a lead-in; `capitalized` starts a sentence with it).
-    let area = |scale: &Scale| {
+    // The two measures as sentences: first the altitude both take, delayed (in lower case, to
+    // follow a lead-in; `capitalized` starts a sentence with it), then the area and the slope.
+    let lead = |scale: &Scale| {
         format!(
-            "against the altitude above the first row, in meters, the area under its running \
-             integral is {:.4} times the altitude's",
-            scale.by_area
+            "the altitude above the first row, in meters, is taken as it was {:.2} s earlier",
+            scale.delay_s
         )
     };
-    let slope = |scale: &Scale| {
+    let measures = |scale: &Scale| {
         format!(
-            "The altitude is taken as it was {:.2} s earlier. The integral's least-squares slope \
-             against it is {:.4}",
-            scale.delay_s, scale.by_fit
+            "The area under the velocity's running integral is {:.4} times that altitude's. The \
+             integral's least-squares slope against that altitude is {:.4}",
+            scale.by_area, scale.by_fit
         )
     };
     if let Some(stated) = units.velocity {
@@ -1283,8 +1274,8 @@ fn decide_velocity(
                     short(written),
                     SPEEDS.get(stated).map_or("", |unit| unit.0),
                     SPEEDS.get(index).map_or("", |unit| unit.0),
-                    capitalized(&area(&scale)),
-                    slope(&scale)
+                    crate::log::capitalized(&lead(&scale)),
+                    measures(&scale)
                 ),
             });
         }
@@ -1309,8 +1300,8 @@ fn decide_velocity(
                  slope{runner_up}",
                 short(written),
                 time_s.len(),
-                area(&scale),
-                slope(&scale),
+                lead(&scale),
+                measures(&scale),
                 1.0 / SPEEDS.get(index).map_or(1.0, |unit| unit.2),
                 by_area * 100.0,
                 by_fit * 100.0
@@ -1364,8 +1355,8 @@ fn decide_velocity(
                         format!(
                             "{}. {}. The two measures don't both land within {:.0}% of one of ft/s, mph, \
                              m/s and km/h (the nearest {} and {})",
-                            area(scale),
-                            slope(scale),
+                            lead(scale),
+                            measures(scale),
                             VELOCITY_MARGIN * 100.0,
                             nearest_of(by_area),
                             nearest_of(by_fit)
@@ -1843,7 +1834,7 @@ mod tests {
         let wrong_speed = text.replacen("Velocity [kph]", "Velocity [m/s]", 1);
         let error = read(&wrong_speed).unwrap_err();
         assert!(
-            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("\"Velocity [m/s]\" states meters per second, but the two measures land nearest kilometers per hour. Against the altitude")),
+            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("\"Velocity [m/s]\" states meters per second, but the two measures land nearest kilometers per hour. The altitude above the first row")),
             "{error:?}"
         );
         for header in [

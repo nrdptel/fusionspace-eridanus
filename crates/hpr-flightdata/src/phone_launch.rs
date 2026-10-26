@@ -605,7 +605,11 @@ impl Outcome {
     fn both(first: (bool, String), second: (bool, String)) -> Self {
         Self {
             passed: first.0 && second.0,
-            evidence: format!("(1) {}. (2) {}", first.1, second.1),
+            evidence: format!(
+                "(1) {}. (2) {}",
+                first.1,
+                crate::log::capitalized(&second.1)
+            ),
         }
     }
 }
@@ -1286,8 +1290,8 @@ fn matches_pressure(altitude: &[f64], pressure_altitude: Option<&[f64]>) -> (boo
         off <= allowed,
         format!(
             "above the first row it lies at most {off:.2} from the pressure altitude of `hPa` in \
-             the U.S. Standard Atmosphere, in meters. The pressure altitude climbs {climb:.1} m, \
-             where {allowed:.1} is allowed"
+             the U.S. Standard Atmosphere, in meters. That altitude climbs {climb:.1} m, and the \
+             most allowed over that climb is {allowed:.1}"
         ),
     )
 }
@@ -2526,7 +2530,7 @@ mod tests {
         // Without a magnetometer the second check can't run, and fails.
         let log = log_of(&scaled(NEWER, &names, 0.0));
         assert!(
-            note(&log, "`Yaw` kept as written").contains("(2) only 0 rows are where"),
+            note(&log, "`Yaw` kept as written").contains("(2) Only 0 rows are where"),
             "{:#?}",
             log.notes
         );
@@ -2591,7 +2595,7 @@ mod tests {
         }));
         let kept = note(&log, "`GyroX`, `GyroY` and `GyroZ` kept as written");
         assert!(
-            kept.contains("where 0.7 to 1.3 reads rad/s. (2) no axis stops"),
+            kept.contains("where 0.7 to 1.3 reads rad/s. (2) No axis stops"),
             "{kept}"
         );
         assert!(kept.contains("`GyroY` 15.0000 on 5 rows"), "{kept}");
@@ -2674,7 +2678,7 @@ mod tests {
         }
         let log = log_of(&(lines.join("\n") + "\n"));
         let kept = note(&log, "`Latitude` kept as written");
-        assert!(kept.contains("(2) the file has no `Longitude`"), "{kept}");
+        assert!(kept.contains("(2) The file has no `Longitude`"), "{kept}");
     }
 
     /// A time stamp in seconds fails both checks; one whose steps stray from the clock's fails
@@ -2697,7 +2701,7 @@ mod tests {
         }));
         let kept = note(&log, "`Timestamp` kept as written");
         assert!(kept.contains("at most 0.0200 s from"), "{kept}");
-        assert!(kept.contains("(2) its first reading, read in ms since 1970, falls"));
+        assert!(kept.contains("(2) Its first reading, read in ms since 1970, falls"));
     }
 
     /// The GPS altitude is kept as written whatever its gain: in meters the one check passes, in
@@ -2737,7 +2741,7 @@ mod tests {
             "{kept}"
         );
         assert!(
-            kept.contains("(2) the file has no barometric climb"),
+            kept.contains("(2) The file has no barometric climb"),
             "{kept}"
         );
         for (column, expected) in [
