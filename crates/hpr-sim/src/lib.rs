@@ -10,8 +10,6 @@
 //! [guide-rigid-body]: https://hpr.fusionspace.co/physics/flight.html
 //! [guide-integration]: https://hpr.fusionspace.co/physics/integration.html
 //! [guide-recovery]: https://hpr.fusionspace.co/physics/recovery.html
-//! [roadmap]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md
-//! [m2-2e10]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e10
 //!
 //! - [`flight`]: a [`Simulation`] of a rocket, its [`Environment`] and its [`Rail`], flown from
 //!   ignition through the pad, rail and free-flight phases to the ground.
@@ -39,9 +37,7 @@
 //! while the booster descends ([`flight`]).
 //!
 //! A cluster flies one motor in each of its tubes, and a tube or a motor can be set never to light.
-//! A `.ork` file's staging settings and clusters fly too. Staging and clusters came with
-//! [the roadmap's staging milestone][roadmap], and a motor that never lights
-//! [with a later one][m2-2e10].
+//! A `.ork` file's staging settings and clusters fly too.
 
 pub mod dynamics;
 pub mod envelope;

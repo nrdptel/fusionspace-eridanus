@@ -90,8 +90,8 @@ function given as `drag`, called as `drag(mach, thrusting)` with `thrusting` tru
 burns. It returns the rocket's zero-lift drag coefficient `C_D0` on the rocket's reference area.
 
 An exception a function raises stops the flight, whether it's the drag's or the environment's
-wind's. It does so even at a trial step the integrator would have retried shorter. It's raised
-here as it was raised.
+wind's. It does so even at a trial step the integrator would have retried shorter. `Flight`
+raises it unchanged.
 
 Heights are the rocket's center of gravity's, above the launch site. It stands on the rail at
 the start, so the first height isn't zero. Speeds are relative to the ground.
@@ -149,8 +149,8 @@ The drag issues are 18, 67, 68, 70, 72, 73 and 222, and 179 and 354, a separated
 The stability issues are 64, 87, 120, 121, 172, 325 and 326. The flight's path issues are 8,
 106, 213 and 219, whose signs depend on the case.
 
-`parts` is empty for base drag, 68, and friction, 18, which every rocket has. It's empty for
-8, 121, 172, 179, 219 and 354 too.
+`parts` is empty for base drag (issue 68) and friction (issue 18), which every rocket has.
+It's empty for 8, 121, 172, 179, 219 and 354 too.
 
 ### `Flight.keys`
 
@@ -193,9 +193,9 @@ integrator's work.
 
 ## `FlightLog`
 
-A flight log, read, as ``hpr analyze --record`` prints it. It holds a clock, every channel the
-logger recorded on it, and what the file states about itself. The channels are in SI units,
-degrees for angles. Read one with ``FlightLog.read``.
+A flight log read into one record, as ``hpr analyze --record`` prints it. It holds a clock,
+every channel the logger recorded on it, and what the file states about itself. The channels
+are in SI units, degrees for angles. Read one with ``FlightLog.read``.
 
 ### `FlightLog.altitude_m`
 
@@ -233,7 +233,7 @@ The file format it was read as, such as ``"generic_table"`` for a table read by 
 What the header of the table at ``path`` states, as a column mapping: a dict to edit and
 give back to ``FlightLog.read`` as ``mapping``. Set each column's ``quantity`` and
 ``unit``. Set ``primary`` to the column, from 0, that is the barometric altitude above the
-pad. ``sheet`` names an ``.xlsx`` workbook's sheet, from 0.
+pad. ``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0.
 
 ### `FlightLog.logger`
 
@@ -254,8 +254,8 @@ A mapping or a layout is a dict, or the path of its JSON file. The schemas
 ``schema/cli/analyze-mapping.schema.json`` and ``analyze-layout.schema.json`` describe
 them. ``FlightLog.header_mapping`` gives the mapping a table's header states.
 
-``sheet`` names a spreadsheet's workbook's sheet (``.xlsx`` or ``.xls``), from 0. The sheet
-is read by its format's own reader, a mapping or a FIP header. With no ``sheet``, it's the
+``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0. The sheet is read by
+its format's own reader, a mapping or a FIP header. With no ``sheet``, it's the
 workbook's one sheet that reads as a log. ``recording`` names an Entacore AIM raw dump's
 recording, from 0.
 
@@ -276,6 +276,13 @@ holds ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration``, ``burnout``,
   track it came from (``source``), whether it was measured, derived or clipped
   (``provenance``), and how it was read (``method``).
 - ``status`` ``"withheld"``, with a ``reason`` and its ``detail``.
+
+The keys of a value and its bound name their unit. ``liftoff``, ``burnout``, ``landing`` and
+``flight_time`` hold ``time_s`` and ``bound_s``. ``apogee`` holds ``height_m`` above the
+pad, ``altitude_m`` above the track's own zero and ``bound_m``, with ``time_s`` and
+``time_bound_s``. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s``, and
+``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
+``rate_m_s`` and ``bound_m_s``.
 
 A top acceleration also says whether it is a floor (``is_floor``), and why it is clipped
 (``clip``): ``"range"``, ``"flat"`` or ``None``.
@@ -317,8 +324,9 @@ heading_deg=0.0, drag_table=None, drag=None, mass_sd_fraction=0.0, cg_sd_m=0.0,
 drag_sd_fraction=0.0, impulse_sd_fraction=0.0, burn_time_sd_fraction=0.0, delay_sd_s=0.0,
 wind_sd_fraction=0.0, wind_from_sd_deg=0.0, inclination_sd_deg=0.0, heading_sd_deg=0.0,
 deployment_lag_sd_s=0.0)`: the rocket, the environment and the rail as `Flight` takes them.
-Then comes one standard deviation of each input the run scatters, each 0 (not scattered)
-unless given. They're `hpr mc`'s options, with the same names as its JSON output:
+The keyword arguments after `drag` are standard deviations, one for each input the run
+scatters, each 0 (not scattered) unless given. They're `hpr mc`'s options, with the same names
+as its JSON output:
 
 - each stage's mass without motors, and each motor's impulse and burn time, as fractions of
   their nominal values (0.02 is 2%).
@@ -339,7 +347,7 @@ A flight that fails is counted (`failed`, `failures`) and kept in the table, nev
 fails when its draw is impossible (such as a negative mass) or its flight stops with an error.
 
 The run reads as a dictionary of NumPy arrays: `run["apogee_m"]`. Each array is a column of
-`hpr mc --export`'s table, a value a flight in index order. `columns` lists them: what each
+`hpr mc --export`'s table, one value per flight in index order. `columns` lists them: what each
 flight drew and what it came to. A number is a `float64` array, NaN where a flight has none (a
 failed flight, or a peak its flight didn't reach). `index` is a `uint64` array. `outcome`,
 `failed_at`, `reason`, `termination` and `flags` are arrays of strings, empty where a flight
@@ -400,8 +408,12 @@ The run's seed.
 
 The table as CSV text, the bytes `hpr mc --export` writes for the same run. A header gives
 the columns in words, with their units in brackets: `apogee [m]` for `run["apogee_m"]`.
-Then comes a line a flight. Each number is in the shortest form that reads back to the same
-bits, and a missing one is an empty cell.
+Then comes one line per flight. Each number is in the shortest form that reads back to the
+same bits, and a missing one is an empty cell.
+
+The bytes match for a rocket read with `Rocket.from_file(..., recovery=True)`. `hpr mc`
+flies the file's recovery devices, and a rocket read without `recovery=True` flies none of
+them. Its table then has no column for their deployment lags, and its landings differ.
 
 ## `Motor`
 
@@ -425,7 +437,7 @@ The case diameter, m.
 The motor in HPR Sim's built-in catalog whose designation or common name is `name`
 (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its first
 bundled thrust curve. `delay_s` sets its ejection delay; the designation's own delay is not
-used.
+used. The command `hpr motors list` lists the catalog's motors.
 
 ### `Motor.from_eng`
 
@@ -472,7 +484,7 @@ on or in the tube before them. Every part names its material by a built-in id
 Adds `count` trapezoidal fins `thickness_m` thick to the tube before them. Their shape is a
 root chord, tip chord and span, and the sweep: how far aft of the root's leading edge the
 tip's is.
-Every argument after `count` is named, so two lengths can't swap unseen.
+Every argument after `count` is keyword-only, so two lengths can't be swapped by mistake.
 `cross_section` is `"square"`, the default, `"rounded"` or `"airfoil"`. They sit flush
 with the tube's aft end unless `position` (`"top"`, `"middle"`, `"bottom"` or `"after"`)
 and `offset_m`, aft of it, place them.
@@ -517,7 +529,8 @@ It is fully open `lag_s` seconds later.
 
 With `released_by`, the number of another parachute, it is cut away once that one is fully
 open, as a drogue is when the main opens. The first parachute added is 0, the second 1, and
-so on. RocketPy flies only its last parachute to open, which is the same.
+so on. RocketPy flies only its last parachute to open, so a drogue cut away when the main
+opens flies as RocketPy flies it.
 
 An argument that doesn't apply to the choices made is refused. A `released_by` that names no
 other parachute is refused when the rocket flies.
@@ -545,22 +558,26 @@ The design as JSON text: the `hpr_design::Rocket` a rocket's JSON file holds.
 
 A rocket read from a design file, flown in its motor configuration `configuration`, by
 id. The file is an HPR design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's
-JSON (`.json`, an `hpr_design::Rocket`). Left out, the configuration is the file's default,
-or its only one. Parts can't be added to it; parachutes can.
+JSON (`.json`, an `hpr_design::Rocket`). Parts can't be added to it, nor a motor set;
+parachutes can be added.
+
+Left out, the configuration is the file's default, or its only one. A `.ork` file and an HPR
+design mark a default; a rocket's JSON doesn't. A file with several configurations and no
+default is refused, with their ids, and so is one with none.
 
 With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
 (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
 OpenRocket's own. Once one opens, the rocket descends as a point under the open devices'
 drag alone. They come before any added with `add_parachute`, so the file's first device is
 parachute 0. A device that never opens in the configuration is named in `notes`. A file
-whose devices HPR Sim can't fly is refused with why. Left out, the file's devices aren't
-flown.
+whose devices HPR Sim can't fly is refused, with the reason. Left out, the file's devices
+aren't flown.
 
 ### `Rocket.margin`
 
-The whole stability picture `time_s` after ignition at `mach`, as a dictionary. It holds
-the margin, the center of pressure (`cp_station_m`, meters aft of the nose tip) and the
-slopes they come from.
+The stability margin `time_s` after ignition at `mach` and what it comes from, as a
+dictionary. It holds the margin (`margin_cal`), the center of pressure (`cp_station_m`,
+meters aft of the nose tip) and the slopes they come from.
 
 ### `Rocket.mass_properties`
 
@@ -578,14 +595,15 @@ The rocket's name.
 ### `Rocket.notes`
 
 What reading the design file said, one line each: the `.ork` reader's warnings, an older
-format version migrated, and an airframe not flown as written. It names the recovery
-devices the file holds, which aren't flown unless `from_file`'s `recovery=True` flies them;
-then it names any that never opens. It names the stages that fly as one stack too. Empty
-for a rocket built part by part.
+format version migrated, and an airframe not flown as written. Without `from_file`'s
+`recovery=True`, it names the file's recovery devices, which aren't flown. With it, it
+names any that never open. It names the stages that fly as one stack too. Empty for a
+rocket built part by part.
 
 ### `Rocket.set_motor`
 
-Puts the motor in the motor tube.
+Puts the motor in the motor tube. It's refused on a rocket read with `from_file`, whose
+motors are its motor configuration's.
 
 ### `Rocket.static_margin_cal`
 

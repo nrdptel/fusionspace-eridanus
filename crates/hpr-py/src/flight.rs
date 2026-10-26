@@ -137,9 +137,7 @@ fn callable(what: &str, function: &Py<PyAny>) -> PyResult<()> {
         if function.bind(py).is_callable() {
             Ok(())
         } else {
-            Err(error(format!(
-                "`{what}` must be a function, and is not callable"
-            )))
+            Err(error(format!("`{what}` isn't callable; give a function")))
         }
     })
 }
@@ -335,8 +333,8 @@ impl DragTable {
 /// burns. It returns the rocket's zero-lift drag coefficient `C_D0` on the rocket's reference area.
 ///
 /// An exception a function raises stops the flight, whether it's the drag's or the environment's
-/// wind's. It does so even at a trial step the integrator would have retried shorter. It's raised
-/// here as it was raised.
+/// wind's. It does so even at a trial step the integrator would have retried shorter. `Flight`
+/// raises it unchanged.
 ///
 /// Heights are the rocket's center of gravity's, above the launch site. It stands on the rail at
 /// the start, so the first height isn't zero. Speeds are relative to the ground.
@@ -376,7 +374,8 @@ impl Flight {
             && (interval_s.is_nan() || interval_s < MIN_INTERVAL_S)
         {
             return Err(error(format!(
-                "the recording's interval is {interval_s} s, and at least {MIN_INTERVAL_S} s"
+                "the recording's interval is {interval_s} s, and must be at least \
+                 {MIN_INTERVAL_S} s"
             )));
         }
         let mut recorder = Recorder::new(Channel::ALL.to_vec(), interval_s).map_err(error)?;
@@ -467,8 +466,8 @@ impl Flight {
     /// The stability issues are 64, 87, 120, 121, 172, 325 and 326. The flight's path issues are 8,
     /// 106, 213 and 219, whose signs depend on the case.
     ///
-    /// `parts` is empty for base drag, 68, and friction, 18, which every rocket has. It's empty for
-    /// 8, 121, 172, 179, 219 and 354 too.
+    /// `parts` is empty for base drag (issue 68) and friction (issue 18), which every rocket has.
+    /// It's empty for 8, 121, 172, 179, 219 and 354 too.
     #[getter]
     fn issue_warnings<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyDict>>> {
         self.flight

@@ -34,7 +34,7 @@ impl Motor {
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`
     /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its first
     /// bundled thrust curve. `delay_s` sets its ejection delay; the designation's own delay is not
-    /// used.
+    /// used. The command `hpr motors list` lists the catalog's motors.
     #[staticmethod]
     #[pyo3(signature = (name, *, delay_s = None))]
     fn from_catalog(name: &str, delay_s: Option<f64>) -> PyResult<Self> {
@@ -157,16 +157,20 @@ impl Rocket {
 
     /// A rocket read from a design file, flown in its motor configuration `configuration`, by
     /// id. The file is an HPR design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's
-    /// JSON (`.json`, an `hpr_design::Rocket`). Left out, the configuration is the file's default,
-    /// or its only one. Parts can't be added to it; parachutes can.
+    /// JSON (`.json`, an `hpr_design::Rocket`). Parts can't be added to it, nor a motor set;
+    /// parachutes can be added.
+    ///
+    /// Left out, the configuration is the file's default, or its only one. A `.ork` file and an HPR
+    /// design mark a default; a rocket's JSON doesn't. A file with several configurations and no
+    /// default is refused, with their ids, and so is one with none.
     ///
     /// With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
     /// (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
     /// OpenRocket's own. Once one opens, the rocket descends as a point under the open devices'
     /// drag alone. They come before any added with `add_parachute`, so the file's first device is
     /// parachute 0. A device that never opens in the configuration is named in `notes`. A file
-    /// whose devices HPR Sim can't fly is refused with why. Left out, the file's devices aren't
-    /// flown.
+    /// whose devices HPR Sim can't fly is refused, with the reason. Left out, the file's devices
+    /// aren't flown.
     #[staticmethod]
     #[pyo3(signature = (path, configuration = None, *, recovery = false))]
     fn from_file(
@@ -327,7 +331,7 @@ impl Rocket {
     /// Adds `count` trapezoidal fins `thickness_m` thick to the tube before them. Their shape is a
     /// root chord, tip chord and span, and the sweep: how far aft of the root's leading edge the
     /// tip's is.
-    /// Every argument after `count` is named, so two lengths can't swap unseen.
+    /// Every argument after `count` is keyword-only, so two lengths can't be swapped by mistake.
     /// `cross_section` is `"square"`, the default, `"rounded"` or `"airfoil"`. They sit flush
     /// with the tube's aft end unless `position` (`"top"`, `"middle"`, `"bottom"` or `"after"`)
     /// and `offset_m`, aft of it, place them.
@@ -443,7 +447,8 @@ impl Rocket {
         Ok(slf)
     }
 
-    /// Puts the motor in the motor tube.
+    /// Puts the motor in the motor tube. It's refused on a rocket read with `from_file`, whose
+    /// motors are its motor configuration's.
     fn set_motor<'py>(
         mut slf: PyRefMut<'py, Self>,
         motor: &Motor,
@@ -468,7 +473,8 @@ impl Rocket {
     ///
     /// With `released_by`, the number of another parachute, it is cut away once that one is fully
     /// open, as a drogue is when the main opens. The first parachute added is 0, the second 1, and
-    /// so on. RocketPy flies only its last parachute to open, which is the same.
+    /// so on. RocketPy flies only its last parachute to open, so a drogue cut away when the main
+    /// opens flies as RocketPy flies it.
     ///
     /// An argument that doesn't apply to the choices made is refused. A `released_by` that names no
     /// other parachute is refused when the rocket flies.
@@ -577,10 +583,10 @@ impl Rocket {
     }
 
     /// What reading the design file said, one line each: the `.ork` reader's warnings, an older
-    /// format version migrated, and an airframe not flown as written. It names the recovery
-    /// devices the file holds, which aren't flown unless `from_file`'s `recovery=True` flies them;
-    /// then it names any that never opens. It names the stages that fly as one stack too. Empty
-    /// for a rocket built part by part.
+    /// format version migrated, and an airframe not flown as written. Without `from_file`'s
+    /// `recovery=True`, it names the file's recovery devices, which aren't flown. With it, it
+    /// names any that never open. It names the stages that fly as one stack too. Empty for a
+    /// rocket built part by part.
     #[getter]
     fn notes(&self) -> Vec<String> {
         self.notes.clone()
@@ -595,9 +601,9 @@ impl Rocket {
         self.rocket.static_margin_cal(time_s, mach).map_err(error)
     }
 
-    /// The whole stability picture `time_s` after ignition at `mach`, as a dictionary. It holds
-    /// the margin, the center of pressure (`cp_station_m`, meters aft of the nose tip) and the
-    /// slopes they come from.
+    /// The stability margin `time_s` after ignition at `mach` and what it comes from, as a
+    /// dictionary. It holds the margin (`margin_cal`), the center of pressure (`cp_station_m`,
+    /// meters aft of the nose tip) and the slopes they come from.
     #[pyo3(signature = (time_s = 0.0, mach = 0.3))]
     fn margin<'py>(&self, py: Python<'py>, time_s: f64, mach: f64) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &self.rocket.margin(time_s, mach).map_err(error)?)
@@ -715,8 +721,8 @@ fn read_design(path: &Path, recovery: bool) -> PyResult<ReadDesign> {
     let devices = design.recovery.devices.len();
     if devices > 0 && !recovery {
         notes.push(format!(
-            "the file's {devices} recovery device(s) are not flown, as recovery=True would fly \
-             them; the parachutes added with add_parachute are"
+            "the file's {devices} recovery device(s) aren't flown; recovery=True flies them. \
+             Only the parachutes added with add_parachute fly"
         ));
     }
     stack_note(&design.rocket, &mut notes);
@@ -758,7 +764,7 @@ fn file_recovery(
 
 /// The motor configuration of a `.ork` file, or of an HPR design read from one, that a rocket
 /// read from it flies, chosen as `hpr sim` chooses: the one named, or the file's default, or its
-/// only one. One that separates, or that HPR Sim can't fly as written, is refused with why.
+/// only one. One that separates, or that HPR Sim can't fly as written, is refused, with the reason.
 fn ork_configuration(
     path: &Path,
     motors: &hpr::hpr_io::ork::Motors,
@@ -833,7 +839,13 @@ fn stack_note(rocket: &hpr::hpr_design::Rocket, notes: &mut Vec<String>) {
 
 /// A built-in material, by id.
 fn material_of(id: &str) -> PyResult<hpr::hpr_design::Material> {
-    material(id).map_err(error)
+    material(id).map_err(|refused| match refused {
+        // The library's message names its Rust list; in Python, `materials()` is the list.
+        hpr::Error::UnknownMaterial(id) => error(format!(
+            "no built-in material `{id}`; `hpr.materials()` lists them"
+        )),
+        other => error(other),
+    })
 }
 
 /// A nose or transition shape by name, with its parameter where it takes one.

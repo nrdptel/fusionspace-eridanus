@@ -1,8 +1,9 @@
 //! Solid rocket motor model (thrust, propellant mass, CG and inertia over time), `.eng`/`.rse`
 //! reading and writing, and catalog types.
 //!
-//! **Guide:** [Solid motors][guide-motor], [`.eng` files][guide-eng] and [`.rse` files][guide-rse]:
-//! the models, their sources, how well they are validated and what they leave out.
+//! Three pages of the guide cover this crate: [Solid motors][guide-motor], [`.eng`
+//! files][guide-eng] and [`.rse` files][guide-rse]. They give the models, their sources, how well
+//! they are validated and what they leave out.
 //!
 //! [guide-motor]: https://hpr.fusionspace.co/physics/motor.html
 //! [guide-eng]: https://hpr.fusionspace.co/format/eng.html

@@ -1,10 +1,8 @@
 //! Python bindings for FusionSpace HPR · Sim: the `fusionspace-hpr` Python package, imported as
-//! `fusionspace.hpr` ([ADR-199][adr-199] §2).
+//! `fusionspace.hpr`.
 //!
-//! [adr-199]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md
-//!
-//! **Guide:** [Python][guide-python] shows the package in use, and [Start here][guide-start]
-//! says what works today and how far to trust it.
+//! The guide's [Python][guide-python] page shows the package in use, and [Start
+//! here][guide-start] says what works today and how far to trust it.
 //!
 //! [guide-python]: https://hpr.fusionspace.co/python.html
 //! [guide-start]: https://hpr.fusionspace.co/start-here.html

@@ -13,8 +13,8 @@ read from a design file, and a `Flight`. A flight comes with its metrics, and it
 NumPy arrays. A `MonteCarlo` run is the flight flown many times with its inputs scattered, its
 flights as NumPy arrays.
 
-**How far to trust it:** every figure it gives is an estimate from a model, not a measurement, and
-never a go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulated apogee
+Every figure it gives is an estimate from a model, not a measurement, and never a go/no-go
+verdict. Against 53 logged flights of fliers' own designs, the simulated apogee
 missed by 12.95% on average (mean absolute), outside the 5% target. On average it read high by
 8.73%. It can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee
 reads low ([Accuracy](https://hpr.fusionspace.co/accuracy.html)). The motor's printed data and your
@@ -72,9 +72,7 @@ print(flight.apogee_m, flight["height_above_ground_m"].max())
 
 ## Where the details are
 
-The guide's [Python page](https://hpr.fusionspace.co/python.html) walks through it, and
-its [Accuracy page](https://hpr.fusionspace.co/accuracy.html) says how far to trust the
-numbers.
+The guide's [Python page](https://hpr.fusionspace.co/python.html) walks through it.
 
 ## License
 

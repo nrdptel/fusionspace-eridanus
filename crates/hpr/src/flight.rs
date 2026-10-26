@@ -237,6 +237,7 @@ impl FlightBuilder<'_> {
                 return Err(Error::Domain {
                     what: "rail inclination, degrees above the horizon",
                     value: inclination_deg,
+                    allowed: "above 0 and at most 90",
                 });
             }
             rail.elevation_rad = inclination_deg.to_radians();

@@ -1,7 +1,8 @@
-//! `FlightLog`: a flight log read into one record, by its format's own reader or by the column
-//! mapping or record layout a flyer writes for their own logger, as `hpr analyze` reads it
-//! (`hpr_flightdata::custom`, M7.1d2); a workbook's sheet or a dump's recording as chosen, and a
-//! Raven FIP export that lost its header line under the header stated for it (M7.2b).
+//! `FlightLog`: a flight log read into one record, as `hpr analyze` reads it. It's read by its
+//! format's own reader, or by a column mapping or record layout for a flyer's own logger
+//! (`hpr_flightdata::custom`, M7.1d2). A workbook's sheet or a dump's recording is read as
+//! chosen. A Raven FIP export that lost its header line is read under the header stated for it
+//! (M7.2b).
 
 use std::path::{Path, PathBuf};
 
@@ -16,9 +17,9 @@ use pyo3::types::PyDict;
 
 use crate::{error, to_python};
 
-/// A flight log, read, as ``hpr analyze --record`` prints it. It holds a clock, every channel the
-/// logger recorded on it, and what the file states about itself. The channels are in SI units,
-/// degrees for angles. Read one with ``FlightLog.read``.
+/// A flight log read into one record, as ``hpr analyze --record`` prints it. It holds a clock,
+/// every channel the logger recorded on it, and what the file states about itself. The channels
+/// are in SI units, degrees for angles. Read one with ``FlightLog.read``.
 #[pyclass(module = "fusionspace.hpr", frozen, skip_from_py_object)]
 #[derive(Debug)]
 pub struct FlightLog {
@@ -84,8 +85,8 @@ impl FlightLog {
     /// ``schema/cli/analyze-mapping.schema.json`` and ``analyze-layout.schema.json`` describe
     /// them. ``FlightLog.header_mapping`` gives the mapping a table's header states.
     ///
-    /// ``sheet`` names a spreadsheet's workbook's sheet (``.xlsx`` or ``.xls``), from 0. The sheet
-    /// is read by its format's own reader, a mapping or a FIP header. With no ``sheet``, it's the
+    /// ``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0. The sheet is read by
+    /// its format's own reader, a mapping or a FIP header. With no ``sheet``, it's the
     /// workbook's one sheet that reads as a log. ``recording`` names an Entacore AIM raw dump's
     /// recording, from 0.
     ///
@@ -154,7 +155,7 @@ impl FlightLog {
     /// What the header of the table at ``path`` states, as a column mapping: a dict to edit and
     /// give back to ``FlightLog.read`` as ``mapping``. Set each column's ``quantity`` and
     /// ``unit``. Set ``primary`` to the column, from 0, that is the barometric altitude above the
-    /// pad. ``sheet`` names an ``.xlsx`` workbook's sheet, from 0.
+    /// pad. ``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0.
     #[staticmethod]
     #[pyo3(signature = (path, *, sheet = None))]
     fn header_mapping<'py>(
@@ -261,6 +262,13 @@ impl FlightLog {
     ///   track it came from (``source``), whether it was measured, derived or clipped
     ///   (``provenance``), and how it was read (``method``).
     /// - ``status`` ``"withheld"``, with a ``reason`` and its ``detail``.
+    ///
+    /// The keys of a value and its bound name their unit. ``liftoff``, ``burnout``, ``landing`` and
+    /// ``flight_time`` hold ``time_s`` and ``bound_s``. ``apogee`` holds ``height_m`` above the
+    /// pad, ``altitude_m`` above the track's own zero and ``bound_m``, with ``time_s`` and
+    /// ``time_bound_s``. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s``, and
+    /// ``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
+    /// ``rate_m_s`` and ``bound_m_s``.
     ///
     /// A top acceleration also says whether it is a floor (``is_floor``), and why it is clipped
     /// (``clip``): ``"range"``, ``"flat"`` or ``None``.

@@ -216,7 +216,7 @@ def test_a_function_and_its_constant_counterpart_are_not_both_taken():
     with pytest.raises(hpr.HprError, match="give one"):
         hpr.Environment(0.0, 0.0, 0.0, wind_from_deg=90.0, wind=lambda height_m: (0.0, 0.0))
     # Something that isn't a function is refused as it is given.
-    with pytest.raises(hpr.HprError, match="not callable"):
+    with pytest.raises(hpr.HprError, match="isn't callable"):
         flight(drag=0.5)
-    with pytest.raises(hpr.HprError, match="not callable"):
+    with pytest.raises(hpr.HprError, match="isn't callable"):
         hpr.Environment(0.0, 0.0, 0.0, wind=(3.0, 0.0))

@@ -1,5 +1,5 @@
-//! `MonteCarlo`: a rocket flown many times, each flight's inputs scattered at random about the
-//! nominal flight's, as `hpr mc` flies it; the run's table as NumPy arrays.
+//! `MonteCarlo`: a rocket flown many times, as `hpr mc` flies it, each flight's inputs scattered
+//! at random about the nominal flight's. The run's table reads as NumPy arrays.
 
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo as Runner, Outcome, Run};
 use hpr::hpr_analysis::table::{RunTable, Values};
@@ -26,8 +26,9 @@ const MAX_RUNS: u64 = 100_000;
 /// drag_sd_fraction=0.0, impulse_sd_fraction=0.0, burn_time_sd_fraction=0.0, delay_sd_s=0.0,
 /// wind_sd_fraction=0.0, wind_from_sd_deg=0.0, inclination_sd_deg=0.0, heading_sd_deg=0.0,
 /// deployment_lag_sd_s=0.0)`: the rocket, the environment and the rail as `Flight` takes them.
-/// Then comes one standard deviation of each input the run scatters, each 0 (not scattered)
-/// unless given. They're `hpr mc`'s options, with the same names as its JSON output:
+/// The keyword arguments after `drag` are standard deviations, one for each input the run
+/// scatters, each 0 (not scattered) unless given. They're `hpr mc`'s options, with the same names
+/// as its JSON output:
 ///
 /// - each stage's mass without motors, and each motor's impulse and burn time, as fractions of
 ///   their nominal values (0.02 is 2%).
@@ -48,7 +49,7 @@ const MAX_RUNS: u64 = 100_000;
 /// fails when its draw is impossible (such as a negative mass) or its flight stops with an error.
 ///
 /// The run reads as a dictionary of NumPy arrays: `run["apogee_m"]`. Each array is a column of
-/// `hpr mc --export`'s table, a value a flight in index order. `columns` lists them: what each
+/// `hpr mc --export`'s table, one value per flight in index order. `columns` lists them: what each
 /// flight drew and what it came to. A number is a `float64` array, NaN where a flight has none (a
 /// failed flight, or a peak its flight didn't reach). `index` is a `uint64` array. `outcome`,
 /// `failed_at`, `reason`, `termination` and `flags` are arrays of strings, empty where a flight
@@ -278,7 +279,7 @@ impl MonteCarlo {
         self.table.columns().len()
     }
 
-    /// One column as a new, read-only NumPy array, a value a flight: `run["apogee_m"]`.
+    /// One column as a new, read-only NumPy array, one value per flight: `run["apogee_m"]`.
     fn __getitem__<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyAny>> {
         let column = self.table.column(name).ok_or_else(|| {
             pyo3::exceptions::PyKeyError::new_err(format!(
@@ -310,8 +311,12 @@ impl MonteCarlo {
 
     /// The table as CSV text, the bytes `hpr mc --export` writes for the same run. A header gives
     /// the columns in words, with their units in brackets: `apogee [m]` for `run["apogee_m"]`.
-    /// Then comes a line a flight. Each number is in the shortest form that reads back to the same
-    /// bits, and a missing one is an empty cell.
+    /// Then comes one line per flight. Each number is in the shortest form that reads back to the
+    /// same bits, and a missing one is an empty cell.
+    ///
+    /// The bytes match for a rocket read with `Rocket.from_file(..., recovery=True)`. `hpr mc`
+    /// flies the file's recovery devices, and a rocket read without `recovery=True` flies none of
+    /// them. Its table then has no column for their deployment lags, and its landings differ.
     fn to_csv(&self) -> PyResult<String> {
         self.table.csv().map_err(error)
     }

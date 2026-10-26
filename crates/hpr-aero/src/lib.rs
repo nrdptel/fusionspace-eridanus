@@ -30,7 +30,8 @@
 //!   (Washington and Pettis, RD-TM-68-5).
 //! - [`table`]: override tables from another tool, read from RASAero II's export. A drag table
 //!   gives the drag coefficient against Mach number. A normal-force table gives the normal force
-//!   and center of pressure against Mach number and angle of attack.
+//!   and center of pressure against Mach number and angle of attack ([The normal force from
+//!   RASAero II][guide-override]).
 //! - [`tube_fins`]: tube fins, each tube an annular wing: Weissinger's slope with Göthert's rule,
 //!   Fletcher's measured aerodynamic center, below Mach 0.8.
 //! - [`custom`]: drag models of your own: the [`DragModel`] trait, flown in place of the drag
@@ -45,18 +46,16 @@
 //! region to supersonic linear theory ([Fins through Mach 1][guide-fins-mach]). The drag buildup
 //! runs from Mach 0 to 5, too. Noses, shoulders and steps go through Mach 1 by Niskanen's
 //! appendix B ([Drag through Mach 1][guide-drag-mach]). Drag override tables, and drag models of a
-//! program's own ([`custom`]), work at any Mach number. Normal-force override tables come from
-//! RASAero II's export ([The normal force from RASAero II][guide-override]). The roll forcing of
-//! canted fins and the roll damping run from Mach 0 to 5 ([`AeroModel::roll`], [Roll: forcing and
+//! program's own ([`custom`]), work at any Mach number. The roll forcing of canted fins and the
+//! roll damping run from Mach 0 to 5 ([`AeroModel::roll`], [Roll: forcing and
 //! damping][guide-roll]).
 //!
-//! - Pitch and yaw damping in a flight come only from the flight engine (`hpr_sim`). It evaluates
-//!   each component in its own local flow, which includes the speed the rocket's rotation adds
-//!   there ([Rigid-body flight][guide-flight] in the guide). The crate has no pitch or yaw damping
-//!   coefficients; they would have to replace the local-flow damping, not add to it.
-//! - Only components with a normal-force slope give that damping: nose cones, transitions and fin
-//!   sets. Body tubes give none at small angles: their own slope is 0, and their body lift grows
-//!   with `sin² α`.
+//! Pitch and yaw damping in a flight come only from the flight engine (`hpr_sim`). It evaluates
+//! each component in its own local flow, which includes the speed the rocket's rotation adds there
+//! ([Rigid-body flight][guide-flight] in the guide). Only components with a normal-force slope
+//! give that damping: nose cones, transitions and fin sets. Body tubes give none at small angles:
+//! their own slope is 0, and their body lift grows with `sin² α`. The crate has no pitch or yaw
+//! damping coefficients; they would have to replace the local-flow damping, not add to it.
 
 pub mod afterbody;
 pub mod blunt_tip;

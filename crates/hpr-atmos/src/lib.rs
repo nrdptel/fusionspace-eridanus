@@ -1,9 +1,9 @@
 //! Atmosphere and wind models: the US Standard Atmosphere 1976, ISA offsets, custom soundings, wind
 //! profiles and turbulence.
 //!
-//! **Guide:** [Atmosphere][guide-atmosphere], [Wind][guide-wind] and
-//! [Turbulence][guide-turbulence]: the models, their sources, how well they are validated and what
-//! they leave out.
+//! Three pages of the guide cover this crate: [Atmosphere][guide-atmosphere], [Wind][guide-wind]
+//! and [Turbulence][guide-turbulence]. They give the models, their sources, how well they are
+//! validated and what they leave out.
 //!
 //! [guide-atmosphere]: https://hpr.fusionspace.co/physics/atmosphere.html
 //! [guide-wind]: https://hpr.fusionspace.co/physics/wind.html

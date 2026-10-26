@@ -1009,6 +1009,7 @@ fn check_shoulder(names: &[&'static str; 4], shoulder: &Shoulder) -> Result<(), 
             return Err(Error::Domain {
                 what: past,
                 value: shoulder.thickness_m,
+                allowed: "no more than the shoulder's radius",
             });
         }
     }

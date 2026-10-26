@@ -28,7 +28,7 @@
 //! - AltOS's raw downloads: the board's own log as AltosUI saves it to an `.eeprom` file
 //!   ([`altos_eeprom`]). It's checked against AltosUI's export of the same flight in all 9 samples
 //!   that have one.
-//! - The Featherweight Raven's FIP CSV ([`raven`]). A FIP export pasted below no header is read
+//! - The Featherweight Raven's FIP CSV ([`raven`]). A FIP export that lost its header line is read
 //!   under the header the caller states ([`raven::read_rows`]).
 //! - The Blue Raven's CSV ([`blueraven`]).
 //! - The Blue Raven's USB download to a serial terminal, each line held to its CRC
@@ -85,11 +85,13 @@
 //! - An older Excel `.xls` worksheet's cells are written out as text ([`xls`]). An AltiMAX
 //!   altimeter's export is one such worksheet ([`altimax`]).
 //!
-//! [`readings`] takes a first set of readings from the record: liftoff, apogee, the top speed,
-//! landing and the descent. They were set and tested on PerfectFlite logs. The guide's [reading a
-//! flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists
-//! what each reader keeps. The rest of the readings, smoothing and reconstruction are planned
-//! ([the roadmap][roadmap]).
+//! [`readings`] takes a first set of readings from the record. They're liftoff, apogee, the top
+//! speed and acceleration, burnout, landing, the flight time, and the descents under the drogue
+//! and the main. Each states the bound its error stays within. On the synthetic flights' tuning
+//! set, every reading given stayed within its bound. The guide's [reading a flight
+//! log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each
+//! reader keeps. The rest of the readings, smoothing and reconstruction are planned ([the
+//! roadmap][roadmap]).
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
 //!

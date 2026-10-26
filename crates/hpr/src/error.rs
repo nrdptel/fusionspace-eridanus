@@ -14,12 +14,14 @@ use thiserror::Error;
 #[non_exhaustive]
 pub enum Error {
     /// A number outside its domain, such as a negative length or a NaN, found as it was given.
-    #[error("{what} is {value}, outside its domain")]
+    #[error("{what} is {value}, outside its domain: it must be {allowed}")]
     Domain {
         /// What the number is.
         what: &'static str,
         /// The number.
         value: f64,
+        /// What it must be, as the message says it: `"finite and above 0"`.
+        allowed: &'static str,
     },
     /// Parts added in an order the rocket can't be built in, such as fins before any body tube.
     #[error(transparent)]
@@ -148,7 +150,11 @@ pub(crate) fn positive(what: &'static str, value: f64) -> Result<f64, Error> {
     if value.is_finite() && value > 0.0 {
         Ok(value)
     } else {
-        Err(Error::Domain { what, value })
+        Err(Error::Domain {
+            what,
+            value,
+            allowed: "finite and above 0",
+        })
     }
 }
 
@@ -157,7 +163,11 @@ pub(crate) fn non_negative(what: &'static str, value: f64) -> Result<f64, Error>
     if value.is_finite() && value >= 0.0 {
         Ok(value)
     } else {
-        Err(Error::Domain { what, value })
+        Err(Error::Domain {
+            what,
+            value,
+            allowed: "finite and not negative",
+        })
     }
 }
 
@@ -166,7 +176,11 @@ pub(crate) fn finite(what: &'static str, value: f64) -> Result<f64, Error> {
     if value.is_finite() {
         Ok(value)
     } else {
-        Err(Error::Domain { what, value })
+        Err(Error::Domain {
+            what,
+            value,
+            allowed: "finite",
+        })
     }
 }
 

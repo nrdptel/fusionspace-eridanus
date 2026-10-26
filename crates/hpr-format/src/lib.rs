@@ -1,8 +1,9 @@
 //! The HPR open design format: a rocket design as one JSON document, with its JSON Schema.
 //!
 //! [The format's page][guide-format] says what a document holds, how it's versioned, and how it
-//! was checked. Version 0.1 is a draft until HPR Sim's first release. It can change in place, so
-//! keep the source `.ork` too.
+//! was checked. The format is version 0.2, a draft until FusionSpace HPR's first release, and a
+//! document of version 0.1 is migrated when it's read. The draft can change in place, so keep the
+//! source `.ork` too.
 //!
 //! A document is a [`DesignFile`]. It opens with a header naming the format ([`FORMAT`]), its
 //! version ([`VERSION`]) and where the design came from ([`Provenance`]). Then comes the design as

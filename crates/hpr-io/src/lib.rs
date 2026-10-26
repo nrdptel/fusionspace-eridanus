@@ -1,9 +1,5 @@
 //! Foreign formats: designs, parts, weather and elevation.
 //!
-//! The design formats are OpenRocket `.ork`, RockSim `.rkt`, RASAero `.CDX1` and RocketPy export.
-//! The others are the `.orc` parts database, ERA5 weather in netCDF classic files, GRIB2 weather
-//! fields, and GeoTIFF elevation files.
-//!
 //! [Start here][guide-start] says what works today and what is planned.
 //!
 //! [guide-start]: https://hpr.fusionspace.co/start-here.html
@@ -21,8 +17,8 @@
 //! - [`geotiff`]: a launch site's height from a GeoTIFF elevation file ([A launch site's
 //!   elevation][guide-elevation]).
 //!
-//! The other design formats, RockSim's, RASAero's and RocketPy's, are planned ([the
-//! roadmap][roadmap]).
+//! The other design formats, RockSim's `.rkt`, RASAero's `.CDX1` and RocketPy's export, are
+//! planned ([the roadmap][roadmap]).
 //!
 //! [guide-era5]: https://hpr.fusionspace.co/format/era5.html
 //! [guide-orc]: https://hpr.fusionspace.co/format/orc.html
