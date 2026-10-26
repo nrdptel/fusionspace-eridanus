@@ -27,9 +27,10 @@ use crate::text::{NOTHING_DEPENDS, WarningKind};
 /// and a flight refuses a device set to fire on one (`hpr_sim::Trigger::MotorDelay`). A delay of
 /// 0 s (`hpr sim --delay 0`, `Motor::with_delay_s(0.0)`, Python's `delay_s=0`) fires the charge
 /// at burnout.
-pub(crate) const ZERO_FLOWN: &str = "A motor file's delays aren't flown: with no delay chosen, a flight \
-                              fires no motor charge, as if plugged. For a charge at burnout, \
-                              choose a delay of 0 s (`hpr sim --delay 0`)";
+pub(crate) const ZERO_FLOWN: &str = "A motor file's delays aren't flown: with none chosen, no \
+                                    motor charge fires, as if plugged. For a charge at burnout, \
+                                    choose a delay of 0 (`hpr sim --delay 0`, or `delay_s=0` in \
+                                    Python)";
 
 /// One available delay setting. Serialized with a `kind` tag and the seconds as `value`:
 /// `{"kind":"seconds","value":6.0}`, `{"kind":"plugged"}`.
@@ -124,7 +125,7 @@ pub struct DelayList {
 /// A problem found while reading a delay string.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DelayWarning {
-    /// Whether a piece was dropped.
+    /// Whether a piece was left out.
     pub kind: WarningKind,
     /// What was found.
     pub message: String,
@@ -276,9 +277,9 @@ mod tests {
         assert_eq!(
             warning.message,
             "delay 0 in \"0-6\" is ambiguous: the RASP spec means an ejection charge at burnout, \
-             but files mostly mean plugged. A motor file's delays aren't flown: with no delay \
-             chosen, a flight fires no motor charge, as if plugged. For a charge at burnout, \
-             choose a delay of 0 s (`hpr sim --delay 0`)"
+             but files mostly mean plugged. A motor file's delays aren't flown: with none \
+             chosen, no motor charge fires, as if plugged. For a charge at burnout, choose a \
+             delay of 0 (`hpr sim --delay 0`, or `delay_s=0` in Python)"
         );
     }
 

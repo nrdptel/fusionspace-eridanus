@@ -57,7 +57,7 @@ use crate::delay::DelayList;
 use crate::eng::{EngEntry, EngFile};
 use crate::error::MotorError;
 use crate::rse::{RseEngine, RseFile, RsePoint};
-use crate::text::WarningKind;
+use crate::text::{WORKED_OUT, WarningKind, nothing_depends};
 
 /// The `Type` [`eng_to_rse`] writes: a `.eng` file doesn't say.
 pub const UNSPECIFIED_TYPE: &str = "unspecified";
@@ -332,9 +332,11 @@ fn eng_entry(
             code,
             WarningKind::Dropped,
             format!(
-                "{} were left out: a .eng file has no place for them. HPR Sim doesn't use them for a solid \
-                 motor: it works the mass and center of gravity out from the curve and the masses",
-                dropped.join(", ")
+                "{} {} left out: a .eng file has no place for {}, and {}. {WORKED_OUT}",
+                dropped.join(", "),
+                if dropped.len() == 1 { "was" } else { "were" },
+                if dropped.len() == 1 { "it" } else { "them" },
+                nothing_depends(dropped.len())
             ),
         ));
     }

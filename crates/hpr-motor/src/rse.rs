@@ -19,7 +19,8 @@ use crate::curve::{ThrustCurve, cut_off};
 use crate::delay::DelayList;
 use crate::error::MotorError;
 use crate::text::{
-    NO_CURVE, NOTHING_DEPENDS, ParseWarning, Parsed, WarningKind, check_writable, finite,
+    NO_CURVE, NOTHING_DEPENDS, ParseWarning, Parsed, WORKED_OUT, WarningKind, check_writable,
+    finite,
 };
 
 const FORMAT: &str = ".rse";
@@ -625,8 +626,7 @@ fn points(
             line,
             WarningKind::Dropped,
             format!(
-                "engine {code:?} gives `m` on only some points, so all were left out. HPR Sim \
-                 works the mass out from the curve and the masses itself"
+                "engine {code:?} gives `m` on only some points, so all were left out. {WORKED_OUT}"
             ),
         ));
         points.iter_mut().for_each(|p| p.mass_g = None);
@@ -636,8 +636,7 @@ fn points(
             line,
             WarningKind::Dropped,
             format!(
-                "engine {code:?} gives `cg` on only some points, so all were left out. HPR Sim \
-                 works the center of gravity out from the curve and the masses itself"
+                "engine {code:?} gives `cg` on only some points, so all were left out. {WORKED_OUT}"
             ),
         ));
         points.iter_mut().for_each(|p| p.cg_mm = None);
