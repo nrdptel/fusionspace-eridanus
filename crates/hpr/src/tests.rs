@@ -7,6 +7,8 @@
     reason = "tests state their expectations by unwrapping and panicking"
 )]
 
+mod left_out;
+
 use hpr_design::{
     AutoDimension, BodyTube, Component, Configuration, DesignError, FinCrossSection, FinPlanform,
     FinSet, Ignition, InnerTube, MassComponent, MotorMount, MountedMotor, NoseCone, Overrides,
