@@ -109,6 +109,7 @@ mod switch;
 pub(crate) mod theme;
 pub(crate) mod units;
 mod vitals;
+mod words;
 
 pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N]
                            Check the documentation site's pages, build the site with
@@ -195,6 +196,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let report = check_sources(&root)?;
     if !report.problems.is_empty() {
         return Err(failure("the site's pages", &report.problems));
+    }
+    let readmes = check_readmes(&root);
+    if !readmes.is_empty() {
+        return Err(failure("the READMEs", &readmes));
     }
     println!(
         "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
@@ -1221,6 +1226,33 @@ fn read_page(text: &str) -> Page {
     page
 }
 
+/// The READMEs held to [`readme_rules`]: the project's, which every published crate shows, and
+/// the Python package's.
+const READMES: [&str; 2] = ["README.md", "crates/hpr-py/README.md"];
+
+/// The problems [`readme_rules`] finds in the [`READMES`] of the repository at `root`, as
+/// `file:line: message`; a README that can't be read is one.
+fn check_readmes(root: &Path) -> Vec<String> {
+    let mut problems = Vec::new();
+    for readme in READMES {
+        match fs::read_to_string(root.join(readme)) {
+            Ok(text) => problems.extend(
+                readme_rules(&text)
+                    .into_iter()
+                    .map(|(line, problem)| format!("{readme}:{line}: {problem}")),
+            ),
+            Err(err) => problems.push(format!("{readme}: can't be read: {err}")),
+        }
+    }
+    problems
+}
+
+/// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
+/// message): no en dash joining two words.
+fn readme_rules(text: &str) -> Vec<(usize, String)> {
+    words::joined_words(text)
+}
+
 const HEADING_LINK: &str = "a link inside a heading: mdBook already makes each heading a link, and \
                             a link inside a link is invalid HTML; move it to the text below";
 
@@ -1248,6 +1280,7 @@ fn page_rules(
     // Minus signs, and columns of numbers right-aligned (#386).
     problems.extend(numbers::minus_signs(text));
     problems.extend(numbers::number_columns(text));
+    problems.extend(readme_rules(text));
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.
@@ -3425,6 +3458,21 @@ mod tests {
             failure("the site's pages", &report.problems)
         );
         assert!(report.pages >= 19, "{} pages", report.pages);
+    }
+
+    #[test]
+    fn the_readmes_pass() {
+        // The READMEs keep the site's writing rules (#476, ADR-295).
+        let problems = check_readmes(&crate::designs::root().unwrap());
+        assert!(problems.is_empty(), "{}", failure("the READMEs", &problems));
+        // A README with a joined name fails, and one missing fails too.
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("crates/hpr-py")).unwrap();
+        fs::write(dir.path().join("README.md"), "The Dormand–Prince pair.\n").unwrap();
+        let problems = check_readmes(dir.path());
+        assert_eq!(problems.len(), 2, "{problems:#?}");
+        assert!(problems[0].starts_with("README.md:1: `Dormand–Prince` joins two words"));
+        assert!(problems[1].starts_with("crates/hpr-py/README.md: can't be read"));
     }
 
     #[test]

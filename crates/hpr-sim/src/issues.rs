@@ -599,7 +599,7 @@ impl IssueWarning {
             ),
             KnownIssue::FinSetsAtOneStation => format!(
                 "fin sets that share a station, more than {FINS_WITHOUT_INTERFERENCE} fins between \
-                 them, are each counted alone for fin–fin interference. OpenRocket counts them \
+                 them, are each counted alone for fin-fin interference. OpenRocket counts them \
                  together (about {FIN_SETS_AT_ONE_STATION_CAL} calibers of margin on its pods \
                  example), so the margin may read high"
             ),
@@ -653,20 +653,29 @@ impl IssueWarning {
                     _ => &[],
                 };
                 // The launch stack alone, as a single-stage flight's is, needs no name; any
-                // sustainer's join is named with its vehicle, each vehicle's apart.
+                // sustainer's join is named with its vehicle, each vehicle's apart. Two are
+                // named at most, and the rest counted, so the sentence stays under 40 words
+                // however many stages a flight drops (#476).
                 let span = match joins {
                     [] => "in this flight".to_owned(),
                     [join] if join.vehicle == 0 => join.span(),
                     _ => {
                         let named: Vec<String> = joins
                             .iter()
+                            .take(2)
                             .map(|join| format!("{} on {}", join.span(), join.vehicle_name()))
                             .collect();
-                        match named.split_last() {
+                        let more = match joins.len() {
+                            0..=2 => String::new(),
+                            3 => " (and one more vehicle)".to_owned(),
+                            n => format!(" (and {} more vehicles)", n - 2),
+                        };
+                        let named = match named.split_last() {
                             Some((last, [])) => last.clone(),
                             Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
                             None => String::new(),
-                        }
+                        };
+                        format!("{named}{more}")
                     }
                 };
                 format!(
@@ -682,23 +691,31 @@ impl IssueWarning {
                     Some(IssueDetail::DirectionTurns { turns }) => turns.as_slice(),
                     _ => &[],
                 };
-                let span = turns.first().map_or_else(
-                    || "a span of the wind's table".to_owned(),
+                // Where the span is, then how the wind moves across it: one sentence for both
+                // would pass the 40 words a warning's sentence may hold (#476).
+                let (span, across) = turns.first().map_or_else(
+                    || ("in a span of the wind's table".to_owned(), String::new()),
                     |turn| {
                         let (lower, upper) = (turn.lower, turn.upper);
-                        format!(
-                            "{} to {} m ({} to {} ft) above sea level, from {} m/s ({} mph) at \
-                             {:.0}° to {} m/s ({} mph) at {:.0}°",
-                            whole(lower.height_msl_m),
-                            whole(upper.height_msl_m),
-                            whole(lower.height_msl_m / FOOT_M),
-                            whole(upper.height_msl_m / FOOT_M),
-                            tenth(lower.speed_m_s),
-                            whole(lower.speed_m_s * 3600.0 / MILE_M),
-                            lower.direction_from_rad.to_degrees(),
-                            tenth(upper.speed_m_s),
-                            whole(upper.speed_m_s * 3600.0 / MILE_M),
-                            upper.direction_from_rad.to_degrees()
+                        let first = if turns.len() > 1 { "the first" } else { "it" };
+                        (
+                            format!(
+                                "between {} and {} m ({} and {} ft) above sea level",
+                                whole(lower.height_msl_m),
+                                whole(upper.height_msl_m),
+                                whole(lower.height_msl_m / FOOT_M),
+                                whole(upper.height_msl_m / FOOT_M),
+                            ),
+                            format!(
+                                " Across {first}, the wind goes from {} m/s ({} mph) at {:.0}° to \
+                                 {} m/s ({} mph) at {:.0}°.",
+                                tenth(lower.speed_m_s),
+                                whole(lower.speed_m_s * 3600.0 / MILE_M),
+                                lower.direction_from_rad.to_degrees(),
+                                tenth(upper.speed_m_s),
+                                whole(upper.speed_m_s * 3600.0 / MILE_M),
+                                upper.direction_from_rad.to_degrees()
+                            ),
                         )
                     },
                 );
@@ -709,8 +726,8 @@ impl IssueWarning {
                 };
                 let calm_mph = whole(NEAR_CALM_WIND_M_S * 3600.0 / MILE_M);
                 format!(
-                    "the wind's direction is interpolated across {span}{more}, where a level is \
-                     near calm. Near calm is at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph): \
+                    "the wind's direction is interpolated across a level near calm, {span}{more}.\
+                     {across} Near calm is at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph): \
                      light air, whose direction a vane doesn't show. That level's reported direction \
                      means little, yet it swings the wind across the path. Where the other levels \
                      share one direction, the swing turns part of the wind off it, so the drift \
@@ -2604,10 +2621,10 @@ mod tests {
         let message = warning.message();
         assert!(
             message.starts_with(
-                "issue #8: the wind's direction is interpolated across 1500 to 1800 m (4921 to \
-                 5906 ft) above sea level, from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) at \
-                 270° (and one more span), where a level is near calm. Near calm is at most 1.5 m/s \
-                 (3 mph): light air,"
+                "issue #8: the wind's direction is interpolated across a level near calm, \
+                 between 1500 and 1800 m (4921 and 5906 ft) above sea level (and one more span). \
+                 Across the first, the wind goes from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) \
+                 at 270°. Near calm is at most 1.5 m/s (3 mph): light air,"
             ),
             "{message}"
         );
@@ -2717,5 +2734,167 @@ mod tests {
         assert_eq!(whole(-0.6), "-1");
         assert_eq!(tenth(-0.04), "0.0");
         assert_eq!(tenth(-0.06), "-0.1");
+    }
+
+    /// Every known issue, each once, in the order declared. [`listed_at`] fails to compile until a
+    /// new one is listed here too.
+    const EVERY_ISSUE: [KnownIssue; 20] = [
+        KnownIssue::TransonicNoseDrag,
+        KnownIssue::BaseDrag,
+        KnownIssue::SharpFinDrag,
+        KnownIssue::SteepBoattailDrag,
+        KnownIssue::SupersonicPressureDrag,
+        KnownIssue::RadiusStepFallback,
+        KnownIssue::LongLipFallback,
+        KnownIssue::SteepTipFallback,
+        KnownIssue::MarginReadsHigh,
+        KnownIssue::ForwardSweptFinSlope,
+        KnownIssue::SubsonicBoattailDrag,
+        KnownIssue::FinSetsAtOneStation,
+        KnownIssue::TurbulentFriction,
+        KnownIssue::FreeformFinCenterOfPressure,
+        KnownIssue::BoosterAirframeDrag,
+        KnownIssue::DragFreeSeparatedPart,
+        KnownIssue::OffAxisCenterOfGravity,
+        KnownIssue::SinglePodMoment,
+        KnownIssue::BodyDampingStation,
+        KnownIssue::NearCalmWindDirection,
+    ];
+
+    /// Where `issue` sits in [`EVERY_ISSUE`]: a match with no catch-all, so a new issue must be
+    /// placed.
+    fn listed_at(issue: KnownIssue) -> usize {
+        match issue {
+            KnownIssue::TransonicNoseDrag => 0,
+            KnownIssue::BaseDrag => 1,
+            KnownIssue::SharpFinDrag => 2,
+            KnownIssue::SteepBoattailDrag => 3,
+            KnownIssue::SupersonicPressureDrag => 4,
+            KnownIssue::RadiusStepFallback => 5,
+            KnownIssue::LongLipFallback => 6,
+            KnownIssue::SteepTipFallback => 7,
+            KnownIssue::MarginReadsHigh => 8,
+            KnownIssue::ForwardSweptFinSlope => 9,
+            KnownIssue::SubsonicBoattailDrag => 10,
+            KnownIssue::FinSetsAtOneStation => 11,
+            KnownIssue::TurbulentFriction => 12,
+            KnownIssue::FreeformFinCenterOfPressure => 13,
+            KnownIssue::BoosterAirframeDrag => 14,
+            KnownIssue::DragFreeSeparatedPart => 15,
+            KnownIssue::OffAxisCenterOfGravity => 16,
+            KnownIssue::SinglePodMoment => 17,
+            KnownIssue::BodyDampingStation => 18,
+            KnownIssue::NearCalmWindDirection => 19,
+        }
+    }
+
+    /// The most words a sentence of a warning `hpr sim` prints may hold (#476, ADR-295 §5).
+    const SENTENCE_WORDS: usize = 40;
+
+    /// `text`'s sentences: it splits after a period, question mark or exclamation mark that a
+    /// space follows, so a decimal point (`Mach 0.85`) stays inside its sentence.
+    fn sentences(text: &str) -> Vec<String> {
+        let mut found = Vec::new();
+        let mut sentence = String::new();
+        let mut chars = text.chars().peekable();
+        while let Some(c) = chars.next() {
+            sentence.push(c);
+            if matches!(c, '.' | '?' | '!') && chars.peek().is_some_and(|c| c.is_whitespace()) {
+                found.push(std::mem::take(&mut sentence).trim().to_owned());
+            }
+        }
+        if !sentence.trim().is_empty() {
+            found.push(sentence.trim().to_owned());
+        }
+        found
+    }
+
+    /// Each sentence of `text` over [`SENTENCE_WORDS`] words, with its count.
+    fn long_sentences(text: &str) -> Vec<(usize, String)> {
+        sentences(text)
+            .into_iter()
+            .map(|sentence| (sentence.split_whitespace().count(), sentence))
+            .filter(|(words, _)| *words > SENTENCE_WORDS)
+            .collect()
+    }
+
+    #[test]
+    fn sentences_split_at_a_stop_and_a_space() {
+        assert_eq!(
+            sentences("issue #67: drag reads high from Mach 0.8. So the apogee reads low (#8)"),
+            [
+                "issue #67: drag reads high from Mach 0.8.",
+                "So the apogee reads low (#8)"
+            ]
+        );
+        assert_eq!(long_sentences(&"word ".repeat(40)), []);
+        assert_eq!(long_sentences(&"word ".repeat(41)).len(), 1);
+        assert_eq!(long_sentences(&"word ".repeat(41))[0].0, 41);
+    }
+
+    /// The issue's warning built at its longest: a flight past every Mach condition, and the
+    /// detail that makes its message longest (the widest offset, four supersonic joins that
+    /// never end, on four vehicles, four spans of near-calm wind).
+    fn longest_warning(issue: KnownIssue) -> IssueWarning {
+        let level = |height_msl_m: f64, speed_m_s: f64, degrees: f64| hpr_atmos::WindLevel {
+            height_msl_m,
+            speed_m_s,
+            direction_from_rad: degrees.to_radians(),
+        };
+        let detail = match issue {
+            KnownIssue::OffAxisCenterOfGravity => Some(IssueDetail::CenterOfGravityOffset {
+                offset_m: 0.123_456,
+            }),
+            KnownIssue::BodyDampingStation => Some(IssueDetail::SupersonicJoins {
+                joins: (0..4)
+                    .map(|vehicle| SupersonicJoin {
+                        vehicle: vehicle + 10 * usize::from(vehicle > 1),
+                        join_start_mach: 1.234 + 0.1 * vehicle as f64,
+                        join_end_mach: None,
+                    })
+                    .collect(),
+            }),
+            KnownIssue::NearCalmWindDirection => Some(IssueDetail::DirectionTurns {
+                turns: (0..4)
+                    .map(|k| DirectionTurn {
+                        lower: level(10_000.0 + 1_000.0 * f64::from(k), 0.25, 123.0),
+                        upper: level(10_500.0 + 1_000.0 * f64::from(k), 12.25, 321.0),
+                    })
+                    .collect(),
+            }),
+            _ => None,
+        };
+        IssueWarning {
+            issue,
+            max_mach: Peak {
+                value: 3.456,
+                time_s: 12.345,
+                height_above_ground_m: 1_234.5,
+            },
+            parts: vec!["nose".to_owned()],
+            detail,
+        }
+    }
+
+    #[test]
+    fn every_issue_warning_keeps_its_sentences_to_40_words() {
+        // `writing.md`'s *Voice* (#476): a warning's sentences stay short however long the
+        // flight's own figures make them.
+        for (at, issue) in EVERY_ISSUE.into_iter().enumerate() {
+            assert_eq!(listed_at(issue), at, "{issue:?}");
+            let message = longest_warning(issue).message();
+            assert_eq!(long_sentences(&message), [], "{issue:?}: {message}");
+        }
+        // The longest details reach the message: the counted vehicles and spans, and the
+        // offset.
+        let damping = longest_warning(KnownIssue::BodyDampingStation).message();
+        assert!(damping.contains("(and 2 more vehicles)"), "{damping}");
+        let wind = longest_warning(KnownIssue::NearCalmWindDirection).message();
+        assert!(
+            wind.contains("(and 3 more spans). Across the first,"),
+            "{wind}"
+        );
+        let offset = longest_warning(KnownIssue::OffAxisCenterOfGravity).message();
+        assert!(offset.contains("123.456 mm"), "{offset}");
     }
 }

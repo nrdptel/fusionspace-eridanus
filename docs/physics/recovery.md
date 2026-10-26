@@ -895,7 +895,7 @@ name the [oracle](../glossary.md#oracle):
 | The Coriolis drift of a 3 km (1.9 mi) descent, Earth rotation on | 0.3666 m (1.203 ft) east against the steady prediction $2\Omega \cos\varphi \cdot v_t^2/g \cdot T$ = 0.3685 m, 0.52% apart, and 29 µm north |
 | Knacke's filling law, $t_f = n D_0/v$ and $(t/t_f)^j$ | the recorded drag area to 1e-9 of $(C_D S)_0$ |
 | Inflation against instant opening (deployed at 60 m/s (197 ft/s) under a 1.5 m (4.9 ft) flat circular canopy) | peak load 1,615 N against 3,020 N instant (0.53 of it), between the closed-form 1,527 N without gravity and 1,670 N with it |
-| An oversized canopy (5 m (16 ft)) opening at 100 m/s (328 ft/s), 10 km (6.2 mi) of descent at 2.95 m/s (9.7 ft/s) | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormandprince-and-rk4) needed a 2e-4 s floor) |
+| An oversized canopy (5 m (16 ft)) opening at 100 m/s (328 ft/s), 10 km (6.2 mi) of descent at 2.95 m/s (9.7 ft/s) | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormand-prince-and-rk4) needed a 2e-4 s floor) |
 | A deployment with a 0.7 rad/s body rate, and another inside the burn in a crosswind | the center of mass keeps its velocity across the handover to 1e-12, and the nose tip's moves by exactly $\boldsymbol{\omega} \times \mathbf{r}_{\mathrm{cg}}$, turned into the launch frame |
 | A whole flight: drogue at apogee with a lag, main at 300 m (984 ft), drogue released | events in order; each stage settles within 2% of its own $v_e$ |
 | Two devices triggered at the same instant | both open in the same pass, and the descent settles at the $v_e$ of the **sum** of their drag areas |

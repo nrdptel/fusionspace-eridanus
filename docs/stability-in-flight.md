@@ -62,7 +62,7 @@ speed, with the air straight along the rocket. It's the number
 
 Below the speed of sound, air squeezes a little as it flows past, more the faster the rocket
 goes. In HPR Sim's model, each fin pushes harder for the same angle as the speed rises. It does so
-through the [Prandtl–Glauert](physics/aero.md#fins) factor, the classic correction for that
+through the [Prandtl-Glauert](physics/aero.md#fins) factor, the classic correction for that
 squeezing. On fins as short as most rockets', the gain is well below the factor itself.
 
 The nose's push, in the [slender-body theory](glossary.md#slender-body-theory) that sets it, doesn't

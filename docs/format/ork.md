@@ -1402,7 +1402,7 @@ HPR Sim reads such a fin as it is written ([the decision on fins on a nose cone]
   between its ends, 64 straight pieces in all. On the cockpit each piece sits at most 0.14 µm
   inside the curve (`a_root_along_a_nose_cone_stays_within_its_documented_sag`).
 - The fin's heights are measured from the radius at its root leading edge. That radius is also
-  the body radius for its mass and its fin–body interference.
+  the body radius for its mass and its fin-body interference.
 - The design's layout checks that every root point is within a micron of the surface. It also checks
   that the straight pieces between them cut off or add no more than 0.1% of the fin's area.
 
@@ -1432,7 +1432,7 @@ the [C6-5] would reach 204.4 m (671 ft).
   above OpenRocket's on all five configurations. That is the flattering side, and it does not come
   from the cockpit. At the margin's wind direction the single fin lies in the airflow's plane, and
   neither code counts it. Probes put it on two older departures:
-  - OpenRocket's fin–fin interference factor, taken across the airframe's fin sets
+  - OpenRocket's fin-fin interference factor, taken across the airframe's fin sets
     ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325));
   - the freeform wings' own center of pressure and normal force
     ([#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)).
@@ -2553,7 +2553,7 @@ OpenRocket's on ordinary hobby rockets.
   calibers short, about as much as HPR Sim's center of mass sits further aft there. The
   *Pods--airframes and winglets* example's five are 0.071 to 0.076 calibers long, the flattering
   side. HPR Sim's center of pressure sits 2.6 mm (0.10 in) aft of OpenRocket's there
-  ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325), fin–fin interference;
+  ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325), fin-fin interference;
   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326), a kinked fin's center of pressure). The
   *Pods--powered with recovery deployment* example's three are 0.070 calibers long, the same side.
   HPR Sim's center of pressure sits 2.4 mm (0.094 in) aft of OpenRocket's there, a gap not yet traced.
