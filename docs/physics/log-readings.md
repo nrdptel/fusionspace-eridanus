@@ -1171,7 +1171,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   2005, §2.4. $\tau$ is its integral from any speed down to $v_1$, HPR Sim's step.
 - A canopy's rate: drag balancing the weight, $v = \sqrt{2mg/(\rho C_D S)}$, so the rate goes as
   the density to the −½ ([Recovery](recovery.md#the-descent)).
-- The density scale height: *U.S. Standard Atmosphere, 1976*, NOAA-S/T 76-1562, its
+- The density scale height: *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, its
   troposphere's lapse of 6.5 K/km and its tropopause's 216.65 K
   ([Atmosphere](atmosphere.md)). The formula $H = RT/(g - RL)$ follows from its pressure and temperature.
 - The noise model and the range of air: [ADR-280, the synthetic flights first][adr-280] §2–3, and

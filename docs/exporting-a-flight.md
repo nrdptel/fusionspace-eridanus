@@ -95,7 +95,7 @@ of rows, and:
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
   `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
   --json`'s `motors`. Each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
-  one that did. And `hpr sim`'s motor line says "from the bundled catalog, as of September 17, 2026". The
+  one that did. And `hpr sim`'s motor line says `from the bundled catalog, as of 2026-09-17`. The
   day of the run itself is left out, so the same run writes the same bytes.
 - `kind` and `trust`: what the numbers are, and the
   [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.

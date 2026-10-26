@@ -650,8 +650,8 @@ What the two codes still do differently, and what it moves:
   scored. Their times are scored, since both codes put them where the main opens
   ([report][report], [case file][ndrt-flight-case]).
 
-**Prometheus 2022 flies through Mach 1.** RocketPy's flight peaks at Mach 1.013 and HPR Sim's
-0.235% lower. Until [the normal force through Mach 1](decisions-and-roadmap.md#m1-8a), HPR
+**Prometheus 2022 flies through Mach 1.** Both flights peak just above Mach 1, HPR Sim's
+0.235% below RocketPy's. Until [the normal force through Mach 1](decisions-and-roadmap.md#m1-8a), HPR
 Sim stopped any flight at Mach 1, and the case was a known gap. Now it flies on its drag table to
 the ground ([Aerodynamics](physics/aero.md#fins-through-mach-1)). Its scored numbers agree within
 1.208% ([report][report]). This flight is a light test of the transonic normal force. No committed

@@ -31,7 +31,7 @@ Code: `hpr_atmos::ussa76` (the standard and its offsets), `hpr_atmos::moist` (hu
 
 Sources:
 
-- **[USSA]** *U.S. Standard Atmosphere, 1976*, NOAA-S/T 76-1562, part 1, pinned as
+- **[USSA]** *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, part 1, pinned as
   `us-std-atmosphere-1976`. Equation, table and page numbers below are its own.
 - **[WMO]** WMO-No. 8, *Guide to Instruments and Methods of Observation*, Vol. I (2023),
   `wmo-no8-vol1-2023`.

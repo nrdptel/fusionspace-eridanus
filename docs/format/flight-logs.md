@@ -2577,7 +2577,7 @@ record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
 
 Missile Works' RTx/GPS is a GPS tracker built around a u-blox 7 receiver. It keeps its fixes once
 a second, up to "~68 minutes per flight". It radios them to a base station (*RTx/GPS User
-Manual*, firmware 1.31, Missile Works, November 26, 2016, pp2, 14). Missile Works' mDACS program saves a
+Manual*, firmware 1.31, Missile Works; November 26, 2016; pp2, 14). Missile Works' mDACS program saves a
 download as an `.rtx` file. The program exports that file to CSV, text and KML (*mDACS User
 Manual*, revision 1.71, May 2024, p16). The KML is read as [above](#gps-logs). The `.rtx` and the
 CSV and text exports are read by `hpr_flightdata::rtx`. Neither manual describes the files. What

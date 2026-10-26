@@ -9,10 +9,11 @@
 //!   point aren't grouped. What isn't a quantity passes:
 //!   - a figure inside a word or a code (`131G84`, `7268bcd`, `ADR-0295`, `#1000`, `D-1234`),
 //!     with a letter, `_` or `#` against it, a `/`, `\`, `@`, `+`, `&` or `=` before it, a
-//!     joining hyphen before it, or a colon or a point right after a letter or a bracket
-//!     (`arXiv:1109.4448`, `NGA.STND.0036`, `13(11):15692`);
-//!   - a figure that a hyphen joins to a figure after it (`2026-10-04`'s year, which the date
-//!     rule reads);
+//!     hyphen after a letter before it, a colon or a point right after a letter or a bracket
+//!     (`arXiv:1109.4448`, `NGA.STND.0036`, `13(11):15692`), or a hyphen or a bracket before it
+//!     in a code that holds a letter (`NASA/TM-2008-215633`, `050X(80)90013-3`);
+//!   - an ISO date's year (`2026-10-04`), which the date rule reads; figures a hyphen joins
+//!     otherwise (`1000-2000 ft`, `3005-row`) are read;
 //!   - a figure right after a name that numbers documents or things ([`IDENTIFIERS`]:
 //!     `NFPA 1127`, `ISO 8601`, `NACA 0012`, `station 72364`), and the second figure of a range
 //!     after one (`pp. 1509–1518`);
@@ -161,12 +162,25 @@ fn passes(run: &str, digits: Range<usize>) -> bool {
     {
         return true;
     }
-    // A hyphen joining it to a word or a figure before it (`ADR-0295`, `2026-10-04`'s day), or
-    // to a figure after it (`2026-10-04`'s year).
-    if before == Some('-') && before_that.is_some_and(|c| c.is_alphanumeric()) {
+    // A code's piece right after a bracket, in a code that holds a letter: a DOI's
+    // `0771-050X(80)90013-3`.
+    if before == Some(')') && in_code(run, digits.clone()) {
         return true;
     }
-    if after == Some('-') && after_that.is_some_and(|c| c.is_ascii_digit()) {
+    // A hyphen joining it to a word before it (`ADR-0295`, `D-4014`), or to a figure in a code
+    // that holds a letter (`NASA/TM-2008-215633`), or an ISO date's year, which the date rule
+    // reads. Figures joined by a hyphen otherwise (`1000-2000 ft`) are read.
+    if before == Some('-')
+        && before_that.is_some_and(|c| {
+            c.is_alphabetic() || c.is_ascii_digit() && in_code(run, digits.clone())
+        })
+    {
+        return true;
+    }
+    if iso_dates(&run[digits.start..])
+        .first()
+        .is_some_and(|(at, ..)| *at == 0)
+    {
         return true;
     }
     is_year(&run[digits.clone()], after_text) || dated(&run[..digits.start])
@@ -189,6 +203,17 @@ fn dated(before: &str) -> bool {
         && MONTHS
             .iter()
             .any(|name| month.strip_suffix(' ').is_some_and(|m| m.ends_with(name)))
+}
+
+/// Whether the figure at `digits` is in a token of `run` (the text between spaces) that holds
+/// a letter, as a report number or a DOI does: `NASA/TM-2008-215633`, `AS.1943-5525.0001331`.
+fn in_code(run: &str, digits: Range<usize>) -> bool {
+    let space = |c: char| c.is_whitespace();
+    let start = run[..digits.start].rfind(space).map_or(0, |at| at + 1);
+    let end = run[digits.end..]
+        .find(space)
+        .map_or(run.len(), |at| digits.end + at);
+    run[start..end].chars().any(|c| c.is_ascii_alphabetic())
 }
 
 /// The word right before `before`'s end, past spaces: `NFPA` in `NFPA `.
@@ -399,6 +424,20 @@ mod tests {
         // A range of pages after an identifier is one; a range of quantities is not.
         assert!(ungrouped_in("Software 22, pp. 1509–1518, 2007.").is_empty());
         assert_eq!(ungrouped_in("From 1000–2000 ft."), ["1000", "2000"]);
+        // A hyphen joins a figure to a word before it or makes a date's year, nothing else.
+        assert_eq!(
+            ungrouped_in("From 1000-2000 ft, 2026-10-04."),
+            ["1000", "2000"]
+        );
+        assert_eq!(
+            ungrouped_in("A 3005-row file, 12-3456 and 2026-13-04."),
+            ["3005", "3456"]
+        );
+        assert!(
+            ungrouped_in("NASA/TM-2008-215633, AS.1943-5525.0001331 and 050X(80)90013-3.")
+                .is_empty()
+        );
+        assert_eq!(ungrouped_in("(80)90013 and (1)2345."), ["90013", "2345"]);
         // A name the list doesn't hold numbers nothing: a material's density fails.
         assert_eq!(ungrouped_in("Blue Tube 1250 kg/m³."), ["1250"]);
         // The name must be right before the figure, not a word earlier.

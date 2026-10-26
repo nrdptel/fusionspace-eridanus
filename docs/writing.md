@@ -458,9 +458,12 @@ They don't conflict with the rules above; they add these:
   four or more digits before its decimal point without its commas: write `1,500 m`, not `1500 m`.
   Digits after the point aren't grouped. It passes what isn't a quantity:
 
-  - a figure inside a word or a code, with a letter, `_`, `#`, `/` or a joining hyphen against
-    it, or after a colon or a point that follows a letter (`131G84`, `L1150R`, `#1000`,
-    `arXiv:1109.4448`, `NGA.STND.0036`), and one a hyphen joins to a figure after it (a date);
+  - a figure inside a word or a code: with a letter, `_` or `#` against it; with a `/`, `\`,
+    `@`, `+`, `&` or `=` before it; after a hyphen that follows a letter; after a colon or a
+    point that follows a letter or a bracket; or after a hyphen or a bracket in a code that
+    holds a letter (`131G84`, `L1150R`, `#1000`, `D-4014`, `arXiv:1109.4448`, `NGA.STND.0036`,
+    `NASA/TM-2008-215633`). An ISO date's year passes too, for the date rule below. Figures a
+    hyphen joins otherwise (`1000-2000 ft`, `3005-row`) are read;
   - a figure right after a name that numbers documents or things. These are, as written:
     `ISO`, `NFPA`, `RFC`, `NMEA`, `ESDU`, `datum`, `Code`, `code`, `NACA`, `TN`, `TR`, `TP`,
     `Report`, `NTRS`, `arXiv`, `Aluminum`, `Al`, `Hexcel`, `HexPly`, `station`, `thread`,
@@ -475,8 +478,8 @@ They don't conflict with the rules above; they add these:
   does a quantity after a listed name; reviews hold those.
 
   It also fails an ISO date, `2026-10-04`, in the text outside tables: prose writes
-  `October 4, 2026`. A table, a file's name in code and a link's address keep the ISO form. The lists are
-  `IDENTIFIERS` and `UNIT_WORDS` in `xtask/src/site/figures.rs`.
+  `October 4, 2026`. A table, a file's name in code and a link's address keep the ISO form. The
+  lists are `IDENTIFIERS` and `UNIT_WORDS` in `xtask/src/site/figures.rs`.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
   block that opens with `**How far to trust it.**`. Then it says what kind of figure it is
   (estimate, measurement, copied value) and what it was checked against, with numbers. Last, it
