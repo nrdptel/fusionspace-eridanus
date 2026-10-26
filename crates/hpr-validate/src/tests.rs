@@ -336,7 +336,10 @@ fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
                 .expect("the reference is committed");
             let document: serde_json::Value =
                 serde_json::from_str(&text).expect("the reference is JSON");
-            let name = case.reference_case.as_deref().expect("a flight names its case");
+            let name = case
+                .reference_case
+                .as_deref()
+                .expect("a flight names its case");
             document["cases"]
                 .as_array()
                 .and_then(|cases| cases.iter().find(|c| c["name"] == name))
