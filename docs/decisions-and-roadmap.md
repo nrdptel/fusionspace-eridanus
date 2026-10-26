@@ -470,7 +470,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-13"></a>[M0.13][phase-0] | Awareness and care on the sites | not yet done |
 | <a id="m0-13a"></a>[M0.13a][phase-0] | The banner, the footer line and the help page | not yet done |
 | <a id="m0-13b"></a>[M0.13b][phase-0] | Beyond the banner | not yet done |
-| <a id="m0-14"></a>[M0.14][phase-0] | The maintainer's own voice | not yet done |
+| <a id="m0-14"></a>[M0.14][done-0] | The maintainer's own voice | done |
 | <a id="m0-14a"></a>[M0.14a][done-0] | The guide and the check | done |
 | <a id="m0-14b"></a>[M0.14b][done-0] | The front doors | done |
 | <a id="m0-14c"></a>[M0.14c][done-0] | The rest of the site | done |
@@ -483,11 +483,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14c7"></a>[M0.14c7][done-0] | Recovery, staging and readings | done |
 | <a id="m0-14c8"></a>[M0.14c8][done-0] | The file formats | done |
 | <a id="m0-14c9"></a>[M0.14c9][done-0] | Flight logs, and every page held | done |
-| <a id="m0-14d"></a>[M0.14d][phase-0] | The program's words | not yet done |
+| <a id="m0-14d"></a>[M0.14d][done-0] | The program's words | done |
 | <a id="m0-14d1"></a>[M0.14d1][done-0] | The help | done |
 | <a id="m0-14d2"></a>[M0.14d2][done-0] | What the design commands say | done |
 | <a id="m0-14d3"></a>[M0.14d3][done-0] | What the data commands say | done |
-| <a id="m0-14d4"></a>[M0.14d4][phase-0] | The Python package and the crates' front pages | not yet done |
+| <a id="m0-14d4"></a>[M0.14d4][done-0] | The Python package and the crates' front pages | done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |

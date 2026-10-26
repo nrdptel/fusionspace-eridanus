@@ -1,7 +1,8 @@
-//! `FlightLog`: a flight log read into one record, by its format's own reader or by the column
-//! mapping or record layout a flyer writes for their own logger, as `hpr analyze` reads it
-//! (`hpr_flightdata::custom`, M7.1d2); a workbook's sheet or a dump's recording as chosen, and a
-//! Raven FIP export that lost its header line under the header stated for it (M7.2b).
+//! `FlightLog`: a flight log read into one record, as `hpr analyze` reads it. It's read by its
+//! format's own reader, or by a column mapping or record layout for a flyer's own logger
+//! (`hpr_flightdata::custom`, M7.1d2). A workbook's sheet or a dump's recording is read as
+//! chosen. A Raven FIP export that lost its header line is read under the header stated for it
+//! (M7.2b).
 
 use std::path::{Path, PathBuf};
 
@@ -16,9 +17,9 @@ use pyo3::types::PyDict;
 
 use crate::{error, to_python};
 
-/// A flight log, read: a clock, every channel the logger recorded on it in SI units (degrees for
-/// angles), and what the file states about itself, as ``hpr analyze --record`` prints it. Read
-/// one with ``FlightLog.read``.
+/// A flight log read into one record, as ``hpr analyze --record`` prints it. It holds a clock,
+/// every channel the logger recorded on it, and what the file states about itself. The channels
+/// are in SI units, degrees for angles. Read one with ``FlightLog.read``.
 #[pyclass(module = "fusionspace.hpr", frozen, skip_from_py_object)]
 #[derive(Debug)]
 pub struct FlightLog {
@@ -75,18 +76,26 @@ fn array<'py>(py: Python<'py>, values: &[f64]) -> Bound<'py, PyArray1<f64>> {
 
 #[pymethods]
 impl FlightLog {
-    /// Reads the flight log at ``path``: by its format's own reader, or by a column mapping, a
-    /// table's, or a record layout, binary records' or a serial console's capture of them. A
-    /// mapping or a layout is a dict, or the path of its JSON file, as the schemas
-    /// ``schema/cli/analyze-mapping.schema.json`` and ``analyze-layout.schema.json`` describe;
-    /// ``FlightLog.header_mapping`` gives the mapping a table's header states. ``sheet`` names a
-    /// spreadsheet's workbook's sheet (``.xlsx`` or ``.xls``), from 0, to read by its format's
-    /// own reader, a mapping or a FIP header; with none, the workbook's one sheet that reads as a
-    /// log. ``recording`` names an Entacore AIM raw dump's recording, from 0. ``fip_header`` reads
-    /// a Featherweight Raven's FIP export that lost its header line under the header it states, a
-    /// dict or a JSON file's path (``schema/cli/analyze-fip-header.schema.json``). Raises
-    /// ``HprError`` naming the field a mapping, layout or header fails, the choice a file of
-    /// several records needs, or why the log doesn't read.
+    /// Reads the flight log at ``path``. It's read by its format's own reader, or by one of:
+    ///
+    /// - ``mapping``, a column mapping, for a table.
+    /// - ``layout``, a record layout, for binary records or a serial console's capture of them.
+    ///
+    /// A mapping or a layout is a dict, or the path of its JSON file. The schemas
+    /// ``schema/cli/analyze-mapping.schema.json`` and ``analyze-layout.schema.json`` describe
+    /// them. ``FlightLog.header_mapping`` gives the mapping a table's header states.
+    ///
+    /// ``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0. The sheet is read by
+    /// its format's own reader, a mapping or a FIP header. With no ``sheet``, it's the
+    /// workbook's one sheet that reads as a log. ``recording`` names an Entacore AIM raw dump's
+    /// recording, from 0.
+    ///
+    /// ``fip_header`` reads a Featherweight Raven's FIP export that lost its header line. The
+    /// export is read under the header ``fip_header`` states, a dict or a JSON file's path
+    /// (``schema/cli/analyze-fip-header.schema.json``).
+    ///
+    /// Raises ``HprError`` naming the field a mapping, layout or header fails, the choice a file
+    /// of several records needs, or why the log doesn't read.
     #[staticmethod]
     #[pyo3(signature = (
         path, *, mapping = None, layout = None, sheet = None, recording = None, fip_header = None
@@ -143,10 +152,10 @@ impl FlightLog {
         })
     }
 
-    /// What the header of the table at ``path`` states, as a column mapping, a dict, to edit and
-    /// give back to ``FlightLog.read`` as ``mapping``: set each column's ``quantity`` and
-    /// ``unit``, and ``primary`` to the column, from 0, that is the barometric altitude above
-    /// the pad. ``sheet`` names an ``.xlsx`` workbook's sheet, from 0.
+    /// What the header of the table at ``path`` states, as a column mapping: a dict to edit and
+    /// give back to ``FlightLog.read`` as ``mapping``. Set each column's ``quantity`` and
+    /// ``unit``. Set ``primary`` to the column, from 0, that is the barometric altitude above the
+    /// pad. ``sheet`` names a sheet of a workbook (``.xlsx`` or ``.xls``), from 0.
     #[staticmethod]
     #[pyo3(signature = (path, *, sheet = None))]
     fn header_mapping<'py>(
@@ -189,7 +198,7 @@ impl FlightLog {
         self.log.flight_number
     }
 
-    /// The primary track's times, s, from the logger's zero, increasing: empty for a log with no
+    /// The primary track's times, s, from the logger's zero, increasing. Empty for a log with no
     /// primary track, such as a table read by a mapping that marks none.
     #[getter]
     fn time_s<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
@@ -203,9 +212,13 @@ impl FlightLog {
         array(py, &self.log.altitude_m)
     }
 
-    /// Every column the file holds, in its order, the primary track's among them: each a dict of
-    /// its ``column`` name, the ``quantity`` it measures, its ``unit``, and NumPy arrays of its
-    /// ``time_s`` and ``values``, NaN at a gap.
+    /// Every column the file holds, in its order, the primary track's among them. Each is a dict
+    /// of:
+    ///
+    /// - ``column``, its name.
+    /// - ``quantity``, what it measures.
+    /// - ``unit``.
+    /// - ``time_s`` and ``values``, NumPy arrays, NaN at a gap.
     #[getter]
     fn channels<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyDict>>> {
         self.log
@@ -241,17 +254,32 @@ impl FlightLog {
         self.log.notes.clone()
     }
 
-    /// The readings taken from the log on its own, as ``hpr analyze`` takes them: a dict of
-    /// ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration``, ``burnout``, ``landing``,
-    /// ``flight_time``, ``drogue_descent`` and ``main_descent``, each with ``status`` ``"read"``
-    /// and its value, the bound its error stays within, the track it came from (``source``),
-    /// whether it was measured, derived or clipped (``provenance``) and how it was read
-    /// (``method``), or ``"withheld"`` with a ``reason`` and its ``detail``; a top acceleration
-    /// also says whether it is a floor (``is_floor``) and why it is clipped, ``"range"`` or
-    /// ``"flat"`` (``clip``), or ``None``. Beside them, how
-    /// they were taken: the track's ``source``, ``sample_interval_s`` and ``step_m``, the running
-    /// median's ``median_window_s`` and ``peak_bound_m``, ``pad_altitude_m``, and the axial
-    /// ``accelerometer`` the top acceleration and burnout came from, or ``None``.
+    /// The readings taken from the log on its own, as ``hpr analyze`` takes them, as a dict. It
+    /// holds ``liftoff``, ``apogee``, ``max_speed``, ``max_acceleration``, ``burnout``,
+    /// ``landing``, ``flight_time``, ``drogue_descent`` and ``main_descent``. Each has one of:
+    ///
+    /// - ``status`` ``"read"``, with its value and the bound its error stays within. It gives the
+    ///   track it came from (``source``), whether it was measured, derived or clipped
+    ///   (``provenance``), and how it was read (``method``).
+    /// - ``status`` ``"withheld"``, with a ``reason`` and its ``detail``.
+    ///
+    /// The keys of a value and its bound name their unit. ``liftoff``, ``burnout``, ``landing`` and
+    /// ``flight_time`` hold ``time_s`` and ``bound_s``. ``apogee`` holds ``height_m`` above the
+    /// pad and ``altitude_m`` above the track's own zero, with ``bound_m``, ``time_s`` and
+    /// ``time_bound_s``. On a short pad, a log that holds little or none of the pad, ``height_m``
+    /// is above the track's zero too. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s``, and
+    /// ``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
+    /// ``rate_m_s`` and ``bound_m_s``.
+    ///
+    /// An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
+    /// A floor's true value is at least the value less its bound, and may be higher by any amount.
+    /// A top acceleration also says why it is clipped (``clip``): ``"range"``, ``"flat"`` or
+    /// ``None``.
+    ///
+    /// Beside the readings, the dict says how they were taken: the track's ``source``,
+    /// ``sample_interval_s`` and ``step_m``, and the running median's ``median_window_s`` and
+    /// ``peak_bound_m``. It gives ``pad_altitude_m`` too, and the axial ``accelerometer`` the top
+    /// acceleration and burnout came from, or ``None``.
     fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &readings::read(&self.log))
     }

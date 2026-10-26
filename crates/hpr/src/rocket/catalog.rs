@@ -447,6 +447,7 @@ fn stated(part: &orc::Part, design: &Part) -> Result<Option<f64>, Error> {
         return Err(Error::Domain {
             what: "catalog part's stated mass, kg",
             value: stated_kg,
+            allowed: "finite and not negative",
         });
     }
     // The body radius only places a launch lug; its mass is the same on any tube.

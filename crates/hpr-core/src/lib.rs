@@ -1,10 +1,10 @@
 //! Core math, units, frames, Earth, gravity and magnetic-field models, interpolation tables and
 //! shared error types.
 //!
-//! **Guide:** [Frames and sign conventions][guide-frames], [Geodesy][guide-geodesy],
-//! [Gravity][guide-gravity], [The magnetic field][guide-magnetic], [Interpolation
-//! tables][guide-interpolation] and [Adaptive quadrature][guide-quadrature]: the models, their
-//! sources, how well they are validated and what they leave out.
+//! Six pages of the guide cover this crate: [Frames and sign conventions][guide-frames],
+//! [Geodesy][guide-geodesy], [Gravity][guide-gravity], [The magnetic field][guide-magnetic],
+//! [Interpolation tables][guide-interpolation] and [Adaptive quadrature][guide-quadrature]. They
+//! give the models, their sources, how well they are validated and what they leave out.
 //!
 //! [guide-frames]: https://hpr.fusionspace.co/physics/frames.html
 //! [guide-geodesy]: https://hpr.fusionspace.co/physics/geodesy.html

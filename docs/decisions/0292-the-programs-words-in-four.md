@@ -1,6 +1,6 @@
 # ADR-292: The program's words in four increments, the help first (2026-10-25)
 
-- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass and for the census and tasks of M0.14d2 and M0.14d3
+- **Status:** accepted; splits [M0.14d][m0-14d] into four increments, M0.14d1 to M0.14d4, and plans every remaining increment, the last with M0.14d's own *done when*; extends [ADR-285][adr-285] §1's hold to the help; amended 2026-10-25 for M0.14d1's acceptance pass, for the census and tasks of M0.14d2 and M0.14d3, and for M0.14d4's readings and tasks
 - **Summary:** M0.14d covers `hpr`'s help, its warnings and errors, the Python package's docs and each crate's top-level docs. That's too much for one rewrite: the help is about 4,400 words, but the messages are about 270 error types and 80 to 90 places that push a warning, in 14 crates. They go in four increments. The help comes first, with a snapshot of each command's `--help` that `cargo xtask voice` reads and holds to the voice limits, as the site's pages are held.
 
 [m0-14d]: ../decisions-and-roadmap.md#m0-14d
@@ -216,10 +216,71 @@ file, one in `hpr-flightdata`'s NMEA reader. The other pages are within every li
    the voice section, and of the joined messages the tasks printed. Each finding is fixed in the PR
    or filed.
 
+**Amendment for M0.14d4: its readings and its tasks (2026-10-25).** M0.14d4 adds three readings
+to `cargo xtask voice`, each held as a help snapshot is (§4):
+
+1. **The docstrings, as `help()` shows them.** A test of the Python package,
+   `crates/hpr-py/tests/test_docstrings.py`, writes them to a snapshot,
+   `crates/hpr-py/tests/docstrings.md`, from the installed wheel. It holds the module's docstring,
+   then each name the package exports, in the order of its `__all__`, and under each class each
+   public attribute of its own (methods, properties, class and static methods) in name order. Each
+   docstring is the text `help()` shows below the signature (`inspect.cleandoc` of its `__doc__`),
+   under a heading of the name in backticks. A public name with no docstring fails the test, and
+   so does a snapshot that differs from the package; `HPR_BLESS=1` writes it again. CI's Python
+   job runs the test on each platform, on Python 3.10 and 3.13 (3.11 and 3.13 on Windows on
+   ARM, where CPython's builds start at 3.11), and the site step holds the snapshot. Python reads the docstrings, so the snapshot holds what a reader sees, not the
+   Rust doc comments they're written in, and none of the `hpr-py` comments that never reach
+   Python. The snapshot is a reference page, so first person counts against a limit of zero.
+2. **The README** of the Python package, `crates/hpr-py/README.md`, its front page on PyPI. It's
+   held as the repository's README is: not a reference page.
+3. **Each crate's front page.** The `//!` docs at the top of each crate's `src/lib.rs` are the
+   page docs.rs shows for the crate. The check reads them as rustdoc does, as Markdown: each
+   `//!` line less its marker and one space, up to the first line of code. Each crate under
+   `crates/`, one for each `Cargo.toml` there, is held, `hpr-validate` too, and a crate with no
+   `src/lib.rs`, or with no `//!` docs at its top, is refused. Each is a reference page (§6).
+   `cargo xtask voice --long` reads a `.rs` file given as its path the same way.
+
+`hpr-py`'s own messages join the census by M0.14d2's rule, which then reads 15 crates.
+
+Before the rewrite (77c6b51a), the docstrings, the README and the 18 front pages read 7,926
+words, and 17 of those 20 pages are over a limit. The docstrings are 3,421 words, and 50 of
+their sentences are over 25 words (1.47 per 100 words, 35% of all their sentences), with one stock
+phrase, "a number of". The README is 352 words, with 4 long sentences
+(1.14 per 100). Of the 18 front pages, 4,153 words in all, 15 are over a limit: 13 on long
+sentences, 9 on labels (milestone and decision numbers) and one on bold-label items. `hpr-flightdata`'s page names its
+readers in one paragraph of about 600 words. `hpr-py`'s census page is 644 words in 60 literals,
+within every limit.
+
+**M0.14d4's tasks.** Each is done with the wheel `scripts/python-tests.sh` builds, from
+`help()` alone, or for task 6 from the crates' pages that `cargo doc --no-deps` builds, then
+checked against what the code did:
+
+1. From `help(hpr)` and the help of the types it names, fly the guide's design,
+   `validation/fixtures/ork/guides/level-1.ork`, on a catalog motor that fits it, and give its
+   apogee and the speed off the rail. Then fly it with `hpr sim` on the same inputs and compare.
+2. From `help(hpr.Rocket)`, build a rocket from parts: a nose, a tube, fins, a motor tube and a
+   parachute. Give its static margin on a motor from the catalog. Hostile: a material that isn't
+   built in and a negative length are each refused with an `HprError` that names the input and
+   what's allowed.
+3. From `help(hpr.MonteCarlo)`, fly 20 flights with seed 7 twice and see the same numbers, then
+   write them to a `.csv`.
+4. From `help(hpr.FlightLog)`, read the PerfectFlite sample
+   (`crates/hpr-flightdata/tests/samples/perfectflite-export.csv`) and give its apogee. Hostile:
+   an invented log is refused with a message.
+5. From `help(hpr.DragTable)`, fly the design of task 1 on a drag table read from a `.csv`.
+   Hostile: a table whose Mach numbers don't increase is refused with a message.
+6. From the crates' front pages alone, say which crate reads a flight log, which flies a design,
+   which is the command line and which are planned only, then run each page's example
+   (`cargo test --doc`).
+7. A cold read of the docstrings, the README, the 18 front pages and `hpr-py`'s census page
+   against each rule of the voice section. Each finding is fixed in the PR or filed.
+
 **Consequences.**
 
 - The help can't drift: a change to it fails the snapshot test until the snapshot is written
   again, and the voice check reads the new text.
 - The messages wait two more increments. Until M0.14d2, no check reads them, and the help's hold
   says nothing about them. Since M0.14d3, the census reads every crate `hpr` is built from.
+  Since M0.14d4, the Python package's docstrings and README, `hpr-py`'s messages and each crate's
+  front page are held too.
 - The roadmap's M0.14d entry becomes its four increments, which fit its byte budget.

@@ -1,29 +1,33 @@
 //! The HPR open design format: a rocket design as one JSON document, with its JSON Schema.
 //!
-//! **Guide:** [the format's page][guide-format] says what a document holds, how it is versioned,
-//! and how it was checked. Version 0.1 is a draft until HPR Sim's first release: it can change in
-//! place, so keep the source `.ork` too.
+//! [The format's page][guide-format] says what a document holds, how it's versioned, and how it
+//! was checked. The format is version 0.2, a draft until FusionSpace HPR's first release, and a
+//! document of version 0.1 is migrated when it's read. The draft can change in place, so keep the
+//! source `.ork` too.
 //!
-//! A document is a [`DesignFile`]: a header naming the format ([`FORMAT`]), its version
-//! ([`VERSION`]) and where the design came from ([`Provenance`]), then the design as
-//! [`hpr_io::ork`] reads it from a `.ork`, then every other entry of that file's archive, such as
-//! an embedded thrust curve or a decal image. The design holds the rocket, every motor
-//! configuration, the recovery events, the simulations stored with it, and what the source file
-//! holds that HPR Sim does not model, kept under a namespaced extension (`x-openrocket`). A `.ork`
-//! written from a document is the `.ork` HPR Sim writes from the file it was read from, byte for
-//! byte, as checked on the 73 designs HPR Sim's `.ork` checks read ([ADR-111][adr-111]).
+//! A document is a [`DesignFile`]. It opens with a header naming the format ([`FORMAT`]), its
+//! version ([`VERSION`]) and where the design came from ([`Provenance`]). Then comes the design as
+//! [`hpr_io::ork`] reads it from a `.ork`. Last comes every other entry of that file's archive,
+//! such as an embedded thrust curve or a decal image.
+//!
+//! The design holds the rocket, every motor configuration, the recovery events and the
+//! simulations stored with it. What the source file holds that HPR Sim doesn't model is kept
+//! under a namespaced extension (`x-openrocket`). A `.ork` written from a document is the `.ork`
+//! HPR Sim writes from the file it was read from, byte for byte. That was checked on the 73
+//! designs HPR Sim's `.ork` checks read ([the format's decision record][adr-111]).
 //!
 //! [`to_json`] writes the canonical text: two-space indents, keys in the order the types declare
-//! them, and a final newline, so the same design always gives the same bytes and a change shows as
-//! a small diff. [`from_json`] reads it back to the same value, takes a document of an older
-//! version to the current one ([`migrate`]), and refuses one of another format or a newer version
-//! with the reason. [`schema`] is the document's JSON Schema, committed as
+//! them, and a final newline. So the same design always gives the same bytes, and a change shows
+//! as a small diff. [`from_json`] reads it back to the same value. It takes a document of an
+//! older version to the current one ([`migrate`]). It refuses one of another format or a newer
+//! version, with the reason. [`schema`] is the document's JSON Schema, committed as
 //! [`schema/format/hpr-design-0.2.schema.json`][schema-file] beside the older versions' schemas.
 //! A [`container`] (`.hprz`) carries a design with other files, such as its flight logs.
 //!
 //! TypeScript and Python programs read a document through types generated from the schema, under
-//! `schema/format/typescript/` and `schema/format/python/`, each with a reader that checks a document against it
-//! ([the format page][format-page], [M3.3c][m3-3c]).
+//! `schema/format/typescript/` and `schema/format/python/`. Each comes with a reader that checks a
+//! document against the schema ([the format page][format-page], [the milestone that added
+//! them][m3-3c]).
 //!
 //! ```
 //! use hpr_format::{DesignFile, Provenance, from_json, to_json};

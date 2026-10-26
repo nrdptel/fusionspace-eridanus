@@ -1,22 +1,24 @@
-//! Foreign formats: OpenRocket `.ork`, RockSim `.rkt`, RASAero `.CDX1`, RocketPy export, the
-//! `.orc` parts database, ERA5 weather in netCDF classic files, GRIB2 weather fields, and GeoTIFF
-//! elevation files.
+//! Foreign formats: designs, parts, weather and elevation.
 //!
-//! **Guide:** [Start here][guide-start] says what works today and what is planned.
+//! [Start here][guide-start] says what works today and what is planned.
 //!
 //! [guide-start]: https://hpr.fusionspace.co/start-here.html
 //! [roadmap]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md
 //!
-//! Status: pre-alpha. An OpenRocket `.ork` file reads into a design, its motors and recovery
-//! ([`ork`]); the other design formats are [M3.2][roadmap] to [M3.6][roadmap]. OpenRocket's
-//! `.orc` parts catalogs read into parts by maker and part number, and the 16 files OpenRocket
-//! 24.12 ships are built in ([`orc`], [M5.5a][roadmap], [parts catalogs][guide-orc]). An ERA5
-//! pressure-level file gives the atmosphere over a launch site ([`era5`], [ERA5 weather
-//! files][guide-era5]), read by the netCDF classic reader
-//! ([`netcdf`]). [`grib2`] decodes the GRIB2 fields NOAA's NOMADS cuts from its GFS and RAP
-//! forecasts ([M5.2c][roadmap]) and whole GFS files' complex packing ([M5.2d2][roadmap]) and
-//! JPEG 2000 ([M5.2d3][roadmap]). [`geotiff`] reads a launch site's height from a GeoTIFF
-//! elevation file ([M5.3c2][roadmap], [A launch site's elevation][guide-elevation]).
+//! Status: pre-alpha. What each module reads:
+//!
+//! - [`ork`]: an OpenRocket `.ork` file, read into a design, its motors and recovery.
+//! - [`orc`]: OpenRocket's `.orc` parts catalogs, read into parts by maker and part number. The
+//!   16 files OpenRocket 24.12 ships are built in ([parts catalogs][guide-orc]).
+//! - [`era5`]: an ERA5 pressure-level file, which gives the atmosphere over a launch site
+//!   ([ERA5 weather files][guide-era5]). It's read by the netCDF classic reader ([`netcdf`]).
+//! - [`grib2`]: the GRIB2 fields NOAA's NOMADS cuts from its GFS and RAP forecasts. It also
+//!   decodes whole GFS files' complex packing and JPEG 2000.
+//! - [`geotiff`]: a launch site's height from a GeoTIFF elevation file ([A launch site's
+//!   elevation][guide-elevation]).
+//!
+//! The other design formats, RockSim's `.rkt`, RASAero's `.CDX1` and RocketPy's export, are
+//! planned ([the roadmap][roadmap]).
 //!
 //! [guide-era5]: https://hpr.fusionspace.co/format/era5.html
 //! [guide-orc]: https://hpr.fusionspace.co/format/orc.html

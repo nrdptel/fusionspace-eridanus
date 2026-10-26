@@ -3219,13 +3219,14 @@ mod tests {
         let error = hpr::Error::Domain {
             what: "the drag",
             value: 1.234_567_89,
+            allowed: "finite and above 0",
         };
         let Failure::Helped { message, help } = flight_refused(&error, &args.flight) else {
             panic!("a refusal with help")
         };
         assert_eq!(
             message,
-            "the simulator refused the flight: the drag is 1.235, outside its domain"
+            "the simulator refused the flight: the drag is 1.235, but it must be finite and above 0"
         );
         assert_eq!(
             help,
