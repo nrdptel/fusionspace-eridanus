@@ -388,13 +388,13 @@ used Galejs's constant, $C_N = K (A_{\mathrm{plan}}/A_{\mathrm{ref}}) \sin^2\alp
 > **How far to trust it.** It is Jorgensen's method ([J77]) with HPR Sim's own way of combining
 > two of his figures. Against NASA's Arcas Robin body alone, the wind tunnel plotted 62
 > angles from 5.5° to 21.7°, from Mach 1.5 to 4.63. HPR Sim's normal force with body
-> lift is within 15% at 48 of them (34 with Galejs's constant); faster than sound it reads 1% to 16%
+> lift is within 15% at 48 (34 with Galejs's constant); faster than sound it reads 1% to 16%
 > high. Below Mach 1 the only check is that body's slope fitted from −4° to +4°; at Mach 0.6
 > it reads 25% high. No real flight checks it: the [real flights](../accuracy.md#real-flights) compare
-> heights, not drift. So whether it beats Galejs's constant for a slow rocket leaving the rail in wind
+> heights, not drift, so far. So whether it beats Galejs's constant for a slow rocket leaving the rail in wind
 > is open.
 
-Below Mach 1 body lift adds only a little to that slope. With Galejs's constant the body reads 41% high
+Below Mach 1 body lift adds a little to that slope. With Galejs's constant the body reads 41% high
 at Mach 0.6; the tunnel determines these readings poorly.
 
 At an angle of attack $\alpha$ the air meets the body partly from the side, at $V \sin\alpha$. Behind a
@@ -637,7 +637,7 @@ For a worked example with numbers, see
 
 > **How far to trust it.** As far as the method's own checks above, for a pointed nose and cylinder. A boattail behind them takes Washington and Pettis's measured increment ([WP68]), within about 15% for conical boattails of 4° to 9.5°. A steeper, shorter, longer or narrower boattail, like the Arcas Robin's 15°, is an extrapolation, and so is a transition that isn't conical. The join between the method and slender-body theory is a judgment, not a measurement. No validation flight goes past Mach 1.06 (Prometheus, the fastest; see its `max_mach` rows in the [validation report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)), so no flight checks the join yet.
 
-**What is extrapolated.** A transition that isn't conical takes the same correlation from its length and radii. Past 16° the flow separates, and HPR Sim holds the correlation at its 16° reading ([the 16° rule](#the-body-faster-than-sound-in-a-flight), [issue #90: how steep a boattail the correlation should cover](https://github.com/nrdptel/fusionspace-eridanus/issues/90)). A tube behind the boattail takes the method's decay of its expansion, which no measurement here checks. A blunt or vertical nose tip takes a Newtonian cap ahead of the method ([Blunt tips](#blunt-tips)), an extrapolation from spherical caps. A conical flare flies the method while its corner's shock is attached. **One** measured flare has been put beside it ([What a marched flare is worth](#what-a-marched-flare-is-worth)). Where the shock is not attached, the flare is read drawn out, and that half still has none. Any other widening shape, or any step, keeps slender-body theory, which on the Arcas Robin's body reads 15% to 50% below the tunnel faster than sound.
+**What is extrapolated.** A transition that isn't conical takes the same correlation from its length and radii. Past 16° the flow separates, and HPR Sim holds the correlation at its 16° reading ([the 16° rule](#the-body-faster-than-sound-in-a-flight), [issue #90: how steep a boattail the correlation should cover](https://github.com/nrdptel/fusionspace-eridanus/issues/90)). A tube behind the boattail takes the method's decay of its expansion, which no measurement here checks. A blunt or vertical nose tip takes a Newtonian cap ahead of the method ([Blunt tips](#blunt-tips)), an extrapolation from spherical caps. A conical flare flush with the part ahead of it flies the method while its corner's shock is attached. **One** measured flare has been put beside it ([What a marched flare is worth](#what-a-marched-flare-is-worth)). Where the shock is not attached, the flare is read drawn out, and that half still has none. Any other widening shape, or any step, keeps slender-body theory, which on the Arcas Robin's body reads 15% to 50% below the tunnel faster than sound.
 
 **Which model your rocket gets.** Every body takes [body lift](#body-lift) at every speed. Past Mach 1.2, a rocket takes the method below for its nose, tubes and boattails when its first body is a nose. That nose is pointed, or has a blunt or vertical tip that the cap covers. The method applies only when nothing but tubes of its radius and boattails (and tubes behind those) follows the nose.  A lip wholly inside a boattail's wake rides along, carrying nothing ([A lip in a boattail's wake](#a-lip-in-a-boattails-wake)). A lip only partly in the wake gets the method in the wake's own proportion, and slender-body theory for the rest. A **conical flare** flush with the part ahead of it joins the run as well, and ends it ([A flare through the method](#a-flare-through-the-method)). A widening part behind a boattail is a lip, not a flare, and keeps the lip's rule. Anything else keeps slender-body theory for its whole body at every speed. Examples are a step, a widening shape other than a cone, and a nose steeper than the cap's handover all the way to its base. A motor retainer behind a step down is another, since the step ends the run.
 
@@ -802,7 +802,7 @@ without fins in a wind tunnel ([TN D-4014](#code-and-sources)). The secant-ogive
 
 With the boattail on (the lip behind it off, a flare the method doesn't take), the boattail takes its measured share. That is 0.31 to 0.62 per radian off, most at Mach 1.5 (footnote 8 took 0.03 to 0.18).
 At $\alpha \to 0$ the short model reads 12.0% to 26.2% below the measured line and the long model
-29.7% to 33.3% below it. That line is fitted over the plotted angles, so it carries crossflow lift. These columns leave body lift out; with the body lift a flight adds, the
+29.7% to 33.3% below it. That line is fitted over the plotted angles, so it carries crossflow lift. These columns leave body lift out; fitted the same way with the body lift a flight adds, the
 same body reads 3.4% to 41.0% *high*
 ([Checking the shock-expansion method](#checking-the-shock-expansion-method)).
 
@@ -892,7 +892,7 @@ lip carried slender-body theory's share instead of nothing. HPR Sim's slopes her
 the tunnel's angles, so they carry body lift. The same bodies' slopes at $\alpha \to 0$, in
 [Checking the shock-expansion method](#checking-the-shock-expansion-method)'s table, are lower.
 
-| model | Mach | measured, per rad | HPR Sim, as committed, per rad | vs measured | measured CP, calibers | HPR Sim's CP, calibers | HPR Sim's CP with the lip at slender-body theory's share |
+| model | Mach | measured, per rad | HPR Sim, as committed, per rad | vs measured | measured CP, calibers | HPR Sim's CP, calibers | HPR Sim's CP with the lip at slender-body theory's share, calibers |
 |---|--:|--:|--:|--:|--:|--:|--:|
 | short | 1.5 | 2.192 | 3.017 | +37.7% | 1.00 | 2.46 | 3.33 |
 | short | 1.8 | 2.613 | 3.290 | +25.9% | 2.36 | 3.06 | 3.84 |
@@ -1524,7 +1524,7 @@ can make at all. The range runs from a surface lying along the axis up to the is
 running out or the cone tables' 30°, whichever comes first. The root is then found by false
 position from the turn that would bring the pressure back to the free stream's.
 
-On the tests' flared rocket, whose conical flare is 0.3 m (0.98 ft) long (its nose and tube are above), they are these:
+On the tests' flared rocket they are these:
 
 | Mach | crossing | balance | a flare between them rises, over 0.3 m (0.98 ft), by |
 |--:|--:|--:|---|
@@ -2396,11 +2396,11 @@ the air at.
 > - The forcing is within 5.3% of NASA's measured roll effectiveness (the rolling moment per degree
 >   of cant) from Mach 2.3 to 4.63. The forcing reads 14% to 48% high at Mach 1.5 and 1.8.
 > - The damping reads 6% to 16% low against the one measured set, from Mach 1.5 to 3.
-> - Below Mach 1.5, where most hobby flights stay, nothing measured checks either, so a subsonic spin may read low.
+> - Below Mach 1.5, where most hobby flights stay, nothing measured checks either.
 > - The steady spin rate carries both errors, and both push it high: forcing that reads high and
 >   damping that reads low each raise it.
 
-Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping.
+Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
 
 Other symbols follow [Fins](#fins): $r_t$ the body's radius at the fins, $s$ the span, $c_r$
 and $c_t$ the root and tip chords. $A_{\mathrm{fin}}$ is one fin's area and $y_{\mathrm{MAC}}$ the mean aerodynamic chord's
@@ -2929,8 +2929,8 @@ force is less tested ([Fins through Mach 1](#fins-through-mach-1)).
 **The reading and the flight.** The 0° column, which HPR Sim works out, agrees at 15 Mach numbers
 with the reading made for [M1.8a](../decisions-and-roadmap.md#m1-8a). A rocket on a table swings
 in pitch and yaw as the small-angle equations of motion predict for the table's slope and center of pressure.
-The assumptions past the export's last angle fit RASAero II's viscous part through Mach 1.3. Faster, that part
-grows much more slowly with the angle.
+These assumptions fit RASAero II's viscous part through Mach 1.3. Faster, that part
+grows much more slowly with the angle, so past 4° the table probably gives too much force.
 
 Three parts are HPR Sim's choices, not RASAero II's:
 
@@ -3567,14 +3567,14 @@ were made with no motor exhaust.
 | separation | between 16° and 30°, a straight-line blend in $\theta$ from the attached value to the base drag on the annulus, $(C_{D\bullet})_{\mathrm{base}}(1 - a)$, where [flow separates](../glossary.md#flow-separation) | [C57] pp. 6, 8 |
 | through Mach 1 | the rule to Mach 0.8, where the buildup's other transonic terms start; a straight line to Mach 1; from there the attached drag held at its Mach 1.2 value to Mach 1.2 | [N09] p. 47, [762] p. 5-47 |
 | base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; back to 1 between Mach 1 and 0.8; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210 |
-| a lip in its wake | a lip behind a boattail or a step down (a boattail of no length), drawn as a shoulder, a step up or both, in one part or several, loses its pressure drag while its top rises up to a quarter of the boattail's drop in diameter above the boattail's end, keeps all of it from half, and a straight-line share between; a lip in parts takes at each part the smallest share any top so far leaves; the base behind it takes the same share of the relief, less the lip's length's fade. A lip's rise is its top diameter less the boattail's aft diameter. (example below) | [D4014] p. 6, [R22] slide 2; the quarter and half are a judgment |
-| a boattail in parts | a narrowing part after another drags, as its share of the boattail it continues, as the cone from that boattail's start through its aft end less the cone through its fore end (below 0 where extending the boattail lowers its drag); so parts of one straight cone add up to one cone. Its drag is that share for a turn of up to 3° between the parts, its own drag as a boattail from 10° (a corner), and a straight-line blend of the two between (the *turn* is the difference of the two parts' half-angles) (shallow parts and low speeds below) | a judgment |
-| gaps and steps | whatever lies between a boattail and what follows weakens its effect in a straight line, gone once the gaps add up to one of the boattail's drops in diameter; gaps add: the lengths of tubes, lips and parts, and the drops in diameter of steps down and narrowing parts. (several boattails ahead, below) | a judgment |
+| a lip in its wake | a lip behind a boattail or a step down (a boattail of no length), drawn as a shoulder, a step up or both, in one part or several, loses its pressure drag while its top rises up to a quarter of the boattail's drop in diameter above the boattail's end, keeps all of it from half, and a straight-line share between; a lip in parts takes at each part the smallest share any top so far leaves; the base behind it takes the same share of the relief, less the lip's length's fade. A lip's rise is its top diameter less the boattail's aft diameter. | [D4014] p. 6, [R22] slide 2; the quarter and half are a judgment |
+| a boattail in parts | a narrowing part after another drags, as its share of the boattail it continues, as the cone from that boattail's start through its aft end less the cone through its fore end (below 0 where extending the boattail lowers its drag); so parts of one straight cone add up to one cone. Its drag is that share for a turn of up to 3° between the parts, its own drag as a boattail from 10° (a corner), and a straight-line blend of the two between (the *turn* is the difference of the two parts' half-angles) | a judgment |
+| gaps and steps | whatever lies between a boattail and what follows weakens its effect in a straight line, gone once the gaps add up to one of the boattail's drops in diameter; gaps add: the lengths of tubes, lips and parts, and the drops in diameter of steps down and narrowing parts. | a judgment |
 
 **The last three rows in full.**
 
-- **A lip in its wake.** A motor retainer behind the step down to its motor tube loses much of its step's drag: behind a 98 mm (3.9 in) airframe stepping down to a 54 mm motor tube, a 62 mm (2.4 in) retainer rises 8 mm (0.31 in), 0.18 of the 44 mm (1.7 in) drop, so its rise alone would shelter it wholly, and the 12 mm (0.47 in) of motor tube ahead of it fades that by 12/44: its step keeps 27% of its drag (`a_retainer_behind_a_step_down_is_in_its_wake`), and the rocket's $C_{D0}$ reads 12% to 23% lower from Mach 0.3 to 2.5 than with the retainer's step in full (the physics review's measurement; unmeasured in any tunnel). With the exposed motor tube as long as the 44 mm (1.7 in) drop, none.
-- **A boattail in parts.** When either part is shallower than 1°, the merge is scaled by the smaller angle over the larger (the larger taken as at most 1°), so a part narrowing by almost nothing acts as a tube and a straight cone of any angle drawn in parts merges wholly. This holds at every speed, so below Mach 0.8 a curved boattail in parts drags as the cones through its ends, not part by part as eq. 3.88 would.
+- **A lip in its wake.** A motor retainer behind the step down to its motor tube loses much of its step's drag: behind a 98 mm (3.9 in) airframe stepping down to a 54 mm motor tube, a 62 mm (2.4 in) retainer rises 8 mm (0.31 in), 0.18 of the 44 mm (1.7 in) drop, so its rise alone would shelter it wholly, and the 12 mm (0.47 in) of motor tube ahead of it fades that by 12/44: its step keeps 27% of its drag (`a_retainer_behind_a_step_down_is_in_its_wake`), and the rocket's $C_{D0}$ reads 12% to 23% lower from Mach 0.3 to 2.5 than with the retainer's step in full (the physics review's measurement; unmeasured in any tunnel). With the exposed motor tube as long as the 44 mm (1.7 in) drop, its step keeps none.
+- **A boattail in parts.** When either part is shallower than 1°, the merge is scaled by the smaller angle over the larger (the larger taken as at most 1°), so a part narrowing by almost nothing acts as a tube and a straight cone of any angle drawn in parts merges wholly. The merge holds at every speed, so below Mach 0.8 a curved boattail in parts drags as the cones through its ends, not part by part as eq. 3.88 would.
 - **Gaps and steps.** With several boattails ahead, the flow is shared among them: a narrowing part takes over the share it merges with, and takes what no boattail holds as its own; a step down counts as a boattail of no length. The base and each lip add the boattails' shares. So a part narrowing by nothing drags as a tube, a part of no length as a step, and a small change in any radius or length changes the drag a little.
 
 Why each piece is there:
@@ -4136,7 +4136,7 @@ share ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a
 +41.0%. Each change takes about half of the old excess off. From Mach 3.96 both models are within
 15%. From Mach 1.5 to 2.96 HPR Sim still reads 16% to 41% high. The columns are HPR Sim's body
 model before [M1.8e6](../decisions-and-roadmap.md#m1-8e6), each change alone, and both. The last
-column is the current model's slope at $\alpha \to 0$, which leaves body lift out. Slopes on the
+column is the current model's slope at $\alpha \to 0$, which leaves body lift out. Slopes per radian on the
 body's cross-section; the measured line's standard error takes each reading's accuracy as
 independent.
 

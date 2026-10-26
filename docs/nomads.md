@@ -31,8 +31,8 @@ of model is on [Launch-day weather](weather.md), and a weather balloon's measure
 > - HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
 >   center's reference decoder, gives. All 6,123 agree within 2.2e-16, relatively ([how it is
 >   checked](#how-it-is-checked)).
-> - A whole GFS file reads too ([A whole GFS file](#a-whole-gfs-file)): all 746,770,303
->   values of one are within 4.4e-16 of ecCodes', checked once outside CI.
+> - A whole GFS file reads ([A whole GFS file](#a-whole-gfs-file)): all 746,770,303
+>   values of one are within 4.4e-16, relatively, of ecCodes', checked once outside CI.
 > - Four public RAP fields packed as JPEG 2000 images match ecCodes in CI
 >   ([Files in JPEG 2000](#files-in-jpeg-2000)). No whole RAP file has been tried.
 > - How good a forecast is depends on the model, and nothing here measures that. No forecast has
@@ -40,7 +40,7 @@ of model is on [Launch-day weather](weather.md), and a weather balloon's measure
 
 The 2.2e-16 is one rounding in the last binary digit. The profile gives back those values,
 interpolated to the site, at every level it keeps. CI checks
-eight messages of the whole GFS file, and 182,443 points of the four RAP fields. The whole GFS
+eight messages of the whole GFS file, and 182,443 points of the four RAP fields, packed as JPEG 2000 images as in RAP's whole files. The whole GFS
 file's profile at Spaceport America is the recorded cut's to 1.04e-7, by a test skipped in CI,
 since CI doesn't have the file. The tests replay two recorded answers. The live connection to
 NOMADS isn't tested in CI.

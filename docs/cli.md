@@ -28,24 +28,25 @@ Its other commands are registered but not available yet. Each refuses and names 
 >
 > - `hpr sim` prints what the library computes. A
 >   [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
->   flies the rocket of [the example below](#flying-a-design) through both and gets identical
->   numbers, to the last bit. [Accuracy](accuracy.md) says how close those are to a real flight.
-> - Its landing speed is within 0.12% of OpenRocket's on all 53 example flights
+>   flies the rocket of [the example below](#flying-a-design) through both, with identical
+>   numbers to the last bit. [Accuracy](accuracy.md) says how close those are to a real flight.
+> - On a `.ork` file's parachutes and streamers, `hpr sim`'s landing speed is within 0.12% of
+>   OpenRocket's on all 53 example flights
 >   ([Recovery](physics/recovery.md#from-an-openrocket-file)). A dropped stage's flight is not validated
 >   ([evidence row G13](evidence.md#g13); [what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
 > - `hpr motors show` matches ThrustCurve.org's statistics code to 1.8e-15, relative, on all 32
 >   bundled curves ([Solid motors](physics/motor.md#validation)).
 > - OpenRocket 24.12 reads 29 of the 32 bundled motors, converted by `hpr convert`, as it reads the
->   originals ([other programs](#what-a-conversion-keeps)).
-> - `hpr` doesn't re-run the validation cases: run `cargo xtask validate --check`
->   ([what it checks](accuracy.md#the-census)).
+>   originals; whether RockSim opens them is not checked ([other programs](#what-a-conversion-keeps)).
 
-The tests in
+`hpr motors show` works out each figure with the code a flight uses. `hpr` doesn't re-run the
+validation cases. To run the project's automated check, clone the repository and run
+`cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
 [`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
 run every command as a user would, and check each `--json` document against its
 [published schema](#json-output). `hpr weather` and `hpr motors search` carry their own notes on
 how far to trust them ([weather](#hpr-weather), [stock](#motors-you-can-buy)). `hpr sim` flies a
-[separation](glossary.md#separation) under power.
+[separation](glossary.md#separation) under power, or several in turn.
 
 ## Running it
 
@@ -1401,7 +1402,8 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 
 > **How far to trust it.** `hpr motors search` gives back the site's values unchanged. It reads
 > the list with the same checks the library makes on every answer from the site
-> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)).
+> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). Offline tests check its
+> lists against recordings.
 >
 > Fetching online isn't tested automatically. Whether a vendor really has a motor at that price is
 > the vendor's to say. A list fetched now, or read from a copy under an hour old, can be up to two
@@ -1971,6 +1973,7 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 
 > **How far to trust it.** `hpr weather` runs each source's reader from the library and adds no
 > physics of its own. Each reader is checked against the recorded answers on its source's page.
+> Offline tests run the sources through `hpr weather` from saved answers.
 >
 > Each run writes the profile the library builds from the same bytes, to the last bit, and lists
 > the same levels left out. Fetching online isn't tested automatically. It was run once by hand, on

@@ -21,10 +21,10 @@ forecast ([Launch-day weather](weather.md), [NOAA forecasts: GFS and RAP](nomads
 >   three recorded soundings, below.
 > - The measurement holds only at its station and time. The nearest station can be
 >   100 km (62 mi) or more from a launch site. Santa Teresa, below, is about 130 km (81 mi) from
->   Spaceport America. The balloon goes up hours before or after the flight.
+>   Spaceport America. The balloon goes up hours before or after the flight; nothing here measures that effect.
 > - The tests replay recorded answers. The live connection to the archive isn't tested in CI.
 
-More on what the checks catch and miss:
+What the checks catch and miss:
 
 - Each row's height is checked against the row before it. That catches a gross error in a
   pressure or height (57 hPa recorded for 557). More than 10 bad rows in a row refuse the

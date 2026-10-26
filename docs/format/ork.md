@@ -29,7 +29,7 @@ corpus. A Rust program reads a file with `hpr_io::ork`. From a terminal,
 can't fly as written, such as a payload that would coast with no drag after its split.
 
 > **How far to trust it.** The design is read from the file, and its flight is simulated; each is
-> checked below. The airframe's key geometry matches OpenRocket's for all 1,171 numbers over 71
+> checked below. The airframe's key geometry is within the survey's 1-in-$10^9$ tolerance of OpenRocket's for all 1,171 numbers over 71
 > designs. With the file's own curves and HPR Sim's small bundled catalog, 4 of the 170 motor
 > configurations fly, and 145 with OpenRocket's motor database. HPR Sim lands within 0.12% of
 > OpenRocket's landing speed on all 53 example flights. One private flight is far off, the
@@ -76,7 +76,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
   separation can only come after apogee as one stack, with a note.
 - **Whole flights are compared with OpenRocket's on its own examples.** Both programs fly 53
   configurations of OpenRocket's examples to the end. On 41 of them the stability margin off the
-  rod agrees within 0.016 calibers. On the *Tube fin rocket* it is 1.08 calibers below
+  rod agrees within 0.016 calibers, taken with the air along the rocket's axis as OpenRocket's is. On the *Tube fin rocket* it is 1.08 calibers below
   OpenRocket's ([tube fins](../physics/aero.md#tube-fins)), on the three-stage example's three
   configurations 0.039 to 0.058 below, and on the five flights of *Pods-\-airframes and winglets*
   0.071 to 0.076 above, the flattering side
@@ -84,7 +84,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
   [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). Where nothing named
   explains a difference, HPR Sim's apogee is from 4.34% low to 1.95% high. Eight apogees are more
   than 5% off, each with a named cause. The eighth, 37.93% low, is a pod example's sustainer that
-  OpenRocket aborts, so HPR Sim's is compared at two points up to the abort, weaker evidence than
+  turns over before apogee in both programs. OpenRocket aborts it, so HPR Sim's is compared at two points up to the abort, weaker evidence than
   an apogee. At OpenRocket's last row, 1.81 s, its height is 1.18% below OpenRocket's and its speed
   4.02% above ([flights OpenRocket aborted](#flights-openrocket-aborted)). The rest is in
   [HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets).

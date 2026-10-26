@@ -19,7 +19,7 @@ run. `cargo xtask voice` fails a stock phrase and counts the voice section's pat
 its limits. `cargo xtask guides` reads every number in a guide's text from a committed report.
 `cargo xtask site` counts each page's sheets and fails one outside two to six. It also fails a
 trust note or an alert off its shape, a hyphen for a minus sign, a column of numbers not
-right-aligned or without a label and a unit in its head, and a note or table cell over 120 words.
+right-aligned or without a label and a unit, and a note or table cell over 120 words.
 
 ## The rules
 
@@ -424,11 +424,12 @@ They don't conflict with the rules above; they add these:
   the head (`time (s)`, `CP, calibers aft of the tip`, `%`) or beside every value in the column.
   A column of whole numbers counts what its label names (`Flights`). A pure number names its kind
   in the head (`drag coefficient`, `pressure ratio`, `Reynolds number`). A table whose heads are
-  values (`| Mach | 1.5 | 2 |`) is turned, so the values become a column.
+  values (`| Mach | 1.5 | 2 |`) fails, so turn it: the values become a column.
 - **Short notes and cells** (since [M0.9f2](decisions-and-roadmap.md#m0-9f2)). `cargo xtask site`
   fails a note (a whole quote block) or a table cell over 120 words, code and link text counted,
   on the site and in both READMEs. A note says what the reader must know first, and a cell holds
   a value or a phrase. The rest goes in the page's own text, below the note or under the table.
+  A table or a quote block written in raw HTML fails too, as the checks read only Markdown's.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
   block that opens with `**How far to trust it.**`. Then it says what kind of figure it is
   (estimate, measurement, copied value) and what it was checked against, with numbers. Last, it

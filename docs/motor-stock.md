@@ -23,11 +23,11 @@ the library, as below.
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
 > unchanged, and the saved copy does offline. That's checked on recorded answers, below.
 > There are eight from motor.fusionspace.co and two curve files from ThrustCurve.org, beside three
-> stand-in searches in ThrustCurve.org's shape, because it grants no license for its motor
-> records ([evidence row G23](evidence.md#g23); [its terms](#thrustcurveorg)).
+> stand-in searches in ThrustCurve.org's shape, because ThrustCurve.org grants no license for its
+> motor records ([evidence row G23](evidence.md#g23); [its terms](#thrustcurveorg)).
 >
 > Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
-> up to an hour old when built. The simulator counts its saved copy as fresh for
+> up to about an hour old when built. It counts its saved copy as fresh for
 > another hour, so a fresh answer can be two hours behind the vendor's page. A stale copy is as old
 > as its date says.
 

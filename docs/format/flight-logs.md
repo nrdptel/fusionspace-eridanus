@@ -2612,7 +2612,7 @@ flown beside it. [The survey](#how-it-was-checked) reports that figure but doesn
   that about once in 15,000. Third, the words equal the exports' figures, field by field.
 - *The words.* Each record is one fix:
 
-  | Word number | Field | Read as |
+  | Word number (from 0) | Field | Read as |
   |---:|---|---|
   | 0, 1 | the time, `HHMMSS` | word 1 × 65,536 + word 0 |
   | 2 | the latitude's degrees and whole minutes, `DDMM` | |
@@ -2868,14 +2868,13 @@ the AIM's counts into SI. The sensors' data sheets and the calibration the file 
 AltOS's and the ARTS2's. A count with no source stays as written.
 
 > **How far to trust it.** These are the logger's own readings, decoded from layouts no maker
-> publishes. Each is checked sample by sample against the maker's export, if one is beside it.
+> publishes. Each is checked against the maker's export, where one sits beside it.
 >
-> - **Raven `.FIPa`:** 55 of the 57 sample files, and all 55 agree.
+> - **Raven `.FIPa`:** 55 of the 57 sample files; every sample of every shared channel agrees.
 > - **RRC3 `.rff`:** 1 of the 6, and its 3,541 pressures agree to the step.
-> - **AltOS `.eeprom`:** 9 of the 14 agree; 1 more agrees with radio telemetry; 4 have nothing
->   beside them.
-> - **ARTS2 `.odf`:** all 3 agree. The rate rests on the export and a climb check.
-> - **AltiMAX `.ALS`:** the one file agrees, once two rules fitted to it are applied.
+> - **AltOS `.eeprom`:** 9 of the 14 agree within half its print step; 1 more, with telemetry; 4 have neither.
+> - **ARTS2 `.odf`:** all 3 agree; the rate rests on the export and a climb check.
+> - **AltiMAX `.ALS`:** the one file agrees, some values once two rules fitted to it are applied.
 > - **AIM raw dump and `.xtra`:** 435,075 values are equal bit for bit.
 
 Not compared: the exports' altitudes (but the order of the ARTS2's), flags and the velocities they
@@ -2888,7 +2887,8 @@ RRC3's pairs and single words have no calibration to check. The sections have th
   reference is the sensor's supply, which no document states. The TeleMega v4's IMU isn't read.
 - [The ARTS2's raw data](#the-arts2s-raw-data): the exports' acceleration agrees within 0.080 of a
   count on every record after the first. The raw CSVs hold the same 48,614 records word for word.
-- [The AltiMAX's `.ALS`](#the-altimaxs-als): the two rules are shown consistent with the one file,
+- [The AltiMAX's `.ALS`](#the-altimaxs-als): pressures, event codes and voltage numbers equal the
+  export's bit for bit; the rest match to 15 digits once the two rules are applied. The rules are shown consistent with the one file,
   not to hold for every file. The voltages' factors and the speed after apogee are the software's,
   not the file's.
 - [The AIM's `.xtra` and raw dump](#the-aims-xtra-and-raw-dump): the dump's times run slow against
@@ -3430,7 +3430,7 @@ this file:
 | The clock, 5 ms or 25 ms a record summed in 64-bit floats | 25,334 | every one equal |
 | The speed before apogee, the counts summed from liftoff | 8,373 | every one equal |
 | The events | 21 | the same names, in the same order |
-| Each height, filtered and raw, against the standard atmosphere from the zero pressure | 50,668 | within 8.7 mm (0.34 in); the check allows 41.9 mm (1.65 in), the height of half a pascal at the zero pressure |
+| Each height, filtered (25,334) and raw (25,334), against the standard atmosphere from the zero pressure | 50,668 | within 8.7 mm (0.34 in); the check allows 41.9 mm (1.65 in), the height of half a pascal at the zero pressure |
 
 The [survey's report](#how-it-was-checked) prints these under the files' anonymized ids.
 
