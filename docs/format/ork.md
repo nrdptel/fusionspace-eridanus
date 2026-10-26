@@ -105,7 +105,9 @@ can't fly as written, such as a payload that would coast with no drag after its 
   ([what HPR Sim keeps](#what-the-simulator-keeps-for-writing-the-file-back)).
 - **Some parts are left out.** A part HPR Sim cannot give an honest shape, such as a launch lug on a
   nose cone, is left out. Each one is named in a warning rather than guessed at
-  ([what is left out, and why](#what-is-left-out-and-why)). None in the reference library is.
+  ([what is left out, and why](#what-is-left-out-and-why)). None in the reference library is. The
+  warning says what the part carried and which way the numbers lean without it
+  ([what a part left out does to the numbers](#what-a-part-left-out-does-to-the-numbers)).
 - **Fins on a nose cone or a transition are read with their root along its surface**
   ([Fins on a nose cone or a transition](#fins-on-a-nose-cone-or-a-transition)).
 - **Tube fins are read, weighed and flown**, each tube as a ring wing
@@ -358,7 +360,7 @@ departs from [F] but leaves the file readable is a warning that travels with the
 
 | kind | means | raised for |
 |---|---|---|
-| `Skipped` | a whole part was left out | a **component** this reader cannot give an honest shape ([below](#what-is-left-out-and-why)); an **attachment** entry that could not be decompressed, or one that would pass the unpacking limit; a damaged *design* entry is an error, not a warning |
+| `Skipped` | a whole part was left out | a **component** this reader cannot give an honest shape ([below](#what-is-left-out-and-why)), its warning saying [what that does to the numbers](#what-a-part-left-out-does-to-the-numbers); an **attachment** entry that could not be decompressed, or one that would pass the unpacking limit; a damaged *design* entry is an error, not a warning |
 | `Dropped` | a value was left out | a comment or processing instruction; an XML namespace; a tag whose text is not the number, count or flag it should be; two names for one value that disagree; a dimension the file does not give, read as zero |
 | `Unusual` | read as it stands | a schema version past 1.11; no `creator` attribute; a design entry not called `rocket.ork`; a surface finish or an axial-offset method this reader has no rule for; an automatic radius with nothing to take, given OpenRocket's 25 mm (0.98 in) default; a part inside an inner tube set off the body's axis, placed from the body's axis ([below](#clusters)); a `<rocket>` holding nothing |
 
@@ -782,10 +784,10 @@ assert!(placed.own.mass_kg > 0.0);
 how much was lost (`Skipped`, `Dropped` or `Unusual`). It also holds a sentence saying what was
 read and how, and for a part left out, what that does to the numbers. For example: "a launch lug
 sits on a nose cone, and HPR Sim attaches one only to a body tube; it was left out. Its mass and
-drag aren't counted, so both read low" ([what a part left out does to the
-numbers](#what-a-part-left-out-does-to-the-numbers)). Read them. A design that opens cleanly raises none. The 73 readable
-files of the reference library raise 10 between them, and this page explains every one
-([what the 10 warnings are](#what-the-warnings-are)).
+drag aren't counted, so the mass and drag read low" ([what a part left out does to the
+numbers](#what-a-part-left-out-does-to-the-numbers)). Read them. A design that opens cleanly
+raises none. The 73 readable files of the reference library raise 10 between them, and this page
+explains every one ([what the 10 warnings are](#what-the-warnings-are)).
 
 | `.ork` tag | read as | notes |
 | --- | --- | --- |
@@ -1377,27 +1379,31 @@ that radius out ([Tube fins sized from the body](#tube-fins-sized-from-the-body)
 
 ##### What a part left out does to the numbers
 
-Each warning that leaves a part out says what the part no longer adds, and which way the rocket's
-numbers lean without it. The leans compare the rocket as read with the same rocket with the part.
-`hpr sim` flies none of the file's configurations once a part is left out
-([which configurations fly](#motors-and-their-configurations)). So the leans matter where the
-rocket is still used: the library, the Python package, and a design `hpr convert` writes.
+Each warning gives a direction, not a size. The directions follow from the physics below, and are
+tested on invented designs, not on real ones. A warning that leaves a part out says what the part
+and the parts inside it carried. Then it says which way the rocket's numbers lean without them,
+against the same rocket with them. `hpr sim` flies none of the file's configurations once a part is
+left out ([which configurations fly](#motors-and-their-configurations)). So the leans matter where
+the rocket is still used: the library, the Python package, and a design `hpr convert` writes.
 
-| the part left out | what isn't counted | which way the numbers lean |
+What a part carried is made up over the part and everything inside it, so nothing one of them
+carried is lost. A pod set holding a parachute says both its lift and its canopy:
+
+| carried | by | which way the numbers lean without it |
 | --- | --- | --- |
-| a fin set, a tube fin set, a pod set or a parallel stage | its mass, drag and lift | the mass and the drag read low; the stability margin can read high or low |
-| a launch lug or a rail button | its mass and drag | both read low |
-| a parachute or a streamer | its mass, and its drag under canopy | the mass reads low and the descent rate high; the margin moves as for a part inside |
-| a tube, coupler, engine block, ring, bulkhead, mass component, shock cord or fin tab inside the body | its mass | the mass reads low; the margin reads high if the part sat aft of the center of gravity, low if ahead |
-| a tag HPR Sim doesn't read | whatever it carries | the mass and the drag can read low, and the margin high or low |
+| mass | every part but a pod set or a parallel stage, whose parts carry it | the mass reads low |
+| drag | a nose cone, body tube, transition, fin set, tube fin set, launch lug or rail button | the drag reads low |
+| lift | a nose cone, body tube, transition, fin set or tube fin set | the stability margin can read high or low |
+| mass, and no lift | a launch lug, a rail button, a parachute, a streamer, or a part inside the body: a tube, coupler, engine block, ring, bulkhead, mass component, shock cord or fin tab | the stability margin reads high for a part aft of the center of gravity, low for one ahead |
+| drag under canopy | a parachute or a streamer | the descent rate reads high if it opens in flight, low if it doesn't |
 
-The parts inside a part left out go with it, and the warning names the most any of them counts for.
-A part's mass and drag are never negative, so without it both read low. The exception is a part
-above it that overrides the mass of everything it holds: the mass then stays as the override sets
-it.
+A tag HPR Sim doesn't read may carry any of them. Its warning says "any mass, drag or lift it
+carries" isn't counted, and that the mass and the drag can read low.
 
-Taking a mass $m$ at station $x_p$ from a rocket of mass $M$ moves the center of gravity away from
-where the part sat:
+A part's mass and drag are never negative, so without them both read low. A canopy that opens sets
+the descent rate, so without it the rocket falls faster. One that never opens carried only mass,
+and a lighter rocket falls slower. Take away a part of mass $m$ at station $x_p$, with $M$ the
+rocket's mass with the part. The center of gravity moves away from where the part sat:
 
 $$
 x_{\mathrm{CG}}' - x_{\mathrm{CG}} = \frac{m\,(x_{\mathrm{CG}} - x_p)}{M - m}
@@ -1412,12 +1418,31 @@ calibers high.
 A part with lift moves the center of pressure too. Light fins at the aft end then read the margin
 low, and the same fins at the front read it high. Heavy fins at the aft end can read it high as
 well: their mass moves the center of gravity further than their lift moves the center of pressure.
-The tests in `crates/hpr/src/tests/left_out.rs` read one made-up design with each kind of part,
-then with it left out, and check each lean and the warning's words.
 
-Two warnings lean no way. A part written as none of itself, such as a fin set of none, has nothing
-to count, and its warning says no number depends on it. An override on a pod set that holds
-nothing is left out, and the pod set's own figures are used: no mass and no drag.
+A warning gives no direction for a number that something else in the rocket changes with the part:
+
+- **An override above it.** OpenRocket can set the mass, center of gravity or drag of a part and
+  everything inside it. A number set that way stays as the override sets it. The warning says so:
+  "The mass and center of gravity stay as the body tube's override sets them". An override that
+  sets the mass but not the center of gravity, or the other way round, leaves the margin free to
+  move either way.
+- **A part sized or placed from it.** A centering ring with an automatic bore takes it from the
+  inner tube beside it. Without the tube, the ring closes to a solid disc. A part placed after it
+  moves forward. In the tests' invented design, a 100 mm (3.9 in) tube sits aft of the center of
+  gravity between two such rings. Without it the rocket weighs 89.6 g (3.16 oz) instead of 87.7 g
+  (3.09 oz), and the margin reads 5.38 calibers instead of 5.48. That's low, where a tube alone
+  aft of the center of gravity reads it high. So the warning says "The mass and stability margin
+  can read high or low, as parts sized from it change too".
+
+The tests in
+[`crates/hpr/src/tests/left_out.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests/left_out.rs)
+read one invented design with each kind of part, then with it left out. They check each lean and
+the warning's words.
+
+Some warnings give no lean at all. A part written as none of itself, such as a fin set of none, has
+nothing to count. Neither has an empty pod set. Their warnings say no number depends on them. An
+override on a pod set that holds nothing is left out, and the pod set's own figures are used: no
+mass and no drag.
 
 ##### Fins on a nose cone or a transition
 

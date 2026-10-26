@@ -160,9 +160,9 @@ What real files do, and what the reader and writer do with each case.
    repository), 11 end above zero, at 10.5% of the peak at most
    ([a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/tests/reference_curves.rs) counts them). A lower cut, or one inside a number,
    reads, with a warning unless it leaves a 0. Warnings, on the header's line: a lower last thrust $\ne 0$, negative
-   thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
+   thrust, and delay pieces the delay reader leaves out or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
-7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and drops empty pieces,
+7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,` and leaves out empty pieces,
    with a warning. It maps `P`/`p` → plugged and `100`/`1000` → plugged. It reads `0` as its own
    "zero or plugged" setting, with a warning (spec: no delay; files: usually plugged). It reads
    other pieces as seconds. A `0` never becomes an ejection at burnout without a decision: a motor
