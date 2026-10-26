@@ -13,8 +13,8 @@
 //! OpenRocket's. A motor with no match is listed with why.
 //!
 //! [`TABLE`] holds ids, names and that difference only, no curve, as ADR-161 §3 set; `hpr sim`
-//! fetches the file itself by its id (§4). OpenRocket's database states no terms (ADR-067), so none of
-//! its curves is copied. ThrustCurve grants no license for its records and reserves copyright;
+//! fetches the file itself by its id (§4). OpenRocket's database states no terms (ADR-067), so
+//! none of its curves is copied. ThrustCurve grants no license for its records and reserves copyright;
 //! ADR-287 has since let the project use them as published facts, but the table needs none. The
 //! examples are public, so no private design's motor is named.
 

@@ -3,8 +3,8 @@
 //! file), and stand-in searches in the API's shape with invented records but F27R/L's own id
 //! (ADR-145). ThrustCurve.org grants no license for its records and reserves copyright; ADR-287
 //! has since let the project commit them as published facts, and #885 is to replay real ones,
-//! keeping an invented record only where it tests a shape the real ones lack. F27R/L's RASP answer is a stand-in holding no file, so
-//! the search falls through to the RockSim one.
+//! keeping an invented record only where it tests a shape the real ones lack. F27R/L's RASP
+//! answer is a stand-in holding no file, so the search falls through to the RockSim one.
 
 #![allow(
     clippy::disallowed_methods,
