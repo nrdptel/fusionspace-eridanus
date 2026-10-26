@@ -70,3 +70,13 @@ pub(crate) fn check_writable(
         Err(MotorError::Domain { what, value })
     }
 }
+
+/// What follows something a motor file's reader or converter left out that no number HPR Sim
+/// works out depends on: an attribute or element it doesn't read, a flag it doesn't use, a
+/// delay a file lists (a file's delays are never flown: a flight's delay is chosen), a column it
+/// works out itself (#952). The `.ork` reader says the same in the same words.
+pub(crate) const NOTHING_DEPENDS: &str = "no number HPR Sim works out depends on it";
+
+/// What follows a motor entry left out: none of its numbers are read, so a program that wanted
+/// that motor finds no curve for it here (#952).
+pub(crate) const NO_CURVE: &str = "this file gives no curve for its motor";

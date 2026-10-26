@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use crate::curve::{ThrustCurve, cut_off};
 use crate::delay::DelayList;
 use crate::error::MotorError;
-use crate::text::{ParseWarning, Parsed, WarningKind, check_writable, finite};
+use crate::text::{NO_CURVE, ParseWarning, Parsed, WarningKind, check_writable, finite};
 
 const FORMAT: &str = ".eng";
 
@@ -188,7 +188,7 @@ pub fn parse(text: &str) -> Result<Parsed<EngFile>, MotorError> {
         warnings.push(ParseWarning::new(
             line,
             WarningKind::Skipped,
-            format!("entry skipped: {error}"),
+            format!("an entry was left out, so {NO_CURVE}: {error}"),
         ));
     }
     warnings.sort_by_key(|warning| warning.line);
@@ -580,7 +580,7 @@ C6 18 70 0-3-5-7 .0108 0.0231 E
         let skipped: Vec<usize> = parsed
             .warnings
             .iter()
-            .filter(|w| w.message.starts_with("entry skipped"))
+            .filter(|w| w.message.starts_with("an entry was left out"))
             .map(|w| w.line)
             .collect();
         assert_eq!(skipped, [4, 11]);
