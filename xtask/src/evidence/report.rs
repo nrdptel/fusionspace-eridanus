@@ -51,7 +51,10 @@ pub(crate) fn region(
     out.push_str(
         "**By kind.** Each surface's rows, counted by the kind of evidence behind them now:\n\n",
     );
-    let heads: Vec<String> = kinds.iter().map(|kind| capitalized(kind.words())).collect();
+    // Each head is a label and what it counts (data.md, *Tables*).
+    let heads: Vec<String> = (kinds.iter())
+        .map(|kind| format!("{} · rows", capitalized(kind.words())))
+        .collect();
     let _ = writeln!(out, "| Surface | {} | Rows |", heads.join(" | "));
     let _ = writeln!(out, "|---|{}---:|", "---:|".repeat(kinds.len()));
     let line = |label: &str, of: &dyn Fn(&Row) -> bool| {

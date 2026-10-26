@@ -672,7 +672,7 @@ log, on a track in one-foot steps sampled 20 times a second. Its filtered track 
 2.30 m (7.6 ft) of its start for 0.80 s. That is longer than the 0.69 s a rocket at rest would need to
 climb the 4.61 m (15.1 ft) rise at 2 g. So the pad's error is zero. The bound adds up so:
 
-| term | worked out | meters |
+| term | worked out, in m, m/s or s | bound term, m |
 |---|---:|---:|
 | the day's air | 0.06924 × 390.144 m | 27.01 |
 | the barometer's gain | 0.0025 × 390.144 m | 0.98 |
@@ -838,7 +838,7 @@ above the truth. The largest share of its bound any error took, from the
 [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#readings-within-their-bounds)
 and its JSON:
 
-| reading | largest share of the bound | on the log | its error, against its bound |
+| reading | largest share (of the bound) | on the log | its error, against its bound |
 |---|---:|---|---|
 | liftoff | 0.603 | 500 samples a second, heights with no step | 0.387 s within 0.643 s |
 | apogee height | 0.717 | 20 samples a second, heights with no step | −149 m (−489 ft) within 208 m (682 ft) |
@@ -864,7 +864,7 @@ top speed or a top acceleration that clipped or whose thrust has no end on the c
 the mean bound are to three figures, nearest. A mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 
-| reading | given | mean error | least | most | mean bound |
+| reading | given readings | mean error | least | most | mean bound |
 |---|---:|---:|---:|---:|---:|
 | flight time | 6,985 | −0.74 s | −5.06 s | 3.15 s | 5.81 s |
 | top acceleration | 290 | 0.6 m/s² | −13.6 m/s² | 13 m/s² | 16.3 m/s² |

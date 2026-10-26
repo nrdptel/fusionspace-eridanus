@@ -253,7 +253,7 @@ $$
 (0.98 ft/s). Replaying Table 3.3 through the simulator's reading of the model
 (`the_tumble_model_against_its_own_drop_tests`) gives:
 
-| model | fins | measured | HPR Sim |
+| model | fins | measured | HPR Sim, m/s |
 |---|---|--:|--:|
 | #1 | 3 | 5.6 m/s (18 ft/s) | 5.27 (−5.8%) |
 | #2 | 4 | 6.3 m/s (21 ft/s) | 5.96 (−5.4%) |

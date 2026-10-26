@@ -17,8 +17,10 @@
 //!   note, a whole quote block (which the site draws as a note), or a table cell over
 //!   [`MOST_WORDS`] words as it renders, code and link text included. A note says what the reader
 //!   must know first; a cell holds a value or a phrase. What runs longer belongs in the page's
-//!   own text, below the note or under the table. A table or a quote block written in raw HTML
-//!   fails too: the checks read only Markdown's, so one in HTML would pass them unread.
+//!   own text, below the note or under the table. The text of HTML inside a note or a cell
+//!   counts. A table or a quote block written in raw HTML fails: the checks read only
+//!   Markdown's, so one in HTML would pass them unread. A footnote is neither a note nor a cell,
+//!   and isn't read.
 
 use pulldown_cmark::Options;
 
@@ -110,7 +112,7 @@ pub(super) fn long_blocks(text: &str, renderer: Renderer) -> Vec<(usize, String)
                 }
             }
             Event::Html(html) | Event::InlineHtml(html) => {
-                let html = html.to_ascii_lowercase();
+                let html = without_comments(html).to_ascii_lowercase();
                 for tag in ["<table", "<blockquote"] {
                     if html.contains(tag) {
                         problems.push((
@@ -135,7 +137,11 @@ pub(super) fn long_blocks(text: &str, renderer: Renderer) -> Vec<(usize, String)
             Event::Text(words)
             | Event::Code(words)
             | Event::InlineMath(words)
-            | Event::DisplayMath(words) => Some(words.as_ref()),
+            | Event::DisplayMath(words) => Some(words.to_string()),
+            // HTML's text shows on the page; its tags and comments part words.
+            Event::Html(html) | Event::InlineHtml(html) => {
+                Some(format!(" {} ", without_tags(&without_comments(html))))
+            }
             Event::Start(
                 Tag::Emphasis
                 | Tag::Strong
@@ -154,11 +160,11 @@ pub(super) fn long_blocks(text: &str, renderer: Renderer) -> Vec<(usize, String)
                 | TagEnd::Superscript
                 | TagEnd::Subscript,
             ) => None,
-            _ => Some(" "),
+            _ => Some(" ".to_owned()),
         };
         if let Some(piece) = piece {
             for open in [&mut note, &mut cell].into_iter().flatten() {
-                open.1.push_str(piece);
+                open.1.push_str(&piece);
             }
         }
         if let Some((at, words, what)) = ends {
@@ -176,6 +182,39 @@ pub(super) fn long_blocks(text: &str, renderer: Renderer) -> Vec<(usize, String)
         }
     }
     problems
+}
+
+/// `html` with each comment, `<!-- … -->`, a space; an unclosed one runs to the end.
+fn without_comments(html: &str) -> String {
+    let mut out = String::new();
+    let mut rest = html;
+    while let Some(at) = rest.find("<!--") {
+        out.push_str(&rest[..at]);
+        out.push(' ');
+        rest = rest[at..]
+            .find("-->")
+            .map_or("", |end| &rest[at + end + 3..]);
+    }
+    out.push_str(rest);
+    out
+}
+
+/// `html` with each tag, `<…>`, a space.
+fn without_tags(html: &str) -> String {
+    let mut out = String::new();
+    let mut in_tag = false;
+    for c in html.chars() {
+        match c {
+            '<' => in_tag = true,
+            '>' if in_tag => {
+                in_tag = false;
+                out.push(' ');
+            }
+            _ if !in_tag => out.push(c),
+            _ => {}
+        }
+    }
+    out
 }
 
 /// The words in `text`: each run of characters between spaces that holds a letter or a digit.
@@ -341,5 +380,15 @@ mod tests {
             assert!(problems[0].1.contains("in raw HTML"), "{problems:?}");
         }
         assert!(long("<span>a</span> <br> <!-- note -->\n").is_empty());
+        // A table or a quote block named in a comment isn't one.
+        assert!(long("<!-- a <table> here -->\n").is_empty());
+        assert!(long("Text <!-- <blockquote> --> here.\n").is_empty());
+        // HTML's text inside a note or a cell counts, its tags don't.
+        let many = words(MOST_WORDS + 1);
+        assert_eq!(long(&format!("> <div>\n> {many}\n> </div>\n")).len(), 1);
+        assert_eq!(long(&format!("> <p>{many}</p>\n")).len(), 1);
+        assert_eq!(long(&format!("| A |\n|---|\n| <b>{many}</b> |\n")).len(), 1);
+        let tags = vec!["<br>"; MOST_WORDS + 1].join(" ");
+        assert!(long(&format!("> {tags} word\n")).is_empty());
     }
 }

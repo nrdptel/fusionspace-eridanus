@@ -28,14 +28,14 @@ corpus. A Rust program reads a file with `hpr_io::ork`. From a terminal,
 [`hpr sim`](../cli.md#hpr-sim) flies one, with its parachutes and streamers. It refuses what it
 can't fly as written, such as a payload that would coast with no drag after its split.
 
-> **How far to trust it.** The design is read from the file, and its flight is simulated; each is
-> checked below. The airframe's key geometry is within the survey's 1-in-$10^9$ tolerance of OpenRocket's for all 1,171 numbers over 71
-> designs. With the file's own curves and HPR Sim's small bundled catalog, 4 of the 170 motor
-> configurations fly, and 145 with OpenRocket's motor database. HPR Sim lands within 0.12% of
-> OpenRocket's landing speed on all 53 example flights. One private flight is far off, the
-> supersonic one, at +13.60%. The stability margin on OpenRocket's pod examples reads 0.070 to 0.076
-> calibers above OpenRocket's, the flattering side. A written file reaches its original's apogee
-> in OpenRocket within 0.002%.
+> **How far to trust it.** The airframe's key geometry is within the survey's 1-in-$10^9$ tolerance
+> of OpenRocket's for all 1,171 numbers over 71 designs. With the file's own curves and HPR Sim's small bundled
+> catalog, 4 of the 170 motor configurations fly, and 145 with OpenRocket's motor database. On all
+> 53 of OpenRocket's example flights, HPR Sim lands within 0.12% of OpenRocket's landing speed; 45
+> apogees are within 5% of OpenRocket's, and the other 8 each have a named cause, from −37.93% to
+> +13.80%. One private flight, the supersonic one, is +13.60%. The stability margin on the pod
+> examples reads 0.070 to 0.076 calibers above OpenRocket's, the flattering side. A written file
+> reaches its original's apogee in OpenRocket within 0.002%.
 
 **The details, one claim at a time.**
 
@@ -283,7 +283,7 @@ the number is [a Loft lesson](../decisions-and-roadmap.md#l58): it turned automa
 hand-typed ones the next time the design was saved. **Observed:** 407 automatic dimensions across
 the corpus, on seven tags.
 
-| tag | automatic |
+| tag | Automatic dimensions |
 |---|--:|
 | `outerradius` | 131 |
 | `innerradius` | 80 |
@@ -298,7 +298,7 @@ reader still finds one. Two of those renames are that and nothing more, and HPR 
 name, taking the newer. **Observed:** on every element that carries both, the two agree. They agree
 on the text, and on the `type`/`method` attribute that says what the number is measured from.
 
-| newer | older | elements with both | agree on text | differ on frame |
+| newer | older | elements with both | Elements agreeing on text | Elements differing on frame |
 |---|---|--:|--:|--:|
 | `axialoffset` | `position` | 642 | 642 | 0 |
 | `instancecount` | `fincount` | 109 | 109 | 0 |
@@ -309,7 +309,7 @@ whether they disagree on the number or on where the number is measured from.
 **Three more pairs look the same and are not.** The newer name of each carries a `method`
 attribute (the frame the number is measured in) that the older name never carries:
 
-| newer | older | elements with both | agree on text | differ on frame |
+| newer | older | elements with both | Elements agreeing on text | Elements differing on frame |
 |---|---|--:|--:|--:|
 | `angleoffset` | `rotation` | 95 | 95 | **95** |
 | `angleoffset` | `radialdirection` | 26 | 26 | **26** |
@@ -447,7 +447,7 @@ design that reads but does not lay out. Warnings are not errors, because a warni
 import. The survey counts both kinds of error for each source. On 2026-10-23, excluding generated
 `scratch/` files from the default scan:
 
-| source | files | read | laid out | errors |
+| source | files | Files read | Files laid out | errors |
 |---|--:|--:|--:|---|
 | the private design library (`loft-fixtures`, now copied into the private flight collection) | 27 | 27 | 27 | 0 |
 | the OpenRocket 24.12 jar's examples | 17 | 17 | 17 | 0 |
@@ -565,7 +565,7 @@ for every part, so this cause is checked, not assumed.
 reference library under `refs/` (excluding generated `refs/scratch/`) and the 17 examples inside
 the OpenRocket jar:
 
-| | all designs | each file once |
+| | all designs | Counts, each file once |
 |---|--:|--:|
 | designs compared (files OpenRocket opens) | 71 | 51 |
 | numbers compared | 1,171 | 855 |
@@ -2603,7 +2603,7 @@ OpenRocket's on ordinary hobby rockets.
   is that every apogee more than 5% off has a written cause. Eight apogees are
   more than 5% off, and each has a named cause. Seven are sized in one of two ways:
 
-  | how the cause is sized | flights | within 5% after |
+  | how the cause is sized | flights | Flights within 5% after |
   |---|---:|---:|
   | OpenRocket flies the flight again with its causes taken out ([M2.2e4](../decisions-and-roadmap.md#m2-2e4)) | 6 | 4 |
   | HPR Sim flies the flight again on OpenRocket's own drag ([ADR-097][adr-097]) | 1 | 1 |

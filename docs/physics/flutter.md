@@ -141,7 +141,7 @@ material. The second picks titanium and holds figure 3's ordinate to 0.8 × 10�
 titanium's modulus, "to allow a reasonable margin of safety". It then asks how thick the wing must
 be at each aspect ratio.
 
-| Example | Martin | HPR Sim, from eq. 19 | Difference |
+| Example | Martin | HPR Sim from eq. 19, psi or % | Difference |
 |---|---|--:|--:|
 | $X$ for $A = 2$, 4% thick | "about 1.25 × 10⁶" psi | 1.228 × 10⁶ psi | −1.8% |
 | Titanium at 0.8 × 10⁶ psi, $A = 1$ | 2.5% thick | 2.54% | +1.6% |

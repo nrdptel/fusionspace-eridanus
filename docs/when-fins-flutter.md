@@ -12,13 +12,13 @@ prints.
 
 > **How far to trust it.** Every number written in digits in this guide's text is read by a test
 > from a committed file. The file holds HPR Sim's flutter numbers for the guides' rocket
-> ([report][rocket-report]). They come from D. J. Martin's criterion, written at NACA, NASA's
-> forerunner. HPR Sim reproduces it along with Martin's own worked examples ([Fin flutter][model]).
+> ([report][rocket-report]). They come from D. J. Martin's criterion, which HPR Sim reproduces
+> along with Martin's own worked examples ([Fin flutter][model]).
 >
-> Martin drew his line from missiles and wind-tunnel models. Nothing here checks the criterion
-> against a hobby rocket's fins. The criterion also leaves out the fins' sweep
-> and how they're attached. So its speed is a screening number, not a speed at which a fin is known
-> to fail. No measurement known to this project sizes its error.
+> Martin, at NACA, NASA's forerunner, drew his line from missiles and wind-tunnel models; the
+> unfailed ones flew faster than sound. Nothing here checks the criterion on a hobby rocket's
+> fins. It leaves out their sweep and how they're attached. So its speed is a screening number,
+> not a speed at which a fin is known to fail. No measurement known to this project sizes its error.
 
 The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO)
 decide whether a rocket flies.

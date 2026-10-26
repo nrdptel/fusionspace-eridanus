@@ -13,7 +13,8 @@ slowly they differ, in large part because HPR Sim includes a sideways force on t
 RocketPy leaves out.**
 
 With each code's own drag ([predicted](glossary.md#same-drag-and-predicted-mode)), HPR Sim's heights
-differ from RocketPy's by −7.280% to +10.302% ([report][report]).
+differ from RocketPy's by −7.280% to +10.302% ([report][report]). The larger gaps are where its drag
+differs most from the example's.
 
 **Against the logs of seven real flights, HPR Sim's apogees miss by 6.06% on average, outside the
 5% target ([evidence row G24](evidence.md#g24)). One by one they miss by −8.90% to +10.40%**
@@ -522,7 +523,7 @@ The nine flights are the six, and Juno III, Calisto and Bella Lui again in calm 
 within tolerance. The eleven are measured and reported but not scored, each for a reason in its
 case file (below). Every result of the report, as HPR Sim's difference from RocketPy:
 
-| case | apogee (`apogee_agl_m`) | apogee time (`apogee_time_s`) | flight time (`flight_time_s`) | top speed (`max_speed_m_s`) | top Mach (`max_mach`) |
+| case | apogee, % (`apogee_agl_m`) | apogee time, % (`apogee_time_s`) | flight time, % (`flight_time_s`) | top speed, % (`max_speed_m_s`) | top Mach, % (`max_mach`) |
 |---|--:|--:|--:|--:|--:|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | +0.052% | +0.103% | +0.123% | +0.015% | −0.120% |
 | [`flight-valetudo`][report] | +0.112% | +0.238% | +0.233% | +0.035% | −0.026% |
@@ -693,7 +694,7 @@ moves shows up in review.
 
 Every predicted result of the report, as HPR Sim's difference from RocketPy:
 
-| case | apogee (`apogee_agl_m`) | apogee time (`apogee_time_s`) | flight time (`flight_time_s`) | top speed (`max_speed_m_s`) | top Mach (`max_mach`) |
+| case | apogee, % (`apogee_agl_m`) | apogee time, % (`apogee_time_s`) | flight time, % (`flight_time_s`) | top speed, % (`max_speed_m_s`) | top Mach, % (`max_mach`) |
 |---|--:|--:|--:|--:|--:|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.609% | −0.567% | −0.288% | +0.363% | +0.232% |
 | [`predicted-valetudo`][report] | +10.113% | +6.179% | +8.916% | +2.292% | +2.237% |
@@ -979,7 +980,7 @@ figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 | [left out: the rocket tumbled through its climb][fixture-report] | 1 |
 | [compared with the log][fixture-report] | 53 |
 
-| [over 53 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
+| [over 53 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
 | [HPR Sim][fixture-report] | +8.73% | +9.47% | 12.95% | 9 | 26 |
 | [OpenRocket 24.12][fixture-report] | +7.79% | +6.82% | 12.02% | 9 | 25 |
@@ -1022,7 +1023,7 @@ points, more than the whole move. Leaving out the rebuild raises it by 0.19
 The catalog proposes 15 flights below tier A ([decision][adr-238]). Over the 44 compared flights it
 keeps in tier A ([report][fixture-report]):
 
-| [over 44 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
+| [over 44 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
 | [HPR Sim][fixture-report] | +7.84% | +7.60% | 12.13% | 8 | 23 |
 | [OpenRocket 24.12][fixture-report] | +6.99% | +6.34% | 11.28% | 8 | 22 |

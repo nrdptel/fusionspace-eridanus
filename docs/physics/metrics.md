@@ -366,7 +366,7 @@ A worked case, with no fins, pinned by a test:
   34.66 mm (1.4 in) or more.
 - The center of mass is at 0.5 m (1.6 ft).
 
-| Boattail's aft radius | Net slope, per rad | $\kappa$ ratio | Margin | $C_{m\alpha}$, per rad |
+| Boattail's aft radius | Net slope, per rad | $\kappa$ ratio | Margin | Pitch-moment slope $C_{m\alpha}$, per rad |
 |--:|--:|--:|---|--:|
 | 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
 | 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |

@@ -386,16 +386,16 @@ used Galejs's constant, $C_N = K (A_{\mathrm{plan}}/A_{\mathrm{ref}}) \sin^2\alp
 
 
 > **How far to trust it.** It is Jorgensen's method ([J77]) with HPR Sim's own way of combining
-> two of his figures. Against NASA's Arcas Robin body alone, the wind tunnel plotted 62
-> angles from 5.5° to 21.7°, from Mach 1.5 to 4.63. HPR Sim's normal force with body
-> lift is within 15% at 48 (34 with Galejs's constant); faster than sound it reads 1% to 16%
-> high. Below Mach 1 the only check is that body's slope fitted from −4° to +4°; at Mach 0.6
-> it reads 25% high. No real flight checks it: the [real flights](../accuracy.md#real-flights) compare
-> heights, not drift, so far. So whether it beats Galejs's constant for a slow rocket leaving the rail in wind
-> is open.
+> two of his figures. Against NASA's Arcas Robin body alone, the tunnel plotted 62 angles. HPR Sim's
+> normal force with body lift is within 15% at 48; where the air crosses the body faster than sound
+> (crossflow Mach 0.95 and over) it reads 1% to 16% high. Below Mach 1 the only check is that body's
+> slope; at Mach 0.6 it reads 25% high, against readings the tunnel determines poorly. No real flight
+> checks it: the [real flights](../accuracy.md#real-flights) compare heights, not drift, so far.
+> Whether it beats Galejs's constant for a slow rocket leaving the rail in wind is open.
 
-Below Mach 1 body lift adds a little to that slope. With Galejs's constant the body reads 41% high
-at Mach 0.6; the tunnel determines these readings poorly.
+The 62 angles run from 5.5° to 21.7°, at Mach 1.5 to 4.63. Below Mach 1 body lift adds a little to
+that slope, which was fitted from −4° to +4°.
+With Galejs's constant, 34 of the 62 angles are within 15%, and the body reads 41% high at Mach 0.6, against the same poorly determined readings.
 
 At an angle of attack $\alpha$ the air meets the body partly from the side, at $V \sin\alpha$. Behind a
 long cylinder in a cross-wind the air separates, and the drag of that separated flow pushes the
@@ -635,7 +635,9 @@ For a worked example with numbers, see
 
 
 
-> **How far to trust it.** As far as the method's own checks above, for a pointed nose and cylinder. A boattail behind them takes Washington and Pettis's measured increment ([WP68]), within about 15% for conical boattails of 4° to 9.5°. A steeper, shorter, longer or narrower boattail, like the Arcas Robin's 15°, is an extrapolation, and so is a transition that isn't conical. The join between the method and slender-body theory is a judgment, not a measurement. No validation flight goes past Mach 1.06 (Prometheus, the fastest; see its `max_mach` rows in the [validation report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)), so no flight checks the join yet.
+> **How far to trust it.** As far as the method's own checks above, for a pointed nose and cylinder. A boattail behind them takes Washington and Pettis's measured increment ([WP68]), within about 15% for conical boattails of 4° to 9.5°. A steeper, shorter, longer or narrower boattail, like the Arcas Robin's 15°, is an extrapolation, and so is a transition that isn't conical. Past 16° nothing measures what a boattail carries: holding the 16° reading is worth 0.67 to 1.35 calibers of center of pressure at 30°, most at the lowest speeds. The join between the method and slender-body theory is a judgment, not a measurement. No validation flight goes past Mach 1.06, so no flight checks the join yet.
+
+The fastest validation flight is Prometheus: see its `max_mach` rows in the [validation report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md).
 
 **What is extrapolated.** A transition that isn't conical takes the same correlation from its length and radii. Past 16° the flow separates, and HPR Sim holds the correlation at its 16° reading ([the 16° rule](#the-body-faster-than-sound-in-a-flight), [issue #90: how steep a boattail the correlation should cover](https://github.com/nrdptel/fusionspace-eridanus/issues/90)). A tube behind the boattail takes the method's decay of its expansion, which no measurement here checks. A blunt or vertical nose tip takes a Newtonian cap ahead of the method ([Blunt tips](#blunt-tips)), an extrapolation from spherical caps. A conical flare flush with the part ahead of it flies the method while its corner's shock is attached. **One** measured flare has been put beside it ([What a marched flare is worth](#what-a-marched-flare-is-worth)). Where the shock is not attached, the flare is read drawn out, and that half still has none. Any other widening shape, or any step, keeps slender-body theory, which on the Arcas Robin's body reads 15% to 50% below the tunnel faster than sound.
 
@@ -1122,7 +1124,7 @@ limit the drawn-out flare *is* the real flare, so the two readings are the same 
 (a row of the table, so the reading is that row's and not an interpolation) the boundary is a flare
 of 22.969761173077°:
 
-| probe, in the flare's angle | the normal-force slope moves by, as a fraction of itself |
+| probe, in the flare's angle | change in the normal-force slope (fraction) |
 |--:|--:|
 | ±1e-9° | 4.527e-11 |
 | ±1e-7° | 4.527e-9 |
@@ -1960,7 +1962,7 @@ differ and how far either one can be trusted
 Here are two of the four caps on the Arcas Robin's committed power-series nose and the short
 model's cylinder, nothing aft. The values are $C_{N\alpha}$ per radian on its cross-section at $\alpha \to 0$, read with the flown 10 elements per curve and with 160:
 
-| Mach | 24°, 10 elements | 24°, 160 | 30°, 10 elements | 30°, 160 |
+| Mach | 24° cap, 10 elements, per rad | 24°, 160 | 30°, 10 elements | 30°, 160 |
 |--:|--:|---|---|---|
 | 1.5 | 2.531 | 2.532 | 2.531 | 2.532 |
 | 1.8 | 2.697 | 2.702 | 2.697 | 2.702 |
@@ -2396,11 +2398,12 @@ the air at.
 > - The forcing is within 5.3% of NASA's measured roll effectiveness (the rolling moment per degree
 >   of cant) from Mach 2.3 to 4.63. The forcing reads 14% to 48% high at Mach 1.5 and 1.8.
 > - The damping reads 6% to 16% low against the one measured set, from Mach 1.5 to 3.
-> - Below Mach 1.5, where most hobby flights stay, nothing measured checks either.
-> - The steady spin rate carries both errors, and both push it high: forcing that reads high and
->   damping that reads low each raise it.
+> - Below Mach 1.5, where most hobby flights stay, nothing measured checks either, and a subsonic
+>   spin may read low.
+> - From Mach 1.5 to 3 the steady spin rate carries both errors, and both push it high: forcing that
+>   reads high and damping that reads low each raise it.
 
-Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
+Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping.
 
 Other symbols follow [Fins](#fins): $r_t$ the body's radius at the fins, $s$ the span, $c_r$
 and $c_t$ the root and tip chords. $A_{\mathrm{fin}}$ is one fin's area and $y_{\mathrm{MAC}}$ the mean aerodynamic chord's
@@ -2926,11 +2929,11 @@ force is less tested ([Fins through Mach 1](#fins-through-mach-1)).
 > - **Past the export's last angle, and at 0° faster than Mach 1.3, HPR Sim assumes.**
 >   Past 4° the table probably gives too much force at Mach 3 and above.
 
-**The reading and the flight.** The 0° column, which HPR Sim works out, agrees at 15 Mach numbers
+The 0° column, which HPR Sim works out, agrees at 15 Mach numbers
 with the reading made for [M1.8a](../decisions-and-roadmap.md#m1-8a). A rocket on a table swings
 in pitch and yaw as the small-angle equations of motion predict for the table's slope and center of pressure.
-These assumptions fit RASAero II's viscous part through Mach 1.3. Faster, that part
-grows much more slowly with the angle, so past 4° the table probably gives too much force.
+The assumptions past the export's last angle and at 0° fit RASAero II's viscous part through
+Mach 1.3. Faster, that part grows much more slowly with the angle.
 
 Three parts are HPR Sim's choices, not RASAero II's:
 
@@ -3306,7 +3309,7 @@ weightless, dragless cone behind the rocket to make OpenRocket count a second
 across, and a cone behind it. The 247 mm (9.7 in) cone widens from a point back to the tube's diameter. The
 cone is stated at 0. HPR Sim's $C_{D0}$ at Mach 0.3, from the example file:
 
-| term | drag coefficient without the setting | drag coefficient with it |
+| term | drag coefficient (without the setting) | drag coefficient (with it) |
 |---|---:|---:|
 | the cone's friction | 0.030 | 0 |
 | the cone's pressure drag, as it widens | 0.020 | 0 |
@@ -3406,17 +3409,17 @@ scaling, from its low-speed value, held to Mach 0.8
 are in the code ([`StoneyNose`](../api/hpr_aero/nose_drag/enum.StoneyNose.html)). A sample, on the
 nose's base area (panel (a)'s values at Mach 3.0 are its held end values):
 
-| shape | Fig. 12 panel, Stoney's model number | Mach 0.9 | Mach 1.0 | Mach 1.2 | Mach 1.5 | Mach 2.0 | Mach 3.0 |
-|---|---|--:|--:|--:|--:|--:|--:|
-| von Kármán | (a), 58 | 0.000 | 0.025 | 0.076 | 0.089 | 0.079 | 0.079 |
-| L-V Haack | (a), 60 | 0.000 | 0.025 | 0.100 | 0.116 | 0.112 | 0.112 |
-| parabola | (a), 59 | 0.000 | 0.037 | 0.116 | 0.108 | 0.107 | 0.107 |
-| ¾ parabola | (a), 62 | 0.000 | 0.069 | 0.104 | 0.082 | 0.081 | 0.081 |
-| ½ parabola | (a), 57 | 0.015 | 0.094 | 0.114 | 0.088 | 0.086 | 0.086 |
-| $x^{3/4}$ | (a), 61 | 0.013 | 0.085 | 0.109 | 0.093 | 0.079 | 0.079 |
-| $x^{1/2}$ | (a), 63 | 0.000 | 0.046 | 0.080 | 0.086 | 0.090 | 0.090 |
-| $x^{1/4}$ | (b) | n/a | n/a | 0.141 | 0.181 | 0.216 | 0.246 |
-| ellipsoid | (b) | n/a | n/a | 0.111 | 0.151 | 0.158 | 0.160 |
+| Mach | von Kármán coefficient | L-V Haack coefficient | parabola coefficient | ¾ parabola coefficient | ½ parabola coefficient | $x^{3/4}$ coefficient | $x^{1/2}$ coefficient | $x^{1/4}$ coefficient | ellipsoid coefficient |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 0.9 | 0.000 | 0.000 | 0.000 | 0.000 | 0.015 | 0.013 | 0.000 | n/a | n/a |
+| 1.0 | 0.025 | 0.025 | 0.037 | 0.069 | 0.094 | 0.085 | 0.046 | n/a | n/a |
+| 1.2 | 0.076 | 0.100 | 0.116 | 0.104 | 0.114 | 0.109 | 0.080 | 0.141 | 0.111 |
+| 1.5 | 0.089 | 0.116 | 0.108 | 0.082 | 0.088 | 0.093 | 0.086 | 0.181 | 0.151 |
+| 2.0 | 0.079 | 0.112 | 0.107 | 0.081 | 0.086 | 0.079 | 0.090 | 0.216 | 0.158 |
+| 3.0 | 0.079 | 0.112 | 0.107 | 0.081 | 0.086 | 0.079 | 0.090 | 0.246 | 0.160 |
+
+Stoney's model numbers: von Kármán 58, L-V Haack 60, parabola 59, ¾ parabola 62, ½ parabola 57,
+$x^{3/4}$ 61, $x^{1/2}$ 63.
 
 A shape between two measured ones interpolates between their curves in its parameter, before the fineness scaling ([N09]
 p. 108). The parameter is the exponent $n$, $K'$ or $C$ of [Shapes](shapes.md#profiles). A power series $x^n$ runs through a flat face ($n = 0$), $x^{1/4}$, $x^{1/2}$,
@@ -3540,16 +3543,15 @@ cylinder, which lowers the base drag. Code: [`hpr_aero::afterbody`](../api/hpr_a
 Decision: [ADR-030][adr-030].
 
 > **How far to trust it.** Against 58 readings of 20 measured boattails of 3° to 10° from Mach 1.2
-> to 3.12, it reads −21.9% to +28.3%. It is within 0.0123 in drag coefficient. The largest percentages
-> are the smallest drags. Steeper boattails in a thick
-> [boundary layer](../glossary.md#boundary-layer) read 26% to 54% high. The one full rocket
-> measured with one, the Arcas Robin, reads high too. So the [boattail milestone](../decisions-and-roadmap.md#m1-8b3)'s
-> targets were not met. None of the Arcas Robin's 11 fins-off readings from Mach 1.5 is within 10%.
-> Of Calisto's 17 supersonic rows against RASAero II, 8 are. No whole flight in the validation
-> suite uses this model yet: none of its boattailed rockets passes Mach 0.8.
+> to 3.12, it reads −21.9% to +28.3%. It is within 0.0123 in drag coefficient. Through Mach 1 the
+> rule reads low, and below Mach 0.8 it gives long, gentle boattails almost nothing. Steeper
+> boattails in a thick [boundary layer](../glossary.md#boundary-layer) read 26% to 54% high. The one
+> full rocket measured with one, the Arcas Robin, reads high too. So the
+> [boattail milestone](../decisions-and-roadmap.md#m1-8b3)'s targets were not met. No whole flight
+> in the validation suite uses this model yet: none of its boattailed rockets passes Mach 0.8.
 
-Theory that leaves out the air's viscosity (inviscid theory) reads such boattails up to about 20% high ([CS51] p. 17). Through Mach 1 the rule reads low, and below Mach 0.8
-it gives long, gentle boattails almost nothing. The rules for a boattail drawn in parts, a lip in its wake and the gaps between apply at every speed.
+The largest percentages are the smallest drags. None of the Arcas Robin's 11 fins-off readings from
+Mach 1.5 is within 10%. Of Calisto's 17 supersonic rows against RASAero II, 8 are. Theory that leaves out the air's viscosity (inviscid theory) reads such boattails up to about 20% high ([CS51] p. 17). The rules for a boattail drawn in parts, a lip in its wake and the gaps between apply at every speed.
 The last three rows of the table are judgments that no measurement checks but the Arcas Robin's lip.
 
 In the table, a boattail runs from diameter $d_1$ to $d_2$ over its length $l$. $a = (d_2/d_1)^2$ is its
@@ -3839,7 +3841,7 @@ other programs.
 
 - **Barrowman's worked examples** (`hpr_aero::tests::barrowman_worked_examples`). Inputs and printed results, with page numbers, are in the [fixture](../glossary.md#reference-value-and-fixture) [`validation/fixtures/aero/barrowman-worked-examples.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/barrowman-worked-examples.json). Every printed component and total must agree within 1%. Measured:
 
-  | example | $C_{N\alpha}$: HPR Sim / printed | CP: HPR Sim / printed (in) |
+  | example | slope $C_{N\alpha}$, per rad: HPR Sim / printed | CP: HPR Sim / printed (in) |
   |---|--:|--:|
   | Testbed II [B66] pp. 41–45 | 21.397 / 21.44 (−0.20%) | 16.703 / 16.7 (+0.02%) |
   | Aerobee 350 [B66] pp. 47–50 | 21.449 / 21.5 (−0.24%) | 390.48 / 391 (−0.13%) |
@@ -3964,7 +3966,7 @@ configurations' whole-rocket slope within 15% at Mach 3.96 and 4.63. **The secon
 - **at $\alpha \to 0$** is the slope at zero angle. HPR Sim's is the method alone, since body lift vanishes there. The measurement's comes from fitting its points with $C_N = a\alpha + b\alpha\lvert\alpha\rvert$, the form the tunnel's own curves follow, and $a$ is quoted with its [standard error](../glossary.md#standard-error).
 - **curvature** is the rest: the fitted slope less the slope at $\alpha \to 0$. For HPR Sim it is body lift.
 
-| model | Mach | ratio $M/f_n$ | measured, per rad | HPR Sim, per rad | difference | measured at $\alpha \to 0$, per rad | HPR Sim at $\alpha \to 0$, per rad | ratio at $\alpha \to 0$, HPR Sim ÷ measured | curvature ratio, HPR Sim ÷ measured |
+| model | Mach | ratio $M/f_n$ | measured, per rad | HPR Sim, per rad | difference | measured at $\alpha \to 0$, per rad | HPR Sim at $\alpha \to 0$, per rad | slope ratio, HPR Sim ÷ measured at $\alpha \to 0$ | curvature ratio, HPR Sim ÷ measured |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | short | **1.5** | 0.36 | 2.192 | 3.017 | +37.7% | 1.779 ± 0.32 | 1.852 | 1.04 | 2.82 |
 | short | **1.8** | 0.43 | 2.613 | 3.290 | +25.9% | 2.519 ± 0.33 | 2.143 | 0.85 | 12.20 |
@@ -4140,7 +4142,7 @@ column is the current model's slope at $\alpha \to 0$, which leaves body lift ou
 body's cross-section; the measured line's standard error takes each reading's accuracy as
 independent.
 
-| model | Mach | measured, fitted, per rad | before | Jorgensen's crossflow alone | measured boattail alone | both (current) | current at $\alpha \to 0$, per rad |
+| model | Mach | measured, fitted, per rad | before, per rad | Jorgensen's crossflow alone, per rad | measured boattail alone, per rad | both (current), per rad | current at $\alpha \to 0$, per rad |
 |---|--:|--:|--:|--:|--:|--:|--:|
 | short | 1.5 | 2.19 ± 0.09 | 3.80 (+73.2%) | 3.53 (+61.2%) | 3.35 (+52.9%) | 3.09 (+41.0%) | 1.93 |
 | short | 1.8 | 2.61 ± 0.09 | 3.98 (+52.2%) | 3.72 (+42.4%) | 3.57 (+36.6%) | 3.31 (+26.8%) | 2.17 |

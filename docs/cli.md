@@ -6,7 +6,8 @@ use from a terminal or a script.
 `hpr` is HPR Sim's command-line tool. Today it does seven things:
 
 - It flies a design, read from an OpenRocket file or a
-  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went.
+  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went. It flies a
+  [separation](glossary.md#separation) under power, or several in turn.
 - It flies a design many times, its uncertain inputs scattered at random
   ([Monte Carlo](monte-carlo.md)), and prints how far its apogee and landing spread.
 - It looks up motors in the catalog built into it or in a motor file of your own. It searches
@@ -28,25 +29,30 @@ Its other commands are registered but not available yet. Each refuses and names 
 >
 > - `hpr sim` prints what the library computes. A
 >   [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
->   flies the rocket of [the example below](#flying-a-design) through both, with identical
->   numbers to the last bit. [Accuracy](accuracy.md) says how close those are to a real flight.
+>   flies the rocket of [the example below](#flying-a-design) through `hpr sim` and the Rust
+>   library, with identical numbers to the last bit.
 > - On a `.ork` file's parachutes and streamers, `hpr sim`'s landing speed is within 0.12% of
 >   OpenRocket's on all 53 example flights
->   ([Recovery](physics/recovery.md#from-an-openrocket-file)). A dropped stage's flight is not validated
->   ([evidence row G13](evidence.md#g13); [what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
-> - `hpr motors show` matches ThrustCurve.org's statistics code to 1.8e-15, relative, on all 32
->   bundled curves ([Solid motors](physics/motor.md#validation)).
-> - OpenRocket 24.12 reads 29 of the 32 bundled motors, converted by `hpr convert`, as it reads the
->   originals; whether RockSim opens them is not checked ([other programs](#what-a-conversion-keeps)).
+>   ([Recovery](physics/recovery.md#from-an-openrocket-file)). A dropped stage's flight
+>   is not validated ([evidence row G13](evidence.md#g13)). With no device open within 1 s of
+>   apogee, where and how fast its rocket comes down are not predictions
+>   ([what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
+> - OpenRocket 24.12 opens all 32 motors converted by `hpr convert` and reads 29 like
+>   the originals; the other three differ only in type or a delay
+>   ([other programs](#what-a-conversion-keeps)).
 
-`hpr motors show` works out each figure with the code a flight uses. `hpr` doesn't re-run the
+[Accuracy](accuracy.md) says how close these are to a real flight. Whether RockSim opens the converted
+motors is not checked.
+
+`hpr motors show` works out each figure with the code a flight uses. On all 32 bundled curves, it
+matches ThrustCurve.org's statistics code to 1.8e-15, relative
+([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
 validation cases. To run the project's automated check, clone the repository and run
 `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
 [`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
 run every command as a user would, and check each `--json` document against its
 [published schema](#json-output). `hpr weather` and `hpr motors search` carry their own notes on
-how far to trust them ([weather](#hpr-weather), [stock](#motors-you-can-buy)). `hpr sim` flies a
-[separation](glossary.md#separation) under power, or several in turn.
+how far to trust them ([weather](#hpr-weather), [stock](#motors-you-can-buy)).
 
 ## Running it
 
@@ -2283,7 +2289,7 @@ $ echo $?
 
 ### Exit codes
 
-| status | `kind` in JSON | meaning |
+| Exit code | `kind` in JSON | meaning |
 |--:|---|---|
 | 0 | - | The command did what was asked. |
 | 1 | `input` | An input was missing, unreadable or refused, such as a motor the catalog doesn't have. |

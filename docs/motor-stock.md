@@ -158,7 +158,7 @@ three makers the finder reads. `thrustcurve::join` matches them.
 On ThrustCurve.org's answers of 1 October 2026, every motor in stock matched
 ([the decision record on ThrustCurve.org and the match](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md)):
 
-| Maker | Motors in stock | Matched | Missed | ThrustCurve.org records searched |
+| Maker | Motors in stock | Motors matched | Motors missed | ThrustCurve.org records searched |
 |---|---:|---:|---:|---:|
 | AeroTech | 153 | 153 | 0 | 307 |
 | Cesaroni Technology | 99 | 99 | 0 | 296 |

@@ -1131,7 +1131,7 @@ the reader. It decodes each record that checks by its own copy of the manual's t
 reader must keep exactly the records that check. Each of their values, the clock's included, must
 equal the survey's:
 
-| File | Pieces | CRC checks | Records read | Values compared | Differing |
+| File | Pieces | CRC checks | Records read | Values compared | Values differing |
 |---|---:|---:|---:|---:|---:|
 | high-rate | 17,930 | 17,930 | 17,930 | 304,810 | 0 |
 | low-rate | 1,861 | 1,706 | 1,706 | 49,474 | 0 |
@@ -1393,7 +1393,7 @@ files of one flight. The survey, [`cargo xtask logs`](#how-it-was-checked), deco
 and compares every value with the reader's. None differs. It then looks up each packet of the
 receiver's text and of the exports in the onboard log, by its stage, kind and clock:
 
-| File | Form | Whole packets | Held by the onboard log | Differing | Not held: GPS | Not held: other | Repeated | Broken lines |
+| File | Form | Whole packets | Packets held by the onboard log | Packets differing | Not held: GPS | Not held: other packets | Repeated packets | Broken lines |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | the receiver's text | received | 42,796 | 38,475 | 0 | 4,321 | 0 | 8,368 | 10,495 |
 | the export of all three kinds | RTF | 4,939 | 4,939 | 0 | 0 | 0 | 2 | 0 |
@@ -1486,7 +1486,7 @@ It compares the FIP's own exports with theirs the same way ([checked against the
 exports](#checked-against-the-makers-exports)). Each sample is compared at the `.FIPa`'s time as the
 FIP prints it. Each value is compared within half a step of the `.FIPa`'s resolution.
 
-| Sheet | Channels read | Samples compared | Differing | Worst time, s | Worst value, steps |
+| Sheet | Channels read | Samples compared | Samples differing | Worst time, s | Worst value, steps |
 |---|---:|---:|---:|---:|---:|
 | the first | 16 | 40,841 | 0 | 0.00005 | 0 |
 | the second | 13 | 48,290 | 0 | 0.00005 | 0 |
@@ -2466,7 +2466,7 @@ folder may hold other flights' files, so agreeing is counted, not required. The
 [survey's report](#how-it-was-checked) prints the counts. It names a file by the survey's id, the
 first 16 hex digits of its SHA-256:
 
-| Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | Apogee ratio range | Pad agrees | Pad ratio range | Agreeing in neither | Contradicted |
+| Logger | Summaries | Summaries with a file beside | Summaries stating an apogee | Apogee agrees | Apogee ratio, range | Pad agrees | Pad ratio, range | Agreeing in neither | Contradicted |
 |---|---:|---:|---:|---:|---:|---:|---:|---|---|
 | Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | `cd1bfe19ff70e17d` | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | `413de085a44f4872` | none |
@@ -2990,7 +2990,7 @@ counted apart. `cargo xtask logs --check` fails on a raw file with an export bes
 none. The [survey's report](#how-it-was-checked) prints the counts, in its paragraph that opens
 "The raw downloads against their makers' exports":
 
-| Layout | Files | With an export beside | Matching | Raw samples compared | Velocity after the stop | Worst value, steps | Worst time, s |
+| Layout | Files | Files with an export beside | Files matching | Raw samples compared | Velocity samples after the stop | Worst value, steps | Worst time, s |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Raven `.FIPa` | 57 | 55 | 55 | 6,016,104 | 140,865 | 0 | 0.0005 |
 | RRC3 `.rff` | 6 | 1 | 1 | 3,541 | 0 | 0 | 0.01 |
@@ -3034,12 +3034,15 @@ written.
 > - **Unchecked:** 4 files, with no export or telemetry beside them
 >   ([evidence row G4](../evidence.md#g4)).
 
-Those 4 files are decoded by the same rules and pass the reader's own checks. The
-telemetry pressures are compared at a shared tick. Every row of the export is at a tick the
-file holds. The climb check's 11 passes have ratios from
-0.859 to 1.400, where the reader accepts 0.6 to 5/3. The twelfth, at 1.988, keeps its acceleration
-and pressure as counts. The exports of the TeleMetrum v1's flights agree. The 14 files are 9 with an
-export, 1 with telemetry alone, and those 4.
+More on the note's items:
+
+- **Checked.** The telemetry pressures are compared at a shared tick. Every row of the export is at
+  a tick the file holds. The climb check's 11 passes have ratios from 0.859 to 1.400, where the
+  reader accepts 0.6 to 5/3. The twelfth, at 1.988, keeps its acceleration and pressure as counts.
+- **Assumed.** The exports of the TeleMetrum v1's flights agree.
+- **Unchecked.** Those 4 files are decoded by the same rules and pass the reader's own checks. The
+  14 files are 9 with an export, 1 with telemetry alone, and those 4
+  ([evidence row G4](../evidence.md#g4)).
 
 The board logs its sensors 100 times a second in the climb and 10 times a second in the descent.
 Those rates are in *The Altus Metrum System*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025,
@@ -3049,7 +3052,7 @@ readings on the pad). `A` holds the sensors. `S` is a change of state. A board w
 records of its fix and its satellites. The record size follows the log format the configuration
 states:
 
-| Log format | Record size | Boards |
+| Log format number | Record size | Boards |
 |---:|---:|---|
 | 1 | 8 bytes | TeleMetrum v1 |
 | 6 | 16 bytes | EasyMini v1 |
@@ -3228,19 +3231,23 @@ in SI. The raw CSV carries none, so its counts are kept as written.
 > - **Not read:** the meaning of most of the flags byte, the board's state codes and the
 >   deployment settings.
 
-Each export's barometric altitude follows the pressure in order. The climb check is the climb
-over the first 2 s by the pressure, over the climb by the acceleration. It gives ratios of 0.754,
-1.032 and 1.145, and the reader accepts 0.6 to 5/3. Where the file keeps the rate isn't known. The reader refuses a file whose likeliest word for it isn't the sample files'
-2. On the sample files, the climb check is sure to catch only a time step below 0.67 or above 1.38
-times the true one. An AltOS board flown with each flight reads a pad pressure 0.42 to 1.08 kPa
-above the ARTS2's.
+More on the note's items:
+
+- **Checked.** Each export's barometric altitude follows the pressure in order. The climb check is
+  the climb over the first 2 s by the pressure, over the climb by the acceleration. It gives ratios
+  of 0.754, 1.032 and 1.145, and the reader accepts 0.6 to 5/3.
+- **Assumed: the rate** ([evidence row G5](../evidence.md#g5)). Where the file keeps the rate isn't known. The reader refuses a file whose
+  likeliest word for it isn't the sample files' 2. On the sample files, the climb check is sure to
+  catch only a time step below 0.67 or above 1.38 times the true one.
+- **Assumed: the pressure** ([evidence row G5](../evidence.md#g5)). Against its ±1.5 kPa error band, an AltOS board flown with each flight
+  reads a pad pressure 0.42 to 1.08 kPa above the ARTS2's.
 
 The ARTS2 reads an Analog Devices ADXL78 accelerometer, set for ±50 g, and a Motorola MPXA4100A
 pressure sensor. It reads them with its processor's 10-bit converter, so each count runs from 0 to
 1,023 (the manual, Appendix A, p. 16). The `.odf` is little-endian throughout. Its length must be
 exactly its parts':
 
-| Offset, bytes | Bytes | What |
+| Offset (bytes) | Length (bytes) | What |
 |---:|---:|---|
 | 0 | 4 + 9 | the length 9, then `Ozark.odf` |
 | 13 | 20 | five 32-bit words, the same in every sample file; not read |

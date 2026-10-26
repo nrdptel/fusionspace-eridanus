@@ -176,7 +176,7 @@ run each function from 20 seeds and check:
 - The median number of evaluations is within 25% of pycma's from the same starts (the test's
   bound). Measured, they're within 5%:
 
-| Function | HPR Sim | pycma 4.5.0 |
+| Function | HPR Sim, median evaluations | pycma 4.5.0, median evaluations |
 |---|--:|--:|
 | sphere | 1,635 | 1,640 |
 | ellipsoid | 5,920 | 5,910 |
@@ -553,7 +553,7 @@ from the method's authors' code. The script's runs have the active weights off, 
 Every run of every case reaches the minimum, with each whole number exactly right. The median
 evaluations are within the test's 25% of the outside implementation's, and measured within 5%:
 
-| Function | Variables | HPR Sim | Outside `cmaes` 0.13.1 |
+| Function | Variables | HPR Sim, median evaluations | Outside `cmaes` 0.13.1, median evaluations |
 |---|--:|--:|--:|
 | SphereInt | 10 | 1,855 | 1,850 |
 | SphereInt | 20 | 3,870 | 3,798 |
@@ -724,9 +724,9 @@ CMA-ES's tests allow against pycma.
 Review of the first results added a second rule: the median at most 20% below pymoo's, a factor
 of 1.25 either way. On these problems every variable but the first is best at its lower bound. An
 optimizer that drifts toward its bounds would score better than pymoo without being better.
-Measured:
+Both measures are distances in the objectives' own scale, pure numbers with no unit. Measured:
 
-| Problem | Measure | HPR Sim median (number) | HPR Sim worst (number) | pymoo median (number) | pymoo worst (number) | Bound on every run (number) |
+| Problem | Measure | HPR Sim median (no unit) | HPR Sim worst (no unit) | pymoo median (no unit) | pymoo worst (no unit) | Bound on every run (no unit) |
 |---|---|--:|--:|--:|--:|--:|
 | ZDT1 | GD | 1.07e-3 | 1.36e-3 | 1.10e-3 | 1.46e-3 | 2.92e-3 |
 | ZDT1 | IGD | 4.90e-3 | 5.66e-3 | 4.96e-3 | 5.48e-3 | 1.10e-2 |
@@ -893,7 +893,7 @@ seeds 1 to 10 at 40 evaluations, where Branin's worst run missed by 1.03%. At 50
 gave the gaps below (macOS debug build; print them with
 `cargo test -p fusionspace-hpr-analysis --test ego -- --nocapture`).
 
-| Function | Variables | Minimum (number) | Budget | Worst of 20 runs |
+| Function | Variables | Minimum (no unit) | Budget | Worst of 20 runs |
 |---|--:|--:|---|---|
 | Branin | 2 | 0.397887 | 50 evaluations | 0.118% above |
 | Hartmann 3 | 3 | −3.86278 | 50 evaluations | 0.124% above |

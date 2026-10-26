@@ -132,9 +132,11 @@ height, like a sounding; see [the atmosphere decision][adr-004].
 +20 K at a 1400 m (4,593 ft) field, at the standard's pressure there, gives these densities against the
 standard (`conventions.py`):
 
-| height | 3 km (1.9 mi) | 20 km (12 mi) | 30 km (19 mi) |
-|---|--:|--:|--:|
-| density | −5.7% | +14% | +30% |
+| height | density against the standard |
+|--:|--:|
+| 3 km (1.9 mi) | −5.7% |
+| 20 km (12 mi) | +14% |
+| 30 km (19 mi) | +30% |
 
 Field conditions suit flights of a few kilometers; higher flights need a sounding.
 

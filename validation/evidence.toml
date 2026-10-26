@@ -217,7 +217,7 @@ found = "nothing usable for the listed formats. The CATS hits are the GPL-3.0 ca
 [[row]]
 id = "G10"
 surface = "The flight analyzer"
-claim = "Readings are checked on an invented flight of known readings, one real log when fetched, and on the synthetic flights the bounds were tuned on: 171 with a barometer logged 43 ways, 71 with an accelerometer 3 more, and the 500 Hz IMU's 38 once more at ±8 g, which 28 of their tops reach. Each reading stays within its bound (`cargo xtask synthetic`)"
+claim = "Checked on an invented flight of known readings, one real log when fetched, and the synthetic flights the bounds were tuned on: 171 with a barometer logged 43 ways, 71 with an accelerometer 3 more, the 500 Hz IMU's 38 once more at ±8 g, which 28 of their tops reach; every reading within its bound (`cargo xtask synthetic`)"
 pages = [
   "reading-a-flight-log.md#reading-a-flight-log",
   "accuracy.md#accuracy",
@@ -225,7 +225,7 @@ pages = [
 ]
 kind = "calibration"
 wanted = "real"
-not_checked = "other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part at its stated range, which no tuning flight reaches; a thrust's plateau, given only as a floor; accelerometer noise correlated between samples; and a canopy's filling time (synthetic canopies open at once)"
+not_checked = "other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part held at its stated range, beyond every tuning flight; a quiet part reading a thrust's plateau as flat, given only as a floor; accelerometer noise correlated between samples; a canopy's filling time (synthetic canopies open at once)"
 issue = 663
 
 [[row.searched]]

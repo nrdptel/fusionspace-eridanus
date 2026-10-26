@@ -501,7 +501,7 @@ the body's axis is $m$ times the square of the pod's distance from that line. Bo
 $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d^2$ =
 1.6781e-4 kg m² each:
 
-| quantity (the two pods about their joint center, on the axis) | value |
+| quantity (the two pods about their joint center, on the axis) | value, g or kg m² |
 |---|--:|
 | mass | 134.25 g |
 | $I_{xx}$: no $m d^2$ | 2 × 2.53675e-4 ≈ 5.0735e-4 kg m² |
