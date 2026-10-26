@@ -255,7 +255,7 @@ The documents the reader follows, and the tests that hold it to them.
   September 26, 2026 and pinned as `unidata-netcdf-file-format` and `unidata-netcdf-attribute-conventions`
   in the [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
 - **[H]** H. Hersbach et al., "The ERA5 global reanalysis", *Quarterly Journal of the Royal
-  Meteorological Society* 146 (2020), 1999–2049.
+  Meteorological Society* 146 (2020), pp. 1999–2049.
 - **[ECMWF]** ECMWF Knowledge Base, "ERA5: compute pressure and geopotential on model levels,
   geopotential height and geometric height", captured September 26, 2026 and pinned as
   `ecmwf-era5-geometric-height`.

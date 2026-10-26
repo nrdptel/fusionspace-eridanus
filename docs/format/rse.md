@@ -15,7 +15,7 @@ as attributes, and a table of thrust, mass and [center of gravity](../glossary.m
 
 This page is the reference for HPR Sim's reader and writer. The spec is thin and disagrees with
 every real file on element and attribute names, so a reader must follow the observed structure. Of
-the 823 RockSim files ThrustCurve.org held on September 17, 2026, 821 read and write back with every value
+the 823 RockSim files ThrustCurve.org held on September 17, 2026: 821 read and write back with every value
 unchanged. The other two have a time that goes backwards
 ([Checked against real files](#checked-against-real-files)).
 

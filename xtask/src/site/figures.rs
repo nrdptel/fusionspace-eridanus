@@ -10,16 +10,17 @@
 //!   - a figure inside a word or a code (`131G84`, `7268bcd`, `ADR-0295`, `#1000`, `D-1234`),
 //!     with a letter, `_` or `#` against it, a `/`, `\`, `@`, `+`, `&` or `=` before it, a
 //!     hyphen after a letter before it, a colon or a point right after a letter or a bracket
-//!     (`arXiv:1109.4448`, `NGA.STND.0036`, `13(11):15692`), or a hyphen or a bracket before it
+//!     (`arXiv:1109.4448`, `NGA.STND.0036`, `13(11):15692`), or a hyphen or a `)` before it
 //!     in a code that holds a letter (`NASA/TM-2008-215633`, `050X(80)90013-3`);
 //!   - an ISO date's year (`2026-10-04`), which the date rule reads; figures a hyphen joins
 //!     otherwise (`1000-2000 ft`, `3005-row`) are read;
 //!   - a figure right after a name that numbers documents or things ([`IDENTIFIERS`]:
 //!     `NFPA 1127`, `ISO 8601`, `NACA 0012`, `station 72364`), and the second figure of a range
 //!     after one (`pp. 1509–1518`);
-//!   - a year ([`is_year`]): four digits from 1600 to 2100 with no unit or `%` after them
-//!     (`in 1997`, but `2000 m` and `1500 ft` fail; `in` is read as the word, not inches), or any
-//!     figure after a month, a day and a comma (`December 31, 9999`).
+//!   - a year ([`is_year`]): four digits from 1600 to 2100 with no unit or `%` after them or
+//!     after their decimals (`in 1997` and `2025.0`, but `2000 m` and `1749.8 m` fail; `in` is
+//!     read as the word, not inches), or any figure after a month, a day and a comma
+//!     (`December 31, 9999`).
 //! - **Dates in prose as words** (`writing.md`, *On screens*: "`October 4, 2026` in prose;
 //!   `2026-10-04` in tables, file names, title blocks and data"). [`prose_dates`] fails an ISO
 //!   date, `2026-10-04`, in the text outside tables. A date in a file's name is code, which isn't
@@ -31,7 +32,8 @@
 
 use std::ops::Range;
 
-use super::units::{Run, rendered_runs};
+use super::units::{Run, rendered_runs_with};
+use super::words::Renderer;
 
 /// The names after which a figure numbers a document, a standard or a thing rather than counts
 /// or measures it (the word right before the figure, as written), each one a page needs:
@@ -52,16 +54,94 @@ const IDENTIFIERS: [&str; 23] = [
 
 /// The words after a four-digit figure that make it a quantity, not a year: the units of
 /// `data.md` and the project's own, in short and in full.
-const UNIT_WORDS: [&str; 69] = [
-    "m", "km", "cm", "mm", "µm", "ft", "mi", "s", "ms", "min", "h", "kg", "g", "lb", "lbf", "oz",
-    "N", "kN", "Ns", "N·s", "lbf·s", "Pa", "kPa", "hPa", "MPa", "GPa", "psi", "ksi", "Msi", "K",
-    "°C", "°F", "°", "rad", "deg", "Hz", "kHz", "MHz", "J", "W", "mph", "kt", "kn", "m/s", "ft/s",
-    "km/h", "kg/m³", "g/cm³", "m²", "m³", "ft²", "cal", "calibers", "AGL", "MSL", "B", "kB", "MB",
-    "GB", "KiB", "MiB", "bytes", "px", "rpm", "feet", "meters", "seconds", "pounds", "newtons",
+const UNIT_WORDS: [&str; 82] = [
+    "m",
+    "km",
+    "cm",
+    "mm",
+    "µm",
+    "ft",
+    "mi",
+    "s",
+    "ms",
+    "min",
+    "h",
+    "kg",
+    "g",
+    "lb",
+    "lbf",
+    "oz",
+    "N",
+    "kN",
+    "Ns",
+    "N·s",
+    "lbf·s",
+    "Pa",
+    "kPa",
+    "hPa",
+    "MPa",
+    "GPa",
+    "psi",
+    "ksi",
+    "Msi",
+    "K",
+    "°C",
+    "°F",
+    "°",
+    "rad",
+    "deg",
+    "Hz",
+    "kHz",
+    "MHz",
+    "J",
+    "W",
+    "mph",
+    "kt",
+    "kn",
+    "m/s",
+    "ft/s",
+    "km/h",
+    "kg/m³",
+    "g/cm³",
+    "m²",
+    "m³",
+    "ft²",
+    "cal",
+    "calibers",
+    "AGL",
+    "MSL",
+    "B",
+    "kB",
+    "MB",
+    "GB",
+    "KiB",
+    "MiB",
+    "bytes",
+    "px",
+    "rpm",
+    "feet",
+    "meters",
+    "seconds",
+    "pounds",
+    "newtons",
+    "µs",
+    "L",
+    "kg·m²",
+    "N·m",
+    "m/s²",
+    "ft/s²",
+    "lbs",
+    "meter",
+    "foot",
+    "second",
+    "pound",
+    "newton",
+    "kilograms",
 ];
 
 /// Whether the figure `digits`, followed by `after` (the run's text after it), reads as a year:
-/// four digits from 1600 to 2100, with no unit word ([`UNIT_WORDS`]) or `%` after it.
+/// four digits from 1600 to 2100, with no unit word ([`UNIT_WORDS`]) or `%` after it or after
+/// its decimals (`2025.0` is a decimal year; `1749.8 m` is no year).
 fn is_year(digits: &str, after: &str) -> bool {
     let Ok(value) = digits.parse::<u32>() else {
         return false;
@@ -69,7 +149,15 @@ fn is_year(digits: &str, after: &str) -> bool {
     if digits.len() != 4 || !(1600..=2100).contains(&value) {
         return false;
     }
-    let after = after.trim_start_matches([' ', '\u{a0}']);
+    // The unit follows the decimals, if any: `1749.8 m` is a height, `2025.0 to 2030.0` a span
+    // of decimal years.
+    let after = match after.strip_prefix('.') {
+        Some(rest) if rest.starts_with(|c: char| c.is_ascii_digit()) => {
+            rest.trim_start_matches(|c: char| c.is_ascii_digit())
+        }
+        _ => after,
+    };
+    let after = after.trim_start_matches(char::is_whitespace);
     if after.starts_with('%') {
         return false;
     }
@@ -82,10 +170,10 @@ fn is_year(digits: &str, after: &str) -> bool {
 
 /// Each figure of four or more digits on a page written without its grouping commas, as (line,
 /// message).
-pub(super) fn ungrouped_figures(text: &str) -> Vec<(usize, String)> {
+pub(super) fn ungrouped_figures(text: &str, renderer: Renderer) -> Vec<(usize, String)> {
     let line = super::line_index(text);
     let mut problems = Vec::new();
-    for run in rendered_runs(text) {
+    for run in rendered_runs_with(text, renderer.options()) {
         for digits in ungrouped(&run.text) {
             let figure = &run.text[digits.clone()];
             problems.push((
@@ -187,7 +275,11 @@ fn passes(run: &str, digits: Range<usize>) -> bool {
 /// Whether `before` ends with a month and a day and a comma, so a figure after it is the
 /// date's year, whatever it is: `December 31, 9999`.
 fn dated(before: &str) -> bool {
-    let Some(rest) = before.strip_suffix(", ") else {
+    let Some(rest) = before
+        .trim_end_matches(char::is_whitespace)
+        .strip_suffix(',')
+        .filter(|_| before.ends_with(char::is_whitespace))
+    else {
         return false;
     };
     let day_start = rest
@@ -198,25 +290,30 @@ fn dated(before: &str) -> bool {
         .map_or(rest.len(), |(at, _)| at);
     let (month, day) = rest.split_at(day_start);
     (1..=2).contains(&day.len())
-        && MONTHS
-            .iter()
-            .any(|name| month.strip_suffix(' ').is_some_and(|m| m.ends_with(name)))
+        && MONTHS.iter().any(|name| {
+            let words = month.trim_end_matches(char::is_whitespace);
+            words.len() < month.len() && words.ends_with(name)
+        })
 }
 
 /// Whether the figure at `digits` is in a token of `run` (the text between spaces) that holds
 /// a letter, as a report number or a DOI does: `NASA/TM-2008-215633`, `AS.1943-5525.0001331`.
 fn in_code(run: &str, digits: Range<usize>) -> bool {
-    let space = |c: char| c.is_whitespace();
-    let start = run[..digits.start].rfind(space).map_or(0, |at| at + 1);
+    // A space may be wider than a byte (U+00A0, U+202F): step past the whole character.
+    let start = run[..digits.start]
+        .char_indices()
+        .rev()
+        .find(|(_, c)| c.is_whitespace())
+        .map_or(0, |(at, c)| at + c.len_utf8());
     let end = run[digits.end..]
-        .find(space)
+        .find(char::is_whitespace)
         .map_or(run.len(), |at| digits.end + at);
     run[start..end].chars().any(|c| c.is_ascii_alphabetic())
 }
 
 /// The word right before `before`'s end, past spaces: `NFPA` in `NFPA `.
 fn previous_word(before: &str) -> &str {
-    let trimmed = before.trim_end_matches([' ', '\u{a0}']);
+    let trimmed = before.trim_end_matches(char::is_whitespace);
     if trimmed.len() == before.len() {
         return "";
     }
@@ -256,7 +353,7 @@ fn context(run: &str, span: Range<usize>) -> String {
     run[start..end].trim().to_owned()
 }
 
-/// The months' names, for a message's suggestion.
+/// The months' names, for a message's suggestion and a written date's year ([`dated`]).
 const MONTHS: [&str; 12] = [
     "January",
     "February",
@@ -273,11 +370,11 @@ const MONTHS: [&str; 12] = [
 ];
 
 /// Each ISO date (`2026-10-04`) on a page outside its tables, as (line, message).
-pub(super) fn prose_dates(text: &str) -> Vec<(usize, String)> {
+pub(super) fn prose_dates(text: &str, renderer: Renderer) -> Vec<(usize, String)> {
     let line = super::line_index(text);
     let tables = table_spans(text);
     let mut problems = Vec::new();
-    for run in rendered_runs(text) {
+    for run in rendered_runs_with(text, renderer.options()) {
         if run_in(&run, &tables) {
             continue;
         }
@@ -350,7 +447,7 @@ mod tests {
 
     /// The figures [`ungrouped_figures`] fails in `text`.
     fn ungrouped_in(text: &str) -> Vec<String> {
-        ungrouped_figures(text)
+        ungrouped_figures(text, Renderer::Site)
             .into_iter()
             .map(|(_, message)| message.split('`').nth(1).unwrap_or_default().to_owned())
             .collect()
@@ -370,13 +467,14 @@ mod tests {
                 "12000"
             ]
         );
-        let message = &ungrouped_figures("It is 12000 ft.")[0].1;
+        let message = &ungrouped_figures("It is 12000 ft.", Renderer::Site)[0].1;
         assert!(message.contains("write `12,000`"), "{message}");
         // Each is reported on its own line.
-        let lines: Vec<usize> = ungrouped_figures("One.\n\nAt 1500 m\nand 2500 m.\n")
-            .into_iter()
-            .map(|(line, _)| line)
-            .collect();
+        let lines: Vec<usize> =
+            ungrouped_figures("One.\n\nAt 1500 m\nand 2500 m.\n", Renderer::Site)
+                .into_iter()
+                .map(|(line, _)| line)
+                .collect();
         assert_eq!(lines, [3, 4]);
     }
 
@@ -443,6 +541,33 @@ mod tests {
     }
 
     #[test]
+    fn a_wide_space_is_a_space() {
+        // A no-break or narrow space beside a code, a unit, a name or a date is read as a space,
+        // and slicing past it doesn't split the character.
+        assert_eq!(
+            ungrouped_in("x\u{a0}12-3456 m and A\u{2009}(80)90013 m."),
+            ["3456", "90013"]
+        );
+        assert_eq!(
+            ungrouped_in("At 2000\u{202f}m and 2000\u{a0}m."),
+            ["2000", "2000"]
+        );
+        assert!(
+            ungrouped_in("ISO\u{202f}8601, NFPA\u{a0}1127, December\u{a0}31,\u{a0}9999.")
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn the_site_reads_a_double_hyphen_as_an_en_dash() {
+        // mdBook shows `--` as an en dash, so a page range after a name is one on the site; on
+        // GitHub it stays two hyphens, and the second figure is read.
+        let text = "Software 22, pp. 1509--1518.";
+        assert!(ungrouped_figures(text, Renderer::Site).is_empty());
+        assert_eq!(ungrouped_figures(text, Renderer::GitHub).len(), 1);
+    }
+
+    #[test]
     fn a_year_passes_and_a_quantity_in_its_range_fails() {
         for text in [
             "In 1997, Prometheus 2022 in wind and NDRT 2020's apogee.",
@@ -458,8 +583,18 @@ mod tests {
         // A unit or a percent sign after a four-digit figure makes it a quantity, and a figure
         // outside 1600 to 2100 is no year.
         assert_eq!(
-            ungrouped_in("At 2000 m, 1500 ft, 1600 kg/m³, 2000 °C, 2010%, 1599 and 2101 years."),
-            ["2000", "1500", "1600", "2000", "2010", "1599", "2101"]
+            ungrouped_in(
+                "At 2000 m, 1500 ft, 1600 kg/m³, 2000 °C, 2010%, 1650 µs, 1800 m/s², 1599 and 2101 \
+                 years."
+            ),
+            [
+                "2000", "1500", "1600", "2000", "2010", "1650", "1800", "1599", "2101"
+            ]
+        );
+        // The unit after a figure's decimals counts: a decimal year passes, a height fails.
+        assert_eq!(
+            ungrouped_in("It reaches 1749.8 m, 1670.0 ft and 1999.5%, from 2025.0 to 2030.0."),
+            ["1749", "1670", "1999"]
         );
         // A day and a comma before a figure make it a year only after a month's name.
         assert_eq!(
@@ -470,7 +605,7 @@ mod tests {
 
     /// The dates [`prose_dates`] fails in `text`, with their suggestions.
     fn dates_in(text: &str) -> Vec<String> {
-        prose_dates(text)
+        prose_dates(text, Renderer::Site)
             .into_iter()
             .map(|(line, message)| {
                 let quoted: Vec<&str> = message.split('`').collect();

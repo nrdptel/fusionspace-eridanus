@@ -174,7 +174,7 @@ line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in
 meant something else.
 
 That holds for every option that takes a number, negative ones included. `--elevation -1,280` is
-−1,280 m (−4,199 ft). `--longitude -106,970` is read as −106,970° and refused, as a longitude is at
+−1,280 m (−4,199 ft). `--longitude -106,970` is read as −106,970° (not −106.970°) and refused, as a longitude is at
 most 180° east or west.
 
 Any other comma is refused with a question. `3,9` is 3.9 in much of the world, but it could be a

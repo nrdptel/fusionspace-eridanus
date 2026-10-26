@@ -251,7 +251,7 @@ the URL it was read from, and a basis:
 | group | values | sources | basis |
 |---|---|---|---|
 | hobby tubes | cardboard 790, kraft phenolic 950, Blue Tube 1,250, Quantum 1,090 kg/m³ | LOC Precision and Public Missiles weight tables (mass over wall volume); Always Ready Rocketry's own material file | derived; published |
-| composites | G10/FR-4 1800, filament-wound E-glass 1990, carbon/epoxy 1,580 kg/m³ | Norplex-Micarta NP130, Comptec, Hexcel HexPly 8552 data sheets | published |
+| composites | G10/FR-4 1,800, filament-wound E-glass 1,990, carbon/epoxy 1,580 kg/m³ | Norplex-Micarta NP130, Comptec, Hexcel HexPly 8552 data sheets | published |
 | metals | Al 6061 2,700, Al 7075 2,800, steel 7,850, Ti-6Al-4V 4,430, brass 8,500 kg/m³ | Kaiser Aluminum, MIL-HDBK-5J, TIMET, Copper Development Association | published |
 | woods | balsa 180; basswood, yellow birch, Sitka spruce, eastern white pine, sugar maple, northern red oak from $G_{12}$; birch plywood 680 kg/m³ | Wood Handbook FPL-GTR-190 (pinned as `fpl-gtr-190-wood-handbook`), p. 2-21 and Table 5-3a; Riga Wood Plywood Handbook | published; derived |
 | plastics | PLA 1,240, ABS 1,040, PETG 1,270, nylon 6/6 1,140, PC 1,200, PMMA 1,190, acetal 1,420, PS 1,040, PVC 1,400, HDPE 955, epoxy 1,180, Depron 40, paper 755 kg/m³ | manufacturers' data sheets (NatureWorks, SABIC, Eastman, Celanese, Covestro, Röhm, AmSty, Charlotte Pipe, Chevron Phillips, West System, Depron, HP) | published (paper derived) |

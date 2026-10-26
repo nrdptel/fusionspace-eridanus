@@ -206,9 +206,9 @@ The free-flight test below checks that the flight keeps it so.
 
 | | apogee (m) | lands at (s after launch) | landing speed (m/s) |
 |---|---:|---:|---:|
-| the rocket, ballast dropped | 1670.0 | 276.3 | 6.15 |
+| the rocket, ballast dropped | 1,670.0 | 276.3 | 6.15 |
 | the ballast | 1,496.5 | 40.0 | 66.74 |
-| the rocket, ballast kept | 1749.9 | 253.5 | 7.07 |
+| the rocket, ballast kept | 1,749.9 | 253.5 | 7.07 |
 
 - The rocket climbs 80 m (262 ft) less without its ballast. The same drag slows a lighter rocket more.
 - It comes down more slowly under the same drogue, and so lands later. A terminal speed goes

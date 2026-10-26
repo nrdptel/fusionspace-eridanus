@@ -454,28 +454,32 @@ They don't conflict with the rules above; they add these:
   value or a phrase, and its explanation goes under the table. A table or a quote block written in
   raw HTML fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
 - **Grouped figures and dates in words** (since [M0.9f3](decisions-and-roadmap.md#m0-9f3)).
-  Outside code and math, on the site and in both READMEs, `cargo xtask site` fails a figure of
-  four or more digits before its decimal point without its commas: write `1,500 m`, not `1500 m`.
-  Digits after the point aren't grouped. It passes what isn't a quantity:
+  If a figure of four or more digits is a quantity, give it its commas: `1,500 m`, not `1500 m`.
+  If it is a name or a number from a file, leave it as it is, or put it in code. Outside code
+  and math, on the site and in both READMEs, `cargo xtask site` fails a figure of four or more
+  digits before its decimal point written without its commas. Digits after the point aren't
+  grouped. It passes these, which aren't quantities:
 
-  - a figure inside a word or a code: with a letter, `_` or `#` against it; with a `/`, `\`,
-    `@`, `+`, `&` or `=` before it; after a hyphen that follows a letter; after a colon or a
-    point that follows a letter or a bracket; or after a hyphen or a bracket in a code that
-    holds a letter (`131G84`, `L1150R`, `#1000`, `D-4014`, `arXiv:1109.4448`, `NGA.STND.0036`,
-    `NASA/TM-2008-215633`). An ISO date's year passes too, for the date rule below. Figures a
-    hyphen joins otherwise (`1000-2000 ft`, `3005-row`) are read;
-  - a figure right after a name that numbers documents or things. These are, as written:
-    `ISO`, `NFPA`, `RFC`, `NMEA`, `ESDU`, `datum`, `Code`, `code`, `NACA`, `TN`, `TR`, `TP`,
-    `Report`, `NTRS`, `arXiv`, `Aluminum`, `Al`, `Hexcel`, `HexPly`, `station`, `thread`,
-    `Thread` and `pp.` (`NFPA 1125`, `NACA TN 3527`, `station 72364`), and the second figure of a
-    range after one (`pp. 1509–1518`). Write the name before each figure:
-    `NFPA 1125 and NFPA 1127`;
-  - a year: four digits from 1600 to 2100 with no unit or `%` after them (`in 1997`, but
-    `2000 m` fails), or any figure after a month, a day and a comma (`December 31, 9999`).
+  - **A part number or another name made of letters and figures:** a figure with a letter, `_`
+    or `#` against it, or with a `/`, `\`, `@`, `+`, `&` or `=` before it (`131G84`, `L1150R`,
+    `#1000`). Also a figure after a hyphen that follows a letter (`D-4014`), or after a colon or a
+    point that follows a letter or a `)` (`arXiv:1109.4448`, `NGA.STND.0036`). Also a figure after
+    a hyphen or a `)` in a name that holds a letter (`NASA/TM-2008-215633`). Figures a hyphen
+    joins otherwise (`1000-2000 ft`, `3005-row`) are read.
+  - **A figure right after a name that numbers documents or things.** The names are `ISO`,
+    `NFPA`, `RFC`, `NMEA`, `ESDU`, `datum`, `Code`, `code`, `NACA`, `TN`, `TR`, `TP`, `Report`,
+    `NTRS`, `arXiv`, `Aluminum`, `Al`, `Hexcel`, `HexPly`, `station`, `thread`, `Thread` and `pp.`
+    (`NFPA 1125`, `NACA TN 3527`, `station 72364`), as written. The second figure of a range
+    after one passes too (`pp. 1509–1518`). Give each figure its name: `NFPA 1125 and NFPA 1127`.
+    For a name the list doesn't hold, put the figure in code, or add the name to `IDENTIFIERS`
+    in the same change.
+  - **A year:** four digits from 1600 to 2100 with no unit or `%` after them or after their
+    decimals (`in 1997`, `2025.0`; but `2000 m` and `1749.8 m` fail). Also the year in a date
+    written out (`December 31, 9999`).
 
-  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. Text in a
-  block of raw HTML isn't read, as for the minus sign. The check reads figures, not meaning. A count that looks like a year (`2000 flights`) passes, and so
-  does a quantity after a listed name; reviews hold those.
+  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. The check
+  reads figures, not meaning. A count from 1600 to 2100 passes without its commas: write them
+  anyway (`1,712 files`). Text in a block of raw HTML isn't read.
 
   It also fails an ISO date, `2026-10-04`, in the text outside tables: prose writes
   `October 4, 2026`. A table, a file's name in code and a link's address keep the ISO form. The

@@ -168,7 +168,7 @@ it burns ([The whole motor](#the-whole-motor) gives the details).
 Motor files come in two formats, and ThrustCurve.org serves both:
 
 - [RASP `.eng`](../format/eng.md), a plain-text format named after RASP, the rocket simulation
-  program it comes from. It is the more common of the two: 889 of the 1712 solid-motor files
+  program it comes from. It is the more common of the two: 889 of the 1,712 solid-motor files
   ThrustCurve.org held when surveyed.
 - [RockSim `.rse`](../format/rse.md), an XML format from the RockSim simulator.
 
@@ -331,7 +331,7 @@ lists it.
   has the counts.
 - Before integrating, [TC-A] drops leading points below 500 µN and averages points closer than
   50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps. The
-  results are identical on every bundled curve. On the 1710 of ThrustCurve.org's 1712 surveyed
+  results are identical on every bundled curve. On the 1,710 of ThrustCurve.org's 1,712 surveyed
   solid-motor files that read, the two agree to 1e-9, except 17 with repeated times.
   On those they differ by up to 1.1% in average thrust. HPR Sim keeps the step because a vertical
   drop is what the file draws.
@@ -680,7 +680,7 @@ The tests that pin the motor model, and the whole example program.
     RocketPy's own value, where RocketPy holds 6.9 mg in the 38 mm motor. That comes from
     RocketPy's interpolation between the points its ODE solver stored.
   - The test holds 0.1% on these scales.
-- **Files:** 1710 of ThrustCurve's 1712 solid-motor files read, and write back out and read again
+- **Files:** 1,710 of ThrustCurve's 1,712 solid-motor files read, and write back out and read again
   with every value identical to the last bit. The other two have times that go backwards
   ([`.rse` files](../format/rse.md#checked-against-real-files)).
 - **Unit and property tests** cover exact impulse integration, burn windows, grain volume

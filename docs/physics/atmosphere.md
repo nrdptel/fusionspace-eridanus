@@ -98,7 +98,7 @@ a &= \left(\frac{\gamma R^* T_M}{M_0}\right)^{1/2}, \\
 $$
 
 - The constants:
-  - $R^*$ is $8314.32\,\mathrm{J/(kmol \cdot K)}$ (p. 3), not CODATA's 8,314.46. Table 2 misprints the exponent's sign.
+  - $R^*$ is $8314.32\,\mathrm{J/(kmol \cdot K)}$ (p. 3), not CODATA's $8314.46$. Table 2 misprints the exponent's sign.
   - $M_0 = 28.9644\,\mathrm{kg/kmol}$, $g_0 = g_0' = 9.80665$, $r_0 = 6\,356\,766\,\mathrm{m}$.
   - $P_0 = 101325\,\mathrm{Pa}$, $T_0 = 288.15\,\mathrm{K}$, $\gamma = 1.40$, $\beta = 1.458\times10^{-6}$.
   - $S = 110.4\,\mathrm{K}$ (p. 19). Table 2 and p. 4 print 110 K, but the tables use 110.4 K: sea-level $\mu$

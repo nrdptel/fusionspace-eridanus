@@ -2550,7 +2550,7 @@ the point keeps its place with its time a gap.
     out. Noise before it, as a receiver writes on power up, is left out and counted.
   - *Clock and units.* The time of day is UTC. The date comes only from an `RMC` with a valid
     fix, because before its fix the receiver writes a placeholder date. A speed in knots is read
-    as 1852/3600 m/s a knot.
+    as 1,852/3,600 m/s a knot.
 - **Missile Works' RTx**, a GPS tracker: the `.rtx` file its maker's program saves, and the CSV
   and text files it exports. They have been read since
   [M7.1c12](../decisions-and-roadmap.md#m7-1c12) ([below](#missile-works-rtx)).
@@ -2673,7 +2673,7 @@ For example, the crate's tests read an invented `.rtx` and its exports. The firs
 $\lfloor 175\,950 / 65\,536 \rfloor = 2$ and word 0 is $175\,950 - 2 \times 65\,536 = 44\,878$.
 The file holds word 0 as the slot 656,705,342, the remainder of $44\,878 \times 387\,420\,489$
 after dividing by $10^9$. The reader multiplies it by 513,180,409 and keeps the last nine digits,
-44,878 again. The latitude's words are `3259`, `35698` and `1`. Then $1 \times 65\,536 + 35\,698 =
+`44878` again. The latitude's words are `3259`, `35698` and `1`. Then $1 \times 65\,536 + 35\,698 =
 101\,234$, a leading 1 and the decimals `01234`. So the fix is 32° and 59.01234′ north,
 $32 + 59.01234/60 = 32.983\,539$°. Its altitude word is 1,400 m (4,593 ft). The CSV export
 writes the fix as
