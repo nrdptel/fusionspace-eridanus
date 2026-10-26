@@ -69,18 +69,31 @@ pub const USAGE: &str =
 
 /// The paths read when no path is given, relative to the workspace root: the pages people read,
 /// and the pull request and issue templates.
-const SCOPE: [&str; 6] = [
+const SCOPE: [&str; 8] = [
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "docs",
     ".github",
     HELP,
+    PYTHON_README,
+    DOCSTRINGS,
 ];
 
 /// The snapshots of each `hpr` command's `--help` (`crates/hpr-cli/tests/help.rs`), read by
 /// [`read_help`] and held, every one, beside the site's pages (M0.14d1).
 const HELP: &str = "crates/hpr-cli/tests/help/";
+
+/// The Python package's README, its front page on PyPI, held beside the site's pages (M0.14d4).
+const PYTHON_README: &str = "crates/hpr-py/README.md";
+
+/// The snapshot of the Python package's docstrings as `help()` shows them
+/// (`crates/hpr-py/tests/test_docstrings.py`), held beside the site's pages (M0.14d4).
+const DOCSTRINGS: &str = "crates/hpr-py/tests/docstrings.md";
+
+/// Where the crates are: each directory under it with a `Cargo.toml` is one, and its `src/lib.rs`
+/// opens with the `//!` docs docs.rs shows as its front page ([`front_page`]), held (M0.14d4).
+const CRATES_DIR: &str = "crates/";
 
 /// Pages under [`SCOPE`] left as they are (ADR-284 §5), each with the reason.
 const LEFT_OUT: [(&str, &str); 7] = [
@@ -107,12 +120,13 @@ const LEFT_OUT: [(&str, &str); 7] = [
 
 /// Reference pages, which stay impersonal (ADR-284 §2): a model's equations, a file format, a
 /// command's options, a glossary. First person on one counts against a limit of zero.
-const REFERENCE: [&str; 5] = [
+const REFERENCE: [&str; 6] = [
     "docs/physics/",
     "docs/format/",
     "docs/cli.md",
     "docs/glossary.md",
     HELP,
+    DOCSTRINGS,
 ];
 
 /// The site's table of contents. Every page it lists is held to every limit and both sentence
@@ -145,7 +159,7 @@ pub(crate) const REPORT: &str = "validation/reports/voice.md";
 const EXTENSIONS: [&str; 6] = ["md", "markdown", "html", "htm", "txt", "help"];
 
 /// How a file is read, by its extension: HTML, a help snapshot, or else Markdown (plain text
-/// included).
+/// included). A `.rs` file given as a path is read as Markdown, as its front page ([`front_page`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Format {
     Markdown,
@@ -863,8 +877,77 @@ fn held_paths(root: &Path) -> Result<Vec<String>, String> {
         fs::read_to_string(root.join(CONTENTS)).map_err(|e| format!("{CONTENTS}: {e}"))?;
     let mut held = with_help(held_from(&contents)?, help_paths(root)?)?;
     held.extend(census_paths());
+    held.extend([PYTHON_README, DOCSTRINGS].map(str::to_owned));
+    held.extend(front_page_paths(root)?);
     held.sort();
     Ok(held)
+}
+
+/// Each crate's `src/lib.rs`, relative to `root`: one for each tracked `Cargo.toml` directly in a
+/// directory under [`CRATES_DIR`]. A crate without a tracked `src/lib.rs` is refused, so no
+/// crate's front page leaves the hold unnoticed, and so is finding none.
+fn front_page_paths(root: &Path) -> Result<Vec<String>, String> {
+    let tracked = tracked(root, &[CRATES_DIR])?;
+    let mut paths = Vec::new();
+    for manifest in &tracked {
+        let Some(name) = manifest
+            .strip_prefix(CRATES_DIR)
+            .and_then(|rest| rest.strip_suffix("/Cargo.toml"))
+            .filter(|name| !name.contains('/'))
+        else {
+            continue;
+        };
+        let lib = format!("{CRATES_DIR}{name}/src/lib.rs");
+        if !tracked.contains(&lib) {
+            return Err(format!(
+                "{CRATES_DIR}{name} has no tracked src/lib.rs, so the voice check can't hold the \
+                 front page docs.rs shows for it"
+            ));
+        }
+        paths.push(lib);
+    }
+    if paths.is_empty() {
+        return Err(format!(
+            "no crate under {CRATES_DIR}, so the voice check would hold no crate's front page"
+        ));
+    }
+    paths.sort();
+    Ok(paths)
+}
+
+/// The `//!` docs at the top of a crate's `lib.rs` as the Markdown rustdoc reads: each `//!`
+/// line less the marker and one space, up to the first line that is neither one, a blank line
+/// nor a `//` comment. Each other line before it is left blank, so a line of the page is the same
+/// line of the file.
+fn front_page(source: &str) -> String {
+    let mut page = String::new();
+    for line in source.lines() {
+        let trimmed = line.trim_start();
+        if let Some(doc) = trimmed.strip_prefix("//!") {
+            page.push_str(doc.strip_prefix(' ').unwrap_or(doc));
+        } else if !(trimmed.is_empty() || trimmed.starts_with("//")) {
+            break;
+        }
+        page.push('\n');
+    }
+    page
+}
+
+/// Whether `path`, from the workspace root, is a crate's `src/lib.rs`, read as its front page.
+fn is_front_page(path: &str) -> bool {
+    path.strip_prefix(CRATES_DIR)
+        .and_then(|rest| rest.strip_suffix("/src/lib.rs"))
+        .is_some_and(|name| !name.is_empty() && !name.contains('/'))
+}
+
+/// A file's text as the check reads it: a crate's `lib.rs` (or any `.rs` file given) as its front
+/// page ([`front_page`]), anything else as it is.
+fn as_read(path: &Path, text: String) -> String {
+    if extension(path).as_deref() == Some("rs") {
+        front_page(&text)
+    } else {
+        text
+    }
 }
 
 /// The census pages' paths, each crate's `src/` directory ([`crate::messages::CRATES`]).
@@ -1086,7 +1169,24 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
         page.held = held.contains(&page.path);
         pages.push(page);
     }
+    for path in front_page_paths(root)? {
+        let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
+        let source = front_page(&text);
+        if !text_has_letters(&source) {
+            return Err(format!(
+                "{path} opens with no `//!` docs, so docs.rs shows its crate with no front page"
+            ));
+        }
+        let mut page = read_page(&path, &source, true, false);
+        page.held = held.contains(&path);
+        pages.push(page);
+    }
     Ok(pages)
+}
+
+/// Whether `text` holds a letter.
+fn text_has_letters(text: &str) -> bool {
+    text.chars().any(char::is_alphabetic)
 }
 
 /// A crate's message census as text a reader sees, one run a line of a literal: the text, the
@@ -1204,7 +1304,7 @@ fn leaves(entry: &str, path: &str) -> bool {
 
 /// Whether a page is a reference page, where first person counts against its limit of 0.
 fn is_reference(path: &str) -> bool {
-    REFERENCE.iter().any(|entry| leaves(entry, path))
+    REFERENCE.iter().any(|entry| leaves(entry, path)) || is_front_page(path)
 }
 
 /// Whether a page, by its path from the repository's root, is a model page: a file directly under
@@ -1224,14 +1324,15 @@ fn given_pages(root: &Path, args: &[String]) -> Result<Vec<Page>, String> {
     let mut pages = Vec::new();
     for file in files {
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
-        let text = String::from_utf8_lossy(&bytes);
+        let text = as_read(&file, String::from_utf8_lossy(&bytes).into_owned());
         let shown = file.display().to_string();
         let inside = fs::canonicalize(&file).ok().and_then(|full| {
             full.strip_prefix(&root)
                 .ok()
                 .map(|p| p.to_string_lossy().replace('\\', "/"))
         });
-        let reference = inside.as_deref().is_some_and(is_reference);
+        let reference = inside.as_deref().is_some_and(is_reference)
+            || extension(&file).as_deref() == Some("rs");
         let model = inside.as_deref().is_some_and(is_model_page);
         let mut page = match Format::of(&file) {
             Format::Markdown => read_page(&shown, &text, reference, model),
@@ -1266,7 +1367,7 @@ fn given_files(args: &[String]) -> Result<Vec<(String, String, Format)>, String>
         let bytes = fs::read(&file).map_err(|e| format!("{}: {e}", file.display()))?;
         found.push((
             file.display().to_string(),
-            String::from_utf8_lossy(&bytes).into_owned(),
+            as_read(&file, String::from_utf8_lossy(&bytes).into_owned()),
             Format::of(&file),
         ));
     }

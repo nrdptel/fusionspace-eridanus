@@ -1,7 +1,8 @@
-//! The census of what the commands say (ADR-292 §5 and its amendments for M0.14d2 and M0.14d3):
+//! The census of what the commands say (ADR-292 §5 and its amendments for M0.14d2 to M0.14d4):
 //! the errors, warnings and notes every command of `hpr` prints, read from the source of
 //! `hpr-cli` and the crates under it, so that [`crate::voice`] can hold them as it holds a
-//! command's help. M0.14d2 read the design commands' crates, M0.14d3 the data commands'.
+//! command's help. M0.14d2 read the design commands' crates, M0.14d3 the data commands', and
+//! M0.14d4 the Python package's.
 //!
 //! The source doesn't say which literal ends up in a message: a refusal's `what` is written where
 //! the error is made, a warning's text is often built in one function and pushed in another. So
@@ -29,8 +30,9 @@ use std::path::Path;
 use crate::voice::CODE;
 
 /// The crates read, each by its directory under `crates/`: `hpr-cli`, the nine ADR-292 §1 lists
-/// under the design commands (M0.14d2), and the four under the data commands (M0.14d3).
-pub(crate) const CRATES: [&str; 14] = [
+/// under the design commands (M0.14d2), the four under the data commands (M0.14d3), and the
+/// Python package's own, `hpr-py` (M0.14d4).
+pub(crate) const CRATES: [&str; 15] = [
     "hpr-cli",
     "hpr",
     "hpr-sim",
@@ -45,6 +47,7 @@ pub(crate) const CRATES: [&str; 14] = [
     "hpr-flightdata",
     "hpr-analysis",
     "hpr-forensics",
+    "hpr-py",
 ];
 
 /// One literal read: where it is, and its text as the census reads it.
