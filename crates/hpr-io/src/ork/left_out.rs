@@ -471,16 +471,34 @@ impl Lean {
                 out += &format!(", low if {not}");
             }
         }
+        // Why the margin has no direction: the parts sized or placed from it, then each override
+        // that sets only one of the mass and the center of gravity.
+        let mut why: Vec<String> = Vec::new();
         if self.mass == Total::Either {
-            out += &format!(
-                ". The mass and stability margin can read high or low, as parts {} from it \
-                 change too",
+            why.push(format!(
+                "parts {} from it change too",
                 if self.placed {
                     "sized or placed"
                 } else {
                     "sized"
                 }
-            );
+            ));
+        } else if self.placed {
+            why.push("parts placed after it move too".to_owned());
+        }
+        for kind in &self.partly {
+            why.push(format!(
+                "the {kind}'s override sets the mass or the center of gravity of what it holds, \
+                 not both"
+            ));
+        }
+        let why = if why.is_empty() {
+            String::new()
+        } else {
+            format!(", as {}", why.join(", and "))
+        };
+        if self.mass == Total::Either {
+            out += &format!(". The mass and stability margin can read high or low{why}");
             return out;
         }
         match self.margin {
@@ -489,22 +507,7 @@ impl Lean {
                 out += ". The stability margin reads high for a part aft of the center of \
                         gravity, low for one ahead";
             }
-            Margin::Either => {
-                out += ". The stability margin can read high or low";
-                let mut why: Vec<String> = Vec::new();
-                if self.placed {
-                    why.push("parts placed after it move too".to_owned());
-                }
-                for kind in &self.partly {
-                    why.push(format!(
-                        "the {kind}'s override sets the mass or the center of gravity of what \
-                         it holds, not both"
-                    ));
-                }
-                if !why.is_empty() {
-                    out += &format!(", as {}", why.join(", and "));
-                }
-            }
+            Margin::Either => out += &format!(". The stability margin can read high or low{why}"),
         }
         out
     }
@@ -706,6 +709,26 @@ mod tests {
             Lean::new(Counted::OUTSIDE, &placed).sentence(false),
             " Its mass and drag aren't counted, so the mass and drag read low. The stability \
              margin can read high or low, as parts placed after it move too"
+        );
+        // An override above that sets only the center of gravity of what it holds is said too,
+        // beside the parts sized from it.
+        let partly = Around {
+            covered: Covered::default().within(
+                "body tube",
+                &Overrides {
+                    cg_aft_m: Some(0.1),
+                    ..Overrides::default()
+                },
+                true,
+                None,
+            ),
+            ..sized
+        };
+        assert_eq!(
+            Lean::new(Counted::MASS, &partly).sentence(false),
+            " Its mass isn't counted. The mass and stability margin can read high or low, as \
+             parts sized from it change too, and the body tube's override sets the mass or the \
+             center of gravity of what it holds, not both"
         );
     }
 
