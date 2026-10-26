@@ -71,6 +71,24 @@ From the 2026-10-20 planning review ([ADR-286][adr-286]):
   task under `steps.command-line`, "fly a past launch in its day's air". *Done when:* a recorded answer
   replays with the ERA5 file's levels to rounding, and offline the cache answers or it says so.
 
+From the 2026-10-24 planning review ([ADR-289][adr-289]):
+
+- SOON: a second observable for each logged flight. User: a university team's simulation lead who
+  must know whether a high apogee came from too much impulse or too little drag. Workflow: the
+  real-flight and fixture reports score time to apogee (listed today, unscored, for hpr only) and
+  burnout speed (logs with an accelerometer) for both tools; a high apogee with a high burnout
+  speed points at thrust or mass, one with the log's burnout speed at coast drag. Moves: new rows
+  `accuracy.time-to-apogee` and `accuracy.burnout-speed`, signed and mean absolute, with counts.
+  *Done when:* both reports give the rows for both tools, and in a test synthetic flights with 10%
+  more impulse and with 10% less drag are told apart by their burnout-speed error.
+- SOON: where the miss lives. User: an L1 flyer asking how far to trust a prediction for a rocket
+  like theirs. Workflow: the fixture report splits the apogee error by top Mach band, impulse class
+  and body diameter; a cell of 8 or more flights from 5 or more designs shows its signed and mean
+  absolute error with a 90% bootstrap interval, any other only its count; `hpr sim` names a
+  design's cell. Moves: `accuracy.collection` and `bias.collection` by cell, naming which carry
+  the +8.73% bias. *Done when:* the report gives every cell or its count, a test pins both size
+  rules, and the page names each cell whose interval excludes zero, or says none does.
+
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [m7-2]: ../decisions-and-roadmap.md#m7-2
@@ -81,3 +99,4 @@ From the 2026-10-20 planning review ([ADR-286][adr-286]):
 [hpcd]: hobby-parachute-cd.md
 [stab-thread]: https://www.rocketryforum.com/threads/stability-concerns-regarding-my-mach-1-l2.199218/
 [slth]: sl-true-height.md
+[adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
