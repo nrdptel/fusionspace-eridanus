@@ -19,7 +19,8 @@ run. `cargo xtask voice` fails a stock phrase and counts the voice section's pat
 its limits. `cargo xtask guides` reads every number in a guide's text from a committed report.
 `cargo xtask site` counts each page's sheets and fails one outside two to six. It also fails a
 trust note or an alert off its shape, a hyphen for a minus sign, a column of numbers not
-right-aligned or without a label and a unit, and a note or table cell over 120 words.
+right-aligned or without a label and a unit, a note or table cell over 120 words, a figure of
+four or more digits without its commas, and an ISO date in prose.
 
 ## The rules
 
@@ -452,6 +453,37 @@ They don't conflict with the rules above; they add these:
   on instead. The supporting detail goes in the page's own text, below the note. A cell holds a
   value or a phrase, and its explanation goes under the table. A table or a quote block written in
   raw HTML fails too, as the checks read only Markdown's. A footnote is neither, and isn't read.
+- **Grouped figures and dates in words** (since [M0.9f3](decisions-and-roadmap.md#m0-9f3)).
+  If a figure of four or more digits is a quantity, give it its commas: `1,500 m`, not `1500 m`.
+  If it is a name or a number from a file, leave it as it is, or put it in code. Outside code
+  and math, on the site and in both READMEs, `cargo xtask site` fails a figure of four or more
+  digits before its decimal point written without its commas. Digits after the point aren't
+  grouped. It passes these, which aren't quantities:
+
+  - **A part number or another name made of letters and figures:** a figure with a letter, `_`
+    or `#` against it, or with a `/`, `\`, `@`, `+`, `&` or `=` before it (`131G84`, `L1150R`,
+    `#1000`). Also a figure after a hyphen that follows a letter (`D-4014`), or after a colon or a
+    point that follows a letter or a `)` (`arXiv:1109.4448`, `NGA.STND.0036`). Also a figure after
+    a hyphen or a `)` in a name that holds a letter (`NASA/TM-2008-215633`). Figures a hyphen
+    joins otherwise (`1000-2000 ft`, `3005-row`) are read.
+  - **A figure right after a name that numbers documents or things.** The names are `ISO`,
+    `NFPA`, `RFC`, `NMEA`, `ESDU`, `datum`, `Code`, `code`, `NACA`, `TN`, `TR`, `TP`, `Report`,
+    `NTRS`, `arXiv`, `Aluminum`, `Al`, `Hexcel`, `HexPly`, `station`, `thread`, `Thread` and `pp.`
+    (`NFPA 1125`, `NACA TN 3527`, `station 72364`), as written. The second figure of a range
+    after one passes too (`pp. 1509–1518`). Give each figure its name: `NFPA 1125 and NFPA 1127`.
+    For a name the list doesn't hold, put the figure in code, or add the name to `IDENTIFIERS`
+    in the same change.
+  - **A year:** four digits from 1600 to 2100 with no unit or `%` after them or after their
+    decimals (`in 1997`, `2025.0`; but `2000 m` and `1749.8 m` fail). Also the year in a date
+    written out (`December 31, 9999`).
+
+  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. The check
+  reads figures, not meaning. A count from 1600 to 2100 passes without its commas: write them
+  anyway (`1,712 files`). Text in a block of raw HTML isn't read.
+
+  It also fails an ISO date, `2026-10-04`, in the text outside tables: prose writes
+  `October 4, 2026`. A table, a file's name in code and a link's address keep the ISO form. The
+  lists are `IDENTIFIERS` and `UNIT_WORDS` in `xtask/src/site/figures.rs`.
 - **A trust note**, in one fixed shape, goes on every result someone might fly on. It's a quote
   block that opens with `**How far to trust it.**`. Then it says what kind of figure it is
   (estimate, measurement, copied value) and what it was checked against, with numbers. Last, it
@@ -981,7 +1013,7 @@ The rules follow the UK Government Digital Service's
 [style guide](https://www.gov.uk/guidance/style-guide), and the sentence-length checks that
 Datadog and GitLab run with the [Vale](https://vale.sh/) linter. The page kinds are Daniele
 Procida's [Diátaxis](https://diataxis.fr/) framework. The decision to adopt them is in the
-[2026-10-03 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
+[October 3, 2026 review's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md).
 
 The voice rules come from
 [a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md).

@@ -31,7 +31,7 @@ and measures distance and bearing between places.
 Code: `hpr_core::geodesy` and `hpr_core::geodesic`. Conventions: [Frames](frames.md).
 
 - **[NGA]** NGA.STND.0036_1.0.0_WGS84, *Department of Defense World Geodetic System 1984, Its
-  Definition and Relationships with Local Geodetic Systems*, 2014-07-08. Pinned as
+  Definition and Relationships with Local Geodetic Systems*, July 8, 2014. Pinned as
   `wgs84-nga-stnd-0036`. US government work.
 - **[Karney]** C. F. F. Karney, *Geodesics on an ellipsoid of revolution*, arXiv:1102.1215v1,
   2011, appendix B. Pinned as `karney-2011-geodesics`.
@@ -53,7 +53,7 @@ The ellipsoid, coordinate conversions and the local axes.
 
   | quantity | value (m, or ratio) |
   |---|--:|
-  | $b$ | 6356752.3142 m (20,855,486.595 ft) |
+  | $b$ | 6,356,752.3142 m (20,855,486.595 ft) |
   | $e^2$ | 6.694379990141e-3 |
   | $E$ | 5.2185400842339e5 m |
 
@@ -144,7 +144,7 @@ the paper needs its limiting forms (B6)–(B7). The code returns `CoreError::Dom
 
 - geodetic → ECEF → geodetic: latitude within 1e-14 rad and height within 2e-8 m, from
   −10 km (−6.2 mi) to +1000 km (621 mi);
-- ECEF → geodetic → ECEF: within 1e-7 m per 6400 km (3,977 mi) of radius, out to 46,000 km (28,583 mi).
+- ECEF → geodetic → ECEF: within 1e-7 m per 6,400 km (3,977 mi) of radius, out to 46,000 km (28,583 mi).
 
 ### Local ENU axes
 

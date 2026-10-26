@@ -983,7 +983,7 @@ gaps, in order:
   `solver.relative_change_from_loose`), far below the gaps. The one larger entry, 2.1e-3, is
   Valetudo's north drift of 19 µm, which has [its own section](#valetudos-north-drift) below.
 
-**The results.** Measured (HPR Sim against RocketPy, 2026-09-17):
+**The results.** Measured (HPR Sim against RocketPy, September 17, 2026):
 
 | case | descent time | descent rate under the drogue | impact descent rate | drift | worst drift component |
 |---|--:|--:|--:|---|---|

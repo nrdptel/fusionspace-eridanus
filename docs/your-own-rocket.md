@@ -197,7 +197,7 @@ which opens when the motor's ejection charge fires.
 - **Rail exit:** 21.7 m/s (71 ft/s). The design has no rail buttons, so the simulator takes the
   rocket as off the rail when its aft end passes the top
   ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
-- **Apogee:** 1144.5 m (3755 ft) above the pad, 13.92 s after ignition
+- **Apogee:** 1,144.5 m (3,755 ft) above the pad, 13.92 s after ignition
   ([apogee](glossary.md#apogee)).
 - **Top speed:** 187 m/s (614 ft/s), Mach 0.56: the fastest airspeed at the end of any [time
   step](glossary.md#adaptive-time-step). With no wind, the airspeed is also the speed over the

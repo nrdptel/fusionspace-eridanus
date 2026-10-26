@@ -97,6 +97,7 @@ use crate::workspace::{Package, Workspace};
 mod bundle;
 mod cdp;
 mod chrome;
+mod figures;
 mod frame;
 pub(crate) mod math;
 mod notes;
@@ -1249,11 +1250,14 @@ fn check_readmes(root: &Path) -> Vec<String> {
 
 /// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
 /// message), as `renderer` shows the text: no en dash joining two words, no note or table cell
-/// over [`words::MOST_WORDS`] words, and a label and a unit over each column of numbers.
+/// over [`words::MOST_WORDS`] words, a label and a unit over each column of numbers, no figure of
+/// four or more digits ungrouped and no ISO date in prose.
 fn word_rules(text: &str, renderer: words::Renderer) -> Vec<(usize, String)> {
     let mut problems = words::joined_words(text, renderer);
     problems.extend(words::long_blocks(text, renderer));
     problems.extend(numbers::number_heads(text));
+    problems.extend(figures::ungrouped_figures(text, renderer));
+    problems.extend(figures::prose_dates(text, renderer));
     problems
 }
 
@@ -1320,19 +1324,23 @@ fn page_rules(
         .filter_map(|(_, dest)| repository_file(name, dest))
         .collect();
     if name == ACCURACY {
+        let (results, shown) = match fs::read_to_string(root.join(REPORT)) {
+            Ok(report) => results_tables(text, &report),
+            Err(err) => (vec![(1, format!("can't read {REPORT}: {err}"))], Vec::new()),
+        };
+        // A results table's cell rounded from the report is traced by the check of its case
+        // and metric, which allows the rounding, not by a quote of the report's digits. Its
+        // digits then count as traced anywhere on the page, as a quoted file's do.
         problems.extend(untraced_numbers(
             root,
             name,
             text,
             Traced::Page,
             guides,
-            &[],
+            &quoted(&shown.join(" ")),
             "a file that this paragraph, list item or table row links to",
         ));
-        match fs::read_to_string(root.join(REPORT)) {
-            Ok(report) => problems.extend(results_tables(text, &report)),
-            Err(err) => problems.push((1, format!("can't read {REPORT}: {err}"))),
-        }
+        problems.extend(results);
         for file in markdown_files(&root.join(SOURCE).join(MODELS)) {
             let model = format!("{SOURCE}/{MODELS}/{file}");
             if !linked.iter().any(|(path, _)| *path == model) {
@@ -2088,11 +2096,13 @@ fn report_results(report: &str) -> Vec<(String, String, String)> {
 /// A results table's header opens with `case`, and its other columns each name a metric in code,
 /// such as `` `drift_m` ``; each row names its case in code in its first cell. Every such cell
 /// must be the report's difference for its case and metric, as the report writes it (a minus may
-/// be `−`), and every result of the report must be in one: the page gives every result, and each
-/// exactly.
-fn results_tables(page: &str, report: &str) -> Vec<(usize, String)> {
+/// be `−`) or [`rounds_to`] fewer digits (`data.md`: precision that matches what is known), and
+/// every result of the report must be in one: the page gives every result, and each exactly or
+/// rounded. Also returns each cell that gives its result, as written.
+fn results_tables(page: &str, report: &str) -> (Vec<(usize, String)>, Vec<String>) {
     let results = report_results(report);
     let mut shown = BTreeSet::new();
+    let mut cells = Vec::new();
     let mut problems = Vec::new();
     if results.is_empty() {
         problems.push((
@@ -2143,13 +2153,19 @@ fn results_tables(page: &str, report: &str) -> Vec<(usize, String)> {
                     continue;
                 };
                 match results.iter().find(|(c, m, _)| c == case && m == metric) {
-                    Some((c, m, difference)) if normalized(difference) == normalized(written) => {
+                    Some((c, m, difference))
+                        if normalized(difference) == normalized(written)
+                            || rounds_to(difference, written) =>
+                    {
                         shown.insert((c.as_str(), m.as_str()));
+                        cells.push(written.to_owned());
                     }
                     Some((_, _, difference)) => problems.push((
                         *line,
                         format!(
-                            "`{metric}` of `{case}` is {difference} in {REPORT}, and {written} here"
+                            "`{metric}` of `{case}` is {difference} in {REPORT}, and {written} here \
+                             (a cell gives it as written, or rounded half away from zero to fewer \
+                             decimals, keeping {KEPT_DIGITS} significant digits)"
                         ),
                     )),
                     None => {
@@ -2170,7 +2186,79 @@ fn results_tables(page: &str, report: &str) -> Vec<(usize, String)> {
             ));
         }
     }
-    problems
+    (problems, cells)
+}
+
+/// The fewest significant digits a page keeps when it rounds a report's figure ([`rounds_to`]).
+const KEPT_DIGITS: usize = 3;
+
+/// Whether `written`, on a page, is the report's figure `reported` rounded half away from zero
+/// to fewer decimals, keeping at least [`KEPT_DIGITS`] significant digits, with the same sign and
+/// the same unit after it: `+35.4` and `+35.35` are `+35.350931`, but `+35.3`, `35.4`, `+35`
+/// (two digits) and `+35.4%` are not. A minus may be `−`, and grouping commas are dropped.
+fn rounds_to(reported: &str, written: &str) -> bool {
+    /// A figure's sign, whole digits, decimals and what follows them.
+    fn parts(text: &str) -> Option<(&str, &str, &str, &str)> {
+        let text = text.trim();
+        let sign_end = text
+            .find(|c: char| c != '+' && c != '-')
+            .unwrap_or(text.len());
+        let (sign, rest) = text.split_at(sign_end);
+        let whole_end = rest
+            .find(|c: char| !c.is_ascii_digit())
+            .unwrap_or(rest.len());
+        let (whole, rest) = rest.split_at(whole_end);
+        let (decimals, unit) = match rest.strip_prefix('.') {
+            Some(rest) => rest.split_at(
+                rest.find(|c: char| !c.is_ascii_digit())
+                    .unwrap_or(rest.len()),
+            ),
+            None => ("", rest),
+        };
+        (sign.len() <= 1 && !whole.is_empty()).then_some((sign, whole, decimals, unit))
+    }
+    let (reported, written) = (normalized(reported), normalized(written));
+    let (Some((sign, whole, decimals, unit)), Some((w_sign, w_whole, w_decimals, w_unit))) =
+        (parts(&reported), parts(&written))
+    else {
+        return false;
+    };
+    let kept = w_decimals.len();
+    // A point with no decimals after it (`+351.`) isn't a rounding anyone writes.
+    let bare_point = kept == 0 && written.contains('.');
+    if sign != w_sign || unit != w_unit || kept >= decimals.len() || bare_point {
+        return false;
+    }
+    // Round the digits as a whole number of the kept decimals, then put the point back.
+    let digits: Vec<u8> = format!("{whole}{}", &decimals[..kept])
+        .bytes()
+        .map(|b| b - b'0')
+        .collect();
+    let mut rounded = digits.clone();
+    if decimals.as_bytes()[kept] >= b'5' {
+        let mut at = rounded.len();
+        loop {
+            if at == 0 {
+                rounded.insert(0, 1);
+                break;
+            }
+            at -= 1;
+            if rounded[at] == 9 {
+                rounded[at] = 0;
+            } else {
+                rounded[at] += 1;
+                break;
+            }
+        }
+    }
+    let text: String = rounded.iter().map(|d| char::from(b'0' + d)).collect();
+    let (r_whole, r_decimals) = text.split_at(text.len() - kept);
+    let r_whole = r_whole.trim_start_matches('0');
+    let r_whole = if r_whole.is_empty() { "0" } else { r_whole };
+    let significant = format!("{w_whole}{w_decimals}")
+        .trim_start_matches('0')
+        .len();
+    r_whole == w_whole && r_decimals == w_decimals && significant >= KEPT_DIGITS
 }
 
 /// The texts of a Markdown file's headings, in order: all of them, or those of one level.
@@ -3484,11 +3572,17 @@ mod tests {
         let long = vec!["word"; words::MOST_WORDS + 1].join(" ");
         let page = format!(
             "# A page\n\n> {long}\n\n| case | `apogee_agl_m` |\n|---|---:|\n| a | 1.5 m |\n\n\
-             The Dormand–Prince pair.\n"
+             The Dormand–Prince pair, 1500 m up on 2026-10-04.\n"
         );
         let root = crate::designs::root().unwrap();
         let problems = page_rules(&root, "a-page.md", &page, &[], &BTreeSet::new());
-        for rule in ["a note of 121 words", "has no label", "joins two words"] {
+        for rule in [
+            "a note of 121 words",
+            "has no label",
+            "joins two words",
+            "four or more digits ungrouped",
+            "is an ISO date in prose",
+        ] {
             assert!(
                 problems.iter().any(|(_, message)| message.contains(rule)),
                 "{rule}: {problems:#?}"
@@ -3526,6 +3620,16 @@ mod tests {
         assert!(problems[2].starts_with("crates/hpr-py/README.md:5: a table cell of 121 words"));
         assert!(problems[3].contains("(\"`apogee_agl_m`\") has no label"));
         assert!(problems[4].contains("(\"HPR Sim\") gives no unit"));
+        // And a README with an ungrouped figure or an ISO date in its prose.
+        fs::write(
+            dir.path().join("crates/hpr-py/README.md"),
+            "It reaches 1500 m.\n\nRead on 2026-10-04.\n",
+        )
+        .unwrap();
+        let problems = check_readmes(dir.path());
+        assert_eq!(problems.len(), 3, "{problems:#?}");
+        assert!(problems[1].starts_with("crates/hpr-py/README.md:1: `1500` in"));
+        assert!(problems[2].starts_with("crates/hpr-py/README.md:3: `2026-10-04` is an ISO date"));
     }
 
     #[test]
@@ -4498,16 +4602,73 @@ mod tests {
     }
 
     #[test]
+    fn a_rounded_result_is_the_report_s_figure_rounded_half_away_from_zero() {
+        for (reported, written) in [
+            ("+35.350931", "+35.4"),
+            ("+35.350931", "+35.35"),
+            ("+0.089668", "+0.0897"),
+            ("-0.2355%", "−0.236%"),
+            ("+2.003892", "+2.00"),
+            ("+9.996", "+10.00"),
+            ("+99.96", "+100.0"),
+            ("+0.0995", "+0.100"),
+            ("+1234.56", "+1,234.6"),
+            ("+263.920111", "+264"),
+        ] {
+            assert!(rounds_to(reported, written), "{reported} -> {written}");
+        }
+        for (reported, written, why) in [
+            ("+35.350931", "+35.3", "rounded down"),
+            ("+35.350931", "35.4", "no sign"),
+            ("+35.350931", "−35.4", "the other sign"),
+            ("+35.350931", "+35", "two significant digits"),
+            ("+0.089668", "+0.090", "two significant digits"),
+            ("+35.350931", "+35.4%", "another unit"),
+            ("-0.2355%", "−0.236", "no unit"),
+            ("-0.235%", "−0.24%", "two significant digits"),
+            ("+35.35", "+35.35", "not fewer decimals"),
+            ("+35.35", "+35.350", "more decimals"),
+            ("+35.35", "+35.", "no decimals after the point"),
+            ("+350.5", "+351.", "a bare point"),
+            ("+9.996", "+9.99", "rounded down at a carry"),
+            ("n/a", "n/a", "no figure"),
+        ] {
+            assert!(
+                !rounds_to(reported, written),
+                "{reported} -> {written}: {why}"
+            );
+        }
+    }
+
+    #[test]
     fn the_accuracy_page_gives_every_result_of_the_report_exactly() {
         assert_eq!(
             accuracy_problems(&format!("# Accuracy\n\n{GRAVITY}{RESULTS}"), &[]),
+            Vec::<String>::new()
+        );
+        // A cell may round the report's figure, to fewer decimals that keep three digits.
+        assert_eq!(
+            accuracy_problems(
+                &format!(
+                    "# Accuracy\n\n{GRAVITY}{}",
+                    RESULTS.replace("| +2.865% |", "| +2.87% |")
+                ),
+                &[]
+            ),
             Vec::<String>::new()
         );
         for (table, problem) in [
             (
                 RESULTS.replace("| −0.019% |", "| +0.019% |"),
                 "docs/accuracy.md:7: `time_s` of `alpha` is -0.019% in \
-                 validation/reports/latest.md, and +0.019% here",
+                 validation/reports/latest.md, and +0.019% here (a cell gives it as written, or \
+                 rounded half away from zero to fewer decimals, keeping 3 significant digits)",
+            ),
+            (
+                RESULTS.replace("| +2.865% |", "| +2.86% |"),
+                "docs/accuracy.md:7: `drift_m` of `alpha` is +2.865% in \
+                 validation/reports/latest.md, and +2.86% here (a cell gives it as written, or \
+                 rounded half away from zero to fewer decimals, keeping 3 significant digits)",
             ),
             (
                 RESULTS.replace("| [`beta`][report] | +0.075% | |\n", ""),

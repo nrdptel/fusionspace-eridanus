@@ -247,7 +247,7 @@ an airfoiled fin's modulus, and a booster's max q.
 The criterion needs the fin's shear modulus in its own plane. `hpr_design::materials::SHEAR_MODULI`
 gives it for 14 built-in materials, each with its source, page and the web address it was read
 from. `shear_modulus_of` finds a design's copy of a built-in material by its name and density. Where a source gives a
-range, the lower value is kept. Metals are given in ksi (1000 psi) and Msi (10⁶ psi); 1 Msi is
+range, the lower value is kept. Metals are given in ksi (1,000 psi) and Msi (10⁶ psi); 1 Msi is
 6.895 GPa.
 
 | Material | shear modulus $G$ (GPa) | Source | Basis |

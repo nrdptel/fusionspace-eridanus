@@ -3173,7 +3173,7 @@ $$
 \end{aligned}
 $$
 
-- **Roughness.** `hpr_design::Finish` names the fifteen rows of [B67] Table 4-1 (0 to 1000 µm;
+- **Roughness.** `hpr_design::Finish` names the fifteen rows of [B67] Table 4-1 (0 to 1,000 µm;
   [N09] Table 3.2 reprints ten) or takes a custom height. The default is "paint in aircraft mass
   production", 20 µm. Each component has its own finish; the Reynolds number and $R_s/L$ use the
   whole rocket's length, as [N09] does ([Loft lesson L12](../decisions-and-roadmap.md#l12)). Loft cited none of its values. Its 60 µm is OpenRocket's "regular paint" ([N09] p. 83), and its 2 µm isn't in either table. Its $1 + 60/f^3 + 0.0025f$ is Raymer's aircraft fuselage form factor, not [N09]'s.

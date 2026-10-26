@@ -61,9 +61,9 @@ Three sets, each on its own seed, written down before any method was tuned:
 
 | Set | Flights | Seed number | Model flown |
 |---|---:|---:|---|
-| Tuning | 200 | 2026101700 | 100 of A's and 100 of B's, alternating |
-| A | 1,000 | 2026101701 | HPR Sim's |
-| B | 1,000 | 2026101702 | its drag, wind and thrust reshaped |
+| Tuning | 200 | `2026101700` | 100 of A's and 100 of B's, alternating |
+| A | 1,000 | `2026101701` | HPR Sim's |
+| B | 1,000 | `2026101702` | its drag, wind and thrust reshaped |
 
 By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. Flight $k$
 of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and

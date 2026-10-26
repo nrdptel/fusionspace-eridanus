@@ -18,7 +18,7 @@ seed, and why no flight uses them.
   ([evidence row G12](../evidence.md#g12)). Its frozen gust
   pattern needs airspeed well above the gusts, which fails on the rail and near apogee. No flight
   uses it, and none is planned ([issue #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39)).
-  Above 2000 ft the caller supplies the intensity.
+  Above 2,000 ft the caller supplies the intensity.
 
 ## Code and sources
 
@@ -82,18 +82,18 @@ uses [8785C]'s form and lengths throughout.
   \end{aligned}
   $$
 
-  - The formulas hold from 10 to 1000 ft. Below 10 ft this code uses the 10 ft values. From 1000
-    to 2000 ft the figures give $L = 1000\,\mathrm{ft}$ and equal intensities.
-  - The model covers only up to about 2000 ft (§3.8.1), so above that the constructor returns an
+  - The formulas hold from 10 to 1,000 ft. Below 10 ft this code uses the 10 ft values. From 1,000
+    to 2,000 ft the figures give $L = 1000\,\mathrm{ft}$ and equal intensities.
+  - The model covers only up to about 2,000 ft (§3.8.1), so above that the constructor returns an
     error instead of quietly holding values.
   - Fig. 9 marks $u_{20}$ = 15, 30 and 45 kt for light, moderate and severe turbulence.
   - For aircraft at low altitude, $u$ lies along the horizontal *relative* mean wind and $w$ is
     vertical ([8785C] p. 60).
-- The medium/high-altitude model ([8785C] §3.7.2, above about 2000 ft) is isotropic, with
+- The medium/high-altitude model ([8785C] §3.7.2, above about 2,000 ft) is isotropic, with
   $L = 1750\,\mathrm{ft}$.
   - The intensity against altitude and exceedance probability is only a graph (Fig. 7), so the
     caller supplies it.
-  - Neither military document says how to blend 1000–2000 ft. MATLAB's documentation
+  - Neither military document says how to blend 1,000–2,000 ft. MATLAB's documentation
     interpolates linearly, but that is its own choice.
 - In the gust field's axes, $u$ is the longitudinal component and $v$, $w$ the transverse ones.
   - The longitudinal spectrum belongs to the component along the path through the frozen
@@ -181,7 +181,7 @@ repeatedly and on rejected steps.
 - `dryden::tests::dryden_spectrum_matches_theory` is the *done when* of
   [the atmosphere and wind milestone](../decisions-and-roadmap.md#m1-2):
   - Setup: 2²⁰ samples at 1 m (3.3 ft), with $\sigma = (1.5, 1.2, 0.9)$ m/s and $L = (40, 40, 20)$ m.
-  - Estimate: 256 Hann-windowed segments of 4096 samples, averaged (Bartlett's method).
+  - Estimate: 256 Hann-windowed segments of 4,096 samples, averaged (Bartlett's method).
   - In every octave band from bin 1 to Nyquist, each component's mean ratio to theory is within
     4 standard errors.
   - The variance of a band's mean ratio is
@@ -225,8 +225,8 @@ repeatedly and on rejected steps.
   - `spectra_integrate_to_the_variance`
   - `spectra_are_the_cosine_transforms_of_the_autocorrelations`
 - The parameters: `low_altitude_parameters_follow_the_specification`, at 100 ft moderate:
-  $L_u = 505.169\,\mathrm{ft}$ and $\sigma_u/\sigma_w = 1.715849$. It also checks the 10 ft floor, the 1000–2000 ft
-  hold, and the refusal above 2000 ft.
+  $L_u = 505.169\,\mathrm{ft}$ and $\sigma_u/\sigma_w = 1.715849$. It also checks the 10 ft floor, the 1,000–2,000 ft
+  hold, and the refusal above 2,000 ft.
 - Determinism: the same seed gives bit-identical fields, and a serialized generator resumes
   the stream.
 - `hpr_core::random::tests`:

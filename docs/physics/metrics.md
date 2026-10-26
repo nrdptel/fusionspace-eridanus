@@ -485,12 +485,12 @@ warning: unstable: while a motor burns, the pitching moment turns the rocket awa
 ```
 
 With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibers, and the first flag
-fires in its place. These figures are from a run on 2026-10-06; the test
+fires in its place. These figures are from a run on October 6, 2026; the test
 (`sim_flags_a_rocket_unstable_where_it_has_no_margin`) pins only the flag and a slope above 1.
 
 `hpr sim` prints the `warning: unstable:` line and marks the apogee for either flag. Its JSON
 lists the flag under `flags`. The library has it in `FlightSummary::envelope_flags`, and Python in
-`Flight.envelope_flags`. When this was written (2026-10-06), none of the 25 public `.ork` files
+`Flight.envelope_flags`. When this was written (October 6, 2026), none of the 25 public `.ork` files
 and 12 validation designs that `hpr sim` flies offline raised either flag. That was on their default
 configurations off an 85° rail in calm air and in 8 m/s (26 ft/s) of wind. No test or report pins that
 count.

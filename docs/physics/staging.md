@@ -448,7 +448,7 @@ no thrust curves, so `hpr sim` fetches them from ThrustCurve.org once
 ([Motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg)). In configuration 1 both light at launch. From
 `hpr sim "Parallel booster staging.ork" --config 1`, with its defaults (1.5 m (4.9 ft) rail, sea
 level, calm air), the E12s burn out and fire their charges at 2.44 s. The stack is then 290.1 m (952 ft) up at 207.6 m/s (681 ft/s),
-and the boosters drop away. The core burns on to 3.51 s and peaks at 1138.2 m (3,734 ft) at 13.01 s; the
+and the boosters drop away. The core burns on to 3.51 s and peaks at 1,138.2 m (3,734 ft) at 13.01 s; the
 boosters land at 33.0 s. In configuration 2 the boosters hold no motor and stay on: the stack
 peaks at 858.2 m (2,816 ft). These heights are a little above the table's below. The table flies each
 configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, at its launch site).
@@ -459,7 +459,7 @@ recovery as saved:
 
 | motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | largest speed $\Delta$ |
 |---|---|--:|---:|---:|
-| I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
+| I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1,123.6 / 1,137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |
 
 At rod clearance the masses agree to 0.7 g (0.06%) and the static margins to 0.003 caliber,

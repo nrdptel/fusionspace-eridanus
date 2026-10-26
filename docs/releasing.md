@@ -3,15 +3,15 @@
 See what a FusionSpace HPR release holds, which license files come with it, how each is checked, and
 how to check one yourself.
 
-**Release 0.1.0 came out on 2026-10-08. One workflow builds each release, every file of it from
+**Release 0.1.0 came out on October 8, 2026. One workflow builds each release, every file of it from
 one commit. It tests each file as you would get it, and publishes nothing until Neer Patel, who
 owns the project, approves.** The building and checking run when the workflow is started by hand.
 They also run on every pull request that changes the workflow or its scripts (`scripts/release/`).
-The publishing steps first ran for 0.1.0, on 2026-10-08.
+The publishing steps first ran for 0.1.0, on October 8, 2026.
 
 > **How far to trust it.** This page records how the release workflow builds and checks each file,
 > not a result. Each file is run as you would get it. The archive's example flight must reach
-> 846.1 m (2,776 ft), and the Python page's first example 1118.3 m (3669 ft), each within a meter.
+> 846.1 m (2,776 ft), and the Python page's first example 1,118.3 m (3,669 ft), each within a meter.
 > Those smoke tests don't check the physics; the test suite and the validation cases do
 > ([Accuracy](accuracy.md)). For what a release does and its known gaps, rely on
 > [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md). Where
@@ -80,7 +80,7 @@ copy differs from the repository's by a byte.
 
 `THIRD-PARTY-LICENSES.txt` is written for each build by
 [cargo-about](https://github.com/EmbarkStudios/cargo-about) from the crates' own license files. It
-lists each license once, with its text and the crates that use it. Built on 2026-10-06, the
+lists each license once, with its text and the crates that use it. Built on October 6, 2026, the
 command line's file listed 114 crates under 7 licenses, 100 of them from outside the project. The
 Python package's listed 90 under 5, 77 from outside. A crate may appear under several texts, as
 `ring` does under 18 ISC notices. The licenses cargo-about accepts are the ones the project's
@@ -100,7 +100,7 @@ the repository provides the example design:
 - **A wheel or the source package** is installed into fresh environments on Python 3.10 (3.11 on
   Windows on ARM) and 3.13. It must carry the four license files and the release's version, with
   the texts naming `pyo3`, the crate that binds Rust to Python. The first example on the
-  [Python](python.md) page must reach 1118.3 m (3669 ft), within a meter, as that page prints.
+  [Python](python.md) page must reach 1,118.3 m (3,669 ft), within a meter, as that page prints.
 - **The Windows archive's `hpr.exe`** must need no Visual C++ runtime, which a clean Windows may
   lack. `scripts/release/check_windows_runtime.py` reads the program's import tables. It fails if
   one names `VCRUNTIME140.dll` or another DLL that only Microsoft's Visual C++ Redistributable
@@ -147,7 +147,7 @@ wheels and source package too. Publishing the draft makes the version's tag.
 
 **The first publish of the crates takes about two hours, because crates.io paces new names.**
 It lets one account publish 5 new crates at once, then one every 10 minutes
-([crates.io's rate limits](https://crates.io/docs/rate-limits), read 2026-10-08). Release 0.1
+([crates.io's rate limits](https://crates.io/docs/rate-limits), read October 8, 2026). Release 0.1
 publishes 14, so 9 of them wait. `scripts/release/publish-crates.sh` publishes the crates one at a
 time, each after the crates it depends on. Once the first five new names are out, it waits 10.5
 minutes before each next one. That's 9 waits, about 95 minutes, plus the time to build each crate.

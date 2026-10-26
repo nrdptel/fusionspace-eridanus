@@ -192,7 +192,7 @@ On them, too, all 282 motors match. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
 and check it against the match on every run. So the committed tests show the code keeps the
 rule. The full match on ThrustCurve.org's own records is the measurement of 1 October 2026 above,
-which last ran on 2026-10-01.
+which last ran on October 1, 2026.
 
 The test that writes the report was added with
 [the milestone for ThrustCurve searches and curves](decisions-and-roadmap.md#m5-4b). The

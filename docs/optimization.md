@@ -347,7 +347,7 @@ The tests hold this to three problems whose answers on their limits are known ex
 |---|---|---|
 | $\sum x_i^2$, 10 variables | $x_0 \ge 1$ | 1, at $x = (1, 0, \ldots, 0)$ |
 | $\sum x_i^2$, 10 variables (the "tangent" problem) | $\sum x_i \ge 10$ | 10, at every $x_i = 1$ |
-| g06 of the CEC 2006 benchmark, 2 variables | inside one circle, outside another | −6961.81388, where the circles cross |
+| g06 of the CEC 2006 benchmark, 2 variables | inside one circle, outside another | −6,961.81388, where the circles cross |
 
 From each of 20 seeds the run reaches the answer to $10^{-10}$ of its size, and to within
 $10^{-4}$ of the point. That holds also when the run starts where the limit is broken.

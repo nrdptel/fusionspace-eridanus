@@ -35,7 +35,7 @@ are on [NOAA forecasts: GFS and RAP](nomads.md).
 Open-Meteo has two services with winds above the ground ([its documentation](https://open-meteo.com/en/docs)).
 Both give numerical weather models' output, hour by hour, on 19 *pressure levels*. A pressure level
 is a height named by the air pressure there, in hectopascals (hPa; sea-level pressure is about
-1013 hPa). The levels run from 1000 hPa, about sea level, to 30 hPa, about 24 km (79,000 ft) up.
+1,013 hPa). The levels run from 1,000 hPa, about sea level, to 30 hPa, about 24 km (79,000 ft) up.
 
 | service | covers | a saved answer stays fresh for |
 |---|---|---|
@@ -158,7 +158,7 @@ standard, calm                             2821.3                  -5.1         
 ```
 
 `freshness: Fetched` means the answer came from the transport, not the cache. A second call within
-the hour would say `Cached`. The ground is at 1,400 m (4,593 ft), so the five levels from 1000 to
+the hour would say `Cached`. The ground is at 1,400 m (4,593 ft), so the five levels from 1,000 to
 900 hPa are left out.
 
 That June morning was 24 °C warmer at the pad than the standard atmosphere. The air was 8% less
@@ -200,7 +200,7 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
   be read at a later launch time in the same hour is fetched again online. Offline, the request
   fails with the reason that answer can't be read.
 - The simulator refuses text that isn't JSON, Open-Meteo's error answer, and a unit other than the
-  one asked for. It also refuses a missing field, hours outside 1970 to 9999, and a time outside
+  one asked for. It also refuses a missing field, hours outside the years `1970` to `9999`, and a time outside
   the answer's hours.
 - The heights are geopotential, by the hypsometric check above. The test holds each average to the
   ranges quoted there.

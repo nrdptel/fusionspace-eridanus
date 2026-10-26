@@ -95,7 +95,7 @@ of rows, and:
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
   `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
   --json`'s `motors`. Each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
-  one that did. And `hpr sim`'s motor line says "from the bundled catalog, as of 2026-09-17". The
+  one that did. And `hpr sim`'s motor line says `from the bundled catalog, as of 2026-09-17`. The
   day of the run itself is left out, so the same run writes the same bytes.
 - `kind` and `trust`: what the numbers are, and the
   [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.
@@ -172,8 +172,8 @@ The geoid's slope is about 5 cm (2.0 in) per kilometer, and up to some 30 cm (12
 Over a rocket's few kilometers, that slope moves the undulation by centimeters to decimeters.
 
 For example, take a site where sea level is 25 m (82 ft) below the ellipsoid
-($N = -25\,\mathrm{m}$). There a point 1500 m (4921 ft) above the ellipsoid is written as
-1500 m (4921 ft) in GeoJSON. In KML it's written as 1525 m (5003 ft).
+($N = -25\,\mathrm{m}$). There a point 1,500 m (4,921 ft) above the ellipsoid is written as
+1,500 m (4,921 ft) in GeoJSON. In KML it's written as 1,525 m (5,003 ft).
 
 The first flight leaves $N$ at zero, so its two files agree. At the real site, sea level is some
 tens of meters below the ellipsoid. So give $N$ for heights you mean to trust.
@@ -196,7 +196,7 @@ tens of meters below the ellipsoid. So give $N$ for heights you mean to trust.
   with bytes worked out by hand from the specification.
 
   Once, by hand, when this was written, pyarrow 25.0.1 and DuckDB 1.5.5 each read the example's file
-  and a 30-column, 3005-row file. Each got the same numbers as the matching CSV. CI doesn't repeat
+  and a 30-column, 3,005-row file. Each got the same numbers as the matching CSV. CI doesn't repeat
   that check.
 
 The tests are in
@@ -207,8 +207,8 @@ and
 ## What it leaves out
 
 - The Parquet file isn't compressed and carries no per-page minimum and maximum. It takes 8 bytes
-  per number, plus a header of about 20 bytes per page of up to 1024 numbers. A short index of the
-  columns at the end of the file adds to that. The example's file is 3228 bytes, and its CSV about
+  per number, plus a header of about 20 bytes per page of up to 1,024 numbers. A short index of the
+  columns at the end of the file adds to that. The example's file is 3,228 bytes, and its CSV about
   5.6 kB.
 
   Without the minimums and maximums, a tool such as DuckDB can't skip parts of the file

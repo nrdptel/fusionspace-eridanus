@@ -444,7 +444,7 @@ is HPR Sim's internal height, and it is not
 
 A number naming a [CRS](#crs-coordinate-reference-system), a datum or a unit in the EPSG Geodetic
 Parameter Dataset, which most mapping software shares. Code 4326 is latitude and longitude on
-[WGS 84](#wgs-84), 4269 on NAD83, 5703 heights above NAVD88 in meters, 9001 the meter. See
+[WGS 84](#wgs-84), code 4269 on NAD83, code 5703 heights above NAVD88 in meters, code 9001 the meter. See
 [A launch site's elevation](elevation.md#what-it-reads).
 
 ### ERA5
@@ -894,7 +894,7 @@ The designs that trade two or more goals off against each other. No design on th
 
 A Parquet file stores a table column by column, and each column in pieces called data pages. Each
 has a small header saying how many values it holds and how they are stored. A reader decodes a
-page at a time. HPR Sim's pages hold up to 1024 numbers of 8 bytes each: 8 KiB, the page size the
+page at a time. HPR Sim's pages hold up to 1,024 numbers of 8 bytes each: 8 KiB, the page size the
 format's specification recommends. See [Exporting a flight](exporting-a-flight.md).
 
 ### Percentile

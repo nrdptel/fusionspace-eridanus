@@ -155,14 +155,14 @@ The register holds 32 rows, as of October 20, 2026.
   - PSAS's launch repositories (psas/flight_data-2010.06.27, Launch-8, Launch-10 to Launch-14)
   - Mines-Rocketry-Club's flight data
 
-  It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its 2010-10-17 and 2013-06-30 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
+  It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its October 17, 2010 and June 30, 2013 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
 - [G5](#g5), October 17, 2026, looked at:
   - the ARTS2 User Manual V1.0.0 (pp. 7, 9, 16)
-  - PSAS's launch repositories for ARTS2 flights beyond the samples (2009-05-31, 2010-06-27, 2010-10-17)
+  - PSAS's launch repositories for ARTS2 flights beyond the samples (May 31, 2009; June 27, 2010; and October 17, 2010)
   - PSAS's ARTS-2 checklist page
   - web searches for DataAnalyzer documents
 
-  It found a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and 2010-06-27 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
+  It found a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and June 27, 2010 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records.
 - [G6](#g6), October 17, 2026, looked at:
   - GitHub code search for mDACS's export header
   - listings of team flight data repositories
@@ -173,12 +173,12 @@ The register holds 32 rows, as of October 20, 2026.
 - [G7](#g7), October 17, 2026, looked at:
   - GitHub code search for Featherweight's summary header (`Rocket Name`, `Launch time UTC`) in CSV files
 
-  It found 16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (2026-06-20). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data.
+  It found 16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (June 20, 2026). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data.
 - [G8](#g8), October 17, 2026, looked at:
   - GitHub code search for Featherweight GPS tracker CSVs (`UTCTIME,UNIXTIME,ALT`, 12 files in 7 repositories) with KML or a barometric log beside them
   - the Harvey Mudd College course page's AIM KML files
 
-  It found two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML and a Blue Raven barometric log. Their KMLs are `altitudeMode` absolute. One is RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML). Its two files disagree on the date (2026-04-07 by the Blue Raven's clock, 2026-05-16 by the tracker's UTC): their pairing has to be shown first. The other is Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new. Peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven. The course page's KML links return HTTP 404. Both are cached under refs/samples-search/G8.
+  It found two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML and a Blue Raven barometric log. Their KMLs are `altitudeMode` absolute. One is RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML). Its two files disagree on the date (April 7, 2026 by the Blue Raven's clock, May 16, 2026 by the tracker's UTC): their pairing has to be shown first. The other is Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new. Peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven. The course page's KML links return HTTP 404. Both are cached under refs/samples-search/G8.
 - [G9](#g9), October 17, 2026, looked at:
   - GitHub code search for the Eggtimer ION header, Blue Jay, MicroPeak, EasyMotor, TeleMini, EasyTimer and AltimeterThree files
   - GitHub code search for CATS's `.cfl` and its exports' column names
@@ -205,13 +205,13 @@ The register holds 32 rows, as of October 20, 2026.
   - ISSUIUC/flight-data
   - Minnesota Space Grant's Midwest Rocketry Competition reports, whose rockets drop a booster after burnout
 
-  It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On 2023-11-18 they're two StratoLoggers; on 2024-03-23, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (2023-10-01). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
+  It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On November 18, 2023 they're two StratoLoggers; on March 23, 2024, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (October 1, 2023). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
 - [G14](#g14), October 17, 2026, looked at:
   - Craven, College of Aeronautics Report 129 (1960): its record and full text at Cranfield
   - NACA free-flight reports on base pressure with rocket motors burning, by web search
   - measurements of base pressure on hobby rockets in flight
 
-  It found nothing beyond the 2026-10-17 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
+  It found nothing beyond the October 17, 2026 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 

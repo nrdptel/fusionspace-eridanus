@@ -44,13 +44,13 @@ Code: `hpr_net::wyoming` ([API reference](api/hpr_net/wyoming/index.html)), writ
 ## What the simulator asks for
 
 A request names a station and the sounding's hour. The station is its World Meteorological
-Organization (WMO) number, such as 72364 for Santa Teresa, New Mexico; the archive's page has a
+Organization (WMO) number, such as station 72364 for Santa Teresa, New Mexico; the archive's page has a
 map of them. `WyomingRequest::latest_before(station, launch_time)` picks the last 00 or 12 UTC
 sounding at or before a launch. Times are in seconds since 1 January 1970 UTC (Unix time). The
 balloon goes up about an hour before that hour.
 
 The simulator asks for the archive's comma-separated text, one row per level, and reads these
-columns. Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1013 hPa).
+columns. Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1,013 hPa).
 
 | column | read as |
 |---|---|

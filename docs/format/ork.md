@@ -417,7 +417,7 @@ anyone has written.
 `cargo xtask ork` reads every `.ork` in the reference library and in the OpenRocket jar's example
 set, writes them back out, reads them again, and reports counts. The private corpus stays private:
 the per-file detail goes to a gitignored `corpus-out/`, and only counts are published. On
-2026-09-23, excluding generated `refs/scratch/` files:
+September 23, 2026, excluding generated `refs/scratch/` files:
 
 | | |
 |---|---|
@@ -443,7 +443,7 @@ unless a table lists them apart.
 **Apart from the two Loft fixtures, every file imports without an error.** An import error is a file
 that does not read, or a
 design that reads but does not lay out. Warnings are not errors, because a warning never stops an
-import. The survey counts both kinds of error for each source. On 2026-10-23, excluding generated
+import. The survey counts both kinds of error for each source. On October 23, 2026, excluding generated
 `scratch/` files from the default scan:
 
 | source | files | Files read | Files laid out | errors |
@@ -505,7 +505,7 @@ RocketPy's team wrote it to turn an OpenRocket design into RocketPy's inputs. Th
 HPR Sim's reading of each design's shape with RocketSerializer's. Where the two differ, OpenRocket
 itself, run on the same file, decides which is right.
 
-On 2026-09-23 the current scratch-excluding check covered 71 designs. Of 1,171 numbers:
+On September 23, 2026 the current scratch-excluding check covered 71 designs. Of 1,171 numbers:
 - HPR Sim matched RocketSerializer on 1,061;
 - on the other 110, OpenRocket gave HPR Sim's number, not RocketSerializer's;
 - HPR Sim never differed from both.
@@ -560,7 +560,7 @@ up the lengths of every part listed before the fins in the same tube, the parach
 included. So it puts them at 1.45 + 0.08 = 1.53 m. The record keeps that sum of earlier lengths
 for every part, so this cause is checked, not assumed.
 
-**The results.** From `cargo xtask ork` on 2026-09-23, over the 75 files it finds. They are the
+**The results.** From `cargo xtask ork` on September 23, 2026, over the 75 files it finds. They are the
 reference library under `refs/` (excluding generated `refs/scratch/`) and the 17 examples inside
 the OpenRocket jar:
 
@@ -1288,7 +1288,7 @@ The corpus has none of these. A part directly inside a pod set that is not a nos
 or transition is left out on its own. An override on a pod set is its pods' total, since a pod set
 weighs nothing of its own.
 
-`cargo xtask ork` counts them. On the corpus, 2026-09-27:
+`cargo xtask ork` counts them. On the corpus, September 27, 2026:
 
 | pod sets | count |
 | --- | --- |
@@ -1296,7 +1296,7 @@ weighs nothing of its own.
 | read into `PodSet` | 9, holding 12 pods |
 | left out | 0 |
 
-`cargo xtask ork` on 2026-09-27 also weighs each design against OpenRocket 24.12:
+`cargo xtask ork` on September 27, 2026 also weighs each design against OpenRocket 24.12:
 
 - *Pods-\-powered with recovery deployment* (a public example): its mass is now within 1% of
   OpenRocket's. It was 12.5% light with its pods left out
@@ -1346,7 +1346,7 @@ the boosters, and `None` is a stage with no motor.
 
 | configuration | apogee, OpenRocket / HPR Sim (m) | apogee $\Delta$ | largest speed $\Delta$ |
 |---|--:|---:|---:|
-| `[I115W-10; 2× E12-0]` | 1123.6 / 1137.5 | +1.23% | +3.25% |
+| `[I115W-10; 2× E12-0]` | 1,123.6 / 1,137.5 | +1.23% | +3.25% |
 | `[I115W-10; None]` | 851.8 / 857.6 | +0.68% | +1.56% |
 
 In the first, the boosters drop at 2.44 s, at the E12s' charge, as in OpenRocket. In the second,
@@ -1482,8 +1482,8 @@ library has one ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-a
 OpenRocket 24.12, at least; older releases may differ, as the note below explains). That makes an
 oracle for the resolution rules that needs no OpenRocket. `cargo xtask ork` runs it over the corpus.
 It covers every automatic dimension that caches a number and sits on a component the file gives an
-`<id>`. On 2026-09-27, with pods read, **71 of 75 agree** to a part in $10^9$. The 4 added since
-2026-09-23 are the pods' nose cones, and all 4 agree. Of the 4 that disagree, the 2 body radii are
+`<id>`. On September 27, 2026, with pods read, **71 of 75 agree** to a part in $10^9$. The 4 added since
+September 23, 2026 are the pods' nose cones, and all 4 agree. Of the 4 that disagree, the 2 body radii are
 settled in HPR Sim's favor [below](#openrocket-settles-it). The 2 packed radii follow the bore of
 that tube. So they are settled with it by the bore rule, not measured (the oracle reads body radii
 only).
@@ -1660,7 +1660,7 @@ How it was decided, and the sources quoted in full, are in
 
 #### Measured on the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-10-24:
+`cargo xtask ork`, over the 73 readable files, on October 24, 2026:
 
 | | |
 |---|---|
@@ -2091,7 +2091,7 @@ refs/venv/bin/python validation/oracles/openrocket/motor_database.py \
 cargo xtask ork
 ```
 
-`cargo xtask ork`, over the 72 designs, with that record, on 2026-10-05, after
+`cargo xtask ork`, over the 72 designs, with that record, on October 5, 2026, after
 [the milestone that read a stage's first burnout](../decisions-and-roadmap.md#m4-5n). The counts
 are of **motors**, one per mount per configuration:
 
@@ -2113,10 +2113,10 @@ And of **configurations**, over 80 motor mounts in 63 designs (none named only b
 | the rocket flies | 145, in 41 designs, and all 145 assemble |
 | left out, by the first reason the reader finds | 24 a motor with no curve, 1 stages HPR Sim can't separate as written, and none now a motor HPR Sim can't light as written (1 before [M4.5n](../decisions-and-roadmap.md#m4-5n) read a stage's first burnout); before parallel stages were read, 2 more for a motor in a part not read and 2 for an airframe not read exactly as written |
 
-On 2026-09-28, after [the milestone that read tube fins sized from the
+On September 28, 2026, after [the milestone that read tube fins sized from the
 body](../decisions-and-roadmap.md#m2-2e8), 109 flew in 30 designs. Another 15 were held back as an
 airframe not read exactly as written, and 19 as stages HPR Sim can't separate as written. On
-2026-09-25, before pods, the old override flag, fillets, the bore inside a nose cone and tube fins
+September 25, 2026, before pods, the old override flag, fillets, the bore inside a nose cone and tube fins
 were read, 93 flew in 23 designs. Another 30 were held back as an airframe not read exactly as
 written.
 
@@ -2304,7 +2304,7 @@ has the model and the full results. The reasoning is in
 
 #### Recovery in the reference library
 
-`cargo xtask ork`, over the 72 designs, on 2026-10-05, after
+`cargo xtask ork`, over the 72 designs, on October 5, 2026, after
 [the milestone that read parallel stages](../decisions-and-roadmap.md#m4-5m):
 
 | quantity | count |
@@ -3008,7 +3008,7 @@ says. Loading a design does not set up a rail, though: a program that flies it g
 5° toward north, 10° toward east, 10° toward south-west and 20° toward east. The same airframe
 from OpenRocket's default vertical rod (`pods-none`) is the control. From the
 [public report's table](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#tilted-rod-probes)
-(2026-09-27):
+(September 27, 2026):
 
 | rod | apogee lost to the tilt, OpenRocket | HPR Sim | where the rocket is at apogee, OpenRocket | HPR Sim |
 |---|---:|---:|---|---|
@@ -3058,7 +3058,7 @@ The flights are written to the gitignored `corpus-out/`, because a flight's numb
 someone's design. Only counts are published. `cargo xtask ork-flights --corpus` prints them from that
 record, and never prints a file name.
 
-Counts on 2026-09-25, by where the design was found. *Distinct* means distinct in content (by
+Counts on September 25, 2026, by where the design was found. *Distinct* means distinct in content (by
 SHA-256 hash). *Flown to the end* means the simulation ran to its end, not stopped by OpenRocket
 (*aborted*). The last row shows each such flight recorded the
 [stability margin](../glossary.md#stability-margin) the next comparison needs.
@@ -3215,7 +3215,7 @@ record of OpenRocket's run must also show it loading exactly those curves. One c
 because HPR Sim's curve came from its own catalog, found by the motor's name. A tilted rod is flown
 as recorded, as in [A tilted launch rod](#a-tilted-launch-rod).
 
-The 35 flights (from the committed report, 2026-09-28):
+The 35 flights (from the committed report, September 28, 2026):
 
 | metric | flights | median | from | to |
 |---|---:|---:|---:|---:|
@@ -3381,7 +3381,7 @@ The drag curves are OpenRocket's numbers for private designs, so they stay in th
 
 ### Stored simulations in the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-10-24:
+`cargo xtask ork`, over the 73 readable files, on October 24, 2026:
 
 | quantity | count |
 |---|---|
@@ -3503,7 +3503,7 @@ HPR Sim keeps whole when it opens a file ([the whole-document decision][adr-051]
 
 #### Kept in the reference library
 
-`cargo xtask ork`, over the 73 readable files, on 2026-10-05, after
+`cargo xtask ork`, over the 73 readable files, on October 5, 2026, after
 [the change that read parallel stages](../decisions-and-roadmap.md#m4-5m):
 
 | quantity | count |
@@ -3545,7 +3545,7 @@ attribute names the program that wrote it, its version and its designation in th
 product system. Every file HPR Sim writes does this:
 `creator="FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001"` (`hpr-sim` before release 0.1's
 rename; a file with that `creator` still reads).
-The measurements above were remade on 2026-10-11 with files written in this form: OpenRocket
+The measurements above were remade on October 11, 2026 with files written in this form: OpenRocket
 opens and flies them within the same bar.
 
 **How it is written.** Each part of the design is written as the tags HPR Sim reads it from. What
@@ -3618,7 +3618,7 @@ design's since [the powered-pods milestone, which weighed rail-button screw head
 
 **Checked on the reference library.** `cargo xtask ork` writes every design out, reads it back,
 compares the two, and writes the design read back once more. It fails on any difference. On
-2026-09-29:
+September 29, 2026:
 
 | quantity | count |
 |---|--:|

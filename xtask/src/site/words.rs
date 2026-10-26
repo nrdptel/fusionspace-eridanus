@@ -43,7 +43,7 @@ pub(super) enum Renderer {
 
 impl Renderer {
     /// The parser's options for a page this renderer shows.
-    fn options(self) -> Options {
+    pub(super) fn options(self) -> Options {
         match self {
             Self::Site => super::options() | Options::ENABLE_SMART_PUNCTUATION,
             Self::GitHub => super::options(),

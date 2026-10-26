@@ -304,7 +304,7 @@ Three options make it RocketPy's flight:
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2650 m (8694 ft) above the pad:
+as in the section above, to 2,650 m (8,694 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])

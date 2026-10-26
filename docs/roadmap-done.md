@@ -81,6 +81,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
 - M0.9f1 Joined names and long warnings ([Phase 0](#phase-0-foundations))
 - M0.9f2 Short notes and cells, labeled heads ([Phase 0](#phase-0-foundations))
+- M0.9f3 Grouped figures, prose dates and known digits ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
 - M0.8a The simulator's guide ([Phase 0](#phase-0-foundations))
@@ -603,6 +604,11 @@ One line per milestone or increment, in the order it was archived within its pha
       the README fails on a note or a table cell over 120 words, and on a number column's head
       without a label and a unit, and every page and the README pass it; the audit's *Voice* and
       *Tables* rows name the checks.
+    - [x] **M0.9f3 Grouped figures, prose dates and known digits.** *Done when:* a check of the
+      site and the README fails on an ungrouped figure of four or more digits in prose (the
+      identifiers it passes listed) and on an ISO date in running prose, and every page and the
+      README pass it; each over-precise figure #476 names is cut to what is known; the audit's
+      *On screens* row names the check.
 - [x] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the

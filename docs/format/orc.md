@@ -339,7 +339,7 @@ next number a 64-bit float can hold above 0.0254. Both the catalog comparison an
 ## Sources and license
 
 - **The files:** `openrocket/openrocket-database`, <https://github.com/openrocket/openrocket-database>,
-  at commit `1512874a` (2025-07-27), pinned as `openrocket-database` in the
+  at commit `1512874a` (July 27, 2025), pinned as `openrocket-database` in the
   [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
   Apache License 2.0. Created by Dave Cook and maintained by the OpenRocket team. They are built
   into HPR Sim unchanged, in

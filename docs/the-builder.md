@@ -199,9 +199,9 @@ F52C           0.548    3.32       18.5    438.6        106         8.0
 ```
 
 `set_motor` swaps the motor in the tube, so one rocket flies on all three. The H54 reaches
-1134.6 m (3722 ft) here, from a vertical rail in the wind. The same rocket reaches 1144.5 m
-(3755 ft) on [Your own rocket](your-own-rocket.md), from a vertical rail in calm air. It reaches
-1106.6 m (3631 ft) at the top of this page, from a leaning rail. The parachutes open at different
+1,134.6 m (3,722 ft) here, from a vertical rail in the wind. The same rocket reaches 1,144.5 m
+(3,755 ft) on [Your own rocket](your-own-rocket.md), from a vertical rail in calm air. It reaches
+1,106.6 m (3,631 ft) at the top of this page, from a leaning rail. The parachutes open at different
 times too: here at apogee, there at the motor's charge.
 
 The best delay is the time from [burnout](glossary.md#burnout), the end of the thrust curve, to
