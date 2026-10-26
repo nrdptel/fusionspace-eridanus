@@ -140,9 +140,7 @@ fn passes(run: &str, digits: Range<usize>) -> bool {
     let before = run[..digits.start].chars().next_back();
     let before_that = run[..digits.start].chars().rev().nth(1);
     let after_text = &run[digits.end..];
-    let mut after_chars = after_text.chars();
-    let after = after_chars.next();
-    let after_that = after_chars.next();
+    let after = after_text.chars().next();
     // A decimal part: digits after a point aren't grouped.
     if before == Some('.') && before_that.is_some_and(|c| c.is_ascii_digit()) {
         return true;
