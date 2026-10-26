@@ -32,8 +32,9 @@ impl Motor {
 #[pymethods]
 impl Motor {
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`
-    /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens, with its first bundled
-    /// thrust curve; `delay_s` sets its ejection delay. The designation's own delay is not used.
+    /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its first
+    /// bundled thrust curve. `delay_s` sets its ejection delay; the designation's own delay is not
+    /// used.
     #[staticmethod]
     #[pyo3(signature = (name, *, delay_s = None))]
     fn from_catalog(name: &str, delay_s: Option<f64>) -> PyResult<Self> {
@@ -88,8 +89,8 @@ impl Motor {
         self.motor.length_m()
     }
 
-    /// The ejection delay, s, where it is a number of seconds; `None` for none, or a plugged
-    /// motor.
+    /// The ejection delay, s, where the motor has a delay in seconds; `None` for none, or a
+    /// plugged motor.
     #[getter]
     fn delay_s(&self) -> Option<f64> {
         match self.motor.delay() {
@@ -155,17 +156,17 @@ impl Rocket {
     }
 
     /// A rocket read from a design file, flown in its motor configuration `configuration`, by
-    /// id: an HPR design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's JSON
-    /// (`.json`, an `hpr_design::Rocket`). Left out, the configuration is the design's only one.
-    /// Parts can't be added to it; parachutes can.
+    /// id. The file is an HPR design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's
+    /// JSON (`.json`, an `hpr_design::Rocket`). Left out, the configuration is the file's default,
+    /// or its only one. Parts can't be added to it; parachutes can.
     ///
     /// With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
-    /// (`hpr::ork::recovery`): each opens fully at its event, with the file's drag coefficient
-    /// or OpenRocket's own, and once one opens the rocket descends as a point under the open
-    /// devices' drag alone. They come before any added with `add_parachute`, so the file's first
-    /// device is parachute 0. A device that never opens in the configuration is named in
-    /// `notes`, and a file whose devices HPR Sim can't fly is refused with why. Left out, the file's
-    /// devices aren't flown.
+    /// (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
+    /// OpenRocket's own. Once one opens, the rocket descends as a point under the open devices'
+    /// drag alone. They come before any added with `add_parachute`, so the file's first device is
+    /// parachute 0. A device that never opens in the configuration is named in `notes`. A file
+    /// whose devices HPR Sim can't fly is refused with why. Left out, the file's devices aren't
+    /// flown.
     #[staticmethod]
     #[pyo3(signature = (path, configuration = None, *, recovery = false))]
     fn from_file(
@@ -208,12 +209,13 @@ impl Rocket {
         Ok(Self { rocket, notes })
     }
 
-    /// Adds the nose cone, which goes first. `shape` is `"conical"`, `"ogive"` (`parameter`, the
-    /// ogive's radius ratio, 1 for a tangent ogive, by default), `"elliptical"`,
-    /// `"power_series"` (`parameter`, its exponent), `"parabolic_series"` (`parameter`, `K`) or
-    /// `"haack"` (`parameter`, `C`: 0, the default, is the von Kármán). A `wall_m` makes it
-    /// hollow, and leaving it out solid; a `shoulder_length_m` and `shoulder_wall_m` add a
-    /// shoulder, capped at its aft end with `capped_shoulder`.
+    /// Adds the nose cone, which goes first. `shape` is `"conical"`, `"ogive"`, `"elliptical"`,
+    /// `"power_series"`, `"parabolic_series"` or `"haack"`. For an ogive, `parameter` is the
+    /// ogive's radius ratio, by default 1, a tangent ogive. For a power series it's the exponent,
+    /// for a parabolic series `K`, and for a Haack `C`: 0, the default, is the von Kármán.
+    ///
+    /// A `wall_m` makes it hollow, and leaving it out makes it solid. A `shoulder_length_m` and
+    /// `shoulder_wall_m` add a shoulder, capped at its aft end with `capped_shoulder`.
     #[pyo3(signature = (
         shape, length_m, material, *, wall_m = None, parameter = None,
         shoulder_length_m = None, shoulder_wall_m = None, capped_shoulder = false, name = None
@@ -322,8 +324,9 @@ impl Rocket {
         Ok(slf)
     }
 
-    /// Adds `count` trapezoidal fins `thickness_m` thick to the tube before them: a root chord,
-    /// tip chord and span, and the sweep, how far aft of the root's leading edge the tip's is.
+    /// Adds `count` trapezoidal fins `thickness_m` thick to the tube before them. Their shape is a
+    /// root chord, tip chord and span, and the sweep: how far aft of the root's leading edge the
+    /// tip's is.
     /// Every argument after `count` is named, so two lengths can't swap unseen.
     /// `cross_section` is `"square"`, the default, `"rounded"` or `"airfoil"`. They sit flush
     /// with the tube's aft end unless `position` (`"top"`, `"middle"`, `"bottom"` or `"after"`)
@@ -371,8 +374,8 @@ impl Rocket {
         Ok(slf)
     }
 
-    /// Adds a motor tube `length_m` long with an `inner_diameter_m` bore and a wall `wall_m`
-    /// thick, in the tube before it: flush with that tube's aft end unless `position` and
+    /// Adds a motor tube `length_m` long, with an `inner_diameter_m` bore and a wall `wall_m`
+    /// thick, in the tube before it. It sits flush with that tube's aft end unless `position` and
     /// `offset_m` place it. The motor's nozzle sticks out `overhang_m` past its aft end.
     #[pyo3(signature = (
         length_m, inner_diameter_m, wall_m, material, *, overhang_m = 0.0, position = None,
@@ -405,9 +408,9 @@ impl Rocket {
         Ok(slf)
     }
 
-    /// Adds a mass of `mass_kg` in the tube before it, placed by `position` (`"top"`, the
-    /// default, `"middle"`, `"bottom"` or `"after"`) and `offset_m` aft of there: a point, or
-    /// packed in a cylinder `packed_length_m` long and `packed_diameter_m` across.
+    /// Adds a mass of `mass_kg` in the tube before it: a point, or packed in a cylinder
+    /// `packed_length_m` long and `packed_diameter_m` across. It's placed by `position` (`"top"`,
+    /// the default, `"middle"`, `"bottom"` or `"after"`) and `offset_m` aft of there.
     #[pyo3(signature = (
         mass_kg, *, position = "top", offset_m = 0.0, packed_length_m = None,
         packed_diameter_m = None, name = None
@@ -449,17 +452,26 @@ impl Rocket {
         Ok(slf)
     }
 
-    /// Adds a parachute called `name`: a canopy `diameter_m` across (its `canopy` type's drag
-    /// coefficient, `"flat_circular"` by default, unless `drag_coefficient` gives one), or a
-    /// drag area `cd_s_m2`, m², as RocketPy's `cd_s`. It opens when `trigger` fires:
-    /// `"apogee"`; `"altitude"`, on the way down past `altitude_m` above the pad; `"time"`, at
-    /// `time_s` after launch; or `"motor_delay"`, at the ejection delay of the motor numbered
-    /// `motor` (0, the first, by default), which needs a delay in seconds. It is fully open
-    /// `lag_s` seconds later. With `released_by`, the number of another parachute (0 for the
-    /// first added, 1 for the second, and so on), it is cut away once that one is fully open, as
-    /// a drogue is when the main opens; RocketPy flies only its last parachute to open, which is
-    /// the same. An argument that doesn't apply to the choices made is refused, and a
-    /// `released_by` that names no other parachute is refused when the rocket flies.
+    /// Adds a parachute called `name`: a canopy `diameter_m` across, or a drag area `cd_s_m2`, m²,
+    /// as RocketPy's `cd_s`. A canopy's drag coefficient is its `canopy` type's, `"flat_circular"`
+    /// by default, unless `drag_coefficient` gives one.
+    ///
+    /// It opens when `trigger` fires:
+    ///
+    /// - `"apogee"`.
+    /// - `"altitude"`: on the way down past `altitude_m` above the pad.
+    /// - `"time"`: at `time_s` after launch.
+    /// - `"motor_delay"`: at the ejection delay of the motor numbered `motor` (0, the first, by
+    ///   default), which needs a delay in seconds.
+    ///
+    /// It is fully open `lag_s` seconds later.
+    ///
+    /// With `released_by`, the number of another parachute, it is cut away once that one is fully
+    /// open, as a drogue is when the main opens. The first parachute added is 0, the second 1, and
+    /// so on. RocketPy flies only its last parachute to open, which is the same.
+    ///
+    /// An argument that doesn't apply to the choices made is refused. A `released_by` that names no
+    /// other parachute is refused when the rocket flies.
     #[pyo3(signature = (
         name, *, diameter_m = None, canopy = None, drag_coefficient = None,
         cd_s_m2 = None, trigger = "apogee", altitude_m = None, time_s = None, motor = None,
@@ -546,10 +558,12 @@ impl Rocket {
         self.rocket.configuration_id()
     }
 
-    /// The mass, center of gravity and inertia `time_s` after ignition: a dictionary of
-    /// `mass_kg`, `cg_m` (x, y, z in the body frame, where a point `s` meters aft of the nose
-    /// tip is at `z = -s`) and `inertia_kg_m2` (the 3×3 tensor about the center of gravity, a
-    /// list of its rows).
+    /// The mass, center of gravity and inertia `time_s` after ignition, as a dictionary of:
+    ///
+    /// - `mass_kg`.
+    /// - `cg_m`: x, y, z in the body frame, where a point `s` meters aft of the nose tip is at
+    ///   `z = -s`.
+    /// - `inertia_kg_m2`: the 3×3 tensor about the center of gravity, a list of its rows.
     #[pyo3(signature = (time_s = 0.0))]
     fn mass_properties<'py>(&self, py: Python<'py>, time_s: f64) -> PyResult<Bound<'py, PyDict>> {
         let properties = self.rocket.mass_properties(time_s).map_err(error)?;
@@ -563,26 +577,27 @@ impl Rocket {
     }
 
     /// What reading the design file said, one line each: the `.ork` reader's warnings, an older
-    /// format version migrated, an airframe not flown as written, the recovery devices the file
-    /// holds (not flown, unless `from_file`'s `recovery=True` flies them, and then any that never
-    /// opens) and the stages that fly as one stack. Empty for a rocket built part by part.
+    /// format version migrated, and an airframe not flown as written. It names the recovery
+    /// devices the file holds, which aren't flown unless `from_file`'s `recovery=True` flies them;
+    /// then it names any that never opens. It names the stages that fly as one stack too. Empty
+    /// for a rocket built part by part.
     #[getter]
     fn notes(&self) -> Vec<String> {
         self.notes.clone()
     }
 
     /// The static stability margin, calibers, `time_s` after ignition at `mach`, with the air
-    /// along the axis, in the rocket's weakest plane (a fin set of one or two fins makes some
-    /// planes weaker than others); `None` where the rocket has no normal force to find a center of
-    /// pressure from.
+    /// along the axis. It's taken in the rocket's weakest plane: a fin set of one or two fins
+    /// makes some planes weaker than others. `None` where the rocket has no normal force to find a
+    /// center of pressure from.
     #[pyo3(signature = (time_s = 0.0, mach = 0.3))]
     fn static_margin_cal(&self, time_s: f64, mach: f64) -> PyResult<Option<f64>> {
         self.rocket.static_margin_cal(time_s, mach).map_err(error)
     }
 
-    /// The whole stability picture `time_s` after ignition at `mach`: the margin, the center of
-    /// pressure (`cp_station_m`, meters aft of the nose tip) and the slopes they come from, as a
-    /// dictionary.
+    /// The whole stability picture `time_s` after ignition at `mach`, as a dictionary. It holds
+    /// the margin, the center of pressure (`cp_station_m`, meters aft of the nose tip) and the
+    /// slopes they come from.
     #[pyo3(signature = (time_s = 0.0, mach = 0.3))]
     fn margin<'py>(&self, py: Python<'py>, time_s: f64, mach: f64) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &self.rocket.margin(time_s, mach).map_err(error)?)

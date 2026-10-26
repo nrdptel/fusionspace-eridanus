@@ -1,9 +1,10 @@
 //! The 6-DOF flight engine: state, launch rail phase, integrators, events, recovery, separation and
 //! the recorder.
 //!
-//! **Guide:** [How a flight is simulated][guide-flight], [Rigid-body flight][guide-rigid-body],
-//! [Time integration][guide-integration] and [Recovery][guide-recovery]: the models, their sources,
-//! how well they are validated and what they leave out.
+//! Four pages of the guide cover the flight: [How a flight is simulated][guide-flight],
+//! [Rigid-body flight][guide-rigid-body], [Time integration][guide-integration] and
+//! [Recovery][guide-recovery]. They give the models, their sources, how well they are validated
+//! and what they leave out.
 //!
 //! [guide-flight]: https://hpr.fusionspace.co/how-a-flight-is-simulated.html
 //! [guide-rigid-body]: https://hpr.fusionspace.co/physics/flight.html
@@ -32,13 +33,15 @@
 //! - [`flutter`]: a fin's flutter speed and margin by NACA TN 4197's criterion.
 //! - [`export`]: a recording as CSV or JSON, and the flight path and landings as GeoJSON or KML.
 //!
-//! Status: the flight from the pad to the ground under parachutes, streamers or tumbling, a
-//! separation whose bodies each land, and staging: each motor lights at its own time, and a
-//! separation with the nose's body still to burn lets that body fly on as a sustainer while the
-//! booster descends ([`flight`]). A cluster flies one motor in each of its tubes, a tube or a
-//! motor can be set never to light, and a `.ork` file's staging settings and clusters fly too
-//! (milestone [M1.9][roadmap] of the roadmap, and [M2.2e10][m2-2e10] for a motor that never
-//! lights).
+//! The crate flies a rocket from the pad to the ground under parachutes, streamers or tumbling. A
+//! separation's bodies each fly to their own landing. In staging, each motor lights at its own
+//! time. A separation with the nose's body still to burn lets that body fly on as a sustainer
+//! while the booster descends ([`flight`]).
+//!
+//! A cluster flies one motor in each of its tubes, and a tube or a motor can be set never to light.
+//! A `.ork` file's staging settings and clusters fly too. Staging and clusters came with
+//! [the roadmap's staging milestone][roadmap], and a motor that never lights
+//! [with a later one][m2-2e10].
 
 pub mod dynamics;
 pub mod envelope;

@@ -9,28 +9,34 @@ high-power rockets, from Python.
 ## What works today
 
 It wraps the Rust library's builder: an `Environment`, a `Motor`, a `Rocket` built part by part or
-read from a design file, and a `Flight` with its metrics and its recording as NumPy arrays; and a
-`MonteCarlo` run, the flight flown many times with its inputs scattered, its flights as NumPy
-arrays.
+read from a design file, and a `Flight`. A flight comes with its metrics, and its recording as
+NumPy arrays. A `MonteCarlo` run is the flight flown many times with its inputs scattered, its
+flights as NumPy arrays.
 
 **How far to trust it:** every figure it gives is an estimate from a model, not a measurement, and
 never a go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulated apogee
-missed by 12.95% on average (mean absolute), outside the 5% target, and read high by 8.73% on
-average. It can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee
+missed by 12.95% on average (mean absolute), outside the 5% target. On average it read high by
+8.73%. It can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee
 reads low ([Accuracy](https://hpr.fusionspace.co/accuracy.html)). The motor's printed data and your
 range safety officer (RSO) are authoritative. The 53 flights' weather is ERA5, generated using
 Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate
-Change Service information 2026; neither the European Commission nor ECMWF is responsible for any
+Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any
 use made of it.
 
 ## What doesn't work yet
 
-The package covers the Rust library's builder, not the whole library. Not yet from Python, among
-others: staging (a design that drops a stage under power is refused), swapping a motor into a
-design read from a file, Monte Carlo's landing ellipses and spread summaries, the built-in winds
-that change with height and weather files (write any of them as a wind function), parts from a
-parts catalog, and type stubs. The
-[Python page](https://hpr.fusionspace.co/python.html#what-is-not-here-yet) lists them all.
+The package covers the Rust library's builder, not the whole library. These, among others, don't
+work from Python yet:
+
+- staging: a design that drops a stage under power is refused
+- swapping a motor into a design read from a file
+- Monte Carlo's landing ellipses and spread summaries
+- the built-in winds that change with height, and weather files (write any of them as a wind
+  function)
+- parts from a parts catalog
+- type stubs
+
+The [Python page](https://hpr.fusionspace.co/python.html#what-is-not-here-yet) lists them all.
 
 ## Install
 

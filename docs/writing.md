@@ -281,7 +281,8 @@ misses a sentence target ([below](#measured-not-gated)). A test fails when the r
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
-(Markdown, HTML, text, or a command's help in a `.help` file) and prints the report. That's how
+and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and
+a crate's front page in a `.rs` file. That's how
 fusionspace.co's pages and the design
 system's get checked. In the report, a rate in bold is over its limit, and `ref` marks a
 reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
@@ -337,11 +338,19 @@ regenerate the snapshots with
 
 Every command's messages are held too: what `hpr sim`, `weather`, `analyze` and the others
 print. The source doesn't say which string ends up in a message, so the check reads a census
-of `hpr-cli`, `hpr` and the twelve crates under it: every `#[error]` text and every other
-string that reads as prose, less tests and markup. Each crate is one held reference page. A
+of the code. It reads `hpr-cli`, `hpr`, the twelve crates under it and the Python package's
+`hpr-py`: every `#[error]` text and every other string that reads as prose, less tests and
+markup. Each crate is one held reference page. A
 placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one
 can pass. `cargo xtask voice --long --messages` lists each long sentence with its file and line, and
 `--messages` the whole census; the [voice report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md) counts what it read.
+
+The Python package's docs and the crates' front pages are held too. A test of the package writes
+its docstrings, as `help()` shows them, to `crates/hpr-py/tests/docstrings.md`. The check holds
+that snapshot as a reference page, and the package's README beside it. Change a docstring and
+the test fails until you write the snapshot again with `HPR_BLESS=1 scripts/python-tests.sh 3.13`.
+Each crate's front page is the `//!` docs at the top of its `src/lib.rs`, the page docs.rs shows.
+The check holds each one as a reference page, and refuses a crate that has none.
 
 On the other pages the check reads, such as the changelog and the vision, readability is
 measured, not used to fail a build. The counts show where to look, and a person decides what to

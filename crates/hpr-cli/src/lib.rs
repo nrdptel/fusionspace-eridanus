@@ -1,9 +1,9 @@
 //! The `hpr` command-line tool: its commands, the types their `--json` output takes, and the
 //! registry the README's command table is generated from.
 //!
-//! **Guide:** [The command line][guide-cli] says what each command does, shows its output, and
-//! lists the exit codes. This crate is the tool's own code; programs should use the [`hpr`]
-//! library instead, which this crate calls.
+//! The guide's page on [the command line][guide-cli] says what each command does, shows its
+//! output, and lists the exit codes. This crate is the tool's own code; programs should use the
+//! [`hpr`] library instead, which this crate calls.
 //!
 //! [guide-cli]: https://hpr.fusionspace.co/cli.html
 //!
@@ -12,13 +12,14 @@
 //! output they check is the output a user sees.
 //!
 //! Every command prints text for a person, or, with `--json`, exactly one JSON document on
-//! standard output: the command's own output type ([`output`]) when it succeeds, and an
-//! [`output::ErrorDocument`] when it doesn't. The text puts the result alone on standard output
-//! and every `error:`, `warning:`, `note:` and `help:` line on standard error ([`console`]). [`schemas`] generates the published JSON Schema
-//! of each, which `cargo xtask cli` writes to `schema/cli/`.
+//! standard output. That document is the command's own output type ([`output`]) when it succeeds,
+//! and an [`output::ErrorDocument`] when it doesn't. [`schemas`] generates the published JSON
+//! Schema of each, which `cargo xtask cli` writes to `schema/cli/`. The text puts the result alone
+//! on standard output and every `error:`, `warning:`, `note:` and `help:` line on standard error
+//! ([`console`]).
 //!
-//! Commands whose milestone hasn't come yet are registered with the rest, so that `hpr --help`,
-//! the completions and the README list them, and they refuse with [`Exit::NotAvailable`] and the
+//! Commands whose milestone hasn't come yet are registered with the rest, so `hpr --help`, the
+//! completions and the README list them. They refuse with [`Exit::NotAvailable`] and name the
 //! milestone that brings them ([`registry::availability`]).
 
 #![allow(

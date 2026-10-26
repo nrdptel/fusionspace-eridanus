@@ -11,7 +11,9 @@
 //! targets). The counted patterns are held to the limits the guide sets ([`Pattern::limit`]) in
 //! the report, and on a held page they fail the check (ADR-285): every page the site's table of
 //! contents lists ([`CONTENTS`]) and the two it shows beside it ([`HELD_BESIDE`]) stays within
-//! every limit and both sentence targets.
+//! every limit and both sentence targets. So do the help snapshots ([`HELP`]), the census of the
+//! commands' messages ([`crate::messages`]), the Python package's README and docstrings
+//! ([`PYTHON_README`], [`DOCSTRINGS`]) and each crate's front page ([`front_page`]).
 //!
 //! It fails on every page on [`STOCK`], the stock phrases: puffery ("seamless"), inflated words
 //! ("pivotal"), the vocabulary that spread with generated text ("delve"), buzz verbs
@@ -51,12 +53,14 @@ pub const USAGE: &str =
                            signposts against the writing guide's limits, and the register. With
                            no path it reads this repository's pages and writes
                            validation/reports/voice.md; given paths, it reads each file, or each
-                           page under a directory (a `.help` file as a command's help), and
+                           page under a directory (a `.help` file as a command's help, a `.rs`
+                           file given as its path as a crate's front page), and
                            prints the report (after `--`, a path may start with `-`). Fails on
                            a stock phrase, and with no path on a held page over a limit or
                            missing a sentence target (ADR-285). The held pages include
                            the census of the commands' messages (ADR-292), one
-                           page a crate, read from its source.
+                           page a crate, read from its source, the Python package's
+                           README and docstrings, and each crate's front page.
   voice --long --messages  List each sentence over 25 words in that census, one a line with
                            the file and line of its literal.
   voice --messages         Print the whole census, a crate at a time: each line it read, with
@@ -887,9 +891,13 @@ fn held_paths(root: &Path) -> Result<Vec<String>, String> {
 /// directory under [`CRATES_DIR`]. A crate without a tracked `src/lib.rs` is refused, so no
 /// crate's front page leaves the hold unnoticed, and so is finding none.
 fn front_page_paths(root: &Path) -> Result<Vec<String>, String> {
-    let tracked = tracked(root, &[CRATES_DIR])?;
+    front_pages_from(&tracked(root, &[CRATES_DIR])?)
+}
+
+/// [`front_page_paths`] from the tracked files under [`CRATES_DIR`].
+fn front_pages_from(tracked: &[String]) -> Result<Vec<String>, String> {
     let mut paths = Vec::new();
-    for manifest in &tracked {
+    for manifest in tracked {
         let Some(name) = manifest
             .strip_prefix(CRATES_DIR)
             .and_then(|rest| rest.strip_suffix("/Cargo.toml"))
@@ -1171,22 +1179,23 @@ fn repository_pages(root: &Path, held: &[String]) -> Result<Vec<Page>, String> {
     }
     for path in front_page_paths(root)? {
         let text = fs::read_to_string(root.join(&path)).map_err(|e| format!("{path}: {e}"))?;
-        let source = front_page(&text);
-        if !text_has_letters(&source) {
-            return Err(format!(
-                "{path} opens with no `//!` docs, so docs.rs shows its crate with no front page"
-            ));
-        }
-        let mut page = read_page(&path, &source, true, false);
+        let mut page = front_page_from(&path, &text)?;
         page.held = held.contains(&path);
         pages.push(page);
     }
     Ok(pages)
 }
 
-/// Whether `text` holds a letter.
-fn text_has_letters(text: &str) -> bool {
-    text.chars().any(char::is_alphabetic)
+/// A crate's front page, read from its `lib.rs` at `path`, a reference page ([`front_page`]).
+/// One with no word of `//!` docs is refused: docs.rs would show the crate with no front page.
+fn front_page_from(path: &str, text: &str) -> Result<Page, String> {
+    let source = front_page(text);
+    if !source.chars().any(char::is_alphabetic) {
+        return Err(format!(
+            "{path} opens with no `//!` docs, so docs.rs shows its crate with no front page"
+        ));
+    }
+    Ok(read_page(path, &source, true, false))
 }
 
 /// A crate's message census as text a reader sees, one run a line of a literal: the text, the
@@ -2270,8 +2279,9 @@ fn report(pages: &[Page]) -> String {
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
          ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each \
-         snapshot of an `hpr` command's `--help`, and the census of what the commands say, a \
-         page for each crate's `src/` directory \
+         snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for \
+         each crate's `src/` directory, the Python package's README and its docstrings as \
+         `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` \
          ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.iter().filter(|page| page.held).count(),
@@ -3325,6 +3335,23 @@ mod tests {
         assert!(!held.contains(&"docs/decisions-and-roadmap.md".to_owned()));
         let sim = format!("{HELP}hpr-sim.help");
         assert!(held.contains(&sim) && is_reference(&sim), "{held:?}");
+        // The Python package's pages and every crate's front page (M0.14d4).
+        assert!(held.contains(&DOCSTRINGS.to_owned()) && is_reference(DOCSTRINGS));
+        assert!(held.contains(&PYTHON_README.to_owned()) && !is_reference(PYTHON_README));
+        let crates = tracked(&root, &[CRATES_DIR])
+            .unwrap()
+            .into_iter()
+            .filter(|path| {
+                path.strip_suffix("/Cargo.toml")
+                    .and_then(|rest| rest.strip_prefix(CRATES_DIR))
+                    .is_some_and(|name| !name.contains('/'))
+            })
+            .count();
+        let fronts: Vec<&String> = held.iter().filter(|path| is_front_page(path)).collect();
+        assert_eq!(fronts.len(), crates, "{fronts:?}");
+        assert!(crates >= 18, "{crates}");
+        assert!(fronts.iter().all(|path| is_reference(path)));
+        assert!(held.contains(&"crates/hpr-validate/src/lib.rs".to_owned()));
         let pages = repository_pages(&root, &held).unwrap();
         assert_eq!(
             pages.iter().filter(|page| page.held).count(),
@@ -3456,6 +3483,86 @@ mod tests {
         assert_eq!(Format::of(Path::new("about.txt")), Format::Markdown);
         assert_eq!(Format::of(Path::new("index.HTML")), Format::Html);
         assert!(EXTENSIONS.contains(&"help"));
+    }
+
+    /// A front page is the `//!` block at the top of `lib.rs`, line for line, read as Markdown up
+    /// to the first line of code; a module's `//!` further down isn't on it.
+    #[test]
+    fn a_front_page_is_the_leading_doc_block() {
+        let source = "//! The crate, in short.\n//!\n// A comment.\n\n//!     indented code\n\
+                      //! `code` and [`Link`].\n#![allow(clippy::foo)]\n//! Not read.\n\
+                      pub mod inner {\n    //! Nor this.\n}\n";
+        let page = front_page(source);
+        assert_eq!(
+            page,
+            "The crate, in short.\n\n\n\n    indented code\n`code` and [`Link`].\n"
+        );
+        assert_eq!(
+            page.lines().count(),
+            6,
+            "a line of the page is that line of the file"
+        );
+        assert_eq!(
+            front_page("//!No space.\n  //! Indented.\nfn f() {}\n"),
+            "No space.\nIndented.\n"
+        );
+        let read = front_page_from("crates/x/src/lib.rs", source).unwrap();
+        assert!(read.reference);
+        // Four words, then `code` and [`Link`]: the indented line is a code block.
+        assert_eq!(read.words, 7, "{read:?}");
+        let long = long_sentences(
+            "lib.rs",
+            &front_page(&format!(
+                "// x\n//! {}.\nfn f() {{}}\n",
+                ["word"; 26].join(" ")
+            )),
+            Format::Markdown,
+        );
+        assert_eq!(long.len(), 1, "{long:?}");
+        assert!(long[0].starts_with("lib.rs:2: 26 words"), "{long:?}");
+        for empty in [
+            "",
+            "fn f() {}\n//! Too late.\n",
+            "//!\n//!\n// A comment.\n",
+        ] {
+            let error = front_page_from("crates/x/src/lib.rs", empty).unwrap_err();
+            assert!(error.contains("no `//!` docs"), "{empty:?}: {error}");
+        }
+    }
+
+    /// Every crate, one for each `Cargo.toml` directly under `crates/`, has its front page held,
+    /// and one without a `src/lib.rs` is refused.
+    #[test]
+    fn every_crate_has_a_front_page() {
+        let files = |paths: &[&str]| {
+            paths
+                .iter()
+                .map(|path| (*path).to_owned())
+                .collect::<Vec<_>>()
+        };
+        let tracked = files(&[
+            "crates/b/Cargo.toml",
+            "crates/b/src/lib.rs",
+            "crates/a/Cargo.toml",
+            "crates/a/src/lib.rs",
+            "crates/a/src/main.rs",
+            "crates/a/fuzz/Cargo.toml",
+        ]);
+        assert_eq!(
+            front_pages_from(&tracked).unwrap(),
+            ["crates/a/src/lib.rs", "crates/b/src/lib.rs"]
+        );
+        let error =
+            front_pages_from(&files(&["crates/c/Cargo.toml", "crates/c/src/main.rs"])).unwrap_err();
+        assert!(
+            error.contains("crates/c has no tracked src/lib.rs"),
+            "{error}"
+        );
+        let none = front_pages_from(&files(&["crates/README.md"])).unwrap_err();
+        assert!(none.contains("no crate"), "{none}");
+        assert!(is_front_page("crates/hpr-io/src/lib.rs"));
+        assert!(!is_front_page("crates/hpr-io/src/ork/lib.rs"));
+        assert!(!is_front_page("crates/hpr-io/src/main.rs"));
     }
 
     #[test]

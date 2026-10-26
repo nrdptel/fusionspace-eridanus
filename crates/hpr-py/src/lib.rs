@@ -18,17 +18,17 @@
 //! - `Rocket`: parts added from the nose back, the motor and the parachutes; or a design read
 //!   from a `.hpr`, `.hprz`, `.ork` or rocket JSON file.
 //! - `Flight`: the rocket flown from a rail as soon as it is made, with its metrics, its events
-//!   and its recording as NumPy arrays; with a `DragTable` or a Python function of the Mach
-//!   number, another drag in place of HPR Sim's (`models`).
+//!   and its recording as NumPy arrays. A `DragTable` or a Python function of the Mach number
+//!   can fly another drag in place of HPR Sim's (`models`).
 //! - `MonteCarlo`: the rocket flown many times, each flight's inputs scattered about the nominal
-//!   flight's, as `hpr mc` flies it (`montecarlo`): the library's
+//!   flight's, as `hpr mc` flies it (`montecarlo`). It's the library's
 //!   `hpr_analysis::montecarlo::MonteCarlo` run on every core, its `RunTable` as NumPy arrays.
 //!
 //! > **How far to trust it.** The bindings add no physics. Each call hands its arguments to the
-//! > [`hpr`] builder and returns what it returns, so a flight made in Python runs the same code as
-//! > the one the Rust builder makes from the same numbers; the package's tests fly the builder's
-//! > example rocket and match every digit the Rust example prints (the last digits can differ
-//! > between a release and a debug build). The guide's [Accuracy][guide-accuracy] page says how
+//! > [`hpr`] builder and returns what it returns. So a flight made in Python runs the same code as
+//! > the one the Rust builder makes from the same numbers. The package's tests fly the builder's
+//! > example rocket and match every digit the Rust example prints. The last digits can differ
+//! > between a release and a debug build. The guide's [Accuracy][guide-accuracy] page says how
 //! > good the models themselves are.
 //!
 //! [guide-accuracy]: https://hpr.fusionspace.co/accuracy.html
@@ -39,8 +39,8 @@
 //! `fusionspace.hpr.HprError`, a `ValueError`, whose message is the Rust error's.
 //!
 //! The crate is built by maturin (`crates/hpr-py/pyproject.toml`) into one wheel per operating
-//! system, on CPython's stable ABI (abi3), so it serves CPython 3.10 and later. Its tests are Python's, in
-//! `crates/hpr-py/tests/`, run by pytest on the built wheel.
+//! system, on CPython's stable ABI (abi3), so it serves CPython 3.10 and later. Its tests are
+//! Python's, in `crates/hpr-py/tests/`, run by pytest on the built wheel.
 
 #![allow(
     clippy::disallowed_methods,
@@ -64,8 +64,8 @@ create_exception!(
     fusionspace.hpr,
     HprError,
     PyValueError,
-    "An error from FusionSpace HPR: an input out of its domain, a part out of order, a motor or \
-     material that isn't there, or a flight that failed. The message is the library's."
+    "An error from FusionSpace HPR. It's an input out of its domain, a part out of order, a motor \
+     or material that isn't there, or a flight that failed. The message is the library's."
 );
 
 /// The Python exception for a library error.
@@ -95,8 +95,8 @@ fn by_name<T: DeserializeOwned>(what: &str, name: &str) -> PyResult<T> {
 }
 
 /// The built-in materials' ids, the names `Rocket`'s parts take: `"abs"`, `"kraft_phenolic"`,
-/// `"birch_plywood"` and the rest, each with its density's source in the Rust documentation of
-/// `hpr_design::materials`.
+/// `"birch_plywood"` and the rest. The Rust documentation of `hpr_design::materials` gives the
+/// source of each one's density.
 #[pyfunction]
 fn materials() -> Vec<&'static str> {
     hpr::hpr_design::materials::BUILTIN

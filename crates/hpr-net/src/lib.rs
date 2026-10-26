@@ -1,7 +1,7 @@
 //! Optional online data sources with an on-disk cache and an explicit offline mode: weather,
 //! soundings, elevation, ThrustCurve and motor stock.
 //!
-//! **Guide:** [Online data and the cache][guide-page] says what works today and what is planned.
+//! [Online data and the cache][guide-page] says what works today and what is planned.
 //!
 //! [guide-page]: https://hpr.fusionspace.co/online-data.html
 //! [weather]: https://hpr.fusionspace.co/weather.html
@@ -9,25 +9,28 @@
 //! [nomads]: https://hpr.fusionspace.co/nomads.html
 //! [elevation]: https://hpr.fusionspace.co/elevation.html
 //! [motor-stock]: https://hpr.fusionspace.co/motor-stock.html
-//! [roadmap]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md
 //!
-//! Status: pre-alpha, with six data sources: [`open_meteo`], a launch site's weather as a
-//! sounding ([M5.2a][roadmap], the first weather increment; the [weather page][weather] explains
-//! it); [`wyoming`], weather-balloon soundings from the University of Wyoming's archive
-//! ([M5.2b][roadmap]; the [soundings page][soundings]); [`nomads`], NOAA's GFS and RAP
-//! forecasts as GRIB2 cuts from NOMADS ([M5.2c][roadmap]; the [NOAA forecasts page][nomads]);
-//! [`elevation`], a site's ground height from Open-Meteo ([M5.3b][roadmap]; the
-//! [elevation page][elevation]); [`motor_finder`], motor stock and prices from
-//! motor.fusionspace.co ([M5.4a][roadmap]; the [motor stock page][motor-stock]); and
-//! [`thrustcurve`], motor records and thrust curves from ThrustCurve.org, matched to the motors in
-//! stock ([M5.4b][roadmap]; the same page), and [`on_demand`], one motor found there by name for
-//! a simulator that lacks its curve ([M4.5b][roadmap]). This
-//! crate does network and file I/O, so it is never a dependency of the pure core. Milestone
-//! [M5.1][roadmap] added the cache, the offline mode and HTTP: a [`Client`] asks a [`Transport`] for a URL's bytes only when it is [`Mode::Online`]
-//! and its [`Cache`] holds no fresh copy. In [`Mode::Offline`] it never calls the transport; it
-//! answers from the cache, stale or not, and says which. The `http` feature adds `Http`, the
-//! transport over HTTP and HTTPS (rustls, no OpenSSL), and [`Cache::platform_dir`] names the
-//! platform's usual cache folder.
+//! Status: pre-alpha, with six data sources:
+//!
+//! - [`open_meteo`]: a launch site's weather as a sounding, the first of the weather sources. The
+//!   [weather page][weather] explains it.
+//! - [`wyoming`]: weather-balloon soundings from the University of Wyoming's archive (the
+//!   [soundings page][soundings]).
+//! - [`nomads`]: NOAA's GFS and RAP forecasts as GRIB2 cuts from NOMADS (the [NOAA forecasts
+//!   page][nomads]).
+//! - [`elevation`]: a site's ground height from Open-Meteo (the [elevation page][elevation]).
+//! - [`motor_finder`]: motor stock and prices from motor.fusionspace.co (the [motor stock
+//!   page][motor-stock]).
+//! - [`thrustcurve`]: motor records and thrust curves from ThrustCurve.org, matched to the motors
+//!   in stock (the same page). [`on_demand`] finds one motor there by name, for a simulator that
+//!   lacks its curve.
+//!
+//! This crate does network and file I/O, so it's never a dependency of the pure core. A
+//! [`Client`] asks a [`Transport`] for a URL's bytes only when it's [`Mode::Online`] and its
+//! [`Cache`] holds no fresh copy. In [`Mode::Offline`] it never calls the transport. It answers
+//! from the cache, stale or not, and says which. The `http` feature adds `Http`, the transport
+//! over HTTP and HTTPS (rustls, no OpenSSL). [`Cache::platform_dir`] names the platform's usual
+//! cache folder.
 //!
 //! ```
 //! use hpr_net::{Cache, Client, Freshness, Mode, NetError, Source, Transport};
