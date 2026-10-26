@@ -271,9 +271,10 @@ impl FlightLog {
     /// ``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
     /// ``rate_m_s`` and ``bound_m_s``.
     ///
-    /// An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``):
-    /// a least value, which the true one may pass. A top acceleration also says why it is clipped
-    /// (``clip``): ``"range"``, ``"flat"`` or ``None``.
+    /// An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
+    /// A floor's true value is at least the value less its bound, and may be higher by any amount.
+    /// A top acceleration also says why it is clipped (``clip``): ``"range"``, ``"flat"`` or
+    /// ``None``.
     ///
     /// Beside the readings, the dict says how they were taken: the track's ``source``,
     /// ``sample_interval_s`` and ``step_m``, and the running median's ``median_window_s`` and
