@@ -38,7 +38,7 @@ use super::super::attached::cluster_pattern;
 use super::super::document::Element;
 use super::super::extensions::{OpenRocketExtension, tag_key};
 use super::super::value::Dimension;
-use super::super::warning::{Warning, WarningKind};
+use super::super::warning::{Counted, NOTHING_DEPENDS, Warning, WarningKind};
 use super::xml::{self, Build as _};
 use super::{motors, recovery};
 
@@ -226,8 +226,11 @@ impl<'a> Writer<'a> {
                     ROCKET,
                     format!(
                         "the parallel stage `{}` hangs on `{}`, which is no body tube of a stage \
-                         on the axis, where a `.ork` holds one. It was left out",
-                        stage.id, parallel.on
+                         on the axis, where a `.ork` holds one. It was left out of the written \
+                         file.{}",
+                        stage.id,
+                        parallel.on,
+                        Counted::Lift.sentence(false)
                     ),
                 );
             }
@@ -318,7 +321,8 @@ impl<'a> Writer<'a> {
                     &path,
                     format!(
                         "{what} sits in {where_}, where a `.ork` reader does not read one; it was \
-                         written, and will read back left out"
+                         written, and will read back left out.{}",
+                        counted(component).sentence(!component.children.is_empty())
                     ),
                 );
             }
@@ -1112,7 +1116,8 @@ impl<'a> Writer<'a> {
             self.warn(
                 at,
                 "an override of the center of gravity off the axis or of the inertia, which a \
-                 `.ork` has no tag for; it was left out",
+                 `.ork` has no tag for; it was left out. Read back, the part's center of gravity \
+                 and inertia are its own, worked out from its shape",
             );
         }
     }
@@ -1143,14 +1148,17 @@ impl<'a> Writer<'a> {
             if component.finish.is_some() {
                 self.warn(
                     at,
-                    "a surface finish on a part inside the body, which has none in OpenRocket; \
-                     it was left out",
+                    format!(
+                        "a surface finish on a part inside the body, which has none in \
+                         OpenRocket; it was left out, and {NOTHING_DEPENDS}"
+                    ),
                 );
             }
             return;
         }
         let finish = component.finish.unwrap_or_default();
-        let word = finish.roughness_m().ok().and_then(|roughness_m| {
+        let roughness_m = finish.roughness_m().ok();
+        let word = roughness_m.and_then(|roughness_m| {
             [
                 ("rough", 500e-6),
                 ("unfinished", 150e-6),
@@ -1169,8 +1177,11 @@ impl<'a> Writer<'a> {
             }
             None => self.warn(
                 at,
-                "a surface finish that is none of OpenRocket's five; it was left out, and \
-                 OpenRocket reads the part as regular paint (60 µm)",
+                format!(
+                    "a surface finish that is none of OpenRocket's five; it was left out, and the \
+                     part reads back as regular paint (60 µm). {}",
+                    friction_read_back(roughness_m)
+                ),
             ),
         }
     }
@@ -1215,6 +1226,38 @@ impl<'a> Writer<'a> {
                 element.leaf(&name, text.clone());
             }
         }
+    }
+}
+
+/// What `component` and everything inside it carry into the numbers: the most any of them
+/// counts for ([`Counted`]'s order).
+fn counted(component: &Component) -> Counted {
+    component
+        .children
+        .iter()
+        .map(counted)
+        .fold(Counted::of_part(&component.part), Ord::max)
+}
+
+/// The paint the reader takes a part with no finish word as, m: OpenRocket's regular paint
+/// (`super::super::attached::finish`).
+const REGULAR_PAINT_M: f64 = 60e-6;
+
+/// Which way a part's friction drag reads when a finish of `roughness_m` reads back as regular
+/// paint ([`REGULAR_PAINT_M`]). The skin friction coefficient never falls as the roughness grows
+/// (Niskanen 2009 eq. 3.81: the roughness-limited `0.032 (R_s/L)^0.2` rises with `R_s`, and
+/// takes over from the smooth turbulent value at a Reynolds number that falls as `R_s` grows), so
+/// a part smoother than the paint reads back rougher, its friction drag the same or higher, and
+/// a rougher one the other way.
+fn friction_read_back(roughness_m: Option<f64>) -> &'static str {
+    match roughness_m {
+        Some(roughness_m) if roughness_m < REGULAR_PAINT_M => {
+            "That's rougher than the part was, so its friction drag can read high"
+        }
+        Some(roughness_m) if roughness_m > REGULAR_PAINT_M => {
+            "That's smoother than the part was, so its friction drag can read low"
+        }
+        _ => "So its friction drag can read high or low",
     }
 }
 
@@ -1510,6 +1553,30 @@ pub(super) mod tests {
     /// it is warned of. A finish that is none of OpenRocket's five is left out, and the warning says
     /// how OpenRocket will read the part. Each named finish whose roughness is one of the five is
     /// written with that word.
+    /// A finish that reads back as regular paint says which way the friction drag leans: up
+    /// for a smoother finish, down for a rougher one, either way when its roughness can't be
+    /// read (#952). The `hpr` crate's tests pin the drag itself.
+    #[test]
+    fn a_finish_read_back_as_paint_says_which_way_the_friction_leans() {
+        assert!(friction_read_back(Some(20e-6)).ends_with("can read high"));
+        assert!(friction_read_back(Some(100e-6)).ends_with("can read low"));
+        assert!(friction_read_back(None).ends_with("can read high or low"));
+        let tube = |finish: Finish| {
+            let (mut built, _, _, _) = round_trip(&tube_of(""));
+            built.rocket.stages[0].components[1].finish = Some(finish);
+            document(&built).warnings
+        };
+        let rougher = tube(Finish::Custom {
+            roughness_m: 100e-6,
+        });
+        assert!(
+            rougher
+                .iter()
+                .any(|w| w.message.ends_with("its friction drag can read low")),
+            "{rougher:?}"
+        );
+    }
+
     #[test]
     fn a_part_at_the_default_finish_is_written_with_its_word() {
         let (mut built, _, _, _) = round_trip(&tube_of(
@@ -1542,7 +1609,16 @@ pub(super) mod tests {
         assert!(
             messages
                 .iter()
-                .any(|m| m.contains("OpenRocket reads the part as regular paint (60 µm)")),
+                .any(|m| m.contains("the part reads back as regular paint (60 µm)")),
+            "{messages:?}"
+        );
+        // Smoother than the paint, so read back it's rougher, and its friction drag can only
+        // rise (#952).
+        assert!(
+            messages.iter().any(|m| m.ends_with(
+                "That's rougher than the part was, so its friction drag can \
+                                      read high"
+            )),
             "{messages:?}"
         );
         assert!(

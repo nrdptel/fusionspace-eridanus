@@ -56,6 +56,8 @@ pub use bundled::{BUNDLED_FILES, bundled};
 
 use serde::{Deserialize, Serialize};
 
+use crate::ork::NOTHING_DEPENDS;
+
 /// The most characters of a file's text a warning or an error quotes.
 const QUOTE_LIMIT: usize = 64;
 
@@ -549,16 +551,22 @@ pub fn read(text: &str, file: &str) -> Result<CatalogFile, OrcError> {
             file,
             WarningKind::Ignored,
             format!(
-                "{} beside the catalog's lists {} ignored",
+                "{} beside the catalog's lists {} left out, and no number HPR Sim works out \
+                 depends on {}",
                 listed(&ignored),
-                if ignored.len() == 1 { "was" } else { "were" }
+                if ignored.len() == 1 { "was" } else { "were" },
+                if ignored.len() == 1 { "it" } else { "them" }
             ),
         );
     }
     let version = version.and_then(|node| match value_text(node, "Version") {
         Ok(text) => Some(text),
         Err(why) => {
-            warnings.push(file, WarningKind::Ignored, format!("{why}; ignored"));
+            warnings.push(
+                file,
+                WarningKind::Ignored,
+                format!("{why}; it was left out, and {NOTHING_DEPENDS}"),
+            );
             None
         }
     });
@@ -759,7 +767,7 @@ fn read_materials(
             warnings.push(
                 &at,
                 WarningKind::MaterialLeftOut,
-                format!("{why}; it was left out"),
+                format!("{why}; it was left out, so a part naming it has no density"),
             );
         };
         if element.tag_name().name() != "Material" {
@@ -908,7 +916,7 @@ fn read_part(
             &at,
             WarningKind::PartLeftOut,
             format!(
-                "<{}> is not a kind of part this reads; it was left out",
+                "<{}> is not a kind of part this reads; it was left out of the catalog",
                 quote(tag)
             ),
         );
@@ -924,9 +932,16 @@ fn read_part(
             &at,
             WarningKind::Ignored,
             format!(
-                "{} {} not a field of a <{tag}> OpenRocket reads; ignored",
+                "{} {} not a field of a <{tag}> OpenRocket reads; {} left out, and no number \
+                 HPR Sim works out depends on {}",
                 listed(&unknown),
-                if unknown.len() == 1 { "is" } else { "are" }
+                if unknown.len() == 1 { "is" } else { "are" },
+                if unknown.len() == 1 {
+                    "it was"
+                } else {
+                    "they were"
+                },
+                if unknown.len() == 1 { "it" } else { "them" }
             ),
         );
     }
@@ -984,7 +999,7 @@ fn read_part(
             warnings.push(
                 &at,
                 WarningKind::PartLeftOut,
-                format!("{reason}; the part was left out"),
+                format!("{reason}; the part was left out of the catalog"),
             );
             None
         }

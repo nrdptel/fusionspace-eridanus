@@ -460,36 +460,45 @@ fn a_part_that_cant_be_read_is_left_out_with_why() {
         left_out(&body_tube("1", "Kraft", "").replace("Unit=\"in\">10", "Unit=\"furlong\">10"));
     assert_eq!(
         message,
-        "<Length>'s unit `furlong` is not one this reads; the part was left out"
+        "<Length>'s unit `furlong` is not one this reads; the part was left out of the catalog"
     );
     let message = left_out(&body_tube("1", "Kraft", "").replace(">10<", ">ten<"));
     assert_eq!(
         message,
-        "<Length> is `ten`, not a number; the part was left out"
+        "<Length> is `ten`, not a number; the part was left out of the catalog"
     );
     let message = left_out(&body_tube("1", "Kraft", "").replace(">10<", ">NaN<"));
     assert_eq!(
         message,
-        "<Length> is `NaN`, not a number; the part was left out"
+        "<Length> is `NaN`, not a number; the part was left out of the catalog"
     );
     let message =
         left_out(&body_tube("1", "Kraft", "").replace("<Length Unit=\"in\">10</Length>", ""));
-    assert_eq!(message, "it has no <Length>; the part was left out");
+    assert_eq!(
+        message,
+        "it has no <Length>; the part was left out of the catalog"
+    );
     let message =
         left_out(&body_tube("1", "Kraft", "").replace("<Manufacturer>Acme</Manufacturer>", ""));
-    assert_eq!(message, "it names no <Manufacturer>; the part was left out");
+    assert_eq!(
+        message,
+        "it names no <Manufacturer>; the part was left out of the catalog"
+    );
     let message = left_out(&body_tube("1", "Kraft", "").replace("<PartNumber>1</PartNumber>", ""));
-    assert_eq!(message, "it has no <PartNumber>; the part was left out");
+    assert_eq!(
+        message,
+        "it has no <PartNumber>; the part was left out of the catalog"
+    );
     let message =
         left_out(&body_tube("1", "Kraft", "").replace("Type=\"BULK\"", "Type=\"SURFACE\""));
     assert_eq!(
         message,
-        "<Material> names a material of the wrong kind for the part; the part was left out"
+        "<Material> names a material of the wrong kind for the part; the part was left out of the catalog"
     );
     let message = left_out(&body_tube("1", "Kraft", "").replace("Type=\"BULK\"", "Type=\"bulk\""));
     assert_eq!(
         message,
-        "<Material>'s Type is not BULK, SURFACE or LINE; the part was left out"
+        "<Material>'s Type is not BULK, SURFACE or LINE; the part was left out of the catalog"
     );
     let message = left_out(
         "<NoseCone><Manufacturer>Acme</Manufacturer><PartNumber>2</PartNumber>\
@@ -500,7 +509,7 @@ fn a_part_that_cant_be_read_is_left_out_with_why() {
     assert_eq!(
         message,
         "<Shape> is `BULLET`, not one of CONICAL, OGIVE, ELLIPSOID, PARABOLIC, HAACK or POWER; \
-         the part was left out"
+         the part was left out of the catalog"
     );
     let message = left_out(
         "<BulkHead><Manufacturer>Acme</Manufacturer><PartNumber>3</PartNumber>\
@@ -509,14 +518,14 @@ fn a_part_that_cant_be_read_is_left_out_with_why() {
     );
     assert_eq!(
         message,
-        "<Filled> is `yes`, not true or false; the part was left out"
+        "<Filled> is `yes`, not true or false; the part was left out of the catalog"
     );
     let message = left_out(
         "<RailButton><Manufacturer>Acme</Manufacturer><PartNumber>4</PartNumber></RailButton>",
     );
     assert_eq!(
         message,
-        "<RailButton> is not a kind of part this reads; it was left out"
+        "<RailButton> is not a kind of part this reads; it was left out of the catalog"
     );
 }
 
@@ -537,7 +546,8 @@ fn odd_fields_are_reported_and_the_part_kept() {
     assert_eq!(
         messages,
         [
-            "<Colour> is not a field of a <BodyTube> OpenRocket reads; ignored",
+            "<Colour> is not a field of a <BodyTube> OpenRocket reads; it was left out, and no \
+             number HPR Sim works out depends on it",
             "<Description> is stated 2 times; the last was read, as OpenRocket reads it",
         ]
     );
@@ -573,10 +583,10 @@ fn materials_that_cant_be_read_are_left_out() {
     assert_eq!(
         messages,
         [
-            "`kg/m2` is not a unit of bulk density this reads; it was left out",
-            "its <Type> is not BULK, SURFACE or LINE; it was left out",
-            "its <Density> is missing or not a number; it was left out",
-            "<Stuff> is not a material; it was left out",
+            "`kg/m2` is not a unit of bulk density this reads; it was left out, so a part naming it has no density",
+            "its <Type> is not BULK, SURFACE or LINE; it was left out, so a part naming it has no density",
+            "its <Density> is missing or not a number; it was left out, so a part naming it has no density",
+            "<Stuff> is not a material; it was left out, so a part naming it has no density",
         ]
     );
     // A density too large to hold once in SI, one below zero, and a name holding an element.
@@ -592,9 +602,9 @@ fn materials_that_cant_be_read_are_left_out() {
     assert_eq!(
         messages,
         [
-            "its density, 1e306 g/cm3, is not one a material has; it was left out",
-            "its density, -1 kg/m3, is not one a material has; it was left out",
-            "<Name> holds an element, not a value; it was left out",
+            "its density, 1e306 g/cm3, is not one a material has; it was left out, so a part naming it has no density",
+            "its density, -1 kg/m3, is not one a material has; it was left out, so a part naming it has no density",
+            "<Name> holds an element, not a value; it was left out, so a part naming it has no density",
         ]
     );
 }
@@ -610,13 +620,15 @@ fn text_holding_an_element_or_a_size_below_zero_leaves_the_part_out() {
         let message = left_out(&body_tube("1", "Kraft", "").replace(from, to));
         assert_eq!(
             message,
-            format!("<{field}> holds an element, not a value; the part was left out")
+            format!(
+                "<{field}> holds an element, not a value; the part was left out of the catalog"
+            )
         );
     }
     let message = left_out(&body_tube("1", "Kraft", "").replace(">10<", ">-10<"));
     assert_eq!(
         message,
-        "<Length> is -10, less than zero; the part was left out"
+        "<Length> is -10, less than zero; the part was left out of the catalog"
     );
 }
 
@@ -702,7 +714,7 @@ fn many_unknown_fields_make_one_warning() {
     assert_eq!(
         read.warnings[0].message,
         "<F0>, <F1>, <F10>, <F100>, <F1000> and 19995 more are not a field of a <BodyTube> \
-         OpenRocket reads; ignored"
+         OpenRocket reads; they were left out, and no number HPR Sim works out depends on them"
     );
 }
 
@@ -711,7 +723,7 @@ fn an_element_inside_a_value_leaves_the_part_out() {
     let message = left_out(&body_tube("1", "Kraft", "").replace(">10<", ">1<b>0</b><"));
     assert_eq!(
         message,
-        "<Length> holds an element, not a value; the part was left out"
+        "<Length> holds an element, not a value; the part was left out of the catalog"
     );
 }
 
@@ -747,7 +759,8 @@ fn a_list_stated_twice_keeps_the_last_and_anything_else_is_ignored() {
             ),
             (
                 WarningKind::Ignored,
-                "<Extra> beside the catalog's lists was ignored"
+                "<Extra> beside the catalog's lists was left out, and no number HPR Sim works out \
+                 depends on it"
             ),
         ]
     );

@@ -22,7 +22,7 @@
 
 use super::super::document::{Document, Element, Node};
 use super::super::extensions::{OpenRocketExtension, tag_key};
-use super::super::warning::{Warning, WarningKind};
+use super::super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
 use super::xml::{Build as _, element};
 
 /// A part's catalog preset: the one tag whose place OpenRocket reads meaning into.
@@ -37,7 +37,8 @@ pub(super) fn splice(document: &mut Document, kept: &OpenRocketExtension) -> Vec
             at,
             WarningKind::Dropped,
             format!(
-                "{what} kept from the file has no place in the written design; it was left out"
+                "{what} kept from the file has no place in the written design; it was left out, \
+                 and {NOTHING_DEPENDS}"
             ),
         ));
     };

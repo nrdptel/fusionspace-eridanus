@@ -1164,7 +1164,8 @@ fn parts_no_milestone_reads_yet_are_reported_not_dropped() {
     let warnings: Vec<&str> = spine.warnings.iter().map(|w| w.message.as_str()).collect();
     assert_eq!(warnings.len(), 3, "{warnings:?}");
     let named = "a parallel stage on a rocket of more than one axial stage, which HPR Sim does not \
-                 read yet; it was left out";
+                 read yet; it was left out. Its mass, drag and lift aren't counted, so the mass and \
+                 drag read low, and the stability margin can read high or low";
     assert_eq!(
         warnings.iter().filter(|w| **w == named).count(),
         2,
@@ -1173,7 +1174,11 @@ fn parts_no_milestone_reads_yet_are_reported_not_dropped() {
     assert!(
         warnings
             .iter()
-            .any(|w| w.starts_with("2 `futurepart` were left out")),
+            .any(|w| w.starts_with("2 `futurepart` were left out")
+                && w.ends_with(
+                    "Any mass, drag or lift they carry isn't counted, so the mass and \
+                                drag can read low, and the stability margin high or low"
+                )),
         "{warnings:?}"
     );
     assert_eq!(spine.count(WarningKind::Skipped), 3);
@@ -2825,7 +2830,10 @@ fn supplied_curves_are_used_by_digest_only() {
     assert!(
         design.warnings.iter().any(|w| w
             .message
-            .contains("the embedded curve for G100T was not used")),
+            .contains("the embedded curve for G100T was left out")
+            && w.message.ends_with(
+                "the motor flies another curve if one is found, or its configuration isn't flown"
+            )),
         "{:?}",
         design.warnings
     );

@@ -8,7 +8,7 @@
 use std::io::{Cursor, Read};
 
 use super::error::OrkError;
-use super::warning::{Imported, Warning, WarningKind};
+use super::warning::{ANOTHER_CURVE, Imported, Warning, WarningKind};
 
 /// The three ways a `.ork` file packages its design document.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -155,7 +155,10 @@ fn unpack_zip(bytes: &[u8], budget: u64) -> Result<Imported<Unpacked>, OrkError>
                 warnings.push(Warning::new(
                     format!("entry {index}"),
                     WarningKind::Skipped,
-                    format!("this entry could not be opened and was left out: {error}"),
+                    format!(
+                        "this entry could not be opened and was left out: {error}. If it held a \
+                         thrust curve, {ANOTHER_CURVE}"
+                    ),
                 ));
                 continue;
             }
@@ -169,7 +172,10 @@ fn unpack_zip(bytes: &[u8], budget: u64) -> Result<Imported<Unpacked>, OrkError>
                 warnings.push(Warning::new(
                     format!("entry {index}"),
                     WarningKind::Skipped,
-                    format!("this entry's name could not be read, so it was left out: {error}"),
+                    format!(
+                        "this entry's name could not be read, so it was left out: {error}. If it \
+                         held a thrust curve, {ANOTHER_CURVE}"
+                    ),
                 ));
                 continue;
             }
@@ -182,7 +188,10 @@ fn unpack_zip(bytes: &[u8], budget: u64) -> Result<Imported<Unpacked>, OrkError>
             warnings.push(Warning::new(
                 name,
                 WarningKind::Skipped,
-                format!("this entry could not be decompressed and was left out: {error}"),
+                format!(
+                    "this entry could not be decompressed and was left out: {error}. If it held \
+                     a thrust curve, {ANOTHER_CURVE}"
+                ),
             ));
             continue;
         }
@@ -192,7 +201,8 @@ fn unpack_zip(bytes: &[u8], budget: u64) -> Result<Imported<Unpacked>, OrkError>
                 WarningKind::Skipped,
                 format!(
                     "this entry was left out: unpacking it would pass the {budget}-byte limit on \
-                     what one archive may decompress to"
+                     what one archive may decompress to. If it held a thrust curve, \
+                     {ANOTHER_CURVE}"
                 ),
             ));
             continue;

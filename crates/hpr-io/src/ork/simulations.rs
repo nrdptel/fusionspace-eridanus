@@ -35,7 +35,7 @@ use serde::{Deserialize, Serialize};
 
 use super::document::{Document, Element};
 use super::value::Values;
-use super::warning::{Warning, WarningKind};
+use super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
 
 /// A simulation stored in a `.ork`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -736,7 +736,10 @@ fn attribute_number(
             warnings.push(Warning::new(
                 at,
                 WarningKind::Dropped,
-                format!("`{name}` says `{text}`, which is not a number; it was ignored"),
+                format!(
+                    "`{name}` says `{text}`, which is not a number; it was left out, and \
+                     {NOTHING_DEPENDS}"
+                ),
             ));
             None
         }
@@ -832,7 +835,7 @@ fn branch(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> StoredBra
             WarningKind::Dropped,
             format!(
                 "{dropped} `datapoint` row(s) are not {} numbers, one per column; they were left \
-                 out",
+                 out, and no number HPR Sim works out depends on them",
                 types.len()
             ),
         ));
@@ -848,7 +851,9 @@ fn branch(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> StoredBra
             warnings.push(Warning::new(
                 at,
                 WarningKind::Dropped,
-                "an `event` with no time or no type; it was left out",
+                format!(
+                    "an `event` with no time or no type; it was left out, and {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         };

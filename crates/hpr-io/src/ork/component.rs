@@ -28,7 +28,7 @@ use super::document::{Document, Element};
 use super::motors::{self, MountRead};
 use super::recovery::{self, DeviceRead, SeparationRead};
 use super::value::{OVERRIDE_FLAGS, Values};
-use super::warning::{Imported, Warning, WarningKind};
+use super::warning::{Counted, Imported, Warning, WarningKind};
 
 /// The body tags this milestone reads. Anything else in a `<subcomponents>` is counted and left.
 pub(super) const BODY_TAGS: [&str; 3] = ["nosecone", "bodytube", "transition"];
@@ -200,12 +200,18 @@ pub(super) fn walk(document: &Document) -> (Imported<Rocket>, Walked) {
         }
     }
     if let Some(note) = tally(&skipped) {
+        let counted = skipped
+            .iter()
+            .map(|tag| Counted::of_tag(tag))
+            .max()
+            .unwrap_or(Counted::Unknown);
         warnings.push(Warning::new(
             at,
             WarningKind::Skipped,
             format!(
                 "{note} were left out: tags HPR Sim does not read where they are written (a \
-                 parallel stage is read only inside a body tube)"
+                 parallel stage is read only inside a body tube).{}",
+                counted.sentence(true)
             ),
         ));
     }

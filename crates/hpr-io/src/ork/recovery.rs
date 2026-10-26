@@ -40,7 +40,7 @@ use super::component::subcomponents;
 use super::document::Element;
 use super::motors::stage_of;
 use super::value::{Dimension, Values};
-use super::warning::{Warning, WarningKind};
+use super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
 
 /// The path segment every warning about when a device deploys carries, so that
 /// [`super::design`] can tell it from one about the airframe: recovery is read here, and flown by
@@ -417,7 +417,10 @@ fn trigger<E: Clone>(
             warnings.push(Warning::new(
                 here,
                 WarningKind::Dropped,
-                format!("a `{per}` with no `configid` belongs to no configuration; it was ignored"),
+                format!(
+                    "a `{per}` with no `configid` belongs to no configuration; it was left out, \
+                     and {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         };

@@ -29,7 +29,7 @@ use std::io::{Cursor, Write as _};
 use super::container::Attachment;
 use super::document::{Document, SchemaVersion};
 use super::error::OrkError;
-use super::warning::{Imported, Warning};
+use super::warning::{Imported, NOTHING_DEPENDS, Warning};
 use super::{Design, MAX_KNOWN_MINOR};
 use xml::Build as _;
 
@@ -132,7 +132,10 @@ pub fn write(design: &Design, attachments: &[Attachment]) -> Result<Imported<Vec
             warnings.push(Warning::new(
                 DESIGN_ENTRY,
                 super::WarningKind::Skipped,
-                "an attachment has the design's own name, `rocket.ork`; it was left out",
+                format!(
+                    "an attachment has the design's own name, `rocket.ork`; it was left out, and \
+                     {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         }

@@ -47,7 +47,7 @@ use super::component::subcomponents;
 use super::container::Attachment;
 use super::document::Element;
 use super::value::Values;
-use super::warning::{Warning, WarningKind};
+use super::warning::{ANOTHER_CURVE, AS_IF_NOT_GIVEN, NOTHING_DEPENDS, Warning, WarningKind};
 
 /// Where a `<motor>` element's thrust curve came from.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -511,7 +511,8 @@ pub(super) fn mount(element: &Element, at: &str, warnings: &mut Vec<Warning>) ->
                 at,
                 WarningKind::Dropped,
                 format!(
-                    "a `{}` with no `configid` belongs to no configuration; it was ignored",
+                    "a `{}` with no `configid` belongs to no configuration; it was left out, and \
+                     {NOTHING_DEPENDS}",
                     child.name
                 ),
             ));
@@ -610,7 +611,8 @@ fn delay(text: &str, values: &mut Values<'_>) -> Option<Delay> {
             values.warn_at(
                 WarningKind::Dropped,
                 format!(
-                    "`delay` says `{text}`, which is neither `none` nor a delay; it was ignored"
+                    "`delay` says `{text}`, which is neither `none` nor a delay; it was left out, \
+                     {AS_IF_NOT_GIVEN}"
                 ),
             );
             values.forget(&["delay"]);
@@ -642,7 +644,10 @@ pub(super) fn read(
             warnings.push(Warning::new(
                 format!("{at}/motorconfiguration"),
                 WarningKind::Dropped,
-                "a motor configuration with no `configid` can hold no motor; it was ignored",
+                format!(
+                    "a motor configuration with no `configid` can hold no motor; it was left out, \
+                     and {NOTHING_DEPENDS}"
+                ),
             ));
             continue;
         };
@@ -839,7 +844,10 @@ fn unread_motors(
                 warnings.push(Warning::new(
                     format!("{at}/motormount/motor"),
                     WarningKind::Dropped,
-                    "a `motor` with no `configid` belongs to no configuration; it was ignored",
+                    format!(
+                        "a `motor` with no `configid` belongs to no configuration; it was left \
+                         out, and {NOTHING_DEPENDS}"
+                    ),
                 ));
                 continue;
             };
@@ -932,7 +940,7 @@ fn curve(
                         entry.clone(),
                         WarningKind::Dropped,
                         format!(
-                            "the embedded curve for {} was not used: {reason}",
+                            "the embedded curve for {} was left out: {reason}; {ANOTHER_CURVE}",
                             motor.designation
                         ),
                     ));

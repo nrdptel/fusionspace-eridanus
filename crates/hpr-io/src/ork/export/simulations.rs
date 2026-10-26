@@ -26,7 +26,7 @@ use super::super::simulations::{
     Atmosphere, LaunchConditions, StoredBranch, StoredEvent, StoredResults, StoredSimulation,
     WindLevel,
 };
-use super::super::warning::{Warning, WarningKind};
+use super::super::warning::{NOTHING_DEPENDS, Warning, WarningKind};
 use super::xml::{self, Build as _};
 
 /// The path of the `<simulations>` element, as warnings and kept items give it.
@@ -126,7 +126,7 @@ fn launch_conditions(
                 WarningKind::Dropped,
                 format!(
                     "`{name}` is {radians} rad, which no number of degrees reads back as \
-                     exactly; it was left out"
+                     exactly; it was left out, and {NOTHING_DEPENDS}"
                 ),
             )),
         }
@@ -324,7 +324,8 @@ fn data_branch(branch: &StoredBranch, at: &str, warnings: &mut Vec<Warning>) -> 
             at,
             WarningKind::Dropped,
             format!(
-                "{unfit} row(s) do not have one value per column, {} of them; they were left out",
+                "{unfit} row(s) do not have one value per column, {} of them; they were left \
+                 out, and no number HPR Sim works out depends on them",
                 branch.types.len()
             ),
         ));
@@ -355,7 +356,9 @@ fn finite(value: Option<f64>, at: &str, what: &str, warnings: &mut Vec<Warning>)
     warnings.push(Warning::new(
         at,
         WarningKind::Dropped,
-        format!("{what} is {value}, which a `.ork` cannot hold; it was left out"),
+        format!(
+            "{what} is {value}, which a `.ork` cannot hold; it was left out, and {NOTHING_DEPENDS}"
+        ),
     ));
     None
 }
