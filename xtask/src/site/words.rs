@@ -17,7 +17,8 @@
 //!   note, a whole quote block (which the site draws as a note), or a table cell over
 //!   [`MOST_WORDS`] words as it renders, code and link text included. A note says what the reader
 //!   must know first; a cell holds a value or a phrase. What runs longer belongs in the page's
-//!   own text, below the note or under the table.
+//!   own text, below the note or under the table. A table or a quote block written in raw HTML
+//!   fails too: the checks read only Markdown's, so one in HTML would pass them unread.
 
 use pulldown_cmark::Options;
 
@@ -106,6 +107,20 @@ pub(super) fn long_blocks(text: &str, renderer: Renderer) -> Vec<(usize, String)
                 depth = depth.saturating_sub(1);
                 if depth == 0 {
                     ends = note.take().map(|(at, words)| (at, words, "a note"));
+                }
+            }
+            Event::Html(html) | Event::InlineHtml(html) => {
+                let html = html.to_ascii_lowercase();
+                for tag in ["<table", "<blockquote"] {
+                    if html.contains(tag) {
+                        problems.push((
+                            line(range.start),
+                            format!(
+                                "a `{tag}>` in raw HTML, which the checks of notes, cells and \
+                                 heads can't read: write it in Markdown"
+                            ),
+                        ));
+                    }
                 }
             }
             Event::Start(Tag::TableCell) => cell = Some((range.start, String::new())),
@@ -313,5 +328,18 @@ mod tests {
         assert!(long(&format!("> {} – \u{2014} · 1\n", words(MOST_WORDS - 1))).is_empty());
         // Both renderers read the same.
         assert_eq!(long_blocks(&text, Renderer::GitHub).len(), 1);
+        // A table or a quote block in raw HTML fails, however short, as a block or inline;
+        // other HTML passes.
+        for text in [
+            "<table><tr><td>1</td></tr></table>\n",
+            "<BLOCKQUOTE>a</BLOCKQUOTE>\n",
+            "Text <blockquote>a</blockquote>.\n",
+            "<div>\n<table>\n</table>\n</div>\n",
+        ] {
+            let problems = long(text);
+            assert_eq!(problems.len(), 1, "{text}: {problems:?}");
+            assert!(problems[0].1.contains("in raw HTML"), "{problems:?}");
+        }
+        assert!(long("<span>a</span> <br> <!-- note -->\n").is_empty());
     }
 }
