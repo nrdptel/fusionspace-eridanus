@@ -20,7 +20,7 @@
 //! embedded curves belong to the designs' owners, and OpenRocket's database states no terms
 //! (ADR-067). The database's curves come from ThrustCurve.org, which grants no license for its
 //! records and reserves copyright. ADR-287 lets the project use those records as published facts
-//! when they come from the site, its API or its 2016 dump, not OpenRocket's copies.
+//! when they come from the site, its API or its 2016 dump; it names no other source.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;

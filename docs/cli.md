@@ -1267,8 +1267,8 @@ file:
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
-checks. ThrustCurve.org's own published figures aren't bundled: every figure is worked out from
-the curve file ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
+checks. ThrustCurve.org's own published figures aren't bundled: every figure comes from the curve
+file, read from its header or worked out from its points ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
 ThrustCurve.org grants no license for its figures and reserves copyright. The project has since
 decided to use them as published facts, with credit
 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)),
@@ -1506,8 +1506,8 @@ $ echo $?
 
 <!-- cli: end -->
 
-The simulator bundles none of these curves yet. It ships 32, and the project plans to bundle every
-solid motor
+The curves `hpr motors fetch` downloads aren't bundled; the simulator ships 32 others, and the
+project plans to bundle every solid motor
 ([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
 [The decision record on fetching motors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md)
 has the reasoning for the fetch. Each file carries its contributor's own license.

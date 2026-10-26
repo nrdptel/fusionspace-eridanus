@@ -2077,9 +2077,11 @@ How it works:
   embeds still comes first, and HPR Sim's bundled catalog last.
 - A supplied curve is never matched by name. In the database, 286 manufacturer-and-designation
   pairs have more than one curve.
-- The database's curves come from ThrustCurve.org by way of OpenRocket. ThrustCurve.org grants no
-  license for its records and reserves copyright, and OpenRocket publishes no terms for reusing
-  them. So the record stays on the machine that ran it, and only counts are published here.
+- The database's curves come from ThrustCurve.org by way of OpenRocket, and OpenRocket publishes no
+  terms for reusing them ([ADR-067](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0067-curves-come-from-openrockets-own-database-by.md),
+  the decision on OpenRocket's curves); the curves embedded in the designs
+  belong to their owners. So the record stays on the machine that ran it, and only counts are
+  published here. ThrustCurve.org itself grants no license for its records and reserves copyright.
 
 To repeat the survey you need the private design library under `refs/`, which most readers won't
 have. You also need Java 17 and the OpenRocket jar (`cargo xtask refs fetch`), as for the

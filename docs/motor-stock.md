@@ -37,7 +37,7 @@ The stand-in searches ([evidence row G23](evidence.md#g23)) date from when the p
 ThrustCurve.org's records out of the repository. The site still grants no license for its motor records: it reads "All rights under
 copyright reserved". But the project now uses them as published facts, with credit
 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), and
-[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) replaces the stand-ins with real records.
+[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to replace the stand-ins with real records.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
@@ -181,8 +181,8 @@ instead, set when the project kept ThrustCurve.org's records out
 ThrustCurve.org grants no license for its motor records and reserves copyright. The project has
 since decided to use them as published facts, with credit
 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), so
-[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) brings recorded searches back.
-They hold 297 records:
+[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to bring recorded searches back.
+The stand-ins hold 297 records:
 
 - 15 wholly invented, five per maker, with designations ending `-INVENTED`;
 - 282, one for each motor in the finder's in-stock list. Each carries only the values that list
