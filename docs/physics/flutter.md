@@ -141,7 +141,7 @@ material. The second picks titanium and holds figure 3's ordinate to 0.8 × 10�
 titanium's modulus, "to allow a reasonable margin of safety". It then asks how thick the wing must
 be at each aspect ratio.
 
-| Example | Martin | HPR Sim, from eq. 19 | Difference |
+| Example | Martin | HPR Sim from eq. 19, psi or % | Difference |
 |---|---|--:|--:|
 | $X$ for $A = 2$, 4% thick | "about 1.25 × 10⁶" psi | 1.228 × 10⁶ psi | −1.8% |
 | Titanium at 0.8 × 10⁶ psi, $A = 1$ | 2.5% thick | 2.54% | +1.6% |
@@ -215,7 +215,7 @@ extrapolation.
 
 ## Readings and materials
 
-The readings HPR Sim takes where the source leaves room, and the fins' shear moduli.
+Readings and shear moduli.
 
 ### Readings where the source leaves room
 
@@ -250,7 +250,7 @@ from. `shear_modulus_of` finds a design's copy of a built-in material by its nam
 range, the lower value is kept. Metals are given in ksi (1000 psi) and Msi (10⁶ psi); 1 Msi is
 6.895 GPa.
 
-| Material | $G$, GPa | Source | Basis |
+| Material | shear modulus $G$ (GPa) | Source | Basis |
 |---|--:|---|---|
 | Aluminum 6061 | 26.2 | MIL-HDBK-5J, Table 3.6.2.0(b1): 3.8 × 10³ ksi | stated |
 | Aluminum 7075 | 26.9 | MIL-HDBK-5J, Table 3.7.6.0(b1): 3.9 × 10³ ksi | stated |

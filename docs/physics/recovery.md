@@ -75,7 +75,7 @@ Sources:
 
 ## Drag of each device
 
-How much drag a parachute, a streamer or a tumbling body gives.
+Drag of a parachute, a streamer and a tumbling body.
 
 ### Drag area
 
@@ -178,7 +178,7 @@ Two details of his method decide how to compare, and both were got wrong here be
 `streamer_models_against_kidwells_drop_tests` uses the notional mass and compares the same
 average, from the [closed-form](../glossary.md#closed-form) fall:
 
-| case | measured | $C_D$ it implies, on $S$ | `Filippone` | `OpenRocket` |
+| case | measured | implied $C_D$ (coefficient), on $S$ | `Filippone` speed | `OpenRocket` speed |
 |---|--:|--:|--:|--:|
 | crêpe paper, 32 g/m², **unpleated** | 2.80 m/s (9.2 ft/s) | 0.155 | 3.05 m/s (10.0 ft/s, +9%) | 5.28 m/s (17.3 ft/s, +88%) |
 | Micafilm, 42 g/m², pleated | 2.04 m/s (6.7 ft/s) | 0.338 | 3.21 m/s (10.5 ft/s, +58%) | 5.19 m/s (17.0 ft/s, +154%) |
@@ -253,7 +253,7 @@ $$
 (0.98 ft/s). Replaying Table 3.3 through the simulator's reading of the model
 (`the_tumble_model_against_its_own_drop_tests`) gives:
 
-| model | fins | measured | HPR Sim |
+| model | fins | measured | HPR Sim, m/s |
 |---|---|--:|--:|
 | #1 | 3 | 5.6 m/s (18 ft/s) | 5.27 (−5.8%) |
 | #2 | 4 | 6.3 m/s (21 ft/s) | 5.96 (−5.4%) |
@@ -292,7 +292,7 @@ becomes unstable enough (the same documentation declines to model the analogous 
 
 ## Deployment and descent
 
-When each device fires, how a canopy fills, and how the rocket then comes down.
+When a device fires, how a canopy fills, and the descent.
 
 ### Triggers, lag and release
 
@@ -494,7 +494,7 @@ $$
 
 ## Parts that come apart
 
-How the stack splits at a stage boundary or lets a piece go at a joint.
+A stage split and a piece let go at a joint.
 
 ### Separation
 
@@ -716,7 +716,7 @@ flies the 54 mm (2.1 in) test rocket on an I175 with a 250 g payload in its airf
 comes down under a 0.9 m (3.0 ft) one. It lets the payload out at 300 m (984 ft) under a 0.6 m (2.0 ft) one. Each lands at
 its own terminal speed, $v_e$ above, for its own mass and canopy in the air at the ground:
 
-| Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) |
+| Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | speed $v_e$ (m/s) | East of the pad (m) |
 |---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone | 0.063 | 16.23 | 562.88 | 3.06 | 3.06 | 2,035.4 |
 | 1, the airframe | 0.556 | 16.23 | 333.54 | 4.54 | 4.54 | 1,115.6 |
@@ -731,7 +731,7 @@ its canopy opening and the payload leaving the airframe, is in that body's own l
 The example then flies the same rocket again with a 1 N·s push at each parting. The nose cone has
 no canopy and tumbles:
 
-| Body | Mass (kg) | Lands (s) | At (m/s) | $v_e$ (m/s) | East of the pad (m) | Moved from the first flight (m) |
+| Body | Mass (kg) | Lands (s) | At (m/s) | speed $v_e$ (m/s) | East of the pad (m) | Moved from the first flight (m) |
 |---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone, tumbling | 0.063 | 130.93 | 14.82 | 14.82 | 269.6 | 1,765.7 |
 | 1, the airframe | 0.556 | 333.42 | 4.54 | 4.54 | 1,115.6 | 0.0 |

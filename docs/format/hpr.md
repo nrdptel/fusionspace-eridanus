@@ -22,15 +22,12 @@ from the schema, each with a reader that checks a document
 
 > **How far to trust it.** A copy of what was read. Converting keeps everything the simulator read
 > from the `.ork` except the reader's warnings. This project's checks use 75 `.ork` files and read
-> 73. Each of the 73 goes `.ork` → `.hpr` → `.ork` and comes back as the same design, bit for bit.
-> It also comes back as the `.ork` the simulator writes from the original, byte for byte. That `.ork`
-> is close to the original file but not the same:
-> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 145 motor configurations
-> that fly are spread over 41 of the designs. Each reaches the same apogee, bit for bit, from the
-> `.ork`, from the document, and from the `.ork` written from the document. These counts come from a
-> run on the developers' machine that includes other people's private designs. The automatic checks
-> repeat the checks, not the counts, on the 17 public ones
-> ([checked on real designs](#checked-on-real-designs)).
+> 73. Each of the 73 goes `.ork` → `.hpr` → `.ork` and comes back as the same design, bit for bit,
+> and as the `.ork` the simulator writes from the original, byte for byte
+> ([close to the original, not the same](ork.md#writing-a-ork-back-out)). The 145 motor
+> configurations that fly, spread over 41 of the designs, each reach the same apogee, bit for bit,
+> all three ways. These counts include private designs; the automatic checks repeat the checks, not
+> the counts, on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
 
 **Keep your `.ork` too.** The format is version 0.2, a draft until FusionSpace HPR's first release.
 A document of version 0.1 still reads, but 0.1 didn't record whether the rocket's airframe was read
@@ -246,8 +243,8 @@ key it doesn't know.
 - **From 1.0**, a new minor version only adds, and a change that breaks old documents takes a new
   major version, with a migration.
 
-| from | to | what the migration changes |
-|--:|--:|---|
+| from version | to version | what the migration changes |
+|---|---|---|
 | 0.1 | 0.2 | `attachments` is renamed `source_files`, leaving "attachment" to mean a file in a `.hprz`. Whether the airframe was read exactly as written, which 0.1 didn't record, is worked out from the motor configurations, or marked unknown |
 
 **What the 0.1 migration can't recover.** 0.1 recorded why a `.ork`'s airframe wasn't read exactly

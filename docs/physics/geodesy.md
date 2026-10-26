@@ -42,8 +42,7 @@ Code: `hpr_core::geodesy` and `hpr_core::geodesic`. Conventions: [Frames](frames
 
 ## Ellipsoid and coordinates
 
-The WGS 84 ellipsoid, conversions between geodetic and Earth-centered coordinates, and the local
-axes.
+The ellipsoid, coordinate conversions and the local axes.
 
 ### WGS 84 ellipsoid
 
@@ -52,7 +51,7 @@ axes.
 - These reproduce [NGA] Table 3.5 to its printed digits
   (`wgs84_derived_geometry_matches_table_3_5`):
 
-  | quantity | value |
+  | quantity | value (m, or ratio) |
   |---|--:|
   | $b$ | 6356752.3142 m (20,855,486.595 ft) |
   | $e^2$ | 6.694379990141e-3 |

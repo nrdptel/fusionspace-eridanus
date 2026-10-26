@@ -59,7 +59,7 @@ A check on these flights doesn't show how well HPR Sim predicts a real flight. T
 
 Three sets, each on its own seed, written down before any method was tuned:
 
-| Set | Flights | Seed | Model flown |
+| Set | Flights | Seed number | Model flown |
 |---|---:|---:|---|
 | Tuning | 200 | 2026101700 | 100 of A's and 100 of B's, alternating |
 | A | 1,000 | 2026101701 | HPR Sim's |
@@ -163,7 +163,7 @@ six windows of those logs. Those windows are on the pad or at rest
 ([the sensor noise note][noise] §3). The spreads are upper bounds that mix in wind and handling.
 The model takes 0.5 m (1.6 ft) and 0.5 for every barometer, and adds each part's white noise. It is drawn as an
 Ornstein-Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
-between samples, whatever the logger's rate:
+between samples, whatever the rate:
 
 $$
 \rho(\Delta t) = e^{-\Delta t/\tau}
@@ -203,7 +203,7 @@ of up to 0.05 g and white noise. It is clipped at the part's range and rounded t
 source states a bias left after the pad's zero. So the 0.05 g is assumed ([the sensor noise note][noise],
 *What this suggests*; [evidence row G32](../evidence.md#g32)):
 
-| Part | Noise density | Step | Range | Scale $s$ |
+| Part | Noise density | Step (mg, g) | Range, g | Scale $s$, % |
 |---|---:|---:|---:|---:|
 | high-g, ADXL375 class | 5 mg/√Hz | 49 mg | ±180 g | ±10% |
 | low-g IMU axis | 0.16 to 0.4 mg/√Hz | 64/65,536 g | ±32 g | ±3% |

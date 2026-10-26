@@ -625,7 +625,7 @@ the outline: a triangle's mass sits nearer the body than the rod's. A tab lies i
 tube, 40 to 50 mm (1.6 to 2.0 in) from the axis on the probe. But the rod puts its mass out with the fin's, so
 OpenRocket's figure is the larger there.
 
-| the probe's fin set | HPR Sim's roll inertia (kg·m²) | OpenRocket's | HPR Sim against OpenRocket |
+| probe fin set | HPR Sim's roll inertia, kg·m² | OpenRocket's, kg·m² | HPR Sim vs OpenRocket |
 |---|--:|--:|---|
 | rectangular, 100 mm (3.9 in) by 50 mm (2.0 in) | 2.6253e-4 | 2.6250e-4 | +0.013% (the thickness) |
 | the trapezoid above | 1.8284e-4 | 1.7854e-4 | +2.41% |

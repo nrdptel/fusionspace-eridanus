@@ -6,7 +6,8 @@ use from a terminal or a script.
 `hpr` is HPR Sim's command-line tool. Today it does seven things:
 
 - It flies a design, read from an OpenRocket file or a
-  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went.
+  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went. It flies a
+  [separation](glossary.md#separation) under power, or several in turn.
 - It flies a design many times, its uncertain inputs scattered at random
   ([Monte Carlo](monte-carlo.md)), and prints how far its apogee and landing spread.
 - It looks up motors in the catalog built into it or in a motor file of your own. It searches
@@ -28,40 +29,30 @@ Its other commands are registered but not available yet. Each refuses and names 
 >
 > - `hpr sim` prints what the library computes. A
 >   [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
->   flies the rocket of [the example below](#flying-a-design) through `hpr sim` and through the Rust
->   library. Both give identical numbers, to the last bit. How close those are to a real flight is
->   the [Accuracy](accuracy.md) page's subject.
-> - `hpr sim` flies a `.ork` file's parachutes and streamers as OpenRocket flies them. Its landing
->   speed is within 0.02% of OpenRocket's on 50 of its 53 example flights, and within 0.12% on all
->   53 ([Recovery](physics/recovery.md#from-an-openrocket-file)). It flies a
->   [separation](glossary.md#separation) under power, or several in turn as on a three-stage rocket.
->   A dropped stage's own flight is not validated ([evidence row G13](evidence.md#g13)). With no
->   device open within 1 s of apogee, where and how fast its rocket comes down are not predictions
+>   flies the rocket of [the example below](#flying-a-design) through `hpr sim` and the Rust
+>   library, with identical numbers to the last bit.
+> - On a `.ork` file's parachutes and streamers, `hpr sim`'s landing speed is within 0.12% of
+>   OpenRocket's on all 53 example flights
+>   ([Recovery](physics/recovery.md#from-an-openrocket-file)). A dropped stage's flight
+>   is not validated ([evidence row G13](evidence.md#g13)). With no device open within 1 s of
+>   apogee, where and how fast its rocket comes down are not predictions
 >   ([what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
-> - `hpr motors show` works out each figure from the motor's
->   [thrust curve](glossary.md#thrust-curve) with the same code a flight uses. On all 32 bundled
->   curves, that code matches ThrustCurve.org's own statistics code to 1.8e-15, relative
->   ([Solid motors](physics/motor.md#validation)). `hpr motors list` gives the same figures for
->   the bundled motors, worked out by the same code from the same
->   [ThrustCurve.org](glossary.md#thrustcurveorg) files.
-> - `hpr convert` keeps the thrust curve, the size and the masses. Each of the 32 bundled motor
->   files, converted to the other format and back, reads as before in the simulator. That holds bit
->   for bit, except two masses written with 17 digits, each flagged by a warning
->   ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
-> - OpenRocket 24.12 opens all 32 converted files and reads 29 as it reads the originals. The other
->   three differ only in the motor's type or a delay ([other programs](#what-a-conversion-keeps)).
->   Whether RockSim opens them is not checked.
-> - `hpr` doesn't re-run the validation cases. To run the check the project's automated tests
->   make on every change, clone the repository and run `cargo xtask validate --check`
->   ([what it checks](accuracy.md#the-census)).
-> - `hpr weather` runs the library's readers and writes the profiles they build, to the last bit
->   ([how far to trust it](#hpr-weather)). Its online fetch is not tested automatically.
-> - `hpr motors search` gives back motor.fusionspace.co's values unchanged
->   ([how far to trust it](#motors-you-can-buy)). Its online fetch is not tested automatically.
-> - The tests in
->   [`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
->   run every command as a user would, and check each `--json` document against its
->   [published schema](#json-output).
+> - OpenRocket 24.12 opens all 32 motors converted by `hpr convert` and reads 29 like
+>   the originals; the other three differ only in type or a delay
+>   ([other programs](#what-a-conversion-keeps)).
+
+Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.md) says how close
+`hpr sim`'s flights are to a real flight.
+
+`hpr motors show` works out each figure with the code a flight uses. On all 32 bundled curves, it
+matches ThrustCurve.org's statistics code to 1.8e-15, relative
+([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
+validation cases. To run the project's automated check, clone the repository and run
+`cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
+[`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)
+run every command as a user would, and check each `--json` document against its
+[published schema](#json-output). `hpr weather` and `hpr motors search` carry their own notes on
+how far to trust them ([weather](#hpr-weather), [stock](#motors-you-can-buy)).
 
 ## Running it
 
@@ -429,9 +420,11 @@ What each part says:
 | `warning:` | what the simulator's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
 | `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope $C_{m\alpha}$ is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest $C_{m\alpha}$ per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
 | `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
-| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
+| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
 | the last figures | the top speed and [Mach number](glossary.md#mach-number), and the landing |
+
+In the JSON, `issues` lists the drag, stability and flight warnings, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message`.
 
 The text names configurations and parts by their names, in backticks, not by the long ids an
 OpenRocket file gives them. A part with no name is called by its id. `--json` prints the same flight
@@ -1415,18 +1408,21 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 
 > **How far to trust it.** `hpr motors search` gives back the site's values unchanged. It reads
 > the list with the same checks the library makes on every answer from the site
-> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). The tests in
-> [`crates/hpr-cli/tests/motors_search.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/motors_search.rs)
-> run it offline on the recorded lists, from the file and from the cache. They check every motor
-> it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
-> the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
-> `--max-price 150` search lists exactly that motor.
+> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). Offline tests check its
+> lists against recordings.
 >
 > Fetching online isn't tested automatically. Whether a vendor really has a motor at that price is
 > the vendor's to say. A list fetched now, or read from a copy under an hour old, can be up to two
 > hours behind the vendors' pages. A list read with `--offline` or `--from`, or after a failed
 > fetch, is as old as the "built" time on its first line.
 > See [how far to trust the stock list](motor-stock.md).
+
+The tests in
+[`crates/hpr-cli/tests/motors_search.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/motors_search.rs)
+run `hpr motors search` offline on the recorded lists, from the file and from the cache. They check every motor
+it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
+the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
+`--max-price 150` search lists exactly that motor.
 
 #### Motors from ThrustCurve.org
 
@@ -1571,7 +1567,9 @@ some things differently, and `hpr convert` translates:
 Masses move between kilograms and grams by moving the decimal point, not by multiplying, which
 would round. In a computer's arithmetic, `0.0041` kg times 1000 is `4.1000000000000005`, while
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
-digit. A warning says so.
+digit. A warning says so. Of the 32 bundled files, two masses written with 17 digits are the only
+ones that don't come back bit for bit; each carries the warning
+([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
 
 A flight turns a `.rse` file's grams into kilograms by dividing by 1000, and the catalog's by
 multiplying by 0.001. So the same motor flown from a `.eng` file and from its converted `.rse` can
@@ -1981,10 +1979,7 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 
 > **How far to trust it.** `hpr weather` runs each source's reader from the library and adds no
 > physics of its own. Each reader is checked against the recorded answers on its source's page.
-> The tests in
-> [`crates/hpr-cli/tests/weather.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/weather.rs)
-> run the four online sources through `hpr weather` offline, from a saved answer and from the
-> cache. They run ERA5 from its file.
+> Offline tests run the sources through `hpr weather` from saved answers.
 >
 > Each run writes the profile the library builds from the same bytes, to the last bit, and lists
 > the same levels left out. Fetching online isn't tested automatically. It was run once by hand, on
@@ -1992,6 +1987,11 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 > every fetch fails
 > ([Fetching over HTTP](online-data.md#fetching-over-http)). How good a forecast is at your launch
 > is not measured.
+
+The tests in
+[`crates/hpr-cli/tests/weather.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/weather.rs)
+run the four online sources through `hpr weather` offline, from a saved answer and from the
+cache. They run ERA5 from its file.
 
 #### Asking for the weather
 
@@ -2289,7 +2289,7 @@ $ echo $?
 
 ### Exit codes
 
-| status | `kind` in JSON | meaning |
+| Exit code | `kind` in JSON | meaning |
 |--:|---|---|
 | 0 | - | The command did what was asked. |
 | 1 | `input` | An input was missing, unreadable or refused, such as a motor the catalog doesn't have. |

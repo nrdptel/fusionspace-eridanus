@@ -44,7 +44,7 @@ stability margin and landing point.
 
 ## Purpose and use
 
-Why the metrics are built as they are, and how to ask a flight for them.
+Why the metrics are built so, and how to ask for them.
 
 ### Why these rules
 
@@ -179,8 +179,7 @@ all: `None`, not zero.
 
 ## Stability
 
-The stability margin over the flight, the largest angle of attack, and the flags for a flight
-unstable under power.
+The margin, the largest angle of attack, and the unstable-under-power flag.
 
 ### Stability margins
 
@@ -367,7 +366,7 @@ A worked case, with no fins, pinned by a test:
   34.66 mm (1.4 in) or more.
 - The center of mass is at 0.5 m (1.6 ft).
 
-| Boattail's aft radius | Net slope | $\kappa$ | Margin | $C_{m\alpha}$ |
+| Boattail's aft radius | Net slope, per rad | $\kappa$ ratio | Margin | Pitch-moment slope $C_{m\alpha}$, per rad |
 |--:|--:|--:|---|--:|
 | 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
 | 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |

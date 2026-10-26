@@ -14,20 +14,18 @@ and which error flatters. It's one of the guides in *Rocketry explained*, which 
 physics behind the numbers HPR Sim prints.
 
 > **How far to trust it.** Every number in this guide's text is read by a test from three committed
-> files. One holds HPR Sim's drag for the guides' rocket ([report][rocket-report]). Another sets
-> HPR Sim's against NASA's wind-tunnel tests of the Arcas Robin sounding rocket
-> ([comparison][tunnel]). The third holds the logged flights of
-> [Trusting a simulation](trusting-a-simulation.md).
+> files: HPR Sim's drag for the guides' rocket ([report][rocket-report]), its comparison with
+> NASA's wind-tunnel tests of the Arcas Robin sounding rocket ([comparison][tunnel]), and the
+> logged flights of [Trusting a simulation](trusting-a-simulation.md).
 >
-> The tunnel comparison is one rocket's shape, two half-scale models of it in two of NASA's tunnels,
-> their bases left out. No hobby rocket's drag has been measured for these comparisons. On the model
-> the figure draws, HPR Sim's forebody drag read high at every speed, by +7.0% to +154.1%, rounded
-> outward. That's the side that flatters an apogee ceiling.
+> The tunnel comparison is one rocket's shape, with the bases left out. No hobby rocket's drag has
+> been measured for it. On the model the figure draws, HPR Sim's forebody drag read high at every
+> speed, by +7.0% to +154.1%, rounded outward. That's the side that flatters an apogee ceiling.
 >
-> On hobby rockets the evidence leans the other way. HPR Sim's apogee
-> averaged +8.73% above the logged one on the 53 flights, and drag is one of the inputs that could
-> explain it. The guide gives ranges, not verdicts. The safety code and the range safety officer
-> (the RSO) decide whether a rocket flies.
+> On hobby rockets the evidence leans the other way ([below](#which-error-flatters)).
+
+The guide gives ranges, not verdicts. The safety code and the range safety officer (the RSO) decide
+whether a rocket flies.
 
 ## What drag is made of
 

@@ -23,57 +23,59 @@ Using any of them needs some Rust.
 > and NSGA-II also against outside implementations, EGO not yet. On a rocket, their answers are only
 > as good as the simulator's flight models, which aren't yet validated against real flights
 > ([Accuracy](accuracy.md)).
->
-> - **Tested:** four standard test functions of ten variables are run from 20 seeds each. Every
->   run reaches a value of $10^{-10}$ or less, which puts its best point within $10^{-5}$ of the known
->   minimum ($10^{-4}$ for Rosenbrock's function). The exception is 3 of the 20 Rosenbrock runs, which
->   end in that function's known local minimum instead. An *evaluation* is one call of your model:
->   here, one flight. Over the 20 seeds, the median number of evaluations is within 25% of
->   pycma's, the method's author's own Python implementation run from the same starts. That 25% is
->   the test's bound; measured, they are within 5%. Twelve generations of a three-variable run are
->   recomputed by a separate implementation of the published formulas, and agree to rounding
->   ([`tests/optimize.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/optimize.rs)).
->   A run is repeated bit for bit from its [seed](glossary.md#seed) (`a_seed_fixes_the_run` in
->   [`optimize/cmaes.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/cmaes.rs)).
-> - **Checked by re-flying:** the design each of the first two examples finds is flown again from
->   scratch. It's flown once more with the flight's numerical integration 100 times stricter
->   ([tolerances](glossary.md#tolerance)). Both examples' designs reach apogee within 0.1 m
->   (0.3 ft) of 3,048 m (10,000 ft); the first example's within 2 mm (0.079 in), measured.
-> - **Limits** (a minimum stability margin, say): held to three test problems whose answers on
->   their limits are known exactly. Each is run from 20 seeds and held to $10^{-10}$
->   ([`tests/constrained.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/constrained.rs)).
->   The second example's winner is flown again and keeps its margin limits over the whole
->   ascent and its rail-exit limit.
-> - **Choices** (which motor, which catalog part): held to three test functions mixing
->   continuous and whole-number variables, at two sizes, from 20 seeds each. Every run reaches
->   the known minimum, with every whole number exactly right. The median evaluations are within
->   25% of an outside implementation's (the test's bound; measured, within 5%;
->   [`tests/mixed.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/mixed.rs)).
->   The second example chooses a motor and a nose cone that hit 3,048 m (10,000 ft), checked by
->   flying them again ([Choices](#choices-a-motor-a-catalog-part)). It finds *a* design that does; it
->   doesn't promise the best of several that would.
-> - **Trade-offs** between goals (a [Pareto front](glossary.md#pareto-front)): NSGA-II is held to
->   three test problems whose fronts are known exactly, from 20 seeds each. It's also held to
->   pymoo, an outside implementation run with the same settings. Every run's front lies within
->   twice pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
->   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%.
->   For the medians, the test allows a factor of 1.25 either way
->   ([Trade-offs](#trade-offs-a-pareto-front)). The third example's front designs are flown again
->   and give the same apogee and margin to the bit. That shows the result repeats, not that it's
->   right. At 2.5 calibers the front is within 0.5% of the apogee CMA-ES finds alone (the example's
->   check).
-> - **Few evaluations** (EGO): two standard test functions with several local minima, Branin's
->   (two variables) and Hartmann's (three), are run from 20 seeds each. They end within 1% of
->   their known minima in 50 evaluations (the test's bound; measured, within 0.12%). Hartmann's
->   six-variable function needs its values transformed first, as the method's authors did. Then
->   all 20 runs end within 1% in 250 evaluations (measured, within 0.29%), against 6 of 20
->   without. That check takes minutes in a release build, so the local gate runs it, not CI
->   ([Few evaluations](#few-evaluations-ego)).
-> - **Left out, for now:** optimizing a [Monte Carlo](glossary.md#monte-carlo) run's statistics,
->   and EGO beyond six variables. Also left out is a rule that stops NSGA-II when its front has
->   settled (it runs the generations it's given). All three are the next steps of
->   [the optimization milestone](decisions-and-roadmap.md#m6-2). There's no command-line or Python
->   front end yet.
+
+What was checked:
+
+- **Tested:** four standard test functions of ten variables are run from 20 seeds each. Every
+  run reaches a value of $10^{-10}$ or less, which puts its best point within $10^{-5}$ of the known
+  minimum ($10^{-4}$ for Rosenbrock's function). The exception is 3 of the 20 Rosenbrock runs, which
+  end in that function's known local minimum instead. An *evaluation* is one call of your model:
+  here, one flight. Over the 20 seeds, the median number of evaluations is within 25% of
+  pycma's, the method's author's own Python implementation run from the same starts. That 25% is
+  the test's bound; measured, they are within 5%. Twelve generations of a three-variable run are
+  recomputed by a separate implementation of the published formulas, and agree to rounding
+  ([`tests/optimize.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/optimize.rs)).
+  A run is repeated bit for bit from its [seed](glossary.md#seed) (`a_seed_fixes_the_run` in
+  [`optimize/cmaes.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/optimize/cmaes.rs)).
+- **Checked by re-flying:** the design each of the first two examples finds is flown again from
+  scratch. It's flown once more with the flight's numerical integration 100 times stricter
+  ([tolerances](glossary.md#tolerance)). Both examples' designs reach apogee within 0.1 m
+  (0.3 ft) of 3,048 m (10,000 ft); the first example's within 2 mm (0.079 in), measured.
+- **Limits** (a minimum stability margin, say): held to three test problems whose answers on
+  their limits are known exactly. Each is run from 20 seeds and held to $10^{-10}$
+  ([`tests/constrained.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/constrained.rs)).
+  The second example's winner is flown again and keeps its margin limits over the whole
+  ascent and its rail-exit limit.
+- **Choices** (which motor, which catalog part): held to three test functions mixing
+  continuous and whole-number variables, at two sizes, from 20 seeds each. Every run reaches
+  the known minimum, with every whole number exactly right. The median evaluations are within
+  25% of an outside implementation's (the test's bound; measured, within 5%;
+  [`tests/mixed.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/mixed.rs)).
+  The second example chooses a motor and a nose cone that hit 3,048 m (10,000 ft), checked by
+  flying them again ([Choices](#choices-a-motor-a-catalog-part)). It finds *a* design that does; it
+  doesn't promise the best of several that would.
+- **Trade-offs** between goals (a [Pareto front](glossary.md#pareto-front)): NSGA-II is held to
+  three test problems whose fronts are known exactly, from 20 seeds each. It's also held to
+  pymoo, an outside implementation run with the same settings. Every run's front lies within
+  twice pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
+  fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%.
+  For the medians, the test allows a factor of 1.25 either way
+  ([Trade-offs](#trade-offs-a-pareto-front)). The third example's front designs are flown again
+  and give the same apogee and margin to the bit. That shows the result repeats, not that it's
+  right. At 2.5 calibers the front is within 0.5% of the apogee CMA-ES finds alone (the example's
+  check).
+- **Few evaluations** (EGO): two standard test functions with several local minima, Branin's
+  (two variables) and Hartmann's (three), are run from 20 seeds each. They end within 1% of
+  their known minima in 50 evaluations (the test's bound; measured, within 0.12%). Hartmann's
+  six-variable function needs its values transformed first, as the method's authors did. Then
+  all 20 runs end within 1% in 250 evaluations (measured, within 0.29%), against 6 of 20
+  without. That check takes minutes in a release build, so the local gate runs it, not CI
+  ([Few evaluations](#few-evaluations-ego)).
+- **Left out, for now:** optimizing a [Monte Carlo](glossary.md#monte-carlo) run's statistics,
+  and EGO beyond six variables. Also left out is a rule that stops NSGA-II when its front has
+  settled (it runs the generations it's given). All three are the next steps of
+  [the optimization milestone](decisions-and-roadmap.md#m6-2). There's no command-line or Python
+  front end yet.
 
 ## The optimizer
 
@@ -174,7 +176,7 @@ run each function from 20 seeds and check:
 - The median number of evaluations is within 25% of pycma's from the same starts (the test's
   bound). Measured, they're within 5%:
 
-| Function | HPR Sim | pycma 4.5.0 |
+| Function | HPR Sim, median evaluations | pycma 4.5.0, median evaluations |
 |---|--:|--:|
 | sphere | 1,635 | 1,640 |
 | ellipsoid | 5,920 | 5,910 |
@@ -551,7 +553,7 @@ from the method's authors' code. The script's runs have the active weights off, 
 Every run of every case reaches the minimum, with each whole number exactly right. The median
 evaluations are within the test's 25% of the outside implementation's, and measured within 5%:
 
-| Function | Variables | HPR Sim | `cmaes` 0.13.1 |
+| Function | Variables | HPR Sim, median evaluations | Outside `cmaes` 0.13.1, median evaluations |
 |---|--:|--:|--:|
 | SphereInt | 10 | 1,855 | 1,850 |
 | SphereInt | 20 | 3,870 | 3,798 |
@@ -722,9 +724,9 @@ CMA-ES's tests allow against pycma.
 Review of the first results added a second rule: the median at most 20% below pymoo's, a factor
 of 1.25 either way. On these problems every variable but the first is best at its lower bound. An
 optimizer that drifts toward its bounds would score better than pymoo without being better.
-Measured:
+Both measures are distances in the objectives' own scale, pure numbers with no unit. Measured:
 
-| Problem | Measure | HPR Sim median | HPR Sim worst | pymoo median | pymoo worst | Bound on every run |
+| Problem | Measure | HPR Sim median (no unit) | HPR Sim worst (no unit) | pymoo median (no unit) | pymoo worst (no unit) | Bound on every run (no unit) |
 |---|---|--:|--:|--:|--:|--:|
 | ZDT1 | GD | 1.07e-3 | 1.36e-3 | 1.10e-3 | 1.46e-3 | 2.92e-3 |
 | ZDT1 | IGD | 4.90e-3 | 5.66e-3 | 4.96e-3 | 5.48e-3 | 1.10e-2 |
@@ -891,7 +893,7 @@ seeds 1 to 10 at 40 evaluations, where Branin's worst run missed by 1.03%. At 50
 gave the gaps below (macOS debug build; print them with
 `cargo test -p fusionspace-hpr-analysis --test ego -- --nocapture`).
 
-| Function | Variables | Minimum | Budget | Worst of 20 runs |
+| Function | Variables | Minimum (no unit) | Budget | Worst of 20 runs |
 |---|--:|--:|---|---|
 | Branin | 2 | 0.397887 | 50 evaluations | 0.118% above |
 | Hartmann 3 | 3 | −3.86278 | 50 evaluations | 0.124% above |

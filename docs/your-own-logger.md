@@ -22,19 +22,20 @@ are one flight's, its logger's and its GPS tracker's
 > mapping or layout states. It's as right as those units are.
 >
 > The reader refuses a unit that doesn't measure its column's quantity. It keeps as written a
-> column whose values a unit makes impossible. But a column with a wrong unit whose values stay
-> plausible is read in that unit.
+> column whose values a unit makes impossible. A column with a wrong unit but plausible values is
+> read in that unit. Tests hold this page's files, read three ways, equal.
 >
-> The tests read this page's files from the command line, Python and the Rust library. They do
-> the same for each sample log the project reads by a stated mapping or layout, where present.
-> The samples are other people's, so CI reads this page's only. The tests hold the three records
-> equal, channel by channel.
->
-> The readings (liftoff, apogee, the top speed, landing) are taken from these logs as from any
-> other. Each reading carries a bound held on HPR Sim's synthetic flights
-> ([readings on every logger](decisions-and-roadmap.md#m7-2b)). But those bounds hold only if the
-> units are right. Check a unit against a known height, such as the launch site's elevation from a
-> GPS altitude, before trusting it. For a record, go by the logger's own figures.
+> The readings (liftoff, apogee, top speed, landing) are taken from these logs as from any
+> other, each with a bound held on HPR Sim's synthetic flights
+> ([readings on every logger](decisions-and-roadmap.md#m7-2b)). Those bounds hold only if the
+> units are right. For a record, use the logger's figures.
+
+Check a unit against a known height, such as the launch site's elevation from a GPS altitude,
+before trusting it.
+
+The tests read this page's files from the command line, Python and the Rust library, and hold
+the records equal, channel by channel. They do the same for each sample log the project reads by a stated mapping or layout, where present.
+The samples are other people's, so CI reads this page's only.
 
 ## The logger
 

@@ -38,7 +38,7 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
   stated, so it was not consulted.
 - **Observed:** 734 entries in the ThrustCurve manufacturer file sets (12 `.eng` sets) and 13
   single-motor API downloads. They were fetched 2026-09-17 into a local cache,
-  `refs/samples/formats/`, that is never committed. Counts below are over those entries.
+  `refs/samples/formats/`, never committed. Counts below are over those entries.
 
 ## What the spec says
 
@@ -65,7 +65,7 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
 
 ### Header fields [R Header]
 
-| # | Field | Unit | Meaning |
+| Field number | Field | Unit | Meaning |
 |--:|-------|------|---------|
 | 1 | name | n/a | Common name: "just the impulse class and average thrust" (`F32`) |
 | 2 | diameter | mm | Casing diameter |

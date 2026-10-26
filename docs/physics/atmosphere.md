@@ -40,8 +40,7 @@ Sources:
 
 ## The standard atmosphere
 
-The height every atmosphere is queried at, the 1976 standard, offsets for a site's own conditions,
-and what a barometric altimeter reads.
+The height datum, the 1976 standard, offsets for a site's conditions, and pressure altitude.
 
 ### Height datum
 
@@ -52,12 +51,18 @@ the range it is defined or tabulated over.
 
 ### The 1976 standard, −5 km (−3.1 mi) to 86 km (53 mi)
 
-Seven layers in geopotential altitude $H$, each with a constant gradient of the molecular-scale
+Seven layers in geopotential altitude $H$, the last ending at 84.852 geopotential km (52.72 mi), each with a constant gradient of the molecular-scale
 temperature $T_M$ ([USSA] Table 4):
 
-| base $H_b$ (km′) | 0 | 11 | 20 | 32 | 47 | 51 | 71 | 84.852 (top) |
-|---|--:|--:|--:|--:|--:|--:|--:|---|
-| $L_{M,b}$ (K/km′) | −6.5 | 0 | +1.0 | +2.8 | 0 | −2.8 | −2.0 | |
+| base $H_b$ (km′) | $L_{M,b}$ gradient (K/km′) |
+|--:|--:|
+| 0 | −6.5 |
+| 11 | 0 |
+| 20 | +1.0 |
+| 32 | +2.8 |
+| 47 | 0 |
+| 51 | −2.8 |
+| 71 | −2.0 |
 
 Eq. (18) gives the geopotential altitude $H$ from the geometric altitude $Z$, with $r_0$ the
 Earth's effective radius (below). Eq. (23) gives the temperature from the layer's base values
@@ -127,9 +132,11 @@ height, like a sounding; see [the atmosphere decision][adr-004].
 +20 K at a 1400 m (4,593 ft) field, at the standard's pressure there, gives these densities against the
 standard (`conventions.py`):
 
-| height | 3 km (1.9 mi) | 20 km (12 mi) | 30 km (19 mi) |
-|---|--:|--:|--:|
-| density | −5.7% | +14% | +30% |
+| height | density against the standard |
+|--:|--:|
+| 3 km (1.9 mi) | −5.7% |
+| 20 km (12 mi) | +14% |
+| 30 km (19 mi) | +30% |
 
 Field conditions suit flights of a few kilometers; higher flights need a sounding.
 

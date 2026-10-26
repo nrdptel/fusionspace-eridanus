@@ -217,7 +217,7 @@ found = "nothing usable for the listed formats. The CATS hits are the GPL-3.0 ca
 [[row]]
 id = "G10"
 surface = "The flight analyzer"
-claim = "The analyzer's readings are checked on an invented flight whose every reading is known, on one real log by a test that runs only where the log is fetched, and on the synthetic flights' tuning set, the flights their bounds were tuned on, where each of the 171 tuning flights with a barometer is logged 43 ways, the 71 with an accelerometer 3 more and the 500 Hz IMU's 38 once more with its part set to ±8 g, which 28 of their tops reach, and every reading given stays within its bound (`cargo xtask synthetic`)"
+claim = "Checked on an invented flight of known readings, one real log when fetched, and the synthetic flights the bounds were tuned on: 171 with a barometer logged 43 ways, 71 with an accelerometer 3 more, the 500 Hz IMU's 38 once more at ±8 g, which 28 of their tops reach; every reading within its bound (`cargo xtask synthetic`)"
 pages = [
   "reading-a-flight-log.md#reading-a-flight-log",
   "accuracy.md#accuracy",
@@ -225,7 +225,7 @@ pages = [
 ]
 kind = "calibration"
 wanted = "real"
-not_checked = "the readings on real logs other than that one, which the survey of the sample logs reads with no truth beside them; the bounds on flights kept apart from the ones they were tuned on; loggers noisier than the tuning set's six simulated profiles; a high-g part held at its stated range, which no tuning flight reaches, where the low-g part set to ±8 g is; a thrust's plateau read as held flat and so given only as a floor, consistent with a quiet part writing it as one value; accelerometer noise that runs from sample to sample, as the synthetic parts' is drawn apart; and a canopy's filling time, as the synthetic canopies open at once"
+not_checked = "other real logs, with no truth beside them; flights outside the tuning set; loggers noisier than its six profiles; a high-g part held at its stated range, beyond every tuning flight; a quiet part's single-valued thrust plateau, read as flat, given only as a floor; accelerometer noise correlated between samples; a canopy's filling time (synthetic canopies open at once)"
 issue = 663
 
 [[row.searched]]

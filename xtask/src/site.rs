@@ -1248,9 +1248,13 @@ fn check_readmes(root: &Path) -> Vec<String> {
 }
 
 /// The writing rules every page of the site and the [`READMES`] keep (#476, ADR-295), as (line,
-/// message), as `renderer` shows the text: no en dash joining two words.
+/// message), as `renderer` shows the text: no en dash joining two words, no note or table cell
+/// over [`words::MOST_WORDS`] words, and a label and a unit over each column of numbers.
 fn word_rules(text: &str, renderer: words::Renderer) -> Vec<(usize, String)> {
-    words::joined_words(text, renderer)
+    let mut problems = words::joined_words(text, renderer);
+    problems.extend(words::long_blocks(text, renderer));
+    problems.extend(numbers::number_heads(text));
+    problems
 }
 
 const HEADING_LINK: &str = "a link inside a heading: mdBook already makes each heading a link, and \
@@ -1973,11 +1977,14 @@ fn repository_file(from: &str, dest: &str) -> Option<(String, Option<String>)> {
     Some((path, fragment.map(percent_decode)))
 }
 
-/// A cell of a Markdown table: its text, and the code spans in it.
+/// A cell of a Markdown table: its text, the code spans in it, its text outside code and math
+/// (a space where each was), and its Markdown as written.
 #[derive(Debug, Default)]
 struct Cell {
     text: String,
     code: Vec<String>,
+    prose: String,
+    source: String,
 }
 
 /// A Markdown table: its first line, its columns' alignments, its header's cells, and each row's
@@ -2016,18 +2023,28 @@ fn tables(text: &str) -> Vec<Table> {
             }
             Event::Start(Tag::TableCell) => {
                 if let Some((_, cells)) = row.as_mut() {
-                    cells.push(Cell::default());
+                    cells.push(Cell {
+                        source: text[range].to_owned(),
+                        ..Cell::default()
+                    });
                 }
             }
-            Event::Text(text) => {
+            Event::Text(words) => {
                 if let Some(cell) = row.as_mut().and_then(|(_, cells)| cells.last_mut()) {
-                    cell.text.push_str(&text);
+                    cell.text.push_str(&words);
+                    cell.prose.push_str(&words);
                 }
             }
             Event::Code(code) => {
                 if let Some(cell) = row.as_mut().and_then(|(_, cells)| cells.last_mut()) {
                     cell.text.push_str(&code);
+                    cell.prose.push(' ');
                     cell.code.push(code.into_string());
+                }
+            }
+            Event::InlineMath(_) => {
+                if let Some(cell) = row.as_mut().and_then(|(_, cells)| cells.last_mut()) {
+                    cell.prose.push(' ');
                 }
             }
             _ => {}
@@ -3461,6 +3478,25 @@ mod tests {
     }
 
     #[test]
+    fn every_page_is_held_to_the_writing_rules() {
+        // The site's pages keep the same writing rules as the READMEs (#476, ADR-295): a page
+        // with a long note, a column of numbers headed by code and a joined name fails each.
+        let long = vec!["word"; words::MOST_WORDS + 1].join(" ");
+        let page = format!(
+            "# A page\n\n> {long}\n\n| case | `apogee_agl_m` |\n|---|---:|\n| a | 1.5 m |\n\n\
+             The Dormand–Prince pair.\n"
+        );
+        let root = crate::designs::root().unwrap();
+        let problems = page_rules(&root, "a-page.md", &page, &[], &BTreeSet::new());
+        for rule in ["a note of 121 words", "has no label", "joins two words"] {
+            assert!(
+                problems.iter().any(|(_, message)| message.contains(rule)),
+                "{rule}: {problems:#?}"
+            );
+        }
+    }
+
+    #[test]
     fn the_readmes_pass() {
         // The READMEs keep the site's writing rules (#476, ADR-295).
         let problems = check_readmes(&crate::designs::root().unwrap());
@@ -3473,6 +3509,23 @@ mod tests {
         assert_eq!(problems.len(), 2, "{problems:#?}");
         assert!(problems[0].starts_with("README.md:1: `Dormand–Prince` joins two words"));
         assert!(problems[1].starts_with("crates/hpr-py/README.md: can't be read"));
+        // So does a README with a note over 120 words, a cell over 120 words, or a column of
+        // numbers headed by a code identifier or by a label without a unit.
+        let long = vec!["word"; words::MOST_WORDS + 1].join(" ");
+        fs::write(
+            dir.path().join("crates/hpr-py/README.md"),
+            format!(
+                "> {long}\n\n| case | `apogee_agl_m` | HPR Sim |\n|---|---:|---:|\n\
+                 | {long} | 1.5 | 2.5 |\n"
+            ),
+        )
+        .unwrap();
+        let problems = check_readmes(dir.path());
+        assert_eq!(problems.len(), 5, "{problems:#?}");
+        assert!(problems[1].starts_with("crates/hpr-py/README.md:1: a note of 121 words"));
+        assert!(problems[2].starts_with("crates/hpr-py/README.md:5: a table cell of 121 words"));
+        assert!(problems[3].contains("(\"`apogee_agl_m`\") has no label"));
+        assert!(problems[4].contains("(\"HPR Sim\") gives no unit"));
     }
 
     #[test]
@@ -4363,7 +4416,7 @@ mod tests {
     const GRAVITY: &str = "[Gravity](physics/gravity.md).\n\n";
 
     /// A results table giving all of [`accuracy_problems`]'s report, as it should.
-    const RESULTS: &str = "| case | `drift_m` | `time_s` |\n|---|---:|---:|\n\
+    const RESULTS: &str = "| case | drift (`drift_m`) | time (`time_s`) |\n|---|---:|---:|\n\
                            | [`alpha`][report] | +2.865% | −0.019% |\n\
                            | [`beta`][report] | +0.075% | |\n\n\
                            [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md\n";

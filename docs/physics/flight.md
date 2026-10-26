@@ -302,7 +302,7 @@ $$
   $$
 
   - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
-    rail. With no guides, it ends when the aft end does (Rail geometry, below).
+    rail. With no guides, it ends when the aft end does.
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
@@ -359,7 +359,7 @@ $$
 - Accuracy against cost was measured on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
   from the west. Each apogee is compared with the one at 1e-11 (873.98272 m (2,867.3974 ft)):
 
-  | `rtol = atol` | apogee error | run time (release build) |
+  | tolerance, `rtol = atol` (ratio; state units) | apogee error | run time (release build) |
   |--:|--:|--:|
   | 1e-4 | 2.3e-2 m | 0.36 ms |
   | 1e-6 | 6.8e-5 m | 0.59 ms |
