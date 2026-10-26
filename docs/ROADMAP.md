@@ -119,7 +119,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M0.9f1 Joined names and long warnings.** *Done when:* a check of the site and the
       README fails on an en dash between words (ADR-295 §4), and every page and the README pass
       it; a test fails on an `hpr sim` warning sentence over 40 words, in every issue warning
-      built at its longest and in what `hpr sim` prints for the committed designs, and all pass;
+      built at its longest and in what `hpr sim` prints for the committed designs it flies
+      offline (ADR-295 §5), and all pass;
       the audit's *Names* row names the check.
     - [ ] **M0.9f2 Short notes and cells, labeled heads.** *Done when:* a check of the site and
       the README fails on a note or a table cell over 120 words, and on a number column's head

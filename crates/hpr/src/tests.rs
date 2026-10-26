@@ -1897,8 +1897,8 @@ fn a_flight_through_a_near_calm_turn_warns_of_its_swinging_wind() {
     let message = warning(&swinging, 8).message();
     assert!(
         message.contains(
-            "across 1400 to 1900 m (4593 to 6234 ft) above sea level, from 0.4 m/s (1 mph) at 0° \
-             to 8.0 m/s (18 mph)"
+            "across a level near calm, between 1400 and 1900 m (4593 and 6234 ft) above sea \
+             level. Across it, the wind goes from 0.4 m/s (1 mph) at 0° to 8.0 m/s (18 mph)"
         ),
         "{message}"
     );

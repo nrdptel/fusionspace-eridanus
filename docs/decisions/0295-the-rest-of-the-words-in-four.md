@@ -1,7 +1,7 @@
 # ADR-295: The rest of the words in four increments, joined names and long warnings first (2026-10-26)
 
 - **Status:** accepted; splits [M0.9f][m0-9f] into four increments, M0.9f1 to M0.9f4, and plans every remaining increment, the last with M0.9f's own *done when*
-- **Summary:** M0.9f holds the site and the README to seven writing rules that #476 lists. Fixing them all is several sessions' work, and two of the rules add bytes to a search index with 71 bytes to spare. So it goes in four increments: joined names and long warnings first, then long notes and table heads, which make room in the index, then grouped figures and prose dates, and last the no-break space between a figure and its unit, joined in the built pages after mdBook writes its index.
+- **Summary:** M0.9f holds the site, the README and `hpr sim`'s warnings to seven writing rules that #476 lists. Fixing them all is several sessions' work, and two of the rules add bytes to a search index with 71 bytes to spare. So it goes in four increments: joined names and long warnings first, then long notes and table heads, which make room in the index, then grouped figures and prose dates, and last the no-break space between a figure and its unit, joined in the built pages after mdBook writes its index.
 
 [m0-9f]: ../decisions-and-roadmap.md#m0-9f
 [adr-239]: 0239-the-words-to-the-design.md
@@ -19,15 +19,18 @@ README, with code, link addresses and HTML tags left out. It counted:
 
 - **En dashes between words:** 58, all joined names or joined words (`Dormand–Prince` 15 times,
   `Prandtl–Meyer` 12, `fin–fin` 5), none a range.
-- **Notes and table cells over 120 words:** 56 notes (quote blocks, which the site draws as
-  notes) and 71 table cells, the longest 527 words.
+- **Notes and table cells over 120 words:** 56 notes, each a whole quote block, which the site
+  draws as a note, and 71 table cells. The longest note runs over 1,200 words, the longest cell
+  481.
 - **Number columns' heads:** 45 of the 511 right-aligned columns are headed by a code identifier
   (`apogee_agl_m`), 40 of them on the accuracy page.
-- **Figures of four or more digits, ungrouped:** 757 that look like years and 245 others. Among
-  the others are identifiers a check must pass: NTRS report numbers, NFPA standards, NACA and
-  NASA report numbers.
+- **Figures of four or more digits, ungrouped:** 757 that look like years, 162 of them the
+  year of an ISO date, and 245 others, 58 of them in table cells. Among the others are
+  identifiers a check must pass: NTRS report numbers, NFPA standards, NACA and NASA report
+  numbers.
 - **ISO dates outside tables:** 117. Some are in link addresses the survey's rough cut kept.
-- **A figure and its unit joined by a plain space:** 6,344.
+- **A figure and its unit joined by a plain space:** up to 6,344. The count is high: 737 of
+  them are a figure before the word "in", which is not always inches.
 
 These are rough counts from a script, not the checks; each increment's check gives the real one.
 Of `hpr sim`'s warnings, the issue warnings are composed at run time, so the message census
@@ -37,8 +40,8 @@ flight has more than one join.
 
 The search index is 71 bytes under mdBook's 10 MB warning, which the site check fails on (#414).
 A grouping comma adds a byte, and "October 4, 2026" five more than `2026-10-04`. A no-break space
-(U+00A0) is two bytes in UTF-8 against a space's one: 6,344 of them in the pages' text would add
-about 6.3 KB.
+(U+00A0) is two bytes in UTF-8 against a space's one, so 6,344 of them in the pages' text would
+add up to 6.3 KB.
 
 **Decision.**
 
@@ -62,16 +65,20 @@ about 6.3 KB.
    reads the built pages, so it also fails a pair the pass missed, such as a figure and a unit in
    different tags. The README is shown by GitHub and crates.io, which run no such pass, so it gets
    the no-break space in its source.
-4. **What each increment's check reads.** Each check reads every page of the site and the README,
-   as the minus-sign check does ([ADR-239][adr-239] §3): the text as it renders, never code.
+4. **What each increment's check reads.** Each check reads every page of the site and the two
+   READMEs, the project's and the Python package's. Like the minus-sign check ([ADR-239][adr-239]
+   §3), it reads the text as it renders, never code.
    M0.9f1's en-dash rule fails a dash with a word of two or more letters on each side, since
    `writing.md` keeps the en dash for ranges. A range of figures (`0.3–0.5`) or of single letters
    (`H–O`, motor classes) passes. The joined names take a hyphen (`Dormand-Prince`).
 5. **M0.9f1's test.** The 40-word limit holds each sentence of every issue warning `hpr sim` can
    print, built at its longest: every known issue, each with the detail that makes it longest
-   (four spans of near-calm wind; joins on three vehicles). It also holds every note, reader
-   warning and issue warning that `hpr sim --json` prints for the committed designs under
-   `validation/fixtures/ork/`. The test splits sentences at a period, question mark or exclamation
+   (four spans of near-calm wind; joins on four vehicles). It also holds every note, reader
+   warning and issue warning that `hpr sim --json` prints for 16 of the 18 committed designs
+   under `validation/fixtures/ork/`, each flown as written or with a B4, and for a probe that
+   flies a motor fetched from ThrustCurve.org. The other two refuse a motor of one's own (one
+   has two stages, the other an airframe not read as written), and offline their own motors
+   have no curve. The test splits sentences at a period, question mark or exclamation
    mark followed by a space. A decimal point has no space after it, so `Mach 0.85` stays whole.
 
 **Consequences.** The audit's rows that cite #476 stay "not met" until M0.9f4, and each increment
