@@ -164,7 +164,7 @@ These conventions were set in [the decision on component geometry and mass prope
     The heights are measured from the radius $R_b$ at the root leading edge. Each root point lies
     within a micron of the surface. Crossing edges and points below the root leading edge are
     errors. So are outlines that turn below their root or don't run from the origin aft. The test
-    draws the cockpit of OpenRocket's *Pods--airframes and winglets* through OpenRocket's own root
+    draws the cockpit of OpenRocket's *Pods-\-airframes and winglets* through OpenRocket's own root
     points. Its area, mass and center of mass are OpenRocket's to the six digits printed
     (`fins::tests::a_root_along_a_nose_cone_is_openrockets`).
 - **Cross-sections.** Each chord from $a$ to $b$ has a thickness distribution $t(x)$. [TD] uses

@@ -28,7 +28,7 @@ routine `qk15` has the rule's nodes and weights to 33 digits.
 
 ## Method
 
-- On $[a, b]$, the 15-point Gauss–Kronrod rule $K$ embeds the 7-point Gauss rule $G$.
+- On $[a, b]$, the 15-point Gauss-Kronrod rule $K$ embeds the 7-point Gauss rule $G$.
   $K$ is exact for polynomials of degree $\le 22$ and $G$ for degree $\le 13$.
 - The error estimate of a subinterval is $\lvert K - G \rvert$ for each component. This overestimates the error
   of $K$ when the integrand is smooth.

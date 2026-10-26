@@ -109,7 +109,7 @@ uses [8785C]'s form and lengths throughout.
 
 Exact discretization, so step length never changes the statistics.
 
-- $u$ is a first-order Gauss–Markov state. Over a step $\Delta s$, with $\rho = e^{-\Delta s/L}$:
+- $u$ is a first-order Gauss-Markov state. Over a step $\Delta s$, with $\rho = e^{-\Delta s/L}$:
   $x \leftarrow \rho x + \sqrt{1 - \rho^2}\, n$.
 
 - $v$ and $w$ each use two normalized states, driven as $\mathrm{d}x_1/\mathrm{d}s = (-x_1 + \eta)/L$ and

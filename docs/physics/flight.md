@@ -354,7 +354,7 @@ $$
 
 ### Integration settings
 
-- `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
+- `FlightSettings::default()` uses Dormand-Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.
 - Accuracy against cost was measured on Valetudo (K400C) in a 5 m/s (16 ft/s) wind
   from the west. Each apogee is compared with the one at 1e-11 (873.98272 m (2,867.3974 ft)):
@@ -398,7 +398,7 @@ default settings. The numbers were measured on 2026-09-17.
   rotation) in calm air.
 - In a calm vertical flight with no Earth rotation, the rocket falls tail first after apogee and
   still lands, in under 20,000 evaluations.
-- RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand–Prince to 1.2e-5 m
+- RK4 at 2, 1 and 0.5 ms gives the same apogee as Dormand-Prince to 1.2e-5 m
   and 2.1e-7 s.
 - A user event on the thrust fires at burnout, and burnout is still
   recorded once.

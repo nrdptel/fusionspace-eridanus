@@ -634,7 +634,7 @@ stage with motors in more than one mount burns out when its first motor does, as
 it. It drops the rest still burning. The dropped part flies with no thrust, so a note names the
 motors and the impulse its flight leaves out.
 
-The first configuration of OpenRocket's *Pods--powered with recovery deployment* is
+The first configuration of OpenRocket's *Pods-\-powered with recovery deployment* is
 `[C6-7; 2× A3-4, B6-0]`. That lists its motors by stage, sustainer first, the stages separated by
 `;`. Its note begins "part 1 drops at 0.860 s with `A3`, `A3` still burning". The impulse it gives,
 0.509 N·s, is the one the report's

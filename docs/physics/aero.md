@@ -284,8 +284,8 @@ What changes it:
 
 - **Speed.** Below Mach 1.2 only the fins' terms change with Mach number; past it the bodies' can
   too ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)). Up to
-  Mach 0.8 the fins' slope grows through the Prandtl–Glauert factor, the classic correction for the
-  air's compressibility. Its effect grows as the speed nears that of sound (*Prandtl–Glauert*, under
+  Mach 0.8 the fins' slope grows through the Prandtl-Glauert factor, the classic correction for the
+  air's compressibility. Its effect grows as the speed nears that of sound (*Prandtl-Glauert*, under
   Fins). How much a fin set gains depends on its span, area and sweep. So as the rocket speeds
   up, the CP moves toward its fins:
   - With fins only at the tail, it moves aft.
@@ -528,13 +528,13 @@ rate of change across each corner, so the pressure can recover along a piece:
 1. **The tangent body.** The profile becomes straight elements, each tangent to it. The first is at
    the tip. The rest are at equal steps along a curved nose (ten per curved piece, the report's own
    choice), one per cone or cylinder. Where two elements meet is a corner.
-2. **The tip** is a cone, so its flow is exactly a cone's. The Taylor–Maccoll equation, the exact
+2. **The tip** is a cone, so its flow is exactly a cone's. The Taylor-Maccoll equation, the exact
    equation of supersonic flow over a cone, is integrated from the shock to the surface ([R1135] eq.
    177). The shock must be *attached*, touching the tip, which holds up
    to a half-angle that grows with the Mach number. For cones under 0.03°, where that equation
    can't be integrated, HPR Sim takes slender-cone linear theory, blended in up to 0.06°.
 3. **Around each corner** the flow turns by a
-   [Prandtl–Meyer expansion](../glossary.md#prandtlmeyer-expansion).
+   [Prandtl-Meyer expansion](../glossary.md#prandtl-meyer-expansion).
 4. **Along each element** the pressure relaxes from its value behind the corner toward the pressure
    on the element's *tangent cone*. It is the cone, pointed into the oncoming flow, whose
    surface has the body's local slope there. The lift per unit length relaxes the same way,
@@ -736,7 +736,7 @@ fore radius, where the bound would need under 0.40 even at Mach 1.2.
 
 Two caveats, both small but real. The bound applies where the shares are computed, at the table's rows. Between rows the table interpolates, so a printed value beside a row of the next kind can sit past potential flow. It can do so by up to about 0.003 per radian on the shapes swept. And there is a sliver just above the hold's own angle (the sweep finds it at 16°, 16.5°, 17° and 17.25°). In it, a boattail is deep enough that **its own** read already passes potential flow. The bound never clips a boattail's own length, so the hold does nothing there, and the rocket flies an extrapolation nothing measured checks. That window runs a few hundredths of a Mach from where the table starts, so the join is barely open across it. The window closes as the angle or speed rises, not at a fixed angle.
 
-> **How far to trust it.** The 16° is Cubbage's, measured at Mach 0.6 to 1.28 and on *drag*. It is used here on the normal force from Mach 1.2 up. A shoulder turns the flow through a Prandtl–Meyer expansion faster than sound, where separation is less likely than transonically, so 16° is if anything early. No measurement of a steep boattail's supersonic normal force exists to check it. The two models take opposite consequences from the same angle. Separation *lowers* a boattail's pressure drag toward the base value. Here it *holds* the lift the boattail takes off instead of letting it shrink. The argument for that is the stability one above, not a flow one. The angle is also read on each narrowing part's own chord angle. The drag merges adjacent narrowing parts into one cone before grading. So a boattail drawn in several parts can be graded differently by the two.
+> **How far to trust it.** The 16° is Cubbage's, measured at Mach 0.6 to 1.28 and on *drag*. It is used here on the normal force from Mach 1.2 up. A shoulder turns the flow through a Prandtl-Meyer expansion faster than sound, where separation is less likely than transonically, so 16° is if anything early. No measurement of a steep boattail's supersonic normal force exists to check it. The two models take opposite consequences from the same angle. Separation *lowers* a boattail's pressure drag toward the base value. Here it *holds* the lift the boattail takes off instead of letting it shrink. The argument for that is the stability one above, not a flow one. The angle is also read on each narrowing part's own chord angle. The drag merges adjacent narrowing parts into one cone before grading. So a boattail drawn in several parts can be graded differently by the two.
 
 *A worked example.* The Arcas Robin's boattail narrows from 2.25 in to 1.308 in over 1.757 in, so
 $L_B/D = 0.781$ and $1 - (D_B/D)^2 = 0.662$. At Mach 2.3, $\sqrt{M^2 - 1} = 2.071$ and Fig. 5's
@@ -941,7 +941,7 @@ with a measurement.
 
 Second-order shock-expansion turns every corner
 isentropically (no entropy rise, so no shock) with the
-[Prandtl–Meyer](../glossary.md#prandtlmeyer-expansion) angle $\nu$ ([SD56]) eq. 3. A flare
+[Prandtl-Meyer](../glossary.md#prandtl-meyer-expansion) angle $\nu$ ([SD56]) eq. 3. A flare
 is a compression corner, so the turn spends $\nu$. Whether a shock stands attached to that corner is a separate question. It decides
 whether the march is modeling the real flow at all.
 
@@ -1440,7 +1440,7 @@ them are solved from two equations about the corner's own flow, not found by bis
 **What a flare that small does to the method.** *The march* is the walk along the
 [tangent body](#bodies-faster-than-sound)'s straight elements, from the nose tip aft, that the
 method makes. It fixes the pressure just behind each
-corner from the [Prandtl–Meyer](../glossary.md#prandtlmeyer-expansion) turn there. It then lets the
+corner from the [Prandtl-Meyer](../glossary.md#prandtl-meyer-expansion) turn there. It then lets the
 pressure relax along the element toward the pressure on that element's [tangent
 cone](#bodies-faster-than-sound), as
 
@@ -1544,7 +1544,7 @@ It moves with the Mach number, so a 0.04° flare is reduced at Mach 4.70 and mar
 > **How far to trust it.** The table's digits carry the tangent cone's accuracy, no longer the search's. Up
 > to a half-thousandth of a radian (0.029°) HPR Sim's [cone flow](#bodies-faster-than-sound) is
 > slender-cone theory's closed form. There the crossing closes to the last bits of an `f64`. The residual it leaves in the pressure is under 2e-14 at Mach 2.00, 2.20 and 3.00. Above that
-> angle the cone flow is a Taylor–Maccoll integration, blended with the closed form up to 0.0573°.
+> angle the cone flow is a Taylor-Maccoll integration, blended with the closed form up to 0.0573°.
 > So the two edges past Mach 4 are read off the blend. The residual there is that integration's
 > own, about 1e-10 of the free stream's pressure. Divided by how fast the gap closes with the turn,
 > that is about 2e-10°. That is close to the 2.6e-10° the band's lower edge was seen to spread over
@@ -2135,7 +2135,7 @@ A fin set is $N$ identical fins spaced evenly around a body tube. For one fin of
 | $x_{\mathrm{LE}}$, $x_t$ | how far the leading edge sits aft of the root's leading edge, at height $y$; at the tip (the sweep length) | m |
 | $A_{\mathrm{fin}}$ | one fin's area, one side (written $A$ inside the integrals) | m² |
 | $\Gamma_c$ | the mid-chord sweep: the angle by which the line joining the chords' midpoints leans aft from square to the body | rad |
-| $\beta$ | the Prandtl–Glauert factor $\sqrt{1 - M^2}$, the classic correction for the air's compressibility below Mach 1: 1 at rest, falling to 0 at Mach 1 | none |
+| $\beta$ | the Prandtl-Glauert factor $\sqrt{1 - M^2}$, the classic correction for the air's compressibility below Mach 1: 1 at rest, falling to 0 at Mach 1 | none |
 | $\bar{c}$, $y_{\mathrm{MAC}}$, $x_{\mathrm{MAC,LE}}$ | the mean aerodynamic chord (MAC), an average chord that weights long chords more; its height; and its leading edge, aft of the root's | m |
 | $X_f$ | the fin set's CP, aft of the root leading edge | m |
 | $\Lambda_k$ | the angle between fin $k$ and the direction the air crosses in (set by the flow roll $\varphi$) | rad |
@@ -2201,7 +2201,7 @@ $$
   root (where the fin meets the body) follows the curved surface. Its points are part of the fin's outline. So $A_{\mathrm{fin}}$, $\bar{c}$ and the CP are those of the region between the outline and the
   surface. Heights $y$ run from the surface at the root's leading edge. The body radius $r_t$ in
   the interference factor $K_T(B)$ above is the radius there. No measured fin on a nose cone
-  checks the model; against OpenRocket, the one example is the cockpit of *Pods--airframes and
+  checks the model; against OpenRocket, the one example is the cockpit of *Pods-\-airframes and
   winglets*:
   - Across the airflow at Mach 0.3, its normal-force slope is 0.2784 per radian in HPR Sim and
     0.2117 in OpenRocket, 31.5% more. The CPs there are 0.13 mm (0.0051 in) apart. Closed straight along its chord,
@@ -2212,7 +2212,7 @@ $$
     ([Stability margin](metrics.md#stability-margins)).
   - Above Mach 1, the [tip-cone correction](#fins-through-mach-1) still mirrors the flow at a level
     line through the root's leading edge, an approximation on a rising root.
-- **Prandtl–Glauert** enters through $\beta$ in the fin slope only, up to Mach 0.8. The CP stays at
+- **Prandtl-Glauert** enters through $\beta$ in the fin slope only, up to Mach 0.8. The CP stays at
   the quarter chord, a quarter of the way along the MAC, through that range ([B67] p. 6). Past
   Mach 0.8 the fins follow [Fins through Mach 1](#fins-through-mach-1), below.
 - **Fin count.** A fin at angle $\Lambda_k$ to the lateral airflow adds $(C_{N\alpha})_1 \sin^2\Lambda_k$ in the plane of
@@ -2414,7 +2414,7 @@ $$
 The minus sign is the cant's direction. A positive cant turns fin 0's leading edge toward $-y_B$, so its lift pushes toward $-y_B$. That turns the rocket about $-z_B$ (a negative $C_l$), clockwise
 seen from ahead of the nose, looking aft. Its first term, summed over the sets, is $C_{l0}$. In flight the cant's forcing is scaled by $\cos\alpha$. The cant meets the air as it runs along the axis. So there is none broadside, and it reverses tail first, as the fins' normal force follows $\sin\alpha$
 ([Rigid-body flight](flight.md#aerodynamics-in-flight)).
-Bodies of revolution add nothing, and fin–fin interference is left out, as in [N09] eq. 3.66.
+Bodies of revolution add nothing, and fin-fin interference is left out, as in [N09] eq. 3.66.
 
 **Below Mach 0.8.** The cant is an angle of attack for each fin, so its lift is the fin's own normal force. It acts at its mean aerodynamic chord: $C_{l\delta} = (C_{N\alpha})_1 (r_t + y_{\mathrm{MAC}})/d$ ([B67] eq.
 3-35, [N09] eq. 3.66). For the damping, a strip at $\xi$ meets the air at $-p\xi/V$. The strip lifts by the fin's slope per unit of its area, $a = (C_{N\alpha})_1 A_{\mathrm{ref}}/A_{\mathrm{fin}}$: $C_{lp} = -2a \int \xi^2\,\mathrm{d}A/(A_{\mathrm{ref}} d^2)$ ([B67]
@@ -2533,7 +2533,7 @@ $C_{N\alpha} = 2(A_{\mathrm{aft}} - A_{\mathrm{fore}})/A_{\mathrm{ref}}$, on the
 - **Body lift.** Each pod's [body lift](#body-lift), Jorgensen's crossflow term, uses the pod's own planform and [fineness](../glossary.md#fineness-ratio) (its length over its largest diameter), not the airframe's.
 - **Fins on a pod.** A pod's fin set is turned with its pod: pod $k$ at roll angle $\varphi_k$ holds fin
   $j$ at $\theta_j + \varphi_k$. Each fin takes its share of the flow as an airframe fin does
-  ([Fins](#fins)). The fin–fin factor (how a set's fins shade each other) counts one pod's fins.
+  ([Fins](#fins)). The fin-fin factor (how a set's fins shade each other) counts one pod's fins.
   The body's interference with the fins, $K_T(B)$, is the pod tube's: 1 for the tube of no radius
   a pod of winglets hangs from.
 - **Drag.** Each pod adds its own drag buildup ([Drag](#drag)): friction on its surface, with the body form factor at its own fineness. It has its nose's or shoulder's pressure drag, its steps, its boattails and its own base, the last part's aft area. A pod's fins, lugs and buttons drag once
@@ -2622,11 +2622,11 @@ run). The probes now state their finish.
 One private design flies with pods too: `C02`, an anonymized design of the library
 ([HPR Sim's flights of the private designs](../format/ork.md#the-simulators-flights-of-the-private-designs)).
 Its pods hold only a launch lug each, on a tube of no length, so they add the lugs' drag and
-nothing else. Over its 5 configurations HPR Sim's apogee is −0.94% to +2.15% from OpenRocket's. 3 of them are compared with an OpenRocket flight whose parachute opened before apogee, including the +2.15%. Of OpenRocket's own pod examples, *Pods--airframes and winglets* flies, its cockpit fin
+nothing else. Over its 5 configurations HPR Sim's apogee is −0.94% to +2.15% from OpenRocket's. 3 of them are compared with an OpenRocket flight whose parachute opened before apogee, including the +2.15%. Of OpenRocket's own pod examples, *Pods-\-airframes and winglets* flies, its cockpit fin
 read on the nose cone
 ([fins on a nose cone](../format/ork.md#fins-on-a-nose-cone-or-a-transition)). Every apogee is within 0.5% of OpenRocket's, with the margin 0.071 to 0.076 calibers above it, the flattering side
 ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325),
-[#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). *Pods--powered with recovery deployment*
+[#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). *Pods-\-powered with recovery deployment*
 flies since [M4.5i](../decisions-and-roadmap.md#m4-5i), as saved since [M4.5k](../decisions-and-roadmap.md#m4-5k). As saved, the design weighs its rail buttons' screw heads and takes each of its two pod sets' motors off that set's own pods ([ADR-168][adr-168]). With
 only the sustainer's motor it reads 0.36% below OpenRocket's apogee, and with only the booster's
 motors 1.86% below. Its staged flight reads 37.93% low because its sustainer is unstable when the air
@@ -2712,7 +2712,7 @@ $d$ is the tube's mean diameter, its outer and inner radii added. For a paper tu
 $\lambda = 1/3$ to 3. A longer tube rests on the formula alone, which the tests hold to its long-ring
 limit. A set of $N$ tubes takes $N$
 times one tube's slope, on the rocket's [reference area](../glossary.md#reference-area).
-Faster than Mach 0, it takes Göthert's rule, the same idea as the fins' Prandtl–Glauert factor. The slope is the one a ring $1/\beta$ times longer would have, over $\beta = \sqrt{1 - M^2}$. That leaves the
+Faster than Mach 0, it takes Göthert's rule, the same idea as the fins' Prandtl-Glauert factor. The slope is the one a ring $1/\beta$ times longer would have, over $\beta = \sqrt{1 - M^2}$. That leaves the
 long-ring limit unchanged and scales the short-ring limit by $1/\beta$.
 
 **The center of pressure.** Fletcher measured where the lift of five rings acts (NACA TN 4117,
@@ -3217,7 +3217,7 @@ $$
   order doesn't matter ([Loft lesson L11](../decisions-and-roadmap.md#l11)). $\bar{c}$ is the mean aerodynamic chord and $\Gamma_L$
   the leading-edge sweep. The sweep is $\arctan(x_t/s)$ for a trapezoid and the span average for freeform outlines ([N09] p. 50). For an ellipse it is $\pi/2 - \arccos(k)/\sqrt{1 - k^2}$, $k = c_r/(2s)$ (the closed-form
   average, with its $\operatorname{arcosh}$ form for $k > 1$). The drag goes as $\cos^2\Gamma$, whose span average is 6%
-  lower than $\cos^2$ of the average angle for an ellipse of $k = 1$. Fin–body interference drag and
+  lower than $\cos^2$ of the average angle for an ellipse of $k = 1$. Fin-body interference drag and
   tip vortices are neglected ([N09] p. 41).
 - **Launch lugs.** $d$ in eq. 3.95–3.96 is taken as the outer diameter. [N09] p. 52 treats a solid
   rail pin as a lug "with a length equal to its diameter". That fits only the outer diameter ([Loft lesson L14](../decisions-and-roadmap.md#l14)). A row of `count` lugs is `count` lugs. **Rail buttons** follow
@@ -3510,7 +3510,7 @@ von Kármán noses ([ADR-028][adr-028]).
 A [boattail](../glossary.md#boattail) narrows the body toward the tail, usually to shrink the flat
 base behind it. Below Mach 0.8 HPR Sim keeps Niskanen's boattail rule from the table above, a share
 of the base drag. Faster than sound two more things happen. The air turns inward around the
-boattail's shoulder and expands, as in a [Prandtl–Meyer expansion](../glossary.md#prandtlmeyer-expansion).
+boattail's shoulder and expands, as in a [Prandtl-Meyer expansion](../glossary.md#prandtl-meyer-expansion).
 It speeds up, its pressure falls below the free stream's, and it pulls back on the boattail. That
 is a [wave drag](../glossary.md#wave-drag), and on a short, steep boattail it can be the largest
 drag term on the rocket. Behind the boattail, the base's pressure is higher than behind a plain
@@ -3532,7 +3532,7 @@ Decision: [ADR-030][adr-030].
 In the table, a boattail runs from diameter $d_1$ to $d_2$ over its length $l$. $a = (d_2/d_1)^2$ is its
 area ratio, $\theta = \arctan((d_1 - d_2)/(2l))$ its half-angle (the cone through the same ends; curved
 boattails are taken as that cone). Coefficients are on its fore area $\pi d_1^2/4$, the
-cross-section where it starts. $C_{p,\mathrm{PM}}$ is the pressure coefficient after the Prandtl–Meyer turn,
+cross-section where it starts. $C_{p,\mathrm{PM}}$ is the pressure coefficient after the Prandtl-Meyer turn,
 and $(C_{D\bullet})_{\mathrm{base}}$ the base drag coefficient of the table above. $a_b$ is the base's area over $\pi d_1^2/4$
 and $p_{\mathrm{cyl}}/p_{\mathrm{bt}}$ a cylinder's base pressure over a boattail's. "Jet off" means the measurements
 were made with no motor exhaust.
@@ -3540,7 +3540,7 @@ were made with no motor exhaust.
 | piece | what HPR Sim does | source |
 |---|---|---|
 | wave drag, attached flow | MIL-HDBK-762's chart for conical boattails, $4 C_D (l/d_1)^2$ against $x = \sqrt{M^2 - 1}/(2l/d_1)$ for $a$ from 0.25 to 0.80, read into the code (±(0.005 + 2%)) | [762] Fig. 5-122, p. 5-187 |
-| its upper limit | never more than the pressure after a two-dimensional Prandtl–Meyer turn through $\theta$ over the whole annulus, $-C_{p,\mathrm{PM}}(M, \theta)(1 - a)$; past the chart's end at $x = 1.4$ the drag approaches that limit, the gap shrinking as $1/x$ | [R1135] eq. 44, 171c |
+| its upper limit | never more than the pressure after a two-dimensional Prandtl-Meyer turn through $\theta$ over the whole annulus, $-C_{p,\mathrm{PM}}(M, \theta)(1 - a)$; past the chart's end at $x = 1.4$ the drag approaches that limit, the gap shrinking as $1/x$ | [R1135] eq. 44, 171c |
 | separation | between 16° and 30°, a straight-line blend in $\theta$ from the attached value to the base drag on the annulus, $(C_{D\bullet})_{\mathrm{base}}(1 - a)$, where [flow separates](../glossary.md#flow-separation) | [C57] pp. 6, 8 |
 | through Mach 1 | the rule to Mach 0.8, where the buildup's other transonic terms start; a straight line to Mach 1; from there the attached drag held at its Mach 1.2 value to Mach 1.2 | [N09] p. 47, [762] p. 5-47 |
 | base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; back to 1 between Mach 1 and 0.8; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210 |
@@ -3587,7 +3587,7 @@ Why each piece is there:
 
 **A worked example: Calisto at Mach 1.5.** Calisto's boattail is 60 mm (2.4 in) long from 127 mm (5.0 in) to 87 mm (3.4 in):
 $a = 0.469$, $l/d_1 = 0.472$, $\theta = 18.4^\circ$. The chart's $x$ is $\sqrt{1.25}/(2 \times 0.472) = 1.18$, where it
-gives $C_D = 0.219$. A Prandtl–Meyer turn of 18.4° from Mach 1.5 gives $C_p = -0.398$, so the
+gives $C_D = 0.219$. A Prandtl-Meyer turn of 18.4° from Mach 1.5 gives $C_p = -0.398$, so the
 limit is $0.398 \times 0.531 = 0.211$, and the attached boattail drags 0.211. At 18.4° it is 17% of
 the way from 16° to 30°. So the blend takes the drag 17% toward the base drag on the annulus,
 $0.167 \times 0.531 = 0.088$: 0.190, where the rule gave 0.066. For the base, $a_b = 0.469$: at Mach
@@ -3840,7 +3840,7 @@ other programs.
   - Cylinders and thin transitions; body lift at 0 and 90°.
   - Eq. 57 and 76a closed forms against the same trapezoid as a polygon (1e-13).
   - A 2000-gon ellipse, and a jagged fin.
-  - Prandtl–Glauert against [B67] eq. 3-6 written with the aspect ratio, and its $M \to 1$ limit.
+  - Prandtl-Glauert against [B67] eq. 3-6 written with the aspect ratio, and its $M \to 1$ limit.
   - Roll sums against direct sums; a two-fin set along and across the flow.
   - Mach changes only the fins.
   - Supersonic linear theory on a rectangle, whose slope and CP have closed forms, including a tip cone that crosses the root.
@@ -3901,8 +3901,8 @@ What the misses come from:
   1.5 read +8.8% to −3.3% (short) and +9.4% to −2.3% (long). What is left is the body reading *high*: 15% to 19% above the tunnel fins off, at Mach 1.8 and 2.3 on the long model. That pulls the whole rocket's CP 0.53 and 0.52 calibers forward of the measured one, just outside the half-caliber target. [M1.8e6](../decisions-and-roadmap.md#m1-8e6) sized that excess and left it ([ADR-037][adr-037]). The body alone is judged against the 15% target in [The body alone, against the 15% target](#the-body-alone-against-the-15-target).  The fins' share is the fins-on reading less the fins-off one. It agrees with HPR Sim's fins within −1.4% to +7.0% at Mach 3.96 and 4.63. That agreement carries about 5% of doubt of its own. Over the boattail the models' fin roots follow its 15° surface below the cylinder. The design leaves that strip out, about 0.32 in² of each fin's 5.8 in² (5.5%).
 - **Mach 0.6, within the targets by errors that cancel.** Both models pass there. But HPR Sim's body is 25% and 19% above the fins-off readings, which are poorly determined at these speeds. HPR Sim's fins' share is 9.3% and 3.9% below the measured one.
 - **Transonic, Mach 0.8 to 1.2.** The fins' measured share lifts less at Mach 0.8 and 0.9 than at
-  0.6, then jumps at Mach 1. HPR Sim's fins lift more, by Prandtl–Glauert and then along the join to linear theory's peak at $M_s$ (1.2 for these fins). The long model's CP jumps forward at Mach 1, 2.36 calibers from HPR Sim's. No closed-form method covers this region, and the join is not fitted to it.
-- **RASAero II** keeps its slope and CP constant through subsonic flow, where HPR Sim's rise with Prandtl–Glauert, so they part from Mach 0.8. Past Mach 1.2 Calisto's von Kármán nose flies the shock-expansion method behind a [Newtonian cap](#blunt-tips), so its cylinder carries lift. Mach 1.5 reads +12.9% and Mach 2 +8.3% (−3.1% and −16.8% on slender-body theory, before [M1.8e7](../decisions-and-roadmap.md#m1-8e7)). The wind tunnel sides with neither there. Below that the agreement is partly by construction: the Calisto design has the 2018 fins because they reproduce this export at low speed ([ADR-009][adr-009]). Past Mach 1 the result rests on the choice of RASAero's columns. RASAero's secant slope and CP to 4° include its crossflow lift. Against them, 3 of the 11 rows from Mach 0.8 are within the targets, not 7. The tightest of the three passes at Mach 1 by 0.00002 calibers. Against them Mach 2 is −9.6%. That comparison is a summary in the fixture's `secant_comparison`, not a second set of rows. The export stays in `refs/`, and the fixture commits its values once ([ADR-009][adr-009], [ADR-027][adr-027]). Calisto has no fins-off data, so its body and fins can't be split as the wind tunnel's can.
+  0.6, then jumps at Mach 1. HPR Sim's fins lift more, by Prandtl-Glauert and then along the join to linear theory's peak at $M_s$ (1.2 for these fins). The long model's CP jumps forward at Mach 1, 2.36 calibers from HPR Sim's. No closed-form method covers this region, and the join is not fitted to it.
+- **RASAero II** keeps its slope and CP constant through subsonic flow, where HPR Sim's rise with Prandtl-Glauert, so they part from Mach 0.8. Past Mach 1.2 Calisto's von Kármán nose flies the shock-expansion method behind a [Newtonian cap](#blunt-tips), so its cylinder carries lift. Mach 1.5 reads +12.9% and Mach 2 +8.3% (−3.1% and −16.8% on slender-body theory, before [M1.8e7](../decisions-and-roadmap.md#m1-8e7)). The wind tunnel sides with neither there. Below that the agreement is partly by construction: the Calisto design has the 2018 fins because they reproduce this export at low speed ([ADR-009][adr-009]). Past Mach 1 the result rests on the choice of RASAero's columns. RASAero's secant slope and CP to 4° include its crossflow lift. Against them, 3 of the 11 rows from Mach 0.8 are within the targets, not 7. The tightest of the three passes at Mach 1 by 0.00002 calibers. Against them Mach 2 is −9.6%. That comparison is a summary in the fixture's `secant_comparison`, not a second set of rows. The export stays in `refs/`, and the fixture commits its values once ([ADR-009][adr-009], [ADR-027][adr-027]). Calisto has no fins-off data, so its body and fins can't be split as the wind tunnel's can.
 
 So, for fins like these, whose linear theory starts at $M_s = 1.2$, trust HPR Sim's slope to about
 10% from Mach 1.5 up. The rows run +9.4% to −3.3%. From Mach 1.5 up, trust its CP to about half a
@@ -4235,7 +4235,7 @@ readings' half a caliber, the short model at Mach 1.5 and 1.8. The slope misses 
   - Refused shapes.
   - A property test: every shape at any fineness, joint angle and Mach number to 5 gives a finite, non-negative coefficient. The coefficient has no jump at $M_L$.
 - **Boattails faster than sound** (`afterbody::tests`):
-  - The Prandtl–Meyer function against NACA Report 1135's table and its limit of 130.45°, and its inverse.
+  - The Prandtl-Meyer function against NACA Report 1135's table and its limit of 130.45°, and its inverse.
   - An expansion's pressure by hand and at the vacuum limit.
   - The chart giving back its readings, falling with $x$ and the area ratio, and reaching 0 at $a = 1$.
   - Calisto's boattail by hand (the guide's worked example) with the joins at Mach 0.9, 1 and 1.2.

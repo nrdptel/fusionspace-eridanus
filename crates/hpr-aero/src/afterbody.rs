@@ -191,7 +191,7 @@ pub const LOVE_BASE_PRESSURE: [(f64, f64); 6] = [
 pub fn prandtl_meyer_angle(mach: f64) -> Result<f64, AeroError> {
     if !(mach.is_finite() && mach >= 1.0) {
         return Err(AeroError::Domain {
-            what: "Mach number of a Prandtl–Meyer expansion",
+            what: "Mach number of a Prandtl-Meyer expansion",
             value: mach,
         });
     }

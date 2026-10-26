@@ -1,7 +1,7 @@
 # ADR-257: Calibrated intervals for the flight readings and fits, and the post-flight comparison (2026-10-13)
 
 - **Status:** accepted; tightens [M7.2][m7-2] and [M7.3][m7-3]; no release moves and no milestone is added
-- **Summary:** M7.2's "within the stated error" gains, and M7.3's "within tolerance" becomes, one test: on at least 1,000 synthetic flights on fixed seeds, each stated 90% interval must miss on each side about 5% of the time and hold the truth about 90%, judged by 99.9% Clopper–Pearson bands, and the test must fail when the intervals are narrowed, widened or shifted. M7.3 also reports, on the public logged flights and the collection, apogee predicted from the log up to burnout beside the forward simulation's, which fills a new scoreboard row, and draws the predicted and logged flight under launch-day conditions in one command, the analysis NASA Student Launch asks for after a team's flights.
+- **Summary:** M7.2's "within the stated error" gains, and M7.3's "within tolerance" becomes, one test: on at least 1,000 synthetic flights on fixed seeds, each stated 90% interval must miss on each side about 5% of the time and hold the truth about 90%, judged by 99.9% Clopper-Pearson bands, and the test must fail when the intervals are narrowed, widened or shifted. M7.3 also reports, on the public logged flights and the collection, apogee predicted from the log up to burnout beside the forward simulation's, which fills a new scoreboard row, and draws the predicted and logged flight under launch-day conditions in one command, the analysis NASA Student Launch asks for after a team's flights.
 
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [m7-3]: ../decisions-and-roadmap.md#m7-3

@@ -497,7 +497,7 @@ still burning ([M4.5n](../decisions-and-roadmap.md#m4-5n), a stage's first burno
   about that impulse over its mass, a little more as the propellant left burns away. It is 0 for
   every other part.
 - **What `hpr sim` says.** It names the motors and gives the number. On the first configuration of
-  OpenRocket's *Pods--powered with recovery deployment*, `[C6-7; 2× A3-4, B6-0]`, the booster
+  OpenRocket's *Pods-\-powered with recovery deployment*, `[C6-7; 2× A3-4, B6-0]`, the booster
   drops at 0.860 s with both A3s still burning. Its flight as a point leaves out 0.509 N·s, as
   the report's
   [*Parts dropped still burning*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#parts-dropped-still-burning)
@@ -612,7 +612,7 @@ The test `a_two_stage_and_a_cluster_design_are_within_5_percent_of_openrocket` i
 `xtask/src/ork_flights.rs` holds it to the tolerance in CI.
 
 **A flight OpenRocket aborted is checked up to the abort.** OpenRocket stops its own flight of
-*Pods--powered with recovery deployment*'s first configuration at 1.81 s ("Stage began to tumble
+*Pods-\-powered with recovery deployment*'s first configuration at 1.81 s ("Stage began to tumble
 under thrust"). So it has no apogee to compare. Instead, `cargo xtask ork-flights` compares HPR Sim's
 height and speed with OpenRocket's just after the separation and at OpenRocket's last row. It
 needs the splits at one time and each value within 5%. Both separate at 0.86 s, where HPR Sim is

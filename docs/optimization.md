@@ -185,7 +185,7 @@ run each function from 20 seeds and check:
 - A second, separate implementation of the tutorial's formulas checks twelve generations, with
   steps that differ 200-fold. Every generation's mean, cloud size and shape match it to rounding.
   That implementation takes the cloud's inverse square root by a different method (the
-  Denman–Beavers iteration). The check passes through both branches of the step that pauses the
+  Denman-Beavers iteration). The check passes through both branches of the step that pauses the
   shape's learning when the cloud grows fast.
 - The default settings that pycma also takes from the tutorial's Table 1 match its values to
   rounding. In a few places, pycma departs from the table by its author's choice, such as how

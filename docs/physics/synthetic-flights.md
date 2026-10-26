@@ -162,7 +162,7 @@ keeps part of the one before. On the pads of five Blue Raven logs at 50 Hz the s
 six windows of those logs. Those windows are on the pad or at rest
 ([the sensor noise note][noise] §3). The spreads are upper bounds that mix in wind and handling.
 The model takes 0.5 m (1.6 ft) and 0.5 for every barometer, and adds each part's white noise. It is drawn as an
-Ornstein–Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
+Ornstein-Uhlenbeck process, a red noise in continuous time, so the correlation follows the time
 between samples, whatever the logger's rate:
 
 $$

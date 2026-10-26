@@ -6390,3 +6390,173 @@ fn a_refusal_in_flight_names_what_led_to_it() {
         );
     }
 }
+
+/// The committed designs `hpr sim` refuses with any motor of one's own (a staged rocket, an
+/// airframe not read as written), so [`sim_warns_in_sentences_of_40_words_or_fewer`] reads them
+/// only as written, where their motors have no curve offline.
+const REFUSED_WITH_ANY_MOTOR: [&str; 2] = ["demo-payload-separation.ork", "demo-quirks.ork"];
+
+/// The motors [`sim_warns_in_sentences_of_40_words_or_fewer`] flies a committed design on, the
+/// first that takes it off the rail: its own (`None`), whose curve only `level-1.ork` has
+/// offline; a 38 mm I; a 29 mm G, which fits the rest.
+const MOTORS_TO_TRY: [Option<&str>; 3] = [None, Some("I377-CT"), Some("131G84-10A")];
+
+/// The least speed off the rail, m/s, at which a flight of
+/// [`sim_warns_in_sentences_of_40_words_or_fewer`] counts as flown: a motor too weak to lift the
+/// design leaves it on the rail, or crawling off it, and it raises little.
+const FLOWN_RAIL_EXIT_M_S: f64 = 15.0;
+
+/// Each sentence of `text` over 40 words: it splits after a period, question mark or
+/// exclamation mark that a space follows, so a decimal point stays inside its sentence.
+fn sentences_over_40_words(text: &str) -> Vec<String> {
+    let mut long = Vec::new();
+    let mut sentence = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        sentence.push(c);
+        let ends = matches!(c, '.' | '?' | '!') && chars.peek().is_none_or(|c| c.is_whitespace());
+        if ends || chars.peek().is_none() {
+            let words = sentence.split_whitespace().count();
+            if words > 40 {
+                long.push(format!("{words} words: {}", sentence.trim()));
+            }
+            sentence.clear();
+        }
+    }
+    long
+}
+
+/// The notes, reader warnings and issue warnings of `hpr sim --json`'s `document`, each sentence
+/// over 40 words, with where it came from.
+fn long_warning_sentences(document: &Value, from: &str) -> Vec<String> {
+    let texts = |key: &str, field: Option<&str>| -> Vec<String> {
+        assert!(document[key].is_array(), "{from}: no `{key}`");
+        document[key]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| field.map_or(item, |field| &item[field]))
+            .map(|text| text.as_str().unwrap().to_owned())
+            .collect()
+    };
+    let mut all = texts("notes", None);
+    all.extend(texts("warnings", Some("message")));
+    all.extend(texts("flags", Some("message")));
+    all.extend(texts("issues", Some("message")));
+    all.iter()
+        .flat_map(|text| sentences_over_40_words(text))
+        .map(|long| format!("{from}: {long}"))
+        .collect()
+}
+
+#[test]
+fn sentences_over_40_words_are_the_long_ones() {
+    assert_eq!(
+        sentences_over_40_words(&"word ".repeat(40)),
+        Vec::<String>::new()
+    );
+    assert_eq!(sentences_over_40_words(&"word ".repeat(41)).len(), 1);
+    // A decimal point doesn't end a sentence; a stop and a space do.
+    let long = format!("{}Mach 0.85 {}", "word ".repeat(20), "word ".repeat(20));
+    assert_eq!(sentences_over_40_words(&long).len(), 1);
+    let two = format!("{}stop. {}", "word ".repeat(20), "word ".repeat(30));
+    assert_eq!(sentences_over_40_words(&two), Vec::<String>::new());
+}
+
+/// `writing.md`'s *Voice* (#476, ADR-295 §5): every sentence of what `hpr sim` warns with, its
+/// notes, its readers' warnings, its envelope's flags and its known issues, holds at most 40
+/// words. Each committed design under `validation/fixtures/ork/` but [`REFUSED_WITH_ANY_MOTOR`]
+/// flies on the first of [`MOTORS_TO_TRY`] that takes it off the rail; `level-1.ork` also flies
+/// past Mach 1, where the supersonic issues are raised; and the probe flies a motor fetched from
+/// ThrustCurve.org, whose note names the file.
+#[test]
+fn sim_warns_in_sentences_of_40_words_or_fewer() {
+    fn designs(dir: &Path, found: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                designs(&path, found);
+            } else if path.extension().is_some_and(|extension| extension == "ork") {
+                found.push(path);
+            }
+        }
+    }
+    let mut found = Vec::new();
+    designs(&root().join("validation/fixtures/ork"), &mut found);
+    found.sort();
+    assert!(found.len() >= 18, "{found:?}");
+
+    // The flight `hpr sim` writes for `args`, if it ran and left the rail climbing at
+    // `FLOWN_RAIL_EXIT_M_S` or more.
+    let flown = |args: &[&str]| -> Option<Value> {
+        let output = hpr(args);
+        if !output.status.success() {
+            return None;
+        }
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let rail = &document["summary"]["rail_exit_speed_m_s"];
+        let off = rail["value"]
+            .as_f64()
+            .is_some_and(|speed| speed >= FLOWN_RAIL_EXIT_M_S)
+            && rail["after_apogee"] == json!(false);
+        off.then_some(document)
+    };
+
+    let mut long = Vec::new();
+    let mut flights = 0;
+    for design in &found {
+        let path = design.to_str().unwrap();
+        let name = design.file_name().unwrap().to_str().unwrap();
+        let document = MOTORS_TO_TRY.iter().find_map(|motor| {
+            let mut args = vec!["sim", path, "--json"];
+            args.extend(motor.iter().flat_map(|motor| ["--motor", *motor]));
+            flown(&args)
+        });
+        let Some(document) = document else {
+            assert!(REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} didn't fly");
+            continue;
+        };
+        assert!(!REFUSED_WITH_ANY_MOTOR.contains(&name), "{path} flies now");
+        flights += 1;
+        long.extend(long_warning_sentences(&document, name));
+    }
+    assert_eq!(flights, found.len() - REFUSED_WITH_ANY_MOTOR.len());
+
+    // Faster than sound, where the supersonic drag issues are raised.
+    let level_1 = root().join("validation/fixtures/ork/guides/level-1.ork");
+    let fast = flown(&[
+        "sim",
+        level_1.to_str().unwrap(),
+        "--motor",
+        "I377-CT",
+        "--json",
+    ])
+    .unwrap();
+    assert!(fast["summary"]["max_mach"]["value"].as_f64().unwrap() > 1.0);
+    assert!(!fast["issues"].as_array().unwrap().is_empty());
+    long.extend(long_warning_sentences(&fast, "level-1.ork on an I377-CT"));
+
+    // A motor with no curve in the file or the catalog flies one fetched from ThrustCurve.org.
+    let folder = tempfile::tempdir().unwrap();
+    let path = probe_with(
+        folder.path(),
+        "f27.ork",
+        PROBE_MOTOR,
+        "<manufacturer>AeroTech</manufacturer><designation>F27R/L</designation>\
+         <digest>0123456789abcdef0123456789abcdef</digest><diameter>0.029</diameter>\
+         <length>0.083</length>",
+    );
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by("AeroTech", "F27R/L"));
+    let document = json_cached(&["sim", &path], 0, "sim.schema.json", cache.path());
+    let notes = document["notes"].as_array().unwrap();
+    assert!(
+        notes.iter().any(|note| note
+            .as_str()
+            .unwrap()
+            .contains("ThrustCurve.org's AeroTech F27R/L")),
+        "{notes:?}"
+    );
+    long.extend(long_warning_sentences(&document, "f27.ork"));
+
+    assert!(long.is_empty(), "{}", long.join("\n"));
+}

@@ -148,7 +148,7 @@ The readers were written for these milestones, each as the decision record besid
 | Teensy data logger, tab-separated | a university course's own logger, built around a Teensy board, its older layout: one sensor's reading a line | its first line is a tag, a whole-number clock and values, by tabs, and one of its first 100 is an `Alt` line with `P` and `MSL` | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
 | Radio packets | one university team's flight computer's radio packets, `255:…:254`: its own log, or the text a receiver wrote of what it heard | its first line is a packet, a whole number or a `Gain[…]` line, and one of its first 100 is a packet | `hpr_flightdata::packets` ([below](#one-teams-radio-telemetry-packets)) |
 | Radio packets in RTF | the same packets in an RTF document a spreadsheet saved as CSV, `255,…,254` | an RTF document, one of whose first 100 lines, its markup taken off, is a packet | `hpr_flightdata::packets` ([below](#one-teams-radio-telemetry-packets)) |
-| Teensy data logger, named fields | the same course's logger, its newer layout | its first line states a sensor's units, such as `ICM data in us, milli-g, …`, and one of its first 100 is a tag, `t`, a clock and name–value pairs, by commas | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
+| Teensy data logger, named fields | the same course's logger, its newer layout | its first line states a sensor's units, such as `ICM data in us, milli-g, …`, and one of its first 100 is a tag, `t`, a clock and name-value pairs, by commas | `hpr_flightdata::teensy` ([below](#a-courses-teensy-data-logger)) |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets; separated by commas, or by semicolons, a European locale's, perhaps ending each line | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names, or the same separated by semicolons, as a European locale's spreadsheet saves it | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
@@ -1221,7 +1221,7 @@ made during the boost, while `A` reads from 3 g to 90% of its greatest. `HG` rea
 times `A`'s magnitude then, depending on the file. So its scale isn't settled.
 
 **The newer layout** opens with a line for each sensor that states its units, the clock's first.
-Each line after them gives a tag, `t`, the clock, and name–value pairs, separated by commas:
+Each line after them gives a tag, `t`, the clock, and name-value pairs, separated by commas:
 
 ```text
 ICM data in us, milli-g, deg/s, milli-T, deg C

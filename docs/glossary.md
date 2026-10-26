@@ -34,7 +34,7 @@ holds a number to where it was, not to the truth. See [Accuracy: the census](acc
 
 A time step the integrator (the part that steps the equations forward in time) chooses for itself.
 It estimates each step's error, and shrinks or grows the next step to keep that error within a
-[tolerance](#tolerance). HPR Sim's default method, Dormand–Prince 5(4) at `rtol = atol = 1e-8`, puts
+[tolerance](#tolerance). HPR Sim's default method, Dormand-Prince 5(4) at `rtol = atol = 1e-8`, puts
 Valetudo's apogee (one of RocketPy's example rockets) within 1.1e-6 m of a far tighter run. See
 [Time integration and events](physics/integration.md#methods).
 
@@ -338,11 +338,11 @@ digest. See [the `.ork` format](format/ork.md#motors-in-the-reference-library).
 
 The uncertainty given to one input of a [Monte Carlo](#monte-carlo) run, as a [standard deviation](#standard-deviation). It says how far the rocket's mass, its motor's impulse or the wind's speed may differ from the plan from one flight to the next. See [Monte Carlo dispersion](monte-carlo.md#what-each-dispersion-does).
 
-### Dormand–Prince and RK4
+### Dormand-Prince and RK4
 
-Two ways of stepping the equations of motion through time. Dormand–Prince 5(4), also called
+Two ways of stepping the equations of motion through time. Dormand-Prince 5(4), also called
 `DOPRI5`, makes two estimates on each step and shrinks or grows the step to keep their difference
-under a [tolerance](#tolerance). It is HPR Sim's default. RK4, the classic fourth-order Runge–Kutta
+under a [tolerance](#tolerance). It is HPR Sim's default. RK4, the classic fourth-order Runge-Kutta
 method, takes steps of a fixed size. See [Time integration](physics/integration.md#methods).
 
 ### Drag area
@@ -913,11 +913,11 @@ motors' cross-section from the base area, as Niskanen does (a rule no measuremen
 power-on drag while any motor burns. OpenRocket 24.12 keeps the whole base under power;
 `with_full_base_drag_under_power` flies its rule, for comparisons with OpenRocket. See [Aerodynamics](physics/aero.md#drag).
 
-### Prandtl–Meyer expansion
+### Prandtl-Meyer expansion
 
 What happens to a flow faster than sound when its path turns away from itself, as around the
 shoulder of a [boattail](#boattail). It speeds up and its pressure falls, by an amount that depends
-only on the Mach number and the angle turned (the Prandtl–Meyer function). HPR Sim uses the pressure
+only on the Mach number and the angle turned (the Prandtl-Meyer function). HPR Sim uses the pressure
 after such a turn as the upper limit of a boattail's [wave drag](#wave-drag). See
 [Boattails faster than sound](physics/aero.md#boattails-faster-than-sound).
 
@@ -944,7 +944,7 @@ A test that checks a rule on many randomly generated inputs rather than a few ch
 
 ### QUADPACK
 
-A library of routines for computing integrals numerically, published by Piessens and others in 1983 and in the public domain. HPR Sim's adaptive quadrature uses its 15-point Gauss–Kronrod rule, without its extrapolation. See [Adaptive quadrature](physics/quadrature.md).
+A library of routines for computing integrals numerically, published by Piessens and others in 1983 and in the public domain. HPR Sim's adaptive quadrature uses its 15-point Gauss-Kronrod rule, without its extrapolation. See [Adaptive quadrature](physics/quadrature.md).
 
 ### Rail exit and rail-exit velocity
 
@@ -1181,14 +1181,14 @@ pressure on the base, so a tunnel can't measure a free-flying rocket's base drag
 ### Stiff problem
 
 A problem with some motion so fast, and so strongly damped, that a method such as
-[Dormand–Prince](#dormandprince-and-rk4) must take tiny steps to stay stable. HPR Sim doesn't
+[Dormand-Prince](#dormand-prince-and-rk4) must take tiny steps to stay stable. HPR Sim doesn't
 detect stiffness: the run stops with an error when its steps get too small or too many. See
 [Time integration](physics/integration.md#defaults-and-limits).
 
 ### Stop time
 
 A time the integrator steps to exactly rather than across, because the equations change there.
-Stop times include thrust-curve points, burnouts, deployments and the end of a canopy's filling. A Runge–Kutta step
+Stop times include thrust-curve points, burnouts, deployments and the end of a canopy's filling. A Runge-Kutta step
 across such a jump loses most of its accuracy. See
 [Time integration and events](physics/integration.md#stop-times-and-discontinuities).
 

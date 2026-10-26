@@ -95,7 +95,7 @@ there is 63 km/s² for each meter of travel, closer to an impact than a motion.
 
 The move's time is cut into 16 equal parts by [stop times](../glossary.md#stop-time), so the
 integrator takes at least 16 steps across it. That matters with fixed-step
-[RK4](../glossary.md#dormandprince-and-rk4): a 10 ms step would otherwise take a 10 ms move in one
+[RK4](../glossary.md#dormand-prince-and-rk4): a 10 ms step would otherwise take a 10 ms move in one
 step.
 
 ### What the rocket's mass properties do

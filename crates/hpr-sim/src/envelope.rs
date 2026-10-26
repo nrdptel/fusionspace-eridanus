@@ -477,4 +477,50 @@ mod tests {
         assert_eq!(serde_json::to_value(angle).unwrap()["flag"], angle.name());
         assert!(angle.message().contains("28.6° angle of attack at 3.0 s"));
     }
+
+    #[test]
+    fn every_flag_keeps_its_sentences_to_40_words() {
+        // `writing.md`'s *Voice* (#476, ADR-295 §5): a flag's sentences stay short at any figure,
+        // each figure at its widest.
+        use crate::testing::long_sentences;
+        let wide = |value| Peak {
+            value,
+            time_s: 123.456,
+            height_above_ground_m: 12_345.6,
+        };
+        let every = [
+            EnvelopeFlag::UnstableUnderPower {
+                static_margin_cal: wide(-12.345),
+            },
+            EnvelopeFlag::UnstableWithoutMargin {
+                pitch_moment_slope_per_rad: wide(123.45),
+            },
+            EnvelopeFlag::BeyondValidatedRange {
+                max_mach: wide(3.456),
+            },
+            EnvelopeFlag::HighAngleOfAttack {
+                angle_of_attack_rad: wide(1.234),
+            },
+            EnvelopeFlag::OutsideCoreBand {
+                max_mach: wide(3.456),
+            },
+            EnvelopeFlag::BeyondEnvelope {
+                max_mach: wide(3.456),
+            },
+        ];
+        for (at, flag) in every.into_iter().enumerate() {
+            // A match with no catch-all: a new flag must be placed, and listed above.
+            let place = match flag {
+                EnvelopeFlag::UnstableUnderPower { .. } => 0,
+                EnvelopeFlag::UnstableWithoutMargin { .. } => 1,
+                EnvelopeFlag::BeyondValidatedRange { .. } => 2,
+                EnvelopeFlag::HighAngleOfAttack { .. } => 3,
+                EnvelopeFlag::OutsideCoreBand { .. } => 4,
+                EnvelopeFlag::BeyondEnvelope { .. } => 5,
+            };
+            assert_eq!(place, at, "{flag:?}");
+            let message = flag.message();
+            assert_eq!(long_sentences(&message), [], "{flag:?}: {message}");
+        }
+    }
 }

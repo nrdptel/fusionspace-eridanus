@@ -1998,16 +1998,17 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             warnings.extend(design.warnings);
             let mut notes: Vec<String> = Vec::new();
             for fetched in &missing.fetched {
+                // Two sentences, so neither passes the 40 words a warning's sentence may hold.
                 let whose = if fetched.openrocket {
-                    "the one OpenRocket flies for the curve digest the file records, by HPR Sim's \
-                     table of the motors in OpenRocket's examples"
+                    "It is the one OpenRocket flies for the curve digest the file records, by HPR \
+                     Sim's table of the motors in OpenRocket's examples"
                 } else {
-                    "found by the motor's manufacturer and designation, so it may not be the curve \
-                     OpenRocket flies"
+                    "It was found by the motor's manufacturer and designation, so it may not be \
+                     the curve OpenRocket flies"
                 };
                 let note = format!(
                     "`{}` has no curve in the file or the bundled catalog, so it flies \
-                     ThrustCurve.org's {} {}, file {}: {whose}",
+                     ThrustCurve.org's {} {}, file {}. {whose}",
                     fetched.designation,
                     crate::printable(&fetched.motor.manufacturer),
                     crate::printable(&fetched.motor.designation),
