@@ -722,8 +722,28 @@ fn an_empty_search_says_what_to_try() {
          76, 98, 132, 152, 161 mm."
     );
     assert_eq!(
+        tail(&["--in-stock", "--class", "Z"]),
+        "No motor in stock in the list is class Z. Its classes run from D to O."
+    );
+    // The price passes none alone, though the others together pass none either.
+    assert_eq!(
+        tail(&["--max-price", "0.01", "--manufacturer", "Loki", "--class", "D"]),
+        "No motor in stock costs $0.01 or less. The cheapest is AeroTech D13W at $7.00."
+    );
+    // Each passes some alone: the drops that leave motors, and only those (without
+    // `--in-stock`, Loki still lists no O).
+    assert_eq!(
         tail(&["--class", "D", "--diameter", "98"]),
-        "Each filter passes some motors on its own, but none passes them all together: drop one \
-         to see more."
+        "No motor passes every filter together. Without --class, 66 do; without --diameter, 9 do."
+    );
+    assert_eq!(
+        tail(&["--in-stock", "--class", "O", "--manufacturer", "Loki"]),
+        "No motor passes every filter together. Without --class, 30 do; without --manufacturer, \
+         4 do."
+    );
+    assert_eq!(
+        tail(&["--class", "O", "--diameter", "18", "--manufacturer", "Loki"]),
+        "Each filter passes some motors on its own, but no motor passes all of them, or all but \
+         any one: drop two or more."
     );
 }
