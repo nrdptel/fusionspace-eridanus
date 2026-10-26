@@ -1,7 +1,7 @@
 //! Figures and dates in the text of the site's pages and the READMEs (#476, ADR-295), as the
 //! product system's `data.md` and `writing.md` write them. Both rules read the text as it
 //! renders (prose, headings, list items, table cells, link text and image descriptions; not
-//! code, which quotes files and output, nor math):
+//! code, which quotes files and output, nor math, nor a block of raw HTML):
 //!
 //! - **Digits grouped in threes** (`data.md`, *Numbers*: "Group digits in threes with a comma,
 //!   from four digits"). [`ungrouped_figures`] fails a figure of four or more digits before its

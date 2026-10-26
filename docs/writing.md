@@ -473,8 +473,8 @@ They don't conflict with the rules above; they add these:
   - a year: four digits from 1600 to 2100 with no unit or `%` after them (`in 1997`, but
     `2000 m` fails), or any figure after a month, a day and a comma (`December 31, 9999`).
 
-  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. The check
-  reads figures, not meaning. A count that looks like a year (`2000 flights`) passes, and so
+  A value read from a file, such as a fill value or a raw word, goes in code: `-32767`. Text in a
+  block of raw HTML isn't read, as for the minus sign. The check reads figures, not meaning. A count that looks like a year (`2000 flights`) passes, and so
   does a quantity after a listed name; reviews hold those.
 
   It also fails an ISO date, `2026-10-04`, in the text outside tables: prose writes
