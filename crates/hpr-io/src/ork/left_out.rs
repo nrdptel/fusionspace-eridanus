@@ -69,7 +69,8 @@ pub(crate) struct Counted {
     pub(crate) lift: bool,
     /// Drag under canopy: a parachute or a streamer.
     pub(crate) canopy: bool,
-    /// A tag HPR Sim doesn't read, which may carry any of the others: they're said as "any".
+    /// A tag HPR Sim doesn't read, which may carry mass, drag or lift: they're said as "any". It
+    /// carries drag under canopy only through a parachute or a streamer inside it.
     pub(crate) unknown: bool,
 }
 
