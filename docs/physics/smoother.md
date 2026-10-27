@@ -85,6 +85,10 @@ day's air, which a log without a GNSS receiver can't measure, and the port's err
 are on barometer-only loggers, in the report's JSON per logger: up to 407 m (1,335 ft) at
 burnout and 260 m/s (853 ft/s) at a drawn moment.
 
+Across the three sets, each set's cells run from 94.3% to 99.4%. Per logger, the lowest cells
+are 89.2% on set B and 89.7% on set A, both the GNSS logger's apogee height. The rule still
+allows them: their misses aren't shown to pass 5% a side.
+
 Trusting the GNSS receiver from liftoff instead fails the check. B's 186 smoothed logs with a
 GNSS track were smoothed again that way, the rest left as they were. Then 146 of its 845 apogee
 truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
