@@ -165,7 +165,7 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
 The two disagree by a factor that depends on the fabric. At $\mathrm{AR} = 10$ and $l = 1.016\,\mathrm{m}$ the ratio
 of their drag areas is 5.8 at 10 g/m², 3.5 at 32 and 1.9 at 80.
 
-C. Kidwell's NARAM-43 drop tests (2001) settle it as far as one dataset can. The tests used sixteen 4 in × 40&nbsp;in
+C. Kidwell's NARAM-43 drop tests (2001) settle it as far as one dataset can. The tests used sixteen 4 in × 40 in
 streamers, each with about 5 g at one corner, dropped 20.1 m (66 ft).
 
 Two details of his method decide how to compare, and both were got wrong here before review:

@@ -67,7 +67,7 @@ Sources:
   theorem ([Mass properties](mass.md)).
 - **[AT]** AeroTech, *RMS-18/20*, *RMS-24/40*, *RMS-29/40-120* and *HP RMS-29/120 Motor
   Dimensional Drawing* (2003–2004), archived by the Internet Archive in 2005. They give case
-  outside diameters and the ±0.005&nbsp;in drawing tolerance ([a nominal motor in its matching
+  outside diameters and the ±0.005 in drawing tolerance ([a nominal motor in its matching
   tube](#a-nominal-motor-in-its-matching-tube)). The
   [29 mm motor drawing](https://web.archive.org/web/20050405223833/http://www.aerotech-rocketry.com/customersite/resource_library/aerotech_rms_ext_dim_dwgs/29mm_mr_rms/mr_29-40_120.pdf);
   the others are in the
@@ -347,7 +347,7 @@ tubes 25 mm (0.98 in) from the axis, with the first tube's motor out, adds these
 **Worked example.** The tests' single-stage rocket
 ([`synthetic-54mm-three-fin`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json))
 has its mount made a ring of three tubes, with a Cesaroni 411I175-14A in each. The tubes sit
-$A = 0.02\,\mathrm{m}$ from the axis, at 0°, 120° and 240°. The angles are measured from the body's $x$
+$A = 0.02$ m from the axis, at 0°, 120° and 240°. The angles are measured from the body's $x$
 axis toward its $y$ axis, as in [frames](frames.md). It is an equation check, not a buildable
 rocket. Three 38 mm motors don't fit a 54 mm (2.1 in) body, and the design checks say so. It is
 held at rest in a vacuum, so no air and no motion add anything to the motors' push. With the motor at 0° out, 1 s into the burn:
@@ -496,7 +496,7 @@ about its own axis and center:
 | its roll inertia, the two cylinders' $m(r_o^2 + r_i^2)/2$ and $m r^2/2$ added | 3.869e-6 kg m² |
 | its pitch inertia, each cylinder's $m(3(r_o^2 + r_i^2) + L^2)/12$ and its own $m\,\Delta z^2$ | 2.53675e-4 kg m² |
 
-Each pod's axis is $d = 0.05\,\mathrm{m}$ off the body's. A pod's parallel-axis term about a line through
+Each pod's axis is $d = 0.05$ m off the body's. A pod's parallel-axis term about a line through
 the body's axis is $m$ times the square of the pod's distance from that line. Both pods lie on the
 $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d^2$ =
 1.6781e-4 kg m² each:
@@ -511,7 +511,7 @@ $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d
 The pods' roll inertia is 44 times what it would be with both on the axis: nearly all of it is the
 parallel-axis term. The test `a_pod_is_its_stack_repeated_with_its_parallel_axis_term` in
 `hpr-design` pins these to 1e-15. It also pins a single pod at 90° ($y = d$), with its center at
-$z = -0.39041\,\mathrm{m}$. About the nose tip, the pod's
+$z = -0.39041$ m. About the nose tip, the pod's
 [product of inertia](../glossary.md#product-of-inertia) is $I_{yz} = -m y z$ = 0.067125 × 0.05 ×
 0.39041 = 1.3103e-3 kg m².
 
@@ -603,7 +603,7 @@ raises one.
 | `part_outside_rocket` | error | an internal part lies wholly forward of the nose tip or aft of the rocket's end, and touches none of the parts it hangs from |
 | `internal_part_wider_than_parent` | error | an internal part reaches farther from its parent's axis than the parent's bore (in a nose cone or transition, [the most room along the part](#in-a-nose-cone-or-transition)) by more than the [fit tolerance](#wider-than-its-parent) for the bore's size, and is no [cap](#wider-than-its-parent) at its parent's end, nor a [packed part](#a-packed-part-wider-than-its-bore) whose center is in the bore. A [ring around its tube](#wider-than-its-parent) is measured in the part around it |
 | `center_outside_rocket` | error | a stage with an axial center-of-mass override (`cg_aft_m`, its own or a component's) has its center off the rocket although its parts aren't |
-| `motor_tight_in_mount` | warning | the motor's nominal diameter is wider than the mount's bore, but its real case fits: a 29 mm motor in a 1.140&nbsp;in tube |
+| `motor_tight_in_mount` | warning | the motor's nominal diameter is wider than the mount's bore, but its real case fits: a 29 mm motor in a 1.140 in tube |
 | `motor_past_mount_top` | warning | the case's forward end is forward of the mount's |
 | `attachment_past_body_end` | warning | an external part runs past an end of its body tube |
 | `internal_part_past_parent_end` | warning | an internal part runs past an end of its parent |
@@ -719,7 +719,7 @@ moves the center of gravity forward and raises the stability margin.
   `internal_part_past_parent_end` already names it.
 
 **A worked example.** Take a conical nose 200 mm (7.9 in) long and 27 mm (1.1 in) in radius at its
-base. Its wall is 2 mm (0.079 in). It has $0.135\,x - 0.002\,\mathrm{m}$ of room at $x$ m from its tip. A
+base. Its wall is 2 mm (0.079 in). It has $0.135\,x - 0.002$ m of room at $x$ m from its tip. A
 tube 24.5 mm (0.96 in) in radius runs through its aft 100 mm (3.9 in). It has 25.0 mm
 (0.98 in) of room at the base and 11.5 mm (0.45 in) at its forward end. That's 13 mm (0.51 in) too
 little. It's wedged, a warning, far past the 0.5 mm (0.020 in) tolerance of the 23 mm (0.91 in) bore at
@@ -774,8 +774,8 @@ landing times agree to 1 ms ([the packed-part decision's table][adr-170]).
 
 A motor's diameter in the simulator is its nominal size, as ThrustCurve.org and RASP files give
 it. So every 29 mm motor is flown as a 29 mm case. The cases are not all that wide. AeroTech's RMS
-dimensional drawings give the case's outside to ±0.005 in. It's 0.698&nbsp;in for 18 mm motors,
-0.938&nbsp;in for 24 mm motors and 1.125&nbsp;in for 29 mm motors. So a "29 mm" case is at most 1.130 in
+dimensional drawings give the case's outside to ±0.005 in. It's 0.698 in for 18 mm motors,
+0.938 in for 24 mm motors and 1.125 in for 29 mm motors. So a "29 mm" case is at most 1.130 in
 (28.702 mm) across. A size whose case is narrower than its name gets that difference as slack
 ([`motor_fit_slack_m`](../api/hpr_design/checks/fn.motor_fit_slack_m.html)). That's 0.144 mm
 (0.0057 in) for an 18 mm motor and 0.048 mm (0.0019 in) for a 24 mm motor. For a 29 mm motor it's
@@ -789,7 +789,7 @@ can't go in and it is an error.
 - The Loft demo's 28.0 mm (1.10 in) bore is 1 mm (0.039 in) under the 29 mm motor size. It's
   0.70 mm (0.028 in) under the largest case: an error.
 - The same drawings give 38, 54, 75 and 98 mm cases as 1.500, 2.125, 2.965 and 3.870 in. So at
-  the +0.005&nbsp;in limit each is at least as wide as its name. Those sizes get no slack. So a 38 mm
+  the +0.005 in limit each is at least as wide as its name. Those sizes get no slack. So a 38 mm
   motor in a 37.9 mm (1.49 in) bore is an error, as its 38.10 mm (1.500 in) case would be. Fix it
   with a wider mount or a smaller motor. The simulator doesn't yet warn when a nominal size fits
   the bore but its wider case wouldn't

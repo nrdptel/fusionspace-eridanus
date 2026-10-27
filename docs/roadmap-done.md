@@ -79,11 +79,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
 - M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
-- M0.9f The rest of the words ([Phase 0](#phase-0-foundations))
 - M0.9f1 Joined names and long warnings ([Phase 0](#phase-0-foundations))
 - M0.9f2 Short notes and cells, labeled heads ([Phase 0](#phase-0-foundations))
 - M0.9f3 Grouped figures, prose dates and known digits ([Phase 0](#phase-0-foundations))
-- M0.9f4 Units held to their figures ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
 - M0.8a The simulator's guide ([Phase 0](#phase-0-foundations))
@@ -595,13 +593,7 @@ One line per milestone or increment, in the order it was archived within its pha
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
     hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow
     `writing.md`'s order with the version; the audit's rows name the checks.
-  - [x] **M0.9f The rest of the words** (ADR-239; ADR-295: four increments, the last with this).
-    *Done when:* #476 is closed: a check of the site
-    and the README fails on an ungrouped figure of four or more digits in prose (the identifiers it
-    passes listed), an ISO date in running prose, an en dash between names, a number split from
-    its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
-    heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
-    each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
+  - **M0.9f** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
     - [x] **M0.9f1 Joined names and long warnings.** *Done when:* a check of the site and the
       README fails on an en dash between words (ADR-295 §4), and every page and the README pass
       it; a test fails on an `hpr sim` warning sentence over 40 words, in every issue warning
@@ -617,9 +609,6 @@ One line per milestone or increment, in the order it was archived within its pha
       identifiers it passes listed) and on an ISO date in running prose, and every page and the
       README pass it; each over-precise figure #476 names is cut to what is known; the audit's
       *On screens* row names the check.
-    - [x] **M0.9f4 Units held to their figures.** *Done when:* a check of the built site and the
-      README fails on a figure split from its unit by a breaking space, and the site and the
-      README pass it; the audit's *Numbers* row names the check; and M0.9f's own *done when*.
 - [x] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the

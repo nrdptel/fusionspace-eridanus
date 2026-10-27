@@ -210,11 +210,11 @@ the rocket through its center of mass, the one it pitches about):
 | 5.75 | 0.8188 | 0.7347 | 0.07483 |
 | 7.00 | 0.8188 | 0.7414 | 0.07399 |
 
-By hand, the center of mass moves $0.2 \times 0.3 / 0.8188 = 0.0733\,\mathrm{m}$ aft. At 5.5 s, halfway through
+By hand, the center of mass moves $0.2 \times 0.3 / 0.8188 = 0.0733$ m aft. At 5.5 s, halfway through
 the move, it has gone exactly half of that. The transverse inertia falls because the ballast ends
 up near the center of mass. The two-body check gives the change too:
 
-- $\mu = 0.2 \times 0.6188 / 0.8188$ $= 0.1511\,\mathrm{kg}$.
+- $\mu = 0.2 \times 0.6188 / 0.8188$ $= 0.1511$ kg.
 - The rest of the rocket, 0.6188 kg, has its center at
 
   $$
@@ -240,7 +240,7 @@ up near the center of mass. The two-body check gives the change too:
   as the table shows.
 
 The static margin falls from 4.297 calibers to 2.996, a change of −1.302 from the unrounded
-values. By hand it is $-0.0733 / 0.0563 = -1.302$, with $d = 0.0563\,\mathrm{m}$. The apogee barely moves:
+values. By hand it is $-0.0733 / 0.0563 = -1.302$, with $d = 0.0563$ m. The apogee barely moves:
 1,749.8 m (5,741 ft) with the ballast moving, 1,749.9 m (5,741 ft) with it held still.
 
 ## Checks, limits and sources

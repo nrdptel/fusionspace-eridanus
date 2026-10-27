@@ -898,8 +898,8 @@ along the nose. Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7) HPR Sim takes
 For example, take a conical nose cone 200 mm (7.9 in) long and 50 mm (2.0 in) in radius at its
 base. Its wall is 2 mm (0.079 in). A coupler 30 mm (1.2 in) long has its aft end at the nose's
 base. The coupler's narrower end is its forward end,
-30 mm (1.2 in) ahead of the base, where the cone's radius is $50 \times 170/200 = 42.5\,\mathrm{mm}$. So its outer radius
-is $42.5 - 2 = 40.5\,\mathrm{mm}$.
+30 mm (1.2 in) ahead of the base, where the cone's radius is $50 \times 170/200 = 42.5$ mm. So its outer radius
+is $42.5 - 2 = 40.5$ mm.
 
 **An inner tube written `auto` keeps 9.5 mm (0.37 in).** OpenRocket 24.12 does not work out an automatic
 radius for an `innertube`, the tag a motor mount is usually written with. It keeps the 9.5 mm (0.37 in) it
@@ -963,8 +963,8 @@ HPR Sim applies it when it lays the design out, the step that works out every au
 ([Automatic dimensions](../physics/design.md#automatic-dimensions)).
 
 For example, take four tubes on a body of 50 mm (2.0 in) radius. $\sin(\pi/4)$ is 0.7071, so
-$r = 50 \times 0.7071/0.2929 = 120.7\,\mathrm{mm}$. The axes then sit 170.7 mm (6.7 in) from the airframe's axis, and
-neighbors are $2 \times 170.7 \times 0.7071 = 241.4\,\mathrm{mm}$ apart, which is $2r$: they touch. Fewer tubes
+$r = 50 \times 0.7071/0.2929 = 120.7$ mm. The axes then sit 170.7 mm (6.7 in) from the airframe's axis, and
+neighbors are $2 \times 170.7 \times 0.7071 = 241.4$ mm apart, which is $2r$: they touch. Fewer tubes
 must be wider to close the ring. Three to five tubes come out wider than the body, six exactly as
 wide, and more than six narrower:
 
@@ -1205,7 +1205,7 @@ nose. Its three tubes are 10 mm (0.39 in), 15 mm (0.59 in) and 10 mm (0.39 in). 
 puts the pod at the 15 mm (0.59 in) radius. That is not the first part's, the first tube's or the
 last part's. HPR Sim's test
 (`every_pod_is_where_openrocket_puts_it`, in `hpr-validate`) holds every part in every pod to
-OpenRocket's place, to $10^{-15}\,\mathrm{m}$. An automatic radius inside a pod can only take a radius stated in
+OpenRocket's place, to $10^{-15}$ m. An automatic radius inside a pod can only take a radius stated in
 the pod, so HPR Sim takes the widest stated one.
 
 HPR Sim fixes each pod's distance when it reads the file, so it cannot work out an automatic tube
@@ -1238,7 +1238,7 @@ OpenRocket 24.12 agrees on six probes:
   turned with its pod;
 - a lug turned to 180°, and two at 0°.
 
-Each fin's root and each lug's axis is where OpenRocket puts it, to $10^{-15}\,\mathrm{m}$ (the test
+Each fin's root and each lug's axis is where OpenRocket puts it, to $10^{-15}$ m (the test
 `every_pod_is_where_openrocket_puts_it`, in `hpr-validate`).
 
 **A pod set that holds nothing** is read too, and weighs nothing, in OpenRocket as in HPR Sim. A
@@ -2332,7 +2332,7 @@ The same probe measures three things the words do not say:
   1.0 and 1.5 m (4.9 ft) long. They are for a material of 67 g/m², which the three values imply by
   equation C.5. The documentation puts that estimate's accuracy at about 20%. One
   user's report ([issue #2031](https://github.com/openrocket/openrocket/issues/2031)) finds a
-  2.5 by 44&nbsp;in streamer's 0.06 far too small. HPR Sim keeps the `auto` or the stated number as the
+  2.5 by 44 in streamer's 0.06 far too small. HPR Sim keeps the `auto` or the stated number as the
   file wrote it.
 
 #### Flown as OpenRocket flies them

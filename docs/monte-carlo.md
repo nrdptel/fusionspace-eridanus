@@ -121,7 +121,7 @@ How to read it:
   and 1,200 m (3,937 ft).
 
 **The mean isn't the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
-With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4\,\mathrm{m}$ (its
+With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4$ m (its
 [standard error](glossary.md#standard-error)). So 6.5 m (21 ft) is 1.9 standard errors, and chance
 can account for most of it.
 

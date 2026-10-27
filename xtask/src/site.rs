@@ -99,7 +99,6 @@ mod cdp;
 mod chrome;
 mod figures;
 mod frame;
-mod joins;
 pub(crate) mod math;
 mod notes;
 mod numbers;
@@ -250,8 +249,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let (intros, sheets) = sheets::draw(&output, &status)?;
     let chapters = print::draw(&output)?;
     let bundled = bundle::draw(&output)?;
-    // Last of the drawing, after mdBook's search index: each figure joined to its unit (#476).
-    let units_joined = joins::join(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
@@ -262,7 +259,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
     built.problems.extend(sheets::check(&output, &status)?);
     built.problems.extend(print::check(&output)?);
     built.problems.extend(bundle::check(&output)?);
-    built.problems.extend(joins::check(&output)?);
     if !built.problems.is_empty() {
         return Err(failure("the built site", &built.problems));
     }
@@ -291,14 +287,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
     println!(
         "built print page: {} shows a cover on screen, its {chapters} chapters in a template \
          the site's script places in the page when it is printed",
-        print::PAGE
-    );
-    println!(
-        "built units: {} figures joined to their units by a no-break space on the pages, and \
-         {} on {} (its chapters), none left split by a breaking one; the search index keeps the \
-         plain space",
-        units_joined.0,
-        units_joined.1,
         print::PAGE
     );
     println!(
@@ -1252,9 +1240,6 @@ fn check_readmes(root: &Path) -> Vec<String> {
             Ok(text) => problems.extend(
                 word_rules(&text, words::Renderer::GitHub)
                     .into_iter()
-                    // The site's pages are joined when they are built; the READMEs, shown as
-                    // written, hold the no-break space in their source.
-                    .chain(joins::readme_splits(&text, words::Renderer::GitHub))
                     .map(|(line, problem)| format!("{readme}:{line}: {problem}")),
             ),
             Err(err) => problems.push(format!("{readme}: can't be read: {err}")),
@@ -3635,19 +3620,16 @@ mod tests {
         assert!(problems[2].starts_with("crates/hpr-py/README.md:5: a table cell of 121 words"));
         assert!(problems[3].contains("(\"`apogee_agl_m`\") has no label"));
         assert!(problems[4].contains("(\"HPR Sim\") gives no unit"));
-        // And a README with an ungrouped figure, an ISO date in its prose, or a figure a
-        // breaking space parts from its unit, which a README joins in its source.
+        // And a README with an ungrouped figure or an ISO date in its prose.
         fs::write(
             dir.path().join("crates/hpr-py/README.md"),
             "It reaches 1500 m.\n\nRead on 2026-10-04.\n",
         )
         .unwrap();
         let problems = check_readmes(dir.path());
-        assert_eq!(problems.len(), 4, "{problems:#?}");
+        assert_eq!(problems.len(), 3, "{problems:#?}");
         assert!(problems[1].starts_with("crates/hpr-py/README.md:1: `1500` in"));
         assert!(problems[2].starts_with("crates/hpr-py/README.md:3: `2026-10-04` is an ISO date"));
-        assert!(problems[3].starts_with("crates/hpr-py/README.md:1: `1500 m` in"));
-        assert!(problems[3].ends_with("`1500&nbsp;m`"), "{}", problems[3]);
     }
 
     #[test]
