@@ -2107,7 +2107,8 @@ mod tests {
         assert!((liftoff.time_s - LIFTOFF_S).abs() <= liftoff.bound_s, "{liftoff:?}");
         // The intervals are bounded by the day's air, up to about 4% of the height without a
         // GNSS receiver, and at burnout by the climb's port coefficient's spread, 0.02 of
-        // `v²/2g`, 9.8 m.
+        // `v²/2g`, 9.8 m. On the ground the acceleration is let go ([`JERK_POWERED`]), so the
+        // speed is the barometer's noise's alone.
         for (t, height_sd_m, speed_sd_m_s) in [
             (6.0, 15.0, 15.0),
             (BURNOUT_S, 20.0, 15.0),
@@ -2115,7 +2116,7 @@ mod tests {
             (17.0, 30.0, 3.0),
             (30.0, 25.0, 2.0),
             (50.0, 10.0, 2.0),
-            (70.0, 2.0, 1.0),
+            (70.0, 2.0, 5.0),
         ] {
             holds_at(&smoothed, t, height_sd_m, speed_sd_m_s);
         }
