@@ -2678,7 +2678,7 @@ after dividing by $10^9$. The reader multiplies it by 513,180,409 and keeps the 
 $32 + 59.01234/60 = 32.983\,539$°. Its altitude word is 1,400 m (4,593 ft). The CSV export
 writes the fix as
 
-```text
+```text,wrap
 175950,3259.01234N,10658.54321W,4593,0,2,122,9,12,40
 ```
 

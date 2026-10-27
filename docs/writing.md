@@ -667,7 +667,10 @@ has the rules in full):
 - **No page wider than the window.** `cargo xtask site` opens every page in headless Chrome at
   each width from 320 to 1,920 px, 40 px apart. A page fails if it scrolls sideways, or if text
   or a box passes the window's left or right edge. It also fails if a box cuts its own text
-  short. A code block or a table may scroll sideways inside its own box.
+  short. A code block or a table may still scroll sideways inside its own box, but that hides
+  its end on a phone, so make it fit. On a phone a table's cells keep 8 px a side and none at its
+  edges; a table still too wide needs fewer columns (#498). A data line too long for a phone goes
+  in a `text,wrap` fence, which wraps it.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
 `scripts/gate.sh test site` runs both locally. A failure names the page or figure, the widths,
