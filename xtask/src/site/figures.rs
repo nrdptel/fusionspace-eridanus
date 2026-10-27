@@ -339,7 +339,7 @@ fn grouped(figure: &str) -> String {
 }
 
 /// A few words of `run` around `span`, for a message.
-fn context(run: &str, span: Range<usize>) -> String {
+pub(super) fn context(run: &str, span: Range<usize>) -> String {
     let start = run[..span.start]
         .char_indices()
         .rev()

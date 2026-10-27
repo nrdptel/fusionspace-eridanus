@@ -1087,6 +1087,12 @@ impl Summary {
     /// Its result in words: the counts against its gate, target or bars, and its apogees.
     #[must_use]
     pub fn result(&self) -> String {
+        self.result_spaced(" ")
+    }
+
+    /// [`Summary::result`], with `space` between a bar's figure and its unit: the census table
+    /// gives the README `&nbsp;` ([`table`]).
+    fn result_spaced(&self, space: &str) -> String {
         let mut parts = Vec::new();
         let gated = self.count(Standing::Pass) + self.count(Standing::Fail);
         let targeted = self.count(Standing::WithinTarget) + self.count(Standing::OutsideTarget);
@@ -1134,9 +1140,9 @@ impl Summary {
                     "{name} within {}{}{of} on {} of {}",
                     bar.scale,
                     match bar.unit {
-                        Unit::Caliber => " calibers",
-                        Unit::Percent => "%",
-                        Unit::Metric => "",
+                        Unit::Caliber => format!("{space}calibers"),
+                        Unit::Percent => "%".to_owned(),
+                        Unit::Metric => String::new(),
                     },
                     bar.within,
                     bar.compared
@@ -1560,7 +1566,7 @@ impl Accepted {
             let _ = writeln!(out, "- {}", summary.headline());
         }
         let _ = writeln!(out);
-        let _ = writeln!(out, "{}", table(&summaries, None));
+        let _ = writeln!(out, "{}", table(&summaries, None, " "));
         let _ = writeln!(out, "{}", reading(self.census.slack_share));
         let _ = writeln!(out, "## Rows by standing\n");
         let _ = writeln!(out, "| group | metric | standing | rows |");
@@ -1671,9 +1677,11 @@ fn signed_percent(value: f64) -> String {
 }
 
 /// The census table, as the README and the accuracy page show it, each row's reference linked to
-/// `link` (the census page) where one is given.
+/// `link` (the census page) where one is given, and `space` between a bar's figure and its unit:
+/// `&nbsp;` for the README, which GitHub shows as written (`data.md`, *Numbers*: a line never
+/// ends between them).
 #[must_use]
-pub fn table(summaries: &[Summary], link: Option<&str>) -> String {
+pub fn table(summaries: &[Summary], link: Option<&str>, space: &str) -> String {
     let mut out = String::new();
     let _ = writeln!(
         out,
@@ -1693,7 +1701,7 @@ pub fn table(summaries: &[Summary], link: Option<&str>) -> String {
             summary.group.kind(),
             summary.group.bar(),
             summary.population(),
-            summary.result()
+            summary.result_spaced(space)
         );
     }
     out

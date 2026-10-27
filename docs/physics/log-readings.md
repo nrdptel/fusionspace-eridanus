@@ -483,7 +483,7 @@ later by any amount. A motor whose thrust tails off below the drag and the weigh
 the rocket stops gaining speed. The bound adds three times. The first is the time a coast slowing
 at $g$ takes to lose twice the speed's 5 m/s (16 ft/s) noise. The fit can place the peak that
 much late. The others are half the 0.5 s fit and an interval. On the invented PerfectFlite
-flight, which has no accelerometer, the first is $2 \times 5/9.81 = 1.02$ s. That, half the fit's
+flight, which has no accelerometer, the first is $2 \times 5/9.81 = 1.02\,\mathrm{s}$. That, half the fit's
 0.25 s and the 0.05 s interval add to 1.32 s. So `hpr analyze` reads burnout no sooner than 0.88
 s, the top speed's time, 2.20 s, less that bound. The true burnout is 2.10 s, 0.10 s before the top
 speed's time. The JSON gives such a burnout's reading as `time_s` and its bound as `bound_s`, and

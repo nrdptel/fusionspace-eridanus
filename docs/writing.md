@@ -507,11 +507,27 @@ They don't conflict with the rules above; they add these:
   | rule | write |
   |---|---|
   | a space before the unit, except degrees and percent | `21.5 °C`, `45°`, `7.0%` |
-  | on the site and in SVG figures, that space is non-breaking (U+00A0), so a line never ends between a number and its unit; in terminal, JSON and CSV output it is a plain space, which copying and `grep` need ([`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)) | `21.5&nbsp;°C` in a page's source, `&#160;` in an SVG; `21.5 °C` in `hpr`'s output |
+  | on the site, in the READMEs and in SVG figures, that space is non-breaking (U+00A0), so a line never ends between a number and its unit; in terminal, JSON and CSV output it is a plain space, which copying and `grep` need ([`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)) | `21.5 °C` in a page's source, which the build joins; `0.2&nbsp;calibers` in a README; `&#160;` in an SVG; `21.5 °C` in `hpr`'s output |
   | commas in groups of three in prose; none in terminal output or anything copied | `5,104 ft`; `1280 ft` |
   | precision that matches what is known | `5,104 ft` from a barometer, not `5,103.87 ft` |
   | heights, distances and speeds in SI, then the US units in brackets, converted from the SI as written: feet for heights, rails and distances, inches for a part's size in millimeters or centimeters, miles for long distances across the ground; ft/s, or mph for the wind. A motor's or a mount's nominal size (the motor size a mount takes) stays in millimeters alone, as motors are named (`a 54 mm motor`), but a measured bore gives inches (`a 28.956 mm (1.140 in) bore`). Exempt: worked arithmetic, e-notation, and SI written as the conversion of a US figure before it (`1.52 in (38 mm)`); the site check fails the rest, on every page ([M0.9c16, US units on the model pages](decisions-and-roadmap.md#m0-9c16), [ADR-219](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md)) | `1,400 m (4,593 ft)`, `16.2 m/s (53 ft/s)`, `5 m/s (11 mph)`, `0.6 m (24 in)` |
   | dates in prose; in tables and files | October 4, 2026; 2026-10-04 |
+
+  How the no-break space gets there (`xtask/src/site/joins.rs`):
+
+  - **On the site, the build adds it.** `cargo xtask site` joins each figure to the unit symbol
+    after it in the pages it builds (not the API reference), so a page's source keeps a plain
+    space. The units are symbols: lengths, times, masses, forces, pressures, `°C`, `calibers` and
+    `px`, among others. A word that counts, like "flights", isn't one. The build fails a figure
+    and unit it leaves split.
+  - **After an equation, the unit goes inside it:** `$x = 4593\,\mathrm{ft}$`, not
+    `$x = 4593$ ft`. A line can end between an equation and the space after it, even a no-break
+    one, so the build fails a unit left after an equation that ends in a number.
+  - **An inch with a word after it is yours to join.** The build can't tell `2.6 in rocket` from
+    "0.5 in both", so write `2.6&nbsp;in rocket`. Nothing fails if you forget.
+  - **In a README, write `&nbsp;` yourself** between every figure and its unit symbol, because
+    GitHub, crates.io and PyPI show the file as written. `cargo xtask site` fails a README figure
+    and unit split by a breaking space or a line break, and names the line.
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
   "FusionSpace HPR" is the suite. "FusionSpace HPR · Sim" or "HPR Sim" is the simulator at its
@@ -552,10 +568,12 @@ They don't conflict with the rules above; they add these:
   may be allowed whole, and its row with it. No other row or line there inherits anything.
 
 Older pages move to these rules as they are edited. The product system milestone,
-[M0.6](decisions-and-roadmap.md#m0-6), added the check for the first two. On the site, nothing
-checks the non-breaking space yet. `hpr sim --plot`'s SVG figure, which the rule covers, joins
-each number to its unit with one, and a test holds it (`a_number_keeps_its_unit_on_its_line` in
-`crates/hpr-cli/src/plot/tests.rs`).
+[M0.6](decisions-and-roadmap.md#m0-6), added the check for the first two. Since
+[M0.9f4, units held to their figures](decisions-and-roadmap.md#m0-9f4), the site's build joins each
+figure to its unit symbol with the non-breaking space and fails a pair it leaves apart, and the
+READMEs fail one written with a breaking space (`xtask/src/site/joins.rs`). `hpr sim --plot`'s
+SVG figure, which the rule covers, joins each number to its unit with one, and a test holds it
+(`a_number_keeps_its_unit_on_its_line` in `crates/hpr-cli/src/plot/tests.rs`).
 
 Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)

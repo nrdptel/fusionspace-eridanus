@@ -315,7 +315,7 @@ pub fn census_outputs(
     }
     let block = format!(
         "{BEGIN}\n\n{}\n{END}",
-        census::table(&accepted.summaries, Some(CENSUS_URL))
+        census::table(&accepted.summaries, Some(CENSUS_URL), "&nbsp;")
     );
     for path in TABLES {
         let text = read(root, path)?;

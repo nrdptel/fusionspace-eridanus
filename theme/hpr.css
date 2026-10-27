@@ -291,7 +291,8 @@ pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 /* A table too wide for its column, its rows stacked by `hpr.js` (ADR-297): each row a group under
    the table's 1 px rules, the first under the head's 2 px ink rule, each cell its column's head in
    the head's type (12 px Cascadia Mono, capitals) beside its value, or above it when the value
-   holds a formula, which can't break. The copies of the head stay hidden while a table fits. */
+   holds a formula, which can't break, or the window is under 520 px, where beside it a long code
+   name would break mid-word. The copies of the head stay hidden while a table fits. */
 .fs-head { display: none; }
 .fs-ruler { height: 0; }
 @media screen {
@@ -302,6 +303,7 @@ pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   .fs-stacked tbody td, .fs-stacked tbody th { display: grid; grid-template-columns: minmax(0, 2fr) minmax(min-content, 3fr); column-gap: 16px; padding: 0; border: 0; overflow-wrap: anywhere; }
   .fs-stacked tbody td:not(:has(> .fs-head)), .fs-stacked tbody th:not(:has(> .fs-head)),
   .fs-stacked tbody td:has(> .fs-cell math), .fs-stacked tbody th:has(> .fs-cell math) { display: block; }
+  @media (max-width: 519px) { .fs-stacked tbody td, .fs-stacked tbody th { display: block; } }
   .fs-stacked .fs-head { display: block; padding-top: 4px; text-align: left; font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; }
   .fs-stacked .fs-head code { font-size: inherit; line-height: inherit; text-transform: none; letter-spacing: 0; }
   .fs-stacked .fs-head math { font-size: calc(var(--fs-text) * 1.1); text-transform: none; letter-spacing: normal; }
