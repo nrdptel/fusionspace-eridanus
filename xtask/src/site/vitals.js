@@ -14,10 +14,11 @@
 // - Inputs: when the first trusted tap or key began, and a count of those that finished, so
 //   the measurement knows each of its inputs arrived before it reads their timing.
 //
-// `window.__hprVitals` gives `vitals.rs` four calls: `benchmark()` measures the host's CPU
+// `window.__hprVitals` gives `vitals.rs` five calls: `benchmark()` measures the host's CPU
 // (below); `settle()` waits for the page to load and then for a second with no new paint or
-// shift; `inputs(n)` waits for the n-th input to finish and its timing to be reported; `read()`
-// returns what was seen, as JSON.
+// shift; `inputs(n)` waits for the n-th input to finish and its timing to be reported;
+// `firstTab()` says whether the focus sits on the first control in the tab order, as the first
+// Tab from a fresh page must leave it; `read()` returns what was seen, as JSON.
 'use strict';
 
 (function () {
@@ -172,6 +173,25 @@
         });
       },
       benchmark: hprBenchmarkIndex,
+      // True when the focus is on the first control in the tab order: the lowest positive
+      // `tabIndex`, else the first with 0 in document order, of the elements that are drawn and
+      // not disabled (a fieldset's too), inert, or a link with no address. Otherwise, what it is on, and what that first control is.
+      firstTab: function () {
+        const drawn = Array.from(document.querySelectorAll('*')).filter(function (el) {
+          return el.tabIndex >= 0 && !el.matches(':disabled, a:not([href])') &&
+            !el.closest('[inert]') && el.checkVisibility({ visibilityProperty: true });
+        });
+        const positive = drawn.filter(function (el) { return el.tabIndex > 0; })
+          .sort(function (a, b) { return a.tabIndex - b.tabIndex; });
+        const first = positive.length ? positive[0] : drawn[0];
+        const at = document.activeElement;
+        if (first && at === first) return true;
+        const name = function (el) {
+          if (!el) return 'nothing';
+          return '`' + el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + '`';
+        };
+        return name(at) + ', not the first control, ' + name(first);
+      },
       read: function () {
         const navigation = performance.getEntriesByType('navigation')[0];
         return JSON.stringify({

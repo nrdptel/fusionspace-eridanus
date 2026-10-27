@@ -834,6 +834,20 @@ impl Browser {
         }
         inputs += 1;
         self.finished(inputs, "Tab")?;
+        // The first Tab from a fresh page lands on the first control in the tab order: `hpr.js`
+        // gives the page its focus starting point just before it, so the browser needn't test
+        // every element for focus first (#504), and must not move where the Tab lands.
+        if page {
+            let landed = self.evaluate("window.__hprVitals.firstTab()", CALL_TIMEOUT)?;
+            if landed != Value::Bool(true) {
+                return Err(Failed(format!(
+                    "its first Tab focused {}",
+                    landed
+                        .as_str()
+                        .unwrap_or("something the check couldn't name")
+                )));
+            }
+        }
         for tap in 0..2 {
             let [x, y] = match self.menu_button()? {
                 Menu::At(at) => at,
