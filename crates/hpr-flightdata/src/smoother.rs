@@ -1620,7 +1620,9 @@ fn run(
             let jerk = match phase {
                 Phase::Pad => JERK_PAD,
                 Phase::Powered => JERK_POWERED,
-                _ if measured_a => JERK_POWERED,
+                // The impact stops the rocket in a few hundredths of a second, and what it does
+                // on the ground (a bounce, a drag across the field) no model of a flight holds.
+                _ if measured_a || landed => JERK_POWERED,
                 Phase::Coast => JERK_COAST,
                 Phase::Descent => JERK_DESCENT,
             };
