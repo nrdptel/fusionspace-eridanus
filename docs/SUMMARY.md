@@ -93,7 +93,6 @@
 - [Fin flutter](physics/flutter.md)
 - [Flight-log readings](physics/log-readings.md)
 - [Synthetic flights](physics/synthetic-flights.md)
-- [The smoother](physics/smoother.md)
 
 # Numerical tools
 
