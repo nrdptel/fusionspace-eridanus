@@ -16,8 +16,9 @@ sensors, and how well its 90% intervals hold.
   in [ADR-299, the smoother and its check][adr-299].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
   truth is known. There its intervals hold the truth at least as often as they claim, and more:
-  96% to 97.9% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). A real
-  log comes with no truth taken apart from it. So the smoother is unvalidated on real logs
+  94.3% to 97.3% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). Sets
+  A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
+  no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)).
 - **What it leaves out:** the horizontal track and the rocket's attitude. `hpr analyze` and Python
   get the smoother with [M7.2e, the 90% intervals on every reading](../decisions-and-roadmap.md#m7-2e).
@@ -45,10 +46,15 @@ Three things a log can't settle are carried into each interval instead of guesse
   its own apogee in every log.
 
 The barometer is de-weighted from Mach 0.8 too, because near Mach 1 the port's error can reach
-hundreds of meters. Each barometer sample's noise is the larger of the pad's and the log's own
-scatter about a two-second fit. A rocket swinging under its canopy can scatter its readings by
-meters, far more than it showed at rest. Any sensor's sample is rejected when it misses the
-estimate by more than five of its standard deviations.
+hundreds of meters. Any sensor's sample is rejected when it misses the estimate by more than five
+of its standard deviations.
+
+A rocket swinging under its canopy can scatter its barometer's readings by meters, far more than
+it showed at rest. So past apogee, each barometer sample's noise also holds the log's own scatter
+about a smooth curve through six seconds of it. That scatter is taken as correlated over 2
+seconds, so a swing isn't averaged away. Swings of 3 to 6 m (10 to 20 ft) that last up to a second stay inside
+their intervals in the tests. A slower one, correlated over 3 seconds, is partly read as motion,
+and its intervals miss more often than they claim.
 
 A GNSS receiver lags a climb by up to hundreds of meters, all the while flagging its fix good. So
 its fixes count only once its speed has agreed with the smoother's for 2 seconds.
@@ -56,37 +62,47 @@ its fixes count only once its speed has agreed with the smoother's for 2 seconds
 ## How well it holds
 
 The check, run by `cargo xtask synthetic`, compares each flight's smoothed height and speed with
-the truth. It does so at burnout, the top speed, apogee and one moment drawn per flight. On set
-B, the share of the 845 smoothed flights whose truth lay inside the 90% interval was:
+the truth. It does so at burnout, the top speed, apogee and one moment drawn at random per
+flight. A cell fails if either side's misses are shown, at 99.9% confidence, to pass 5%, half of
+what a 90% interval allows. Each set's cells and each logger's must hold.
 
-| Moment | Height | Speed | Median standard error |
+The rules were set on the tuning set, but sets A and B were run as each change landed, and some
+changes were found on them ([ADR-299][adr-299], item 13). On set B, 845 of the 1,000 flights were
+smoothed; the other 155 logs have no barometer. The share whose truth lay inside the 90% interval
+was:
+
+| Moment | Height | Speed | Median standard error (height, speed) |
 |---|---:|---:|---:|
-| Burnout | 97% | 97.6% | 58.6 m (192 ft), 11.1 m/s (36 ft/s) |
-| Top speed | 97.8% | 97.2% | 61.6 m (202 ft), 10.6 m/s (35 ft/s) |
-| Apogee | 97.9% | 97.5% | 84.8 m (278 ft), 0.759 m/s (2.49 ft/s) |
-| A drawn moment | 97.8% | 96% | 19.2 m (63 ft), 0.881 m/s (2.89 ft/s) |
+| Burnout | 96.7% | 96.6% | 59.1 m (194 ft), 11.3 m/s (37 ft/s) |
+| Top speed | 97.3% | 94.3% | 62.3 m (204 ft), 10.9 m/s (36 ft/s) |
+| Apogee | 97.3% | 96% | 84.3 m (277 ft), 1.23 m/s (4.04 ft/s) |
+| A drawn moment | 97.3% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
 
-The intervals are wide on purpose. Most of the height's comes from the day's air, which a log
-without a GNSS receiver can't measure, and from the port's error. The widest are on
-barometer-only loggers at burnout and the top speed, up to 407 m (1,335 ft) and 190 m/s (623 ft/s).
+The intervals are wide on purpose. Most of the height interval comes from the day's air, which a
+log without a GNSS receiver can't measure, and from the port's error. The widest are on
+barometer-only loggers: up to 407 m (1,335 ft) at burnout and 260 m/s (853 ft/s) at a drawn
+moment.
 
-Trusting the GNSS receiver from liftoff instead fails the check. At apogee, 151 of B's 845
-truths then lay below the interval. Every set, logger and moment is in [the report][report].
+Trusting the GNSS receiver from liftoff instead fails the check. At apogee, 146 of B's 845
+truths then lay below the interval, and only 82% inside it. Every set, logger and moment is in
+[the report][report].
 
 ## The health card
 
 A barometer-only log from the tuning set, as the report prints it:
 
 ```text
-barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.660; largest test ratio 0.547 at 141 s, Mach 0.01
+barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.709; largest test ratio 0.585 at 141 s, Mach 0.01
 barometer de-weighted: charge 27.9–29.9 s
 pass back: every step smoothed
 ```
 
-The test ratio is a sample's squared miss over five standard deviations squared. Above 1, the
-sample is rejected. The mean NIS is the squared miss over its variance. It is near 1 when a
-sensor's noise is what the smoother takes it to be. Below 1, the smoother takes the sensor as
-noisier than it was.
+Each sample is fused into the estimate, rejected at the gate, or not weighed (a GNSS fix before
+it is trusted). A reset is a sensor taken back after a second of rejections. The test ratio is
+a sample's squared miss over five standard deviations squared. Above 1, the sample is rejected.
+The mean NIS is the squared miss over its variance. It is near 1 when a sensor's noise is what
+the smoother takes it to be. Below 1, the smoother takes the sensor as noisier than it was. The
+last line says whether the pass back solved every step.
 
 ## Sources
 

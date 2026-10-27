@@ -174,6 +174,18 @@ pub fn check(flight: &Flight, options: Options) -> Checked {
         let (Some(true_state), Some(state)) =
             (truth.at(t), smoothed.at(t + flight.draw.logger.pad_s))
         else {
+            // A moment the smoothed track doesn't reach misses on both sides, so every smoothed
+            // flight counts in every cell.
+            for state in StateName::ALL {
+                compared.push((
+                    moment,
+                    state,
+                    Compared {
+                        error: f64::NAN,
+                        sd: f64::NAN,
+                    },
+                ));
+            }
             continue;
         };
         compared.push((
@@ -220,7 +232,7 @@ pub struct Cell {
     /// The lower edge of the 99.9% Clopper–Pearson interval on each side's miss share: below,
     /// then above.
     pub lowest_miss_share: [f64; 2],
-    /// Whether neither side is shown to miss more than 5%.
+    /// Whether it has flights and neither side is shown to miss more than 5%.
     pub holds: bool,
     /// The median standard error, in the state's unit.
     pub median_sd: f64,
@@ -299,9 +311,12 @@ impl HealthTally {
 }
 
 impl SetCheck {
-    /// Whether every cell holds.
+    /// Whether every cell holds, the set's and each logger's.
     pub fn holds(&self) -> bool {
-        self.cells.iter().all(|c| c.holds)
+        self.cells
+            .iter()
+            .chain(self.by_logger.values().flatten())
+            .all(|c| c.holds)
     }
 }
 
@@ -365,6 +380,11 @@ fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
     let flights = compared.len() as u64;
     let below = compared.iter().filter(|c| c.truth_below()).count() as u64;
     let above = compared.iter().filter(|c| c.truth_above()).count() as u64;
+    // Counted apart: a comparison that isn't a number misses on both sides.
+    let inside = compared
+        .iter()
+        .filter(|c| !c.truth_below() && !c.truth_above())
+        .count() as u64;
     let lowest = [
         clopper_pearson_lower(below, flights, BAND_CONFIDENCE),
         clopper_pearson_lower(above, flights, BAND_CONFIDENCE),
@@ -386,10 +406,11 @@ fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
         coverage: if flights == 0 {
             f64::NAN
         } else {
-            (flights - below - above) as f64 / flights as f64
+            inside as f64 / flights as f64
         },
         lowest_miss_share: lowest,
-        holds: lowest.iter().all(|&l| l <= MISS_SHARE),
+        // A cell of no flights shows nothing.
+        holds: flights > 0 && lowest.iter().all(|&l| l <= MISS_SHARE),
         median_sd,
         largest_sd,
     }
@@ -474,5 +495,21 @@ mod tests {
         // 74 misses in 1,000: the band's lower edge 0.0495; 75: 0.0504.
         assert!(cell(Moment::Apogee, StateName::Height, &make(74)).holds);
         assert!(!cell(Moment::Apogee, StateName::Height, &make(75)).holds);
+    }
+
+    #[test]
+    fn a_comparison_that_isnt_a_number_misses_and_an_empty_cell_shows_nothing() {
+        let nan = Compared {
+            error: f64::NAN,
+            sd: 1.0,
+        };
+        let inside = Compared {
+            error: 0.0,
+            sd: 1.0,
+        };
+        let c = cell(Moment::Apogee, StateName::Height, &[nan, inside, inside]);
+        assert_eq!((c.flights, c.below, c.above), (3, 1, 1));
+        assert!((c.coverage - 2.0 / 3.0).abs() < 1e-12, "{}", c.coverage);
+        assert!(!cell(Moment::Apogee, StateName::Height, &[]).holds);
     }
 }

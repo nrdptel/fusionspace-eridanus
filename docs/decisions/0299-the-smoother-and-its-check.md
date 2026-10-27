@@ -1,7 +1,7 @@
 # ADR-299: The smoother and its check on the synthetic flights (2026-10-27)
 
 - **Status:** accepted; records [M7.2d][m7-2d]'s smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* already names both
-- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on both test sets, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both. Its 90% intervals hold on all three sets: between 95.4% and 100% of the truths lie inside each cell's.
+- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on every set and logger, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both test sets. Its 90% intervals hold on all three sets: between 94.3% and 100% of the truths lie inside each set's cells.
 
 [m7-2d]: ../decisions-and-roadmap.md#m7-2d
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
@@ -55,7 +55,10 @@ fell short in five places:
    and each sample's fate at the gate. Without the replay, the two runs' differences were
    branch differences. On an IMU-500 tuning flight the second run kept a transonic span closed
    where the first opened it; a second before burnout its speed differed by 115 m/s, and that
-   spread widened the interval.
+   spread widened the interval. The pass back zeroes the held states' rows of its gain, as the
+   filter zeroes theirs. The covariance it carries back is the textbook one, derived for the
+   optimal gain, so for those rows it is HPR Sim's approximation; no source for a consider
+   smoother's was found, and the coverage on the synthetic sets is its only check.
 4. **The port term is evaluated at the barometer's own rate,** a least-squares slope over a quarter
    of a second either side, so the barometer's row stays linear in the states. Evaluated at the
    filter's own speed, a speed gone wrong fed the squared term and the filter ran away. On the
@@ -88,23 +91,41 @@ fell short in five places:
    smoother's for 2 s, then with its variance inflated for 5 s ([GNSS in boost][gnss] §5). Its
    fixes after the barometer's last sample are dropped: there the track would be the motion
    model's alone.
-10. **The barometer's noise in flight.** Each sample's white noise is the larger of the pad's,
-    thinned with the air, and the log's own scatter about it: the robust spread of the residuals
-    about a least-squares quadratic over a second either side, less the fast noise, which the
-    scatter holds whole. Under a canopy, a swinging rocket and the gusts on it scatter a
-    barometer's readings by 0.3–7.5 m about two-second fits on public pairs' descents
-    ([the sensor-noise note][noise] §3), far more than a pad shows. This was found on a public
-    forum log, a barometer's track with a GNSS receiver's, whose pad was supplied as a constant
-    reading, as a logger reading whole feet at rest gives. Weighed by the pad's noise alone,
-    960 of its 2,704 barometer samples failed the gate, the filter reset 40 times, and its apogee
-    came out 1,630 m, standard error 58 m, against the barometer's highest reading, 1,407 m. With the scatter, every
-    sample is fused, the mean NIS is 1.01, and the apogee is 1,401 m, standard error 43 m.
+10. **The barometer's noise in flight.** Past the barometer's own top and the charge expected
+    there, each sample's noise also holds the log's own scatter: the robust spread of the heights
+    about a least-squares quadratic through their running medians over three seconds either side,
+    less the pad's noise and the fast and slow correlated noise the pad's was taken less of. The
+    scatter beyond those is fused as an error correlated over 2 s. Under a canopy, a swinging
+    rocket and the gusts on it scatter a barometer's readings by 0.3–7.5 m about two-second fits
+    on public pairs' descents ([the sensor-noise note][noise] §3), far more than a pad shows. A
+    pendulum on 3–15 m of cord and lines has a time constant `√(L/g)` of 0.55–1.24 s; 2 s is taken
+    because the quadratic takes part of a correlated error's variance out. In the tests, descents
+    swinging by 3–6 m correlated over up to a second keep 92–100% of their heights inside the 90%
+    intervals, and one correlated over 3 s keeps 74%: a barometer alone can't tell a slow swing
+    from motion. Before the top the scatter is left out: a six-second quadratic reads liftoff's
+    and burnout's bends as noise.
+
+    This was found on a public forum log, a barometer's track with a GNSS receiver's, cached under
+    the ignored `refs/research/` as its license is unclear, so these figures can't be rerun from
+    the repository. Its pad was supplied as a constant reading, as a logger reading whole feet at
+    rest gives. Weighed by the pad's noise alone, 960 of its 2,704 barometer samples failed the
+    gate, the filter reset 40 times, and its apogee came out 1,630 m, standard error 58 m, against
+    the barometer's highest reading, 1,407 m. With the scatter, 8 samples are rejected, all at the
+    ejection's onset, and the apogee is 1,408 m, standard error 43.5 m.
+
+    Two more guards came from review. The rates the port's term and the transonic span read are
+    the running medians' slopes, and the air that thins the barometer's noise is taken at the
+    running median's height: one garbled sample, of 2 km or 10⁷ m, had bent its neighbors' rates
+    and put its own noise in no air, and the filter lost the track. An estimate that leaves the
+    finite numbers anywhere withholds the log (`Reason::Diverged`) rather than return it.
 11. **The check.** Per set, state and moment, each side's misses of the 90% interval are counted.
     A cell holds when the lower edge of the two-sided 99.9% Clopper–Pearson band on each side's
     miss share is at most 5%, so the flights don't show it missing more often than it says it
     does. The report gives each cell overall and per logger, with the median and the largest
     standard error, so an interval that holds only by being wide shows. `cargo xtask synthetic`
-    fails if any cell fails on any set, or if any step goes unsmoothed. It also fails if trusting
+    fails if any cell fails on any set, overall or for a logger, or if any step goes unsmoothed,
+    or if a flight's smoothing panics; a moment the smoothed track doesn't reach misses on both
+    sides. It also fails if trusting
     GNSS from liftoff holds on A or B. The tuning set's 200 flights are too few to require that;
     its result is reported.
 12. **The health card** is `Smoothed::health`, written out by `Health::card`. It holds each
@@ -116,28 +137,31 @@ fell short in five places:
 13. **What was seen before the rules were set.** The rules were found on the tuning set. A and B
     were run as each change landed, and three changes were found by tracing flights that failed
     there: the apogee rule, the port term at the rate and the landing's jerk. The flight's own
-    noise came from the real log in item 10, and A and B were run after it. For the apogee
+    noise came from the real log in item 10, and A and B were run after it. Its first form,
+    which held the slow correlated noise twice, failed B's per-logger cell for the GNSS logger's
+    apogee height (21 of 186 truths below), once each logger's cells were gated; taking the slow
+    noise out, as the pad's estimate does, set it right. For the apogee
     charge span, A's failing apogee-speed cell came first, and B's was seen at 62 of 845. So A
     and B are no longer untouched for those cells. Each rule is physical, not fitted: of
-    the new constants, the span's 5 m comes from a coast's shape and the scatter's two seconds
-    from the noise note's fits; the rest reuse the smoother's own.
+    the new constants, the span's 5 m comes from a coast's shape, and the swing's 2 s from a
+    pendulum's, with the scatter's window long against it; the rest reuse the smoother's own.
     M7.2e's test of every reading starts from the same sets.
 
 **Consequences.**
 
-- On B, the median standard errors are 59 m of height and 11 m/s of speed at burnout, 85 m and
-  0.76 m/s at apogee, and 19 m and 0.88 m/s at a drawn moment. The day's air, held at its prior
+- On B, the median standard errors are 59 m of height and 11 m/s of speed at burnout, 84 m and
+  1.2 m/s at apogee, and 18.5 m and 1.0 m/s at a drawn moment. The day's air, held at its prior
   without a receiver, and the port's spread make up most of them.
-- The widest intervals are on barometer-only loggers at burnout and the top speed, up to about
-  410 m and 190 m/s.
+- The widest intervals are on barometer-only loggers, up to about 410 m at burnout and 260 m/s
+  at a drawn moment.
   They hold the truth, but say little there.
 - Trusting the receiver from liftoff fails on A and B at apogee and at a drawn moment, where the
-  lagging fix pulls the height: 151 of 845 truths at apogee lie below B's interval.
-- `cargo xtask synthetic` takes 234 s on an 8-core Mac, up from 101 s, as each flight is smoothed
-  twice and each GNSS log twice more.
-- The flight's own noise widens B's barometer weights where its loggers scatter more than their
-  pads: barometer samples rejected fell from 29,500 to 10,822 of 20.6 million, resets from 90 to
-  20, and every cell's coverage stayed within the check.
+  lagging fix pulls the height: 146 of 845 truths at apogee lie below B's interval.
+- `cargo xtask synthetic` takes about four minutes on an 8-core Mac, up from 101 s, as each flight
+  is smoothed twice and each GNSS log twice more.
+- The flight's own noise widens B's barometer weights past apogee where its loggers scatter more
+  than their pads: barometer samples rejected fell from 29,500 to 13,436 of 20.6 million, resets
+  from 90 to 35, and every cell's coverage stayed within the check.
 - The smoother's page, [The smoother](../physics/smoother.md), put the site's search index 23 KB
   past mdBook's 10 MB limit. The evidence register's page leaves the index, as earlier pages that
   restate others have (`book.toml`): its rows restate the gaps the guide's pages state, and each

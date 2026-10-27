@@ -192,14 +192,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
                     .next()
                     .and_then(|n| n.parse().ok())
                     .ok_or("--count takes a number")?;
-                if let Some(p) = probe.as_mut() {
-                    p.1 = count;
-                }
+                probe.as_mut().ok_or("--count comes after --smoother")?.1 = count;
             }
             "--trust-gnss-from-liftoff" => {
-                if let Some(p) = probe.as_mut() {
-                    p.2.gnss_trust = GnssTrust::FromLiftoff;
-                }
+                probe
+                    .as_mut()
+                    .ok_or("--trust-gnss-from-liftoff comes after --smoother")?
+                    .2
+                    .gnss_trust = GnssTrust::FromLiftoff;
             }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
@@ -207,7 +207,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
     if let Some((set, count, options)) = probe {
-        let checks: Vec<Checked> = smooth_set(set, count, &files, options, false)
+        let checks: Vec<Checked> = smooth_set(set, count, &files, options, false)?
             .into_iter()
             .map(|(_, check, _)| check)
             .collect();
@@ -226,7 +226,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut smoother = Vec::new();
     let mut cards = Vec::new();
     for set in Set::ALL {
-        let (made, set_cards) = smoother_set(set, &files);
+        let (made, set_cards) = smoother_set(set, &files)?;
         println!(
             "{}: smoother {}, {} flights; trusting GNSS from liftoff {}",
             set.name(),
@@ -389,19 +389,22 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
 type Smoothed = (u64, Checked, Option<Checked>);
 
 /// Smooths the first `count` flights of `set` on every core and checks each against its truth,
-/// in the flights' order; a flight that doesn't fly is left out. With `mutate`, each log with a
-/// GNSS track is smoothed again with the receiver trusted from liftoff.
+/// in the flights' order; a flight that doesn't fly is left out, as the census counts it. With
+/// `mutate`, each log with a GNSS track the smoother takes is smoothed again with the receiver
+/// trusted from liftoff. A flight whose smoothing panics is an error, not a flight left out: a
+/// check over the rest would hold on fewer flights than it says.
 fn smooth_set(
     set: Set,
     count: u64,
     files: &DesignFiles,
     options: Options,
     mutate: bool,
-) -> Vec<Smoothed> {
+) -> Result<Vec<Smoothed>, String> {
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(16) as u64;
     let mut checks: Vec<Option<Smoothed>> = vec![None; count as usize];
+    let mut panicked: Vec<String> = Vec::new();
     std::thread::scope(|scope| {
         let handles: Vec<_> = (0..threads)
             .map(|start| {
@@ -410,36 +413,62 @@ fn smooth_set(
                     let mut flyer = Flyer::new(files);
                     let mut done = Vec::new();
                     for index in (start..count).step_by(threads as usize) {
-                        if let Ok(flight) = flyer.flight(set, index) {
+                        let Ok(flight) = flyer.flight(set, index) else {
+                            continue;
+                        };
+                        let smoothed = panic::catch_unwind(AssertUnwindSafe(|| {
                             let check = smoothed::check(&flight, options);
-                            let mutated = (mutate && check.has_gnss).then(|| {
-                                let trusted = Options {
-                                    gnss_trust: GnssTrust::FromLiftoff,
-                                };
-                                smoothed::check(&flight, trusted)
-                            });
-                            done.push((index, (index, check, mutated)));
-                        }
+                            let mutated = (mutate && check.has_gnss && check.withheld.is_none())
+                                .then(|| {
+                                    let trusted = Options {
+                                        gnss_trust: GnssTrust::FromLiftoff,
+                                    };
+                                    smoothed::check(&flight, trusted)
+                                });
+                            (index, check, mutated)
+                        }))
+                        .map_err(|payload| {
+                            format!(
+                                "{} flight {index}: the smoother panicked: {}",
+                                set.name(),
+                                panic_message(&*payload)
+                            )
+                        });
+                        done.push((index, smoothed));
                     }
                     done
                 })
             })
             .collect();
         for handle in handles {
-            if let Ok(done) = handle.join() {
-                for (index, check) in done {
-                    checks[index as usize] = Some(check);
+            match handle.join() {
+                Ok(done) => {
+                    for (index, smoothed) in done {
+                        match smoothed {
+                            Ok(check) => checks[index as usize] = Some(check),
+                            Err(message) => panicked.push(message),
+                        }
+                    }
                 }
+                Err(payload) => panicked.push(format!(
+                    "{}: a smoothing thread panicked: {}",
+                    set.name(),
+                    panic_message(&*payload)
+                )),
             }
         }
     });
-    checks.into_iter().flatten().collect()
+    if panicked.is_empty() {
+        Ok(checks.into_iter().flatten().collect())
+    } else {
+        Err(panicked.join("\n"))
+    }
 }
 
 /// A set's smoother check and its trusted-from-liftoff mutation for the report, with a health
 /// card for each logger's first smoothed flight.
-fn smoother_set(set: Set, files: &DesignFiles) -> (SmootherSet, Vec<Card>) {
-    let all = smooth_set(set, set.count(), files, Options::default(), true);
+fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>), String> {
+    let all = smooth_set(set, set.count(), files, Options::default(), true)?;
     let mut cards = Vec::new();
     for profile in Profile::ALL {
         if let Some((index, health)) = all.iter().find_map(|(index, check, _)| {
@@ -468,7 +497,7 @@ fn smoother_set(set: Set, files: &DesignFiles) -> (SmootherSet, Vec<Card>) {
     }
     let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
     round_cells(&mut gnss_from_liftoff);
-    (
+    Ok((
         SmootherSet {
             set,
             check,
@@ -476,7 +505,7 @@ fn smoother_set(set: Set, files: &DesignFiles) -> (SmootherSet, Vec<Card>) {
             gnss_from_liftoff,
         },
         cards,
-    )
+    ))
 }
 
 /// Cells to three significant figures, as the report holds them; whether each holds is decided
