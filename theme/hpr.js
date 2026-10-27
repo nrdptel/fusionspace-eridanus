@@ -287,3 +287,27 @@ document.addEventListener('click', function (event) {
     if (document.fonts) document.fonts.ready.then(settle);
     window.matchMedia('(min-width: 960px)').addEventListener('change', settle);
 })();
+
+// The first Tab on a long page (#504). A page opened with no fragment has no sequential focus
+// navigation starting point (HTML Standard, *Focus*), so the browser's first Tab tests the
+// document's elements for focus one by one before it moves: about 6,200 layout checks on
+// `physics/aero.html`, a quarter of a second on a phone, which the page check's vitals measured as
+// the page's slowest input. A click sets the starting point, and so does a fragment; until either
+// does, the first plain Tab focuses the body and lets it go first, which sets it at the top. The
+// Tab then lands on the first control, as it would have, without the walk. Shift+Tab, a Tab after
+// a click, and a page opened at a heading keep the browser's own starting point.
+(function () {
+    let started = false;
+    addEventListener('pointerdown', function () { started = true; }, { capture: true, once: true });
+    addEventListener('keydown', function (event) {
+        if (started || event.key !== 'Tab') return;
+        started = true;
+        if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+        if (location.hash || document.activeElement !== document.body) return;
+        const body = document.body;
+        body.tabIndex = -1;
+        body.focus({ preventScroll: true });
+        body.blur();
+        body.removeAttribute('tabindex');
+    }, { capture: true });
+})();
