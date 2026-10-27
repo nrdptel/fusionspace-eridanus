@@ -192,8 +192,14 @@ fn message(text: &str, split: &Split) -> String {
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" "),
-        super::figures::context(text, split.pair.clone())
+        shown(&super::figures::context(text, split.pair.clone()))
     )
+}
+
+/// A message's context with each inline equation's box (U+FFFC) shown as a word, since a
+/// terminal draws the box as nothing or a square.
+fn shown(context: &str) -> String {
+    context.replace('\u{fffc}', "[equation]")
 }
 
 /// The split pair with `space` between the figure and the unit.
@@ -553,7 +559,7 @@ fn unit_after_equations(run: &HtmlRun) -> Vec<String> {
                 "an equation ending in `{number}` has its unit, `{unit}`, after it in \"{}\", where a \
                  line can break even at a no-break space: write the unit inside the equation, \
                  `{number}\\,\\mathrm{{{unit}}}$` (data.md, Numbers)",
-                super::figures::context(&run.text, *end..unit_end)
+                shown(&super::figures::context(&run.text, *end..unit_end))
             ));
         }
     }
@@ -675,7 +681,10 @@ mod tests {
             "{}",
             problems[0]
         );
+        assert!(problems[0].contains("[equation] ft"), "{}", problems[0]);
         assert!(problems[1].contains("ending in `4`") && problems[2].contains("`7`"));
+        let thin = "<p>at <math><mn>3</mn></math>&thinsp;s</p>";
+        assert_eq!(page_splits(thin).len(), 1, "{:?}", page_splits(thin));
         assert_eq!(joined_html(html), (html.to_owned(), 0));
         // The unit inside the equation passes.
         let inside = "<p>its altitude <math><mn>4593</mn><mspace width=\"0.1667em\"/>\

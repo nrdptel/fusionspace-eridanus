@@ -176,7 +176,7 @@ a body 56.3 mm (2.2 in) across) on an [I175](../glossary.md#motor-designation) m
 carries 200 g of ballast, a cylinder 50 mm (2.0 in) long and 30 mm (1.2 in) across. The ballast is on the axis, its
 center 0.375 m (1.23 ft) aft of the nose tip. The rocket flies in calm standard air from a site in New Mexico 1,400 m (4,593 ft)
 up. A drogue with a drag area of 0.3 m² opens at apogee. At 5 s, well after the 2.5 s burn, the ballast is let
-go to tumble down under $0.56 \times 0.05 \times 0.03 = 0.00084\,\mathrm{m}^2$, the tumble model's body term.
+go to tumble down under $0.56 \times 0.05 \times 0.03 = 0.00084\,\mathrm{m^2}$, the tumble model's body term.
 
 In the table the transverse inertia is about an axis across the rocket through its center of
 mass, the one it pitches about. What the example prints:

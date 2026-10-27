@@ -2443,7 +2443,7 @@ refused. So is a name stated twice, and so is a value too large for its unit's c
 
 - `Max Altitude,2500.25 feet` gives the stated apogee, $2500.25 \times 0.3048 = 762.08\,\mathrm{m}$.
 - `Max velocity,500.50 feet/sec` is a speed of 152.55 m/s (500.50 ft/s).
-- `Max motor burn acceleration,12.0 Gs` is $12.0 \times 9.806\,65 = 117.68\,\mathrm{m/s}^2$.
+- `Max motor burn acceleration,12.0 Gs` is $12.0 \times 9.806\,65 = 117.68\,\mathrm{m/s^2}$.
 - `Temperature on pad,77.0 F` is 298.15 K (77.0 °F).
 - `Thrust tilt efficiency,98.50%` is the fraction 0.985.
 - `Main chute descent rate,-20.0 feet` stays −20.0 as written, with the note
