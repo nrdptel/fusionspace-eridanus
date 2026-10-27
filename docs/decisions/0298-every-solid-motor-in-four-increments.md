@@ -77,7 +77,7 @@ record figures, which the pinned capture holds for the 32 bundled motors.
 6. **The warning** names the motor, the file and each failing figure's signed gap, file against
    record. A figure inside 1% isn't named.
 7. **If ThrustCurve.org's API is still down** when M5.7b comes up, M5.7b is blocked on it, not on
-   the maintainer. The next unblocked milestone in the queue goes first, and `STATUS.md` says why.
+   the maintainer. The next unblocked milestone in the queue goes first.
 
 **Consequences.**
 
