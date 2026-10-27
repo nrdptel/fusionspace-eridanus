@@ -147,6 +147,13 @@ fn correlated_factor(dt_s: f64, tau_s: f64) -> f64 {
 pub const CHARGE_WINDOW_S: f64 = 0.5;
 
 
+/// A charge is expected at apogee whether or not the log names it (a dual-deploy drogue, or a
+/// motor's ejection timed for it), so the barometer is de-weighted from the first time its
+/// running median comes within this of its highest to the last, and [`CHARGE_WINDOW_S`] after,
+/// m: a coast passes within 5 m of its apogee for about a second either side, `√(2·5/g)`, wider
+/// than the running median's noise lets the top be placed. HPR Sim's choice.
+pub const APOGEE_CHARGE_SPAN_M: f64 = 5.0;
+
 /// The barometer's standard deviation in that window, m: twice the Pnut pulse's 16 m.
 pub const CHARGE_SD_M: f64 = 32.0;
 
@@ -406,6 +413,113 @@ pub struct Health {
     pub unsmoothed_steps: usize,
 }
 
+impl Sensor {
+    /// Its name.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Barometer => "barometer",
+            Self::Accelerometer => "accelerometer",
+            Self::Gnss => "GNSS",
+        }
+    }
+}
+
+impl Health {
+    /// The card as text: a line for each sensor, then the barometer's de-weighted spans, when
+    /// the GNSS receiver was first trusted, the barometer's height less the accelerometer's at
+    /// apogee, and the pass back. Times are on the log's clock; numbers are to three significant
+    /// figures.
+    pub fn card(&self) -> String {
+        let mut out = String::new();
+        for s in &self.sensors {
+            out.push_str(&format!(
+                "{}: {} samples, {} fused, {} rejected, {} not weighed, {} {}",
+                s.sensor.name(),
+                s.samples,
+                s.used,
+                s.rejected,
+                s.unweighed,
+                s.resets,
+                if s.resets == 1 { "reset" } else { "resets" }
+            ));
+            if let Some(share) = s.inside_gate_share {
+                // Rounded down, so a share short of all reads short of 100%.
+                let tenths = (1000.0 * share).floor() / 10.0;
+                out.push_str(&format!("; {tenths:.1}% inside the gate"));
+            }
+            if let Some(nis) = s.mean_nis {
+                out.push_str(&format!("; mean NIS {}", figures(nis)));
+            }
+            if let Some(l) = s.largest {
+                out.push_str(&format!(
+                    "; largest test ratio {} at {} s, Mach {:.2}",
+                    figures(l.ratio),
+                    figures(l.time_s),
+                    l.mach
+                ));
+            }
+            out.push('\n');
+        }
+        out.push_str("barometer de-weighted: ");
+        if self.deweighted.is_empty() {
+            out.push_str("never");
+        } else {
+            let spans: Vec<String> = self
+                .deweighted
+                .iter()
+                .map(|span| {
+                    let why = match span.why {
+                        Deweighted::Transonic => "transonic",
+                        Deweighted::Charge => "charge",
+                    };
+                    format!("{why} {}–{} s", figures(span.start_s), figures(span.end_s))
+                })
+                .collect();
+            out.push_str(&spans.join(", "));
+        }
+        out.push('\n');
+        if self.sensors.iter().any(|s| s.sensor == Sensor::Gnss) {
+            match self.gnss_trusted_s {
+                Some(t) => out.push_str(&format!("GNSS trusted from {} s\n", figures(t))),
+                None => out.push_str("GNSS never trusted\n"),
+            }
+        }
+        if let Some(gap) = self.baro_minus_inertial_at_apogee_m {
+            out.push_str(&format!(
+                "barometer less accelerometer at apogee: {} m\n",
+                figures(gap)
+            ));
+        }
+        if self.unsmoothed_steps == 0 {
+            out.push_str("pass back: every step smoothed\n");
+        } else {
+            out.push_str(&format!(
+                "pass back: {} steps kept the forward estimate\n",
+                self.unsmoothed_steps
+            ));
+        }
+        out
+    }
+}
+
+/// `x` to three significant figures, without an exponent; at least its whole part.
+fn figures(x: f64) -> String {
+    if !x.is_finite() {
+        return format!("{x}");
+    }
+    if x == 0.0 {
+        return "0".to_owned();
+    }
+    let digits = x.abs().log10().floor() as i32;
+    let decimals = (2 - digits).max(0) as usize;
+    let text = format!("{x:.decimals$}");
+    if text.trim_start_matches('-').chars().all(|c| c == '0' || c == '.') {
+        "0".to_owned()
+    } else {
+        text
+    }
+}
+
 /// A flight smoothed.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Smoothed {
@@ -491,8 +605,10 @@ pub fn smooth_with(
     // linear response to it, is added to each interval (a consider analysis). The step is taken
     // toward a port reading high, where a faster climb explains less of the height; the other way
     // a faster climb would explain more, and an estimate far off could run away.
-    let mut smoothed = run(&inputs, options, PORT_PRIOR_MEAN);
-    let off = run(&inputs, options, PORT_PRIOR_MEAN - PORT_PRIOR_SD);
+    // The second run replays the first's choices ([`Choices`]), so the difference is the
+    // coefficient's effect alone.
+    let (mut smoothed, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None);
+    let (off, _) = run(&inputs, options, PORT_PRIOR_MEAN - PORT_PRIOR_SD, Some(&choices));
     let pairs = [
         (&mut smoothed.height_sd_m, &smoothed.height_m, &off.height_m),
         (&mut smoothed.speed_sd_m_s, &smoothed.speed_m_s, &off.speed_m_s),
@@ -754,7 +870,7 @@ impl Inputs {
             GNSS_SD_DEFAULT_M
         };
 
-        let charges: Vec<(f64, f64)> = log
+        let mut charges: Vec<(f64, f64)> = log
             .events
             .iter()
             .filter(|e| {
@@ -763,6 +879,7 @@ impl Inputs {
             })
             .map(|e| (e.time_s, e.time_s + CHARGE_WINDOW_S))
             .collect();
+        charges.extend(apogee_charge(&baro, liftoff.time_s));
 
         let landing_s = landing(&baro, liftoff.time_s);
         Ok(Self {
@@ -780,6 +897,17 @@ impl Inputs {
             charges,
         })
     }
+}
+
+/// The span around the barometer's apogee in which a charge is expected
+/// ([`APOGEE_CHARGE_SPAN_M`]); `None` if the track has no sample after liftoff.
+fn apogee_charge(baro: &[Baro], liftoff_s: f64) -> Option<(f64, f64)> {
+    let after = || baro.iter().filter(|b| b.time_s > liftoff_s);
+    let top = after().map(|b| b.smoothed_m).max_by(f64::total_cmp)?;
+    let near = || after().filter(|b| b.smoothed_m >= top - APOGEE_CHARGE_SPAN_M);
+    let first = near().next()?.time_s;
+    let last = near().next_back()?.time_s;
+    Some((first, last + CHARGE_WINDOW_S))
 }
 
 /// The channel's samples, gravity put back and nose up.
@@ -1080,6 +1208,36 @@ struct Filter {
     held: [bool; N],
     rejected: Vec<Rejected>,
     pad_msl_for_sound_m: f64,
+    /// Each sample's fate at the gate, in the order fused.
+    gates: Vec<Gate>,
+    /// A run's gate outcomes to replay, and the next one's index.
+    replay: Option<(Vec<Gate>, usize)>,
+}
+
+/// A sample's fate at the gate.
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Gate {
+    Used,
+    Rejected,
+    /// Rejected for [`GATE_RESET_S`] and taken back, the state widened.
+    TakenBack,
+}
+
+/// The discrete choices a run makes from its own estimates: each step's phase and whether the
+/// first apogee has passed, each barometer sample's transonic de-weighting, each GNSS fix's
+/// trust, and each sample's fate at the gate. The consider run replays the first run's, so the
+/// difference between the two is the port coefficient's effect alone, not that of a span closed
+/// a sample later or a fix rejected in one run and not the other.
+#[derive(Debug, Clone, Default, PartialEq)]
+struct Choices {
+    /// Each step after the first: its phase, and whether the first apogee has passed.
+    steps: Vec<(Phase, bool)>,
+    /// Each barometer sample's transonic shift and the speed it multiplies.
+    transonic: Vec<(f64, f64)>,
+    /// Each GNSS fix: trusted, trust begun, settling.
+    gnss: Vec<(bool, bool, bool)>,
+    /// Each sample's fate at the gate, in the order fused.
+    gates: Vec<Gate>,
 }
 
 /// A measurement's variance: as fused, and as one sample's own for the gate.
@@ -1127,9 +1285,26 @@ impl Filter {
                 mach,
             });
         }
-        if ratio > 1.0 {
+        let replayed = self.replay.as_mut().and_then(|(gates, at)| {
+            let gate = gates.get(*at).copied();
+            *at += 1;
+            gate
+        });
+        let gate = replayed.unwrap_or_else(|| {
+            if ratio <= 1.0 {
+                return Gate::Used;
+            }
             let since = *tally.rejecting_since.get_or_insert(time_s);
-            if !reset_after_s.is_some_and(|after| time_s - since >= after) {
+            if reset_after_s.is_some_and(|after| time_s - since >= after) {
+                Gate::TakenBack
+            } else {
+                Gate::Rejected
+            }
+        });
+        self.gates.push(gate);
+        match gate {
+            Gate::Used => {}
+            Gate::Rejected => {
                 tally.health.rejected += 1;
                 self.rejected.push(Rejected {
                     sensor: tally.health.sensor,
@@ -1138,12 +1313,14 @@ impl Filter {
                 });
                 return Gated::Rejected;
             }
-            // Taken back: the height, speed and acceleration widened by what the innovation says
-            // they missed, the gap closed over the time rejected.
-            self.widen(H, y * y);
-            self.widen(V, (y / GATE_RESET_S).powi(2));
-            self.widen(A, (2.0 * y / (GATE_RESET_S * GATE_RESET_S)).powi(2));
-            tally.health.resets += 1;
+            Gate::TakenBack => {
+                // The height, speed and acceleration widened by what the innovation says they
+                // missed, the gap closed over the time rejected.
+                self.widen(H, y * y);
+                self.widen(V, (y / GATE_RESET_S).powi(2));
+                self.widen(A, (2.0 * y / (GATE_RESET_S * GATE_RESET_S)).powi(2));
+                tally.health.resets += 1;
+            }
         }
         tally.rejecting_since = None;
         let s = kalman::update(&mut self.x, &mut self.p, h, y, r, &self.held);
@@ -1288,7 +1465,13 @@ impl Trust {
     }
 }
 
-fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
+fn run(
+    inputs: &Inputs,
+    options: Options,
+    climb_port: f64,
+    replay: Option<&Choices>,
+) -> (Smoothed, Choices) {
+    let mut choices = Choices::default();
     let steps = grid(inputs);
     let n = steps.len();
     let pad_msl_for_air_m = inputs.pad_msl_m.unwrap_or(0.0);
@@ -1346,6 +1529,8 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
         held,
         rejected: Vec::new(),
         pad_msl_for_sound_m,
+        gates: Vec::new(),
+        replay: replay.map(|c| (c.gates.clone(), 0)),
     };
     let mut baro_tally = Tally::new(Sensor::Barometer);
     let mut accel_tally = Tally::new(Sensor::Accelerometer);
@@ -1398,6 +1583,7 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                 let v_sd = filter.p[V][V].max(0.0).sqrt();
                 top_speed = top_speed.max(filter.x[V]);
                 peak_low = peak_low.max(filter.x[V] - 2.0 * v_sd);
+                let replayed = replay.and_then(|c| c.steps.get(k - 1)).copied();
                 let climbing = t > inputs.liftoff.time_s && top_speed > APOGEE_SPEED_M_S;
                 let rate_fell = !transonic.open
                     && rate_peak > APOGEE_SPEED_M_S
@@ -1406,19 +1592,30 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                 if powered_until.is_none() && climbing && slowing {
                     powered_until = Some(t + POWERED_HOLD_S);
                 }
-                if !past_apogee && powered_until.is_some() && filter.x[V] <= 0.0 {
+                let apogee = match replayed {
+                    Some((_, past)) => past,
+                    None => {
+                        past_apogee
+                            || powered_until.is_some()
+                                && filter.x[V] + 2.0 * v_sd <= 0.0
+                                && last_rate <= 0.0
+                    }
+                };
+                if apogee && !past_apogee {
                     past_apogee = true;
                     for state in [BIAS, SCALE, TILT] {
                         filter.held[state] = true;
                     }
                 }
-                match powered_until {
-                    None => Phase::Powered,
-                    Some(until) if t <= until => Phase::Powered,
+                match (replayed, powered_until) {
+                    (Some((phase, _)), _) => phase,
+                    (None, None) => Phase::Powered,
+                    (None, Some(until)) if t <= until => Phase::Powered,
                     _ if filter.x[V] > 0.0 => Phase::Coast,
                     _ => Phase::Descent,
                 }
             };
+            choices.steps.push((phase, past_apogee));
             let measured_a = has_accel && !past_apogee;
             let jerk = match phase {
                 Phase::Pad => JERK_PAD,
@@ -1517,11 +1714,15 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                     let v_sd = filter.p[V][V].max(0.0).sqrt();
                     // A descent fast enough to be transonic is a failed recovery's, and a filter
                     // that lost the track would de-weight the barometer that can find it again.
-                    let (shift, v_high) = if past_apogee {
-                        (0.0, 0.0)
-                    } else {
-                        transonic.weigh(t, v, v_sd, s.rate_m_s, pad_msl_for_sound_m + s.height_m)
+                    let replayed = replay.and_then(|c| c.transonic.get(choices.transonic.len()));
+                    let (shift, v_high) = match replayed {
+                        Some(&chosen) => chosen,
+                        None if past_apogee => (0.0, 0.0),
+                        None => {
+                            transonic.weigh(t, v, v_sd, s.rate_m_s, pad_msl_for_sound_m + s.height_m)
+                        }
                     };
+                    choices.transonic.push((shift, v_high));
                     if shift > 0.0 {
                         let error = (shift * v_high * v_high / (2.0 * G0)).powi(2);
                         r.fused += error * held;
@@ -1537,7 +1738,7 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                     // speed v̂: the climb's coefficient given, the fall's learned (a fall's
                     // attitude isn't the climb's); under a canopy it is small.
                     let x = filter.x;
-                    let q_term = if landed { 0.0 } else { v * v / (2.0 * G0) };
+                    let q_term = if landed { 0.0 } else { s.rate_m_s * s.rate_m_s / (2.0 * G0) };
                     let mut h = [0.0; N];
                     h[H] = 1.0;
                     h[SLOW] = 1.0;
@@ -1550,9 +1751,6 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                     };
                     // The term's slope in the speed, `−Cp v/g`: left out, a speed gone high would
                     // move only the height to explain what its own square predicts.
-                    if !landed {
-                        h[V] = -coefficient * v / G0;
-                    }
                     let predicted = x[H] + x[SLOW] + x[DRIFT] - coefficient * q_term;
                     let y = s.height_m - predicted;
                     filter.fuse(&mut baro_tally, t, &h, y, r, Some(GATE_RESET_S));
@@ -1561,14 +1759,25 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                     let (_, z) = inputs.gnss[i];
                     gnss_tally.health.samples += 1;
                     let v_sd = filter.p[V][V].max(0.0).sqrt();
-                    let (trusted, began) = trust.weigh(
-                        t,
-                        z,
-                        filter.x[V],
-                        v_sd,
-                        inputs.gnss_sd,
-                        inputs.liftoff.time_s,
-                    );
+                    let replayed = replay.and_then(|c| c.gnss.get(choices.gnss.len()));
+                    let (trusted, began, settling) = match replayed {
+                        Some(&chosen) => chosen,
+                        None => {
+                            let (trusted, began) = trust.weigh(
+                                t,
+                                z,
+                                filter.x[V],
+                                v_sd,
+                                inputs.gnss_sd,
+                                inputs.liftoff.time_s,
+                            );
+                            let settling = trust
+                                .since_s
+                                .is_some_and(|since| t - since < GNSS_SETTLE_S);
+                            (trusted, began, settling)
+                        }
+                    };
+                    choices.gnss.push((trusted, began, settling));
                     if !trusted {
                         gnss_tally.health.unweighed += 1;
                         continue;
@@ -1577,9 +1786,6 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
                         // The offset let go: whatever the receiver's lag left in it is forgotten.
                         filter.widen(GNSS, GNSS_OFFSET_SD_M * GNSS_OFFSET_SD_M);
                     }
-                    let settling = trust
-                        .since_s
-                        .is_some_and(|since| t - since < GNSS_SETTLE_S);
                     let r = inputs.gnss_sd * inputs.gnss_sd
                         * if settling { GNSS_SETTLE_FACTOR } else { 1.0 };
                     // z = h_b − k ψ(h_b) + o: the true height, and the receiver's offset.
@@ -1720,7 +1926,8 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
     }
     let mut rejected = filter.rejected;
     rejected.sort_by(|a, b| a.time_s.total_cmp(&b.time_s).then(a.sensor.cmp(&b.sensor)));
-    Smoothed {
+    choices.gates = filter.gates;
+    let smoothed = Smoothed {
         time_s: times,
         height_m,
         height_sd_m,
@@ -1736,7 +1943,8 @@ fn run(inputs: &Inputs, options: Options, climb_port: f64) -> Smoothed {
             baro_minus_inertial_at_apogee_m,
             unsmoothed_steps,
         },
-    }
+    };
+    (smoothed, choices)
 }
 
 /// Adds a de-weighted sample to the spans: it extends the last span of its kind if it follows it
@@ -1784,4 +1992,327 @@ fn inertial_gap(inputs: &Inputs, apogee_s: f64) -> Option<f64> {
         .iter()
         .min_by(|a, b| (a.time_s - apogee_s).abs().total_cmp(&(b.time_s - apogee_s).abs()))?;
     Some(baro.height_m - h)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::log::{LogFormat, Stated};
+
+    const DT: f64 = 0.05;
+    const LIFTOFF_S: f64 = 5.0;
+    const BURNOUT_S: f64 = 7.0;
+    /// 5 g for 2 s: 98.1 m/s and 98.1 m at burnout.
+    const BOOST_M_S2: f64 = 5.0 * G0;
+    const DESCENT_M_S: f64 = 15.0;
+
+    /// An invented flight: on the pad to 5 s, 5 g to 7 s, a coast without drag to apogee at 17 s
+    /// (588.4 m), a fall to 15 m/s and down at that to the ground at 57.0 s, and 16 s on it.
+    /// Height and vertical speed.
+    fn truth(t: f64) -> (f64, f64) {
+        let v_burnout = BOOST_M_S2 * (BURNOUT_S - LIFTOFF_S);
+        let h_burnout = 0.5 * BOOST_M_S2 * (BURNOUT_S - LIFTOFF_S).powi(2);
+        let apogee_s = BURNOUT_S + v_burnout / G0;
+        let apogee_m = h_burnout + v_burnout * v_burnout / (2.0 * G0);
+        if t <= LIFTOFF_S {
+            (0.0, 0.0)
+        } else if t <= BURNOUT_S {
+            let c = t - LIFTOFF_S;
+            (0.5 * BOOST_M_S2 * c * c, BOOST_M_S2 * c)
+        } else if t <= apogee_s {
+            let c = t - BURNOUT_S;
+            (h_burnout + v_burnout * c - 0.5 * G0 * c * c, v_burnout - G0 * c)
+        } else {
+            let c = t - apogee_s;
+            let fall_s = DESCENT_M_S / G0;
+            if c < fall_s {
+                return (apogee_m - 0.5 * G0 * c * c, -G0 * c);
+            }
+            let h = apogee_m - 0.5 * G0 * fall_s * fall_s - DESCENT_M_S * (c - fall_s);
+            if h > 0.0 { (h, -DESCENT_M_S) } else { (0.0, 0.0) }
+        }
+    }
+
+    /// A noise sample uniform in ±0.5 m (0.29 m standard deviation), the same every run.
+    fn noise(state: &mut u64) -> f64 {
+        *state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        (*state >> 11) as f64 / (1_u64 << 53) as f64 - 0.5
+    }
+
+    /// The flight logged by a 20 Hz barometer-only altimeter.
+    fn log() -> FlightLog {
+        let times: Vec<f64> = (0..1460).map(|i| f64::from(i) * DT).collect();
+        let mut state = 7;
+        let altitude_m = times.iter().map(|&t| truth(t).0 + noise(&mut state)).collect();
+        FlightLog {
+            format: LogFormat::PerfectFlitePf2,
+            logger: "PerfectFlite Pnut".to_owned(),
+            serial_number: None,
+            firmware: None,
+            flight_number: None,
+            stated: Stated::default(),
+            time_s: times,
+            altitude_m,
+            vertical_speed_m_s: None,
+            temperature_k: None,
+            battery_v: None,
+            channels: Vec::new(),
+            events: Vec::new(),
+            notes: Vec::new(),
+        }
+    }
+
+    /// The same flight with a GNSS receiver at 10 Hz on a pad 300 m above sea level, its altitude
+    /// lagging the truth by 1.5 s throughout, as a receiver's filter does in a climb.
+    fn with_gnss(mut log: FlightLog) -> FlightLog {
+        let times: Vec<f64> = (0..730).map(|i| f64::from(i) * 0.1).collect();
+        let values = times.iter().map(|&t| 300.0 + truth(t - 1.5).0).collect();
+        log.channels.push(Channel::new("gnss", Quantity::GnssAltitude, times, values));
+        log
+    }
+
+    fn smoothed(log: &FlightLog, options: Options) -> Smoothed {
+        smooth_with(log, &readings::read(log), options).expect("the invented log smooths")
+    }
+
+    /// Asserts the truth lies inside the 90% interval at `t`, and the interval is no wider than
+    /// `height_sd_m` and `speed_sd_m_s`.
+    fn holds_at(smoothed: &Smoothed, t: f64, height_sd_m: f64, speed_sd_m_s: f64) {
+        let state = smoothed.at(t).expect("inside the log");
+        let (h, v) = truth(t);
+        assert!(
+            (state.height_m - h).abs() <= INTERVAL_Z * state.height_sd_m,
+            "height at {t} s: {} ± {} against {h}",
+            state.height_m,
+            state.height_sd_m
+        );
+        assert!(
+            (state.speed_m_s - v).abs() <= INTERVAL_Z * state.speed_sd_m_s,
+            "speed at {t} s: {} ± {} against {v}",
+            state.speed_m_s,
+            state.speed_sd_m_s
+        );
+        assert!(state.height_sd_m <= height_sd_m, "height sd at {t} s: {}", state.height_sd_m);
+        assert!(state.speed_sd_m_s <= speed_sd_m_s, "speed sd at {t} s: {}", state.speed_sd_m_s);
+    }
+
+    #[test]
+    fn an_invented_flight_lies_inside_its_intervals() {
+        let smoothed = smoothed(&log(), Options::default());
+        let liftoff = smoothed.liftoff;
+        assert!((liftoff.time_s - LIFTOFF_S).abs() <= liftoff.bound_s, "{liftoff:?}");
+        // The intervals are bounded by the day's air, up to about 4% of the height without a
+        // GNSS receiver, and at burnout by the climb's port coefficient's spread, 0.02 of
+        // `v²/2g`, 9.8 m.
+        for (t, height_sd_m, speed_sd_m_s) in [
+            (6.0, 15.0, 15.0),
+            (BURNOUT_S, 20.0, 15.0),
+            (12.0, 25.0, 5.0),
+            (17.0, 30.0, 3.0),
+            (30.0, 25.0, 2.0),
+            (50.0, 10.0, 2.0),
+            (70.0, 2.0, 1.0),
+        ] {
+            holds_at(&smoothed, t, height_sd_m, speed_sd_m_s);
+        }
+        assert!((smoothed.apogee_time_s - 17.0).abs() < 0.5, "{}", smoothed.apogee_time_s);
+        assert_eq!(smoothed.health.unsmoothed_steps, 0);
+        assert!(smoothed.health.rejected.is_empty(), "{:?}", smoothed.health.rejected);
+    }
+
+    #[test]
+    fn a_spike_is_rejected_at_the_gate_and_leaves_the_track_alone() {
+        let mut log = log();
+        let at = log.time_s.iter().position(|&t| t >= 40.0).expect("in the log");
+        log.altitude_m[at] += 200.0;
+        let smoothed = smoothed(&log, Options::default());
+        let rejected: Vec<f64> = smoothed
+            .health
+            .rejected
+            .iter()
+            .filter(|r| r.sensor == Sensor::Barometer)
+            .map(|r| r.time_s)
+            .collect();
+        assert_eq!(rejected, vec![log.time_s[at]]);
+        holds_at(&smoothed, log.time_s[at], 20.0, 2.0);
+    }
+
+    #[test]
+    fn a_lagging_gnss_receiver_is_trusted_only_once_its_speed_agrees() {
+        let log = with_gnss(log());
+        let trusted = smoothed(&log, Options::default());
+        let from = trusted.health.gnss_trusted_s.expect("the descent agrees");
+        // Its speed lags the coast's by 1.5 s of gravity, 14.7 m/s, until the descent's steady
+        // 15 m/s, which the truth reaches 1.5 s after apogee and the receiver 1.5 s later.
+        assert!(from > 17.0 + 1.5 + 1.5, "{from}");
+        let gnss = |s: &Smoothed| {
+            s.health.sensors.iter().find(|h| h.sensor == Sensor::Gnss).cloned().expect("a GNSS row")
+        };
+        assert!(gnss(&trusted).unweighed > 0);
+        holds_at(&trusted, 12.0, 20.0, 5.0);
+
+        // Trusted from liftoff, the lag is fused through the climb.
+        let options = Options {
+            gnss_trust: GnssTrust::FromLiftoff,
+        };
+        let from_liftoff = smoothed(&log, options);
+        assert_eq!(gnss(&from_liftoff).unweighed, 0);
+    }
+
+    #[test]
+    fn the_landing_is_where_the_track_settles() {
+        let baro: Vec<Baro> = (0..1460)
+            .map(|i| {
+                let t = f64::from(i) * DT;
+                let h = truth(t).0;
+                Baro {
+                    time_s: t,
+                    height_m: h,
+                    smoothed_m: h,
+                    rate_m_s: truth(t).1,
+                }
+            })
+            .collect();
+        // Down at 15 m/s, it lands at 57.0 s; the track is within 5 m of the ground from 56.7 s,
+        // and stays there.
+        let landing = landing(&baro, LIFTOFF_S).expect("it lands");
+        assert!((56.65..=56.75).contains(&landing), "{landing}");
+        // Cut before the ground holds for 3 s, it hasn't landed.
+        assert_eq!(landing_cut(&baro, 58.0), None);
+
+        fn landing_cut(baro: &[Baro], end_s: f64) -> Option<f64> {
+            let cut: Vec<Baro> = baro.iter().copied().filter(|b| b.time_s <= end_s).collect();
+            super::landing(&cut, LIFTOFF_S)
+        }
+    }
+
+    #[test]
+    fn slopes_are_the_derivative_of_a_parabola_inside_the_window() {
+        // Sixteenths of a second, so the window's edges fall on samples exactly.
+        let times: Vec<f64> = (0..200).map(|i| f64::from(i) / 16.0).collect();
+        let values: Vec<f64> = times.iter().map(|t| 3.0 + 7.0 * t - 2.0 * t * t).collect();
+        let rates = slopes(&values, &times, RATE_HALF_S);
+        // A least-squares line over a window symmetric about its center has a parabola's slope
+        // there exactly.
+        for (i, (&t, &rate)) in times.iter().zip(&rates).enumerate().skip(4).take(192) {
+            assert!((rate - (7.0 - 4.0 * t)).abs() < 1e-9, "{i}: {rate}");
+        }
+    }
+
+    #[test]
+    fn the_tilt_share_is_the_rails_under_power_and_grows_as_the_climb_slows() {
+        let rail = 1.0 - RAIL_TILT_DEG.to_radians().cos();
+        assert!((tilt_share(300.0, 300.0, true) - rail).abs() < 1e-15);
+        assert!((tilt_share(5.0, 300.0, true) - rail).abs() < 1e-15);
+        // In the coast, the sideways speed is the rail's share of the top speed and the wind.
+        let side = RAIL_TILT_DEG.to_radians().sin() * 300.0 + WIND_LIMIT_M_S;
+        let at = |v: f64| 1.0 - v / v.hypot(side);
+        assert!((tilt_share(100.0, 300.0, false) - at(100.0)).abs() < 1e-15);
+        assert!(tilt_share(10.0, 300.0, false) > tilt_share(100.0, 300.0, false));
+        // Never less than the rail's.
+        assert!((tilt_share(1.0e4, 300.0, false) - rail).abs() < 1e-15);
+    }
+
+    #[test]
+    fn a_transonic_span_opens_on_both_speeds_and_closes_after_a_subsonic_second() {
+        let cold = standard_temperature_k(0.0) - AIR_TEMPERATURE_SPREAD_K;
+        let mach_one = sound(cold) * RAIL_TILT_DEG.to_radians().cos();
+        let mut span = Transonic::default();
+        // Subsonic by both: closed.
+        assert_eq!(span.weigh(0.0, 0.5 * mach_one, 1.0, 0.5 * mach_one, 0.0).0, 0.0);
+        // The filter says transonic, the barometer's rate doesn't: still closed.
+        assert_eq!(span.weigh(0.1, 0.95 * mach_one, 1.0, 0.5 * mach_one, 0.0).0, 0.0);
+        assert!(!span.open);
+        // Both: open, at the full shift.
+        let (shift, _) = span.weigh(0.2, 0.95 * mach_one, 1.0, 0.95 * mach_one, 0.0);
+        assert_eq!(shift, TRANSONIC_PORT_SHIFT);
+        assert!(span.open);
+        // The rate subsonic for less than a second, then transonic again: still open.
+        assert_eq!(span.weigh(0.3, 0.0, 1.0, 0.5 * mach_one, 0.0).0, TRANSONIC_PORT_SHIFT);
+        assert_eq!(span.weigh(1.2, 0.0, 1.0, 0.95 * mach_one, 0.0).0, TRANSONIC_PORT_SHIFT);
+        // Subsonic from 1.25 s: open until 2.25 s, closed there.
+        assert_eq!(span.weigh(1.25, 0.0, 1.0, 0.5 * mach_one, 0.0).0, TRANSONIC_PORT_SHIFT);
+        assert_eq!(span.weigh(2.0, 0.0, 1.0, 0.5 * mach_one, 0.0).0, TRANSONIC_PORT_SHIFT);
+        assert_eq!(span.weigh(2.25, 0.0, 1.0, 0.5 * mach_one, 0.0), (0.0, 0.0));
+        assert!(!span.open);
+    }
+
+    #[test]
+    fn a_charge_is_expected_where_the_track_tops_out() {
+        let baro: Vec<Baro> = (0..1460)
+            .map(|i| {
+                let t = f64::from(i) * DT;
+                let h = truth(t).0;
+                Baro {
+                    time_s: t,
+                    height_m: h,
+                    smoothed_m: h,
+                    rate_m_s: 0.0,
+                }
+            })
+            .collect();
+        // Within 5 m of the top for √(2·5/g) = 1.01 s either side of apogee at 17 s.
+        let (from, to) = apogee_charge(&baro, LIFTOFF_S).expect("a top");
+        assert!((15.95..=16.0).contains(&from), "{from}");
+        assert!((18.0..=18.05).contains(&(to - CHARGE_WINDOW_S)), "{to}");
+    }
+
+    #[test]
+    fn the_consider_run_replays_the_first_runs_choices_and_widens_by_its_difference() {
+        let log = with_gnss(log());
+        let readings = readings::read(&log);
+        let inputs = Inputs::gather(&log, &readings).expect("it gathers");
+        let options = Options::default();
+        let (mean, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None);
+        let (off, replayed) = run(&inputs, options, PORT_PRIOR_MEAN - PORT_PRIOR_SD, Some(&choices));
+        assert_eq!(replayed, choices);
+        let smoothed = smooth_with(&log, &readings, options).expect("it smooths");
+        for k in 0..mean.time_s.len() {
+            let widened = mean.height_sd_m[k].hypot(off.height_m[k] - mean.height_m[k]);
+            assert_eq!(smoothed.height_sd_m[k], widened);
+        }
+        // At burnout the port's spread, 0.02 of `v²/2g` = 9.8 m, is most of the interval.
+        let k = mean.time_s.partition_point(|&t| t < BURNOUT_S);
+        let difference = (off.height_m[k] - mean.height_m[k]).abs();
+        assert!((7.0..=12.0).contains(&difference), "{difference}");
+    }
+
+    #[test]
+    fn the_health_card_reads_each_sensor_and_what_was_done() {
+        let health = Health {
+            sensors: vec![SensorHealth {
+                sensor: Sensor::Barometer,
+                samples: 2000,
+                used: 1997,
+                rejected: 3,
+                unweighed: 0,
+                resets: 1,
+                inside_gate_share: Some(0.9985),
+                largest: Some(Largest {
+                    ratio: 12.345,
+                    time_s: 17.04,
+                    mach: 0.004,
+                }),
+                mean_nis: Some(0.7012),
+            }],
+            deweighted: vec![Span {
+                start_s: 9.5,
+                end_s: 14.25,
+                why: Deweighted::Transonic,
+            }],
+            rejected: Vec::new(),
+            gnss_trusted_s: None,
+            baro_minus_inertial_at_apogee_m: None,
+            unsmoothed_steps: 0,
+        };
+        assert_eq!(
+            health.card(),
+            "barometer: 2000 samples, 1997 fused, 3 rejected, 0 not weighed, 1 reset; 99.8% \
+             inside the gate; mean NIS 0.701; largest test ratio 12.3 at 17.0 s, Mach 0.00\n\
+             barometer de-weighted: transonic 9.50–14.2 s\n\
+             pass back: every step smoothed\n"
+        );
+    }
 }

@@ -20,7 +20,8 @@
 use std::collections::BTreeMap;
 
 use hpr_core::random::SeededRng;
-use hpr_flightdata::smoother::{self, INTERVAL_Z, Options, Reason};
+use hpr_flightdata::log::Quantity;
+use hpr_flightdata::smoother::{self, Deweighted, Health, INTERVAL_Z, Options, Reason, Sensor};
 use serde::{Deserialize, Serialize};
 
 use super::logger::Profile;
@@ -114,6 +115,10 @@ pub struct Checked {
     pub withheld: Option<Reason>,
     /// Each moment and state, compared.
     pub compared: Vec<(Moment, StateName, Compared)>,
+    /// Its health card; `None` if it was withheld.
+    pub health: Option<Health>,
+    /// Whether its log has a GNSS track.
+    pub has_gnss: bool,
 }
 
 /// The moment drawn for flight `index` of `set`, s on the truth's clock, uniformly between
@@ -127,6 +132,11 @@ pub fn moment_drawn(set: Set, index: u64, liftoff_s: f64, landing_s: f64) -> f64
 /// Checks one flight's smoothed log against its truth.
 pub fn check(flight: &Flight, options: Options) -> Checked {
     let profile = flight.draw.logger.profile;
+    let has_gnss = flight
+        .log
+        .channels
+        .iter()
+        .any(|c| c.quantity == Quantity::GnssAltitude);
     let smoothed = match smoother::smooth_with(
         &flight.log,
         &hpr_flightdata::readings::read(&flight.log),
@@ -138,6 +148,8 @@ pub fn check(flight: &Flight, options: Options) -> Checked {
                 profile,
                 withheld: Some(withheld.reason),
                 compared: Vec::new(),
+                health: None,
+                has_gnss,
             };
         }
     };
@@ -185,6 +197,8 @@ pub fn check(flight: &Flight, options: Options) -> Checked {
         profile,
         withheld: None,
         compared,
+        health: Some(smoothed.health),
+        has_gnss,
     }
 }
 
@@ -210,6 +224,8 @@ pub struct Cell {
     pub holds: bool,
     /// The median standard error, in the state's unit.
     pub median_sd: f64,
+    /// The largest, in the state's unit: an interval can hold by being too wide to say anything.
+    pub largest_sd: f64,
 }
 
 /// A set's check.
@@ -223,6 +239,63 @@ pub struct SetCheck {
     pub cells: Vec<Cell>,
     /// The same, per logger.
     pub by_logger: BTreeMap<String, Vec<Cell>>,
+    /// The smoothed flights' health cards, summed.
+    pub health: HealthTally,
+}
+
+/// One sensor's health over a set's smoothed flights.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct SensorTally {
+    /// The logs that have it.
+    pub logs: u64,
+    /// Its samples.
+    pub samples: u64,
+    /// Those the gate rejected.
+    pub rejected: u64,
+    /// Those not weighed.
+    pub unweighed: u64,
+    /// How many times it was taken back after a second of rejections.
+    pub resets: u64,
+    /// The logs with at least one rejection.
+    pub logs_rejecting: u64,
+}
+
+/// A set's health cards, summed.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct HealthTally {
+    /// Each sensor, by [`Sensor::name`].
+    pub sensors: BTreeMap<String, SensorTally>,
+    /// The spans the barometer was de-weighted over as transonic.
+    pub transonic_spans: u64,
+    /// Those after a charge.
+    pub charge_spans: u64,
+    /// The logs whose GNSS receiver was trusted at some point.
+    pub gnss_trusted: u64,
+    /// The steps the pass back couldn't solve, over every log.
+    pub unsmoothed_steps: u64,
+}
+
+impl HealthTally {
+    fn add(&mut self, health: &Health) {
+        for s in &health.sensors {
+            let t = self.sensors.entry(s.sensor.name().to_owned()).or_default();
+            t.logs += 1;
+            t.samples += s.samples as u64;
+            t.rejected += s.rejected as u64;
+            t.unweighed += s.unweighed as u64;
+            t.resets += s.resets as u64;
+            t.logs_rejecting += u64::from(s.rejected > 0);
+        }
+        for span in &health.deweighted {
+            match span.why {
+                Deweighted::Transonic => self.transonic_spans += 1,
+                Deweighted::Charge => self.charge_spans += 1,
+            }
+        }
+        let has_gnss = health.sensors.iter().any(|s| s.sensor == Sensor::Gnss);
+        self.gnss_trusted += u64::from(has_gnss && health.gnss_trusted_s.is_some());
+        self.unsmoothed_steps += health.unsmoothed_steps as u64;
+    }
 }
 
 impl SetCheck {
@@ -303,6 +376,7 @@ fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
     } else {
         sds[sds.len() / 2]
     };
+    let largest_sd = sds.last().copied().unwrap_or(f64::NAN);
     Cell {
         moment,
         state,
@@ -317,6 +391,7 @@ fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
         lowest_miss_share: lowest,
         holds: lowest.iter().all(|&l| l <= MISS_SHARE),
         median_sd,
+        largest_sd,
     }
 }
 
@@ -355,11 +430,16 @@ pub fn tally(checks: &[Checked]) -> SetCheck {
             by_logger.insert(profile.name().to_owned(), cells(&mine));
         }
     }
+    let mut health = HealthTally::default();
+    for h in checks.iter().filter_map(|c| c.health.as_ref()) {
+        health.add(h);
+    }
     SetCheck {
         flights: checks.len() as u64,
         withheld,
         cells: cells(&all),
         by_logger,
+        health,
     }
 }
 
@@ -397,72 +477,4 @@ mod tests {
     }
 }
 
-#[cfg(test)]
-mod debug_probe {
-    use super::*;
-    use crate::synthetic::designs::DesignFiles;
-    use crate::synthetic::Flyer;
 
-    #[test]
-    #[ignore]
-    fn port_truth() {
-        let mut flyer = Flyer::new(DesignFiles::committed());
-        for index in 0..200 {
-            let Ok(flight) = flyer.flight(Set::Tuning, index) else { continue };
-            let cp = crate::synthetic::noise::port_pressure_coefficient(flight.draw.logger.port_calibers, 0.5);
-            println!("PORTTRUTH {index} {} {cp:.5}", flight.draw.logger.profile.name());
-            let _ = smoother::smooth(&flight.log);
-        }
-    }
-
-    #[test]
-    #[ignore]
-    fn list_misses() {
-        let want = std::env::var("PROFILE").unwrap_or("imu-500hz".into());
-        let moment = std::env::var("MOMENT").unwrap_or("Apogee".into());
-        let mut flyer = Flyer::new(DesignFiles::committed());
-        for index in 0..200 {
-            let Ok(flight) = flyer.flight(Set::Tuning, index) else { continue };
-            if flight.draw.logger.profile.name() != want { continue; }
-            let c = check(&flight, Options::default());
-            let line: Vec<String> = c.compared.iter().filter(|(m, _, _)| format!("{m:?}") == moment).map(|(_, st, cmp)| format!("{st:?} err {:8.2} sd {:6.2} z {:6.2}", cmp.error, cmp.sd, cmp.error / cmp.sd)).collect();
-            println!("{index:3} T{:+5.1} port {:.2} {}", flight.truth.temperature_offset_k, flight.draw.logger.port_calibers, line.join(" | "));
-        }
-    }
-
-    #[test]
-    #[ignore]
-    fn print_one() {
-        let want = std::env::var("PROFILE").unwrap_or("imu-500hz".into());
-        let only: Option<u64> = std::env::var("INDEX").ok().and_then(|i| i.parse().ok());
-        let mut flyer = Flyer::new(DesignFiles::committed());
-        for index in 0..200 {
-            if only.is_some_and(|o| o != index) { continue; }
-            let Ok(flight) = flyer.flight(Set::Tuning, index) else { continue };
-            if flight.draw.logger.profile.name() != want { continue; }
-            let s = smoother::smooth(&flight.log).unwrap();
-            let pad = flight.draw.logger.pad_s;
-            println!("index {index} liftoff {:?} truth liftoff {} apogee {} burnout {}", s.liftoff, flight.truth.events.liftoff_s + pad, flight.truth.events.apogee_s + pad, flight.truth.events.burnout_s+pad);
-            for sh in &s.health.sensors { println!("{:?} n {} used {} rej {} unw {} resets {} largest {:?} nis {:?}", sh.sensor, sh.samples, sh.used, sh.rejected, sh.unweighed, sh.resets, sh.largest, sh.mean_nis); }
-            println!("deweighted {:?} unsmoothed {}", s.health.deweighted, s.health.unsmoothed_steps);
-            println!("accel scale {} bias {} temp {} port cal {}", flight.draw.logger.accel_scale, flight.draw.logger.accel_bias_m_s2, flight.truth.temperature_offset_k, flight.draw.logger.port_calibers);
-            for tt in [2.0, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0] {
-                let a0 = flight.truth.at(tt - 0.05).unwrap();
-                let a1 = flight.truth.at(tt + 0.05).unwrap();
-                let acc = (a1.vertical_speed_m_s - a0.vertical_speed_m_s) / 0.1;
-                let m = flight.truth.at(tt).unwrap();
-                let vh = (m.velocity_enu_m_s[0].powi(2) + m.velocity_enu_m_s[1].powi(2)).sqrt();
-                println!("truth t {tt} f {:.2} a+g {:.2} v {:.1} vh {:.1} mach {:.2}", m.axial_specific_force_m_s2, acc + 9.80665, m.vertical_speed_m_s, vh, m.mach);
-            }
-            let mut t = 0.0;
-            while t < flight.truth.events.landing_s {
-                let tr = flight.truth.at(t).unwrap();
-                let st = s.at(t + pad).unwrap();
-                println!("{t:6.2} h {:9.2} {:9.2} ±{:7.2}  v {:8.2} {:8.2} ±{:6.2}", tr.height_m - flight.truth.pad_height_m, st.height_m, st.height_sd_m, tr.vertical_speed_m_s, st.speed_m_s, st.speed_sd_m_s);
-                let fine = std::env::var("FINE").is_ok() && (t - flight.truth.events.apogee_s).abs() < 1.5;
-                t += if fine { 0.1 } else if t < flight.truth.events.apogee_s + 2.0 { 0.5 } else { 5.0 };
-            }
-            break;
-        }
-    }
-}

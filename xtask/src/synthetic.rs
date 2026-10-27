@@ -64,6 +64,43 @@ struct Report {
     errors: Vec<Errors>,
     /// The tuning set's top accelerations against their parts' ranges.
     tops: Tops,
+    /// The smoother held to each set's truth, in [`Set::ALL`]'s order.
+    smoother: Vec<SmootherSet>,
+    /// A health card for each logger: its first smoothed flight in the tuning set.
+    cards: Vec<Card>,
+}
+
+/// One set's smoother check (M7.2d), and the same flights with each GNSS receiver trusted from
+/// liftoff.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct SmootherSet {
+    /// The set.
+    set: Set,
+    /// The check, to three significant figures.
+    check: SetCheck,
+    /// The flights whose log has a GNSS track, smoothed again with the receiver trusted from
+    /// liftoff (`GnssTrust::FromLiftoff`); the others keep their check.
+    gnss_rerun: u64,
+    /// The cells with those flights trusted from liftoff, to three significant figures.
+    gnss_from_liftoff: Vec<smoothed::Cell>,
+}
+
+impl SmootherSet {
+    /// Whether every cell of the trusted-from-liftoff check holds: it shouldn't.
+    fn mutation_holds(&self) -> bool {
+        self.gnss_from_liftoff.iter().all(|c| c.holds)
+    }
+}
+
+/// One flight's health card.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct Card {
+    /// Its logger.
+    logger: String,
+    /// The flight's index in the tuning set.
+    flight: u64,
+    /// The card, as `Health::card` writes it.
+    card: String,
 }
 
 /// The tuning set's top accelerations against the ranges their parts clip at: whether a top
@@ -170,7 +207,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
     if let Some((set, count, options)) = probe {
-        let checks = smooth_set(set, count, &files, options);
+        let checks: Vec<Checked> = smooth_set(set, count, &files, options, false)
+            .into_iter()
+            .map(|(_, check, _)| check)
+            .collect();
         print!("{}", smoother_table(set, &smoothed::tally(&checks)));
         return Ok(());
     }
@@ -181,6 +221,47 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(format!(
             "a reading's error passes its bound on the tuning set:\n{}",
             missed.join("\n")
+        ));
+    }
+    let mut smoother = Vec::new();
+    let mut cards = Vec::new();
+    for set in Set::ALL {
+        let (made, set_cards) = smoother_set(set, &files);
+        println!(
+            "{}: smoother {}, {} flights; trusting GNSS from liftoff {}",
+            set.name(),
+            if made.check.holds() { "holds" } else { "fails" },
+            made.check.flights,
+            if made.mutation_holds() { "holds" } else { "fails" }
+        );
+        if set == Set::Tuning {
+            cards = set_cards;
+        }
+        smoother.push(made);
+    }
+    let broken: Vec<String> = smoother
+        .iter()
+        .flat_map(|s| {
+            let fails = (!s.check.holds()).then(|| format!("{}: the smoother fails", s.set.name()));
+            // A step the pass back couldn't solve is a filter that lost the track.
+            let unsmoothed = (s.check.health.unsmoothed_steps > 0).then(|| {
+                format!(
+                    "{}: {} steps the pass back couldn't smooth",
+                    s.set.name(),
+                    s.check.health.unsmoothed_steps
+                )
+            });
+            // The tuning set's 200 flights are too few for a band at 99.9% to show the mutation's
+            // misses; the two evaluation sets of 1,000 must.
+            let mutation = (s.set != Set::Tuning && s.mutation_holds())
+                .then(|| format!("{}: trusting GNSS from liftoff holds", s.set.name()));
+            fails.into_iter().chain(unsmoothed).chain(mutation)
+        })
+        .collect();
+    if !broken.is_empty() {
+        return Err(format!(
+            "the smoother's check (M7.2d) doesn't come out as it must:\n{}",
+            broken.join("\n")
         ));
     }
     let report = Report {
@@ -195,6 +276,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
         readings: tallies.iter().map(rounded).collect(),
         errors: held::errors(&flights).iter().map(rounded_errors).collect(),
         tops: tops(&flights, &each),
+        smoother,
+        cards,
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let page = markdown(&report);
@@ -297,13 +380,24 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
     census::from_rows(set, &rows)
 }
 
-/// Smooths the first `count` flights of `set` on every core and checks each against its truth;
-/// a flight that doesn't fly is left out.
-fn smooth_set(set: Set, count: u64, files: &DesignFiles, options: Options) -> Vec<Checked> {
+/// One flight's index, its check, and with `mutate` and a GNSS track, its check with the
+/// receiver trusted from liftoff.
+type Smoothed = (u64, Checked, Option<Checked>);
+
+/// Smooths the first `count` flights of `set` on every core and checks each against its truth,
+/// in the flights' order; a flight that doesn't fly is left out. With `mutate`, each log with a
+/// GNSS track is smoothed again with the receiver trusted from liftoff.
+fn smooth_set(
+    set: Set,
+    count: u64,
+    files: &DesignFiles,
+    options: Options,
+    mutate: bool,
+) -> Vec<Smoothed> {
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(16) as u64;
-    let mut checks: Vec<Option<Checked>> = vec![None; count as usize];
+    let mut checks: Vec<Option<Smoothed>> = vec![None; count as usize];
     std::thread::scope(|scope| {
         let handles: Vec<_> = (0..threads)
             .map(|start| {
@@ -313,7 +407,14 @@ fn smooth_set(set: Set, count: u64, files: &DesignFiles, options: Options) -> Ve
                     let mut done = Vec::new();
                     for index in (start..count).step_by(threads as usize) {
                         if let Ok(flight) = flyer.flight(set, index) {
-                            done.push((index, smoothed::check(&flight, options)));
+                            let check = smoothed::check(&flight, options);
+                            let mutated = (mutate && check.has_gnss).then(|| {
+                                let trusted = Options {
+                                    gnss_trust: GnssTrust::FromLiftoff,
+                                };
+                                smoothed::check(&flight, trusted)
+                            });
+                            done.push((index, (index, check, mutated)));
                         }
                     }
                     done
@@ -331,6 +432,62 @@ fn smooth_set(set: Set, count: u64, files: &DesignFiles, options: Options) -> Ve
     checks.into_iter().flatten().collect()
 }
 
+/// A set's smoother check and its trusted-from-liftoff mutation for the report, with a health
+/// card for each logger's first smoothed flight.
+fn smoother_set(set: Set, files: &DesignFiles) -> (SmootherSet, Vec<Card>) {
+    let all = smooth_set(set, set.count(), files, Options::default(), true);
+    let mut cards = Vec::new();
+    for profile in Profile::ALL {
+        if let Some((index, health)) = all.iter().find_map(|(index, check, _)| {
+            (check.profile == profile)
+                .then_some(check.health.as_ref())
+                .flatten()
+                .map(|h| (*index, h))
+        }) {
+            cards.push(Card {
+                logger: profile.name().to_owned(),
+                flight: index,
+                card: health.card(),
+            });
+        }
+    }
+    let gnss_rerun = all.iter().filter(|(_, _, m)| m.is_some()).count() as u64;
+    let checks: Vec<Checked> = all.iter().map(|(_, c, _)| c.clone()).collect();
+    let mutated: Vec<Checked> = all
+        .into_iter()
+        .map(|(_, check, mutated)| mutated.unwrap_or(check))
+        .collect();
+    let mut check = smoothed::tally(&checks);
+    round_cells(&mut check.cells);
+    for cells in check.by_logger.values_mut() {
+        round_cells(cells);
+    }
+    let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
+    round_cells(&mut gnss_from_liftoff);
+    (
+        SmootherSet {
+            set,
+            check,
+            gnss_rerun,
+            gnss_from_liftoff,
+        },
+        cards,
+    )
+}
+
+/// Cells to three significant figures, as the report holds them; whether each holds is decided
+/// before.
+fn round_cells(cells: &mut [smoothed::Cell]) {
+    for c in cells {
+        c.coverage = census::three_figures(c.coverage);
+        c.median_sd = census::three_figures(c.median_sd);
+        c.largest_sd = census::three_figures(c.largest_sd);
+        for share in &mut c.lowest_miss_share {
+            *share = census::three_figures(*share);
+        }
+    }
+}
+
 /// A set's smoother check as text.
 fn smoother_table(set: Set, check: &SetCheck) -> String {
     let mut out = format!(
@@ -343,7 +500,7 @@ fn smoother_table(set: Set, check: &SetCheck) -> String {
     let row = |out: &mut String, c: &smoothed::Cell| {
         let _ = writeln!(
             out,
-            "  {:<15} {:<7} n {:>5} below {:>4} above {:>4} cover {:.3} sd {:>9.3} {}",
+            "  {:<15} {:<7} n {:>5} below {:>4} above {:>4} cover {:.3} sd {:>9.3} max {:>9.3} {}",
             c.moment.name(),
             c.state.name(),
             c.flights,
@@ -351,6 +508,7 @@ fn smoother_table(set: Set, check: &SetCheck) -> String {
             c.above,
             c.coverage,
             c.median_sd,
+            c.largest_sd,
             if c.holds { "" } else { "FAILS" }
         );
     };
@@ -716,7 +874,149 @@ fn markdown(report: &Report) -> String {
     }
     readings_section(&mut page, &report.readings);
     errors_section(&mut page, &report.errors, &report.tops);
+    smoother_section(&mut page, &report.smoother, &report.cards);
     page
+}
+
+/// A cell as the page shows it: the share inside the interval, as a percentage, and how many
+/// truths fell below and above it.
+fn cell_text(c: &smoothed::Cell) -> String {
+    format!(
+        "{}% ({} / {}){}",
+        number(census::three_figures(100.0 * c.coverage)),
+        c.below,
+        c.above,
+        if c.holds { "" } else { " **fails**" }
+    )
+}
+
+/// The page's section on the smoother held to each set's truth (M7.2d).
+fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
+    page.push_str(
+        "\n## The smoother against the truth\n\n\
+         Each flight's own log smoothed (`hpr_flightdata::smoother`, M7.2d, ADR-299) and its \
+         height above the pad and vertical speed compared with the truth's at burnout, the top \
+         vertical speed, apogee and one moment drawn per flight. Each cell gives the share of \
+         flights whose truth lies inside the smoother's 90% interval, then how many lay below and \
+         above it. A cell **fails** when the lower edge of the 99.9% Clopper–Pearson band on \
+         either side's miss share is above 5%. Logs without a barometer are withheld.\n\n",
+    );
+    let header = |page: &mut String| {
+        page.push_str("| Moment | State |");
+        for s in sets {
+            let _ = write!(page, " {} |", title(s.set));
+        }
+        page.push_str("\n|---|---|");
+        for _ in sets {
+            page.push_str("---:|");
+        }
+        page.push('\n');
+    };
+    let rows = |page: &mut String, pick: &dyn Fn(&SmootherSet) -> &[smoothed::Cell], show: fn(&smoothed::Cell) -> String| {
+        let Some(first) = sets.first() else { return };
+        for (k, c) in pick(first).iter().enumerate() {
+            let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
+            for s in sets {
+                let _ = write!(page, " {} |", pick(s).get(k).map_or_else(String::new, show));
+            }
+            page.push('\n');
+        }
+    };
+    header(page);
+    page.push_str("| Flights smoothed | |");
+    for s in sets {
+        let withheld: u64 = s.check.withheld.values().sum();
+        let _ = write!(page, " {} |", s.check.flights - withheld);
+    }
+    page.push('\n');
+    rows(page, &|s| &s.check.cells, cell_text);
+    page.push_str(
+        "\n### The standard errors\n\nThe median and the largest, of height in m and of speed in \
+         m/s.\n\n",
+    );
+    header(page);
+    rows(page, &|s| &s.check.cells, |c| {
+        format!("{} / {}", number(c.median_sd), number(c.largest_sd))
+    });
+    page.push_str("\n### By logger\n\nThe share inside the interval, each set's flights by logger.\n\n");
+    for s in sets {
+        let _ = writeln!(page, "#### {}\n", title(s.set));
+        page.push_str("| Moment | State |");
+        for logger in s.check.by_logger.keys() {
+            let _ = write!(page, " {logger} |");
+        }
+        page.push_str("\n|---|---|");
+        for _ in s.check.by_logger.keys() {
+            page.push_str("---:|");
+        }
+        page.push('\n');
+        for (k, c) in s.check.cells.iter().enumerate() {
+            let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
+            for cells in s.check.by_logger.values() {
+                let _ = write!(page, " {} |", cells.get(k).map_or_else(String::new, cell_text));
+            }
+            page.push('\n');
+        }
+        page.push('\n');
+    }
+    page.push_str(
+        "### Trusting the GNSS receiver from liftoff\n\n\
+         The same flights, each log with a GNSS track smoothed again with its receiver trusted \
+         from liftoff rather than once its speed agrees with the smoother's. A receiver lags a \
+         climb, so this must fail.\n\n",
+    );
+    header(page);
+    page.push_str("| Flights smoothed again | |");
+    for s in sets {
+        let _ = write!(page, " {} |", s.gnss_rerun);
+    }
+    page.push('\n');
+    rows(page, &|s| &s.gnss_from_liftoff, cell_text);
+    page.push_str("\n### Health\n\nThe smoothed flights' health cards, summed.\n\n");
+    let names: Vec<&String> = {
+        let mut names: Vec<&String> = sets.iter().flat_map(|s| s.check.health.sensors.keys()).collect();
+        names.sort();
+        names.dedup();
+        names
+    };
+    page.push_str("| |");
+    for s in sets {
+        let _ = write!(page, " {} |", title(s.set));
+    }
+    page.push_str("\n|---|");
+    for _ in sets {
+        page.push_str("---:|");
+    }
+    page.push('\n');
+    let line = |page: &mut String, name: &str, value: &dyn Fn(&SmootherSet) -> String| {
+        let _ = write!(page, "| {name} |");
+        for s in sets {
+            let _ = write!(page, " {} |", value(s));
+        }
+        page.push('\n');
+    };
+    for name in names {
+        let get = |s: &SmootherSet| s.check.health.sensors.get(name).cloned().unwrap_or_default();
+        line(page, &format!("{name}: logs"), &|s| get(s).logs.to_string());
+        line(page, &format!("{name}: samples rejected / tested"), &|s| {
+            let t = get(s);
+            format!("{} / {}", t.rejected, t.samples - t.unweighed)
+        });
+        line(page, &format!("{name}: logs with a rejection"), &|s| get(s).logs_rejecting.to_string());
+        line(page, &format!("{name}: resets"), &|s| get(s).resets.to_string());
+    }
+    line(page, "GNSS receivers trusted", &|s| s.check.health.gnss_trusted.to_string());
+    line(page, "Transonic spans de-weighted", &|s| s.check.health.transonic_spans.to_string());
+    line(page, "Charge spans de-weighted", &|s| s.check.health.charge_spans.to_string());
+    line(page, "Steps the pass back kept forward", &|s| s.check.health.unsmoothed_steps.to_string());
+    page.push_str("\n### A health card for each logger\n\nEach logger's first smoothed flight in the tuning set; times are on the log's clock.\n");
+    for card in cards {
+        let _ = write!(
+            page,
+            "\n**{}**, flight {}:\n\n```text\n{}```\n",
+            card.logger, card.flight, card.card
+        );
+    }
 }
 
 /// How many of [`Quantity::ALL`]'s readings, from its start, are the height track's.
@@ -1018,6 +1318,8 @@ mod tests {
                 floors: Floors::default(),
                 clipped: Vec::new(),
             },
+            smoother: Vec::new(),
+            cards: Vec::new(),
         });
         assert!(page.contains("| A | 0 |"), "{page}");
         assert!(page.contains("first \\| second third |"), "{page}");
