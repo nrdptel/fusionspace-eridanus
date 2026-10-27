@@ -11,11 +11,11 @@
 //!   exponent (`1e-9`) and superscript digits (`10⁶`). A sign before it stays where it is.
 //! - **A unit** is the symbol of one of [`UNITS`], the units `data.md` writes and the project's
 //!   own (`cal`, `calibers`, `px`), as a whole word after the figure: its letters not followed
-//!   by a digit 0 to 9 or `_` (`g06` is a code), though a superscript power may (`m²`). `in` is
-//!   an inch unless a space and then a word, a figure or the end of the run follow it: `(0.12
-//!   in)`, `0.12 in.`, `1.52 in (38 mm)` and `4 in × 40` are inches. With one after it, it is
-//!   also the preposition (`0.5 in both`, `1 in <code>SI</code>`), so a page joins an inch there
-//!   by hand (`2.6&nbsp;in rocket`). Units spelled out (`3 minutes`) aren't read.
+//!   by a digit 0 to 9 or `_` (`g06` is a code), though a superscript power may follow (`m²`).
+//!   `in` is an inch unless a space and then a word, a figure or the end of the run follow it:
+//!   `(0.12 in)`, `0.12 in.`, `1.52 in (38 mm)` and `4 in × 40` are inches. With one after it,
+//!   it is also the preposition (`0.5 in both`, `1 in <code>SI</code>`), so a page joins an inch
+//!   there by hand (`2.6&nbsp;in rocket`). Units spelled out (`3 minutes`) aren't read.
 //! - **A breaking space** is any white space but the no-break spaces U+00A0, U+2007 and U+202F,
 //!   a line break in the source included.
 //!
@@ -23,7 +23,8 @@
 //! writes the search index, which keeps the plain space, so search reads the same. It reads the
 //! text of each page as the browser draws it, across inline tags (`<strong>5</strong> m` is one
 //! run) but not across blocks, and never in code, preformatted text, keyboard or sample text,
-//! math, SVG, scripts, styles or text areas, nor in the API reference. [`check`] then fails any pair still split in the built pages.
+//! math, SVG, scripts, styles or text areas, nor in the API reference. [`check`] then fails any
+//! pair still split in the built pages.
 //! The READMEs, which GitHub, crates.io and PyPI show as written, hold the no-break space in their
 //! source ([`readme_splits`]): `5&nbsp;m`.
 //!
