@@ -169,7 +169,7 @@ $$
 \rho(\Delta t) = e^{-\Delta t/\tau}
 $$
 
-With 0.5 at 0.02 s, $\tau = 0.0289$ s. A 20 Hz logger's samples then correlate by 0.177, a
+With 0.5 at 0.02 s, $\tau = 0.0289\,\mathrm{s}$. A 20 Hz logger's samples then correlate by 0.177, a
 100 Hz logger's by 0.707 and a 500 Hz logger's by 0.933. The spread in pascals is the height's
 times $\rho_\text{pad}\,g$. At a 500 m (1,640 ft) site in standard air, 0.5 m (1.6 ft) is
 5.72 Pa.
@@ -259,7 +259,7 @@ An AltOS-like logger is launched from a sea-level pad. It flies through Mach 1 a
 (3,281 ft) above sea level, a geometric height, on a standard day. Its port is one caliber behind
 the nose's shoulder.
 
-1. **The air.** The standard atmosphere there has $p = 89{,}876$ Pa and density 1.112 kg/m³.
+1. **The air.** The standard atmosphere there has $p = 89{,}876\,\mathrm{Pa}$ and density 1.112 kg/m³.
 2. **The dynamic pressure** at Mach 1 is $q = 0.7\,p\,M^2$, which is 62,913 Pa.
 3. **The port error** is $C_p\,q$, here $-0.08 \times 62{,}913$, which is −5,033 Pa: the port
    reads low.

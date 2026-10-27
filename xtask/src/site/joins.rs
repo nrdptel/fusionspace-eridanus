@@ -23,9 +23,10 @@
 //! writes the search index, which keeps the plain space, so search reads the same. It reads the
 //! text of each page as the browser draws it, across inline tags (`<strong>5</strong> m` is one
 //! run) but not across blocks, and never in code, preformatted text, keyboard or sample text,
-//! math, SVG, scripts, styles or text areas, nor in the API reference. An inline equation whose
-//! last leaf is a number (`<mn>`) counts as that figure where it ends ([`Math`]). [`check`] then
-//! fails any pair still split in the built pages.
+//! math, SVG, scripts, styles or text areas, nor in the API reference. [`check`] then fails any
+//! pair still split in the built pages, and an inline equation that ends in a number (`<mn>`) with
+//! its unit after it ([`Math`]): Chrome ends a line between an equation's box and the no-break
+//! space after it, so the unit goes inside the equation (`4593\,\mathrm{ft}$`).
 //! The READMEs, which GitHub, crates.io and PyPI show as written, hold the no-break space in their
 //! source ([`readme_splits`]): `5&nbsp;m`.
 //!
@@ -205,8 +206,8 @@ fn joined(text: &str, split: &Split, space: &str) -> String {
 }
 
 /// The elements whose text [`join`] and [`check`] don't read: code, preformatted, keyboard and
-/// sample text, math (but an inline equation's last number, [`Math`]), SVG, scripts, styles and
-/// text areas.
+/// sample text, math (but whether an inline equation ends in a number, [`Math`]), SVG, scripts,
+/// styles and text areas.
 const UNREAD: [&str; 9] = [
     "code", "pre", "kbd", "samp", "math", "svg", "script", "style", "textarea",
 ];
@@ -220,10 +221,13 @@ const INLINE: [&str; 24] = [
 /// A run of a page's text, with where each of its characters came from in the HTML.
 #[derive(Default)]
 struct HtmlRun {
-    /// The text, entities decoded.
+    /// The text, entities decoded; an inline equation stands as U+FFFC, the object replacement
+    /// character, which is neither a space, a figure nor a unit.
     text: String,
     /// For each character's byte offset in [`HtmlRun::text`], its byte range in the HTML.
     from: Vec<(usize, Range<usize>)>,
+    /// Where each inline equation that ends in a number ends in [`HtmlRun::text`], and the number.
+    equations: Vec<(usize, String)>,
 }
 
 impl HtmlRun {
@@ -275,11 +279,7 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
                     unread = unread.saturating_sub(1);
                     let ended = math.take();
                     if let Some(number) = ended.as_ref().and_then(Math::figure) {
-                        // The figure stands where the math ends; it is never edited.
-                        for c in number.chars() {
-                            run.from.push((run.text.len(), at..at));
-                            run.text.push(c);
-                        }
+                        run.equations.push((run.text.len(), number.to_owned()));
                     } else if ended.is_some_and(|ended| ended.block) {
                         flush(&mut run, &mut runs);
                     }
@@ -287,6 +287,10 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
                     let block = rest[..tag.len].contains("display=\"block\"");
                     if block {
                         flush(&mut run, &mut runs);
+                    } else {
+                        // The equation is one box in the line, never edited.
+                        run.from.push((run.text.len(), at..at));
+                        run.text.push('\u{fffc}');
                     }
                     math = Some(Math {
                         block,
@@ -331,9 +335,9 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
     runs
 }
 
-/// An equation being read: inline math is read as the figure its last leaf is, when that leaf
-/// is a number (`<mn>`), so `= 4593$ ft` holds a figure and its unit across the math's end.
-/// Display math, a block of its own, ends the run.
+/// An equation being read. Inline math whose last leaf is a number (`<mn>`) ends in a figure, and
+/// [`unit_after_equations`] fails a unit after it (`= 4593$ ft`): a browser can end a line between
+/// the equation's box and a no-break space. Display math, a block of its own, ends the run.
 struct Math {
     /// Whether it is display math, `<math display="block">`.
     block: bool,
@@ -517,18 +521,43 @@ pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
 
 /// What [`check`] says of one built page.
 fn page_splits(html: &str) -> Vec<String> {
-    html_runs(html)
-        .iter()
-        .flat_map(|run| {
-            splits(&run.text).into_iter().map(|split| {
-                format!(
-                    "{}, which `join` (xtask/src/site/joins.rs) should have joined: `{}`",
-                    message(&run.text, &split),
-                    joined(&run.text, &split, "\u{a0}")
-                )
-            })
-        })
-        .collect()
+    let mut problems = Vec::new();
+    for run in html_runs(html) {
+        for split in splits(&run.text) {
+            problems.push(format!(
+                "{}, which `join` (xtask/src/site/joins.rs) should have joined: `{}`",
+                message(&run.text, &split),
+                joined(&run.text, &split, "\u{a0}")
+            ));
+        }
+        problems.extend(unit_after_equations(&run));
+    }
+    problems
+}
+
+/// Each inline equation in `run` that ends in a number with a unit after it, as a message. A
+/// browser can end a line after an equation's box even at a no-break space, so the unit goes
+/// inside the equation, where no line ends (`= 4593\,\mathrm{ft}$`).
+fn unit_after_equations(run: &HtmlRun) -> Vec<String> {
+    let mut problems = Vec::new();
+    for (end, number) in &run.equations {
+        let rest = &run.text[*end..];
+        let after = rest.trim_start();
+        if after.len() == rest.len() {
+            continue;
+        }
+        let at = run.text.len() - after.len();
+        if let Some(unit_end) = unit_after(&run.text, at) {
+            let unit = &run.text[at..unit_end];
+            problems.push(format!(
+                "an equation ending in `{number}` has its unit, `{unit}`, after it in \"{}\", where a \
+                 line can break even at a no-break space: write the unit inside the equation, \
+                 `{number}\\,\\mathrm{{{unit}}}$` (data.md, Numbers)",
+                super::figures::context(&run.text, *end..unit_end)
+            ));
+        }
+    }
+    problems
 }
 
 /// The built pages [`join`] and [`check`] read: every HTML file but the API reference's.
@@ -628,30 +657,30 @@ mod tests {
     }
 
     #[test]
-    fn inline_math_that_ends_with_a_number_is_a_figure() {
-        // An inline equation ending in a number holds its unit after it; one ending in a symbol,
-        // and display math, which is a block of its own, don't.
+    fn a_unit_after_an_equation_that_ends_in_a_number_fails() {
+        // Chrome can end a line between an equation's box and a no-break space after it, so an
+        // inline equation ending in a number takes its unit inside it. One ending in a symbol,
+        // display math, a block of its own, and a figure before an equation don't count, and
+        // nothing is joined across an equation.
         let html = "<p>its altitude <math><mrow><mo>=</mo><mn>4593</mn></mrow></math> ft, \
                     <math><msup><mn>10</mn><mn>4</mn></msup></math> m, \
-                    <math><mn>2</mn><mi>x</mi></math> s and <math><mi>v</mi></math> m</p>\
+                    <math><mn>7</mn></math>&nbsp;kg, <math><mn>2</mn><mi>x</mi></math> s, \
+                    <math><mi>v</mi></math> m, 5 <math><mi>x</mi></math> m</p>\
                     <p><math display=\"block\"><mn>5</mn></math> m</p>";
-        assert_eq!(page_splits(html).len(), 2, "{:?}", page_splits(html));
+        let problems = page_splits(html);
+        assert_eq!(problems.len(), 3, "{problems:#?}");
         assert!(
-            page_splits(html)[0].contains("`4593 ft` in \"its altitude 4593 ft,"),
+            problems[0].starts_with("an equation ending in `4593` has its unit, `ft`, after it")
+                && problems[0].ends_with("`4593\\,\\mathrm{ft}$` (data.md, Numbers)"),
             "{}",
-            page_splits(html)[0]
+            problems[0]
         );
-        let (joined, count) = joined_html(html);
-        assert_eq!(count, 2);
-        assert_eq!(
-            joined,
-            html.replacen("</math> ft", "</math>\u{a0}ft", 1).replacen(
-                "</msup></math> m",
-                "</msup></math>\u{a0}m",
-                1
-            )
-        );
-        assert!(page_splits(&joined).is_empty());
+        assert!(problems[1].contains("ending in `4`") && problems[2].contains("`7`"));
+        assert_eq!(joined_html(html), (html.to_owned(), 0));
+        // The unit inside the equation passes.
+        let inside = "<p>its altitude <math><mn>4593</mn><mspace width=\"0.1667em\"/>\
+                      <mi mathvariant=\"normal\">ft</mi></math>, read back</p>";
+        assert!(page_splits(inside).is_empty());
     }
 
     #[test]

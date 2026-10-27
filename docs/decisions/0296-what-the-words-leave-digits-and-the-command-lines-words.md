@@ -1,7 +1,7 @@
 # ADR-296: What the words leave: the figures' digits and the command line's words, M0.9g (2026-10-27)
 
 - **Status:** accepted; adds [M0.9g][m0-9g] under [M0.9][m0-9], after [M0.9f][m0-9f] ([ADR-295][adr-295]) is done
-- **Summary:** M0.9f holds the site's pages and both READMEs to #476's writing rules, and `hpr sim`'s warnings to 40 words a sentence. Ten rows of the design audit named M0.9f for gaps its *done when* doesn't cover: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads for dates, joined names, colons or table heads (#973). M0.9g holds both, queued after M0.13.
+- **Summary:** Ten rows of the design audit named M0.9f for gaps outside its *done when*: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads (#973). M0.9g holds both, queued after M0.13.
 
 [m0-9]: ../decisions-and-roadmap.md#m0-9
 [m0-9f]: ../decisions-and-roadmap.md#m0-9f

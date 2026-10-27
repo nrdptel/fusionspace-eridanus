@@ -1730,14 +1730,14 @@ reading nor any replacement has a reference.
 center of pressure 16.9492 [calibers](../glossary.md#caliber) aft of the nose tip. Each row
 is the change from that. **Down** means the body narrows from that joint aft, **up** that it widens:
 
-| the step, and which joint it is at | normal force | center of pressure, calibers |
+| the step and its joint | normal force | center of pressure, calibers |
 |---|--:|--:|
-| down 2.8e−11 m, the first size measured past the threshold, at any of the three joints | −8.65% | +1.0285 |
+| down 2.8e−11 m, the first size past the threshold, at any joint | −8.65% | +1.0285 |
 | down 1 mm (0.039 in), at the nose's joint | −10.62% | +1.1938 |
 | down 1 mm (0.039 in), at the last joint | −10.29% | +0.9949 |
 | down 2 mm (0.079 in), at the nose's joint | −12.55% | +1.3593 |
 | down 2 mm (0.079 in), at the last joint | −11.89% | +0.9597 |
-| up 2.8e−11 m, at any of the three joints | −8.65% | +1.0285 |
+| up 2.8e−11 m, at any joint | −8.65% | +1.0285 |
 | up 1 mm (0.039 in), at the nose's joint | −6.72% | +0.8674 |
 | up 1 mm (0.039 in), at the last joint | −7.05% | +1.0644 |
 | up 2 mm (0.079 in), at the nose's joint | −4.75% | +0.7064 |
@@ -2590,7 +2590,7 @@ Reynolds number $5 \times 10^6$ per meter:
 | without pods | | | 12.374 | 1.0662 | 0.5051 | | −35.215 |
 | with three pods | 0.2743 | 0.3833 m (1.258 ft) | 13.197 ($+3 \times 0.2743$) | 1.0237 | 0.6386 | 0.0074, 0.0127, 0.0592, 0.0542 | −36.118 (−0.903) |
 
-One cone's slope is $2(10/27)^2$ per radian and its center of pressure $0.35 + \tfrac23 \cdot 0.05$ m. The pods' share of drag is the cones' friction and pressure, then the tubes' friction and base. Their share of roll damping is $-2 \cdot 0.2743 \cdot 3 \cdot 0.04^2/0.054^2$.
+One cone's slope is $2(10/27)^2$ per radian and its center of pressure $0.35 + \tfrac23 \cdot 0.05\,\mathrm{m}$. The pods' share of drag is the cones' friction and pressure, then the tubes' friction and base. Their share of roll damping is $-2 \cdot 0.2743 \cdot 3 \cdot 0.04^2/0.054^2$.
 
 The pods move the center of pressure about 43 mm (1.7 in), 0.79 [calibers](../glossary.md#caliber),
 forward, and add 26% to the drag. The test `the_aero_page_s_pod_example` holds this table to the

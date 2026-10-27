@@ -347,7 +347,7 @@ tubes 25 mm (0.98 in) from the axis, with the first tube's motor out, adds these
 **Worked example.** The tests' single-stage rocket
 ([`synthetic-54mm-three-fin`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json))
 has its mount made a ring of three tubes, with a Cesaroni 411I175-14A in each. The tubes sit
-$A = 0.02$ m from the axis, at 0°, 120° and 240°. The angles are measured from the body's $x$
+$A = 0.02\,\mathrm{m}$ from the axis, at 0°, 120° and 240°. The angles are measured from the body's $x$
 axis toward its $y$ axis, as in [frames](frames.md). It is an equation check, not a buildable
 rocket. Three 38 mm motors don't fit a 54 mm (2.1 in) body, and the design checks say so. It is
 held at rest in a vacuum, so no air and no motion add anything to the motors' push. With the motor at 0° out, 1 s into the burn:
@@ -496,7 +496,7 @@ about its own axis and center:
 | its roll inertia, the two cylinders' $m(r_o^2 + r_i^2)/2$ and $m r^2/2$ added | 3.869e-6 kg m² |
 | its pitch inertia, each cylinder's $m(3(r_o^2 + r_i^2) + L^2)/12$ and its own $m\,\Delta z^2$ | 2.53675e-4 kg m² |
 
-Each pod's axis is $d = 0.05$ m off the body's. A pod's parallel-axis term about a line through
+Each pod's axis is $d = 0.05\,\mathrm{m}$ off the body's. A pod's parallel-axis term about a line through
 the body's axis is $m$ times the square of the pod's distance from that line. Both pods lie on the
 $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d^2$ =
 1.6781e-4 kg m² each:
@@ -511,7 +511,7 @@ $x$ axis, so they add nothing about it. About the $y$ and $z$ axes they add $m d
 The pods' roll inertia is 44 times what it would be with both on the axis: nearly all of it is the
 parallel-axis term. The test `a_pod_is_its_stack_repeated_with_its_parallel_axis_term` in
 `hpr-design` pins these to 1e-15. It also pins a single pod at 90° ($y = d$), with its center at
-$z = -0.39041$ m. About the nose tip, the pod's
+$z = -0.39041\,\mathrm{m}$. About the nose tip, the pod's
 [product of inertia](../glossary.md#product-of-inertia) is $I_{yz} = -m y z$ = 0.067125 × 0.05 ×
 0.39041 = 1.3103e-3 kg m².
 
@@ -719,7 +719,7 @@ moves the center of gravity forward and raises the stability margin.
   `internal_part_past_parent_end` already names it.
 
 **A worked example.** Take a conical nose 200 mm (7.9 in) long and 27 mm (1.1 in) in radius at its
-base. Its wall is 2 mm (0.079 in). It has $0.135\,x - 0.002$ m of room at $x$ m from its tip. A
+base. Its wall is 2 mm (0.079 in). It has $0.135\,x - 0.002\,\mathrm{m}$ of room at $x$ m from its tip. A
 tube 24.5 mm (0.96 in) in radius runs through its aft 100 mm (3.9 in). It has 25.0 mm
 (0.98 in) of room at the base and 11.5 mm (0.45 in) at its forward end. That's 13 mm (0.51 in) too
 little. It's wedged, a warning, far past the 0.5 mm (0.020 in) tolerance of the 23 mm (0.91 in) bore at
