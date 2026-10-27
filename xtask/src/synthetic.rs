@@ -30,10 +30,12 @@ use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
 
 use hpr_flightdata::readings::Clip;
+use hpr_flightdata::smoother::{GnssTrust, Options};
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
 use hpr_forensics::synthetic::logger::Profile;
+use hpr_forensics::synthetic::smoothed::{self, Checked, SetCheck};
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +64,43 @@ struct Report {
     errors: Vec<Errors>,
     /// The tuning set's top accelerations against their parts' ranges.
     tops: Tops,
+    /// The smoother held to each set's truth, in [`Set::ALL`]'s order.
+    smoother: Vec<SmootherSet>,
+    /// A health card for each logger: its first smoothed flight in the tuning set.
+    cards: Vec<Card>,
+}
+
+/// One set's smoother check (M7.2d), and the same flights with each GNSS receiver trusted from
+/// liftoff.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct SmootherSet {
+    /// The set.
+    set: Set,
+    /// The check, to three significant figures.
+    check: SetCheck,
+    /// The flights whose log has a GNSS track, smoothed again with the receiver trusted from
+    /// liftoff (`GnssTrust::FromLiftoff`); the others keep their check.
+    gnss_rerun: u64,
+    /// The cells with those flights trusted from liftoff, to three significant figures.
+    gnss_from_liftoff: Vec<smoothed::Cell>,
+}
+
+impl SmootherSet {
+    /// Whether every cell of the trusted-from-liftoff check holds: it shouldn't.
+    fn mutation_holds(&self) -> bool {
+        self.gnss_from_liftoff.iter().all(|c| c.holds)
+    }
+}
+
+/// One flight's health card.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct Card {
+    /// Its logger.
+    logger: String,
+    /// The flight's index in the tuning set.
+    flight: u64,
+    /// The card, as `Health::card` writes it.
+    card: String,
 }
 
 /// The tuning set's top accelerations against the ranges their parts clip at: whether a top
@@ -134,14 +173,47 @@ struct Clipped {
 /// Runs the command.
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
-    for arg in args {
+    let mut probe: Option<(Set, u64, Options)> = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--smoother" => {
+                let set = match args.next().map(String::as_str) {
+                    Some("tuning") => Set::Tuning,
+                    Some("a") => Set::A,
+                    Some("b") => Set::B,
+                    other => return Err(format!("--smoother takes tuning, a or b, not {other:?}")),
+                };
+                probe = Some((set, set.count(), Options::default()));
+            }
+            "--count" => {
+                let count = args
+                    .next()
+                    .and_then(|n| n.parse().ok())
+                    .ok_or("--count takes a number")?;
+                probe.as_mut().ok_or("--count comes after --smoother")?.1 = count;
+            }
+            "--trust-gnss-from-liftoff" => {
+                probe
+                    .as_mut()
+                    .ok_or("--trust-gnss-from-liftoff comes after --smoother")?
+                    .2
+                    .gnss_trust = GnssTrust::FromLiftoff;
+            }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
+    if let Some((set, count, options)) = probe {
+        let checks: Vec<Checked> = smooth_set(set, count, &files, options, false)?
+            .into_iter()
+            .map(|(_, check, _)| check)
+            .collect();
+        print!("{}", smoother_table(set, &smoothed::tally(&checks)));
+        return Ok(());
+    }
     let (flights, each) = read_logs(Set::Tuning.count(), &files)?;
     let tallies = held::tally(&flights);
     let missed = misses(&tallies);
@@ -149,6 +221,51 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(format!(
             "a reading's error passes its bound on the tuning set:\n{}",
             missed.join("\n")
+        ));
+    }
+    let mut smoother = Vec::new();
+    let mut cards = Vec::new();
+    for set in Set::ALL {
+        let (made, set_cards) = smoother_set(set, &files)?;
+        println!(
+            "{}: smoother {}, {} flights; trusting GNSS from liftoff {}",
+            set.name(),
+            if made.check.holds() { "holds" } else { "fails" },
+            made.check.flights,
+            if made.mutation_holds() {
+                "holds"
+            } else {
+                "fails"
+            }
+        );
+        if set == Set::Tuning {
+            cards = set_cards;
+        }
+        smoother.push(made);
+    }
+    let broken: Vec<String> = smoother
+        .iter()
+        .flat_map(|s| {
+            let fails = (!s.check.holds()).then(|| format!("{}: the smoother fails", s.set.name()));
+            // A step the pass back couldn't solve is a filter that lost the track.
+            let unsmoothed = (s.check.health.unsmoothed_steps > 0).then(|| {
+                format!(
+                    "{}: {} steps the pass back couldn't smooth",
+                    s.set.name(),
+                    s.check.health.unsmoothed_steps
+                )
+            });
+            // The tuning set's 200 flights are too few for a band at 99.9% to show the mutation's
+            // misses; the two evaluation sets of 1,000 must.
+            let mutation = (s.set != Set::Tuning && s.mutation_holds())
+                .then(|| format!("{}: trusting GNSS from liftoff holds", s.set.name()));
+            fails.into_iter().chain(unsmoothed).chain(mutation)
+        })
+        .collect();
+    if !broken.is_empty() {
+        return Err(format!(
+            "the smoother's check (M7.2d) doesn't come out as it must:\n{}",
+            broken.join("\n")
         ));
     }
     let report = Report {
@@ -163,6 +280,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
         readings: tallies.iter().map(rounded).collect(),
         errors: held::errors(&flights).iter().map(rounded_errors).collect(),
         tops: tops(&flights, &each),
+        smoother,
+        cards,
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let page = markdown(&report);
@@ -263,6 +382,209 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
         .map(|row| row.unwrap_or_else(|| Err("its thread panicked".to_owned())))
         .collect();
     census::from_rows(set, &rows)
+}
+
+/// One flight's index, its check, and with `mutate` and a GNSS track, its check with the
+/// receiver trusted from liftoff.
+type Smoothed = (u64, Checked, Option<Checked>);
+
+/// Smooths the first `count` flights of `set` on every core and checks each against its truth,
+/// in the flights' order; a flight that doesn't fly is left out, as the census counts it. With
+/// `mutate`, each log with a GNSS track the smoother takes is smoothed again with the receiver
+/// trusted from liftoff. A flight whose smoothing panics is an error, not a flight left out: a
+/// check over the rest would hold on fewer flights than it says.
+fn smooth_set(
+    set: Set,
+    count: u64,
+    files: &DesignFiles,
+    options: Options,
+    mutate: bool,
+) -> Result<Vec<Smoothed>, String> {
+    let threads = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(16) as u64;
+    let mut checks: Vec<Option<Smoothed>> = vec![None; count as usize];
+    let mut panicked: Vec<String> = Vec::new();
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads)
+            .map(|start| {
+                let files = files.clone();
+                scope.spawn(move || {
+                    let mut flyer = Flyer::new(files);
+                    let mut done = Vec::new();
+                    for index in (start..count).step_by(threads as usize) {
+                        let Ok(flight) = flyer.flight(set, index) else {
+                            continue;
+                        };
+                        let smoothed = panic::catch_unwind(AssertUnwindSafe(|| {
+                            let check = smoothed::check(&flight, options);
+                            let mutated = (mutate && check.has_gnss && check.withheld.is_none())
+                                .then(|| {
+                                    let trusted = Options {
+                                        gnss_trust: GnssTrust::FromLiftoff,
+                                    };
+                                    smoothed::check(&flight, trusted)
+                                });
+                            (index, check, mutated)
+                        }))
+                        .map_err(|payload| {
+                            format!(
+                                "{} flight {index}: the smoother panicked: {}",
+                                set.name(),
+                                panic_message(&*payload)
+                            )
+                        });
+                        done.push((index, smoothed));
+                    }
+                    done
+                })
+            })
+            .collect();
+        for handle in handles {
+            match handle.join() {
+                Ok(done) => {
+                    for (index, smoothed) in done {
+                        match smoothed {
+                            Ok(check) => checks[index as usize] = Some(check),
+                            Err(message) => panicked.push(message),
+                        }
+                    }
+                }
+                Err(payload) => panicked.push(format!(
+                    "{}: a smoothing thread panicked: {}",
+                    set.name(),
+                    panic_message(&*payload)
+                )),
+            }
+        }
+    });
+    if panicked.is_empty() {
+        Ok(checks.into_iter().flatten().collect())
+    } else {
+        Err(panicked.join("\n"))
+    }
+}
+
+/// A set's smoother check and its trusted-from-liftoff mutation for the report, with a health
+/// card for each logger's first smoothed flight.
+fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>), String> {
+    let all = smooth_set(set, set.count(), files, Options::default(), true)?;
+    let mut cards = Vec::new();
+    for profile in Profile::ALL {
+        if let Some((index, health)) = all.iter().find_map(|(index, check, _)| {
+            (check.profile == profile)
+                .then_some(check.health.as_ref())
+                .flatten()
+                .map(|h| (*index, h))
+        }) {
+            cards.push(Card {
+                logger: profile.name().to_owned(),
+                flight: index,
+                card: health.card(),
+            });
+        }
+    }
+    let gnss_rerun = all.iter().filter(|(_, _, m)| m.is_some()).count() as u64;
+    let checks: Vec<Checked> = all.iter().map(|(_, c, _)| c.clone()).collect();
+    let mutated: Vec<Checked> = all
+        .into_iter()
+        .map(|(_, check, mutated)| mutated.unwrap_or(check))
+        .collect();
+    let mut check = smoothed::tally(&checks);
+    round_health(&mut check.health);
+    round_cells(&mut check.cells);
+    for cells in check.by_logger.values_mut() {
+        round_cells(cells);
+    }
+    let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
+    round_cells(&mut gnss_from_liftoff);
+    Ok((
+        SmootherSet {
+            set,
+            check,
+            gnss_rerun,
+            gnss_from_liftoff,
+        },
+        cards,
+    ))
+}
+
+/// Cells to three significant figures, as the report holds them; whether each holds is decided
+/// before.
+fn round_cells(cells: &mut [smoothed::Cell]) {
+    for c in cells {
+        c.coverage = census::three_figures(c.coverage);
+        c.median_sd = census::three_figures(c.median_sd);
+        c.largest_sd = census::three_figures(c.largest_sd);
+        for share in &mut c.lowest_miss_share {
+            *share = census::three_figures(*share);
+        }
+    }
+}
+
+/// The health sums to three significant figures, as the report holds them. A flight's log ends
+/// `ground_s` after the simulated landing, and the landing's time differs from one platform to
+/// another, so a log can end a sample sooner on one; the sums, unlike the census's counts of
+/// flights, then differ by a sample (ADR-299 item 11). A zero stays zero, so a step the pass
+/// back couldn't smooth still shows.
+fn round_health(health: &mut smoothed::HealthTally) {
+    let figures = |n: &mut u64| *n = census::three_figures(*n as f64).round() as u64;
+    for t in health.sensors.values_mut() {
+        for n in [
+            &mut t.logs,
+            &mut t.samples,
+            &mut t.rejected,
+            &mut t.unweighed,
+            &mut t.resets,
+            &mut t.logs_rejecting,
+        ] {
+            figures(n);
+        }
+    }
+    for n in [
+        &mut health.transonic_spans,
+        &mut health.charge_spans,
+        &mut health.gnss_trusted,
+        &mut health.unsmoothed_steps,
+    ] {
+        figures(n);
+    }
+}
+
+/// A set's smoother check as text.
+fn smoother_table(set: Set, check: &SetCheck) -> String {
+    let mut out = format!(
+        "{}: {} flights, withheld {:?}, holds: {}\n",
+        set.name(),
+        check.flights,
+        check.withheld,
+        check.holds()
+    );
+    let row = |out: &mut String, c: &smoothed::Cell| {
+        let _ = writeln!(
+            out,
+            "  {:<15} {:<7} n {:>5} below {:>4} above {:>4} cover {:.3} sd {:>9.3} max {:>9.3} {}",
+            c.moment.name(),
+            c.state.name(),
+            c.flights,
+            c.below,
+            c.above,
+            c.coverage,
+            c.median_sd,
+            c.largest_sd,
+            if c.holds { "" } else { "FAILS" }
+        );
+    };
+    for c in &check.cells {
+        row(&mut out, c);
+    }
+    for (logger, cells) in &check.by_logger {
+        let _ = writeln!(out, " {logger}");
+        for c in cells {
+            row(&mut out, c);
+        }
+    }
+    out
 }
 
 /// One tuning flight's logs, each named, with each reading's outcome.
@@ -615,7 +937,183 @@ fn markdown(report: &Report) -> String {
     }
     readings_section(&mut page, &report.readings);
     errors_section(&mut page, &report.errors, &report.tops);
+    smoother_section(&mut page, &report.smoother, &report.cards);
     page
+}
+
+/// A cell as the page shows it: the share inside the interval, as a percentage, and how many
+/// truths fell below and above it.
+fn cell_text(c: &smoothed::Cell) -> String {
+    format!(
+        "{}% ({} / {}){}",
+        number(census::three_figures(100.0 * c.coverage)),
+        c.below,
+        c.above,
+        if c.holds { "" } else { " **fails**" }
+    )
+}
+
+/// The page's section on the smoother held to each set's truth (M7.2d).
+fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
+    page.push_str(
+        "\n## The smoother against the truth\n\n\
+         Each flight's own log smoothed (`hpr_flightdata::smoother`, M7.2d, ADR-299) and its \
+         height above the pad and vertical speed compared with the truth's at burnout, the top \
+         vertical speed, apogee and one moment drawn per flight. Each cell gives the share of \
+         flights whose truth lies inside the smoother's 90% interval, then how many lay below and \
+         above it. A cell **fails** when the lower edge of the 99.9% Clopper–Pearson band on \
+         either side's miss share is above 5%. Logs without a barometer are withheld.\n\n",
+    );
+    let header = |page: &mut String| {
+        page.push_str("| Moment | State |");
+        for s in sets {
+            let _ = write!(page, " {} |", title(s.set));
+        }
+        page.push_str("\n|---|---|");
+        for _ in sets {
+            page.push_str("---:|");
+        }
+        page.push('\n');
+    };
+    let rows = |page: &mut String,
+                pick: &dyn Fn(&SmootherSet) -> &[smoothed::Cell],
+                show: fn(&smoothed::Cell) -> String| {
+        let Some(first) = sets.first() else { return };
+        for (k, c) in pick(first).iter().enumerate() {
+            let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
+            for s in sets {
+                let _ = write!(page, " {} |", pick(s).get(k).map_or_else(String::new, show));
+            }
+            page.push('\n');
+        }
+    };
+    header(page);
+    page.push_str("| Flights smoothed | |");
+    for s in sets {
+        let withheld: u64 = s.check.withheld.values().sum();
+        let _ = write!(page, " {} |", s.check.flights - withheld);
+    }
+    page.push('\n');
+    rows(page, &|s| &s.check.cells, cell_text);
+    page.push_str(
+        "\n### The standard errors\n\nThe median and the largest, of height in m and of speed in \
+         m/s.\n\n",
+    );
+    header(page);
+    rows(page, &|s| &s.check.cells, |c| {
+        format!("{} / {}", number(c.median_sd), number(c.largest_sd))
+    });
+    page.push_str(
+        "\n### By logger\n\nThe share inside the interval, each set's flights by logger.\n\n",
+    );
+    for s in sets {
+        let _ = writeln!(page, "#### {}\n", title(s.set));
+        page.push_str("| Moment | State |");
+        for logger in s.check.by_logger.keys() {
+            let _ = write!(page, " {logger} |");
+        }
+        page.push_str("\n|---|---|");
+        for _ in s.check.by_logger.keys() {
+            page.push_str("---:|");
+        }
+        page.push('\n');
+        for (k, c) in s.check.cells.iter().enumerate() {
+            let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
+            for cells in s.check.by_logger.values() {
+                let _ = write!(
+                    page,
+                    " {} |",
+                    cells.get(k).map_or_else(String::new, cell_text)
+                );
+            }
+            page.push('\n');
+        }
+        page.push('\n');
+    }
+    page.push_str(
+        "### Trusting the GNSS receiver from liftoff\n\n\
+         The same flights, each log with a GNSS track smoothed again with its receiver trusted \
+         from liftoff rather than once its speed agrees with the smoother's. A receiver lags a \
+         climb, so this must fail.\n\n",
+    );
+    header(page);
+    page.push_str("| Flights smoothed again | |");
+    for s in sets {
+        let _ = write!(page, " {} |", s.gnss_rerun);
+    }
+    page.push('\n');
+    rows(page, &|s| &s.gnss_from_liftoff, cell_text);
+    page.push_str("\n### Health\n\nThe smoothed flights' health cards, summed.\n\n");
+    let names: Vec<&String> = {
+        let mut names: Vec<&String> = sets
+            .iter()
+            .flat_map(|s| s.check.health.sensors.keys())
+            .collect();
+        names.sort();
+        names.dedup();
+        names
+    };
+    page.push_str("| |");
+    for s in sets {
+        let _ = write!(page, " {} |", title(s.set));
+    }
+    page.push_str("\n|---|");
+    for _ in sets {
+        page.push_str("---:|");
+    }
+    page.push('\n');
+    let line = |page: &mut String, name: &str, value: &dyn Fn(&SmootherSet) -> String| {
+        let _ = write!(page, "| {name} |");
+        for s in sets {
+            let _ = write!(page, " {} |", value(s));
+        }
+        page.push('\n');
+    };
+    for name in names {
+        let get = |s: &SmootherSet| {
+            s.check
+                .health
+                .sensors
+                .get(name)
+                .cloned()
+                .unwrap_or_default()
+        };
+        line(page, &format!("{name}: logs"), &|s| get(s).logs.to_string());
+        line(
+            page,
+            &format!("{name}: samples rejected / logged / not weighed"),
+            &|s| {
+                let t = get(s);
+                format!("{} / {} / {}", t.rejected, t.samples, t.unweighed)
+            },
+        );
+        line(page, &format!("{name}: logs with a rejection"), &|s| {
+            get(s).logs_rejecting.to_string()
+        });
+        line(page, &format!("{name}: resets"), &|s| {
+            get(s).resets.to_string()
+        });
+    }
+    line(page, "GNSS receivers trusted", &|s| {
+        s.check.health.gnss_trusted.to_string()
+    });
+    line(page, "Transonic spans de-weighted", &|s| {
+        s.check.health.transonic_spans.to_string()
+    });
+    line(page, "Charge spans de-weighted", &|s| {
+        s.check.health.charge_spans.to_string()
+    });
+    line(page, "Steps the pass back kept forward", &|s| {
+        s.check.health.unsmoothed_steps.to_string()
+    });
+    page.push_str("\n### A health card for each logger\n\nEach logger's first smoothed flight in the tuning set; times are on the log's clock.\n");
+    for card in cards {
+        let _ = write!(
+            page,
+            "\n**{}**, flight {}:\n\n```text\n{}```\n",
+            card.logger, card.flight, card.card
+        );
+    }
 }
 
 /// How many of [`Quantity::ALL`]'s readings, from its start, are the height track's.
@@ -840,6 +1338,37 @@ mod tests {
     use super::*;
 
     #[test]
+    fn the_health_sums_hold_the_digits_every_platform_shares() {
+        let sums = |samples: u64, unsmoothed: u64| {
+            let mut health = smoothed::HealthTally {
+                unsmoothed_steps: unsmoothed,
+                ..Default::default()
+            };
+            health.sensors.insert(
+                "barometer".to_owned(),
+                smoothed::SensorTally {
+                    samples,
+                    rejected: 13_436,
+                    resets: 35,
+                    ..Default::default()
+                },
+            );
+            round_health(&mut health);
+            health
+        };
+        // A log a sample shorter on one platform leaves the sums the same.
+        assert_eq!(sums(4_859_244, 0), sums(4_859_243, 0));
+        let held = &sums(4_859_244, 0).sensors["barometer"];
+        assert_eq!(
+            (held.samples, held.rejected, held.resets),
+            (4_860_000, 13_400, 35)
+        );
+        // A step the pass back couldn't smooth still shows.
+        assert_eq!(sums(4_859_244, 0).unsmoothed_steps, 0);
+        assert_eq!(sums(4_859_244, 1).unsmoothed_steps, 1);
+    }
+
+    #[test]
     fn the_threaded_readings_are_the_readings_taken_in_order() {
         let root = crate::designs::root().unwrap();
         let files = design_files(&root).unwrap();
@@ -917,6 +1446,8 @@ mod tests {
                 floors: Floors::default(),
                 clipped: Vec::new(),
             },
+            smoother: Vec::new(),
+            cards: Vec::new(),
         });
         assert!(page.contains("| A | 0 |"), "{page}");
         assert!(page.contains("first \\| second third |"), "{page}");

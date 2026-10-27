@@ -441,10 +441,9 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its
-    stated error, coverage per state reported; trusting GNSS from liftoff fails; a health card.
   - [ ] **M7.2e The 90% intervals.** *Done when:* ADR-257 §1–2's test passes, probes failing, on
-    both test sets for every reading given; intervals in the library, `hpr analyze` and Python.
+    both test sets for every reading given; intervals in the library, `hpr analyze` and Python,
+    with the smoother's health card (ADR-299).
   - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
