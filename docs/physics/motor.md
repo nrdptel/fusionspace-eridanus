@@ -109,14 +109,14 @@ The whole program is [at the end of this page](#the-example-program).
 ### The bundled motors
 
 Each curve is a ThrustCurve.org file marked public domain, bundled unchanged. The size, masses and
-delays come from its header, and the rest is worked out from its curve. Each motor's
-ThrustCurve.org record, the figures its site lists, is bundled too, as published facts with
+delays come from its header, and the rest is worked out from its curve. Its ThrustCurve.org
+record's impulse, thrusts and burn time are bundled too, as published facts with
 credit ([third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
 They aren't the maker's data. Each file is checked against them: its total impulse, average
 thrust and burn time must each be within 1% of the record's to pass. A gap is the file's figure
 less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
 passing file where it has one, else the first by format and by who measured it. Today each of
-the 32 has one file, and it passes. Flying a failing file warns, naming each failing figure:
+the 32 has one file, and it passes. Flying a failing file in `hpr sim` warns, naming each failing figure:
 `burn time +2.00%`. Check such a file against the maker's data.
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
 and a test fails if the committed one differs.

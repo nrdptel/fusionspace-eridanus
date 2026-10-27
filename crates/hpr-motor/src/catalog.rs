@@ -238,7 +238,7 @@ impl FigureGap {
         if self.within_bound() {
             return text;
         }
-        if !(self.stated > 0.0) {
+        if self.stated.is_nan() || self.stated <= 0.0 {
             return "n/a".to_owned();
         }
         while decimals < 17 && rounds_inside(&text) {
