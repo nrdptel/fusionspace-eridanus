@@ -58,8 +58,9 @@ record figures, which the pinned capture holds for the 32 bundled motors.
    data, and its *done when* also holds M5.7a's check, default, listing and warning on every file
    it adds, so the second bullet covers the whole catalog, not only the 32. `xtask
    motor-catalog` refuses a file more than 1% off today, the rule the 32 were chosen by; M5.7b
-   stores such files instead, each with its failing check. M5.7c's oracle fixture runs ThrustCurve.org's statistics code over M5.7b's files.
-   M5.7d's update compares with M5.7b's bundle date.
+   stores such files instead, each with its failing check. M5.7c's oracle fixture runs
+   ThrustCurve.org's statistics code over M5.7b's files. M5.7d's update compares with M5.7b's
+   bundle date.
 3. **The record figures are committed.** [ADR-287][adr-287] lets the project use ThrustCurve.org's
    records as published facts. M5.7a commits the 32 bundled motors' records verbatim, copied from
    the pinned 2026-09-17 capture, beside the curve files. `cargo xtask motor-catalog` reads them,
