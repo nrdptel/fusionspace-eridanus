@@ -215,7 +215,8 @@ are 2,200 simulated flights, each with its logger's log and its known truth
 ([Synthetic flights](physics/synthetic-flights.md)). The library's smoother fuses a log's
 barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,
 each with a 90% interval that holds the synthetic flights' truth at least as often as it
-claims; it isn't yet checked against a real flight's ([The smoother](physics/smoother.md)).
+claims on each set, though those sets were seen while its rules were set. It isn't yet checked
+against a real flight's ([The smoother](physics/smoother.md)).
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,

@@ -15,13 +15,15 @@ sensors, and how well its 90% intervals hold.
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-299, the smoother and its check][adr-299].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
-  truth is known. There its intervals hold the truth at least as often as they claim, and more:
-  94.3% to 97.3% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). Sets
+  truth is known. There each set's intervals hold the truth at least as often as they claim:
+  94.3% to 97.3% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). One
+  logger's cell holds only 89.2%, which the check's rule still allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)).
 - **What it leaves out:** the horizontal track and the rocket's attitude. `hpr analyze` and Python
-  get the smoother with [M7.2e, the 90% intervals on every reading](../decisions-and-roadmap.md#m7-2e).
+  get its intervals and health card with
+  [M7.2e, the 90% intervals on every reading](../decisions-and-roadmap.md#m7-2e).
   A log that starts at launch has no pad to zero the barometer on, and is withheld
   ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/982)).
 
@@ -81,10 +83,11 @@ was:
 The intervals are wide on purpose. Most of the height interval comes from the day's air, which a
 log without a GNSS receiver can't measure, and from the port's error. The widest are on
 barometer-only loggers: up to 407 m (1,335 ft) at burnout and 260 m/s (853 ft/s) at a drawn
-moment.
+moment, as the report's JSON gives them per logger.
 
-Trusting the GNSS receiver from liftoff instead fails the check. Of the 186 flights in B whose
-logs have a GNSS track, 146 apogee heights then lay below the interval, and only 82% inside it. Every set, logger and moment is in
+Trusting the GNSS receiver from liftoff instead fails the check. With B's 186 smoothed logs
+that have a GNSS track trusted from liftoff, and its other flights as before, 146 of its 845
+apogee truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
 [the report][report].
 
 ## The health card
@@ -98,7 +101,7 @@ pass back: every step smoothed
 ```
 
 Each sample is fused into the estimate, rejected at the gate, or not weighed (a GNSS fix before
-it is trusted). A reset is a sensor taken back after a second of rejections. The test ratio is
+it is trusted, or an accelerometer sample that is clipped or past apogee). A reset is a sensor taken back after a second of rejections. The test ratio is
 a sample's squared miss over five standard deviations squared. Above 1, the sample is rejected.
 The mean NIS is the squared miss over its variance. It is near 1 when a sensor's noise is what
 the smoother takes it to be. Below 1, the smoother takes the sensor as noisier than it was. The

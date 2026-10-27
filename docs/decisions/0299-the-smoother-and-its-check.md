@@ -1,7 +1,7 @@
 # ADR-299: The smoother and its check on the synthetic flights (2026-10-27)
 
-- **Status:** accepted; records [M7.2d][m7-2d]'s smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* already names both
-- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on every set and logger, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both test sets. Its 90% intervals hold on all three sets: between 94.3% and 100% of the truths lie inside each set's cells.
+- **Status:** accepted; records [M7.2d][m7-2d]'s smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* now names the card beside the intervals
+- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on every set and logger, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both test sets. Its 90% intervals hold on all three sets: between 94.3% and 99.4% of the truths lie inside each set's cells.
 
 [m7-2d]: ../decisions-and-roadmap.md#m7-2d
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
@@ -81,7 +81,8 @@ fell short in five places:
    apogee in every log: from where its running median first comes within 5 m of its top to
    0.5 s after it last is. 5 m is about a second of a coast either side of apogee. Set A's
    apogee-speed cell failed without that span: 65 of 820 truths lay above the interval, and the
-   misses rose with the pulse's size. With it, 18 lie above and 1 below.
+   misses rose with the pulse's size. With it, 18 lay above and 1 below; after the later rules,
+   the report prints 27 above and 5 below, and the cell holds.
 8. **The landing** is where the barometer's running median settles within 5 m for 3 s. From it
    the speed and acceleration are widened by the impact, and the acceleration is given the
    powered jerk. With only the descent's jerk, a ballistic impact at 180 m/s left a tuning
@@ -100,7 +101,7 @@ fell short in five places:
     on public pairs' descents ([the sensor-noise note][noise] §3), far more than a pad shows. A
     pendulum on 3–15 m of cord and lines has a time constant `√(L/g)` of 0.55–1.24 s; 2 s is taken
     because the quadratic takes part of a correlated error's variance out. In the tests, descents
-    swinging by 3–6 m correlated over up to a second keep 92–100% of their heights inside the 90%
+    swinging by 3–6 m correlated over up to a second keep 91.5–100% of their heights inside the 90%
     intervals, and one correlated over 3 s keeps 74%: a barometer alone can't tell a slow swing
     from motion. Swings correlated over 1–1.24 s, the top of the pendulum's range, aren't
     tested. Before the top the scatter is left out: a six-second quadratic reads liftoff's
@@ -122,8 +123,9 @@ fell short in five places:
 11. **The check.** Per set, state and moment, each side's misses of the 90% interval are counted.
     A cell holds when the lower edge of the two-sided 99.9% Clopper–Pearson band on each side's
     miss share is at most 5%, so the flights don't show it missing more often than it says it
-    does. The report gives each cell overall and per logger, with the median and the largest
-    standard error, so an interval that holds only by being wide shows. `cargo xtask synthetic`
+    does. The report gives each cell overall and per logger, and each cell's median and largest
+    standard error overall (per logger in its JSON), so an interval that holds only by being wide
+    shows. `cargo xtask synthetic`
     fails if any cell fails on any set, overall or for a logger, or if any step goes unsmoothed,
     or if a flight's smoothing panics; a moment the smoothed track doesn't reach misses on both
     sides. It also fails if trusting
@@ -134,8 +136,12 @@ fell short in five places:
     mean NIS and largest test ratio; then the de-weighted spans, when GNSS was first trusted, the
     barometer's height less the accelerometer's at apogee, and the steps the pass back kept
     forward. The report sums the cards per set and prints one per logger. Its surfaces in
-    `hpr analyze` and Python come with M7.2e, which carries the intervals there too.
-13. **What was seen before the rules were set.** The rules were found on the tuning set. A and B
+    `hpr analyze` and Python come with M7.2e, whose *done when* now names the card beside the
+    intervals.
+13. **What was seen before the rules were set.** The counts above from before a rule was taken
+    up, and the before-values under Consequences, were measured while it was built and can't be
+    rerun from the repository; the report holds the after-values. The rules were found on the
+    tuning set. A and B
     were run as each change landed, and three changes were found by tracing flights that failed
     there: the apogee rule, the port term at the rate and the landing's jerk. The flight's own
     noise came from the real log in item 10, and A and B were run after it. Its first form,
@@ -153,12 +159,13 @@ fell short in five places:
 
 - On B, the median standard errors are 59 m of height and 11 m/s of speed at burnout, 84 m and
   1.2 m/s at apogee, and 18.5 m and 1.0 m/s at a drawn moment. The day's air, held at its prior
-  without a receiver, and the port's spread make up most of them.
+  without a receiver, and the port's spread are expected to be their largest terms.
 - The widest intervals are on barometer-only loggers, up to about 410 m at burnout and 260 m/s
   at a drawn moment.
   They hold the truth, but say little there.
 - Trusting the receiver from liftoff fails on A and B at apogee and at a drawn moment, where the
-  lagging fix pulls the height: 146 of B's 186 GNSS logs have their apogee below the interval.
+  lagging fix pulls the height. With B's 186 smoothed logs that have a GNSS track trusted from
+  liftoff, and its other flights as before, 146 of its 845 truths at apogee lie below the interval.
 - `cargo xtask synthetic` takes about four minutes on an 8-core Mac, up from 101 s, as each flight
   is smoothed twice and each GNSS log twice more.
 - The flight's own noise widens B's barometer weights past apogee where its loggers scatter more

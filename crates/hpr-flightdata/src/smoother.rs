@@ -5,8 +5,9 @@
 //! **What it is for.** The [readings] take one number each from one track. The
 //! smoother takes the whole flight from every sensor the log holds, and says at each moment how
 //! far the truth may be: its 90% interval is the estimate ± [`INTERVAL_Z`] standard errors. On
-//! HPR Sim's synthetic flights, whose truth is known, those intervals hold the truth at least
-//! as often as they claim (`cargo xtask synthetic` reports it, per state and per moment).
+//! HPR Sim's synthetic flights, whose truth is known, each set's intervals hold the truth at
+//! least as often as they claim (`cargo xtask synthetic` reports it, per state and per moment).
+//! Its rules were set with those sets in view.
 //!
 //! **How far to trust it.** It has not been compared with a real flight's truth. Its errors are
 //! the sensors' errors as the synthetic flights draw them, from the makers' datasheets and
@@ -400,7 +401,7 @@ pub struct SensorHealth {
     /// Those rejected by the gate.
     pub rejected: usize,
     /// Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped
-    /// sample.
+    /// sample or one past apogee.
     pub unweighed: usize,
     /// How many times the sensor was taken back after [`GATE_RESET_S`] of rejections.
     pub resets: usize,
