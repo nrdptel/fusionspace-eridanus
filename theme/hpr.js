@@ -325,7 +325,8 @@ document.addEventListener('click', function (event) {
 // and the rest as a resize observer sees them laid out. It watches an empty ruler at the top of
 // each table's box, as wide as the box and never taller, so stacking, which only makes the box
 // taller, can't set it off again within the frame. One stacked stands again once its box is as
-// wide as it was; the fonts' arrival measures again what is laid out.
+// wide as it was; each font's arrival measures again what is laid out. A link in a head is copied
+// as its text, so a row adds no stop for the keyboard.
 (function () {
     const STACKED = 'fs-stacked';
     function label(table) {
@@ -343,6 +344,7 @@ document.addEventListener('click', function (event) {
                         const copy = document.createElement('span');
                         copy.className = 'fs-head';
                         for (const node of name.childNodes) copy.appendChild(node.cloneNode(true));
+                        for (const link of copy.querySelectorAll('a')) link.replaceWith(...link.childNodes);
                         cell.appendChild(copy);
                     }
                     cell.appendChild(value);
@@ -378,6 +380,8 @@ document.addEventListener('click', function (event) {
         watch.observe(ruler);
     }
     if (document.fonts) {
-        document.fonts.ready.then(function () { boxes.filter(laidOut).forEach(settle); });
+        const again = function () { boxes.filter(laidOut).forEach(settle); };
+        document.fonts.ready.then(again);
+        document.fonts.addEventListener('loadingdone', again);
     }
 })();

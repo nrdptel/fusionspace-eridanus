@@ -674,8 +674,9 @@ has the rules in full):
   Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
   too wide for its column stacks its rows (`theme/hpr.js`): each cell is labeled by a copy of its
   column's head, beside its value, or above it when the value holds a formula. The check fails a
-  table that still scrolls, which only a cell wider than the column can make: a formula or an
-  image. Shorten that cell, or move the formula into the text.
+  table that still scrolls, which only a cell wider than the page's column can make: a formula,
+  an image or a long run of code. The failure names the table's box, not the cell, so look in
+  that table for the widest one, and shorten it or move it into the text.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
 `scripts/gate.sh test site` runs both locally. A failure names the page or figure, the widths,

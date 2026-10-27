@@ -1556,11 +1556,19 @@
           }
         }
       }
-      // A table wider than its box (#498): it scrolls sideways, its last columns out of sight
-      // on a phone, so `hpr.js` stacks its rows instead; one still wider fails.
-      for (const box of main.querySelectorAll('.table-wrapper, table')) {
+      // A table wider than its box (#498): the nearest box around it in `main` that scrolls
+      // sideways, whatever its class, is wider inside than out, and the table's last columns are
+      // out of sight on a phone. `hpr.js` stacks such a table's rows; one still wider fails. A
+      // table's own box always grows to hold its cells, so it is the box around it that tells.
+      const scrollers = new Set();
+      for (const table of main.querySelectorAll('table')) {
+        for (let e = table.parentElement; e && e !== main; e = e.parentElement) {
+          const x = win.getComputedStyle(e).overflowX;
+          if (x === 'auto' || x === 'scroll') { scrollers.add(e); break; }
+        }
+      }
+      for (const box of scrollers) {
         if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
-        if (box.tagName === 'TABLE' && box.parentElement.classList.contains('table-wrapper')) continue;
         note('scrolls', selector(box), (box.scrollWidth - box.clientWidth) + ' px wider inside',
           'than its ' + box.clientWidth + ' px');
       }

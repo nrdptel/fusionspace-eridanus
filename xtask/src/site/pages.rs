@@ -98,8 +98,8 @@
 //!     from the left as from the right, and at least that;
 //!   - **a code block or table held narrower than the column**: one in `main` that scrolls
 //!     sideways inside a box with a `max-width`;
-//!   - **a table wider than its box, scrolling sideways** (#498, ADR-297): a table's wrapper, or
-//!     a table outside one, wider inside than out, which on a phone hides its last columns.
+//!   - **a table wider than its box, scrolling sideways** (#498, ADR-297): the nearest box around
+//!     a table that scrolls sideways, wider inside than out, which on a phone hides its last columns.
 //!     `theme/hpr.js` stacks the rows of a table too wide for its column, each cell labeled by a
 //!     copy of its column's head, so only a cell wider than the column (a formula or a box) fails;
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
@@ -3166,7 +3166,7 @@ const CANARIES: [Canary; 192] = [
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
 fn canary_html(canary: &Canary) -> String {
-    let cells: String = (0..16)
+    let cells: String = (0..2)
         .map(|i| format!("<td>Mach {}.{}</td>", i / 4, (i % 4) * 25))
         .collect();
     let rows: String = (0..4).map(|_| format!("<tr>{cells}</tr>")).collect();
